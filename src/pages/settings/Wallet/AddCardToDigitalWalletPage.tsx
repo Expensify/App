@@ -34,7 +34,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {cardByIdSelector} from '@selectors/Card';
 import React, {useEffect, useRef, useState} from 'react';
@@ -58,7 +57,7 @@ function AddCardToDigitalWalletPage({
     const illustrations = useMemoizedLazyIllustrations(['CardIntoWallet', 'ThumbsUpStars', 'CardDenied']);
     const primaryLogin = usePrimaryContactMethod();
 
-    const [card, cardMetadata] = useOnyx(ONYXKEYS.CARD_LIST, {selector: cardByIdSelector(cardID)});
+    const [card] = useOnyx(ONYXKEYS.CARD_LIST, {selector: cardByIdSelector(cardID)});
     const [isCheckingPendingApproval] = useOnyx(ONYXKEYS.RAM_ONLY_IS_CHECKING_PENDING_WALLET_APPROVAL);
     const currentCardID = card?.cardID;
     const latestError = getLatestErrorMessageField(card);
@@ -116,7 +115,7 @@ function AddCardToDigitalWalletPage({
 
     const isWaitingForPendingApproval = !isOffline && isCheckingPendingApproval !== false && !hasPendingApproval && !submittedRequest;
 
-    if (isWaitingForPendingApproval || (!card && isLoadingOnyxValue(cardMetadata))) {
+    if (isWaitingForPendingApproval) {
         return <FullScreenLoadingIndicator onGoBack={goBackToEntryPoint} />;
     }
 

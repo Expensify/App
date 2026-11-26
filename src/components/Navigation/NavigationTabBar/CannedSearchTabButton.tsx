@@ -37,7 +37,7 @@ type CannedSearchTabButtonProps = {
     /** Every search this tab stands for. The tab reads as selected while any of them is the current search. */
     searchKeys: SearchKey[];
 
-    sentryLabel?: SentryLabel;
+    sentryLabel: SentryLabel;
 };
 
 /** Bottom-bar tab that opens one of the Spend searches, such as Expenses or Reports. */

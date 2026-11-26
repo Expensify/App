@@ -18,6 +18,7 @@ import useOnyx from '@hooks/useOnyx';
 import useReportAttributes from '@hooks/useReportAttributes';
 import {useSearchTypeMenuSectionsForNavigation} from '@hooks/useSearchTypeMenuSections';
 import useShareSavedSearch, {MENU_CLOSE_DELAY_MS} from '@hooks/useShareSavedSearch';
+import useStableReference from '@hooks/useStableReference';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTodoCounts from '@hooks/useTodoCounts';
 
@@ -41,6 +42,8 @@ import {getGroupedSearchTranslationPath, getSpendGroupKeys, shouldHideSpendTabRo
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {accountIDSelector} from '@src/selectors/Session';
+import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 import type {ComponentRef} from 'react';
 
@@ -48,6 +51,7 @@ import type {ComponentRef} from 'react';
 // used for fast perceived performance. If you change the UI here, verify the
 // static version still looks visually identical.
 import {useIsFocused, useNavigation} from '@react-navigation/native';
+import {deepEqual} from 'fast-equals';
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -92,6 +96,10 @@ function SearchTypeMenuNarrowContent({tabs, activeTabKey, onActiveTabPress, onTa
             {children}
         </View>
     );
+}
+
+function isHiddenSavedSearch(savedSearch: SaveSearchItem, isOffline: boolean) {
+    return savedSearch.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !isOffline;
 }
 
 function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps) {
@@ -150,12 +158,11 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
 
     const queryMap = new Map<SearchKey, {query: string; name?: string}>();
     const tabItems: Array<TabSelectorBaseItem<SearchKey>> = [];
-    const savedSearchesPopoverMenuItems: Partial<Record<SearchKey, PopoverMenuItem[]>> = {};
 
     const savedSearchesTabItems: Array<TabSelectorBaseItem<SearchKey>> = savedSearches
         ? Object.entries(savedSearches)
               .map(([key, item]): TabSelectorBaseItem<SearchKey> | null => {
-                  if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !isOffline) {
+                  if (isHiddenSavedSearch(item, isOffline)) {
                       return null;
                   }
 
@@ -163,13 +170,6 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
 
                   const savedSearchKey = savedSearchIDToSearchKey(key);
                   queryMap.set(savedSearchKey, {query: item.query ?? '', name: item.name});
-                  savedSearchesPopoverMenuItems[savedSearchKey] = getOverflowMenu(expensifyIcons, key, translate, showDeleteModal, true, () => setSavedSearchToModifyKey(null), {
-                      onShare: () => {
-                          handleShare(key, item.query);
-                          setTimeout(() => setSavedSearchToModifyKey(null), MENU_CLOSE_DELAY_MS);
-                      },
-                      isCopied: copiedID === key,
-                  });
 
                   return {
                       key: savedSearchKey,
@@ -208,24 +208,38 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
         }
     }
 
+    // The sections are rebuilt on every policy, card or report write. Tab items must stay plain data for deepEqual to match.
+    const stableMenu = useStableReference({tabItems, queryMap}, deepEqual);
+
     // Reports and Accounting each own a group of searches. When the current search belongs to one, the tab row shows
     // only that group, matching the children the wide navigation reveals under the same parent.
     // Saved searches form their own group, keyed by prefix rather than a fixed list.
     const isSavedSearchActive = !!searchKeyToSavedSearchID(currentSearchKey);
     const activeGroupKeys = getSpendGroupKeys(currentSearchKey);
-    let visibleTabItems = tabItems;
+    let visibleTabItems = stableMenu.tabItems;
     if (isSavedSearchActive) {
-        visibleTabItems = tabItems.filter((tab) => !!searchKeyToSavedSearchID(tab.key));
+        visibleTabItems = stableMenu.tabItems.filter((tab) => !!searchKeyToSavedSearchID(tab.key));
     } else if (activeGroupKeys) {
-        visibleTabItems = tabItems.filter((tab) => activeGroupKeys.some((key) => key === tab.key));
+        visibleTabItems = stableMenu.tabItems.filter((tab) => activeGroupKeys.some((key) => key === tab.key));
     }
     const shouldHideTabs = shouldHideSpendTabRow(currentSearchKey);
 
-    const popoverMenuItems = savedSearchToModifyKey ? (savedSearchesPopoverMenuItems?.[savedSearchToModifyKey] ?? []) : [];
+    const savedSearchIDToModify = searchKeyToSavedSearchID(savedSearchToModifyKey ?? undefined);
+    const savedSearchToModify = savedSearchIDToModify ? savedSearches?.[savedSearchIDToModify] : undefined;
+    const popoverMenuItems: PopoverMenuItem[] =
+        savedSearchIDToModify && savedSearchToModify && !isHiddenSavedSearch(savedSearchToModify, isOffline)
+            ? getOverflowMenu(expensifyIcons, savedSearchIDToModify, translate, showDeleteModal, true, () => setSavedSearchToModifyKey(null), {
+                  onShare: () => {
+                      handleShare(savedSearchIDToModify, savedSearchToModify.query);
+                      setTimeout(() => setSavedSearchToModifyKey(null), MENU_CLOSE_DELAY_MS);
+                  },
+                  isCopied: copiedID === savedSearchIDToModify,
+              })
+            : getEmptyArray<PopoverMenuItem>();
     const shouldShowSavedSearchPopover = savedSearchToModifyKey && popoverMenuItems.length > 0;
 
     const handleActiveTabPress = (tabKey: SearchKey) => {
-        const searchData = queryMap.get(tabKey);
+        const searchData = stableMenu.queryMap.get(tabKey);
         if (!searchData) {
             return;
         }
@@ -234,12 +248,12 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
     };
 
     const handleTabPress = (tabKey: SearchKey) => {
-        const searchData = queryMap.get(tabKey);
+        const searchData = stableMenu.queryMap.get(tabKey);
         if (!searchData) {
             return;
         }
         onTabPress?.();
-        const query = normalizeDatePresetsInQuery(getValidLastQuery(getLastSearchQuery(searchFilters, tabKey), searchData.query));
+        const query = normalizeDatePresetsInQuery(getValidLastQuery(getLastSearchQuery(searchFilters, tabKey), searchData.query, tabKey));
         setSearchContext(false);
         navigation.dispatch({
             type: CONST.NAVIGATION.ACTION_TYPE.PUSH_PARAMS,
@@ -247,14 +261,6 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
                 params: {q: query, name: searchData.name, rawQuery: undefined, searchKey: tabKey},
             },
         });
-    };
-
-    const handleLongTabPress = (tabKey: SearchKey) => {
-        if (!savedSearchesPopoverMenuItems?.[tabKey]) {
-            return;
-        }
-
-        setSavedSearchToModifyKey(tabKey);
     };
 
     if (shouldHideTabs) {
@@ -267,7 +273,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
             activeTabKey={currentSearchKey}
             onActiveTabPress={handleActiveTabPress}
             onTabPress={handleTabPress}
-            onLongTabPress={handleLongTabPress}
+            onLongTabPress={setSavedSearchToModifyKey}
             containerRef={menuAnchorRef}
         >
             <PopoverMenu

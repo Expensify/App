@@ -60,3 +60,4 @@ function isTabRouteAtRoot(route: TabRouteLike | undefined): boolean {
 }
 
 export default isTabRouteAtRoot;
+export {isAtTabRootLevel};

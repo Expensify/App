@@ -121,88 +121,26 @@ const restrictedHeaderImportPatterns = [
     {group: ['**/HeaderWithBackButton/**'], message: 'HeaderWithBackButton is being migrated to the composed Header. Please use `@components/Header` instead for new usages.'},
 ];
 
+// castToSentryLabel tells TypeScript a label is defined, so outside the few wrappers that need it, it would hide a missing
+// label. Those wrappers attach their own handlers or get the label from context, so TypeScript can't narrow it there.
+const CAST_TO_SENTRY_LABEL_FILES = [
+    'src/components/Button/Button.tsx',
+    'src/components/MenuItem/MenuItem.tsx',
+    'src/components/Pressable/PressableWithFeedback.tsx',
+    'src/components/PressableWithSecondaryInteraction/index.tsx',
+    'src/components/PressableWithSecondaryInteraction/index.native.tsx',
+];
+const castToSentryLabelImportPatterns = [
+    {
+        group: ['**/castToSentryLabel'],
+        message:
+            'castToSentryLabel is only for the core pressable wrappers. Pass the label with the prop that makes the element pressable, so TypeScript can narrow it. See contributingGuides/SENTRY_LABEL.md.',
+    },
+];
+
 // Headless CLI cannot use useTheme; email charts always render with the light theme.
 const victoryChartRendererRestrictedImportPaths = restrictedImportPaths.filter((entry) => entry.name !== '@styles/theme');
 const victoryChartRendererRestrictedImportPatterns = typescriptRestrictedImportPatterns.filter((entry) => !entry.group.includes('@styles/theme/themes/**'));
-
-/**
- * Pressables and the components that forward their `sentryLabel` prop to one, so the `no-restricted-syntax` rules below can require the label.
- * The lists come from every JSX component whose props accept `sentryLabel`. Inputs (e.g. TextInput) and wrappers that fall back to a default
- * label (e.g. FormProvider, RadioButton) are left out. Don't add new components here: give them a required `sentryLabel` prop instead, which
- * TypeScript checks at every usage. Once a component's usages all have a label, make its prop required and remove it from these lists.
- * Names of compound components are written with dots, e.g. `MenuItem.Root`.
- */
-const SENTRY_LABEL_PRESSABLES = [
-    'PressableWithoutFeedback',
-    'PressableWithFeedback',
-    'PressableWithDelayToggle',
-    'PressableWithoutFocus',
-    'PressableWithSecondaryInteraction',
-    'AnimatedPressableWithoutFeedback',
-    'AnimatedPressableWithSecondaryInteraction',
-];
-
-/** Wrappers that only need a label when they get a press handler, since without one they can render read-only (e.g. a MenuItem without onPress). */
-const SENTRY_LABEL_PRESS_HANDLER_WRAPPERS = [
-    'AvatarButtonWithIcon',
-    'BaseMiniContextMenuItem',
-    'Button',
-    'ButtonDisabledWhenOffline',
-    'ButtonWithDropdownMenu',
-    'CardDetailsActionButton',
-    'CardSectionButton',
-    'Checkbox',
-    'ConfirmationPage.PrimaryButton',
-    'ConfirmationPage.SecondaryButton',
-    'ConfirmationPageButtonBase',
-    'ConfirmationPagePrimaryButton',
-    'ContextMenuItem',
-    'FeatureTraining.HelpButton',
-    'FocusableMenuItem',
-    'FormAlertWithSubmitButton',
-    'HighlightableMenuItem',
-    'MenuItem',
-    'MenuItem.Root',
-    'MenuItemAction',
-    'MenuItemAvatarNavigation',
-    'MenuItemField',
-    'MenuItemFieldHTML',
-    'MenuItemNavigation',
-    'MenuItemRoot',
-    'MenuItemSectionRoot',
-    'MenuItemWithLabel',
-    'MenuItemWithTopDescription',
-    'PopoverMenu.Item',
-    'PopoverMenu.RadioItem',
-    'RowMenuItem',
-    'SelectionButton',
-    'Table.Row',
-    'TableRow',
-    'TabSelectorItem',
-    'ToggleDistanceUnitButton',
-    'ViewButton',
-];
-
-/** Wrappers that handle the press themselves (e.g. ThreeDotsMenu opens its menu), so they always need a label. */
-const SENTRY_LABEL_SELF_PRESS_WRAPPERS = ['AvatarWithImagePicker', 'BookTravelButton', 'FeatureTraining.ConfirmButton', 'PopoverMenu.Sub.Trigger', 'ThreeDotsMenu'];
-
-/** Builds an esquery selector list matching JSX elements named e.g. `Button` or `MenuItem.Root`. */
-function jsxElementNamesSelector(names: string[]): string {
-    return names
-        .map((name) => {
-            const parts = name.split('.');
-            if (parts.length === 1) {
-                return `[name.name="${name}"]`;
-            }
-            return parts
-                .map((part, index) => {
-                    const path = ['name', ...Array<string>(parts.length - 1 - index).fill('object')].join('.');
-                    return index === 0 ? `[${path}.name="${part}"]` : `[${path}.property.name="${part}"]`;
-                })
-                .join('');
-        })
-        .join(', ');
-}
 
 /** `no-restricted-syntax` entries for all code. */
 const restrictedSyntax = [
@@ -229,24 +167,6 @@ const restrictedSyntax = [
     },
     {selector: 'LabeledStatement', message: 'Labels are a form of GOTO; using them makes code confusing and hard to maintain and understand.'},
     {selector: 'WithStatement', message: '`with` is disallowed in strict mode because it makes code impossible to predict and optimize. It is also deprecated.'},
-];
-
-/** `no-restricted-syntax` entries that require a `sentryLabel` on pressables and pressable wrappers. */
-const sentryLabelRestrictedSyntax = [
-    {
-        selector: `JSXOpeningElement:matches(${jsxElementNamesSelector(SENTRY_LABEL_PRESSABLES)}):not(:has(> JSXAttribute[name.name="sentryLabel"]))`,
-        message: 'Pressable components must have a sentryLabel from CONST.SENTRY_LABEL. See contributingGuides/SENTRY_LABEL.md.',
-    },
-    {
-        // Spread props may carry the label, which a selector can't see, so those are skipped.
-        selector: `JSXOpeningElement:matches(${jsxElementNamesSelector(SENTRY_LABEL_PRESS_HANDLER_WRAPPERS)}):has(> JSXAttribute[name.name=/^on(Press|LongPress|SecondaryInteraction|Select|Submit)$/]):not(:has(> JSXAttribute[name.name="sentryLabel"])):not(:has(> JSXSpreadAttribute))`,
-        message: 'Button, MenuItem and other pressable wrappers that handle a press must have a sentryLabel from CONST.SENTRY_LABEL. See contributingGuides/SENTRY_LABEL.md.',
-    },
-    {
-        // Spread props may carry the label, which a selector can't see, so those are skipped.
-        selector: `JSXOpeningElement:matches(${jsxElementNamesSelector(SENTRY_LABEL_SELF_PRESS_WRAPPERS)}):not(:has(> JSXAttribute[name.name="sentryLabel"])):not(:has(> JSXSpreadAttribute))`,
-        message: 'ThreeDotsMenu, DropdownButton and other wrappers that handle their own press must have a sentryLabel from CONST.SENTRY_LABEL. See contributingGuides/SENTRY_LABEL.md.',
-    },
 ];
 
 export default await buildOxlintConfig({
@@ -325,6 +245,7 @@ export default await buildOxlintConfig({
                 'rulesdir/no-layout-spacing-conditional': 'error',
                 'rulesdir/no-onyx-get-snapshot-key': 'error',
                 'rulesdir/no-onyx-loading-status': 'error',
+                'rulesdir/no-opaque-namespace-usage': 'error',
                 'rulesdir/no-raw-typography': 'error',
                 'rulesdir/no-unsafe-onyx-read': 'error',
                 'rulesdir/prefer-type-fest': 'error',
@@ -353,7 +274,7 @@ export default await buildOxlintConfig({
                 'hosted/no-unused-prop-types': ['error', {customValidators: [], skipShapeProps: true}],
                 // This list replaces the preset's. It keeps the preset's `LabeledStatement` and `WithStatement` bans but not
                 // `ForInStatement`, which only the scripts/tests block below bans.
-                'core/no-restricted-syntax': ['error', ...restrictedSyntax, ...sentryLabelRestrictedSyntax],
+                'core/no-restricted-syntax': ['error', ...restrictedSyntax],
             },
         },
         {
@@ -569,7 +490,10 @@ export default await buildOxlintConfig({
         {
             files: ['**/*.{ts,tsx}'],
             rules: {
-                'no-restricted-imports': ['error', {paths: restrictedImportPaths, patterns: [...typescriptRestrictedImportPatterns, ...restrictedHeaderImportPatterns]}],
+                'no-restricted-imports': [
+                    'error',
+                    {paths: restrictedImportPaths, patterns: [...typescriptRestrictedImportPatterns, ...restrictedHeaderImportPatterns, ...castToSentryLabelImportPatterns]},
+                ],
                 // Overrides are last-wins: keep this block above the later ones that turn this rule off
                 // or re-set `no-restricted-imports`.
                 'typescript/no-deprecated': ['error', {allow: ['translateFn']}],
@@ -588,6 +512,10 @@ export default await buildOxlintConfig({
                 ],
             },
         },
+        {
+            files: CAST_TO_SENTRY_LABEL_FILES,
+            rules: {'no-restricted-imports': ['error', {paths: restrictedImportPaths, patterns: [...typescriptRestrictedImportPatterns, ...restrictedHeaderImportPatterns]}]},
+        },
         {files: ['src/**/*'], rules: {'max-lines': ['error', 4000]}},
         {
             files: ['modules/ExpensifyNitroUtils/src/**/*'],
@@ -602,6 +530,13 @@ export default await buildOxlintConfig({
         {
             files: ['src/**/*.{ts,tsx}'],
             rules: {
+                'no-restricted-properties': [
+                    'error',
+                    {object: 'Image', property: 'getSize', message: 'Usage of Image.getSize is restricted. Please use the `react-native-image-size`.'},
+                    {object: 'HybridAppModule', property: 'isHybridApp', message: 'Use CONFIG.IS_HYBRID_APP instead.'},
+                    {object: 'HybridAppModule', property: 'closeReactNativeApp', message: 'Use `closeReactNativeApp` from `@userActions/HybridApp` instead.'},
+                    {property: 'toReversed', message: 'Array.prototype.toReversed is not supported in all app runtimes. Use [...array].reverse() instead.'},
+                ],
                 // The lint pipeline keeps this diagnostic only when React Compiler memoizes the file.
                 'rulesdir/no-manual-memoization': 'error',
                 'rulesdir/no-object-keys-includes': 'error',
@@ -624,7 +559,7 @@ export default await buildOxlintConfig({
             rules: {'no-restricted-imports': ['error', {paths: restrictedImportPaths, patterns: restrictedImportPatterns}]},
         },
         {
-            files: ['src/languages/**', 'src/CONST/index.ts', 'src/NAICS.ts'],
+            files: ['src/languages/**', 'src/CONST/index.ts', 'src/CONST/SENTRY_LABEL.ts', 'src/NAICS.ts'],
             rules: {
                 'max-lines': 'off',
             },
@@ -774,11 +709,6 @@ export default await buildOxlintConfig({
             },
         },
         {files: ['.storybook/main.{js,cjs,mjs,ts}'], jsPlugins: ['eslint-plugin-storybook'], rules: {'storybook/no-uninstalled-addons': 'error'}},
-        {
-            files: ['**/*.{stories,story}.{ts,tsx,js,jsx,mjs,cjs}'],
-            // Stories never send anything to Sentry, so they don't need a sentryLabel.
-            rules: {'core/no-restricted-syntax': ['error', ...restrictedSyntax]},
-        },
         {files: ['src/types/onyx/**/*.ts'], rules: {'hosted/require-jsdoc': ['error', {contexts: ['TSInterfaceDeclaration', 'TSTypeAliasDeclaration']}]}},
         {
             files: [

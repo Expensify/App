@@ -187,6 +187,16 @@ const lineHeightBadge: Pick<TextStyle, 'lineHeight'> = isSafari() ? {lineHeight:
 // silently stops matching when either of those changes, and it cannot follow `componentSizeSmall` across pixel ratios.
 const bulkActionBarHeight = variables.componentSizeSmall + variables.bulkActionBarPaddingVertical * 2;
 
+// A subnav row's label lines up with the label of the row above: the row's padding, the icon and the icon-label gap.
+const flatNavigationBarSubnavIndent = variables.flatNavigationBarRowPadding + variables.iconSizeNormal + variables.flatNavigationBarItemGap;
+
+// The subnav rule runs under the centre of the icons above it: the row's inset, padding and half the icon.
+const flatNavigationBarSubnavRuleLeft = variables.flatNavigationBarRowInset + variables.flatNavigationBarRowPadding + variables.iconSizeNormal / 2;
+
+// Space the landscape tab bar leaves on its right for the column of floating buttons beside it: the buttons' offset
+// from the screen edge, their width and the same gap the bar keeps from the left edge.
+const floatingTabBarLandscapeRightMargin = variables.floatingActionButtonRightOffset + variables.componentSizeLarge + variables.floatingTabBarHorizontalInset;
+
 const picker = (theme: ThemeColors) =>
     ({
         backgroundColor: theme.transparent,
@@ -241,13 +251,6 @@ const headlineFont = {
 const headlineItalicFont = {
     ...FontUtils.fontFamily.platform.EXP_NEW_KANSAS_MEDIUM_ITALIC,
 } satisfies TextStyle;
-
-const modalNavigatorContainer = (isSmallScreenWidth: boolean) =>
-    ({
-        position: 'absolute',
-        width: isSmallScreenWidth ? '100%' : variables.rhpWidth,
-        height: '100%',
-    }) satisfies ViewStyle;
 
 const webViewStyles = (theme: ThemeColors) =>
     ({
@@ -484,14 +487,6 @@ const staticStyles = (theme: ThemeColors) =>
 
         appBG: {
             backgroundColor: theme.appBG,
-        },
-
-        reportLayoutGroupHeader: {
-            paddingHorizontal: 12,
-            marginTop: 16,
-            marginBottom: 8,
-            backgroundColor: theme.appBG,
-            justifyContent: 'center',
         },
 
         fontSizeLabel: {
@@ -735,10 +730,6 @@ const staticStyles = (theme: ThemeColors) =>
             fontWeight: FontUtils.fontWeight.bold,
         },
 
-        textItalic: {
-            ...FontUtils.fontFamily.platform.MONOSPACE_ITALIC,
-        },
-
         textMono: {
             ...FontUtils.fontFamily.platform.MONOSPACE,
         },
@@ -799,10 +790,6 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: 999,
         },
 
-        bottomTabBarSpacer: {
-            height: variables.bottomTabHeight,
-        },
-
         tabNavigatorBarContainer: {
             marginRight: -variables.sideBarWithLHBWidth,
             overflow: 'visible',
@@ -833,6 +820,8 @@ const staticStyles = (theme: ThemeColors) =>
 
         navigationTabBarContainerLandscape: {
             height: variables.floatingTabBarLandscapeHeight,
+            alignSelf: 'flex-start',
+            marginRight: floatingTabBarLandscapeRightMargin,
         },
 
         // Only the navigator's own tab bar opts into this. Every preloaded screen renders its own bar at the same
@@ -1004,7 +993,7 @@ const staticStyles = (theme: ThemeColors) =>
         flatNavigationBarItem: {
             flexDirection: 'row',
             alignItems: 'center',
-            gap: 12,
+            gap: variables.flatNavigationBarItemGap,
             height: variables.flatNavigationBarItemHeight,
             paddingHorizontal: variables.flatNavigationBarRowPadding,
             marginHorizontal: variables.flatNavigationBarRowInset,
@@ -1050,6 +1039,39 @@ const staticStyles = (theme: ThemeColors) =>
             left: flatNavigationBarSubItemRuleInset,
             top: 0,
             bottom: 0,
+            width: 1,
+            backgroundColor: theme.border,
+        },
+
+        // The label lines up with the label of the destination row above the subnav.
+        flatNavigationBarSubnavItem: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: variables.spacing2,
+            height: variables.flatNavigationBarSubnavItemHeight,
+            paddingLeft: flatNavigationBarSubnavIndent,
+            paddingRight: variables.flatNavigationBarRowPadding,
+            marginHorizontal: variables.flatNavigationBarRowInset,
+            borderRadius: variables.componentBorderRadiusNormal,
+            overflow: 'hidden',
+        },
+
+        // Sits at the bottom of its row, which leaves the gap above the group.
+        flatNavigationBarSubnavHeader: {
+            height: variables.flatNavigationBarSubnavHeaderHeight,
+            justifyContent: 'flex-end',
+            paddingBottom: 4,
+            paddingLeft: flatNavigationBarSubnavIndent,
+            paddingRight: variables.flatNavigationBarRowPadding,
+            marginHorizontal: variables.flatNavigationBarRowInset,
+        },
+
+        // The active row's marker slides along this rule.
+        flatNavigationBarSubnavRule: {
+            position: 'absolute',
+            top: 0,
+            bottom: 0,
+            left: flatNavigationBarSubnavRuleLeft,
             width: 1,
             backgroundColor: theme.border,
         },
@@ -1107,6 +1129,16 @@ const staticStyles = (theme: ThemeColors) =>
         flatNavigationBarDividerContainer: {
             paddingHorizontal: 16,
             paddingVertical: 8,
+        },
+
+        flatNavigationBarSubnavMarker: {
+            position: 'absolute',
+            top: 0,
+            left: flatNavigationBarSubnavRuleLeft - Math.floor(variables.flatNavigationBarSubnavMarkerWidth / 2),
+            width: variables.flatNavigationBarSubnavMarkerWidth,
+            height: variables.flatNavigationBarSubnavMarkerHeight,
+            borderRadius: variables.componentBorderRadiusRounded,
+            backgroundColor: theme.success,
         },
 
         flatNavigationBarDivider: {
@@ -1203,11 +1235,6 @@ const staticStyles = (theme: ThemeColors) =>
         buttonSmallText: {
             fontSize: variables.fontSizeSmall,
             ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-            textAlign: 'center',
-        },
-
-        buttonExtraSmallText: {
-            ...textVariants.finePrintStrong,
             textAlign: 'center',
         },
 
@@ -1351,10 +1378,6 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.activeComponentBG,
         },
 
-        messagesRowHeight: {
-            height: variables.componentSizeXSmall,
-        },
-
         threeDotsMenuIconWidth: {
             width: variables.componentSizeXSmall,
         },
@@ -1375,10 +1398,6 @@ const staticStyles = (theme: ThemeColors) =>
 
         visibilityHidden: {
             ...visibility.hidden,
-        },
-
-        visibilityVisible: {
-            ...visibility.visible,
         },
 
         // Visually invisible but kept in the accessibility tree — opacity:0 (not `visibility:hidden`) so screen-reader linear navigation can still reach it.
@@ -2299,15 +2318,6 @@ const staticStyles = (theme: ThemeColors) =>
             boxShadow: theme.shadow,
         },
 
-        floatingSecondaryActionButton: {
-            backgroundColor: theme.buttonDefaultBG,
-            height: variables.componentSizeLarge,
-            width: variables.componentSizeLarge,
-            borderRadius: variables.componentBorderRadiusCircle,
-            alignItems: 'center',
-            justifyContent: 'center',
-        },
-
         floatingActionButtonSmall: {
             width: variables.componentSizeNormal,
             height: variables.componentSizeNormal,
@@ -2329,15 +2339,39 @@ const staticStyles = (theme: ThemeColors) =>
             // floatingActionButton top property value (componentSizeLarge + 16) +
             // + floatingCameraButton height (componentSizeLarge) + gap (12) = 2 * componentSizeLarge + 28
             top: 2 * -variables.componentSizeLarge - 28,
-            right: 16,
+            right: variables.floatingActionButtonRightOffset,
             zIndex: 10,
         },
 
         floatingActionButtonPosition: {
             position: 'absolute',
             top: -variables.componentSizeLarge - 16,
-            right: 16,
+            right: variables.floatingActionButtonRightOffset,
             zIndex: 10,
+        },
+
+        // Lines the button's bottom up with the bottom of the landscape tab bar it sits beside.
+        floatingActionButtonPositionLandscape: {
+            top: variables.floatingTabBarLandscapeHeight - variables.componentSizeLarge,
+        },
+
+        // Keeps the same 12px gap above the floating action button as in portrait.
+        floatingCameraButtonLandscape: {
+            top: variables.floatingTabBarLandscapeHeight - 2 * variables.componentSizeLarge - 12,
+        },
+
+        // Takes the debug row out of the flow, so the floating buttons beside the landscape bar stay anchored to the
+        // bar's top, and keeps it from reaching under them.
+        debugTabViewMobileWebLandscape: {
+            position: 'absolute',
+            bottom: '100%',
+            marginRight: floatingTabBarLandscapeRightMargin,
+        },
+
+        // Keeps the footer's content clear of the floating (+) button, which sits over its right end on narrow layouts.
+        searchPageFooterFABClearance: {
+            // The button's offset from the edge, its width and a 12px gap before the footer content.
+            paddingRight: variables.floatingActionButtonRightOffset + variables.componentSizeLarge + 12,
         },
 
         floatingGpsButton: {
@@ -2439,13 +2473,6 @@ const staticStyles = (theme: ThemeColors) =>
             width: variables.componentSizeNormal,
             justifyContent: 'center',
             alignItems: 'center',
-        },
-
-        popoverIconCircle: {
-            backgroundColor: theme.buttonDefaultBG,
-            borderRadius: variables.buttonBorderRadius,
-            height: variables.h40,
-            width: variables.w46,
         },
 
         rightLabelMenuItem: {
@@ -2550,11 +2577,6 @@ const staticStyles = (theme: ThemeColors) =>
 
         optionRow: {
             minHeight: variables.optionRowHeight,
-            paddingTop: 12,
-            paddingBottom: 12,
-        },
-
-        optionRowWithPadding: {
             paddingTop: 12,
             paddingBottom: 12,
         },
@@ -2729,10 +2751,6 @@ const staticStyles = (theme: ThemeColors) =>
             maxWidth: '100%',
             ...whiteSpace.preWrap,
             ...wordBreak.breakWord,
-        },
-
-        chatItemComposeWithFirstRow: {
-            minHeight: 90,
         },
 
         chatItemFullComposeRow: {
@@ -3069,15 +3087,6 @@ const staticStyles = (theme: ThemeColors) =>
             right: -4,
         },
 
-        secondAvatarInline: {
-            bottom: -3,
-            right: -25,
-            borderWidth: 3,
-            borderRadius: 18,
-            borderColor: theme.cardBorder,
-            backgroundColor: theme.appBG,
-        },
-
         avatarInnerText: {
             color: theme.text,
             fontSize: variables.fontSizeSmall,
@@ -3131,10 +3140,6 @@ const staticStyles = (theme: ThemeColors) =>
 
         emptyAvatarMarginChat: {
             marginRight: variables.avatarChatSpacing - 12,
-        },
-
-        emptyAvatarMarginSmall: {
-            marginRight: variables.avatarChatSpacing - 4,
         },
 
         emptyAvatarMarginXSmall: {
@@ -3277,17 +3282,6 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: theme.border,
         },
 
-        // Table separators on mobile, where a full pixel reads too heavy against the compact rows.
-        borderBottomHairline: {
-            borderBottomWidth: 0.5,
-            borderColor: theme.border,
-        },
-
-        borderBottomHovered: {
-            borderBottomWidth: 1,
-            borderColor: theme.buttonHoveredBG,
-        },
-
         borderNone: {
             borderWidth: 0,
             borderBottomWidth: 0,
@@ -3325,11 +3319,6 @@ const staticStyles = (theme: ThemeColors) =>
             display: 'flex',
             width: '100%',
             height: 40,
-        },
-
-        searchResultsHeaderBar: {
-            display: 'flex',
-            position: 'relative',
         },
 
         headerBarHeight: {
@@ -3780,10 +3769,6 @@ const staticStyles = (theme: ThemeColors) =>
             flex: 1,
         },
 
-        detailsPageSectionContainer: {
-            alignSelf: 'flex-start',
-        },
-
         transactionsCarouselGap: {
             width: variables.spacing2,
         },
@@ -3994,10 +3979,6 @@ const staticStyles = (theme: ThemeColors) =>
             width: '100%',
         },
 
-        amountSplitPadding: {
-            paddingTop: 2,
-        },
-
         moneyRequestPreviewBoxAvatar: {
             // This should "hide" the outer border of the first and last avatar, which matches the card background
             marginLeft: -variables.avatarBorderWidthSmall,
@@ -4054,6 +4035,12 @@ const staticStyles = (theme: ThemeColors) =>
             top: variables.growlNotificationInset,
             ...spacing.pl5,
             ...spacing.pr5,
+        },
+
+        growlNotificationNativeContent: {
+            width: '100%',
+            maxWidth: variables.growlNotificationMaxWidth,
+            alignSelf: 'center',
         },
 
         growlNotificationDesktopContainer: {
@@ -4161,41 +4148,6 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
         },
 
-        primaryMediumText: {
-            fontSize: variables.iconSizeNormal,
-        },
-
-        workspaceOwnerSectionTitle: {
-            marginLeft: 6,
-        },
-
-        workspaceOwnerSectionMinWidth: {
-            minWidth: 180,
-        },
-
-        workspaceTypeWrapper: {
-            margin: 3,
-        },
-
-        workspaceTypeSectionTitle: {
-            marginLeft: 3,
-        },
-
-        workspaceRightColumn: {
-            marginLeft: 124,
-        },
-
-        workspaceThreeDotMenu: {
-            justifyContent: 'flex-end',
-            width: 124,
-        },
-
-        workspaceListRBR: {
-            flexDirection: 'column',
-            justifyContent: 'flex-start',
-            marginTop: 10,
-        },
-
         peopleRow: {
             width: '100%',
             flexDirection: 'row',
@@ -4232,10 +4184,6 @@ const staticStyles = (theme: ThemeColors) =>
         locationErrorLinkText: {
             textAlignVertical: 'center',
             fontSize: variables.fontSizeLabel,
-        },
-
-        sidebarPopover: {
-            width: variables.sideBarWidth - 68,
         },
 
         shortTermsBorder: {
@@ -4357,11 +4305,6 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: theme.bordersBold,
         },
 
-        searchAutocompleteInputResultsFocused: {
-            borderWidth: 1,
-            borderColor: theme.success,
-        },
-
         searchInputSkeleton: {
             height: 46,
             justifyContent: 'center',
@@ -4383,10 +4326,6 @@ const staticStyles = (theme: ThemeColors) =>
 
         zIndex1: {
             zIndex: 1,
-        },
-
-        height4: {
-            height: 16,
         },
 
         searchListHeaderContainerStyle: {
@@ -4412,10 +4351,6 @@ const staticStyles = (theme: ThemeColors) =>
             zIndex: 10,
         },
 
-        groupSubHeaderBorderOverlap: {
-            marginTop: -1,
-        },
-
         groupSearchListTableContainerStyle: {
             minHeight: variables.h28,
             paddingBottom: 0,
@@ -4428,11 +4363,6 @@ const staticStyles = (theme: ThemeColors) =>
             position: 'absolute',
             zIndex: variables.searchTopBarZIndex,
             backgroundColor: theme.appBG,
-        },
-
-        iPhoneXSafeArea: {
-            backgroundColor: theme.appBG,
-            flex: 1,
         },
 
         transferBalancePayment: {
@@ -4577,6 +4507,14 @@ const staticStyles = (theme: ThemeColors) =>
             right: 16,
             flexDirection: 'row',
             gap: 8,
+        },
+
+        receiptEnhancementToastContainer: {
+            ...positioning.pAbsolute,
+            ...positioning.l0,
+            ...positioning.r0,
+            bottom: 32,
+            alignItems: 'center',
         },
 
         // Float above the receipt to avoid zooming with it.
@@ -4924,13 +4862,6 @@ const staticStyles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightXLarge,
             color: theme.textSupporting,
             textAlign: 'center',
-        },
-
-        transferBalance: {
-            width: 'auto',
-            borderRadius: 0,
-            height: 64,
-            alignItems: 'center',
         },
 
         paymentMethod: {
@@ -5472,12 +5403,6 @@ const staticStyles = (theme: ThemeColors) =>
             overflow: 'hidden',
         },
 
-        thirdPartyLoadingContainer: {
-            alignItems: 'center',
-            justifyContent: 'center',
-            height: 450,
-        },
-
         tabSelectorButton: {
             height: variables.tabSelectorButtonHeight,
             paddingHorizontal: variables.tabSelectorButtonPadding,
@@ -5802,10 +5727,6 @@ const staticStyles = (theme: ThemeColors) =>
             paddingTop: 0,
         },
 
-        settlementButtonShortFormWidth: {
-            minWidth: 90,
-        },
-
         moneyRequestViewImage: {
             ...spacing.mh5,
             overflow: 'hidden',
@@ -5907,7 +5828,6 @@ const staticStyles = (theme: ThemeColors) =>
             borderWidth: variables.componentBorderWidth,
             borderColor: theme.appBG,
         },
-        currentPositionDot: {backgroundColor: colors.blue400, width: 16, height: 16, borderRadius: 16},
 
         mapViewOverlay: {
             flex: 1,
@@ -6008,12 +5928,6 @@ const staticStyles = (theme: ThemeColors) =>
             paddingHorizontal: 12,
         },
 
-        tableHeaderIconSpacing: {
-            marginRight: variables.iconSizeExtraSmall,
-            marginBottom: 1,
-            marginTop: 1,
-        },
-
         cardItemSecondaryIconStyle: {
             position: 'absolute',
             bottom: -4,
@@ -6021,12 +5935,6 @@ const staticStyles = (theme: ThemeColors) =>
             borderWidth: 2,
             borderRadius: 2,
             backgroundColor: theme.componentBG,
-        },
-
-        baseListHeaderWrapperStyle: {
-            ...spacing.ph9,
-            ...spacing.pv3,
-            ...spacing.pb5,
         },
 
         selectionListStickyHeader: {
@@ -6089,21 +5997,6 @@ const staticStyles = (theme: ThemeColors) =>
             ...flex.alignItemsCenter,
             ...flex.justifyContentCenter,
             ...objectFit.oFCover,
-        },
-
-        holdRequestInline: {
-            ...headlineFont,
-            ...whiteSpace.preWrap,
-            color: theme.textLight,
-            fontSize: variables.fontSizeXLarge,
-            lineHeight: variables.lineHeightXXLarge,
-
-            backgroundColor: colors.red,
-            borderRadius: variables.componentBorderRadiusMedium,
-            overflow: 'hidden',
-
-            paddingHorizontal: 8,
-            paddingVertical: 4,
         },
 
         headerStatusBarContainer: {
@@ -6255,11 +6148,6 @@ const staticStyles = (theme: ThemeColors) =>
             height: 180,
         },
 
-        walletCardLimit: {
-            color: theme.text,
-            fontSize: variables.fontSizeNormal,
-        },
-
         walletCard: {
             borderRadius: variables.componentBorderRadiusLarge,
             position: 'relative',
@@ -6297,13 +6185,6 @@ const staticStyles = (theme: ThemeColors) =>
         walletCardNumber: {
             color: theme.text,
             fontSize: variables.fontSizeNormal,
-        },
-
-        walletCardMenuItem: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-            color: theme.text,
-            fontSize: variables.fontSizeNormal,
-            lineHeight: variables.lineHeightXLarge,
         },
 
         walletCardHolder: {
@@ -6838,13 +6719,6 @@ const staticStyles = (theme: ThemeColors) =>
             // it's a temporary solution while we are working on a permanent fix
             opacity: Platform.OS === 'ios' ? 0.99 : undefined,
         },
-        offlineFeedbackError: {
-            flexDirection: 'row',
-            alignItems: 'center',
-        },
-        offlineFeedbackContainer: {
-            ...spacing.pv2,
-        },
         offlineFeedbackTextContainer: {
             flexDirection: 'column',
             flex: 1,
@@ -7093,10 +6967,6 @@ const staticStyles = (theme: ThemeColors) =>
             aspectRatio: 1.7,
         },
 
-        topBarWrapper: {
-            zIndex: 15,
-        },
-
         receiptPreview: toViewStyle({
             position: 'absolute',
             // Fallback corner; ReceiptPreview overrides left/top to sit beside the hovered thumbnail.
@@ -7184,12 +7054,6 @@ const staticStyles = (theme: ThemeColors) =>
             right: 0,
             position: Platform.OS === 'web' ? 'fixed' : 'absolute',
         }),
-        animatedRHPNavigatorContainer: {
-            height: '100%',
-            right: 0,
-            position: 'absolute',
-            overflow: 'hidden',
-        },
         twoFactorAuthCodesBox: {
             alignItems: 'center',
             justifyContent: 'center',
@@ -7503,13 +7367,6 @@ const staticStyles = (theme: ThemeColors) =>
             borderWidth: 2,
             borderRadius: '50%',
         },
-        homeWidgetIconContainer: {
-            width: variables.iconSizeExtraLarge,
-            height: variables.iconSizeExtraLarge,
-            borderRadius: 8,
-            alignItems: 'center',
-            justifyContent: 'center',
-        },
     }) satisfies StaticStyles;
 
 const dynamicStyles = (theme: ThemeColors) =>
@@ -7593,12 +7450,12 @@ const dynamicStyles = (theme: ThemeColors) =>
 
         // Zero-height strip anchored above the native tab bar, so the floating buttons can be positioned
         // against it without taking part in the tab screen's layout.
-        nativeTabBarFloatingButtons: (bottom: number) =>
+        nativeTabBarFloatingButtons: (bottom: number, left: number, right: number) =>
             ({
                 position: 'absolute',
-                right: 0,
+                right,
                 bottom,
-                left: 0,
+                left,
                 height: 0,
             }) satisfies ViewStyle,
 
@@ -7672,11 +7529,6 @@ const dynamicStyles = (theme: ThemeColors) =>
                 backgroundColor,
             }) satisfies ViewStyle,
 
-        RHPNavigatorContainer: (isSmallScreenWidth: boolean) =>
-            ({
-                ...modalNavigatorContainer(isSmallScreenWidth),
-            }) satisfies ViewStyle,
-
         modalStackNavigatorContainerWidth: (isSmallScreenWidth: boolean) =>
             ({
                 width: isSmallScreenWidth ? '100%' : variables.rhpWidth,
@@ -7695,14 +7547,6 @@ const dynamicStyles = (theme: ThemeColors) =>
                 // Menu should be displayed 8px above the floating action button.
                 // To achieve that sidebar must be moved by: distance from the bottom of the sidebar to the fab (16px) + fab height on a wide layout (variables.componentSizeNormal) + distance above the fab (8px)
                 vertical: windowHeight - 16 - variables.componentSizeNormal - 8,
-            }) satisfies AnchorPosition,
-
-        createMenuPositionSearchBar: (windowHeight: number) =>
-            ({
-                horizontal: 18,
-                // Menu should be displayed 12px above the floating action button.
-                // To achieve that sidebar must be moved by: distance from the bottom of the sidebar to the fab (variables.fabBottom) + fab height on a wide layout (variables.componentSizeNormal) + distance above the fab (12px)
-                vertical: windowHeight - (variables.fabBottom + variables.componentSizeNormal + 12),
             }) satisfies AnchorPosition,
 
         overlayStyles: ({
@@ -7796,8 +7640,6 @@ const dynamicStyles = (theme: ThemeColors) =>
 
         rootNavigatorContainerStyles: (isSmallScreenWidth: boolean, sidebarWidth: number = variables.sideBarWithLHBWidth) =>
             ({marginLeft: isSmallScreenWidth ? 0 : sidebarWidth, flex: 1}) satisfies ViewStyle,
-
-        RHPNavigatorContainerNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1}) satisfies ViewStyle,
 
         activeDropzoneDashedBorder: (borderColor: string, isActive: boolean) => {
             const browser = getBrowser();
@@ -7920,11 +7762,6 @@ const dynamicStyles = (theme: ThemeColors) =>
             top: 0,
             bottom: 0,
             width,
-        }),
-
-        getSplashScreenHiderPosition: (left: number, right: number): ViewStyle => ({
-            left: -left,
-            right: -right,
         }),
 
         getSelectionListPopoverHeight: ({

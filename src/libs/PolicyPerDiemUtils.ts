@@ -1,10 +1,12 @@
 /**
  * Validation and sanitization for workspace per diem destination, subrate, and amount fields.
  * Shared by the RHP edit forms and inline table editing so both surfaces reject the same values.
+ * Also builds the per diem row key shared by the rates table and the delete action.
  */
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import CONST from '@src/CONST';
+import type {Rate} from '@src/types/onyx/Policy';
 
 import {convertToBackendAmount} from './CurrencyUtils';
 import StringUtils from './StringUtils';
@@ -81,4 +83,26 @@ function getPerDiemAmountErrorMessage(translate: LocaleContextProps['translate']
     }
 }
 
-export {getPerDiemNameError, getPerDiemNameErrorMessage, getPerDiemAmountError, getPerDiemAmountErrorMessage};
+/**
+ * Builds the key that identifies one subrate row. The rates table selects rows by this key and the delete action
+ * matches the selection against the custom unit with it, so both must use the same format.
+ */
+function getPerDiemRowKey(rateID: string, subRateID: string): string {
+    return `${rateID}:${subRateID}`;
+}
+
+/**
+ * Pending deletions remain in Onyx for workspace feedback, but must not be selected or edited.
+ * Only the offline workspace table includes them, to show the disabled rows with strikethrough.
+ */
+function getAvailablePerDiemRate(rate: Rate | undefined, shouldIncludePendingDeletion = false): Rate | undefined {
+    if (shouldIncludePendingDeletion) {
+        return rate;
+    }
+    if (!rate || rate.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+        return undefined;
+    }
+    return {...rate, subRates: rate.subRates?.filter((subrate) => subrate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)};
+}
+
+export {getPerDiemNameError, getPerDiemNameErrorMessage, getPerDiemAmountError, getPerDiemAmountErrorMessage, getPerDiemRowKey, getAvailablePerDiemRate};

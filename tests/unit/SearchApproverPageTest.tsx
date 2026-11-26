@@ -1,9 +1,12 @@
-import {render} from '@testing-library/react-native';
+import {act, render} from '@testing-library/react-native';
 
 import ApproverSelectionList from '@components/ApproverSelectionList';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import PersonalDetailsByLoginProvider from '@components/PersonalDetailsByLoginProvider';
 
+import useStrictPolicyRules from '@hooks/useStrictPolicyRules';
+
+import {addReportApprover} from '@libs/actions/IOU/ReportWorkflow';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 
 import SearchAddApproverPage from '@pages/Search/SearchAddApproverPage';
@@ -27,9 +30,12 @@ const SELECTED_REPORT_ID = '737100';
 const POLICY_ID = 'search-approver-policy';
 const SECOND_REPORT_ID = '737101';
 const SECOND_POLICY_ID = 'search-approver-policy-2';
+const MANAGER_ACCOUNT_ID = 737002;
 let mockSelectedReports = [{reportID: SELECTED_REPORT_ID, policyID: POLICY_ID}];
 
 jest.mock('@hooks/useLocalize', () => () => ({translate: mockTranslate, formatPhoneNumber: mockFormatPhoneNumber}));
+jest.mock('@hooks/useCurrentUserPersonalDetails', () => () => ({accountID: MANAGER_ACCOUNT_ID, email: 'manager@test.com'}));
+jest.mock('@hooks/useStrictPolicyRules', () => jest.fn(() => ({areStrictPolicyRulesEnabled: false, isLoadingSecurityGroup: false})));
 
 jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyExpensifyIcons: () => new Proxy({}, {get: (_, name) => String(name)}),
@@ -37,7 +43,8 @@ jest.mock('@hooks/useLazyAsset', () => ({
 
 jest.mock('@components/ApproverSelectionList', () => jest.fn(() => null));
 
-jest.mock('@hooks/usePressLoading', () => () => ({isLoading: false, startWithLoading: (fn: () => void) => fn}));
+jest.mock('@hooks/usePressLoading', () => () => ({isLoading: false, startWithLoading: (fn: () => void) => fn()}));
+jest.mock('@libs/actions/IOU/ReportWorkflow', () => ({addReportApprover: jest.fn()}));
 
 jest.mock('@components/Search/SearchContext', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -68,7 +75,6 @@ const mockApproverSelectionList = jest.mocked(ApproverSelectionList);
 
 const APPROVER_ACCOUNT_ID = 737001;
 const APPROVER_EMAIL = 'search-approver@test.com';
-const MANAGER_ACCOUNT_ID = 737002;
 
 describe('SearchApproverPage', () => {
     beforeAll(() => {
@@ -78,6 +84,8 @@ describe('SearchApproverPage', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        await Onyx.clear();
+        jest.mocked(useStrictPolicyRules).mockReturnValue({areStrictPolicyRulesEnabled: false, isLoadingSecurityGroup: false});
         mockSelectedReports = [{reportID: SELECTED_REPORT_ID, policyID: POLICY_ID}];
         const policy = createMock<Policy>({
             id: POLICY_ID,
@@ -115,6 +123,45 @@ describe('SearchApproverPage', () => {
 
         // Each candidate approver's name resolves via getDisplayNameForParticipant, which must receive the translate from useLocalize.
         expect(mockGetDisplayNameForParticipant).toHaveBeenCalledWith(expect.objectContaining({accountID: APPROVER_ACCOUNT_ID, hiddenTranslation: 'common.hidden'}));
+    });
+
+    it.each([SearchAddApproverPage, SearchReassignApproverPage])('blocks an open %p picker when any selected workspace switches to DEW', async (Page) => {
+        // Given an open picker with an eligible approver selected across two workspaces
+        mockSelectedReports = [
+            {reportID: SELECTED_REPORT_ID, policyID: POLICY_ID},
+            {reportID: SECOND_REPORT_ID, policyID: SECOND_POLICY_ID},
+        ];
+        render(
+            <OnyxListItemProvider>
+                <PersonalDetailsByLoginProvider>
+                    <Page />
+                </PersonalDetailsByLoginProvider>
+            </OnyxListItemProvider>,
+        );
+        await waitForBatchedUpdates();
+        const props = mockApproverSelectionList.mock.calls.at(-1)?.[0];
+        const option = props?.allApprovers.at(0);
+        if (!props || !option) {
+            throw new Error('Expected an eligible approver');
+        }
+        expect(props.shouldShowNotFoundView).toBe(false);
+        act(() => props.onSelectApprover?.([option]));
+
+        // When a workspace changes its workflow while the picker remains open
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${SECOND_POLICY_ID}`, {approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL});
+            await waitForBatchedUpdates();
+        });
+
+        // Then the picker becomes unavailable and submitting the selected approver cannot write changes
+        const updatedProps = mockApproverSelectionList.mock.calls.at(-1)?.[0];
+        expect(updatedProps?.shouldShowNotFoundView).toBe(true);
+        const footer = updatedProps?.footerContent;
+        if (!React.isValidElement<{onSubmit: () => void}>(footer)) {
+            throw new Error('Expected a submit button');
+        }
+        act(() => footer.props.onSubmit());
+        expect(addReportApprover).not.toHaveBeenCalled();
     });
 
     it('renders the bulk reassignment picker with eligible workspace members', async () => {
@@ -183,6 +230,61 @@ describe('SearchApproverPage', () => {
         await waitForBatchedUpdates();
 
         expect(mockApproverSelectionList).toHaveBeenLastCalledWith(expect.objectContaining({allApprovers: []}), undefined);
+    });
+
+    it.each([
+        {secondRole: CONST.POLICY.ROLE.USER, strictRules: false, isCurrentApprover: true, isLoadingSecurityGroup: true, isAllowed: false},
+        {firstRole: CONST.POLICY.ROLE.ADMIN, secondRole: CONST.POLICY.ROLE.ADMIN, strictRules: false, isCurrentApprover: true, isLoadingSecurityGroup: true, isAllowed: true},
+        {secondRole: CONST.POLICY.ROLE.USER, strictRules: false, isCurrentApprover: true, isAllowed: true},
+        {secondRole: CONST.POLICY.ROLE.ADMIN, strictRules: false, isCurrentApprover: true, isAllowed: true},
+        {secondRole: CONST.POLICY.ROLE.USER, strictRules: true, isCurrentApprover: true, isAllowed: false},
+        {secondRole: CONST.POLICY.ROLE.USER, strictRules: false, isCurrentApprover: false, isAllowed: false},
+    ])(
+        'checks member reassignment with second role=$secondRole, strict rules=$strictRules, current approver=$isCurrentApprover',
+        async ({firstRole = CONST.POLICY.ROLE.USER, secondRole, strictRules, isCurrentApprover, isLoadingSecurityGroup = false, isAllowed}) => {
+            // Given a member selecting reports across two workspaces
+            mockSelectedReports = [
+                {reportID: SELECTED_REPORT_ID, policyID: POLICY_ID},
+                {reportID: SECOND_REPORT_ID, policyID: SECOND_POLICY_ID},
+            ];
+            jest.mocked(useStrictPolicyRules).mockReturnValue({areStrictPolicyRulesEnabled: strictRules, isLoadingSecurityGroup});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {role: firstRole});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${SECOND_POLICY_ID}`, {role: secondRole});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${SECOND_REPORT_ID}`, {managerID: isCurrentApprover ? MANAGER_ACCOUNT_ID : APPROVER_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            // When the member opens Search reassignment directly
+            render(
+                <OnyxListItemProvider>
+                    <PersonalDetailsByLoginProvider>
+                        <SearchReassignApproverPage />
+                    </PersonalDetailsByLoginProvider>
+                </OnyxListItemProvider>,
+            );
+            await waitForBatchedUpdates();
+
+            // Then both the page and shared picker allow only eligible reassignment
+            expect(mockApproverSelectionList).toHaveBeenLastCalledWith(expect.objectContaining({shouldShowNotFoundView: !isAllowed, shouldRequirePolicyAdmin: !isAllowed}), undefined);
+        },
+    );
+
+    it('still requires admin access to add an approver', async () => {
+        // Given a non-admin current approver with strict rules disabled
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {role: CONST.POLICY.ROLE.USER});
+        await waitForBatchedUpdates();
+
+        // When they open Add approver instead of Reassign
+        render(
+            <OnyxListItemProvider>
+                <PersonalDetailsByLoginProvider>
+                    <SearchAddApproverPage />
+                </PersonalDetailsByLoginProvider>
+            </OnyxListItemProvider>,
+        );
+        await waitForBatchedUpdates();
+
+        // Then the shared picker continues to require admin access
+        expect(mockApproverSelectionList).toHaveBeenLastCalledWith(expect.objectContaining({shouldRequirePolicyAdmin: true}), undefined);
     });
 
     it('shows a loading placeholder when a selected report is missing from Onyx', async () => {

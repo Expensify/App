@@ -17,7 +17,7 @@ import variables from '@styles/variables';
 import {setShouldFailAllRequests, setShouldForceOffline, setShouldSimulatePoorConnection} from '@userActions/Network';
 import {expireSessionWithDelay, invalidateAuthToken, invalidateCredentials} from '@userActions/Session';
 import {getBackToParam} from '@userActions/TestTool';
-import {setIsDebugModeEnabled, setShouldShowAskConciergeNavItem, setShouldShowBranchNameInTitle, setShouldShowExtraNavItems} from '@userActions/User';
+import {setIsDebugModeEnabled, setShouldHideEnvironmentBadge, setShouldShowAskConciergeNavItem, setShouldShowBranchNameInTitle, setShouldShowExtraNavItems} from '@userActions/User';
 
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -27,6 +27,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import React from 'react';
 import {Platform, View} from 'react-native';
 
+import BankAccountTestToolRows from './BankAccountTestToolRows';
 import BiometricsTestToolRow from './BiometricsTestToolRow';
 import Button from './Button';
 import Icon from './Icon';
@@ -50,6 +51,7 @@ function TestToolMenu({serverPageRoute}: TestToolMenuProps) {
     const [shouldShowBranchNameInTitle = false] = useOnyx(ONYXKEYS.SHOULD_SHOW_BRANCH_NAME_IN_TITLE);
     const [shouldShowExtraNavItems = false] = useOnyx(ONYXKEYS.SHOULD_SHOW_EXTRA_NAV_ITEMS);
     const [shouldShowAskConciergeNavItem = true] = useOnyx(ONYXKEYS.SHOULD_SHOW_ASK_CONCIERGE_NAV_ITEM);
+    const [shouldHideEnvironmentBadge = false] = useOnyx(ONYXKEYS.SHOULD_HIDE_ENVIRONMENT_BADGE);
     const styles = useThemeStyles();
     const theme = useTheme();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
@@ -138,6 +140,18 @@ function TestToolMenu({serverPageRoute}: TestToolMenuProps) {
                         </TestToolRow>
                     )}
 
+                    {/* Hides the environment badge, for example to take screenshots. The badge is never shown on production, so neither is this row. */}
+                    {!isProduction && (
+                        <TestToolRow title={translate('initialSettingsPage.troubleshoot.hideEnvironmentBadge')}>
+                            <Switch
+                                accessibilityLabel={translate('initialSettingsPage.troubleshoot.hideEnvironmentBadge')}
+                                sentryLabel={CONST.SENTRY_LABEL.TEST_TOOL_MENU.HIDE_ENVIRONMENT_BADGE_SWITCH}
+                                isOn={shouldHideEnvironmentBadge}
+                                onToggle={() => setShouldHideEnvironmentBadge(!shouldHideEnvironmentBadge)}
+                            />
+                        </TestToolRow>
+                    )}
+
                     {/* Instantly invalidates a user's local authToken. Useful for testing flows related to reauthentication. */}
                     <TestToolRow title={translate('initialSettingsPage.troubleshoot.authenticationStatus')}>
                         <Button
@@ -204,6 +218,8 @@ function TestToolMenu({serverPageRoute}: TestToolMenuProps) {
                             </Button>
                         </TestToolRow>
                     )}
+
+                    <BankAccountTestToolRows />
 
                     {/* Allows testing and revoking biometric multifactor authentication */}
                     {isAgentAccount === false && <BiometricsTestToolRow />}

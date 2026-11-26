@@ -1,5 +1,7 @@
 import {act, renderHook} from '@testing-library/react-native';
 
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
+import {PersonalDetailsByLoginContext} from '@components/PersonalDetailsByLoginProvider';
 import useCreateNavigationSuggestions from '@components/Search/SearchRouter/useCreateNavigationSuggestions';
 
 import {startDistanceRequest, startMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
@@ -7,12 +9,18 @@ import {createNewReport, startNewChat} from '@libs/actions/Report';
 import {navigateToCreateReportWorkspaceSelection} from '@libs/Navigation/helpers/getCreateReportRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
+// eslint-disable-next-line no-restricted-imports -- These tests preserve the paid-only TravelDot booking checks while using the real accessibility and provisioning helpers.
+import type * as PolicyUtils from '@libs/PolicyUtils';
 
 import {clearLastSearchParams} from '@userActions/ReportNavigation';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+
+import type {ReactNode} from 'react';
+
+import React from 'react';
 
 type MockUseCreateReportParams = {
     onCreateReport: (policy: unknown, shouldDismissEmptyReportsConfirmation?: boolean) => void;
@@ -25,7 +33,10 @@ type MockOnyxOptions = {
     selector?: (value: unknown) => unknown;
 };
 
+const APPROVER_EMAIL = 'approver@test.com';
+
 const mockCreateReport = jest.fn();
+const mockBlockIfDefaultWorkspaceLacksTravel = jest.fn(() => false);
 let mockCreateReportIsVisible = true;
 const mockUseCreateReport = jest.fn<{createReport: typeof mockCreateReport; isVisible: boolean}, [MockUseCreateReportParams]>(() => ({
     createReport: mockCreateReport,
@@ -48,6 +59,11 @@ const mockIcon = () => null;
 jest.mock('@hooks/useCreateReport', () => ({
     __esModule: true,
     default: (params: MockUseCreateReportParams) => mockUseCreateReport(params),
+}));
+
+jest.mock('@hooks/useDefaultWorkspaceTravelGuard', () => ({
+    __esModule: true,
+    default: () => mockBlockIfDefaultWorkspaceLacksTravel,
 }));
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
@@ -163,6 +179,7 @@ jest.mock('@libs/openTravelDotLink', () => ({
 }));
 
 jest.mock('@libs/PolicyUtils', () => ({
+    ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
     canSendInvoice: (...args: unknown[]) => mockCanSendInvoice(...args),
     hasAcceptedTravelTerms: () => mockHasAcceptedTravelTerms(),
     isPaidGroupPolicy: () => mockIsPaidGroupPolicy(),
@@ -185,6 +202,12 @@ jest.mock('@userActions/ReportNavigation', () => ({
 const submitPolicy = {id: 'submit-policy', type: CONST.POLICY.TYPE.SUBMIT};
 const policies = {[`${ONYXKEYS.COLLECTION.POLICY}${submitPolicy.id}`]: submitPolicy};
 const session = {accountID: 1, email: 'test@example.com'};
+
+function setTravelPolicy() {
+    const travelPolicy = {...submitPolicy, isTravelEnabled: true, isTravelProvisioned: true, role: CONST.POLICY.ROLE.ADMIN};
+    mockOnyxValues.set(`${ONYXKEYS.COLLECTION.POLICY}${submitPolicy.id}`, travelPolicy);
+    mockOnyxValues.set(ONYXKEYS.COLLECTION.POLICY, {[`${ONYXKEYS.COLLECTION.POLICY}${submitPolicy.id}`]: travelPolicy});
+}
 
 function setupUseOnyx() {
     mockOnyxValues = new Map<string, unknown>([
@@ -347,20 +370,41 @@ describe('useCreateNavigationSuggestions', () => {
         expect(result.current.some((item) => item.keyForList === 'create_workspace')).toBe(false);
     });
 
-    it('uses only the active workspace to control Book travel visibility', () => {
-        const otherTravelPolicy = {id: 'other-travel-policy', type: CONST.POLICY.TYPE.TEAM, isTravelEnabled: true};
+    it('shows Book travel when another accessible workspace has Travel enabled and provisioned', () => {
+        // Given a default workspace without Travel and another workspace that can offer booking
+        const otherTravelPolicy = {id: 'other-travel-policy', type: CONST.POLICY.TYPE.TEAM, isTravelEnabled: true, isTravelProvisioned: true, role: CONST.POLICY.ROLE.ADMIN};
         mockOnyxValues.set(ONYXKEYS.COLLECTION.POLICY, {
             ...policies,
             [`${ONYXKEYS.COLLECTION.POLICY}${otherTravelPolicy.id}`]: otherTravelPolicy,
         });
 
+        // When Search builds the available actions
         const {result} = renderHook(() => useCreateNavigationSuggestions());
 
+        // Then it offers the same Book travel entry as the + menu
+        expect(result.current.some((item) => item.keyForList === 'create_travel')).toBe(true);
+    });
+
+    it.each([
+        ['disabled', {isTravelEnabled: false, isTravelProvisioned: true, role: CONST.POLICY.ROLE.ADMIN}],
+        ['unprovisioned', {isTravelEnabled: true, role: CONST.POLICY.ROLE.ADMIN}],
+        ['inaccessible', {isTravelEnabled: true, isTravelProvisioned: true}],
+    ])('hides Book travel when the other workspace is %s', (_condition, travelFields) => {
+        // Given no eligible workspace, even though another workspace has some Travel configuration
+        mockOnyxValues.set(ONYXKEYS.COLLECTION.POLICY, {
+            ...policies,
+            [`${ONYXKEYS.COLLECTION.POLICY}other`]: {id: 'other', type: CONST.POLICY.TYPE.TEAM, ...travelFields},
+        });
+
+        // When Search builds the available actions
+        const {result} = renderHook(() => useCreateNavigationSuggestions());
+
+        // Then incomplete or inaccessible workspaces do not expose Book travel
         expect(result.current.some((item) => item.keyForList === 'create_travel')).toBe(false);
     });
 
     it('shows Book travel when Travel is enabled on the active workspace', () => {
-        mockOnyxValues.set(`${ONYXKEYS.COLLECTION.POLICY}${submitPolicy.id}`, {...submitPolicy, isTravelEnabled: true});
+        setTravelPolicy();
 
         const {result} = renderHook(() => useCreateNavigationSuggestions());
 
@@ -368,7 +412,7 @@ describe('useCreateNavigationSuggestions', () => {
     });
 
     it('opens TravelDot when the active workspace is ready for travel', () => {
-        mockOnyxValues.set(`${ONYXKEYS.COLLECTION.POLICY}${submitPolicy.id}`, {...submitPolicy, isTravelEnabled: true});
+        setTravelPolicy();
         mockIsPaidGroupPolicy.mockReturnValue(true);
         mockHasAcceptedTravelTerms.mockReturnValue(true);
         const {result} = renderHook(() => useCreateNavigationSuggestions());
@@ -380,7 +424,7 @@ describe('useCreateNavigationSuggestions', () => {
     });
 
     it('uses the session email when the primary login is unavailable', () => {
-        mockOnyxValues.set(`${ONYXKEYS.COLLECTION.POLICY}${submitPolicy.id}`, {...submitPolicy, isTravelEnabled: true});
+        setTravelPolicy();
         mockOnyxValues.set(ONYXKEYS.ACCOUNT, {primaryLogin: undefined});
         mockIsPaidGroupPolicy.mockReturnValue(true);
         mockHasAcceptedTravelTerms.mockReturnValue(true);
@@ -399,7 +443,7 @@ describe('useCreateNavigationSuggestions', () => {
         ['Travel terms are not accepted', false, session.email, session.email, true, false],
         ['there is no primary contact method', false, '', '', true, true],
     ])('opens the Travel page when %s', (_condition, isBlocked, primaryLogin, sessionEmail, isPaid, hasAcceptedTerms) => {
-        mockOnyxValues.set(`${ONYXKEYS.COLLECTION.POLICY}${submitPolicy.id}`, {...submitPolicy, isTravelEnabled: true});
+        setTravelPolicy();
         mockOnyxValues.set(ONYXKEYS.ACCOUNT, {primaryLogin});
         mockOnyxValues.set(ONYXKEYS.SESSION, {...session, email: sessionEmail});
         mockIsBetaEnabled.mockImplementation((beta: string) => (beta === CONST.BETAS.PREVENT_SPOTNANA_TRAVEL ? isBlocked : true));
@@ -453,15 +497,29 @@ describe('useCreateNavigationSuggestions', () => {
     });
 
     it('creates a report and navigates through the Reports root', () => {
-        // Given the Search router has handed its create callback to useCreateReport
-        renderHook(() => useCreateNavigationSuggestions());
+        // Given the Search router has handed its create callback to useCreateReport, with one approver's personal details available by login
+        const personalDetailsByLogins: PersonalDetailsByLogin = {[APPROVER_EMAIL]: {accountID: 2, login: APPROVER_EMAIL}};
+        const wrapper = ({children}: {children: ReactNode}) =>
+            React.createElement(PersonalDetailsByLoginContext.Provider, {value: {subscribe: () => () => {}, getSnapshot: () => personalDetailsByLogins}}, children);
+        renderHook(() => useCreateNavigationSuggestions(), {wrapper});
         const onCreateReport = mockUseCreateReport.mock.calls.at(0)?.at(0)?.onCreateReport;
 
         // When the hook resolves a workspace and calls back with it
         act(() => onCreateReport?.(submitPolicy, true));
 
-        // Then the report is created on that workspace, and the Reports root is pushed first so back returns to the list
-        expect(createNewReport).toHaveBeenCalledWith(expect.anything(), false, true, submitPolicy, false, mockGetCurrencyDecimals, undefined, false, true);
+        // Then the report is created on that workspace with the personal details from the context, and the Reports root is pushed first so back returns to the list
+        expect(createNewReport).toHaveBeenCalledWith(
+            expect.objectContaining({
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: true,
+                policy: submitPolicy,
+                isTrackIntentUser: false,
+                getCurrencyDecimals: mockGetCurrencyDecimals,
+                rules: undefined,
+                personalDetailsByLogins,
+                shouldDismissEmptyReportsConfirmation: true,
+            }),
+        );
         expect(clearLastSearchParams).not.toHaveBeenCalled();
         expect(Navigation.navigate).toHaveBeenNthCalledWith(1, 'reports', {forceReplace: false});
         expect(Navigation.navigate).toHaveBeenNthCalledWith(2, 'report/created-report', {forceReplace: false});

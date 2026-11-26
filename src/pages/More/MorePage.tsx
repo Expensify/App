@@ -96,6 +96,7 @@ function MorePage() {
 
     menuItems.push({
         key: 'workspaces',
+        sentryLabel: CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.MORE_MENU.WORKSPACES,
         ...cardProps,
         title: translate('common.workspacesTabTitle'),
         description: shouldUseNarrowLayout ? translate('morePage.workspacesDescription') : undefined,
@@ -111,6 +112,7 @@ function MorePage() {
     if (accounting.length > 0) {
         menuItems.push({
             key: 'accounting',
+            sentryLabel: CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.MORE_MENU.ACCOUNTING,
             ...cardProps,
             title: translate('search.tabs.accounting'),
             description: shouldUseNarrowLayout ? translate('morePage.accountingDescription') : undefined,
@@ -134,6 +136,7 @@ function MorePage() {
     for (const placeholder of shouldShowExtraNavItems ? PLACEHOLDER_DESTINATIONS : []) {
         menuItems.push({
             key: placeholder.key,
+            sentryLabel: CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.MORE,
             ...cardProps,
             title: placeholder.title,
             description: shouldUseNarrowLayout ? placeholder.description : undefined,
@@ -145,6 +148,7 @@ function MorePage() {
     if (savedSearchEntries.length > 0) {
         menuItems.push({
             key: 'savedSearches',
+            sentryLabel: CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.MORE_MENU.SAVED,
             ...cardProps,
             title: translate('search.savedSearchesMenuItemTitle'),
             description: shouldUseNarrowLayout ? translate('morePage.savedSearchesDescription') : undefined,
@@ -170,6 +174,7 @@ function MorePage() {
 
     menuItems.push({
         key: 'insights',
+        sentryLabel: CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.MORE_MENU.INSIGHTS,
         ...cardProps,
         title: translate('common.insights'),
         description: shouldUseNarrowLayout ? translate('morePage.insightsDescription') : undefined,

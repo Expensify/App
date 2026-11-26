@@ -1,13 +1,19 @@
 import type {SearchCompareMode} from '@components/Search/types';
 
-import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, buildSearchQueryString, getFilterFromQuery} from '@libs/SearchQueryUtils';
 import {isSearchDataLoaded} from '@libs/SearchUIUtils';
 
 import INSIGHTS_DASHBOARD_SPECS from '@pages/Insights/dashboardSpecs';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
 import {INSIGHTS_RUNNING_TOTAL_GROUP_BY} from '@pages/Insights/insightsFilters';
 import type {InsightsQuery} from '@pages/Insights/insightsQueries';
-import buildInsightsJsonQuery, {applyInsightsFilters, buildFutureExpensesQueryString, buildInsightsQueryString, buildTopExpensesQueryJSON} from '@pages/Insights/insightsQueries';
+import buildInsightsJsonQuery, {
+    applyInsightsFilters,
+    buildFutureExpensesQueryString,
+    buildInsightsQueryString,
+    buildTopExpensesQueryJSON,
+    scopeInsightsDrillDownQuery,
+} from '@pages/Insights/insightsQueries';
 
 import CONST from '@src/CONST';
 import type SearchResults from '@src/types/onyx/SearchResults';
@@ -17,6 +23,7 @@ const FILTERS: InsightsFilters = {
     policyIDs: [],
     groupBy: CONST.SEARCH.GROUP_BY.MONTH,
     groupCurrency: 'USD',
+    tagLevel: 1,
 };
 
 const SPEND_SPEC = INSIGHTS_DASHBOARD_SPECS[CONST.INSIGHTS.DASHBOARD.SPEND];
@@ -55,7 +62,10 @@ function parsePayload(request: InsightsQuery | undefined): InsightsPayload | und
 function buildExpectedHashes(filters: InsightsFilters) {
     return Object.fromEntries(
         [SPEND_SPEC.headlineChart, ...SPEND_SPEC.supportingCharts].map((chart) => {
-            const getHashOf = (compare?: SearchCompareMode) => buildSearchQueryJSON(applyInsightsFilters(chart, filters, compare))?.hash;
+            const getHashOf = (compare?: SearchCompareMode) => {
+                const hash = buildSearchQueryJSON(applyInsightsFilters(chart, filters, compare))?.hash;
+                return hash !== undefined && chart.graphKey === CONST.INSIGHTS.GRAPH.TOP_SPENDERS ? -1 - hash : hash;
+            };
             return [
                 chart.graphKey,
                 {snapshotHash: getHashOf(), previousPeriodSnapshotHash: getHashOf(CONST.SEARCH.COMPARE.PREVIOUS_PERIOD), averageSnapshotHash: getHashOf(CONST.SEARCH.COMPARE.AVERAGE)},
@@ -66,6 +76,25 @@ function buildExpectedHashes(filters: InsightsFilters) {
 
 describe('insightsQueries', () => {
     describe('buildInsightsJsonQuery', () => {
+        it('keeps every Top spenders snapshot separate from ordinary Search', () => {
+            // Given a Top spenders chart with a matching grouped Search query
+            const [chart] = SPEND_SPEC.supportingCharts;
+            const searchHashes = [undefined, CONST.SEARCH.COMPARE.PREVIOUS_PERIOD, CONST.SEARCH.COMPARE.AVERAGE].map(
+                (compare) => buildSearchQueryJSON(applyInsightsFilters(chart, FILTERS, compare))?.hash,
+            );
+
+            // When Insights requests its ranking and comparisons
+            const request = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, FILTERS, [chart]);
+            const snapshotHashes = Object.values(parsePayload(request)?.insightsHashes.topSpenders ?? {});
+
+            // Then only GetInsights can fill those snapshots, even if Search ran the same queries
+            expect(snapshotHashes).toHaveLength(3);
+            expect(new Set(snapshotHashes).size).toBe(3);
+            for (const hash of snapshotHashes) {
+                expect(searchHashes).not.toContain(hash);
+            }
+        });
+
         it('builds one request covering every chart on the dashboard', () => {
             // Given the spend dashboard, grouped by month
             const filters: InsightsFilters = {...FILTERS, groupBy: CONST.SEARCH.GROUP_BY.MONTH};
@@ -82,6 +111,7 @@ describe('insightsQueries', () => {
                 searchKey: CONST.INSIGHTS.SEARCH_KEY.SPEND,
                 inputQuery: payload?.inputQuery,
                 groupBy: filters.groupBy,
+                tagLevel: 1,
                 filters: queryJSON?.filters,
                 insightsHashes: buildExpectedHashes(filters),
                 numberOfPeriods: 1,
@@ -129,7 +159,7 @@ describe('insightsQueries', () => {
             }
             expect(compared?.hash).toBe(request?.hash);
             expect(compared?.snapshotHashes).toEqual(request?.snapshotHashes);
-            expect(parsePayload(request)?.inputQuery).toBe(buildInsightsQueryString(FILTERS));
+            expect(parsePayload(request)?.inputQuery).toBe(buildInsightsQueryString({...FILTERS, tagLevel: undefined}));
         });
 
         it('requests Efficiency as expense reports without sharing Spend snapshots', () => {
@@ -286,6 +316,34 @@ describe('insightsQueries', () => {
             expect(parsePayload(compared)?.inputQuery).toContain(`compare:${CONST.SEARCH.COMPARE.PREVIOUS_PERIOD}`);
         });
 
+        it('requests tag rankings and comparisons with the selected workspace and currency', () => {
+            // Given a dashboard narrowed to one workspace in euros
+            const filters: InsightsFilters = {...FILTERS, policyIDs: ['A1'], groupCurrency: 'EUR'};
+
+            // When its charts and comparison queries are built
+            const request = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, filters, SPEND_SPEC.supportingCharts);
+            const tags = request?.supportingCharts.find(({chart}) => chart.graphKey === CONST.INSIGHTS.GRAPH.TOP_TAGS);
+            const averageQueryJSON = tags && buildSearchQueryJSON(applyInsightsFilters(tags.chart, filters, CONST.SEARCH.COMPARE.AVERAGE));
+
+            // Then tags use the selected level and top-five ranking with separate snapshots for every period
+            expect(tags?.queryJSON).toMatchObject({
+                groupBy: CONST.SEARCH.GROUP_BY.TAG,
+                sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
+                sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+                limit: CONST.SEARCH.TOP_SEARCH_LIMIT,
+                tagLevel: 1,
+            });
+            for (const query of [tags?.queryJSON, tags?.previousPeriodQueryJSON, averageQueryJSON]) {
+                expect(query?.inputQuery).toContain('policyID:A1');
+                expect(query?.inputQuery).toContain('groupCurrency:EUR');
+            }
+            expect(parsePayload(request)?.insightsHashes.topTags).toEqual({
+                snapshotHash: tags?.queryJSON?.hash,
+                previousPeriodSnapshotHash: tags?.previousPeriodQueryJSON?.hash,
+                averageSnapshotHash: averageQueryJSON?.hash,
+            });
+        });
+
         it('requests only the supporting charts shown on the dashboard', () => {
             // Given the spend dashboard with only its first supporting chart shown, as when no workspace in scope is eligible for the rest
             const [shownChart, ...hiddenCharts] = SPEND_SPEC.supportingCharts;
@@ -300,6 +358,23 @@ describe('insightsQueries', () => {
                 expect(request?.snapshotHashes).not.toContain(hash);
             }
             expect(request?.supportingCharts.map(({chart}) => chart)).toEqual([shownChart]);
+        });
+
+        it('isolates tag levels without invalidating unrelated chart snapshots', () => {
+            // Given the same dashboard filters at level one
+            const first = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, FILTERS, SPEND_SPEC.supportingCharts);
+
+            // When only the selected tag position changes
+            const second = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, {...FILTERS, tagLevel: 2}, SPEND_SPEC.supportingCharts);
+            const firstTags = first?.supportingCharts.find(({chart}) => chart.graphKey === CONST.INSIGHTS.GRAPH.TOP_TAGS);
+            const secondTags = second?.supportingCharts.find(({chart}) => chart.graphKey === CONST.INSIGHTS.GRAPH.TOP_TAGS);
+
+            // Then dashboard and every tag comparison get their own cache scope, while other charts remain reusable
+            expect(second?.hash).not.toBe(first?.hash);
+            expect(secondTags?.queryJSON?.hash).not.toBe(firstTags?.queryJSON?.hash);
+            expect(secondTags?.previousPeriodQueryJSON?.hash).not.toBe(firstTags?.previousPeriodQueryJSON?.hash);
+            expect(secondTags?.averageQueryJSON?.hash).not.toBe(firstTags?.averageQueryJSON?.hash);
+            expect(second?.headlineChart.queryJSON?.hash).toBe(first?.headlineChart.queryJSON?.hash);
         });
 
         it('hashes every set of filters on its own', () => {
@@ -322,7 +397,7 @@ describe('insightsQueries', () => {
             const request = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, filters, SPEND_SPEC.supportingCharts);
 
             // Then the query carries those filters and nothing else, such as the sorting of a table no chart renders
-            expect(parsePayload(request)?.inputQuery).toBe('groupBy:month groupCurrency:USD policyID:A1 date:year-to-date');
+            expect(parsePayload(request)?.inputQuery).toBe('groupBy:month tagLevel:1 groupCurrency:USD policyID:A1 date:year-to-date');
         });
 
         it('reports on a date range as well as a preset', () => {
@@ -336,7 +411,7 @@ describe('insightsQueries', () => {
             const request = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, filters, SPEND_SPEC.supportingCharts);
 
             // Then the query is bounded by the range, both ends included, and the charts ask for snapshots of it
-            expect(parsePayload(request)?.inputQuery).toBe('groupBy:month groupCurrency:USD date>=2026-01-01 date<=2026-03-31');
+            expect(parsePayload(request)?.inputQuery).toBe('groupBy:month tagLevel:1 groupCurrency:USD date>=2026-01-01 date<=2026-03-31');
             expect(parsePayload(request)).toEqual(expect.objectContaining({insightsHashes: buildExpectedHashes(filters)}));
         });
 
@@ -348,7 +423,7 @@ describe('insightsQueries', () => {
             const request = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, filters, SPEND_SPEC.supportingCharts);
 
             // Then the query names that day the same way it names a preset, and its one point is grouped by day, the only grouping a single date offers
-            expect(parsePayload(request)?.inputQuery).toBe('groupBy:month groupCurrency:USD date:2026-03-04');
+            expect(parsePayload(request)?.inputQuery).toBe('groupBy:month tagLevel:1 groupCurrency:USD date:2026-03-04');
             expect(parsePayload(request)?.groupBy).toBe(CONST.SEARCH.GROUP_BY.DAY);
             expect(parsePayload(request)).toEqual(expect.objectContaining({insightsHashes: buildExpectedHashes(filters)}));
         });
@@ -366,7 +441,7 @@ describe('insightsQueries', () => {
             const payload = parsePayload(buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, filters, SPEND_SPEC.supportingCharts));
 
             // Then the backend saves quarter, so a longer range brings it back, while the charts show a Running total grouped by day
-            expect(payload?.inputQuery).toBe('groupBy:quarter groupCurrency:USD date>=2026-03-01 date<=2026-03-31');
+            expect(payload?.inputQuery).toBe('groupBy:quarter tagLevel:1 groupCurrency:USD date>=2026-03-01 date<=2026-03-31');
             expect(payload?.groupBy).toBe(CONST.SEARCH.GROUP_BY.DAY);
         });
 
@@ -416,7 +491,7 @@ describe('insightsQueries', () => {
             expect(chartQuery).toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}:${CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE}`);
         });
 
-        it('caps every bar and pie chart, and so its inline table, to the top search limit', () => {
+        it('caps every bar and pie chart, and so its inline table, to its ranking limit', () => {
             // Given the charts that list their groups in an inline table below them
             const chartsWithTable = SPEND_SPEC.supportingCharts.filter((chart) => chart.view === CONST.SEARCH.VIEW.BAR || chart.view === CONST.SEARCH.VIEW.PIE);
             expect(chartsWithTable.length).toBeGreaterThan(0);
@@ -424,7 +499,7 @@ describe('insightsQueries', () => {
             // When the page filters are applied to each of them
             const limits = chartsWithTable.map((chart) => buildSearchQueryJSON(applyInsightsFilters(chart, FILTERS))?.limit);
 
-            // Then every query asks the backend for at most the top search limit, which is all the chart and its table show
+            // Then each ranking and inline table shows five groups
             expect(limits).toEqual(chartsWithTable.map(() => CONST.SEARCH.TOP_SEARCH_LIMIT));
         });
 
@@ -473,7 +548,7 @@ describe('insightsQueries', () => {
             const approverQuery = applyInsightsFilters(getComplianceChart(CONST.INSIGHTS.GRAPH.VIOLATIONS_BY_APPROVER), filters);
 
             // Then each one keeps the violations of its stage over the submissions or approvals of the week, the way the backend counts them, instead of the expense date
-            expect(submitterQuery).toContain('has:submitted-violation submitted:this-week');
+            expect(submitterQuery).toContain('has:submitted-violation anySubmission:this-week');
             expect(approverQuery).toContain('has:approved-violation anyApproval:this-week');
             expect(submitterQuery).not.toContain('date:');
             expect(approverQuery).not.toContain('date:');
@@ -513,6 +588,23 @@ describe('insightsQueries', () => {
             expect(chartQuery).toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}<=2026-10-08`);
         });
 
+        it('preserves the selected tag level when narrowing the query to the plotted dates', () => {
+            // Given a level-two tag chart spanning October, counted through October 8
+            const chart = SPEND_SPEC.supportingCharts.find(({graphKey}) => graphKey === CONST.INSIGHTS.GRAPH.TOP_TAGS);
+            if (!chart) {
+                throw new Error('Missing Top tags chart');
+            }
+            const filters: InsightsFilters = {...FILTERS, tagLevel: 2, date: {from: '2026-10-01', to: '2026-10-31'}};
+
+            // When Search is narrowed to the days the tag chart plots
+            const query = applyInsightsFilters(chart, filters, undefined, '2026-10-08');
+
+            // Then the tag level and both date bounds survive together
+            expect(buildSearchQueryJSON(query)).toMatchObject({groupBy: CONST.SEARCH.GROUP_BY.TAG, tagLevel: 2});
+            expect(query).toContain('date>=2026-10-01');
+            expect(query).toContain('date<=2026-10-08');
+        });
+
         it('keeps the start of a custom date range that runs past today', () => {
             // Given it's October 8 and the page covers October 1–31, which is written to the same date range field the stop at today replaces
             const filters: InsightsFilters = {...FILTERS, date: {from: '2026-10-01', to: '2026-10-31'}};
@@ -527,7 +619,7 @@ describe('insightsQueries', () => {
 
         it('keeps the end of a custom date range that starts before the chart tracks data', () => {
             // Given a chart whose snapshot has data from June 1, and the page covers May 1 – June 30, which ended before today
-            const chart = getComplianceChart(CONST.INSIGHTS.GRAPH.TOP_VIOLATIONS);
+            const chart = SPEND_SPEC.headlineChart;
             expect(chart.dateFilterKey).toBeUndefined();
             const filters: InsightsFilters = {...FILTERS, date: {from: '2026-05-01', to: '2026-06-30'}};
 
@@ -564,9 +656,9 @@ describe('insightsQueries', () => {
         });
 
         it('adds nothing to charts that filter on a date other than the expense date', () => {
-            // Given the chart of violations kept at submission, which filters on the submission date, over this year
+            // Given the chart of violations kept at submission, which filters on any submission date, over this year
             const chart = getComplianceChart(CONST.INSIGHTS.GRAPH.VIOLATIONS_BY_SUBMITTER);
-            expect(chart.dateFilterKey).toBe(CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED);
+            expect(chart.dateFilterKey).toBe(CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_SUBMISSION);
             const filters: InsightsFilters = {...FILTERS, date: {preset: CONST.SEARCH.DATE_PRESETS.THIS_YEAR}};
 
             // When its query is built to stop at today
@@ -630,5 +722,32 @@ describe('insightsQueries', () => {
             expect(queryJSON?.limit).toBe(10);
             expect(queryJSON?.flatFilters).toEqual(buildSearchQueryJSON(query)?.flatFilters);
         });
+    });
+});
+
+describe('scopeInsightsDrillDownQuery', () => {
+    it('replaces the workspace selection and preserves the spender and date filters', () => {
+        // Given a Top spender with expenses in two selected workspaces
+        const query = buildSearchQueryJSON('type:expense from:123 date:this-month policyID:A1,B2');
+
+        // When Auth returns the one eligible workspace for a drill-down
+        const scoped = scopeInsightsDrillDownQuery(query, CONST.INSIGHTS.GRAPH.TOP_SPENDERS, ['A1']);
+
+        // Then Search only sees the eligible workspace and keeps the original spender and date filters
+        expect(getFilterFromQuery(scoped, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID).value).toEqual(['A1']);
+        expect(getFilterFromQuery(scoped, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM).value).toEqual(['123']);
+        expect(scoped?.inputQuery).toContain('date:this-month');
+    });
+
+    it('does not offer a Top spenders drill-down without an eligible workspace', () => {
+        // Given a query with no workspace selected
+        const query = buildSearchQueryJSON('type:expense group-by:from date:this-month');
+
+        // When Auth has not returned eligible workspaces or returns an empty list
+        const scope = (ids: string[] | undefined) => scopeInsightsDrillDownQuery(query, CONST.INSIGHTS.GRAPH.TOP_SPENDERS, ids);
+
+        // Then neither case falls back to an unfiltered Search
+        expect(scope(undefined)).toBeUndefined();
+        expect(scope([])).toBeUndefined();
     });
 });

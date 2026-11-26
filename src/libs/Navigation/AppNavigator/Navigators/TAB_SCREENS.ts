@@ -3,6 +3,8 @@
  * This must match the Tab.Screen order in TabNavigator.tsx and TabNavigator.native.tsx, where it is also the order
  * the native tab bar draws its items in.
  * Used by getAdaptedStateFromPath to build complete tab navigator state for deep-links.
+ * The placeholders of the flat nav native bar (SCREENS.NATIVE_TAB_ITEM) are left out: they are registered only with the
+ * beta, never focused, and TabRouter adds a registered route missing from a partial state by its name.
  */
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';

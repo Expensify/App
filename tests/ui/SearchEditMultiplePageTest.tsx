@@ -1,16 +1,20 @@
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen, within} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
+import type DropdownField from '@components/DropdownField';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {SearchContextProvider} from '@components/Search/SearchContextProvider';
 import ThemeProvider from '@components/ThemeProvider';
 import ThemeStylesProvider from '@components/ThemeStylesContextProvider';
 
+import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
+
 import {updateMultipleMoneyRequests} from '@libs/actions/IOU/BulkEdit';
 import type * as BulkEditActions from '@libs/actions/IOU/BulkEdit';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 
 import SearchEditMultiplePage from '@pages/Search/SearchEditMultiple/SearchEditMultiplePage';
@@ -25,6 +29,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {OriginalMessageIOU, Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
 import type {Message} from '@src/types/onyx/ReportAction';
 
+import type {ComponentProps} from 'react';
+import type ReactNative from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 import {PortalProvider} from '@gorhom/portal';
@@ -55,6 +61,37 @@ jest.mock('@userActions/Policy/Tag', () => ({
     ...jest.requireActual<Record<string, unknown>>('@userActions/Policy/Tag'),
     openPolicyTagsPage: jest.fn(),
 }));
+
+jest.mock('@libs/DeviceCapabilities', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@libs/DeviceCapabilities'),
+    canUseTouchScreen: jest.fn(() => true),
+}));
+
+jest.mock('@hooks/useShouldFooterBeInsideList', () => jest.fn(() => false));
+
+jest.mock('@hooks/usePermissions', () => () => ({
+    isBetaEnabled: () => false,
+    isBetaEnabledOrUnknown: () => false,
+}));
+
+// Records what each selectable row decided, so a test can read it without pressing the row and measuring a layout.
+const mockShouldOpenInDropdownByRow: Record<string, boolean> = {};
+const mockValueByRow: Record<string, string | undefined> = {};
+const mockOnVisibilityChangeByRow: Record<string, ((isVisible: boolean) => void) | undefined> = {};
+type DropdownFieldMockProps = Pick<ComponentProps<typeof DropdownField>, 'name' | 'shouldOpenInDropdown' | 'value' | 'onVisibilityChange'>;
+jest.mock('@components/DropdownField', () => ({name, shouldOpenInDropdown, value, onVisibilityChange}: DropdownFieldMockProps) => {
+    mockShouldOpenInDropdownByRow[name] = shouldOpenInDropdown;
+    mockValueByRow[name] = value;
+    mockOnVisibilityChangeByRow[name] = onVisibilityChange;
+    return null;
+});
+
+// The Enter shortcut only registers on web, so a marker stands in for it to show whether Save is listening for Enter.
+const ENTER_SHORTCUT_TEST_ID = 'SaveEnterShortcut';
+jest.mock('@components/Button/primitives/ButtonKeyboardShortcut', () => {
+    const {View: MockView} = jest.requireActual<typeof ReactNative>('react-native');
+    return () => <MockView testID="SaveEnterShortcut" />;
+});
 
 const CURRENT_USER_ACCOUNT_ID = 5;
 const CURRENT_USER_EMAIL = 'bjorn@vikings.net';
@@ -162,6 +199,13 @@ describe('SearchEditMultiplePage', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        jest.mocked(canUseTouchScreen).mockReturnValue(true);
+        jest.mocked(useShouldFooterBeInsideList).mockReturnValue(false);
+        for (const rowName of Object.keys(mockShouldOpenInDropdownByRow)) {
+            delete mockShouldOpenInDropdownByRow[rowName];
+            delete mockValueByRow[rowName];
+            delete mockOnVisibilityChangeByRow[rowName];
+        }
         await Onyx.set(ONYXKEYS.SESSION, {email: CURRENT_USER_EMAIL, accountID: CURRENT_USER_ACCOUNT_ID});
         await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[CURRENT_USER_ACCOUNT_ID]: {accountID: CURRENT_USER_ACCOUNT_ID, login: CURRENT_USER_EMAIL}});
         await Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, POLICY_ID);
@@ -184,21 +228,62 @@ describe('SearchEditMultiplePage', () => {
     });
 
     it('keeps Reimbursable editable when every selected expense is still editable', async () => {
+        // Given a selection whose every expense can still be edited
         await selectTransactions([OPEN_TRANSACTION_ID]);
 
+        // When the page renders
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.getByLabelText(/^Reimbursable/).props.accessibilityState).toEqual(expect.objectContaining({disabled: false}));
+        // Then the Reimbursable row opens its list in place
+        expect(mockShouldOpenInDropdownByRow.Reimbursable).toBe(true);
     });
 
-    it('disables Reimbursable when the selection contains a marked-as-done expense', async () => {
-        await selectTransactions([OPEN_TRANSACTION_ID, DONE_TRANSACTION_ID]);
+    it('leaves Reimbursable empty until a value is picked, then shows it', async () => {
+        // Given a selection where nothing has been picked for Reimbursable yet
+        await selectTransactions([OPEN_TRANSACTION_ID]);
 
+        // When the page renders
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.getByLabelText(/^Reimbursable/).props.accessibilityState).toEqual(expect.objectContaining({disabled: true}));
+        // Then the row is empty like the other untouched fields, since each expense keeps its own value
+        expect(mockValueByRow.Reimbursable).toBe('');
+
+        // When No is picked
+        await selectTransactions([OPEN_TRANSACTION_ID], {reimbursable: false});
+
+        // Then the row shows it
+        expect(mockValueByRow.Reimbursable).toBe('No');
+    });
+
+    it('sets every selected expense to non-reimbursable when No is picked', async () => {
+        // Given a selection whose Reimbursable was set to No, which a switch could not tell apart from leaving it alone
+        await selectTransactions([OPEN_TRANSACTION_ID], {reimbursable: false});
+
+        // When the changes are saved
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByText('Save'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then every selected expense is marked non-reimbursable
+        expect(updateMultipleMoneyRequests).toHaveBeenCalledWith(expect.objectContaining({changes: {reimbursable: false}}));
+    });
+
+    it('locks Reimbursable when the selection contains a marked-as-done expense', async () => {
+        // Given a selection with an expense whose report is closed, which locks Reimbursable
+        await selectTransactions([OPEN_TRANSACTION_ID, DONE_TRANSACTION_ID]);
+
+        // When the page renders and the changes are saved
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByText('Save'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the Reimbursable row can't open its list, and nothing is pending to apply
+        expect(mockShouldOpenInDropdownByRow.Reimbursable).toBe(false);
+        expect(updateMultipleMoneyRequests).not.toHaveBeenCalled();
     });
 
     it.each([
@@ -232,11 +317,11 @@ describe('SearchEditMultiplePage', () => {
 
         // Then a field is available only when every selected expense supports individual editing
         if (visible) {
-            expect(screen.getByLabelText(/^Reimbursable/)).toBeOnTheScreen();
-            expect(screen.getByLabelText(/^Billable/)).toBeOnTheScreen();
+            expect(mockShouldOpenInDropdownByRow.Reimbursable).toBeDefined();
+            expect(mockShouldOpenInDropdownByRow.Billable).toBeDefined();
         } else {
-            expect(screen.queryByLabelText(/^Reimbursable/)).not.toBeOnTheScreen();
-            expect(screen.queryByLabelText(/^Billable/)).not.toBeOnTheScreen();
+            expect(mockShouldOpenInDropdownByRow.Reimbursable).toBeUndefined();
+            expect(mockShouldOpenInDropdownByRow.Billable).toBeUndefined();
         }
     });
 
@@ -257,9 +342,9 @@ describe('SearchEditMultiplePage', () => {
 
         // Then only expenses that differ from the locked default remain correctable
         if (visible) {
-            expect(screen.getByLabelText(/^Reimbursable/)).toBeOnTheScreen();
+            expect(mockShouldOpenInDropdownByRow.Reimbursable).toBeDefined();
         } else {
-            expect(screen.queryByLabelText(/^Reimbursable/)).not.toBeOnTheScreen();
+            expect(mockShouldOpenInDropdownByRow.Reimbursable).toBeUndefined();
         }
     });
 
@@ -273,7 +358,7 @@ describe('SearchEditMultiplePage', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then an absent policy is not mistaken for an unlocked workspace
-        expect(screen.queryByLabelText(/^Reimbursable/)).not.toBeOnTheScreen();
+        expect(mockShouldOpenInDropdownByRow.Reimbursable).toBeUndefined();
     });
 
     it('shows Reimbursable for "Do Not Force" company card expenses on an "Always" workspace', async () => {
@@ -287,7 +372,7 @@ describe('SearchEditMultiplePage', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then the Reimbursable row shows, because the workspace cash expense rules don't apply to card expenses
-        expect(screen.getByLabelText(/^Reimbursable/)).toBeOnTheScreen();
+        expect(mockShouldOpenInDropdownByRow.Reimbursable).toBeDefined();
     });
 
     it.each([true, false])('hides Reimbursable when the selection contains a company card expense forced to %s', async (forceReimbursable) => {
@@ -306,7 +391,7 @@ describe('SearchEditMultiplePage', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then the Reimbursable row is hidden, because the forced expense's reimbursable value can't change
-        expect(screen.queryByLabelText(/^Reimbursable/)).not.toBeOnTheScreen();
+        expect(mockShouldOpenInDropdownByRow.Reimbursable).toBeUndefined();
     });
 
     it.each([
@@ -332,9 +417,9 @@ describe('SearchEditMultiplePage', () => {
 
         // Then the row follows the expense's saved restriction, not the current feed setting
         if (expectedEditable) {
-            expect(screen.getByLabelText(/^Reimbursable/)).toBeOnTheScreen();
+            expect(mockShouldOpenInDropdownByRow.Reimbursable).toBeDefined();
         } else {
-            expect(screen.queryByLabelText(/^Reimbursable/)).not.toBeOnTheScreen();
+            expect(mockShouldOpenInDropdownByRow.Reimbursable).toBeUndefined();
         }
     });
 
@@ -353,7 +438,7 @@ describe('SearchEditMultiplePage', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then unreported expenses still respect their saved restriction
-        expect(screen.queryByLabelText(/^Reimbursable/)).not.toBeOnTheScreen();
+        expect(mockShouldOpenInDropdownByRow.Reimbursable).toBeUndefined();
     });
 
     it('shows the spinner before applying the changes on save, then applies them and dismisses the RHP', async () => {
@@ -437,7 +522,259 @@ describe('SearchEditMultiplePage', () => {
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
-        // Then Merchant stays editable, because the report's submitter stands in for the missing action's requester
-        expect(screen.getByLabelText(/^Merchant/).props.accessibilityState).toEqual(expect.objectContaining({disabled: false}));
+        // Then Merchant stays an editable input, because the report's submitter stands in for the missing action's requester
+        fireEvent.changeText(screen.getByLabelText('Merchant'), 'Starbucks');
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByText('Save'));
+        await waitForBatchedUpdatesWithAct();
+        expect(updateMultipleMoneyRequests).toHaveBeenCalledWith(expect.objectContaining({changes: {merchant: 'Starbucks'}}));
+    });
+
+    it('shows the currency on the amount input and saves a picked currency', async () => {
+        // Given a selection whose draft holds a currency picked from the amount input's currency button
+        await selectTransactions([OPEN_TRANSACTION_ID], {currency: CONST.CURRENCY.EUR});
+
+        // When the Edit multiple page is opened and the changes are saved
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByText(CONST.CURRENCY.EUR)).toBeOnTheScreen();
+        fireEvent.press(screen.getByText('Save'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the picked currency is applied to the selected expenses
+        expect(updateMultipleMoneyRequests).toHaveBeenCalledWith(expect.objectContaining({changes: {currency: CONST.CURRENCY.EUR}}));
+    });
+
+    it('saves a typed amount in the currency the amount input shows', async () => {
+        // Given a selection on a workspace whose currency the amount input shows, and no currency picked
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {outputCurrency: CONST.CURRENCY.EUR});
+        await selectTransactions([OPEN_TRANSACTION_ID], {amount: 5000});
+
+        // When the Edit multiple page is opened and the changes are saved
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByText(CONST.CURRENCY.EUR)).toBeOnTheScreen();
+        fireEvent.press(screen.getByText('Save'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the amount goes with that currency, as each expense would otherwise keep its own and read as a different amount
+        expect(updateMultipleMoneyRequests).toHaveBeenCalledWith(expect.objectContaining({changes: {amount: 5000, currency: CONST.CURRENCY.EUR}}));
+    });
+
+    it("closes the keyboard from the amount's Done key", async () => {
+        // Given a selection whose amount can be edited
+        await selectTransactions([OPEN_TRANSACTION_ID]);
+
+        // When the Edit multiple page is opened
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then Done blurs the amount input, because the page has no form that would close the keyboard on submit
+        expect(screen.getByLabelText('Amount').props.submitBehavior).toBe('blurAndSubmit');
+    });
+
+    it("saves from the description's Enter key when a hardware keyboard is used", async () => {
+        // Given a device with a hardware keyboard, where Shift+Enter still adds a new line
+        jest.mocked(canUseTouchScreen).mockReturnValue(false);
+        await selectTransactions([OPEN_TRANSACTION_ID], {comment: {comment: 'Team lunch'}});
+
+        // When Enter is pressed in the description
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+        fireEvent(screen.getByLabelText('Description'), 'submitEditing');
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the changes are saved, as they are from the expense form
+        expect(updateMultipleMoneyRequests).toHaveBeenCalledWith(expect.objectContaining({changes: {comment: 'Team lunch'}}));
+    });
+
+    it('keeps Enter as a new line in the description on a touch device', async () => {
+        // Given a touch device, where Enter is the only way to add a new line
+        jest.mocked(canUseTouchScreen).mockReturnValue(true);
+        await selectTransactions([OPEN_TRANSACTION_ID]);
+
+        // When the Edit multiple page is opened
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then Enter adds a new line to the description instead of saving
+        expect(screen.getByLabelText('Description').props.submitBehavior).toBe('newline');
+    });
+
+    it('lets the first tap with the keyboard open reach the field under it', async () => {
+        // Given a selection on the Edit multiple page
+        await selectTransactions([OPEN_TRANSACTION_ID]);
+
+        // When the page is opened
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the scroll view hands taps to the field instead of using them only to close the keyboard
+        expect(screen.UNSAFE_getAllByProps({keyboardShouldPersistTaps: 'handled'}).length).toBeGreaterThan(0);
+    });
+
+    it('moves Save into the scrolling fields in landscape with the keyboard open', async () => {
+        // Given a phone in landscape with the keyboard open, which leaves little room above the keyboard
+        jest.mocked(useShouldFooterBeInsideList).mockReturnValue(true);
+        await selectTransactions([OPEN_TRANSACTION_ID]);
+
+        // When the Edit multiple page is opened
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then Save scrolls with the fields, so it does not cover the field being edited
+        const scrollView = screen.UNSAFE_getAllByProps({keyboardShouldPersistTaps: 'handled'}).at(0);
+        if (!scrollView) {
+            throw new Error('No scroll view');
+        }
+        expect(within(scrollView).getByText('Save')).toBeOnTheScreen();
+        expect(screen.getAllByText('Save')).toHaveLength(1);
+    });
+
+    it('stops listening for Enter while a list is open, so Enter in the list does not save the page behind it', async () => {
+        // Given the Edit multiple page with its Reimbursable row
+        await selectTransactions([OPEN_TRANSACTION_ID]);
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByTestId(ENTER_SHORTCUT_TEST_ID)).toBeOnTheScreen();
+
+        // When the row's list opens with no option focused
+        act(() => mockOnVisibilityChangeByRow.Reimbursable?.(true));
+
+        // Then Save no longer takes Enter, which would otherwise save every selected expense behind the list
+        expect(screen.queryByTestId(ENTER_SHORTCUT_TEST_ID)).toBeNull();
+
+        // When the list closes
+        act(() => mockOnVisibilityChangeByRow.Reimbursable?.(false));
+
+        // Then Enter saves the page again
+        expect(screen.getByTestId(ENTER_SHORTCUT_TEST_ID)).toBeOnTheScreen();
+    });
+
+    it('stops listening for Enter while the currency picker is open', async () => {
+        // Given the Edit multiple page with an editable amount shown in EUR
+        await selectTransactions([OPEN_TRANSACTION_ID], {currency: CONST.CURRENCY.EUR});
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // When the currency picker is opened from the amount row
+        fireEvent.press(screen.getByText(CONST.CURRENCY.EUR));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then Save no longer takes Enter, so Enter in the picker does not save the page
+        expect(screen.queryByTestId(ENTER_SHORTCUT_TEST_ID)).toBeNull();
+    });
+
+    it('accepts a negative amount when every selected expense allows one', async () => {
+        // Given an expense on a workspace expense report, which can hold a negative amount
+        await selectTransactions([OPEN_TRANSACTION_ID]);
+
+        // When a minus sign and then an amount are typed, and the changes are saved
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.changeText(screen.getByLabelText('Amount'), '-');
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.changeText(screen.getByLabelText('Amount'), '-5');
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByText('Save'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the lone minus sign is kept while typing and the negative amount is what gets applied
+        expect(updateMultipleMoneyRequests).toHaveBeenCalledWith(expect.objectContaining({changes: expect.objectContaining({amount: -500})}));
+    });
+
+    it('locks Merchant when a selected expense is a distance expense', async () => {
+        // Given a selection with a distance expense, whose merchant is computed from the route
+        const distanceTransactionID = 'distanceTransaction';
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${distanceTransactionID}`, {
+            ...buildTransaction(distanceTransactionID, OPEN_REPORT_ID),
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+            comment: {type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT, customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE}},
+        });
+        await selectTransactions([OPEN_TRANSACTION_ID, distanceTransactionID]);
+
+        // When the Edit multiple page is opened for the selection
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then Merchant is a locked field rather than an input
+        expect(screen.getByLabelText(/^Merchant/).props.onChangeText).toBeUndefined();
+    });
+
+    it('does not save while the merchant typed is not a valid merchant', async () => {
+        // Given the merchant input holds the placeholder merchant, which the form flags inline
+        await selectTransactions([OPEN_TRANSACTION_ID]);
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.changeText(screen.getByLabelText('Merchant'), CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT);
+        await waitForBatchedUpdatesWithAct();
+
+        // When Save is pressed
+        fireEvent.press(screen.getByText('Save'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the error stays on the field and nothing is applied
+        expect(screen.getByText('Please enter a valid merchant')).toBeTruthy();
+        expect(updateMultipleMoneyRequests).not.toHaveBeenCalled();
+    });
+
+    it('does not save a zero amount when an invoice is selected', async () => {
+        // Given a selection with an invoice the current user sent, which its own amount page never lets go to zero
+        const INVOICE_REPORT_ID = 'invoiceReport';
+        const INVOICE_TRANSACTION_ID = 'invoiceTransaction';
+        const INVOICE_RECEIVER_ACCOUNT_ID = 6;
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${INVOICE_REPORT_ID}`, {
+            ...buildReport(INVOICE_REPORT_ID, CONST.REPORT.STATUS_NUM.OPEN, CONST.REPORT.STATE_NUM.OPEN),
+            type: CONST.REPORT.TYPE.INVOICE,
+            managerID: INVOICE_RECEIVER_ACCOUNT_ID,
+        });
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${INVOICE_TRANSACTION_ID}`, buildTransaction(INVOICE_TRANSACTION_ID, INVOICE_REPORT_ID));
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${INVOICE_REPORT_ID}`, {
+            [`action-${INVOICE_TRANSACTION_ID}`]: buildIOUAction(INVOICE_REPORT_ID, INVOICE_TRANSACTION_ID),
+        });
+        await selectTransactions([OPEN_TRANSACTION_ID, INVOICE_TRANSACTION_ID]);
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // When the amount is set to zero and Save is pressed
+        fireEvent.changeText(screen.getByLabelText('Amount'), '0');
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByText('Save'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the amount is flagged and nothing is applied, as editing the invoice on its own would not allow it either
+        expect(screen.getByText('Invalid amount')).toBeTruthy();
+        expect(updateMultipleMoneyRequests).not.toHaveBeenCalled();
+    });
+
+    it('opens the category list in place', async () => {
+        // Given a workspace with categories
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {areCategoriesEnabled: true});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}`, {Food: {name: 'Food', enabled: true}});
+        await selectTransactions([OPEN_TRANSACTION_ID]);
+
+        // When the Edit multiple page renders the category row
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the row opens its list in a container anchored to it rather than on its own page
+        expect(mockShouldOpenInDropdownByRow.Category).toBe(true);
+    });
+
+    it('keeps the full-page tag selector for dependent tags, which need the levels above', async () => {
+        // Given a workspace with dependent tag lists
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {areTagsEnabled: true, hasMultipleTagLists: true});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${POLICY_ID}`, {
+            Region: {name: 'Region', required: false, orderWeight: 0, tags: {EMEA: {name: 'EMEA', enabled: true, rules: {parentTagsFilter: ''}}}},
+            Country: {name: 'Country', required: false, orderWeight: 1, tags: {Spain: {name: 'Spain', enabled: true, rules: {parentTagsFilter: 'EMEA'}}}},
+        });
+        await selectTransactions([OPEN_TRANSACTION_ID]);
+
+        // When the Edit multiple page renders the first tag row
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the row keeps the full-page selector, which walks the levels in order
+        expect(mockShouldOpenInDropdownByRow.Region).toBe(false);
     });
 });

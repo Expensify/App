@@ -183,7 +183,7 @@ function clearRevokeError(loginKey: string) {
  */
 function closeAccount(reason: string, validateCode: string) {
     // Note: successData does not need to set isLoading to false because if the CloseAccount
-    // command succeeds, a Pusher response will clear all Onyx data.
+    // command succeeds, its response clears all Onyx data.
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM>> = [
         {
@@ -205,12 +205,6 @@ function closeAccount(reason: string, validateCode: string) {
     API.write(WRITE_COMMANDS.CLOSE_ACCOUNT, parameters, {
         optimisticData,
         failureData,
-    }).then((response) => {
-        // The account stays open when the validateCode is rejected, so OldDot must stay signed in to keep the state of both apps in sync
-        if (!CONFIG.IS_HYBRID_APP || response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
-            return;
-        }
-        HybridAppModule.signOutFromOldDot();
     });
 }
 
@@ -1492,6 +1486,10 @@ function setShouldShowAskConciergeNavItem(value: boolean) {
     Onyx.set(ONYXKEYS.SHOULD_SHOW_ASK_CONCIERGE_NAV_ITEM, value);
 }
 
+function setShouldHideEnvironmentBadge(value: boolean) {
+    Onyx.set(ONYXKEYS.SHOULD_HIDE_ENVIRONMENT_BADGE, value);
+}
+
 function setBetaOverride(beta: Beta, value: boolean) {
     Onyx.merge(ONYXKEYS.BETA_OVERRIDES, {[beta]: value});
 }
@@ -2159,6 +2157,7 @@ export {
     setShouldShowBranchNameInTitle,
     setShouldShowExtraNavItems,
     setShouldShowAskConciergeNavItem,
+    setShouldHideEnvironmentBadge,
     setBetaOverride,
     clearBetaOverride,
     clearBetaOverrides,

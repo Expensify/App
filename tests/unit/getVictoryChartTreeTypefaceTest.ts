@@ -2,7 +2,7 @@ import type {ChartDefaultTypeface, ChartSkiaTypefaceKey} from '@components/Chart
 import {CHART_SKIA_TYPEFACE_ASSETS} from '@components/Charts/utils/chartFontAssets';
 import getVictoryChartTreeTypeface from '@components/Charts/utils/getVictoryChartTreeTypeface';
 
-import type {SkTypeface} from '@shopify/react-native-skia';
+import type {SkTypeface} from 'react-native-skia';
 
 function makeMockTypeface(key: string): SkTypeface {
     // Skia typefaces are native objects; tests only need a unique stand-in per key.

@@ -2,13 +2,14 @@ import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderCentralPane from '@components/Header/composed/HeaderCentralPane';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import AgentsTable from '@components/Tables/AgentsTable';
 
 import useAgentsTable from '@hooks/useAgentsTable';
 import useDocumentTitle from '@hooks/useDocumentTitle';
+import useFetchAfterAppLoaded from '@hooks/useFetchAfterAppLoaded';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -26,7 +27,6 @@ import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
-import {useEffect} from 'react';
 import {View} from 'react-native';
 
 function AgentsPage() {
@@ -41,10 +41,14 @@ function AgentsPage() {
     const {agents, selectedAgentKeys, setSelectedAgents, clearSelectedAgents, askForConfirmationToDelete, tableRef} = useAgentsTable();
     const hasAgents = agents.length > 0;
     const canSelectMultiple = shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true;
-    const shouldShowBulkActionsButton = shouldUseNarrowLayout ? canSelectMultiple : selectedAgentKeys.length > 0;
+
+    // The wide layout offers these actions in the floating bar over the table instead, so its header keeps the
+    // page's own buttons no matter what is selected.
+    const shouldShowBulkActionsButton = shouldUseNarrowLayout && canSelectMultiple;
 
     useDocumentTitle(translate('agentsPage.title'));
-    useEffect(() => openAgentsPage(), []);
+
+    useFetchAfterAppLoaded(openAgentsPage);
 
     const newAgentButton = hasAgents ? (
         <Button
@@ -104,8 +108,6 @@ function AgentsPage() {
         </>
     );
 
-    const headerContent = shouldDisplayButtonsInSeparateLine ? undefined : headerButtons;
-
     const goBackOrClearSelection = () => {
         if (isMobileSelectionModeEnabled) {
             clearSelectedAgents();
@@ -125,16 +127,14 @@ function AgentsPage() {
             offlineIndicatorStyle={styles.mtAuto}
         >
             <CollapsibleHeaderOnKeyboard>
-                <HeaderWithBackButton
+                <HeaderCentralPane
                     onBackButtonPress={goBackOrClearSelection}
-                    shouldShowBackButton={shouldUseNarrowLayout}
-                    shouldUseHeadlineHeader={!selectionModeHeader}
-                    shouldDisplaySearchRouter
-                    shouldDisplayHelpButton
+                    isHeadline={!selectionModeHeader}
                     title={selectionModeHeader ? translate('common.selectMultiple') : translate('agentsPage.title')}
+                    shouldDisplaySearchRouter
                 >
-                    {headerContent}
-                </HeaderWithBackButton>
+                    {!shouldDisplayButtonsInSeparateLine && headerButtons}
+                </HeaderCentralPane>
             </CollapsibleHeaderOnKeyboard>
             <AgentsTable
                 ref={tableRef}
@@ -144,7 +144,9 @@ function AgentsPage() {
                 selectedKeys={selectedAgentKeys}
                 onRowSelectionChange={setSelectedAgents}
                 shouldShowOwnerColumn
+                columnResizingID={CONST.TABLES.COLUMN_RESIZING_IDS.AGENTS}
                 emptyStateButtons={emptyStateButtons}
+                bulkActionOptions={bulkActionsButtonOptions}
             />
         </ScreenWrapper>
     );

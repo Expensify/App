@@ -1,5 +1,7 @@
 import type {MeasurableInput} from '@components/SelectionList/SelectionListWithSections/types';
 
+import useKeyboardShownRef from '@hooks/useKeyboardShownRef';
+
 import CONST from '@src/CONST';
 
 import type {ComponentRef} from 'react';
@@ -10,8 +12,7 @@ import {KeyboardEvents} from 'react-native-keyboard-controller';
 
 import type {UseScrollToFocusedInput} from './types';
 
-/** Extra space (px) left between the focused input and the top of the visible list area after scrolling. */
-const EXTRA_SCROLL_PADDING = 16;
+import getScrollDeltaToReveal, {EXTRA_SCROLL_PADDING} from './getScrollDeltaToReveal';
 
 type MeasureInWindowCallback = (x: number, y: number, width: number, height: number) => void;
 
@@ -29,16 +30,12 @@ function isMeasurable(node: MeasurableInput): node is MeasurableNode {
  * `BaseSelectionList` scrolls *list items* into view via `scrollToIndex`, but footer inputs aren't list items,
  * so we instead pull the focused input up toward the top of the list area once the keyboard is shown.
  */
-const useScrollToFocusedInput: UseScrollToFocusedInput = (listRef, isKeyboardShown) => {
+const useScrollToFocusedInput: UseScrollToFocusedInput = (listRef) => {
     const containerRef = useRef<ComponentRef<typeof View> | null>(null);
     const scrollOffsetRef = useRef(0);
-    const isKeyboardShownRef = useRef(isKeyboardShown);
+    const isKeyboardShownRef = useKeyboardShownRef();
     const keyboardListenerRef = useRef<EmitterSubscription | null>(null);
     const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-    useEffect(() => {
-        isKeyboardShownRef.current = isKeyboardShown;
-    }, [isKeyboardShown]);
 
     const cleanup = () => {
         keyboardListenerRef.current?.remove();
@@ -110,7 +107,27 @@ const useScrollToFocusedInput: UseScrollToFocusedInput = (listRef, isKeyboardSho
         }, CONST.MAX_TRANSITION_DURATION_MS);
     };
 
-    return {containerRef, trackScrollOffset, scrollInputIntoView};
+    const scrollToReveal = (view: MeasurableInput) => {
+        // A focused input's scroll that is still waiting would run afterwards and could move the revealed view back out of sight.
+        cleanup();
+        const list = listRef.current;
+        // The container also holds the footer below the list, so only the scroll view's own frame is the visible area.
+        const scroller = list?.getNativeScrollRef();
+        if (!list || !isMeasurable(view) || !isMeasurable(scroller)) {
+            return;
+        }
+        scroller.measureInWindow((scrollerX, scrollerY, scrollerWidth, scrollerHeight) => {
+            view.measureInWindow((viewX, viewY, viewWidth, viewHeight) => {
+                const delta = getScrollDeltaToReveal({top: viewY, height: viewHeight}, {top: scrollerY, height: scrollerHeight});
+                if (delta === 0) {
+                    return;
+                }
+                list.scrollToOffset({offset: scrollOffsetRef.current + delta, animated: true});
+            });
+        });
+    };
+
+    return {containerRef, trackScrollOffset, scrollInputIntoView, scrollToReveal};
 };
 
 export default useScrollToFocusedInput;

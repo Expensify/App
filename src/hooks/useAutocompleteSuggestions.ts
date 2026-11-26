@@ -33,7 +33,6 @@ import getEmptyArray from '@src/types/utils/getEmptyArray';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import {policyIDsWithCategoryRulesSelector} from '@selectors/PolicyCategories';
 
 import type {FeedKeysWithAssignedCards} from './useFeedKeysWithAssignedCards';
 
@@ -80,7 +79,7 @@ type UseAutocompleteSuggestionsParams = {
 
 // Static autocomplete lists derived from CONST values, computed once at module load
 const DATA_TYPE_VALUES = Object.values(CONST.SEARCH.DATA_TYPES);
-// Insights-only group-bys aren't suggested because Search can't group by them (see https://github.com/Expensify/App/issues/105303)
+// Insights-only group-bys aren't suggested because Search can't group by them
 const GROUP_BY_FRIENDLY_VALUES = Object.values(CONST.SEARCH.GROUP_BY)
     .filter(isGroupBySupportedBySearch)
     .map((value) => getUserFriendlyValue(value));
@@ -137,7 +136,6 @@ function useAutocompleteSuggestions({
     const {localeCompare, dateFnsLocale, formatPhoneNumber} = useLocalize();
     const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
-    const [policyIDsWithCategoryRules] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {selector: policyIDsWithCategoryRulesSelector});
     const [allRecentCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES);
     const [recentCurrencyAutocompleteList] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -399,8 +397,13 @@ function useAutocompleteSuggestions({
                         return [];
                 }
             })();
+            const shouldShowViolationGroupBy = getHasOptionAvailability(policies).shouldShowSubmittedViolation;
+            const violationGroupByValue = getUserFriendlyValue(CONST.SEARCH.GROUP_BY.VIOLATION);
             const filteredGroupBy = groupByAutocompleteList.filter(
-                (groupByValue) => groupByValue.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(groupByValue.toLowerCase()),
+                (groupByValue) =>
+                    (groupByValue !== violationGroupByValue || shouldShowViolationGroupBy) &&
+                    groupByValue.toLowerCase().includes(autocompleteValue.toLowerCase()) &&
+                    !alreadyAutocompletedKeys.has(groupByValue.toLowerCase()),
             );
             return filteredGroupBy.map((groupByValue) => ({filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.GROUP_BY, text: groupByValue}));
         }
@@ -462,7 +465,7 @@ function useAutocompleteSuggestions({
             }));
         }
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION: {
-            if (!getHasOptionAvailability(policies, policyIDsWithCategoryRules).shouldShowSubmittedViolation) {
+            if (!getHasOptionAvailability(policies).shouldShowSubmittedViolation) {
                 return getEmptyArray<AutocompleteItemData>();
             }
 
@@ -640,7 +643,6 @@ function useAutocompleteSuggestions({
             // Use {} while policies load so every has: option does not flash before the collection arrives.
             const hasAutocompleteList = getHasOptions(translate, currentType, {
                 policies: policies ?? {},
-                policyIDsWithCategoryRules,
             });
             const filteredHasValues = hasAutocompleteList.filter((hasValue) => {
                 return hasValue.value.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(hasValue.value.toLowerCase());
@@ -683,6 +685,7 @@ function useAutocompleteSuggestions({
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_SUBMISSION:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED:

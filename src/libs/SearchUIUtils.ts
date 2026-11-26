@@ -35,6 +35,7 @@ import type {
 } from '@components/Search/SearchList/ListItem/types';
 import {GROUP_ITEM_TYPES} from '@components/Search/SearchList/ListItem/types';
 import type {
+    ASTNode,
     GroupedItem,
     QueryFilterKey,
     QueryFilters,
@@ -59,6 +60,7 @@ import type {
     SearchWithdrawalType,
     SelectedReports,
     SelectedTransactionInfo,
+    SelectedTransactions,
     SingularSearchStatus,
     SortOrder,
     SyntaxFilterKey,
@@ -73,6 +75,7 @@ import type {ThemeColors} from '@styles/theme/types';
 import variables from '@styles/variables';
 
 import CONST, {HAS_VALUE_TRANSLATION_KEYS} from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -89,13 +92,19 @@ import type {
     SearchCardGroup,
     SearchCategoryGroup,
     SearchDataTypes,
+    SearchDayGroup,
+    SearchGroup,
     SearchMemberGroup,
     SearchMerchantGroup,
+    SearchMonthGroup,
+    SearchQuarterGroup,
+    SearchResultDataType,
     SearchTagGroup,
     SearchTask,
     SearchTransactionAction,
     SearchWeekGroup,
     SearchWithdrawalIDGroup,
+    SearchYearGroup,
 } from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {SentryLabel} from '@src/types/utils/SentryLabel';
@@ -107,7 +116,9 @@ import type {ValueOf} from 'type-fest';
 
 /* eslint-disable max-lines */
 // TODO: Remove this disable once SearchUIUtils is refactored (see dedicated refactor issue)
+import {savedSearchesPresenceSelector, shouldShowSavedSearchesSection} from '@selectors/SavedSearches';
 import {addDays, format, getYear, parse, subDays} from 'date-fns';
+import {Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
 
 import type {TransactionPreviewData} from './actions/Search';
@@ -122,9 +133,12 @@ import {convertAttendeesToArray} from './AttendeeUtils';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {getCardDescriptionForSearchTable, getFeedNameForDisplay, isPersonalCard} from './CardUtils';
 import {getCategoryGLCode, getDecodedCategoryName} from './CategoryUtils';
+import getCollator from './CollatorUtils';
 import {convertToBackendAmount} from './CurrencyUtils';
 import DateUtils from './DateUtils';
+import formatTagParentPath from './formatTagParentPath';
 import getIOUPayerAndReceiver from './getIOUPayerAndReceiver';
+import getSearchTimeGroupingDateKey from './getSearchTimeGroupingDateKey';
 import getTransactionFromTransactionListItem from './getTransactionFromTransactionListItem';
 import interceptAnonymousUser from './interceptAnonymousUser';
 import isTransactionGroupListItemType from './isTransactionGroupListItemType';
@@ -145,6 +159,7 @@ import {
     getTagGLCode,
     getValidConnectedIntegration,
     getVendorDisplayName,
+    hasDynamicExternalWorkflow,
     isArchivedOrPendingDeletePolicy,
     isControlPolicy,
     isGroupPolicy,
@@ -218,22 +233,27 @@ import {
     shouldReportShowSubscript,
 } from './ReportUtils';
 import {getAmountFilterDisplayValue} from './SearchAmountFilterUtils';
+import {getCustomColumns, groupByRequiredColumns} from './SearchColumnsUtils';
 import {isReportEntry, TODO_SEARCH_KEYS} from './SearchKeyUtils';
 import {
     buildSearchQueryJSON,
     buildSearchQueryString,
+    getAllMatchingReportQuery,
     getCurrentSearchQueryJSON,
     getDateFilterKeys,
     getDateRangeDisplayValueFromFormValue,
     getDateRangeForPreset,
     getFilterFromQuery,
+    getPositiveHasFilterValues,
     getQueryHashes,
     getViolationDisplayName,
+    hasValuesIncludeViolationFilter,
     isFilterSupported,
     isFilterNegated,
     isGroupBySupportedBySearch,
     isSearchDatePreset,
     removeNegation,
+    serializeQueryJSONForBackend,
     sortOptionsWithEmptyValue,
     VIOLATION_FILTER_VALUES,
 } from './SearchQueryUtils';
@@ -266,6 +286,7 @@ import {
     isOdometerDistanceRequest,
     isOnHold,
     isScanning,
+    isUnreportedTransactionOwnedByCurrentUser,
     isViolationDismissed,
     shouldShowAttendees as shouldShowAttendeesUtils,
     shouldShowViolation,
@@ -378,6 +399,8 @@ const transactionColumnNamesToSortingProperty: TransactionSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: 'taxAmount' as const,
     [CONST.SEARCH.TABLE_COLUMNS.RECEIPT]: null,
     [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID]: 'withdrawalID' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.TRANSACTION_ID]: 'transactionID' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS]: 'formattedViolations' as const,
 };
 
 const taskColumnNamesToSortingProperty: TaskSorting = {
@@ -513,7 +536,10 @@ const transactionPaidByGroupColumnNamesToSortingProperty: TransactionPaidByGroup
     ...transactionGroupBaseSortingProperties,
 };
 
-const transactionViolationGroupColumnNamesToSortingProperty: TransactionViolationGroupSorting = transactionGroupBaseSortingProperties;
+const transactionViolationGroupColumnNamesToSortingProperty: TransactionViolationGroupSorting = {
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_VIOLATION]: 'formattedViolation' as const,
+    ...transactionGroupBaseSortingProperties,
+};
 
 const transactionWorkflowStageGroupColumnNamesToSortingProperty: TransactionWorkflowStageGroupSorting = {
     [CONST.SEARCH.SORT_BY_COLUMNS.AVERAGE_TIME]: 'averageDuration' as const,
@@ -533,7 +559,6 @@ const nonSortableColumns = new Set<SearchColumnType>([
     CONST.SEARCH.TABLE_COLUMNS.ACTION,
     CONST.SEARCH.TABLE_COLUMNS.IN,
     CONST.SEARCH.TABLE_COLUMNS.AVATAR,
-    CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS,
     // The trip search sorts by start date, trip name and traveler, but not by end date
     CONST.SEARCH.TABLE_COLUMNS.END_DATE,
 ]);
@@ -771,6 +796,8 @@ const SKIPPED_SEARCH_FILTERS = new Set([
     FILTER_KEYS.PAYER,
     FILTER_KEYS.ACTION,
     FILTER_KEYS.COLUMNS,
+    FILTER_KEYS.LEFT_PINNED_COLUMNS,
+    FILTER_KEYS.RIGHT_PINNED_COLUMNS,
     FILTER_KEYS.KEYWORD,
     FILTER_KEYS.FOOTER_COUNT,
     FILTER_KEYS.FOOTER_TOTAL,
@@ -811,6 +838,10 @@ function isPolicyEligibleForTopSpenders(policy: OnyxTypes.Policy, currentUserEma
 
 function isPolicyEligibleForTopCategories(policy: OnyxTypes.Policy): boolean {
     return isGroupPolicy(policy) && policy.areCategoriesEnabled === true;
+}
+
+function isPolicyEligibleForTopTags(policy: OnyxTypes.Policy): boolean {
+    return isGroupPolicy(policy) && policy.areTagsEnabled === true;
 }
 
 /**
@@ -936,6 +967,8 @@ function getSuggestedSearchesVisibility(
             [CONST.SEARCH.SEARCH_KEYS.RECONCILIATION]: shouldShowExpensifyCardSuggestion || shouldShowReimbursementsSuggestion,
             [CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS]: shouldShowTopSpendersSuggestion && !isTrackIntentWithWorkflowsDisabled,
             [CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES]: shouldShowTopCategoriesSuggestion,
+            // Home builds this chart from the dashboard's saved level, not a canned Search suggestion.
+            [CONST.SEARCH.SEARCH_KEYS.TOP_TAGS]: false,
             [CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS]: shouldShowTopMerchantsSuggestion,
             [CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER]: shouldShowViolationsBySubmitterSuggestion,
             [CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME]: shouldShowSpendOverTimeSuggestion,
@@ -1076,6 +1109,10 @@ function isTransactionQuarterGroupListItemType(item: ListItem): item is Transact
 
 function isTransactionApproverGroupListItemType(item: ListItem): item is TransactionApproverGroupListItemType {
     return isTransactionGroupListItemType(item) && 'groupedBy' in item && item.groupedBy === CONST.SEARCH.GROUP_BY.APPROVER;
+}
+
+function isTransactionViolationGroupListItemType(item: ListItem): item is TransactionViolationGroupListItemType {
+    return isTransactionGroupListItemType(item) && 'groupedBy' in item && item.groupedBy === CONST.SEARCH.GROUP_BY.VIOLATION;
 }
 
 /**
@@ -2008,6 +2045,8 @@ function getTransactionsSections({
     const transactionsSections: TransactionListItemType[] = [];
 
     const currentQueryJSON = queryJSON ?? getCurrentSearchQueryJSON();
+    const violationHasValues = getPositiveHasFilterValues(currentQueryJSON);
+    const shouldFormatViolations = hasValuesIncludeViolationFilter(violationHasValues);
 
     for (const key of transactionKeys) {
         const transactionItem = data[key];
@@ -2103,6 +2142,16 @@ function getTransactionsSections({
                 formattedTo: shouldShowBlankTo ? '' : formattedTo,
                 formattedTotal,
                 formattedMerchant,
+                ...(shouldFormatViolations
+                    ? {
+                          formattedViolations: getViolationsForTransaction(
+                              Object.values(data[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`] ?? {}),
+                              transactionItem.transactionID,
+                              violationHasValues,
+                              translate,
+                          ),
+                      }
+                    : {}),
                 date,
                 submitted,
                 approved,
@@ -2292,6 +2341,24 @@ function getViolationsFromSearchData(data: OnyxTypes.SearchResults['data']): Ony
 }
 
 /**
+ * Whether a workspace admin can open Change approver for the report. The workflow still decides which approver changes the picker offers.
+ * Reports with errors are excluded because their Search rows only offer View.
+ */
+function canPolicyAdminChangeApprover(report: OnyxEntry<OnyxTypes.Report>, policy: OnyxEntry<OnyxTypes.Policy>): boolean {
+    const isApprovalEnabled = !!policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+    return (
+        !!report &&
+        !!policy &&
+        !report.errors &&
+        isPolicyAdmin(policy) &&
+        isExpenseReportUtil(report) &&
+        isProcessingReport(report) &&
+        !isMoneyRequestReportPendingDeletion(report) &&
+        isApprovalEnabled
+    );
+}
+
+/**
  * Returns the action that can be taken on a given transaction or report
  *
  * Do not use directly, use only via `getSections()` facade.
@@ -2416,26 +2483,26 @@ function getActions(
     }
 
     const ownerLogin = getLoginByAccountID(report.ownerAccountID, data.personalDetailsList);
-    const submitToAccountID = getSubmitToAccountID(policy, report, ownerLogin, rules);
-    const isAllowedToApproveExpenseReport = isAllowedToApproveExpenseReportUtils(report, submitToAccountID, policy);
+    const canApprove = canApproveIOU(report, policy, reportMetadata, currentUserAccountID, allReportTransactions);
+    const canSubmit =
+        isGroupPolicy(policy) &&
+        canSubmitReport(report, ownerLogin, policy, allReportTransactions, allViolations, isArchivedOrPendingDeletePolicy(policy), currentUserLogin, currentUserAccountID);
 
-    if (canApproveIOU(report, policy, reportMetadata, currentUserAccountID, allReportTransactions) && isAllowedToApproveExpenseReport) {
+    // Resolving the submit-to route scans the workspace approval rules, so skip it when neither action can apply.
+    const submitToAccountID = canApprove || canSubmit ? getSubmitToAccountID(policy, report, ownerLogin, rules) : CONST.DEFAULT_NUMBER_ID;
+
+    if (canApprove && isAllowedToApproveExpenseReportUtils(report, submitToAccountID, policy)) {
         allActions.push(CONST.SEARCH.ACTION_TYPES.APPROVE);
     }
 
     // We check submit eligibility separately from approve: on Submit workspaces the popover picks
     // the manager, so don't block Submit when the default submit-to route is the owner.
-
-    if (
-        isGroupPolicy(policy) &&
-        canSubmitReport(report, ownerLogin, policy, allReportTransactions, allViolations, isArchivedOrPendingDeletePolicy(policy), currentUserLogin, currentUserAccountID) &&
-        isSubmitActionAllowedForSearch(report, policy, submitToAccountID, currentUserAccountID)
-    ) {
+    if (canSubmit && isSubmitActionAllowedForSearch(report, policy, submitToAccountID, currentUserAccountID)) {
         allActions.push(CONST.SEARCH.ACTION_TYPES.SUBMIT);
     }
 
-    const isApprovalEnabled = policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
-    if (report && policy && isPolicyAdmin(policy) && isExpenseReportUtil(report) && isProcessingReport(report) && !isMoneyRequestReportPendingDeletion(report) && isApprovalEnabled) {
+    // On a dynamic external workflow, an admin's only approver change is bypassing the approvers, which needs permission to approve the report.
+    if (canPolicyAdminChangeApprover(report, policy) && (!hasDynamicExternalWorkflow(policy) || isAllowedToApproveExpenseReportUtils(report, currentUserAccountID, policy))) {
         allActions.push(CONST.SEARCH.ACTION_TYPES.CHANGE_APPROVER);
     }
 
@@ -2698,7 +2765,12 @@ function createAndOpenSearchTransactionThread({
     const actionReportID = item.reportAction?.reportID ? String(item.reportAction.reportID) : undefined;
     const ownerSelfDMReportID = actionReportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? actionReportID : undefined;
     const ownSelfDMAction = isUnreportedTransaction ? getIOUActionForReportID(findSelfDMReportID(), item.transactionID) : undefined;
-    const isOwnExpense = (ownSelfDMAction ?? item.reportAction)?.actorAccountID === currentUserAccountID;
+    const ownerAction = ownSelfDMAction ?? item.reportAction;
+
+    // A legacy unreported expense can have no IOU action at all. With no action and no report, `from` holds only the card holder.
+    const isOwnExpense = ownerAction
+        ? ownerAction.actorAccountID === currentUserAccountID
+        : isUnreportedTransaction && isUnreportedTransactionOwnedByCurrentUser(item, item.from?.accountID === currentUserAccountID);
     const expenseSelfDMReportID = isOwnExpense ? (findSelfDMReportID() ?? ownerSelfDMReportID) : ownerSelfDMReportID;
     const selfDMReportID = isUnreportedTransaction ? expenseSelfDMReportID : undefined;
     const iouReportAction = getIOUActionForReportID(selfDMReportID ?? item.reportID, item.transactionID);
@@ -2746,6 +2818,7 @@ function createAndOpenSearchTransactionThread({
             hasCompletedGuidedSetupFlow,
             fullPolicySnapshotLastModified: iouReport?.policyID ? fullPolicySnapshotLastModifiedByPolicyID?.[iouReport.policyID] : undefined,
             selfDMReportID,
+            isOwnedByCurrentUser: isOwnExpense,
         });
     }
 
@@ -2801,7 +2874,15 @@ function getReportActionsSections(
                 const isReportArchived = isArchivedReport(data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]);
                 if (
                     !reportID ||
-                    !isReportActionVisible(reportAction, reportID, canUserPerformWriteAction(report, isReportArchived), visibleReportActionsData, undefined, reportActionsCollection) ||
+                    !isReportActionVisible(
+                        reportAction,
+                        reportID,
+                        canUserPerformWriteAction(report, isReportArchived),
+                        visibleReportActionsData,
+                        undefined,
+                        reportActionsCollection,
+                        isInvoiceReport(report),
+                    ) ||
                     isDeletedAction(reportAction) ||
                     isResolvedActionableWhisper(reportAction) ||
                     reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED ||
@@ -3281,73 +3362,105 @@ function getReportSections({
     return [reportIDToTransactionsValues, reportIDToTransactionsValues.length, hasDeletedTransaction];
 }
 
-/** The inclusive yyyy-MM-dd range a time-based group covers, or undefined for any other grouping or a group missing its date fields. */
-function getGroupDateRange(groupBy: string, groupData: unknown): SearchDateRange | undefined {
-    if (typeof groupData !== 'object' || !groupData) {
-        return undefined;
-    }
+function getDayGroupDateRange(group: SearchDayGroup): SearchDateRange | undefined {
+    return group.day ? {start: group.day, end: group.day} : undefined;
+}
 
+function getWeekGroupDateRange(group: SearchWeekGroup): SearchDateRange | undefined {
+    return group.week ? DateUtils.getWeekDateRange(group.week) : undefined;
+}
+
+function getMonthGroupDateRange(group: SearchMonthGroup): SearchDateRange | undefined {
+    return DateUtils.getMonthDateRange(group.year, group.month);
+}
+
+function getQuarterGroupDateRange(group: SearchQuarterGroup): SearchDateRange | undefined {
+    return DateUtils.getQuarterDateRange(group.year, group.quarter);
+}
+
+function getYearGroupDateRange(group: SearchYearGroup): SearchDateRange | undefined {
+    return DateUtils.getYearDateRange(group.year);
+}
+
+/**
+ * The inclusive yyyy-MM-dd range a time-based group covers, or undefined for any other grouping or a group missing its date fields.
+ * Like `getSelectedGroupFilterEntry`, it reads the shape from the group's keys, so a month or quarter group read as YEAR still gets its year's range.
+ * Section builders already know their group's type, so they call the per-type helpers directly.
+ */
+function getGroupDateRange(groupBy: SearchGroupBy, group: SearchGroup): SearchDateRange | undefined {
     switch (groupBy) {
-        case CONST.SEARCH.GROUP_BY.DAY: {
-            const day = 'day' in groupData ? groupData.day : undefined;
-            return typeof day === 'string' && day ? {start: day, end: day} : undefined;
-        }
-        case CONST.SEARCH.GROUP_BY.MONTH: {
-            const year = 'year' in groupData ? groupData.year : undefined;
-            const month = 'month' in groupData ? groupData.month : undefined;
-            return typeof year === 'number' && typeof month === 'number' && month ? DateUtils.getMonthDateRange(year, month) : undefined;
-        }
-        case CONST.SEARCH.GROUP_BY.WEEK: {
-            const week = 'week' in groupData ? groupData.week : undefined;
-            return typeof week === 'string' && week ? DateUtils.getWeekDateRange(week) : undefined;
-        }
-        case CONST.SEARCH.GROUP_BY.YEAR: {
-            const year = 'year' in groupData ? groupData.year : undefined;
-            return typeof year === 'number' ? DateUtils.getYearDateRange(year) : undefined;
-        }
-        case CONST.SEARCH.GROUP_BY.QUARTER: {
-            const year = 'year' in groupData ? groupData.year : undefined;
-            const quarter = 'quarter' in groupData ? groupData.quarter : undefined;
-            return typeof year === 'number' && typeof quarter === 'number' ? DateUtils.getQuarterDateRange(year, quarter) : undefined;
-        }
+        case CONST.SEARCH.GROUP_BY.DAY:
+            return 'day' in group ? getDayGroupDateRange(group) : undefined;
+        case CONST.SEARCH.GROUP_BY.WEEK:
+            return 'week' in group ? getWeekGroupDateRange(group) : undefined;
+        case CONST.SEARCH.GROUP_BY.MONTH:
+            return 'month' in group ? getMonthGroupDateRange(group) : undefined;
+        case CONST.SEARCH.GROUP_BY.QUARTER:
+            return 'quarter' in group ? getQuarterGroupDateRange(group) : undefined;
+        case CONST.SEARCH.GROUP_BY.YEAR:
+            return 'year' in group ? getYearGroupDateRange(group) : undefined;
         default:
             return undefined;
     }
 }
 
-/** The filter that scopes a query to one selected group, or undefined when the grouping or the group's data can't be turned into one. */
-function getSelectedGroupFilterEntry(groupBy: string, groupData: unknown): SelectedGroupFilterEntry | undefined {
+/** The transactions search a date group opens, built in one place so a group's cached snapshot matches the search that opens it */
+function getDateGroupTransactionsQueryJSON(queryJSON: SearchQueryJSON | undefined, dateRange: SearchDateRange): SearchQueryJSON | undefined {
+    return queryJSON ? buildDateRangeGroupQuery(queryJSON, dateRange).transactionsQueryJSON : undefined;
+}
+
+/** The group for expenses without a category comes back with an empty value, which the search syntax spells as `CATEGORY_EMPTY_VALUE` */
+function getCategoryGroupFilterValue(category: string): string {
+    return category || CONST.SEARCH.CATEGORY_EMPTY_VALUE;
+}
+
+/** The group for expenses without a merchant comes back with an empty value, which the search syntax spells as `MERCHANT_EMPTY_VALUE` */
+function getMerchantGroupFilterValue(merchant: string): string {
+    return merchant || CONST.SEARCH.MERCHANT_EMPTY_VALUE;
+}
+
+/** The group for untagged expenses can come back either empty or as `TAG_UNTAGGED_GROUP_VALUE` */
+function isEmptyTagGroupValue(tag: string): boolean {
+    return !tag || tag === CONST.SEARCH.TAG_UNTAGGED_GROUP_VALUE;
+}
+
+/** The search syntax spells the untagged group as `TAG_EMPTY_VALUE`, so its query matches the expenses in it */
+function getTagGroupFilterValue(tag: string): string {
+    return isEmptyTagGroupValue(tag) ? CONST.SEARCH.TAG_EMPTY_VALUE : tag;
+}
+
+/**
+ * The filter that scopes a query to one selected group, or undefined when the grouping or the group's data can't be turned into one.
+ *
+ * A group doesn't record which grouping produced it, so the shape is told apart by its keys, not by `groupBy`. Some shapes can't be told apart at all:
+ * member and approver groups have the same fields, a card group has every member field, and a month or quarter group has every year field.
+ * Such a mismatched pair still returns a filter, which is fine because `groupBy` and the group always come from the same query.
+ */
+function getSelectedGroupFilterEntry(groupBy: SearchGroupBy, group: SearchGroup): SelectedGroupFilterEntry | undefined {
     switch (groupBy) {
+        // The backend reads an account ID that isn't positive as -1, so from:0 / approver:0 never match anything and a group of 0 (only from incomplete data) gets no filter
         case CONST.SEARCH.GROUP_BY.FROM:
-            return {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, value: (groupData as SearchMemberGroup).accountID};
-        case CONST.SEARCH.GROUP_BY.APPROVER: {
-            if (!groupData || typeof groupData !== 'object' || !('accountID' in groupData) || typeof groupData.accountID !== 'number') {
-                return undefined;
-            }
-            return {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER, value: groupData.accountID};
-        }
+            return 'accountID' in group && group.accountID > 0 ? {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, value: group.accountID} : undefined;
+        case CONST.SEARCH.GROUP_BY.APPROVER:
+            return 'accountID' in group && group.accountID > 0 ? {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER, value: group.accountID} : undefined;
+        case CONST.SEARCH.GROUP_BY.VIOLATION:
+            return 'violation' in group ? {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION, value: group.violation} : undefined;
         case CONST.SEARCH.GROUP_BY.CARD:
-            return {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, value: (groupData as SearchCardGroup).cardID};
+            return 'cardID' in group ? {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, value: group.cardID} : undefined;
         case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
-            return {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID, value: (groupData as SearchWithdrawalIDGroup).entryID};
-        case CONST.SEARCH.GROUP_BY.CATEGORY: {
-            const category = (groupData as SearchCategoryGroup).category;
-            return {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, value: !category ? CONST.SEARCH.CATEGORY_EMPTY_VALUE : category};
-        }
-        case CONST.SEARCH.GROUP_BY.MERCHANT: {
-            const merchant = (groupData as SearchMerchantGroup).merchant;
-            return {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, value: merchant === '' ? CONST.SEARCH.MERCHANT_EMPTY_VALUE : merchant};
-        }
-        case CONST.SEARCH.GROUP_BY.TAG: {
-            const tag = (groupData as SearchTagGroup).tag;
-            return {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG, value: tag === '' || tag === '(untagged)' ? CONST.SEARCH.TAG_EMPTY_VALUE : tag};
-        }
+            return 'entryID' in group ? {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID, value: group.entryID} : undefined;
+        case CONST.SEARCH.GROUP_BY.CATEGORY:
+            return 'category' in group ? {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, value: getCategoryGroupFilterValue(group.category)} : undefined;
+        case CONST.SEARCH.GROUP_BY.MERCHANT:
+            return 'merchant' in group ? {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, value: getMerchantGroupFilterValue(group.merchant)} : undefined;
+        case CONST.SEARCH.GROUP_BY.TAG:
+            return 'tag' in group ? {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG, value: getTagGroupFilterValue(group.tag)} : undefined;
         case CONST.SEARCH.GROUP_BY.DAY:
         case CONST.SEARCH.GROUP_BY.WEEK:
         case CONST.SEARCH.GROUP_BY.MONTH:
         case CONST.SEARCH.GROUP_BY.QUARTER:
         case CONST.SEARCH.GROUP_BY.YEAR: {
-            const dateRange = getGroupDateRange(groupBy, groupData);
+            const dateRange = getGroupDateRange(groupBy, group);
             return dateRange ? {kind: 'dateRange', dateRange} : undefined;
         }
         default:
@@ -3355,9 +3468,99 @@ function getSelectedGroupFilterEntry(groupBy: string, groupData: unknown): Selec
     }
 }
 
+/** Leaves the deselected groups' dates out of a time-grouped query, through the `filters` AST. */
+function addExcludedDateRangesFilter(queryJSON: SearchQueryJSON, dateRanges: SearchDateRange[]): SearchQueryJSON {
+    const dateFilterKey = getSearchTimeGroupingDateKey(queryJSON);
+    const filters = dateRanges.reduce<ASTNode | undefined>((left, range) => {
+        const outsideRangeNode: ASTNode = {
+            operator: CONST.SEARCH.SYNTAX_OPERATORS.OR,
+            left: {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN, left: dateFilterKey, right: range.start},
+            right: {operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN, left: dateFilterKey, right: range.end},
+        };
+        return left ? {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left, right: outsideRangeNode} : outsideRangeNode;
+    }, queryJSON.filters);
+    return filters ? {...queryJSON, filters} : queryJSON;
+}
+
+function getAllMatchingExportQueryAndExclusions(
+    queryJSON: SearchQueryJSON,
+    excludedTransactions: SelectedTransactions,
+    searchData: SearchResultDataType | undefined,
+): {queryJSON: SearchQueryJSON; excludedTransactionIDList: string[]} | undefined {
+    const excludedTransactionIDList: string[] = [];
+    const excludedGroupEntries: SelectedGroupValueFilter[] = [];
+    const excludedDateRanges: SearchDateRange[] = [];
+
+    for (const key of Object.keys(excludedTransactions)) {
+        if (!isGroupEntry(key)) {
+            excludedTransactionIDList.push(key);
+            continue;
+        }
+
+        const group = searchData?.[key];
+        const groupEntry = queryJSON.groupBy && group ? getSelectedGroupFilterEntry(queryJSON.groupBy, group) : undefined;
+        if (!groupEntry) {
+            return undefined;
+        }
+        if (groupEntry.kind === 'dateRange') {
+            excludedDateRanges.push(groupEntry.dateRange);
+        } else {
+            excludedGroupEntries.push(groupEntry);
+        }
+    }
+
+    // Excluding a date group needs an OR, which flatFilters can't express
+    if (excludedDateRanges.length > 0) {
+        return {queryJSON: addExcludedDateRangesFilter(queryJSON, excludedDateRanges), excludedTransactionIDList};
+    }
+
+    if (excludedGroupEntries.length === 0) {
+        return {queryJSON, excludedTransactionIDList};
+    }
+
+    const flatFilters = [...queryJSON.flatFilters];
+    for (const entry of excludedGroupEntries) {
+        const exclusionFilter = {operator: CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, value: entry.value};
+        flatFilters.push({key: entry.key, filters: [exclusionFilter]});
+    }
+
+    const exportQueryJSON = buildSearchQueryJSON(buildSearchQueryString({...queryJSON, flatFilters}));
+    return exportQueryJSON ? {queryJSON: exportQueryJSON, excludedTransactionIDList} : undefined;
+}
+
+/** Builds the query and the deselected expenses to send to the backend for a "Select all" bulk action on expenses. */
+function getAllMatchingExpenseActionQuery(
+    queryJSON: SearchQueryJSON | undefined,
+    excludedTransactions: SelectedTransactions,
+    searchData: SearchResultDataType | undefined,
+    searchKey: SearchKey | undefined,
+) {
+    if (!queryJSON) {
+        return undefined;
+    }
+    // A Reports search acts on every expense in each matching report, so a deselected expense leaves out its whole report.
+    if (queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
+        const reportQuery = getAllMatchingReportQuery(queryJSON, excludedTransactions);
+        return reportQuery ? {jsonQuery: serializeQueryJSONForBackend({...reportQuery, searchKey}), excludedTransactionIDList: []} : undefined;
+    }
+
+    const expenseQuery = getAllMatchingExportQueryAndExclusions(queryJSON, excludedTransactions, searchData);
+    return expenseQuery ? {jsonQuery: serializeQueryJSONForBackend({...expenseQuery.queryJSON, searchKey}), excludedTransactionIDList: expenseQuery.excludedTransactionIDList} : undefined;
+}
+
+/**
+ * Narrows a query to the given values of one filter key. Only the key's included values are replaced: exclusions such as
+ * `-violation:missingCategory` are kept, because groups can overlap (an expense can be in several violation groups) and
+ * dropping the exclusion would bring back expenses the parent query hides.
+ */
+function replaceIncludedFilterValues(flatFilters: QueryFilters, filterKey: QueryFilterKey, filterValues: Array<string | number>): QueryFilters {
+    const newFlatFilters = flatFilters.filter((filter) => filter.key !== filterKey || filter.filters.every((item) => item.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO));
+    newFlatFilters.push({key: filterKey, filters: filterValues.map((value) => ({operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value}))});
+    return newFlatFilters;
+}
+
 function buildSpecificGroupQuery(queryJSON: SearchQueryJSON, filterKey: QueryFilterKey, filterValue: string | number): SearchQueryJSON | undefined {
-    const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== filterKey);
-    newFlatFilters.push({key: filterKey, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: filterValue}]});
+    const newFlatFilters = replaceIncludedFilterValues(queryJSON.flatFilters, filterKey, [filterValue]);
     // `limit` caps the number of groups on the parent query. Once `groupBy` is dropped it would cap the rows inside this
     // group instead, so it must not be carried over to the drill-down query.
     const newQueryJSON: SearchQueryJSON = {
@@ -3371,6 +3574,27 @@ function buildSpecificGroupQuery(queryJSON: SearchQueryJSON, filterKey: QueryFil
     return buildSearchQueryJSON(buildSearchQueryString(newQueryJSON));
 }
 
+/**
+ * The transactions search a group opens, built in one place so a group's cached snapshot matches the search that opens it.
+ * It uses the same filter as the group's export, so both select the same expenses, except for dependent tags: their search is also scoped
+ * to the tag's level and parents, while their export only filters by tag name and so includes the same tag under every other parent.
+ * Insights-only groupings like paid-by get no query, because Search can't group by them yet (see https://github.com/Expensify/App/issues/105303).
+ */
+function getGroupTransactionsQueryJSON(queryJSON: SearchQueryJSON | undefined, groupBy: SearchGroupBy, group: SearchGroup): SearchQueryJSON | undefined {
+    if (!queryJSON) {
+        return undefined;
+    }
+    // A dependent tag's name repeats under different parents, so its search is also scoped to the tag's level and parents
+    if (groupBy === CONST.SEARCH.GROUP_BY.TAG && 'tag' in group && group.tagLevel !== undefined) {
+        return buildSpecificGroupQuery({...queryJSON, tagLevel: group.tagLevel, tagParent: group.parentTagPath ?? ''}, CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG, group.tag);
+    }
+    const entry = getSelectedGroupFilterEntry(groupBy, group);
+    if (!entry) {
+        return undefined;
+    }
+    return entry.kind === 'dateRange' ? getDateGroupTransactionsQueryJSON(queryJSON, entry.dateRange) : buildSpecificGroupQuery(queryJSON, entry.key, entry.value);
+}
+
 function getActiveGroupSearchHashes(data: OnyxTypes.SearchResults['data'] | undefined, queryJSON: Readonly<SearchQueryJSON> | undefined): number[] {
     if (!data || !queryJSON?.groupBy) {
         return [];
@@ -3378,89 +3602,16 @@ function getActiveGroupSearchHashes(data: OnyxTypes.SearchResults['data'] | unde
 
     const searchHashes = new Set<number>();
 
-    for (const [key, group] of Object.entries(data)) {
-        if (!group || !isGroupEntry(key)) {
+    for (const key of Object.keys(data)) {
+        if (!isGroupEntry(key)) {
+            continue;
+        }
+        const group = data[key];
+        if (!group) {
             continue;
         }
 
-        let transactionsQueryJSON: SearchQueryJSON | undefined;
-
-        switch (queryJSON.groupBy) {
-            case CONST.SEARCH.GROUP_BY.FROM: {
-                const memberGroup = group as SearchMemberGroup;
-                if (memberGroup.accountID) {
-                    transactionsQueryJSON = buildSpecificGroupQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, memberGroup.accountID);
-                }
-                break;
-            }
-            case CONST.SEARCH.GROUP_BY.CARD: {
-                const cardGroup = group as SearchCardGroup;
-                if (cardGroup.cardID) {
-                    transactionsQueryJSON = buildSpecificGroupQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, cardGroup.cardID);
-                }
-                break;
-            }
-            case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID: {
-                const withdrawalIDGroup = group as SearchWithdrawalIDGroup;
-                if (withdrawalIDGroup.entryID) {
-                    transactionsQueryJSON = buildSpecificGroupQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID, withdrawalIDGroup.entryID);
-                }
-                break;
-            }
-            case CONST.SEARCH.GROUP_BY.CATEGORY: {
-                const categoryGroup = group as SearchCategoryGroup;
-                if (categoryGroup.category !== undefined) {
-                    transactionsQueryJSON = buildSpecificGroupQuery(
-                        queryJSON,
-                        CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY,
-                        !categoryGroup.category ? CONST.SEARCH.CATEGORY_EMPTY_VALUE : categoryGroup.category,
-                    );
-                }
-                break;
-            }
-            case CONST.SEARCH.GROUP_BY.MERCHANT: {
-                const merchantGroup = group as SearchMerchantGroup;
-                if (merchantGroup.merchant !== undefined) {
-                    transactionsQueryJSON = buildSpecificGroupQuery(
-                        queryJSON,
-                        CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
-                        merchantGroup.merchant === '' ? CONST.SEARCH.MERCHANT_EMPTY_VALUE : merchantGroup.merchant,
-                    );
-                }
-                break;
-            }
-            case CONST.SEARCH.GROUP_BY.TAG: {
-                const tagGroup = group as SearchTagGroup;
-                if (tagGroup.tag !== undefined) {
-                    transactionsQueryJSON = buildSpecificGroupQuery(
-                        queryJSON,
-                        CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG,
-                        tagGroup.tag === '' || tagGroup.tag === '(untagged)' ? CONST.SEARCH.TAG_EMPTY_VALUE : tagGroup.tag,
-                    );
-                }
-                break;
-            }
-            case CONST.SEARCH.GROUP_BY.DAY:
-            case CONST.SEARCH.GROUP_BY.MONTH:
-            case CONST.SEARCH.GROUP_BY.WEEK:
-            case CONST.SEARCH.GROUP_BY.YEAR:
-            case CONST.SEARCH.GROUP_BY.QUARTER: {
-                const dateRange = getGroupDateRange(queryJSON.groupBy, group);
-                if (dateRange) {
-                    transactionsQueryJSON = buildDateRangeGroupQuery(queryJSON, dateRange).transactionsQueryJSON;
-                }
-                break;
-            }
-            case CONST.SEARCH.GROUP_BY.APPROVER: {
-                if ('accountID' in group && typeof group.accountID === 'number') {
-                    transactionsQueryJSON = buildApproverGroupQuery(queryJSON, group.accountID);
-                }
-                break;
-            }
-            default:
-                break;
-        }
-
+        const transactionsQueryJSON = getGroupTransactionsQueryJSON(queryJSON, queryJSON.groupBy, group);
         if (transactionsQueryJSON?.hash !== undefined && transactionsQueryJSON.hash >= 0) {
             searchHashes.add(transactionsQueryJSON.hash);
         }
@@ -3470,11 +3621,13 @@ function getActiveGroupSearchHashes(data: OnyxTypes.SearchResults['data'] | unde
 }
 
 function buildDateRangeGroupQuery(queryJSON: SearchQueryJSON, dateRange: {start: string; end: string}): {transactionsQueryJSON: SearchQueryJSON | undefined; start: string; end: string} {
-    const dateFilters = queryJSON.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
+    // Narrow the same date the backend buckets the groups by, so a group opens the expenses it counts
+    const dateFilterKey = getSearchTimeGroupingDateKey(queryJSON);
+    const dateFilters = queryJSON.flatFilters.filter((filter) => filter.key === dateFilterKey);
     const {start, end} = adjustTimeRangeToDateFilters(dateRange, dateFilters);
-    const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
+    const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== dateFilterKey);
     newFlatFilters.push({
-        key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+        key: dateFilterKey,
         filters: [
             {operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, value: start},
             {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, value: end},
@@ -3493,10 +3646,6 @@ function buildDateRangeGroupQuery(queryJSON: SearchQueryJSON, dateRange: {start:
     return {transactionsQueryJSON, start, end};
 }
 
-function buildApproverGroupQuery(queryJSON: SearchQueryJSON, accountID: number): SearchQueryJSON | undefined {
-    return buildSpecificGroupQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER, accountID);
-}
-
 /**
  * @private
  * Organizes data into List Sections grouped by a person for display, for the TransactionGroupListItemType of Search Results:
@@ -3513,19 +3662,13 @@ function getMemberSections(
     groupBy: typeof CONST.SEARCH.GROUP_BY.FROM | typeof CONST.SEARCH.GROUP_BY.APPROVER | typeof CONST.SEARCH.GROUP_BY.PAID_BY = CONST.SEARCH.GROUP_BY.FROM,
 ): [Array<TransactionMemberGroupListItemType | TransactionApproverGroupListItemType | TransactionPaidByGroupListItemType>, number, boolean] {
     const memberSections: Record<string, TransactionMemberGroupListItemType | TransactionApproverGroupListItemType | TransactionPaidByGroupListItemType> = {};
-    const MEMBER_FILTER_KEYS = {
-        [CONST.SEARCH.GROUP_BY.FROM]: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
-        [CONST.SEARCH.GROUP_BY.APPROVER]: CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER,
-        [CONST.SEARCH.GROUP_BY.PAID_BY]: CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY,
-    } as const;
-    const filterKey = MEMBER_FILTER_KEYS[groupBy];
 
     for (const key in data) {
         if (isGroupEntry(key)) {
             const memberGroup = data[key] as SearchMemberGroup;
 
             const personalDetails = data.personalDetailsList?.[memberGroup.accountID] ?? onyxPersonalDetailsList?.[memberGroup.accountID] ?? emptyPersonalDetails;
-            const transactionsQueryJSON = queryJSON && memberGroup.accountID ? buildSpecificGroupQuery(queryJSON, filterKey, memberGroup.accountID) : undefined;
+            const transactionsQueryJSON = getGroupTransactionsQueryJSON(queryJSON, groupBy, memberGroup);
             const formattedName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails, translate, formatPhoneNumber});
             const section = {
                 transactions: [],
@@ -3550,7 +3693,11 @@ function getMemberSections(
 }
 
 /** Builds Search list sections grouped by violation type; call only via `getSections()`. */
-function getViolationSections(data: OnyxTypes.SearchResults['data'], translate: LocalizedTranslate): [TransactionViolationGroupListItemType[], number, boolean] {
+function getViolationSections(
+    data: OnyxTypes.SearchResults['data'],
+    queryJSON: SearchQueryJSON | undefined,
+    translate: LocalizedTranslate,
+): [TransactionViolationGroupListItemType[], number, boolean] {
     const violationSections: TransactionViolationGroupListItemType[] = [];
 
     for (const key in data) {
@@ -3562,8 +3709,7 @@ function getViolationSections(data: OnyxTypes.SearchResults['data'], translate: 
             violationSections.push({
                 groupedBy: CONST.SEARCH.GROUP_BY.VIOLATION,
                 transactions: [],
-                // Search has no violation type filter, so a group has no query of its own
-                transactionsQueryJSON: undefined,
+                transactionsQueryJSON: getGroupTransactionsQueryJSON(queryJSON, CONST.SEARCH.GROUP_BY.VIOLATION, violationGroup),
                 ...violationGroup,
                 formattedViolation: getViolationDisplayName(violationGroup.violation, translate),
                 keyForList: key,
@@ -3623,11 +3769,10 @@ function getCardSections(
         if (isGroupEntry(key)) {
             const cardGroup = data[key] as SearchCardGroup;
             const personalDetails = data.personalDetailsList?.[cardGroup.accountID] ?? emptyPersonalDetails;
-            const transactionsQueryJSON = queryJSON && cardGroup.cardID ? buildSpecificGroupQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, cardGroup.cardID) : undefined;
-
             if (!cardGroup.cardID) {
                 continue;
             }
+            const transactionsQueryJSON = getGroupTransactionsQueryJSON(queryJSON, CONST.SEARCH.GROUP_BY.CARD, cardGroup);
 
             let formattedCardName = customCardNames?.[cardGroup.cardID];
             if (formattedCardName === undefined) {
@@ -3702,12 +3847,10 @@ function getWithdrawalIDSections(data: OnyxTypes.SearchResults['data'], queryJSO
     for (const key in data) {
         if (isGroupEntry(key)) {
             const withdrawalIDGroup = data[key] as SearchWithdrawalIDGroup;
-            const transactionsQueryJSON =
-                queryJSON && withdrawalIDGroup.entryID ? buildSpecificGroupQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID, withdrawalIDGroup.entryID) : undefined;
-
             if (!withdrawalIDGroup.accountNumber) {
                 continue;
             }
+            const transactionsQueryJSON = getGroupTransactionsQueryJSON(queryJSON, CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID, withdrawalIDGroup);
 
             withdrawalIDSections[key] = {
                 groupedBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
@@ -3739,10 +3882,7 @@ function getCategorySections(data: OnyxTypes.SearchResults['data'], queryJSON: S
         if (isGroupEntry(key)) {
             const categoryGroup = data[key] as SearchCategoryGroup;
 
-            const transactionsQueryJSON =
-                queryJSON && categoryGroup.category !== undefined
-                    ? buildSpecificGroupQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, !categoryGroup.category ? CONST.SEARCH.CATEGORY_EMPTY_VALUE : categoryGroup.category)
-                    : undefined;
+            const transactionsQueryJSON = getGroupTransactionsQueryJSON(queryJSON, CONST.SEARCH.GROUP_BY.CATEGORY, categoryGroup);
 
             // Format the category name - decode HTML entities for display, keep empty/none values as-is
             const rawCategory = categoryGroup.category;
@@ -3780,10 +3920,7 @@ function getMerchantSections(
         if (isGroupEntry(key)) {
             const merchantGroup = data[key] as SearchMerchantGroup;
 
-            const transactionsQueryJSON =
-                queryJSON && merchantGroup.merchant !== undefined
-                    ? buildSpecificGroupQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, merchantGroup.merchant === '' ? CONST.SEARCH.MERCHANT_EMPTY_VALUE : merchantGroup.merchant)
-                    : undefined;
+            const transactionsQueryJSON = getGroupTransactionsQueryJSON(queryJSON, CONST.SEARCH.GROUP_BY.MERCHANT, merchantGroup);
 
             // Format the merchant name - use translated "No merchant" for empty values so it sorts alphabetically
             // Handle all known empty merchant values:
@@ -3812,6 +3949,16 @@ function getMerchantSections(
     return [merchantSectionsValues, merchantSectionsValues.length, hasDeletedTransactionInData(data)];
 }
 
+/** Returns a tag group's label, naming the parents of a dependent tag and using "No tag" for an empty tag with no level so it sorts alphabetically. */
+function getTagGroupLabel({tag, tagLevel, parentTagPath}: Pick<SearchTagGroup, 'tag' | 'tagLevel' | 'parentTagPath'>, translate: LocalizedTranslate): string {
+    if (tagLevel !== undefined) {
+        const parentLabel = formatTagParentPath(parentTagPath);
+        return `${Str.htmlDecode(tag)}${parentLabel ? ` (${parentLabel})` : ''}`;
+    }
+    const isEmptyTag = isEmptyTagGroupValue(tag) || tag === CONST.SEARCH.TAG_EMPTY_VALUE;
+    return isEmptyTag ? translate('search.noTag') : getCommaSeparatedTagNameWithSanitizedColons(tag);
+}
+
 /**
  * @private
  * Organizes data into List Sections grouped by tag for display, for the TransactionGroupListItemType of Search Results.
@@ -3825,26 +3972,15 @@ function getTagSections(data: OnyxTypes.SearchResults['data'], queryJSON: Search
         if (isGroupEntry(key)) {
             const tagGroup = data[key] as SearchTagGroup;
 
-            const transactionsQueryJSON =
-                queryJSON && tagGroup.tag !== undefined
-                    ? buildSpecificGroupQuery(
-                          queryJSON,
-                          CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG,
-                          tagGroup.tag === '' || tagGroup.tag === '(untagged)' ? CONST.SEARCH.TAG_EMPTY_VALUE : tagGroup.tag,
-                      )
-                    : undefined;
-
-            // Format the tag name - use translated "No tag" for empty values so it sorts alphabetically
-            const rawTag = tagGroup.tag;
-            const isEmptyTag = !rawTag || rawTag === CONST.SEARCH.TAG_EMPTY_VALUE || rawTag === '(untagged)';
-            const formattedTag = isEmptyTag ? translate('search.noTag') : getCommaSeparatedTagNameWithSanitizedColons(rawTag);
+            const transactionsQueryJSON = getGroupTransactionsQueryJSON(queryJSON, CONST.SEARCH.GROUP_BY.TAG, tagGroup);
 
             tagSections[key] = {
                 groupedBy: CONST.SEARCH.GROUP_BY.TAG,
                 transactions: [],
                 transactionsQueryJSON,
                 ...tagGroup,
-                formattedTag,
+                formattedTag: getTagGroupLabel(tagGroup, translate),
+                ...(tagGroup.tagLevel !== undefined && {formattedTagName: Str.htmlDecode(tagGroup.tag)}),
                 keyForList: key,
             };
         }
@@ -3894,7 +4030,13 @@ function getDaySections(
             continue;
         }
 
-        const transactionsQueryJSON = queryJSON ? buildDateRangeGroupQuery(queryJSON, {start: dayGroup.day, end: dayGroup.day}).transactionsQueryJSON : undefined;
+        // The day is also the label, so a group without one has nothing to show
+        const dateRange = getDayGroupDateRange(dayGroup);
+        if (!dateRange) {
+            continue;
+        }
+
+        const transactionsQueryJSON = getDateGroupTransactionsQueryJSON(queryJSON, dateRange);
         daySections[key] = {
             groupedBy: CONST.SEARCH.GROUP_BY.DAY,
             transactions: [],
@@ -3930,9 +4072,13 @@ function getMonthSections(
             if (!('year' in monthGroup) || !('month' in monthGroup)) {
                 continue;
             }
-            const dateResult =
-                queryJSON && monthGroup.year && monthGroup.month ? buildDateRangeGroupQuery(queryJSON, DateUtils.getMonthDateRange(monthGroup.year, monthGroup.month)) : undefined;
-            const transactionsQueryJSON = dateResult?.transactionsQueryJSON;
+
+            // A month outside 1-12 would get a rolled-over label, like "January 2027" for month 13, on a group that opens nothing
+            const dateRange = getMonthGroupDateRange(monthGroup);
+            if (!dateRange) {
+                continue;
+            }
+            const transactionsQueryJSON = getDateGroupTransactionsQueryJSON(queryJSON, dateRange);
 
             monthSections[key] = {
                 groupedBy: CONST.SEARCH.GROUP_BY.MONTH,
@@ -3968,8 +4114,14 @@ function getWeekSections(
             if (!('week' in weekGroup)) {
                 continue;
             }
-            const rawRange = DateUtils.getWeekDateRange(weekGroup.week);
-            const dateResult = queryJSON && weekGroup.week ? buildDateRangeGroupQuery(queryJSON, rawRange) : undefined;
+            const rawRange = getWeekGroupDateRange(weekGroup);
+
+            // The week's dates are also its label, so a group without a week has nothing to show
+            if (!rawRange) {
+                continue;
+            }
+            // The week's label also needs the range trimmed to the date filter, so this calls buildDateRangeGroupQuery instead of getDateGroupTransactionsQueryJSON
+            const dateResult = queryJSON ? buildDateRangeGroupQuery(queryJSON, rawRange) : undefined;
             weeks[key] = {
                 weekGroup,
                 weekStart: dateResult?.start ?? rawRange.start,
@@ -4014,8 +4166,12 @@ function getYearSections(data: OnyxTypes.SearchResults['data'], queryJSON: Searc
             if (!('year' in yearGroup) || typeof yearGroup.year !== 'number') {
                 continue;
             }
-            const transactionsQueryJSON =
-                queryJSON && yearGroup.year !== undefined ? buildDateRangeGroupQuery(queryJSON, DateUtils.getYearDateRange(yearGroup.year))?.transactionsQueryJSON : undefined;
+            // The year is also the label, so a group whose year isn't a whole number has nothing to show
+            const dateRange = getYearGroupDateRange(yearGroup);
+            if (!dateRange) {
+                continue;
+            }
+            const transactionsQueryJSON = getDateGroupTransactionsQueryJSON(queryJSON, dateRange);
             const formattedYear = String(yearGroup.year);
 
             yearSections[key] = {
@@ -4047,10 +4203,12 @@ function getQuarterSections(
             if (!('year' in quarterGroup) || typeof quarterGroup.year !== 'number' || !('quarter' in quarterGroup) || typeof quarterGroup.quarter !== 'number') {
                 continue;
             }
-            const transactionsQueryJSON =
-                queryJSON && quarterGroup.year !== undefined && quarterGroup.quarter !== undefined
-                    ? buildDateRangeGroupQuery(queryJSON, DateUtils.getQuarterDateRange(quarterGroup.year, quarterGroup.quarter))?.transactionsQueryJSON
-                    : undefined;
+            // A quarter outside 1-4 would get a rolled-over label on a group that opens nothing
+            const dateRange = getQuarterGroupDateRange(quarterGroup);
+            if (!dateRange) {
+                continue;
+            }
+            const transactionsQueryJSON = getDateGroupTransactionsQueryJSON(queryJSON, dateRange);
             const formattedQuarter = DateUtils.getFormattedQuarterForSearch(quarterGroup.year, quarterGroup.quarter, dateFnsLocale);
             const shortFormattedQuarter = DateUtils.getShortFormattedQuarterForSearch(quarterGroup.year, quarterGroup.quarter, dateFnsLocale, shouldShowShortLabelYear);
 
@@ -4182,7 +4340,7 @@ function getSections({
             case CONST.SEARCH.GROUP_BY.APPROVER:
                 return getMemberSections(data, queryJSON, formatPhoneNumber, translate, onyxPersonalDetailsList, CONST.SEARCH.GROUP_BY.APPROVER);
             case CONST.SEARCH.GROUP_BY.VIOLATION:
-                return getViolationSections(data, translate);
+                return getViolationSections(data, queryJSON, translate);
             case CONST.SEARCH.GROUP_BY.PAID_BY:
                 return getMemberSections(data, queryJSON, formatPhoneNumber, translate, onyxPersonalDetailsList, CONST.SEARCH.GROUP_BY.PAID_BY);
             case CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE:
@@ -4259,21 +4417,6 @@ const groupBySortFunction: Record<SearchGroupBy, GroupBySortFunction> = {
     [CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE]: createGroupSortFunction<TransactionWorkflowStageGroupListItemType>(transactionWorkflowStageGroupColumnNamesToSortingProperty, (a, b, lc) =>
         lc(a.formattedWorkflowStage, b.formattedWorkflowStage),
     ),
-};
-
-const groupByRequiredColumns: Partial<Record<SearchGroupBy, SearchCustomColumnIds[]>> = {
-    [CONST.SEARCH.GROUP_BY.FROM]: [CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM],
-    [CONST.SEARCH.GROUP_BY.CARD]: [CONST.SEARCH.TABLE_COLUMNS.GROUP_CARD],
-    [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: [CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID],
-    [CONST.SEARCH.GROUP_BY.CATEGORY]: [CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY],
-    [CONST.SEARCH.GROUP_BY.MERCHANT]: [CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT],
-    [CONST.SEARCH.GROUP_BY.TAG]: [CONST.SEARCH.TABLE_COLUMNS.GROUP_TAG],
-    [CONST.SEARCH.GROUP_BY.DAY]: [CONST.SEARCH.TABLE_COLUMNS.GROUP_DAY],
-    [CONST.SEARCH.GROUP_BY.MONTH]: [CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH],
-    [CONST.SEARCH.GROUP_BY.WEEK]: [CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK],
-    [CONST.SEARCH.GROUP_BY.YEAR]: [CONST.SEARCH.TABLE_COLUMNS.GROUP_YEAR],
-    [CONST.SEARCH.GROUP_BY.QUARTER]: [CONST.SEARCH.TABLE_COLUMNS.GROUP_QUARTER],
-    [CONST.SEARCH.GROUP_BY.APPROVER]: [CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVER],
 };
 
 /**
@@ -4833,66 +4976,52 @@ function isReportDetailsCustomColumn(column: string): column is SearchCustomColu
     return Object.values(CONST.SEARCH.REPORT_DETAILS_CUSTOM_COLUMNS).some((customColumn) => customColumn === column);
 }
 
-function getCustomColumns(value?: SearchDataTypes | SearchGroupBy): SearchCustomColumnIds[] {
-    switch (value) {
-        case CONST.SEARCH.DATA_TYPES.EXPENSE:
-            return Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE);
-        case CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT:
-            return Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE_REPORT);
-        case CONST.SEARCH.DATA_TYPES.INVOICE:
-            return Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.INVOICE);
-        case CONST.SEARCH.DATA_TYPES.TASK:
-            return Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.TASK);
-        case CONST.SEARCH.DATA_TYPES.TRIP:
-            return Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.TRIP);
-        case CONST.SEARCH.DATA_TYPES.CHAT:
-            return Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.CHAT);
-        case CONST.SEARCH.GROUP_BY.CARD:
-            return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.CARD);
-        case CONST.SEARCH.GROUP_BY.FROM:
-            return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.FROM);
-        case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
-            return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.WITHDRAWAL_ID);
-        case CONST.SEARCH.GROUP_BY.CATEGORY:
-            return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.CATEGORY);
-        case CONST.SEARCH.GROUP_BY.MERCHANT:
-            return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.MERCHANT);
-        case CONST.SEARCH.GROUP_BY.TAG:
-            return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.TAG);
-        case CONST.SEARCH.GROUP_BY.DAY:
-            return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.DAY);
-        case CONST.SEARCH.GROUP_BY.MONTH:
-            return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.MONTH);
-        case CONST.SEARCH.GROUP_BY.WEEK:
-            return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.WEEK);
-        case CONST.SEARCH.GROUP_BY.YEAR:
-            return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.YEAR);
-        case CONST.SEARCH.GROUP_BY.QUARTER:
-            return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.QUARTER);
-        case CONST.SEARCH.GROUP_BY.APPROVER:
-            return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.APPROVER);
-        default:
-            return [];
-    }
-}
-
 /** Whether users can pick and reorder the columns of a search of this type. A trip search shows expenses unless it returns trip rooms, and only the rooms table has columns to pick. */
 function canEditSearchColumns(type: SearchDataTypes, shouldReturnTripRooms: boolean): boolean {
     return (type !== CONST.SEARCH.DATA_TYPES.TRIP || shouldReturnTripRooms) && getCustomColumns(type).length > 0;
 }
 
+/** Columns users can't remove from a report's expense table. The total has to stay so at least one column flexes. */
+function getRequiredReportDetailsColumns(): Set<SearchCustomColumnIds> {
+    return new Set<SearchCustomColumnIds>([CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]);
+}
+
+/** Which shown columns of a table users can hide from their menu, and the columns to save when they hide one. */
+type ColumnHiding = {
+    hidableColumns: Set<SearchColumnType>;
+    getColumnsWithout: (column: SearchColumnType) => SearchCustomColumnIds[];
+};
+
+type ColumnHidingParams = {
+    /** The columns the table shows, in order. */
+    shownColumns: SearchCustomColumnIds[];
+
+    /** The saved columns, which can also hold columns of another table saved in the same list, e.g. the expense columns a grouped search expands to. */
+    savedColumns: SearchCustomColumnIds[];
+
+    requiredColumns: ReadonlySet<SearchColumnType>;
+
+    /** The columns to save in place of this table's columns while none of them are saved. */
+    unsavedColumns?: SearchCustomColumnIds[];
+
+    /** Whether a saved column belongs to this table rather than to another one saved in the same list. */
+    isTableColumn?: (column: SearchCustomColumnIds) => boolean;
+};
+
 /**
- * Columns users can't remove. At least one column has to flex for the table to lay out, and the totals make sense in
- * every expense table, so they always stay. A search filtering by violations also keeps the column showing them.
+ * Hiding starts from the saved columns, because a table drops some of them, e.g. a column no row has a value in, and
+ * saving only the shown ones would lose those. The last column of the table can't be hidden.
  */
-function getRequiredSearchColumns(shouldRequireViolationsColumn: boolean): Set<SearchCustomColumnIds> {
-    const requiredColumns = new Set<SearchCustomColumnIds>([CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.TOTAL, ...Object.values(groupByRequiredColumns).flat()]);
+function getColumnHiding({shownColumns, savedColumns, requiredColumns, unsavedColumns = shownColumns, isTableColumn = () => true}: ColumnHidingParams): ColumnHiding {
+    const savedTableColumns = savedColumns.filter(isTableColumn);
+    const hasSavedTableColumns = savedTableColumns.length > 0;
+    const columnsToSave = hasSavedTableColumns ? savedColumns : [...unsavedColumns, ...savedColumns];
+    const canHideAnyColumn = (hasSavedTableColumns ? savedTableColumns : shownColumns).length > 1;
 
-    if (shouldRequireViolationsColumn) {
-        requiredColumns.add(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
-    }
-
-    return requiredColumns;
+    return {
+        hidableColumns: new Set(canHideAnyColumn ? shownColumns.filter((column) => !requiredColumns.has(column)) : []),
+        getColumnsWithout: (column) => columnsToSave.filter((columnToSave) => columnToSave !== column),
+    };
 }
 
 function getCustomColumnDefault(value?: SearchDataTypes | SearchGroupBy): SearchCustomColumnIds[] {
@@ -4933,6 +5062,8 @@ function getCustomColumnDefault(value?: SearchDataTypes | SearchGroupBy): Search
             return CONST.SEARCH.GROUP_DEFAULT_COLUMNS.QUARTER;
         case CONST.SEARCH.GROUP_BY.APPROVER:
             return CONST.SEARCH.GROUP_DEFAULT_COLUMNS.APPROVER;
+        case CONST.SEARCH.GROUP_BY.VIOLATION:
+            return CONST.SEARCH.GROUP_DEFAULT_COLUMNS.VIOLATION;
         default:
             return [];
     }
@@ -5056,6 +5187,8 @@ function getSearchColumnTranslationKey(column: SearchSortBy, type?: SearchDataTy
             return 'common.total';
         case CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID:
             return 'common.reportID';
+        case CONST.SEARCH.TABLE_COLUMNS.TRANSACTION_ID:
+            return 'common.transactionID';
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS:
             return 'common.withdrawalStatus';
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_BANK_ACCOUNT:
@@ -5098,6 +5231,8 @@ function getSearchColumnTranslationKey(column: SearchSortBy, type?: SearchDataTy
             return 'common.quarter';
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVER:
             return 'search.filters.groupBy.approver';
+        case CONST.SEARCH.TABLE_COLUMNS.GROUP_VIOLATION:
+            return 'search.filters.groupBy.violation';
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN:
             return 'search.filters.withdrawn';
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_FEED:
@@ -5184,6 +5319,7 @@ const SEARCH_TYPE_MENU_TAB_SENTRY_LABELS: Record<Exclude<SearchKey, SavedSearchK
     [CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS]: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_TAB.TOP_SPENDERS,
     [CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES]: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_TAB.TOP_CATEGORIES,
     [CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS]: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_TAB.TOP_MERCHANTS,
+    [CONST.SEARCH.SEARCH_KEYS.TOP_TAGS]: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_TAB.TOP_TAGS,
     [CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME]: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_TAB.SPEND_OVER_TIME,
     [CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER]: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_TAB.VIOLATIONS_BY_SUBMITTER,
     [CONST.SEARCH.SEARCH_KEYS.TRIPS]: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_TAB.TRIPS,
@@ -5213,6 +5349,7 @@ const SEARCH_TYPE_MENU_ITEM_SENTRY_LABELS: Record<Exclude<SearchKey, SavedSearch
     [CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS]: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_ITEM.TOP_SPENDERS,
     [CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES]: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_ITEM.TOP_CATEGORIES,
     [CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS]: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_ITEM.TOP_MERCHANTS,
+    [CONST.SEARCH.SEARCH_KEYS.TOP_TAGS]: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_ITEM.TOP_TAGS,
     [CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME]: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_ITEM.SPEND_OVER_TIME,
     [CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER]: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_ITEM.VIOLATIONS_BY_SUBMITTER,
     [CONST.SEARCH.SEARCH_KEYS.TRIPS]: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_ITEM.TRIPS,
@@ -5557,9 +5694,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
 
     // Saved section
     {
-        const shouldShowSavedSearchesMenuItemTitle = Object.values(savedSearches ?? {}).filter((s) => s.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline).length > 0;
-
-        if (shouldShowSavedSearchesMenuItemTitle) {
+        if (shouldShowSavedSearchesSection(savedSearchesPresenceSelector(savedSearches), isOffline)) {
             const savedSection: SearchTypeMenuSection = {
                 translationPath: 'search.savedSearchesMenuItemTitle',
                 menuItems: [],
@@ -5723,7 +5858,7 @@ function isSearchGroupBy(value: string): value is SearchGroupBy {
 }
 
 function getValidGroupBy(groupBy: string | undefined): SearchGroupBy | undefined {
-    // Insights-only group-bys are treated like unknown values because Search can't group by them yet (see https://github.com/Expensify/App/issues/105303)
+    // Insights-only group-bys are treated like unknown values because Search can't group by them
     return groupBy && isGroupBySupportedBySearch(groupBy) && isSearchGroupBy(groupBy) ? groupBy : undefined;
 }
 
@@ -5752,8 +5887,6 @@ type HasOptionAvailability = {
 
 type GetHasOptionsConfig = {
     policies?: OnyxCollection<OnyxTypes.Policy>;
-    /** The IDs of the workspaces whose categories have rules, from `policyIDsWithCategoryRulesSelector`. */
-    policyIDsWithCategoryRules?: Record<string, true>;
     /** Skip workspace feature filtering so already-selected values still resolve to labels. */
     shouldShowAllOptions?: boolean;
     /**
@@ -5766,10 +5899,9 @@ type GetHasOptionsConfig = {
 /**
  * Which expense `has:` options can apply for the current user, based on accessible workspaces.
  * Pass an empty collection when the user has no workspaces so Tag/Category/Submitted/Approved violation stay hidden.
- * Violations only show for workspaces with Rules on. Migrated Control workspaces leave areRulesEnabled undefined,
- * so those fall back to whether their own categories have Classic category rules.
+ * Violations show for any group workspace because expenses get violations even when Rules is off.
  */
-function getHasOptionAvailability(policies: OnyxCollection<OnyxTypes.Policy> | undefined, policyIDsWithCategoryRules: Record<string, true> = {}): HasOptionAvailability {
+function getHasOptionAvailability(policies: OnyxCollection<OnyxTypes.Policy> | undefined): HasOptionAvailability {
     let shouldShowTag = false;
     let shouldShowCategory = false;
     let shouldShowSubmittedViolation = false;
@@ -5782,9 +5914,8 @@ function getHasOptionAvailability(policies: OnyxCollection<OnyxTypes.Policy> | u
 
         shouldShowTag ||= policy.areTagsEnabled === true;
         shouldShowCategory ||= policy.areCategoriesEnabled === true;
-        const shouldShowRulesBasedViolation = arePolicyRulesEnabled(policy, undefined, !!policyIDsWithCategoryRules[policy.id]);
-        shouldShowSubmittedViolation ||= shouldShowRulesBasedViolation;
-        shouldShowApprovedViolation ||= shouldShowRulesBasedViolation;
+        shouldShowSubmittedViolation = true;
+        shouldShowApprovedViolation = true;
 
         if (shouldShowTag && shouldShowCategory && shouldShowSubmittedViolation && shouldShowApprovedViolation) {
             break;
@@ -5795,19 +5926,19 @@ function getHasOptionAvailability(policies: OnyxCollection<OnyxTypes.Policy> | u
 }
 
 /**
- * Options for the `has:` filter / autocomplete. Tag, Category, Submitted violation, and Approved violation are omitted when
- * no accessible workspace has the matching feature enabled. Pass `policies` from the picker and autocomplete.
+ * Options for the `has:` filter / autocomplete. Tag and Category require the matching workspace feature to be enabled;
+ * Submitted violation and Approved violation require an accessible group workspace. Pass `policies` from the picker and autocomplete.
  * Pass `shouldShowAllOptions` for display/validation so already-selected values still resolve to labels.
  * Pass `selectedValues` in the picker so query/saved selections stay selectable until the user clears them.
  */
 function getHasOptions(translate: LocalizedTranslate, type: SearchDataTypes, config: GetHasOptionsConfig = {}) {
-    const {policies, policyIDsWithCategoryRules, shouldShowAllOptions = false, selectedValues} = config;
+    const {policies, shouldShowAllOptions = false, selectedValues} = config;
 
     switch (type) {
         case CONST.SEARCH.DATA_TYPES.EXPENSE: {
             const availability = shouldShowAllOptions
                 ? {shouldShowTag: true, shouldShowCategory: true, shouldShowSubmittedViolation: true, shouldShowApprovedViolation: true}
-                : getHasOptionAvailability(policies, policyIDsWithCategoryRules);
+                : getHasOptionAvailability(policies);
             const shouldShowTag = availability.shouldShowTag || !!selectedValues?.includes(CONST.SEARCH.HAS_VALUES.TAG);
             const shouldShowCategory = availability.shouldShowCategory || !!selectedValues?.includes(CONST.SEARCH.HAS_VALUES.CATEGORY);
             const shouldShowSubmittedViolation = availability.shouldShowSubmittedViolation || !!selectedValues?.includes(CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION);
@@ -5856,12 +5987,12 @@ function formatTransactionViolationNames(violationNames: Set<string>, translate?
         return undefined;
     }
 
-    const names = Array.from(violationNames);
-    if (!translate) {
-        return names.join(', ');
-    }
-
-    return names.map((name) => getViolationDisplayName(name, translate)).join(', ');
+    // Labels are de-duplicated and sorted so the cell reads the same as the key the backend sorts this column by.
+    const labels = translate ? new Set(Array.from(violationNames, (name) => getViolationDisplayName(name, translate))) : violationNames;
+    const collator = getCollator(IntlStore.getCurrentLocale());
+    return Array.from(labels)
+        .sort((first, second) => collator.compare(first, second))
+        .join(', ');
 }
 
 function collectSubmittedViolationNamesForTransaction(violationNames: Set<string>, reportActions: OnyxTypes.ReportAction[], transactionID: string) {
@@ -5889,7 +6020,7 @@ function collectApprovedViolationNamesForTransaction(violationNames: Set<string>
 /**
  * Collects a transaction's submitted violations from its report's submit actions.
  * A report can be submitted more than once, so this aggregates across every submit action,
- * dedupes by violation name, and returns a comma-separated display string.
+ * dedupes by violation messages, and returns a comma-separated display string.
  * When `translate` is provided, violation identifiers are converted to localized short labels.
  *
  * Itemized receipt required supersedes receipt required within each submit action,
@@ -5908,7 +6039,7 @@ function getSubmittedViolationsForTransaction(reportActions: OnyxTypes.ReportAct
 /**
  * Collects a transaction's approved violations from its report's approved and forwarded actions.
  * A report can be approved or forwarded more than once, so this aggregates across every matching action,
- * dedupes by violation name, and returns a comma-separated display string.
+ * dedupes by violation messages, and returns a comma-separated display string.
  * When `translate` is provided, violation identifiers are converted to localized short labels.
  *
  * Itemized receipt required supersedes receipt required within each approved or forwarded action,
@@ -5985,7 +6116,11 @@ function getSortOrderOptions(translate: LocalizedTranslate) {
     return Object.values(CONST.SEARCH.SORT_ORDER).map<SingleSelectItem<SortOrder>>((value) => ({text: translate(`search.filters.sortOrder.${value}`), value}));
 }
 
-function getGroupBySections(translate: LocalizedTranslate): GroupBySection[] {
+/**
+ * The group-by options, in sections. Violation only shows when a workspace has Rules on, since grouping by violation
+ * only returns results for those workspaces.
+ */
+function getGroupBySections(translate: LocalizedTranslate, shouldShowViolationGroupBy = false): GroupBySection[] {
     const getOption = (groupBy: SearchGroupBy): SingleSelectItem<SearchGroupBy> => ({
         text: translate(`search.filters.groupBy.${groupBy}`),
         value: groupBy,
@@ -5996,7 +6131,12 @@ function getGroupBySections(translate: LocalizedTranslate): GroupBySection[] {
             options: [getOption(CONST.SEARCH.GROUP_BY.FROM), getOption(CONST.SEARCH.GROUP_BY.CARD), getOption(CONST.SEARCH.GROUP_BY.APPROVER)],
         },
         {
-            options: [getOption(CONST.SEARCH.GROUP_BY.CATEGORY), getOption(CONST.SEARCH.GROUP_BY.MERCHANT), getOption(CONST.SEARCH.GROUP_BY.TAG)],
+            options: [
+                getOption(CONST.SEARCH.GROUP_BY.CATEGORY),
+                getOption(CONST.SEARCH.GROUP_BY.MERCHANT),
+                getOption(CONST.SEARCH.GROUP_BY.TAG),
+                ...(shouldShowViolationGroupBy ? [getOption(CONST.SEARCH.GROUP_BY.VIOLATION)] : []),
+            ],
         },
         {
             options: [
@@ -6217,6 +6357,11 @@ const FILTER_TO_SYNTAX_KEY = {
     [FILTER_KEYS.SUBMITTED_AFTER]: CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
     [FILTER_KEYS.SUBMITTED_BEFORE]: CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
     [FILTER_KEYS.SUBMITTED_RANGE]: CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
+
+    [FILTER_KEYS.ANY_SUBMISSION_ON]: CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_SUBMISSION,
+    [FILTER_KEYS.ANY_SUBMISSION_AFTER]: CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_SUBMISSION,
+    [FILTER_KEYS.ANY_SUBMISSION_BEFORE]: CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_SUBMISSION,
+    [FILTER_KEYS.ANY_SUBMISSION_RANGE]: CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_SUBMISSION,
 
     [FILTER_KEYS.APPROVED_ON]: CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
     [FILTER_KEYS.APPROVED_AFTER]: CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
@@ -6493,6 +6638,13 @@ const FILTER_VIEW_MAP = {
         advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.REPORT_ID,
         applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.REPORT_ID,
     },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_ID]: {
+        labelKey: 'common.transactionID',
+        icon: 'Fingerprint',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.TRANSACTION_ID,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.TRANSACTION_ID,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.TRANSACTION_ID,
+    },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS]: {
         labelKey: 'common.status',
         icon: 'DotIndicator',
@@ -6654,6 +6806,13 @@ const FILTER_VIEW_MAP = {
         advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.SUBMITTED,
         applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.SUBMITTED,
     },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_SUBMISSION]: {
+        labelKey: 'search.filters.anySubmission',
+        icon: 'Send',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.ANY_SUBMISSION,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.ANY_SUBMISSION,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.ANY_SUBMISSION,
+    },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID]: {
         labelKey: 'search.filters.paid',
         icon: 'MoneyBag',
@@ -6700,7 +6859,14 @@ function getDateDisplayValue(syntaxKey: SearchDateFilterKeys, form: Partial<Sear
     const parts: string[] = [];
 
     if (on) {
-        parts.push(isSearchDatePreset(on) ? translate(`search.filters.date.presets.${on}`) : `${translate('common.on')} ${DateUtils.formatToReadableString(on, dateFnsLocale)}`);
+        if (isSearchDatePreset(on)) {
+            parts.push(translate(`search.filters.date.presets.${on}`));
+        } else {
+            const formattedOn = DateUtils.formatToReadableString(on, dateFnsLocale);
+            if (formattedOn) {
+                parts.push(`${translate('common.on')} ${formattedOn}`);
+            }
+        }
     }
 
     if (after) {
@@ -7229,11 +7395,10 @@ function getMultiSelectFilterOptions(
     type: SearchDataTypes,
     translate: LocalizedTranslate,
     policies?: OnyxCollection<OnyxTypes.Policy>,
-    policyIDsWithCategoryRules?: Record<string, true>,
     shouldReturnTripRooms = false,
 ) {
     if (filterKey === FILTER_KEYS.HAS) {
-        return getHasOptions(translate, type, {policies, policyIDsWithCategoryRules});
+        return getHasOptions(translate, type, {policies});
     }
 
     if (filterKey === FILTER_KEYS.IS) {
@@ -7643,6 +7808,7 @@ function getColumnsToShow({
               [CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT]: false,
               [CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID]: false,
               [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.TRANSACTION_ID]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TITLE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: true,
@@ -8244,17 +8410,30 @@ function isEverySearchBulkEditExpenseOwnedBy(
     allTransactions: OnyxCollection<OnyxTypes.Transaction> | undefined,
     allReports: OnyxCollection<OnyxTypes.Report> | undefined,
 ): boolean {
-    if (selectedTransactionIDs.length === 0) {
-        return false;
-    }
+    return getSearchBulkEditExpenseOwnerAccountID(selectedTransactionIDs, accountID, allTransactions, allReports) === accountID;
+}
 
-    return selectedTransactionIDs.every((transactionID) => {
+/**
+ * Returns the account that owns every selected expense, or undefined when there's no selection or the owners differ. An
+ * unreported expense has no report to read the owner from, so it counts as the current user's, since only they can see it.
+ */
+function getSearchBulkEditExpenseOwnerAccountID(
+    selectedTransactionIDs: string[],
+    currentUserAccountID: number,
+    allTransactions: OnyxCollection<OnyxTypes.Transaction> | undefined,
+    allReports: OnyxCollection<OnyxTypes.Report> | undefined,
+): number | undefined {
+    let ownerAccountID: number | undefined;
+    for (const transactionID of selectedTransactionIDs) {
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-        if (!transaction?.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-            return true;
+        const isUnreported = !transaction?.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+        const expenseOwnerAccountID = isUnreported ? currentUserAccountID : allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`]?.ownerAccountID;
+        if (expenseOwnerAccountID === undefined || (ownerAccountID !== undefined && expenseOwnerAccountID !== ownerAccountID)) {
+            return undefined;
         }
-        return allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`]?.ownerAccountID === accountID;
-    });
+        ownerAccountID = expenseOwnerAccountID;
+    }
+    return ownerAccountID;
 }
 
 function filterValidHasValues(hasValues: HasFilterValues | undefined, type: SearchDataTypes | undefined, translate: LocalizedTranslate): HasFilterValues | undefined {
@@ -8509,6 +8688,11 @@ function isTransactionMatchWithGroupItem(transaction: OnyxTypes.Transaction, gro
 }
 
 export {
+    canPolicyAdminChangeApprover,
+    getAllMatchingExpenseActionQuery,
+    getAllMatchingExportQueryAndExclusions,
+    replaceIncludedFilterValues,
+    getTagGroupLabel,
     getSearchTypeMenuItemSentryLabel,
     getSearchTypeMenuTabSentryLabel,
     getTransactionPolicyID,
@@ -8518,6 +8702,7 @@ export {
     getSnapshotFooterTotal,
     getSearchBulkEditPolicyID,
     isEverySearchBulkEditExpenseOwnedBy,
+    getSearchBulkEditExpenseOwnerAccountID,
     getSuggestedSearches,
     getSections,
     getSuggestedSearchesVisibility,
@@ -8539,6 +8724,7 @@ export {
     isTransactionYearGroupListItemType,
     isTransactionQuarterGroupListItemType,
     isTransactionApproverGroupListItemType,
+    isTransactionViolationGroupListItemType,
     isGroupedItemArray,
     isGroupEntry,
     isTransactionEntry,
@@ -8604,10 +8790,10 @@ export {
     getTableMinWidth,
     getGroupColumnWidthFlags,
     getGroupTableScrollLayout,
-    getCustomColumns,
     getCustomColumnDefault,
     canEditSearchColumns,
-    getRequiredSearchColumns,
+    getRequiredReportDetailsColumns,
+    getColumnHiding,
     filterValidHasValues,
     navigateToSearchRHP,
     navigateToSearchWithColumns,
@@ -8644,6 +8830,7 @@ export {
     isPolicyEligibleForSpendOverTime,
     isPolicyEligibleForTopSpenders,
     isPolicyEligibleForTopCategories,
+    isPolicyEligibleForTopTags,
     hasFlexColumn,
     isTransactionSearchType,
     splitGroupsIntoPairs,

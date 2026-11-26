@@ -34,7 +34,7 @@ function AskConciergeWelcome({reportID}: AskConciergeWelcomeProps) {
     return (
         <ScrollView
             style={[!shouldUseNarrowLayout && styles.flexGrow0, styles.conciergeAskColumn]}
-            // The welcome used to sit above the history toggle, which carried this gap over the composer.
+            // Keeps the welcome clear of the composer below it.
             contentContainerStyle={[styles.flexGrow1, styles.justifyContentCenter, styles.pb8]}
             keyboardShouldPersistTaps="handled"
             onLayout={() => markOpenReportEnd(reportID, report, {warm: true})}

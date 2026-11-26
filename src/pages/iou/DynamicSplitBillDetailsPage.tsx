@@ -13,10 +13,10 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
-import useReportTransactions from '@hooks/useReportTransactions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -48,6 +48,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useState} from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 type SplitBillDetailsPageProps = WithReportAndReportActionOrNotFoundProps & PlatformStackScreenProps<SplitDetailsNavigatorParamList, typeof SCREENS.SPLIT_DETAILS.DYNAMIC_ROOT>;
 
@@ -69,13 +70,12 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${IOUTransactionID}`);
     const [personalDetails] = useAllPersonalDetails();
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
-    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const reportAttributesDerived = useReportAttributes();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const privateIsArchived = useReportIsArchived(reportID);
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
 
     // In case this is workspace split expense, we manually add the workspace as the second participant of the split expense
     // because we don't save any accountID in the report action's originalMessage other than the payee's accountID
@@ -136,9 +136,14 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const delegateAccountID = useDelegateAccountID();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const chatReportTransactions = useReportTransactions(reportID);
-    const onConfirm = () => {
+    const completeSplit = async () => {
         setIsConfirmed(true);
+        const [quickAction, introSelected, reportTransactionsAndViolations] = await Onyx.multiGet([
+            ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+            ONYXKEYS.NVP_INTRO_SELECTED,
+            ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS,
+        ]);
+        const hasChatReportTransactions = Object.values((reportID ? reportTransactionsAndViolations?.[reportID]?.transactions : undefined) ?? {}).some(Boolean);
         completeSplitBill({
             isVendorMatchingBetaEnabled,
             getCurrencyDecimals,
@@ -151,13 +156,14 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
             transactionViolations,
             personalDetails,
             delegateAccountID,
-            isTrackIntentUser,
+            isTrackIntentUser: isTrackIntentUserSelector(introSelected),
             sessionEmail: session?.email,
             formatPhoneNumber,
             rules,
+            personalDetailsByLogins: getPersonalDetailsByLogin(),
         });
         cleanupAfterExpenseCreate({draftTransactionIDs: [CONST.IOU.OPTIMISTIC_TRANSACTION_ID], shouldWaitForUpcomingTransition: true});
-        dismissModalAndOpenReportInInboxTab(reportID, undefined, chatReportTransactions.length > 0);
+        dismissModalAndOpenReportInInboxTab(reportID, undefined, hasChatReportTransactions);
     };
 
     return (
@@ -204,12 +210,12 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
                                 reportID={reportID}
                                 reportActionID={reportAction?.reportActionID}
                                 transaction={isEditingSplitBill && draftTransaction ? draftTransaction : transaction}
-                                onConfirm={onConfirm}
+                                onConfirm={completeSplit}
                                 isPolicyExpenseChat={isPolicyExpenseChat(report)}
                                 policyID={isPolicyExpenseChat(report) ? report?.policyID : undefined}
                                 action={isEditingSplitBill ? CONST.IOU.ACTION.EDIT : CONST.IOU.ACTION.CREATE}
                                 onToggleBillable={(billable) => {
-                                    setDraftSplitTransaction(transaction?.transactionID, draftTransaction ?? transaction, {billable}, getCurrencyDecimals, getCurrencySymbol);
+                                    setDraftSplitTransaction(translate, transaction?.transactionID, draftTransaction ?? transaction, {billable}, getCurrencyDecimals, getCurrencySymbol);
                                 }}
                                 isConfirmed={isConfirmed}
                             />
