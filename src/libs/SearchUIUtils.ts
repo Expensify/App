@@ -8486,78 +8486,105 @@ function canBulkMoveReportToPolicy(
     );
 }
 
+type DeleteOptionData = {
+    currentSearchResults: SearchResults['data'] | undefined;
+    currentUserAccountID: number;
+    rules: OnyxCollection<OnyxTypes.Rule>;
+    // The full list is needed because each report has its own owner.
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    cardList: OnyxEntry<OnyxTypes.CardList>;
+    allReportActions: OnyxCollection<OnyxTypes.ReportActions>;
+};
+
+function canDeleteSearchReport(
+    reportID: string | undefined,
+    reportTransactions: OnyxTypes.Transaction[],
+    {currentSearchResults, currentUserAccountID, rules, personalDetails, cardList, allReportActions}: DeleteOptionData,
+) {
+    const fullReport = currentSearchResults?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    if (!fullReport) {
+        return false;
+    }
+    // The delete check needs the report's whole history to see a forward since the last submit, which the snapshot alone may not carry
+    const reportActionsArray = Object.values(getReportActionsFromSearchSnapshot(reportID, currentSearchResults, allReportActions, true) ?? {});
+    const reportPolicy = currentSearchResults?.[`${ONYXKEYS.COLLECTION.POLICY}${fullReport.policyID}`];
+    return canDeleteMoneyRequestReport(
+        fullReport,
+        reportTransactions,
+        reportActionsArray,
+        currentUserAccountID,
+        rules,
+        getLoginByAccountID(fullReport.ownerAccountID, personalDetails),
+        reportPolicy,
+        cardList,
+        true,
+    );
+}
+
+function canDeleteSearchTransaction(
+    transactionID: string,
+    selectedTransaction: SelectedTransactionInfo | undefined,
+    {currentSearchResults, currentUserAccountID, rules, personalDetails, cardList, allReportActions}: DeleteOptionData,
+) {
+    const transaction = currentSearchResults?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? selectedTransaction?.transaction;
+    if (!transaction) {
+        return false;
+    }
+    const parentReportID = transaction.reportID;
+    const parentReport = currentSearchResults?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`] ?? selectedTransaction?.report;
+    const rowReportAction = selectedTransaction?.reportAction;
+    // Grouped searches carry no report actions in the snapshot, so the row's own IOU action is kept for the ownership check
+    const parentReportActions = Object.values({
+        ...getReportActionsFromSearchSnapshot(parentReportID, currentSearchResults, allReportActions, true),
+        ...(rowReportAction ? {[rowReportAction.reportActionID]: rowReportAction} : {}),
+    });
+
+    const parentReportPolicy = currentSearchResults?.[`${ONYXKEYS.COLLECTION.POLICY}${parentReport?.policyID}`];
+    return canDeleteMoneyRequestReport(
+        parentReport,
+        [transaction],
+        parentReportActions,
+        currentUserAccountID,
+        rules,
+        getLoginByAccountID(parentReport?.ownerAccountID, personalDetails),
+        parentReportPolicy,
+        cardList,
+    );
+}
+
 function shouldShowDeleteOption(
     selectedTransactions: Record<string, SelectedTransactionInfo>,
     currentSearchResults: SearchResults['data'] | undefined,
     currentUserAccountID: number,
     rules: OnyxCollection<OnyxTypes.Rule>,
-    // The full list is needed because each pass below resolves a different report owner.
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>,
     cardList: OnyxEntry<OnyxTypes.CardList>,
     allReportActions: OnyxCollection<OnyxTypes.ReportActions>,
     selectedReports: SelectedReports[] = [],
     searchDataType?: SearchDataTypes,
 ) {
-    const selectedTransactionsKeys = Object.keys(selectedTransactions);
+    const deleteOptionData = {currentSearchResults, currentUserAccountID, rules, personalDetails, cardList, allReportActions};
+    if (selectedReports.length && searchDataType !== CONST.SEARCH.DATA_TYPES.EXPENSE) {
+        const transactionsByReportID = getTransactionsByReportID(currentSearchResults ?? {});
+        return selectedReports.every((selectedReport) =>
+            canDeleteSearchReport(selectedReport.reportID, (selectedReport.reportID && transactionsByReportID.get(selectedReport.reportID)) || [], deleteOptionData),
+        );
+    }
+    return Object.keys(selectedTransactions).every((id) => canDeleteSearchTransaction(id, selectedTransactions[id], deleteOptionData));
+}
 
-    return selectedReports.length && searchDataType !== CONST.SEARCH.DATA_TYPES.EXPENSE
-        ? selectedReports.every((selectedReport) => {
-              const fullReport = currentSearchResults?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReport.reportID}`];
-              if (!fullReport) {
-                  return false;
-              }
-              // The delete check needs the report's whole history to see a forward since the last submit, which the snapshot alone may not carry
-              const reportActionsArray = Object.values(getReportActionsFromSearchSnapshot(selectedReport.reportID, currentSearchResults, allReportActions, true) ?? {});
-              const reportTransactions: OnyxTypes.Transaction[] = [];
-              const searchData = currentSearchResults ?? {};
-              for (const key of Object.keys(searchData)) {
-                  if (!key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) {
-                      continue;
-                  }
-                  const item = searchData[key as keyof typeof searchData] as OnyxTypes.Transaction | undefined;
-                  if (item && 'transactionID' in item && 'reportID' in item && item.reportID === selectedReport.reportID) {
-                      reportTransactions.push(item);
-                  }
-              }
-              const reportPolicy = currentSearchResults?.[`${ONYXKEYS.COLLECTION.POLICY}${fullReport.policyID}`];
-              return canDeleteMoneyRequestReport(
-                  fullReport,
-                  reportTransactions,
-                  reportActionsArray,
-                  currentUserAccountID,
-                  rules,
-                  getLoginByAccountID(fullReport.ownerAccountID, personalDetails),
-                  reportPolicy,
-                  cardList,
-                  true,
-              );
-          })
-        : selectedTransactionsKeys.every((id) => {
-              const transaction = currentSearchResults?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`] ?? selectedTransactions[id]?.transaction;
-              if (!transaction) {
-                  return false;
-              }
-              const parentReportID = transaction.reportID;
-              const parentReport = currentSearchResults?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`] ?? selectedTransactions[id].report;
-              const rowReportAction = selectedTransactions[id].reportAction;
-              // Grouped searches carry no report actions in the snapshot, so the row's own IOU action is kept for the ownership check
-              const parentReportActions = Object.values({
-                  ...getReportActionsFromSearchSnapshot(parentReportID, currentSearchResults, allReportActions, true),
-                  ...(rowReportAction ? {[rowReportAction.reportActionID]: rowReportAction} : {}),
-              });
-
-              const parentReportPolicy = currentSearchResults?.[`${ONYXKEYS.COLLECTION.POLICY}${parentReport?.policyID}`];
-              return canDeleteMoneyRequestReport(
-                  parentReport,
-                  [transaction],
-                  parentReportActions,
-                  currentUserAccountID,
-                  rules,
-                  getLoginByAccountID(parentReport?.ownerAccountID, personalDetails),
-                  parentReportPolicy,
-                  cardList,
-              );
-          });
+/** Whether a Select all delete has a loaded report or expense it can delete. The backend skips the rest. */
+function canDeleteAnyLoadedItem(
+    selectedTransactions: Record<string, SelectedTransactionInfo>,
+    selectedReports: SelectedReports[],
+    searchDataType: SearchDataTypes | undefined,
+    transactionsByReportID: Map<string, OnyxTypes.Transaction[]>,
+    deleteOptionData: DeleteOptionData,
+) {
+    if (selectedReports.length && searchDataType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
+        return selectedReports.some((report) => canDeleteSearchReport(report.reportID, (report.reportID && transactionsByReportID.get(report.reportID)) || [], deleteOptionData));
+    }
+    return Object.keys(selectedTransactions).some((id) => canDeleteSearchTransaction(id, selectedTransactions[id], deleteOptionData));
 }
 
 const FLEX_COLUMNS = new Set<string>([
@@ -8763,6 +8790,7 @@ export {
     navigateToSearchRHP,
     navigateToSearchWithColumns,
     shouldShowDeleteOption,
+    canDeleteAnyLoadedItem,
     getToFieldValueForTransaction,
     getSearchReportAvatarProps,
     hasVisibleViolations,

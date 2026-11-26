@@ -178,9 +178,10 @@ jest.mock('@components/DelegateNoAccessModalProvider', () => ({
     useDelegateNoAccessActions: () => ({showDelegateNoAccessModal: mockShowDelegateNoAccessModal}),
 }));
 
+let mockCanDeleteAnyLoadedItem = true;
 jest.mock('@libs/SearchUIUtils', () => ({
     ...jest.requireActual<typeof SearchUIUtils>('@libs/SearchUIUtils'),
-    shouldShowDeleteOption: jest.fn(() => true),
+    canDeleteAnyLoadedItem: () => mockCanDeleteAnyLoadedItem,
 }));
 
 jest.mock('@components/LockedAccountModalProvider', () => ({
@@ -2051,6 +2052,7 @@ describe('useSearchBulkActions - Delete under Select all', () => {
         jest.clearAllMocks();
         mockIsOffline = false;
         mockIsNetworkOffline = false;
+        mockCanDeleteAnyLoadedItem = true;
         mockAreAllMatchingItemsSelected = true;
         await Onyx.clear();
         mockSelectedTransactions = {tx1: makeSelectedTransaction()};

@@ -111,6 +111,7 @@ import refreshSearchAfterReportAction from '@libs/SearchRefreshUtils';
 import type {SearchDateRange, SearchGroupKey, SelectedGroupValueFilter} from '@libs/SearchUIUtils';
 import {
     canChangeWorkspaceOfSearchReport,
+    canDeleteAnyLoadedItem,
     getAllMatchingExpenseActionQuery,
     getAllMatchingExportQueryAndExclusions,
     getColumnsToShow,
@@ -3366,23 +3367,14 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             // The backend only deletes what the user can delete, so one deletable loaded item is enough to offer it.
             const shouldShowDeleteOptionForAllMatchingItems =
                 canQueueDelete &&
-                (selectedReports.length && isExpenseReportType
-                    ? selectedReports.some((report) =>
-                          shouldShowDeleteOption(selectedTransactions, currentSearchResults?.data, accountID, rules, personalDetails, cardList, allReportActions, [report], queryJSON?.type),
-                      )
-                    : selectedTransactionsKeys.some((id) =>
-                          shouldShowDeleteOption(
-                              {[id]: selectedTransactions[id]},
-                              currentSearchResults?.data,
-                              accountID,
-                              rules,
-                              personalDetails,
-                              cardList,
-                              allReportActions,
-                              [],
-                              queryJSON?.type,
-                          ),
-                      ));
+                canDeleteAnyLoadedItem(selectedTransactions, selectedReports, queryJSON?.type, getTransactionsByReportID(currentSearchResults?.data ?? {}), {
+                    currentSearchResults: currentSearchResults?.data,
+                    currentUserAccountID: accountID,
+                    rules,
+                    personalDetails,
+                    cardList,
+                    allReportActions,
+                });
             if (shouldShowDeleteOptionForAllMatchingItems) {
                 allMatchingOptions.push(deleteOption);
             }
