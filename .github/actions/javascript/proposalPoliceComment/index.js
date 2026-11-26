@@ -67106,6 +67106,9 @@ async function hasMergedAppPullRequest(login) {
     // eslint-disable-next-line @typescript-eslint/naming-convention -- GitHub's REST API parameter name
     per_page: 1
   });
+  if (data.incomplete_results && data.total_count === 0) {
+    throw new Error(`The merged PR search for ${login} returned incomplete results`);
+  }
   return data.total_count > 0;
 }
 async function hideCommentFromNewContributor(payload) {

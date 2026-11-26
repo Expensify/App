@@ -103,6 +103,11 @@ async function hasMergedAppPullRequest(login: string): Promise<boolean> {
         // eslint-disable-next-line @typescript-eslint/naming-convention -- GitHub's REST API parameter name
         per_page: 1,
     });
+
+    // A search that timed out can report 0 results even when the commenter has merged PRs
+    if (data.incomplete_results && data.total_count === 0) {
+        throw new Error(`The merged PR search for ${login} returned incomplete results`);
+    }
     return data.total_count > 0;
 }
 

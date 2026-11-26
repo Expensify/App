@@ -868,6 +868,18 @@ describe('proposalPoliceComment on issues without Help Wanted', () => {
         expect(mockMinimizeCommentAsSpam).not.toHaveBeenCalled();
     });
 
+    it('leaves the comment visible when the merged PR search is incomplete', async () => {
+        // Given GitHub search timed out and returned no results
+        setPayloadWithoutHelpWanted();
+        mockSearchIssuesAndPullRequests.mockResolvedValue({data: {total_count: 0, incomplete_results: true}});
+
+        // When ProposalPolice runs
+        await run();
+
+        // Then 0 results doesn't prove the commenter has no merged PR, so the comment stays
+        expect(mockMinimizeCommentAsSpam).not.toHaveBeenCalled();
+    });
+
     it('does not check comments on pull requests', async () => {
         // Given a comment on a PR, which GitHub also sends as an issue comment
         setPayloadWithoutHelpWanted({isPullRequest: true});
