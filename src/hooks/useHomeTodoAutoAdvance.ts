@@ -15,7 +15,7 @@ import ROUTES from '@src/ROUTES';
 import type {HomeTodoSearchKey} from '@src/types/onyx';
 
 import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
-import {useEffect, useEffectEvent, useState} from 'react';
+import {useEffect, useEffectEvent, useRef, useState} from 'react';
 
 import useLocalize from './useLocalize';
 import useResponsiveLayout from './useResponsiveLayout';
@@ -28,6 +28,9 @@ import useTodoClassificationParams from './useTodoClassificationParams';
  * It watches the report instead of wrapping each action button, because the action can be taken from the header, the
  * More menu, a payment or bank account step, or a child screen. The report changes optimistically, so the user moves
  * on without waiting for the server.
+ *
+ * It also moves on when the open report is removed while another screen covers it, for example when its last expense
+ * is deleted from the Inbox, so the user doesn't come back to a missing report.
  */
 
 type UseHomeTodoAutoAdvanceParams = {
@@ -99,11 +102,12 @@ function useHomeTodoAutoAdvance({reportID, searchKey, reportIDs}: UseHomeTodoAut
         !!latestTodoReportAction && !!pendingReport && latestTodoReportAction.actorAccountID === currentUserAccountID && latestTodoReportAction.created > pendingReport.firstSeenPendingAt;
     const shouldAdvance = isActionComplete && pendingReport?.reportID === reportID && hasCurrentUserTakenAction;
 
+    const getNextReportID = () => getNextHomeTodoReportID(reportIDs, reportID, filterReportIDsNeedingTodoAction(searchKey, reportIDs, todoClassificationParams));
+
     // Reads the latest data at the moment the action lands, without re-running the effect below whenever it changes.
     const advanceToNextReport = useEffectEvent(() => {
         const growlPosition = isSmallScreenWidth ? undefined : CONST.GROWL.POSITION.BOTTOM_RIGHT;
-        const reportIDsNeedingAction = filterReportIDsNeedingTodoAction(searchKey, reportIDs, todoClassificationParams);
-        const nextReportID = getNextHomeTodoReportID(reportIDs, reportID, reportIDsNeedingAction);
+        const nextReportID = getNextReportID();
 
         if (!nextReportID) {
             // The last report shows its result like the others, then leaves the same way before the RHP closes.
@@ -148,6 +152,38 @@ function useHomeTodoAutoAdvance({reportID, searchKey, reportIDs}: UseHomeTodoAut
         }
         advanceToNextReport();
     }, [shouldAdvance]);
+
+    // A report removed while it is on screen is closed by the report screen itself, so only a removal made from
+    // another screen is handled here.
+    const isReportRemoved = pendingReport?.reportID === reportID && (!report || report.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const shouldCloseOnFocusRef = useRef(false);
+
+    const skipRemovedReport = useEffectEvent(() => {
+        if (isFocused) {
+            if (!shouldCloseOnFocusRef.current) {
+                return;
+            }
+            shouldCloseOnFocusRef.current = false;
+            clearHomeTodoReview();
+            Navigation.goBack(ROUTES.HOME);
+            return;
+        }
+
+        const nextReportID = getNextReportID();
+        if (!nextReportID) {
+            // A screen in the background can't be closed without moving the user, so it closes once they return to it.
+            shouldCloseOnFocusRef.current = true;
+            return;
+        }
+        openReportInPlace(nextReportID, route.key, navigation.getState()?.key);
+    });
+
+    useEffect(() => {
+        if (!isReportRemoved) {
+            return;
+        }
+        skipRemovedReport();
+    }, [isReportRemoved, isFocused]);
 }
 
 export default useHomeTodoAutoAdvance;
