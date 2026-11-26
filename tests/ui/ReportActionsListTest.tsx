@@ -1,4 +1,4 @@
-import {act, render, screen, waitFor} from '@testing-library/react-native';
+import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 
@@ -56,13 +56,14 @@ import {buildSystemAction} from '../utils/ReportTestUtils';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const mockUseIsFocused = jest.fn().mockReturnValue(false);
+let mockRouteParams: Record<string, string> = {};
 jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual<typeof ReactNavigation>('@react-navigation/native');
     return {
         ...actualNav,
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         useIsFocused: () => mockUseIsFocused(),
-        useRoute: () => ({key: 'Report-test', name: 'Report', params: {}}),
+        useRoute: () => ({key: 'Report-test', name: 'Report', params: mockRouteParams}),
         useNavigationState: jest.fn(),
         createNavigationContainerRef: () => ({
             getState: () => jest.fn(),
@@ -91,6 +92,8 @@ jest.mock('@hooks/useTransactionsAndViolationsForReport', () => jest.fn());
 jest.mock('@hooks/usePaginatedReportActions', () => jest.fn());
 jest.mock('@hooks/useParentReportAction', () => jest.fn());
 jest.mock('@hooks/useIsInSidePanel', () => jest.fn());
+const mockOpenSidePanel = jest.fn();
+jest.mock('@hooks/useSidePanelActions', () => () => ({openSidePanel: mockOpenSidePanel}));
 jest.mock('@hooks/useSidePanelState', () => jest.fn());
 jest.mock('@hooks/useReportTransactionsCollection', () => jest.fn());
 jest.mock('@pages/inbox/ConciergeChatHistoryContext', () => ({
@@ -204,6 +207,7 @@ type MockInvertedFlashListProps = {
     renderItem?: (info: {item: OnyxTypes.ReportAction; index: number}) => React.ReactElement | null;
     onContentSizeChange?: () => void;
     ListFooterComponent?: React.ReactNode;
+    ListHeaderComponent?: React.ReactElement;
 };
 
 const mockInvertedFlashList: jest.MockedFunction<(props: MockInvertedFlashListProps) => null> = jest.requireMock('@components/FlashList/InvertedFlashList');
@@ -327,6 +331,7 @@ describe('ReportActionsList (body)', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        mockRouteParams = {};
         mockUseIsReportLoadPending.mockReturnValue(false);
         mockUseUnreadMarker.mockReturnValue({unreadMarkerReportActionID: null, unreadMarkerReportActionIndex: -1});
 
@@ -1675,6 +1680,40 @@ describe('ReportActionsList (body)', () => {
             // Then the welcome screen shows and the earlier conversation stays behind `View chat history`
             expect(screen.getByTestId('AskConciergeWelcome')).toBeTruthy();
             expect(mockInvertedFlashList).not.toHaveBeenCalled();
+        });
+
+        it.each([
+            {surface: 'the main pane', isInSidePanel: false},
+            {surface: 'the side panel', isInSidePanel: true},
+        ])('should drop the linked message when the history is hidden in $surface', ({isInSidePanel}) => {
+            // Given the Concierge chat opened at a linked message, which shows the history even though the user never expanded it
+            mockRouteParams = {reportID: CONCIERGE_REPORT_ID, reportActionID: 'old-concierge-msg'};
+            setupMainDMConciergeMocks(false, isInSidePanel);
+            const collapseHistory = jest.fn();
+            mockUseConciergeChatHistoryActions.mockReturnValue({setShowFullHistory: jest.fn(), collapseHistory});
+            const setParamsSpy = jest.spyOn(Navigation, 'setParams').mockImplementation(() => {});
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: oldReportActions,
+                hasOlderActions: false,
+            });
+            renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
+            const listHeader = mockInvertedFlashList.mock.calls.at(-1)?.at(0)?.ListHeaderComponent;
+            render(<LocaleContextProvider>{listHeader}</LocaleContextProvider>);
+
+            // When the user presses Hide chat history
+            fireEvent.press(screen.getByRole(CONST.ROLE.BUTTON));
+
+            // Then the linked message is dropped where the surface keeps it, so the history can collapse
+            expect(collapseHistory).toHaveBeenCalled();
+            if (isInSidePanel) {
+                expect(mockOpenSidePanel).toHaveBeenCalledWith({reportID: CONCIERGE_REPORT_ID});
+                expect(setParamsSpy).not.toHaveBeenCalled();
+            } else {
+                expect(setParamsSpy).toHaveBeenCalledWith({reportActionID: ''}, 'Report-test');
+                expect(mockOpenSidePanel).not.toHaveBeenCalled();
+            }
+            setParamsSpy.mockRestore();
         });
 
         it('should show the whole conversation once the history is expanded', () => {

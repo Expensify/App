@@ -6,12 +6,14 @@ import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 
 import useEnvironment from '@hooks/useEnvironment';
 import useInitial from '@hooks/useInitial';
+import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useLinkedMessageOfflineLoading from '@hooks/useLinkedMessageOfflineLoading';
 import useLocalize from '@hooks/useLocalize';
 import useMarkAsRead from '@hooks/useMarkAsRead';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useRetireMerchantRuleSuggestionOnLeave from '@hooks/useRetireMerchantRuleSuggestionOnLeave';
+import useSidePanelActions from '@hooks/useSidePanelActions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useUnreadMarker from '@hooks/useUnreadMarker';
 
@@ -87,6 +89,8 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const linkedReportActionID = route?.params?.reportActionID;
     const {collapseHistory: collapseConciergeHistory} = useConciergeChatHistoryActions();
+    const isInSidePanel = useIsInSidePanel();
+    const {openSidePanel} = useSidePanelActions();
 
     const recordTimeToMeasureItemLayout = useReportActionsListTelemetry({reportID, onLayout});
 
@@ -202,9 +206,15 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
                     isHistoryShown
                     onPress={() => {
                         collapseConciergeHistory();
-                        if (linkedReportActionID) {
-                            Navigation.setParams({reportActionID: ''}, route.key);
+                        if (!linkedReportActionID) {
+                            return;
                         }
+                        // The side panel's route is built from its NVP, so the linked message is cleared there instead of in the route.
+                        if (isInSidePanel) {
+                            openSidePanel({reportID: route.params.reportID});
+                            return;
+                        }
+                        Navigation.setParams({reportActionID: ''}, route.key);
                     }}
                 />
             )}
