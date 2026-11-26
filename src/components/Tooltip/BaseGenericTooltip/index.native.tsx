@@ -164,7 +164,9 @@ function BaseGenericTooltip({
                     ref={rootWrapper}
                     onPress={onTooltipPress}
                     role={CONST.ROLE.TOOLTIP}
-                    accessibilityLabel={CONST.ROLE.TOOLTIP}
+                    // Kept out of the accessibility tree so a screen reader reaches the tooltip's text and its close button one by one.
+                    // As one accessible element, VoiceOver would hide both behind a single name.
+                    accessible={false}
                     onLayout={onWrapperLayout}
                 >
                     {wrapperChildren}

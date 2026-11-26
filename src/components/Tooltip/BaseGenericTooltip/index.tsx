@@ -186,7 +186,9 @@ function BaseGenericTooltip({
                     style={[rootWrapperStyle, animationStyle]}
                     onPress={onTooltipPress}
                     role={CONST.ROLE.TOOLTIP}
-                    accessibilityLabel={CONST.ROLE.TOOLTIP}
+                    // No label, so a screen reader names the tooltip by its text, and no tab stop of its own, since a tooltip isn't a control.
+                    // A close button inside it stays focusable.
+                    accessible={false}
                     interactive={!!onTooltipPress}
                 >
                     {wrapperChildren}
