@@ -2583,7 +2583,9 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
 /**
  * Track an expense
  */
-function trackExpense(params: CreateTrackExpenseParams) {
+function trackExpense(
+    params: CreateTrackExpenseParams,
+): {iouReport?: OnyxTypes.Report; reportPreviewAction?: OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>; transactionID?: string} | undefined {
     const {
         report,
         existingIOUReport,

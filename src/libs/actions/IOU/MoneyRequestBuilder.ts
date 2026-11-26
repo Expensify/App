@@ -124,7 +124,7 @@ type MoneyRequestInformation = {
     iouAction: OptimisticIOUReportAction;
     createdChatReportActionID?: string;
     createdIOUReportActionID?: string;
-    reportPreviewAction: OnyxTypes.ReportAction;
+    reportPreviewAction: OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>;
     transactionThreadReportID?: string;
     createdReportActionIDForThread: string | undefined;
     onyxData: OnyxData<BuildOnyxDataForMoneyRequestKeys>;

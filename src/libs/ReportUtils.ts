@@ -8669,6 +8669,8 @@ function getFinalizedDeferredBatchReportState({
     policy,
     isASAPSubmitBetaEnabled,
 }: GetFinalizedDeferredBatchReportStateParams): {nextState: ReportStateAndStatus; previousState: ReportStateAndStatus} | undefined {
+    // Finalize only on the last item of a deferred batch (false).
+    // Undefined means a single non-batch request that already has its final state, and true means an earlier item is still deferred.
     if (!hasExistingIOUReport || shouldDeferAutoSubmit !== false || !isOpenExpenseReport(iouReport)) {
         return undefined;
     }
