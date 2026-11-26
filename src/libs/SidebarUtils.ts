@@ -152,7 +152,7 @@ type ShouldDisplayReportInLHNParams = {
     isDefaultRoomsBetaEnabled: boolean;
     isBillPayBetaEnabled?: boolean;
     transactionViolations: OnyxCollection<TransactionViolation[]>;
-    draftComment: OnyxEntry<string>;
+    hasDraftComment: boolean;
     transactions: OnyxCollection<Transaction>;
     isOffline: boolean;
     isReportArchived?: boolean;
@@ -173,7 +173,7 @@ function shouldDisplayReportInLHN({
     isDefaultRoomsBetaEnabled,
     isBillPayBetaEnabled = false,
     transactionViolations,
-    draftComment,
+    hasDraftComment,
     transactions,
     isOffline,
     isReportArchived,
@@ -222,7 +222,7 @@ function shouldDisplayReportInLHN({
     const requiresAttention = reportAttributes?.[report?.reportID]?.requiresAttention;
     const isSystemChat = isSystemChatUtil(report);
     const shouldOverrideHidden =
-        !!draftComment ||
+        hasDraftComment ||
         hasErrorsOtherThanFailedReceipt ||
         isFocused ||
         // An anonymous user can only access public rooms, and such a room's notification preference
@@ -248,7 +248,7 @@ function shouldDisplayReportInLHN({
         isBillPayBetaEnabled,
         excludeEmptyChats: true,
         doesReportHaveViolations,
-        draftComment,
+        hasDraftComment,
         includeSelfDM: true,
         isReportArchived,
         requiresAttention,
@@ -390,7 +390,7 @@ function getReportsToDisplayInLHN({
             isDefaultRoomsBetaEnabled,
             isBillPayBetaEnabled,
             transactionViolations,
-            draftComment: reportDraftComment,
+            hasDraftComment: !!reportDraftComment,
             transactions,
             isOffline,
             isReportArchived,
@@ -497,7 +497,7 @@ function updateReportsToDisplayInLHN({
             isDefaultRoomsBetaEnabled,
             isBillPayBetaEnabled,
             transactionViolations,
-            draftComment: reportDraftComment,
+            hasDraftComment: !!reportDraftComment,
             transactions,
             isOffline,
             isReportArchived,

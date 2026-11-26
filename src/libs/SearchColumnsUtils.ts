@@ -1,5 +1,5 @@
 /** Which Search table columns users can pick and which they can't remove. Reads only CONST, so the query utils can use it without importing the UI utils. */
-import type {SearchCustomColumnIds, SearchGroupBy} from '@components/Search/types';
+import type {SearchColumnType, SearchCustomColumnIds, SearchGroupBy, SearchSortBy} from '@components/Search/types';
 
 import CONST from '@src/CONST';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
@@ -88,4 +88,24 @@ function isColumnAvailableForViolationFilter(column: string, hasViolationFilter:
     return hasViolationFilter || column !== CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS;
 }
 
-export {groupByRequiredColumns, getCustomColumns, getRequiredSearchColumns, isColumnAvailableForViolationFilter};
+function getSortByForColumn(column: SearchColumnType): SearchSortBy {
+    // The trip columns sort by the trip search's own sort keys
+    if (column === CONST.SEARCH.TABLE_COLUMNS.START_DATE) {
+        return CONST.SEARCH.TABLE_COLUMNS.DATE;
+    }
+    if (column === CONST.SEARCH.TABLE_COLUMNS.TRIP_NAME) {
+        return CONST.SEARCH.TABLE_COLUMNS.TITLE;
+    }
+    if (column === CONST.SEARCH.TABLE_COLUMNS.TRAVELER) {
+        return CONST.SEARCH.TABLE_COLUMNS.FROM;
+    }
+    if (column === CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE) {
+        return CONST.SEARCH.SORT_BY_COLUMNS.CATEGORY_GL_CODE;
+    }
+    if (column === CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE) {
+        return CONST.SEARCH.SORT_BY_COLUMNS.TAG_GL_CODE;
+    }
+    return column;
+}
+
+export {groupByRequiredColumns, getCustomColumns, getRequiredSearchColumns, getSortByForColumn, isColumnAvailableForViolationFilter};

@@ -1,5 +1,5 @@
 import type {DomainMemberBulkActionType, DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderCentralPane from '@components/Header/composed/HeaderCentralPane';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {FilterConfig, IsItemInFilterCallback} from '@components/Table';
 import DomainMembersTable from '@components/Tables/DomainMembersTable';
@@ -7,11 +7,7 @@ import type {DomainMemberRowData, DomainMembersTableFilterKey} from '@components
 
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
-import useThemeStyles from '@hooks/useThemeStyles';
-
-import Navigation from '@navigation/Navigation';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -70,9 +66,7 @@ function BaseDomainMembersPage({
     bulkActionOptions,
 }: BaseDomainMembersPageProps) {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
     const {pageGutter} = useLayoutSpacing();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
     return (
@@ -83,15 +77,13 @@ function BaseDomainMembersPage({
                 shouldShowOfflineIndicatorInWideScreen
                 testID="BaseDomainMembersPage"
             >
-                <HeaderWithBackButton
+                <HeaderCentralPane
                     title={useSelectionModeHeader ? translate('common.selectMultiple') : headerTitle}
-                    onBackButtonPress={onBackButtonPress ?? Navigation.goBack}
-                    shouldShowBackButton={shouldUseNarrowLayout}
-                    shouldUseHeadlineHeader={!useSelectionModeHeader}
-                    shouldDisplayHelpButton
+                    onBackButtonPress={onBackButtonPress}
+                    isHeadline={!useSelectionModeHeader}
                 >
-                    {!shouldDisplayButtonsInSeparateLine && !!headerContent && <View style={[styles.flexRow, styles.gap2]}>{headerContent}</View>}
-                </HeaderWithBackButton>
+                    {!shouldDisplayButtonsInSeparateLine && headerContent}
+                </HeaderCentralPane>
                 {shouldDisplayButtonsInSeparateLine && !!headerContent && <View style={pageGutter}>{headerContent}</View>}
                 <DomainMembersTable
                     domainAccountID={domainAccountID}

@@ -134,4 +134,31 @@ describe('Url', () => {
             expect(Url.getSearchParamFromPath(path, param)).toBe(expected);
         });
     });
+    describe('decodeURIComponentSafely', () => {
+        it('decodes valid percent-encoding', () => {
+            // Given a value with valid escapes, including a multi-byte one
+            const value = 'bank%20statement%E2%82%AC.pdf';
+
+            // When it is decoded
+            const decoded = Url.decodeURIComponentSafely(value);
+
+            // Then it matches what decodeURIComponent returns
+            expect(decoded).toBe('bank statement€.pdf');
+        });
+
+        it.each([
+            ['a lone percent sign', '100%.png'],
+            ['an invalid escape', 'image%zz.png'],
+            ['a truncated multi-byte escape', 'price%E2%82.png'],
+        ])('returns the raw value for %s', (_, value) => {
+            // Given a value from untrusted content whose percent-encoding makes decodeURIComponent throw
+            expect(() => decodeURIComponent(value)).toThrow(URIError);
+
+            // When it is decoded safely
+            const decoded = Url.decodeURIComponentSafely(value);
+
+            // Then the raw value is returned instead of an exception
+            expect(decoded).toBe(value);
+        });
+    });
 });
