@@ -96,11 +96,42 @@ function ShareRootPage() {
         showErrorAlert(errorTitle, errorMessage);
     }, [errorTitle, errorMessage]);
 
+    const checkFileSize = async (tempFile: ShareTempFile, isOutdatedRead: () => boolean) => {
+        try {
+            const size = await getFileSize(tempFile.content);
+            if (isOutdatedRead()) {
+                return;
+            }
+            const sizeError = getShareFileSizeError(size, translate);
+            if (!sizeError) {
+                return;
+            }
+            setErrorTitle(sizeError.title);
+            setErrorMessage(sizeError.message);
+        } catch (error: unknown) {
+            Log.warn('[ShareRootPage] Failed to get the shared file size', {error: getErrorMessage(error)});
+        }
+    };
+
+    const checkImageForCorruption = async (tempFile: ShareTempFile, isOutdatedRead: () => boolean) => {
+        const fileObject: FileObject = {name: tempFile.id, uri: tempFile.content, type: tempFile.mimeType};
+        try {
+            await validateImageForCorruption(fileObject);
+        } catch {
+            if (isOutdatedRead()) {
+                return;
+            }
+            setErrorTitle(translate('attachmentPicker.attachmentError'));
+            setErrorMessage(translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
+        }
+    };
+
     const handleProcessFiles = () => {
         latestShareReadIDRef.current += 1;
         const shareReadID = latestShareReadIDRef.current;
         const isOutdatedRead = () => shareReadID !== latestShareReadIDRef.current;
 
+        // This read stays a promise chain because the mount effect calls this function, and the React Compiler lint treats state set after an await as state set during the effect.
         ShareActionHandler.processFiles()
             .then((sharedFiles) => {
                 const tempFile = sharedFiles.at(0);
@@ -118,37 +149,17 @@ function ShareRootPage() {
                     return;
                 }
 
+                // The size and corruption checks aren't awaited, so the tabs show while they run, and either can still show an error afterwards.
                 const isImage = /image\/.*/.test(tempFile.mimeType);
                 if (tempFile.mimeType !== CONST.SHARE_FILE_MIMETYPE.TXT && !isImage) {
-                    getFileSize(tempFile.content)
-                        .then((size) => {
-                            if (isOutdatedRead()) {
-                                return;
-                            }
-                            const sizeError = getShareFileSizeError(size, translate);
-                            if (!sizeError) {
-                                return;
-                            }
-                            setErrorTitle(sizeError.title);
-                            setErrorMessage(sizeError.message);
-                        })
-                        .catch((error: unknown) => {
-                            Log.warn('[ShareRootPage] Failed to get the shared file size', {error: getErrorMessage(error)});
-                        });
+                    checkFileSize(tempFile, isOutdatedRead);
                 }
 
                 // Skip the standalone corruption check for files that go through `validateFileIfNecessary`,
                 // because `validateFiles` already runs corruption checks internally. Running both would
                 // surface a duplicate (and potentially misleading) "corrupt attachment" alert.
                 if (isImage && !shouldValidateFile(tempFile)) {
-                    const fileObject: FileObject = {name: tempFile.id, uri: tempFile.content, type: tempFile.mimeType};
-                    validateImageForCorruption(fileObject).catch(() => {
-                        if (isOutdatedRead()) {
-                            return;
-                        }
-                        setErrorTitle(translate('attachmentPicker.attachmentError'));
-                        setErrorMessage(translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
-                    });
+                    checkImageForCorruption(tempFile, isOutdatedRead);
                 }
 
                 const {fileExtension} = splitExtensionFromFileName(tempFile.content);

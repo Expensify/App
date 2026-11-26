@@ -2,6 +2,7 @@ import {act, render} from '@testing-library/react-native';
 
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 
+import {validateImageForCorruption} from '@libs/fileDownload/FileUtils';
 import ShareActionHandler from '@libs/ShareActionHandlerModule';
 
 import getFileSize from '@pages/Share/getFileSize';
@@ -184,6 +185,22 @@ describe('ShareRootPage', () => {
 
         // Then the user is told the file is too large before picking where to share it
         expect(Alert.alert).toHaveBeenCalledWith(translateLocal('attachmentPicker.attachmentTooLarge'), translateLocal('attachmentPicker.sizeExceeded'), expect.any(Array));
+    });
+
+    it('shows that a shared image is corrupted when it cannot be read as an image', async () => {
+        // Given a shared JPEG whose image data can't be read
+        jest.mocked(validateImageForCorruption).mockRejectedValueOnce(new Error('The image is corrupted'));
+        jest.mocked(ShareActionHandler.processFiles).mockResolvedValue([SHARED_IMAGE]);
+
+        // When the Share screen opens
+        await renderShareRootPage();
+
+        // Then the user is told the attachment is corrupted before picking where to share it
+        expect(Alert.alert).toHaveBeenCalledWith(
+            translateLocal('attachmentPicker.attachmentError'),
+            translateLocal('attachmentPicker.errorWhileSelectingCorruptedAttachment'),
+            expect.any(Array),
+        );
     });
 
     it('treats a share without a MIME type as the wrong file type', async () => {
