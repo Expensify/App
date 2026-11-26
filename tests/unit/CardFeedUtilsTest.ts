@@ -831,3 +831,54 @@ describe('getCombinedCardFeedsFromAllFeeds forceReimbursable', () => {
         expect(getFeed(result)?.forceReimbursable).toBe('force_no');
     });
 });
+
+describe('getCombinedCardFeedsFromAllFeeds customFeedName', () => {
+    const domainID = 1234;
+    const feed = `${CONST.COMPANY_CARD.FEED_BANK_NAME.CSV}1` as const;
+    const layoutName = 'Corporate Visa export';
+    const getFeed = (result: ReturnType<typeof getCombinedCardFeedsFromAllFeeds>) => Object.values(result).at(0);
+
+    function buildFeeds(nickname: string | undefined): OnyxCollection<CardFeeds> {
+        return {
+            [`sharedNVP_private_domain_member_${domainID}`]: {
+                settings: {
+                    companyCards: {[feed]: {uploadLayoutSettings: {layoutName}}},
+                    ...(nickname === undefined ? {} : {companyCardNicknames: {[feed]: nickname}}),
+                },
+            },
+        };
+    }
+
+    it('falls back to the CSV layout name when the nickname is an empty string', () => {
+        // Given a CSV feed whose nickname the server sent as an empty string
+        const allFeeds = buildFeeds('');
+
+        // When the feeds are combined for display
+        const result = getCombinedCardFeedsFromAllFeeds(allFeeds);
+
+        // Then the empty nickname counts as no nickname, so the feed is named after its layout instead of the generic CSV name
+        expect(getFeed(result)?.customFeedName).toBe(layoutName);
+    });
+
+    it('falls back to the CSV layout name when there is no nickname', () => {
+        // Given a CSV feed that has never been renamed
+        const allFeeds = buildFeeds(undefined);
+
+        // When the feeds are combined for display
+        const result = getCombinedCardFeedsFromAllFeeds(allFeeds);
+
+        // Then the feed is named after its layout
+        expect(getFeed(result)?.customFeedName).toBe(layoutName);
+    });
+
+    it('keeps a nickname the admin set over the CSV layout name', () => {
+        // Given a CSV feed the admin renamed
+        const allFeeds = buildFeeds('Team cards');
+
+        // When the feeds are combined for display
+        const result = getCombinedCardFeedsFromAllFeeds(allFeeds);
+
+        // Then the admin's name wins over the layout name
+        expect(getFeed(result)?.customFeedName).toBe('Team cards');
+    });
+});

@@ -134,15 +134,15 @@ jest.mock('@libs/ReportUtils', () => {
 // (call it with the resolved flag).
 let mockShouldAutoProceedConfirmSubmit = true;
 let mockCapturedConfirmSubmitOnProceed: ((shouldResolveAcknowledgedViolations?: boolean) => void) | undefined;
-const mockedUseConfirmSubmitReportViolations = jest.fn<(proceed: (shouldResolveAcknowledgedViolations?: boolean) => void) => void, [unknown]>(() => (proceed) => {
+const mockedUseConfirmSubmitViolations = jest.fn<(proceed: (shouldResolveAcknowledgedViolations?: boolean) => void) => void, [unknown]>(() => (proceed) => {
     mockCapturedConfirmSubmitOnProceed = proceed;
     if (mockShouldAutoProceedConfirmSubmit) {
         proceed();
     }
 });
-jest.mock('@hooks/useConfirmSubmitReportViolations', () => ({
+jest.mock('@hooks/useConfirmSubmitViolations', () => ({
     __esModule: true,
-    default: (params: unknown) => mockedUseConfirmSubmitReportViolations(params),
+    default: (params: unknown) => mockedUseConfirmSubmitViolations(params),
 }));
 
 // SubmitActionButton reads from context instead of props; these mock-prefixed objects back the mocked slice hooks.
@@ -383,7 +383,7 @@ describe('SubmitActionButton', () => {
 
         // Then the violations-confirmation gate received the exact same filtered collection, so the two gates cannot
         // disagree on which violations the submitter has already dismissed
-        expect(mockedUseConfirmSubmitReportViolations).toHaveBeenCalledWith(expect.objectContaining({violationsCollection: filteredViolationsCollection}));
+        expect(mockedUseConfirmSubmitViolations).toHaveBeenCalledWith(expect.objectContaining({violationsCollection: filteredViolationsCollection}));
     });
 
     it('does not open the submit-to popover on a submit policy when strict policy rules block the report', () => {

@@ -14,13 +14,19 @@ type SearchEditMultipleCategoryDropdownProps = DropdownFieldRenderProps & {
 
     /** Category the draft already holds, so the list can mark it */
     selectedCategory: string;
+
+    /** The current user, passed when every selected expense is theirs, so the list shows just the categories they can use */
+    ownerAccountID?: number;
+
+    /** The member who owns every selected expense, passed when that's someone else, so the list is split by what they can use */
+    submitterAccountID?: number;
 };
 
 /**
  * The category list, in the container anchored to the bulk edit form's category row. Mounted only once the row is
  * opened, and records the pick on the draft the same way the full-page selector does.
  */
-function SearchEditMultipleCategoryDropdown({policyID, selectedCategory, onClose, ...popoverProps}: SearchEditMultipleCategoryDropdownProps) {
+function SearchEditMultipleCategoryDropdown({policyID, selectedCategory, ownerAccountID, submitterAccountID, onClose, ...popoverProps}: SearchEditMultipleCategoryDropdownProps) {
     const saveCategory = (item: ListItem) => {
         // The list hands back an empty item when the picked category is tapped again, which drops the pending change.
         updateBulkEditDraftTransaction(getBulkEditCategoryChange(item.searchText ?? '', selectedCategory));
@@ -35,6 +41,8 @@ function SearchEditMultipleCategoryDropdown({policyID, selectedCategory, onClose
             policyID={policyID}
             selectedCategory={selectedCategory}
             onSelected={saveCategory}
+            ownerAccountID={ownerAccountID}
+            submitterAccountID={submitterAccountID}
         />
     );
 }
