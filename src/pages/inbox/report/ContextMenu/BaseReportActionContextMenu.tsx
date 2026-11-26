@@ -25,6 +25,7 @@ import useReportIDToNameMap from '@hooks/useReportIDToNameMap';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSidePanelActions from '@hooks/useSidePanelActions';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 
@@ -115,6 +116,9 @@ type BaseReportActionContextMenuProps = {
      */
     isThreadReportParentAction?: boolean;
 
+    /** Makes Reply in thread and Explain open the thread in the side panel instead of the main pane */
+    isInSidePanel?: boolean;
+
     contentRef?: RefObject<ComponentRef<typeof View> | null>;
     checkIfContextMenuActive?: () => void;
     disabledActions?: ContextMenuAction[];
@@ -131,6 +135,7 @@ function BaseReportActionContextMenu({
     isMini = false,
     isVisible = false,
     isThreadReportParentAction = false,
+    isInSidePanel = false,
     selection = '',
     reportActionID,
     reportID,
@@ -171,6 +176,7 @@ function BaseReportActionContextMenu({
     const [shouldKeepOpen, setShouldKeepOpen] = useState(false);
     const wrapperStyle = StyleUtils.getReportActionContextMenuStyles(isMini, shouldUseNarrowLayout);
     const {isOffline} = useNetwork();
+    const {openSidePanel} = useSidePanelActions();
     const {isProduction, isDevelopment, environment} = useEnvironment();
     const isStaging = environment === CONST.ENVIRONMENT.STAGING;
     const threeDotRef = useRef<ComponentRef<typeof View>>(null);
@@ -392,6 +398,7 @@ function BaseReportActionContextMenu({
             disabledOptions: filteredContextMenuActions,
             shouldCloseOnTarget: true,
             isOverflowMenu: true,
+            isInSidePanel,
         });
     };
 
@@ -478,6 +485,8 @@ function BaseReportActionContextMenu({
                                 memberChangeLogRoomReportName,
                                 rules,
                                 isThreadReportParentAction,
+                                isInSidePanel,
+                                openSidePanel,
                             };
 
                             if ('renderContent' in contextAction) {

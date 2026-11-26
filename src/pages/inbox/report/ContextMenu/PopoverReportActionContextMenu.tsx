@@ -130,6 +130,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const [deleteModalTarget, setDeleteModalTarget] = useState<{reportID: string; reportAction: ReportAction | null} | null>(null);
 
     const [isThreadReportParentAction, setIsThreadReportParentAction] = useState(false);
+    const [isInSidePanel, setIsInSidePanel] = useState(false);
     const [disabledActions, setDisabledActions] = useState<ContextMenuAction[]>([]);
     const [shouldSwitchPositionIfOverflow, setShouldSwitchPositionIfOverflow] = useState(false);
     const [isWithoutOverlay, setIsWithoutOverlay] = useState<boolean>(true);
@@ -234,6 +235,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
             shouldCloseOnTarget = false,
             isOverflowMenu = false,
             withoutOverlay = true,
+            isInSidePanel: isInSidePanelParam = false,
         } = showContextMenuParams;
         if (ReportActionComposeFocusManager.isFocused()) {
             setComposerToRefocusOnClose('main');
@@ -288,6 +290,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
             selectionRef.current = selection;
             setIsPopoverVisible(true);
             setIsThreadReportParentAction(isThreadReportParentActionParam);
+            setIsInSidePanel(isInSidePanelParam);
             setShouldSwitchPositionIfOverflow(isOverflowMenu);
         });
     };
@@ -471,6 +474,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                     reportActionID={reportActionIDRef.current}
                     selection={selectionRef.current}
                     isThreadReportParentAction={isThreadReportParentAction}
+                    isInSidePanel={isInSidePanel}
                     anchor={contextMenuTargetNode}
                     contentRef={contentRef}
                     originalReportID={originalReportIDRef.current}

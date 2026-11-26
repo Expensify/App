@@ -3219,8 +3219,12 @@ type ExplainParams = {
     /** The personal details of the explanation thread participants (the current user and the report action's actor). */
     participantsPersonalDetails: OnyxEntry<PersonalDetailsList>;
     timezone?: Timezone;
+
+    /** False when the caller opens the thread itself, as the side panel does */
+    shouldNavigateToThread?: boolean;
 };
 
+/** Opens the explanation thread for a report action and asks Concierge to explain it. Returns the thread's reportID. */
 function explain({
     childReport,
     originalReport,
@@ -3233,7 +3237,8 @@ function explain({
     delegateAccountID,
     participantsPersonalDetails,
     timezone = CONST.DEFAULT_TIME_ZONE,
-}: ExplainParams) {
+    shouldNavigateToThread = true,
+}: ExplainParams): string | undefined {
     if (!originalReport?.reportID || !reportAction) {
         return;
     }
@@ -3243,9 +3248,9 @@ function explain({
         childReport ??
         createChildReport(childReport, reportAction, originalReport, currentUserAccountID, introSelected, isSelfTourViewed, participantsPersonalDetails, conciergeChat, delegateAccountID);
 
-    if (isSearchTopmostFullScreenRoute()) {
+    if (shouldNavigateToThread && isSearchTopmostFullScreenRoute()) {
         Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: report.reportID, backTo: Navigation.getActiveRoute()}));
-    } else {
+    } else if (shouldNavigateToThread) {
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID, undefined, undefined, Navigation.getActiveRoute()));
     }
     // The explanation thread is a direct child of the explained action, so that action is its only ancestor.
@@ -3268,6 +3273,8 @@ function explain({
             conciergeReportID: undefined,
         });
     });
+
+    return report.reportID;
 }
 
 /**

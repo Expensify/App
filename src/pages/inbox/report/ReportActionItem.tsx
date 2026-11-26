@@ -15,6 +15,7 @@ import UnreadActionIndicator from '@components/UnreadActionIndicator';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -253,6 +254,7 @@ function ReportActionItem({
     const shouldEditInComposer = useShouldEditInComposer();
     const theme = useTheme();
     const styles = useThemeStyles();
+    const isInSidePanel = useIsInSidePanel();
     const StyleUtils = useStyleUtils();
     const [isContextMenuActive, setIsContextMenuActive] = useReportActionItemState(() => isActiveReportAction(action.reportActionID));
     const [isEmojiPickerActive, setIsEmojiPickerActive] = useReportActionItemState<boolean | undefined>(undefined);
@@ -472,6 +474,7 @@ function ReportActionItem({
                     setIsEmojiPickerActive: setIsEmojiPickerActive as () => void,
                 },
                 disabledOptions: disabledActions,
+                isInSidePanel,
             });
         });
     };
@@ -619,6 +622,7 @@ function ReportActionItem({
                                                 disabledActions={disabledActions}
                                                 isVisible={hovered}
                                                 isThreadReportParentAction={isThreadReportParentAction}
+                                                isInSidePanel={isInSidePanel}
                                                 checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                                                 setIsEmojiPickerActive={setIsEmojiPickerActive}
                                             />
