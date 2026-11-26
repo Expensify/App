@@ -9457,6 +9457,62 @@ describe('SearchUIUtils', () => {
             expect(descendingResult.map((item) => ('transactionID' in item ? item.transactionID : undefined))).toEqual(['gl-code-6200', 'gl-code-6100', 'gl-code-1010', 'without-gl-code']);
         });
 
+        it('should sort expense data by the converted amount shown in the column', () => {
+            // Given expenses whose workspace amounts rank in the opposite order to their own amounts, and an expense created
+            // offline that has no workspace amount yet, so its column shows its own amount
+            const baseTransaction = transactionsListItems.at(0);
+            if (!baseTransaction) {
+                throw new Error('Missing transaction fixture');
+            }
+            const smallConverted: TransactionListItemType = {
+                ...baseTransaction,
+                transactionID: 'small-converted',
+                keyForList: 'small-converted',
+                amount: -900,
+                modifiedAmount: -900,
+                policyConvertedAmount: -100,
+            };
+            const largeConverted: TransactionListItemType = {
+                ...baseTransaction,
+                transactionID: 'large-converted',
+                keyForList: 'large-converted',
+                amount: -100,
+                modifiedAmount: -100,
+                policyConvertedAmount: -900,
+            };
+            const createdOffline: TransactionListItemType = {
+                ...baseTransaction,
+                transactionID: 'created-offline',
+                keyForList: 'created-offline',
+                amount: -500,
+                modifiedAmount: -500,
+                policyConvertedAmount: undefined,
+            };
+            const unorderedTransactions = [largeConverted, createdOffline, smallConverted];
+
+            // When the expenses are sorted by converted amount in both directions
+            const ascendingResult = SearchUIUtils.getSortedSections(
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                [...unorderedTransactions],
+                localeCompare,
+                translateLocal,
+                CONST.SEARCH.TABLE_COLUMNS.CONVERTED_AMOUNT,
+                CONST.SEARCH.SORT_ORDER.ASC,
+            );
+            const descendingResult = SearchUIUtils.getSortedSections(
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                [...unorderedTransactions],
+                localeCompare,
+                translateLocal,
+                CONST.SEARCH.TABLE_COLUMNS.CONVERTED_AMOUNT,
+                CONST.SEARCH.SORT_ORDER.DESC,
+            );
+
+            // Then they are ordered by the workspace amount, falling back to the expense's own amount when it has none
+            expect(ascendingResult.map((item) => ('transactionID' in item ? item.transactionID : undefined))).toEqual(['small-converted', 'created-offline', 'large-converted']);
+            expect(descendingResult.map((item) => ('transactionID' in item ? item.transactionID : undefined))).toEqual(['large-converted', 'created-offline', 'small-converted']);
+        });
+
         it('should sort expenses by Transaction ID as whole numbers without losing digits', () => {
             // Given transaction IDs of different lengths, where text order differs from number order, and two IDs that a
             // double can't tell apart because they differ past its 15 to 17 significant digits
@@ -17412,14 +17468,30 @@ describe('SearchUIUtils', () => {
     });
 
     describe('getDisplayValue', () => {
+        const convertToDisplayStringWithoutCurrency = jest.fn((amount = 0) => String(amount));
+
         test('returns translated has option labels from getHasOptions', () => {
-            const result = SearchUIUtils.getDisplayValue('has', {has: [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION]}, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal, localeCompare);
+            const result = SearchUIUtils.getDisplayValue(
+                'has',
+                {has: [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION]},
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                translateLocal,
+                localeCompare,
+                convertToDisplayStringWithoutCurrency,
+            );
 
             expect(result).toBe(translateLocal('search.filters.has.submittedViolation'));
         });
 
         test('returns translated approved violation has option label', () => {
-            const result = SearchUIUtils.getDisplayValue('has', {has: [CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION]}, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal, localeCompare);
+            const result = SearchUIUtils.getDisplayValue(
+                'has',
+                {has: [CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION]},
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                translateLocal,
+                localeCompare,
+                convertToDisplayStringWithoutCurrency,
+            );
 
             expect(result).toBe(translateLocal('search.filters.has.approvedViolation'));
         });
@@ -17431,13 +17503,21 @@ describe('SearchUIUtils', () => {
                 CONST.SEARCH.DATA_TYPES.EXPENSE,
                 translateLocal,
                 localeCompare,
+                convertToDisplayStringWithoutCurrency,
             );
 
             expect(result).toBe(`${translateLocal('common.receipt')}, ${translateLocal('search.filters.has.submittedViolation')}`);
         });
 
         test('continues to use common translations for is filter values', () => {
-            const result = SearchUIUtils.getDisplayValue('is', {is: [CONST.SEARCH.IS_VALUES.READ]}, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal, localeCompare);
+            const result = SearchUIUtils.getDisplayValue(
+                'is',
+                {is: [CONST.SEARCH.IS_VALUES.READ]},
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                translateLocal,
+                localeCompare,
+                convertToDisplayStringWithoutCurrency,
+            );
 
             expect(result).toBe(translateLocal('common.read'));
         });
@@ -17451,7 +17531,7 @@ describe('SearchUIUtils', () => {
             const form = {[FILTER_KEYS.MERCHANT]: 'I', [FILTER_KEYS.MERCHANT_OPERATOR]: merchantOperator};
 
             // When the filter label is built
-            const result = SearchUIUtils.getDisplayValue(FILTER_KEYS.MERCHANT, form, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal, localeCompare);
+            const result = SearchUIUtils.getDisplayValue(FILTER_KEYS.MERCHANT, form, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal, localeCompare, convertToDisplayStringWithoutCurrency);
 
             // Then the match type is part of the translated label, so a missing operator reads as contains
             expect(result).toBe(translateLocal(translationKey, 'I'));
@@ -17462,7 +17542,7 @@ describe('SearchUIUtils', () => {
             const form = {[key]: CONST.SEARCH.BOOLEAN.YES};
 
             // When the filter label is built
-            const result = SearchUIUtils.getDisplayValue(key, form, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal, localeCompare);
+            const result = SearchUIUtils.getDisplayValue(key, form, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal, localeCompare, convertToDisplayStringWithoutCurrency);
 
             // Then the label uses the localized value instead of the raw query token, matching the non-negated filter
             expect(result).toBe(translateLocal('common.yes'));
@@ -17704,6 +17784,22 @@ describe('SearchUIUtils', () => {
             // Then bounds share the Amount chip and keep their comparison currency.
             expect(chips).toHaveLength(1);
             expect(chips.at(0)).toMatchObject({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, value: expected});
+        });
+
+        it.each([
+            {form: {[FILTER_KEYS.CONVERTED_AMOUNT_NOT]: '1069'}, key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CONVERTED_AMOUNT, expected: '10.69'},
+            {form: {[FILTER_KEYS.PURCHASE_AMOUNT_NOT]: '1069'}, key: CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT, expected: '10.69'},
+            {form: {[FILTER_KEYS.AMOUNT_NOT]: '50.00 AUD'}, key: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, expected: '50.00 AUD'},
+        ])('formats a negated $key amount like the other amount chips', ({form, key, expected}) => {
+            // Given a negated amount filter such as `-convertedAmount:10.69`, which the form stores in hundredths
+            const formatAmount = (amount: number) => (amount / 100).toFixed(2);
+
+            // When the form is mapped to filter chips
+            const chips = SearchUIUtils.mapFiltersFormToLabelValueList(form, new Set(), new Set(), translateLocal, undefined, localeCompare, formatAmount);
+
+            // Then the chip shows the amount the user typed instead of the stored hundredths
+            expect(chips).toHaveLength(1);
+            expect(chips.at(0)).toMatchObject({key, value: expected});
         });
 
         it('places default filters before non-default filters', () => {
