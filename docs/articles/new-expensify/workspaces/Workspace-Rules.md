@@ -82,13 +82,13 @@ For more details on configuring card restriction rules, see [Expensify Card Spen
 
 ## How to apply expense defaults on the Expense defaults tab
 
-The **Expense defaults** tab holds rules that fill in expense fields automatically, so members don't have to. Each rule matches on a merchant, a merchant type, or a category, and then updates fields such as the category, tag, description, or tax rate.
+The **Expense defaults** tab holds rules that fill in expense fields automatically, so members don't have to. Rules can match on conditions such as the submitter, amount, merchant, merchant type, category, reimbursable or billable status, date, currency, or card, and then update fields such as the category, tag, description, or tax rate.
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**.
 2. Select **Rules**.
 3. Select **Add rule**.
 4. Choose **Apply expense defaults**.
-5. Select **Merchant** to update fields on expenses from a specific merchant, or **Category** to set a default tax rate for a specific category.
+5. Select the conditions the expenses should match, such as **Submitter**, **Amount**, or **Merchant**.
 6. Configure the rule and select **Save rule**.
 
 A category default tax rate applies only to new expenses in that category. Expenses that already exist don't change.
