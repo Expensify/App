@@ -17,7 +17,7 @@ import variables from '@styles/variables';
 import {setShouldFailAllRequests, setShouldForceOffline, setShouldSimulatePoorConnection} from '@userActions/Network';
 import {expireSessionWithDelay, invalidateAuthToken, invalidateCredentials} from '@userActions/Session';
 import {getBackToParam} from '@userActions/TestTool';
-import {setIsDebugModeEnabled, setShouldShowBranchNameInTitle} from '@userActions/User';
+import {setIsDebugModeEnabled, setShouldHideEnvironmentBadge, setShouldShowBranchNameInTitle} from '@userActions/User';
 
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -27,6 +27,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import React from 'react';
 import {Platform, View} from 'react-native';
 
+import BankAccountTestToolRows from './BankAccountTestToolRows';
 import BiometricsTestToolRow from './BiometricsTestToolRow';
 import Button from './Button';
 import Icon from './Icon';
@@ -48,6 +49,7 @@ function TestToolMenu({serverPageRoute}: TestToolMenuProps) {
     const {activeServer, isPinnedByEnvironment} = useActiveServer();
     const [isDebugModeEnabled = false] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
     const [shouldShowBranchNameInTitle = false] = useOnyx(ONYXKEYS.SHOULD_SHOW_BRANCH_NAME_IN_TITLE);
+    const [shouldHideEnvironmentBadge = false] = useOnyx(ONYXKEYS.SHOULD_HIDE_ENVIRONMENT_BADGE);
     const styles = useThemeStyles();
     const theme = useTheme();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
@@ -112,6 +114,18 @@ function TestToolMenu({serverPageRoute}: TestToolMenuProps) {
                                 sentryLabel={CONST.SENTRY_LABEL.TEST_TOOL_MENU.SHOW_BRANCH_NAME_SWITCH}
                                 isOn={shouldShowBranchNameInTitle}
                                 onToggle={() => setShouldShowBranchNameInTitle(!shouldShowBranchNameInTitle)}
+                            />
+                        </TestToolRow>
+                    )}
+
+                    {/* Hides the environment badge, for example to take screenshots. The badge is never shown on production, so neither is this row. */}
+                    {!isProduction && (
+                        <TestToolRow title={translate('initialSettingsPage.troubleshoot.hideEnvironmentBadge')}>
+                            <Switch
+                                accessibilityLabel={translate('initialSettingsPage.troubleshoot.hideEnvironmentBadge')}
+                                sentryLabel={CONST.SENTRY_LABEL.TEST_TOOL_MENU.HIDE_ENVIRONMENT_BADGE_SWITCH}
+                                isOn={shouldHideEnvironmentBadge}
+                                onToggle={() => setShouldHideEnvironmentBadge(!shouldHideEnvironmentBadge)}
                             />
                         </TestToolRow>
                     )}
@@ -182,6 +196,8 @@ function TestToolMenu({serverPageRoute}: TestToolMenuProps) {
                             </Button>
                         </TestToolRow>
                     )}
+
+                    <BankAccountTestToolRows />
 
                     {/* Allows testing and revoking biometric multifactor authentication */}
                     {isAgentAccount === false && <BiometricsTestToolRow />}

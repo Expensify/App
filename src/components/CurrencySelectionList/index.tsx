@@ -26,6 +26,7 @@ function CurrencySelectionList({
     recentlyUsedCurrencies,
     excludedCurrencies = [],
     shouldAllowEmptySelection = false,
+    shouldAutoFocusSearchInput = true,
     ...restProps
 }: CurrencySelectionListProps) {
     const {currencyList} = useCurrencyListState();
@@ -121,6 +122,7 @@ function CurrencySelectionList({
         value: searchValue,
         onChangeText: setSearchValue,
         headerMessage: isEmpty ? translate('common.noResultsFound') : undefined,
+        disableAutoFocus: !shouldAutoFocusSearchInput,
     };
 
     return (
