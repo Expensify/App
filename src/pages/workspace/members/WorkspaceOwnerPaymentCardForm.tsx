@@ -23,16 +23,30 @@ import type ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 import {useRoute} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
-type WorkspaceOwnerPaymentCardFormProps = {
-    policy: OnyxEntry<OnyxTypes.Policy>;
+type PaymentCardData = {
+    cardNumber: string;
+    cardYear: string;
+    cardMonth: string;
+    cardCVV: string;
+    addressName: string;
+    addressZip: string;
+    currency: ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>;
 };
 
-function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormProps) {
+type WorkspaceOwnerPaymentCardFormProps = {
+    policy: OnyxEntry<OnyxTypes.Policy>;
+
+    /** Saves the card instead of taking over this workspace with it, for a card that doesn't need 3D Secure */
+    onAddPaymentCard?: (cardData: PaymentCardData) => void;
+};
+
+function WorkspaceOwnerPaymentCardForm({policy, onAddPaymentCard}: WorkspaceOwnerPaymentCardFormProps) {
     const route = useRoute();
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -68,7 +82,7 @@ function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormPr
     }, [checkIfCanBeRendered]);
 
     const addPaymentCard = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM>) => {
-        const cardData = {
+        const cardData: PaymentCardData = {
             cardNumber: getMCardNumberString(values.cardNumber),
             cardMonth: getMonthFromExpirationDateString(values.expirationDate),
             cardYear: getYearFromExpirationDateString(values.expirationDate),
@@ -77,6 +91,10 @@ function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormPr
             addressZip: values.addressZipCode,
             currency: values.currency,
         };
+        if (onAddPaymentCard && !CONST.SCA_CURRENCIES.has(cardData.currency)) {
+            onAddPaymentCard(cardData);
+            return;
+        }
         addBillingCardAndRequestPolicyOwnerChange(policy, currentUserAccountID, currentUserEmail, cardData, route.name);
     };
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
@@ -136,3 +154,4 @@ function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormPr
 }
 
 export default WorkspaceOwnerPaymentCardForm;
+export type {PaymentCardData};
