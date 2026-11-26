@@ -4,6 +4,8 @@ import ComposeProviders from '@components/ComposeProviders';
 import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import {EMPTY_TRANSACTIONS_BY_REPORT_ID, SearchResultsContext} from '@components/Search/SearchContextDefinitions';
+import type {SearchResultsContextValue} from '@components/Search/types';
 
 import type * as SearchActionsModule from '@libs/actions/Search';
 import {search} from '@libs/actions/Search';
@@ -46,7 +48,7 @@ const tripQueryHash = buildSearchQueryJSON(`type:trip reportID:${TRIP_ROOM_ID}`)
 
 // Shaped like the trip search response for a trip the admin isn't in: the room and its tripData, and nothing in the admin's own reports
 const tripSearchResults = createMock<SearchResults>({
-    search: {type: CONST.SEARCH.DATA_TYPES.TRIP, offset: 0, hasMoreResults: false, hasResults: true, isLoading: false},
+    search: {type: CONST.SEARCH.DATA_TYPES.TRIP, offset: 0, hasMoreResults: false, hasResults: true, isLoading: false, state: CONST.SEARCH.SNAPSHOT_STATE.LOADED},
     data: createMock<SearchResults['data']>({
         [`${ONYXKEYS.COLLECTION.REPORT}${TRIP_ROOM_ID}` as const]: {
             reportID: TRIP_ROOM_ID,
@@ -58,10 +60,42 @@ const tripSearchResults = createMock<SearchResults>({
     }),
 });
 
-function renderPage() {
+// The trip search answered, but the trip isn't in it any more
+const emptyTripSearchResults = createMock<SearchResults>({
+    search: {type: CONST.SEARCH.DATA_TYPES.TRIP, offset: 0, hasMoreResults: false, hasResults: false, isLoading: false, state: CONST.SEARCH.SNAPSHOT_STATE.LOADED},
+    data: createMock<SearchResults['data']>({}),
+});
+
+// The trips table the summary was opened from, which still has the trip
+const tableSearchResults = createMock<SearchResults>({
+    ...tripSearchResults,
+    data: createMock<SearchResults['data']>({
+        ...tripSearchResults.data,
+        [`${ONYXKEYS.COLLECTION.REPORT}${TRIP_ROOM_ID}` as const]: {
+            reportID: TRIP_ROOM_ID,
+            reportName: 'Trip to Denver from the table',
+            type: CONST.REPORT.TYPE.CHAT,
+            chatType: CONST.REPORT.CHAT_TYPE.TRIP_ROOM,
+        },
+    }),
+});
+
+function renderPage(currentSearchResults?: SearchResults) {
+    const searchResultsContext: SearchResultsContextValue = {
+        currentSearchResults,
+        currentSearchTransactionsByReportID: EMPTY_TRANSACTIONS_BY_REPORT_ID,
+        currentSearchViolations: CONST.EMPTY_OBJECT,
+        approvalWorkflowRules: undefined,
+        shouldUseLiveData: false,
+        sortedReportIDs: CONST.EMPTY_ARRAY,
+        shouldShowFiltersBarLoading: false,
+        lastSearchType: undefined,
+    };
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider]}>
-            <ReadOnlyTripSummaryPage reportID={TRIP_ROOM_ID} />
+            <SearchResultsContext.Provider value={searchResultsContext}>
+                <ReadOnlyTripSummaryPage reportID={TRIP_ROOM_ID} />
+            </SearchResultsContext.Provider>
         </ComposeProviders>,
     );
 }
@@ -119,5 +153,77 @@ describe('ReadOnlyTripSummaryPage', () => {
         // Then it shows not found and doesn't search
         expect(screen.queryByText('Trip summary')).not.toBeOnTheScreen();
         expect(search).not.toHaveBeenCalled();
+    });
+
+    it('shows not found when the trip search answers without the trip, even if the table still has it', async () => {
+        // Given the trip search for this trip answered with no trip, while the trips table it was opened from still lists it
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.TRAVEL_APPROVAL]);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${tripQueryHash}`, emptyTripSearchResults);
+        });
+
+        // When the summary opens
+        renderPage(tableSearchResults);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the fresh answer wins, so it doesn't show the table's stale trip and bookings
+        expect(screen.queryByText('Trip summary')).not.toBeOnTheScreen();
+        expect(screen.queryByText('Trip to Denver from the table')).not.toBeOnTheScreen();
+        expect(screen.queryAllByText(/Denver Intl/)).toHaveLength(0);
+    });
+
+    it('shows the trip from the table while the trip search is still running', async () => {
+        // Given the trip search for this trip hasn't answered yet, as when it was just sent or is queued offline
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.TRAVEL_APPROVAL]);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${tripQueryHash}`, {
+                ...emptyTripSearchResults,
+                search: {...emptyTripSearchResults.search, state: CONST.SEARCH.SNAPSHOT_STATE.LOADING},
+            });
+        });
+
+        // When the summary opens from the trips table
+        renderPage(tableSearchResults);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then it shows the table's trip and bookings instead of waiting
+        expect(screen.getByText('Trip to Denver from the table')).toBeOnTheScreen();
+        expect(screen.getByText('Trip summary')).toBeOnTheScreen();
+        expect(screen.getAllByText(/Denver Intl/).length).toBeGreaterThan(0);
+    });
+
+    it('shows the trip from the table when the trip search fails', async () => {
+        // Given the trip search for this trip failed, so its empty data says nothing about the trip
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.TRAVEL_APPROVAL]);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${tripQueryHash}`, {
+                ...emptyTripSearchResults,
+                search: {...emptyTripSearchResults.search, responseJsonCode: CONST.JSON_CODE.EXP_ERROR},
+            });
+        });
+
+        // When the summary opens from the trips table
+        renderPage(tableSearchResults);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then it keeps showing the table's trip rather than not found
+        expect(screen.getByText('Trip to Denver from the table')).toBeOnTheScreen();
+        expect(screen.getByText('Trip summary')).toBeOnTheScreen();
+    });
+
+    it('prefers the trip search over the table once it answers with the trip', async () => {
+        // Given both the trip search and the table have the trip, with the table's copy older
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.TRAVEL_APPROVAL]);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${tripQueryHash}`, tripSearchResults);
+        });
+
+        // When the summary opens from the trips table
+        renderPage(tableSearchResults);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then it shows the trip search's copy
+        expect(screen.getByText('Trip to Denver')).toBeOnTheScreen();
+        expect(screen.queryByText('Trip to Denver from the table')).not.toBeOnTheScreen();
     });
 });

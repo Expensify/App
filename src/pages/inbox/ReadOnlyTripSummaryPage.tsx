@@ -22,6 +22,7 @@ import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchResults} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -43,8 +44,8 @@ function ReadOnlyTripSummaryPage({reportID}: ReadOnlyTripSummaryPageProps) {
     const reportNameValuePairsKey = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}` as const;
     const [tripSearch] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash}`, {
         selector: (snapshot: OnyxEntry<SearchResults>) => ({
-            isLoading: !!snapshot?.search?.isLoading,
-            hasLoaded: !!snapshot?.search,
+            hasLoaded: snapshot?.search?.state === CONST.SEARCH.SNAPSHOT_STATE.LOADED,
+            hasFailed: !!snapshot?.search?.responseJsonCode || !isEmptyObject(snapshot?.errors),
             tripRoom: snapshot?.data?.[tripRoomKey],
             reportNameValuePairs: snapshot?.data?.[reportNameValuePairsKey],
         }),
@@ -58,10 +59,11 @@ function ReadOnlyTripSummaryPage({reportID}: ReadOnlyTripSummaryPageProps) {
         search({queryJSON, searchKey: undefined, isLoading: false, shouldReturnTripRooms});
     }, [queryJSON, shouldReturnTripRooms]);
 
-    // The table's results show the trip right away while the fresh ones load, and cover a trip opened while offline
-    const tripRoom = tripSearch?.tripRoom ?? currentSearchResults?.data?.[tripRoomKey];
-    const reportNameValuePairs = tripSearch?.tripRoom ? tripSearch.reportNameValuePairs : currentSearchResults?.data?.[reportNameValuePairsKey];
-    const isLoadingTrip = !tripRoom && (!tripSearch?.hasLoaded || tripSearch.isLoading);
+    const shouldUseTripSearchOnly = !!tripSearch?.hasLoaded && !tripSearch.hasFailed;
+    const shouldUseTripSearch = shouldUseTripSearchOnly || !!tripSearch?.tripRoom;
+    const tripRoom = shouldUseTripSearch ? tripSearch?.tripRoom : currentSearchResults?.data?.[tripRoomKey];
+    const reportNameValuePairs = shouldUseTripSearch ? tripSearch?.reportNameValuePairs : currentSearchResults?.data?.[reportNameValuePairsKey];
+    const isLoadingTrip = !tripRoom && !tripSearch?.hasLoaded;
 
     return (
         <ScreenWrapper
