@@ -138,8 +138,6 @@ const oldRoutes: Record<string, string> = {
     '/settings/profile/contact-methods/verify': '/settings/profile/contact-methods/verify-account',
     '/settings/profile/contact-methods/new': '/settings/profile/contact-methods/new-contact-method',
     '/home-page': '/home',
-    '/insights': '/insights/spend',
-    '/insights/': '/insights/spend',
     '/new/task/details': '/task-details',
     '/new/task/title': '/task-details/task-confirm/task-title',
     '/new/task/description': '/task-details/task-confirm/task-description',

@@ -9,6 +9,7 @@ import {getStateFromPath as RNGetStateFromPath} from '@react-navigation/native';
 import createMock from '../utils/createMock';
 
 jest.mock('@react-navigation/native', () => ({
+    findFocusedRoute: jest.fn(),
     getStateFromPath: jest.fn(),
 }));
 
