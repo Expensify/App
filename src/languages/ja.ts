@@ -7208,7 +7208,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 other: `${count}名のメンバー`,
             }),
             visibleToDescription: ({categoryName}: {categoryName: string}) => `経費を申請する際に、どのメンバーが「${categoryName}」カテゴリを使用できるかを選択します。`,
-            bulkVisibleToDescription: '経費を申請する際に、どのメンバーがこれらのカテゴリを使用できるかを選択します。',
+            bulkVisibleToDescription: '経費を提出するときに、どのメンバーがこれらのカテゴリを使用できるかを選択します。',
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `${categoryName}を無効にできません`,
                 bulkTitle: 'これらのカテゴリーは無効にできません',

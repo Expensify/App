@@ -7036,7 +7036,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 description: `由于您的工作区需要类别，必须至少保留一个已启用的类别。`,
             },
             visibleTo: '可见范围',
-            editVisibility: '编辑可见范围',
+            editVisibility: '编辑可见性',
             membersCount: ({count}: {count: number}) => ({
                 one: '1 名成员',
                 other: `${count} 名成员`,

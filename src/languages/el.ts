@@ -7463,7 +7463,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 other: `${count} μέλη`,
             }),
             visibleToDescription: ({categoryName}: {categoryName: string}) => `Επιλέξτε ποια μέλη μπορούν να χρησιμοποιούν την κατηγορία ${categoryName} όταν υποβάλλουν δαπάνες.`,
-            bulkVisibleToDescription: 'Επιλέξτε ποια μέλη μπορούν να χρησιμοποιούν αυτές τις κατηγορίες όταν υποβάλλουν δαπάνες.',
+            bulkVisibleToDescription: 'Επιλέξτε ποια μέλη μπορούν να χρησιμοποιούν αυτές τις κατηγορίες όταν υποβάλλουν έξοδα.',
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `Δεν είναι δυνατή η απενεργοποίηση της κατηγορίας ${categoryName}`,
                 bulkTitle: 'Δεν μπορείτε να απενεργοποιήσετε αυτές τις κατηγορίες',

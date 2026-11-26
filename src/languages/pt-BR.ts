@@ -7307,7 +7307,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 other: `${count} membros`,
             }),
             visibleToDescription: ({categoryName}: {categoryName: string}) => `Escolha quais membros podem usar a categoria ${categoryName} ao enviar despesas.`,
-            bulkVisibleToDescription: 'Escolha quais membros podem usar estas categorias ao enviar despesas.',
+            bulkVisibleToDescription: 'Escolha quais membros podem usar essas categorias ao enviar despesas.',
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `Não é possível desativar ${categoryName}`,
                 bulkTitle: 'Não é possível desativar estas categorias',

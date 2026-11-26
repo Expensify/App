@@ -7337,7 +7337,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 other: `${count} członka`,
             }),
             visibleToDescription: ({categoryName}: {categoryName: string}) => `Wybierz, którzy członkowie mogą używać kategorii ${categoryName} podczas przesyłania wydatków.`,
-            bulkVisibleToDescription: 'Wybierz, którzy członkowie mogą używać tych kategorii podczas przesyłania wydatków.',
+            bulkVisibleToDescription: 'Wybierz, którzy członkowie mogą używać tych kategorii podczas wysyłania wydatków.',
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `Nie można wyłączyć ${categoryName}`,
                 bulkTitle: 'Nie można wyłączyć tych kategorii',

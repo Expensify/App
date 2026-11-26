@@ -7304,7 +7304,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 other: `${count} membri`,
             }),
             visibleToDescription: ({categoryName}: {categoryName: string}) => `Scegli quali membri possono usare la categoria ${categoryName} quando inviano le spese.`,
-            bulkVisibleToDescription: 'Scegli quali membri possono usare queste categorie quando inviano le spese.',
+            bulkVisibleToDescription: 'Scegli quali membri possono usare queste categorie quando inviano le note spese.',
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `Impossibile disabilitare ${categoryName}`,
                 bulkTitle: 'Impossibile disattivare queste categorie',
