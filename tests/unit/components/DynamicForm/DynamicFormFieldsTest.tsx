@@ -587,6 +587,17 @@ describe('DynamicFormFields', () => {
         expect(rendered.get('country')?.items?.find((item) => item.value === 'GB')?.searchValue).toMatch(/^gb/);
     });
 
+    it('searches a select by label only when its keys are not country codes', () => {
+        // Given a select whose keys are plain words, like Wise's source of wealth
+        const sourceOfWealth: DynamicFormField = {key: 'sourceOfWealth', type: 'select', required: true, values: [{key: 'SAVINGS'}, {key: 'OTHER'}]};
+
+        // When it renders
+        const rendered = renderFields([sourceOfWealth]);
+
+        // Then no option gets a code to search by, so the list keeps searching by label alone
+        expect(rendered.get('sourceOfWealth')?.items?.every((item) => item.searchValue === undefined)).toBe(true);
+    });
+
     it('opens the numeric keyboard for a text field whose regex takes digits only', () => {
         // Given a sort code that must be six digits, and a reference that takes letters too
         const sortCode: DynamicFormField = {key: 'sortCode', type: 'text', required: true, regex: '^\\d{6}$'};
