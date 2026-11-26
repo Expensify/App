@@ -28,6 +28,8 @@ import type {
     OpenSearchPageParams,
     OpenSearchTagFiltersPageParams,
     OpenSearchTagFiltersPageResponse,
+    OpenSearchUserFiltersPageParams,
+    OpenSearchUserFiltersPageResponse,
     QueueBulkMarkAsExportedParams,
     QueueExportSearchItemsToCSVParams,
     QueueExportSearchWithTemplateParams,
@@ -53,7 +55,8 @@ import enhanceParameters from '@libs/Network/enhanceParameters';
 import {isSupportAuthToken} from '@libs/Network/NetworkStore';
 import {getIsOffline} from '@libs/NetworkState';
 import {rand64} from '@libs/NumberUtils';
-import {getActivePaymentType} from '@libs/PaymentUtils';
+import {canPayOffline, getActivePaymentType} from '@libs/PaymentUtils';
+import {getLoginsFromOnyxUpdates} from '@libs/PersonalDetailsUtils';
 import {canAccessPolicyBankAccount} from '@libs/PolicyPaymentUtils';
 import {
     getAccountIDForSubmitManagerEmail,
@@ -76,6 +79,7 @@ import {
     hasHeldExpenses,
     hasOnlyHeldExpenses,
     hasViolations as hasViolationsReportUtils,
+    isArchivedReport,
     isExpenseReport,
     isIOUReport as isIOUReportUtil,
 } from '@libs/ReportUtils';
@@ -112,6 +116,7 @@ import type {
     Report,
     ReportAction,
     ReportActions,
+    ReportNameValuePairs,
     Rule,
     SaveSearch,
     SearchResults,
@@ -299,7 +304,7 @@ type HandleActionButtonPressParams = {
     onPendingCardTransactionsBlock?: () => void;
     onAllHeldExpensesBlock?: () => void;
     /** Confirms any unacknowledged report violations before proceeding with the SUBMIT action. */
-    confirmSubmitReportViolations: (onProceed: ConfirmSubmitReportViolationsOnProceed) => void;
+    confirmSubmitReportViolations: (onProceed: ConfirmSubmitReportViolationsOnProceed) => void | Promise<void>;
     /** Requires approval callers to confirm report violations before proceeding. */
     confirmApproveReportViolations: (onProceed: () => void) => void;
     openReportSubmitToPopover?: (options?: ReportSubmitToPopoverOpenOptions) => void;
@@ -1289,6 +1294,22 @@ function setSearchTagFiltersPagination(
     });
 }
 
+function openSearchUserFiltersPage(params: OpenSearchUserFiltersPageParams, shouldCancelPendingRequests = false): Promise<{hasMore: boolean; nextCursor: string; logins: string[]}> {
+    if (shouldCancelPendingRequests) {
+        HttpUtils.cancelPendingRequests(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_SEARCH_USER_FILTERS_PAGE);
+    }
+
+    return makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_SEARCH_USER_FILTERS_PAGE, {...params, canCancel: true}).then((response) => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- OpenSearchUserFiltersPage response fields are command-specific and not declared on the shared Response type
+        const userFiltersResponse = response as OpenSearchUserFiltersPageResponse | undefined;
+        return {
+            hasMore: !!userFiltersResponse?.hasMore,
+            nextCursor: userFiltersResponse?.nextCursor ?? '',
+            logins: getLoginsFromOnyxUpdates(response?.onyxData),
+        };
+    });
+}
+
 function openBulkChangeApproverPage(reportIDList: OpenBulkChangeApproverPageParams['reportIDList']) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_BULK_CHANGE_APPROVER_PAGE>> = [
         {
@@ -2130,6 +2151,7 @@ function rejectMoneyRequestInBulk(
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     rules: OnyxCollection<Rule>,
     reportTransactionsCollection: Record<string, Transaction>,
+    isChatReportArchived: boolean,
     hash?: number,
 ) {
     const optimisticData: Array<RejectMoneyRequestData['optimisticData'][number] | OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
@@ -2162,6 +2184,7 @@ function rejectMoneyRequestInBulk(
             rules,
             shouldUseBulkAction: true,
             reportTransactionsCollection,
+            isChatReportArchived,
         });
         if (data) {
             optimisticData.push(...data.optimisticData);
@@ -2196,6 +2219,7 @@ function rejectMoneyRequestsOnSearch({
     comment,
     allPolicies,
     allReports,
+    allReportNameValuePairs,
     currentUserAccountIDParam,
     currentUserLogin,
     isASAPSubmitBetaEnabled,
@@ -2209,6 +2233,7 @@ function rejectMoneyRequestsOnSearch({
     comment: string;
     allPolicies: OnyxCollection<Policy>;
     allReports: OnyxCollection<Report>;
+    allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
     currentUserAccountIDParam: number;
     currentUserLogin: string;
     isASAPSubmitBetaEnabled: boolean;
@@ -2251,6 +2276,7 @@ function rejectMoneyRequestsOnSearch({
         const areAllExpensesSelected = selectedTransactionIDs.length === effectiveTransactionCount;
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
         const isPolicyDelayedSubmissionEnabled = policy ? isDelayedSubmissionEnabled(policy) : false;
+        const isChatReportArchived = isArchivedReport(allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.chatReportID}`]);
         if (isPolicyDelayedSubmissionEnabled && areAllExpensesSelected) {
             rejectMoneyRequestInBulk(
                 reportID,
@@ -2264,6 +2290,7 @@ function rejectMoneyRequestsOnSearch({
                 getCurrencyDecimals,
                 rules,
                 reportTransactionsCollection,
+                isChatReportArchived,
                 hash,
             );
         } else {
@@ -2291,6 +2318,7 @@ function rejectMoneyRequestsOnSearch({
                         setExistingRejectedReport,
                     },
                     reportTransactionsCollection,
+                    isChatReportArchived,
                 });
             }
         }
@@ -2325,7 +2353,18 @@ function rejectMoneyRequestsOnSearch({
 type Params = Record<string, ExportSearchItemsToCSVParams>;
 
 function exportSearchItemsToCSV(
-    {jsonQuery, reportIDList, transactionIDList, excludedTransactionIDList, isBasicExport, exportColumnLabels, exportName, isGroupExport, isGroupsOnly}: ExportSearchItemsToCSVParams,
+    {
+        jsonQuery,
+        reportIDList,
+        transactionIDList,
+        excludedTransactionIDList,
+        isBasicExport,
+        exportColumnLabels,
+        exportName,
+        isGroupExport,
+        isGroupsOnly,
+        searchViolationNameList,
+    }: ExportSearchItemsToCSVParams,
     onDownloadFailed: () => void,
     translate: LocalizedTranslate,
     allReportsTransactionsAndViolations: ReportTransactionsAndViolationsDerivedValue | undefined,
@@ -2364,6 +2403,7 @@ function exportSearchItemsToCSV(
         exportColumnLabels,
         isGroupExport,
         isGroupsOnly,
+        ...(searchViolationNameList?.length ? {searchViolationNameList} : {}),
     }) as Params;
 
     const formData = new FormData();
@@ -2423,7 +2463,8 @@ function queueExportSearchItemsToCSV({
             },
         },
     ];
-    const finalParameters = enhanceParameters(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_ITEMS_TO_CSV, {
+    // No enhanceParameters here: a saved authToken would be resent unchanged after every reauthentication.
+    const parameters: QueueExportSearchItemsToCSVParams = {
         jsonQuery,
         reportIDList,
         transactionIDList,
@@ -2433,11 +2474,11 @@ function queueExportSearchItemsToCSV({
         exportName,
         exportID,
         isGroupsOnly,
-    }) as QueueExportSearchItemsToCSVParams;
+    };
 
     markExportInitiatedLocally(exportID);
 
-    write(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_ITEMS_TO_CSV, finalParameters, {
+    write(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_ITEMS_TO_CSV, parameters, {
         optimisticData,
         failureData,
     });
@@ -2477,7 +2518,8 @@ function queueExportSearchWithTemplate(
           }
         : {};
 
-    const finalParameters = enhanceParameters(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_WITH_TEMPLATE, {
+    // No enhanceParameters here, same reason as queueExportSearchItemsToCSV.
+    const parameters: QueueExportSearchWithTemplateParams = {
         templateName,
         templateType,
         jsonQuery,
@@ -2486,13 +2528,13 @@ function queueExportSearchWithTemplate(
         policyID,
         exportName,
         ...(shouldTrackExportProgress ? {exportID} : {}),
-    }) as QueueExportSearchWithTemplateParams;
+    };
 
     if (shouldTrackExportProgress) {
         markExportInitiatedLocally(exportID);
     }
 
-    write(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_WITH_TEMPLATE, finalParameters, onyxData);
+    write(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_WITH_TEMPLATE, parameters, onyxData);
 
     return exportID;
 }
@@ -2723,20 +2765,19 @@ function getPayOption(
 ) {
     const transactionKeys = Object.keys(selectedTransactions ?? {});
     const firstTransaction = selectedTransactions?.[transactionKeys.at(0) ?? ''];
-    const payableReports = selectedReports.filter((report) => report.canPay);
-    const firstPayableReport = payableReports.at(0);
+    const firstReport = selectedReports.at(0);
     const getSelectedReportType = (report: SelectedReports | undefined) => report?.type ?? getReportType(report);
     const hasLastPaymentMethod =
         selectedReports.length > 0
-            ? payableReports.every((report) => !!getLastPolicyPaymentMethod(report.policyID, personalPolicyID, lastPaymentMethods))
+            ? selectedReports.every((report) => !!getLastPolicyPaymentMethod(report.policyID, personalPolicyID, lastPaymentMethods))
             : transactionKeys.every((transactionIDKey) => !!getLastPolicyPaymentMethod(selectedTransactions[transactionIDKey].policyID, personalPolicyID, lastPaymentMethods));
 
     const shouldShowBulkPayOption =
         selectedReports.length > 0
-            ? payableReports.length > 0 &&
-              payableReports.every(
+            ? selectedReports.every(
                   (report) =>
-                      getSelectedReportType(report) === getSelectedReportType(firstPayableReport) &&
+                      report.canPay &&
+                      getSelectedReportType(report) === getSelectedReportType(firstReport) &&
                       shouldShowBulkOptionForRemainingTransactions(selectedTransactions, selectedReportIDs, transactionKeys),
               )
             : transactionKeys.every(
@@ -2785,6 +2826,8 @@ function handleBulkPayItemSelected(params: {
     setPendingPaymentAdditionalData?: (data: BulkPaySelectionData | undefined) => void;
     currentUserAccountID: number;
     isOffline: boolean;
+    showOfflineModal: () => void;
+    areAllMatchingItemsSelected: boolean;
     verifyAccountAndResume: (retry?: () => void) => void;
 }) {
     const {
@@ -2806,6 +2849,8 @@ function handleBulkPayItemSelected(params: {
         setPendingPaymentAdditionalData,
         currentUserAccountID,
         isOffline,
+        showOfflineModal,
+        areAllMatchingItemsSelected,
         verifyAccountAndResume,
     } = params;
     const {paymentType, policyFromPaymentMethod, policyFromContext, shouldSelectPaymentMethod} = getActivePaymentType(item.key, activeAdminPolicies, businessBankAccountOptions, policy?.id);
@@ -2815,11 +2860,10 @@ function handleBulkPayItemSelected(params: {
         return;
     }
 
-    // While offline, route every payment method straight to the offline modal via confirmPayment (onBulkPaySelected),
-    // before any branch below can navigate the user into a KYC / account-verification / add-bank-account / restricted-action flow.
-    if (isOffline) {
-        Log.info('[BulkPay] Blocking bulk pay: offline, deferring to the offline modal');
-        confirmPayment?.(paymentType as PaymentMethodType, item?.additionalData as BulkPaySelectionData | undefined);
+    // Check the menu key, not paymentType, because getActivePaymentType maps workspace and invoice keys to ELSEWHERE.
+    if (isOffline && !canPayOffline(item.key, areAllMatchingItemsSelected)) {
+        Log.info('[BulkPay] Blocking bulk pay: offline');
+        deferModalPresentationAfterPopoverDismiss(showOfflineModal);
         return;
     }
 
@@ -3049,6 +3093,7 @@ export {
     openSearchCardFiltersPage,
     openSearchCategoryFiltersPage,
     openSearchTagFiltersPage,
+    openSearchUserFiltersPage,
     ALL_POLICY_IDS_KEY,
     setSearchTagFiltersPagination,
     getPolicyFromSearchSnapshot,

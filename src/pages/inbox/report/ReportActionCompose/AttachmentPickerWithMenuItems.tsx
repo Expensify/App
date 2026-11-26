@@ -14,6 +14,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import usePopoverPosition from '@hooks/usePopoverPosition';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import usePrevious from '@hooks/usePrevious';
@@ -173,6 +174,7 @@ function AttachmentPickerWithMenuItems({
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const {getCurrencyDecimals} = useCurrencyListActions();
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
 
     const selectOption = (onSelected: () => void, shouldRestrictAction: boolean) => {
         if (
@@ -202,6 +204,7 @@ function AttachmentPickerWithMenuItems({
                         isTrackIntentUser,
                         getCurrencyDecimals,
                         rules,
+                        personalDetailsByLogins: getPersonalDetailsByLogin(),
                         shouldNotifyNewAction: true,
                         shouldDismissEmptyReportsConfirmation,
                     }),
@@ -221,6 +224,7 @@ function AttachmentPickerWithMenuItems({
                 isTrackIntentUser,
                 getCurrencyDecimals,
                 rules,
+                personalDetailsByLogins: getPersonalDetailsByLogin(),
                 shouldNotifyNewAction: true,
             });
         }

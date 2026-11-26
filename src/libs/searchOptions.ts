@@ -13,7 +13,7 @@ type Option = {
  * @param options - An array of option objects
  * @returns An array of options sorted based on the search query
  */
-function searchOptions(searchValue: string, options: Option[]): Option[] {
+function searchOptions<TOption extends Option>(searchValue: string, options: TOption[]): TOption[] {
     if (!searchValue) {
         return options;
     }
