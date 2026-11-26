@@ -1,5 +1,4 @@
 import DropdownFieldRow from '@components/DropdownFieldRow';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import {useSearchRouterState} from '@components/Search/SearchRouter/SearchRouterContext';
@@ -28,7 +27,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import React from 'react';
 
 import ExpenseFieldContainer from './ExpenseFieldContainer';
-import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
 
 type RateFieldProps = {
     distanceRateName: string | undefined;
@@ -57,7 +55,6 @@ function RateField({
     shouldSelectPolicy,
     shouldShowRateAutoUpdatedTooltip,
 }: RateFieldProps) {
-    const {shouldUseDropdownRows} = useExpenseFormLayout();
     const {action, iouType, transactionID, reportID, reportActionID, isReadOnly, didConfirm, isPolicyExpenseChat} = useConfirmationFields();
     const styles = useThemeStyles();
     const {translate, toLocaleDigit, dateFnsLocale} = useLocalize();
@@ -96,9 +93,7 @@ function RateField({
         shouldMountMileageRateTooltip,
     );
 
-    // Both presentations raise the same tooltip: the bordered row is wrapped in `EducationalTooltip` directly, while
-    // the push row hands the same values to `MenuItem` under its own prop names. They read them off one object so a
-    // design tweak to the anchoring or the offsets lands on both forms instead of only on whichever one is found.
+    // The bordered row has no tooltip of its own, so its wrapper owns the rate-change hint and anchor offsets.
     const mileageRateTooltip = {
         shouldRender: shouldMountMileageRateTooltip,
         shouldDisplayTooltip: shouldShowProductTrainingTooltip,
@@ -144,59 +139,30 @@ function RateField({
         }
     };
 
-    if (shouldUseDropdownRows) {
-        // `MenuItem` wraps itself in this tooltip; the bordered row has no tooltip of its own, so the anchor is
-        // put around it here with the same alignment and offsets.
-        return (
-            <ExpenseFieldContainer>
-                <EducationalTooltip
-                    shouldRender={mileageRateTooltip.shouldRender}
-                    shouldDisplayTooltip={mileageRateTooltip.shouldDisplayTooltip}
-                    anchorAlignment={mileageRateTooltip.anchorAlignment}
-                    renderTooltipContent={mileageRateTooltip.renderTooltipContent}
-                    wrapperStyle={mileageRateTooltip.wrapperStyle}
-                    shiftHorizontal={mileageRateTooltip.shiftHorizontal}
-                    shiftVertical={mileageRateTooltip.shiftVertical}
-                    onTooltipPress={mileageRateTooltip.onTooltipPress}
-                    shouldHideOnScroll={mileageRateTooltip.shouldHideOnScroll}
-                >
-                    <DropdownFieldRow
-                        name={translate('common.rate')}
-                        value={rateTitle}
-                        errorText={rateErrorText}
-                        onPress={openRatePage}
-                        isDisabled={didConfirm}
-                        isInteractive={isRateInteractive}
-                        sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.RATE_FIELD}
-                    />
-                </EducationalTooltip>
-            </ExpenseFieldContainer>
-        );
-    }
-
     return (
-        <MenuItemWithTopDescription
-            shouldShowRightIcon={isRateInteractive}
-            title={rateTitle}
-            description={translate('common.rate')}
-            style={[styles.moneyRequestMenuItem]}
-            titleStyle={styles.flex1}
-            onPress={openRatePage}
-            brickRoadIndicator={shouldDisplayDistanceRateError || isRateOutOfDateRange ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-            errorText={rateErrorText}
-            disabled={didConfirm}
-            interactive={isRateInteractive}
-            sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.RATE_FIELD}
-            shouldRenderTooltip={mileageRateTooltip.shouldRender}
-            shouldDisplayEducationalTooltip={mileageRateTooltip.shouldDisplayTooltip}
-            renderTooltipContent={mileageRateTooltip.renderTooltipContent}
-            tooltipWrapperStyle={mileageRateTooltip.wrapperStyle}
-            tooltipAnchorAlignment={mileageRateTooltip.anchorAlignment}
-            tooltipShiftHorizontal={mileageRateTooltip.shiftHorizontal}
-            tooltipShiftVertical={mileageRateTooltip.shiftVertical}
-            onEducationTooltipPress={mileageRateTooltip.onTooltipPress}
-            shouldHideOnScroll={mileageRateTooltip.shouldHideOnScroll}
-        />
+        <ExpenseFieldContainer>
+            <EducationalTooltip
+                shouldRender={mileageRateTooltip.shouldRender}
+                shouldDisplayTooltip={mileageRateTooltip.shouldDisplayTooltip}
+                anchorAlignment={mileageRateTooltip.anchorAlignment}
+                renderTooltipContent={mileageRateTooltip.renderTooltipContent}
+                wrapperStyle={mileageRateTooltip.wrapperStyle}
+                shiftHorizontal={mileageRateTooltip.shiftHorizontal}
+                shiftVertical={mileageRateTooltip.shiftVertical}
+                onTooltipPress={mileageRateTooltip.onTooltipPress}
+                shouldHideOnScroll={mileageRateTooltip.shouldHideOnScroll}
+            >
+                <DropdownFieldRow
+                    name={translate('common.rate')}
+                    value={rateTitle}
+                    errorText={rateErrorText}
+                    onPress={openRatePage}
+                    isDisabled={didConfirm}
+                    isInteractive={isRateInteractive}
+                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.RATE_FIELD}
+                />
+            </EducationalTooltip>
+        </ExpenseFieldContainer>
     );
 }
 

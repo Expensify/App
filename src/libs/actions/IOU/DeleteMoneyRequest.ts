@@ -17,7 +17,6 @@ import {
     getReportTransactions,
     getUnheldReimbursableTotal,
     hasOutstandingChildRequest,
-    isArchivedReport,
     isExpenseReport,
     isInvoiceReport,
     isReportTotalPending,
@@ -44,7 +43,7 @@ import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate}
 import cloneDeep from 'lodash/cloneDeep';
 import Onyx from 'react-native-onyx';
 
-import {getAllReportActionsFromIOU, getAllReportNameValuePairs, getAllTransactions, getAllTransactionViolations} from '.';
+import {getAllReportActionsFromIOU, getAllTransactions, getAllTransactionViolations} from '.';
 import {getReportPreviewReportAction, maybeUpdateReportNameForFormulaTitle} from './MoneyRequestBuilder';
 import {getGroupPendingDeleteOnyxUpdate} from './SearchUpdate';
 
@@ -71,7 +70,8 @@ type DeleteMoneyRequestFunctionParams = {
     iouReport: OnyxEntry<OnyxTypes.Report>;
     iouReportTransactions: OnyxTypes.Transaction[];
     chatReport: OnyxEntry<OnyxTypes.Report>;
-    isChatIOUReportArchived?: boolean | undefined;
+    isChatIOUReportArchived: boolean;
+    isArchivedIOUReport: boolean;
     isSingleTransactionView?: boolean;
     transactionIDsPendingDeletion?: string[];
     selectedTransactionIDs?: string[];
@@ -831,6 +831,7 @@ function deleteMoneyRequest({
     iouReportTransactions,
     chatReport,
     isChatIOUReportArchived,
+    isArchivedIOUReport,
     isSingleTransactionView = false,
     transactionIDsPendingDeletion,
     selectedTransactionIDs,
@@ -971,7 +972,15 @@ function deleteMoneyRequest({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
             value: {
-                hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, updatedIOUReport, currentUserEmail, currentUserAccountID, allTransactionViolationsParam, undefined),
+                hasOutstandingChildRequest: hasOutstandingChildRequest(
+                    chatReport,
+                    updatedIOUReport,
+                    currentUserEmail,
+                    currentUserAccountID,
+                    allTransactionViolationsParam,
+                    undefined,
+                    isChatIOUReportArchived,
+                ),
             },
         });
     }
@@ -995,7 +1004,15 @@ function deleteMoneyRequest({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
                 value: {
-                    hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, iouReport?.reportID, currentUserEmail, currentUserAccountID, allTransactionViolationsParam, undefined),
+                    hasOutstandingChildRequest: hasOutstandingChildRequest(
+                        chatReport,
+                        iouReport?.reportID,
+                        currentUserEmail,
+                        currentUserAccountID,
+                        allTransactionViolationsParam,
+                        undefined,
+                        isChatIOUReportArchived,
+                    ),
                     iouReportID: null,
                     ...optimisticLastReportData,
                 },
@@ -1021,7 +1038,7 @@ function deleteMoneyRequest({
         currentUserAccountID,
         transactionThread: transactionThreadReport,
         iouReport,
-        isArchivedIOUReport: isArchivedReport(getAllReportNameValuePairs()?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport?.reportID}`]),
+        isArchivedIOUReport,
         chatReport,
         transactionThreadReportActionsParam: transactionThreadReportActions,
     });

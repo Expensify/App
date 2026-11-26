@@ -2,6 +2,7 @@
  * Picks the draft answers that belong to the fields of the current Wise schema. The draft still holds answers to fields an earlier schema had,
  * such as a sort code after switching to IBAN, and the server reads every answer it gets as part of the new form.
  */
+import {getHiddenAddressPartKeys} from '@components/DynamicForm/utils/getAddressInputKeys';
 import getAnswerKeys from '@components/DynamicForm/utils/getAnswerKeys';
 import getContentFields from '@components/DynamicForm/utils/getContentFields';
 import {hasSupportedShape} from '@components/DynamicForm/utils/isSupportedField';
@@ -17,7 +18,9 @@ function getCurrentSchemaAnswers(schema: DynamicFormSchema | undefined, draftVal
     const schemaFields = 'pages' in schema ? schema.pages.flatMap((page) => getContentFields(page.content)) : schema.fields;
     // A field can write to several draft keys, such as the parts of an address, so every one of them counts
     const answerKeys = new Set(schemaFields.flatMap((field) => (hasSupportedShape(field) ? getAnswerKeys(field) : [field.key])));
-    return Object.fromEntries(Object.entries(draftValues).filter(([key]) => answerKeys.has(key)));
+    // An address part the form hides, such as the zip of a country that has none, can still be in the draft from an earlier country
+    const hiddenKeys = new Set(schemaFields.flatMap((field) => (hasSupportedShape(field) && field.type === 'address' ? getHiddenAddressPartKeys(field, draftValues) : [])));
+    return Object.fromEntries(Object.entries(draftValues).filter(([key]) => answerKeys.has(key) && !hiddenKeys.has(key)));
 }
 
 export default getCurrentSchemaAnswers;

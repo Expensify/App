@@ -1606,6 +1606,21 @@ describe('libs/NextStepUtils', () => {
             expect(message).toBe('<next-step>No further action required!</next-step>');
         });
 
+        it('says a payment is on hold without a delivery date', () => {
+            // Given a paid report whose payment Wise is reviewing, with a delivery date still in its next step
+            const nextStep: ReportNextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT_REVIEW,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                eta: {dateTime: '2026-08-15'},
+            };
+
+            // When the message is built
+            const message = buildNextStepMessage(nextStep, translateLocal, undefined, 999999, formatPhoneNumber);
+
+            // Then it says the payment is on hold and leaves the date out
+            expect(message).toBe('<next-step>Payment on hold, look for another update.</next-step>');
+        });
+
         it('renders a monthly automatic-submit eta using the day-of-month it encodes, not one shifted by UTC parsing', () => {
             // A date-only `eta.dateTime` must render as the same day it encodes regardless of the browser timezone.
             // Native `new Date('2026-08-15')` parses as UTC midnight and shows the 14th in UTC-negative timezones;
@@ -1669,6 +1684,49 @@ describe('libs/NextStepUtils', () => {
                     autoReportingOffset: 15,
                     autoReportingOffsetSecondSemiMonthly: CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH,
                 },
+                expectedETA: 'on the 15th and the last day of each month',
+            },
+            {
+                name: 'twice a month with omitted offsets',
+                eta: {
+                    etaKey: CONST.NEXT_STEP.ETA_KEY.SEMI_MONTHLY,
+                    autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY,
+                },
+                expectedETA: 'on the 15th and the last day of each month',
+            },
+            {
+                name: 'twice a month with reversed default days',
+                eta: {
+                    etaKey: CONST.NEXT_STEP.ETA_KEY.SEMI_MONTHLY,
+                    autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY,
+                    autoReportingOffset: CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH,
+                    autoReportingOffsetSecondSemiMonthly: 15,
+                },
+                expectedETA: 'on the 15th and the last day of each month',
+            },
+            {
+                name: 'twice a month with reversed custom days',
+                eta: {
+                    etaKey: CONST.NEXT_STEP.ETA_KEY.SEMI_MONTHLY,
+                    autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY,
+                    autoReportingOffset: 20,
+                    autoReportingOffsetSecondSemiMonthly: 10,
+                },
+                expectedETA: 'on the 10th and 20th of each month',
+            },
+            {
+                name: 'twice a month explicitly on the 1st and 16th',
+                eta: {
+                    etaKey: CONST.NEXT_STEP.ETA_KEY.SEMI_MONTHLY,
+                    autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY,
+                    autoReportingOffset: 1,
+                    autoReportingOffsetSecondSemiMonthly: 16,
+                },
+                expectedETA: 'on the 1st and 16th of each month',
+            },
+            {
+                name: 'twice a month without schedule metadata',
+                eta: {etaKey: CONST.NEXT_STEP.ETA_KEY.SEMI_MONTHLY},
                 expectedETA: 'on the 1st and 16th of each month',
             },
             {
@@ -1702,7 +1760,7 @@ describe('libs/NextStepUtils', () => {
             // When the message is built
             const message = buildNextStepMessage(nextStep, translateEta, undefined, 999999, formatPhoneNumber);
 
-            // Then custom schedules show their own day, and default schedules keep the legacy text
+            // Then schedule metadata determines the displayed days, while older payloads retain their fallback
             expect(message).toBe(`<next-step>${expectedETA}</next-step>`);
         });
 

@@ -11,6 +11,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useRedirectToWorkspaceMembersWithoutSelection from '@hooks/useRedirectToWorkspaceMembersWithoutSelection';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -30,19 +31,14 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PersonalDetailsList} from '@src/types/onyx';
-
-import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
 type WorkspaceMembersChangeOfficeLocationPageProps = Omit<WithPolicyAndFullscreenLoadingProps, 'route'> &
-    PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS_CHANGE_OFFICE_LOCATION> & {
-        personalDetails: OnyxEntry<PersonalDetailsList>;
-    };
+    PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS_CHANGE_OFFICE_LOCATION>;
 
-function WorkspaceMembersChangeOfficeLocationPage({policy, personalDetails, route}: WorkspaceMembersChangeOfficeLocationPageProps) {
+function WorkspaceMembersChangeOfficeLocationPage({policy, route}: WorkspaceMembersChangeOfficeLocationPageProps) {
     const policyID = route.params.policyID;
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -53,6 +49,7 @@ function WorkspaceMembersChangeOfficeLocationPage({policy, personalDetails, rout
 
     // Members picked on another workspace's member list are left out, even when they also belong to this one
     const selectedAccountIDs = selection?.policyID === policyID ? selection.accountIDs : undefined;
+    const [personalDetails] = usePersonalDetailsByIDs(selectedAccountIDs);
 
     useRedirectToWorkspaceMembersWithoutSelection({
         policyID,

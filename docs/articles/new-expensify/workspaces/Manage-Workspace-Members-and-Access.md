@@ -1,8 +1,8 @@
 ---
 title: Manage Workspace Members and Access
-description: Learn how to change workspace member roles, set category visibility, remove members, set display names, update work arrangements and download a CSV.
+description: Learn how to change workspace member roles, remove members, set display names, update work arrangements and office assignments, and download a CSV.
 keywords: [workspace members, change role, remove member, remove users, filter members, member display name, download members, export members, member CSV, workspace access, work arrangement, commute exclusions, exclude usual commute, office-based, remote or mobile, default work arrangement, mileage commute]
-internalScope: Audience is workspace admins, People admins, and other members with access to workspace member settings. Covers changing existing members' roles, setting per-member category visibility on Control, removing members individually or in bulk, filtering by role, setting display names, and downloading a member CSV. Does not cover inviting members, detailed role comparisons, or instructions for transferring workspace ownership.
+internalScope: Audience is workspace admins, people admins, and other members with access to workspace member settings. Covers changing existing members' roles, removing members individually or in bulk, filtering by role, setting display names, updating work arrangements and office assignments individually or in bulk, and downloading a member CSV. Does not cover inviting members, detailed role comparisons, or instructions for transferring workspace ownership.
 contentType: task
 platform: new-expensify
 ---
@@ -135,6 +135,43 @@ Changes apply only to future mileage calculations. Existing mileage expenses are
 [Learn how to enable home-and-office commute exclusions](/articles/new-expensify/workspaces/Set-distance-rates#-How-to-exclude-commutes-using-home-and-office-locations).
 
 **Work arrangement** does not affect the **Remove fixed distance** method.
+
+## How to assign an office location to a member
+
+Workspace admins and people admins can assign members to an office. When the workspace uses **Exclude usual commute**, the assigned office is used to calculate the member's commute exclusion. Members without an individual assignment use the primary office.
+
+Before assigning members, [add office locations to the workspace](/articles/new-expensify/workspaces/Set-distance-rates#how-to-add-office-locations-for-commute-exclusions). An existing **Company address** also counts as an office location.
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Members**.
+2. Select the member's name.
+3. Select **Office location**.
+4. Choose the office, then select **Confirm**.
+
+Changes apply only to future mileage calculations. Existing mileage expenses are not recalculated.
+
+## How to update office locations or work arrangements for multiple members
+
+Workspace admins and people admins can change office assignments for multiple members at once. On Control workspaces using **Exclude usual commute**, they can also update work arrangements in bulk.
+
+On web:
+
+1. In the navigation tabs on the left, select **Workspaces > [workspace name] > Members**.
+2. Select the checkboxes next to the members you want to update.
+3. Select **Change office location** or **Change work arrangement** from the selection bar. If the action is not visible, select **More (⋮)** in the selection bar.
+4. Choose an office, or choose **Office-based** or **Remote or mobile** for the work arrangement.
+5. Select **Confirm**.
+
+On mobile:
+
+1. In the navigation tabs on the bottom, select **Workspaces > [workspace name] > Members**.
+2. Long-press a member, then select **Select**.
+3. Select the checkboxes next to the members you want to update.
+4. Select the menu showing the number of selected members, such as **2 selected**.
+5. Select **Change office location** or **Change work arrangement**.
+6. Choose an office, or choose **Office-based** or **Remote or mobile** for the work arrangement.
+7. Select **Confirm**.
+
+Changes apply only to future mileage calculations. Existing mileage expenses are not recalculated.
 
 ## How to download a CSV of workspace members
 

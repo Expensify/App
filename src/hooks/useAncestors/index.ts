@@ -1,12 +1,59 @@
 import useOnyx from '@hooks/useOnyx';
 
+import {getReportActionBefore, getSortedReportActions, isReportActionUnread} from '@libs/ReportActionsUtils';
 import type {Ancestor} from '@libs/ReportUtils';
-import {getAncestors} from '@libs/ReportUtils';
+import {getAncestors, getParentReportChain} from '@libs/ReportUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportAction} from '@src/types/onyx';
+import type {Report, ReportAction, ReportActions} from '@src/types/onyx';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+/** Keeps only the parent reports of the given report that live in the reports collection */
+function selectAncestorReports(reports: OnyxCollection<Report>, report: OnyxEntry<Report>, reportDrafts: OnyxCollection<Report>): OnyxCollection<Report> {
+    const ancestorReports: OnyxCollection<Report> = {};
+    for (const {reportID} of getParentReportChain(report, reports, reportDrafts)) {
+        const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
+        const ancestorReport = reports?.[reportKey];
+        if (ancestorReport) {
+            ancestorReports[reportKey] = ancestorReport;
+        }
+    }
+    return ancestorReports;
+}
+
+/** Keeps only the parent report actions the given report was created from, up the chain, and the action before each one */
+function selectAncestorReportActions(
+    reportActions: OnyxCollection<ReportActions>,
+    report: OnyxEntry<Report>,
+    ancestorReports: OnyxCollection<Report>,
+    reportDrafts: OnyxCollection<Report>,
+): OnyxCollection<ReportActions> {
+    const ancestorReportActions: OnyxCollection<ReportActions> = {};
+    for (const {reportID, reportActionID, report: ancestorReport} of getParentReportChain(report, ancestorReports, reportDrafts)) {
+        const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}` as const;
+        const parentReportActions = reportActions?.[reportActionsKey];
+        const ancestorReportAction = parentReportActions?.[reportActionID];
+
+        // getAncestors stops at the first missing action, so nothing above it is shown and none of it needs to re-render the caller.
+        if (!ancestorReportAction) {
+            break;
+        }
+
+        // A read ancestor never shows the new marker, so the action before it can't change anything and isn't worth sorting for.
+        if (!isReportActionUnread(ancestorReportAction, ancestorReport.lastReadTime)) {
+            ancestorReportActions[reportActionsKey] = {[reportActionID]: ancestorReportAction};
+            continue;
+        }
+
+        // The new marker on an ancestor also depends on the action before it, so a change to that action has to re-render too.
+        const {previousReportAction} = getReportActionBefore(getSortedReportActions(Object.values(parentReportActions ?? {})), reportActionID);
+        ancestorReportActions[reportActionsKey] = previousReportAction
+            ? {[previousReportAction.reportActionID]: previousReportAction, [reportActionID]: ancestorReportAction}
+            : {[reportActionID]: ancestorReportAction};
+    }
+    return ancestorReportActions;
+}
 
 /**
  * Fetches ancestor reports and their associated actions for a given report.
@@ -17,10 +64,14 @@ import type {OnyxEntry} from 'react-native-onyx';
  */
 
 function useAncestors(report: OnyxEntry<Report>, shouldExcludeAncestorReportActionCallback: (reportAction: ReportAction, isFirstAncestor: boolean) => boolean = () => false): Ancestor[] {
-    const [reportCollection] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [reportDraftCollection] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT);
-    const [reportActionsCollection] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
-    return getAncestors(report, reportCollection, reportDraftCollection, reportActionsCollection, shouldExcludeAncestorReportActionCallback);
+
+    // The selectors keep only the ancestor chain, so writes to unrelated reports and actions do not re-render the caller.
+    const [ancestorReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (reports) => selectAncestorReports(reports, report, reportDraftCollection)});
+    const [ancestorReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
+        selector: (reportActions) => selectAncestorReportActions(reportActions, report, ancestorReports, reportDraftCollection),
+    });
+    return getAncestors(report, ancestorReports, reportDraftCollection, ancestorReportActions, shouldExcludeAncestorReportActionCallback);
 }
 
 export default useAncestors;
