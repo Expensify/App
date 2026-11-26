@@ -11456,6 +11456,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         refresh: 'Atualizar',
     },
     fileDownload: {
+        preparing: 'Download em andamento...',
         success: {
             title: 'Download concluído!',
             message: 'Anexo baixado com sucesso!',

@@ -11477,6 +11477,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         refresh: 'Aggiorna',
     },
     fileDownload: {
+        preparing: 'Download in corso...',
         success: {
             title: 'Scaricato!',
             message: 'Allegato scaricato correttamente!',

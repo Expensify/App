@@ -11561,6 +11561,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         refresh: 'Actualiser',
     },
     fileDownload: {
+        preparing: 'Téléchargement en cours...',
         success: {
             title: 'Téléchargement effectué !',
             message: 'Pièce jointe téléchargée avec succès !',

@@ -7,6 +7,8 @@ import Share from 'react-native-share';
 
 import type DownloadAttachmentFile from './types';
 
+import {showPreparingToast} from './preparingToast';
+
 // UIKit can't present the share sheet while a modal (e.g. the context menu) is mid-presentation, so wait until no modal transition is running.
 // Context menus are ignored from right before the sheet is opened until it is closed (see shareSheetState), because UIKit can't present them over the sheet.
 function openShareSheet(url: string) {
@@ -27,6 +29,7 @@ const downloadAttachmentFile: DownloadAttachmentFile = (translate, url, fileName
             .catch(() => showGeneralErrorAlert(translate));
     }
 
+    showPreparingToast(translate);
     const attachmentName = appendTimeToFileName(fileName || getFileName(url));
     const localPath = `${RNFetchBlob.fs.dirs.CacheDir}/${attachmentName}`;
 

@@ -11860,6 +11860,7 @@ const translations = {
         refresh: 'Refresh',
     },
     fileDownload: {
+        preparing: 'Download in progress...',
         success: {
             title: 'Downloaded!',
             message: 'Attachment successfully downloaded!',

@@ -11288,6 +11288,7 @@ ${reportName}`,
         refresh: '更新',
     },
     fileDownload: {
+        preparing: 'ダウンロード中...',
         success: {
             title: 'ダウンロードしました！',
             message: '添付ファイルを正常にダウンロードしました！',

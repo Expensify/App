@@ -1,3 +1,4 @@
+import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Pressables from '@components/Pressable';
@@ -41,6 +42,8 @@ type GrowlNotificationContentProps = {
 
     /** Identifies this growl instance; passed back through onDismissed so the parent can ignore stale dismissals. */
     nonce: number;
+    /** Shows a loading spinner instead of the icon of the growl type */
+    shouldShowSpinner?: boolean;
     onDismissed: (dismissedNonce: number) => void;
 };
 
@@ -53,7 +56,7 @@ type GrowlIconTypes = Record<
     }
 >;
 
-function GrowlNotificationContent({bodyText, type, duration, action, position, nonce, onDismissed}: GrowlNotificationContentProps) {
+function GrowlNotificationContent({bodyText, type, duration, action, position, nonce, shouldShowSpinner, onDismissed}: GrowlNotificationContentProps) {
     // Normalized: 0 = fully offscreen for the current anchor, 1 = fully visible. The container
     // multiplies this against the live `inactiveY`, so the offscreen position stays correct
     // even when the responsive layout flips after the growl is dismissed.
@@ -157,10 +160,17 @@ function GrowlNotificationContent({bodyText, type, duration, action, position, n
                                 onPress={triggerDismiss}
                                 style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}
                             >
-                                <Icon
-                                    src={types[type].icon}
-                                    fill={types[type].iconColor}
-                                />
+                                {shouldShowSpinner ? (
+                                    <ActivityIndicator
+                                        size="small"
+                                        color={types[type].iconColor}
+                                    />
+                                ) : (
+                                    <Icon
+                                        src={types[type].icon}
+                                        fill={types[type].iconColor}
+                                    />
+                                )}
                                 <Text style={styles.growlNotificationText}>{bodyText}</Text>
                             </PressableWithoutFeedback>
                             {!!action && (

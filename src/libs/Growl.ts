@@ -20,6 +20,9 @@ type GrowlOptions = {
 
     /** Position where the growl is anchored */
     position?: GrowlPosition;
+
+    /** Replaces the icon of the growl with a loading spinner, for work that is still in progress */
+    shouldShowSpinner?: boolean;
 };
 
 type GrowlShowOptions = GrowlOptions & {
@@ -46,14 +49,14 @@ function setIsReady() {
 /**
  * Show the growl notification
  */
-function show({bodyText, type, duration, action, position}: GrowlShowOptions) {
+function show({bodyText, type, duration, action, position, shouldShowSpinner}: GrowlShowOptions) {
     // Default to a longer duration when there's an action button so users have time to tap it.
     const resolvedDuration = duration ?? (action ? CONST.GROWL.DURATION_WITH_ACTION : CONST.GROWL.DURATION);
     isReadyPromise.then(() => {
         if (!growlRef?.current?.show) {
             return;
         }
-        growlRef.current.show({bodyText, type, duration: resolvedDuration, action, position});
+        growlRef.current.show({bodyText, type, duration: resolvedDuration, action, position, shouldShowSpinner});
     });
 }
 

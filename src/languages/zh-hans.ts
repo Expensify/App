@@ -10994,6 +10994,7 @@ ${reportName}`,
         refresh: '刷新',
     },
     fileDownload: {
+        preparing: '正在下载...',
         success: {
             title: '已下载！',
             message: '附件已成功下载！',
