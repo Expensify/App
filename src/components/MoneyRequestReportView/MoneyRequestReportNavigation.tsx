@@ -112,7 +112,7 @@ const isSameReportList = (a: Array<string | undefined>, b: Array<string | undefi
 
 /**
  * Puts the open report back into a live list that dropped it, right after the report that came before it in the
- * last list that held it. When the live list no longer reaches the open report, the last list is returned instead.
+ * last list that held it. When the live list holds none of the reports past the open one, the last list is returned instead.
  */
 const keepReportInPlace = (liveReports: Array<string | undefined>, previousReports: Array<string | undefined>, reportID: string | undefined): Array<string | undefined> => {
     const previousIndex = previousReports.indexOf(reportID);
@@ -120,9 +120,11 @@ const keepReportInPlace = (liveReports: Array<string | undefined>, previousRepor
         return liveReports;
     }
     // A first page refetch replaces the results with page 1, and the standalone list is empty until it is computed.
-    // Neither one holds the report next to the open one, and placing the open report in them would end the list there.
-    const neighborReport = previousReports.at(previousIndex + 1) ?? previousReports.at(previousIndex - 1);
-    if (!liveReports.includes(neighborReport)) {
+    // Neither one reaches the open report, and placing the open report in them would end the list there.
+    const liveReportIDs = new Set(liveReports);
+    const isLastReport = previousIndex === previousReports.length - 1;
+    const reportsPastOpenReport = isLastReport ? previousReports.slice(0, previousIndex) : previousReports.slice(previousIndex + 1);
+    if (!reportsPastOpenReport.some((id) => liveReportIDs.has(id))) {
         return previousReports;
     }
     for (let i = previousIndex - 1; i >= 0; i--) {
@@ -197,8 +199,8 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
 
     const hasUnconfirmedPage = paging.isPending || paging.didFail;
     const {answeredOffset: answeredLiveOffset, confirmedOffset: confirmedSnapshotOffset} = useLiveRowLimit(paging.offset, hasUnconfirmedPage);
-    // A failed first page refetch leaves `offset` at 0 while the pages after it are still loaded, so only a search
-    // that answered moves the snapshot cursor back
+    // A failed first page refetch leaves `offset` at 0 while the pages after it are still loaded, so the snapshot
+    // cursor only follows a search that answered
     const [settledSnapshotOffset, setSettledSnapshotOffset] = useState(confirmedSnapshotOffset);
     if (!hasUnconfirmedPage && settledSnapshotOffset !== confirmedSnapshotOffset) {
         setSettledSnapshotOffset(confirmedSnapshotOffset);

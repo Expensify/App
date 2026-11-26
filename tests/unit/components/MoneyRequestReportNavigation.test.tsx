@@ -201,6 +201,19 @@ describe('MoneyRequestReportNavigation', () => {
             expect(Navigation.setParams).toHaveBeenCalledWith(expect.objectContaining({reportID: '61'}));
         });
 
+        it('keeps the open report in place when the report after it also left the results', () => {
+            // Given report 2 of four loaded reports is open
+            const {rerenderWithReports} = renderNavigationWithReports('2', ['1', '2', '3', '4']);
+
+            // When a refetch drops reports 2 and 3, while the results still reach report 4
+            rerenderWithReports(['1', '4']);
+            jest.mocked(Navigation.setParams).mockClear();
+            pressNext();
+
+            // Then Next opens report 4 from the live list instead of report 3, which is no longer in the results
+            expect(Navigation.setParams).toHaveBeenCalledWith(expect.objectContaining({reportID: '4'}));
+        });
+
         it('keeps the arrows while the standalone list is still empty', () => {
             // Given report 2 of three loaded reports is open
             const {rerenderWithReports} = renderNavigationWithReports('2', ['1', '2', '3']);
@@ -208,10 +221,14 @@ describe('MoneyRequestReportNavigation', () => {
             // When a search starts loading, so the navigation switches to the standalone list before it is computed
             rerenderWithReports(['1', '2', '3'], {offset: 0, hasMoreResults: false, isLoading: true});
 
-            // Then the arrows stay visible and Next opens report 3 from the loaded list, instead of the list shrinking to the open report
+            // Then the arrows stay visible, instead of the list shrinking to the open report
             expect(screen.getByTestId('PrevNextButtons')).toBeOnTheScreen();
+
+            // When the user presses Next
             jest.mocked(Navigation.setParams).mockClear();
             pressNext();
+
+            // Then report 3 opens from the loaded list
             expect(Navigation.setParams).toHaveBeenCalledWith(expect.objectContaining({reportID: '3'}));
         });
     });
