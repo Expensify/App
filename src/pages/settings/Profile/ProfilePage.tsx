@@ -228,7 +228,8 @@ function ProfilePage() {
         title: string;
         testID: string;
         sentryLabel: SentryLabel;
-        fieldToFocus: string;
+        action: () => void;
+        linkRoute: Route;
         brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
         furtherDetails?: string;
     }> = [
@@ -237,21 +238,24 @@ function ProfilePage() {
             title: legalName,
             testID: 'legal-name-menu-item',
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.LEGAL_NAME,
-            fieldToFocus: INPUT_IDS.LEGAL_FIRST_NAME,
+            action: () => navigateToPrivateDetails(INPUT_IDS.LEGAL_FIRST_NAME),
+            linkRoute: ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.getRoute(INPUT_IDS.LEGAL_FIRST_NAME),
         },
         {
             description: translate('common.dob'),
             title: privateDetails.dob ?? '',
             testID: 'dob-menu-item',
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.DATE_OF_BIRTH,
-            fieldToFocus: INPUT_IDS.DATE_OF_BIRTH,
+            action: () => navigateToPrivateDetails(INPUT_IDS.DATE_OF_BIRTH),
+            linkRoute: ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.getRoute(INPUT_IDS.DATE_OF_BIRTH),
         },
         {
             description: translate('common.phoneNumber'),
             title: privateDetails.phoneNumber ?? '',
             testID: 'phone-number-menu-item',
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.PHONE_NUMBER,
-            fieldToFocus: INPUT_IDS.PHONE_NUMBER,
+            action: () => navigateToPrivateDetails(INPUT_IDS.PHONE_NUMBER),
+            linkRoute: ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.getRoute(INPUT_IDS.PHONE_NUMBER),
             brickRoadIndicator: privatePersonalDetails?.errorFields?.phoneNumber ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         },
         {
@@ -259,7 +263,8 @@ function ProfilePage() {
             title: getFormattedAddress(privateDetails),
             testID: 'address-menu-item',
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.ADDRESS,
-            fieldToFocus: INPUT_IDS.ADDRESS_LINE_1,
+            action: () => navigateToPrivateDetails(INPUT_IDS.ADDRESS_LINE_1),
+            linkRoute: ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.getRoute(INPUT_IDS.ADDRESS_LINE_1),
             brickRoadIndicator: shouldShowAddHomeAddressGBR ? CONST.BRICK_ROAD_INDICATOR_STATUS.INFO : undefined,
             furtherDetails: commuterExclusionsWorkspaceName ? translate('privatePersonalDetails.commuterExclusionsHint', {workspaceName: commuterExclusionsWorkspaceName}) : undefined,
         },
@@ -386,8 +391,8 @@ function ProfilePage() {
                             privateOptions.map((detail) => (
                                 <MenuItemSectionRoot
                                     key={detail.testID}
-                                    onPress={() => callIfAuthenticated(() => navigateToPrivateDetails(detail.fieldToFocus), session)()}
-                                    linkRoute={ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.getRoute(detail.fieldToFocus)}
+                                    onPress={() => callIfAuthenticated(detail.action, session)()}
+                                    linkRoute={detail.linkRoute}
                                     testID={detail.testID}
                                     sentryLabel={detail.sentryLabel}
                                 >
