@@ -8,6 +8,9 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 
 import WorkspaceCardsListLabel from '@pages/workspace/expensifyCard/WorkspaceCardsListLabel';
 
+import type * as PolicyActions from '@userActions/Policy/Policy';
+import type * as ReportActions from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -52,11 +55,8 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 const mockOpenReport = jest.fn();
 const mockNavigateToConciergeChat = jest.fn<Promise<void>, unknown[]>(() => Promise.resolve());
 jest.mock('@userActions/Report', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- jest.requireActual returns any
-    const actual = jest.requireActual('@userActions/Report');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- spreads the actual module, which is typed any
     return {
-        ...actual,
+        ...jest.requireActual<typeof ReportActions>('@userActions/Report'),
         openReport: (...args: unknown[]): void => {
             mockOpenReport(...args);
         },
@@ -66,11 +66,8 @@ jest.mock('@userActions/Report', () => {
 
 const mockRequestExpensifyCardLimitIncrease = jest.fn();
 jest.mock('@userActions/Policy/Policy', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- jest.requireActual returns any
-    const actual = jest.requireActual('@userActions/Policy/Policy');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- spreads the actual module, which is typed any
     return {
-        ...actual,
+        ...jest.requireActual<typeof PolicyActions>('@userActions/Policy/Policy'),
         requestExpensifyCardLimitIncrease: (...args: unknown[]): void => {
             mockRequestExpensifyCardLimitIncrease(...args);
         },
