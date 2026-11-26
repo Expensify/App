@@ -32,7 +32,7 @@ jest.mock('@libs/Log', () => ({
 }));
 
 // The React Native preset resolves index.native.ts first, so the web implementation is loaded by its file name
-const {writeExperienceCookie, clearExperienceCookie} = jest.requireActual<typeof WebExperienceCookie>('@libs/ExperienceCookie/index.ts');
+const {isSharedProductHost, writeExperienceCookie, clearExperienceCookie} = jest.requireActual<typeof WebExperienceCookie>('@libs/ExperienceCookie/index.ts');
 
 const HOST_ONLY_DELETE = 'experience=; Max-Age=0; Path=/; Secure; SameSite=Lax';
 
@@ -131,6 +131,22 @@ describe('ExperienceCookie', () => {
         expect(didWrite).toBe(false);
         expect(getCookieWrites()).toEqual([]);
         expect(mockLogHmmm).toHaveBeenCalledWith(expect.stringContaining('[ExperienceCookie]'), {hostname: 'expensify.com.dev', cookieDomain: '.expensify.com'});
+    });
+
+    it.each([
+        ['expensify.com.dev', true],
+        ['www.expensify.com.dev', false],
+        ['dev.new.expensify.com', false],
+    ])('reports whether %s is the shared product host', (hostname, expected) => {
+        arrangeHostname(hostname);
+
+        expect(isSharedProductHost()).toBe(expected);
+    });
+
+    it('never treats the page as the shared product host on native', () => {
+        arrangeHostname('expensify.com.dev');
+
+        expect(NativeExperienceCookie.isSharedProductHost()).toBe(false);
     });
 
     it('never writes a cookie on native', () => {

@@ -3,6 +3,7 @@ import type {GenerateSpotnanaTokenParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import asyncOpenURL from '@libs/asyncOpenURL';
 import buildOldDotURL from '@libs/buildOldDotURL';
+import {isSharedProductHost} from '@libs/ExperienceCookie';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import isPublicScreenRoute from '@libs/isPublicScreenRoute';
 import Log from '@libs/Log';
@@ -136,6 +137,25 @@ function openTravelDotLink(policyID: OnyxEntry<string>, postLoginPath?: string) 
 
 const NEW_EXPENSIFY_ORIGINS = [CONST.NEW_EXPENSIFY_URL, CONST.STAGING_NEW_EXPENSIFY_URL, CONST.QA_NEW_EXPENSIFY_URL];
 
+/**
+ * On the shared product host, a link to the page's own origin is a New Expensify link when its path is an App route.
+ * Other paths on that origin are Expensify Classic pages, so they open like any other Expensify Classic link.
+ */
+function isSharedProductHostAppLink(href: string): boolean {
+    if (!isSharedProductHost()) {
+        return false;
+    }
+
+    try {
+        if (new URL(href).origin !== window.location.origin) {
+            return false;
+        }
+        return findFocusedRoute(getStateFromPath(Url.getPathFromURL(href)))?.name !== SCREENS.NOT_FOUND;
+    } catch {
+        return false;
+    }
+}
+
 function getInternalNewExpensifyPath(href: string) {
     if (!href) {
         return '';
@@ -143,7 +163,8 @@ function getInternalNewExpensifyPath(href: string) {
 
     const attrPath = Url.getPathFromURL(href);
     // The dev server's port varies, so dev is matched by prefix instead of by origin.
-    const hasNewExpensifyOrigin = NEW_EXPENSIFY_ORIGINS.some((origin) => Url.hasSameExpensifyOrigin(href, origin)) || href.startsWith(CONST.DEV_NEW_EXPENSIFY_URL);
+    const hasNewExpensifyOrigin =
+        NEW_EXPENSIFY_ORIGINS.some((origin) => Url.hasSameExpensifyOrigin(href, origin)) || href.startsWith(CONST.DEV_NEW_EXPENSIFY_URL) || isSharedProductHostAppLink(href);
     const isExternalPath = CONST.PATHS_TO_TREAT_AS_EXTERNAL.some((path) => attrPath.startsWith(path));
 
     return hasNewExpensifyOrigin && !isExternalPath ? attrPath : '';
@@ -373,7 +394,7 @@ function getReportLinkRoute(
 }
 
 function openLink(href: string, environmentURL: string, isAttachment: boolean, session: OnyxEntry<Session>) {
-    const hasSameOrigin = Url.hasSameExpensifyOrigin(href, environmentURL);
+    const hasSameOrigin = Url.hasSameExpensifyOrigin(href, environmentURL) || isSharedProductHostAppLink(href);
     const hasExpensifyOrigin = Url.hasSameExpensifyOrigin(href, CONFIG.EXPENSIFY.EXPENSIFY_URL) || Url.hasSameExpensifyOrigin(href, CONFIG.EXPENSIFY.STAGING_API_ROOT);
     const internalNewExpensifyPath = getInternalNewExpensifyPath(href);
     const internalExpensifyPath = getInternalExpensifyPath(href);

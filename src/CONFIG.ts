@@ -121,6 +121,7 @@ export default {
     IS_USING_WEB_PROXY: getPlatform() === 'web' && useWebProxy,
     APPLE_SIGN_IN: {
         SERVICE_ID: 'com.chat.expensify.chat.AppleSignIn',
+        // Apple accepts only the domains and return URLs registered for SERVICE_ID, so this stays on the New Expensify host
         REDIRECT_URI: `${newExpensifyURL}appleauth`,
     },
     GOOGLE_SIGN_IN: {

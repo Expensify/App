@@ -5,6 +5,7 @@
 
 import {getCurrentUserEmail} from './CurrentUserStore';
 import {getOldDotEnvironmentURL} from './Environment/Environment';
+import {isSharedProductHost} from './ExperienceCookie';
 import addTrailingForwardSlash from './UrlUtils';
 
 function buildOldDotURL(url: string, shortLivedAuthToken?: string): Promise<string> {
@@ -24,7 +25,8 @@ function buildOldDotURL(url: string, shortLivedAuthToken?: string): Promise<stri
     const params = paramsArray.filter(Boolean).join('&');
 
     return getOldDotEnvironmentURL().then((environmentURL) => {
-        const oldDotDomain = addTrailingForwardSlash(environmentURL);
+        // Expensify Classic's session belongs to the host it was opened on, so Classic opened from the shared product host stays on it
+        const oldDotDomain = addTrailingForwardSlash(isSharedProductHost() ? window.location.origin : environmentURL);
 
         // If the URL contains # or ?, we can assume they don't need to have the `?` token to start listing url parameters.
         return `${oldDotDomain}${originURL}${hasURLParams ? '&' : '?'}${params}${hashParams}`;

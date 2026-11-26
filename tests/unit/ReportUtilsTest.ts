@@ -6513,6 +6513,9 @@ describe('ReportUtils', () => {
             expect(getReportIDFromLink('https://dev.new.expensify.com/r/75431276')).toBe('75431276');
             expect(getReportIDFromLink('https://staging.expensify.cash/r/75431276')).toBe('75431276');
             expect(getReportIDFromLink('https://new.expensify.com/r/75431276')).toBe('75431276');
+            expect(getReportIDFromLink('https://expensify.com/r/75431276')).toBe('75431276');
+            expect(getReportIDFromLink('https://expensify.com.dev/r/75431276')).toBe('75431276');
+            expect(getReportIDFromLink('https://staging.expensify.com/r/75431276')).toBe('75431276');
         });
 
         it("shouldn't get the correct reportID from a deep link", () => {
