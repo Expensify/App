@@ -1,5 +1,6 @@
 import MenuItem from '@components/MenuItem';
 import type {FlatNavSidebarRowProps} from '@components/Navigation/FlatNavigationBar/useFlatNavSidebarRowProps';
+import useSignedInLinkRoute from '@components/Navigation/NavigationTabBar/useSignedInLinkRoute';
 
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 
@@ -26,6 +27,7 @@ type SettingsMenuItemProps = {
 
 function SettingsMenuItem({item, isFocused, keyTitle, isExecuting, isScreenFocused, onPress, wrapperStyle, flatNavRowProps}: SettingsMenuItemProps) {
     const popoverAnchor = useRef(null);
+    const getSignedInLinkRoute = useSignedInLinkRoute();
     const {shouldShowBasicTitle, titleStyle, hoveredTitleStyle, selectedStyle, hoveredStyle} = flatNavRowProps;
 
     const onSecondaryInteraction = item.link
@@ -65,6 +67,7 @@ function SettingsMenuItem({item, isFocused, keyTitle, isExecuting, isScreenFocus
             icon={item.icon}
             disabled={isExecuting && !isFocused}
             onPress={onPress}
+            linkRoute={item.route ? getSignedInLinkRoute(item.route) : undefined}
             iconStyles={item.iconStyles}
             badgeText={item.badgeText}
             badgeStyle={item.badgeStyle}

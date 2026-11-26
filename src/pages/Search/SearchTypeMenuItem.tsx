@@ -15,6 +15,7 @@ import getButtonState from '@libs/getButtonState';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import type {Route} from '@src/ROUTES';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
@@ -37,6 +38,9 @@ type SearchTypeMenuItemProps = WithRequiredSentryLabel & {
     focused?: boolean;
 
     onPress: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
+
+    /** Renders the row as a link to this route on web, so it can be opened in a new tab */
+    linkRoute?: Route;
 };
 
 const COLLAPSED_BADGE_INITIAL_SCALE = 0.5;
@@ -45,7 +49,7 @@ const COLLAPSED_BADGE_EXIT_DURATION_MS = 90;
 /**
  * Menu item row for Search type menu
  */
-function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress, sentryLabel}: SearchTypeMenuItemProps) {
+function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress, linkRoute, sentryLabel}: SearchTypeMenuItemProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -74,6 +78,7 @@ function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress, s
     const pressable = (
         <PressableWithoutFeedback
             onPress={onPress}
+            linkRoute={linkRoute}
             onHoverIn={isVisuallyCollapsed ? () => TooltipSense.activate() : undefined}
             accessibilityLabel={title}
             accessibilityState={{selected: focused}}

@@ -15,6 +15,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Icon as TIcon} from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -42,6 +43,9 @@ type MenuData = WithRequiredSentryLabel & {
 
     /** Action performed when the row is selected. */
     action: () => void;
+
+    /** Route the row opens, so it can render as a link. */
+    route?: Route;
 
     /** External link associated with the row. */
     link?: string | (() => Promise<string>);
@@ -86,6 +90,13 @@ type MenuData = WithRequiredSentryLabel & {
     isBadgeCondensed?: boolean;
 };
 
+/** Settings menu row that opens a route. */
+type RouteMenuData = Omit<MenuData, 'action' | 'route'> & {route: Route};
+
+function withNavigateAction(item: RouteMenuData): MenuData {
+    return {...item, action: () => Navigation.navigate(item.route)};
+}
+
 /** Group of Settings menu rows displayed under one translated heading. */
 type MenuSection = {
     /** Translation key used for the section heading. */
@@ -101,48 +112,48 @@ function useSettingsNavigationMenuData(): {accountMenuItemsData: MenuSection; ge
     const subscriptionPlan = useSubscriptionPlan();
     const isAgentAccount = useIsAgentAccount();
 
-    const accountItems: MenuData[] = [
+    const accountItems: RouteMenuData[] = [
         {
             translationKey: 'common.profile',
             icon: icons.Profile,
             screenName: SCREENS.SETTINGS.PROFILE.ROOT,
             sentryLabel: CONST.SENTRY_LABEL.ACCOUNT.PROFILE,
-            action: () => Navigation.navigate(ROUTES.SETTINGS_PROFILE.getRoute()),
+            route: ROUTES.SETTINGS_PROFILE.getRoute(),
         },
         {
             translationKey: 'common.wallet',
             icon: icons.Wallet,
             screenName: SCREENS.SETTINGS.WALLET.ROOT,
             sentryLabel: CONST.SENTRY_LABEL.ACCOUNT.WALLET,
-            action: () => Navigation.navigate(ROUTES.SETTINGS_WALLET),
+            route: ROUTES.SETTINGS_WALLET,
         },
         {
             translationKey: 'expenseRulesPage.title',
             icon: icons.Bolt,
             screenName: SCREENS.SETTINGS.RULES.ROOT,
             sentryLabel: CONST.SENTRY_LABEL.ACCOUNT.RULES,
-            action: () => Navigation.navigate(ROUTES.SETTINGS_RULES),
+            route: ROUTES.SETTINGS_RULES,
         },
         {
             translationKey: 'common.preferences',
             icon: icons.Gear,
             screenName: SCREENS.SETTINGS.PREFERENCES.ROOT,
             sentryLabel: CONST.SENTRY_LABEL.ACCOUNT.PREFERENCES,
-            action: () => Navigation.navigate(ROUTES.SETTINGS_PREFERENCES),
+            route: ROUTES.SETTINGS_PREFERENCES,
         },
         {
             translationKey: 'delegate.copilot',
             icon: icons.Users,
             screenName: SCREENS.SETTINGS.COPILOT,
             sentryLabel: CONST.SENTRY_LABEL.ACCOUNT.COPILOT,
-            action: () => Navigation.navigate(ROUTES.SETTINGS_COPILOT),
+            route: ROUTES.SETTINGS_COPILOT,
         },
         {
             translationKey: 'initialSettingsPage.security',
             icon: icons.Lock,
             screenName: SCREENS.SETTINGS.SECURITY,
             sentryLabel: CONST.SENTRY_LABEL.ACCOUNT.SECURITY,
-            action: () => Navigation.navigate(ROUTES.SETTINGS_SECURITY.getRoute()),
+            route: ROUTES.SETTINGS_SECURITY.getRoute(),
         },
     ];
 
@@ -153,7 +164,7 @@ function useSettingsNavigationMenuData(): {accountMenuItemsData: MenuSection; ge
             icon: icons.Bot,
             screenName: SCREENS.SETTINGS.AGENTS.ROOT,
             sentryLabel: CONST.SENTRY_LABEL.ACCOUNT.AGENTS,
-            action: () => Navigation.navigate(ROUTES.SETTINGS_AGENTS),
+            route: ROUTES.SETTINGS_AGENTS,
         });
     }
 
@@ -163,47 +174,49 @@ function useSettingsNavigationMenuData(): {accountMenuItemsData: MenuSection; ge
             icon: icons.CreditCard,
             screenName: SCREENS.SETTINGS.SUBSCRIPTION.ROOT,
             sentryLabel: CONST.SENTRY_LABEL.ACCOUNT.SUBSCRIPTION,
-            action: () => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.route),
+            route: ROUTES.SETTINGS_SUBSCRIPTION.route,
         });
     }
+
+    const generalItems: RouteMenuData[] = [
+        {
+            translationKey: 'initialSettingsPage.help',
+            icon: icons.QuestionMark,
+            screenName: SCREENS.SETTINGS.HELP,
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_GENERAL.HELP,
+            route: ROUTES.SETTINGS_HELP,
+        },
+        {
+            translationKey: 'initialSettingsPage.about',
+            icon: icons.Info,
+            screenName: SCREENS.SETTINGS.ABOUT,
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_GENERAL.ABOUT,
+            route: ROUTES.SETTINGS_ABOUT,
+        },
+        {
+            translationKey: 'initialSettingsPage.aboutPage.troubleshoot',
+            icon: icons.Lightbulb,
+            screenName: SCREENS.SETTINGS.TROUBLESHOOT,
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_GENERAL.TROUBLESHOOT,
+            route: ROUTES.SETTINGS_TROUBLESHOOT,
+        },
+        {
+            translationKey: 'sidebarScreen.saveTheWorld',
+            icon: icons.Heart,
+            screenName: SCREENS.SETTINGS.SAVE_THE_WORLD,
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_GENERAL.SAVE_THE_WORLD,
+            route: ROUTES.SETTINGS_SAVE_THE_WORLD,
+        },
+    ];
 
     return {
         accountMenuItemsData: {
             sectionTranslationKey: 'initialSettingsPage.account',
-            items: accountItems,
+            items: accountItems.map(withNavigateAction),
         },
         generalMenuItemsData: {
             sectionTranslationKey: 'initialSettingsPage.general',
-            items: [
-                {
-                    translationKey: 'initialSettingsPage.help',
-                    icon: icons.QuestionMark,
-                    screenName: SCREENS.SETTINGS.HELP,
-                    sentryLabel: CONST.SENTRY_LABEL.SETTINGS_GENERAL.HELP,
-                    action: () => Navigation.navigate(ROUTES.SETTINGS_HELP),
-                },
-                {
-                    translationKey: 'initialSettingsPage.about',
-                    icon: icons.Info,
-                    screenName: SCREENS.SETTINGS.ABOUT,
-                    sentryLabel: CONST.SENTRY_LABEL.SETTINGS_GENERAL.ABOUT,
-                    action: () => Navigation.navigate(ROUTES.SETTINGS_ABOUT),
-                },
-                {
-                    translationKey: 'initialSettingsPage.aboutPage.troubleshoot',
-                    icon: icons.Lightbulb,
-                    screenName: SCREENS.SETTINGS.TROUBLESHOOT,
-                    sentryLabel: CONST.SENTRY_LABEL.SETTINGS_GENERAL.TROUBLESHOOT,
-                    action: () => Navigation.navigate(ROUTES.SETTINGS_TROUBLESHOOT),
-                },
-                {
-                    translationKey: 'sidebarScreen.saveTheWorld',
-                    icon: icons.Heart,
-                    screenName: SCREENS.SETTINGS.SAVE_THE_WORLD,
-                    sentryLabel: CONST.SENTRY_LABEL.SETTINGS_GENERAL.SAVE_THE_WORLD,
-                    action: () => Navigation.navigate(ROUTES.SETTINGS_SAVE_THE_WORLD),
-                },
-            ],
+            items: generalItems.map(withNavigateAction),
         },
     };
 }

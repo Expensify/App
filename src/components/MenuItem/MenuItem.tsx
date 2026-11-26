@@ -54,6 +54,7 @@ import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import type {TooltipAnchorAlignment} from '@src/types/utils/AnchorAlignment';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -379,6 +380,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** The accessibility role to use for this menu item */
         role?: Role;
 
+        /** Renders the row as a link to this route on web, so it can be opened in a new tab */
+        linkRoute?: Route;
+
         /** Overrides the computed accessibilityState (e.g. `{checked}` for a row that acts as a switch) */
         accessibilityState?: AccessibilityState;
 
@@ -511,6 +515,7 @@ function MenuItem({
     shouldUseNativeHoverEvents = false,
     sentryLabel,
     role = CONST.ROLE.BUTTON,
+    linkRoute,
     accessibilityState,
     shouldBeAccessible = true,
     tabIndex = 0,
@@ -784,6 +789,7 @@ function MenuItem({
                                 disabled={disabled}
                                 ref={mergeRefs(ref, popoverAnchor, pressableRef)}
                                 role={interactive ? role : undefined}
+                                linkRoute={linkRoute}
                                 accessibilityLabel={accessibilityLabelWithContextMenuHint}
                                 accessibilityHint={accessibilityHint}
                                 // The label repeats the title, so a masked title also masks the row that carries the label
