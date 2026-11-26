@@ -920,7 +920,7 @@
 "../../src/libs/ReportNameUtils.ts"	"import/no-cycle"	2
 "../../src/libs/ReportPrimaryActionUtils.ts"	"no-restricted-imports"	1
 "../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-deprecated/getPolicy"	26
-"../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	14
+"../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	13
 "../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-deprecated/MoneyRequestAmountInputProps"	1
 "../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-deprecated/originalMessage"	23
 "../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-deprecated/translateLocal"	7

@@ -13067,14 +13067,6 @@ function navigateToPrivateNotes(report: OnyxEntry<Report>, accountID: number, in
 }
 
 /**
- * Get all held transactions of a iouReport
- */
-function getAllHeldTransactions(iouReportID?: string): Transaction[] {
-    const transactions = getReportTransactions(iouReportID);
-    return transactions.filter((transaction) => isOnHoldTransactionUtils(transaction));
-}
-
-/**
  * Check if Report has any held expenses
  *
  * @warning Use `hasHeldExpensesFromTransactions` instead.
@@ -16193,7 +16185,6 @@ export {
     formatReportLastMessageText,
     generateReportID,
     getCreationReportErrors,
-    getAllHeldTransactions,
     getAllPolicyReports,
     getAllWorkspaceReports,
     getAvailableReportFields,

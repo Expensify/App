@@ -6129,8 +6129,8 @@ describe('actions/IOU/ReportWorkflow', () => {
             return {policy, chatReport, approvedReport, approvedTransaction, outstandingTransaction};
         }
 
-        async function approve(approvedReport: Report, policy: Policy, allTransactionViolations: OnyxCollection<TransactionViolations>) {
-            const expenseReportTransactions = await getReportTransactionsFromOnyx(approvedReport.reportID);
+        async function approve(approvedReport: Report, policy: Policy, allTransactionViolations: OnyxCollection<TransactionViolations>, transactionsFromCaller?: Transaction[]) {
+            const expenseReportTransactions = transactionsFromCaller ?? (await getReportTransactionsFromOnyx(approvedReport.reportID));
             approveMoneyRequest({
                 expenseReportTransactions,
                 rules: undefined,
@@ -6209,6 +6209,20 @@ describe('actions/IOU/ReportWorkflow', () => {
             // Then nothing is left for the user to act on, so the chat's outstanding flag is cleared
             const optimisticChatReport = getRequiredOnyxUpdate(getOnyxDataArg(), 'optimisticData', `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, Onyx.METHOD.MERGE, true).value;
             expect(optimisticChatReport).toMatchObject({hasOutstandingChildRequest: false});
+        });
+
+        it('clears the hold on the held expenses from the passed transactions when approving everything', async () => {
+            // Given the caller's copy of the report's only expense is on hold, while the copy in Onyx is not
+            const {policy, approvedReport, approvedTransaction} = await setUpChatWithApprovedAndOutstandingReports();
+            const heldTransaction: Transaction = {...approvedTransaction, comment: {...approvedTransaction.comment, hold: '1'}};
+            const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${approvedTransaction.transactionID}`;
+
+            // When the whole report is approved with the caller's transactions
+            await approve(approvedReport, policy, {}, [heldTransaction]);
+
+            // Then the hold is cleared optimistically and put back on failure, so the held expenses come from the caller and not from Onyx
+            expect(getRequiredOnyxUpdate(getOnyxDataArg(), 'optimisticData', transactionKey, Onyx.METHOD.MERGE).value).toEqual({comment: {hold: ''}});
+            expect(getRequiredOnyxUpdate(getOnyxDataArg(), 'failureData', transactionKey, Onyx.METHOD.MERGE).value).toEqual({comment: {hold: '1'}});
         });
 
         it('treats an undefined violations argument as no violations', async () => {

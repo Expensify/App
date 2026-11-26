@@ -34,7 +34,6 @@ import {
     buildOptimisticRetractedReportAction,
     buildOptimisticSubmittedReportAction,
     buildOptimisticUnapprovedReportAction,
-    getAllHeldTransactions as getAllHeldTransactionsReportUtils,
     getNextApproverAccountID,
     getReimbursableTotal,
     getReportOrDraftReport,
@@ -410,7 +409,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
 
     // Clear hold reason of all transactions if we approve all requests
     if (full && hasHeldExpenses) {
-        const heldTransactions = getAllHeldTransactionsReportUtils(expenseReport.reportID);
+        const heldTransactions = expenseReportTransactions.filter((transaction) => isOnHold(transaction));
         for (const heldTransaction of heldTransactions) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
