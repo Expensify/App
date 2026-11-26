@@ -3,10 +3,7 @@ import {PressableWithFeedback} from '@components/Pressable';
 import useInboxTabIndicatorStatus from '@hooks/useInboxTabIndicatorStatus';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-
-import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -41,7 +38,6 @@ type WideInboxTabButtonProps = {
 // narrow layout tapping Inbox always routes to ROUTES.INBOX, so these subscriptions are never set up.
 function WideInboxTabButton({selectedTab, statusIndicatorColor, accessibilityLabel, isCompact}: WideInboxTabButtonProps) {
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Inbox']);
     const navigateToChats = useWideInboxNavigation(selectedTab === NAVIGATION_TABS.INBOX);
@@ -53,11 +49,7 @@ function WideInboxTabButton({selectedTab, statusIndicatorColor, accessibilityLab
             role={CONST.ROLE.TAB}
             accessibilityLabel={accessibilityLabel}
             accessibilityState={{selected: selectedTab === NAVIGATION_TABS.INBOX}}
-            style={({hovered}) => [
-                styles.leftNavigationTabBarItem,
-                isCompact && StyleUtils.getHeight(variables.navigationTabBarCompactItemHeight),
-                hovered && styles.navigationTabBarItemHovered,
-            ]}
+            style={({hovered}) => [styles.leftNavigationTabBarItem, isCompact && styles.leftNavigationTabBarItemCompact, hovered && styles.navigationTabBarItemHovered]}
             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INBOX}
         >
             {({hovered}) => (

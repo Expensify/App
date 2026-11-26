@@ -17,8 +17,6 @@ import NavigationTabBarAvatar from '@pages/inbox/sidebar/NavigationTabBarAvatar'
 import NavigationTabBarFloatingActionButton from '@pages/inbox/sidebar/NavigationTabBarFloatingActionButton';
 import SupportalSwitcherButton from '@pages/inbox/sidebar/SupportalSwitcherButton';
 
-import variables from '@styles/variables';
-
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -61,7 +59,6 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
     const navigateToSettings = useAccountTabNavigation(selectedTab === NAVIGATION_TABS.SETTINGS);
 
     const {isCompact, updateTabListHeight} = useIsNavigationTabBarCompact(WIDE_LAYOUT_ROW_COUNT);
-    const compactItemStyle = isCompact ? StyleUtils.getHeight(variables.navigationTabBarCompactItemHeight) : undefined;
 
     // shouldShowFloatingButtons is false for the swipe-back duplicate tab bar rendered via
     // bottomContent — gating the debug view on it prevents it from appearing in that copy too.
@@ -103,7 +100,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
                     linkRoute={ROUTES.HOME}
                     role={CONST.ROLE.TAB}
                     accessibilityLabel={translate('common.home')}
-                    style={({hovered}) => [styles.leftNavigationTabBarItem, compactItemStyle, hovered && styles.navigationTabBarItemHovered]}
+                    style={({hovered}) => [styles.leftNavigationTabBarItem, isCompact && styles.leftNavigationTabBarItemCompact, hovered && styles.navigationTabBarItemHovered]}
                     sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.HOME}
                 >
                     {({hovered}) => (
@@ -136,7 +133,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
                     isCompact={isCompact}
                 />
                 <NavigationTabBarAvatar
-                    style={[styles.leftNavigationTabBarItem, compactItemStyle]}
+                    style={[styles.leftNavigationTabBarItem, isCompact && styles.leftNavigationTabBarItemCompact]}
                     isSelected={selectedTab === NAVIGATION_TABS.SETTINGS}
                     onPress={navigateToSettings}
                 />
