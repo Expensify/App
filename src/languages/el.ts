@@ -1988,6 +1988,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 one: '1 αναφορά',
                 other: `${count} αναφορές`,
             }),
+            downloadReceipt: 'Λήψη απόδειξης',
         },
         confirmPayAmount: 'Πληρώστε ό,τι δεν είναι σε αναμονή ή πληρώστε ολόκληρη την αναφορά.',
         confirmPayAllHoldAmount: () => ({

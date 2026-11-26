@@ -1921,6 +1921,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 one: '1 informe',
                 other: `${count} informes`,
             }),
+            downloadReceipt: 'Descargar recibo',
         },
         confirmPayAmount: 'Paga lo que no está retenido, o paga el informe completo.',
         confirmPayAllHoldAmount: () => ({
