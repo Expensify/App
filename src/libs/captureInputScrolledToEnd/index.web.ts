@@ -19,6 +19,10 @@ function isCaretAtEnd(input: HTMLElement): boolean {
     return textAfterCaret.toString().trim() === '';
 }
 
+// Chrome can stop a few pixels short of the end when it scrolls the caret into view, for example after a paste. Within this distance the input still
+// counts as showing the end of its text; a user reading the middle is much further away.
+const END_OF_TEXT_TOLERANCE_PX = 4;
+
 // A browser keeps an input's scrollTop when its height changes, and can reset it to 0 when the box grows. Autofocus places the caret at the end of the value,
 // so a cap change, such as the mobile keyboard shrinking the slot, could leave that end and the caret below the box. The container captures that state before
 // it changes the cap. An input that overflows counts when it is scrolled to the end, so a user reading the middle keeps their place. One that fits counts when the caret is at the end.
@@ -29,7 +33,7 @@ const captureInputScrolledToEnd: CaptureInputScrolledToEnd = (content: HostInsta
     }
 
     const maxScrollTop = input.scrollHeight - input.clientHeight;
-    const isShowingEnd = maxScrollTop < 1 ? isCaretAtEnd(input) : input.scrollTop >= maxScrollTop - 1;
+    const isShowingEnd = maxScrollTop < 1 ? isCaretAtEnd(input) : input.scrollTop >= maxScrollTop - END_OF_TEXT_TOLERANCE_PX;
     if (!isShowingEnd) {
         return undefined;
     }

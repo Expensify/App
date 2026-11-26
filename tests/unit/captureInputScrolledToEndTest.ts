@@ -47,6 +47,22 @@ describe('captureInputScrolledToEnd on web', () => {
         expect(input.scrollTop).toBe(442);
     });
 
+    it('scrolls back to the end when the input stopped a few pixels short of it', () => {
+        // Given a focused input that Chrome scrolled to just above the end of a long value, as it does when it reveals the caret after a paste
+        const input = createScrollableInput(540, 98, 440);
+        const content = mountContent(input);
+        input.focus();
+
+        // When the container captures it before changing the cap, and the resize then moves the scroll position
+        const restore = captureInputScrolledToEndWeb(content);
+        input.scrollTop = 0;
+        restore?.();
+
+        // Then it still counts as showing the end, so the last line is visible again instead of staying cut off until the next key press
+        expect(restore).toBeDefined();
+        expect(input.scrollTop).toBe(442);
+    });
+
     it('leaves an input that is not showing the end of its text alone', () => {
         // Given a focused input that the user scrolled to the middle of a long value
         const input = createScrollableInput(540, 98, 100);
