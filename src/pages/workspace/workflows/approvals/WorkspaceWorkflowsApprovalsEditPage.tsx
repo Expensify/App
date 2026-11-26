@@ -146,7 +146,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
             if (shouldUseApprovalWorkflowRules) {
                 Navigation.goBack(undefined, {
                     afterTransition: () => {
-                        updateApprovalWorkflowRules({approvalWorkflow: workflowToSave, initialApprovalWorkflow, policy, rules: rulesCollection, defaultApprovalWorkflow});
+                        updateApprovalWorkflowRules({approvalWorkflow: workflowToSave, initialApprovalWorkflow, policy, rules: rulesCollection, defaultApprovalWorkflow, currentUserLogin});
                     },
                 });
                 return;

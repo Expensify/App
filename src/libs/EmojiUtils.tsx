@@ -19,18 +19,19 @@ import {Str} from 'expensify-common';
 import lodashSortBy from 'lodash/sortBy';
 import React from 'react';
 
-import type {getEmojiTrie as getEmojiTrieType} from './EmojiTrie';
+import type {getEmojiTrie as getEmojiTrieType, loadEmojiLocale as loadEmojiLocaleType} from './EmojiTrie';
 
 import {isSafari} from './Browser';
 import {containsCustomEmoji, containsOnlyCustomEmoji} from './CustomEmojiUtils';
 import memoize from './memoize';
+import Parser from './Parser';
 
 type HeaderIndices = {code: string; index: number; icon: IconAsset};
 type EmojiSpacer = {code: string; spacer: boolean};
 type EmojiPickerListItem = EmojiSpacer | Emoji | HeaderEmoji;
 type EmojiPickerList = EmojiPickerListItem[];
 type ReplacedEmoji = {text: string; emojis: Emoji[]; cursorPosition?: number};
-type EmojiTrieModule = {getEmojiTrie: typeof getEmojiTrieType};
+type EmojiTrieModule = {getEmojiTrie: typeof getEmojiTrieType; loadEmojiLocale: typeof loadEmojiLocaleType};
 type TextWithEmoji = {
     text: string;
     isEmoji: boolean;
@@ -69,10 +70,22 @@ function getEmojiCodeForInsertion(emoji: Emoji, preferredSkinTone: number, isIns
 }
 
 /**
+ * Cheap pre-check: text without any code point that every emoji contains can't contain an emoji.
+ */
+function containsEmojiCodePoint(text: string): boolean {
+    return CONST.REGEX.EMOJI_CODE_POINT.test(text);
+}
+
+/**
  * Revert emojis to shortcodes inside code blocks.
  * Optionally adjusts a cursor position to account for length changes before it.
  */
 function revertEmojisInCodeBlocks(text: string, cursorPosition?: number): {text: string; cursorPosition?: number} {
+    // Runs on every keystroke, so skip the Markdown parse when there is no emoji to revert
+    if (!containsEmojiCodePoint(text)) {
+        return {text, cursorPosition};
+    }
+
     const codeRanges = getCodeRanges(text);
     if (codeRanges.length === 0) {
         return {text, cursorPosition};
@@ -235,6 +248,13 @@ const getEmojiUnicode = memoize(
     },
     {monitoringName: 'getEmojiUnicode'},
 );
+
+/**
+ * Checks whether a composer draft renders as emojis only. Skips the Markdown parse for drafts without emoji.
+ */
+function containsOnlyEmojisInDraft(draft: string): boolean {
+    return containsEmojiCodePoint(draft) && containsOnlyEmojis(Parser.htmlToText(Parser.replace(draft)));
+}
 
 /**
  * Validates first character is emoji in text string
@@ -449,9 +469,19 @@ function getAddedEmojis(currentEmojis: Emoji[], formerEmojis: Emoji[]): Emoji[] 
  * If we're on mobile, we also add a space after the emoji granted there's no text after it.
  */
 function replaceEmojis(text: string, preferredSkinTone: OnyxEntry<number | string> = CONST.EMOJI_DEFAULT_SKIN_TONE, locale: Locale = CONST.LOCALES.DEFAULT): ReplacedEmoji {
-    const {getEmojiTrie} = require<EmojiTrieModule>('./EmojiTrie');
+    const {getEmojiTrie, loadEmojiLocale} = require<EmojiTrieModule>('./EmojiTrie');
 
     const normalizedLocale = locale && isFullySupportedLocale(locale) ? locale : CONST.LOCALES.EN;
+    const emojiData = text.match(CONST.REGEX.EMOJI_NAME);
+    if (!emojiData || emojiData.length === 0) {
+        // Only shortcodes need the trie, so it isn't built here. The emoji names still start loading, and the text
+        // stays unchanged until they have, as it did when the trie was built on this path.
+        if (!loadEmojiLocale(normalizedLocale)) {
+            return {text, emojis: []};
+        }
+        return {text: revertEmojisInCodeBlocks(text).text, emojis: []};
+    }
+
     const trie = getEmojiTrie(normalizedLocale);
     if (!trie) {
         return {text, emojis: []};
@@ -459,11 +489,6 @@ function replaceEmojis(text: string, preferredSkinTone: OnyxEntry<number | strin
 
     let newText = text;
     const emojis: Emoji[] = [];
-    const emojiData = text.match(CONST.REGEX.EMOJI_NAME);
-    if (!emojiData || emojiData.length === 0) {
-        return {text: revertEmojisInCodeBlocks(newText).text, emojis};
-    }
-
     const codeBlockRanges = parseExpensiMark(text, CONST.MAX_MARKUP_LENGTH);
     const replacements: Array<{position: number; shortcode: string; replacement: string; name: string}> = [];
     const shortcodeSearchPositions: Record<string, number> = {};
@@ -556,16 +581,18 @@ function replaceAndExtractEmojis(text: string, preferredSkinTone: OnyxEntry<numb
  * @param [limit] - matching emojis limit
  */
 function suggestEmojis(text: string, locale: Locale = CONST.LOCALES.DEFAULT, limit: number = CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS): Emoji[] | undefined {
-    const {getEmojiTrie} = require<EmojiTrieModule>('./EmojiTrie');
+    const {getEmojiTrie, loadEmojiLocale} = require<EmojiTrieModule>('./EmojiTrie');
 
     const normalizedLocale = locale && isFullySupportedLocale(locale) ? locale : CONST.LOCALES.EN;
-    const trie = getEmojiTrie(normalizedLocale);
-    if (!trie) {
+    const emojiData = text.match(CONST.REGEX.EMOJI_SUGGESTIONS);
+    if (!emojiData) {
+        // Runs on every composer change, so build the trie only once there is a shortcode, but still start loading the emoji names
+        loadEmojiLocale(normalizedLocale);
         return [];
     }
 
-    const emojiData = text.match(CONST.REGEX.EMOJI_SUGGESTIONS);
-    if (!emojiData) {
+    const trie = getEmojiTrie(normalizedLocale);
+    if (!trie) {
         return [];
     }
 
@@ -933,6 +960,8 @@ export {
     getHeaderEmojis,
     mergeEmojisWithFrequentlyUsedEmojis,
     containsOnlyEmojis,
+    containsEmojiCodePoint,
+    containsOnlyEmojisInDraft,
     replaceEmojis,
     suggestEmojis,
     getEmojiCodeWithSkinColor,

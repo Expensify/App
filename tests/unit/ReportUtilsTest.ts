@@ -156,6 +156,7 @@ import {
     getReimbursementQueuedActionMessage,
     getReportActionWithSmartscanError,
     getReportFieldMaps,
+    getReportFieldOptionExternalID,
     getReportFieldsByPolicyID,
     getReportForHeader,
     getReportIDFromLink,
@@ -171,6 +172,7 @@ import {
     getTaskAssigneeChatOnyxData,
     getTitleFieldWithFallback,
     getTransactionDetails,
+    getTransactionPolicyConvertedDisplayAmount,
     getTransactionReportName,
     getUploadingAttachmentLabelFromDraft,
     getTransactionSortValue,
@@ -10532,7 +10534,7 @@ describe('ReportUtils', () => {
                 isBillPayBetaEnabled,
                 doesReportHaveViolations: false,
                 excludeEmptyChats: false,
-                draftComment: 'Draft',
+                hasDraftComment: true,
                 isReportArchived: undefined,
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
@@ -10557,7 +10559,7 @@ describe('ReportUtils', () => {
                 isDefaultRoomsBetaEnabled: true,
                 doesReportHaveViolations: false,
                 excludeEmptyChats: false,
-                draftComment: 'Draft',
+                hasDraftComment: true,
                 isReportArchived: undefined,
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
@@ -10582,7 +10584,7 @@ describe('ReportUtils', () => {
                     isDefaultRoomsBetaEnabled: true,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
-                    draftComment: '',
+                    hasDraftComment: false,
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
@@ -10609,7 +10611,7 @@ describe('ReportUtils', () => {
                     isDefaultRoomsBetaEnabled: true,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
-                    draftComment: '',
+                    hasDraftComment: false,
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
@@ -10641,7 +10643,7 @@ describe('ReportUtils', () => {
                     isDefaultRoomsBetaEnabled: true,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
-                    draftComment: '',
+                    hasDraftComment: false,
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
@@ -10708,7 +10710,7 @@ describe('ReportUtils', () => {
                     isDefaultRoomsBetaEnabled: true,
                     doesReportHaveViolations: true,
                     excludeEmptyChats: false,
-                    draftComment: '',
+                    hasDraftComment: false,
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
@@ -10734,7 +10736,7 @@ describe('ReportUtils', () => {
                     isDefaultRoomsBetaEnabled: true,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
-                    draftComment: '',
+                    hasDraftComment: false,
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
@@ -10760,7 +10762,7 @@ describe('ReportUtils', () => {
                     isDefaultRoomsBetaEnabled: true,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
-                    draftComment: 'fake draft',
+                    hasDraftComment: true,
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
@@ -10786,7 +10788,7 @@ describe('ReportUtils', () => {
                     isDefaultRoomsBetaEnabled: true,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
-                    draftComment: '',
+                    hasDraftComment: false,
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
@@ -10825,7 +10827,7 @@ describe('ReportUtils', () => {
                     isDefaultRoomsBetaEnabled: true,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
-                    draftComment: '',
+                    hasDraftComment: false,
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
@@ -10860,7 +10862,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     isReportArchived: isReportArchived.current,
-                    draftComment: '',
+                    hasDraftComment: false,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
@@ -10894,7 +10896,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     isReportArchived: isReportArchived.current,
-                    draftComment: '',
+                    hasDraftComment: false,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
@@ -10921,7 +10923,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     includeSelfDM,
-                    draftComment: '',
+                    hasDraftComment: false,
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
@@ -10951,7 +10953,7 @@ describe('ReportUtils', () => {
                     isDefaultRoomsBetaEnabled: true,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
-                    draftComment: '',
+                    hasDraftComment: false,
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
@@ -10976,7 +10978,7 @@ describe('ReportUtils', () => {
                 isDefaultRoomsBetaEnabled: true,
                 doesReportHaveViolations: false,
                 excludeEmptyChats: false,
-                draftComment: '',
+                hasDraftComment: false,
                 isReportArchived: undefined,
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
@@ -11003,7 +11005,7 @@ describe('ReportUtils', () => {
                 isDefaultRoomsBetaEnabled: true,
                 doesReportHaveViolations: false,
                 excludeEmptyChats: false,
-                draftComment: '',
+                hasDraftComment: false,
                 isReportArchived: undefined,
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
@@ -11031,7 +11033,7 @@ describe('ReportUtils', () => {
                     isDefaultRoomsBetaEnabled: false,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
-                    draftComment: '',
+                    hasDraftComment: false,
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
@@ -11087,7 +11089,7 @@ describe('ReportUtils', () => {
                     isDefaultRoomsBetaEnabled: true,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
-                    draftComment: '',
+                    hasDraftComment: false,
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
@@ -11110,7 +11112,7 @@ describe('ReportUtils', () => {
                     isDefaultRoomsBetaEnabled: true,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: true,
-                    draftComment: '',
+                    hasDraftComment: false,
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
@@ -11141,7 +11143,7 @@ describe('ReportUtils', () => {
                     isDefaultRoomsBetaEnabled: true,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: true,
-                    draftComment: '',
+                    hasDraftComment: false,
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID,
@@ -11171,7 +11173,7 @@ describe('ReportUtils', () => {
                     isDefaultRoomsBetaEnabled: true,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: true,
-                    draftComment: '',
+                    hasDraftComment: false,
                     isReportArchived: undefined,
                     conciergeReportID,
                     hasGuidesEmails: false,
@@ -11200,7 +11202,7 @@ describe('ReportUtils', () => {
                     isDefaultRoomsBetaEnabled: true,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: true,
-                    draftComment: '',
+                    hasDraftComment: false,
                     isReportArchived: undefined,
                     conciergeReportID: 'some-other-report-id',
                     hasGuidesEmails: false,
@@ -11229,7 +11231,7 @@ describe('ReportUtils', () => {
                 isInFocusMode: false,
                 doesReportHaveViolations: false,
                 excludeEmptyChats: true,
-                draftComment: '',
+                hasDraftComment: false,
                 isReportArchived: undefined,
                 isDefaultRoomsBetaEnabled: false,
                 hasGuidesEmails: false,
@@ -11258,7 +11260,7 @@ describe('ReportUtils', () => {
                     login: '+@domain.com',
                     excludeEmptyChats: false,
                     includeDomainEmail: false,
-                    draftComment: '',
+                    hasDraftComment: false,
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
@@ -11307,7 +11309,7 @@ describe('ReportUtils', () => {
                     isDefaultRoomsBetaEnabled: true,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
-                    draftComment: '',
+                    hasDraftComment: false,
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
@@ -11330,7 +11332,7 @@ describe('ReportUtils', () => {
                     isDefaultRoomsBetaEnabled: true,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
-                    draftComment: '',
+                    hasDraftComment: false,
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
@@ -11367,7 +11369,7 @@ describe('ReportUtils', () => {
                     isInFocusMode: false,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: true,
-                    draftComment: '',
+                    hasDraftComment: false,
                     isDefaultRoomsBetaEnabled: false,
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
@@ -11403,7 +11405,7 @@ describe('ReportUtils', () => {
                     isDefaultRoomsBetaEnabled: true,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
-                    draftComment: '',
+                    hasDraftComment: false,
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
@@ -11436,7 +11438,7 @@ describe('ReportUtils', () => {
                     isDefaultRoomsBetaEnabled: true,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
-                    draftComment: '',
+                    hasDraftComment: false,
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
@@ -11462,7 +11464,7 @@ describe('ReportUtils', () => {
                     isDefaultRoomsBetaEnabled: true,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
-                    draftComment: '',
+                    hasDraftComment: false,
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
@@ -11510,7 +11512,7 @@ describe('ReportUtils', () => {
                     isDefaultRoomsBetaEnabled: true,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
-                    draftComment: '',
+                    hasDraftComment: false,
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
@@ -11565,7 +11567,7 @@ describe('ReportUtils', () => {
                     isDefaultRoomsBetaEnabled: true,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
-                    draftComment: '',
+                    hasDraftComment: false,
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
@@ -11591,7 +11593,7 @@ describe('ReportUtils', () => {
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     includeSelfDM: false,
-                    draftComment: '',
+                    hasDraftComment: false,
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
@@ -11616,7 +11618,7 @@ describe('ReportUtils', () => {
                     isDefaultRoomsBetaEnabled: true,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: true,
-                    draftComment: '',
+                    hasDraftComment: false,
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
@@ -11641,7 +11643,7 @@ describe('ReportUtils', () => {
                     isDefaultRoomsBetaEnabled: true,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
-                    draftComment: '',
+                    hasDraftComment: false,
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
@@ -11666,7 +11668,7 @@ describe('ReportUtils', () => {
                     isDefaultRoomsBetaEnabled: true,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
-                    draftComment: '',
+                    hasDraftComment: false,
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
@@ -11691,7 +11693,7 @@ describe('ReportUtils', () => {
                     isDefaultRoomsBetaEnabled: true,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
-                    draftComment: '',
+                    hasDraftComment: false,
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
@@ -11711,7 +11713,7 @@ describe('ReportUtils', () => {
                     isInFocusMode: false,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
-                    draftComment: '',
+                    hasDraftComment: false,
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
@@ -11782,7 +11784,7 @@ describe('ReportUtils', () => {
                 isDefaultRoomsBetaEnabled: true,
                 doesReportHaveViolations: true,
                 excludeEmptyChats: false,
-                draftComment: '',
+                hasDraftComment: false,
                 isReportArchived: undefined,
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
@@ -22470,7 +22472,7 @@ describe('ReportUtils', () => {
             isDefaultRoomsBetaEnabled: true,
             doesReportHaveViolations: false,
             excludeEmptyChats: false,
-            draftComment: '',
+            hasDraftComment: false,
             isReportArchived: undefined,
 
             hasGuidesEmails: false,
@@ -22533,7 +22535,7 @@ describe('ReportUtils', () => {
             isDefaultRoomsBetaEnabled: true,
             doesReportHaveViolations: false,
             excludeEmptyChats: false,
-            draftComment: '',
+            hasDraftComment: false,
             isReportArchived: undefined,
 
             hasGuidesEmails: false,
@@ -22733,7 +22735,7 @@ describe('ReportUtils', () => {
                 isInFocusMode: true,
                 doesReportHaveViolations: false,
                 excludeEmptyChats: false,
-                draftComment: undefined,
+                hasDraftComment: undefined,
                 isDefaultRoomsBetaEnabled: false,
                 isReportArchived: undefined,
 
@@ -22788,7 +22790,7 @@ describe('ReportUtils', () => {
                 isInFocusMode: true,
                 doesReportHaveViolations: false,
                 excludeEmptyChats: false,
-                draftComment: undefined,
+                hasDraftComment: undefined,
                 isDefaultRoomsBetaEnabled: false,
                 isReportArchived: undefined,
 
@@ -24093,7 +24095,7 @@ describe('ReportUtils', () => {
             isDefaultRoomsBetaEnabled: true,
             doesReportHaveViolations: shouldShowRBR,
             excludeEmptyChats: false,
-            draftComment: '',
+            hasDraftComment: false,
             isReportArchived: undefined,
 
             hasGuidesEmails: false,
@@ -24280,7 +24282,7 @@ describe('ReportUtils', () => {
             isDefaultRoomsBetaEnabled: true,
             doesReportHaveViolations: false,
             excludeEmptyChats: false,
-            draftComment: '',
+            hasDraftComment: false,
             isReportArchived: undefined,
             hasGuidesEmails: false,
             conciergeReportID: undefined,
@@ -24485,7 +24487,7 @@ describe('ReportUtils', () => {
             isDefaultRoomsBetaEnabled: true,
             doesReportHaveViolations: false,
             excludeEmptyChats: false,
-            draftComment: '',
+            hasDraftComment: false,
             isReportArchived: archiveState.current,
             hasGuidesEmails: false,
             conciergeReportID: undefined,
@@ -24511,7 +24513,7 @@ describe('ReportUtils', () => {
             isDefaultRoomsBetaEnabled: true,
             doesReportHaveViolations: false,
             excludeEmptyChats: false,
-            draftComment: '',
+            hasDraftComment: false,
             isReportArchived: archiveState.current,
             hasGuidesEmails: false,
             conciergeReportID: undefined,
@@ -24615,7 +24617,7 @@ describe('ReportUtils', () => {
             isDefaultRoomsBetaEnabled: true,
             doesReportHaveViolations: false,
             excludeEmptyChats: false,
-            draftComment: '',
+            hasDraftComment: false,
             isReportArchived: isReportArchivedBefore.current,
             hasGuidesEmails: false,
             conciergeReportID: undefined,
@@ -24659,7 +24661,7 @@ describe('ReportUtils', () => {
             isDefaultRoomsBetaEnabled: true,
             doesReportHaveViolations: false,
             excludeEmptyChats: false,
-            draftComment: '',
+            hasDraftComment: false,
             isReportArchived: isReportArchivedAfter.current,
             hasGuidesEmails: false,
             conciergeReportID: undefined,
@@ -26378,7 +26380,7 @@ describe('ReportUtils', () => {
                 doesReportHaveViolations: false,
                 excludeEmptyChats: false,
                 isReportArchived: false,
-                draftComment: '',
+                hasDraftComment: false,
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
                 derivedIsEmptyReport: undefined,
@@ -26435,7 +26437,7 @@ describe('ReportUtils', () => {
                 doesReportHaveViolations: false,
                 excludeEmptyChats: false,
                 isReportArchived: false,
-                draftComment: '',
+                hasDraftComment: false,
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
                 derivedIsEmptyReport: undefined,
@@ -29359,7 +29361,7 @@ describe('ReportUtils', () => {
                 doesReportHaveViolations: false,
                 excludeEmptyChats: false,
                 isReportArchived: false,
-                draftComment: '',
+                hasDraftComment: false,
 
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
@@ -29433,7 +29435,7 @@ describe('ReportUtils', () => {
                 doesReportHaveViolations: false,
                 excludeEmptyChats: false,
                 isReportArchived: false,
-                draftComment: '',
+                hasDraftComment: false,
 
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
@@ -29879,6 +29881,84 @@ describe('ReportUtils', () => {
 
                 expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
             });
+        });
+    });
+
+    describe('getTransactionPolicyConvertedDisplayAmount', () => {
+        const expenseReport: Report = {...createRandomReport(1, undefined), type: CONST.REPORT.TYPE.EXPENSE};
+        const iouReport: Report = {...createRandomReport(2, undefined), type: CONST.REPORT.TYPE.IOU};
+
+        it('signs the workspace amount like the displayed amount on an expense report', () => {
+            // Given an expense on an expense report, stored with the opposite sign in both currencies
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                reportID: expenseReport.reportID,
+                amount: -1000,
+                currency: 'EUR',
+                policyConvertedAmount: -1250,
+                policyCurrency: 'USD',
+            };
+
+            // When its workspace amount is read for display
+            const displayAmount = getTransactionPolicyConvertedDisplayAmount(transaction, expenseReport, undefined);
+
+            // Then it is flipped the same way as the Amount column, not shown in the stored sign
+            expect(displayAmount).toBe(1250);
+        });
+
+        it('shows the workspace amount as positive on an IOU', () => {
+            // Given an IOU expense stored as negative
+            const transaction: Transaction = {
+                ...createRandomTransaction(2),
+                reportID: iouReport.reportID,
+                amount: -1000,
+                currency: 'EUR',
+                policyConvertedAmount: -1250,
+                policyCurrency: 'USD',
+            };
+
+            // When its workspace amount is read for display
+            const displayAmount = getTransactionPolicyConvertedDisplayAmount(transaction, iouReport, undefined);
+
+            // Then it is positive, because IOU amounts are never shown as negative
+            expect(displayAmount).toBe(1250);
+        });
+
+        it('flips the sign of an unreported expense', () => {
+            // Given an unreported refund, stored as positive, that the server returned in its own currency
+            const transaction: Transaction = {
+                ...createRandomTransaction(3),
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                amount: 500,
+                currency: 'EUR',
+                policyConvertedAmount: 500,
+                policyCurrency: 'EUR',
+            };
+
+            // When its workspace amount is read for display
+            const displayAmount = getTransactionPolicyConvertedDisplayAmount(transaction, undefined, undefined);
+
+            // Then it shows as negative, matching how the Amount column shows a tracked refund
+            expect(displayAmount).toBe(-500);
+        });
+
+        it('falls back to the displayed amount when the server has not sent a workspace amount yet', () => {
+            // Given an expense created offline on an expense report, which has no workspace amount until the next search
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                reportID: expenseReport.reportID,
+                amount: -1000,
+                modifiedAmount: -1000,
+                currency: 'EUR',
+                policyConvertedAmount: undefined,
+                policyCurrency: undefined,
+            };
+
+            // When its workspace amount is read for display
+            const displayAmount = getTransactionPolicyConvertedDisplayAmount(transaction, expenseReport, undefined);
+
+            // Then it shows its own amount, signed like the Amount column
+            expect(displayAmount).toBe(1000);
         });
     });
 
@@ -33424,5 +33504,58 @@ describe('isReportTransactionThreadNew', () => {
         // When checking it
         // Then it is not a transaction thread
         expect(isReportTransactionThreadNew({parentReportID: '1'}, {type: CONST.REPORT.TYPE.EXPENSE}, buildIOUAction(CONST.IOU.REPORT_ACTION_TYPE.CREATE))).toBe(false);
+    });
+});
+
+describe('getReportFieldOptionExternalID', () => {
+    const buildListField = (values: string[], externalIDs: string[], disabledOptions: boolean[]): PolicyReportField => ({
+        fieldID: 'field_id_LOCATION',
+        name: 'Location',
+        type: CONST.REPORT_FIELD_TYPES.LIST,
+        defaultValue: '',
+        orderWeight: 1,
+        deletable: false,
+        target: CONST.REPORT_FIELD_TARGETS.EXPENSE,
+        values,
+        keys: externalIDs,
+        externalIDs,
+        disabledOptions,
+        isTax: false,
+    });
+
+    it('returns the external ID at the position of the matching option', () => {
+        // Given a list field whose options each have their own external ID
+        const field = buildListField(['Corporate / Marketing', 'SW Sales / Marketing', 'Advisory / Consulting'], ['46', '336', '21'], [false, false, false]);
+
+        // When looking up an option by its name
+        // Then the ID at that option's position comes back, so the export gets the option the user picked
+        expect(getReportFieldOptionExternalID(field, 'SW Sales / Marketing')).toBe('336');
+    });
+
+    it('prefers an enabled option over a disabled option with the same name', () => {
+        // Given two options with the same name where only the second one is enabled, as the dropdown only offers enabled options
+        const field = buildListField(['Location A', 'Location A'], ['1', '2'], [true, false]);
+
+        // When looking up that name
+        // Then the enabled option's ID comes back, because that is the only one the user could have picked
+        expect(getReportFieldOptionExternalID(field, 'Location A')).toBe('2');
+    });
+
+    it('returns the disabled option ID when no enabled option has the name', () => {
+        // Given a saved value that only matches a disabled option
+        const field = buildListField(['Location A', 'Location B'], ['1', '2'], [true, false]);
+
+        // When looking up that name
+        // Then that option's ID still comes back, so the value keeps its own ID instead of none
+        expect(getReportFieldOptionExternalID(field, 'Location A')).toBe('1');
+    });
+
+    it('returns an empty string when no option has the name', () => {
+        // Given a value that is not one of the field's options
+        const field = buildListField(['Location A'], ['1'], [false]);
+
+        // When looking it up
+        // Then no ID comes back, instead of the ID of some other option
+        expect(getReportFieldOptionExternalID(field, 'Location B')).toBe('');
     });
 });

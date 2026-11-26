@@ -36,6 +36,7 @@ type InsightsDashboardChart = InsightsChartQuery & {
     headlineSummary?: InsightsHeadlineSummary;
     shouldWaitForSummary?: boolean;
     isDashboardLoaded?: boolean;
+    eligiblePolicyIDs?: string[];
 
     /** The chart's stages some workspace in scope is eligible for, set when the chart declares stages */
     stages?: InsightsChartStage[];

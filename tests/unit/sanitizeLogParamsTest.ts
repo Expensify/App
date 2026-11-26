@@ -29,6 +29,18 @@ describe('sanitizeLogParams', () => {
         expect(result).toEqual({authToken: '<redacted>', password: '<redacted>', token: '<redacted>'});
     });
 
+    it('redacts the explanation query from both API and network logs', () => {
+        // Given an Insights explanation query with card evidence.
+        const command = 'GetInsightsExplanation';
+        const data = {jsonQuery: JSON.stringify({evidence: {total: 4623}}), hash: 123};
+
+        // When the request parameters are logged, then the evidence is redacted without changing the request.
+        expect(sanitizeLogParams({command, ...data})).toEqual({command, jsonQuery: '<redacted>', hash: 123});
+        expect(sanitizeLogParams({command, data})).toEqual({command, data: {jsonQuery: '<redacted>', hash: 123}});
+        expect(sanitizeLogParams({command: 'GetInsights', data}).data).toEqual(data);
+        expect(data.jsonQuery).toContain('4623');
+    });
+
     it('redacts card number and CVV so payment card details never reach the logs', () => {
         const result = sanitizeLogParams({
             command: 'AddPaymentCard',
