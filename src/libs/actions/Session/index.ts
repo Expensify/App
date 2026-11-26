@@ -28,6 +28,7 @@ import buildOldDotURL from '@libs/buildOldDotURL';
 import {openClassicSignOutAfter, preventClassicSignInDuring} from '@libs/ClassicSignIn';
 import {hasAuthToken} from '@libs/CurrentUserStore';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import {isSharedProductHost} from '@libs/ExperienceCookie';
 import FraudProtection from '@libs/FraudProtection';
 import getPlatform from '@libs/getPlatform';
 import Growl from '@libs/Growl';
@@ -520,12 +521,12 @@ function signOutAndRedirectToSignIn(session: OnyxEntry<Session>, options: SignOu
                 // Send event to Fraud Protection backend, otherwise it might consider the user as being suspicious
                 FraudProtection.sendEvent(FRAUD_PROTECTION_EVENT.STOP_SUPPORT_SESSION);
             }
-            if (response?.hasOldDotAuthCookies) {
+            // Classic's session cookies belong to the host that set them, so the host that serves both products opens its own sign-out page in the last branch
+            if (response?.hasOldDotAuthCookies && !isSharedProductHost()) {
                 Log.info('Redirecting to OldDot sign out');
                 const signInRedirect = redirectToSignIn(signOutReason).then(() => {
                     Onyx.multiSet(onyxSetParams);
                 });
-                preventClassicSignInDuring(signInRedirect);
                 asyncOpenURL(signInRedirect, `${CONFIG.EXPENSIFY.EXPENSIFY_URL}${CONST.OLDDOT_URLS.SIGN_OUT}`, true, true);
             } else if (isPerformingSupportalLogout && hasStashedSession(stashedSession, stashedCredentials)) {
                 // We have confirmed here that the supportal agent was logged in, so we can restore the stashed session

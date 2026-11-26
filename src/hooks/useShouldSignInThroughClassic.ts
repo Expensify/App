@@ -1,3 +1,4 @@
+import {canOpenClassicSignIn} from '@libs/ClassicSignIn';
 import {isSharedProductHost} from '@libs/ExperienceCookie';
 
 import CONST from '@src/CONST';
@@ -5,12 +6,14 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {authTokenSelector} from '@src/selectors/Session';
 
 import {useIsFocused} from '@react-navigation/native';
+import {useState} from 'react';
 
 import useOnyx from './useOnyx';
 
 /**
  * Whether a signed-out user should sign in on the Expensify Classic page instead of the sign-in screen that renders this hook.
- * That's the case on the host that serves both products, unless a sign-in is already in progress in New Expensify.
+ * That's the case on the host that serves both products, unless a sign-in is already in progress in New Expensify
+ * or the Expensify Classic sign-in page keeps sending the user back without a session.
  */
 function useShouldSignInThroughClassic(): boolean {
     const [authToken] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenSelector});
@@ -20,7 +23,10 @@ function useShouldSignInThroughClassic(): boolean {
     // Other public screens, like the one that signs in with a short-lived token, cover the sign-in screen while they work
     const isFocused = useIsFocused();
 
-    if (!isSharedProductHost() || !isFocused) {
+    // Checked once per screen, since opening the page counts toward the limit and the screen has to keep its loading indicator while the page unloads
+    const [canOpenSignInPage] = useState(canOpenClassicSignIn);
+
+    if (!isSharedProductHost() || !isFocused || !canOpenSignInPage) {
         return false;
     }
 

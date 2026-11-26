@@ -6,6 +6,13 @@
 type OpenClassicSignIn = () => () => void;
 
 /**
+ * Whether this tab can open the Expensify Classic sign-in page again. It can't once the page opened too often within a short time,
+ * since a sign-in page that keeps coming back without a session would otherwise send the user around in a loop.
+ * While a sign out hasn't reached Expensify Classic yet it always can, since a sign-in request then opens the sign-out page, which is never limited.
+ */
+type CanOpenClassicSignIn = () => boolean;
+
+/**
  * Opens the Expensify Classic sign-out page once the given cleanup settles, so the Expensify Classic session ends too.
  * Does nothing on any host other than the one that serves both products.
  */
@@ -17,4 +24,4 @@ type OpenClassicSignOutAfter = (cleanup: Promise<unknown>) => void;
  */
 type PreventClassicSignInDuring = (navigation: Promise<unknown>) => void;
 
-export type {OpenClassicSignIn, OpenClassicSignOutAfter, PreventClassicSignInDuring};
+export type {CanOpenClassicSignIn, OpenClassicSignIn, OpenClassicSignOutAfter, PreventClassicSignInDuring};

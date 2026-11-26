@@ -12,7 +12,7 @@ import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import asyncOpenURL from '@libs/asyncOpenURL';
 import buildOldDotURL from '@libs/buildOldDotURL';
 import {openClassicSignOutAfter, preventClassicSignInDuring} from '@libs/ClassicSignIn';
-import {clearExperienceCookie} from '@libs/ExperienceCookie';
+import {clearExperienceCookie, isSharedProductHost} from '@libs/ExperienceCookie';
 import getPlatform from '@libs/getPlatform';
 import Growl from '@libs/Growl';
 import HttpUtils from '@libs/HttpUtils';
@@ -74,10 +74,11 @@ jest.mock('@libs/openExternalLink', () => ({
 
 jest.mock('@libs/getPlatform', () => jest.fn());
 
-// Mocked to check that the sign in redirect clears the experience cookie
+// Mocked to check that the sign in redirect clears the experience cookie, and to choose the host the sign out runs on
 jest.mock('@libs/ExperienceCookie', () => ({
     writeExperienceCookie: jest.fn(),
     clearExperienceCookie: jest.fn(),
+    isSharedProductHost: jest.fn(() => false),
 }));
 
 jest.mock('@libs/ClassicSignIn', () => ({
@@ -662,30 +663,59 @@ describe('Session', () => {
     });
 
     describe('SignOutAndRedirectToSignIn', () => {
-        test('SignOutAndRedirectToSignIn should redirect to OldDot when LogOut returns truthy hasOldDotAuthCookies', async () => {
-            await TestHelper.signInWithTestUser();
-            setHasRadio(false);
-            await waitForBatchedUpdates();
+        describe('when LogOut reports Classic session cookies', () => {
+            let redirectToSignInSpy: jest.SpiedFunction<typeof SignInRedirect.default>;
 
-            jest.mocked(HttpUtils.xhr)
-                // This will make the call to OpenApp below return with an expired session code
-                .mockImplementationOnce(() =>
-                    Promise.resolve({
-                        jsonCode: CONST.JSON_CODE.SUCCESS,
-                        hasOldDotAuthCookies: true,
-                    }),
-                );
+            beforeEach(async () => {
+                // Given a signed-in user whose browser has Classic session cookies
+                await TestHelper.signInWithTestUser();
+                jest.clearAllMocks();
+                jest.spyOn(API, 'makeRequestWithSideEffects').mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS, hasOldDotAuthCookies: true});
+                redirectToSignInSpy = jest.spyOn(SignInRedirect, 'default').mockImplementation(() => Promise.resolve());
+            });
 
-            const redirectToSignInSpy = jest.spyOn(SignInRedirect, 'default').mockImplementation(() => Promise.resolve());
+            afterEach(() => {
+                jest.restoreAllMocks();
+                jest.mocked(isSharedProductHost).mockReturnValue(false);
+                jest.clearAllMocks();
+            });
 
-            signOutAndRedirectToSignIn(await Onyx.get(ONYXKEYS.SESSION));
+            test('SignOutAndRedirectToSignIn should redirect to OldDot on other hosts', async () => {
+                // When the user signs out on a host that serves only New Expensify
+                await signOutAndRedirectToSignIn(await Onyx.get(ONYXKEYS.SESSION));
 
-            await waitForBatchedUpdates();
+                // Then the Classic sign-out page opens after the sign in redirect
+                expect(redirectToSignInSpy).toHaveBeenCalled();
+                expect(asyncOpenURL).toHaveBeenCalledWith(expect.any(Promise), `${CONFIG.EXPENSIFY.EXPENSIFY_URL}${CONST.OLDDOT_URLS.SIGN_OUT}`, true, true);
+                expect(openClassicSignOutAfter).not.toHaveBeenCalled();
+            });
 
-            expect(asyncOpenURL).toHaveBeenCalledWith(expect.any(Promise), `${CONFIG.EXPENSIFY.EXPENSIFY_URL}${CONST.OLDDOT_URLS.SIGN_OUT}`, true, true);
-            expect(preventClassicSignInDuring).toHaveBeenCalledWith(expect.any(Promise));
-            expect(redirectToSignInSpy).toHaveBeenCalled();
-            jest.clearAllMocks();
+            test('SignOutAndRedirectToSignIn should open the Classic sign-out page of the same host on the shared product host', async () => {
+                // Given the host that serves both products
+                jest.mocked(isSharedProductHost).mockReturnValue(true);
+
+                // When the user signs out
+                await signOutAndRedirectToSignIn(await Onyx.get(ONYXKEYS.SESSION));
+
+                // Then the sign-out page of this host opens after the sign in redirect, since only it can end the Classic session the sign-in page would restore
+                expect(redirectToSignInSpy).toHaveBeenCalledTimes(1);
+                expect(openClassicSignOutAfter).toHaveBeenCalledTimes(1);
+                expect(openClassicSignOutAfter).toHaveBeenCalledWith(expect.any(Promise));
+                expect(asyncOpenURL).not.toHaveBeenCalled();
+            });
+
+            test('SignOutAndRedirectToSignIn should keep the Classic session on the shared product host when asked to', async () => {
+                // Given the host that serves both products
+                jest.mocked(isSharedProductHost).mockReturnValue(true);
+
+                // When the session is cleared for a user that Classic is signing in
+                await signOutAndRedirectToSignIn(await Onyx.get(ONYXKEYS.SESSION), {signOutReason: CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER, shouldEndClassicBrowserSession: false});
+
+                // Then no Classic sign-out page opens, since the Classic session belongs to the new user
+                expect(redirectToSignInSpy).toHaveBeenCalledTimes(1);
+                expect(openClassicSignOutAfter).not.toHaveBeenCalled();
+                expect(asyncOpenURL).not.toHaveBeenCalled();
+            });
         });
 
         test('SignOutAndRedirectToSignIn should not redirect to OldDot when LogOut return falsy hasOldDotAuthCookies', async () => {

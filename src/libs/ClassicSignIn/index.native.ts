@@ -1,12 +1,14 @@
 /**
  * Native apps sign in and out without the browser, so they never open the Expensify Classic pages.
  */
-import type {OpenClassicSignIn, OpenClassicSignOutAfter, PreventClassicSignInDuring} from './types';
+import type {CanOpenClassicSignIn, OpenClassicSignIn, OpenClassicSignOutAfter, PreventClassicSignInDuring} from './types';
 
 const openClassicSignIn: OpenClassicSignIn = () => () => {};
+
+const canOpenClassicSignIn: CanOpenClassicSignIn = () => true;
 
 const openClassicSignOutAfter: OpenClassicSignOutAfter = () => {};
 
 const preventClassicSignInDuring: PreventClassicSignInDuring = () => {};
 
-export {openClassicSignIn, openClassicSignOutAfter, preventClassicSignInDuring};
+export {canOpenClassicSignIn, openClassicSignIn, openClassicSignOutAfter, preventClassicSignInDuring};

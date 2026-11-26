@@ -13,11 +13,17 @@ jest.mock('@libs/NetworkState', () => ({
     getIsOffline: () => mockIsOffline,
 }));
 
-jest.mock('@libs/Log');
+// Each isolated copy of the module gets its own Log mock, so they all report to one function
+const mockHmmm = jest.fn<void, unknown[]>();
+jest.mock('@libs/Log', () => ({
+    __esModule: true,
+    default: {info: jest.fn(), hmmm: (...args: unknown[]) => mockHmmm(...args)},
+}));
 
 const SIGN_IN_URL = 'https://expensify.com.dev/signin';
 const SIGN_OUT_URL = 'https://expensify.com.dev/signout';
 const ONE_MINUTE_MS = 60 * 1000;
+const SIGN_OUT_PAGE_LOAD_MS = 30 * 1000;
 
 /** Lets the cleanup promises settle */
 async function waitForPromises() {
@@ -26,8 +32,21 @@ async function waitForPromises() {
     });
 }
 
+/** Dispatches the event the browser fires when it shows the page, with `persisted` set when the page comes from the back/forward cache */
+function showPage(persisted: boolean) {
+    const event = new Event('pageshow');
+    Object.defineProperty(event, 'persisted', {value: persisted});
+    window.dispatchEvent(event);
+}
+
+/** Opens the Classic sign-in page from a freshly loaded page, the way each return to New Expensify does */
+function openSignInPageFromNewPage() {
+    loadClassicSignIn().openClassicSignIn();
+}
+
 const mockReplace = jest.fn<void, [string]>();
 let realLocation: Location;
+let addEventListenerSpy: jest.SpyInstance<void, Parameters<typeof window.addEventListener>>;
 
 /** Loads a fresh copy of the web implementation, since the React Native preset resolves index.native.ts first and the module remembers that it's leaving the page */
 function loadClassicSignIn() {
@@ -45,12 +64,20 @@ beforeEach(() => {
     mockIsSharedProductHost = true;
     mockIsOffline = false;
     mockReplace.mockClear();
+    mockHmmm.mockClear();
     window.localStorage.clear();
+    window.sessionStorage.clear();
+
+    // Every copy of the module listens to the window, so the listeners are tracked and removed after each test
+    addEventListenerSpy = jest.spyOn(window, 'addEventListener');
     realLocation = window.location;
     Object.defineProperty(window, 'location', {value: {origin: 'https://expensify.com.dev', replace: mockReplace}, writable: true, configurable: true});
 });
 
 afterEach(() => {
+    for (const [type, listener] of addEventListenerSpy.mock.calls) {
+        window.removeEventListener(type, listener);
+    }
     Object.defineProperty(window, 'location', {value: realLocation, writable: true, configurable: true});
     jest.restoreAllMocks();
 });
@@ -134,10 +161,91 @@ describe('ClassicSignIn', () => {
         expect(mockReplace).toHaveBeenCalledWith(SIGN_OUT_URL);
     });
 
-    it('opens the Classic sign-in page once the sign out of another tab is over', () => {
-        // Given another tab that started signing out a while ago
+    it('keeps a sign out unfinished until a tab opens the Classic sign-out page', () => {
+        // Given another tab that started signing out long ago and never opened the sign-out page
         loadClassicSignIn().openClassicSignOutAfter(new Promise(() => {}));
-        jest.spyOn(Date, 'now').mockReturnValue(Date.now() + ONE_MINUTE_MS);
+        jest.spyOn(Date, 'now').mockReturnValue(Date.now() + 24 * 60 * ONE_MINUTE_MS);
+        const {openClassicSignIn} = loadClassicSignIn();
+
+        // When the sign-in screen of a freshly loaded tab appears
+        openClassicSignIn();
+
+        // Then the sign-out page opens, since the Classic session is still alive
+        expect(mockReplace).toHaveBeenCalledWith(SIGN_OUT_URL);
+    });
+
+    it('stores the time the Classic sign-out page opened', async () => {
+        // Given a sign out that waits for its cleanup
+        const openedAt = Date.now();
+        jest.spyOn(Date, 'now').mockReturnValue(openedAt);
+        const cleanup = Promise.withResolvers<void>();
+        loadClassicSignIn().openClassicSignOutAfter(cleanup.promise);
+        expect(window.localStorage.getItem(CONST.LOCAL_STORAGE_KEYS.CLASSIC_SIGN_OUT)).not.toBe(String(openedAt));
+
+        // When the sign-out page opens
+        cleanup.resolve();
+        await waitForPromises();
+
+        // Then other tabs know when the page opened
+        expect(mockReplace).toHaveBeenCalledWith(SIGN_OUT_URL);
+        expect(window.localStorage.getItem(CONST.LOCAL_STORAGE_KEYS.CLASSIC_SIGN_OUT)).toBe(String(openedAt));
+    });
+
+    it('opens the Classic sign-out page while the sign-out page of another tab is still loading', async () => {
+        // Given another tab that opened the sign-out page moments ago
+        loadClassicSignIn().openClassicSignOutAfter(Promise.resolve());
+        await waitForPromises();
+        mockReplace.mockClear();
+        jest.spyOn(Date, 'now').mockReturnValue(Date.now() + SIGN_OUT_PAGE_LOAD_MS - 1000);
+        const {openClassicSignIn} = loadClassicSignIn();
+
+        // When the sign-in screen of this tab appears
+        openClassicSignIn();
+
+        // Then this tab opens the sign-out page too, since the Classic session may not have ended yet
+        expect(mockReplace).toHaveBeenCalledWith(SIGN_OUT_URL);
+    });
+
+    it('keeps the time the sign-out page of another tab opened', () => {
+        // Given another tab that opened the sign-out page 10 seconds ago
+        const openedAt = Date.now() - 10 * 1000;
+        window.localStorage.setItem(CONST.LOCAL_STORAGE_KEYS.CLASSIC_SIGN_OUT, String(openedAt));
+        const {openClassicSignIn} = loadClassicSignIn();
+
+        // When the sign-in screen of this tab appears
+        openClassicSignIn();
+
+        // Then this tab opens the sign-out page too, without extending the time other tabs wait for it
+        expect(mockReplace).toHaveBeenCalledWith(SIGN_OUT_URL);
+        expect(window.localStorage.getItem(CONST.LOCAL_STORAGE_KEYS.CLASSIC_SIGN_OUT)).toBe(String(openedAt));
+    });
+
+    it('stops opening the Classic sign-out page for a page that keeps coming back', async () => {
+        // Given a sign out that opened the sign-out page
+        const openedAt = Date.now();
+        const now = jest.spyOn(Date, 'now').mockReturnValue(openedAt);
+        loadClassicSignIn().openClassicSignOutAfter(Promise.resolve());
+        await waitForPromises();
+        mockReplace.mockClear();
+
+        // When the tab keeps landing back on the sign-in screen every 5 seconds
+        const openedPages: string[] = [];
+        for (let elapsed = 5 * 1000; elapsed <= SIGN_OUT_PAGE_LOAD_MS; elapsed += 5 * 1000) {
+            now.mockReturnValue(openedAt + elapsed);
+            loadClassicSignIn().openClassicSignIn();
+            openedPages.push(mockReplace.mock.calls.at(-1)?.at(0) ?? '');
+        }
+
+        // Then it opens the sign-out page until the first opening is 30 seconds old, and the sign-in page from then on
+        expect(openedPages).toEqual([SIGN_OUT_URL, SIGN_OUT_URL, SIGN_OUT_URL, SIGN_OUT_URL, SIGN_OUT_URL, SIGN_IN_URL]);
+    });
+
+    it('opens the Classic sign-in page once the sign-out page of another tab had time to load', async () => {
+        // Given another tab that opened the sign-out page a while ago
+        loadClassicSignIn().openClassicSignOutAfter(Promise.resolve());
+        await waitForPromises();
+        mockReplace.mockClear();
+        jest.spyOn(Date, 'now').mockReturnValue(Date.now() + SIGN_OUT_PAGE_LOAD_MS + 1000);
         const {openClassicSignIn} = loadClassicSignIn();
 
         // When the sign-in screen of this tab appears
@@ -158,6 +266,24 @@ describe('ClassicSignIn', () => {
         expect(mockReplace).not.toHaveBeenCalled();
 
         // When the connection is back and the sign-in screen asks for the Classic sign-in page
+        mockIsOffline = false;
+        openClassicSignIn();
+
+        // Then the sign-out page opens, since the Classic session is still alive
+        expect(mockReplace).toHaveBeenCalledTimes(1);
+        expect(mockReplace).toHaveBeenCalledWith(SIGN_OUT_URL);
+    });
+
+    it('opens the Classic sign-out page after a sign out that started offline and a reload', async () => {
+        // Given a sign out that finished its cleanup offline
+        mockIsOffline = true;
+        loadClassicSignIn().openClassicSignOutAfter(Promise.resolve());
+        await waitForPromises();
+        expect(mockReplace).not.toHaveBeenCalled();
+
+        // When the page is reloaded much later and the sign-in screen appears once the connection is back
+        jest.spyOn(Date, 'now').mockReturnValue(Date.now() + ONE_MINUTE_MS);
+        const {openClassicSignIn} = loadClassicSignIn();
         mockIsOffline = false;
         openClassicSignIn();
 
@@ -207,6 +333,134 @@ describe('ClassicSignIn', () => {
         expect(mockReplace).not.toHaveBeenCalled();
     });
 
+    it('opens the Classic sign-in page when the browser restores the page from the back/forward cache', () => {
+        // Given a sign-in screen waiting for another page that the user left with the back button
+        const {openClassicSignIn, preventClassicSignInDuring} = loadClassicSignIn();
+        preventClassicSignInDuring(new Promise(() => {}));
+        openClassicSignIn();
+        expect(mockReplace).not.toHaveBeenCalled();
+
+        // When the browser restores the page from the back/forward cache
+        showPage(true);
+
+        // Then the sign-in page opens, so the user isn't left on the loading indicator
+        expect(mockReplace).toHaveBeenCalledWith(SIGN_IN_URL);
+    });
+
+    it('opens the Classic sign-out page when the browser restores the page during an unfinished sign out', () => {
+        // Given a sign-in screen waiting for another page that the user left with the back button, while another tab signs out
+        const {openClassicSignIn, preventClassicSignInDuring} = loadClassicSignIn();
+        preventClassicSignInDuring(new Promise(() => {}));
+        openClassicSignIn();
+        loadClassicSignIn().openClassicSignOutAfter(new Promise(() => {}));
+
+        // When the browser restores the page from the back/forward cache
+        showPage(true);
+
+        // Then the sign-out page opens, since the sign-in page would sign the live Classic session back in
+        expect(mockReplace).toHaveBeenCalledTimes(1);
+        expect(mockReplace).toHaveBeenCalledWith(SIGN_OUT_URL);
+    });
+
+    it('stays on the page when the browser shows it without restoring it', () => {
+        // Given a sign-in screen waiting for another page
+        const {openClassicSignIn, preventClassicSignInDuring} = loadClassicSignIn();
+        preventClassicSignInDuring(new Promise(() => {}));
+        openClassicSignIn();
+
+        // When the browser shows a page that isn't restored from the back/forward cache
+        showPage(false);
+
+        // Then the page keeps waiting for the other navigation
+        expect(mockReplace).not.toHaveBeenCalled();
+    });
+
+    it('allows opening the Classic sign-in page twice within a minute', () => {
+        // Given a tab that opened the sign-in page once
+        openSignInPageFromNewPage();
+
+        // When the sign-in screen of the next page load checks the limit
+        const {canOpenClassicSignIn} = loadClassicSignIn();
+
+        // Then the sign-in page can open again
+        expect(canOpenClassicSignIn()).toBe(true);
+        expect(mockHmmm).not.toHaveBeenCalled();
+    });
+
+    it('refuses a third opening of the Classic sign-in page within a minute', () => {
+        // Given a tab that opened the sign-in page twice and came back without a session each time
+        openSignInPageFromNewPage();
+        openSignInPageFromNewPage();
+
+        // When the sign-in screen of the next page load checks the limit
+        const {canOpenClassicSignIn} = loadClassicSignIn();
+
+        // Then the sign-in page can't open, so the tab stops going around in a loop
+        expect(canOpenClassicSignIn()).toBe(false);
+        expect(mockHmmm).toHaveBeenCalledTimes(1);
+    });
+
+    it('allows opening the Classic sign-in page again after a minute', () => {
+        // Given a tab that opened the sign-in page twice a minute ago
+        openSignInPageFromNewPage();
+        openSignInPageFromNewPage();
+        jest.spyOn(Date, 'now').mockReturnValue(Date.now() + ONE_MINUTE_MS);
+
+        // When the sign-in screen of the next page load checks the limit
+        const {canOpenClassicSignIn} = loadClassicSignIn();
+
+        // Then the sign-in page can open again
+        expect(canOpenClassicSignIn()).toBe(true);
+    });
+
+    it('does not count openings of the Classic sign-out page', async () => {
+        // Given a tab that opened the sign-out page twice
+        loadClassicSignIn().openClassicSignOutAfter(Promise.resolve());
+        await waitForPromises();
+        loadClassicSignIn().openClassicSignOutAfter(Promise.resolve());
+        await waitForPromises();
+        expect(mockReplace).toHaveBeenCalledTimes(2);
+
+        // When the sign-in screen checks the limit once the sign-out pages had time to load
+        jest.spyOn(Date, 'now').mockReturnValue(Date.now() + SIGN_OUT_PAGE_LOAD_MS + 1000);
+        const {canOpenClassicSignIn} = loadClassicSignIn();
+
+        // Then the sign-in page can open
+        expect(canOpenClassicSignIn()).toBe(true);
+    });
+
+    it('does not hold back a sign out that has not reached Classic yet', () => {
+        // Given a tab that opened the sign-in page twice, and another tab that started signing out
+        openSignInPageFromNewPage();
+        openSignInPageFromNewPage();
+        loadClassicSignIn().openClassicSignOutAfter(new Promise(() => {}));
+        mockReplace.mockClear();
+
+        // When the sign-in screen of the next page load checks the limit and asks for the sign-in page
+        const {canOpenClassicSignIn, openClassicSignIn} = loadClassicSignIn();
+        const canOpen = canOpenClassicSignIn();
+        openClassicSignIn();
+
+        // Then the request goes ahead and opens the sign-out page, which ends the Classic session
+        expect(canOpen).toBe(true);
+        expect(mockReplace).toHaveBeenCalledWith(SIGN_OUT_URL);
+    });
+
+    it('allows opening the Classic sign-in page when storage is unavailable', () => {
+        // Given a tab that opened the sign-in page twice, in a browser whose storage now throws
+        openSignInPageFromNewPage();
+        openSignInPageFromNewPage();
+        jest.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+            throw new Error('Storage is disabled');
+        });
+
+        // When the sign-in screen of the next page load checks the limit
+        const {canOpenClassicSignIn} = loadClassicSignIn();
+
+        // Then the sign-in page can open, since the limit can't be known
+        expect(canOpenClassicSignIn()).toBe(true);
+    });
+
     it('does nothing on other hosts', async () => {
         // Given a page on a host that serves only New Expensify
         mockIsSharedProductHost = false;
@@ -219,7 +473,7 @@ describe('ClassicSignIn', () => {
 
         // Then the page stays and other tabs aren't told about a sign out
         expect(mockReplace).not.toHaveBeenCalled();
-        expect(window.localStorage.getItem(CONST.LOCAL_STORAGE_KEYS.CLASSIC_SIGN_OUT_STARTED_AT)).toBeNull();
+        expect(window.localStorage.getItem(CONST.LOCAL_STORAGE_KEYS.CLASSIC_SIGN_OUT)).toBeNull();
     });
 
     it('does nothing in native apps', () => {
@@ -227,7 +481,8 @@ describe('ClassicSignIn', () => {
         NativeClassicSignIn.openClassicSignIn();
         NativeClassicSignIn.openClassicSignOutAfter(Promise.resolve());
 
-        // Then the page stays
+        // Then the page stays, and nothing limits the sign-in
         expect(mockReplace).not.toHaveBeenCalled();
+        expect(NativeClassicSignIn.canOpenClassicSignIn()).toBe(true);
     });
 });
