@@ -7319,6 +7319,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 currentBalanceDescriptionNoTimestamp: 'Το τρέχον υπόλοιπο αναφέρεται από την τράπεζά σας.',
                 remainingLimitDescriptionNoTimestamp: 'Το υπόλοιπο ορίου αναφέρεται από την τράπεζά σας.',
             },
+            unavailableCard: 'Κάρτα μη διαθέσιμη',
         },
         expensifyCard: {
             issueAndManageCards: 'Έκδοση και διαχείριση των Καρτών Expensify',
