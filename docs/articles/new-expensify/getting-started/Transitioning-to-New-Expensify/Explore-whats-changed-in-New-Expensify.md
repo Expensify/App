@@ -42,7 +42,7 @@ You can comment directly on an expense to discuss questions, request receipts, o
 
 Workspace Admins can define rules to automatically apply categories, tags, billable status, and reimbursable status whenever a specific merchant appears on an expense.
 
-[Learn how to configure Workspace merchant rules](/articles/new-expensify/workspaces/Workspace-Merchant-Rules).
+[Learn how to configure workspace expense defaults](/articles/new-expensify/workspaces/Workspace-Rules#how-to-apply-expense-defaults-on-the-expense-defaults-tab).
 
 ### Edit expenses with natural language using Concierge
 

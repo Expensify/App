@@ -504,6 +504,7 @@ const translations: TranslationDeepObject<typeof en> = {
         corpayPayModalPrompt:
             'Deze indiener heeft een bankrekening die niet in USD is. Schakel wereldwijde terugbetalingen in om het rapport te betalen, of vraag hen een USD-bankrekening toe te voegen.',
         purchaseAmount: 'Aankoopsbedrag',
+        convertedAmount: 'Omgerekend bedrag',
         originalAmount: 'Oorspronkelijk bedrag',
         frequency: 'Frequentie',
         link: 'Link',
@@ -807,6 +808,11 @@ const translations: TranslationDeepObject<typeof en> = {
         setPin: {didNotShipCard: 'We hebben je kaart niet verzonden. Probeer het opnieuw.'},
         revealPin: {couldNotReveal: 'We konden je pincode niet tonen. Probeer het opnieuw.'},
         changePin: {didNotChange: 'We hebben je pincode niet gewijzigd. Probeer het opnieuw.'},
+        addToWallet: {
+            failedHeader: 'Kaart kon niet worden toegevoegd',
+            failedTitle: 'We konden je kaart niet aan je wallet toevoegen',
+            failedSubtitle: 'Er ging iets mis bij het toevoegen van de kaart. Als hij al in je wallet staat, kun je hem daar gebruiken.',
+        },
         revealCardDetail: {couldNotReveal: 'We konden je kaartgegevens niet weergeven. Probeer het opnieuw.'},
     },
     validateCodeModal: {
@@ -1344,7 +1350,10 @@ const translations: TranslationDeepObject<typeof en> = {
             label: 'Overtredingen van',
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Indieners',
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: 'Fiatteurs',
+            chartTitle: (title: string, stage: string) => `${title} (${stage})`,
         },
+        flaggedExpenses: 'Gemarkeerde uitgaven',
+        noFlaggedExpensesInRange: 'Geen gemarkeerde uitgaven in dit bereik',
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -4669,6 +4678,14 @@ ${amount} voor ${merchant} - ${date}`,
         numberedItem: ({item, number}: {item: string; number: number}) => `${item} ${number}`,
         questionsChanged: 'De vragen op deze pagina zijn gewijzigd',
         onFile: 'In bestand',
+        continueOffline: {
+            title: 'Je kunt offline niet doorgaan',
+            prompt: 'Er is een internetverbinding nodig om dit formulier in te vullen. Maak je geen zorgen, we slaan je voortgang op en je kunt doorgaan zodra je weer online bent.',
+            saveForLater: 'Opslaan en later invullen',
+            progressSaved: 'Je voortgang is opgeslagen',
+            promptWithSensitiveAnswers:
+                'Er is een internetverbinding nodig om dit formulier in te vullen. We slaan je voortgang op zodat je verder kunt gaan zodra je weer online bent. Voor jouw veiligheid worden gevoelige gegevens niet opgeslagen en moet je ze opnieuw invoeren.',
+        },
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'SWIFT/BIC moet 8 of 11 tekens lang zijn, met 6 letters gevolgd door 2 of 5 letters of cijfers.',
@@ -8068,7 +8085,6 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                 willBeReadyToUse: 'Deze kaart is direct klaar voor gebruik.',
                 willBeReadyToShip: 'Deze kaart is meteen klaar om verzonden te worden.',
                 cardholder: 'Kaarthouder',
-                cardholderEmail: 'E-mailadres van de kaarthouder',
                 cardType: 'Kaarttype',
                 limit: 'Limiet',
                 limitType: 'Limiettype',

@@ -1,10 +1,10 @@
 import {buildAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 import useOnyx from '@hooks/useOnyx';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
-import {buildReportIDToNameMap} from '@hooks/useReportIDToNameMap';
 
 import {isStandaloneURL, toMarkdownLink} from '@libs/MarkdownLinkHelpers';
 import Parser from '@libs/Parser';
+import {buildReportIDToNameMap} from '@libs/ReportIDToNameMapUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
