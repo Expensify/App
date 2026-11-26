@@ -42,7 +42,8 @@ const SHORT_PLACEHOLDER = 'homePage.conciergePrompt.inputPlaceholderMobile';
 const ADD_ATTACHMENT = 'reportActionCompose.addAttachment';
 // `translate` resolves to the key in tests, so the greeting matches whichever time-of-day key the clock lands on.
 const GREETING = /^homePage\.conciergePrompt\.good/;
-const PLUS_BUTTON = 'accessibilityHints.openActionsMenu';
+const PLUS_BUTTON = 'accessibilityHints.openConciergeActionsMenu';
+const FAB_BUTTON = 'accessibilityHints.openActionsMenu';
 const SEND_BUTTON = 'common.send';
 const TEAMMATE = {accountID: 2, login: 'alex@expensify.com', displayName: 'Alex Adams'};
 const OTHER_TEAMMATE = {accountID: 3, login: 'blake@expensify.com', displayName: 'Blake Brown'};
@@ -685,6 +686,18 @@ describe('ConciergePromptBox', () => {
 
             // Then the menu closes
             expect(screen.queryByLabelText(ADD_ATTACHMENT)).toBeNull();
+        });
+
+        it('names the "+" button apart from the FAB and from the menu item it opens', () => {
+            // Given the box on Home, next to the FAB that screen readers already know as "Open actions menu"
+            render(<ConciergePromptBoxWrapper />);
+
+            // When the "+" button opens its menu
+            fireEvent.press(screen.getByLabelText(PLUS_BUTTON));
+
+            // Then no element reuses the FAB's name, and "Add attachment" is only the menu item, so a screen reader never hears two controls with one name
+            expect(screen.queryByLabelText(FAB_BUTTON)).toBeNull();
+            expect(screen.getAllByLabelText(ADD_ATTACHMENT)).toHaveLength(1);
         });
 
         it('opens the picker after the menu finishes closing', () => {
