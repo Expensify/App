@@ -35,6 +35,8 @@ describe('AddressFormFields', () => {
         );
         const states = Object.values(COMMON_CONST.STATES);
         expect(Object.entries(optionsForState() ?? {})).toEqual(states.map(({stateISO, stateName}) => [stateISO, stateName]));
+        const street = wrapper.mock.calls.findLast(([props]) => props.inputID === 'street')?.[0];
+        expect(street && 'maxInputLength' in street ? street.maxInputLength : undefined).toBe(CONST.FORM_CHARACTER_LIMIT);
         const zip = wrapper.mock.calls.findLast(([props]) => props.inputID === 'zipCodeInput')?.[0];
         expect(zip && 'inputMode' in zip ? zip.inputMode : undefined).toBe(CONST.INPUT_MODE.NUMERIC);
 

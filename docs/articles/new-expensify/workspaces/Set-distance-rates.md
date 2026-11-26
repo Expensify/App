@@ -2,7 +2,7 @@
 title: Set Distance Rates
 description: Set and manage rates for distance reimbursement in your Expensify workspace.
 keywords: [New Expensify, distance rates, mileage reimbursement, enable distance rates, workspace settings, bulk edit rates, auto-update government rate, EUR government mileage rates, IRS standard rate, mileage rates, distance bands, auto-generated rate, lightning bolt icon, default currency change, miles kilometers unit, require GPS or map entry, disable manual distance, disable odometer entry, restrict distance expense types]
-internalScope: Audience is workspace admins. Covers configuring and auto-updating distance rates, requiring GPS or map entry, and excluding commutes using a fixed distance or home and office locations. Does not cover creating distance expenses or managing multiple office locations.
+internalScope: Audience is workspace admins. Covers configuring and auto-updating distance rates, requiring GPS or map entry, excluding commutes, and managing office locations used for commute calculations. Does not cover creating distance expenses or detailed member management.
 ---
 
 # Set Distance Rates
@@ -91,7 +91,7 @@ When **Remove fixed distance** is selected:
 
 On Control workspaces, **Exclude usual commute** calculates exclusions using each member's home address, work arrangement, and office. Distance rates determine the reimbursement per mile or kilometer; commute exclusions determine how much of the route is eligible before that rate is applied.
 
-Before enabling this method, add the workspace's company address in **Workspaces > [workspace name] > Overview > Company address**. This address provides the office reference for commute calculations.
+Before enabling this method, add at least one office in **Workspaces > [workspace name] > Overview**. An existing **Company address** counts as an office location. Each member's assigned office provides the office reference for commute calculations; members without an individual assignment use the primary office.
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Distance rates**.
 2. Select **More (⋮) > Settings**.
@@ -111,6 +111,35 @@ For **Remote or mobile** members, who have no regular workplace, home-and-office
 Only **Map** and **GPS** distance methods are available while a commute exclusion is enabled. Members see the excluded distance during confirmation and on the final expense.
 
 To change the starting arrangement later, open **Exclude commutes > Default work arrangement** and choose an arrangement. You can also [set a member's work arrangement individually](/articles/new-expensify/workspaces/Manage-Workspace-Members-and-Access#How-to-set-a-work-arrangement-for-commute-exclusions). Work arrangement changes apply to future mileage calculations; existing expenses are not automatically recalculated.
+
+---
+
+## How to add office locations for commute exclusions
+
+Workspace admins can add multiple office locations so members' commutes are calculated against the office they use, rather than a single company address.
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Overview**.
+2. Under **Office locations**, select **Add office location**.
+3. Enter a name in the **Location name** field and the office address. The name is optional when adding an office; if left blank, a name is generated automatically.
+4. To use this office for members without an individual office assignment, select **Set as primary**.
+5. Select **Save**.
+
+Repeat these steps to add more offices. If there is no **Company address**, the first office you add becomes the primary office automatically.
+
+You can [assign members to an office individually or in bulk](/articles/new-expensify/workspaces/Manage-Workspace-Members-and-Access#how-to-assign-an-office-location-to-a-member). The assigned office is used by **Exclude usual commute**; it does not change the **Remove fixed distance** calculation.
+
+---
+
+## How to update or remove office locations for commute exclusions
+
+These steps apply to offices created with **Add office location**. To edit the company address instead, select **Workspaces > [workspace name] > Overview > Company address**.
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Overview**.
+2. Under **Office locations**, select the office you want to update.
+3. Edit the **Location name** field or address, or select **Set as primary** to make this the default office for members without an individual assignment.
+4. Select **Save**.
+
+To remove an office, open it and select the **Delete** icon, then select **Delete** to confirm. Members assigned to the deleted office use the primary office instead. You cannot delete the last office while **Exclude usual commute** is enabled if there is no **Company address**.
 
 ---
 

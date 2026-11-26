@@ -11,7 +11,7 @@ import initOnyxDerivedValues from '@userActions/OnyxDerived';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Transaction} from '@src/types/onyx';
+import type {Policy, PolicyTagLists, Transaction} from '@src/types/onyx';
 
 import type * as NativeNavigation from '@react-navigation/native';
 import type {PartialDeep} from 'type-fest';
@@ -459,6 +459,34 @@ describe('MoneyRequestView edit fields', () => {
             expect(screen.getByLabelText(fieldLabel('common.category')).props.accessibilityState).toMatchObject({expanded: false});
         });
         expect(screen.getByLabelText(fieldLabel('Location')).props.accessibilityState).toMatchObject({expanded: false});
+    });
+
+    it.each([false, true])('omits a tag list without tags while preserving an enabled sibling: %p', async (hasEnabledSibling) => {
+        // Given an editable, untagged expense and an empty list in the shape returned by the API.
+        const threadReport = {...LHNTestUtils.getFakeReport(), parentReportID: expenseReportID, parentReportActionID};
+        await setupTestData();
+        const tagLists = createMock<PolicyTagLists>({
+            Empty: {name: 'Empty', orderWeight: 0, required: false},
+            ...(hasEnabledSibling ? {Location: {name: 'Location', orderWeight: 1, required: false, tags: {Berlin: {name: 'Berlin', enabled: true}}}} : {}),
+        });
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, tagLists);
+        });
+
+        // When the preview computes tag rows, including independent levels with no selected value.
+        renderMoneyRequestView(threadReport, {areTagsEnabled: true, hasMultipleTagLists: hasEnabledSibling});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the preview renders without the empty row and retains any editable sibling at its original level.
+        await waitFor(() => {
+            expect(screen.getByLabelText(amountLabel)).toBeOnTheScreen();
+        });
+        expect(screen.queryByLabelText(fieldLabel('Empty'))).not.toBeOnTheScreen();
+        if (hasEnabledSibling) {
+            expect(screen.getByLabelText(fieldLabel('Location'))).toBeOnTheScreen();
+        } else {
+            expect(screen.queryByLabelText(fieldLabel('Location'))).not.toBeOnTheScreen();
+        }
     });
 
     it('shows the attendees and report of an editable expense as dropdown fields', async () => {

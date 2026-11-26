@@ -777,6 +777,7 @@ function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): voi
     if (isSplitBill) {
         const {taxCode, taxAmount} = getTaxForEditedAmount(policy, currentTransaction, newAmount, selectedCurrency, decimals);
         setDraftSplitTransaction(
+            translate,
             transactionID,
             splitDraftTransaction ?? transaction,
             {amount: newAmount, currency: selectedCurrency, taxCode, taxAmount},

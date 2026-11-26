@@ -24,7 +24,7 @@ function usePayWithWiseQuote() {
         }
 
         const isPayingUnheldOnly = params.full === false;
-        const getQuote = () => getWiseQuote(iouReport, !isPayingUnheldOnly);
+        const getQuote = () => getWiseQuote(iouReport, !isPayingUnheldOnly, params.policy?.globalReimbursementFXPreferCompany);
         getQuote();
         showWiseQuoteConfirmModal({
             reportID,

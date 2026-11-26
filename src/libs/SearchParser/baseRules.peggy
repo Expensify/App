@@ -21,6 +21,7 @@ amount = "amount"i { return "amount"; }
 merchant = "merchant"i { return "merchant"; }
 description = "description"i { return "description"; }
 reportID = ("reportid"i / "report-id"i) { return "reportID"; }
+transactionID = ("transactionid"i / "transaction-id"i) { return "transactionID"; }
 keyword = "keyword"i { return "keyword"; }
 in = "in"i { return "in"; }
 currency = "currency"i { return "currency"; }
@@ -141,6 +142,7 @@ columnsValues
   / bankAccountColumn
   / reportId
   / base62ReportId
+  / transactionId
   / exportedToColumnValue
   / exchangeRate
   / reimbursableTotal
@@ -178,6 +180,7 @@ withdrawalId            = "withdrawal-id"i &wordBoundary            { return "wi
 bankAccountColumn       = "bank-account"i &wordBoundary             { return "bankAccount"; }
 reportId                = "long-report-id"i &wordBoundary           { return "reportID"; }
 base62ReportId          = "report-id"i &wordBoundary                { return "base62ReportID"; }
+transactionId           = "transaction-id"i &wordBoundary           { return "transactionID"; }
 exportedToColumnValue   = "exported-to"i &wordBoundary              { return "exportedto"; }
 exportedToKeyEnd = wordBoundary / _ (":" / "=")
 exportedTo
