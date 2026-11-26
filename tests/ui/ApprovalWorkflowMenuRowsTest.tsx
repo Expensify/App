@@ -1,6 +1,7 @@
 /** Approval rows keep their pills, navigation and error feedback when composed. */
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
+import FormHelpMessage from '@components/FormHelpMessage';
 import MenuItem from '@components/MenuItem';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -168,10 +169,13 @@ describe('Approval workflow composed rows', () => {
         // When the editor renders validation feedback
         const view = renderEditor();
 
-        // Then both affected rows show a dot and the approver error stays in its HTML leaf
-        expect(screen.getAllByTestId('menu-item-brick-road-indicator')).toHaveLength(2);
+        // Then errors keep their dots beside the feedback rather than restoring trailing row indicators
+        expect(screen.getAllByLabelText(CONST.ACCESSIBILITY_LABELS.ERROR)).toHaveLength(2);
+        expect(screen.queryByTestId('menu-item-brick-road-indicator')).toBeNull();
         expect(screen.getByText('common.error.fieldRequired')).toBeOnTheScreen();
-        expect(view.UNSAFE_getByType(MenuItem.HelpTextHTML).props.children).toBe('workflowsPage.approverNotWorkspaceMember');
+        const feedback = view.UNSAFE_getAllByType(FormHelpMessage);
+        expect(feedback.find((message) => message.props.message === 'common.error.fieldRequired')?.props.shouldRenderMessageAsHTML).not.toBe(true);
+        expect(feedback.find((message) => message.props.message === 'workflowsPage.approverNotWorkspaceMember')?.props.shouldRenderMessageAsHTML).toBe(true);
     });
 
     it('preserves an empty approver field and the create-flow selector', () => {

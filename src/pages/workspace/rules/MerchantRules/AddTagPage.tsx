@@ -33,7 +33,7 @@ function AddTagPage({route}: AddTagPageProps) {
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
     const [policyTags = getEmptyArray<ValueOf<PolicyTagLists>>()] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {selector: getTagLists});
-    const hasDependentTags = policyTags.some((tagList) => Object.values(tagList.tags).some((tag) => !!tag.rules?.parentTagsFilter || !!tag.parentTagsFilter));
+    const hasDependentTags = policyTags.some((tagList) => Object.values(tagList.tags ?? {}).some((tag) => !!tag.rules?.parentTagsFilter || !!tag.parentTagsFilter));
     const tagList = policyTags.find((item) => item.orderWeight === orderWeight);
     const formTags = getTagArrayFromName(form?.tag ?? '');
     const formTag = formTags.at(orderWeight);

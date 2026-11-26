@@ -14,6 +14,8 @@ import Onyx from 'react-native-onyx';
 import createMock from '../../utils/createMock';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
+const mockTranslate = jest.fn(() => 'Translated category');
+
 // The three writes are the assertions: each branch must reach exactly one of them.
 jest.mock('@libs/actions/IOU/MoneyRequest', () => ({setMoneyRequestCategory: jest.fn()}));
 jest.mock('@libs/actions/IOU/Split', () => ({setDraftSplitTransaction: jest.fn()}));
@@ -23,6 +25,7 @@ jest.mock('@libs/actions/IOU/UpdateMoneyRequest', () => ({updateMoneyRequestCate
 jest.mock('@hooks/useCurrencyList', () => ({useCurrencyListActions: jest.fn(() => ({getCurrencyDecimals: jest.fn(() => 2), getCurrencySymbol: jest.fn(() => '$')}))}));
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => jest.fn(() => ({accountID: 1, login: 'me@example.com'})));
 jest.mock('@hooks/useDelegateAccountID', () => jest.fn(() => undefined));
+jest.mock('@hooks/useLocalize', () => () => ({translate: mockTranslate}));
 jest.mock('@hooks/useAllTransactionViolations', () => jest.fn(() => undefined));
 jest.mock('@hooks/usePersonalDetails', () => ({usePersonalDetail: jest.fn(() => [undefined])}));
 jest.mock('@hooks/usePermissions', () => jest.fn(() => ({isBetaEnabled: jest.fn(() => false), isBetaEnabledOrUnknown: jest.fn(() => false)})));
@@ -70,6 +73,7 @@ describe('useUpdateTransactionCategory', () => {
         expect(setDraftSplitTransaction).toHaveBeenCalledTimes(1);
         // The rules collection goes along, since a split draft has to resolve the category's tax rate itself
         expect(setDraftSplitTransaction).toHaveBeenCalledWith(
+            mockTranslate,
             TRANSACTION_ID,
             transaction,
             {category: CATEGORY},
@@ -96,7 +100,18 @@ describe('useUpdateTransactionCategory', () => {
         result.current.updateCategory(CATEGORY);
 
         // Then the existing split draft is the base, so its other fields are preserved
-        expect(setDraftSplitTransaction).toHaveBeenCalledWith(TRANSACTION_ID, splitDraft, {category: CATEGORY}, expect.any(Function), expect.any(Function), policy, undefined, undefined, {});
+        expect(setDraftSplitTransaction).toHaveBeenCalledWith(
+            mockTranslate,
+            TRANSACTION_ID,
+            splitDraft,
+            {category: CATEGORY},
+            expect.any(Function),
+            expect.any(Function),
+            policy,
+            undefined,
+            undefined,
+            {},
+        );
     });
 
     it('writes a saved expense through the money request update', () => {
@@ -108,7 +123,9 @@ describe('useUpdateTransactionCategory', () => {
 
         // Then it saves to the expense itself, carrying the report the violations are recomputed against
         expect(updateMoneyRequestCategory).toHaveBeenCalledTimes(1);
-        expect(updateMoneyRequestCategory).toHaveBeenCalledWith(expect.objectContaining({transactionID: TRANSACTION_ID, category: CATEGORY, transactionThreadReport: report}));
+        expect(updateMoneyRequestCategory).toHaveBeenCalledWith(
+            expect.objectContaining({translate: mockTranslate, transactionID: TRANSACTION_ID, category: CATEGORY, transactionThreadReport: report}),
+        );
         expect(setDraftSplitTransaction).not.toHaveBeenCalled();
         expect(setMoneyRequestCategory).not.toHaveBeenCalled();
         expect(result.current.isDraftUpdate).toBe(false);

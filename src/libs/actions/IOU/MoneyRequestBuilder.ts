@@ -69,6 +69,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {ErrorFields, Errors, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
+import type {Unit} from '@src/types/onyx/Policy';
 import type {ReportNextStep} from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -153,6 +154,7 @@ type RequestMoneyTransactionParams = Omit<BaseTransactionParams, 'comment'> & {
     customUnit?: TransactionCustomUnit;
     odometerStart?: number;
     odometerEnd?: number;
+    odometerUnit?: Unit;
 
     /** Transaction type (e.g., 'time' for time tracking expenses) */
     type?: ValueOf<typeof CONST.TRANSACTION.TYPE>;
@@ -171,9 +173,6 @@ type RequestMoneyTransactionParams = Omit<BaseTransactionParams, 'comment'> & {
 
     /** The selfDM report ID for split transactions */
     selfDMReportID?: string;
-
-    /** Writes no table flag, for a flow that never shows the expense report. */
-    shouldSkipReportHighlightRail?: boolean;
 };
 
 type RequestMoneyInformation = {
@@ -254,6 +253,7 @@ type MoneyRequestInformationParams = {
     shouldGenerateTransactionThreadReport?: boolean;
     isSplitExpense?: boolean;
     isReverseSplitOperation?: boolean;
+    shouldFlagNewTransactionForReportTable: boolean;
     action?: IOUAction;
     currentReportActionID?: string;
 
@@ -332,8 +332,7 @@ type BuildOnyxDataForMoneyRequestParams = {
     isSelfDMSplit?: boolean;
     /** The selfDM report ID for split transactions */
     selfDMReportID?: string;
-    /** Whether to skip the `pendingNewTransactionIDs` highlight rail because this flow never opens the expense report */
-    shouldSkipReportHighlightRail?: boolean;
+    shouldFlagNewTransactionForReportTable: boolean;
     isTrackIntentUser: boolean | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<OnyxTypes.Rule>;
@@ -513,7 +512,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         isSelfDMSplit,
         isReverseSplitOperation,
         selfDMReportID,
-        shouldSkipReportHighlightRail,
+        shouldFlagNewTransactionForReportTable,
         isTrackIntentUser,
         delegateAccountID,
         getCurrencyDecimals,
@@ -753,20 +752,19 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         });
     }
 
-    // Only an insertion into a report that already showed rows is flagged: its first rows are its contents. No successData clear, which would race the list mounting.
     const reportTransactionsFromCache = iou.report?.reportID ? getReportTransactions(iou.report.reportID) : [];
-    const isTransactionAlreadyOnReport = reportTransactionsFromCache.some((reportTransaction) => reportTransaction.transactionID === transaction.transactionID);
     const existingReportTransactions = reportTransactionsFromCache.filter((reportTransaction) => reportTransaction.transactionID !== transaction.transactionID);
-    // A row the report already holds inserts nothing, and must not answer for the action: without it the report can look empty.
-    const wasShowingRowsWhenActionBegan =
-        !isTransactionAlreadyOnReport &&
-        !!iou.report?.reportID &&
-        wasReportShowingRowsWhenActionBegan(iou.report.reportID, () => isReportShowingRowsBesidesThisAdd(iou.report, existingReportTransactions));
-    const isInsertionIntoReportTheUserHasSeen = isMoneyRequestReport(iou.report) && wasShowingRowsWhenActionBegan;
-    if (iou.report?.reportID && transaction.transactionID && !isSelfDMSplit && !shouldSkipReportHighlightRail && isInsertionIntoReportTheUserHasSeen) {
-        const {optimisticUpdate, failureUpdate} = buildNewTransactionFlagForReportTable({expenseReportID: iou.report.reportID, transactionID: transaction.transactionID});
-        onyxData.optimisticData?.push(optimisticUpdate);
-        onyxData.failureData?.push(failureUpdate);
+    // Only an insertion into a report that already showed rows is flagged: its first rows are its contents. No successData clear, which would race the list mounting.
+    if (shouldFlagNewTransactionForReportTable && iou.report?.reportID && transaction.transactionID && !isSelfDMSplit && isMoneyRequestReport(iou.report)) {
+        const isTransactionAlreadyOnReport = reportTransactionsFromCache.some((reportTransaction) => reportTransaction.transactionID === transaction.transactionID);
+        // A row already on the report adds nothing. Asking about it would leave it out of the count, so the report could look empty to the action's later adds.
+        const wasShowingRowsWhenActionBegan =
+            !isTransactionAlreadyOnReport && wasReportShowingRowsWhenActionBegan(iou.report.reportID, () => isReportShowingRowsBesidesThisAdd(iou.report, existingReportTransactions));
+        if (wasShowingRowsWhenActionBegan) {
+            const {optimisticUpdate, failureUpdate} = buildNewTransactionFlagForReportTable({expenseReportID: iou.report.reportID, transactionID: transaction.transactionID});
+            onyxData.optimisticData?.push(optimisticUpdate);
+            onyxData.failureData?.push(failureUpdate);
+        }
     }
 
     if (shouldGenerateTransactionThreadReport && !isSelfDMSplit && !isEmptyObject(transactionThreadCreatedReportAction)) {
@@ -1338,6 +1336,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         shouldGenerateTransactionThreadReport = true,
         isSplitExpense,
         isReverseSplitOperation,
+        shouldFlagNewTransactionForReportTable,
         action,
         currentReportActionID,
         existingTransactionThreadReportID,
@@ -1394,9 +1393,9 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         waypoints,
         odometerStart,
         odometerEnd,
+        odometerUnit,
         isSelfDMSplit,
         selfDMReportID,
-        shouldSkipReportHighlightRail,
     } = transactionParams;
 
     const payerEmail = addSMSDomainIfPhoneNumber(participant.login ?? '');
@@ -1601,6 +1600,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             waypoints,
             odometerStart,
             odometerEnd,
+            odometerUnit,
         },
         isDemoTransactionParam: transactionParams.receipt?.isTestDriveReceipt,
     });
@@ -1664,8 +1664,9 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     }
 
     if (isSplitExpense && existingTransaction) {
-        const {convertedAmount: originalConvertedAmount, ...existingTransactionWithoutConvertedAmount} = existingTransaction;
-        optimisticTransaction = fastMerge(existingTransactionWithoutConvertedAmount, optimisticTransaction, false);
+        // A split can move to another report, so it shows its own amount instead of the original's workspace amount until the next search
+        const {convertedAmount: originalConvertedAmount, policyConvertedAmount, ...existingTransactionWithoutConvertedAmounts} = existingTransaction;
+        optimisticTransaction = fastMerge(existingTransactionWithoutConvertedAmounts, optimisticTransaction, false);
         if (customUnit && optimisticTransaction.comment) {
             optimisticTransaction.comment.customUnit = customUnit;
         }
@@ -1840,7 +1841,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         delegateAccountID,
         isSelfDMSplit,
         selfDMReportID,
-        shouldSkipReportHighlightRail,
+        shouldFlagNewTransactionForReportTable,
         isTrackIntentUser,
         getCurrencyDecimals,
         isVendorMatchingBetaEnabled,

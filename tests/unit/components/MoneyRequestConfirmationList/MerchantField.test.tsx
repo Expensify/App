@@ -121,6 +121,6 @@ describe('MerchantField on an edited split', () => {
         fireEvent.changeText(screen.getByLabelText('common.merchant'), 'Hilton');
 
         // Then the split draft gets the merchant together with the flag that it was typed
-        expect(setDraftSplitTransaction).toHaveBeenCalledWith('1', undefined, {merchant: 'Hilton', isMerchantSet: true}, expect.any(Function), expect.any(Function));
+        expect(setDraftSplitTransaction).toHaveBeenCalledWith(expect.any(Function), '1', undefined, {merchant: 'Hilton', isMerchantSet: true}, expect.any(Function), expect.any(Function));
     });
 });

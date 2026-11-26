@@ -14,7 +14,7 @@ import useWorkspaceMembers from './useWorkspaceMembers';
  * A rule stores account IDs, which say nothing to an admin and cannot be resolved from the policy the way a
  * category can. The workspace alone is not enough either, since a rule keeps naming a member after they are
  * removed and a rule copied to another workspace names members that workspace never had, so everyone this
- * account can see is the fallback before a row gives up and shows the stored ID.
+ * account can see is read rather than only the workspace's own members.
  */
 function useExpenseDefaultSubmitterNames(policy: OnyxEntry<Policy>): Record<string, string> {
     const {translate, formatPhoneNumber} = useLocalize();

@@ -678,6 +678,27 @@ describe('TransactionUtils', () => {
     });
 
     describe('getUpdatedTransaction', () => {
+        it('uses the supplied translator for a pending route instead of the global locale', () => {
+            // Given a translator whose output differs from the global locale
+            const translate = jest.fn(() => 'Injected pending label');
+            const transaction = generateTransaction({comment: {waypoints: {}}});
+
+            // When a waypoint edit has no resolved route yet
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                translate,
+                transaction,
+                transactionChanges: {waypoints: {waypoint0: {address: 'New destination'}}},
+                isFromExpenseReport: false,
+                personalPolicyOutputCurrency: undefined,
+                getCurrencySymbol: getCurrencySymbolLocal,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+            });
+
+            // Then the optimistic merchant comes from the caller's translator
+            expect(translate).toHaveBeenCalledWith('iou.fieldPending');
+            expect(updatedTransaction.modifiedMerchant).toBe('Injected pending label');
+        });
+
         it('should preserve a confirmed zero Scan amount while another field edit is pending', () => {
             // Given a submitted Scan whose explicit zero survived a cache reset without its draft flag
             const transaction = generateTransaction({
@@ -730,6 +751,60 @@ describe('TransactionUtils', () => {
             expect(TransactionUtils.isFailedScanAmountPlaceholder(updatedTransaction)).toBe(true);
         });
 
+        it('should clear the workspace amount from Search when the amount is edited', () => {
+            // Given a searched expense whose workspace amount came from Search
+            const transaction = generateTransaction({amount: -1000, currency: CONST.CURRENCY.USD, policyConvertedAmount: -1000, policyCurrency: CONST.CURRENCY.USD});
+
+            // When its amount is edited
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: true,
+                transactionChanges: {amount: 2500},
+                personalPolicyOutputCurrency: undefined,
+                getCurrencySymbol: getCurrencySymbolLocal,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+            });
+
+            // Then the stale workspace amount is cleared so the expense shows its own amount until the next search
+            expect(updatedTransaction.policyConvertedAmount).toBeNull();
+        });
+
+        it('should clear the workspace amount when the amount is edited on a transaction without one', () => {
+            // Given an expense whose stored copy has no workspace amount, while the Search snapshot still holds one from an earlier search
+            const transaction = generateTransaction({amount: -1000, currency: CONST.CURRENCY.USD});
+
+            // When its amount is edited
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: true,
+                transactionChanges: {amount: 2500},
+                personalPolicyOutputCurrency: undefined,
+                getCurrencySymbol: getCurrencySymbolLocal,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+            });
+
+            // Then the update still clears it, so the snapshot does not keep showing the old workspace amount
+            expect(updatedTransaction.policyConvertedAmount).toBeNull();
+        });
+
+        it('should keep the workspace amount from Search when the amount does not change', () => {
+            // Given a searched expense whose workspace amount came from Search
+            const transaction = generateTransaction({amount: -1000, currency: CONST.CURRENCY.USD, policyConvertedAmount: -1000, policyCurrency: CONST.CURRENCY.USD});
+
+            // When only its merchant is edited
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: true,
+                transactionChanges: {merchant: 'New merchant'},
+                personalPolicyOutputCurrency: undefined,
+                getCurrencySymbol: getCurrencySymbolLocal,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+            });
+
+            // Then the workspace amount stays because it still matches the expense
+            expect(updatedTransaction.policyConvertedAmount).toBe(-1000);
+        });
+
         it('should update transaction when distance is changed', () => {
             // Given: a policy with a mileage rate
             const fakePolicy: Policy = {
@@ -763,9 +838,11 @@ describe('TransactionUtils', () => {
             });
 
             const newDistance = 20; // change distance to 20 miles
+            const translate = jest.fn(() => 'Injected distance label');
 
             // When: updating the transaction with a new distance
             const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                translate,
                 transaction,
                 isFromExpenseReport: false,
                 policy: fakePolicy,
@@ -777,6 +854,7 @@ describe('TransactionUtils', () => {
 
             // Then: quantity should be updated
             expect(updatedTransaction.comment?.customUnit?.quantity).toBe(newDistance);
+            expect(translate).toHaveBeenCalledWith('common.mile');
 
             // And: amount should be recalculated (20 miles × 1 USD = 20)
             expect(updatedTransaction.modifiedAmount).toBe(20);
@@ -2801,6 +2879,26 @@ describe('TransactionUtils', () => {
     });
 
     describe('isViolationDismissed', () => {
+        it('treats a categoryNotAllowed dismissal by an admin as dismissed for the member too', () => {
+            // Given an admin who coded the member's expense to a category the member can't use, which dismisses categoryNotAllowed
+            const transaction = generateTransaction({
+                comment: {
+                    dismissedViolations: {
+                        [CONST.VIOLATIONS.CATEGORY_NOT_ALLOWED]: {
+                            [OTHER_USER_EMAIL]: DateUtils.getDBTime(),
+                        },
+                    },
+                },
+            });
+            const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.CATEGORY_NOT_ALLOWED};
+
+            // When the member views the expense, without any report context
+            const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, undefined, undefined);
+
+            // Then it's dismissed for them as well, since the admin's override applies to everyone
+            expect(result).toBe(true);
+        });
+
         describe('Current user dismissed it themselves', () => {
             it('should return true when current user dismissed the violation', () => {
                 // Given a transaction with a violation dismissed by current user
@@ -4312,6 +4410,42 @@ describe('TransactionUtils', () => {
                 convertedAmount: -100,
             });
             expect(TransactionUtils.getConvertedAmount(transaction, true, false, false, true)).toBe(-100);
+        });
+    });
+
+    describe('getAmountWithDisplaySign', () => {
+        it('shows an IOU amount as positive', () => {
+            // Given an amount stored as negative on an IOU, which can never be negative
+            const storedAmount = -100;
+
+            // When it is signed for display outside an expense report or tracked expense
+            const displayAmount = TransactionUtils.getAmountWithDisplaySign(storedAmount);
+
+            // Then it shows as positive
+            expect(displayAmount).toBe(100);
+        });
+
+        it('flips the stored sign for expense reports and tracked expenses', () => {
+            // Given an expense stored with the opposite sign, as expense reports and tracked expenses store it
+            const storedAmount = -100;
+
+            // When it is signed for display on an expense report and as a tracked expense
+            const expenseReportAmount = TransactionUtils.getAmountWithDisplaySign(storedAmount, true);
+            const trackedExpenseAmount = TransactionUtils.getAmountWithDisplaySign(storedAmount, false, true);
+
+            // Then both show the flipped sign, so a refund stored as positive would show as negative
+            expect(expenseReportAmount).toBe(100);
+            expect(trackedExpenseAmount).toBe(100);
+            expect(TransactionUtils.getAmountWithDisplaySign(100, true)).toBe(-100);
+        });
+
+        it('shows zero without a negative sign', () => {
+            // Given a zero amount on an expense report
+            // When it is signed for display
+            const displayAmount = TransactionUtils.getAmountWithDisplaySign(0, true);
+
+            // Then it is plain zero, so the cell never shows -0
+            expect(Object.is(displayAmount, 0)).toBe(true);
         });
     });
 
