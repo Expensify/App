@@ -516,7 +516,6 @@
 "../../src/hooks/useLazyAsset.ts"	"react-hooks/set-state-in-effect"	1
 "../../src/hooks/useLoadDepositAccountSetup.ts"	"rulesdir/no-onyx-loading-status"	1
 "../../src/hooks/useMarkdownStyle.ts"	"rulesdir/no-raw-typography"	3
-"../../src/hooks/useMergeResultConfirmationConfig.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/hooks/useOnboardingFlow.ts"	"rulesdir/no-onyx-loading-status"	3
 "../../src/hooks/useOnyx.ts"	"@typescript-eslint/no-unsafe-type-assertion"	9
 "../../src/hooks/useOptimisticDraftTransactions.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -872,7 +871,6 @@
 "../../src/libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent/index.tsx"	"@typescript-eslint/no-deprecated/NavigationContent"	1
 "../../src/libs/Navigation/PlatformStackNavigation/navigationOptions/animation/withAnimation.ts"	"@typescript-eslint/no-unsafe-type-assertion"	6
 "../../src/libs/Navigation/PlatformStackNavigation/ScreenLayout.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/libs/Navigation/useNavigateToForcedTransactionReview.ts"	"rulesdir/no-onyx-loading-status"	1
 "../../src/libs/NetSuiteUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Network/enhanceParameters.ts"	"no-restricted-syntax"	1
 "../../src/libs/Network/index.ts"	"no-restricted-syntax"	1
@@ -1248,7 +1246,6 @@
 "../../src/pages/Search/SearchEditMultiple/SearchEditMultipleUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/pages/Search/SearchPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/Search/SearchPageNarrow/index.tsx"	"no-restricted-imports"	1
-"../../src/pages/Search/SearchReportsMergeReports.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/Search/SearchSavePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/Search/SearchTransactionsChangeReport.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/SetDefaultWorkspacePage.tsx"	"no-restricted-imports"	1
@@ -1428,7 +1425,6 @@
 "../../src/pages/TransactionDuplicate/DynamicConfirmationPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/TransactionDuplicate/DynamicConfirmationPage.tsx"	"no-restricted-imports"	2
 "../../src/pages/TransactionDuplicate/DynamicConfirmationPage.tsx"	"react-hooks/refs"	7
-"../../src/pages/TransactionDuplicate/DynamicConfirmationPage.tsx"	"rulesdir/no-onyx-loading-status"	2
 "../../src/pages/TransactionDuplicate/DynamicReviewBillablePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/TransactionDuplicate/DynamicReviewCategoryPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/TransactionDuplicate/DynamicReviewDescriptionPage.tsx"	"no-restricted-imports"	1
@@ -1440,15 +1436,11 @@
 "../../src/pages/TransactionDuplicate/ReviewFields.tsx"	"@typescript-eslint/no-deprecated/fontSize"	1
 "../../src/pages/TransactionMerge/DynamicConfirmationPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/TransactionMerge/DynamicConfirmationPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/TransactionMerge/DynamicConfirmationPage.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/TransactionMerge/DynamicDetailsReviewPage.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/pages/TransactionMerge/DynamicDetailsReviewPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/TransactionMerge/DynamicDetailsReviewPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/TransactionMerge/DynamicDetailsReviewPage.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/TransactionMerge/DynamicMergeTransactionsListPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/TransactionMerge/DynamicMergeTransactionsListPage.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/TransactionMerge/DynamicReceiptReviewPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/TransactionMerge/DynamicReceiptReviewPage.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/TransactionMerge/MergeTransactionItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/TransactionMerge/MergeTransactionsListContent.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/pages/TransactionMerge/MergeTransactionsListContent.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
