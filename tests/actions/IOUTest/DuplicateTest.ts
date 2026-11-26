@@ -4530,7 +4530,7 @@ describe('actions/Duplicate', () => {
                 transactionDrafts: undefined,
                 recentWaypoints: [],
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
-                currentUserPersonalDetails: undefined,
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 conciergeChat: undefined,
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
