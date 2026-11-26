@@ -1,6 +1,5 @@
-import {renderHook, waitFor} from '@testing-library/react-native';
+import {renderHook} from '@testing-library/react-native';
 
-import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useReceiptTranslation from '@hooks/useReceiptTranslation';
 
@@ -15,7 +14,6 @@ import Onyx from 'react-native-onyx';
 import createMock from '../../utils/createMock';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
-jest.mock('@hooks/useLocalize');
 jest.mock('@hooks/usePermissions');
 
 const CURRENT_USER_ACCOUNT_ID = 1;
@@ -31,7 +29,7 @@ const transaction = createMock<Transaction>({
 
 async function seedWorkspace({policyType, role, managerID}: {policyType: ValueOf<typeof CONST.POLICY.TYPE>; role: ValueOf<typeof CONST.POLICY.ROLE>; managerID: number}) {
     await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {id: POLICY_ID, type: policyType, role});
-    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID, policyID: POLICY_ID, type: CONST.REPORT.TYPE.EXPENSE, managerID});
+    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID, policyID: POLICY_ID, managerID});
 }
 
 describe('useReceiptTranslation', () => {
@@ -40,7 +38,6 @@ describe('useReceiptTranslation', () => {
     });
 
     beforeEach(async () => {
-        jest.mocked(useLocalize).mockReturnValue(createMock<ReturnType<typeof useLocalize>>({translate: jest.fn(), preferredLocale: CONST.LOCALES.DEFAULT}));
         jest.mocked(usePermissions).mockReturnValue(createMock<ReturnType<typeof usePermissions>>({isBetaEnabled: (beta) => beta === CONST.BETAS.RECEIPT_TRANSLATION}));
         await Onyx.set(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID});
     });
@@ -55,9 +52,10 @@ describe('useReceiptTranslation', () => {
 
         // When the hook reads the expense's receipt
         const {result} = renderHook(() => useReceiptTranslation(transaction));
+        await waitForBatchedUpdatesWithAct();
 
         // Then admins can translate, because they review receipts on the workspace
-        await waitFor(() => expect(result.current.canTranslate).toBe(true));
+        expect(result.current.canTranslate).toBe(true);
     });
 
     it("shows Translate to the report's approver on a paid workspace", async () => {
@@ -66,9 +64,10 @@ describe('useReceiptTranslation', () => {
 
         // When the hook reads the expense's receipt
         const {result} = renderHook(() => useReceiptTranslation(transaction));
+        await waitForBatchedUpdatesWithAct();
 
         // Then the approver can translate, because they review this report's receipts
-        await waitFor(() => expect(result.current.canTranslate).toBe(true));
+        expect(result.current.canTranslate).toBe(true);
     });
 
     it('hides Translate from an employee who only submits the report', async () => {
