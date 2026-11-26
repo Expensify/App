@@ -46,7 +46,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, isLoadingReportData = 
     const [approvalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
     const personalDetailsByEmail = usePersonalDetailsByEmail();
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
-    const shouldUseApprovalWorkflowRules = useShouldUseApprovalWorkflowRules(policy);
+    const shouldUseApprovalWorkflowRules = useShouldUseApprovalWorkflowRules();
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const approverIndex = Number(route.params.approverIndex) ?? 0;
     const rhpRoutes = useNavigationState((state) => state.routes);

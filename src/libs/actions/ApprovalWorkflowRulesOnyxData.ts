@@ -59,30 +59,31 @@ function buildApprovalWorkflowRulesOnyxData({policyID, rulesDiff, previousRules,
     for (const [ruleID, rule] of Object.entries(rulesDiff)) {
         const ruleKey = `${ONYXKEYS.COLLECTION.RULE}${ruleID}` as const;
         const previousRule = previousRules?.[ruleKey];
-        const restore: OnyxUpdate<typeof ONYXKEYS.COLLECTION.RULE> = previousRule
-            ? {onyxMethod: Onyx.METHOD.SET, key: ruleKey, value: {...previousRule, pendingAction: null, errors: genericError}}
-            : {onyxMethod: Onyx.METHOD.SET, key: ruleKey, value: null};
+        const restoredPreviousRule = previousRule ? {...previousRule, pendingAction: null, errors: genericError} : undefined;
 
         if (rule === null) {
             optimisticData.push({onyxMethod: Onyx.METHOD.MERGE, key: ruleKey, value: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, errors: null}});
             successData.push({onyxMethod: Onyx.METHOD.SET, key: ruleKey, value: null});
-            failureData.push(restore);
+            failureData.push({onyxMethod: Onyx.METHOD.SET, key: ruleKey, value: restoredPreviousRule ?? null});
             continue;
         }
 
-        optimisticData.push({
+        const optimisticRule = {
+            ...rule,
+            scope: CONST.RULES.SCOPE.POLICY,
+            scopeID: policyID,
+            pendingAction: previousRule ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            errors: null,
+        };
+        optimisticData.push({onyxMethod: Onyx.METHOD.SET, key: ruleKey, value: optimisticRule});
+        successData.push({onyxMethod: Onyx.METHOD.MERGE, key: ruleKey, value: {pendingAction: null}});
+
+        // A rule that failed to be added stays, still pending, with the error until the admin dismisses it, which removes it
+        failureData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: ruleKey,
-            value: {
-                ...rule,
-                scope: CONST.RULES.SCOPE.POLICY,
-                scopeID: policyID,
-                pendingAction: previousRule ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                errors: null,
-            },
+            value: restoredPreviousRule ?? {...optimisticRule, errors: genericError},
         });
-        successData.push({onyxMethod: Onyx.METHOD.MERGE, key: ruleKey, value: {pendingAction: null}});
-        failureData.push(restore);
     }
 
     if (membersWithPendingApprover?.length) {

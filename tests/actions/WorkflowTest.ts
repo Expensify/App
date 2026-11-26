@@ -9,11 +9,13 @@ import {
     clearApprovalWorkflow,
     clearApprovalWorkflowApprover,
     clearApprovalWorkflowApprovers,
+    clearApprovalWorkflowRulesErrors,
     createApprovalWorkflow,
     createApprovalWorkflowRules,
     importApprovalWorkflowRules,
     removeApprovalWorkflow,
     removeApprovalWorkflowApprover,
+    removeApprovalWorkflowForks,
     removeApprovalWorkflowRules,
     saveFastEditApprovalWorkflow,
     selectApprovalWorkflowForEdit,
@@ -32,7 +34,9 @@ import {
     convertApprovalWorkflowRulesToWorkflows,
     convertPolicyEmployeesToApprovalWorkflows,
     extractSubmitterEmails,
+    getApprovalWorkflowRulesOfflineFeedback,
     getApproverPendingActionByMemberEmail,
+    hasApprovalWorkflowForks,
 } from '@src/libs/WorkflowUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ApprovalWorkflowOnyx, PersonalDetailsList, Policy, Policy as PolicyType, Report} from '@src/types/onyx';
@@ -2768,6 +2772,100 @@ describe('actions/Workflow', () => {
             await waitForBatchedUpdates();
             const settledPolicy = await getOnyxValue(policyKey);
             expect(settledPolicy?.employeeList?.[employee2Email]?.pendingFields?.submitsTo).toBeFalsy();
+        });
+    });
+
+    describe('removeApprovalWorkflowForks', () => {
+        const policyID = '123456789';
+        const employeeList = {
+            [ownerEmail]: {email: ownerEmail, role: CONST.POLICY.ROLE.ADMIN},
+            [employee1Email]: {email: employee1Email, role: CONST.POLICY.ROLE.USER, submitsTo: employee2Email},
+            [employee2Email]: {email: employee2Email, role: CONST.POLICY.ROLE.USER, forwardsTo: ownerEmail, approvalLimit: 100000, overLimitForwardsTo: employee3Email},
+            [employee3Email]: {email: employee3Email, role: CONST.POLICY.ROLE.USER},
+        };
+        const policy: Policy = {
+            ...createRandomPolicy(1),
+            id: policyID,
+            owner: ownerEmail,
+            approver: ownerEmail,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+            employeeList,
+            rules: {},
+        };
+
+        // employee1 submits to employee2, who sends reports over 1,000.00 to employee3, and employee3 approves them instead of
+        // sending them on to the owner, so the workflow forks at employee3
+        const approvalWorkflow = {
+            members: [{email: employee1Email, displayName: employee1Email}],
+            approvers: [
+                {email: employee2Email, displayName: employee2Email, forwardsTo: ownerEmail},
+                {email: employee3Email, displayName: employee3Email, overLimitAmount: 100000, forkBranches: [{approvers: []}]},
+                {email: ownerEmail, displayName: ownerEmail},
+            ],
+            isDefault: false,
+        };
+
+        beforeEach(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
+            await waitForBatchedUpdates();
+        });
+
+        it('saves the workflow as rules with the approvers it shows and leaves the employee settings that forked it', async () => {
+            mockFetch.pause();
+
+            // Given a workflow that forks at employee3
+            // When the admin removes its forks
+            removeApprovalWorkflowForks({approvalWorkflow, policy, rules: await getRulesCollection()});
+            await waitForBatchedUpdates();
+
+            // Then the workflow is saved in one request, as rules that read back as the approvers it showed with no forks left
+            expect(getFetchMockCalls(WRITE_COMMANDS.SET_APPROVAL_WORKFLOW)).toHaveLength(1);
+            const {approvalWorkflows} = convertApprovalWorkflowRulesToWorkflows({
+                policy,
+                personalDetails: {},
+                localeCompare: (a: string, b: string) => a.localeCompare(b),
+                rules: getApprovalWorkflowRulesForPolicy(await getRulesCollection(), policyID),
+            });
+            const savedWorkflow = approvalWorkflows.find((workflow) => workflow.members.some((member) => member.email === employee1Email));
+            expect(savedWorkflow?.approvers.map(({email, overLimitAmount}) => ({email, overLimitAmount}))).toEqual([
+                {email: employee2Email, overLimitAmount: undefined},
+                {email: employee3Email, overLimitAmount: 100000},
+                {email: ownerEmail, overLimitAmount: undefined},
+            ]);
+            expect(hasApprovalWorkflowForks({approvers: savedWorkflow?.approvers ?? []})).toBe(false);
+
+            // And the workflow shows the save as pending until the server confirms it
+            expect(getApprovalWorkflowRulesOfflineFeedback(approvalWorkflow.members, await getRulesCollection()).pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+
+            // And the employee settings stay as they were, since other workflows can still go through them
+            const savedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(savedPolicy?.employeeList).toEqual(employeeList);
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+
+        it('shows the error of a failed removal on the workflow until the admin dismisses it, which brings the forks back', async () => {
+            // Given a workflow that forks at employee3
+            // When the admin removes its forks and the request fails
+            mockFetch.fail();
+            removeApprovalWorkflowForks({approvalWorkflow, policy, rules: await getRulesCollection()});
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+
+            // Then the rules it was saved as stay pending with an error, so the workflow shows them greyed out with the error
+            const failedFeedback = getApprovalWorkflowRulesOfflineFeedback(approvalWorkflow.members, await getRulesCollection());
+            expect(failedFeedback.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+            expect(failedFeedback.errors).not.toBeUndefined();
+
+            // When the admin dismisses the error
+            clearApprovalWorkflowRulesErrors({members: approvalWorkflow.members, rules: await getRulesCollection()});
+            await waitForBatchedUpdates();
+
+            // Then the rules that never reached the server are gone, so the workflow routes by the employee settings again
+            expect(await getActivePolicyRules(policyID)).toHaveLength(0);
+            expect(getApprovalWorkflowRulesOfflineFeedback(approvalWorkflow.members, await getRulesCollection())).toEqual({pendingAction: undefined, errors: undefined});
         });
     });
 

@@ -17,6 +17,7 @@ import {
     getApproverChainKey,
     getApproversFromImportedApprovers,
     getDefaultFlaggedSubmittersOutsideWorkflow,
+    getMembersApprovalWorkflowRuleEntries,
     getNonMemberApproverError,
     getWorkflowMemberEmails,
     hasRuleBasedDefaultWorkflow,
@@ -496,6 +497,44 @@ function updateApprovalWorkflowRules({approvalWorkflow, initialApprovalWorkflow,
     updatePolicyDefaultApprover(approvalWorkflow, policy);
 }
 
+type RemoveApprovalWorkflowForksParams = {
+    /** Workflow whose employee settings fork some reports away from it, as shown, with its forks */
+    approvalWorkflow: ApprovalWorkflow;
+    policy: OnyxEntry<Policy>;
+    rules: OnyxCollection<Rule>;
+};
+
+/**
+ * Remove every fork of a workflow by saving it as approval workflow rules, which send each report along the approvers
+ * shown. The employee settings that forked the reports stay as they are, since other workflows can still go through them.
+ */
+function removeApprovalWorkflowForks({approvalWorkflow, policy, rules}: RemoveApprovalWorkflowForksParams) {
+    updateApprovalWorkflowRules({approvalWorkflow, initialApprovalWorkflow: approvalWorkflow, policy, rules});
+}
+
+type ClearApprovalWorkflowRulesErrorsParams = {
+    /** Members of the workflow whose failed rules save is dismissed */
+    members: Member[];
+    rules: OnyxCollection<Rule>;
+};
+
+/**
+ * Dismiss the error of a failed save of the rules that route a workflow's members. A rule that failed to be added never
+ * reached the server, so it's removed, and the members go back to the routing they had.
+ */
+function clearApprovalWorkflowRulesErrors({members, rules}: ClearApprovalWorkflowRulesErrorsParams) {
+    for (const [ruleKey, rule] of getMembersApprovalWorkflowRuleEntries(members, rules)) {
+        if (isEmptyObject(rule.errors)) {
+            continue;
+        }
+        if (rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+            Onyx.set(ruleKey, null);
+            continue;
+        }
+        Onyx.merge(ruleKey, {errors: null});
+    }
+}
+
 type BuildReturnToDefaultWorkflowDiffParams = {
     /** The workflow these members are leaving, because it is deleted or they are taken out of it, listing only them. */
     approvalWorkflow: ApprovalWorkflow;
@@ -893,6 +932,8 @@ export {
     createApprovalWorkflowRules,
     importApprovalWorkflowRules,
     removeApprovalWorkflowRules,
+    removeApprovalWorkflowForks,
+    clearApprovalWorkflowRulesErrors,
     updateApprovalWorkflow,
     updateApprovalWorkflowRules,
     removeApprovalWorkflow,

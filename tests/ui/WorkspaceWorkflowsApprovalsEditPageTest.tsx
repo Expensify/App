@@ -72,6 +72,7 @@ jest.mock('@react-navigation/native', () => {
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),
+    getActiveRoute: jest.fn(() => ''),
     getActiveRouteWithoutParams: jest.fn(() => ''),
     isNavigationReady: jest.fn(() => Promise.resolve()),
     dismissModal: jest.fn(),
@@ -345,8 +346,9 @@ describe('WorkspaceWorkflowsApprovalsEditPage', () => {
             expect(updateApprovalWorkflow).not.toHaveBeenCalled();
         });
 
-        it('keeps writing to employeeList under MULTIPLE_APPROVERS while a policy without rules has an over-limit approver', async () => {
-            // Given the beta is on, and the policy has no rules while Alice sends reports over her limit to Carol
+        it('writes rules under MULTIPLE_APPROVERS for a policy without rules whose over-limit approver sends reports along the workflow', async () => {
+            // Given the beta is on, and the policy has no rules while Alice sends reports over her limit to Carol, who approves
+            // them, just as the workflow ends after Alice for every other report
             await act(async () => {
                 await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.MULTIPLE_APPROVERS]);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {employeeList: {[ALICE_EMAIL]: {approvalLimit: 10000, overLimitForwardsTo: CAROL_EMAIL}}});
@@ -362,60 +364,29 @@ describe('WorkspaceWorkflowsApprovalsEditPage', () => {
             const [, options] = jest.mocked(Navigation.goBack).mock.calls.at(-1) ?? [];
             options?.afterTransition?.();
 
-            // Then the save goes to employeeList rather than writing rules, which would change where reports over Alice's limit go
-            expect(updateApprovalWorkflow).toHaveBeenCalledTimes(1);
-            expect(updateApprovalWorkflowRules).not.toHaveBeenCalled();
+            // Then it's saved as rules, which send the reports over Alice's limit to Carol the same way
+            expect(updateApprovalWorkflowRules).toHaveBeenCalledTimes(1);
+            expect(updateApprovalWorkflow).not.toHaveBeenCalled();
         });
 
-        describe('of a workflow the employee settings route some reports another way', () => {
-            beforeEach(async () => {
-                // Carol sends Bob's reports to Alice, but the ones over 500.00 to Bob, who approves them, so Alice never gets them. Alice's
-                // own reports are already routed by rules, so saving Bob's workflow writes rules too.
-                await act(async () => {
-                    await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.MULTIPLE_APPROVERS]);
-                    await Onyx.set(`${ONYXKEYS.COLLECTION.RULE}aliceSubmitRule`, {
-                        scope: CONST.RULES.SCOPE.POLICY,
-                        scopeID: POLICY_ID,
-                        triggers: Object.fromEntries([['1', CONST.RULES.TRIGGERS.REPORT_SUBMIT]]),
-                        filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: [ALICE_EMAIL]},
-                        actions: Object.fromEntries([['1', {name: CONST.RULES.ACTIONS.FORWARD_TO, approver: ALICE_EMAIL}]]),
-                    });
-                    await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {
-                        employeeList: {[CAROL_EMAIL]: {email: CAROL_EMAIL, forwardsTo: ALICE_EMAIL, approvalLimit: 50000, overLimitForwardsTo: BOB_EMAIL}},
-                    });
+        it("doesn't open a workflow whose employee settings fork some reports away from it", async () => {
+            // Given the beta is on, and Carol sends Bob's reports to Alice, but the ones over 500.00 to Bob, who approves them,
+            // so Alice never gets them
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.MULTIPLE_APPROVERS]);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {
+                    employeeList: {[CAROL_EMAIL]: {email: CAROL_EMAIL, forwardsTo: ALICE_EMAIL, approvalLimit: 50000, overLimitForwardsTo: BOB_EMAIL}},
                 });
+                await waitForBatchedUpdatesWithAct();
             });
 
-            it('warns that saving it as rules changes where those reports go, and saves once the admin confirms', async () => {
-                // Given the workflow is open for editing
-                renderEditPage(bobsWorkflowRoute);
-                await waitForBatchedUpdatesWithAct();
+            // When the admin opens Bob's workflow for editing
+            renderEditPage(bobsWorkflowRoute);
+            await waitForBatchedUpdatesWithAct();
 
-                // When the admin saves it and confirms
-                fireEvent.press(screen.getByText(translateLocal('common.save')));
-                await waitForBatchedUpdatesWithAct();
-
-                // Then they were warned, and the workflow is saved as rules
-                expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({title: translateLocal('workflowsEditApprovalsPage.hiddenRoutesTitle')}));
-                const [, options] = jest.mocked(Navigation.goBack).mock.calls.at(-1) ?? [];
-                options?.afterTransition?.();
-                expect(updateApprovalWorkflowRules).toHaveBeenCalledTimes(1);
-            });
-
-            it('keeps the workflow as it is when the admin cancels the warning', async () => {
-                // Given the workflow is open for editing, and the admin will cancel the warning
-                mockShowConfirmModal.mockImplementationOnce(() => Promise.resolve({action: 'CLOSE'}));
-                renderEditPage(bobsWorkflowRoute);
-                await waitForBatchedUpdatesWithAct();
-
-                // When the admin saves it
-                fireEvent.press(screen.getByText(translateLocal('common.save')));
-                await waitForBatchedUpdatesWithAct();
-
-                // Then nothing is saved and the editor stays open
-                expect(Navigation.goBack).not.toHaveBeenCalled();
-                expect(updateApprovalWorkflowRules).not.toHaveBeenCalled();
-            });
+            // Then the editor isn't shown, since saving the workflow would drop its fork unseen, which only removing it should do
+            expect(screen.queryByText(translateLocal('common.save'))).toBeNull();
+            expect(updateApprovalWorkflowRules).not.toHaveBeenCalled();
         });
     });
 

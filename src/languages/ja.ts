@@ -3553,6 +3553,7 @@ ${date} の ${merchant} への ${amount}`,
         approverFromProvider: ({provider}: {provider: string}) => `${provider}から`,
         ifReportIsOver: ({amount}: {amount: string}) => `レポートが${amount}を超える場合`,
         finalApprover: '最終承認者',
+        approvalForkTooltip: 'このワークフローに問題があります。クリックして表示します。',
         manager: 'マネージャー',
         submitFrequency: '送信頻度',
         submitOn: '提出日',
@@ -3618,9 +3619,6 @@ ${date} の ${merchant} への ${amount}`,
         title: '承認ワークフローを編集',
         deleteTitle: '承認ワークフローを削除',
         deletePrompt: 'この承認ワークフローを削除してもよろしいですか？すべてのメンバーは以後、デフォルトのワークフローに従うようになります。',
-        hiddenRoutesTitle: '一部のレポートの承認ルートが変わります',
-        hiddenRoutesPrompt:
-            'このワークフローは、レポート合計に応じて一部のレポートを別の承認者に送る承認者で設定されています。保存すると、ここに表示されている承認者のみが残り、すべてのレポートがその承認者を経由します。',
     },
     workflowsExpensesFromPage: {
         title: '経費（開始日）',
@@ -3648,6 +3646,32 @@ ${date} の ${merchant} への ${amount}`,
         removeApprover: '承認者を削除',
         next: '次へ',
         enterAmountError: '有効な金額を入力してください',
+    },
+    workflowsApprovalForkPage: {
+        title: '承認分岐',
+        description: () => ({
+            one: 'このワークフローは、設定されているワークフローと異なる、Expensify Classic から承認ワークフロー内の分岐を継承しています。',
+            other: 'このワークフローには、設定されているワークフローと異なる、Expensify Classic から引き継がれた承認ワークフロー内の分岐があります。',
+        }),
+        forkNumber: ({number}: {number: number}) => `分岐 ${number}`,
+        approvesReportsInWorkflow: ({approver}: {approver: string}) => `<strong>${approver}</strong> はこのワークフローでレポートを承認します。`,
+        approvesReportsOverAmountInWorkflow: ({approver, amount}: {approver: string; amount: string}) =>
+            `このワークフローでは、<strong>${approver}</strong> が ${amount} を超えるレポートを承認します。`,
+        approvesReportsFrom: ({approver, sender, range}: {approver: string; sender: string; range?: string}) =>
+            range
+                ? `<strong>${approver}</strong> は、<strong>${sender}</strong> からの ${range} のレポートを承認します。`
+                : `<strong>${approver}</strong> は、<strong>${sender}</strong> からのレポートを承認します。`,
+        finalApprovesReports: ({approver, range}: {approver: string; range?: string}) =>
+            range ? `<strong>${approver}</strong> が ${range} のレポートを最終承認します。` : `<strong>${approver}</strong> がレポートを最終承認します。`,
+        finalApprovesReportsFrom: ({approver, sender, range}: {approver: string; sender: string; range?: string}) =>
+            range
+                ? `<strong>${approver}</strong> は、<strong>${sender}</strong> からの ${range} のレポートを最終承認します。`
+                : `<strong>${approver}</strong> は、<strong>${sender}</strong> からのレポートを最終承認します。`,
+        underAmount: ({amount}: {amount: string}) => `${amount} 未満`,
+        overAmount: ({amount}: {amount: string}) => `${amount} を超過`,
+        betweenAmounts: ({lowerAmount, upperAmount}: {lowerAmount: string; upperAmount: string}) => `${lowerAmount} と ${upperAmount} の間`,
+        removeFork: '分岐を削除',
+        removeForks: '分岐を削除',
     },
     workflowsPayerPage: {
         title: '承認済み支払者',

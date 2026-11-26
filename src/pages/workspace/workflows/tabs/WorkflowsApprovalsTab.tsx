@@ -27,7 +27,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearPolicyErrorField, setWorkspaceApprovalMode} from '@libs/actions/Policy/Policy';
-import {clearApprovalWorkflow, selectApprovalWorkflowForEdit, setApprovalWorkflow} from '@libs/actions/Workflow';
+import {clearApprovalWorkflow, clearApprovalWorkflowRulesErrors, selectApprovalWorkflowForEdit, setApprovalWorkflow} from '@libs/actions/Workflow';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import {getHRFinalApprover, isHRAdvancedMode} from '@libs/merge/HRUtils';
 import {isRecruitingAdvancedMode} from '@libs/merge/RecruitingUtils';
@@ -36,7 +36,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {getApprovalWorkflow, hasDynamicExternalWorkflow, isControlPolicy, isGroupPolicy, isSubmitPolicy, shouldHideDynamicExternalWorkflowPeople} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
-import {getApprovalWorkflowSource, INITIAL_APPROVAL_WORKFLOW, isApprovalWorkflowLockedByIntegration, sortApprovalWorkflowsByErrors} from '@libs/WorkflowUtils';
+import {getApprovalWorkflowSource, hasApprovalWorkflowForks, INITIAL_APPROVAL_WORKFLOW, isApprovalWorkflowLockedByIntegration, sortApprovalWorkflowsByErrors} from '@libs/WorkflowUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -114,7 +114,15 @@ function getWorkflowAnchor(workflow: ApprovalWorkflow) {
 type WorkflowRowProps = {
     workflow: ApprovalWorkflow;
     onEdit?: (workflow: ApprovalWorkflow) => void;
+
+    /** Opens the panel explaining the workflow's forks, from the warning on an approver they leave from */
+    onViewForks: (workflow: ApprovalWorkflow) => void;
+
     onShowAllMembers?: (workflow: ApprovalWorkflow) => void;
+
+    /** Dismisses the error of a failed save of the workflow's rules */
+    onDismissErrors: (workflow: ApprovalWorkflow) => void;
+
     currency?: string;
     isDisabled: boolean;
     providerName?: string;
@@ -127,7 +135,9 @@ type WorkflowRowProps = {
 function WorkflowRow({
     workflow,
     onEdit,
+    onViewForks,
     onShowAllMembers,
+    onDismissErrors,
     currency,
     isDisabled,
     providerName,
@@ -136,10 +146,15 @@ function WorkflowRow({
     hrFinalApproverEmail,
 }: WorkflowRowProps) {
     return (
-        <OfflineWithFeedback pendingAction={workflow.pendingAction}>
+        <OfflineWithFeedback
+            pendingAction={workflow.pendingAction}
+            errors={workflow.errors}
+            onClose={() => onDismissErrors(workflow)}
+        >
             <ApprovalWorkflowSection
                 approvalWorkflow={workflow}
                 onPress={onEdit ? () => onEdit(workflow) : undefined}
+                onForkPress={() => onViewForks(workflow)}
                 onShowAllMembersPress={onShowAllMembers ? () => onShowAllMembers(workflow) : undefined}
                 currency={currency}
                 isDisabled={isDisabled}
@@ -289,7 +304,23 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
 
     const shouldBlockApprovalWorkflowEditing = isApprovalWorkflowLockedByIntegration(policy);
     const sortedApprovalWorkflows = canWriteApprovals && !shouldBlockApprovalWorkflowEditing ? sortApprovalWorkflowsByErrors(filteredApprovalWorkflows) : filteredApprovalWorkflows;
+
+    const dismissWorkflowErrors = (workflow: ApprovalWorkflow) => {
+        clearApprovalWorkflowRulesErrors({members: workflow.members, rules: rulesCollection});
+    };
+
+    const viewWorkflowForks = (workflow: ApprovalWorkflow) => {
+        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_FORK.getRoute(policyID, getWorkflowAnchor(workflow).approverEmail));
+    };
+
     const editWorkflow = (workflow: ApprovalWorkflow) => {
+        // A workflow with forks keeps routing by employee settings, and saving it any other way than by removing its forks
+        // would drop them unseen, so it opens its forks instead of the editor
+        if (hasApprovalWorkflowForks(workflow)) {
+            viewWorkflowForks(workflow);
+            return;
+        }
+
         // Discard stale onyx edits or the Edit page's resume check would surface a prior abandoned session.
         clearApprovalWorkflow();
         const {approverEmail, memberEmail} = getWorkflowAnchor(workflow);
@@ -460,12 +491,17 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
                             {deferredWorkflowList.workflows.map((workflow) => {
                                 const {approverEmail, memberEmail} = getWorkflowAnchor(workflow);
 
+                                // Fast edit saves the workflow, which would drop its forks unseen, so a workflow with forks only opens them
+                                const canShowAllMembers = !shouldBlockApprovalWorkflowEditing && !hasApprovalWorkflowForks(workflow);
+
                                 return (
                                     <WorkflowRow
                                         key={`${approverEmail}-${memberEmail}`}
                                         workflow={workflow}
                                         onEdit={isWorkflowEditingDisabled ? undefined : editWorkflow}
-                                        onShowAllMembers={shouldBlockApprovalWorkflowEditing ? undefined : showAllWorkflowMembers}
+                                        onViewForks={viewWorkflowForks}
+                                        onShowAllMembers={canShowAllMembers ? showAllWorkflowMembers : undefined}
+                                        onDismissErrors={dismissWorkflowErrors}
                                         currency={policy?.outputCurrency}
                                         isDisabled={isWorkflowEditingDisabled}
                                         providerName={approvalWorkflowSource?.providerName}

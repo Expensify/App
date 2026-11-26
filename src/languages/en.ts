@@ -3746,6 +3746,7 @@ const translations = {
         approverFromProvider: ({provider}: {provider: string}) => `from ${provider}`,
         ifReportIsOver: ({amount}: {amount: string}) => `If report is over ${amount}`,
         finalApprover: 'Final approver',
+        approvalForkTooltip: "There's a problem with this workflow. Click to view.",
         manager: 'Manager',
         makeOrTrackPaymentsTitle: 'Payments',
         makeOrTrackPaymentsDescription: 'Add an authorized payer for payments made in Expensify or track payments made elsewhere.',
@@ -3830,9 +3831,6 @@ const translations = {
         title: 'Edit approval workflow',
         deleteTitle: 'Delete approval workflow',
         deletePrompt: 'Are you sure you want to delete this approval workflow? All members will subsequently follow the default workflow.',
-        hiddenRoutesTitle: 'Some reports will be routed differently',
-        hiddenRoutesPrompt:
-            'This workflow was set up with approvers who send some reports to other approvers, depending on the report total. Saving it keeps only the approvers shown here, so every report will go through them.',
     },
     workflowsExpensesFromPage: {
         title: 'Expenses from',
@@ -3859,6 +3857,31 @@ const translations = {
         removeApprover: 'Remove approver',
         next: 'Next',
         enterAmountError: 'Please enter a valid amount',
+    },
+    workflowsApprovalForkPage: {
+        title: 'Approval fork',
+        description: () => ({
+            one: 'This workflow has inherited a fork in the approval workflow from Expensify Classic that differs from the configured workflow.',
+            other: 'This workflow has inherited forks in the approval workflow from Expensify Classic that differ from the configured workflow.',
+        }),
+        forkNumber: ({number}: {number: number}) => `Fork ${number}`,
+        approvesReportsInWorkflow: ({approver}: {approver: string}) => `<strong>${approver}</strong> approves reports in this workflow.`,
+        approvesReportsOverAmountInWorkflow: ({approver, amount}: {approver: string; amount: string}) => `<strong>${approver}</strong> approves reports over ${amount} in this workflow.`,
+        approvesReportsFrom: ({approver, sender, range}: {approver: string; sender: string; range?: string}) =>
+            range
+                ? `<strong>${approver}</strong> approves reports from <strong>${sender}</strong> ${range}.`
+                : `<strong>${approver}</strong> approves reports from <strong>${sender}</strong>.`,
+        finalApprovesReports: ({approver, range}: {approver: string; range?: string}) =>
+            range ? `<strong>${approver}</strong> final approves the reports ${range}.` : `<strong>${approver}</strong> final approves the reports.`,
+        finalApprovesReportsFrom: ({approver, sender, range}: {approver: string; sender: string; range?: string}) =>
+            range
+                ? `<strong>${approver}</strong> final approves the reports from <strong>${sender}</strong> ${range}.`
+                : `<strong>${approver}</strong> final approves the reports from <strong>${sender}</strong>.`,
+        underAmount: ({amount}: {amount: string}) => `under ${amount}`,
+        overAmount: ({amount}: {amount: string}) => `over ${amount}`,
+        betweenAmounts: ({lowerAmount, upperAmount}: {lowerAmount: string; upperAmount: string}) => `between ${lowerAmount} and ${upperAmount}`,
+        removeFork: 'Remove fork',
+        removeForks: 'Remove forks',
     },
     workflowsPayerPage: {
         title: 'Authorized payer',

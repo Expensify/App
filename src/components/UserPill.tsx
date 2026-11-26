@@ -7,6 +7,7 @@ import type {AvatarSource} from '@libs/UserAvatarUtils';
 
 import CONST from '@src/CONST';
 
+import type {ReactNode} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 
 import {Str} from 'expensify-common';
@@ -24,9 +25,12 @@ type UserPillProps = {
     email?: string;
     style?: StyleProp<ViewStyle>;
     isSelectable?: boolean;
+
+    /** Shown inside the pill after the name, outside the user details tooltip, so hovering it shows only its own tooltip */
+    children?: ReactNode;
 };
 
-function UserPill({avatar, displayName, accountID, email, style, isSelectable = false}: UserPillProps) {
+function UserPill({avatar, displayName, accountID, email, style, isSelectable = false, children}: UserPillProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {formatPhoneNumber} = useLocalize();
@@ -35,35 +39,38 @@ function UserPill({avatar, displayName, accountID, email, style, isSelectable = 
     const formattedDisplayName = Str.isSMSLogin(displayName) ? formatPhoneNumber(displayName) : displayName;
 
     return (
-        <UserDetailsTooltip
-            accountID={accountID ?? CONST.DEFAULT_NUMBER_ID}
-            fallbackUserDetails={{
-                avatar,
-                displayName: formattedDisplayName,
-                login: email ?? displayName,
-            }}
-        >
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.alignSelfStart, styles.userPill, shouldUseNarrowLayout && styles.mw100, style]}>
-                <View
-                    style={isSelectable && styles.userSelectNone}
-                    dataSet={isSelectable ? {[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true} : undefined}
-                >
-                    <UserAvatar
-                        source={avatar}
-                        size={CONST.AVATAR_SIZE.XXX_SMALL}
-                        accountID={accountID ?? CONST.DEFAULT_NUMBER_ID}
-                    />
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.alignSelfStart, styles.userPill, shouldUseNarrowLayout && styles.mw100, style]}>
+            <UserDetailsTooltip
+                accountID={accountID ?? CONST.DEFAULT_NUMBER_ID}
+                fallbackUserDetails={{
+                    avatar,
+                    displayName: formattedDisplayName,
+                    login: email ?? displayName,
+                }}
+            >
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.flexShrink1, styles.gap1]}>
+                    <View
+                        style={isSelectable && styles.userSelectNone}
+                        dataSet={isSelectable ? {[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true} : undefined}
+                    >
+                        <UserAvatar
+                            source={avatar}
+                            size={CONST.AVATAR_SIZE.XXX_SMALL}
+                            accountID={accountID ?? CONST.DEFAULT_NUMBER_ID}
+                        />
+                    </View>
+                    <Text
+                        style={styles.userPillText}
+                        numberOfLines={1}
+                        selectable={isSelectable || undefined}
+                        dataSet={isSelectable ? COPYABLE_TEXT_DATA_SET : undefined}
+                    >
+                        {formattedDisplayName}
+                    </Text>
                 </View>
-                <Text
-                    style={styles.userPillText}
-                    numberOfLines={1}
-                    selectable={isSelectable || undefined}
-                    dataSet={isSelectable ? COPYABLE_TEXT_DATA_SET : undefined}
-                >
-                    {formattedDisplayName}
-                </Text>
-            </View>
-        </UserDetailsTooltip>
+            </UserDetailsTooltip>
+            {children}
+        </View>
     );
 }
 

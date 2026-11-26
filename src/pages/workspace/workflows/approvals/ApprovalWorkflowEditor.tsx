@@ -59,7 +59,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
     const styles = useThemeStyles();
     const {translate, toLocaleOrdinalWithWords, localeCompare, formatPhoneNumber} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
-    const shouldUseApprovalWorkflowRules = useShouldUseApprovalWorkflowRules(policy);
+    const shouldUseApprovalWorkflowRules = useShouldUseApprovalWorkflowRules();
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const approverCount = approvalWorkflow.approvers.length;
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;

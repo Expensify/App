@@ -124,8 +124,9 @@ describe('useApprovalWorkflows', () => {
         });
     });
 
-    it('keeps deriving workflows from employeeList under MULTIPLE_APPROVERS while a policy without rules has an over-limit approver', async () => {
-        // Given the beta is on, and an advanced policy without rules whose approver sends reports over their limit to the admin
+    it('derives workflows from rules under MULTIPLE_APPROVERS while a policy without rules has an over-limit approver', async () => {
+        // Given the beta is on, and an advanced policy without rules whose approver sends reports over their limit to the admin,
+        // who approves them, just as the approver does for every other report
         mockIsBetaEnabled([CONST.BETAS.MULTIPLE_APPROVERS]);
         const policy = {
             ...createRandomPolicy(1),
@@ -139,20 +140,19 @@ describe('useApprovalWorkflows', () => {
             },
         };
 
-        // When the workflows are derived, before and after the policy gets rules
+        // When the workflows are derived
         const {result} = renderHook(() => useApprovalWorkflows(policy));
         await waitFor(() => {
             expect(result.current.approvalWorkflows).toHaveLength(1);
         });
-        const shouldUseRulesWithoutRules = result.current.shouldUseApprovalWorkflowRules;
-        await seedForwardApproveRules(POLICY_ID, SUBMITTER_EMAIL, APPROVER_EMAIL, 'rule');
 
-        // Then the policy stays on employeeList until it has rules, since writing rules would change where reports over
-        // the limit go, and the rules take over once they exist
-        expect(shouldUseRulesWithoutRules).toBe(false);
-        await waitFor(() => {
-            expect(result.current.shouldUseApprovalWorkflowRules).toBe(true);
-        });
+        // Then they're read and saved as rules, with the admin in their own place for the reports over the limit, since rules
+        // send those reports the same way and the workflow has no fork
+        expect(result.current.shouldUseApprovalWorkflowRules).toBe(true);
+        expect(result.current.approvalWorkflows.at(0)?.approvers.map(({email, overLimitAmount, forkBranches}) => ({email, overLimitAmount, forkBranches}))).toEqual([
+            {email: APPROVER_EMAIL, overLimitAmount: undefined, forkBranches: undefined},
+            {email: CURRENT_USER_LOGIN, overLimitAmount: 10000, forkBranches: undefined},
+        ]);
     });
 
     it('ignores rules belonging to another policy', async () => {

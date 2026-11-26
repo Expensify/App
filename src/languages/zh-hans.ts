@@ -3468,6 +3468,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         approverFromProvider: ({provider}: {provider: string}) => `来自 ${provider}`,
         ifReportIsOver: ({amount}: {amount: string}) => `如果报表超过 ${amount}`,
         finalApprover: '最终审批人',
+        approvalForkTooltip: '此工作流程出现问题。点击查看。',
         manager: '经理',
         submitFrequency: '提交频率',
         submitOn: '提交于',
@@ -3529,8 +3530,6 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         title: '编辑审批流程',
         deleteTitle: '删除审批流程',
         deletePrompt: '确定要删除此审批流程吗？所有成员之后都将遵循默认流程。',
-        hiddenRoutesTitle: '部分报表的审批路径将会改变',
-        hiddenRoutesPrompt: '此工作流的部分审批人会根据报表总额将一些报表发送给其他审批人。保存后只保留此处显示的审批人，所有报表都将经过他们审批。',
     },
     workflowsExpensesFromPage: {
         title: '支出起始于',
@@ -3557,6 +3556,29 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         removeApprover: '移除审批人',
         next: '下一步',
         enterAmountError: '请输入有效金额',
+    },
+    workflowsApprovalForkPage: {
+        title: '审批分支',
+        description: () => ({
+            one: '此工作流从 Expensify Classic 继承了一个与当前配置的审批工作流不同的分支。',
+            other: '此工作流从 Expensify Classic 继承的审批流程分支与当前配置的工作流不一致。',
+        }),
+        forkNumber: ({number}: {number: number}) => `分支 ${number}`,
+        approvesReportsInWorkflow: ({approver}: {approver: string}) => `<strong>${approver}</strong> 在此工作流程中审批报表。`,
+        approvesReportsOverAmountInWorkflow: ({approver, amount}: {approver: string; amount: string}) => `在此工作流程中，<strong>${approver}</strong> 审批超过 ${amount} 的报表。`,
+        approvesReportsFrom: ({approver, sender, range}: {approver: string; sender: string; range?: string}) =>
+            range ? `<strong>${approver}</strong> 审批来自 <strong>${sender}</strong> 的${range}的报表。` : `<strong>${approver}</strong> 审批来自 <strong>${sender}</strong> 的报表。`,
+        finalApprovesReports: ({approver, range}: {approver: string; range?: string}) =>
+            range ? `<strong>${approver}</strong> 最终审批${range}的报表。` : `<strong>${approver}</strong> 最终审批这些报表。`,
+        finalApprovesReportsFrom: ({approver, sender, range}: {approver: string; sender: string; range?: string}) =>
+            range
+                ? `<strong>${approver}</strong> 最终审批来自 <strong>${sender}</strong> 的${range}的报表。`
+                : `<strong>${approver}</strong> 最终审批来自 <strong>${sender}</strong> 的报表。`,
+        underAmount: ({amount}: {amount: string}) => `低于 ${amount}`,
+        overAmount: ({amount}: {amount: string}) => `超过 ${amount}`,
+        betweenAmounts: ({lowerAmount, upperAmount}: {lowerAmount: string; upperAmount: string}) => `介于 ${lowerAmount} 和 ${upperAmount} 之间`,
+        removeFork: '移除分支',
+        removeForks: '移除分支',
     },
     workflowsPayerPage: {
         title: '授权付款人',

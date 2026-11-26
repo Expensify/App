@@ -72,7 +72,7 @@ import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButt
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 import {getEffectiveWorkArrangement, getMemberLoginByAccountID, getWorkArrangementLabel} from '@libs/WorkArrangementUtils';
-import {getFirstApproverLabel, INITIAL_APPROVAL_WORKFLOW, isApprovalWorkflowLockedByIntegration, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
+import {getFirstApproverLabel, hasApprovalWorkflowForks, INITIAL_APPROVAL_WORKFLOW, isApprovalWorkflowLockedByIntegration, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
 
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -245,6 +245,11 @@ function WorkspaceMemberDetailsPage({policy, route}: WorkspaceMemberDetailsPageP
         // A member who approves their own expenses still has a workflow, so open it rather than offering to build a
         // second one. The row names them as their own approver, and a blank create page would contradict that.
         if (memberFirstApprover?.email) {
+            if (hasApprovalWorkflowForks(memberApprovalWorkflow)) {
+                Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_FORK.getRoute(policyID, memberFirstApprover.email));
+                return;
+            }
+
             // The editor matches the member ahead of the approver, against workflows that are not filtered down to the
             // enforced ones. A downgrade leaves a member on an inert workflow while the row already shows the default
             // approver they submit to, so naming the member there would open a workflow the workspace no longer runs.

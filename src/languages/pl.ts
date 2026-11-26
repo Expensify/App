@@ -3628,6 +3628,7 @@ ${amount} dla ${merchant} - ${date}`,
         approverFromProvider: ({provider}: {provider: string}) => `od ${provider}`,
         ifReportIsOver: ({amount}: {amount: string}) => `Jeśli raport przekracza ${amount}`,
         finalApprover: 'Ostateczny akceptujący',
+        approvalForkTooltip: 'W tym przepływie pracy wystąpił problem. Kliknij, aby wyświetlić.',
         manager: 'Menedżer',
         submitFrequency: 'Częstotliwość przesyłania',
         submitOn: 'Wyślij dnia',
@@ -3701,9 +3702,6 @@ ${amount} dla ${merchant} - ${date}`,
         title: 'Edytuj proces zatwierdzania',
         deleteTitle: 'Usuń proces zatwierdzania',
         deletePrompt: 'Czy na pewno chcesz usunąć ten proces zatwierdzania? Wszyscy członkowie będą następnie korzystać z domyślnego procesu.',
-        hiddenRoutesTitle: 'Niektóre raporty będą kierowane inaczej',
-        hiddenRoutesPrompt:
-            'Ten proces został skonfigurowany z osobami zatwierdzającymi, które wysyłają niektóre raporty do innych osób zatwierdzających w zależności od sumy raportu. Zapisanie go zachowa tylko pokazane tutaj osoby zatwierdzające, więc każdy raport przejdzie przez nie.',
     },
     workflowsExpensesFromPage: {
         title: 'Wydatki od',
@@ -3731,6 +3729,32 @@ ${amount} dla ${merchant} - ${date}`,
         removeApprover: 'Usuń zatwierdzającego',
         next: 'Dalej',
         enterAmountError: 'Wprowadź prawidłową kwotę',
+    },
+    workflowsApprovalForkPage: {
+        title: 'Rozgałęzienie zatwierdzania',
+        description: () => ({
+            one: 'Ten proces przejął z Expensify Classic rozgałęzienie w ścieżce zatwierdzania, które różni się od obecnie skonfigurowanego procesu.',
+            other: 'Ten proces przejął z Expensify Classic rozgałęzienia w ścieżce zatwierdzania, które różnią się od skonfigurowanego procesu.',
+        }),
+        forkNumber: ({number}: {number: number}) => `Rozgałęzienie ${number}`,
+        approvesReportsInWorkflow: ({approver}: {approver: string}) => `<strong>${approver}</strong> zatwierdza raporty w tym obiegu.`,
+        approvesReportsOverAmountInWorkflow: ({approver, amount}: {approver: string; amount: string}) =>
+            `<strong>${approver}</strong> zatwierdza raporty powyżej ${amount} w tym przepływie pracy.`,
+        approvesReportsFrom: ({approver, sender, range}: {approver: string; sender: string; range?: string}) =>
+            range
+                ? `<strong>${approver}</strong> zatwierdza raporty od <strong>${sender}</strong> ${range}.`
+                : `<strong>${approver}</strong> zatwierdza raporty od <strong>${sender}</strong>.`,
+        finalApprovesReports: ({approver, range}: {approver: string; range?: string}) =>
+            range ? `<strong>${approver}</strong> ostatecznie zatwierdza raporty ${range}.` : `<strong>${approver}</strong> ostatecznie zatwierdza raporty.`,
+        finalApprovesReportsFrom: ({approver, sender, range}: {approver: string; sender: string; range?: string}) =>
+            range
+                ? `<strong>${approver}</strong> ostatecznie zatwierdza raporty od <strong>${sender}</strong> ${range}.`
+                : `<strong>${approver}</strong> ostatecznie zatwierdza raporty od <strong>${sender}</strong>.`,
+        underAmount: ({amount}: {amount: string}) => `poniżej ${amount}`,
+        overAmount: ({amount}: {amount: string}) => `powyżej ${amount}`,
+        betweenAmounts: ({lowerAmount, upperAmount}: {lowerAmount: string; upperAmount: string}) => `między ${lowerAmount} a ${upperAmount}`,
+        removeFork: 'Usuń rozgałęzienie',
+        removeForks: 'Usuń rozgałęzienia',
     },
     workflowsPayerPage: {
         title: 'Upoważniony płatnik',

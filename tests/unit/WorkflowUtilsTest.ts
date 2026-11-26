@@ -16,11 +16,12 @@ import {
     buildApproverChainFromRules,
     extractSubmitterEmails,
     getApproverChainKey,
+    getApprovalForkDescription,
     getApproverTitles,
-    hasHiddenEmployeeRoutes,
     getApproverPendingActionByMemberEmail,
     getDefaultWorkflowRules,
     getOpenConnectedToPolicyBusinessBankAccounts,
+    getApprovalWorkflowRulesOfflineFeedback,
     getApprovalWorkflowSource,
     getNonMemberApproverError,
     getEnforcedApprovalWorkflows,
@@ -31,6 +32,7 @@ import {
     hasMultiLevelApprovalWorkflow,
     getRulesSubmitterToWorkflowKey,
     groupApprovalWorkflowRulesBySubmitter,
+    hasApprovalWorkflowForks,
     hasApprovalWorkflowRules,
     hasApprovalWorkflowWithNonMemberApprover,
     includesEveryWorkspaceMember,
@@ -40,7 +42,6 @@ import {
     reconcileApprovalWorkflowRulesForEdit,
     reconcileApprovalWorkflowRulesForMembersChange,
     reconcileApprovalWorkflowRulesForRemove,
-    shouldUseApprovalWorkflowRules,
     sortApprovalWorkflowsByErrors,
     updateWorkflowDataOnApproverRemoval,
 } from '@src/libs/WorkflowUtils';
@@ -2032,7 +2033,7 @@ describe('WorkflowUtils', () => {
         });
     });
 
-    describe('hasHiddenEmployeeRoutes', () => {
+    describe('hasApprovalWorkflowForks', () => {
         it.each([
             [
                 'over-limit approvers who send reports back to the approver after the one who sent them',
@@ -2071,16 +2072,366 @@ describe('WorkflowUtils', () => {
                     '2@example.com': {email: '2@example.com', approvalLimit: 100, overLimitForwardsTo: '2@example.com'},
                 },
             ],
-        ])('Should say whether the employee settings route reports differently with %s', (_description, expectedHasHiddenRoutes, employees: PolicyEmployeeList) => {
+        ])('Should say whether the employee settings fork some reports away from the workflow with %s', (_description, expectedHasForks, employees: PolicyEmployeeList) => {
             // Given the approvers read from the employee settings of a workflow
+            const approvers = calculateApprovers({employees, firstEmail: '1@example.com', personalDetailsByEmail, shouldFindForks: true});
+
+            // When they're checked for forks
+            const hasForks = hasApprovalWorkflowForks({approvers});
+
+            // Then only the employee settings that send some reports somewhere the approvers shown don't fork the workflow, since
+            // saving it as rules would change where those reports go
+            expect(hasForks).toBe(expectedHasForks);
+        });
+
+        it('Should keep a branch that never comes back to the workflow out of it, on the approver it leaves from', () => {
+            // Given 1@example.com sends reports over 1,000.00 to 2@example.com, who sends the ones over 2,000.00 to 3@example.com,
+            // and the workflow ends with 4@example.com. 3@example.com sends the reports up to 5,000.00 to 5@example.com and then
+            // 6@example.com, and the ones over it to 7@example.com and then 8@example.com.
+            const employees: PolicyEmployeeList = {
+                '1@example.com': {email: '1@example.com', forwardsTo: '4@example.com', approvalLimit: 100000, overLimitForwardsTo: '2@example.com'},
+                '2@example.com': {email: '2@example.com', forwardsTo: '4@example.com', approvalLimit: 200000, overLimitForwardsTo: '3@example.com'},
+                '3@example.com': {email: '3@example.com', forwardsTo: '5@example.com', approvalLimit: 500000, overLimitForwardsTo: '7@example.com'},
+                '4@example.com': {email: '4@example.com'},
+                '5@example.com': {email: '5@example.com', forwardsTo: '6@example.com'},
+                '6@example.com': {email: '6@example.com'},
+                '7@example.com': {email: '7@example.com', forwardsTo: '8@example.com'},
+                '8@example.com': {email: '8@example.com'},
+            };
+
+            // When the approvers are calculated
+            const approvers = calculateApprovers({employees, firstEmail: '1@example.com', personalDetailsByEmail, shouldFindForks: true});
+
+            // Then 2@example.com and 3@example.com get the reports over their limits on the way to 4@example.com, and where
+            // 3@example.com sends those reports instead is their fork, by report total
+            expect(approvers).toEqual([
+                buildApprover(1, {forwardsTo: '4@example.com'}),
+                buildApprover(2, {forwardsTo: '4@example.com', overLimitAmount: 100000}),
+                buildApprover(3, {
+                    forwardsTo: '5@example.com',
+                    overLimitAmount: 200000,
+                    forkBranches: [
+                        {
+                            upTo: 500000,
+                            approvers: [
+                                {email: '5@example.com', displayName: '5@example.com User'},
+                                {email: '6@example.com', displayName: '6@example.com User'},
+                            ],
+                        },
+                        {
+                            over: 500000,
+                            approvers: [
+                                {email: '7@example.com', displayName: '7@example.com User'},
+                                {email: '8@example.com', displayName: '8@example.com User'},
+                            ],
+                        },
+                    ],
+                }),
+                buildApprover(4),
+            ]);
+        });
+
+        it('Should not fork a workflow whose over-limit approvers send reports on to its final approver', () => {
+            // Given 2@example.com sends reports over 250,000.00 to 3@example.com, who sends the ones over 500,000.00 to
+            // 4@example.com, and every one of them sends the reports on to 5@example.com, the final approver
+            const employees: PolicyEmployeeList = {
+                '1@example.com': {email: '1@example.com', forwardsTo: '2@example.com'},
+                '2@example.com': {email: '2@example.com', forwardsTo: '5@example.com', approvalLimit: 25000000, overLimitForwardsTo: '3@example.com'},
+                '3@example.com': {email: '3@example.com', forwardsTo: '5@example.com', approvalLimit: 50000000, overLimitForwardsTo: '4@example.com'},
+                '4@example.com': {email: '4@example.com', forwardsTo: '5@example.com'},
+                '5@example.com': {email: '5@example.com'},
+            };
+
+            // When the approvers are calculated
+            const approvers = calculateApprovers({employees, firstEmail: '1@example.com', personalDetailsByEmail, shouldFindForks: true});
+
+            // Then they're optional over-limit approvers with no fork, since rules send every report the same way
+            expect(approvers.map(({email, overLimitAmount}) => ({email, overLimitAmount}))).toEqual([
+                {email: '1@example.com', overLimitAmount: undefined},
+                {email: '2@example.com', overLimitAmount: undefined},
+                {email: '3@example.com', overLimitAmount: 25000000},
+                {email: '4@example.com', overLimitAmount: 50000000},
+                {email: '5@example.com', overLimitAmount: undefined},
+            ]);
+            expect(hasApprovalWorkflowForks({approvers})).toBe(false);
+        });
+
+        it.each([
+            [
+                'skips the approver after them',
+                {
+                    '1@example.com': {email: '1@example.com', forwardsTo: '2@example.com', approvalLimit: 100000, overLimitForwardsTo: '3@example.com'},
+                    '2@example.com': {email: '2@example.com', forwardsTo: '3@example.com'},
+                    '3@example.com': {email: '3@example.com'},
+                },
+                '1@example.com',
+                [{over: 100000, approvers: [{email: '3@example.com', displayName: '3@example.com User'}]}],
+            ],
+            [
+                'goes back to an approver who already approved them',
+                {
+                    '1@example.com': {email: '1@example.com', forwardsTo: '2@example.com'},
+                    '2@example.com': {email: '2@example.com', forwardsTo: '3@example.com', approvalLimit: 5000, overLimitForwardsTo: '1@example.com'},
+                    '3@example.com': {email: '3@example.com'},
+                },
+                '2@example.com',
+                [{over: 5000, approvers: []}],
+            ],
+        ])('Should fork the workflow at an approver whose reports over their limit %s', (_description, employees: PolicyEmployeeList, forkApproverEmail, expectedForkBranches) => {
+            // Given an approver who sends the reports over their limit somewhere the workflow doesn't go after them
+            // When the approvers are calculated
+            const approvers = calculateApprovers({employees, firstEmail: '1@example.com', personalDetailsByEmail, shouldFindForks: true});
+
+            // Then the workflow shows the approvers of the reports within the limit, and the fork is on that approver, with only
+            // the reports over the limit, since the workflow already shows where the others go
+            expect(approvers.map(({email}) => email)).toEqual(['1@example.com', '2@example.com', '3@example.com']);
+            expect(approvers.find((approver) => approver.email === forkApproverEmail)?.forkBranches).toEqual(expectedForkBranches);
+            expect(approvers.filter((approver) => !!approver.forkBranches)).toHaveLength(1);
+        });
+
+        it('Should keep an over-limit approver after a fork who sends reports back to the workflow', () => {
+            // Given 2@example.com gets the reports over 2,000.00 and sends the ones up to 5,000.00 to 3@example.com, who approves
+            // them, and the ones over it to 5@example.com, who sends them on to 4@example.com, the final approver
+            const employees: PolicyEmployeeList = {
+                '1@example.com': {email: '1@example.com', forwardsTo: '4@example.com', approvalLimit: 200000, overLimitForwardsTo: '2@example.com'},
+                '2@example.com': {email: '2@example.com', forwardsTo: '3@example.com', approvalLimit: 500000, overLimitForwardsTo: '5@example.com'},
+                '3@example.com': {email: '3@example.com'},
+                '4@example.com': {email: '4@example.com'},
+                '5@example.com': {email: '5@example.com', forwardsTo: '4@example.com'},
+            };
+
+            // When the approvers are calculated
+            const approvers = calculateApprovers({employees, firstEmail: '1@example.com', personalDetailsByEmail, shouldFindForks: true});
+
+            // Then 5@example.com stays in the workflow for the reports over 5,000.00, since rules can send those the same way, so
+            // 2@example.com's fork only has 3@example.com's branch
+            expect(approvers.map(({email, overLimitAmount}) => ({email, overLimitAmount}))).toEqual([
+                {email: '1@example.com', overLimitAmount: undefined},
+                {email: '2@example.com', overLimitAmount: 200000},
+                {email: '5@example.com', overLimitAmount: 500000},
+                {email: '4@example.com', overLimitAmount: undefined},
+            ]);
+            expect(approvers.at(1)?.forkBranches).toEqual([{upTo: 500000, approvers: [{email: '3@example.com', displayName: '3@example.com User'}]}]);
+        });
+
+        it('Should leave a route out of a fork when it only leaves the workflow at a later approver', () => {
+            // Given 1@example.com sends reports over 1,000.00 straight to 3@example.com, skipping 2@example.com, and 3@example.com
+            // sends the ones over 500.00 to 5@example.com, who approves them instead of sending them on to 4@example.com
+            const employees: PolicyEmployeeList = {
+                '1@example.com': {email: '1@example.com', forwardsTo: '2@example.com', approvalLimit: 100000, overLimitForwardsTo: '3@example.com'},
+                '2@example.com': {email: '2@example.com', forwardsTo: '3@example.com'},
+                '3@example.com': {email: '3@example.com', forwardsTo: '4@example.com', approvalLimit: 50000, overLimitForwardsTo: '5@example.com'},
+                '4@example.com': {email: '4@example.com'},
+                '5@example.com': {email: '5@example.com'},
+            };
+
+            // When the approvers are calculated
+            const approvers = calculateApprovers({employees, firstEmail: '1@example.com', personalDetailsByEmail, shouldFindForks: true});
+
+            // Then 1@example.com's fork only has the reports over 1,000.00, since the ones up to it go on to 2@example.com and only
+            // leave the workflow at 5@example.com, whose fork has every report that reaches them
+            expect(approvers.map(({email, overLimitAmount}) => ({email, overLimitAmount}))).toEqual([
+                {email: '1@example.com', overLimitAmount: undefined},
+                {email: '2@example.com', overLimitAmount: undefined},
+                {email: '3@example.com', overLimitAmount: undefined},
+                {email: '5@example.com', overLimitAmount: 50000},
+                {email: '4@example.com', overLimitAmount: undefined},
+            ]);
+            expect(approvers.at(0)?.forkBranches).toEqual([
+                {
+                    over: 100000,
+                    approvers: [
+                        {email: '3@example.com', displayName: '3@example.com User'},
+                        {email: '5@example.com', displayName: '5@example.com User'},
+                    ],
+                },
+            ]);
+            expect(approvers.at(3)?.forkBranches).toEqual([{approvers: []}]);
+        });
+
+        it('Should fork a detour that comes back to the workflow when bigger reports skip one of its approvers', () => {
+            // Given 3@example.com gets the reports over 2,000.00 and sends the ones up to 5,000.00 to 6@example.com, who sends them
+            // on to 5@example.com, the final approver, and the ones over it to 4@example.com, who sends them to 5@example.com too
+            const employees: PolicyEmployeeList = {
+                '1@example.com': {email: '1@example.com', forwardsTo: '5@example.com', approvalLimit: 100000, overLimitForwardsTo: '2@example.com'},
+                '2@example.com': {email: '2@example.com', forwardsTo: '5@example.com', approvalLimit: 200000, overLimitForwardsTo: '3@example.com'},
+                '3@example.com': {email: '3@example.com', forwardsTo: '6@example.com', approvalLimit: 500000, overLimitForwardsTo: '4@example.com'},
+                '4@example.com': {email: '4@example.com', forwardsTo: '5@example.com'},
+                '5@example.com': {email: '5@example.com'},
+                '6@example.com': {email: '6@example.com', forwardsTo: '5@example.com'},
+            };
+
+            // When the approvers are calculated
+            const approvers = calculateApprovers({employees, firstEmail: '1@example.com', personalDetailsByEmail, shouldFindForks: true});
+
+            // Then 6@example.com stays out of the workflow, since rules would send them every report over 2,000.00 and the ones over
+            // 5,000.00 skip them, so the reports they get are 3@example.com's fork, while every report over 2,000.00 still gets to
+            // 3@example.com and the ones over 5,000.00 to 4@example.com
+            expect(approvers.map(({email, overLimitAmount}) => ({email, overLimitAmount}))).toEqual([
+                {email: '1@example.com', overLimitAmount: undefined},
+                {email: '2@example.com', overLimitAmount: 100000},
+                {email: '3@example.com', overLimitAmount: 200000},
+                {email: '4@example.com', overLimitAmount: 500000},
+                {email: '5@example.com', overLimitAmount: undefined},
+            ]);
+            expect(approvers.filter((approver) => !!approver.forkBranches).map(({email}) => email)).toEqual(['3@example.com']);
+            expect(approvers.at(2)?.forkBranches).toEqual([
+                {
+                    upTo: 500000,
+                    approvers: [
+                        {email: '6@example.com', displayName: '6@example.com User'},
+                        {email: '5@example.com', displayName: '5@example.com User'},
+                    ],
+                },
+            ]);
+        });
+
+        it('Should not fork a chain that is not for approval workflow rules', () => {
+            // Given 1@example.com sends reports over 1,000.00 to 2@example.com, who approves them instead of sending them on to
+            // 3@example.com
+            const employees: PolicyEmployeeList = {
+                '1@example.com': {email: '1@example.com', forwardsTo: '3@example.com', approvalLimit: 100000, overLimitForwardsTo: '2@example.com'},
+                '2@example.com': {email: '2@example.com'},
+                '3@example.com': {email: '3@example.com'},
+            };
+
+            // When the approvers are calculated for a workflow without the rules
             const approvers = calculateApprovers({employees, firstEmail: '1@example.com', personalDetailsByEmail});
 
-            // When they're checked against the employee settings
-            const hasHiddenRoutes = hasHiddenEmployeeRoutes(approvers, employees);
+            // Then none of them has a fork, since saving that workflow writes the employee settings themselves
+            expect(hasApprovalWorkflowForks({approvers})).toBe(false);
+        });
+    });
 
-            // Then only the employee settings that send some reports somewhere the approvers shown don't are reported, since saving
-            // the workflow as rules would change where those reports go
-            expect(hasHiddenRoutes).toBe(expectedHasHiddenRoutes);
+    describe('getApprovalForkDescription', () => {
+        beforeEach(() => {
+            IntlStore.load(CONST.LOCALES.EN);
+            return waitForBatchedUpdates();
+        });
+
+        it('Should describe what the fork approver does in the workflow, then each branch from the lowest totals up', () => {
+            // Given an optional over-limit approver who sends the reports up to 5,000.00 to Bob and then Carol, the ones up to
+            // 10,000.00 to nobody, and the rest to someone whose name looks like HTML
+            const forkApprover = buildApprover(1, {
+                displayName: 'Alice',
+                overLimitAmount: 200000,
+                forkBranches: [
+                    {
+                        upTo: 500000,
+                        approvers: [
+                            {email: 'bob@example.com', displayName: 'Bob'},
+                            {email: 'carol@example.com', displayName: 'Carol'},
+                        ],
+                    },
+                    {over: 500000, upTo: 1000000, approvers: []},
+                    {over: 1000000, approvers: [{email: 'dave@example.com', displayName: '<b>Dave</b>'}]},
+                ],
+            });
+
+            // When the fork is described
+            const lines = getApprovalForkDescription({
+                forkApprover,
+                currency: CONST.CURRENCY.USD,
+                translate: translateLocal,
+                formatPhoneNumber: (phoneNumber) => phoneNumber,
+                convertToDisplayString,
+            });
+
+            // Then each approver of each branch gets a line with the totals it covers, the last one final approving the reports and
+            // naming Alice when the reports come straight from her, and names are escaped, since the lines are rendered as HTML
+            expect(lines).toEqual([
+                '<strong>Alice</strong> approves reports over $2,000.00 in this workflow.',
+                '<strong>Bob</strong> approves reports from <strong>Alice</strong> under $5,000.00.',
+                '<strong>Carol</strong> final approves the reports under $5,000.00.',
+                '<strong>Alice</strong> final approves the reports between $5,000.00 and $10,000.00.',
+                '<strong>&lt;b&gt;Dave&lt;/b&gt;</strong> final approves the reports from <strong>Alice</strong> over $10,000.00.',
+            ]);
+        });
+
+        it('Should describe a step once for the adjacent totals it covers, when the branches only split after it', () => {
+            // Given an optional over-limit approver who final approves the reports up to 250,000.00 and sends the rest to James,
+            // who sends the ones up to 500,000.00 to Susan and the rest to Simon, who sends them to Susan too
+            const james = {email: 'james@example.com', displayName: 'James'};
+            const susan = {email: 'susan@example.com', displayName: 'Susan'};
+            const forkApprover = buildApprover(1, {
+                displayName: 'Jason',
+                overLimitAmount: 1000000,
+                forkBranches: [
+                    {upTo: 25000000, approvers: []},
+                    {over: 25000000, upTo: 50000000, approvers: [james, susan]},
+                    {over: 50000000, approvers: [james, {email: 'simon@example.com', displayName: 'Simon'}, susan]},
+                ],
+            });
+
+            // When the fork is described
+            const lines = getApprovalForkDescription({
+                forkApprover,
+                currency: CONST.CURRENCY.USD,
+                translate: translateLocal,
+                formatPhoneNumber: (phoneNumber) => phoneNumber,
+                convertToDisplayString,
+            });
+
+            // Then James gets one line for every report over 250,000.00, since they all reach him, and so does Susan's final
+            // approval, which comes after the steps leading to it
+            expect(lines).toEqual([
+                '<strong>Jason</strong> approves reports over $10,000.00 in this workflow.',
+                '<strong>Jason</strong> final approves the reports under $250,000.00.',
+                '<strong>James</strong> approves reports from <strong>Jason</strong> over $250,000.00.',
+                '<strong>Simon</strong> approves reports from <strong>James</strong> over $500,000.00.',
+                '<strong>Susan</strong> final approves the reports over $250,000.00.',
+            ]);
+        });
+
+        it('Should describe a step separately for totals that are not adjacent', () => {
+            // Given an approver who sends the reports up to 1,000.00 to Bob and then Dan, who final approves them, and the rest to
+            // Carol, who final approves the ones up to 5,000.00 and sends the rest to Dan
+            const carol = {email: 'carol@example.com', displayName: 'Carol'};
+            const dan = {email: 'dan@example.com', displayName: 'Dan'};
+            const forkApprover = buildApprover(1, {
+                displayName: 'Alice',
+                forkBranches: [
+                    {upTo: 100000, approvers: [{email: 'bob@example.com', displayName: 'Bob'}, dan]},
+                    {over: 100000, upTo: 500000, approvers: [carol]},
+                    {over: 500000, approvers: [carol, dan]},
+                ],
+            });
+
+            // When the fork is described
+            const lines = getApprovalForkDescription({
+                forkApprover,
+                currency: CONST.CURRENCY.USD,
+                translate: translateLocal,
+                formatPhoneNumber: (phoneNumber) => phoneNumber,
+                convertToDisplayString,
+            });
+
+            // Then Dan's final approval gets a line for each range, since the reports Carol final approves come between them
+            expect(lines).toEqual([
+                '<strong>Alice</strong> approves reports in this workflow.',
+                '<strong>Bob</strong> approves reports from <strong>Alice</strong> under $1,000.00.',
+                '<strong>Dan</strong> final approves the reports under $1,000.00.',
+                '<strong>Carol</strong> final approves the reports from <strong>Alice</strong> between $1,000.00 and $5,000.00.',
+                '<strong>Carol</strong> approves reports from <strong>Alice</strong> over $5,000.00.',
+                '<strong>Dan</strong> final approves the reports over $5,000.00.',
+            ]);
+        });
+
+        it('Should not mention totals when every report that reaches the fork approver takes the same branch', () => {
+            // Given an approver every report goes through, who sends them all to Bob
+            const forkApprover = buildApprover(1, {displayName: 'Alice', forkBranches: [{approvers: [{email: 'bob@example.com', displayName: 'Bob'}]}]});
+
+            // When the fork is described
+            const lines = getApprovalForkDescription({
+                forkApprover,
+                currency: CONST.CURRENCY.USD,
+                translate: translateLocal,
+                formatPhoneNumber: (phoneNumber) => phoneNumber,
+                convertToDisplayString,
+            });
+
+            // Then the lines name no totals
+            expect(lines).toEqual(['<strong>Alice</strong> approves reports in this workflow.', '<strong>Bob</strong> final approves the reports from <strong>Alice</strong>.']);
         });
     });
 
@@ -2709,6 +3060,40 @@ describe('WorkflowUtils', () => {
             });
         });
 
+        describe('getApprovalWorkflowRulesOfflineFeedback', () => {
+            /** The rules of a workflow as stored in Onyx, with the offline state given for each of them */
+            const storeRules = (rules: ApprovalWorkflowRule[], offlineState: Pick<Rule, 'pendingAction' | 'errors'>, keyPrefix: string): OnyxCollection<Rule> =>
+                Object.fromEntries(
+                    rules.map((rule, index) => [`${ONYXKEYS.COLLECTION.RULE}${keyPrefix}${index}`, {...rule, scope: CONST.RULES.SCOPE.POLICY, scopeID: '1', ...offlineState}]),
+                );
+
+            it('Should show a workflow as updated while one of its members rules is pending deletion', () => {
+                // Given the rules of 10@example.com's workflow are being deleted, and those of another workflow are being added
+                const rules = {
+                    ...storeRules(buildApprovalWorkflowRules(buildWorkflow([10], [1])), {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}, 'a'),
+                    ...storeRules(buildApprovalWorkflowRules(buildWorkflow([20], [2])), {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}, 'b'),
+                };
+
+                // When the offline state of 10@example.com's workflow is read
+                const feedback = getApprovalWorkflowRulesOfflineFeedback([buildMember(10)], rules);
+
+                // Then it's pending an update rather than a deletion, since its members stay, and the other workflow's rules don't count
+                expect(feedback).toEqual({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE, errors: undefined});
+            });
+
+            it('Should show the error of a failed save on the workflow its rules route', () => {
+                // Given a save of 10@example.com's rules failed and they were restored with an error
+                const error = {'1': 'An unexpected error occurred'};
+                const rules = storeRules(buildApprovalWorkflowRules(buildWorkflow([10], [1])), {pendingAction: undefined, errors: error}, 'a');
+
+                // When the offline state of the workflow is read
+                const feedback = getApprovalWorkflowRulesOfflineFeedback([buildMember(10)], rules);
+
+                // Then the workflow shows the error, and no pending state, since the rules it has are the server's
+                expect(feedback).toEqual({pendingAction: undefined, errors: error});
+            });
+        });
+
         describe('applyApprovalWorkflowRulesDiff', () => {
             const [ruleA] = buildApprovalWorkflowRules(buildWorkflow([2], [1]));
             const [ruleB] = buildApprovalWorkflowRules(buildWorkflow([3], [4]));
@@ -2721,6 +3106,31 @@ describe('WorkflowUtils', () => {
                 const existingRules = {a: ruleA};
                 applyApprovalWorkflowRulesDiff(existingRules, {a: null});
                 expect(existingRules).toEqual({a: ruleA});
+            });
+        });
+
+        describe('buildApprovalWorkflowRulesForSave', () => {
+            it('Should save the default workflow as rules when its employee settings fork some reports away from it', () => {
+                // Given 1@example.com, the default approver, sends reports over 1,000.00 to 2@example.com, who approves them instead of
+                // sending them on to 3@example.com, and 4@example.com submits to 1@example.com
+                const employees: PolicyEmployeeList = {
+                    '1@example.com': {email: '1@example.com', forwardsTo: '3@example.com', approvalLimit: 100000, overLimitForwardsTo: '2@example.com'},
+                    '2@example.com': {email: '2@example.com'},
+                    '3@example.com': {email: '3@example.com'},
+                    '4@example.com': {email: '4@example.com', submitsTo: '1@example.com'},
+                };
+                const approvalWorkflow: ApprovalWorkflow = {
+                    members: [{email: '4@example.com', displayName: '4@example.com'}],
+                    approvers: calculateApprovers({employees, firstEmail: '1@example.com', personalDetailsByEmail: {}, shouldFindForks: true}),
+                    isDefault: true,
+                };
+
+                // When the workflow is saved as it's shown, which is how its forks are removed
+                const rules = buildApprovalWorkflowRulesForSave(approvalWorkflow, {existingRules: {}, employees, defaultApprover: '1@example.com'});
+
+                // Then its rules are written, since leaving its members on the employee settings would keep the fork
+                expect(rules).not.toHaveLength(0);
+                expect(rules).toEqual(buildApprovalWorkflowRules(approvalWorkflow));
             });
         });
 
@@ -2995,6 +3405,28 @@ describe('WorkflowUtils', () => {
                 approver: defaultApprover,
             });
 
+            it('Should not fork the default workflow while it has no members', () => {
+                // Given the default approver, 1@example.com, sends reports over 1,000.00 to 3@example.com, skipping 2@example.com, and
+                // every member submits to 4@example.com, so nobody is in the default workflow
+                const employees: PolicyEmployeeList = {
+                    '1@example.com': {email: '1@example.com', submitsTo: '4@example.com', forwardsTo: '2@example.com', approvalLimit: 100000, overLimitForwardsTo: '3@example.com'},
+                    '2@example.com': {email: '2@example.com', submitsTo: '4@example.com', forwardsTo: '3@example.com'},
+                    '3@example.com': {email: '3@example.com', submitsTo: '4@example.com'},
+                    '4@example.com': {email: '4@example.com', submitsTo: '4@example.com'},
+                };
+                const policy = createPolicy(employees, '1@example.com');
+
+                // When the workflows are built from rules
+                const {approvalWorkflows} = convertApprovalWorkflowRulesToWorkflows({policy, personalDetails, localeCompare, rules: {}});
+
+                // Then the default workflow starts at the default approver without forks, since removing them saves it as rules,
+                // which can't route reports for a workflow without members
+                const defaultWorkflow = approvalWorkflows.find((workflow) => workflow.isDefault);
+                expect(defaultWorkflow?.members).toEqual([]);
+                expect(defaultWorkflow?.approvers.at(0)?.email).toBe('1@example.com');
+                expect(hasApprovalWorkflowForks(defaultWorkflow ?? {approvers: []})).toBe(false);
+            });
+
             it('Should show a member who submits to a non-member under that approver, flagged', () => {
                 // Given a member no rule covers, whose submitsTo points at someone no longer on the workspace
                 const employees: PolicyEmployeeList = {
@@ -3054,6 +3486,74 @@ describe('WorkflowUtils', () => {
                 expect(getApproverChainKey(ruleBasedWorkflow?.approvers ?? [])).toBe(getApproverChainKey(legacyWorkflow?.approvers ?? []));
                 expect(ruleBasedWorkflow?.approvers.map((approver) => approver.email)).toEqual(['1@example.com', '2@example.com', '3@example.com', '4@example.com']);
             });
+
+            it.each([
+                [
+                    'an over-limit approver sends the reports under their own limit to a different final approver',
+                    {
+                        '1@example.com': {email: '1@example.com', forwardsTo: '5@example.com', approvalLimit: 1000000, overLimitForwardsTo: '2@example.com'},
+                        '2@example.com': {email: '2@example.com', forwardsTo: '5@example.com', approvalLimit: 25000000, overLimitForwardsTo: '3@example.com'},
+                        '3@example.com': {email: '3@example.com', forwardsTo: '6@example.com', approvalLimit: 50000000, overLimitForwardsTo: '4@example.com'},
+                        '4@example.com': {email: '4@example.com', forwardsTo: '5@example.com'},
+                        '5@example.com': {email: '5@example.com'},
+                        '6@example.com': {email: '6@example.com'},
+                        '9@example.com': {email: '9@example.com', submitsTo: '1@example.com'},
+                    },
+                    [
+                        {amount: 500000, route: ['1@example.com', '5@example.com']},
+                        {amount: 2000000, route: ['1@example.com', '2@example.com', '5@example.com']},
+                        {amount: 30000000, route: ['1@example.com', '2@example.com', '3@example.com', '5@example.com']},
+                        {amount: 60000000, route: ['1@example.com', '2@example.com', '3@example.com', '4@example.com', '5@example.com']},
+                    ],
+                ],
+                [
+                    'two over-limit approvers final approve the reports they get',
+                    {
+                        '1@example.com': {email: '1@example.com', forwardsTo: '3@example.com', approvalLimit: 1000000, overLimitForwardsTo: '2@example.com'},
+                        '2@example.com': {email: '2@example.com'},
+                        '3@example.com': {email: '3@example.com', forwardsTo: '5@example.com', approvalLimit: 500000, overLimitForwardsTo: '4@example.com'},
+                        '4@example.com': {email: '4@example.com'},
+                        '5@example.com': {email: '5@example.com'},
+                        '9@example.com': {email: '9@example.com', submitsTo: '1@example.com'},
+                    },
+                    [
+                        {amount: 100000, route: ['1@example.com', '3@example.com', '5@example.com']},
+                        {amount: 700000, route: ['1@example.com', '3@example.com', '4@example.com', '5@example.com']},
+                        {amount: 2000000, route: ['1@example.com', '2@example.com', '3@example.com', '4@example.com', '5@example.com']},
+                    ],
+                ],
+            ])(
+                'Should route every report along the workflow it showed once its forks are removed, when %s',
+                (_description, employees: PolicyEmployeeList, expectedRoutes: Array<{amount: number; route: string[]}>) => {
+                    // Given a workflow whose employee settings send some reports away from it, so it shows forks
+                    const policy = createPolicy(employees, '5@example.com');
+                    const findMemberWorkflow = (workflows: ApprovalWorkflow[]) => workflows.find((workflow) => workflow.members.some((member) => member.email === '9@example.com'));
+                    const forkedWorkflow = findMemberWorkflow(convertApprovalWorkflowRulesToWorkflows({policy, personalDetails, localeCompare, rules: {}}).approvalWorkflows);
+                    expect(hasApprovalWorkflowForks(forkedWorkflow ?? {approvers: []})).toBe(true);
+
+                    // When its forks are removed, which saves it as rules exactly as it's shown, and the workflows are read back
+                    const savedRules = buildApprovalWorkflowRulesForSave(forkedWorkflow ?? {members: [], approvers: [], isDefault: false}, {
+                        existingRules: {},
+                        employees,
+                        defaultApprover: '5@example.com',
+                    });
+                    const squashedWorkflow = findMemberWorkflow(
+                        convertApprovalWorkflowRulesToWorkflows({policy, personalDetails, localeCompare, rules: keyRules(savedRules)}).approvalWorkflows,
+                    );
+
+                    // Then the workflow has the approvers it showed, with no forks left, and each report goes through the approvers
+                    // the workflow showed for its total instead of the routes the forks took
+                    const squashedApprovers = squashedWorkflow?.approvers ?? [];
+                    expect(squashedApprovers.map(({email, overLimitAmount}) => ({email, overLimitAmount}))).toEqual(
+                        forkedWorkflow?.approvers.map(({email, overLimitAmount}) => ({email, overLimitAmount})),
+                    );
+                    expect(hasApprovalWorkflowForks({approvers: squashedApprovers})).toBe(false);
+                    for (const {amount, route: expectedRoute} of expectedRoutes) {
+                        const route = squashedApprovers.filter(({overLimitAmount}) => overLimitAmount === undefined || amount > overLimitAmount).map(({email}) => email);
+                        expect(route).toEqual(expectedRoute);
+                    }
+                },
+            );
 
             it.each([
                 ['an optional over-limit approver as the only other approver', [buildApprover(1), buildApprover(3, {overLimitAmount: 50000})]],
@@ -3316,80 +3816,6 @@ describe('WorkflowUtils', () => {
             // Then the other policy's rule never counts, and this policy's rule stops counting while it is being deleted, since it won't route once that goes through
             expect(hasRulesWhileDeleting).toBe(false);
             expect(hasRulesOnceUndone).toBe(true);
-        });
-    });
-
-    describe('shouldUseApprovalWorkflowRules', () => {
-        const defaultApproverEmail = 'admin@example.com';
-        const policyWithEmployees = (employeeList: PolicyEmployeeList, approvalMode: ValueOf<typeof CONST.POLICY.APPROVAL_MODE> = CONST.POLICY.APPROVAL_MODE.ADVANCED): Policy => ({
-            ...createRandomPolicy(1),
-            type: CONST.POLICY.TYPE.CORPORATE,
-            approvalMode,
-            approver: defaultApproverEmail,
-            employeeList,
-        });
-
-        it('keeps every policy on employeeList without the multiple approvers beta', () => {
-            // Given a policy whose reports approval workflow rules already route
-            const policy = policyWithEmployees({'1@example.com': {email: '1@example.com', submitsTo: '2@example.com'}});
-
-            // When the multiple approvers beta is off
-            const shouldUseRules = shouldUseApprovalWorkflowRules(policy, true, false);
-
-            // Then its workflows are still read from and saved to employeeList, like everywhere else without the beta
-            expect(shouldUseRules).toBe(false);
-        });
-
-        it('moves a policy without over-limit approvers onto rules', () => {
-            // Given a policy without rules whose approvers send every report on to the same next approver
-            const policy = policyWithEmployees({
-                '1@example.com': {email: '1@example.com', submitsTo: '2@example.com'},
-                '2@example.com': {email: '2@example.com', forwardsTo: '3@example.com'},
-            });
-
-            // When the multiple approvers beta is on
-            const shouldUseRules = shouldUseApprovalWorkflowRules(policy, false, true);
-
-            // Then saving a workflow writes rules, since they route those reports exactly like employeeList does
-            expect(shouldUseRules).toBe(true);
-        });
-
-        it('keeps a policy without rules on employeeList while its reports reach an over-limit approver', () => {
-            // Given a policy whose approver 2 sends reports over their limit on to 4, next to a null employeeList entry,
-            // which the type rules out but happens at runtime
-            const employeeList: PolicyEmployeeList = {};
-            Reflect.set(employeeList, 'stale@example.com', null);
-            employeeList['1@example.com'] = {email: '1@example.com', submitsTo: '2@example.com'};
-            employeeList['2@example.com'] = {email: '2@example.com', forwardsTo: '3@example.com', approvalLimit: 10000, overLimitForwardsTo: '4@example.com'};
-            const policy = policyWithEmployees(employeeList);
-
-            // When the multiple approvers beta is on, before and after the policy has rules
-            const shouldUseRulesWithoutRules = shouldUseApprovalWorkflowRules(policy, false, true);
-            const shouldUseRulesWithRules = shouldUseApprovalWorkflowRules(policy, true, true);
-
-            // Then the policy stays on employeeList until it has rules, since writing rules would change where reports
-            // over the limit go, and a policy the rules already route keeps using them
-            expect(shouldUseRulesWithoutRules).toBe(false);
-            expect(shouldUseRulesWithRules).toBe(true);
-        });
-
-        it('moves a policy onto rules when no report reaches its over-limit approver', () => {
-            // Given a policy whose approvals were turned off and back on, which sends every member to the default approver
-            // but leaves approver 2's limit and over-limit approver behind, as it comes back on in basic mode and once a
-            // workflow takes it back to advanced mode
-            const employeeList: PolicyEmployeeList = {
-                [defaultApproverEmail]: {email: defaultApproverEmail, submitsTo: defaultApproverEmail},
-                '1@example.com': {email: '1@example.com', submitsTo: defaultApproverEmail},
-                '2@example.com': {email: '2@example.com', submitsTo: defaultApproverEmail, approvalLimit: 10000, overLimitForwardsTo: '4@example.com'},
-            };
-
-            // When the multiple approvers beta is on
-            const shouldUseRulesInBasicMode = shouldUseApprovalWorkflowRules(policyWithEmployees(employeeList, CONST.POLICY.APPROVAL_MODE.BASIC), false, true);
-            const shouldUseRulesInAdvancedMode = shouldUseApprovalWorkflowRules(policyWithEmployees(employeeList), false, true);
-
-            // Then both write rules, since no report goes through approver 2 to be sent over their limit
-            expect(shouldUseRulesInBasicMode).toBe(true);
-            expect(shouldUseRulesInAdvancedMode).toBe(true);
         });
     });
 

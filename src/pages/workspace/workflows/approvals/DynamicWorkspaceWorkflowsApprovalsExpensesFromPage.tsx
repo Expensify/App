@@ -72,7 +72,7 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
     const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID}`);
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const {showConfirmModal} = useConfirmModal();
-    const shouldUseApprovalWorkflowRules = useShouldUseApprovalWorkflowRules(policy);
+    const shouldUseApprovalWorkflowRules = useShouldUseApprovalWorkflowRules();
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const firstApprover = approvalWorkflow?.originalApprovers?.[0]?.email ?? '';
     const employeeAndApprovalMembersPersonalDetails = usePersonalDetailsByLogins([

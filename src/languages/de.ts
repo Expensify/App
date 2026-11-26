@@ -3599,6 +3599,7 @@ ${amount} für ${merchant} – ${date}`,
         approverFromProvider: ({provider}: {provider: string}) => `von ${provider}`,
         ifReportIsOver: ({amount}: {amount: string}) => `Wenn der Bericht über ${amount} liegt`,
         finalApprover: 'Letzte*r Genehmigende*r',
+        approvalForkTooltip: 'Mit diesem Workflow liegt ein Problem vor. Klicken Sie, um es anzuzeigen.',
         manager: 'Manager',
         submitFrequency: 'Einreichungshäufigkeit',
         submitOn: 'Einreichen am',
@@ -3673,9 +3674,6 @@ ${amount} für ${merchant} – ${date}`,
         title: 'Genehmigungsworkflow bearbeiten',
         deleteTitle: 'Genehmigungsworkflow löschen',
         deletePrompt: 'Möchtest du diesen Genehmigungs-Workflow wirklich löschen? Alle Mitglieder werden anschließend dem Standard-Workflow folgen.',
-        hiddenRoutesTitle: 'Einige Berichte werden anders weitergeleitet',
-        hiddenRoutesPrompt:
-            'Dieser Workflow wurde mit Genehmigenden eingerichtet, die einige Berichte je nach Berichtssumme an andere Genehmigende senden. Beim Speichern bleiben nur die hier angezeigten Genehmigenden erhalten, sodass jeder Bericht über sie läuft.',
     },
     workflowsExpensesFromPage: {
         title: 'Ausgaben ab',
@@ -3703,6 +3701,31 @@ ${amount} für ${merchant} – ${date}`,
         removeApprover: 'Genehmigenden entfernen',
         next: 'Weiter',
         enterAmountError: 'Bitte gib einen gültigen Betrag ein',
+    },
+    workflowsApprovalForkPage: {
+        title: 'Genehmigungsverzweigung',
+        description: () => ({
+            one: 'Dieser Workflow hat eine Verzweigung im Genehmigungsworkflow aus Expensify Classic übernommen, die sich vom konfigurierten Workflow unterscheidet.',
+            other: 'Dieser Workflow hat Verzweigungen im Genehmigungsworkflow aus Expensify Classic übernommen, die sich vom konfigurierten Workflow unterscheiden.',
+        }),
+        forkNumber: ({number}: {number: number}) => `Verzweigung ${number}`,
+        approvesReportsInWorkflow: ({approver}: {approver: string}) => `<strong>${approver}</strong> genehmigt Berichte in diesem Workflow.`,
+        approvesReportsOverAmountInWorkflow: ({approver, amount}: {approver: string; amount: string}) => `<strong>${approver}</strong> genehmigt in diesem Workflow Berichte über ${amount}.`,
+        approvesReportsFrom: ({approver, sender, range}: {approver: string; sender: string; range?: string}) =>
+            range
+                ? `<strong>${approver}</strong> genehmigt Berichte von <strong>${sender}</strong> ${range}.`
+                : `<strong>${approver}</strong> genehmigt Berichte von <strong>${sender}</strong>.`,
+        finalApprovesReports: ({approver, range}: {approver: string; range?: string}) =>
+            range ? `<strong>${approver}</strong> genehmigt die Berichte ${range} endgültig.` : `<strong>${approver}</strong> genehmigt die Berichte endgültig.`,
+        finalApprovesReportsFrom: ({approver, sender, range}: {approver: string; sender: string; range?: string}) =>
+            range
+                ? `<strong>${approver}</strong> genehmigt die Berichte von <strong>${sender}</strong> ${range} endgültig.`
+                : `<strong>${approver}</strong> genehmigt die Berichte von <strong>${sender}</strong> endgültig.`,
+        underAmount: ({amount}: {amount: string}) => `unter ${amount}`,
+        overAmount: ({amount}: {amount: string}) => `über ${amount}`,
+        betweenAmounts: ({lowerAmount, upperAmount}: {lowerAmount: string; upperAmount: string}) => `zwischen ${lowerAmount} und ${upperAmount}`,
+        removeFork: 'Verzweigung entfernen',
+        removeForks: 'Verzweigungen entfernen',
     },
     workflowsPayerPage: {
         title: 'Autorisierte zahlende Person',
