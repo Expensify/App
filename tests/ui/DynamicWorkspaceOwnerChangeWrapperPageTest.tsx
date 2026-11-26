@@ -178,6 +178,25 @@ describe('DynamicWorkspaceOwnerChangeWrapperPage', () => {
         expect(Navigation.navigate).toHaveBeenCalledTimes(1);
     });
 
+    it('shows the confirmation step when taking over all workspaces needs one', async () => {
+        // Given the user is asked whether to take over both of the owner's workspaces
+        await setPolicies(createOwnerPolicy('1'), createOwnerPolicy('2'));
+        renderOwnerChangePage();
+        await waitForBatchedUpdatesWithAct();
+        await answerCheck(['1', '2']);
+
+        // When the user takes over both and the server answers with a step to confirm
+        fireEvent.press(screen.getByText('Yes, all 2'));
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {isLoading: true});
+        await waitForBatchedUpdatesWithAct();
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {isLoading: false, isChangeOwnerFailed: true, errorFields: {changeOwner: {[CONST.POLICY.OWNERSHIP_ERRORS.AMOUNT_OWED]: 'error'}}});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the step shows instead of loading forever
+        expect(Navigation.setParams).toHaveBeenCalledWith({error: CONST.POLICY.OWNERSHIP_ERRORS.AMOUNT_OWED});
+        expect(screen.getByText('Outstanding balance')).toBeOnTheScreen();
+    });
+
     it('starts a new transfer when an earlier transfer of this workspace finished', async () => {
         // Given an earlier transfer finished while the user was away, so the workspace is still marked as transferred
         await setPolicies(createOwnerPolicy('1', {isChangeOwnerSuccessful: true}), createOwnerPolicy('2'));

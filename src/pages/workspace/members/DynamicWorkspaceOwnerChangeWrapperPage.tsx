@@ -168,7 +168,9 @@ function DynamicWorkspaceOwnerChangeWrapperPage({route, policy, isLoadingPolicy}
         }
     }, [accountID, policy, policy?.errorFields?.changeOwner, policyID, buildDynamicRoute]);
 
-    const isLoading = isLoadingPolicy || !!policy?.isLoading || isCheckingTransferablePolicies || isTakingOverAllWorkspaces;
+    // A transfer that needs a confirmation shows its step, so loading only lasts until the server answers without one
+    const isWaitingForAllWorkspacesTransfer = isTakingOverAllWorkspaces && !policy?.errorFields?.changeOwner;
+    const isLoading = isLoadingPolicy || !!policy?.isLoading || isCheckingTransferablePolicies || isWaitingForAllWorkspacesTransfer;
 
     return (
         <AccessOrNotFoundWrapper
