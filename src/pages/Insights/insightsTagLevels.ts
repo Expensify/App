@@ -1,35 +1,26 @@
-/** Matches configured tag lists by position across the dashboard's workspace selection. */
-import {getTagLists} from '@libs/PolicyUtils';
-import {isPolicyEligibleForTopTags} from '@libs/SearchUIUtils';
-
+/** Builds the Top tags level options from the tag levels GetInsights lists for the dashboard's workspaces. */
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyTagLists} from '@src/types/onyx';
-
-import type {OnyxCollection} from 'react-native-onyx';
+import type {InsightsTagLevel} from '@src/types/onyx/InsightsDashboard';
 
 type InsightsTagLevelOption = {value: number; label: string};
 
-function getInsightsTagPolicyIDs(policies: OnyxCollection<Policy>, selectedPolicyIDs: string[]): string[] {
-    const selected = new Set(selectedPolicyIDs);
-    return Object.values(policies ?? {}).flatMap((policy) => (policy && isPolicyEligibleForTopTags(policy) && (selected.size === 0 || selected.has(policy.id)) ? [policy.id] : []));
-}
-
-function getInsightsTagLevelNames(policyTags: OnyxCollection<PolicyTagLists>, policyIDs: string[]): string[][] {
-    return policyIDs.map((policyID) => getTagLists(policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`]).map((tagList) => tagList.name));
-}
-
-function getInsightsTagLevelOptions(namesByPolicy: string[][], getFallbackLabel: (level: number) => string): InsightsTagLevelOption[] {
-    const count = Math.max(CONST.INSIGHTS.DEFAULT_TAG_LEVEL, ...namesByPolicy.map((names) => names.length));
+/**
+ * @param tagLevels - Levels GetInsights listed, or undefined until it responds
+ * @returns one option per level, named when every workspace in scope gives the level the same name
+ */
+function getInsightsTagLevelOptions(tagLevels: InsightsTagLevel[] | undefined, getFallbackLabel: (level: number) => string): InsightsTagLevelOption[] {
+    const levels = tagLevels ?? [];
+    const count = Math.max(CONST.INSIGHTS.DEFAULT_TAG_LEVEL, ...levels.map(({level}) => level));
     return Array.from({length: count}, (_, index) => {
-        const names = new Set(namesByPolicy.flatMap((policyNames) => (policyNames[index] ? [policyNames[index]] : [])));
-        return {value: index + 1, label: names.size === 1 ? [...names][0] : getFallbackLabel(index + 1)};
+        const names = levels.find(({level}) => level === index + 1)?.names ?? [];
+        return {value: index + 1, label: names.length === 1 ? names[0] : getFallbackLabel(index + 1)};
     });
 }
 
-function getFittingTagLevel(level: number, options: InsightsTagLevelOption[]): number {
-    return options.some((option) => option.value === level) ? level : CONST.INSIGHTS.DEFAULT_TAG_LEVEL;
+/** Keeps a level that GetInsights listed for a workspace in scope, and falls back to the default level otherwise. */
+function getFittingTagLevel(level: number, tagLevels: InsightsTagLevel[]): number {
+    return level === CONST.INSIGHTS.DEFAULT_TAG_LEVEL || tagLevels.some((tagLevel) => tagLevel.level === level) ? level : CONST.INSIGHTS.DEFAULT_TAG_LEVEL;
 }
 
-export {getFittingTagLevel, getInsightsTagLevelNames, getInsightsTagLevelOptions, getInsightsTagPolicyIDs};
+export {getFittingTagLevel, getInsightsTagLevelOptions};
 export type {InsightsTagLevelOption};

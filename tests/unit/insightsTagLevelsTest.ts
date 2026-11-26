@@ -1,21 +1,20 @@
 import formatTagParentPath from '@libs/formatTagParentPath';
 
-import {getFittingTagLevel, getInsightsTagLevelNames, getInsightsTagLevelOptions} from '@pages/Insights/insightsTagLevels';
-
-import ONYXKEYS from '@src/ONYXKEYS';
+import {getFittingTagLevel, getInsightsTagLevelOptions} from '@pages/Insights/insightsTagLevels';
 
 const fallback = (level: number) => `Tag level ${level}`;
 
 describe('Insights tag levels', () => {
-    it('uses positional names, falls back for conflicts, and keeps deeper levels from either workspace', () => {
-        // Given different names at level two and a third level present in only one workspace
-        const names = [
-            ['Region', 'Office'],
-            ['Region', 'Location', 'Project'],
+    it('names a level only when its workspaces agree, and keeps levels only some workspaces have', () => {
+        // Given workspaces that agree on level one, differ on level two, and have a third level in only one of them
+        const tagLevels = [
+            {level: 1, names: ['Region']},
+            {level: 2, names: ['Office', 'Location']},
+            {level: 3, names: ['Project']},
         ];
 
-        // When the selected workspaces build their common menu
-        const options = getInsightsTagLevelOptions(names, fallback);
+        // When the menu is built from them
+        const options = getInsightsTagLevelOptions(tagLevels, fallback);
 
         // Then shared names stay configured and conflicts use their position
         expect(options).toEqual([
@@ -23,32 +22,32 @@ describe('Insights tag levels', () => {
             {value: 2, label: 'Tag level 2'},
             {value: 3, label: 'Project'},
         ]);
-        expect(getFittingTagLevel(3, options)).toBe(3);
-        expect(getFittingTagLevel(4, options)).toBe(1);
+        expect(getFittingTagLevel(3, tagLevels)).toBe(3);
+        expect(getFittingTagLevel(4, tagLevels)).toBe(1);
+        expect(getFittingTagLevel(1, [])).toBe(1);
     });
 
-    it('reads tag-list order rather than object order', () => {
-        // Given tag metadata arriving out of order
-        const tags = {
-            [`${ONYXKEYS.COLLECTION.POLICY_TAGS}A1`]: {
-                second: {name: 'Office', orderWeight: 1, required: false, tags: {}},
-                first: {name: 'Region', orderWeight: 0, required: false, tags: {}},
-            },
-        };
+    it('uses the numbered label for a level whose lists have no name', () => {
+        // Given a level the workspaces left unnamed
+        const tagLevels = [
+            {level: 1, names: ['Region']},
+            {level: 2, names: []},
+        ];
 
-        // When the selector reads the configured positions
-        const names = getInsightsTagLevelNames(tags, ['A1']);
+        // When the menu is built from it
+        const options = getInsightsTagLevelOptions(tagLevels, fallback);
 
-        // Then workspace list order defines level positions
-        expect(names).toEqual([['Region', 'Office']]);
+        // Then the level is still offered under its position
+        expect(options).toEqual([
+            {value: 1, label: 'Region'},
+            {value: 2, label: 'Tag level 2'},
+        ]);
     });
 
-    it.each([undefined, ''])('keeps a level-one fallback without tag metadata %j', (path) => {
-        // Given no configured lists or ancestors
-        const names: string[][] = [];
-
+    it.each([undefined, ''])('keeps a level-one fallback without tag levels %j', (path) => {
+        // Given no response yet and no ancestors
         // When the menu and parent label are built
-        const options = getInsightsTagLevelOptions(names, fallback);
+        const options = getInsightsTagLevelOptions(undefined, fallback);
 
         // Then the safe default is level one and independent tags have no parent label
         expect(options).toEqual([{value: 1, label: 'Tag level 1'}]);

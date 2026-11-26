@@ -110,6 +110,15 @@ type InsightsFutureExpenses = {
     currency: string;
 };
 
+/** Names one tag level has across the workspaces the dashboard covers */
+type InsightsTagLevel = {
+    /** 1-based position in the workspaces' configured tag lists */
+    level: number;
+
+    /** Distinct non-empty names the workspaces give this level */
+    names: string[];
+};
+
 /** What the backend returns for one dashboard and set of filters */
 type InsightsDashboard = {
     /** Snapshots the response filled, keyed by the graph slot each chart's spec declares */
@@ -127,6 +136,9 @@ type InsightsDashboard = {
     /** Cards drawn above the headline chart. Missing until they're written, and empty when there are none. */
     aiInsights?: AIInsight[];
 
+    /** Tag levels of the workspaces in scope that have tags enabled, sent only when the Spend dashboard requests Top tags */
+    tagLevels?: InsightsTagLevel[];
+
     /** Query the stored graphs answer */
     inputQuery?: string;
 
@@ -136,5 +148,5 @@ type InsightsDashboard = {
     responseJsonCode?: number;
 };
 
-export type {AIInsight, AIInsightChip, InsightsDashboardID, InsightsFutureExpenses, InsightsGraphKey, InsightsSearchKey};
+export type {AIInsight, AIInsightChip, InsightsDashboardID, InsightsFutureExpenses, InsightsGraphKey, InsightsSearchKey, InsightsTagLevel};
 export default InsightsDashboard;

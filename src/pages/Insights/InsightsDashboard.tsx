@@ -64,13 +64,13 @@ import INSIGHTS_DASHBOARD_SPECS, {
 import {getQueryGroupBy} from './insightsGroupByUtils';
 import buildInsightsJsonQuery from './insightsQueries';
 import InsightsTabSelector from './InsightsTabSelector';
-import InsightsTagPolicyLoader from './InsightsTagPolicyLoader';
 import {getDashboardState, hasDashboardResponse, INSIGHTS_DASHBOARD_STATE} from './resolveDashboardState';
 import InsightsEmptyState from './states/InsightsEmptyState';
 import InsightsNoExpensesState from './states/InsightsNoExpensesState';
 import InsightsUpsellState from './states/InsightsUpsellState';
 import useInsightsExport from './useInsightsExport';
 import useInsightsFilters from './useInsightsFilters';
+import useInsightsTagLevelOptions from './useInsightsTagLevelOptions';
 
 type InsightsDashboardContentProps = {
     dashboardID: InsightsDashboardID;
@@ -398,10 +398,9 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const arePoliciesLoaded = policies !== undefined;
     // Checked against the next filters, because a workspace change can turn the upsell on or off
-    const {filters, defaultFilters, isResolved, setFilters, tagPolicyIDs, tagLevelOptions} = useInsightsFilters(
+    const {filters, defaultFilters, isResolved, setFilters} = useInsightsFilters(
         dashboardID,
         (next) => arePoliciesLoaded && shouldUpsellControlPlan(dashboardID, getPoliciesInScope(policies, next.policyIDs), next.policyIDs, login),
-        policies,
     );
     const {headerRef, controlsRef, contentRef, isExporting, isLoading: isChartLoading, exportDashboard, captureContext} = useInsightsExport(dashboardID, filters);
     const updateFilters = (update: Partial<InsightsFilters>) => {
@@ -482,6 +481,13 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
             stages: getEnabledStages(chartQuery.chart, policiesInScope, login, isDashboardPolicyEligible),
         };
     });
+    const tagLevelOptions = useInsightsTagLevelOptions({
+        tagLevels: dashboard?.tagLevels,
+        policyIDs: filters.policyIDs,
+        selectedTagLevel: filters.tagLevel,
+        canChangeFilters: !isExporting,
+        setFilters,
+    });
     const [headlineChart, ...supportingCharts] = charts;
     const state = getDashboardState(dashboard, isOffline, charts, shouldUpsell, hasLoadedBefore);
 
@@ -540,7 +546,6 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
                 {...tabRootScreenWrapperProps}
                 testID="InsightsPage"
             >
-                <InsightsTagPolicyLoader policyIDs={tagPolicyIDs} />
                 <View
                     ref={viewRef(headerRef)}
                     collapsable={false}
