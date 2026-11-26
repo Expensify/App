@@ -892,7 +892,7 @@ function buildInvitedMembersCategoryVisibilityOnyxData(
 ) {
     let visibleToPatches: Record<string, CategoryVisibleToPatches> = {};
     if (categoryNames) {
-        visibleToPatches = getMemberCategoryVisibilityPatches(policyCategories ?? undefined, accountIDs, categoryNames, policyMemberAccountIDs);
+        visibleToPatches = getMemberCategoryVisibilityPatches(policyCategories, accountIDs, categoryNames, policyMemberAccountIDs);
     } else {
         for (const [categoryName, category] of Object.entries(policyCategories ?? {})) {
             const visibleTo = category.visibleTo;
@@ -914,13 +914,15 @@ function buildInvitedMembersCategoryVisibilityOnyxData(
     const successCategories: Record<string, NullishDeep<PolicyCategory>> = {};
     const failureCategories: Record<string, NullishDeep<PolicyCategory>> = {};
     for (const [categoryName, {optimisticVisibleTo, failureVisibleTo}] of Object.entries(visibleToPatches)) {
-        optimisticCategories[categoryName] = {visibleTo: optimisticVisibleTo};
-        failureCategories[categoryName] = {visibleTo: failureVisibleTo};
+        // The pending field lets the category's Visible to row show the change as pending while offline
+        optimisticCategories[categoryName] = {visibleTo: optimisticVisibleTo, pendingFields: {visibleTo: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}};
+        failureCategories[categoryName] = {visibleTo: failureVisibleTo, pendingFields: {visibleTo: null}};
 
         const addedTemporaryAccountIDs = accountIDs.filter((accountID) => temporaryAccountIDs.has(accountID) && optimisticVisibleTo?.[accountID] === true);
-        if (addedTemporaryAccountIDs.length > 0) {
-            successCategories[categoryName] = {visibleTo: Object.fromEntries(addedTemporaryAccountIDs.map((accountID) => [accountID, null]))};
-        }
+        successCategories[categoryName] = {
+            pendingFields: {visibleTo: null},
+            ...(addedTemporaryAccountIDs.length > 0 && {visibleTo: Object.fromEntries(addedTemporaryAccountIDs.map((accountID) => [accountID, null]))}),
+        };
     }
 
     const key = `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}` as const;

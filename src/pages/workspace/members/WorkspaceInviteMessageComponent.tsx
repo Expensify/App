@@ -4,6 +4,7 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
@@ -31,6 +32,7 @@ import {
     clearWorkspaceInviteWorkArrangementDraft,
 } from '@libs/actions/Policy/Member';
 import {setWorkspaceInviteMessageDraft} from '@libs/actions/Policy/Policy';
+import {callIfAuthenticated} from '@libs/actions/Session';
 import {saveFastEditApprovalWorkflow} from '@libs/actions/Workflow';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -69,6 +71,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {GestureResponderEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
 import React, {useEffect, useState} from 'react';
 import {Keyboard, View} from 'react-native';
@@ -138,6 +141,9 @@ function WorkspaceInviteMessageComponent({
     // Another admin can disable, rename or delete a chosen category while this page is open, and the invite can only
     // limit the new members to enabled categories, so the row and the invite count only those.
     const categoryVisibilityDraftNames = categoryVisibilityDraft?.filter((categoryName) => !!policyCategories?.[categoryName]?.enabled);
+    // A member needs at least one category, so once every chosen category is gone the row asks the admin to pick again
+    const hasNoChosenCategoryLeft = categoryVisibilityDraftNames?.length === 0;
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const workspaceInviteApproverDraft = approverDraft ?? defaultApprover;
     const approverDetails = usePersonalDetailByLogin(workspaceInviteApproverDraft);
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
@@ -441,16 +447,28 @@ function WorkspaceInviteMessageComponent({
                                 />
                             )}
                             {shouldShowCategoryVisibilityRow && (
-                                <MenuItemField
+                                <MenuItem.Root
+                                    onPress={callIfAuthenticated(navigateToCategoryVisibilityPage, session)}
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.INVITE_MESSAGE_CATEGORY_VISIBILITY}
-                                    name={translate('workspace.people.categoryVisibility')}
-                                    onPress={navigateToCategoryVisibilityPage}
-                                    value={
-                                        categoryVisibilityDraftNames
-                                            ? translate('workspace.people.categoriesCount', {count: categoryVisibilityDraftNames.length})
-                                            : translate('workspace.people.allCategories')
-                                    }
-                                />
+                                >
+                                    <MenuItemField.Row
+                                        name={translate('workspace.people.categoryVisibility')}
+                                        value={
+                                            categoryVisibilityDraftNames
+                                                ? translate('workspace.people.categoriesCount', {count: categoryVisibilityDraftNames.length})
+                                                : translate('workspace.people.allCategories')
+                                        }
+                                    >
+                                        {hasNoChosenCategoryLeft && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                                        <MenuItem.Chevron />
+                                    </MenuItemField.Row>
+                                    {hasNoChosenCategoryLeft && (
+                                        <MenuItem.HelpText
+                                            isError
+                                            message={translate('workspace.people.categoryVisibilityRequiredModal.title')}
+                                        />
+                                    )}
+                                </MenuItem.Root>
                             )}
                             {shouldShowWorkArrangement && (
                                 <MenuItemField

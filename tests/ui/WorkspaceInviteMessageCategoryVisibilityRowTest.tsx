@@ -13,7 +13,7 @@ import WorkspaceInviteMessageComponent from '@pages/workspace/members/WorkspaceI
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import type {Policy, PolicyCategories} from '@src/types/onyx';
 import type {CurrentUserPersonalDetails, PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
 
@@ -26,6 +26,7 @@ import Onyx from 'react-native-onyx';
 
 import type * as MockReanimatedModalModule from '../utils/mockReanimatedModal';
 
+import createMock from '../utils/createMock';
 import {buildPersonalDetails, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -36,7 +37,7 @@ const INVITEE_EMAIL = 'invitee@example.com';
 const INVITEE_ACCOUNT_ID = 2;
 const ERRORED_MEMBER_EMAIL = 'errored@example.com';
 const ERRORED_MEMBER_ACCOUNT_ID = 3;
-const MEMBERS_ROUTE = `workspaces/${POLICY_ID}/members` as Route;
+const MEMBERS_ROUTE = ROUTES.WORKSPACE_MEMBERS.getRoute(POLICY_ID);
 
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<typeof NativeNavigation>('@react-navigation/native'),
@@ -86,12 +87,7 @@ function buildPolicy(policyOverrides: Partial<Policy> = {}): Policy {
     };
 }
 
-const currentUserPersonalDetails = {
-    accountID: ADMIN_ACCOUNT_ID,
-    login: ADMIN_EMAIL,
-    email: ADMIN_EMAIL,
-    displayName: 'admin',
-} as CurrentUserPersonalDetails;
+const currentUserPersonalDetails = createMock<CurrentUserPersonalDetails>({accountID: ADMIN_ACCOUNT_ID, login: ADMIN_EMAIL, email: ADMIN_EMAIL, displayName: 'admin'});
 
 async function renderPage(policy: Policy) {
     await act(async () => {
@@ -210,8 +206,9 @@ describe('WorkspaceInviteMessageComponent - Category visibility row', () => {
         );
         await renderPage(buildPolicy());
 
-        // Then the row counts only Meals
+        // Then the row counts only Meals, without an error since one chosen category is left
         expect(screen.getByText(translateLocal('workspace.people.categoriesCount', {count: 1}))).toBeOnTheScreen();
+        expect(screen.queryByTestId('menu-item-brick-road-indicator')).not.toBeOnTheScreen();
 
         // When the admin sends the invite
         await pressInvite();
@@ -231,11 +228,16 @@ describe('WorkspaceInviteMessageComponent - Category visibility row', () => {
         );
         await renderPage(buildPolicy());
 
-        // When the admin sends the invite
+        // Then the row shows an error that asks for a category, instead of only reading 0 categories
+        expect(screen.getByText(translateLocal('workspace.people.categoriesCount', {count: 0}))).toBeOnTheScreen();
+        expect(screen.getByText(translateLocal('workspace.people.categoryVisibilityRequiredModal.title'))).toBeOnTheScreen();
+        expect(screen.getByTestId('menu-item-brick-road-indicator')).toBeOnTheScreen();
+
+        // When the admin sends the invite anyway
         await pressInvite();
 
         // Then the same modal as the Category visibility page asks for a category, and nothing is sent
-        expect(await screen.findByText(translateLocal('workspace.people.categoryVisibilityRequiredModal.title'))).toBeOnTheScreen();
+        expect(await screen.findByText(translateLocal('workspace.people.categoryVisibilityRequiredModal.description'))).toBeOnTheScreen();
         expect(addMembersToWorkspaceMock).not.toHaveBeenCalled();
     });
 

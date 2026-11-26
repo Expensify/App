@@ -677,9 +677,10 @@ describe('actions/PolicyMember', () => {
             Member.addMembersToWorkspace({[newEmail]: newAccountID}, {}, 'Welcome', policy, [existingAccountID], CONST.POLICY.ROLE.USER, currentUser, {}, {policyCategories});
             await waitForBatchedUpdates();
 
-            // Then Fuel is limited to the existing member again, since the new member never joined
+            // Then Fuel is limited to the existing member again, since the new member never joined, and no longer shows as pending
             const categories = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
             expect(categories?.Fuel?.visibleTo).toEqual({[existingAccountID]: true});
+            expect(categories?.Fuel?.pendingFields?.visibleTo).toBeFalsy();
         });
 
         it('removes the temporary accountID of an invitee without personal details from limited categories once the invite succeeds', async () => {
@@ -708,9 +709,11 @@ describe('actions/PolicyMember', () => {
             );
             await waitForBatchedUpdates();
 
-            // Then the temporary accountID is gone, since the backend sends the real one, while the known invitee keeps access
+            // Then the temporary accountID is gone, since the backend sends the real one, while the known invitee keeps access,
+            // and Fuel no longer shows as pending
             const categories = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
             expect(categories?.Fuel?.visibleTo).toEqual({[existingAccountID]: true, [knownAccountID]: true});
+            expect(categories?.Fuel?.pendingFields?.visibleTo).toBeFalsy();
         });
 
         it('limits invited members to the chosen categories and sends them to the backend', async () => {
@@ -750,6 +753,11 @@ describe('actions/PolicyMember', () => {
             expect(categories?.Fuel?.visibleTo).toEqual({[existingAccountID]: true, [newAccountID]: true});
             expect(categories?.Meals?.visibleTo).toBeFalsy();
             expect(categories?.Travel?.visibleTo).toEqual({[existingAccountID]: true});
+
+            // And the changed categories show the change as pending while offline, but Meals, which didn't change, doesn't
+            expect(categories?.Fuel?.pendingFields?.visibleTo).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            expect(categories?.Travel?.pendingFields?.visibleTo).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            expect(categories?.Meals?.pendingFields?.visibleTo).toBeUndefined();
 
             // And the chosen categories go to the backend, which saves the restriction
             expect(getJSONRequestParameter(WRITE_COMMANDS.ADD_MEMBERS_TO_WORKSPACE, 'categoryNames')).toEqual(['Fuel', 'Meals']);
