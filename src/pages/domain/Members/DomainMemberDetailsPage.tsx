@@ -135,6 +135,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
                     sentryLabel={CONST.SENTRY_LABEL.DOMAIN.MEMBERS.DOMAIN_GROUP}
                     name={translate('domain.members.domainGroup')}
                     onPress={() => Navigation.navigate(ROUTES.DOMAIN_MEMBER_MOVE_TO_GROUP.getRoute(domainAccountID, accountID))}
+                    linkRoute={ROUTES.DOMAIN_MEMBER_MOVE_TO_GROUP.getRoute(domainAccountID, accountID)}
                     value={userSecurityGroup?.securityGroup?.name}
                 />
             </OfflineWithFeedback>

@@ -90,6 +90,7 @@ function QuickbooksDesktopAutoSyncPageBase({policy, navigateBackTo}: QuickbooksD
                         }
                         name={translate('workspace.qbd.accountingMethods.label')}
                         onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_ACCOUNTING_METHOD.getRoute(policyID))}
+                        linkRoute={ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_ACCOUNTING_METHOD.getRoute(policyID)}
                     />
                 </OfflineWithFeedback>
             )}

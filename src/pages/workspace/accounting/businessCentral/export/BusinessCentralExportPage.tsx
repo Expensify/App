@@ -104,6 +104,7 @@ function BusinessCentralExportPage({policy}: WithPolicyConnectionsProps) {
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL.CARD_PROGRAM_ACCOUNT}
                         name={translate('workspace.businessCentral.cardProgramAccount.label')}
                         onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_CARD_PROGRAM_ACCOUNT.getRoute(policyID))}
+                        linkRoute={ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_CARD_PROGRAM_ACCOUNT.getRoute(policyID)}
                         value={translate('workspace.businessCentral.cardProgramAccount.countInfo', {count: cardProgramsUsingCustomAccountsCount})}
                     >
                         {areSettingsInErrorFields(cardProgramsOfflineFeedbackKeys, businessCentralConfig?.errorFields) && (
@@ -116,6 +117,7 @@ function BusinessCentralExportPage({policy}: WithPolicyConnectionsProps) {
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL.CARD_ACCOUNT}
                         name={translate('workspace.businessCentral.cardAccount.label')}
                         onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_CARD_ACCOUNT.getRoute(policyID))}
+                        linkRoute={ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_CARD_ACCOUNT.getRoute(policyID)}
                         value={translate('workspace.businessCentral.cardAccount.countInfo', {count: cardsUsingCustomAccountsCount.totalCount})}
                     >
                         {areCardsCustomExportInErrorFields(cardFeeds ?? {}, cardLists, CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_BUSINESS_CENTRAL_EXPORT_ACCOUNT) && (
@@ -223,6 +225,7 @@ function BusinessCentralExportPage({policy}: WithPolicyConnectionsProps) {
                                         name={row.label}
                                         value={row.value}
                                         onPress={() => Navigation.navigate(row.route)}
+                                        linkRoute={row.route}
                                     >
                                         {areSettingsInErrorFields([row.settingName], businessCentralConfig?.errorFields) && (
                                             <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />

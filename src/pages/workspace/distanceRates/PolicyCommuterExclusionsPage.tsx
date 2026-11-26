@@ -252,6 +252,7 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
                     : 'workspace.distanceRates.commuterExclusions.workArrangement.noRegularWorkplaceTitle',
             )}
             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES_WORK_ARRANGEMENT.getRoute(policyID))}
+            linkRoute={ROUTES.WORKSPACE_DISTANCE_RATES_WORK_ARRANGEMENT.getRoute(policyID)}
         />
     );
 

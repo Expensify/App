@@ -98,6 +98,7 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
                         <MenuItemSectionRoot
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBO.LOCATIONS_DISPLAYED_AS}
                             onPress={canUseTagsForLocations ? () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_LOCATIONS_DISPLAYED_AS.getRoute(policyID)) : undefined}
+                            linkRoute={ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_LOCATIONS_DISPLAYED_AS.getRoute(policyID)}
                         >
                             <MenuItemField.Row
                                 name={translate('workspace.common.displayedAs')}

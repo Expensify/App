@@ -68,6 +68,7 @@ function DualEntryExistingConnectionsPage({route}: DualEntryExistingConnectionsP
                     title={translate('workspace.common.createNewConnection')}
                     icon={icons.LinkCopy}
                     onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DUALENTRY_SETUP.getRoute(policyID))}
+                    linkRoute={ROUTES.POLICY_ACCOUNTING_DUALENTRY_SETUP.getRoute(policyID)}
                 />
                 <Text style={[styles.sectionTitle, styles.pl5, styles.pr5, styles.pb2, styles.mt3]}>{translate('workspace.common.existingConnections')}</Text>
                 <MenuItemList

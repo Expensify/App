@@ -212,6 +212,7 @@ function StatusPage() {
                         name={translate('statusPage.clearAfter')}
                         value={customClearAfter}
                         onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS_CLEAR_AFTER)}
+                        linkRoute={ROUTES.SETTINGS_STATUS_CLEAR_AFTER}
                     >
                         {!!brickRoadIndicator && <MenuItem.BrickRoadIndicator status={brickRoadIndicator} />}
                     </MenuItemField>

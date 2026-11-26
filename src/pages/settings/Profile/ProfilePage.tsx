@@ -338,6 +338,7 @@ function ProfilePage() {
                                 >
                                     <MenuItemSectionRoot
                                         onPress={detail.onPress ?? (pageRoute ? () => Navigation.navigate(pageRoute) : undefined)}
+                                        linkRoute={detail.onPress ? undefined : pageRoute}
                                         testID={detail?.testID}
                                         sentryLabel={detail.sentryLabel}
                                         accessibilityLabel={detail.accessibilityLabel}

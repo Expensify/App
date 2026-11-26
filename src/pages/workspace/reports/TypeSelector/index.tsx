@@ -40,6 +40,7 @@ function TypeSelector({value, label = '', rightLabel, errorText = '', route, ref
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.REPORT_FIELDS.CREATE_TYPE}
             ref={ref}
             onPress={callIfAuthenticated(() => Navigation.navigate(route), session)}
+            linkRoute={route}
         >
             <MenuItemField.Row
                 name={label}

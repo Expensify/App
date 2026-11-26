@@ -145,6 +145,7 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
                         <MenuItemSectionRoot
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.AUTO_APPROVE_REPORTS_UNDER}
                             onPress={canWriteApprovals ? callIfAuthenticated(() => Navigation.navigate(ROUTES.RULES_AUTO_APPROVE_REPORTS_UNDER.getRoute(policyID)), session) : undefined}
+                            linkRoute={ROUTES.RULES_AUTO_APPROVE_REPORTS_UNDER.getRoute(policyID)}
                         >
                             <MenuItemField.Row
                                 name={translate('workspace.rules.expenseReportRules.autoApproveReportsUnderTitle')}
@@ -168,6 +169,7 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
                         <MenuItemSectionRoot
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.RANDOM_REPORT_AUDIT}
                             onPress={canWriteApprovals ? callIfAuthenticated(() => Navigation.navigate(ROUTES.RULES_RANDOM_REPORT_AUDIT.getRoute(policyID)), session) : undefined}
+                            linkRoute={ROUTES.RULES_RANDOM_REPORT_AUDIT.getRoute(policyID)}
                         >
                             <MenuItemField.Row
                                 name={translate('workspace.rules.expenseReportRules.randomReportAuditTitle')}
@@ -219,6 +221,7 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
                         <MenuItemSectionRoot
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.AUTO_PAY_REPORTS_UNDER}
                             onPress={canWritePayments ? callIfAuthenticated(() => Navigation.navigate(ROUTES.RULES_AUTO_PAY_REPORTS_UNDER.getRoute(policyID)), session) : undefined}
+                            linkRoute={ROUTES.RULES_AUTO_PAY_REPORTS_UNDER.getRoute(policyID)}
                         >
                             <MenuItemField.Row
                                 name={translate('workspace.rules.expenseReportRules.autoPayReportsUnderTitle')}

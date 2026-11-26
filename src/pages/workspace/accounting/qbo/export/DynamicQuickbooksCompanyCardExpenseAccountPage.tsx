@@ -121,6 +121,7 @@ function DynamicQuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConn
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBO.CREDIT_CARD_DEFAULT_VENDOR}
                         name={translate('workspace.accounting.defaultVendor')}
                         onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_NON_REIMBURSABLE_CREDIT_CARD_DEFAULT_VENDOR_SELECT.getRoute(policyID))}
+                        linkRoute={ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_NON_REIMBURSABLE_CREDIT_CARD_DEFAULT_VENDOR_SELECT.getRoute(policyID)}
                         value={nonReimbursableCreditCardDefaultVendorObject?.name}
                     >
                         {areSettingsInErrorFields([CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_DEFAULT_VENDOR], qboConfig?.errorFields) && (
@@ -142,6 +143,7 @@ function DynamicQuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConn
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBO.BILL_DEFAULT_VENDOR}
                         name={translate('workspace.accounting.defaultVendor')}
                         onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_NON_REIMBURSABLE_DEFAULT_VENDOR_SELECT.getRoute(policyID))}
+                        linkRoute={ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_NON_REIMBURSABLE_DEFAULT_VENDOR_SELECT.getRoute(policyID)}
                         value={nonReimbursableBillDefaultVendorObject?.name}
                     >
                         {areSettingsInErrorFields([CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR], qboConfig?.errorFields) && (

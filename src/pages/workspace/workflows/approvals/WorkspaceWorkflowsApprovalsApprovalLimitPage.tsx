@@ -234,6 +234,7 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_LIMIT_APPROVER}
                                     accessibilityLabel={approverDisplayName}
                                     onPress={callIfAuthenticated(navigateToApproverChange, session)}
+                                    linkRoute={ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER_CHANGE.getRoute(policyID, approverIndex)}
                                 >
                                     <MenuItem.Row>
                                         <MenuItemField.Content name={translate('workflowsPage.approver')}>

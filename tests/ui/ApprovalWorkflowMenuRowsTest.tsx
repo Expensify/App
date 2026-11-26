@@ -20,7 +20,7 @@ import React from 'react';
 import createMock from '../utils/createMock';
 
 const policyID = 'approval-menu-test';
-const pressEvent = {nativeEvent: {}};
+const pressEvent = {nativeEvent: {}, preventDefault: jest.fn()};
 const mockApprovalWorkflowKey = ONYXKEYS.APPROVAL_WORKFLOW;
 const mockAdditionalApproverEmail = 'additional@example.com';
 let mockWorkflow: ApprovalWorkflowOnyx;

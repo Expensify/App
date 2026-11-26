@@ -34,6 +34,7 @@ function MergeATSFinalApproverMenuItem({policyID, description}: MergeATSFinalApp
     return (
         <MenuItem.Root
             onPress={callIfAuthenticated(() => Navigation.navigate(ROUTES.WORKSPACE_RECRUITING_MERGE_FINAL_APPROVER.getRoute(policyID)), session)}
+            linkRoute={ROUTES.WORKSPACE_RECRUITING_MERGE_FINAL_APPROVER.getRoute(policyID)}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RECRUITING.MERGE_ATS_FINAL_APPROVER}
         >
             <MenuItem.Row>

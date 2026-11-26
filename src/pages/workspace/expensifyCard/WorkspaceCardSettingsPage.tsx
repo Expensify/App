@@ -113,6 +113,7 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
                                         ? undefined
                                         : callIfAuthenticated(() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_FREQUENCY.getRoute(policyID)), session)
                                 }
+                                linkRoute={ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_FREQUENCY.getRoute(policyID)}
                             >
                                 <MenuItemField.Row
                                     name={translate('workspace.expensifyCard.settlementFrequency')}

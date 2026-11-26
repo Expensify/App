@@ -615,6 +615,7 @@ function WorkspaceMemberDetailsPage({policy, route}: WorkspaceMemberDetailsPageP
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.DETAILS_OFFICE_LOCATION}
                                     name={translate('workspace.people.officeLocation')}
                                     onPress={canChangeOfficeLocation ? () => Navigation.navigate(ROUTES.WORKSPACE_MEMBER_OFFICE_LOCATION.getRoute(policyID, accountID)) : undefined}
+                                    linkRoute={ROUTES.WORKSPACE_MEMBER_OFFICE_LOCATION.getRoute(policyID, accountID)}
                                     testID="member-office-location-menu-item"
                                     value={
                                         memberOfficeLocation
@@ -632,6 +633,7 @@ function WorkspaceMemberDetailsPage({policy, route}: WorkspaceMemberDetailsPageP
                                             ? callIfAuthenticated(() => Navigation.navigate(ROUTES.WORKSPACE_MEMBER_WORK_ARRANGEMENT.getRoute(policyID, accountID)), session)
                                             : undefined
                                     }
+                                    linkRoute={ROUTES.WORKSPACE_MEMBER_WORK_ARRANGEMENT.getRoute(policyID, accountID)}
                                 >
                                     <MenuItemField.Row
                                         name={translate('workspace.people.workArrangement')}
@@ -648,6 +650,7 @@ function WorkspaceMemberDetailsPage({policy, route}: WorkspaceMemberDetailsPageP
                                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.DETAILS_CUSTOM_FIELD_1}
                                             name={translate('workspace.common.customField1')}
                                             onPress={canWriteMembers ? () => Navigation.navigate(ROUTES.WORKSPACE_CUSTOM_FIELDS.getRoute(policyID, accountID, 'customField1')) : undefined}
+                                            linkRoute={ROUTES.WORKSPACE_CUSTOM_FIELDS.getRoute(policyID, accountID, 'customField1')}
                                             testID="member-customField1-menu-item"
                                             value={member.employeeUserID}
                                         />
@@ -657,6 +660,7 @@ function WorkspaceMemberDetailsPage({policy, route}: WorkspaceMemberDetailsPageP
                                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.DETAILS_CUSTOM_FIELD_2}
                                             name={translate('workspace.common.customField2')}
                                             onPress={canWriteMembers ? () => Navigation.navigate(ROUTES.WORKSPACE_CUSTOM_FIELDS.getRoute(policyID, accountID, 'customField2')) : undefined}
+                                            linkRoute={ROUTES.WORKSPACE_CUSTOM_FIELDS.getRoute(policyID, accountID, 'customField2')}
                                             testID="member-customField2-menu-item"
                                             value={member.employeePayrollID}
                                         />

@@ -65,6 +65,7 @@ function InitialListValueSelector({value = '', label = '', rightLabel, errorText
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.REPORT_FIELDS.CREATE_INITIAL_VALUE}
                 ref={ref}
                 onPress={callIfAuthenticated(() => Navigation.navigate(route), session)}
+                linkRoute={route}
             >
                 <MenuItemField.Row
                     name={label}

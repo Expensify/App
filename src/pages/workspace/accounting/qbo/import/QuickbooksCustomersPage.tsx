@@ -87,6 +87,7 @@ function QuickbooksCustomersPage({policy}: WithPolicyProps) {
                     <View style={styles.mt4}>
                         <MenuItemSectionRoot
                             onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CUSTOMERS_DISPLAYED_AS.getRoute(policyID))}
+                            linkRoute={ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CUSTOMERS_DISPLAYED_AS.getRoute(policyID)}
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBO.CUSTOMERS_DISPLAYED_AS}
                         >
                             <MenuItemField.Row

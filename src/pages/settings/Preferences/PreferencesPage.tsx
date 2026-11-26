@@ -124,6 +124,7 @@ function PreferencesPage() {
                             </View>
                             <MenuItemSectionRoot
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_PRIORITY_MODE)}
+                                linkRoute={ROUTES.SETTINGS_PRIORITY_MODE}
                                 sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PREFERENCES.PRIORITY_MODE}
                             >
                                 <MenuItemField.Row
@@ -135,6 +136,7 @@ function PreferencesPage() {
                             </MenuItemSectionRoot>
                             <MenuItemSectionRoot
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_LANGUAGE)}
+                                linkRoute={ROUTES.SETTINGS_LANGUAGE}
                                 sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PREFERENCES.LANGUAGE}
                             >
                                 <MenuItemField.Row
@@ -147,6 +149,7 @@ function PreferencesPage() {
                             </MenuItemSectionRoot>
                             <MenuItemSectionRoot
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_PAYMENT_CURRENCY)}
+                                linkRoute={ROUTES.SETTINGS_PAYMENT_CURRENCY}
                                 sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PREFERENCES.PAYMENT_CURRENCY}
                             >
                                 <MenuItemField.Row
@@ -158,6 +161,7 @@ function PreferencesPage() {
                             </MenuItemSectionRoot>
                             <MenuItemSectionRoot
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_THEME)}
+                                linkRoute={ROUTES.SETTINGS_THEME}
                                 sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PREFERENCES.THEME}
                             >
                                 <MenuItemField.Row
@@ -178,6 +182,7 @@ function PreferencesPage() {
                         >
                             <MenuItemSectionRoot
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_HOME_ADDRESS)}
+                                linkRoute={ROUTES.SETTINGS_HOME_ADDRESS}
                                 sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PREFERENCES.HOME_ADDRESS}
                             >
                                 <MenuItemField.Row

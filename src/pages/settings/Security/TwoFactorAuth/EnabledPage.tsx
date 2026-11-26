@@ -70,6 +70,7 @@ function EnabledPage() {
                     sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.REPLACE_DEVICE}
                     title={translate('twoFactorAuth.replaceDevice')}
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_2FA_REPLACE_VERIFY_OLD)}
+                    linkRoute={ROUTES.SETTINGS_2FA_REPLACE_VERIFY_OLD}
                     icon={icons.Sync}
                 />
                 <MenuItem.Root

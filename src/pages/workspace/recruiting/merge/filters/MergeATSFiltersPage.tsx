@@ -133,6 +133,7 @@ function MergeATSFiltersPage({
                                                     name={rowDescription}
                                                     value={getMergeATSFilterLabel(filterType, filters, mergeATS?.data, translate)}
                                                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_RECRUITING_MERGE_IMPORT_SETTINGS_FILTER.getRoute(policyID, filterType))}
+                                                    linkRoute={ROUTES.WORKSPACE_RECRUITING_MERGE_IMPORT_SETTINGS_FILTER.getRoute(policyID, filterType)}
                                                 />
                                             </View>
                                             {index !== filterRows.length - 1 && <View style={[styles.sectionDividerLine, styles.mh5]} />}

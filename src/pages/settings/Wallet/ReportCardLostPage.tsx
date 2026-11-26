@@ -162,6 +162,7 @@ function ReportCardLostPage({
                                 value={formattedAddress}
                                 numberOfLinesValue={2}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.getRoute(INPUT_IDS.ADDRESS_LINE_1))}
+                                linkRoute={ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.getRoute(INPUT_IDS.ADDRESS_LINE_1)}
                                 forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                             />
                             {isDamaged ? (

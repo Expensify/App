@@ -22,6 +22,7 @@ import mergeRefs from '@libs/mergeRefs';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import type {Route} from '@src/ROUTES';
 import type {WithSentryLabelWhenPressable} from '@src/types/utils/SentryLabel';
 import type WithTestID from '@src/types/utils/TestID';
 
@@ -37,6 +38,9 @@ type MenuItemRootProps = PropsWithChildren &
     ForwardedFSClassProps & {
         /** Function to fire when the row is pressed */
         onPress?: (event: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
+
+        /** Renders the row as a link to this route on web, so it can be opened in a new tab */
+        linkRoute?: Route;
 
         isDisabled?: boolean;
 
@@ -77,6 +81,7 @@ type MenuItemRootProps = PropsWithChildren &
 function MenuItemRoot({
     children,
     onPress,
+    linkRoute,
     isDisabled = false,
     isCompact = false,
     isFocused = false,
@@ -195,6 +200,7 @@ function MenuItemRoot({
                         disabled={isDisabled}
                         ref={mergeRefs<HTMLDivElement | ComponentRef<typeof View> | ComponentRef<typeof Text> | undefined>(pressableRef, ref)}
                         role={isInteractive ? CONST.ROLE.BUTTON : undefined}
+                        linkRoute={isInteractive ? linkRoute : undefined}
                         accessibilityLabel={rowAccessibilityLabel}
                         accessibilityHint={accessibilityHint}
                         accessibilityState={accessibilityState}

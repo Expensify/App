@@ -9,9 +9,10 @@ import MenuItemChevron from '@components/MenuItem/leaves/trailing/icons/MenuItem
 
 import useOnyx from '@hooks/useOnyx';
 
-import {callIfAuthenticated} from '@userActions/Session';
+import {callIfAuthenticated, getLinkRouteIfAuthenticated} from '@userActions/Session';
 
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 import type WithTestID from '@src/types/utils/TestID';
@@ -32,6 +33,9 @@ type MenuItemNavigationProps = WithRequiredSentryLabel &
         /** Function to fire when the row is pressed */
         onPress: (event: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
 
+        /** Renders the row as a link to this route on web, so it can be opened in a new tab */
+        linkRoute?: Route;
+
         /** Whether the menu item is disabled */
         isDisabled?: boolean;
     };
@@ -40,11 +44,12 @@ type MenuItemNavigationProps = WithRequiredSentryLabel &
  * The navigation MenuItem preset — a tappable row with a leading icon, a title, and a trailing
  * chevron signaling that pressing it takes the user somewhere else
  */
-function MenuItemNavigation({title, icon, onPress, isDisabled = false, sentryLabel, testID}: MenuItemNavigationProps) {
+function MenuItemNavigation({title, icon, onPress, linkRoute, isDisabled = false, sentryLabel, testID}: MenuItemNavigationProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     return (
         <MenuItemRoot
             onPress={callIfAuthenticated(onPress, session)}
+            linkRoute={getLinkRouteIfAuthenticated(linkRoute, session)}
             isDisabled={isDisabled}
             sentryLabel={sentryLabel}
             testID={testID}

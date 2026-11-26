@@ -80,6 +80,7 @@ function DomainGroupDetailsPage({route}: DomainGroupDetailsPageProps) {
                             sentryLabel={CONST.SENTRY_LABEL.DOMAIN.GROUPS.NAME}
                             name={translate('common.name')}
                             onPress={() => Navigation.navigate(ROUTES.DOMAIN_GROUP_EDIT_NAME.getRoute(domainAccountID, groupID))}
+                            linkRoute={ROUTES.DOMAIN_GROUP_EDIT_NAME.getRoute(domainAccountID, groupID)}
                             value={group?.name}
                         />
                     </OfflineWithFeedback>

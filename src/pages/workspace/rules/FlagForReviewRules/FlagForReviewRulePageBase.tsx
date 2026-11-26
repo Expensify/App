@@ -266,6 +266,7 @@ function FlagForReviewRulePageBase({
                     </View>
                     <MenuItem.Root
                         onPress={canEditCategory ? callIfAuthenticated(() => Navigation.navigate(getFlagForReviewRuleCategoryRoute(policyID, categoryName)), session) : undefined}
+                        linkRoute={getFlagForReviewRuleCategoryRoute(policyID, categoryName)}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.FLAG_FOR_REVIEW_RULE_CATEGORY}
                     >
                         <MenuItem.Row>

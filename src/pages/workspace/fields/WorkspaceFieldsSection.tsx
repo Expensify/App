@@ -168,6 +168,7 @@ function WorkspaceFieldsSection({
                 sentryLabel={rowSentryLabel}
                 style={cardPaddingHorizontal}
                 onPress={!item.isDisabled && canWrite ? callIfAuthenticated(() => navigateToFieldSettings(item), session) : undefined}
+                linkRoute={getSettingsRoute(policyID, item.fieldID)}
                 isDisabled={item.isDisabled}
             >
                 <MenuItem.Row>

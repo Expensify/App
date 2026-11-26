@@ -148,6 +148,7 @@ function NetSuiteImportCustomFieldView({
                                         ? () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_EDIT.getRoute(policyID, importCustomField, valueIndex, fieldName))
                                         : undefined
                                 }
+                                linkRoute={ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_EDIT.getRoute(policyID, importCustomField, valueIndex, fieldName)}
                             />
                         );
                     })}

@@ -237,6 +237,7 @@ function DomainGroupCreatePage({route}: DomainGroupCreatePageProps) {
                             sentryLabel={CONST.SENTRY_LABEL.DOMAIN.GROUPS.CREATE_PREFERRED_WORKSPACE}
                             name={translate('domain.groups.preferredWorkspace')}
                             onPress={() => Navigation.navigate(ROUTES.DOMAIN_GROUP_CREATE_PREFERRED_WORKSPACE.getRoute(domainAccountID))}
+                            linkRoute={ROUTES.DOMAIN_GROUP_CREATE_PREFERRED_WORKSPACE.getRoute(domainAccountID)}
                             isDisabled={!preferredWorkspace}
                             value={preferredWorkspaceName}
                         />

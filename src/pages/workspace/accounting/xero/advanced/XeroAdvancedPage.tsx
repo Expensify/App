@@ -109,6 +109,7 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.XERO_CONFIG.REIMBURSEMENT_ACCOUNT_ID], pendingFields)}>
                         <MenuItemSectionRoot
                             onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_BILL_PAYMENT_ACCOUNT_SELECTOR.getRoute(policyID))}
+                            linkRoute={ROUTES.POLICY_ACCOUNTING_XERO_BILL_PAYMENT_ACCOUNT_SELECTOR.getRoute(policyID)}
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.XERO.BILL_PAYMENT_ACCOUNT}
                         >
                             <MenuItemField.Row
@@ -126,6 +127,7 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                         <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.XERO_CONFIG.FX_EXPENSE_ACCOUNT], pendingFields)}>
                             <MenuItemSectionRoot
                                 onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_FX_EXPENSE_ACCOUNT_SELECTOR.getRoute(policyID))}
+                                linkRoute={ROUTES.POLICY_ACCOUNTING_XERO_FX_EXPENSE_ACCOUNT_SELECTOR.getRoute(policyID)}
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.XERO.FX_EXPENSE_ACCOUNT}
                             >
                                 <MenuItemField.Row
@@ -143,6 +145,7 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.XERO_CONFIG.INVOICE_COLLECTIONS_ACCOUNT_ID], pendingFields)}>
                         <MenuItemSectionRoot
                             onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_INVOICE_SELECTOR.getRoute(policyID))}
+                            linkRoute={ROUTES.POLICY_ACCOUNTING_XERO_INVOICE_SELECTOR.getRoute(policyID)}
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.XERO.INVOICE_COLLECTION_ACCOUNT}
                         >
                             <MenuItemField.Row

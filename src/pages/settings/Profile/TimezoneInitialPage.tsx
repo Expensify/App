@@ -70,6 +70,7 @@ function TimezoneInitialPage({currentUserPersonalDetails}: TimezoneInitialPagePr
                     sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PROFILE.TIMEZONE_SELECT}
                     name={translate('timezonePage.timezone')}
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_TIMEZONE_SELECT)}
+                    linkRoute={ROUTES.SETTINGS_TIMEZONE_SELECT}
                     isDisabled={!!timezone.automatic}
                     value={timezone.selected}
                 />

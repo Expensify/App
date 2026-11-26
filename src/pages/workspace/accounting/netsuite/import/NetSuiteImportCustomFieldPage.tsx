@@ -139,6 +139,7 @@ function NetSuiteImportCustomFieldPage({
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.CUSTOM_FIELD_RECORD_ROW}
                                 name={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.recordTitle`)}
                                 onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_VIEW.getRoute(policyID, importCustomField, index))}
+                                linkRoute={ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_VIEW.getRoute(policyID, importCustomField, index)}
                                 value={'listName' in record ? record.listName : record.segmentName}
                             >
                                 {areSettingsInErrorFields([`${importCustomField}_${index}`], config?.errorFields) && (

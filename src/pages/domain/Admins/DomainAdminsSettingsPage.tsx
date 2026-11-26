@@ -53,6 +53,7 @@ function DomainAdminsSettingsPage({route}: DomainAdminsSettingsPageProps) {
                     sentryLabel={CONST.SENTRY_LABEL.DOMAIN.ADMINS.PRIMARY_CONTACT}
                     name={translate('domain.admins.primaryContact')}
                     onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_PRIMARY_CONTACT.getRoute(domainAccountID))}
+                    linkRoute={ROUTES.DOMAIN_ADD_PRIMARY_CONTACT.getRoute(domainAccountID)}
                     value={technicalContactSettings?.technicalContactEmail}
                 />
             </OfflineWithFeedback>

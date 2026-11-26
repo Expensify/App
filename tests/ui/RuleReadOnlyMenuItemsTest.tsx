@@ -46,7 +46,7 @@ const OWNER_ACCOUNT_ID = 1;
 const GROUP_ID = 'airlines';
 const FLAG_SCREEN = SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_NEW;
 const MERCHANT_SCREEN = SCREENS.WORKSPACE.RULES_MERCHANT_TYPE_EDIT;
-const PRESS_EVENT = {nativeEvent: {}};
+const PRESS_EVENT = {nativeEvent: {}, preventDefault: jest.fn()};
 
 const FLAG_COPY = [
     {

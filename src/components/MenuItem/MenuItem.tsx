@@ -50,7 +50,7 @@ import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionConte
 import {fontScale, lineHeightScale} from '@styles/typography';
 import variables from '@styles/variables';
 
-import {callIfAuthenticated} from '@userActions/Session';
+import {callIfAuthenticated, getLinkRouteIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -789,7 +789,7 @@ function MenuItem({
                                 disabled={disabled}
                                 ref={mergeRefs(ref, popoverAnchor, pressableRef)}
                                 role={interactive ? role : undefined}
-                                linkRoute={linkRoute}
+                                linkRoute={shouldCheckActionAllowedOnPress && !isAnonymousAction ? getLinkRouteIfAuthenticated(linkRoute, session) : linkRoute}
                                 accessibilityLabel={accessibilityLabelWithContextMenuHint}
                                 accessibilityHint={accessibilityHint}
                                 // The label repeats the title, so a masked title also masks the row that carries the label
