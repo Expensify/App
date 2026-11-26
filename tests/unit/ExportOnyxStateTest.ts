@@ -927,6 +927,26 @@ describe('Onyx key export coverage', () => {
     });
 });
 
+describe('integration credentials in the persisted request queue', () => {
+    it.each([
+        ['apiKey', 'RILLET_SECRET_KEY'],
+        ['apiSecret', 'EXAMPLE_API_SECRET'],
+        ['clientSecret', 'BC_CLIENT_SECRET'],
+        ['privateKey', 'EXAMPLE_PRIVATE_KEY'],
+    ])('masks %s on a queued request', (fieldName, secret) => {
+        // Given a connect request that is still waiting in the offline queue
+        const input = {
+            [ONYXKEYS.PERSISTED_REQUESTS]: [{command: 'ConnectPolicyToIntegration', data: {policyID: '1234', [fieldName]: secret}}],
+        };
+
+        // When the state is exported with masking on
+        const exported = JSON.stringify(maskOnyxState(input, true));
+
+        // Then the credential does not appear in the export
+        expect(exported).not.toContain(secret);
+    });
+});
+
 describe('Onyx key export bucket ordering', () => {
     // The buckets are written as ONYXKEYS.X references and kept in order of that name, not of the string it
     // resolves to. BETAS is listed before BETA_CONFIGURATION even though their values sort the other way
