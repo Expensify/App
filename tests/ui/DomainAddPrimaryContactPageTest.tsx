@@ -28,7 +28,7 @@ import type * as ConfirmModalMock from '../utils/mockUseConfirmModal';
 import {mockShowConfirmModal, resetMockConfirmModal} from '../utils/mockUseConfirmModal';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
-type AdminRow = {login: string; accountID: number};
+type AdminRow = {login: string; accountID: number; isSelected?: boolean};
 
 const DOMAIN_ACCOUNT_ID = 424242;
 const DOMAIN_KEY = `${ONYXKEYS.COLLECTION.DOMAIN}${DOMAIN_ACCOUNT_ID}` as const;
@@ -114,13 +114,13 @@ const route: DomainAddPrimaryContactPageProps['route'] = {
 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- The page never reads the navigation prop when rendered outside a navigator.
 const navigation = {} as DomainAddPrimaryContactPageProps['navigation'];
 
-async function renderPage(isBillingOn: boolean) {
+async function renderPage(isBillingOn: boolean, technicalContactEmail = PRIMARY_CONTACT_EMAIL) {
     await act(async () => {
         await Onyx.merge(DOMAIN_KEY, {
             [CURRENT_USER_ADMIN_KEY]: CURRENT_USER_ACCOUNT_ID,
             [PRIMARY_CONTACT_ADMIN_KEY]: PRIMARY_CONTACT_ACCOUNT_ID,
         });
-        await Onyx.merge(DOMAIN_MEMBER_KEY, {settings: {technicalContactEmail: PRIMARY_CONTACT_EMAIL, useTechnicalContactBillingCard: isBillingOn}});
+        await Onyx.merge(DOMAIN_MEMBER_KEY, {settings: {technicalContactEmail, useTechnicalContactBillingCard: isBillingOn}});
     });
     render(
         <DomainAddPrimaryContactPage
@@ -157,6 +157,16 @@ describe('DomainAddPrimaryContactPage', () => {
         // Then the list offers only the admin themselves, hides the search, and shows why
         expect(mockListProps?.data.map((option) => option.login)).toEqual([CURRENT_USER.login]);
         expect(mockListProps?.shouldShowTextInput).toBe(false);
+        expect(screen.getByText(BILLING_ON_NOTE)).toBeOnTheScreen();
+    });
+
+    it('lists only the current user, checked, and still explains why while billing is on and they are the primary contact', async () => {
+        // Given consolidated billing that is on and the current user as primary contact
+        // When they open the primary contact picker
+        await renderPage(true, CURRENT_USER.login);
+
+        // Then the list offers only them, checked, and shows why
+        expect(mockListProps?.data.map((option) => ({login: option.login, isSelected: option.isSelected}))).toEqual([{login: CURRENT_USER.login, isSelected: true}]);
         expect(screen.getByText(BILLING_ON_NOTE)).toBeOnTheScreen();
     });
 
