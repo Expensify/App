@@ -373,9 +373,6 @@ type OriginalMessageClosed = {
 
     /** The memo of the closed report */
     message?: string;
-
-    /** Snapshot of the report's transaction violations when it was closed */
-    violations?: ViolationsSnapshot;
 };
 
 /** Model of a support ticket survey report action */

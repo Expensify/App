@@ -16800,11 +16800,7 @@ describe('SearchUIUtils', () => {
         const otherTransactionID = 'tx-violations-2';
 
         const createSubmittedAction = (
-            actionName:
-                | typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED
-                | typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED
-                | typeof CONST.REPORT.ACTIONS.TYPE.CLOSED
-                | typeof CONST.REPORT.ACTIONS.TYPE.ADD_EXPENSE_ON_SUBMITTED,
+            actionName: typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED | typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED | typeof CONST.REPORT.ACTIONS.TYPE.ADD_EXPENSE_ON_SUBMITTED,
             violations?: {transactions: Record<string, Array<{name: string}>>},
             reportActionID = 'submit-action-1',
         ): OnyxTypes.ReportAction =>
@@ -16860,21 +16856,6 @@ describe('SearchUIUtils', () => {
 
             expect(SearchUIUtils.getSubmittedViolationsForTransaction([submitAndCloseAction], transactionIDForViolations, translateLocal)).toBe(
                 translateLocal('violations.shortName.receiptRequired'),
-            );
-        });
-
-        test('includes translated labels from CLOSED actions', () => {
-            // Given a report closed with a violation on the expense, which records the violations snapshot on its CLOSED action
-            const closedAction = createSubmittedAction(CONST.REPORT.ACTIONS.TYPE.CLOSED, {
-                transactions: {
-                    [transactionIDForViolations]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}],
-                },
-            });
-
-            // When the expense's submitted violations are read
-            // Then the closed report's violation is listed, since Search counts a CLOSED snapshot as submit-time, like a submission's
-            expect(SearchUIUtils.getSubmittedViolationsForTransaction([closedAction], transactionIDForViolations, translateLocal)).toBe(
-                translateLocal('violations.shortName.missingCategory'),
             );
         });
 
@@ -17033,133 +17014,6 @@ describe('SearchUIUtils', () => {
 
             expect(SearchUIUtils.getSubmittedViolationsForTransaction([submitAction], transactionIDForViolations, translateLocal)).toBeUndefined();
             expect(SearchUIUtils.getSubmittedViolationsForTransaction([submitActionWithoutViolations], transactionIDForViolations, translateLocal)).toBeUndefined();
-        });
-    });
-
-    describe('getViolationSnapshotActions', () => {
-        const createAction = (reportActionID: string, actionName: string, created: string, actorAccountID?: number): OnyxTypes.ReportAction =>
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test-only: the actions only carry the fields the filter reads
-            ({reportActionID, actionName, created, actorAccountID, message: [], originalMessage: {}}) as OnyxTypes.ReportAction;
-        const getIDs = (actions: OnyxTypes.ReportAction[]) => actions.map((action) => action.reportActionID);
-
-        test("keeps the submissions made on the query's submission dates", () => {
-            // Given submissions in January and February, and a query for expenses submitted in February
-            const actions = [
-                createAction('january', CONST.REPORT.ACTIONS.TYPE.SUBMITTED, '2026-01-20 10:00:00'),
-                createAction('february', CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED, '2026-02-10 10:00:00'),
-            ];
-            const queryJSON = buildSearchQueryJSON('type:expense anySubmission>=2026-02-01 anySubmission<=2026-02-28');
-
-            // When the actions are narrowed to the query
-            const result = SearchUIUtils.getViolationSnapshotActions(actions, queryJSON, 1);
-
-            // Then only the February submission is kept, since the January one isn't what the query matched the expense on
-            expect(getIDs(result)).toEqual(['february']);
-        });
-
-        test("keeps the approvals made on the query's approval dates by its approver", () => {
-            // Given approvals by two approvers in February and one in January, and a query for approver 5's February approvals
-            const actions = [
-                createAction('januaryByApprover', CONST.REPORT.ACTIONS.TYPE.FORWARDED, '2026-01-20 10:00:00', 5),
-                createAction('februaryByApprover', CONST.REPORT.ACTIONS.TYPE.APPROVED, '2026-02-10 10:00:00', 5),
-                createAction('februaryByOther', CONST.REPORT.ACTIONS.TYPE.APPROVED, '2026-02-11 10:00:00', 6),
-            ];
-            const queryJSON = buildSearchQueryJSON('type:expense approver:5 anyApproval>=2026-02-01 anyApproval<=2026-02-28');
-
-            // When the actions are narrowed to the query
-            const result = SearchUIUtils.getViolationSnapshotActions(actions, queryJSON, 1);
-
-            // Then only approver 5's February approval is kept
-            expect(getIDs(result)).toEqual(['februaryByApprover']);
-        });
-
-        test('keeps only the actions made where every date filter overlaps', () => {
-            // Given approvals in January and February, and a quarter narrowed to February by a clicked chart point
-            const actions = [
-                createAction('january', CONST.REPORT.ACTIONS.TYPE.APPROVED, '2026-01-20 10:00:00', 5),
-                createAction('february', CONST.REPORT.ACTIONS.TYPE.APPROVED, '2026-02-10 10:00:00', 5),
-            ];
-            const queryJSON = buildSearchQueryJSON('type:expense anyApproval>=2026-01-01 anyApproval<=2026-03-31 anyApproval>=2026-02-01 anyApproval<=2026-02-28');
-
-            // When the actions are narrowed to the query
-            const result = SearchUIUtils.getViolationSnapshotActions(actions, queryJSON, 1);
-
-            // Then only the February approval is kept, since Search matches only what every filter matches
-            expect(getIDs(result)).toEqual(['february']);
-        });
-
-        test("reads an approver's email as the account the response lists with that login", () => {
-            // Given approvals by two approvers, and a Spend query typed with one approver's email, whose account the response lists
-            const actions = [
-                createAction('alices', CONST.REPORT.ACTIONS.TYPE.APPROVED, '2026-02-10 10:00:00', 5),
-                createAction('bobs', CONST.REPORT.ACTIONS.TYPE.APPROVED, '2026-02-10 10:00:00', 6),
-            ];
-            const queryJSON = buildSearchQueryJSON('type:expense approver:alice@example.com');
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test-only: the people only carry the fields the lookup reads
-            const personalDetails = {
-                5: {accountID: 5, login: 'alice@example.com'},
-                6: {accountID: 6, login: 'bob@example.com'},
-            } as unknown as OnyxTypes.SearchResults['data']['personalDetailsList'];
-
-            // When the actions are narrowed to the query
-            const result = SearchUIUtils.getViolationSnapshotActions(actions, queryJSON, 1, personalDetails);
-
-            // Then only Alice's approval is kept, as Search matched her by that email
-            expect(getIDs(result)).toEqual(['alices']);
-        });
-
-        test("keeps every approval when the approver can't be identified", () => {
-            // Given an approval, and a query naming an approver by an email the response doesn't list
-            const actions = [createAction('approved', CONST.REPORT.ACTIONS.TYPE.APPROVED, '2026-02-10 10:00:00', 5)];
-            const queryJSON = buildSearchQueryJSON('type:expense approver:someone@example.com');
-
-            // When the actions are narrowed to the query
-            const result = SearchUIUtils.getViolationSnapshotActions(actions, queryJSON, 1, {});
-
-            // Then the approval stays, so the expense's violations still show instead of the column going blank
-            expect(getIDs(result)).toEqual(['approved']);
-        });
-
-        test('keeps every action when the query has no submission, approval or approver filters', () => {
-            // Given a submission and an approval, and a query on the expense date only
-            const actions = [
-                createAction('submitted', CONST.REPORT.ACTIONS.TYPE.SUBMITTED, '2025-06-01 10:00:00'),
-                createAction('approved', CONST.REPORT.ACTIONS.TYPE.APPROVED, '2025-07-01 10:00:00', 6),
-            ];
-            const queryJSON = buildSearchQueryJSON('type:expense date>=2026-02-01');
-
-            // When the actions are narrowed to the query
-            const result = SearchUIUtils.getViolationSnapshotActions(actions, queryJSON, 1);
-
-            // Then both are kept, since the expense date says nothing about when its report was submitted or approved
-            expect(getIDs(result)).toEqual(['submitted', 'approved']);
-        });
-    });
-
-    describe('getViolationSnapshotActionsByTransactionID', () => {
-        test("finds an expense's snapshot on the report it was submitted on after it moved to another one", () => {
-            // Given an expense now on report 2, whose submission snapshot is on report 1, and a report 2 action that records no violations
-            const submitted = {
-                reportActionID: 'submitted',
-                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
-                created: '2026-02-10 10:00:00',
-                message: [],
-                originalMessage: {amount: 100, currency: CONST.CURRENCY.USD, violations: {transactions: {movedTransaction: [{name: CONST.VIOLATIONS.OVER_LIMIT}]}}},
-            };
-            const comment = {reportActionID: 'comment', actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: '2026-02-11 10:00:00', message: []};
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test-only: the response only carries the entries the grouping reads
-            const data = {
-                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: {submitted},
-                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: {comment},
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}movedTransaction`]: {transactionID: 'movedTransaction', reportID: '2'},
-            } as unknown as OnyxTypes.SearchResults['data'];
-
-            // When the snapshots are grouped by expense
-            const result = SearchUIUtils.getViolationSnapshotActionsByTransactionID(data, buildSearchQueryJSON('type:expense has:submitted-violation'), 1);
-
-            // Then the expense gets the submission from report 1, since the snapshot stays where the report was submitted
-            expect(result.get('movedTransaction')?.map((action) => action.reportActionID)).toEqual(['submitted']);
-            expect(result.size).toBe(1);
         });
     });
 

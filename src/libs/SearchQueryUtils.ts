@@ -2070,41 +2070,46 @@ type DateFilterRange = {
     end?: string;
 };
 
-/** Returns the days one date condition matches. */
-function getInclusiveOperatorRange(operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>, date: string): DateFilterRange {
-    switch (operator) {
-        case CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO:
-            return isSearchDatePreset(date) ? getDateRangeForPreset(date) : {start: getInclusiveRangeBoundary(date), end: getInclusiveRangeBoundary(date)};
-        case CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO:
-            return {start: getInclusiveRangeBoundary(date)};
-        case CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN:
-            return {start: getInclusiveRangeBoundary(date, 1)};
-        case CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO:
-            return {end: getInclusiveRangeBoundary(date)};
-        case CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN:
-            return {end: getInclusiveRangeBoundary(date, -1)};
-        default:
-            return {};
-    }
-}
-
 /**
  * Extracts the effective start and end dates from a search query's filters on the given date, the expense date by default.
- * Separate filters must all match, while the values listed in one filter are alternatives, so the range is where the filters overlap.
  */
 function getDateFilterRange(queryJSON: SearchQueryJSON, dateFilterKey: SearchDateFilterKeys = CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE): DateFilterRange {
+    const dateFilters = queryJSON.flatFilters.filter((filter) => filter.key === dateFilterKey).flatMap((filter) => filter.filters);
     let start: string | undefined;
     let end: string | undefined;
 
-    for (const filter of queryJSON.flatFilters) {
-        if (filter.key !== dateFilterKey) {
-            continue;
+    const equalToFilter = dateFilters.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
+    if (equalToFilter) {
+        const equalToValue = equalToFilter.value.toString();
+        if (isSearchDatePreset(equalToValue)) {
+            const presetRange = getDateRangeForPreset(equalToValue);
+            start = presetRange.start;
+            end = presetRange.end;
+        } else {
+            start = getInclusiveRangeBoundary(equalToValue);
+            end = start;
         }
-        const ranges = filter.filters.map(({operator, value}) => getInclusiveOperatorRange(operator, value.toString()));
-        const filterStart = ranges.some((range) => !range.start) ? undefined : ranges.map((range) => range.start).reduce(getEarlierDate);
-        const filterEnd = ranges.some((range) => !range.end) ? undefined : ranges.map((range) => range.end).reduce(getLaterDate);
-        start = getLaterDate(start, filterStart);
-        end = getEarlierDate(end, filterEnd);
+    }
+
+    // Typed dates can drop leading zeros, like 2026-1-5, so each boundary is zero-padded before it is compared with other dates
+    const greaterThanOrEqualToFilter = dateFilters.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO);
+    if (greaterThanOrEqualToFilter) {
+        start = getLaterDate(start, getInclusiveRangeBoundary(greaterThanOrEqualToFilter.value.toString()));
+    }
+
+    const greaterThanFilter = dateFilters.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN);
+    if (greaterThanFilter) {
+        start = getLaterDate(start, getInclusiveRangeBoundary(greaterThanFilter.value.toString(), 1));
+    }
+
+    const lowerThanOrEqualToFilter = dateFilters.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO);
+    if (lowerThanOrEqualToFilter) {
+        end = getEarlierDate(end, getInclusiveRangeBoundary(lowerThanOrEqualToFilter.value.toString()));
+    }
+
+    const lowerThanFilter = dateFilters.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN);
+    if (lowerThanFilter) {
+        end = getEarlierDate(end, getInclusiveRangeBoundary(lowerThanFilter.value.toString(), -1));
     }
 
     return {start, end};

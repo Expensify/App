@@ -187,7 +187,6 @@ import {
     isApprovedAction,
     isForwardedAction,
     isSubmittedAction,
-    isClosedAction,
     isSubmittedAndClosedAction,
     isWhisperActionTargetedToOthers,
 } from './ReportActionsUtils';
@@ -243,7 +242,6 @@ import {
     getCurrentSearchQueryJSON,
     getDateFilterKeys,
     getDateRangeDisplayValueFromFormValue,
-    getDateFilterRange,
     getDateRangeForPreset,
     getFilterFromQuery,
     getPositiveHasFilterValues,
@@ -2046,7 +2044,6 @@ function getTransactionsSections({
     const currentQueryJSON = queryJSON ?? getCurrentSearchQueryJSON();
     const violationHasValues = getPositiveHasFilterValues(currentQueryJSON);
     const shouldFormatViolations = hasValuesIncludeViolationFilter(violationHasValues);
-    const violationSnapshotActionsByTransactionID = shouldFormatViolations ? getViolationSnapshotActionsByTransactionID(data, currentQueryJSON, currentAccountID) : undefined;
 
     for (const key of transactionKeys) {
         const transactionItem = data[key];
@@ -2145,7 +2142,7 @@ function getTransactionsSections({
                 ...(shouldFormatViolations
                     ? {
                           formattedViolations: getViolationsForTransaction(
-                              violationSnapshotActionsByTransactionID?.get(transactionItem.transactionID),
+                              Object.values(data[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`] ?? {}),
                               transactionItem.transactionID,
                               violationHasValues,
                               translate,
@@ -5974,105 +5971,11 @@ function formatTransactionViolationNames(violationNames: Set<string>, translate?
         .join(', ');
 }
 
-/** Returns whether the action records the violations its report's expenses had when they were submitted */
-function isSubmissionSnapshotAction(
-    action: OnyxTypes.ReportAction,
-): action is OnyxTypes.ReportAction<
-    | typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED
-    | typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED
-    | typeof CONST.REPORT.ACTIONS.TYPE.CLOSED
-    | typeof CONST.REPORT.ACTIONS.TYPE.ADD_EXPENSE_ON_SUBMITTED
-> {
-    // An expense added to a report that was already awaiting approval is not in that report's submit snapshot,
-    // so its violations live on their own add-expense-on-submitted action instead.
-    return isSubmittedAction(action) || isSubmittedAndClosedAction(action) || isClosedAction(action) || isAddExpenseOnSubmittedAction(action);
-}
-
-/** Returns whether the action records the violations its report's expenses had when they were approved */
-function isApprovalSnapshotAction(action: OnyxTypes.ReportAction): action is OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED | typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED> {
-    return isApprovedAction(action) || isForwardedAction(action);
-}
-
-/** Returns whether the action was created on a day in the range, whose missing bounds are open */
-function isCreatedInRange(action: OnyxTypes.ReportAction, {start, end}: {start?: string; end?: string}): boolean {
-    const createdDay = action.created.slice(0, CONST.DATE.FNS_FORMAT_STRING.length);
-    return (!start || createdDay >= start) && (!end || createdDay <= end);
-}
-
-/** Returns the account ID an `approver:` value names: the current user for `me`, the ID itself, or the member with that login among the response's people. */
-function getApproverAccountID(value: string, currentAccountID: number | undefined, personalDetails: OnyxTypes.SearchResults['data']['personalDetailsList'] | undefined): string | undefined {
-    if (value === CONST.SEARCH.ME) {
-        return currentAccountID === undefined ? undefined : String(currentAccountID);
-    }
-    if (/^\d+$/.test(value)) {
-        return value;
-    }
-    const member = Object.values(personalDetails ?? {}).find((details) => details?.login?.toLowerCase() === value.toLowerCase());
-    return member?.accountID === undefined ? undefined : String(member.accountID);
-}
-
-/**
- * Returns the actions without the submissions and approvals the query's filters rule out:
- * ones made outside its submission or approval dates, and approvals by someone other than its approvers.
- * An approver filter naming someone the response doesn't identify rules nothing out, rather than every approval.
- */
-function getViolationSnapshotActions(
-    reportActions: OnyxTypes.ReportAction[],
-    queryJSON: SearchQueryJSON | undefined,
-    currentAccountID: number | undefined,
-    personalDetails?: OnyxTypes.SearchResults['data']['personalDetailsList'],
-): OnyxTypes.ReportAction[] {
-    if (!queryJSON) {
-        return reportActions;
-    }
-    const submissionRange = getDateFilterRange(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_SUBMISSION);
-    const approvalRange = getDateFilterRange(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL);
-    const approverAccountIDLists = queryJSON.flatFilters
-        .filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER && filter.filters.every(({operator}) => operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO))
-        .map((filter) => filter.filters.map(({value}) => getApproverAccountID(String(value), currentAccountID, personalDetails)))
-        .filter((accountIDs): accountIDs is string[] => accountIDs.every((accountID) => accountID !== undefined));
-
-    return reportActions.filter((action) => {
-        if (isSubmissionSnapshotAction(action)) {
-            return isCreatedInRange(action, submissionRange);
-        }
-        if (isApprovalSnapshotAction(action)) {
-            return isCreatedInRange(action, approvalRange) && approverAccountIDLists.every((accountIDs) => accountIDs.includes(String(action.actorAccountID)));
-        }
-        return true;
-    });
-}
-
-/**
- * Groups the submissions and approvals the query's filters match by the expenses whose violations they record.
- * An expense moved to another report keeps its violations on the report it was submitted on, so every report's actions are read.
- */
-function getViolationSnapshotActionsByTransactionID(
-    data: OnyxTypes.SearchResults['data'],
-    queryJSON: SearchQueryJSON | undefined,
-    currentAccountID: number | undefined,
-): Map<string, OnyxTypes.ReportAction[]> {
-    const reportActions = Object.keys(data).flatMap((key) => (isReportActionEntry(key) ? Object.values(data[key] ?? {}) : []));
-    const actionsByTransactionID = new Map<string, OnyxTypes.ReportAction[]>();
-    for (const action of getViolationSnapshotActions(reportActions, queryJSON, currentAccountID, data.personalDetailsList)) {
-        if (!isSubmissionSnapshotAction(action) && !isApprovalSnapshotAction(action)) {
-            continue;
-        }
-        for (const transactionID of Object.keys(getOriginalMessage(action)?.violations?.transactions ?? {})) {
-            const actions = actionsByTransactionID.get(transactionID);
-            if (actions) {
-                actions.push(action);
-            } else {
-                actionsByTransactionID.set(transactionID, [action]);
-            }
-        }
-    }
-    return actionsByTransactionID;
-}
-
 function collectSubmittedViolationNamesForTransaction(violationNames: Set<string>, reportActions: OnyxTypes.ReportAction[], transactionID: string) {
     for (const action of reportActions) {
-        if (!isSubmissionSnapshotAction(action)) {
+        // An expense added to a report that was already awaiting approval is not in that report's submit snapshot,
+        // so its violations live on their own add-expense-on-submitted action instead.
+        if (!isSubmittedAction(action) && !isSubmittedAndClosedAction(action) && !isAddExpenseOnSubmittedAction(action)) {
             continue;
         }
 
@@ -6082,7 +5985,7 @@ function collectSubmittedViolationNamesForTransaction(violationNames: Set<string
 
 function collectApprovedViolationNamesForTransaction(violationNames: Set<string>, reportActions: OnyxTypes.ReportAction[], transactionID: string) {
     for (const action of reportActions) {
-        if (!isApprovalSnapshotAction(action)) {
+        if (!isApprovedAction(action) && !isForwardedAction(action)) {
             continue;
         }
 
@@ -8852,8 +8755,6 @@ export {
     getSubmittedViolationsForTransaction,
     getApprovedViolationsForTransaction,
     getViolationNamesForTransaction,
-    getViolationSnapshotActions,
-    getViolationSnapshotActionsByTransactionID,
     getViolationsForTransaction,
     getSettlementStatus,
     getSettlementStatusBadgeProps,
