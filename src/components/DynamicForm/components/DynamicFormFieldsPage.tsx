@@ -1,9 +1,12 @@
+import useContinueOfflineModal from '@components/DynamicForm/hooks/useContinueOfflineModal';
 import type {DynamicFormSubPageProps} from '@components/DynamicForm/types';
 import getContentFields from '@components/DynamicForm/utils/getContentFields';
 import getDynamicFieldErrors from '@components/DynamicForm/utils/getDynamicFieldErrors';
 import getLocalizedText from '@components/DynamicForm/utils/getLocalizedText';
 import getPageTitle from '@components/DynamicForm/utils/getPageTitle';
+import hasGivenSensitiveAnswer from '@components/DynamicForm/utils/hasGivenSensitiveAnswer';
 import isSensitiveField from '@components/DynamicForm/utils/isSensitiveField';
+import isSupportedField from '@components/DynamicForm/utils/isSupportedField';
 import toDynamicFormValues from '@components/DynamicForm/utils/toDynamicFormValues';
 import FormProvider from '@components/Form/FormProvider';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -39,10 +42,13 @@ function DynamicFormFieldsPage({
     isRefreshingRequirements,
     refreshError,
     shouldDisableNextWhenOffline,
+    onSaveForLater,
+    markUnfinishedForm,
     validatePage,
 }: DynamicFormSubPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {showContinueOfflineModal} = useContinueOfflineModal();
     const page = pages.find((candidate) => candidate.key === currentPageName);
     const pageError = (isLastPage ? submitError : undefined) ?? refreshError;
     if (!page) {
@@ -74,6 +80,22 @@ function DynamicFormFieldsPage({
             keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
             // An offline request is saved to disk, so the last page submits only online, as the confirmation page does. A flow that saves each page asks for it on every page.
             enabledWhenOffline={!isLastPage && !shouldDisableNextWhenOffline}
+            // The page passed its checks by now. The last page also sends the form, so a gap on an earlier page is opened first, as it is online, since the
+            // connection would not let the user go on. Try again submits again once the connection is back, so the page is checked and saved as usual.
+            onSubmitWhenOffline={
+                onSaveForLater
+                    ? (submitNow, inputValues) => {
+                          if (isLastPage && markUnfinishedForm(inputValues)) {
+                              return;
+                          }
+                          showContinueOfflineModal({
+                              onSaveForLater,
+                              onContinue: submitNow,
+                              hasGivenSensitiveAnswer: hasGivenSensitiveAnswer(getContentFields(page.content).filter(isSupportedField), withInputValues(inputValues), allFields),
+                          });
+                      }
+                    : undefined
+            }
             // Without a confirmation page the last page sends the form, so it shows the request's progress and error as the confirmation page does.
             // A refresh can change the fields on any page, so Next waits for it everywhere.
             isLoading={(isLastPage && !!isSubmitting) || !!isRefreshingRequirements}

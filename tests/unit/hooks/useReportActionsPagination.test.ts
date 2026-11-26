@@ -1,5 +1,8 @@
 import {act, renderHook, waitFor} from '@testing-library/react-native';
 
+import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import useReportActionsPagination from '@hooks/useReportActionsPagination';
 
 import {buildOptimisticCreatedReportAction, buildOptimisticIOUReportAction} from '@libs/ReportUtils';
@@ -8,6 +11,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction} from '@src/types/onyx';
 
+import type {ReactNode} from 'react';
+
+import {createElement} from 'react';
 import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
@@ -15,7 +21,6 @@ import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 const mockGetCurrencyDecimals = jest.fn(() => 2);
 
 jest.mock('@hooks/useCurrencyList', () => ({useCurrencyListActions: () => ({getCurrencyDecimals: mockGetCurrencyDecimals})}));
-jest.mock('@hooks/useDelegateAccountID', () => ({__esModule: true, default: () => undefined}));
 jest.mock('@hooks/useNetwork', () => ({__esModule: true, default: () => ({isOffline: true})}));
 jest.mock('@hooks/useParentReportAction', () => ({__esModule: true, default: () => undefined}));
 jest.mock('@hooks/useTransactionThread', () => ({__esModule: true, default: () => ({})}));
@@ -121,7 +126,9 @@ it('only builds a missing-expense placeholder while the preview count exceeds th
         },
     });
     mockGetCurrencyDecimals.mockClear();
-    const {result} = renderHook(() => useReportActionsPagination(reportID, undefined));
+    const {result} = renderHook(() => useReportActionsPagination(reportID, undefined), {
+        wrapper: ({children}: {children: ReactNode}) => createElement(OnyxListItemProvider, null, createElement(CurrentUserPersonalDetailsProvider, null, children)),
+    });
     await waitFor(() => expect(result.current.reportActions).toHaveLength(2));
     expect(mockGetCurrencyDecimals).not.toHaveBeenCalled();
 
@@ -140,12 +147,37 @@ it('only builds a missing-expense placeholder while the preview count exceeds th
     });
     expect(result.current.reportActions.at(1)).toBe(placeholder);
 
+    // When the session and profile arrive, the placeholder shows the current user's authorship.
+    const currentUserAccountID = 1234;
+    const email = 'fixture@example.com';
+    const displayName = 'Fixture User';
+    await act(async () => {
+        await Onyx.set(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email});
+        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[currentUserAccountID]: {accountID: currentUserAccountID, displayName}});
+    });
+    await waitFor(() => expect(result.current.reportActions.at(1)?.actorAccountID).toBe(currentUserAccountID));
+    const hydratedPlaceholder = result.current.reportActions.at(1);
+    expect(hydratedPlaceholder?.person?.[0]?.text).toBe(displayName);
+    expect(hydratedPlaceholder?.reportActionID).toBe(placeholder?.reportActionID);
+    expect(result.current.reportActions.at(-1)?.actorAccountID).toBe(currentUserAccountID);
+
+    // When the delegated account's details load, the same placeholder gains its delegate ID.
+    const delegateAccountID = 4321;
+    const delegateEmail = 'delegate@example.com';
+    await act(async () => {
+        await Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess: {delegate: delegateEmail}});
+        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[delegateAccountID]: {accountID: delegateAccountID, login: delegateEmail}});
+    });
+    await waitFor(() => expect(result.current.reportActions.at(1)?.delegateAccountID).toBe(delegateAccountID));
+    const delegatedPlaceholder = result.current.reportActions.at(1);
+    expect(delegatedPlaceholder?.reportActionID).toBe(hydratedPlaceholder?.reportActionID);
+
     // Then a real expense replaces it without entering the persisted action ID list.
     const received = {...expense, reportActionID: '998', created: '2026-11-02 12:00:00.000', pendingAction: null};
     await act(async () => {
         await Onyx.merge(actionsKey, {[received.reportActionID]: received});
     });
     await waitFor(() => expect(result.current.reportActions.some((action) => action.reportActionID === '998')).toBe(true));
-    expect(result.current.reportActions).not.toContain(placeholder);
+    expect(result.current.reportActions).not.toContain(delegatedPlaceholder);
     expect(result.current.persistedReportActionIDs).not.toContain(placeholder?.reportActionID);
 });

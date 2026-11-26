@@ -1,10 +1,12 @@
 import {getReportPreviewReportAction} from '@libs/actions/IOU/MoneyRequestBuilder';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {getOriginalMessage} from '@libs/ReportActionMessageUtils';
 import {getCombinedReportActions, getFilteredReportActionsForReportView, isCreatedAction, isTransactionThread} from '@libs/ReportActionsUtils';
 import {isConciergeChatReport, isInvoiceReport, isMoneyRequestReport, isReportTransactionThread as isReportTransactionThreadUtil, shouldReportAlignToTop} from '@libs/ReportUtils';
 
 import getReportActionsToDisplay, {buildPlaceholderCreatedAction, buildPlaceholderExpenseAction} from '@pages/inbox/report/getReportActionsToDisplay';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -14,6 +16,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useState} from 'react';
 
 import {useCurrencyListActions} from './useCurrencyList';
+import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDelegateAccountID from './useDelegateAccountID';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
@@ -137,13 +140,29 @@ type PlaceholderReportActionsParams = {
 
 /** Isolates placeholder inputs so unrelated Onyx writes cannot invalidate their compiler cache. */
 function usePlaceholderReportActions({reportID, ownerAccountID, oldestActionCreated, shouldAddCreatedAction, shouldAddExpenseAction}: PlaceholderReportActionsParams) {
-    const {getCurrencyDecimals} = useCurrencyListActions();
     const delegateAccountID = useDelegateAccountID();
-    const placeholderCreatedAction = shouldAddCreatedAction ? buildPlaceholderCreatedAction(reportID, ownerAccountID, oldestActionCreated) : undefined;
-    const placeholderExpenseAction = shouldAddExpenseAction
-        ? buildPlaceholderExpenseAction(reportID, placeholderCreatedAction?.created ?? oldestActionCreated, delegateAccountID, getCurrencyDecimals)
-        : undefined;
+    const {accountID, avatar, displayName, email} = useCurrentUserPersonalDetails();
+    const createdAction = shouldAddCreatedAction ? buildPlaceholderCreatedAction(reportID, ownerAccountID, oldestActionCreated) : undefined;
+    const expenseAction = usePlaceholderExpenseAction(reportID, createdAction?.created ?? oldestActionCreated, shouldAddExpenseAction);
+    // The account can load after the placeholder. Update authorship without replacing its action ID.
+    const author = {
+        actorAccountID: accountID || undefined,
+        avatar,
+        person: [{style: 'strong', text: displayName ?? email, type: CONST.REPORT.MESSAGE.TYPE.TEXT}],
+    } satisfies Pick<ReportAction, 'actorAccountID' | 'avatar' | 'person'>;
+    const placeholderCreatedAction = createdAction && {...createdAction, ...author};
+    const placeholderExpenseAction = expenseAction && {
+        ...expenseAction,
+        ...author,
+        delegateAccountID,
+        originalMessage: {...getOriginalMessage(expenseAction), participantAccountIDs: accountID ? [accountID] : []},
+    };
     return {placeholderCreatedAction, placeholderExpenseAction};
+}
+
+function usePlaceholderExpenseAction(reportID: string | undefined, created: string | undefined, shouldAddExpenseAction: boolean) {
+    const {getCurrencyDecimals} = useCurrencyListActions();
+    return shouldAddExpenseAction ? buildPlaceholderExpenseAction(reportID, created, getCurrencyDecimals) : undefined;
 }
 
 export default useReportActionsPagination;

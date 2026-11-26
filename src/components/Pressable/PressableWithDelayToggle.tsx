@@ -15,7 +15,7 @@ import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {StyleProp, TextProps, TextStyle, ViewStyle} from 'react-native';
 import type {DistributedOmit} from 'type-fest';
 
 import React from 'react';
@@ -56,7 +56,8 @@ type PressableWithDelayToggleProps = DistributedOmit<PressableProps, 'sentryLabe
          * vertical text alignment of non-Text elements
          */
         inline?: boolean;
-        accessibilityRole?: string;
+        /** Limited to the roles Text accepts, since the inline variant renders a Text (React Native 0.88 added Android-only roles it rejects) */
+        accessibilityRole?: TextProps['accessibilityRole'];
         ref?: PressableRef;
 
         /** Whether to use background color based on button states, e.g., hovered, active, pressed...  */

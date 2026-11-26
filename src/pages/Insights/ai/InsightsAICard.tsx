@@ -28,7 +28,7 @@ function InsightsAICard({insight, insightsScope}: InsightsAICardProps) {
         insight.tagLevel !== undefined && insight.parentTagPath !== undefined ? {...insightsScope, tagLevel: insight.tagLevel, tagParent: insight.parentTagPath} : insightsScope;
 
     return (
-        <View style={[styles.flex1, styles.gap5, styles.justifyContentBetween]}>
+        <View style={styles.gap5}>
             <View style={[styles.ml3, styles.gap2]}>
                 <InsightsAIChip chip={insight.chip} />
                 <View style={styles.gap3}>
@@ -48,7 +48,7 @@ function InsightsAICard({insight, insightsScope}: InsightsAICardProps) {
             </View>
             <InsightsExplainButton
                 explainPrompt={insight.explainPrompt}
-                insightsScope={explainScope}
+                insightsScope={insight.explainContext ? {...explainScope, insight: insight.explainContext} : explainScope}
             >
                 <Button.Text style={[styles.textMicroBold, styles.textSupporting]}>{translate('insightsPage.explain')}</Button.Text>
             </InsightsExplainButton>

@@ -74,9 +74,8 @@ function buildPlaceholderCreatedAction(reportID: string | undefined, ownerAccoun
 function buildPlaceholderExpenseAction(
     reportID: string | undefined,
     createdActionCreated: string | undefined,
-    delegateAccountID: number | undefined,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
-): OnyxTypes.ReportAction {
+): OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> {
     return {
         ...buildOptimisticIOUReportAction({
             type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
@@ -87,7 +86,6 @@ function buildPlaceholderExpenseAction(
             transactionID: rand64(),
             iouReportID: reportID,
             created: DateUtils.subtractMillisecondsFromDateTime(createdActionCreated ?? '', 1),
-            delegateAccountIDParam: delegateAccountID,
             getCurrencyDecimals,
         }),
         reportID,

@@ -115,7 +115,6 @@ const buildTransactionPreviewContent = (violations: TransactionViolation[]) => (
             isWhisper={false}
             isHovered={false}
             chatReport={undefined}
-            personalDetails={personalDetails}
             report={expenseReport}
             policy={corporatePolicy}
             transaction={transaction}
@@ -128,7 +127,8 @@ const buildTransactionPreviewContent = (violations: TransactionViolation[]) => (
             areThereDuplicates={false}
             sessionAccountID={currentUserAccountID}
             walletTermsErrors={undefined}
-            reportPreviewAction={undefined}
+            managerID={approverAccountID}
+            ownerAccountID={currentUserAccountID}
             navigateToReviewFields={() => {}}
             routeName="Report"
         />
