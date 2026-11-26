@@ -963,6 +963,32 @@ describe('WorkspaceMemberDetailsPage', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
+    it('closes the member details before opening their chat history, so browser Back returns to Members', async () => {
+        // Given the member details are open, with the panel close finishing straight away
+        const dismissModalSpy = jest.spyOn(Navigation, 'dismissModal').mockImplementation((options) => options?.afterTransition?.());
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+        const revealSpy = jest.spyOn(Navigation, 'revealRouteBeforeDismissingModal').mockImplementation(() => {});
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(invitedAccountID)});
+        await waitForBatchedUpdatesWithAct();
+
+        // When the admin presses See chat history (MenuItem only forwards the press to onPress when it receives an event)
+        fireEvent.press(await screen.findByText(TestHelper.translateLocal('profilePage.seeChatHistory')), {nativeEvent: {}});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the panel closes first and Search opens after it, filtered to the member's chats. Revealing Search under the
+        // open panel pads the root history, so browser Back would change the URL to Members while the screen stays on Search.
+        const query = `type:${CONST.SEARCH.DATA_TYPES.CHAT} from:${invitedAccountID}`;
+        expect(typeof dismissModalSpy.mock.calls.at(0)?.at(0)?.afterTransition).toBe('function');
+        expect(navigateSpy).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query, rawQuery: query}));
+        expect(revealSpy).not.toHaveBeenCalled();
+
+        dismissModalSpy.mockRestore();
+        navigateSpy.mockRestore();
+        revealSpy.mockRestore();
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
     it('loads the public profile of the member so their local time is available', async () => {
         const openPublicProfilePageSpy = jest.spyOn(PersonalDetailsActions, 'openPublicProfilePage');
 

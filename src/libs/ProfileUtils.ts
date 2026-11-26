@@ -35,7 +35,9 @@ function navigateToChatHistory(accountID: number) {
         type: CONST.SEARCH.DATA_TYPES.CHAT,
         from: [String(accountID)],
     });
-    Navigation.revealRouteBeforeDismissingModal(ROUTES.SEARCH_ROOT.getRoute({query, rawQuery: query}));
+    const route = ROUTES.SEARCH_ROOT.getRoute({query, rawQuery: query});
+    // Close the panel first so its history entry is popped, then open Search as a normal tab switch, so browser Back lands on the page under the panel
+    Navigation.dismissModal({afterTransition: () => Navigation.navigate(route)});
 }
 
 export {shouldShowLocalTime, getChatHistoryTranslationKey, navigateToChatHistory};

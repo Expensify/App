@@ -45,6 +45,8 @@ jest.mock('@hooks/useSingleExecution', () => jest.requireActual<typeof SingleExe
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     revealRouteBeforeDismissingModal: jest.fn(),
+    // Runs the callback straight away, as if the panel had finished closing
+    dismissModal: jest.fn((options?: {afterTransition?: () => void}) => options?.afterTransition?.()),
     goBack: jest.fn(),
     getActiveRoute: jest.fn(() => ''),
     getActiveRouteWithoutParams: jest.fn(() => ''),
@@ -705,22 +707,27 @@ describe('ProfilePage - See chat history', () => {
         expect(screen.queryByText('See chat history')).not.toBeOnTheScreen();
     });
 
-    it('navigates to a chat search filtered by the profile account when pressed', async () => {
+    it('closes the panel before opening a chat search filtered by the profile account, so browser Back returns to the page under it', async () => {
+        // Given a public profile opened in the panel
         await setUpPublicProfile('user@expensify.com');
 
         renderPublicProfilePage();
         await waitForBatchedUpdatesWithAct();
 
-        // MenuItem only forwards the press to onPress when it receives an event, so pass a minimal one.
+        // When See chat history is pressed (MenuItem only forwards the press to onPress when it receives an event, so pass a minimal one)
         fireEvent.press(screen.getByText('See chat history'), {nativeEvent: {}});
         await waitForBatchedUpdatesWithAct();
 
-        expect(Navigation.revealRouteBeforeDismissingModal).toHaveBeenCalledWith(
+        // Then the panel is closed first and Search opens once it has closed. Revealing Search under the open panel pads
+        // the root history, which makes browser Back change the URL while the screen stays on Search.
+        expect(typeof jest.mocked(Navigation.dismissModal).mock.calls.at(0)?.at(0)?.afterTransition).toBe('function');
+        expect(Navigation.navigate).toHaveBeenCalledWith(
             ROUTES.SEARCH_ROOT.getRoute({
                 query: `type:${CONST.SEARCH.DATA_TYPES.CHAT} from:${PUBLIC_PROFILE_ACCOUNT_ID}`,
                 rawQuery: `type:${CONST.SEARCH.DATA_TYPES.CHAT} from:${PUBLIC_PROFILE_ACCOUNT_ID}`,
             }),
         );
+        expect(Navigation.revealRouteBeforeDismissingModal).not.toHaveBeenCalled();
     });
 
     it('hides the search entry for an anonymous session', async () => {
