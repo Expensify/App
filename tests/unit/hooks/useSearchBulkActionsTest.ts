@@ -2158,6 +2158,47 @@ describe('useSearchBulkActions - Delete under Select all', () => {
         expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.DELETE)).toBe(false);
     });
 
+    it('offers Delete when a loaded item can be deleted', async () => {
+        // Given "Select all" on an expenses search with a loaded expense the user can delete
+        mockCanDeleteAnyLoadedItem = true;
+
+        // When the bulk actions are built
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        // Then Delete is offered, since the backend skips the matches the user can't delete
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.DELETE)).toBe(true);
+        });
+    });
+
+    it('hides Delete when no loaded item can be deleted', async () => {
+        // Given "Select all" on an expenses search where none of the loaded expenses can be deleted
+        mockCanDeleteAnyLoadedItem = false;
+
+        // When the bulk actions are built
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}), {wrapper: OnyxListItemProvider});
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
+        });
+
+        // Then Delete isn't offered
+        expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.DELETE)).toBe(false);
+    });
+
+    it('leaves out a report the user deselected from the bulk delete', async () => {
+        // Given "Select all" on a reports search, with report2 deselected afterwards, and a user who confirms the delete
+        mockSelectedReports = [makeSelectedReport()];
+        mockExcludedTransactions = {tx2: makeSelectedTransaction({reportID: 'report2'})};
+        mockShowConfirmModal.mockResolvedValue({action: ModalActions.CONFIRM});
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        // When the user deletes the selection
+        await pressDelete(result);
+
+        // Then the query sent to the backend excludes report2, so it isn't deleted
+        expectQueryToExcludeReport(jest.mocked(queueBulkDeleteReports).mock.calls.at(-1)?.at(0), 'report2');
+    });
+
     it('deletes nothing when the user cancels the confirmation', async () => {
         // Given "Select all" and a user who cancels the delete confirmation
         mockShowConfirmModal.mockResolvedValue({action: ModalActions.CLOSE});
