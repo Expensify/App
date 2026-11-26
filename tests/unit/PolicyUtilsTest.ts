@@ -3617,6 +3617,23 @@ describe('PolicyUtils', () => {
                 it('ignores rules belonging to another workspace', () => {
                     expect(getForwardsToFromRules({...policy, id: 'OTHER_POLICY'}, {submitterEmail: employeeEmail, reportTotal: -5000}, rulesCollection)).toBeUndefined();
                 });
+
+                it.each([
+                    ['the lowest key inserted last', false],
+                    ['the lowest key inserted first', true],
+                ])('picks the matching rule with the lowest key, with %s', (_description, isLowestKeyFirst) => {
+                    // Given two submit rules that both cover the employee, inserted in either order so neither "first match" nor "last match" can pass, with IDs that sort differently as strings than as numbers
+                    const competingSubmitRule: ApprovalWorkflowRule = {...submitRule, actions: {'1': {name: CONST.RULES.ACTIONS.FORWARD_TO, approver: approverEmail}}};
+                    const lowestKeyEntry = [`${ONYXKEYS.COLLECTION.RULE}10`, buildRule(submitRule)] as const;
+                    const higherKeyEntry = [`${ONYXKEYS.COLLECTION.RULE}9`, buildRule(competingSubmitRule)] as const;
+                    const rulesWithTie: OnyxCollection<Rule> = Object.fromEntries(isLowestKeyFirst ? [lowestKeyEntry, higherKeyEntry] : [higherKeyEntry, lowestKeyEntry]);
+
+                    // When resolving where the employee's report is submitted to
+                    const result = getForwardsToFromRules(policy, {submitterEmail: employeeEmail, reportTotal: -5000}, rulesWithTie);
+
+                    // Then the rule under the lexicographically lowest key wins, so the pick stays stable across evaluations
+                    expect(result).toEqual({forwardsTo: adminEmail});
+                });
             });
 
             it('getManagerAccountID prefers the rules over the employee submitsTo', () => {
