@@ -18,7 +18,7 @@ import getTagArrayFromName from './getTagArrayFromName';
 /**
  * Return the currency field from the transaction, return the modifiedCurrency if present.
  */
-function getCurrency(transaction: OnyxInputOrEntry<Pick<Transaction, 'modifiedCurrency' | 'currency'>>): string {
+function getCurrency(transaction: OnyxInputOrEntry<Partial<Pick<Transaction, 'modifiedCurrency' | 'currency'>>>): string {
     const currency = transaction?.modifiedCurrency ?? '';
     if (currency) {
         return currency;
@@ -26,7 +26,7 @@ function getCurrency(transaction: OnyxInputOrEntry<Pick<Transaction, 'modifiedCu
     return transaction?.currency ?? CONST.CURRENCY.USD;
 }
 
-function getCreated(transaction: OnyxInputOrEntry<Transaction>): string {
+function getCreated(transaction: OnyxInputOrEntry<Partial<Pick<Transaction, 'created' | 'modifiedCreated'>>>): string {
     return transaction?.modifiedCreated ? transaction.modifiedCreated : transaction?.created || '';
 }
 
@@ -34,7 +34,7 @@ function getCreated(transaction: OnyxInputOrEntry<Transaction>): string {
  * Return the created field from the transaction as yyyy-MM-dd, using the modifiedCreated if present. It is the same in
  * every language, so a date shown to the user is formatted from it with the user's locale.
  */
-function getFormattedCreated(transaction: OnyxInputOrEntry<Transaction>): string {
+function getFormattedCreated(transaction: OnyxInputOrEntry<Partial<Pick<Transaction, 'created' | 'modifiedCreated'>>>): string {
     return DateUtils.formatMachineDateWithUTCTimeZone(getCreated(transaction));
 }
 
@@ -93,7 +93,13 @@ function isTimeRequest(transaction: OnyxEntry<Transaction>): boolean {
 /**
  * Return the amount field from the transaction, return the modifiedAmount if present.
  */
-function getAmount(transaction: OnyxInputOrEntry<Transaction>, isFromExpenseReport = false, isFromTrackedExpense = false, allowNegative = false, disableOppositeConversion = false): number {
+function getAmount(
+    transaction: OnyxInputOrEntry<Partial<Transaction>>,
+    isFromExpenseReport = false,
+    isFromTrackedExpense = false,
+    allowNegative = false,
+    disableOppositeConversion = false,
+): number {
     // IOU requests cannot have negative values, but they can be stored as negative values, let's return absolute value
     if (!isFromExpenseReport && !isFromTrackedExpense && !allowNegative) {
         const amount = Number(transaction?.modifiedAmount) ?? 0;

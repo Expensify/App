@@ -18,7 +18,8 @@ function useOverridableSelection(initialSelection: string[]) {
 
     /** Checks every visible key, or unchecks them all when they're already checked. Keys hidden by a search keep their state. */
     const toggleVisibleKeys = (visibleKeys: string[]) => {
-        const areAllVisibleSelected = visibleKeys.length > 0 && visibleKeys.every((key) => selectedKeys.includes(key));
+        const selectedKeySet = new Set(selectedKeys);
+        const areAllVisibleSelected = visibleKeys.length > 0 && visibleKeys.every((key) => selectedKeySet.has(key));
 
         if (areAllVisibleSelected) {
             const visibleSet = new Set(visibleKeys);

@@ -11,6 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {editPerDiemRateCurrency} from '@libs/actions/Policy/PerDiem';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {getAvailablePerDiemRate} from '@libs/PolicyPerDiemUtils';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -38,7 +39,8 @@ function EditPerDiemCurrencyPage({route}: EditPerDiemCurrencyPageProps) {
 
     const customUnit = getPerDiemCustomUnit(policy);
 
-    const selectedRate = customUnit?.rates?.[rateID];
+    const selectedRate = getAvailablePerDiemRate(customUnit?.rates?.[rateID]);
+    const selectedSubrate = selectedRate?.subRates?.find((subrate) => subrate.id === subRateID);
 
     const editCurrency = (item: CurrencyListItem) => {
         const newCurrency = item.currencyCode;
@@ -53,7 +55,7 @@ function EditPerDiemCurrencyPage({route}: EditPerDiemCurrencyPageProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED}
-            shouldBeBlocked={!policyID || !rateID || isEmptyObject(selectedRate)}
+            shouldBeBlocked={!policyID || !rateID || isEmptyObject(selectedRate) || isEmptyObject(selectedSubrate)}
         >
             <ScreenWrapper
                 shouldEnableKeyboardAvoidingView={false}
