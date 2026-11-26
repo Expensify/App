@@ -258,6 +258,7 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
                         onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.SHIPPING_ADDRESS)}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE_EXPENSIFY_CARD.ISSUE_CARD_SHIPPING_ADDRESS}
                         value={shippingAddressTitle}
+                        forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                     />
                 )}
                 {isPhoneNumberStepShown && (
@@ -268,6 +269,7 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
                         <MenuItemField.Row
                             name={translate('common.phoneNumber')}
                             value={shippingAddress?.phoneNumber}
+                            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                         >
                             {isPhoneNumberMissing && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
                             <MenuItem.Chevron />
