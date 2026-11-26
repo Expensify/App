@@ -985,6 +985,24 @@ describe('useSearchAutoRefetch', () => {
             expect(search).toHaveBeenCalledWith(expect.objectContaining({offset: 0}));
         });
 
+        it('does not search again for a Select all job that finished while its tab was preloaded', async () => {
+            // Given a preloaded Search tab while a Select all job runs
+            mockIsInPreloadedTab = true;
+            await Onyx.set(BULK_ACTION_KEY, {state: CONST.BULK_ACTION.STATE.RUNNING, action: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_WORKSPACE});
+            const {rerender} = renderHook(() => useSearchAutoRefetch(baseProps));
+            await waitForBatchedUpdatesWithAct();
+            await Onyx.merge(BULK_ACTION_KEY, {state: CONST.BULK_ACTION.STATE.DONE, total: 1, failedReportIDs: []});
+            await waitForBatchedUpdatesWithAct();
+
+            // When the user opens the tab
+            mockIsInPreloadedTab = false;
+            rerender(baseProps);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then nothing is searched here, since opening the tab already refreshes its whole snapshot
+            expect(search).not.toHaveBeenCalled();
+        });
+
         it('searches again when a running job is deleted after Concierge sends its summary', async () => {
             // Given Search is open while a Select all job runs
             await Onyx.set(BULK_ACTION_KEY, {state: CONST.BULK_ACTION.STATE.RUNNING, action: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_WORKSPACE, shouldSendFromConcierge: true});

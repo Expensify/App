@@ -305,6 +305,11 @@ function useSearchAutoRefetch({
                 hasFinishedBulkActionRef.current = true;
             }
         }
+        // A preloaded tab refreshes its whole snapshot on first open, so a refetch deferred while hidden would only repeat it.
+        if (isInPreloadedTab) {
+            hasFinishedBulkActionRef.current = false;
+            return;
+        }
         // Kept until Search can run, since `usePrevious` moves on and the finished job can't be detected again.
         const isSearchStillActive = isFocused || isSearchTopmostFullScreenRoute();
         if (!hasFinishedBulkActionRef.current || !isSearchStillActive || isOffline || shouldReturnTripRooms || searchResults?.search?.isLoading) {
@@ -317,7 +322,18 @@ function useSearchAutoRefetch({
                 search({queryJSON, searchKey, offset: 0, shouldCalculateTotals, isLoading: !!searchResults?.search?.isLoading});
             },
         });
-    }, [runningBulkActionKeys, previousRunningBulkActionKeys, isFocused, isOffline, shouldReturnTripRooms, queryJSON, searchKey, shouldCalculateTotals, searchResults?.search?.isLoading]);
+    }, [
+        runningBulkActionKeys,
+        previousRunningBulkActionKeys,
+        isFocused,
+        isOffline,
+        shouldReturnTripRooms,
+        isInPreloadedTab,
+        queryJSON,
+        searchKey,
+        shouldCalculateTotals,
+        searchResults?.search?.isLoading,
+    ]);
 
     return {newTransactions};
 }
