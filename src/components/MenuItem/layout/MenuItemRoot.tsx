@@ -101,6 +101,8 @@ function MenuItemRoot({
     const isCompactPopover = useIsCompactPopover();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isInteractive = !!onPress;
+    const rowLinkRoute = isInteractive ? linkRoute : undefined;
+    const rowRole = rowLinkRoute ? CONST.ROLE.LINK : CONST.ROLE.BUTTON;
     const shouldEnableTextSelection = shouldAllowTextSelection && getPlatform() === CONST.PLATFORM.WEB;
     const {
         didTouchStartOnCopyableText,
@@ -199,8 +201,8 @@ function MenuItemRoot({
                         }
                         disabled={isDisabled}
                         ref={mergeRefs<HTMLDivElement | ComponentRef<typeof View> | ComponentRef<typeof Text> | undefined>(pressableRef, ref)}
-                        role={isInteractive ? CONST.ROLE.BUTTON : undefined}
-                        linkRoute={isInteractive ? linkRoute : undefined}
+                        role={isInteractive ? rowRole : undefined}
+                        linkRoute={rowLinkRoute}
                         accessibilityLabel={rowAccessibilityLabel}
                         accessibilityHint={accessibilityHint}
                         accessibilityState={accessibilityState}

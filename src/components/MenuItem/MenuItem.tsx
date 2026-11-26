@@ -708,6 +708,10 @@ function MenuItem({
     // copy label.
     const pressableSentryLabel = sentryLabel ?? (copyable ? CONST.SENTRY_LABEL.MENU_ITEM.COPY_LONG_PRESS : undefined);
 
+    const rowLinkRoute = shouldCheckActionAllowedOnPress && !isAnonymousAction ? getLinkRouteIfAuthenticated(linkRoute, session) : linkRoute;
+    // Only the default button role turns into a link, so a row given its own role, such as a tab, keeps it
+    const rowRole = rowLinkRoute && role === CONST.ROLE.BUTTON ? CONST.ROLE.LINK : role;
+
     // A known account renders straight from the personal-details context. Only the report-derived avatars need `ReportAvatar`.
     const rightIconAccountIDNumber = Number(rightIconAccountID);
     const hasRightIconAccount = !!rightIconAccountID && rightIconAccountIDNumber > 0;
@@ -788,8 +792,8 @@ function MenuItem({
                                 disabledStyle={shouldUseDefaultCursorWhenDisabled && [styles.cursorDefault]}
                                 disabled={disabled}
                                 ref={mergeRefs(ref, popoverAnchor, pressableRef)}
-                                role={interactive ? role : undefined}
-                                linkRoute={shouldCheckActionAllowedOnPress && !isAnonymousAction ? getLinkRouteIfAuthenticated(linkRoute, session) : linkRoute}
+                                role={interactive ? rowRole : undefined}
+                                linkRoute={rowLinkRoute}
                                 accessibilityLabel={accessibilityLabelWithContextMenuHint}
                                 accessibilityHint={accessibilityHint}
                                 // The label repeats the title, so a masked title also masks the row that carries the label
