@@ -133,6 +133,7 @@ import SearchChartWrapper from './SearchChartWrapper';
 import SearchColumnPinItems from './SearchColumnPinItems';
 import {useSearchQueryActions, useSearchQueryContext, useSearchResultsActions, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
 import {useRegisterSearchScrollView, useSearchListScrollLockStyle} from './SearchListScrollLockContext';
+import {useMarkSearchResultsReady} from './SearchResultsSwap';
 import {SearchScopeProvider} from './SearchScopeProvider';
 import SearchTableHeader from './SearchTableHeader';
 import SearchWriteActionsProvider from './SearchWriteActionsProvider';
@@ -1221,10 +1222,23 @@ function Search({
     // Deferred layout only needs the base work (no scroll handling, no content-ready signal).
     const onDeferredLayout = onLayoutBase;
 
+    const markSearchResultsReady = useMarkSearchResultsReady();
+
     const onLayout = useCallback(() => {
         onLayoutBase();
         onContentReady?.();
-    }, [onLayoutBase, onContentReady]);
+        markSearchResultsReady(hash);
+    }, [onLayoutBase, onContentReady, markSearchResultsReady, hash]);
+
+    // Results that still wait for their first data have nothing in common with the previous search, so the skeleton
+    // replaces the previous results instead of leaving them on screen for the whole request.
+    const isShowingLoadingSkeleton = (isWaitingForInitialData && shouldShowRowSkeleton) || hasUnresolvedErrors;
+    useEffect(() => {
+        if (!isShowingLoadingSkeleton) {
+            return;
+        }
+        markSearchResultsReady(hash);
+    }, [isShowingLoadingSkeleton, markSearchResultsReady, hash]);
 
     // Must be a ref, not state: cancelNavigationSpans is called during render
     // (inside conditional returns), so using setState would trigger infinite re-renders.
@@ -1255,6 +1269,7 @@ function Search({
         // different component" warning. setIsSearchReady is idempotent, so
         // firing this on every bail-out render is safe.
         onContentReady?.();
+        markSearchResultsReady(hash);
         if (!hasPendingSearchWrite()) {
             return;
         }
@@ -1266,6 +1281,7 @@ function Search({
         hasHadFirstLayout.current = true;
         // The chart has no onContentReady (that would also dismiss the submit overlay), so it tells a preloaded tab directly.
         markPreloadedTabContentReady();
+        markSearchResultsReady(hash);
         if (isInPreloadedTab) {
             return;
         }
@@ -1274,7 +1290,7 @@ function Search({
         });
         endNavigateToReportsFirstPaint(CONST.TELEMETRY.NAVIGATE_TO_REPORTS_START_TYPE.WARM_FIRST);
         endNavigateToReportsContentLoad();
-    }, [isInPreloadedTab, markPreloadedTabContentReady]);
+    }, [isInPreloadedTab, markPreloadedTabContentReady, markSearchResultsReady, hash]);
 
     // Tracks whether the pending-expense tracking was re-armed on re-focus
     // (subsequent expense creation while Search stays mounted). Used by the
