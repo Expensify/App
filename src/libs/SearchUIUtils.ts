@@ -6023,35 +6023,32 @@ function getApprovedViolationsForTransaction(reportActions: OnyxTypes.ReportActi
 }
 
 /**
- * Returns the violations to show for a transaction based on the current `has` filter.
+ * Returns the names of the violations to show for a transaction based on the current `has` filter.
  * Submitted and approved snapshots are collected independently, then merged in a Set so
  * a search that includes both filters does not list the same violation twice.
  */
+function getViolationNamesForTransaction(reportActions: OnyxTypes.ReportAction[] | undefined, transactionID: string | undefined, has: HasFilterValues | undefined): Set<string> {
+    const violationNames = new Set<string>();
+    if (!reportActions?.length || !transactionID) {
+        return violationNames;
+    }
+    if (has?.includes(CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION)) {
+        collectSubmittedViolationNamesForTransaction(violationNames, reportActions, transactionID);
+    }
+    if (has?.includes(CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION)) {
+        collectApprovedViolationNamesForTransaction(violationNames, reportActions, transactionID);
+    }
+    return violationNames;
+}
+
+/** Returns the violations to show for a transaction based on the current `has` filter, as one sorted label. */
 function getViolationsForTransaction(
     reportActions: OnyxTypes.ReportAction[] | undefined,
     transactionID: string | undefined,
     has: HasFilterValues | undefined,
     translate?: LocalizedTranslate,
 ): string | undefined {
-    if (!reportActions?.length || !transactionID) {
-        return undefined;
-    }
-
-    const shouldIncludeSubmittedViolations = !!has?.includes(CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION);
-    const shouldIncludeApprovedViolations = !!has?.includes(CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION);
-    if (!shouldIncludeSubmittedViolations && !shouldIncludeApprovedViolations) {
-        return undefined;
-    }
-
-    const violationNames = new Set<string>();
-    if (shouldIncludeSubmittedViolations) {
-        collectSubmittedViolationNamesForTransaction(violationNames, reportActions, transactionID);
-    }
-    if (shouldIncludeApprovedViolations) {
-        collectApprovedViolationNamesForTransaction(violationNames, reportActions, transactionID);
-    }
-
-    return formatTransactionViolationNames(violationNames, translate);
+    return formatTransactionViolationNames(getViolationNamesForTransaction(reportActions, transactionID, has), translate);
 }
 
 function getTypeOptions(translate: LocalizedTranslate, policies: OnyxCollection<OnyxTypes.Policy>, currentUserLogin?: string) {
@@ -8768,6 +8765,7 @@ export {
     getViolationFilterOptions,
     getSubmittedViolationsForTransaction,
     getApprovedViolationsForTransaction,
+    getViolationNamesForTransaction,
     getViolationsForTransaction,
     getSettlementStatus,
     getSettlementStatusBadgeProps,

@@ -1348,7 +1348,10 @@ const translations: TranslationDeepObject<typeof en> = {
             label: 'Verstöße gegen',
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Einreichende',
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: 'Genehmigende',
+            chartTitle: (title: string, stage: string) => `${title} (${stage})`,
         },
+        flaggedExpenses: 'Markierte Ausgaben',
+        noFlaggedExpensesInRange: 'Keine markierten Ausgaben in diesem Zeitraum',
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
