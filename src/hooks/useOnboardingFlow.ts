@@ -67,16 +67,7 @@ function useOnboardingFlowRouter() {
     // A reopened app has isLoadingApp cached as false, so wait for this session's first OpenApp or ReconnectApp before deciding
     const [isServerDataReady, setIsServerDataReady] = useState(false);
     useEffect(() => {
-        let isActive = true;
-        onServerDataReady().then(() => {
-            if (!isActive) {
-                return;
-            }
-            setIsServerDataReady(true);
-        });
-        return () => {
-            isActive = false;
-        };
+        onServerDataReady().then(() => setIsServerDataReady(true));
     }, []);
 
     useEffect(() => {

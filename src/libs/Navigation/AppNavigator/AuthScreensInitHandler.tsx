@@ -50,7 +50,7 @@ import ROUTES from '@src/ROUTES';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx';
 
 import {CommonActions} from '@react-navigation/native';
-import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import {guidedSetupAndTourStatusSelector, tryNewDotOnyxSelector, wasInvitedToNewDotSelector} from '@selectors/Onboarding';
 import {accountIDSelector, displayNameSelector} from '@selectors/PersonalDetails';
 import React, {useEffect, useRef} from 'react';
 
@@ -109,6 +109,7 @@ function AuthScreensInitHandler() {
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [hasNonPersonalPolicy] = useOnyx(ONYXKEYS.HAS_NON_PERSONAL_POLICY);
+    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {selector: tryNewDotOnyxSelector});
     const lastWorkspaceNumber = useLastWorkspaceNumber(ownerEmail ?? undefined);
     const policyOwnerLogin = ownerEmail ?? session?.email;
     const policyOwnerAccountID = usePersonalDetailByLogin(policyOwnerLogin, accountIDSelector);
@@ -239,7 +240,12 @@ function AuthScreensInitHandler() {
                 setIsAuthenticatedAtStartup(true);
             }
             App.openApp();
-        } else if (guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow === false && !hasNonPersonalPolicy) {
+        } else if (
+            guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow === false &&
+            !hasNonPersonalPolicy &&
+            !wasInvitedToNewDotSelector(introSelected) &&
+            !tryNewDot?.hasBeenAddedToNudgeMigration
+        ) {
             // Onboarding could still open for this account, and only OpenApp returns hasNonPersonalPolicy
             Log.info('[AuthScreens] Sending OpenApp to refresh onboarding eligibility');
             App.openApp();
