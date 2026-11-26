@@ -62,6 +62,8 @@ Pass `inputValues` from the render prop, so `showWhen` and `dependsOn` react to 
 
 A page is a heading with its own `content`: `key`, `title` or `titleKey`, `description` or `descriptionKey`, and an optional `showWhen`. Its `content` holds headings and fields in screen order. An item without a `type` is a heading; a heading shows only while its `showWhen` matches and a visible field follows it before the next heading.
 
+An item without a `type` whose `presentation` is `notice` is a notice: a banner with `text` or `textKey` and an optional `showWhen`, for advice about the whole page. It asks nothing and shows wherever the schema puts it, so two can follow each other. Advice about one field goes in that field's `description`. An App version that does not know notices leaves them out.
+
 When the schema is a flat `{fields}` list, the App builds the pages:
 
 - Addresses, files, multi-selects, lists, dependent selects and selects with more than 10 options get a page of their own.

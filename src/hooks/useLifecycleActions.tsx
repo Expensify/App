@@ -35,7 +35,6 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
 import {delegateEmailSelector} from '@selectors/Account';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import {loginSelector} from '@selectors/PersonalDetails';
 import {getArchiveReason} from '@selectors/Report';
 import React, {useEffect, useRef} from 'react';
 
@@ -53,7 +52,7 @@ import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePaginatedReportActions from './usePaginatedReportActions';
 import usePermissions from './usePermissions';
-import {useGetPersonalDetailsByLogin, usePersonalDetailsByLogins} from './usePersonalDetailByLogin';
+import {useGetPersonalDetailsByLogin} from './usePersonalDetailByLogin';
 import {usePersonalDetail} from './usePersonalDetails';
 import useReportIsArchived from './useReportIsArchived';
 import useSearchShouldCalculateTotals from './useSearchShouldCalculateTotals';
@@ -96,7 +95,8 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
     const [chatReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
-    const [submitterLogin] = usePersonalDetail(moneyRequestReport?.ownerAccountID, loginSelector);
+    const [submitterPersonalDetails] = usePersonalDetail(moneyRequestReport?.ownerAccountID);
+    const submitterLogin = submitterPersonalDetails?.login;
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
 
     // The "Received payment" handler awaits a confirmation modal (and the hold menu on top of it), so the collection captured when the
@@ -111,7 +111,6 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
-    const submitterPersonalDetailsByLogin = usePersonalDetailsByLogins([submitterLogin]);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {
         selector: delegateEmailSelector,
     });
@@ -156,7 +155,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Send', 'ThumbsUp', 'CircularArrowBackwards', 'Clear', 'MoneyBag', 'ArrowRight', 'DocumentCheck']);
 
-    const isBlockSubmitDueToPreventSelfApproval = shouldBlockSubmitDueToPreventSelfApproval(moneyRequestReport, policy, rules, submitterPersonalDetailsByLogin);
+    const isBlockSubmitDueToPreventSelfApproval = shouldBlockSubmitDueToPreventSelfApproval(moneyRequestReport, policy, rules, submitterPersonalDetails);
 
     const isBlockSubmitDueToStrictPolicyRules = shouldBlockSubmitDueToStrictPolicyRules(
         moneyRequestReport?.reportID,
@@ -200,6 +199,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
         report: moneyRequestReport,
         policy,
         shouldShowMarkAsDoneCopy,
+        shouldDeferForPopoverDismiss: true,
     });
 
     const confirmApproveReportViolations = useConfirmApproveReportViolations({report: moneyRequestReport, policy, transactions, violationsCollection: violations});

@@ -31,7 +31,6 @@ import Onyx from 'react-native-onyx';
 
 import {getAddAgentRuleMessage, getDeleteAgentRuleMessage, getUpdateAgentRuleMessage} from './AgentRuleChangeLogUtils';
 import {isReportMessageAttachment} from './isReportMessageAttachment';
-import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
 import {formatList} from './Localize';
 import {getForReportAction, getMovedReportID} from './ModifiedExpenseMessage';
 import createDynamicRoute from './Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -309,7 +308,12 @@ Onyx.connectWithoutView({
     },
 });
 
-function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | null, currentUserAccountID: number, translate: LocalizedTranslate) {
+function getLastActorDisplayName(
+    lastActorDetails: Partial<PersonalDetails> | null,
+    currentUserAccountID: number,
+    translate: LocalizedTranslate,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+) {
     if (!lastActorDetails) {
         return '';
     }
@@ -319,7 +323,7 @@ function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | nu
     }
 
     return lastActorDetails.accountID !== currentUserAccountID
-        ? lastActorDetails.firstName || temporaryGetDisplayNameOrDefault({passedPersonalDetails: lastActorDetails, translate, formatPhoneNumber: formatPhoneNumberPhoneUtils})
+        ? lastActorDetails.firstName || temporaryGetDisplayNameOrDefault({passedPersonalDetails: lastActorDetails, translate, formatPhoneNumber})
         : translate('common.you');
 }
 
@@ -329,6 +333,7 @@ function shouldShowLastActorDisplayName(
     lastAction: OnyxEntry<ReportAction>,
     currentUserAccountIDParam: number,
     translate: LocalizedTranslate,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ) {
     // Use lastAction directly instead of getLastVisibleReportAction to avoid using stale cache data
     const lastReportAction = lastAction;
@@ -346,7 +351,7 @@ function shouldShowLastActorDisplayName(
         return false;
     }
 
-    const lastActorDisplayName = getLastActorDisplayName(lastActorDetails, currentUserAccountIDParam, translate);
+    const lastActorDisplayName = getLastActorDisplayName(lastActorDetails, currentUserAccountIDParam, translate, formatPhoneNumber);
 
     if (!lastActorDisplayName) {
         return false;
@@ -449,6 +454,7 @@ function getLastActorDisplayNameFromLastVisibleActions(
     personalDetails: OnyxEntry<PersonalDetailsList>,
     privateIsArchived: boolean | undefined,
     translate: LocalizedTranslate,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     visibleReportActionsData?: VisibleReportActionsDerivedValue,
     lastAction?: OnyxEntry<ReportAction>,
     oneTransactionThreadReportID?: string,
@@ -462,11 +468,11 @@ function getLastActorDisplayNameFromLastVisibleActions(
         const actorDetails = getActorDetailsWithActionName(personalDetails, lastReportAction, lastActorAccountID);
 
         if (actorDetails) {
-            return getLastActorDisplayName(actorDetails, currentUserAccountIDParam, translate);
+            return getLastActorDisplayName(actorDetails, currentUserAccountIDParam, translate, formatPhoneNumber);
         }
     }
 
-    return getLastActorDisplayName(lastActorDetails, currentUserAccountIDParam, translate);
+    return getLastActorDisplayName(lastActorDetails, currentUserAccountIDParam, translate, formatPhoneNumber);
 }
 
 /**
@@ -573,7 +579,7 @@ function getLastMessageTextForReport({
             case CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED:
             case CONST.REPORT.ARCHIVE_REASON.POLICY_ARCHIVED: {
                 lastMessageTextFromReport = translate(`reportArchiveReasons.${archiveReason}`, {
-                    displayName: temporaryGetDisplayNameOrDefault({passedPersonalDetails: lastActorDetails, translate, formatPhoneNumber: formatPhoneNumberPhoneUtils}),
+                    displayName: temporaryGetDisplayNameOrDefault({passedPersonalDetails: lastActorDetails, translate, formatPhoneNumber}),
                     policyName: getPolicyName({report, policy, unavailableTranslation: translate('workspace.common.unavailable')}),
                 });
                 break;
@@ -640,7 +646,7 @@ function getLastMessageTextForReport({
             lastMessageTextFromReport = formatReportLastMessageText(Parser.htmlToText(reportPreviewMessage));
         }
     } else if (isReimbursementQueuedAction(lastReportAction)) {
-        lastMessageTextFromReport = getReimbursementQueuedActionMessage({reportAction: lastReportAction, translate, formatPhoneNumber: formatPhoneNumberPhoneUtils, report});
+        lastMessageTextFromReport = getReimbursementQueuedActionMessage({reportAction: lastReportAction, translate, formatPhoneNumber, report});
     } else if (isReimbursementDeQueuedOrCanceledAction(lastReportAction)) {
         lastMessageTextFromReport = getReimbursementDeQueuedOrCanceledActionMessage(translate, formatPhoneNumber, lastReportAction, report?.ownerAccountID, convertToDisplayString);
     } else if (isDeletedParentAction(lastReportAction) && reportUtilsIsChatReport(report)) {
@@ -675,7 +681,7 @@ function getLastMessageTextForReport({
             policyTags,
             currentUserAccountID,
             currentUserLogin: currentUserLogin ?? '',
-            formatPhoneNumber: formatPhoneNumberPhoneUtils,
+            formatPhoneNumber,
             movedFromReportName: undefined,
         });
         // Strip HTML tags for plain text display in options list
@@ -1298,7 +1304,7 @@ function getReportAlternateText({
     const lastActorAccountID = getReportActionActorAccountID(lastAction, undefined, undefined) || report.lastActorAccountID;
     const lastActorDetails = getActorDetailsWithActionName(personalDetails, lastAction, lastActorAccountID);
 
-    const lastActorDisplayName = getLastActorDisplayName(lastActorDetails, currentUserAccountID, translate);
+    const lastActorDisplayName = getLastActorDisplayName(lastActorDetails, currentUserAccountID, translate, formatPhoneNumber);
     // An empty precomputed text means "not computed yet", so `||` (not `??`) keeps the recompute fallback meaningful.
     const lastMessageTextFromReport =
         lastMessageTextFromReportProp ||
@@ -1339,6 +1345,7 @@ function getReportAlternateText({
                 personalDetails,
                 privateIsArchived,
                 translate,
+                formatPhoneNumber,
                 visibleReportActionsData,
                 lastAction,
                 resolvedOneTransactionThreadReportID,
@@ -1383,7 +1390,7 @@ function getReportAlternateText({
                     accountID: lastAction.actorAccountID,
                 };
             }
-            actorDisplayName = actorDetails ? getLastActorDisplayName(actorDetails, currentUserAccountID, translate) : undefined;
+            actorDisplayName = actorDetails ? getLastActorDisplayName(actorDetails, currentUserAccountID, translate, formatPhoneNumber) : undefined;
             const lastActionOriginalMessage = lastAction?.actionName ? getOriginalMessage(lastAction) : null;
             const targetAccountIDs = lastActionOriginalMessage?.targetAccountIDs ?? [];
             const targetAccountIDsLength = targetAccountIDs.length !== 0 ? targetAccountIDs.length : (report.lastMessageHtml?.match(/<mention-user[^>]*><\/mention-user>/g)?.length ?? 0);
@@ -1724,7 +1731,7 @@ function getReportAlternateText({
                 }).messageText || translate('report.noActivityYet'),
             );
         }
-        if (shouldShowLastActorDisplayName(report, lastActorDetails, lastAction, currentUserAccountID, translate) && !isReportArchived) {
+        if (shouldShowLastActorDisplayName(report, lastActorDetails, lastAction, currentUserAccountID, translate, formatPhoneNumber) && !isReportArchived) {
             alternateText = `${getLastActorDisplayNamePrefix()}: ${formatReportLastMessageText(lastMessageText)}`;
         } else {
             alternateText = formatReportLastMessageText(lastMessageText);

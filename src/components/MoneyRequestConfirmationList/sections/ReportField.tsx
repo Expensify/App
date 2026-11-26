@@ -1,12 +1,15 @@
+import DropdownField from '@components/DropdownField';
 import MenuItemFieldHTML from '@components/MenuItem/presets/MenuItemFieldHTML';
 import {SELECTION_LIST_POPOVER_HEADER_HEIGHT} from '@components/SelectionListPopoverHeader';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useOutstandingReports from '@hooks/useOutstandingReports';
+import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 
+import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
@@ -14,10 +17,13 @@ import {getReportName} from '@libs/ReportNameUtils';
 import {
     canAddTransaction,
     generateReportID,
-    getNewestOutstandingReportForUser,
+    getDefaultMoneyRequestReport,
+    getMoneyRequestReportCandidate,
     getOutstandingReportsForUser,
     isMoneyRequestReport,
+    isOpenExpenseReport,
     isReportOutstanding,
+    isSavedThroughMoneyRequestBuilder,
     sortOutstandingReportsBySelected,
 } from '@libs/ReportUtils';
 
@@ -33,7 +39,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {createOutstandingReportsForPolicySelector} from '@selectors/Report';
 import React from 'react';
 
-import ExpenseFieldDropdown from './ExpenseFieldDropdown';
+import ExpenseFieldContainer from './ExpenseFieldContainer';
 import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
 import ReportFieldDropdown from './ReportFieldDropdown';
 import {reportFieldTransactionStateSelector, shouldReportFieldBeEditable} from './selectors';
@@ -56,6 +62,7 @@ type ReportFieldProps = {
 function ReportField({selectedParticipants, iouType, reportID, reportActionID, action, transactionID, isPerDiemRequest, isPolicyExpenseChat}: ReportFieldProps) {
     const {shouldUseDropdownRows} = useExpenseFormLayout();
     const {translate, localeCompare} = useLocalize();
+    const {isBetaEnabled} = usePermissions();
     const ownerAccountID = selectedParticipants?.at(0)?.ownerAccountID;
     const [ownerPersonalDetail] = usePersonalDetail(ownerAccountID);
 
@@ -69,6 +76,7 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
     const transactionReportID = transactionState?.reportID;
     const participantReportID = transactionState?.participantReportID;
     const isFromGlobalCreate = transactionState?.isFromGlobalCreate ?? false;
+    const isScanRequest = transactionState?.isScanRequest ?? false;
 
     // Per-key report subscriptions instead of full COLLECTION.REPORT
     const [transactionReportEntry] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionReportID}`);
@@ -78,6 +86,7 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
 
     const isUnreported = transactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const isCreatingExpense = action === CONST.IOU.ACTION.CREATE;
+    const isMovingTrackedExpense = isMovingTransactionFromTrackExpense(action);
 
     /**
      * We need to check if the transaction report exists first in order to prevent the outstanding reports from being used.
@@ -90,14 +99,15 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
         (report1, report2) => sortOutstandingReportsBySelected(report1, report2, undefined, localeCompare),
     );
 
-    // Match the builder's automatic destination before checking eligibility, rather than falling back to a report it would not use.
-    const defaultOutstandingReport = isCreatingExpense
-        ? getNewestOutstandingReportForUser(policyID, ownerAccountID, rules, reportNameValuePairs, outstandingReportsForPolicy ?? {})
-        : availableOutstandingReports.at(0);
-    const outstandingReportID = isPolicyExpenseChat ? (iouReportIDFromMain ?? defaultOutstandingReport?.reportID) : reportID;
+    // Match the save path's automatic destination before checking eligibility, rather than falling back to a report it would not use.
+    const candidateReport = getMoneyRequestReportCandidate(iouReport, action, policyID, ownerAccountID, rules, reportNameValuePairs, outstandingReportsForPolicy);
+    const defaultReport = candidateReport ?? (isSavedThroughMoneyRequestBuilder(action) ? undefined : availableOutstandingReports.at(0));
+    const defaultReportID = getDefaultMoneyRequestReport(defaultReport, mainReport, isScanRequest, isBetaEnabled(CONST.BETAS.ASAP_SUBMIT), rules, action)?.reportID;
+
+    const outstandingReportID = isPolicyExpenseChat ? defaultReportID : reportID;
+    const reportIDToUse = shouldUseTransactionReport ? transactionReportID : outstandingReportID;
 
     const [selectedReportID, selectedReport] = (() => {
-        const reportIDToUse = shouldUseTransactionReport ? transactionReportID : outstandingReportID;
         if (!reportIDToUse) {
             // Even if we have no report to use we still need a report id for proper navigation
             return [generateReportID(), undefined] as const;
@@ -110,6 +120,8 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
             reportToUse = mainReport;
         } else if (reportIDToUse === iouReportIDFromMain) {
             reportToUse = iouReport;
+        } else if (reportIDToUse === defaultReport?.reportID) {
+            reportToUse = defaultReport;
         } else {
             reportToUse = availableOutstandingReports.find((r) => r?.reportID === reportIDToUse);
         }
@@ -129,11 +141,14 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
         return name;
     })();
 
-    const outstandingReports = useOutstandingReports(undefined, isFromGlobalCreate && !isPerDiemRequest ? undefined : policyID, ownerAccountID, false, ownerPersonalDetail?.login);
+    const allOutstandingReports = useOutstandingReports(undefined, isFromGlobalCreate && !isPerDiemRequest ? undefined : policyID, ownerAccountID, false, ownerPersonalDetail?.login);
+    // A tracked expense moved to a workspace can only join an open report, so the picker lists only those. Count the same reports here.
+    const outstandingReports = isMovingTrackedExpense ? allOutstandingReports.filter(isOpenExpenseReport) : allOutstandingReports;
     const eligibleOutstandingReports = isCreatingExpense ? outstandingReports.filter((report) => canAddTransaction(report, rules)) : outstandingReports;
     // When creating an expense in an individual report, the report field becomes read-only
     // since the destination is already determined and there's no need to show a selectable list.
-    const shouldReportBeEditable = shouldReportFieldBeEditable(eligibleOutstandingReports, selectedReportID, isUnreported) && !isMoneyRequestReport(reportID);
+    // Use the default rather than the picked report, so picking the only outstanding report keeps the field editable to switch back.
+    const shouldReportBeEditable = shouldReportFieldBeEditable(eligibleOutstandingReports, selectedReportID, isUnreported || !outstandingReportID) && !isMoneyRequestReport(reportID);
     // Editing a saved expense's report and moving a per diem expense both navigate on from the list (to the report, or to
     // the destination step when the workspace changes), so those keep the full page.
     const shouldOpenInDropdown = !!transactionID && shouldReportBeEditable && action !== CONST.IOU.ACTION.EDIT && !isPerDiemRequest;
@@ -147,27 +162,29 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
 
     if (shouldUseDropdownRows) {
         return (
-            <ExpenseFieldDropdown
-                name={translate('common.report')}
-                // The field row renders plain text, so an HTML report name (e.g. a room with a markup name) is
-                // flattened first. Plain names pass through unchanged, with their entities decoded.
-                value={Parser.htmlToText(reportName)}
-                onPress={openReportPage}
-                shouldOpenInDropdown={shouldOpenInDropdown}
-                listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
-                renderDropdown={(dropdownProps) =>
-                    !!transactionID && (
-                        <ReportFieldDropdown
-                            {...dropdownProps}
-                            transactionID={transactionID}
-                        />
-                    )
-                }
-                // A report the user cannot change reads as a disabled field, the same as every other locked field
-                // on this form: the row itself owns that rule.
-                isInteractive={shouldReportBeEditable}
-                sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.REPORT_FIELD}
-            />
+            <ExpenseFieldContainer>
+                <DropdownField
+                    name={translate('common.report')}
+                    // The field row renders plain text, so an HTML report name (e.g. a room with a markup name) is
+                    // flattened first. Plain names pass through unchanged, with their entities decoded.
+                    value={Parser.htmlToText(reportName)}
+                    onPress={openReportPage}
+                    shouldOpenInDropdown={shouldOpenInDropdown}
+                    listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
+                    renderDropdown={(dropdownProps) =>
+                        !!transactionID && (
+                            <ReportFieldDropdown
+                                {...dropdownProps}
+                                transactionID={transactionID}
+                            />
+                        )
+                    }
+                    // A report the user cannot change reads as a disabled field, the same as every other locked field
+                    // on this form: the row itself owns that rule.
+                    isInteractive={shouldReportBeEditable}
+                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.REPORT_FIELD}
+                />
+            </ExpenseFieldContainer>
         );
     }
 

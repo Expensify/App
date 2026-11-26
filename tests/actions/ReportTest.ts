@@ -6,7 +6,9 @@ import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginPro
 import type {SearchQueryJSON} from '@components/Search/types';
 import type handleWalletStatementNavigationDefault from '@components/WalletStatementModal/walletNavigationUtils';
 
+import {buildAccountIDToNameMap, getMentionedAccountIDs} from '@hooks/useAccountIDToNameMap';
 import useAncestors from '@hooks/useAncestors';
+import {buildReportIDToNameMap, getMentionedReportIDs} from '@hooks/useReportIDToNameMap';
 
 import type {GuidedSetupData, TaskForParameters} from '@libs/actions/Report';
 import markAllMessagesAsRead from '@libs/actions/Report/MarkAllMessageAsRead';
@@ -1175,7 +1177,7 @@ describe('actions/Report', () => {
         // We should generate link
         let originalCommentMarkdown = 'Original Comment';
         let afterEditCommentText = 'Original Comment www.google.com';
-        let newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN, {});
+        let newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN, []);
         let expectedOutput = 'Original Comment <a href="https://www.google.com" target="_blank" rel="noreferrer noopener">www.google.com</a>';
         expect(newCommentHTML).toBe(expectedOutput);
 
@@ -1183,7 +1185,7 @@ describe('actions/Report', () => {
         // We should not generate link
         originalCommentMarkdown = 'Comment [www.google.com](https://www.google.com)';
         afterEditCommentText = 'Comment www.google.com';
-        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN, {});
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN, []);
         expectedOutput = 'Comment www.google.com';
         expect(newCommentHTML).toBe(expectedOutput);
 
@@ -1191,7 +1193,7 @@ describe('actions/Report', () => {
         // We should not generate link
         originalCommentMarkdown = 'Comment [www.google.com](https://www.google.com)';
         afterEditCommentText = 'Comment [www.google.com]';
-        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN, {});
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN, []);
         expectedOutput = 'Comment [www.google.com]';
         expect(newCommentHTML).toBe(expectedOutput);
 
@@ -1199,7 +1201,7 @@ describe('actions/Report', () => {
         // We should generate both links
         originalCommentMarkdown = 'Comment';
         afterEditCommentText = 'Comment www.google.com www.facebook.com';
-        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN, {});
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN, []);
         expectedOutput =
             'Comment <a href="https://www.google.com" target="_blank" rel="noreferrer noopener">www.google.com</a> ' +
             '<a href="https://www.facebook.com" target="_blank" rel="noreferrer noopener">www.facebook.com</a>';
@@ -1209,7 +1211,7 @@ describe('actions/Report', () => {
         // Should not generate link again for the deleted one
         originalCommentMarkdown = 'Comment [www.google.com](https://www.google.com)  [www.facebook.com](https://www.facebook.com)';
         afterEditCommentText = 'Comment www.google.com  [www.facebook.com](https://www.facebook.com)';
-        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN, {});
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN, []);
         expectedOutput = 'Comment www.google.com  <a href="https://www.facebook.com" target="_blank" rel="noreferrer noopener">www.facebook.com</a>';
         expect(newCommentHTML).toBe(expectedOutput);
 
@@ -1217,7 +1219,7 @@ describe('actions/Report', () => {
         // We should generate link
         originalCommentMarkdown = 'Comment';
         afterEditCommentText = 'https://www.facebook.com/hashtag/__main/?__eep__=6';
-        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN, {});
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN, []);
         expectedOutput = '<a href="https://www.facebook.com/hashtag/__main/?__eep__=6" target="_blank" rel="noreferrer noopener">https://www.facebook.com/hashtag/__main/?__eep__=6</a>';
         expect(newCommentHTML).toBe(expectedOutput);
 
@@ -1225,7 +1227,7 @@ describe('actions/Report', () => {
         // We should not generate link
         originalCommentMarkdown = '[https://www.facebook.com/hashtag/__main/?__eep__=6](https://www.facebook.com/hashtag/__main/?__eep__=6)';
         afterEditCommentText = 'https://www.facebook.com/hashtag/__main/?__eep__=6';
-        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN, {});
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN, []);
         expectedOutput = 'https://www.facebook.com/hashtag/__main/?__eep__=6';
         expect(newCommentHTML).toBe(expectedOutput);
 
@@ -1233,7 +1235,7 @@ describe('actions/Report', () => {
         // We should generate link
         originalCommentMarkdown = 'Comment';
         afterEditCommentText = 'http://example.com/foo/*/bar/*/test.txt';
-        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN, {});
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN, []);
         expectedOutput = '<a href="http://example.com/foo/*/bar/*/test.txt" target="_blank" rel="noreferrer noopener">http://example.com/foo/*/bar/*/test.txt</a>';
         expect(newCommentHTML).toBe(expectedOutput);
 
@@ -1241,7 +1243,7 @@ describe('actions/Report', () => {
         // We should not generate link
         originalCommentMarkdown = '[http://example.com/foo/*/bar/*/test.txt](http://example.com/foo/*/bar/*/test.txt)';
         afterEditCommentText = 'http://example.com/foo/*/bar/*/test.txt';
-        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN, {});
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN, []);
         expectedOutput = 'http://example.com/foo/*/bar/*/test.txt';
         expect(newCommentHTML).toBe(expectedOutput);
 
@@ -1257,9 +1259,7 @@ describe('actions/Report', () => {
         });
         originalCommentMarkdown = 'Comment';
         afterEditCommentText = 'Comment @user';
-        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN, {
-            [privateDomainAccount.accountID]: privateDomainAccount,
-        });
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN, [privateDomainAccount.login]);
         expectedOutput = 'Comment <mention-user>@user@expensify.com</mention-user>';
         expect(newCommentHTML).toBe(expectedOutput);
     });
@@ -3187,11 +3187,15 @@ describe('actions/Report', () => {
             global.fetch = TestHelper.createGlobalFetchMock();
             setHasRadio(false);
             await seedUploadingComment();
-            const accountIDToName = {'1001': 'alice@expensify.com', '1002': 'bob@expensify.com'};
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                1001: {accountID: 1001, login: 'alice@expensify.com'},
+                1002: {accountID: 1002, login: 'bob@expensify.com'},
+            });
+            await waitForBatchedUpdates();
 
             // When an edit that mentions Alice as @login, the only form a draft has, is parked on the upload
             const editMentioningAlice = `hello @alice@expensify.com\n\n[file.csv](${localSource})`;
-            Report.editReportComment({reportID}, await getAction(), editMentioningAlice, undefined, '', undefined, 1, undefined, undefined, accountIDToName);
+            Report.editReportComment({reportID}, await getAction(), editMentioningAlice, undefined, '', undefined, 1);
             await waitForBatchedUpdates();
 
             // Then only Alice's name is saved with it, so the replay can read her accountID mention in the synced copy back as @login
@@ -3304,6 +3308,7 @@ describe('actions/Report', () => {
             setHasRadio(false);
             const roomReportID = '456';
             const reportIDToName = {[roomReportID]: '#admins'};
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${roomReportID}`, {reportID: roomReportID, reportName: '#admins'});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportID});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
                 [reportActionID]: {
@@ -3319,10 +3324,11 @@ describe('actions/Report', () => {
             });
             await waitForBatchedUpdates();
 
-            // When the user changes the caption and then changes it back, so the restoring edit is the one parked on the upload
-            Report.editReportComment({reportID}, await getAction(), `hello #admins changed\n\n[file.csv](${localSource})`, undefined, '', undefined, 1, undefined, reportIDToName);
+            // When the user changes the caption and then changes it back, so the restoring edit is the one parked on the upload.
+            // The composer passes an empty map, since the original HTML mentions the room by name and not by reportID.
+            Report.editReportComment({reportID}, await getAction(), `hello #admins changed\n\n[file.csv](${localSource})`, undefined, '', undefined, 1, undefined, {});
             await waitForBatchedUpdates();
-            Report.editReportComment({reportID}, await getAction(), `hello #admins\n\n[file.csv](${localSource})`, undefined, '', undefined, 1, undefined, reportIDToName);
+            Report.editReportComment({reportID}, await getAction(), `hello #admins\n\n[file.csv](${localSource})`, undefined, '', undefined, 1, undefined, {});
             await waitForBatchedUpdates();
             expect((await OnyxUtils.get(ONYXKEYS.DEFERRED_ATTACHMENT_EDITS))?.[reportActionID]?.reportIDToName).toEqual(reportIDToName);
 
@@ -3465,7 +3471,6 @@ describe('actions/Report', () => {
 
         const TEST_USER_LOGIN = 'alice@expensify.com';
         const TEST_USER_ACCOUNT_ID = 1;
-        const MENTIONED_USER_ACCOUNT_ID = 2;
         const MENTIONED_USER_LOGIN = 'bob@expensify.com';
         const REPORT_ID = '1';
         const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
@@ -3473,16 +3478,7 @@ describe('actions/Report', () => {
         const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
         const created = format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING);
 
-        // Set up personal details with private domain users
-        await TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-            [MENTIONED_USER_ACCOUNT_ID]: {
-                accountID: MENTIONED_USER_ACCOUNT_ID,
-                login: MENTIONED_USER_LOGIN,
-                displayName: 'Bob',
-            },
-        });
-
+        // Given a teammate on the same private domain, known only through the logins passed to the edit, not through stored personal details
         setHasRadio(false);
         await waitForBatchedUpdates();
 
@@ -3505,23 +3501,12 @@ describe('actions/Report', () => {
             reportID: REPORT_ID,
         };
 
-        // Edit the comment to add a short mention
-        Report.editReportComment(
-            originalReport,
-            newReportAction,
-            'Initial comment with @bob',
-            undefined,
-            TEST_USER_LOGIN,
-            {
-                [TEST_USER_ACCOUNT_ID]: {accountID: TEST_USER_ACCOUNT_ID, login: TEST_USER_LOGIN},
-                [MENTIONED_USER_ACCOUNT_ID]: {accountID: MENTIONED_USER_ACCOUNT_ID, login: MENTIONED_USER_LOGIN, displayName: 'Bob'},
-            },
-            TEST_USER_ACCOUNT_ID,
-        );
+        // When the comment is edited to add a short mention
+        Report.editReportComment(originalReport, newReportAction, 'Initial comment with @bob', undefined, TEST_USER_LOGIN, [TEST_USER_LOGIN, MENTIONED_USER_LOGIN], TEST_USER_ACCOUNT_ID);
 
         await waitForBatchedUpdates();
 
-        // Verify the mention was converted in the edited comment
+        // Then the short mention is completed from the logins passed in
         await new Promise<void>((resolve) => {
             const connection = Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
@@ -3540,6 +3525,31 @@ describe('actions/Report', () => {
         });
         setHasRadio(true);
         await waitForBatchedUpdates();
+        await waitForBatchedUpdates();
+    });
+
+    it('does not send an unchanged edit of a comment that mentions a user and a room by ID', async () => {
+        // Given a comment that mentions Bob and a room by ID, and the names the composer maps for exactly those mentions
+        global.fetch = TestHelper.createGlobalFetchMock();
+        setHasRadio(false);
+        await waitForBatchedUpdates();
+        const roomReportID = '2';
+        const bobAccountID = 2;
+        const html = `hello <mention-user accountID="${bobAccountID}"/> in <mention-report reportID="${roomReportID}"/>`;
+        const reportAction = {
+            ...TestHelper.buildTestReportComment('2026-01-01 00:00:00.000', 1, 'mentionAction'),
+            message: [{type: 'COMMENT', html, text: 'hello @bob@expensify.com in #room'}],
+        };
+        const reportIDToName = buildReportIDToNameMap({[`${ONYXKEYS.COLLECTION.REPORT}${roomReportID}`]: {reportID: roomReportID, reportName: '#room'}}, getMentionedReportIDs(html));
+        const accountIDToName = buildAccountIDToNameMap({[bobAccountID]: {accountID: bobAccountID, login: 'bob@expensify.com'}}, getMentionedAccountIDs(html));
+
+        // When the edit is saved with the text the editor showed, unchanged
+        Report.editReportComment({reportID: '1'}, reportAction, 'hello @bob@expensify.com in #room', undefined, '', undefined, 1, undefined, reportIDToName, accountIDToName);
+        await waitForBatchedUpdates();
+
+        // Then the scoped maps turn the mentions back into the same markdown, so no edit is sent
+        expect(PersistedRequests.getAll().filter((request) => request.command === WRITE_COMMANDS.UPDATE_COMMENT)).toHaveLength(0);
+        setHasRadio(true);
         await waitForBatchedUpdates();
     });
 
@@ -3857,7 +3867,16 @@ describe('actions/Report', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
         mockFetchData.pause();
-        const {reportID} = Report.createNewReport({accountID}, true, false, policy, false, TestHelper.getCurrencyDecimalsLocal, undefined);
+        const {reportID} = Report.createNewReport({
+            ownerPersonalDetails: {accountID},
+            hasViolations: true,
+            isASAPSubmitBetaEnabled: false,
+            policy,
+            isTrackIntentUser: false,
+            getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+            rules: undefined,
+            personalDetailsByLogins: {},
+        });
         const parentReport = ReportUtils.getPolicyExpenseChat(accountID, policyID);
 
         const reportPreviewAction = await new Promise<OnyxEntry<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>>((resolve) => {
@@ -3923,7 +3942,15 @@ describe('actions/Report', () => {
             type: CONST.POLICY.TYPE.TEAM,
         };
 
-        Report.createNewReport({accountID: 1234}, true, false, policy, false, TestHelper.getCurrencyDecimalsLocal, undefined, false, undefined, {
+        Report.createNewReport({
+            ownerPersonalDetails: {accountID: 1234},
+            hasViolations: true,
+            isASAPSubmitBetaEnabled: false,
+            policy,
+            isTrackIntentUser: false,
+            getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+            rules: undefined,
+            personalDetailsByLogins: {},
             managedCardTransactionID,
         });
 
@@ -3945,7 +3972,16 @@ describe('actions/Report', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
         mockFetchData.pause();
-        Report.createNewReport({accountID}, true, false, policy, false, TestHelper.getCurrencyDecimalsLocal, undefined);
+        Report.createNewReport({
+            ownerPersonalDetails: {accountID},
+            hasViolations: true,
+            isASAPSubmitBetaEnabled: false,
+            policy,
+            isTrackIntentUser: false,
+            getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+            rules: undefined,
+            personalDetailsByLogins: {},
+        });
         const parentReport = ReportUtils.getPolicyExpenseChat(accountID, policyID);
 
         await new Promise<void>((resolve) => {
@@ -3982,7 +4018,16 @@ describe('actions/Report', () => {
         }
 
         // When create new report
-        Report.createNewReport({accountID}, true, false, policy, false, TestHelper.getCurrencyDecimalsLocal, undefined);
+        Report.createNewReport({
+            ownerPersonalDetails: {accountID},
+            hasViolations: true,
+            isASAPSubmitBetaEnabled: false,
+            policy,
+            isTrackIntentUser: false,
+            getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+            rules: undefined,
+            personalDetailsByLogins: {},
+        });
 
         // Then the parent report's hasOutstandingChildRequest property should remain unchanged
         await new Promise<void>((resolve) => {
@@ -4016,7 +4061,16 @@ describe('actions/Report', () => {
         }
 
         // When create new report
-        const optimisticReportData = Report.createNewReport({accountID}, true, false, policy, false, TestHelper.getCurrencyDecimalsLocal, undefined);
+        const optimisticReportData = Report.createNewReport({
+            ownerPersonalDetails: {accountID},
+            hasViolations: true,
+            isASAPSubmitBetaEnabled: false,
+            policy,
+            isTrackIntentUser: false,
+            getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+            rules: undefined,
+            personalDetailsByLogins: {},
+        });
 
         await waitForBatchedUpdates();
         // Then the report's status should be draft.
@@ -4057,7 +4111,16 @@ describe('actions/Report', () => {
         };
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
-        const {reportID} = Report.createNewReport({accountID}, true, false, policy, false, TestHelper.getCurrencyDecimalsLocal, undefined);
+        const {reportID} = Report.createNewReport({
+            ownerPersonalDetails: {accountID},
+            hasViolations: true,
+            isASAPSubmitBetaEnabled: false,
+            policy,
+            isTrackIntentUser: false,
+            getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+            rules: undefined,
+            personalDetailsByLogins: {},
+        });
         const parentReport = ReportUtils.getPolicyExpenseChat(accountID, policyID);
 
         await waitForBatchedUpdates();
@@ -4750,6 +4813,7 @@ describe('actions/Report', () => {
 
             // When the admin deletes the member's report
             Report.deleteAppReport({
+                isChatReportArchived: false,
                 report: expenseReport,
                 reportActions: {[iouAction.reportActionID]: iouAction},
                 parentReportAction: undefined,
@@ -4838,6 +4902,7 @@ describe('actions/Report', () => {
 
             // When deleting the expense report
             Report.deleteAppReport({
+                isChatReportArchived: false,
                 report: expenseReport,
                 reportActions,
                 parentReportAction: undefined,
@@ -4949,6 +5014,7 @@ describe('actions/Report', () => {
 
             // When deleting the first expense report
             Report.deleteAppReport({
+                isChatReportArchived: false,
                 report: expenseReport1,
                 reportActions: undefined,
                 parentReportAction: undefined,
@@ -5024,6 +5090,7 @@ describe('actions/Report', () => {
 
             // When deleting the whole expense report (the path taken when it has multiple transactions, e.g. after duplicating)
             Report.deleteAppReport({
+                isChatReportArchived: false,
                 report: expenseReport,
                 reportActions: undefined,
                 parentReportAction: reportPreview,
@@ -6439,6 +6506,10 @@ describe('actions/Report', () => {
     });
 
     describe('buildOptimisticChangePolicyData', () => {
+        const getPolicyOwnerPersonalDetailsByLogins = (destinationPolicy: OnyxTypes.Policy): PersonalDetailsByLogin => ({
+            [destinationPolicy.owner]: {accountID: destinationPolicy.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, login: destinationPolicy.owner},
+        });
+
         it('should build the optimistic data next step for the change policy data', () => {
             const report: OnyxTypes.Report = {
                 ...createRandomReport(1, undefined),
@@ -6463,7 +6534,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [],
-                personalDetailsByLogins: {},
+                personalDetailsByLogins: getPolicyOwnerPersonalDetailsByLogins(policy),
             });
             expect(buildOptimisticNextStep).toHaveBeenCalledWith({
                 report,
@@ -6474,7 +6545,7 @@ describe('actions/Report', () => {
                 isASAPSubmitBetaEnabled: true,
                 predictedNextStatus: CONST.REPORT.STATUS_NUM.SUBMITTED,
                 isTrackIntentUser: false,
-                personalDetailsByLogins: {},
+                personalDetailsByLogins: getPolicyOwnerPersonalDetailsByLogins(policy),
             });
         });
 
@@ -6503,7 +6574,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [],
-                personalDetailsByLogins: {},
+                personalDetailsByLogins: getPolicyOwnerPersonalDetailsByLogins(policy),
             });
             expect(optimisticReportPreviewAction.delegateAccountID).toBe(delegateAccountID);
         });
@@ -6535,7 +6606,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [],
-                personalDetailsByLogins: {},
+                personalDetailsByLogins: getPolicyOwnerPersonalDetailsByLogins(policy),
             });
             expect(optimisticMovedReportAction.delegateAccountID).toBe(delegateAccountID);
         });
@@ -6585,7 +6656,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [transaction],
-                personalDetailsByLogins: {},
+                personalDetailsByLogins: getPolicyOwnerPersonalDetailsByLogins(policy),
             });
 
             // Find the transaction optimistic data
@@ -6654,7 +6725,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [transaction],
-                personalDetailsByLogins: {},
+                personalDetailsByLogins: getPolicyOwnerPersonalDetailsByLogins(policy),
             });
 
             // Should NOT find transaction optimistic data when currencies are the same
@@ -6707,7 +6778,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [transaction],
-                personalDetailsByLogins: {},
+                personalDetailsByLogins: getPolicyOwnerPersonalDetailsByLogins(policy),
             });
 
             // Should NOT find transaction optimistic data when transaction matches destination currency
@@ -6773,7 +6844,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [matchingTransaction, nonMatchingTransaction],
-                personalDetailsByLogins: {},
+                personalDetailsByLogins: getPolicyOwnerPersonalDetailsByLogins(policy),
             });
 
             // Should NOT find optimistic data for the matching transaction (USD matches USD destination)
@@ -6842,7 +6913,7 @@ describe('actions/Report', () => {
                 reportPreviewAction,
                 isTrackIntentUser: false,
                 reportTransactions: [],
-                personalDetailsByLogins: {},
+                personalDetailsByLogins: getPolicyOwnerPersonalDetailsByLogins(policy),
             });
 
             const parentReportActionKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`;
@@ -6928,7 +6999,7 @@ describe('actions/Report', () => {
                 isTrackIntentUser: false,
                 reportTransactions: [unheldTransaction, heldTransaction],
                 delegateAccountID: undefined,
-                personalDetailsByLogins: {},
+                personalDetailsByLogins: getPolicyOwnerPersonalDetailsByLogins(policy),
             });
 
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
@@ -11967,6 +12038,36 @@ describe('actions/Report', () => {
             expect(ownerSelfDMActions?.[reportAction.reportActionID]?.childReportID).toBeUndefined();
         });
 
+        it("should build a legacy unreported expense with no IOU action in the current user's self DM when they own it", async () => {
+            // Given a legacy unreported expense with no IOU action, and the current user's self DM missing from Onyx
+            const selfDMReportID = '604';
+            const transaction = {...createRandomTransaction(604), reportID: CONST.REPORT.UNREPORTED_REPORT_ID};
+
+            // When its thread is created with ownership passed in, since there is no action to read the owner from
+            const result = Report.createTransactionThreadReport({
+                introSelected: TEST_INTRO_SELECTED,
+                conciergeChat: undefined,
+                currentUserLogin: TEST_USER_LOGIN,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                personalDetails: undefined,
+                transaction,
+                selfDMReportID,
+                isOwnedByCurrentUser: true,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the self DM is built optimistically and the missing action is created there as a track expense. Without the
+            // ownership flag, the self DM would be treated as another member's, and the action would be built as a CREATE instead
+            expect(result?.parentReportID).toBe(selfDMReportID);
+            const selfDM = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`);
+            expect(selfDM?.chatType).toBe(CONST.REPORT.CHAT_TYPE.SELF_DM);
+            const selfDMActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`);
+            const builtAction = Object.values(selfDMActions ?? {}).find((action) => action?.childReportID === result?.reportID);
+            expect(builtAction?.actorAccountID).toBe(TEST_USER_ACCOUNT_ID);
+            const builtOriginalMessage = isActionOfType(builtAction, CONST.REPORT.ACTIONS.TYPE.IOU) ? getOriginalMessage(builtAction) : undefined;
+            expect(builtOriginalMessage?.type).toBe(CONST.IOU.REPORT_ACTION_TYPE.TRACK);
+        });
+
         it('should return an optimistic transaction thread report when given a valid report and action', async () => {
             const parentReport: OnyxTypes.Report = {
                 ...createRandomReport(100, undefined),
@@ -13316,6 +13417,7 @@ describe('actions/Report', () => {
             mockFetch.pause();
 
             Report.mergeReports({
+                isChatReportArchived: false,
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 cardList: undefined,
@@ -13388,6 +13490,7 @@ describe('actions/Report', () => {
             mockFetch.pause();
 
             Report.mergeReports({
+                isChatReportArchived: false,
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 cardList: undefined,
@@ -13458,6 +13561,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             Report.mergeReports({
+                isChatReportArchived: false,
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 cardList: undefined,
@@ -13555,6 +13659,7 @@ describe('actions/Report', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 getCurrencySymbol: TestHelper.getCurrencySymbolLocal,
+                isChatReportArchived: false,
                 personalDetailsByLogins: personalDetailsByLoginsWithApprover,
             });
             await waitForBatchedUpdates();

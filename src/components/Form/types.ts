@@ -8,11 +8,14 @@ import type CountrySelector from '@components/CountrySelector';
 import type CurrencyPicker from '@components/CurrencyPicker';
 import type CurrencySelector from '@components/CurrencySelector';
 import type DatePicker from '@components/DatePicker';
+import type CurrencyDropdownAdapter from '@components/DynamicForm/adapters/CurrencyDropdownAdapter';
 import type CurrencyInlineListAdapter from '@components/DynamicForm/adapters/CurrencyInlineListAdapter';
+import type DropdownChoiceAdapter from '@components/DynamicForm/adapters/DropdownChoiceAdapter';
 import type FileUploadAdapter from '@components/DynamicForm/adapters/FileUploadAdapter';
 import type InlineSelectionListAdapter from '@components/DynamicForm/adapters/InlineSelectionListAdapter';
 import type LabelledFileUploadAdapter from '@components/DynamicForm/adapters/LabelledFileUploadAdapter';
 import type ListFieldAdapter from '@components/DynamicForm/adapters/ListFieldAdapter';
+import type MultiChoiceDropdownAdapter from '@components/DynamicForm/adapters/MultiChoiceDropdownAdapter';
 import type TabsAdapter from '@components/DynamicForm/adapters/TabsAdapter';
 import type ToggleLinkAdapter from '@components/DynamicForm/adapters/ToggleLinkAdapter';
 import type YesNoAdapter from '@components/DynamicForm/adapters/YesNoAdapter';
@@ -55,8 +58,10 @@ import type {DynamicFormListItem} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
-import type {ComponentType, FocusEvent, Key, ReactNode, Ref, RefObject} from 'react';
-import type {GestureResponderEvent, InputModeOptions, KeyboardTypeOptions, StyleProp, SubmitBehavior, TextInputSubmitEditingEvent, ViewStyle} from 'react-native';
+import type {ComponentRef, ComponentType, FocusEvent, Key, ReactNode, Ref, RefObject} from 'react';
+// eslint-disable-next-line no-restricted-imports -- type only
+import type {GestureResponderEvent, InputModeOptions, KeyboardTypeOptions, ScrollView, StyleProp, SubmitBehavior, TextInputSubmitEditingEvent, ViewStyle} from 'react-native';
+import type {AnimatedRef} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 
 /**
@@ -100,6 +105,9 @@ type ValidInputs =
     | typeof TimeModalPicker
     | typeof FileUploadAdapter
     | typeof InlineSelectionListAdapter
+    | typeof DropdownChoiceAdapter
+    | typeof CurrencyDropdownAdapter
+    | typeof MultiChoiceDropdownAdapter
     | typeof CurrencyInlineListAdapter
     | typeof YesNoAdapter
     | typeof TabsAdapter
@@ -174,7 +182,7 @@ type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = ForwardedFSClassProp
         /** Controls the submit button's visibility */
         isSubmitButtonVisible?: boolean;
 
-        onSubmit: (values: FormOnyxValues<TFormID>) => void;
+        onSubmit: (values: FormOnyxValues<TFormID>) => void | Promise<void>;
 
         /** Should the button be enabled when offline */
         enabledWhenOffline?: boolean;
@@ -195,6 +203,9 @@ type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = ForwardedFSClassProp
         scrollContextEnabled?: boolean;
 
         shouldUseScrollView?: boolean;
+
+        /** When set, FormWrapper attaches its scroll view to this ref instead of its own, so the caller can scroll it, e.g. with useKeyboardDrivenScroll */
+        scrollViewRef?: AnimatedRef<ComponentRef<typeof ScrollView>>;
 
         /** Container styles */
         style?: StyleProp<ViewStyle>;
@@ -227,14 +238,10 @@ type FormRef<TFormID extends OnyxFormKey = OnyxFormKey> = {
     resetFormFieldError: (fieldID: keyof Form) => void;
     submit: () => void;
     scrollToEnd: () => void;
-    /** Delay by the keyboard transition duration by default; pass false when the keyboard has finished opening. */
-    scrollTo: (y: number, shouldDelayScroll?: boolean) => void;
 };
 
 type FormWrapperRef = {
     scrollToEnd: () => void;
-    /** Delay by the keyboard transition duration by default; pass false when the keyboard has finished opening. */
-    scrollTo: (y: number, shouldDelayScroll?: boolean) => void;
 };
 
 type InputRefs = Record<string, RefObject<InputComponentBaseProps>>;

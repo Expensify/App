@@ -12,10 +12,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import {isMobileSafari, isSafari} from '@libs/Browser';
-import {containsOnlyEmojis} from '@libs/EmojiUtils';
+import {containsOnlyEmojisInDraft} from '@libs/EmojiUtils';
 import {base64ToFile} from '@libs/fileDownload/FileUtils';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
-import Parser from '@libs/Parser';
 import {toTextStyle} from '@libs/WebOnlyStyleUtils';
 
 import CONST from '@src/CONST';
@@ -61,7 +60,7 @@ function Composer({
     ref,
     ...props
 }: ComposerProps) {
-    const textContainsOnlyEmojis = useMemo(() => containsOnlyEmojis(Parser.htmlToText(Parser.replace(value ?? ''))), [value]);
+    const textContainsOnlyEmojis = useMemo(() => containsOnlyEmojisInDraft(value ?? ''), [value]);
 
     const theme = useTheme();
     const styles = useThemeStyles();

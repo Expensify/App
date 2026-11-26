@@ -17,6 +17,7 @@
 
 #include "JHybridAppStartTimeModuleSpec.hpp"
 #include "JHybridContactsModuleSpec.hpp"
+#include "JHybridDocumentDetectorModuleSpec.hpp"
 #include "JHybridShareActionHandlerSpec.hpp"
 #include "JHybridVerticalBarModuleSpec.hpp"
 #include "JFunc_void.hpp"
@@ -47,6 +48,14 @@ struct JHybridAppStartTimeModuleSpecImpl: public jni::JavaClass<JHybridAppStartT
     return javaPart->getJHybridAppStartTimeModuleSpec();
   }
 };
+struct JHybridDocumentDetectorModuleSpecImpl: public jni::JavaClass<JHybridDocumentDetectorModuleSpecImpl, JHybridDocumentDetectorModuleSpec::JavaPart> {
+  static constexpr auto kJavaDescriptor = "Lcom/margelo/nitro/utils/HybridDocumentDetectorModule;";
+  static std::shared_ptr<JHybridDocumentDetectorModuleSpec> create() {
+    static const auto constructorFn = javaClassStatic()->getConstructor<JHybridDocumentDetectorModuleSpecImpl::javaobject()>();
+    jni::local_ref<JHybridDocumentDetectorModuleSpec::JavaPart> javaPart = javaClassStatic()->newObject(constructorFn);
+    return javaPart->getJHybridDocumentDetectorModuleSpec();
+  }
+};
 struct JHybridVerticalBarModuleSpecImpl: public jni::JavaClass<JHybridVerticalBarModuleSpecImpl, JHybridVerticalBarModuleSpec::JavaPart> {
   static constexpr auto kJavaDescriptor = "Lcom/margelo/nitro/utils/HybridVerticalBarModule;";
   static std::shared_ptr<JHybridVerticalBarModuleSpec> create() {
@@ -71,6 +80,7 @@ void registerAllNatives() {
   // Register native JNI methods
   margelo::nitro::utils::JHybridAppStartTimeModuleSpec::CxxPart::registerNatives();
   margelo::nitro::utils::JHybridContactsModuleSpec::CxxPart::registerNatives();
+  margelo::nitro::utils::JHybridDocumentDetectorModuleSpec::CxxPart::registerNatives();
   margelo::nitro::utils::JHybridShareActionHandlerSpec::CxxPart::registerNatives();
   margelo::nitro::utils::JHybridVerticalBarModuleSpec::CxxPart::registerNatives();
   margelo::nitro::utils::JFunc_void_cxx::registerNatives();
@@ -87,6 +97,12 @@ void registerAllNatives() {
     "AppStartTimeModule",
     []() -> std::shared_ptr<HybridObject> {
       return JHybridAppStartTimeModuleSpecImpl::create();
+    }
+  );
+  HybridObjectRegistry::registerHybridObjectConstructor(
+    "DocumentDetectorModule",
+    []() -> std::shared_ptr<HybridObject> {
+      return JHybridDocumentDetectorModuleSpecImpl::create();
     }
   );
   HybridObjectRegistry::registerHybridObjectConstructor(

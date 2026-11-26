@@ -3,7 +3,9 @@ import {act, render} from '@testing-library/react-native';
 import PayActionButton from '@components/ReportActionItem/MoneyRequestReportPreview/PayActionButton';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
 
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePayViaABA from '@hooks/usePayViaABA';
 
 import {hasHeldExpensesFromTransactions, hasViolations} from '@libs/ReportUtils';
 
@@ -66,6 +68,7 @@ function createOnyxResult<T>(value: NonNullable<T> | undefined): UseOnyxResult<T
 // Capture the onPress (confirmPayment) handler PayActionButton passes to the settlement button so the payment can be
 // confirmed with a specific selected bank account, mirroring a user picking an account in the dropdown.
 const mockOnPressHolder: {current?: (params: PaymentActionParams) => void} = {current: undefined};
+const mockLoadingState = {isLoading: false, isActionLoading: false};
 // Also capture confirmApproval so the approval path (the only consumer of hasViolations here) can be triggered.
 const mockConfirmApprovalHolder: {current?: () => void} = {current: undefined};
 // Captures the color style PayActionButton passes to the settlement button.
@@ -172,9 +175,15 @@ describe('PayActionButton', () => {
         mockConfirmApprovalHolder.current = undefined;
         mockIsSecondaryHolder.current = undefined;
         mockTransactionViolations = {};
+        mockLoadingState.isActionLoading = false;
+        jest.mocked(useNetwork).mockReturnValue({isOffline: false});
+        jest.mocked(usePayViaABA).mockReturnValue({payReportsViaABA: mockPayReportsViaABA, isDownloadingABAFile: false});
         mockedHasHeldExpenses.mockReturnValue(false);
         mockedHasViolations.mockReturnValue(false);
         mockedUseOnyx.mockImplementation((key) => {
+            if (key === `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${TEST_IOU_REPORT_ID}`) {
+                return createOnyxResult(mockLoadingState.isActionLoading);
+            }
             if (key === `${ONYXKEYS.COLLECTION.REPORT}${TEST_IOU_REPORT_ID}`) {
                 return createOnyxResult<Report>(iouReport);
             }
