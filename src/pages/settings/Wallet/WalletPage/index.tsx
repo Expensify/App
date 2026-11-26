@@ -5,6 +5,7 @@ import KYCWall from '@components/KYCWall';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import type {PaymentMethodType, Source} from '@components/KYCWall/types';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
+import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
 import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -34,6 +35,7 @@ import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useRefreshPendingDigitalWalletApproval from '@hooks/useRefreshPendingDigitalWalletApproval';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSectionIllustrationWithMotion from '@hooks/useSectionIllustrationWithMotion';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -78,7 +80,6 @@ import {View} from 'react-native';
 
 import type {CardPressHandlerParams, PaymentMethodPressHandlerParams} from './types';
 
-import useWalletSectionIllustration from './useWalletSectionIllustration';
 import shouldOpenBankAccountByPolicy from './utils';
 
 const fundListSelector = (allFunds: OnyxEntry<OnyxTypes.FundList>) =>
@@ -143,10 +144,10 @@ function WalletPage() {
         'Pencil',
     ]);
     const illustrations = useMemoizedLazyIllustrations(['VerticalCreditCards']);
-    const walletIllustration = useWalletSectionIllustration();
 
     const theme = useTheme();
     const styles = useThemeStyles();
+    const walletIllustration = useSectionIllustrationWithMotion(LottieAnimations.BankVault, 'BigVault', styles.walletStaticIllustration, styles.walletLottieIllustration);
     const StyleUtils = useStyleUtils();
     const network = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();

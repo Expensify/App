@@ -1,6 +1,7 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImportOnyxState from '@components/ImportOnyxState';
+import LottieAnimations from '@components/LottieAnimations';
 import MenuItemList from '@components/MenuItemList';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -21,6 +22,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSectionIllustrationWithMotion from '@hooks/useSectionIllustrationWithMotion';
 import useSwitchToClassic from '@hooks/useSwitchToClassic';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -53,8 +55,6 @@ import {differenceInDays} from 'date-fns';
 import React, {useEffect, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 
-import useTroubleshootSectionIllustration from './useTroubleshootSectionIllustration';
-
 type BaseMenuItem = WithRequiredSentryLabel & {
     translationKey: TranslationPaths;
     icon: IconAsset;
@@ -64,9 +64,9 @@ type BaseMenuItem = WithRequiredSentryLabel & {
 
 function TroubleshootPage() {
     const icons = useMemoizedLazyExpensifyIcons(['Download', 'ExpensifyLogoNew', 'RotateLeft']);
-    const troubleshootIllustration = useTroubleshootSectionIllustration();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const troubleshootIllustration = useSectionIllustrationWithMotion(LottieAnimations.Desk, 'WorkspaceScene', styles.troubleshootStaticIllustration);
     const {isDevelopment} = useEnvironment();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     useDocumentTitle(translate('initialSettingsPage.aboutPage.troubleshoot'));

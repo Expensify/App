@@ -247,18 +247,11 @@ const getSharedConfiguration = ({file = '.env', isDevServer = false}: Environmen
                     __filename: 'mock',
                     __dirname: 'mock',
                 };
-                // We can ignore the "module not installed" warning from lottie-react-native because we
-                // are not using the library for JSON format of Lottie animations.
-                // We also ignore React Compiler errors - they're deliberately warnings, not errors.
+                // We ignore React Compiler errors - they're deliberately warnings, not errors.
                 // react-native-skia tries `react-native/asset-registry` (React Native 0.87+) inside a try block before the older path, so the miss is
                 // expected. It must not be aliased to `false` like the older path: an empty module is truthy and would be used as the registry.
                 // eslint-disable-next-line no-param-reassign
-                config.ignoreWarnings = [
-                    ...(config.ignoreWarnings ?? []),
-                    /lottie-react-native\/lib\/module\/LottieView\/index\.web\.js/,
-                    /oxc-react-compiler-loader:/,
-                    /Module not found: Can't resolve 'react-native\/asset-registry'/,
-                ];
+                config.ignoreWarnings = [...(config.ignoreWarnings ?? []), /oxc-react-compiler-loader:/, /Module not found: Can't resolve 'react-native\/asset-registry'/];
 
                 // Cache rules:
                 // - Onyx and react-native-live-markdown can be modified on the fly, changes to other node_modules are not reflected live
