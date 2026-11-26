@@ -5,13 +5,13 @@ import type {TableEmptyStateProps} from '@components/Table/TableEmptyStates/Tabl
 
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import tokenizedSearch from '@libs/tokenizedSearch';
 
+import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
 
-import type CONST from '@src/CONST';
+import CONST from '@src/CONST';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
@@ -38,27 +38,32 @@ type WorkspaceSpendRulesTableProps = {
 
 function WorkspaceSpendRulesTable({rulesData, selectionEnabled, selectedKeys, emptyState, onRowSelectionChange, headerComponent, bulkActionOptions}: WorkspaceSpendRulesTableProps) {
     const {translate, localeCompare} = useLocalize();
-    const styles = useThemeStyles();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
-    const columns: Array<TableColumn<SpendRulesTableColumnKey>> = [
+    const columns: Array<TableColumn<SpendRulesTableColumnKey, SpendRuleTableItem>> = [
         {
             key: 'type',
             label: translate('workspace.rules.spendRules.tableColumnType'),
             sortable: true,
             width: variables.tableTypeColumnWidth,
-            styling: {containerStyles: [styles.justifyContentCenter]},
+            styling: {alignment: CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.CENTER},
         },
         {
             key: 'card',
             label: translate('workspace.rules.spendRules.tableColumnCard'),
             sortable: true,
+            dynamicSizing: {
+                getContentToMeasure: (item) => [{text: item.cardSummary, fontSize: fontScale.text}],
+            },
         },
         {
             key: 'rule',
             label: translate('workspace.rules.spendRules.tableColumnRule'),
             sortable: false,
+            dynamicSizing: {
+                getContentToMeasure: (item) => [{text: item.ruleSummary, fontSize: fontScale.text}],
+            },
         },
         {
             key: 'actions',
@@ -112,6 +117,8 @@ function WorkspaceSpendRulesTable({rulesData, selectionEnabled, selectedKeys, em
 
     return (
         <Table
+            shouldUseDynamicColumns
+            columnResizingID={CONST.TABLES.COLUMN_RESIZING_IDS.WORKSPACE_SPEND_RULES}
             data={rulesData}
             columns={columns}
             selectionEnabled={selectionEnabled}
@@ -122,7 +129,6 @@ function WorkspaceSpendRulesTable({rulesData, selectionEnabled, selectedKeys, em
             compareItems={compareItems}
             isItemInSearch={isItemInSearch}
             initialSortColumn="card"
-            narrowLayoutSortColumn="card"
             title={translate('workspace.rules.tabs.cardRestrictions')}
         >
             <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>

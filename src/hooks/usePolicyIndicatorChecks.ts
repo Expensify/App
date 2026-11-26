@@ -4,6 +4,7 @@ import {isMergeHRCompleteSetupNeeded, shouldShowHRConnectionError} from '@libs/m
 import {
     getUberConnectionErrorDirectlyFromPolicy,
     isPolicyAdmin,
+    shouldCheckPolicyForErrors,
     shouldShowCustomUnitsError,
     shouldShowUKFuelRateTaxError,
     shouldShowEmployeeListError,
@@ -11,13 +12,15 @@ import {
     shouldShowReimbursableExportDestinationAccountError,
     shouldShowSyncError,
 } from '@libs/PolicyUtils';
-import {getApprovalWorkflowRulesForPolicy} from '@libs/RuleUtils';
+import {getApprovalWorkflowRulesForPolicy, groupRulesByPolicyID} from '@libs/RuleUtils';
 import {hasApprovalWorkflowWithNonMemberApprover} from '@libs/WorkflowUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import type IndicatorStatus from '@src/types/utils/IndicatorStatus';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 import {accountIDSelector, emailSelector} from '@selectors/Session';
 
@@ -49,6 +52,22 @@ function usePolicyIndicatorChecks(): PolicyIndicatorChecksResult {
     const {isBetaEnabled} = usePermissions();
     const isMultipleApproversBetaEnabled = isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS);
     const [allRules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const rulesByPolicyID = isMultipleApproversBetaEnabled ? groupRulesByPolicyID(allRules) : undefined;
+
+    // Building approval workflows is heavy on large accounts, so it runs in a selector and only reruns when its inputs change, not on every render
+    const nonMemberApproverPolicyIDSelector = (policies: OnyxCollection<Policy>) =>
+        Object.values(policies ?? {}).find(
+            (policy) =>
+                shouldCheckPolicyForErrors(policy) &&
+                hasApprovalWorkflowWithNonMemberApprover({
+                    policy,
+                    currentUserLogin,
+                    // Rules only route the workflows under the beta, so they aren't used otherwise
+                    rules: rulesByPolicyID ? getApprovalWorkflowRulesForPolicy(rulesByPolicyID[policy.id], policy.id) : undefined,
+                    isMultipleApproversBetaEnabled,
+                }),
+        )?.id;
+    const [nonMemberApproverPolicyID] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: nonMemberApproverPolicyIDSelector});
 
     const hasPendingDomainAdminRequests = Object.entries(allDomains ?? {}).some(([key, domain]) =>
         hasPendingDomainAdminRequestsToReview(domain, currentUserAccountID, allDomainPendingActions?.[key.replace(ONYXKEYS.COLLECTION.DOMAIN, ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS)]),
@@ -86,15 +105,7 @@ function usePolicyIndicatorChecks(): PolicyIndicatorChecksResult {
         ],
         [
             CONST.INDICATOR_STATUS.HAS_APPROVAL_WORKFLOW_NON_MEMBER_APPROVER,
-            cleanPolicies.find((cleanPolicy) =>
-                hasApprovalWorkflowWithNonMemberApprover({
-                    policy: cleanPolicy,
-                    currentUserLogin,
-                    // Rules only route the workflows under the beta, so they aren't used otherwise
-                    rules: isMultipleApproversBetaEnabled ? getApprovalWorkflowRulesForPolicy(allRules, cleanPolicy?.id) : undefined,
-                    isMultipleApproversBetaEnabled,
-                }),
-            ),
+            nonMemberApproverPolicyID ? cleanPolicies.find((cleanPolicy) => cleanPolicy?.id === nonMemberApproverPolicyID) : undefined,
         ],
     ];
     const policyInfoChecks: Array<[IndicatorStatus, Policy | undefined]> = [

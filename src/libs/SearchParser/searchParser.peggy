@@ -41,7 +41,7 @@
     year: "groupyear",
     quarter: "groupquarter",
     approver: "groupApprover",
-    violation: null,
+    violation: "groupViolation",
     "paid-by": null,
     "workflow-stage": null,
     "handled-by": null,
@@ -60,6 +60,7 @@
     year: "desc",
     quarter: "desc",
     approver: "asc",
+    violation: "asc",
   };
 
   const DEFAULT_SORT_BY_VALUES = new Set([...Object.values(GROUP_BY_DEFAULT_SORT), "date"]);
@@ -78,7 +79,7 @@
 
   // List fields where you cannot prefix it with "-" to negate it
   const nonNegatableKeys = new Set([
-    "type", "keyword", "groupCurrency", "groupBy", "columns", "limit", "view", "footerCount", "footerTotal", "footerCurrency", "compare", "tagLevel", "tagParent"
+    "type", "keyword", "groupCurrency", "groupBy", "columns", "leftPinnedColumns", "rightPinnedColumns", "limit", "view", "footerCount", "footerTotal", "footerCurrency", "compare", "tagLevel", "tagParent"
   ]);
 
   function isDefaultSortValue(sortBy) {
@@ -293,6 +294,7 @@ key "key"
       / merchant
       / description
       / reportID
+      / transactionID
       / keyword
       / in
       / currency
@@ -343,6 +345,7 @@ key "key"
       / has
       / is
       / purchaseCurrency
+      / convertedAmount
       / purchaseAmount
       / policyID
       / status
@@ -358,7 +361,7 @@ filterKey
       return k;
     }
     
-defaultKey "default key" = @(type / sortBy / sortOrder / groupBy / columns / limit / view / compare / tagLevel / tagParent)
+defaultKey "default key" = @(type / sortBy / sortOrder / groupBy / columns / limit / view / compare / leftPinnedColumns / rightPinnedColumns / tagLevel / tagParent)
 
 identifier
   = (","+)? parts:(values / quotedString / alphanumeric)|1.., ","+| empty:(","+)? {

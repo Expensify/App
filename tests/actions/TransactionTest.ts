@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {renderHook, waitFor} from '@testing-library/react-native';
 
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
+
 import useChangeTransactionsReportReports from '@hooks/useChangeTransactionsReportReports';
 import useOnyx from '@hooks/useOnyx';
 
@@ -42,33 +44,6 @@ import {createRandomReport} from '../utils/collections/reports';
 import getOnyxValue from '../utils/getOnyxValue';
 import {formatPhoneNumber, getCurrencyDecimalsLocal, getCurrencySymbolLocal, getGlobalFetchMock, getOnyxData} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
-
-type LegacyChangeTransactionsReportProps = Omit<
-    Parameters<typeof changeTransactionsReportAction>[0],
-    'transactions' | 'allTransactionViolation' | 'personalPolicyOutputCurrency' | 'selfDMReportActions' | 'delegateAccountID' | 'getCurrencyDecimals' | 'getCurrencySymbol' | 'rules'
-> & {
-    allTransactions: OnyxCollection<Transaction>;
-    transactionViolations: Parameters<typeof changeTransactionsReportAction>[0]['allTransactionViolation'];
-    personalPolicyOutputCurrency?: string;
-    selfDMReportActions?: OnyxEntry<ReportActions>;
-    isTrackIntentUser: boolean | undefined;
-};
-
-function changeTransactionsReport({allTransactions, transactionIDs, transactionViolations, personalPolicyOutputCurrency, selfDMReportActions, ...rest}: LegacyChangeTransactionsReportProps) {
-    const transactions = transactionIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((transaction): transaction is Transaction => !!transaction);
-    changeTransactionsReportAction({
-        transactionIDs,
-        transactions,
-        allTransactionViolation: transactionViolations,
-        personalPolicyOutputCurrency,
-        selfDMReportActions,
-        delegateAccountID: undefined,
-        getCurrencyDecimals: getCurrencyDecimalsLocal,
-        getCurrencySymbol: getCurrencySymbolLocal,
-        rules: undefined,
-        ...rest,
-    });
-}
 
 const topMostReportID = '23423423';
 jest.mock('@src/libs/Navigation/Navigation', () => ({
@@ -141,6 +116,45 @@ const CARLOS_ACCOUNT_ID = 1;
 const RORY_EMAIL = 'rory@expensifail.com';
 const RORY_ACCOUNT_ID = 3;
 const RORY_CASH_CARD_ID = 777;
+const RORY_PERSONAL_DETAILS_BY_LOGINS: PersonalDetailsByLogin = {
+    [RORY_EMAIL]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
+};
+
+type LegacyChangeTransactionsReportProps = Omit<
+    Parameters<typeof changeTransactionsReportAction>[0],
+    | 'transactions'
+    | 'allTransactionViolation'
+    | 'personalPolicyOutputCurrency'
+    | 'selfDMReportActions'
+    | 'delegateAccountID'
+    | 'getCurrencyDecimals'
+    | 'getCurrencySymbol'
+    | 'rules'
+    | 'personalDetailsByLogins'
+> & {
+    allTransactions: OnyxCollection<Transaction>;
+    transactionViolations: Parameters<typeof changeTransactionsReportAction>[0]['allTransactionViolation'];
+    personalPolicyOutputCurrency?: string;
+    selfDMReportActions?: OnyxEntry<ReportActions>;
+    isTrackIntentUser: boolean | undefined;
+};
+
+function changeTransactionsReport({allTransactions, transactionIDs, transactionViolations, personalPolicyOutputCurrency, selfDMReportActions, ...rest}: LegacyChangeTransactionsReportProps) {
+    const transactions = transactionIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((transaction): transaction is Transaction => !!transaction);
+    changeTransactionsReportAction({
+        transactionIDs,
+        transactions,
+        allTransactionViolation: transactionViolations,
+        personalPolicyOutputCurrency,
+        selfDMReportActions,
+        delegateAccountID: undefined,
+        getCurrencyDecimals: getCurrencyDecimalsLocal,
+        getCurrencySymbol: getCurrencySymbolLocal,
+        rules: undefined,
+        personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
+        ...rest,
+    });
+}
 
 const getTransactionAndExpenseReports = (reportID: string) => {
     const transactionReport = getReportOrDraftReport({reportID});
@@ -167,7 +181,6 @@ describe('actions/Transaction', () => {
             keys: ONYXKEYS,
             initialKeyStates: {
                 [ONYXKEYS.SESSION]: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
                 [ONYXKEYS.CURRENCY_LIST]: currencyList,
             },
         });
@@ -237,7 +250,16 @@ describe('actions/Transaction', () => {
 
             await waitForBatchedUpdates();
 
-            createNewReport(creatorPersonalDetails, true, false, mockPolicy, false, getCurrencyDecimalsLocal, undefined);
+            createNewReport({
+                ownerPersonalDetails: creatorPersonalDetails,
+                hasViolations: true,
+                isASAPSubmitBetaEnabled: false,
+                policy: mockPolicy,
+                isTrackIntentUser: false,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                rules: undefined,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
+            });
             // Create a tracked expense
             const selfDMReport: Report = {
                 ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
@@ -269,6 +291,7 @@ describe('actions/Transaction', () => {
                 },
                 isASAPSubmitBetaEnabled: false,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
@@ -849,6 +872,63 @@ describe('actions/Transaction', () => {
             expect(updated).not.toHaveProperty('to');
         });
 
+        it('does not keep the workspace amount from Search on a moved expense', async () => {
+            // Given an expense that Search returned with its amount converted to its workspace's currency
+            const policyID = generatePolicyID();
+            const mockPolicy: Policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), id: policyID, outputCurrency: CONST.CURRENCY.EUR, pendingAction: undefined};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, mockPolicy);
+
+            const transactionID = 'txn-converted-move';
+            const transaction: Transaction = {
+                transactionID,
+                reportID: 'source-report-converted-move',
+                amount: -10000,
+                currency: CONST.CURRENCY.EUR,
+                policyConvertedAmount: -12000,
+                reimbursable: true,
+                merchant: 'Merchant',
+                created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+
+            const expenseReport = {
+                reportID: 'dest-expense-report-converted-move',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID,
+                chatReportID: 'dest-chat-report-converted-move',
+                ownerAccountID: RORY_ACCOUNT_ID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            } as Report;
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await waitForBatchedUpdates();
+
+            // When it is moved to a report on another workspace
+            changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
+                transactionIDs: [transactionID],
+                isASAPSubmitBetaEnabled: false,
+                accountID: RORY_ACCOUNT_ID,
+                email: RORY_EMAIL,
+                currentUserPersonalDetails,
+                newReport: expenseReport,
+                policy: mockPolicy,
+                allTransactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction},
+                policyTagList: undefined,
+                transactionViolations: {},
+                reports: undefined,
+                isTrackIntentUser: false,
+                cardList: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then Search shows it without the old workspace amount, because that amount was converted to the old workspace's currency
+            const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${unapprovedCashHash}`);
+            const searchTransaction = snapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+            expect(searchTransaction?.reportID).toBe(expenseReport.reportID);
+            expect(searchTransaction?.policyConvertedAmount).toBeUndefined();
+        });
+
         describe('unheldTotal', () => {
             const SOURCE_REPORT_ID = 'source-unheld-total';
             const DESTINATION_REPORT_ID = 'destination-unheld-total';
@@ -1169,6 +1249,7 @@ describe('actions/Transaction', () => {
                     },
                 });
                 requestMoney({
+                    personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                     isVendorMatchingBetaEnabled: false,
                     conciergeChat: undefined,
                     report: chatReport,
@@ -1359,6 +1440,7 @@ describe('actions/Transaction', () => {
                     },
                 });
                 requestMoney({
+                    personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                     isVendorMatchingBetaEnabled: false,
                     conciergeChat: undefined,
                     report: chatReport,
@@ -1554,6 +1636,7 @@ describe('actions/Transaction', () => {
                 });
 
                 requestMoney({
+                    personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                     isVendorMatchingBetaEnabled: false,
                     conciergeChat: undefined,
                     report: chatReport,
@@ -1759,6 +1842,7 @@ describe('actions/Transaction', () => {
 
                 // Create the initial expense
                 requestMoney({
+                    personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                     isVendorMatchingBetaEnabled: false,
                     conciergeChat: undefined,
                     report: chatReport,
@@ -2098,6 +2182,7 @@ describe('actions/Transaction', () => {
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
             });
             await waitForBatchedUpdates();
         };

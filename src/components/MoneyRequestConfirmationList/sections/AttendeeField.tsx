@@ -1,3 +1,4 @@
+import DropdownField from '@components/DropdownField';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
@@ -29,7 +30,7 @@ import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 
 import AttendeeFieldDropdown from './AttendeeFieldDropdown';
-import ExpenseFieldDropdown from './ExpenseFieldDropdown';
+import ExpenseFieldContainer from './ExpenseFieldContainer';
 import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
 import {attendeeSliceSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
@@ -91,28 +92,30 @@ function AttendeeField({formattedAmountPerAttendee, isReadOnly, transactionID, a
 
     if (shouldUseDropdownRows) {
         return (
-            <ExpenseFieldDropdown
-                name={attendeesDescription}
-                valueComponent={attendeePills}
-                // The creator is always an attendee, so the row reads as filled in from the start.
-                hasValueComponent
-                accessibilityLabel={attendeesAccessibilityLabel}
-                errorText={shouldDisplayAttendeesError ? translate(formError as TranslationPaths) : ''}
-                onPress={openAttendeePage}
-                shouldOpenInDropdown={shouldOpenInDropdown}
-                listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
-                renderDropdown={(dropdownProps) =>
-                    !!transactionID && (
-                        <AttendeeFieldDropdown
-                            {...dropdownProps}
-                            transactionID={transactionID}
-                            iouType={iouType}
-                        />
-                    )
-                }
-                isInteractive={!isReadOnly}
-                sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.ATTENDEES_FIELD}
-            />
+            <ExpenseFieldContainer>
+                <DropdownField
+                    name={attendeesDescription}
+                    valueComponent={attendeePills}
+                    // The creator is always an attendee, so the row reads as filled in from the start.
+                    hasValueComponent
+                    accessibilityLabel={attendeesAccessibilityLabel}
+                    errorText={shouldDisplayAttendeesError ? translate(formError as TranslationPaths) : ''}
+                    onPress={openAttendeePage}
+                    shouldOpenInDropdown={shouldOpenInDropdown}
+                    listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
+                    renderDropdown={(dropdownProps) =>
+                        !!transactionID && (
+                            <AttendeeFieldDropdown
+                                {...dropdownProps}
+                                transactionID={transactionID}
+                                iouType={iouType}
+                            />
+                        )
+                    }
+                    isInteractive={!isReadOnly}
+                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.ATTENDEES_FIELD}
+                />
+            </ExpenseFieldContainer>
         );
     }
 

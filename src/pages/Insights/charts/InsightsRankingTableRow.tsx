@@ -88,8 +88,11 @@ type InsightsRankingTableRowProps = {
     groupBy: SearchGroupBy;
     countDimension: SearchChartCountDimension;
 
-    /** The chart's query, which a pressed row opens on Spend. Without it the row can't be pressed. */
+    /** The chart's query, which a pressed row opens on Spend */
     queryJSON: Readonly<SearchQueryJSON> | undefined;
+
+    /** Called with the row's group when pressed. Without it, the row opens on Spend, and without either the row can't be pressed. */
+    onPress?: (item: GroupedItem) => void;
 
     /** Group cell content, the group's label text unless given */
     label?: React.ReactNode;
@@ -107,7 +110,19 @@ type InsightsRankingTableRowProps = {
     rowIndex: number;
 };
 
-function InsightsRankingTableRow({row, groupBy, countDimension, queryJSON, label, valueColumn, columnIndexes, isChangeNeutral, averageWidthPercent, rowIndex}: InsightsRankingTableRowProps) {
+function InsightsRankingTableRow({
+    row,
+    groupBy,
+    countDimension,
+    queryJSON,
+    onPress,
+    label,
+    valueColumn,
+    columnIndexes,
+    isChangeNeutral,
+    averageWidthPercent,
+    rowIndex,
+}: InsightsRankingTableRowProps) {
     const {item, share, barWidthPercent, change} = row;
     const styles = useThemeStyles();
     const {translate, numberFormat} = useLocalize();
@@ -129,7 +144,12 @@ function InsightsRankingTableRow({row, groupBy, countDimension, queryJSON, label
     );
     const cellStyle = [styles.tableRowVerticalPadding, styles.justifyContentCenter];
 
-    const openOnSpend = () => {
+    const isPressable = !!onPress || !!queryJSON;
+    const openRow = () => {
+        if (onPress) {
+            onPress(item);
+            return;
+        }
         if (!queryJSON) {
             return;
         }
@@ -169,7 +189,7 @@ function InsightsRankingTableRow({row, groupBy, countDimension, queryJSON, label
             </>
         );
 
-        if (!queryJSON) {
+        if (!isPressable) {
             return (
                 <View
                     accessible
@@ -183,7 +203,7 @@ function InsightsRankingTableRow({row, groupBy, countDimension, queryJSON, label
 
         return (
             <PressableWithFeedback
-                onPress={openOnSpend}
+                onPress={openRow}
                 accessibilityRole={CONST.ROLE.BUTTON}
                 accessibilityLabel={accessibilityLabel}
                 sentryLabel={CONST.SENTRY_LABEL.INSIGHTS.TABLE_ROW}
@@ -245,7 +265,7 @@ function InsightsRankingTableRow({row, groupBy, countDimension, queryJSON, label
         </>
     );
 
-    if (!queryJSON) {
+    if (!isPressable) {
         return (
             <View
                 style={desktopStyle}
@@ -261,7 +281,7 @@ function InsightsRankingTableRow({row, groupBy, countDimension, queryJSON, label
 
     return (
         <PressableWithFeedback
-            onPress={openOnSpend}
+            onPress={openRow}
             role={isTableSemanticsEnabled ? CONST.ROLE.ROW : CONST.ROLE.BUTTON}
             accessibilityLabel={accessibilityLabel}
             sentryLabel={CONST.SENTRY_LABEL.INSIGHTS.TABLE_ROW}

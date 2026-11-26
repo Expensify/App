@@ -11,7 +11,7 @@ import initOnyxDerivedValues from '@userActions/OnyxDerived';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Transaction} from '@src/types/onyx';
+import type {Policy, PolicyTagLists, Transaction} from '@src/types/onyx';
 
 import type * as NativeNavigation from '@react-navigation/native';
 import type {StyleProp, TextStyle} from 'react-native';
@@ -140,7 +140,7 @@ const expenseReportID = 'expense_mrv_123';
 const parentReportActionID = 'parent_action_mrv';
 const transactionID = 'txn_mrv_test';
 
-const SCREEN_WRAPPER_STATUS = {didScreenTransitionEnd: true, shouldUseNarrowLayoutOnWideRHP: false, isSafeAreaTopPaddingApplied: true, isSafeAreaBottomPaddingApplied: true};
+const SCREEN_WRAPPER_STATUS = {didScreenTransitionEnd: true, isSafeAreaTopPaddingApplied: true, isSafeAreaBottomPaddingApplied: true};
 let renderedThemeStyles: ReturnType<typeof useThemeStyles> | undefined;
 
 function ThemeStylesObserver() {
@@ -264,7 +264,7 @@ describe('MoneyRequestView edit fields', () => {
 
         // Then the detail view shows the MCC without dropping the existing expense editor.
         expect(screen.getByLabelText('common.mcc, 0012')).toBeOnTheScreen();
-        expect(screen.getByTestId('menu-item-common.merchant')).toHaveTextContent('editable');
+        expect(screen.getByRole('button', {name: fieldLabel('common.merchant')})).toBeOnTheScreen();
     });
 
     it('shows additional fields in the saved column order and updates them when the preference changes', async () => {
@@ -286,7 +286,7 @@ describe('MoneyRequestView edit fields', () => {
         expect(additionalFields).toHaveLength(2);
         expect(additionalFields.at(0)).toBe(screen.getByLabelText('common.exchangeRate, 1.2345 EUR/USD'));
         expect(additionalFields.at(1)).toBe(screen.getByLabelText('common.mcc, 0012'));
-        expect(screen.getByTestId('menu-item-common.merchant')).toHaveTextContent('editable');
+        expect(screen.getByRole('button', {name: fieldLabel('common.merchant')})).toBeOnTheScreen();
         expect(screen.getByTestId(/^menu-item-iou\.amount/)).toHaveTextContent('editable');
 
         // When the user turns off Exchange rate in the report's column settings.
@@ -357,8 +357,7 @@ describe('MoneyRequestView edit fields', () => {
         });
 
         await waitFor(() => {
-            expect(screen.getByTestId('menu-item-common.merchant')).toBeOnTheScreen();
-            expect(screen.getByTestId('menu-item-common.merchant')).toHaveTextContent('editable');
+            expect(screen.getByRole('button', {name: fieldLabel('common.merchant')})).toBeOnTheScreen();
         });
     });
 
@@ -389,6 +388,32 @@ describe('MoneyRequestView edit fields', () => {
         });
     });
 
+    it.each([false, true])('omits a tag list without tags while preserving an enabled sibling: %p', async (hasEnabledSibling) => {
+        // Given an editable, untagged expense and an empty list in the shape returned by the API.
+        const threadReport = {...LHNTestUtils.getFakeReport(), parentReportID: expenseReportID, parentReportActionID};
+        await setupTestData();
+        const tagLists = createMock<PolicyTagLists>({
+            Empty: {name: 'Empty', orderWeight: 0, required: false},
+            ...(hasEnabledSibling ? {Location: {name: 'Location', orderWeight: 1, required: false, tags: {Berlin: {name: 'Berlin', enabled: true}}}} : {}),
+        });
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, tagLists);
+        });
+
+        // When the preview computes tag rows, including independent levels with no selected value.
+        renderMoneyRequestView(threadReport, {areTagsEnabled: true, hasMultipleTagLists: hasEnabledSibling});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the preview renders without the empty row and retains any editable sibling at its original level.
+        expect(screen.getByTestId(/^menu-item-iou\.amount/)).toHaveTextContent('editable');
+        expect(screen.queryByTestId('menu-item-Empty')).not.toBeOnTheScreen();
+        if (hasEnabledSibling) {
+            expect(screen.getByTestId('menu-item-Location')).toHaveTextContent('editable');
+        } else {
+            expect(screen.queryByTestId('menu-item-Location')).not.toBeOnTheScreen();
+        }
+    });
+
     it('preserves word wrapping when expense detail labels are made non-selectable', async () => {
         // Given an expense with all labels affected by the non-selectable text styling
         const threadReport = {
@@ -416,7 +441,6 @@ describe('MoneyRequestView edit fields', () => {
                 renderedRows.find(({description}) => description === longTagName),
                 renderedRows.find(({description}) => description?.startsWith('iou.amount')),
                 renderedRows.find(({description}) => description === 'common.description'),
-                renderedRows.find(({description}) => description === 'common.merchant'),
                 renderedRows.find(({description}) => description === 'common.report'),
             ];
 
@@ -474,7 +498,7 @@ describe('MoneyRequestView edit fields', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(screen.getByTestId('menu-item-common.merchant')).toBeOnTheScreen();
+            expect(screen.getByLabelText(fieldLabel('common.merchant'))).toBeOnTheScreen();
         });
         expect(screen.queryByLabelText(fieldLabel('common.category'))).not.toBeOnTheScreen();
         expect(screen.queryByTestId('menu-item-Location')).not.toBeOnTheScreen();
@@ -660,8 +684,8 @@ describe('MoneyRequestView edit fields', () => {
         });
 
         await waitFor(() => {
-            expect(screen.getByTestId('menu-item-common.merchant')).toBeOnTheScreen();
-            expect(screen.getByTestId('menu-item-common.merchant')).toHaveTextContent('readonly');
+            expect(screen.getByLabelText(fieldLabel('common.merchant'))).toBeOnTheScreen();
+            expect(screen.queryByRole('button', {name: fieldLabel('common.merchant')})).toBeNull();
         });
     });
 
@@ -699,7 +723,7 @@ describe('MoneyRequestView edit fields', () => {
 
         await waitFor(() => {
             expect(screen.getByTestId(/^menu-item-iou\.amount/)).toHaveTextContent('editable');
-            expect(screen.getByTestId('menu-item-common.merchant')).toHaveTextContent('editable');
+            expect(screen.getByRole('button', {name: fieldLabel('common.merchant')})).toBeOnTheScreen();
             expect(screen.getByRole('button', {name: fieldLabel('common.date')})).toBeOnTheScreen();
         });
     });
@@ -740,7 +764,8 @@ describe('MoneyRequestView edit fields', () => {
 
         await waitFor(() => {
             expect(screen.getByTestId(/^menu-item-iou\.amount/)).toHaveTextContent('readonly');
-            expect(screen.getByTestId('menu-item-common.merchant')).toHaveTextContent('readonly');
+            expect(screen.getByLabelText(fieldLabel('common.merchant'))).toBeOnTheScreen();
+            expect(screen.queryByRole('button', {name: fieldLabel('common.merchant')})).toBeNull();
             expect(screen.getByLabelText(fieldLabel('common.date'))).toBeOnTheScreen();
             expect(screen.queryByRole('button', {name: fieldLabel('common.date')})).not.toBeOnTheScreen();
         });

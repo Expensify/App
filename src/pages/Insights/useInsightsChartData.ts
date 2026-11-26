@@ -1,6 +1,7 @@
 import VictoryTheme from '@components/Charts/VictoryTheme';
 import type {ChartComparison} from '@components/Search/buildChartSeries';
 import CHART_GROUP_BY_CONFIG from '@components/Search/chartGroupByConfig';
+import {getAverageDuration} from '@components/Search/chartMetricValue';
 import useGroupedItems from '@components/Search/hooks/useGroupedItems';
 import type {GroupedItem} from '@components/Search/types';
 
@@ -36,6 +37,15 @@ type InsightsChartData = {
 };
 
 const BLOCKING_STATES = new Set<InsightsChartState>([INSIGHTS_CHART_STATE.LOADING, INSIGHTS_CHART_STATE.ERROR, INSIGHTS_CHART_STATE.OFFLINE]);
+
+/** Returns the mean of the groups' average durations, leaving out groups with no duration */
+function getMeanDuration(data: GroupedItem[]): number | undefined {
+    const durations = data.flatMap((item) => {
+        const duration = getAverageDuration(item);
+        return duration === undefined ? [] : [duration];
+    });
+    return durations.length > 0 ? durations.reduce((sum, duration) => sum + duration, 0) / durations.length : undefined;
+}
 
 /** Resolves a chart's rows, and what it is compared against when the page compares. */
 function useInsightsChartData(dashboardChart: InsightsDashboardChart, filters: InsightsFilters): InsightsChartData {
@@ -86,11 +96,13 @@ function useInsightsChartData(dashboardChart: InsightsDashboardChart, filters: I
             if (!isDashboardLoaded) {
                 return {data: current.data, state: isOffline ? INSIGHTS_CHART_STATE.OFFLINE : INSIGHTS_CHART_STATE.LOADING};
             }
+            // The stage chart averages the stages it shows, so the line follows the stages the workspaces in scope have enabled
+            const chartAverage = chart.groupBy === CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE ? {[CONST.SEARCH.CHART_METRIC.DURATION]: getMeanDuration(current.data)} : average;
             // A stacked chart works its average out from its own buckets
-            if (!isStacked && average?.[chart.metric ?? CONST.SEARCH.CHART_METRIC.AMOUNT] === undefined) {
+            if (!isStacked && chartAverage?.[chart.metric ?? CONST.SEARCH.CHART_METRIC.AMOUNT] === undefined) {
                 return current;
             }
-            return {...current, comparison: average};
+            return {...current, comparison: chartAverage};
         }
         case CONST.SEARCH.COMPARE.PREVIOUS_PERIOD: {
             const periods = resolveComparisonPeriods(filters.date);

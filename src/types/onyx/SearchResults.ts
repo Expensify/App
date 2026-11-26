@@ -9,6 +9,7 @@ import type {
 import type {SearchFooterTotal, SearchGroupBy, SearchSortBy, SortOrder} from '@components/Search/types';
 
 import type CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
 
@@ -85,6 +86,9 @@ type SearchResultsInfo = {
      * failure. That verdict otherwise lives in component state, which a reload resets while the errored
      * snapshot survives, so without this a reload would offer a pointless Retry. */
     responseJsonCode?: number;
+
+    /** Client-only validation message key. Cleared when a new search starts so a previous failure cannot supply its message. */
+    errorTranslationKey?: TranslationPaths;
 
     /** The number of results */
     count?: number;
@@ -365,6 +369,24 @@ type SearchHandledByGroup = SearchGroupBase & {
     averageDuration: number | null;
 };
 
+/** Any group entry of a grouped search result */
+type SearchGroup =
+    | SearchMemberGroup
+    | SearchCardGroup
+    | SearchWithdrawalIDGroup
+    | SearchCategoryGroup
+    | SearchMerchantGroup
+    | SearchTagGroup
+    | SearchDayGroup
+    | SearchMonthGroup
+    | SearchWeekGroup
+    | SearchYearGroup
+    | SearchQuarterGroup
+    | SearchApproverGroup
+    | SearchViolationGroup
+    | SearchWorkflowStageGroup
+    | SearchHandledByGroup;
+
 /** Model of an expense in the search results */
 type SearchTransaction = Transaction & {
     /** Whether the expense was ever rejected, only returned when the Rejected column is shown or sorted by */
@@ -388,29 +410,15 @@ type SearchResultDataType = PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTIO
     PrefixedRecord<typeof ONYXKEYS.COLLECTION.POLICY, Policy> &
     PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, TransactionViolation[]> &
     PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs> &
-    PrefixedRecord<
-        typeof CONST.SEARCH.GROUP_PREFIX,
-        | SearchMemberGroup
-        | SearchCardGroup
-        | SearchWithdrawalIDGroup
-        | SearchCategoryGroup
-        | SearchMerchantGroup
-        | SearchTagGroup
-        | SearchDayGroup
-        | SearchMonthGroup
-        | SearchWeekGroup
-        | SearchYearGroup
-        | SearchQuarterGroup
-        | SearchApproverGroup
-        | SearchViolationGroup
-        | SearchWorkflowStageGroup
-        | SearchHandledByGroup
-    >;
+    PrefixedRecord<typeof CONST.SEARCH.GROUP_PREFIX, SearchGroup>;
 
 /** Model of search results */
 type SearchResults = {
     search: SearchResultsInfo;
     data: SearchResultDataType;
+
+    /** Keys of the results in `data`, in the order the server sorted them */
+    orderedKeys?: string[];
 
     /** Whether search data is being fetched from server */
     isLoading?: boolean;
@@ -432,6 +440,7 @@ export type {
     SearchResultsInfo,
     SearchResultDataType,
     SearchGroupBase,
+    SearchGroup,
     SearchMemberGroup,
     SearchCardGroup,
     SearchWithdrawalIDGroup,

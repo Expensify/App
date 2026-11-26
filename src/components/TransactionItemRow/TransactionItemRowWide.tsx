@@ -66,6 +66,7 @@ import type {TransactionItemRowProps, TransactionItemRowRBRDeferControlProps, Tr
 
 import CategoryCell from './DataCells/CategoryCell';
 import CategoryGLCodeCell from './DataCells/CategoryGLCodeCell';
+import ConvertedAmountCell from './DataCells/ConvertedAmountCell';
 import DeferredChatBubbleCell from './DataCells/DeferredChatBubbleCell';
 import MerchantOrDescriptionCell from './DataCells/MerchantCell';
 import ReceiptCell from './DataCells/ReceiptCell';
@@ -182,6 +183,7 @@ function TransactionItemRowWide({
     const session = useSession();
     const isOwnExpense = isExpenseUnreported(transactionItem) || isCurrentUserSubmitter(transactionItem.report ?? report, session?.accountID);
     const categoryOwnerAccountID = isOwnExpense ? session?.accountID : undefined;
+    const categorySubmitterAccountID = isOwnExpense ? undefined : (transactionItem.report ?? report)?.ownerAccountID;
     const submitterUserID = reportForCustomColumns?.submitterUserID;
     const submitterPayrollID = reportForCustomColumns?.submitterPayrollID;
     const orderDealNumbers = reportForCustomColumns?.orderDealNumbers;
@@ -252,7 +254,7 @@ function TransactionItemRowWide({
                         key={column}
                         style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS)]}
                     >
-                        <TextCell text={getViolationsForTransaction(reportActions, transactionItem.transactionID, hasFilterValues, translate)} />
+                        <TextCell text={transactionItem.formattedViolations ?? getViolationsForTransaction(reportActions, transactionItem.transactionID, hasFilterValues, translate)} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE:
@@ -370,6 +372,7 @@ function TransactionItemRowWide({
                             onSave={onEditCategory}
                             policyID={effectivePolicyID}
                             ownerAccountID={categoryOwnerAccountID}
+                            submitterAccountID={categorySubmitterAccountID}
                         />
                     </View>
                 );
@@ -387,6 +390,7 @@ function TransactionItemRowWide({
                             policyID={effectivePolicyID}
                             policyCategories={policyCategories}
                             ownerAccountID={categoryOwnerAccountID}
+                            submitterAccountID={categorySubmitterAccountID}
                         />
                     </View>
                 );
@@ -585,6 +589,19 @@ function TransactionItemRowWide({
                         />
                     </View>
                 );
+            case CONST.SEARCH.TABLE_COLUMNS.CONVERTED_AMOUNT:
+                return (
+                    <View
+                        key={column}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CONVERTED_AMOUNT, {isAmountColumnWide, shouldRemoveTotalColumnFlex})]}
+                    >
+                        <ConvertedAmountCell
+                            transactionItem={transactionItem}
+                            report={report}
+                            policy={policy}
+                        />
+                    </View>
+                );
             case CONST.SEARCH.TABLE_COLUMNS.REPORT_ID:
                 return (
                     <View
@@ -601,6 +618,15 @@ function TransactionItemRowWide({
                         style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID)]}
                     >
                         <TextCell text={transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? '' : getBase62ReportID(Number(transactionItem.reportID))} />
+                    </View>
+                );
+            case CONST.SEARCH.TABLE_COLUMNS.TRANSACTION_ID:
+                return (
+                    <View
+                        key={column}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TRANSACTION_ID)]}
+                    >
+                        <TextCell text={transactionItem.transactionID} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.TAX_RATE:

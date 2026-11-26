@@ -373,8 +373,10 @@ function filterOutRangesWithCorrectValue(
             return knownValues.exportedTo.has(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_ID:
             return !['', 'null', 'undefined', '0', '-1'].includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.CONVERTED_AMOUNT:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_DEBITED:
@@ -382,6 +384,8 @@ function filterOutRangesWithCorrectValue(
             // This uses the same regex as the AmountWithoutCurrencyInput component (allowing for 3 digit decimals as some currencies support that)
             return new RegExp(`^-?(?!.*[.,].*[.,])\\d{0,${CONST.IOU.AMOUNT_MAX_LENGTH}}(?:[.,]\\d{0,2})?$`).test(range.value);
         case CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS:
+        case CONST.SEARCH.SYNTAX_ROOT_KEYS.LEFT_PINNED_COLUMNS:
+        case CONST.SEARCH.SYNTAX_ROOT_KEYS.RIGHT_PINNED_COLUMNS:
             return userFriendlyColumnList.has(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.IS:
             return isList.includes(range.value);

@@ -5,8 +5,8 @@ import resolveVictoryChartType from '@components/HTMLEngineProvider/HTMLRenderer
 
 import type {TNode} from 'react-native-render-html';
 
-import {Skia} from '@shopify/react-native-skia';
-import {drawOffscreen, makeOffscreenSurface} from '@shopify/react-native-skia/lib/module/headless';
+import {Skia} from 'react-native-skia';
+import {drawOffscreen, makeOffscreenSurface} from 'react-native-skia/lib/module/headless';
 
 import type CanvasSize from './types/CanvasSize';
 

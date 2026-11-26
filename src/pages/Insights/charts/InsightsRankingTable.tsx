@@ -63,6 +63,9 @@ type InsightsRankingTableProps = {
 
     isLoading?: boolean;
 
+    /** Called with the pressed row's group. Without it, a pressed row opens on Spend */
+    onRowPress?: (item: GroupedItem) => void;
+
     /** Header of the group column, the group-by's name unless given */
     groupColumnTitle?: string;
 
@@ -93,6 +96,7 @@ function InsightsRankingTable({
     isComparingPreviousPeriod,
     queryJSON,
     isLoading,
+    onRowPress,
     groupColumnTitle,
     renderLabel,
     valueColumn,
@@ -153,6 +157,7 @@ function InsightsRankingTable({
                 groupBy={groupBy}
                 countDimension={countDimension}
                 queryJSON={queryJSON}
+                onPress={onRowPress}
                 label={renderLabel?.(row.item)}
                 valueColumn={shownValueColumn}
                 columnIndexes={columnIndexes}

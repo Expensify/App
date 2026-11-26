@@ -5,7 +5,6 @@ import compareOptionalValues from '@components/Table/compareOptionalValues';
 
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import tokenizedSearch from '@libs/tokenizedSearch';
 
@@ -29,7 +28,7 @@ type WorkspaceTaxesTableProps = {
     selectionEnabled: boolean;
     selectedKeys: string[];
 
-    /** Whether the workspace has tax codes worth a column. Narrow and medium layouts hide it regardless. */
+    /** Whether tax codes are available for sorting. Narrow and medium layouts hide the cells, but keep the sort option. */
     shouldShowTaxCodeColumn: boolean;
 
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
@@ -62,13 +61,9 @@ export default function WorkspaceTaxesTable({
     headerComponent,
     bulkActionOptions,
 }: WorkspaceTaxesTableProps) {
-    const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
-
-    // Narrow and medium layouts collapse the columns into a card that has nowhere to put the code.
-    const shouldShowTaxCodeCell = !shouldUseNarrowTableLayout && shouldShowTaxCodeColumn;
 
     const taxTableColumns: Array<TableColumn<WorkspaceTaxTableColumnKey, WorkspaceTaxTableRowData>> = [
         {
@@ -94,7 +89,7 @@ export default function WorkspaceTaxesTable({
                 shouldFitContent: true,
             },
         },
-        ...(shouldShowTaxCodeCell
+        ...(shouldShowTaxCodeColumn
             ? [
                   {
                       key: 'taxCode' as const,
@@ -112,7 +107,7 @@ export default function WorkspaceTaxesTable({
             sortable: true,
             width: variables.tableSwitchColumnWidth,
             styling: {
-                containerStyles: [styles.justifyContentEnd],
+                alignment: CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.END,
             },
         },
         {
@@ -173,7 +168,6 @@ export default function WorkspaceTaxesTable({
             columnResizingID={CONST.TABLES.COLUMN_RESIZING_IDS.WORKSPACE_TAXES}
             data={taxes}
             initialSortColumn="name"
-            narrowLayoutSortColumn="name"
             selectionEnabled={selectionEnabled}
             title={translate('workspace.common.taxes')}
             columns={taxTableColumns}

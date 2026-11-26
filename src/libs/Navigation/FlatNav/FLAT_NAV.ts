@@ -6,6 +6,12 @@ const FLAT_NAV = {
         TRAVEL: 'travel',
         SAVED: 'saved',
     },
+    SUBNAV_GROUP: {
+        EXPENSE_REPORTS: 'expenseReports',
+        ACCOUNTING: 'accounting',
+        TRAVEL: 'travel',
+        SAVED: 'saved',
+    },
     ITEM_TYPE: {
         CANNED_SEARCH: 'cannedSearch',
         SAVED_SEARCH: 'savedSearch',

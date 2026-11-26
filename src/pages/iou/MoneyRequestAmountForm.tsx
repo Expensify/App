@@ -52,7 +52,7 @@ type MoneyRequestAmountFormProps = Omit<MoneyRequestAmountInputProps, 'shouldSho
     policyID?: string;
 
     /** Fired when submit button pressed, saves the given amount and navigates to the next page */
-    onSubmitButtonPress: (currentMoney: CurrentMoney) => void;
+    onSubmitButtonPress: (currentMoney: CurrentMoney) => void | Promise<void>;
 
     /** Fired when the visible amount sign differs from its initial value */
     onSignDirtyChange?: (isSignDirty: boolean) => void;

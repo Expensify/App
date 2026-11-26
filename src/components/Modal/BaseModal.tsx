@@ -186,9 +186,15 @@ function BaseModal({
         };
     }, [isVisible, wasVisible, onClose, type, isModalCovering, handleDismissModal, coveringModalID]);
 
+    const hideModalOnUnmount = (callHideCallback: boolean) => {
+        // Unmounting while visible skips the dismiss effect, so resolve the ready-to-focus promise here or delayed composer focus waits on it forever.
+        handleDismissModal();
+        hideModal(callHideCallback);
+    };
+
     useEffect(() => {
-        hideModalCallbackRef.current = hideModal;
-    }, [hideModal]);
+        hideModalCallbackRef.current = hideModalOnUnmount;
+    }, [hideModalOnUnmount]);
 
     useEffect(() => {
         isVisibleRef.current = isVisible;

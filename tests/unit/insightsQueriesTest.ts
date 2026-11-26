@@ -1,13 +1,19 @@
 import type {SearchCompareMode} from '@components/Search/types';
 
-import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, buildSearchQueryString, getFilterFromQuery} from '@libs/SearchQueryUtils';
 import {isSearchDataLoaded} from '@libs/SearchUIUtils';
 
 import INSIGHTS_DASHBOARD_SPECS from '@pages/Insights/dashboardSpecs';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
 import {INSIGHTS_RUNNING_TOTAL_GROUP_BY} from '@pages/Insights/insightsFilters';
 import type {InsightsQuery} from '@pages/Insights/insightsQueries';
-import buildInsightsJsonQuery, {applyInsightsFilters, buildFutureExpensesQueryString, buildInsightsQueryString, buildTopExpensesQueryJSON} from '@pages/Insights/insightsQueries';
+import buildInsightsJsonQuery, {
+    applyInsightsFilters,
+    buildFutureExpensesQueryString,
+    buildInsightsQueryString,
+    buildTopExpensesQueryJSON,
+    scopeInsightsDrillDownQuery,
+} from '@pages/Insights/insightsQueries';
 
 import CONST from '@src/CONST';
 import type SearchResults from '@src/types/onyx/SearchResults';
@@ -56,7 +62,10 @@ function parsePayload(request: InsightsQuery | undefined): InsightsPayload | und
 function buildExpectedHashes(filters: InsightsFilters) {
     return Object.fromEntries(
         [SPEND_SPEC.headlineChart, ...SPEND_SPEC.supportingCharts].map((chart) => {
-            const getHashOf = (compare?: SearchCompareMode) => buildSearchQueryJSON(applyInsightsFilters(chart, filters, compare))?.hash;
+            const getHashOf = (compare?: SearchCompareMode) => {
+                const hash = buildSearchQueryJSON(applyInsightsFilters(chart, filters, compare))?.hash;
+                return hash !== undefined && chart.graphKey === CONST.INSIGHTS.GRAPH.TOP_SPENDERS ? -1 - hash : hash;
+            };
             return [
                 chart.graphKey,
                 {snapshotHash: getHashOf(), previousPeriodSnapshotHash: getHashOf(CONST.SEARCH.COMPARE.PREVIOUS_PERIOD), averageSnapshotHash: getHashOf(CONST.SEARCH.COMPARE.AVERAGE)},
@@ -67,6 +76,25 @@ function buildExpectedHashes(filters: InsightsFilters) {
 
 describe('insightsQueries', () => {
     describe('buildInsightsJsonQuery', () => {
+        it('keeps every Top spenders snapshot separate from ordinary Search', () => {
+            // Given a Top spenders chart with a matching grouped Search query
+            const [chart] = SPEND_SPEC.supportingCharts;
+            const searchHashes = [undefined, CONST.SEARCH.COMPARE.PREVIOUS_PERIOD, CONST.SEARCH.COMPARE.AVERAGE].map(
+                (compare) => buildSearchQueryJSON(applyInsightsFilters(chart, FILTERS, compare))?.hash,
+            );
+
+            // When Insights requests its ranking and comparisons
+            const request = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, FILTERS, [chart]);
+            const snapshotHashes = Object.values(parsePayload(request)?.insightsHashes.topSpenders ?? {});
+
+            // Then only GetInsights can fill those snapshots, even if Search ran the same queries
+            expect(snapshotHashes).toHaveLength(3);
+            expect(new Set(snapshotHashes).size).toBe(3);
+            for (const hash of snapshotHashes) {
+                expect(searchHashes).not.toContain(hash);
+            }
+        });
+
         it('builds one request covering every chart on the dashboard', () => {
             // Given the spend dashboard, grouped by month
             const filters: InsightsFilters = {...FILTERS, groupBy: CONST.SEARCH.GROUP_BY.MONTH};
@@ -735,5 +763,32 @@ describe('insightsQueries', () => {
             expect(queryJSON?.limit).toBe(10);
             expect(queryJSON?.flatFilters).toEqual(buildSearchQueryJSON(query)?.flatFilters);
         });
+    });
+});
+
+describe('scopeInsightsDrillDownQuery', () => {
+    it('replaces the workspace selection and preserves the spender and date filters', () => {
+        // Given a Top spender with expenses in two selected workspaces
+        const query = buildSearchQueryJSON('type:expense from:123 date:this-month policyID:A1,B2');
+
+        // When Auth returns the one eligible workspace for a drill-down
+        const scoped = scopeInsightsDrillDownQuery(query, CONST.INSIGHTS.GRAPH.TOP_SPENDERS, ['A1']);
+
+        // Then Search only sees the eligible workspace and keeps the original spender and date filters
+        expect(getFilterFromQuery(scoped, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID).value).toEqual(['A1']);
+        expect(getFilterFromQuery(scoped, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM).value).toEqual(['123']);
+        expect(scoped?.inputQuery).toContain('date:this-month');
+    });
+
+    it('does not offer a Top spenders drill-down without an eligible workspace', () => {
+        // Given a query with no workspace selected
+        const query = buildSearchQueryJSON('type:expense group-by:from date:this-month');
+
+        // When Auth has not returned eligible workspaces or returns an empty list
+        const scope = (ids: string[] | undefined) => scopeInsightsDrillDownQuery(query, CONST.INSIGHTS.GRAPH.TOP_SPENDERS, ids);
+
+        // Then neither case falls back to an unfiltered Search
+        expect(scope(undefined)).toBeUndefined();
+        expect(scope([])).toBeUndefined();
     });
 });

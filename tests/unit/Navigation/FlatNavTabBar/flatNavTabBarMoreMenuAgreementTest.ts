@@ -1,7 +1,7 @@
 import TAB_SCREENS from '@libs/Navigation/AppNavigator/Navigators/TAB_SCREENS';
 import FLAT_NAV from '@libs/Navigation/FlatNav/FLAT_NAV';
 import {FLAT_NAV_SECTION_DEFINITIONS, getActiveFlatNavItem} from '@libs/Navigation/FlatNav/FlatNavUtils';
-import type {FlatNavSection, FlatNavSectionID} from '@libs/Navigation/FlatNav/types';
+import type {FlatNavSavedSearchItem, FlatNavSection, FlatNavSectionID} from '@libs/Navigation/FlatNav/types';
 import FLAT_NAV_TAB_BAR_SLOT from '@libs/Navigation/FlatNavTabBar/FLAT_NAV_TAB_BAR_SLOT';
 import getFlatNavTabBarSlot from '@libs/Navigation/FlatNavTabBar/getFlatNavTabBarSlot';
 import getMoreMenuItems from '@libs/Navigation/MoreMenu/getMoreMenuItems';
@@ -11,8 +11,29 @@ import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 
+/** The More menu lists a section only when it has a search to open, and any item that can be opened will do here. */
+function createSavedSearchItem(overrides: Partial<FlatNavSavedSearchItem> = {}): FlatNavSavedSearchItem {
+    return {
+        type: FLAT_NAV.ITEM_TYPE.SAVED_SEARCH,
+        key: savedSearchIDToSearchKey('1'),
+        sectionID: FLAT_NAV.SECTION.SAVED,
+        savedSearchID: '1',
+        name: 'Saved 1',
+        title: 'Saved 1',
+        query: 'type:expense',
+        iconName: 'Bookmark',
+        isDisabled: false,
+        ...overrides,
+    };
+}
+
 function createSections(hiddenIDs: FlatNavSectionID[]): FlatNavSection[] {
-    return FLAT_NAV_SECTION_DEFINITIONS.filter((definition) => !hiddenIDs.includes(definition.id)).map(({id, translationPath, iconName}) => ({id, translationPath, iconName, items: []}));
+    return FLAT_NAV_SECTION_DEFINITIONS.filter((definition) => !hiddenIDs.includes(definition.id)).map(({id, translationPath, iconName}) => ({
+        id,
+        translationPath,
+        iconName,
+        items: [createSavedSearchItem()],
+    }));
 }
 
 const VISIBILITY_CASES: Array<[string, FlatNavSection[]]> = [
@@ -59,6 +80,24 @@ describe('flat nav tab bar slot and More menu', () => {
         const activeItems = getMoreMenuItems({...focus, sections}).filter((item) => item.isActive);
 
         // Then More is highlighted while its menu has no active entry, since the menu does not list Accounting
+        expect(slot).toBe(FLAT_NAV_TAB_BAR_SLOT.MORE);
+        expect(activeItems).toEqual([]);
+    });
+
+    it('should highlight More with no active entry for a saved search while every saved search is pending delete', () => {
+        // Given an offline user on a saved search whose saved searches are all pending delete, so the Saved section is
+        // still visible but has no search to open
+        const sections = createSections([]).map((section) => (section.id === FLAT_NAV.SECTION.SAVED ? {...section, items: [createSavedSearchItem({isDisabled: true})]} : section));
+        const focus = {
+            focusedTabRouteName: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
+            activeFlatNavSectionID: getActiveFlatNavItem(sections, savedSearchIDToSearchKey('1'))?.sectionID,
+        };
+
+        // When the slot and the More entries are built
+        const slot = getFlatNavTabBarSlot(focus);
+        const activeItems = getMoreMenuItems({...focus, sections}).filter((item) => item.isActive);
+
+        // Then More is highlighted while its menu has no active entry, since the menu leaves out a Saved row that would open nothing
         expect(slot).toBe(FLAT_NAV_TAB_BAR_SLOT.MORE);
         expect(activeItems).toEqual([]);
     });

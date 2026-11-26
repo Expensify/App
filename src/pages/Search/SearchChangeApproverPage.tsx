@@ -1,3 +1,4 @@
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -15,15 +16,23 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import useStrictPolicyRules from '@hooks/useStrictPolicyRules';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {assignReportToMe} from '@libs/actions/IOU/ReportWorkflow';
 import {openBulkChangeApproverPage} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {isControlPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import {hasViolations as hasViolationsReportUtils, isAllowedToApproveExpenseReport, isMoneyRequestReport, isMoneyRequestReportPendingDeletion, isProcessingReport} from '@libs/ReportUtils';
+import {hasDynamicExternalWorkflow, isControlPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {
+    canReassignAsApprover,
+    hasViolations as hasViolationsReportUtils,
+    isAllowedToApproveExpenseReport,
+    isMoneyRequestReport,
+    isMoneyRequestReportPendingDeletion,
+    isProcessingReport,
+} from '@libs/ReportUtils';
 
-import {APPROVER_TYPE} from '@pages/DynamicReportChangeApproverPage';
+import {APPROVER_TYPE, getSelectedApproverType} from '@pages/DynamicReportChangeApproverPage';
 import type {ApproverType} from '@pages/DynamicReportChangeApproverPage';
 
 import CONST from '@src/CONST';
@@ -31,7 +40,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report} from '@src/types/onyx';
 
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
@@ -39,11 +48,20 @@ import {View} from 'react-native';
 
 type SelectedReportRef = {reportID: string | undefined; policyID?: string};
 
+function areAllSelectedPoliciesLoaded(selectedReports: SelectedReportRef[], allPolicies: OnyxCollection<Policy>): boolean {
+    return selectedReports.every((selectedReport) => !!selectedReport.policyID && !!allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`]);
+}
+
+function areAllSelectedReportsLoaded(selectedReports: SelectedReportRef[], onyxReports: Record<string, Report> | undefined): boolean {
+    return selectedReports.every((selectedReport) => !!selectedReport.reportID && !!onyxReports?.[selectedReport.reportID]);
+}
+
+export {areAllSelectedPoliciesLoaded, areAllSelectedReportsLoaded};
+
 /**
- * Decides whether the bulk change-approver page should auto-apply the only
- * available approver option. Mirrors the single-report flow, but guards the
- * decision until all selected reports are actually loaded in Onyx — otherwise
- * the permission check that drives `approverTypes` can report a stale value.
+ * Decides whether the bulk change-approver page should open the only available Add or Reassign option without a
+ * confirmation. It waits until every selected report is in Onyx, because the permission checks that build
+ * `approverTypes` can report a stale value before then.
  */
 function shouldAutoApplyApprover({
     isLoadingBulkChangeApproverPage,
@@ -64,17 +82,77 @@ function shouldAutoApplyApprover({
         return false;
     }
 
-    const allReportsLoaded = selectedReports.every((selectedReport) => selectedReport.reportID && onyxReports?.[selectedReport.reportID]);
-    if (!allReportsLoaded) {
+    if (!areAllSelectedReportsLoaded(selectedReports, onyxReports)) {
         return false;
     }
 
-    return approverTypes.length === 1 && selectedApproverType === approverTypes.at(0)?.keyForList;
+    // Add and Reassign only open the next page, but Bypass approves every selected report, so it always waits for the confirm button.
+    const onlyApproverType = approverTypes.at(0)?.keyForList;
+    return approverTypes.length === 1 && selectedApproverType === onlyApproverType && onlyApproverType !== APPROVER_TYPE.BYPASS_APPROVER;
 }
 
 export {shouldAutoApplyApprover};
 
+/**
+ * Whether a selected report can still have its approver changed: its workspace is loaded, not pending deletion, and not on
+ * a dynamic external workflow, and the report is an expense report that awaits approval. Callers add their own permission checks.
+ */
+function isReportEligibleForApproverChange(policy: OnyxEntry<Policy>, report: OnyxEntry<Report>): policy is Policy {
+    return (
+        !!policy &&
+        !!report &&
+        !isPendingDeletePolicy(policy) &&
+        !hasDynamicExternalWorkflow(policy) &&
+        isMoneyRequestReport(report) &&
+        !isMoneyRequestReportPendingDeletion(report) &&
+        isProcessingReport(report)
+    );
+}
+
 function canReassignAllReports({
+    selectedReports,
+    onyxReports,
+    allPolicies,
+    currentUserAccountID,
+    areStrictPolicyRulesEnabled,
+    isLoadingSecurityGroup,
+}: {
+    selectedReports: SelectedReportRef[];
+    onyxReports: Record<string, Report> | undefined;
+    allPolicies: OnyxCollection<Policy>;
+    currentUserAccountID: number;
+    areStrictPolicyRulesEnabled: boolean;
+    isLoadingSecurityGroup: boolean;
+}): boolean {
+    return (
+        selectedReports.length > 0 &&
+        selectedReports.every((selectedReport) => {
+            const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
+            const report = selectedReport.reportID ? onyxReports?.[selectedReport.reportID] : undefined;
+            if (!isReportEligibleForApproverChange(policy, report)) {
+                return false;
+            }
+
+            const isApprovalEnabled = !!policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+            const canReassignReportAsApprover = canReassignAsApprover({
+                report,
+                currentUserAccountID,
+                isLoadingSecurityGroup,
+                areStrictPolicyRulesEnabled,
+            });
+
+            return (isPolicyAdmin(policy) || canReassignReportAsApprover) && isApprovalEnabled;
+        })
+    );
+}
+
+export {canReassignAllReports};
+
+/**
+ * Whether the current user can add an approver to every selected report: they must be an admin of each workspace, no
+ * workspace can use a dynamic external workflow, and every report must still be awaiting approval.
+ */
+function canAddApproverToAllReports({
     selectedReports,
     onyxReports,
     allPolicies,
@@ -88,23 +166,13 @@ function canReassignAllReports({
         selectedReports.every((selectedReport) => {
             const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
             const report = selectedReport.reportID ? onyxReports?.[selectedReport.reportID] : undefined;
-            const isApprovalEnabled = !!policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
 
-            return (
-                !!policy &&
-                !!report &&
-                isPolicyAdmin(policy) &&
-                !isPendingDeletePolicy(policy) &&
-                isMoneyRequestReport(report) &&
-                !isMoneyRequestReportPendingDeletion(report) &&
-                isProcessingReport(report) &&
-                isApprovalEnabled
-            );
+            return isReportEligibleForApproverChange(policy, report) && isPolicyAdmin(policy);
         })
     );
 }
 
-export {canReassignAllReports};
+export {canAddApproverToAllReports};
 
 function SearchChangeApproverPage() {
     const {translate, formatPhoneNumber} = useLocalize();
@@ -113,6 +181,7 @@ function SearchChangeApproverPage() {
     const currentUserDetails = useCurrentUserPersonalDetails();
     const [selectedApproverType, setSelectedApproverType] = useState<ApproverType>(APPROVER_TYPE.ADD_APPROVER);
     const {isBetaEnabled} = usePermissions();
+    const {areStrictPolicyRulesEnabled, isLoadingSecurityGroup} = useStrictPolicyRules();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -172,10 +241,93 @@ function SearchChangeApproverPage() {
         return Array.from(policies.values());
     };
     const selectedPolicies = getSelectedPolicies();
-    const areSelectedPoliciesLoaded = selectedReports.every((selectedReport) => !!allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`]);
+    const hasAdminPermission = selectedReports.every((selectedReport) => {
+        const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
+        return !!policy && isPolicyAdmin(policy) && !isPendingDeletePolicy(policy);
+    });
+    const areSelectedPoliciesLoadedForSelection = areAllSelectedPoliciesLoaded(selectedReports, allPolicies);
+    const areSelectedReportsLoaded = areAllSelectedReportsLoaded(selectedReports, onyxReports);
+    const hasSelectedDEWEnabledPolicy = selectedPolicies.some((policy) => hasDynamicExternalWorkflow(policy));
+
+    // The loading flag can still be false from an earlier visit until the request for this selection starts, so missing
+    // reports or policies keep the spinner until the flag has turned on. The request is sent again whenever the number of
+    // selected reports changes, so that number identifies the selection here too. State is adjusted during render so the
+    // first frame already shows the spinner.
+    const [loadingSelectionCount, setLoadingSelectionCount] = useState<number>();
+    if (isLoadingBulkChangeApproverPage && loadingSelectionCount !== selectedReports.length) {
+        setLoadingSelectionCount(selectedReports.length);
+    }
+    const hasStartedLoadingSelection = loadingSelectionCount === selectedReports.length;
+    const isWaitingForSelection = isLoadingBulkChangeApproverPage || (!hasStartedLoadingSelection && (!areSelectedPoliciesLoadedForSelection || !areSelectedReportsLoaded));
+
+    const getApproverTypes = () => {
+        const data: Array<ListItem<ApproverType>> = [];
+
+        if (!areSelectedPoliciesLoadedForSelection) {
+            return data;
+        }
+
+        if (canAddApproverToAllReports({selectedReports, onyxReports, allPolicies})) {
+            data.push({
+                text: translate('iou.changeApprover.actions.addApprover'),
+                keyForList: APPROVER_TYPE.ADD_APPROVER,
+                alternateText: translate('iou.changeApprover.actions.addApproverSubtitle'),
+                isSelected: false,
+            });
+        }
+
+        const canReassign = canReassignAllReports({
+            selectedReports,
+            onyxReports,
+            allPolicies,
+            currentUserAccountID: currentUserDetails.accountID,
+            areStrictPolicyRulesEnabled,
+            isLoadingSecurityGroup,
+        });
+
+        const isAllowedToBypassApprovers =
+            hasAdminPermission &&
+            selectedReports.every((selectedReport) => {
+                const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
+                const report = selectedReport.reportID ? onyxReports?.[selectedReport.reportID] : undefined;
+
+                return !!policy && !!report && isAllowedToApproveExpenseReport(report, currentUserDetails.accountID, policy);
+            });
+
+        if (isAllowedToBypassApprovers) {
+            data.push({
+                text: translate('iou.changeApprover.actions.bypassApprovers'),
+                keyForList: APPROVER_TYPE.BYPASS_APPROVER,
+                alternateText: translate('iou.changeApprover.actions.bypassApproversSubtitle'),
+                isSelected: false,
+            });
+        }
+
+        if (canReassign && !hasSelectedDEWEnabledPolicy) {
+            data.push({
+                text: translate('iou.changeApprover.actions.reassignApprover'),
+                keyForList: APPROVER_TYPE.REASSIGN_APPROVER,
+                alternateText: translate('iou.changeApprover.actions.reassignApproverSubtitle'),
+                isSelected: false,
+            });
+        }
+
+        const activeApproverType = getSelectedApproverType({approverTypes: data, selectedApproverType});
+        return data.map((item) => ({...item, isSelected: item.keyForList === activeApproverType}));
+    };
+    const approverTypes = getApproverTypes();
+    // Keep this selection inline so React Compiler preserves caching for selectedPolicies and approverTypes.
+    const activeApproverType = approverTypes.some(({keyForList}) => keyForList === selectedApproverType)
+        ? selectedApproverType
+        : approverTypes.find(({keyForList}) => keyForList !== APPROVER_TYPE.BYPASS_APPROVER)?.keyForList;
 
     const changeApprover = () => {
-        if (selectedApproverType === APPROVER_TYPE.ADD_APPROVER) {
+        // Nothing is selected when the menu is empty or only offers Bypass, which the user must pick themselves.
+        if (!activeApproverType) {
+            return;
+        }
+
+        if (activeApproverType === APPROVER_TYPE.ADD_APPROVER) {
             const policiesToUpgrade = selectedPolicies.filter((policy) => !isControlPolicy(policy));
             if (policiesToUpgrade.length > 1) {
                 // Bulk upgrade is not supported, so show a general page to guide the user to upgrade manually
@@ -200,7 +352,7 @@ function SearchChangeApproverPage() {
             return;
         }
 
-        if (selectedApproverType === APPROVER_TYPE.REASSIGN_APPROVER) {
+        if (activeApproverType === APPROVER_TYPE.REASSIGN_APPROVER) {
             Navigation.navigate(ROUTES.CHANGE_APPROVER_REASSIGN_APPROVER_SEARCH_RHP);
             return;
         }
@@ -230,57 +382,15 @@ function SearchChangeApproverPage() {
         clearSelectedTransactions();
     };
 
-    const getApproverTypes = () => {
-        const data: Array<ListItem<ApproverType>> = [
-            {
-                text: translate('iou.changeApprover.actions.addApprover'),
-                keyForList: APPROVER_TYPE.ADD_APPROVER,
-                alternateText: translate('iou.changeApprover.actions.addApproverSubtitle'),
-                isSelected: selectedApproverType === APPROVER_TYPE.ADD_APPROVER,
-            },
-        ];
-
-        const hasAdminPermission = selectedReports.every((selectedReport) => {
-            const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
-            return !!policy && isPolicyAdmin(policy) && !isPendingDeletePolicy(policy);
-        });
-        const canReassign = canReassignAllReports({selectedReports, onyxReports, allPolicies});
-
-        const isAllowedToBypassApprovers =
-            hasAdminPermission &&
-            selectedReports.every((selectedReport) => {
-                const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
-                const report = selectedReport.reportID ? onyxReports?.[selectedReport.reportID] : undefined;
-
-                return !!policy && !!report && isAllowedToApproveExpenseReport(report, currentUserDetails.accountID, policy);
-            });
-
-        if (isAllowedToBypassApprovers) {
-            data.push({
-                text: translate('iou.changeApprover.actions.bypassApprovers'),
-                keyForList: APPROVER_TYPE.BYPASS_APPROVER,
-                alternateText: translate('iou.changeApprover.actions.bypassApproversSubtitle'),
-                isSelected: selectedApproverType === APPROVER_TYPE.BYPASS_APPROVER,
-            });
-        }
-
-        if (canReassign) {
-            data.push({
-                text: translate('iou.changeApprover.actions.reassignApprover'),
-                keyForList: APPROVER_TYPE.REASSIGN_APPROVER,
-                alternateText: translate('iou.changeApprover.actions.reassignApproverSubtitle'),
-                isSelected: selectedApproverType === APPROVER_TYPE.REASSIGN_APPROVER,
-            });
-        }
-
-        return data;
-    };
-    const approverTypes = getApproverTypes();
-
     // useLayoutEffect (not useEffect) so the RHP closes before the browser paints,
     // avoiding a single-frame flash of an empty list after reports are cleared.
     useLayoutEffect(() => {
-        if (selectedReports.length && approverTypes.at(0)) {
+        // An empty menu can mean permissions or reports are still loading, so wait before closing the flow. The loading
+        // flag can still be false from an earlier visit while this visit's reports are being fetched.
+        if (
+            selectedReports.length &&
+            (isLoadingBulkChangeApproverPage || !areSelectedPoliciesLoadedForSelection || !areSelectedReportsLoaded || (!hasAdminPermission && isLoadingSecurityGroup) || approverTypes.at(0))
+        ) {
             return;
         }
 
@@ -293,15 +403,15 @@ function SearchChangeApproverPage() {
         Navigation.setNavigationActionToMicrotaskQueue(() => {
             Navigation.closeRHPFlow();
         });
-    }, [approverTypes, selectedReports.length]);
+    }, [approverTypes, areSelectedPoliciesLoadedForSelection, areSelectedReportsLoaded, selectedReports.length, isLoadingBulkChangeApproverPage, hasAdminPermission, isLoadingSecurityGroup]);
 
     const shouldAutoApply = shouldAutoApplyApprover({
         isLoadingBulkChangeApproverPage,
         selectedReports,
         onyxReports,
         approverTypes,
-        selectedApproverType,
-        areSelectedPoliciesLoaded,
+        selectedApproverType: activeApproverType,
+        areSelectedPoliciesLoaded: areSelectedPoliciesLoadedForSelection,
     });
 
     useEffect(() => {
@@ -317,6 +427,7 @@ function SearchChangeApproverPage() {
         showButton: true,
         text: translate('iou.changeApprover.title'),
         onConfirm: changeApprover,
+        isDisabled: !activeApproverType,
     };
 
     const listHeader =
@@ -330,8 +441,8 @@ function SearchChangeApproverPage() {
             <Text style={[styles.ph5, styles.mb5]}>{translate('iou.changeApprover.bulkSubtitle')}</Text>
         );
 
-    if (!isOffline && isLoadingBulkChangeApproverPage) {
-        return <FullScreenLoadingIndicator />;
+    if (!isOffline && isWaitingForSelection) {
+        return <FullScreenLoadingIndicator shouldUseGoBackButton />;
     }
 
     return (
@@ -346,26 +457,32 @@ function SearchChangeApproverPage() {
                 title={translate('iou.changeApprover.title')}
                 onBackButtonPress={Navigation.goBack}
             />
-            {!!isLoadingBulkChangeApproverPage && !!isOffline ? (
+            {!!isOffline && (!!isLoadingBulkChangeApproverPage || !areSelectedPoliciesLoadedForSelection || !areSelectedReportsLoaded) ? (
                 <FullPageOfflineBlockingView>
                     <View />
                 </FullPageOfflineBlockingView>
             ) : (
-                <SelectionList
-                    data={approverTypes}
-                    ListItem={SingleSelectListItem}
-                    alternateNumberOfSupportedLines={2}
-                    onSelectRow={(option) => {
-                        if (!option.keyForList) {
-                            return;
-                        }
-                        setSelectedApproverType(option.keyForList);
-                    }}
-                    confirmButtonOptions={confirmButtonOptions}
-                    shouldUpdateFocusedIndex
-                    customListHeader={listHeader}
-                    initiallyFocusedItemKey={selectedApproverType}
-                />
+                <FullPageNotFoundView
+                    shouldShow={!areSelectedPoliciesLoadedForSelection || !areSelectedReportsLoaded}
+                    shouldShowBackButton={false}
+                    shouldShowLink={false}
+                >
+                    <SelectionList
+                        data={approverTypes}
+                        ListItem={SingleSelectListItem}
+                        alternateNumberOfSupportedLines={2}
+                        onSelectRow={(option) => {
+                            if (!option.keyForList) {
+                                return;
+                            }
+                            setSelectedApproverType(option.keyForList);
+                        }}
+                        confirmButtonOptions={confirmButtonOptions}
+                        shouldUpdateFocusedIndex
+                        customListHeader={listHeader}
+                        initiallyFocusedItemKey={activeApproverType}
+                    />
+                </FullPageNotFoundView>
             )}
         </ScreenWrapper>
     );

@@ -34,8 +34,8 @@ jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: (key: string) =
 // The terms label is HTML, whose renderer needs an engine this screen stack does not provide
 jest.mock('@components/RenderHTML', () => () => null);
 
-// The real picker opens a modal list that needs the app's currency list, so these tests get its row plus a button per currency they pick
-jest.mock('@components/CurrencyPicker', () => {
+// The real dropdown opens an anchored list that needs the app's currency list, so these tests get its row plus a button per currency they pick
+jest.mock('@components/DynamicForm/adapters/CurrencyDropdownAdapter', () => {
     const {Pressable, Text, View} = jest.requireActual<Record<string, React.ComponentType<Record<string, unknown>>>>('react-native');
     return ({label, disabled, onInputChange}: {label: string; disabled?: boolean; onInputChange?: (value: string) => void}) => (
         <View>
