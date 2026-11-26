@@ -12,7 +12,6 @@ import type {Policy} from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 
 import React from 'react';
-import {View as MockView} from 'react-native';
 
 import createRandomPolicy from '../utils/collections/policies';
 
@@ -68,15 +67,19 @@ jest.mock('@components/FixedFooter', () => ({
     default: ({children}: {children: React.ReactNode}) => children,
 }));
 jest.mock('@components/ConnectionOrbitAnimation', () => ({__esModule: true, default: () => null}));
-jest.mock('@components/Button/composed/ButtonDisabledWhenOffline', () => ({
-    __esModule: true,
-    default: ({sentryLabel, onPress}: {sentryLabel: string; onPress: () => void}) => (
-        <MockView
-            testID={sentryLabel}
-            onPress={onPress}
-        />
-    ),
-}));
+jest.mock('@components/Button/composed/ButtonDisabledWhenOffline', () => {
+    const {Pressable} = jest.requireActual<Record<string, React.ComponentType<{testID?: string; role?: string; onPress?: () => void}>>>('react-native');
+    function MockButtonDisabledWhenOffline({sentryLabel, onPress}: {sentryLabel: string; onPress: () => void}) {
+        return (
+            <Pressable
+                testID={sentryLabel}
+                role="button"
+                onPress={onPress}
+            />
+        );
+    }
+    return {__esModule: true, default: MockButtonDisabledWhenOffline};
+});
 
 // The real `withPolicyConnections` HOC reads `policy` from Onyx and takes `route` from the navigator. It is mocked to an
 // identity wrapper above, so the page under test takes both directly.
