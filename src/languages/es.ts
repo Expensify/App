@@ -11413,7 +11413,7 @@ ${reportName}`,
         refresh: 'Actualizar',
     },
     fileDownload: {
-        preparing: 'Descarga en curso...',
+        inProgress: 'Descarga en curso...',
         success: {
             title: '¡Descargado!',
             message: 'Archivo descargado correctamente',

@@ -1780,6 +1780,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 downloadAttachmentFile(translate, sourceURLWithAuth, getDownloadFileName(originalFileName ?? '', sourceURL ?? ''), undefined, isAnchorTag && isMobileSafari()).then(() =>
                     setDownload(sourceID, false),
                 );
+            // The mini menu (web) has no popover to close
             if (!closePopover) {
                 startDownload();
                 return;

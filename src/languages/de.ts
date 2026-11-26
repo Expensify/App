@@ -11531,7 +11531,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         refresh: 'Aktualisieren',
     },
     fileDownload: {
-        preparing: 'Download läuft...',
+        inProgress: 'Download läuft...',
         success: {
             title: 'Heruntergeladen!',
             message: 'Anhang erfolgreich heruntergeladen!',

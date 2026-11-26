@@ -11450,7 +11450,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         refresh: 'Vernieuwen',
     },
     fileDownload: {
-        preparing: 'Bezig met downloaden...',
+        inProgress: 'Bezig met downloaden...',
         success: {
             title: 'Gedownload!',
             message: 'Bijlage is gedownload!',

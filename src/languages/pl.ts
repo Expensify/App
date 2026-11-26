@@ -11493,7 +11493,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         refresh: 'Odśwież',
     },
     fileDownload: {
-        preparing: 'Trwa pobieranie...',
+        inProgress: 'Trwa pobieranie...',
         success: {
             title: 'Pobrano!',
             message: 'Załącznik został pomyślnie pobrany!',

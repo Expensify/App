@@ -11722,7 +11722,7 @@ ${reportName}`,
         refresh: 'Ανανέωση',
     },
     fileDownload: {
-        preparing: 'Λήψη σε εξέλιξη...',
+        inProgress: 'Λήψη σε εξέλιξη...',
         success: {
             title: 'Έγινε λήψη!',
             message: 'Το συνημμένο λήφθηκε με επιτυχία!',
