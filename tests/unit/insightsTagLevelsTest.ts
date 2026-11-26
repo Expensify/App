@@ -17,7 +17,7 @@ describe('Insights tag levels', () => {
         ];
 
         // When the menu is built from them
-        const options = getInsightsTagLevelOptions(tagLevels, fallback);
+        const options = getInsightsTagLevelOptions(tagLevels, undefined, fallback);
 
         // Then shared names stay configured and conflicts use their position
         expect(options).toEqual([
@@ -38,7 +38,7 @@ describe('Insights tag levels', () => {
         ];
 
         // When the menu is built from it
-        const options = getInsightsTagLevelOptions(tagLevels, fallback);
+        const options = getInsightsTagLevelOptions(tagLevels, undefined, fallback);
 
         // Then the level is still offered under its position
         expect(options).toEqual([
@@ -50,7 +50,7 @@ describe('Insights tag levels', () => {
     it.each([undefined, ''])('keeps a level-one fallback without tag levels %j', (path) => {
         // Given no response yet and no ancestors
         // When the menu and parent label are built
-        const options = getInsightsTagLevelOptions(undefined, fallback);
+        const options = getInsightsTagLevelOptions(undefined, undefined, fallback);
 
         // Then the safe default is level one and independent tags have no parent label
         expect(options).toEqual([{value: 1, label: 'Tag level 1'}]);
@@ -66,6 +66,18 @@ describe('Insights tag levels', () => {
 
         // Then only real level separators become breadcrumbs
         expect(label).toBe('US › New: York › Path\\name & Co');
+    });
+
+    it('keeps the selected level in the menu when the levels leave it out', () => {
+        // Given levels that stop at one while level three is selected
+        // When the menu is built
+        const options = getInsightsTagLevelOptions([{level: 1, names: ['Region']}], 3, fallback);
+
+        // Then the selected level stays offered under its position, so the user can switch back
+        expect(options).toEqual([
+            {value: 1, label: 'Region'},
+            {value: 3, label: 'Tag level 3'},
+        ]);
     });
 
     describe('getStoredTagLevels', () => {
@@ -89,6 +101,20 @@ describe('Insights tag levels', () => {
             // Then only the all-workspaces scope finds its levels
             expect(getStoredTagLevels(dashboards, [])).toBe(levels);
             expect(getStoredTagLevels(dashboards, ['A'])).toBeUndefined();
+        });
+
+        it('prefers the newest stored response for the workspaces', () => {
+            // Given an older one-level response, a newer two-level response, and a response stored without a request time, for the same workspace
+            const newerLevels = [...levels, {level: 2, names: ['Office']}];
+            const dashboards = {
+                [spendKey(1)]: {inputQuery: 'policyID:A date:last-month', tagLevels: levels, requestedAt: 10},
+                [spendKey(2)]: {inputQuery: 'policyID:A date:this-month', tagLevels: newerLevels, requestedAt: 20},
+                [spendKey(3)]: {inputQuery: 'policyID:A date:last-12-months', tagLevels: levels},
+            };
+
+            // When workspace A is selected
+            // Then the newer levels are found
+            expect(getStoredTagLevels(dashboards, ['A'])).toBe(newerLevels);
         });
 
         it('skips other dashboards and responses without levels', () => {

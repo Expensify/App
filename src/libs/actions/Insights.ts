@@ -78,7 +78,12 @@ function getInsights(dashboard: InsightsDashboardID, hash: number, jsonQuery: st
         },
     ];
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT | typeof ONYXKEYS.COLLECTION.RAM_ONLY_INSIGHTS_RESPONSE_REQUEST_ID>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.INSIGHTS | typeof ONYXKEYS.COLLECTION.SNAPSHOT | typeof ONYXKEYS.COLLECTION.RAM_ONLY_INSIGHTS_RESPONSE_REQUEST_ID>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key,
+            value: {requestedAt: Date.now()},
+        },
         ...snapshotHashes.map<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>>((snapshotHash) => ({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}`,

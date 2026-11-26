@@ -12,15 +12,20 @@ type InsightsTagLevelOption = {value: number; label: string};
 
 /**
  * @param tagLevels - Levels GetInsights listed, or undefined until it responds
+ * @param selectedTagLevel - Level the dashboard filters by, kept in the options even when the levels leave it out, so the menu stays available to switch away from it
  * @returns one option per level, named when every workspace in scope gives the level the same name
  */
-function getInsightsTagLevelOptions(tagLevels: InsightsTagLevel[] | undefined, getFallbackLabel: (level: number) => string): InsightsTagLevelOption[] {
+function getInsightsTagLevelOptions(tagLevels: InsightsTagLevel[] | undefined, selectedTagLevel: number | undefined, getFallbackLabel: (level: number) => string): InsightsTagLevelOption[] {
     const levels = tagLevels ?? [];
     const count = Math.max(CONST.INSIGHTS.DEFAULT_TAG_LEVEL, ...levels.map(({level}) => level));
-    return Array.from({length: count}, (_, index) => {
+    const options = Array.from({length: count}, (_, index) => {
         const names = levels.find(({level}) => level === index + 1)?.names ?? [];
         return {value: index + 1, label: names.length === 1 ? names[0] : getFallbackLabel(index + 1)};
     });
+    if (selectedTagLevel === undefined || selectedTagLevel <= count) {
+        return options;
+    }
+    return [...options, {value: selectedTagLevel, label: getFallbackLabel(selectedTagLevel)}];
 }
 
 /** Keeps a level that GetInsights listed for a workspace in scope, and falls back to the default level otherwise. */
@@ -45,14 +50,20 @@ function getQueryPolicyScope(inputQuery: string): string {
     return scope;
 }
 
-/** Finds the tag levels a stored Spend response listed for the same workspaces, which the level menu shows until the response for the current filters arrives. */
+/** Finds the tag levels the newest stored Spend response listed for the same workspaces, which can be newer than the response stored for the current filters. */
 function getStoredTagLevels(dashboards: OnyxCollection<InsightsDashboard>, policyIDs: string[]): InsightsTagLevel[] | undefined {
     const spendKeyPrefix = `${ONYXKEYS.COLLECTION.INSIGHTS}${CONST.INSIGHTS.DASHBOARD.SPEND}_`;
     const scope = getPolicyScope(policyIDs);
-    const storedDashboard = Object.entries(dashboards ?? {}).find(
-        ([key, dashboard]) => key.startsWith(spendKeyPrefix) && !!dashboard?.tagLevels && !!dashboard.inputQuery && getQueryPolicyScope(dashboard.inputQuery) === scope,
-    );
-    return storedDashboard?.[1]?.tagLevels;
+    let newestDashboard: InsightsDashboard | undefined;
+    for (const [key, dashboard] of Object.entries(dashboards ?? {})) {
+        if (!key.startsWith(spendKeyPrefix) || !dashboard?.tagLevels || !dashboard.inputQuery || getQueryPolicyScope(dashboard.inputQuery) !== scope) {
+            continue;
+        }
+        if (!newestDashboard || (dashboard.requestedAt ?? 0) > (newestDashboard.requestedAt ?? 0)) {
+            newestDashboard = dashboard;
+        }
+    }
+    return newestDashboard?.tagLevels;
 }
 
 export {getFittingTagLevel, getInsightsTagLevelOptions, getStoredTagLevels};

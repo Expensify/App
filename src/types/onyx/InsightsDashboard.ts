@@ -139,6 +139,9 @@ type InsightsDashboard = {
     /** Tag levels of the workspaces in scope that have tags enabled, sent only when the Spend dashboard requests Top tags */
     tagLevels?: InsightsTagLevel[];
 
+    /** When the request that stored this response was sent, in milliseconds since the epoch. Set by the client, so the newest stored response for a set of workspaces can be found. */
+    requestedAt?: number;
+
     /** Query the stored graphs answer */
     inputQuery?: string;
 

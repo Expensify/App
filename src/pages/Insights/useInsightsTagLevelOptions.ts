@@ -14,9 +14,6 @@ import type {InsightsTagLevelOption} from './insightsTagLevels';
 import {getFittingTagLevel, getInsightsTagLevelOptions, getStoredTagLevels} from './insightsTagLevels';
 
 type UseInsightsTagLevelOptionsParams = {
-    /** Levels stored with the dashboard for the current filters, undefined until GetInsights has responded to them */
-    tagLevels: InsightsTagLevel[] | undefined;
-
     /** Levels from a response for the current filters that arrived while the dashboard is open, the only ones a reset can trust */
     respondedTagLevels: InsightsTagLevel[] | undefined;
 
@@ -31,12 +28,11 @@ type UseInsightsTagLevelOptionsParams = {
     setFilters: (update: Partial<InsightsFilters>) => void;
 };
 
-function useInsightsTagLevelOptions({tagLevels, respondedTagLevels, policyIDs, selectedTagLevel, canChangeFilters, setFilters}: UseInsightsTagLevelOptionsParams): InsightsTagLevelOption[] {
+function useInsightsTagLevelOptions({respondedTagLevels, policyIDs, selectedTagLevel, canChangeFilters, setFilters}: UseInsightsTagLevelOptionsParams): InsightsTagLevelOption[] {
     const {translate, numberFormat} = useLocalize();
-    // Each filter change reads a new response, so levels stored for the same workspaces keep the menu up until it arrives, including offline and after a reload.
+    // Each filter change reads a new response, so the newest levels stored for the same workspaces keep the menu up until it arrives, including offline and after a reload.
     const [storedTagLevels] = useOnyx(ONYXKEYS.COLLECTION.INSIGHTS, {selector: (dashboards) => getStoredTagLevels(dashboards, policyIDs)});
-    const shownTagLevels = tagLevels ?? storedTagLevels;
-    const options = getInsightsTagLevelOptions(shownTagLevels, (level) => translate('insightsPage.tagLevel', numberFormat(level)));
+    const options = getInsightsTagLevelOptions(storedTagLevels, selectedTagLevel, (level) => translate('insightsPage.tagLevel', numberFormat(level)));
 
     const resetUnavailableTagLevel = useEffectEvent((loadedTagLevels: InsightsTagLevel[]) => {
         const tagLevel = selectedTagLevel ?? CONST.INSIGHTS.DEFAULT_TAG_LEVEL;

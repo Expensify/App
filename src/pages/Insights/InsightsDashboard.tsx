@@ -490,7 +490,6 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
         };
     });
     const tagLevelOptions = useInsightsTagLevelOptions({
-        tagLevels: dashboard?.tagLevels,
         respondedTagLevels: hasLatestResponse ? dashboard?.tagLevels : undefined,
         policyIDs: filters.policyIDs,
         selectedTagLevel: filters.tagLevel,
