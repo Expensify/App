@@ -53384,6 +53384,25 @@ function isProposal(body) {
 }
 var isProposal_default = isProposal;
 
+// .github/libs/isTeamMember.ts
+async function getTeamMembership(octokit, org, teamSlug, username) {
+  try {
+    await octokit.teams.getMembershipForUserInOrg({
+      org,
+      team_slug: teamSlug,
+      username
+    });
+    return true;
+  } catch (error2) {
+    if (error2 instanceof RequestError && error2.status === 404) {
+      return false;
+    }
+    const message2 = error2 instanceof Error ? error2.message : String(error2);
+    warning(`Could not verify ${teamSlug} membership for ${username}: ${message2}`);
+    return void 0;
+  }
+}
+
 // prompts/proposalPolice/input.ts
 function escapeForXMLWrapper(text) {
   return text.replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
@@ -64981,6 +65000,10 @@ function chunkArray(items, size) {
 
 // node_modules/@actions/github/lib/github.js
 var context2 = new Context();
+function getOctokit(token, options, ...additionalPlugins) {
+  const GitHubWithPlugins = GitHub.plugin(...additionalPlugins);
+  return new GitHubWithPlugins(getOctokitOptions(token, options));
+}
 
 // node_modules/date-fns/constants.js
 var daysInYear = 365.2425;
@@ -67056,6 +67079,24 @@ function toZonedTime(date, timeZone, options) {
 var PROPOSAL_POLICE_MODEL = "gpt-5.6-luna";
 var DUPLICATE_SIMILARITY_THRESHOLD = 90;
 var TRUSTED_AUTHOR_ASSOCIATIONS = /* @__PURE__ */ new Set(["OWNER", "MEMBER", "COLLABORATOR"]);
+var TRUSTED_TEAM_SLUGS = ["expensify-expensify", "contributor-plus", "backend-contributors", "external-expert-contributors", "applause"];
+var PARTNER_AGENCY_PATTERN = /(^|\s)from\s+(Callstack|Margelo|Software\s?Mansion)([^A-Za-z0-9_]|$)/i;
+async function getTrustedTeamMembership(login) {
+  const orgToken = getInput("OS_BOTIFY_TOKEN");
+  if (!orgToken) {
+    return void 0;
+  }
+  const orgOctokit = getOctokit(orgToken);
+  let hasFailedCheck = false;
+  for (const teamSlug of TRUSTED_TEAM_SLUGS) {
+    const isMember = await getTeamMembership(orgOctokit.rest, CONST_default.GITHUB_OWNER, teamSlug, login);
+    if (isMember) {
+      return true;
+    }
+    hasFailedCheck ||= isMember === void 0;
+  }
+  return hasFailedCheck ? void 0 : false;
+}
 function hasHelpWantedLabel(labels) {
   return labels.some((label) => (typeof label === "string" ? label : label.name) === CONST_default.LABELS.HELP_WANTED);
 }
@@ -67074,11 +67115,12 @@ async function hideCommentFromNewContributor(payload) {
     console.log("Comment is from a bot, the issue author, or an org member, leaving it visible.", author);
     return;
   }
-  if (getInput("IS_TEAM_MEMBER") === "true") {
+  const isTrustedTeamMember = await getTrustedTeamMembership(author);
+  if (isTrustedTeamMember) {
     console.log("Commenter is on a trusted team, leaving the comment visible.", author);
     return;
   }
-  if (getInput("COULD_NOT_VERIFY_TEAMS") === "true") {
+  if (isTrustedTeamMember === void 0) {
     warning(`Could not verify ${author}'s team membership, leaving comment ${comment.id} visible.`);
     return;
   }
@@ -67163,7 +67205,6 @@ async function run() {
     return;
   }
   const apiKey = getInput("PROPOSAL_POLICE_API_KEY", { required: true });
-  const isTrustedCommenter = getInput("IS_TRUSTED_COMMENTER") === "true";
   const openAI = new OpenAIUtils_default(apiKey);
   const issueNumber = payload.issue?.number ?? -1;
   const commentID = payload.comment?.id ?? -1;
@@ -67173,6 +67214,7 @@ async function run() {
     const newProposalAuthor = payload.comment.user.login;
     if (!isProposal_default(newProposalBody)) {
       console.log("Comment does not follow the proposal template. Classifying what it is trying to do...");
+      const isTrustedCommenter = PARTNER_AGENCY_PATTERN.test(newProposalBody) || !!await getTrustedTeamMembership(newProposalAuthor);
       const intentResponse = await openAI.promptResponses({
         instructions: buildCommentIntentInstructions(),
         input: buildCommentIntentInput(newProposalBody, isTrustedCommenter),

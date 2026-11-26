@@ -24,7 +24,8 @@ const mockCreateComment = jest.fn<(repo: string, issueNumber: number, body: stri
 const mockMinimizeCommentAsSpam = jest.fn<(commentNodeID: string) => Promise<void>>();
 const mockUpdateComment = jest.fn<(params: {comment_id: number; body: string}) => Promise<void>>();
 const mockGetIssue = jest.fn<(params: {issue_number: number}) => Promise<{data: {labels: Array<{name: string}>; assignees: Array<{login: string}>}}>>();
-const mockSearchIssuesAndPullRequests = jest.fn<(params: {q: string; per_page: number}) => Promise<{data: {total_count: number}}>>();
+const mockSearchIssuesAndPullRequests = jest.fn<(params: {q: string; per_page: number}) => Promise<{data: {total_count: number; incomplete_results?: boolean}}>>();
+const mockGetTeamMembership = jest.fn<(octokit: unknown, org: string, teamSlug: string, username: string) => Promise<boolean | undefined>>();
 
 const mockPromptResponses = jest.fn<(params: {input: string}) => Promise<{text: string; responseID: string}>>();
 const mockCreateConversation = jest.fn<(items?: ResponseInputItem[]) => Promise<Conversation>>();
@@ -75,7 +76,9 @@ await mock.module('@scripts/utils/OpenAIUtils', () => ({
     },
 }));
 
-await mock.module('@actions/github', () => ({context}));
+await mock.module('@github/libs/isTeamMember', () => ({__esModule: true, default: jest.fn(), getTeamMembership: mockGetTeamMembership}));
+
+await mock.module('@actions/github', () => ({context, getOctokit: () => ({rest: {}})}));
 
 const {default: run, DUPLICATE_SIMILARITY_THRESHOLD, PROPOSAL_POLICE_MODEL} = await import('@github/actions/javascript/proposalPoliceComment/proposalPoliceComment');
 
@@ -127,6 +130,7 @@ function resetMocks() {
         mockUpdateComment,
         mockGetIssue,
         mockSearchIssuesAndPullRequests,
+        mockGetTeamMembership,
         mockPromptResponses,
         mockCreateConversation,
         mockAddConversationItems,
@@ -140,6 +144,7 @@ function resetMocks() {
     mockGetAllCommentDetails.mockResolvedValue([]);
     mockGetIssue.mockResolvedValue({data: {labels: [], assignees: []}});
     mockSearchIssuesAndPullRequests.mockResolvedValue({data: {total_count: 0}});
+    mockGetTeamMembership.mockResolvedValue(false);
     mockCreateConversation.mockResolvedValue({id: 'conv_new', created_at: 0, metadata: null, object: 'conversation'});
     mockListConversationItems.mockResolvedValue([]);
     // Bypass the real JSON-schema validators here; OpenAIUtils.test.ts already covers parseJSONResponse itself.
@@ -150,7 +155,7 @@ describe('proposalPoliceComment', () => {
     beforeEach(() => {
         resetMocks();
         process.env.INPUT_PROPOSAL_POLICE_API_KEY = 'test-api-key';
-        process.env.INPUT_IS_TRUSTED_COMMENTER = 'false';
+        process.env.INPUT_OS_BOTIFY_TOKEN = 'test-org-token';
     });
 
     it('does nothing at all for a bot-authored comment', async () => {
@@ -238,7 +243,7 @@ describe('proposalPoliceComment', () => {
     });
 
     it('does not minimize a content-free claim from a trusted commenter', async () => {
-        process.env.INPUT_IS_TRUSTED_COMMENTER = 'true';
+        mockGetTeamMembership.mockResolvedValue(true);
         setPayload({action: 'created', comment: makeComment({body: 'I can take this.'})});
         mockPromptResponses.mockResolvedValueOnce({text: JSON.stringify({intent: 'NOT_AN_ATTEMPT'}), responseID: 'resp_intent'});
 
@@ -247,6 +252,19 @@ describe('proposalPoliceComment', () => {
         expect(mockPromptResponses.mock.calls.at(0)?.[0].input).toContain('<author_context>trusted:');
         expect(mockMinimizeCommentAsSpam).not.toHaveBeenCalled();
         expect(mockCreateComment).not.toHaveBeenCalled();
+    });
+
+    it('trusts a job claim that says which agency the commenter is from', async () => {
+        // Given a partner engineer who isn't on a team we can check says which agency they're from
+        setPayload({action: 'created', comment: makeComment({body: "I'm from Callstack and can take this."})});
+        mockPromptResponses.mockResolvedValueOnce({text: JSON.stringify({intent: 'NOT_AN_ATTEMPT'}), responseID: 'resp_intent'});
+
+        // When ProposalPolice classifies the comment
+        await run();
+
+        // Then the model is told the commenter is trusted, so the claim isn't collapsed as spam
+        expect(mockPromptResponses.mock.calls.at(0)?.[0].input).toContain('<author_context>trusted:');
+        expect(mockMinimizeCommentAsSpam).not.toHaveBeenCalled();
     });
 
     it('leaves ordinary discussion alone', async () => {
@@ -666,7 +684,7 @@ describe('proposalPoliceComment', () => {
 
 describe('proposalPoliceComment on issues without Help Wanted', () => {
     function setPayloadWithoutHelpWanted(
-        overrides: Partial<{action: 'created' | 'edited'; login: string; authorAssociation: string; issueState: string; issueAuthor: string; isPullRequest: boolean}> = {},
+        overrides: Partial<{action: 'created' | 'edited'; login: string; body: string; authorAssociation: string; issueState: string; issueAuthor: string; isPullRequest: boolean}> = {},
     ) {
         context.payload = {
             action: overrides.action ?? 'created',
@@ -677,7 +695,7 @@ describe('proposalPoliceComment on issues without Help Wanted', () => {
                 user: {login: overrides.issueAuthor ?? 'issue-author'},
                 pull_request: overrides.isPullRequest ? {url: 'https://api.github.com/repos/Expensify/App/pulls/1'} : undefined,
             },
-            comment: {...makeComment({id: 42, login: overrides.login ?? 'new-account'}), author_association: overrides.authorAssociation ?? 'NONE'},
+            comment: {...makeComment({id: 42, login: overrides.login ?? 'new-account', body: overrides.body}), author_association: overrides.authorAssociation ?? 'NONE'},
             changes: overrides.action === 'edited' ? {body: {from: 'old body'}} : undefined,
         };
     }
@@ -685,9 +703,7 @@ describe('proposalPoliceComment on issues without Help Wanted', () => {
     beforeEach(() => {
         resetMocks();
         process.env.INPUT_PROPOSAL_POLICE_API_KEY = 'test-api-key';
-        process.env.INPUT_IS_TRUSTED_COMMENTER = 'false';
-        process.env.INPUT_IS_TEAM_MEMBER = 'false';
-        process.env.INPUT_COULD_NOT_VERIFY_TEAMS = 'false';
+        process.env.INPUT_OS_BOTIFY_TOKEN = 'test-org-token';
     });
 
     it('hides a comment from someone with no merged App PR', async () => {
@@ -719,7 +735,7 @@ describe('proposalPoliceComment on issues without Help Wanted', () => {
 
     it('leaves the comment visible for a member of a trusted team without checking PRs', async () => {
         // Given an employee, C+, backend contributor, agency or Applause team member
-        process.env.INPUT_IS_TEAM_MEMBER = 'true';
+        mockGetTeamMembership.mockResolvedValue(true);
         setPayloadWithoutHelpWanted();
 
         // When ProposalPolice runs
@@ -730,9 +746,47 @@ describe('proposalPoliceComment on issues without Help Wanted', () => {
         expect(mockMinimizeCommentAsSpam).not.toHaveBeenCalled();
     });
 
+    it('checks every trusted team for the commenter', async () => {
+        // Given a commenter who isn't on any trusted team
+        setPayloadWithoutHelpWanted();
+
+        // When ProposalPolice runs
+        await run();
+
+        // Then each trusted team was checked before the comment was hidden
+        for (const teamSlug of ['expensify-expensify', 'contributor-plus', 'backend-contributors', 'external-expert-contributors', 'applause']) {
+            expect(mockGetTeamMembership).toHaveBeenCalledWith(expect.anything(), 'Expensify', teamSlug, 'new-account');
+        }
+        expect(mockMinimizeCommentAsSpam).toHaveBeenCalled();
+    });
+
+    it('leaves the comment visible when there is no org token to check teams with', async () => {
+        // Given the run has no read:org token, so concealed team members can't be seen
+        delete process.env.INPUT_OS_BOTIFY_TOKEN;
+        setPayloadWithoutHelpWanted();
+
+        // When ProposalPolice runs
+        await run();
+
+        // Then nobody is hidden on a guess
+        expect(mockGetTeamMembership).not.toHaveBeenCalled();
+        expect(mockMinimizeCommentAsSpam).not.toHaveBeenCalled();
+    });
+
+    it('still hides a comment that only says which agency the commenter is from', async () => {
+        // Given a new account says it's from an agency but isn't on a trusted team
+        setPayloadWithoutHelpWanted({body: "I'm from Callstack, please assign me."});
+
+        // When ProposalPolice runs
+        await run();
+
+        // Then text in a comment is not proof, so the comment is hidden
+        expect(mockMinimizeCommentAsSpam).toHaveBeenCalledWith('IC_node_42');
+    });
+
     it('leaves the comment visible when the team check failed', async () => {
         // Given the workflow could not confirm whether the commenter is on a trusted team
-        process.env.INPUT_COULD_NOT_VERIFY_TEAMS = 'true';
+        mockGetTeamMembership.mockResolvedValue(undefined);
         setPayloadWithoutHelpWanted();
 
         // When ProposalPolice runs

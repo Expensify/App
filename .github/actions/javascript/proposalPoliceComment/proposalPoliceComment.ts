@@ -2,6 +2,7 @@ import CONST from '@github/libs/CONST';
 import GithubUtils from '@github/libs/GithubUtils';
 import isBotUser from '@github/libs/isBotUser';
 import isProposal from '@github/libs/isProposal';
+import {getTeamMembership} from '@github/libs/isTeamMember';
 
 import {buildCommentIntentInput, buildDuplicateCheckInput, buildDuplicateCheckSeedItem, buildEditCheckInput} from '@prompts/proposalPolice/input';
 import {buildCommentIntentInstructions, buildDuplicateCheckInstructions, buildEditCheckInstructions} from '@prompts/proposalPolice/instructions';
@@ -38,7 +39,7 @@ import type {IssueCommentCreatedEvent, IssueCommentEditedEvent, IssueCommentEven
 
 import {getInput, setFailed} from '@actions/core';
 import * as core from '@actions/core';
-import {context} from '@actions/github';
+import {context, getOctokit} from '@actions/github';
 import {format} from 'date-fns';
 import {toZonedTime} from 'date-fns-tz';
 
@@ -58,6 +59,39 @@ const DUPLICATE_SIMILARITY_THRESHOLD = 90;
  * Author associations GitHub only gives to Expensify org members and people with write access to the repo.
  */
 const TRUSTED_AUTHOR_ASSOCIATIONS = new Set(['OWNER', 'MEMBER', 'COLLABORATOR']);
+
+/**
+ * Employees, C+, backend contributors, agencies like Callstack, and Applause testers.
+ */
+const TRUSTED_TEAM_SLUGS = ['expensify-expensify', 'contributor-plus', 'backend-contributors', 'external-expert-contributors', 'applause'];
+
+/**
+ * Partner engineers aren't always on a team we can check, so a job claim that says which agency they're from is trusted.
+ */
+const PARTNER_AGENCY_PATTERN = /(^|\s)from\s+(Callstack|Margelo|Software\s?Mansion)([^A-Za-z0-9_]|$)/i;
+
+/**
+ * Whether the commenter is on one of the trusted teams, or undefined when that can't be checked.
+ * The read:org token is needed because author_association doesn't show concealed org members.
+ */
+async function getTrustedTeamMembership(login: string): Promise<boolean | undefined> {
+    const orgToken = getInput('OS_BOTIFY_TOKEN');
+    if (!orgToken) {
+        return undefined;
+    }
+
+    const orgOctokit = getOctokit(orgToken);
+    let hasFailedCheck = false;
+    for (const teamSlug of TRUSTED_TEAM_SLUGS) {
+        const isMember = await getTeamMembership(orgOctokit.rest, CONST.GITHUB_OWNER, teamSlug, login);
+        if (isMember) {
+            return true;
+        }
+        hasFailedCheck ||= isMember === undefined;
+    }
+
+    return hasFailedCheck ? undefined : false;
+}
 
 function hasHelpWantedLabel(labels: Array<string | {name?: string}>): boolean {
     return labels.some((label) => (typeof label === 'string' ? label : label.name) === CONST.LABELS.HELP_WANTED);
@@ -85,12 +119,13 @@ async function hideCommentFromNewContributor(payload: IssueCommentCreatedEvent) 
         return;
     }
 
-    if (getInput('IS_TEAM_MEMBER') === 'true') {
+    const isTrustedTeamMember = await getTrustedTeamMembership(author);
+    if (isTrustedTeamMember) {
         console.log('Commenter is on a trusted team, leaving the comment visible.', author);
         return;
     }
 
-    if (getInput('COULD_NOT_VERIFY_TEAMS') === 'true') {
+    if (isTrustedTeamMember === undefined) {
         core.warning(`Could not verify ${author}'s team membership, leaving comment ${comment.id} visible.`);
         return;
     }
@@ -220,7 +255,6 @@ async function run() {
     }
 
     const apiKey = getInput('PROPOSAL_POLICE_API_KEY', {required: true});
-    const isTrustedCommenter = getInput('IS_TRUSTED_COMMENTER') === 'true';
     const openAI = new OpenAIUtils(apiKey);
 
     const issueNumber = payload.issue?.number ?? -1;
@@ -236,6 +270,7 @@ async function run() {
         // rather than by the model. Only what's left over needs classifying, which is a judgment call.
         if (!isProposal(newProposalBody)) {
             console.log('Comment does not follow the proposal template. Classifying what it is trying to do...');
+            const isTrustedCommenter = PARTNER_AGENCY_PATTERN.test(newProposalBody) || !!(await getTrustedTeamMembership(newProposalAuthor));
             const intentResponse = await openAI.promptResponses({
                 instructions: buildCommentIntentInstructions(),
                 input: buildCommentIntentInput(newProposalBody, isTrustedCommenter),

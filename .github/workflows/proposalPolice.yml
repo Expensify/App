@@ -15,42 +15,6 @@ jobs:
     runs-on: blacksmith-4vcpu-ubuntu-2404
     if: '!contains(fromJSON(''["OSBotify", "imgbot[bot]", "melvin-bot[bot]", "codecov[bot]"]''), github.actor) && !contains(github.event.issue.assignees.*.login, github.event.comment.user.login)'
     steps:
-      # A content-free job claim is acceptable from approved contributors and partner engineers, but is spam
-      # from everyone else. author_association is not enough for concealed members, so verify team membership
-      # with the read:org token. Partner affiliation is accepted only when the commenter explicitly states it.
-      - name: Check whether the commenter is an approved contributor or partner
-        id: commenterTrust
-        env:
-          # Passed through the environment rather than interpolated into the script, so crafted values can't inject shell.
-          COMMENTER: ${{ github.event.comment.user.login }}
-          COMMENT_BODY: ${{ github.event.comment.body }}
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-        run: |
-          IS_TEAM_MEMBER=false
-          COULD_NOT_VERIFY_TEAMS=false
-          for TEAM in expensify-expensify contributor-plus backend-contributors external-expert-contributors applause; do
-            if OUTPUT=$(gh api "/orgs/Expensify/teams/${TEAM}/memberships/${COMMENTER}" --silent 2>&1); then
-              IS_TEAM_MEMBER=true
-              COULD_NOT_VERIFY_TEAMS=false
-              break
-            elif [[ "$OUTPUT" != *'(HTTP 404)'* ]]; then
-              echo "::warning::Could not verify ${COMMENTER}'s ${TEAM} membership: ${OUTPUT}"
-              COULD_NOT_VERIFY_TEAMS=true
-            fi
-          done
-
-          TRUSTED=$IS_TEAM_MEMBER
-          shopt -s nocasematch
-          if [[ "$COMMENT_BODY" =~ (^|[[:space:]])from[[:space:]]+(Callstack|Margelo|Software[[:space:]]?Mansion)([^[:alnum:]_]|$) ]]; then
-            TRUSTED=true
-          fi
-
-          {
-            echo "TRUSTED=${TRUSTED}"
-            echo "IS_TEAM_MEMBER=${IS_TEAM_MEMBER}"
-            echo "COULD_NOT_VERIFY_TEAMS=${COULD_NOT_VERIFY_TEAMS}"
-          } >> "$GITHUB_OUTPUT"
-
       - uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
 
       # Classifies new comments that don't follow the proposal template, detects duplicate proposals,
@@ -60,6 +24,4 @@ jobs:
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PROPOSAL_POLICE_API_KEY: ${{ secrets.PROPOSAL_POLICE_API_KEY }}
-          IS_TRUSTED_COMMENTER: ${{ steps.commenterTrust.outputs.TRUSTED }}
-          IS_TEAM_MEMBER: ${{ steps.commenterTrust.outputs.IS_TEAM_MEMBER }}
-          COULD_NOT_VERIFY_TEAMS: ${{ steps.commenterTrust.outputs.COULD_NOT_VERIFY_TEAMS }}
+          OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
