@@ -399,6 +399,7 @@ const transactionColumnNamesToSortingProperty: TransactionSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: 'taxAmount' as const,
     [CONST.SEARCH.TABLE_COLUMNS.RECEIPT]: null,
     [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID]: 'withdrawalID' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.TRANSACTION_ID]: 'transactionID' as const,
     [CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS]: 'formattedViolations' as const,
 };
 
@@ -2870,7 +2871,15 @@ function getReportActionsSections(
                 const isReportArchived = isArchivedReport(data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]);
                 if (
                     !reportID ||
-                    !isReportActionVisible(reportAction, reportID, canUserPerformWriteAction(report, isReportArchived), visibleReportActionsData, undefined, reportActionsCollection) ||
+                    !isReportActionVisible(
+                        reportAction,
+                        reportID,
+                        canUserPerformWriteAction(report, isReportArchived),
+                        visibleReportActionsData,
+                        undefined,
+                        reportActionsCollection,
+                        isInvoiceReport(report),
+                    ) ||
                     isDeletedAction(reportAction) ||
                     isResolvedActionableWhisper(reportAction) ||
                     reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED ||
@@ -5175,6 +5184,8 @@ function getSearchColumnTranslationKey(column: SearchSortBy, type?: SearchDataTy
             return 'common.total';
         case CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID:
             return 'common.reportID';
+        case CONST.SEARCH.TABLE_COLUMNS.TRANSACTION_ID:
+            return 'common.transactionID';
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS:
             return 'common.withdrawalStatus';
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_BANK_ACCOUNT:
@@ -5852,8 +5863,6 @@ type HasOptionAvailability = {
 
 type GetHasOptionsConfig = {
     policies?: OnyxCollection<OnyxTypes.Policy>;
-    /** The IDs of the workspaces whose categories have rules, from `policyIDsWithCategoryRulesSelector`. */
-    policyIDsWithCategoryRules?: Record<string, true>;
     /** Skip workspace feature filtering so already-selected values still resolve to labels. */
     shouldShowAllOptions?: boolean;
     /**
@@ -5866,10 +5875,9 @@ type GetHasOptionsConfig = {
 /**
  * Which expense `has:` options can apply for the current user, based on accessible workspaces.
  * Pass an empty collection when the user has no workspaces so Tag/Category/Submitted/Approved violation stay hidden.
- * Violations only show for workspaces with Rules on. Migrated Control workspaces leave areRulesEnabled undefined,
- * so those fall back to whether their own categories have Classic category rules.
+ * Violations show for any group workspace because expenses get violations even when Rules is off.
  */
-function getHasOptionAvailability(policies: OnyxCollection<OnyxTypes.Policy> | undefined, policyIDsWithCategoryRules: Record<string, true> = {}): HasOptionAvailability {
+function getHasOptionAvailability(policies: OnyxCollection<OnyxTypes.Policy> | undefined): HasOptionAvailability {
     let shouldShowTag = false;
     let shouldShowCategory = false;
     let shouldShowSubmittedViolation = false;
@@ -5882,9 +5890,8 @@ function getHasOptionAvailability(policies: OnyxCollection<OnyxTypes.Policy> | u
 
         shouldShowTag ||= policy.areTagsEnabled === true;
         shouldShowCategory ||= policy.areCategoriesEnabled === true;
-        const shouldShowRulesBasedViolation = arePolicyRulesEnabled(policy, undefined, !!policyIDsWithCategoryRules[policy.id]);
-        shouldShowSubmittedViolation ||= shouldShowRulesBasedViolation;
-        shouldShowApprovedViolation ||= shouldShowRulesBasedViolation;
+        shouldShowSubmittedViolation = true;
+        shouldShowApprovedViolation = true;
 
         if (shouldShowTag && shouldShowCategory && shouldShowSubmittedViolation && shouldShowApprovedViolation) {
             break;
@@ -5895,19 +5902,19 @@ function getHasOptionAvailability(policies: OnyxCollection<OnyxTypes.Policy> | u
 }
 
 /**
- * Options for the `has:` filter / autocomplete. Tag, Category, Submitted violation, and Approved violation are omitted when
- * no accessible workspace has the matching feature enabled. Pass `policies` from the picker and autocomplete.
+ * Options for the `has:` filter / autocomplete. Tag and Category require the matching workspace feature to be enabled;
+ * Submitted violation and Approved violation require an accessible group workspace. Pass `policies` from the picker and autocomplete.
  * Pass `shouldShowAllOptions` for display/validation so already-selected values still resolve to labels.
  * Pass `selectedValues` in the picker so query/saved selections stay selectable until the user clears them.
  */
 function getHasOptions(translate: LocalizedTranslate, type: SearchDataTypes, config: GetHasOptionsConfig = {}) {
-    const {policies, policyIDsWithCategoryRules, shouldShowAllOptions = false, selectedValues} = config;
+    const {policies, shouldShowAllOptions = false, selectedValues} = config;
 
     switch (type) {
         case CONST.SEARCH.DATA_TYPES.EXPENSE: {
             const availability = shouldShowAllOptions
                 ? {shouldShowTag: true, shouldShowCategory: true, shouldShowSubmittedViolation: true, shouldShowApprovedViolation: true}
-                : getHasOptionAvailability(policies, policyIDsWithCategoryRules);
+                : getHasOptionAvailability(policies);
             const shouldShowTag = availability.shouldShowTag || !!selectedValues?.includes(CONST.SEARCH.HAS_VALUES.TAG);
             const shouldShowCategory = availability.shouldShowCategory || !!selectedValues?.includes(CONST.SEARCH.HAS_VALUES.CATEGORY);
             const shouldShowSubmittedViolation = availability.shouldShowSubmittedViolation || !!selectedValues?.includes(CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION);
@@ -6607,6 +6614,13 @@ const FILTER_VIEW_MAP = {
         advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.REPORT_ID,
         applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.REPORT_ID,
     },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_ID]: {
+        labelKey: 'common.transactionID',
+        icon: 'Fingerprint',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.TRANSACTION_ID,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.TRANSACTION_ID,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.TRANSACTION_ID,
+    },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS]: {
         labelKey: 'common.status',
         icon: 'DotIndicator',
@@ -6821,7 +6835,14 @@ function getDateDisplayValue(syntaxKey: SearchDateFilterKeys, form: Partial<Sear
     const parts: string[] = [];
 
     if (on) {
-        parts.push(isSearchDatePreset(on) ? translate(`search.filters.date.presets.${on}`) : `${translate('common.on')} ${DateUtils.formatToReadableString(on, dateFnsLocale)}`);
+        if (isSearchDatePreset(on)) {
+            parts.push(translate(`search.filters.date.presets.${on}`));
+        } else {
+            const formattedOn = DateUtils.formatToReadableString(on, dateFnsLocale);
+            if (formattedOn) {
+                parts.push(`${translate('common.on')} ${formattedOn}`);
+            }
+        }
     }
 
     if (after) {
@@ -7350,11 +7371,10 @@ function getMultiSelectFilterOptions(
     type: SearchDataTypes,
     translate: LocalizedTranslate,
     policies?: OnyxCollection<OnyxTypes.Policy>,
-    policyIDsWithCategoryRules?: Record<string, true>,
     shouldReturnTripRooms = false,
 ) {
     if (filterKey === FILTER_KEYS.HAS) {
-        return getHasOptions(translate, type, {policies, policyIDsWithCategoryRules});
+        return getHasOptions(translate, type, {policies});
     }
 
     if (filterKey === FILTER_KEYS.IS) {
@@ -7764,6 +7784,7 @@ function getColumnsToShow({
               [CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT]: false,
               [CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID]: false,
               [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.TRANSACTION_ID]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TITLE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: true,
@@ -8365,17 +8386,30 @@ function isEverySearchBulkEditExpenseOwnedBy(
     allTransactions: OnyxCollection<OnyxTypes.Transaction> | undefined,
     allReports: OnyxCollection<OnyxTypes.Report> | undefined,
 ): boolean {
-    if (selectedTransactionIDs.length === 0) {
-        return false;
-    }
+    return getSearchBulkEditExpenseOwnerAccountID(selectedTransactionIDs, accountID, allTransactions, allReports) === accountID;
+}
 
-    return selectedTransactionIDs.every((transactionID) => {
+/**
+ * Returns the account that owns every selected expense, or undefined when there's no selection or the owners differ. An
+ * unreported expense has no report to read the owner from, so it counts as the current user's, since only they can see it.
+ */
+function getSearchBulkEditExpenseOwnerAccountID(
+    selectedTransactionIDs: string[],
+    currentUserAccountID: number,
+    allTransactions: OnyxCollection<OnyxTypes.Transaction> | undefined,
+    allReports: OnyxCollection<OnyxTypes.Report> | undefined,
+): number | undefined {
+    let ownerAccountID: number | undefined;
+    for (const transactionID of selectedTransactionIDs) {
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-        if (!transaction?.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-            return true;
+        const isUnreported = !transaction?.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+        const expenseOwnerAccountID = isUnreported ? currentUserAccountID : allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`]?.ownerAccountID;
+        if (expenseOwnerAccountID === undefined || (ownerAccountID !== undefined && expenseOwnerAccountID !== ownerAccountID)) {
+            return undefined;
         }
-        return allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`]?.ownerAccountID === accountID;
-    });
+        ownerAccountID = expenseOwnerAccountID;
+    }
+    return ownerAccountID;
 }
 
 function filterValidHasValues(hasValues: HasFilterValues | undefined, type: SearchDataTypes | undefined, translate: LocalizedTranslate): HasFilterValues | undefined {
@@ -8644,6 +8678,7 @@ export {
     getSnapshotFooterTotal,
     getSearchBulkEditPolicyID,
     isEverySearchBulkEditExpenseOwnedBy,
+    getSearchBulkEditExpenseOwnerAccountID,
     getSuggestedSearches,
     getSections,
     getSuggestedSearchesVisibility,

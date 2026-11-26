@@ -1,4 +1,5 @@
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useRulesPrefetch from '@hooks/useRulesPrefetch';
 
@@ -45,6 +46,7 @@ type SplitCategoryTaxControllerProps = {
  */
 function SplitCategoryTaxController({transactionID, transaction, policy, policyCategories, isEditingSplitBill}: SplitCategoryTaxControllerProps) {
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
+    const {translate} = useLocalize();
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const {areRulesLoading, haveRulesLoaded} = useRulesPrefetch(isEditingSplitBill && arePolicyRulesEnabled(policy, policyCategories));
     // Wrapped, so that the category this opened on is told apart from not having recorded one yet. `pendingReplay`
@@ -83,7 +85,7 @@ function SplitCategoryTaxController({transactionID, transaction, policy, policyC
 
         // Clearing the category is replayed too. Its tax falls back to the workspace default, and that fallback is
         // itself read from the rules, so without the rules the pick left the previous category's tax in place.
-        setDraftSplitTransaction(transactionID, transaction, {category: category ?? ''}, getCurrencyDecimals, getCurrencySymbol, policy, undefined, undefined, rules);
+        setDraftSplitTransaction(translate, transactionID, transaction, {category: category ?? ''}, getCurrencyDecimals, getCurrencySymbol, policy, undefined, undefined, rules);
 
         // A resolution with no rules to read leaves the draft's tax where it is, so the tax going in is also the
         // one a retry will find unless the user picks another. Recording it here rather than reading it back off
@@ -91,7 +93,7 @@ function SplitCategoryTaxController({transactionID, transaction, policy, policyC
         // a reconnect has cleared the fetched flag but the previous response's rules are still in the collection.
         // eslint-disable-next-line react-hooks/set-state-in-effect -- which category has been resolved is history, so it cannot be derived from the current render
         setResolvedCategory({value: category, pendingReplay: haveRulesLoaded ? undefined : {taxCode: transaction.taxCode}});
-    }, [areRulesLoading, haveRulesLoaded, resolvedCategory, category, isEditingSplitBill, transactionID, transaction, policy, rules, getCurrencyDecimals, getCurrencySymbol]);
+    }, [areRulesLoading, haveRulesLoaded, resolvedCategory, category, isEditingSplitBill, transactionID, transaction, policy, rules, getCurrencyDecimals, getCurrencySymbol, translate]);
 
     return null;
 }
