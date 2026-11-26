@@ -223,7 +223,7 @@ describe('Read-only facts in the rule editors', () => {
         expect(navigateSpy).not.toHaveBeenCalled();
         expect(goBackSpy).not.toHaveBeenCalled();
         expect(writeSpy).not.toHaveBeenCalled();
-        fireEvent.press(screen.getByRole(CONST.ROLE.BUTTON, {name: 'Category, Meals'}), PRESS_EVENT);
+        fireEvent.press(screen.getByRole(CONST.ROLE.LINK, {name: 'Category, Meals'}), PRESS_EVENT);
         expect(navigateSpy).toHaveBeenCalledWith(getFlagForReviewRuleCategoryRoute(POLICY_ID));
     });
 
@@ -242,7 +242,7 @@ describe('Read-only facts in the rule editors', () => {
         expect(navigateSpy).not.toHaveBeenCalled();
         expect(goBackSpy).not.toHaveBeenCalled();
         expect(writeSpy).not.toHaveBeenCalled();
-        fireEvent.press(screen.getByRole(CONST.ROLE.BUTTON, {name: 'Category, Meals'}), PRESS_EVENT);
+        fireEvent.press(screen.getByRole(CONST.ROLE.LINK, {name: 'Category, Meals'}), PRESS_EVENT);
         expect(navigateSpy).toHaveBeenCalledWith(ROUTES.RULES_MERCHANT_TYPE_CATEGORY.getRoute(POLICY_ID, GROUP_ID));
     });
 
