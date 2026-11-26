@@ -36,7 +36,7 @@ function InsightsBiggestChangesControl({groupBy, options, onChange}: InsightsBig
             optionGroups={[options.map((value) => ({value, label: translate(GROUP_BY_LABEL_KEYS[value])}))]}
             selectedValue={groupBy}
             defaultValue={CONST.SEARCH.GROUP_BY.CATEGORY}
-            label={translate('insightsPage.biggestChanges.title')}
+            label={translate('insightsPage.biggestChanges')}
             resetSentryLabel={CONST.SENTRY_LABEL.INSIGHTS.CONTROL_POPUP_RESET.BIGGEST_CHANGES}
             applySentryLabel={CONST.SENTRY_LABEL.INSIGHTS.CONTROL_POPUP_APPLY.BIGGEST_CHANGES}
             closeOverlay={closeOverlay}

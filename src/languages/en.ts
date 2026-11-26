@@ -1446,9 +1446,7 @@ const translations = {
             monthAverageFor: (count: number, item: string) => `${count}-month average for ${item}`,
             quarterAverageFor: (count: number, item: string) => `${count}-quarter average for ${item}`,
         },
-        biggestChanges: {
-            title: 'Biggest changes',
-        },
+        biggestChanges: 'Biggest changes',
         compliance: 'Compliance',
         violationsOverTime: 'Violations over time',
         topViolations: 'Top violations',

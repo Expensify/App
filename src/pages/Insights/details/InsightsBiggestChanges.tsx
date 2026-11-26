@@ -47,7 +47,7 @@ function InsightsBiggestChanges({changes, groupBy, groupByOptions, onGroupByChan
 
     return (
         <View style={[styles.highlightBG, styles.borderRadiusComponentLarge, styles.overflowHidden]}>
-            <InsightsDetailsSectionHeader title={translate('insightsPage.biggestChanges.title')}>
+            <InsightsDetailsSectionHeader title={translate('insightsPage.biggestChanges')}>
                 <InsightsBiggestChangesControl
                     groupBy={groupBy}
                     options={groupByOptions}
