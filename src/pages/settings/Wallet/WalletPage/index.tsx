@@ -172,7 +172,8 @@ function WalletPage() {
     const shouldShowGBDisclaimer = countryByIp === CONST.COUNTRY.GB;
     const isPendingOnfidoResult = userWallet?.isPendingOnfidoResult ?? false;
     const hasFailedOnfido = userWallet?.hasFailedOnfido ?? false;
-    const hasEligibleShareRecipient = hasEligibleBankAccountShareRecipient(allPolicies, currentUserLogin, paymentMethod?.selectedPaymentMethod?.bankAccountID?.toString());
+    const selectedBankAccountID = paymentMethod?.selectedPaymentMethod?.bankAccountID;
+    const hasEligibleShareRecipient = hasEligibleBankAccountShareRecipient(allPolicies, currentUserLogin, selectedBankAccountID ? bankAccountList[selectedBankAccountID] : undefined);
     const paidGroupPolicy = Object.values(allPolicies ?? {}).find(isPaidGroupPolicy);
 
     const updateShouldShowLoadingSpinner = () => {

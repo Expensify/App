@@ -4396,6 +4396,7 @@ describe('SidebarUtils', () => {
                     translateLocal,
                     convertToDisplayString,
                     {
+                        bankAccountList: undefined,
                         reportOrID: iouReport,
                         iouReportAction: iouAction,
                         shouldConsiderScanningReceiptOrPendingRoute: true,
@@ -4517,6 +4518,7 @@ describe('SidebarUtils', () => {
                     translateLocal,
                     convertToDisplayString,
                     {
+                        bankAccountList: undefined,
                         reportOrID: iouReport,
                         iouReportAction: iouAction,
                         shouldConsiderScanningReceiptOrPendingRoute: true,

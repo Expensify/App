@@ -41,6 +41,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import {bankAccountByIDSelector} from '@selectors/BankAccount';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
@@ -61,7 +62,7 @@ function LinkPlaidToBankAccountInner({bankAccountID, backPath}: LinkPlaidToBankA
 
     const [plaidLinkToken] = useOnyx(ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN);
     const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED);
-    const [bankAccount] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {selector: (list) => list?.[bankAccountID]});
+    const [bankAccount] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {selector: bankAccountByIDSelector(bankAccountID)});
 
     const latestErrorMessage = getLatestErrorMessage(bankAccount);
     const isWrongAccountError = !isEmptyObject(getLatestErrorField(bankAccount, CONST.BANK_ACCOUNT.PLAID_WRONG_ACCOUNT_ERROR_FIELD));

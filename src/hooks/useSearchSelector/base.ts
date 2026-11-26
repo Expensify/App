@@ -216,6 +216,7 @@ function useSearchSelectorBase<TSelected extends Option = OptionData>({
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const personalDetails = usePersonalDetails();
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
@@ -328,6 +329,7 @@ function useSearchSelectorBase<TSelected extends Option = OptionData>({
                     translate,
                     getReportByID,
                     rules,
+                    bankAccountList,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL:
                 return getValidOptions(
@@ -367,6 +369,7 @@ function useSearchSelectorBase<TSelected extends Option = OptionData>({
                         formatPhoneNumber,
                         isTrackIntentUser,
                         getReportByID,
+                        bankAccountList,
                         ...appliedGetValidOptionsConfig,
                     },
                     {translate, formatPhoneNumber},
@@ -413,6 +416,7 @@ function useSearchSelectorBase<TSelected extends Option = OptionData>({
                         formatPhoneNumber,
                         isTrackIntentUser,
                         getReportByID,
+                        bankAccountList,
                         ...appliedGetValidOptionsConfig,
                     },
                     {translate, formatPhoneNumber},
@@ -456,6 +460,7 @@ function useSearchSelectorBase<TSelected extends Option = OptionData>({
                         formatPhoneNumber,
                         isTrackIntentUser,
                         getReportByID,
+                        bankAccountList,
                         ...appliedGetValidOptionsConfig,
                     },
                     {translate, formatPhoneNumber},

@@ -935,6 +935,7 @@ describe('ReportAlternateTextUtils', () => {
                     translateLocal,
                     convertToDisplayString,
                     {
+                        bankAccountList: undefined,
                         reportOrID: iouReport,
                         iouReportAction: iouAction,
                         shouldConsiderScanningReceiptOrPendingRoute: true,

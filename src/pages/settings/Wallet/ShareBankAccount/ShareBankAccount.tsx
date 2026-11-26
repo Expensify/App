@@ -36,6 +36,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
+import {bankAccountByIDSelector} from '@selectors/BankAccount';
 import React, {useEffect, useState} from 'react';
 
 type ShareBankAccountProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.SHARE_BANK_ACCOUNT>;
@@ -53,13 +54,14 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
     const isLoading = sharedBankAccountData?.isLoading ?? false;
 
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [currentBankAccount] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {selector: bankAccountByIDSelector(bankAccountID)});
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const [selectedOptions, setSelectedOptions] = useState<MemberForList[]>([]);
     const [isAlertVisible, setIsAlertVisible] = useState<boolean>(false);
 
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {translate} = useLocalize();
-    const adminEmails = getEligibleBankAccountShareRecipientEmails(allPolicies, currentUserLogin, bankAccountID);
+    const adminEmails = getEligibleBankAccountShareRecipientEmails(allPolicies, currentUserLogin, currentBankAccount);
     const adminPersonalDetails = usePersonalDetailsByLogins(adminEmails);
     const admins = adminEmails.flatMap((email) => {
         const personalDetails = adminPersonalDetails[email];

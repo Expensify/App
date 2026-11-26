@@ -5929,7 +5929,7 @@ describe('PolicyUtils', () => {
                     '1': {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
                     '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
                 };
-                const result = getEligibleBankAccountShareRecipientEmails(policies, approverEmail, bankAccountID);
+                const result = getEligibleBankAccountShareRecipientEmails(policies, approverEmail, (await Onyx.get(ONYXKEYS.BANK_ACCOUNT_LIST))?.[bankAccountID]);
                 expect(result).toHaveLength(0);
             });
             it('should return array with admins from the bank account workspace', async () => {
@@ -5955,7 +5955,7 @@ describe('PolicyUtils', () => {
                     },
                     '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
                 };
-                const result = getEligibleBankAccountShareRecipientEmails(policies, approverEmail, bankAccountID);
+                const result = getEligibleBankAccountShareRecipientEmails(policies, approverEmail, (await Onyx.get(ONYXKEYS.BANK_ACCOUNT_LIST))?.[bankAccountID]);
                 expect(result).toHaveLength(1);
             });
             it('should not return user with already shared bank account', async () => {
@@ -5982,7 +5982,7 @@ describe('PolicyUtils', () => {
                     },
                     '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
                 };
-                const result = getEligibleBankAccountShareRecipientEmails(policies, approverEmail, bankAccountID);
+                const result = getEligibleBankAccountShareRecipientEmails(policies, approverEmail, (await Onyx.get(ONYXKEYS.BANK_ACCOUNT_LIST))?.[bankAccountID]);
                 expect(result).toHaveLength(0);
             });
             it('should not return current user for sharing account', async () => {
@@ -6007,10 +6007,10 @@ describe('PolicyUtils', () => {
                         },
                     },
                 };
-                const result = getEligibleBankAccountShareRecipientEmails(policies, adminEmail, bankAccountID);
+                const result = getEligibleBankAccountShareRecipientEmails(policies, adminEmail, (await Onyx.get(ONYXKEYS.BANK_ACCOUNT_LIST))?.[bankAccountID]);
                 expect(result).toHaveLength(1);
             });
-            it('should allow Payments Admins to share with and receive from members who can manage payments', () => {
+            it('should allow Payments Admins to share with and receive from members who can manage payments', async () => {
                 const policies = {
                     '1': {
                         ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
@@ -6023,12 +6023,12 @@ describe('PolicyUtils', () => {
                     },
                 };
 
-                const result = getEligibleBankAccountShareRecipientEmails(policies, adminEmail, '1');
+                const result = getEligibleBankAccountShareRecipientEmails(policies, adminEmail, (await Onyx.get(ONYXKEYS.BANK_ACCOUNT_LIST))?.['1']);
 
                 expect(result).toHaveLength(1);
                 expect(result.at(0)).toBe(approverEmail);
             });
-            it('should not return members who cannot manage payments', () => {
+            it('should not return members who cannot manage payments', async () => {
                 const policies = {
                     '1': {
                         ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
@@ -6041,11 +6041,11 @@ describe('PolicyUtils', () => {
                     },
                 };
 
-                const result = getEligibleBankAccountShareRecipientEmails(policies, adminEmail, '1');
+                const result = getEligibleBankAccountShareRecipientEmails(policies, adminEmail, (await Onyx.get(ONYXKEYS.BANK_ACCOUNT_LIST))?.['1']);
 
                 expect(result).toHaveLength(0);
             });
-            it('should not fall back to the current user role when a recipient role is missing', () => {
+            it('should not fall back to the current user role when a recipient role is missing', async () => {
                 const policies = {
                     '1': {
                         ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
@@ -6058,13 +6058,13 @@ describe('PolicyUtils', () => {
                     },
                 };
 
-                const recipients = getEligibleBankAccountShareRecipientEmails(policies, adminEmail, '1');
-                const hasEligibleRecipient = hasEligibleBankAccountShareRecipient(policies, adminEmail, '1');
+                const recipients = getEligibleBankAccountShareRecipientEmails(policies, adminEmail, (await Onyx.get(ONYXKEYS.BANK_ACCOUNT_LIST))?.['1']);
+                const hasEligibleRecipient = hasEligibleBankAccountShareRecipient(policies, adminEmail, (await Onyx.get(ONYXKEYS.BANK_ACCOUNT_LIST))?.['1']);
 
                 expect(recipients).toHaveLength(0);
                 expect(hasEligibleRecipient).toBe(false);
             });
-            it('should not return Expensify guide when policy owner is not Expensify team', () => {
+            it('should not return Expensify guide when policy owner is not Expensify team', async () => {
                 const policies = {
                     '1': {
                         ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
@@ -6076,10 +6076,10 @@ describe('PolicyUtils', () => {
                         },
                     },
                 };
-                const result = getEligibleBankAccountShareRecipientEmails(policies, adminEmail, '1');
+                const result = getEligibleBankAccountShareRecipientEmails(policies, adminEmail, (await Onyx.get(ONYXKEYS.BANK_ACCOUNT_LIST))?.['1']);
                 expect(result).toHaveLength(0);
             });
-            it('should return Expensify guide when policy owner is Expensify team', () => {
+            it('should return Expensify guide when policy owner is Expensify team', async () => {
                 const policies = {
                     '1': {
                         ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
@@ -6091,10 +6091,10 @@ describe('PolicyUtils', () => {
                         },
                     },
                 };
-                const result = getEligibleBankAccountShareRecipientEmails(policies, adminEmail, '1');
+                const result = getEligibleBankAccountShareRecipientEmails(policies, adminEmail, (await Onyx.get(ONYXKEYS.BANK_ACCOUNT_LIST))?.['1']);
                 expect(result).toHaveLength(1);
             });
-            it('should return Expensify guide when current user is Expensify team', () => {
+            it('should return Expensify guide when current user is Expensify team', async () => {
                 const policies = {
                     '1': {
                         ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
@@ -6106,7 +6106,7 @@ describe('PolicyUtils', () => {
                         },
                     },
                 };
-                const result = getEligibleBankAccountShareRecipientEmails(policies, 'someone@expensify.com', '1');
+                const result = getEligibleBankAccountShareRecipientEmails(policies, 'someone@expensify.com', (await Onyx.get(ONYXKEYS.BANK_ACCOUNT_LIST))?.['1']);
                 expect(result).toHaveLength(1);
             });
         });
@@ -6120,7 +6120,7 @@ describe('PolicyUtils', () => {
                 await Onyx.clear();
                 await waitForBatchedUpdatesWithAct();
             });
-            it('should return false when the only admin is an Expensify guide on a non-Expensify policy', () => {
+            it('should return false when the only admin is an Expensify guide on a non-Expensify policy', async () => {
                 const policies = {
                     '1': {
                         ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
@@ -6132,10 +6132,10 @@ describe('PolicyUtils', () => {
                         },
                     },
                 };
-                const result = hasEligibleBankAccountShareRecipient(policies, adminEmail, '1');
+                const result = hasEligibleBankAccountShareRecipient(policies, adminEmail, (await Onyx.get(ONYXKEYS.BANK_ACCOUNT_LIST))?.['1']);
                 expect(result).toBe(false);
             });
-            it('should return true when there is a non-guide admin', () => {
+            it('should return true when there is a non-guide admin', async () => {
                 const policies = {
                     '1': {
                         ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
@@ -6148,10 +6148,10 @@ describe('PolicyUtils', () => {
                         },
                     },
                 };
-                const result = hasEligibleBankAccountShareRecipient(policies, adminEmail, '1');
+                const result = hasEligibleBankAccountShareRecipient(policies, adminEmail, (await Onyx.get(ONYXKEYS.BANK_ACCOUNT_LIST))?.['1']);
                 expect(result).toBe(true);
             });
-            it('should return true when the guide is on an Expensify-owned policy', () => {
+            it('should return true when the guide is on an Expensify-owned policy', async () => {
                 const policies = {
                     '1': {
                         ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
@@ -6163,7 +6163,7 @@ describe('PolicyUtils', () => {
                         },
                     },
                 };
-                const result = hasEligibleBankAccountShareRecipient(policies, adminEmail, '1');
+                const result = hasEligibleBankAccountShareRecipient(policies, adminEmail, (await Onyx.get(ONYXKEYS.BANK_ACCOUNT_LIST))?.['1']);
                 expect(result).toBe(true);
             });
             it('should return true when another admin is available in the bank account workspace', async () => {
@@ -6188,10 +6188,10 @@ describe('PolicyUtils', () => {
                         },
                     },
                 };
-                const result = hasEligibleBankAccountShareRecipient(policies, adminEmail, bankAccountID);
+                const result = hasEligibleBankAccountShareRecipient(policies, adminEmail, (await Onyx.get(ONYXKEYS.BANK_ACCOUNT_LIST))?.[bankAccountID]);
                 expect(result).toBe(true);
             });
-            it('should return true when a Payments Admin can share with another payment-capable member', () => {
+            it('should return true when a Payments Admin can share with another payment-capable member', async () => {
                 const policies = {
                     '1': {
                         ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
@@ -6204,7 +6204,7 @@ describe('PolicyUtils', () => {
                     },
                 };
 
-                const result = hasEligibleBankAccountShareRecipient(policies, adminEmail, '1');
+                const result = hasEligibleBankAccountShareRecipient(policies, adminEmail, (await Onyx.get(ONYXKEYS.BANK_ACCOUNT_LIST))?.['1']);
 
                 expect(result).toBe(true);
             });
@@ -6240,7 +6240,7 @@ describe('PolicyUtils', () => {
                         },
                     },
                 };
-                const result = hasEligibleBankAccountShareRecipient(policies, adminEmail, bankAccountID);
+                const result = hasEligibleBankAccountShareRecipient(policies, adminEmail, (await Onyx.get(ONYXKEYS.BANK_ACCOUNT_LIST))?.[bankAccountID]);
                 expect(result).toBe(false);
             });
         });

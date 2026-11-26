@@ -76,6 +76,7 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
+    BankAccountList,
     Locale,
     Login,
     OnyxInputOrEntry,
@@ -236,6 +237,7 @@ type GetAlternateTextConfig = {
     localeCompare?: LocaleContextProps['localeCompare'];
     formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
     rules: OnyxCollection<Rule>;
+    bankAccountList?: OnyxEntry<BankAccountList>;
 };
 
 /**
@@ -280,6 +282,7 @@ function getAlternateText(
         localeCompare,
         formatPhoneNumber,
         rules,
+        bankAccountList,
     }: GetAlternateTextConfig,
 ) {
     const report = getReportOrDraftReport({reportID: option.reportID});
@@ -326,6 +329,7 @@ function getAlternateText(
                 convertToDisplayString,
                 convertToDisplayStringWithoutCurrency: convertToDisplayStringWithoutCurrency ?? fallbackConvertToDisplayStringWithoutCurrency,
                 rules,
+                bankAccountList,
             });
         }
         if (option.lastMessageText) {
@@ -2200,6 +2204,7 @@ function prepareReportOptionsForDisplay(
         formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
         transactionThreadIDs?: Record<string, string | undefined>;
         lastActions: Record<string, ReportAction> | undefined;
+        bankAccountList?: OnyxEntry<BankAccountList>;
     },
     conciergeReportID: string | undefined,
     sortedActions: Record<string, ReportAction[]> | undefined,
@@ -2232,6 +2237,7 @@ function prepareReportOptionsForDisplay(
         formatPhoneNumber,
         transactionThreadIDs,
         lastActions,
+        bankAccountList,
     } = config;
 
     const validOptions: Array<SearchOption<Report>> = [];
@@ -2259,6 +2265,7 @@ function prepareReportOptionsForDisplay(
         localeCompare,
         formatPhoneNumber,
         translate,
+        bankAccountList,
     ]);
 
     for (let i = 0; i < options.length; i++) {
@@ -2307,6 +2314,7 @@ function prepareReportOptionsForDisplay(
                     localeCompare,
                     formatPhoneNumber,
                     rules,
+                    bankAccountList,
                 },
             ),
         );
@@ -2417,6 +2425,7 @@ function getValidOptions(
         sortedActions,
         transactionThreadIDs,
         lastActions,
+        bankAccountList,
         currentUserLogin,
         localeCompare,
         isTrackIntentUser,
@@ -2558,6 +2567,7 @@ function getValidOptions(
                     formatPhoneNumber,
                     transactionThreadIDs,
                     lastActions,
+                    bankAccountList,
                 },
                 conciergeReportID,
                 sortedActions,
@@ -2592,6 +2602,7 @@ function getValidOptions(
                 formatPhoneNumber,
                 transactionThreadIDs,
                 lastActions,
+                bankAccountList,
             },
             conciergeReportID,
             sortedActions,
@@ -2622,6 +2633,7 @@ function getValidOptions(
                 formatPhoneNumber,
                 transactionThreadIDs,
                 lastActions,
+                bankAccountList,
             },
             conciergeReportID,
             sortedActions,
@@ -2808,6 +2820,7 @@ type SearchOptionsConfig = {
     /** @see GetValidReportsConfig['getReportByID'] */
     getReportByID: GetOptionsConfig['getReportByID'];
     rules: OnyxCollection<Rule>;
+    bankAccountList?: OnyxEntry<BankAccountList>;
 };
 
 /**
@@ -2850,6 +2863,7 @@ function getSearchOptions({
     convertToDisplayString,
     convertToDisplayStringWithoutCurrency,
     rules,
+    bankAccountList,
 }: SearchOptionsConfig): OptionsResult {
     const optionList = getValidOptions(
         options,
@@ -2895,6 +2909,7 @@ function getSearchOptions({
             excludeFromSuggestionsOnly,
             isTrackIntentUser,
             getReportByID,
+            bankAccountList,
         },
         {translate, formatPhoneNumber},
         rules,

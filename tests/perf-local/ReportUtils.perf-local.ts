@@ -29,6 +29,7 @@ import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
 
 import {chatReportR14932 as chatReport} from '../../__mocks__/reportData/reports';
+import createRandomBankAccountList from '../utils/collections/bankAccounts';
 import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
@@ -148,6 +149,7 @@ describe('ReportUtils', () => {
         const policy = createRandomPolicy(1);
         const shouldConsiderReceiptBeingScanned = true;
         const isPreviewMessageForParentChatReport = true;
+        const bankAccountList = createRandomBankAccountList(100);
 
         await waitForBatchedUpdates();
         await measureFunction(() =>
@@ -160,6 +162,7 @@ describe('ReportUtils', () => {
                     shouldConsiderScanningReceiptOrPendingRoute: shouldConsiderReceiptBeingScanned,
                     isPreviewMessageForParentChatReport,
                     policy,
+                    bankAccountList,
                 },
                 formatPhoneNumber,
             ),
