@@ -69,6 +69,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [chatReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     const [transactions] = useTransactionsByID(selectedIds);
     const reports = useChangeTransactionsReportReports(transactions, reportToConfirm?.reportID);
@@ -113,6 +114,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
                         currentUserPersonalDetails,
                         newReport: reportToConfirm,
                         policy,
+                        policies,
                         policyCategories,
                         policyTagList,
                         transactions,

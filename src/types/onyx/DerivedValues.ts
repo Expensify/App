@@ -16,6 +16,13 @@ import type TransactionViolations from './TransactionViolation';
  */
 type ReportAttributes = {
     reportName: string;
+
+    /**
+     * The report's stored `reportName`, without the display decoration that `reportName` adds, such as the archived suffix.
+     * Only set for chat rooms for now, since room mentions are its only use (`<mention-report>` tags render the stored name).
+     * Set it for other report types when another use needs it.
+     */
+    rawReportName?: string;
     /**
      * Whether the report is empty (has no visible messages).
      */
@@ -49,7 +56,7 @@ type ReportAttributes = {
 };
 
 /** Report names keyed by reportID, the only part of the report attributes that option rows read for reports other than their own */
-type ReportNamesDerivedValue = Record<string, Pick<ReportAttributes, 'reportName'>>;
+type ReportNamesDerivedValue = Record<string, Pick<ReportAttributes, 'reportName' | 'rawReportName'>>;
 
 /**
  * The derived value for report attributes.

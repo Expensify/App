@@ -1,29 +1,29 @@
 /* eslint-disable @typescript-eslint/naming-convention -- fixtures use `rules_<id>` Onyx collection keys */
-import {filterRulesForPolicy} from '@libs/RuleUtils';
+import {filterRulesForPolicy, groupRulesByPolicyID} from '@libs/RuleUtils';
 
 import CONST from '@src/CONST';
 import type Rule from '@src/types/onyx/Rule';
 
 describe('RuleUtils', () => {
-    describe('filterRulesForPolicy', () => {
-        const ruleForPolicy = (scopeID: string, extra: Partial<Omit<Rule, 'actions' | 'filters' | 'triggers'>> = {}): Rule => ({
-            scope: CONST.RULES.SCOPE.POLICY,
-            scopeID,
-            triggers: {'1': CONST.RULES.TRIGGERS.REPORT_SUBMIT},
-            filters: {
-                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
-                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
-                right: 'a@example.com',
+    const ruleForPolicy = (scopeID: string, extra: Partial<Omit<Rule, 'actions' | 'filters' | 'triggers'>> = {}): Rule => ({
+        scope: CONST.RULES.SCOPE.POLICY,
+        scopeID,
+        triggers: {'1': CONST.RULES.TRIGGERS.REPORT_SUBMIT},
+        filters: {
+            operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+            left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+            right: 'a@example.com',
+        },
+        actions: {
+            '1': {
+                name: CONST.RULES.ACTIONS.FORWARD_TO,
+                approver: 'b@example.com',
             },
-            actions: {
-                '1': {
-                    name: CONST.RULES.ACTIONS.FORWARD_TO,
-                    approver: 'b@example.com',
-                },
-            },
-            ...extra,
-        });
+        },
+        ...extra,
+    });
 
+    describe('filterRulesForPolicy', () => {
         it('keeps only the rules scoped to the given policy, preserving the collection keys', () => {
             // Given a rules collection holding rules for two different policies
             const mine = ruleForPolicy('policy1');
@@ -61,6 +61,26 @@ describe('RuleUtils', () => {
             // Then an empty collection comes back, so callers can always spread or iterate the result
             expect(withoutPolicy).toEqual({});
             expect(withoutRules).toEqual({});
+        });
+    });
+
+    describe('groupRulesByPolicyID', () => {
+        it('groups policy rules by workspace in one pass, matching a per-workspace filter', () => {
+            // Given rules for two workspaces plus a rule with no workspace, which can't belong to any of them
+            const collection = {
+                rules_1: ruleForPolicy('policy1'),
+                rules_2: ruleForPolicy('policy2'),
+                rules_3: ruleForPolicy('policy1'),
+                rules_4: ruleForPolicy(''),
+            };
+
+            // When grouping the collection by workspace
+            const result = groupRulesByPolicyID(collection);
+
+            // Then each workspace gets exactly what filtering for it would return, so callers can swap one for the other
+            expect(Object.keys(result).sort()).toEqual(['policy1', 'policy2']);
+            expect(result.policy1).toEqual(filterRulesForPolicy(collection, 'policy1'));
+            expect(result.policy2).toEqual(filterRulesForPolicy(collection, 'policy2'));
         });
     });
 });

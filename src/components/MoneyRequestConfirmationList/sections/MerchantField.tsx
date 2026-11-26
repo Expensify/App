@@ -105,10 +105,10 @@ function MerchantField({isMerchantRequired, shouldDisplayFieldError, fieldError}
         // SplitBillDetailsPage and completeSplitBill read the latest value.
         if (isEditingSplitBill) {
             if (newMerchant.trim() === '') {
-                setDraftSplitTransaction(transactionID, baseTransaction, {merchant: '', isMerchantSet: false}, getCurrencyDecimals, getCurrencySymbol);
+                setDraftSplitTransaction(translate, transactionID, baseTransaction, {merchant: '', isMerchantSet: false}, getCurrencyDecimals, getCurrencySymbol);
                 return;
             }
-            setDraftSplitTransaction(transactionID, baseTransaction, {merchant: newMerchant, isMerchantSet: true}, getCurrencyDecimals, getCurrencySymbol);
+            setDraftSplitTransaction(translate, transactionID, baseTransaction, {merchant: newMerchant, isMerchantSet: true}, getCurrencyDecimals, getCurrencySymbol);
             return;
         }
 

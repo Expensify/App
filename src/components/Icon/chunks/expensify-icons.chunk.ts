@@ -139,6 +139,7 @@ import ImageCropCircleMask from '@assets/images/image-crop-circle-mask.svg';
 import ImageCropSquareMask from '@assets/images/image-crop-square-mask.svg';
 import Inbox from '@assets/images/inbox.svg';
 import Info from '@assets/images/info.svg';
+import AcumaticaSquare from '@assets/images/integrationicons/acumatica-icon-square.svg';
 import BillComSquare from '@assets/images/integrationicons/bill-com-icon-square.svg';
 import CampfireSquare from '@assets/images/integrationicons/campfire-icon-square.svg';
 import CertiniaSquare from '@assets/images/integrationicons/certinia-icon-square.svg';
@@ -517,6 +518,7 @@ const Expensicons = {
     DualEntrySquare,
     ExactOnlineSquare,
     OdooSquare,
+    AcumaticaSquare,
     Rotate,
     RotateLeft,
     Scan,
