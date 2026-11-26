@@ -226,12 +226,11 @@ export default {
     // Space between a row's icon and its label. Subnav labels are indented by it to line up with the label above.
     flatNavigationBarItemGap: 12,
     flatNavigationBarHeaderHeight: 72,
-    // Subnav rows are shorter than the destination rows above them, so a group of searches reads as one block.
-    flatNavigationBarSubnavItemHeight: 36,
+    flatNavigationBarSubnavItemHeight: 40,
     // The header row includes the gap above its label, so a new group reads as a new block.
-    flatNavigationBarSubnavHeaderHeight: 32,
+    flatNavigationBarSubnavHeaderHeight: 34,
     // The marker beside the active subnav row is shorter than the row, so it reads as a pill and not as a border.
-    flatNavigationBarSubnavMarkerHeight: 16,
+    flatNavigationBarSubnavMarkerHeight: 20,
     flatNavigationBarSubnavMarkerWidth: 3,
     flatNavigationBarCreateButtonHeight: 32,
     // Centers the design's 204px wide Create button in the bar.
