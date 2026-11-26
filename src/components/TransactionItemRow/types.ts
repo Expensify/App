@@ -130,7 +130,6 @@ type TransactionItemRowProps = CheckboxSentryLabelProps & {
     onArrowRightPress?: (event?: ModifiedMouseEvent) => void;
     isHover?: boolean;
     shouldShowArrowRightOnNarrowLayout?: boolean;
-
     reportActions?: ReportAction[];
     /** Precomputed transaction-thread report ID. When provided, skips the per-row report-actions scan used to derive it
      * (lets callers that already know the thread mapping avoid O(transactions × actions) work). */
