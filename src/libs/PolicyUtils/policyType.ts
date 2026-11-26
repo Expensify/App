@@ -25,6 +25,14 @@ function isArchivedOrPendingDeletePolicy(policy: OnyxInputOrEntry<Policy>): bool
     return isArchivedPolicy(policy) || policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
+/**
+ * Whether the workspace should be checked for errors. Workspaces Onyx just deleted come through as null,
+ * and archived ones are read-only, so their errors can't be resolved.
+ */
+function shouldCheckPolicyForErrors(policy: OnyxEntry<Policy>): policy is Policy {
+    return !!policy?.id && !isArchivedPolicy(policy);
+}
+
 function isPendingDeletePolicy(policy: OnyxEntry<Policy>): boolean {
     return policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
@@ -122,6 +130,7 @@ export {
     isArchivedPolicy,
     isArchivedOrPendingDeletePolicy,
     isPendingDeletePolicy,
+    shouldCheckPolicyForErrors,
     isPaidGroupPolicy,
     isPaidGroupPolicyByType,
     isSubmitPolicy,

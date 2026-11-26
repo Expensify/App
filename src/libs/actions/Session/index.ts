@@ -681,6 +681,12 @@ function buildOnyxDataToCleanUpAnonymousUser(session: OnyxEntry<Session>): Perso
     return buildPersonalDetailsUpdate(data);
 }
 
+/** The text message consents collected when someone signs up with a phone number */
+type SMSConsent = {
+    hasSMSTransactionalConsent: boolean;
+    hasSMSMarketingConsent: boolean;
+};
+
 /**
  * Creates an account for the new user and signs them into the application with the newly created account.
  * The marketing attribution captured from the landing URL is sent with the request and cleared once signup succeeds.
@@ -688,7 +694,7 @@ function buildOnyxDataToCleanUpAnonymousUser(session: OnyxEntry<Session>): Perso
 function signUpUser(
     login: string | undefined,
     preferredLocale: Locale | undefined,
-    hasSMSMarketingConsent: boolean | undefined,
+    smsConsent: SMSConsent | undefined,
     storedMarketingAttribution: OnyxEntry<StoredMarketingAttribution>,
     session: OnyxEntry<Session>,
 ) {
@@ -740,8 +746,9 @@ function signUpUser(
             ...getAdvertisingConsentParams(),
             ...getFreshMarketingAttribution(storedMarketingAttribution),
         };
-        if (hasSMSMarketingConsent !== undefined) {
-            params.hasSMSMarketingConsent = hasSMSMarketingConsent;
+        if (smsConsent) {
+            params.hasSMSTransactionalConsent = smsConsent.hasSMSTransactionalConsent;
+            params.hasSMSMarketingConsent = smsConsent.hasSMSMarketingConsent;
         }
         API.write(WRITE_COMMANDS.SIGN_UP_USER, params, {optimisticData, successData, failureData});
     });

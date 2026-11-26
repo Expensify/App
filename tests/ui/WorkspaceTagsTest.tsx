@@ -18,6 +18,7 @@ import WorkspaceTagsPage from '@pages/workspace/tags/WorkspaceTagsPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+import type {PolicyTagLists} from '@src/types/onyx';
 import type Beta from '@src/types/onyx/Beta';
 
 import {PortalProvider} from '@gorhom/portal';
@@ -193,6 +194,28 @@ describe('WorkspaceTags', () => {
             await Onyx.clear();
         });
         jest.clearAllMocks();
+    });
+
+    it('keeps list rows in order after merging a list with missing tags', async () => {
+        // Given the workspace tags page displaying an existing list.
+        await TestHelper.signInWithTestUser();
+        const policy = {...LHNTestUtils.getFakePolicy(), role: CONST.POLICY.ROLE.ADMIN, areTagsEnabled: true};
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy.id}`, tags);
+        });
+        const {unmount} = renderPage(SCREENS.WORKSPACE.TAGS, {policyID: policy.id});
+        await waitForBatchedUpdatesWithAct();
+
+        // When a new list arrives with its nested tags map omitted.
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy.id}`, createMock<PolicyTagLists>({Broken: {name: 'Broken', orderWeight: 99}}));
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then multilevel rows render without dropping or reordering either list.
+        expect(screen.getAllByLabelText(/^(TagListOne|Broken),/).map((element) => String(element.props.accessibilityLabel).split(',').at(0))).toEqual(['TagListOne', 'Broken']);
+        unmount();
     });
 
     it('should show select option when the item is not selected and deselect option when the item is selected', async () => {

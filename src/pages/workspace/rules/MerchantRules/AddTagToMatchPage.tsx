@@ -67,7 +67,7 @@ function AddTagToMatchPage({route}: AddTagToMatchPageProps) {
     const tagItems: TagListItem[] = [];
     const seenTagNames = new Set<string>();
     for (const tagList of policyTagLists) {
-        for (const tag of Object.values(tagList.tags)) {
+        for (const tag of Object.values(tagList.tags ?? {})) {
             if (seenTagNames.has(tag.name)) {
                 continue;
             }

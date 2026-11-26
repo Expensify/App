@@ -27,7 +27,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EditBankAccountNicknameForm';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React from 'react';
 
@@ -35,7 +34,7 @@ type EditBankAccountNicknamePageProps = PlatformStackScreenProps<SettingsNavigat
 
 function EditBankAccountNicknamePage({route}: EditBankAccountNicknamePageProps) {
     const bankAccountID = Number(route.params.bankAccountID);
-    const [bankAccountList, bankAccountListMetadata] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const bankAccount = bankAccountList?.[bankAccountID];
 
     // Match the name shown on the Wallet row, which falls back to the bank name when the title is a masked account number
@@ -63,10 +62,6 @@ function EditBankAccountNicknamePage({route}: EditBankAccountNicknamePageProps) 
         }
         return errors;
     };
-
-    if (isLoadingOnyxValue(bankAccountListMetadata)) {
-        return null;
-    }
 
     // Only open bank accounts can be renamed, matching Expensify Classic
     if (bankAccount?.accountData?.state !== CONST.BANK_ACCOUNT.STATE.OPEN) {
