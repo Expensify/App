@@ -50,7 +50,10 @@ function renderShownAIInsights(initialProps: HookProps) {
 describe('useShownAIInsights', () => {
     it('builds the scope from the filters the AI cards depend on', () => {
         // Given the Spend dashboard with its AI cards loaded
-        const {result} = renderShownAIInsights({dashboardID: CONST.INSIGHTS.DASHBOARD.SPEND, filters: FILTERS, hash: HASH, insights: INSIGHTS});
+        const props: HookProps = {dashboardID: CONST.INSIGHTS.DASHBOARD.SPEND, filters: FILTERS, hash: HASH, insights: INSIGHTS};
+
+        // When the hook picks the cards to show
+        const {result} = renderShownAIInsights(props);
 
         // Then the cards come with a scope of the dashboard's search key, workspaces, date, currency and tag level
         expect(result.current.scope).toEqual({
@@ -65,7 +68,10 @@ describe('useShownAIInsights', () => {
 
     it('leaves the tag level out of the scope on dashboards other than Spend', () => {
         // Given the Compliance dashboard, which has no tag level control
-        const {result} = renderShownAIInsights({dashboardID: CONST.INSIGHTS.DASHBOARD.COMPLIANCE, filters: FILTERS, hash: HASH, insights: INSIGHTS});
+        const props: HookProps = {dashboardID: CONST.INSIGHTS.DASHBOARD.COMPLIANCE, filters: FILTERS, hash: HASH, insights: INSIGHTS};
+
+        // When the hook picks the cards to show
+        const {result} = renderShownAIInsights(props);
 
         // Then the scope doesn't include the tag level
         expect(result.current.scope).not.toHaveProperty('tagLevel');
@@ -73,7 +79,10 @@ describe('useShownAIInsights', () => {
 
     it('shows no cards while the first entry is loading', () => {
         // Given a dashboard whose AI cards haven't been written yet
-        const {result} = renderShownAIInsights({dashboardID: CONST.INSIGHTS.DASHBOARD.SPEND, filters: FILTERS, hash: HASH, insights: undefined});
+        const props: HookProps = {dashboardID: CONST.INSIGHTS.DASHBOARD.SPEND, filters: FILTERS, hash: HASH, insights: undefined};
+
+        // When the hook picks the cards to show
+        const {result} = renderShownAIInsights(props);
 
         // Then there are no cards to show
         expect(result.current.insights).toBeUndefined();
