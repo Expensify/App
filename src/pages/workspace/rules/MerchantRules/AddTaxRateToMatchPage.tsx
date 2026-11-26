@@ -39,8 +39,8 @@ function AddTaxRateToMatchPage({route}: AddTaxRateToMatchPageProps) {
     // so a rule keyed by one would name a rate nothing else can resolve.
     //
     // A selection made before the rate's code was changed still holds the old key, which the rate no longer answers
-    // to. The picker works in current keys throughout, so the rate ticks and unticks like any other one and saving
-    // the rule moves it onto the key the rate has now.
+    // to. The picker works in current keys throughout, so the rate can be selected and cleared like any other one
+    // and saving the rule moves it onto the key the rate has now.
     const selectedTaxRateKeys = selectedTaxRates.map((taxRateKey) => resolveCurrentTaxCode(policy, taxRateKey));
     const selectedTaxRateKeySet = new Set(selectedTaxRateKeys);
     const taxRateItems: RuleConditionItem[] = Object.entries(policy?.taxRates?.taxes ?? {})
