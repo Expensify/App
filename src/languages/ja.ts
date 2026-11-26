@@ -802,6 +802,11 @@ const translations: TranslationDeepObject<typeof en> = {
         setPin: {didNotShipCard: 'カードを発送できませんでした。もう一度お試しください。'},
         revealPin: {couldNotReveal: 'PIN を表示できませんでした。もう一度お試しください。'},
         changePin: {didNotChange: 'お客様の暗証番号は変更されていません。もう一度お試しください。'},
+        addToWallet: {
+            failedHeader: 'カードを追加できませんでした',
+            failedTitle: 'カードをウォレットに追加できませんでした',
+            failedSubtitle: 'カードの追加中に問題が発生しました。すでにウォレットに入っている場合は、そちらでご利用いただけます。',
+        },
         revealCardDetail: {couldNotReveal: 'カード情報を表示できませんでした。もう一度お試しください。'},
     },
     validateCodeModal: {
