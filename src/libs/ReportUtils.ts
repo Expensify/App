@@ -16405,7 +16405,6 @@ export {
     findSelfDMReportID,
     formatReportLastMessageText,
     generateReportID,
-    getExpenseReportStateAndStatus,
     getFinalizedDeferredBatchReportState,
     getCreationReportErrors,
     getAllHeldTransactions,
