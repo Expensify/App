@@ -2,26 +2,55 @@ import {showOriginalReceipt, showReceiptTranslation, translateReceipt} from '@li
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Growl from '@libs/Growl';
 // eslint-disable-next-line no-restricted-imports -- Translate receipt is a paid feature.
-import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import {isReportManager} from '@libs/ReportUtils';
+import {isPaidGroupPolicy, isPolicyAdmin, isWorkflowApprover} from '@libs/PolicyUtils';
+import {isExpenseReport, isOpenReport, isReportManager} from '@libs/ReportUtils';
 import {hasReceiptSource, isDistanceRequest, isPerDiemRequest, isReceiptScanBlockingEdit} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, Transaction} from '@src/types/onyx';
+import type {Policy, Report, Transaction} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import {accountIDSelector} from '@selectors/Session';
+import {loginSelector} from '@selectors/PersonalDetails';
+import {emailAndAccountIDSelector} from '@selectors/Session';
 
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
+import {usePersonalDetail} from './usePersonalDetails';
 import usePolicy from './usePolicy';
 
-const expenseReportApproverSelector = (report: OnyxEntry<Report>) => report && {reportID: report.reportID, policyID: report.policyID, managerID: report.managerID};
+const expenseReportApproverSelector = (report: OnyxEntry<Report>) =>
+    report && {
+        reportID: report.reportID,
+        policyID: report.policyID,
+        managerID: report.managerID,
+        ownerAccountID: report.ownerAccountID,
+        type: report.type,
+        stateNum: report.stateNum,
+        statusNum: report.statusNum,
+        total: report.total,
+    };
+
+type ExpenseReportApprover = ReturnType<typeof expenseReportApproverSelector>;
+type SessionUser = ReturnType<typeof emailAndAccountIDSelector>;
+
+// A hook of its own so the compiler memoizes the rules selector
+function useIsOpenReportWorkflowApprover(expenseReport: ExpenseReportApprover, policy: OnyxEntry<Policy>, ownerLogin: string | undefined, session: SessionUser): boolean {
+    // A draft report's managerID can be stale, so we also check the policy's approver. Admins and the report's approver skip the rules scan.
+    const [isOpenReportWorkflowApprover = false] = useOnyx(ONYXKEYS.COLLECTION.RULE, {
+        selector: (rules) =>
+            !isPolicyAdmin(policy) &&
+            !isReportManager(expenseReport, session?.accountID) &&
+            isExpenseReport(expenseReport) &&
+            isOpenReport(expenseReport) &&
+            isWorkflowApprover(policy, ownerLogin, rules, expenseReport?.total ?? 0, session?.email),
+    });
+    return isOpenReportWorkflowApprover;
+}
 
 function useReceiptTranslation(transaction: OnyxEntry<Transaction>) {
     const {translate, preferredLocale} = useLocalize();
@@ -32,7 +61,9 @@ function useReceiptTranslation(transaction: OnyxEntry<Transaction>) {
     const [receiptTranslationState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_RECEIPT_TRANSLATION_STATE}${getNonEmptyStringOnyxID(transactionID)}`);
     const [expenseReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.reportID)}`, {selector: expenseReportApproverSelector});
     const policy = usePolicy(expenseReport?.policyID);
-    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: emailAndAccountIDSelector});
+    const [ownerLogin] = usePersonalDetail(expenseReport?.ownerAccountID, loginSelector);
+    const isOpenReportWorkflowApprover = useIsOpenReportWorkflowApprover(expenseReport, policy, ownerLogin, session);
 
     const locale = preferredLocale ?? CONST.LOCALES.DEFAULT;
     const receiptID = transaction?.receipt?.receiptID;
@@ -78,7 +109,7 @@ function useReceiptTranslation(transaction: OnyxEntry<Transaction>) {
     const isGeneratedReceipt = isDistanceRequest(transaction) || isPerDiemRequest(transaction);
 
     // Employees often open Translate and then do nothing with it
-    const isReceiptReviewer = isPolicyAdmin(policy) || isReportManager(expenseReport, currentUserAccountID);
+    const isReceiptReviewer = isPolicyAdmin(policy) || isReportManager(expenseReport, session?.accountID) || isOpenReportWorkflowApprover;
 
     return {
         canTranslate: isBetaEnabled(CONST.BETAS.RECEIPT_TRANSLATION) && hasReceiptSource(transaction) && !isGeneratedReceipt && isPaidGroupPolicy(policy) && isReceiptReviewer,
