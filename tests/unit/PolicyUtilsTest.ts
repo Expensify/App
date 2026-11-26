@@ -27,6 +27,7 @@ import {
     canSubmitPerDiemExpenseFromWorkspace,
     canSubmitOwnReportOnPolicy,
     canUnarchivePolicy,
+    EXPENSE_CREATOR_ROLES,
     evaluateApprovalWorkflowRule,
     findVendorByID,
     getVendorFeaturePolicyIDs,
@@ -1798,6 +1799,8 @@ describe('PolicyUtils', () => {
                 expect(canRoleCreateExpenses(CONST.POLICY.ROLE.ADMIN)).toBe(true);
                 expect(canRoleCreateExpenses(CONST.POLICY.ROLE.AUDITOR)).toBe(true);
                 expect(canRoleCreateExpenses(CONST.POLICY.ROLE.APPROVE_ONLY)).toBe(false);
+                expect(EXPENSE_CREATOR_ROLES).toContain(CONST.POLICY.ROLE.USER);
+                expect(EXPENSE_CREATOR_ROLES).not.toContain(CONST.POLICY.ROLE.APPROVE_ONLY);
             });
 
             it('blocks expense creation when the policy role cannot be resolved', () => {
