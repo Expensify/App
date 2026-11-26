@@ -6,6 +6,7 @@ import fileURIToPath from '@libs/fileURIToPath';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import saveLastRoute from '@libs/saveLastRoute';
+import {decodeURIComponentSafely} from '@libs/Url';
 
 import CONST from '@src/CONST';
 import type {FileObject, ImagePickerResponse} from '@src/types/utils/Attachment';
@@ -104,7 +105,8 @@ function showCameraPermissionsAlert(translate: LocalizedTranslate) {
  *
  * This function takes a URL as input and performs the following operations:
  * 1. Extracts the last segment of the URL.
- * 2. Decodes the extracted segment from URL encoding to a plain string for better readability.
+ * 2. Decodes the extracted segment from URL encoding to a plain string for better readability,
+ *    keeping the raw segment when its percent-encoding is malformed.
  * 3. Replaces any characters in the decoded string that are illegal in file names
  *    with underscores.
  */
@@ -115,7 +117,7 @@ function getFileName(url: string): string {
         Log.warn('[FileUtils] Could not get attachment name', {url});
     }
 
-    return decodeURIComponent(fileName).replaceAll(CONST.REGEX.ILLEGAL_FILENAME_CHARACTERS, '_');
+    return decodeURIComponentSafely(fileName).replaceAll(CONST.REGEX.ILLEGAL_FILENAME_CHARACTERS, '_');
 }
 
 function isImage(fileName: string): boolean {
@@ -594,20 +596,6 @@ function matchesFileSignature(headerHex: string, formatSignatures: readonly stri
     return formatSignatures.some((signature) => hexAtOffset.startsWith(signature));
 }
 
-/**
- * Verify file format based on the magic bytes of the file - some formats might be identified by multiple signatures.
- *
- * `signatureOffset` is the byte offset the signatures are expected at (`CONST.HEIC_SIGNATURE_OFFSET`, `CONST.TIFF_SIGNATURE_OFFSET`).
- * To check one file against several formats, use `readFileHeaderHex` once and `matchesFileSignature` per format instead.
- */
-function verifyFileFormat({fileUri, formatSignatures, signatureOffset}: {fileUri: string; formatSignatures: readonly string[]; signatureOffset: number}): Promise<boolean> {
-    if (!fileUri || !formatSignatures || formatSignatures.length === 0) {
-        return Promise.resolve(false);
-    }
-
-    return readFileHeaderHex(fileUri).then((headerHex) => matchesFileSignature(headerHex, formatSignatures, signatureOffset));
-}
-
 function isLocalFile(receiptUri?: string | number): boolean {
     if (!receiptUri) {
         return false;
@@ -1063,7 +1051,6 @@ export {
     validateImageForCorruption,
     getFileResolution,
     isHighResolutionImage,
-    verifyFileFormat,
     readFileHeaderHex,
     matchesFileSignature,
     getImageDimensionsAfterResize,

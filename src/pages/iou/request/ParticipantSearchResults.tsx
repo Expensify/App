@@ -6,7 +6,6 @@ import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMembe
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {Section, SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 
-import useContactImport from '@hooks/useContactImport';
 import useContactPermissionModal from '@hooks/useContactPermissionModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -54,6 +53,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import lodashPick from 'lodash/pick';
 import React, {useContext, useEffect} from 'react';
+import Onyx from 'react-native-onyx';
 import {RESULTS} from 'react-native-permissions';
 
 import ImportContactButton from './ImportContactButton';
@@ -164,7 +164,6 @@ function ParticipantSearchResults({
     const icons = useMemoizedLazyExpensifyIcons(['UserPlus']);
     const {translate, dateFnsLocale, formatPhoneNumber} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
-    const {contactPermissionState, contacts, setContactPermissionState} = useContactImport();
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
@@ -184,15 +183,12 @@ function ParticipantSearchResults({
     const screenWrapperStatusContext = useContext(ScreenWrapperStatusContext);
     const addBottomSafeAreaPadding = !(screenWrapperStatusContext?.isSafeAreaBottomPaddingApplied ?? false);
 
-    // Policy and billing data — owned here, used for getValidOptionsConfig and billing gate in onSelectRow
+    // Policy data, owned here and used for getValidOptionsConfig and the billing gate in addParticipant
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const getReportByID = useSelectedExpenseReports(participants);
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`];
-    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
-    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
 
     const {isDismissed: isDismissedReferralBanner} = useDismissedReferralBanners({referralContentType: CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE});
@@ -272,7 +268,6 @@ function ParticipantSearchResults({
             getValidOptionsConfig,
             shouldInitialize: didScreenTransitionEnd,
             enablePhoneContacts: isNative,
-            contactOptions: contacts,
             initialSelected: participants,
             onSelectionChange: handleSelectionChange,
             onSingleSelect: (option: Participant | OptionData) => {
@@ -307,7 +302,7 @@ function ParticipantSearchResults({
     const showImportContacts =
         isNative &&
         !isCategorizeOrShareAction &&
-        !(contactPermissionState === RESULTS.GRANTED || contactPermissionState === RESULTS.LIMITED) &&
+        !(contactState?.permissionStatus === RESULTS.GRANTED || contactState?.permissionStatus === RESULTS.LIMITED) &&
         inputHelperText === translate('common.noResultsFound');
 
     /**
@@ -499,21 +494,23 @@ function ParticipantSearchResults({
             />
         );
 
-    const onSelectRow = (option: Participant) => {
+    const addParticipant = async (option: Participant) => {
         const optionPolicyID = option.policyID ?? (option.reportID ? getReportOrDraftReport({reportID: option.reportID})?.policyID : undefined);
         if (shouldBlockParticipantSelection?.(optionPolicyID)) {
             return;
         }
 
         const optionPolicy = optionPolicyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${optionPolicyID}`] : undefined;
-        if (
-            option.isPolicyExpenseChat &&
-            optionPolicyID &&
-            optionPolicy &&
-            shouldRestrictUserBillableActions(optionPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)
-        ) {
-            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(optionPolicyID));
-            return;
+        if (option.isPolicyExpenseChat && optionPolicyID && optionPolicy) {
+            const [userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed] = await Onyx.multiGet([
+                ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END,
+                ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END,
+                ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED,
+            ]);
+            if (shouldRestrictUserBillableActions(optionPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
+                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(optionPolicyID));
+                return;
+            }
         }
 
         if (isIOUSplit) {
@@ -564,7 +561,7 @@ function ParticipantSearchResults({
 
     useContactPermissionModal({
         onGrant: contactState?.importContacts ?? (() => {}),
-        onDeny: contactState?.setContactPermissionState ?? setContactPermissionState,
+        onDeny: contactState?.setContactPermissionState ?? (() => {}),
         onFocusTextInput: () => {
             setTextInputAutoFocus(true);
         },
@@ -585,7 +582,7 @@ function ParticipantSearchResults({
             ListItem={InviteMemberListItem}
             textInputOptions={textInputOptions}
             shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-            onSelectRow={onSelectRow}
+            onSelectRow={addParticipant}
             shouldSingleExecuteRowSelect
             customListHeaderContent={importContactsButtonComponent}
             customHeaderContent={

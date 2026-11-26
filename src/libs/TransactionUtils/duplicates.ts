@@ -5,7 +5,8 @@
  */
 import type {MergeDuplicatesParams} from '@libs/API/parameters';
 import Log from '@libs/Log';
-import {getTaxByID, isMultiLevelTags as isMultiLevelTagsPolicyUtils, resolveCurrentTaxCode} from '@libs/PolicyUtils';
+import {isMultiLevelTags as isMultiLevelTagsPolicyUtils} from '@libs/PolicyUtils/tag';
+import {getTaxByID, resolveCurrentTaxCode} from '@libs/PolicyUtils/tax';
 import {getReportOrDraftReport, isOpenReport, isProcessingReport} from '@libs/ReportUtils';
 
 import type {UpdateMoneyRequestDataKeys} from '@userActions/IOU/UpdateMoneyRequest';
@@ -22,10 +23,7 @@ import {SafeString} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
 import Onyx from 'react-native-onyx';
 
-// This cycle import is safe because this file was extracted from TransactionUtils/index.ts, which re-exports it.
-// The functions imported here are pure helpers that aren't called at initialization time.
-// eslint-disable-next-line import/no-cycle
-import {getAmount, getCurrency, getDescription, getFormattedCreated, getMerchant, isCardTransactionReimbursableEditable, isExpensifyCardTransaction} from './index';
+import {getAmount, getCurrency, getDescription, getFormattedCreated, getMerchant, isCardTransactionReimbursableEditable, isExpensifyCardTransaction} from './fields';
 
 type FieldsToCompare = Record<string, Array<keyof Transaction>>;
 type FieldsToChange = {
@@ -218,8 +216,9 @@ function isReportMergeableForDuplicates(report: OnyxEntry<Report>, reportID: str
  */
 function removeSettledAndApprovedTransactions(transactions: Array<OnyxEntry<Transaction>>): Transaction[] {
     return transactions.filter(
-        (transaction) => !!transaction && isReportMergeableForDuplicates(getReportOrDraftReport({reportID: transaction.reportID, reportDraft: {}}), transaction.reportID),
-    ) as Transaction[];
+        (transaction): transaction is Transaction =>
+            !!transaction && isReportMergeableForDuplicates(getReportOrDraftReport({reportID: transaction.reportID, reportDraft: {}}), transaction.reportID),
+    );
 }
 
 /**
@@ -290,7 +289,7 @@ function compareDuplicateTransactionFields(
                 items
                     .map((item) => {
                         // Prioritize modifiedMerchant over merchant
-                        if (keys.includes('modifiedMerchant' as keyof Transaction) && keys.includes('merchant' as keyof Transaction)) {
+                        if (keys.includes('modifiedMerchant') && keys.includes('merchant')) {
                             return getMerchant(item);
                         }
                         return keys.map((key) => item?.[key]);
@@ -462,11 +461,11 @@ function buildMergeDuplicatesParams(
     keptTransaction: OnyxEntry<Transaction>,
 ): MergeDuplicatesTransactionParams {
     return {
-        amount: -getAmount(originalTransaction as OnyxEntry<Transaction>, true),
+        amount: -getAmount(originalTransaction, true),
         reportID: originalTransaction?.reportID,
         receiptID: originalTransaction?.receipt?.receiptID ?? CONST.DEFAULT_NUMBER_ID,
-        currency: getCurrency(originalTransaction as OnyxEntry<Transaction>),
-        created: getFormattedCreated(originalTransaction as OnyxEntry<Transaction>),
+        currency: getCurrency(originalTransaction),
+        created: getFormattedCreated(originalTransaction),
         transaction: keptTransaction,
         transactionList: removeSettledAndApprovedTransactions(duplicatedTransactions ?? []),
         billable: reviewDuplicates?.billable ?? false,

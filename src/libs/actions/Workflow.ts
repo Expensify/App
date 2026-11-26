@@ -1,23 +1,27 @@
 import {write} from '@libs/API';
 import type {CreateWorkspaceApprovalParams, RemoveWorkspaceApprovalParams, SetApprovalWorkflowParams, UpdateWorkspaceApprovalParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import {getDefaultApprover, hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
+import {getDefaultApprover, hasDynamicExternalWorkflow, shouldFilterExpensifyTeam} from '@libs/PolicyUtils';
 import type {ApprovalWorkflowRulesDiff} from '@libs/RuleUtils';
 import {getApprovalWorkflowRulesForPolicy} from '@libs/RuleUtils';
 import {
-    addMembersToRule,
+    addMembersToDefaultWorkflowRules,
     applyApprovalWorkflowRulesDiff,
     buildApprovalWorkflowRules,
+    buildApprovalWorkflowRulesDiffToUnflagMembers,
     buildApprovalWorkflowRulesForSave,
+    buildMembersFromEmails,
     calculateApprovers,
     convertApprovalWorkflowToPolicyEmployees,
     extractSubmitterEmails,
     getApproverChainKey,
     getApproversFromImportedApprovers,
+    getDefaultFlaggedSubmittersOutsideWorkflow,
     getNonMemberApproverError,
     getWorkflowMemberEmails,
     hasRuleBasedDefaultWorkflow,
     includesEveryWorkspaceMember,
+    mergeApprovalWorkflowRulesDiffs,
     mergeWorkflowMembersWithAvailableMembers,
     reconcileApprovalWorkflowRulesForCreate,
     reconcileApprovalWorkflowRulesForEdit,
@@ -105,7 +109,12 @@ function createApprovalWorkflow({approvalWorkflow, policy, addExpenseApprovalsTa
 
     // A default workflow's first approver is the policy's default approver, which only needs sending when it changes
     const newDefaultApprover = approvalWorkflow.isDefault && firstApprover !== previousDefaultApprover ? firstApprover : undefined;
-    const updatedEmployees = convertApprovalWorkflowToPolicyEmployees({previousEmployeeList, approvalWorkflow, type: CONST.APPROVAL_WORKFLOW.TYPE.CREATE});
+    const updatedEmployees = convertApprovalWorkflowToPolicyEmployees({
+        previousEmployeeList,
+        approvalWorkflow,
+        type: CONST.APPROVAL_WORKFLOW.TYPE.CREATE,
+        defaultApprover: previousDefaultApprover,
+    });
 
     // If there are no changes to the employees list or the default approver, we can exit early
     if (isEmptyObject(updatedEmployees) && !newDefaultApprover) {
@@ -423,17 +432,30 @@ type UpdateApprovalWorkflowRulesParams = {
 
     /** The policy's default workflow, which members taken out of this workflow go back to. */
     defaultApprovalWorkflow?: ApprovalWorkflow;
+
+    /** The current user's login, which decides whether the Workflows page hides Expensify team members. Without it, they count as shown. */
+    currentUserLogin?: string;
 };
 
 /** Update an existing workflow using the rules-based backend structure. */
-function updateApprovalWorkflowRules({approvalWorkflow, initialApprovalWorkflow, policy, rules, defaultApprovalWorkflow}: UpdateApprovalWorkflowRulesParams) {
+function updateApprovalWorkflowRules({approvalWorkflow, initialApprovalWorkflow, policy, rules, defaultApprovalWorkflow, currentUserLogin}: UpdateApprovalWorkflowRulesParams) {
     if (!policy) {
         return;
     }
 
     const existingRules = getApprovalWorkflowRulesForPolicy(rules, policy.id);
+    const employees = policy.employeeList ?? {};
+    const defaultApprover = getDefaultApprover(policy);
     const previousMemberEmails = getWorkflowMemberEmails(initialApprovalWorkflow.members);
     const newMemberEmails = getWorkflowMemberEmails(approvalWorkflow.members);
+
+    // A policy has a single default approval workflow, and the backend refuses a save that leaves a second default
+    // `ReportSubmit` rule. The default workflow's rules can list submitters the page doesn't show in it, and they would keep
+    // the old default rules alive, so a save of the default workflow moves every one of them.
+    const isDefaultWorkflowSave = !!approvalWorkflow.isDefault || !!initialApprovalWorkflow.isDefault;
+    const {unlistedSubmitterEmails, listedSubmitterEmails} = isDefaultWorkflowSave
+        ? getDefaultFlaggedSubmittersOutsideWorkflow(existingRules, employees, shouldFilterExpensifyTeam(policy.owner, currentUserLogin), [...previousMemberEmails, ...newMemberEmails])
+        : {unlistedSubmitterEmails: [], listedSubmitterEmails: []};
 
     // 1. A submitter can only belong to one workflow, so drop joining members (those not previously in
     // this workflow) from any OTHER workflow's rules first.
@@ -445,24 +467,26 @@ function updateApprovalWorkflowRules({approvalWorkflow, initialApprovalWorkflow,
     const memberDiff = reconcileApprovalWorkflowRulesForMembersChange(previousMemberEmails, newMemberEmails, {existingRules: rulesAfterRemoval});
     const rulesAfterMembers = applyApprovalWorkflowRulesDiff(rulesAfterRemoval, memberDiff);
 
-    // 3. Reconcile the approver chain with the membership-updated rules.
-    const newRules = buildApprovalWorkflowRulesForSave(approvalWorkflow, {
-        existingRules: rulesAfterMembers,
-        employees: policy.employeeList ?? {},
-        defaultApprover: getDefaultApprover(policy),
-    });
-    const chainDiff = reconcileApprovalWorkflowRulesForEdit(newRules, newMemberEmails, {existingRules: rulesAfterMembers});
+    // 3. Members the page shows in another workflow keep their routing, on rules that no longer claim to be the default workflow.
+    const unflagDiff = buildApprovalWorkflowRulesDiffToUnflagMembers(listedSubmitterEmails, rulesAfterMembers, employees);
+    const rulesAfterUnflag = applyApprovalWorkflowRulesDiff(rulesAfterMembers, unflagDiff);
 
-    // 4. Members taken out of this workflow go back to the default workflow.
+    // 4. Reconcile the approver chain with the membership-updated rules, carrying along the default workflow's submitters the
+    // page doesn't show, such as members removed from the policy, whose rules keep their workflow for when they rejoin.
+    const workflowToSave = {...approvalWorkflow, members: [...approvalWorkflow.members, ...buildMembersFromEmails(unlistedSubmitterEmails)]};
+    const newRules = buildApprovalWorkflowRulesForSave(workflowToSave, {existingRules: rulesAfterUnflag, employees, defaultApprover});
+    const chainDiff = reconcileApprovalWorkflowRulesForEdit(newRules, getWorkflowMemberEmails(workflowToSave.members), {existingRules: rulesAfterUnflag});
+
+    // 5. Members taken out of this workflow go back to the default workflow.
     const returnToDefaultDiff = buildReturnToDefaultWorkflowDiff({
         approvalWorkflow: {...initialApprovalWorkflow, members: initialApprovalWorkflow.members.filter((member) => !newMemberEmails.includes(member.email))},
         defaultApprovalWorkflow,
-        existingRules: applyApprovalWorkflowRulesDiff(rulesAfterMembers, chainDiff),
-        employees: policy.employeeList ?? {},
-        defaultApprover: getDefaultApprover(policy),
+        existingRules: applyApprovalWorkflowRulesDiff(rulesAfterUnflag, chainDiff),
+        employees,
+        defaultApprover,
     });
 
-    const rulesDiff = {...removeFromOthersDiff, ...memberDiff, ...chainDiff, ...returnToDefaultDiff};
+    const rulesDiff = mergeApprovalWorkflowRulesDiffs(existingRules, [removeFromOthersDiff, memberDiff, unflagDiff, chainDiff, returnToDefaultDiff]);
 
     // Members taken out of this workflow are dropped from its rules, so nothing left in the rules records that their
     // approver is changing. They are marked here instead.
@@ -515,11 +539,7 @@ function buildReturnToDefaultWorkflowDiff({
     // A policy has a single default workflow, so when its rules route differently from the chain we were handed, the
     // members still join those rules. New rules declaring themselves default would stand up a second default workflow.
     if (hasRuleBasedDefault) {
-        return Object.fromEntries(
-            Object.entries(existingRules)
-                .filter(([, rule]) => !!rule.isDefaultApprovalWorkflow)
-                .map(([ruleID, rule]) => [ruleID, addMembersToRule(rule, memberEmails)]),
-        );
+        return addMembersToDefaultWorkflowRules(existingRules, defaultApprover, memberEmails);
     }
 
     if (memberEmails.every((email) => employees[email]?.submitsTo === defaultApprover)) {
@@ -570,10 +590,13 @@ type ImportApprovalWorkflowRulesParams = {
 
     /** The members the import has just added to the policy */
     addedMemberEmails: string[];
+
+    /** The current user's login, which decides whether the Workflows page hides Expensify team members. Without it, they count as shown. */
+    currentUserLogin?: string;
 };
 
 /** Move imported members into the workflows of the approvers the spreadsheet lists for them, using the rules-based backend structure. */
-function importApprovalWorkflowRules({policy, rules, members, addedMemberEmails}: ImportApprovalWorkflowRulesParams) {
+function importApprovalWorkflowRules({policy, rules, members, addedMemberEmails, currentUserLogin}: ImportApprovalWorkflowRulesParams) {
     if (!policy || members.length === 0) {
         return;
     }
@@ -589,9 +612,7 @@ function importApprovalWorkflowRules({policy, rules, members, addedMemberEmails}
     }
     const listedSubmitterEmails = new Set(Object.values(existingRules).flatMap(extractSubmitterEmails));
     const unlistedAddedMemberEmails = addedMemberEmails.filter((email) => !listedSubmitterEmails.has(email));
-    let rulesAfterImport = Object.fromEntries(
-        Object.entries(existingRules).map(([ruleID, rule]) => [ruleID, rule.isDefaultApprovalWorkflow ? addMembersToRule(rule, unlistedAddedMemberEmails) : rule]),
-    );
+    let rulesAfterImport = {...existingRules, ...addMembersToDefaultWorkflowRules(existingRules, defaultApprover, unlistedAddedMemberEmails)};
 
     // Members listing the same approvers share a workflow
     const workflowsByApprovers = new Map<string, ApprovalWorkflow>();
@@ -603,16 +624,24 @@ function importApprovalWorkflowRules({policy, rules, members, addedMemberEmails}
         workflowsByApprovers.set(approversKey, workflow);
     }
 
-    let rulesDiff: ApprovalWorkflowRulesDiff = {};
+    const shouldFilterOutExpensifyTeam = shouldFilterExpensifyTeam(policy.owner, currentUserLogin);
+    const rulesDiffs: ApprovalWorkflowRulesDiff[] = [];
     let defaultWorkflow: ApprovalWorkflow | undefined;
     for (const workflow of workflowsByApprovers.values()) {
-        const memberEmails = getWorkflowMemberEmails(workflow.members);
-
         // A workflow with everyone in it leaves every other workflow empty, so it becomes the default one
-        const workflowToSave = {...workflow, isDefault: includesEveryWorkspaceMember(memberEmails, employees)};
-        if (workflowToSave.isDefault) {
-            defaultWorkflow = workflowToSave;
+        const isDefault = includesEveryWorkspaceMember(getWorkflowMemberEmails(workflow.members), employees);
+        if (isDefault) {
+            defaultWorkflow = {...workflow, isDefault};
         }
+
+        // The backend refuses a save that leaves a second default `ReportSubmit` rule, so the default workflow carries along
+        // the submitters the old default rules list that the page doesn't show, such as members removed from the policy.
+        // Every member the page shows is already in this workflow.
+        const unlistedSubmitterEmails = isDefault
+            ? getDefaultFlaggedSubmittersOutsideWorkflow(rulesAfterImport, employees, shouldFilterOutExpensifyTeam, getWorkflowMemberEmails(workflow.members)).unlistedSubmitterEmails
+            : [];
+        const workflowToSave = {...workflow, isDefault, members: [...workflow.members, ...buildMembersFromEmails(unlistedSubmitterEmails)]};
+        const memberEmails = getWorkflowMemberEmails(workflowToSave.members);
 
         // A submitter can only belong to one workflow, so first drop these members from every workflow's rules
         const removeDiff = reconcileApprovalWorkflowRulesForRemove(memberEmails, {existingRules: rulesAfterImport});
@@ -620,12 +649,10 @@ function importApprovalWorkflowRules({policy, rules, members, addedMemberEmails}
         const newRules = buildApprovalWorkflowRulesForSave(workflowToSave, {existingRules: rulesAfterImport, employees, defaultApprover});
         const createDiff = reconcileApprovalWorkflowRulesForCreate(newRules, memberEmails, {existingRules: rulesAfterImport});
         rulesAfterImport = applyApprovalWorkflowRulesDiff(rulesAfterImport, createDiff);
-        rulesDiff = {...rulesDiff, ...removeDiff, ...createDiff};
+        rulesDiffs.push(removeDiff, createDiff);
     }
 
-    // A rule created for one workflow and emptied by a later one never reached the backend, so there is nothing to delete
-    const rulesDiffToSave = Object.fromEntries(Object.entries(rulesDiff).filter(([ruleID, rule]) => rule !== null || ruleID in existingRules));
-    setApprovalWorkflowRules({policyID: policy.id, rulesDiff: rulesDiffToSave, previousRules: rules});
+    setApprovalWorkflowRules({policyID: policy.id, rulesDiff: mergeApprovalWorkflowRulesDiffs(existingRules, rulesDiffs), previousRules: rules});
     if (defaultWorkflow) {
         updatePolicyDefaultApprover(defaultWorkflow, policy);
     }
@@ -707,7 +734,10 @@ function removeApprovalWorkflowApprover({approverIndex, currentApprovalWorkflow}
         return;
     }
 
-    const approvers = currentApprovalWorkflow.approvers.filter((approver, index) => index !== approverIndex);
+    const approvers = lodashDropRightWhile(
+        currentApprovalWorkflow.approvers.filter((approver, index) => index !== approverIndex),
+        (approver) => !approver,
+    );
     Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {
         // An approver after the removed one may only have repeated them
         approvers: approvers.map(
@@ -783,10 +813,13 @@ type SaveFastEditApprovalWorkflowParams = {
 
     /** Whether the workflow is saved as approval workflow rules rather than on `employeeList` */
     shouldUseApprovalWorkflowRules: boolean;
+
+    /** The current user's login, which decides whether the Workflows page hides Expensify team members. Without it, they count as shown. */
+    currentUserLogin?: string;
 };
 
 /** Saves the member changes made through the "+N more" shortcut and discards the draft, since no edit page will. */
-function saveFastEditApprovalWorkflow({approvalWorkflow, policy, rules, shouldUseApprovalWorkflowRules}: SaveFastEditApprovalWorkflowParams) {
+function saveFastEditApprovalWorkflow({approvalWorkflow, policy, rules, shouldUseApprovalWorkflowRules, currentUserLogin}: SaveFastEditApprovalWorkflowParams) {
     // A workflow with everyone in it leaves every other workflow empty, so it becomes the default one
     const isDefault = approvalWorkflow.isDefault || includesEveryWorkspaceMember(getWorkflowMemberEmails(approvalWorkflow.members), policy?.employeeList);
     const workflow: ApprovalWorkflow = {...approvalWorkflow, isDefault, approvers: approvalWorkflow.approvers.filter((approver): approver is Approver => !!approver)};
@@ -799,6 +832,7 @@ function saveFastEditApprovalWorkflow({approvalWorkflow, policy, rules, shouldUs
             policy,
             rules,
             defaultApprovalWorkflow: approvalWorkflow.defaultApprovalWorkflow,
+            currentUserLogin,
         });
     } else {
         const membersToRemove = originalMembers.filter((originalMember) => !workflow.members.some((member) => member.email === originalMember.email));

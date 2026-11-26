@@ -9,7 +9,6 @@ import {updateLastAccessedWorkspace} from '@userActions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {ComponentType} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -53,6 +52,7 @@ type PolicyRouteName =
     | typeof SCREENS.WORKSPACE.MEMBER_WORK_ARRANGEMENT
     | typeof SCREENS.WORKSPACE.MEMBER_OFFICE_LOCATION
     | typeof SCREENS.WORKSPACE.MEMBERS_CHANGE_OFFICE_LOCATION
+    | typeof SCREENS.WORKSPACE.MEMBERS_BULK_CATEGORY_VISIBILITY
     | typeof SCREENS.WORKSPACE.MEMBERS_CHANGE_WORK_ARRANGEMENT
     | typeof SCREENS.WORKSPACE.INVITE_WORK_ARRANGEMENT
     | typeof SCREENS.WORKSPACE.MEMBER_CUSTOM_FIELD
@@ -127,10 +127,10 @@ type WithPolicyImplProps<TProps extends WithPolicyProps> = {
 function WithPolicyImpl<TProps extends WithPolicyProps>({WrappedComponent, ...props}: WithPolicyImplProps<TProps>) {
     const policyID = getPolicyIDFromRoute(props.route as PolicyRoute);
     const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
-    const [policy, policyResults] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const [policyDraft, policyDraftResults] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
 
-    const isLoadingPolicy = !hasLoadedApp || (!!policyID && isLoadingOnyxValue(policyResults, policyDraftResults));
+    const isLoadingPolicy = !hasLoadedApp;
 
     useEffect(() => {
         if (!policyID) {

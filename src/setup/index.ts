@@ -86,6 +86,7 @@ export default function () {
             ONYXKEYS.RAM_ONLY_UPDATE_REQUIRED,
             ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS,
             ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS,
+            ONYXKEYS.RAM_ONLY_SEARCH_TRANSACTION_WRITES,
             ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS,
             ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN,
             ONYXKEYS.RAM_ONLY_WALLET_ONFIDO,
@@ -99,7 +100,10 @@ export default function () {
             ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_ROW_FOCUS,
             ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE,
             ONYXKEYS.COLLECTION.RAM_ONLY_IS_LOADING_DUPLICATE_TRANSACTION_DETAILS,
+            ONYXKEYS.COLLECTION.RAM_ONLY_IS_LOADING_RECEIPT_PARTNERS,
             ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE,
+            ONYXKEYS.COLLECTION.RAM_ONLY_PERSONAL_DETAILS_LOADING_STATE,
+            ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARD_NUMBER_SEARCH,
             ONYXKEYS.COLLECTION.RAM_ONLY_RECEIPT_TRANSLATION_STATE,
             ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION,
             ONYXKEYS.COLLECTION.RAM_ONLY_EXPENSIFY_CARD_LOADING_STATE,
@@ -140,6 +144,10 @@ export default function () {
     // Must be imported after Onyx.init() and outside the React lifecycle so that push notification
     // handlers are registered before any push arrives, including Android headless/background wake-ups.
     import('@libs/Notification/PushNotification/subscribeToPushNotifications');
+
+    // Imports are evaluated lazily on native and no component mounts in a headless start, so nothing else would
+    // load this module there. Load it here so the Sentry user is set in every JS runtime.
+    import('@libs/telemetry/TelemetrySynchronizer');
 
     // Must run after Onyx.init(): a completed exchange persists the session
     finishCloudflareSignInFromURL();

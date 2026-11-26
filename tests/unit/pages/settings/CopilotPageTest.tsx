@@ -121,13 +121,6 @@ jest.mock('@components/ScreenWrapper', () => {
     return MockScreenWrapper;
 });
 
-jest.mock('@components/HeaderWithBackButton', () => {
-    function MockHeader({title}: {title: string}) {
-        return title;
-    }
-    return MockHeader;
-});
-
 jest.mock('@components/ScrollView', () => {
     function MockScrollView({children}: {children: React.ReactNode}) {
         return children;
@@ -353,5 +346,29 @@ describe('CopilotPage', () => {
         fireEvent.press(screen.getByText('removed@example.com'));
 
         expect(Navigation.navigate).not.toHaveBeenCalled();
+    });
+
+    it('shows a failed role update under the copilot row', () => {
+        // Given a copilot whose last role update failed
+        const copilotEmail = 'copilot@example.com';
+        const errorTimestamp = 1793800897880230;
+        setOnyxAccount({
+            validated: true,
+            delegatedAccess: {
+                delegators: [],
+                delegates: [{email: copilotEmail, role: 'all'}],
+                errorFields: {
+                    updateDelegateRole: {
+                        [copilotEmail]: {[errorTimestamp]: 'Role update failed'},
+                    },
+                },
+            },
+        });
+
+        // When the Copilot page renders
+        render(<CopilotPage />);
+
+        // Then the failure appears on that copilot's row so the user knows the role did not change
+        expect(screen.getByText('Role update failed')).toBeTruthy();
     });
 });
