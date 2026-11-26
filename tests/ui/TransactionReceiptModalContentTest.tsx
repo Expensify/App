@@ -47,9 +47,8 @@ jest.mock('@libs/ReportActionsUtils', () => ({
 // Permissions are fixed here so the test reaches the modal's rotate handler.
 jest.mock('@libs/ReportUtils', () => ({
     canEditFieldOfMoneyRequest: () => true,
-    isExpenseReport: () => false,
     isMoneyRequestReport: () => true,
-    isOpenReport: () => false,
+    isOpenExpenseReport: () => false,
     isReportManager: () => false,
     isTrackExpenseReport: () => false,
 }));
