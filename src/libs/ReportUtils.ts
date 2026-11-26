@@ -221,6 +221,7 @@ import {
     isActionableJoinRequestPending,
     isActionableTrackExpense,
     isActionOfType,
+    isActionVisibleForUnreadMark,
     isCreatedSupportTicketReportAction,
     isCreatedTaskReportAction,
     isCurrentActionUnread,
@@ -11133,11 +11134,6 @@ function generateIsEmptyReport(report: OnyxEntry<Report>, isReportArchived: bool
 
     const lastVisibleMessage = getLastVisibleMessage(report.reportID, isReportArchived);
     return !lastVisibleMessage.lastMessageText;
-}
-
-/** A loaded action that can be the boundary of a manual unread mark. */
-function isActionVisibleForUnreadMark(action: OnyxEntry<ReportAction>): action is ReportAction {
-    return !!action?.created && !isDeletedAction(action) && (!isWhisperAction(action) || action.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER);
 }
 
 /**

@@ -1162,6 +1162,9 @@ describe('actions/Report', () => {
     });
 
     it('sends the last visible action id when a newer other-user action is past lastVisibleActionCreated', async () => {
+        // Given a read chat whose newest action from another user (an IOU or system message) sits past
+        // lastVisibleActionCreated. The server stores the sent action's created minus 1ms, so sending that
+        // newer action's id would leave the chat read on other devices
         const reportID = 'admins-mark-unread';
         const currentUserAccountID = 1;
         const lastVisibleActionCreated = '2026-09-10 11:12:08.345';
@@ -1190,8 +1193,11 @@ describe('actions/Report', () => {
         });
         await waitForBatchedUpdates();
 
+        // When the user marks the chat unread from the inbox without choosing a specific message
         Report.markCommentAsUnread(reportID, {visibleAction, newerOtherUserAction}, createMock<OnyxTypes.ReportAction>({}), currentUserAccountID, false);
 
+        // Then the request sends the action exactly at lastVisibleActionCreated, so the server's derived read time
+        // matches the boundary the optimistic data writes
         expect(apiWriteSpy).toHaveBeenCalledWith(
             WRITE_COMMANDS.MARK_AS_UNREAD,
             expect.objectContaining({
@@ -1201,6 +1207,205 @@ describe('actions/Report', () => {
             }),
             expect.anything(),
         );
+    });
+
+    it('sends no action id when the action at lastVisibleActionCreated is not loaded', async () => {
+        // Given a read chat where the current user wrote every message and the action at lastVisibleActionCreated
+        // is not among the loaded ones. Sending a different action's id would move the server's boundary away from
+        // the one the optimistic data writes
+        const reportID = 'unloaded-boundary-mark-unread';
+        const currentUserAccountID = 1;
+        const lastVisibleActionCreated = '2026-09-10 11:12:08.345';
+        const olderOwnAction = createMock<OnyxTypes.ReportAction>({
+            reportActionID: 'older-own-action',
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            actorAccountID: currentUserAccountID,
+            created: '2026-09-01 08:00:00.000',
+            message: [{type: 'COMMENT', text: 'Older', html: 'Older'}],
+        });
+
+        apiWriteSpy.mockResolvedValue(undefined);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+            reportID,
+            type: CONST.REPORT.TYPE.CHAT,
+            lastVisibleActionCreated,
+            lastReadTime: '2026-10-26 19:55:37.512',
+            lastActorAccountID: currentUserAccountID,
+        });
+        await waitForBatchedUpdates();
+
+        // When the user marks the chat unread from the inbox
+        Report.markCommentAsUnread(reportID, {olderOwnAction}, createMock<OnyxTypes.ReportAction>({}), currentUserAccountID, false);
+
+        // Then the request goes without an action id, so the server keeps the matching lastReadTime parameter
+        // instead of deriving an earlier boundary from the older action
+        expect(apiWriteSpy).toHaveBeenCalledWith(
+            WRITE_COMMANDS.MARK_AS_UNREAD,
+            expect.objectContaining({
+                reportID,
+                reportActionID: undefined,
+                lastReadTime: DateUtils.subtractMillisecondsFromDateTime(lastVisibleActionCreated, 1),
+            }),
+            expect.anything(),
+        );
+    });
+
+    it('marks the transaction thread unread too when its newest action is the row newest line and the thread is read', async () => {
+        // Given a read single-expense report whose transaction thread has a newer comment than the parent, and the
+        // thread already read it. isUnread() follows the newer of the parent and thread cursors, so the parent mark
+        // alone stays hidden behind the thread cursor on every device
+        const reportID = 'expense-mark-unread';
+        const threadReportID = 'expense-thread-mark-unread';
+        const currentUserAccountID = 1;
+        const threadLastVisibleActionCreated = '2026-10-25 09:30:00.000';
+        const iouAction = createMock<OnyxTypes.ReportAction>({
+            reportActionID: 'iou-action',
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            actorAccountID: currentUserAccountID,
+            created: '2026-09-30 14:39:10.439',
+            childReportID: threadReportID,
+            originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID: 'txn-1'},
+            message: [{type: 'COMMENT', text: 'IOU', html: 'IOU'}],
+        });
+        const threadComment = createMock<OnyxTypes.ReportAction>({
+            reportActionID: 'thread-comment',
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            actorAccountID: 2,
+            created: threadLastVisibleActionCreated,
+            message: [{type: 'COMMENT', text: 'Thread comment', html: 'Thread comment'}],
+        });
+
+        apiWriteSpy.mockResolvedValue(undefined);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+            reportID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            lastVisibleActionCreated: iouAction.created,
+            lastReadTime: '2026-10-26 19:55:37.512',
+            lastActorAccountID: 2,
+        });
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`, {
+            reportID: threadReportID,
+            type: CONST.REPORT.TYPE.CHAT,
+            lastVisibleActionCreated: threadLastVisibleActionCreated,
+            lastReadTime: threadLastVisibleActionCreated,
+            lastActorAccountID: 2,
+        });
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`, {'thread-comment': threadComment});
+        await waitForBatchedUpdates();
+
+        // When the user marks the expense report unread from the inbox
+        Report.markCommentAsUnread(reportID, {'iou-action': iouAction}, createMock<OnyxTypes.ReportAction>({}), currentUserAccountID, false);
+
+        // Then the thread gets its own MarkAsUnread with the thread id, because the server stores the read time
+        // on the report in the request, derived from the thread action at the boundary
+        expect(apiWriteSpy).toHaveBeenCalledWith(
+            WRITE_COMMANDS.MARK_AS_UNREAD,
+            expect.objectContaining({
+                reportID: threadReportID,
+                reportActionID: threadComment.reportActionID,
+                lastReadTime: DateUtils.subtractMillisecondsFromDateTime(threadLastVisibleActionCreated, 1),
+            }),
+            expect.objectContaining({
+                // And the thread's optimistic data rewinds its cursor, so the row stays unread on the marking device too
+                optimisticData: expect.arrayContaining([
+                    expect.objectContaining({
+                        key: `${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`,
+                        value: expect.objectContaining({lastReadTime: DateUtils.subtractMillisecondsFromDateTime(threadLastVisibleActionCreated, 1)}),
+                    }),
+                ]),
+            }),
+        );
+    });
+
+    it('skips the thread write when the thread boundary action is not loaded', async () => {
+        // Given the same single-expense report, but the thread's actions were never loaded on this device. Without
+        // the boundary action's id the server cannot anchor the mark, and a thread the user read elsewhere is
+        // exactly one this device never opened
+        const reportID = 'expense-no-thread-actions';
+        const threadReportID = 'expense-thread-no-actions';
+        const currentUserAccountID = 1;
+        const threadLastVisibleActionCreated = '2026-10-25 09:30:00.000';
+        const iouAction = createMock<OnyxTypes.ReportAction>({
+            reportActionID: 'iou-action',
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            actorAccountID: currentUserAccountID,
+            created: '2026-09-30 14:39:10.439',
+            childReportID: threadReportID,
+            originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID: 'txn-1'},
+            message: [{type: 'COMMENT', text: 'IOU', html: 'IOU'}],
+        });
+
+        apiWriteSpy.mockResolvedValue(undefined);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+            reportID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            lastVisibleActionCreated: iouAction.created,
+            lastReadTime: '2026-10-26 19:55:37.512',
+            lastActorAccountID: 2,
+        });
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`, {
+            reportID: threadReportID,
+            type: CONST.REPORT.TYPE.CHAT,
+            lastVisibleActionCreated: threadLastVisibleActionCreated,
+            lastReadTime: threadLastVisibleActionCreated,
+            lastActorAccountID: 2,
+        });
+        await waitForBatchedUpdates();
+
+        // When the user marks the expense report unread from the inbox
+        Report.markCommentAsUnread(reportID, {'iou-action': iouAction}, createMock<OnyxTypes.ReportAction>({}), currentUserAccountID, false);
+
+        // Then only the parent write is sent
+        expect(apiWriteSpy.mock.calls.filter((call) => call[0] === WRITE_COMMANDS.MARK_AS_UNREAD)).toHaveLength(1);
+    });
+
+    it('skips the thread write when the thread is already unread', async () => {
+        // Given a single-expense report whose thread already shows the newest comment as unread. The parent write
+        // keeps the row unread because isUnread() follows the newer cursor, so a second write would only churn
+        const reportID = 'expense-thread-unread';
+        const threadReportID = 'expense-thread-already-unread';
+        const currentUserAccountID = 1;
+        const threadLastVisibleActionCreated = '2026-10-25 09:30:00.000';
+        const iouAction = createMock<OnyxTypes.ReportAction>({
+            reportActionID: 'iou-action',
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            actorAccountID: currentUserAccountID,
+            created: '2026-09-30 14:39:10.439',
+            childReportID: threadReportID,
+            originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID: 'txn-1'},
+            message: [{type: 'COMMENT', text: 'IOU', html: 'IOU'}],
+        });
+        const threadComment = createMock<OnyxTypes.ReportAction>({
+            reportActionID: 'thread-comment',
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            actorAccountID: 2,
+            created: threadLastVisibleActionCreated,
+            message: [{type: 'COMMENT', text: 'Thread comment', html: 'Thread comment'}],
+        });
+
+        apiWriteSpy.mockResolvedValue(undefined);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+            reportID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            lastVisibleActionCreated: iouAction.created,
+            lastReadTime: '2026-10-26 19:55:37.512',
+            lastActorAccountID: 2,
+        });
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`, {
+            reportID: threadReportID,
+            type: CONST.REPORT.TYPE.CHAT,
+            lastVisibleActionCreated: threadLastVisibleActionCreated,
+            lastReadTime: '2026-09-01 08:00:00.000',
+            lastActorAccountID: 2,
+        });
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`, {'thread-comment': threadComment});
+        await waitForBatchedUpdates();
+
+        // When the user marks the expense report unread from the inbox
+        Report.markCommentAsUnread(reportID, {'iou-action': iouAction}, createMock<OnyxTypes.ReportAction>({}), currentUserAccountID, false);
+
+        // Then only the parent write is sent
+        expect(apiWriteSpy.mock.calls.filter((call) => call[0] === WRITE_COMMANDS.MARK_AS_UNREAD)).toHaveLength(1);
     });
 
     it('Should properly update comment with links', async () => {

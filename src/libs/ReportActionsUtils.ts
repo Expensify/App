@@ -1864,6 +1864,11 @@ function canReportActionTriggerUnreadMarker(reportAction: ReportAction, currentU
     return !(isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION) && getOriginalMessage(reportAction)?.label === CONST.EXPORT_LABELS.NETSUITE);
 }
 
+/** A loaded action that can be the boundary of a manual unread mark. Deleted actions and whispers never move lastVisibleActionCreated, so they can't anchor a mark. */
+function isActionVisibleForUnreadMark(action: OnyxInputOrEntry<ReportAction>): action is ReportAction {
+    return !!action?.created && !isDeletedAction(action) && (!isWhisperAction(action) || action.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER);
+}
+
 /**
  * Checks if the new marker should be hidden for the report action.
  */
@@ -6556,6 +6561,7 @@ export {
     isReimbursementDirectionInformationRequiredAction,
     shouldHideNewMarker,
     canReportActionTriggerUnreadMarker,
+    isActionVisibleForUnreadMark,
     shouldReportActionBeVisible,
     isReportActionVisible,
     wasActionTakenByCurrentUser,
