@@ -240,6 +240,8 @@ function TextInputFilterContentFillHeight({
                 <AutoGrowHeightInputContainer
                     // Keeps the same space above Confirm as between the other rows when the input fills the height.
                     style={styles.mb3}
+                    // The web scroll content is bounded to its viewport, so keep one input row when a very short window has no room left.
+                    shouldKeepMinimumHeight
                     shouldUseWebViewportHeightFallback={shouldUseWebViewportHeightFallback}
                 >
                     {(maxAutoGrowHeight) =>
