@@ -1556,11 +1556,6 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.buttonHoveredBG,
         },
 
-        /** Room for the edit button after content that follows a cell's text, like an icon, so the button doesn't cover it. */
-        editableCellEditButtonClearance: {
-            paddingRight: variables.editableCellEditButtonClearance,
-        },
-
         editableCellFocus: {
             borderColor: theme.borderFocus,
             backgroundColor: theme.appBG,

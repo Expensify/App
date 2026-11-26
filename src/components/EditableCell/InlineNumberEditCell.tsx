@@ -14,9 +14,12 @@ import TextWithTooltip from '@components/TextWithTooltip';
 
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getLocalizedCurrencySymbol, hasSpaceBetweenSymbolAndAmount} from '@libs/CurrencyUtils';
+
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
@@ -89,6 +92,7 @@ function InlineNumberEditCell({
     onSave,
 }: InlineNumberEditCellProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {preferredLocale} = useLocalize();
     const inputRef = useRef<BaseTextInputRef | null>(null);
     const isRightAligned = textAlign === 'right';
@@ -167,7 +171,7 @@ function InlineNumberEditCell({
                         styles.alignItemsCenter,
                         styles.gap2,
                         isRightAligned && styles.justifyContentEnd,
-                        !isRightAligned && shouldReserveEditButtonClearance && styles.editableCellEditButtonClearance,
+                        !isRightAligned && shouldReserveEditButtonClearance && StyleUtils.getPaddingRight(variables.editableCellEditButtonClearance),
                     ]}
                 >
                     {displayTextElement}
