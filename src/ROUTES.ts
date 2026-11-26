@@ -2502,6 +2502,7 @@ const ROUTES = {
             tagLevel,
             parentTagPath,
             asOfDate,
+            violationStage,
         }: {
             dashboardID: ValueOf<typeof CONST.INSIGHTS.DASHBOARD>;
             graphKey: ValueOf<typeof CONST.INSIGHTS.GRAPH>;
@@ -2510,8 +2511,9 @@ const ROUTES = {
             tagLevel?: number;
             parentTagPath?: string;
             asOfDate?: string;
+            violationStage?: ValueOf<typeof CONST.INSIGHTS.VIOLATION_STAGE>;
         }) =>
-            `insights/${dashboardID}/details/${graphKey}?item=${encodeURIComponent(itemKey)}${periodEnd ? `&end=${periodEnd}` : ''}${tagLevel ? `&level=${tagLevel}` : ''}${parentTagPath ? `&parent=${encodeURIComponent(parentTagPath)}` : ''}${asOfDate ? `&asOf=${asOfDate}` : ''}` as const,
+            `insights/${dashboardID}/details/${graphKey}?item=${encodeURIComponent(itemKey)}${periodEnd ? `&end=${periodEnd}` : ''}${tagLevel ? `&level=${tagLevel}` : ''}${parentTagPath ? `&parent=${encodeURIComponent(parentTagPath)}` : ''}${asOfDate ? `&asOf=${asOfDate}` : ''}${violationStage ? `&stage=${violationStage}` : ''}` as const,
     },
 
     EXPENSE_REPORT_RHP: {
@@ -3761,6 +3763,10 @@ const ROUTES = {
     WORKSPACE_MEMBERS_CHANGE_OFFICE_LOCATION: {
         route: 'workspaces/:policyID/members/change-office-location',
         getRoute: (policyID: string) => `workspaces/${policyID}/members/change-office-location` as const,
+    },
+    WORKSPACE_MEMBERS_BULK_CATEGORY_VISIBILITY: {
+        route: 'workspaces/:policyID/members/category-visibility',
+        getRoute: (policyID: string) => `workspaces/${policyID}/members/category-visibility` as const,
     },
     WORKSPACE_MEMBERS_CHANGE_WORK_ARRANGEMENT: {
         route: 'workspaces/:policyID/members/change-work-arrangement',

@@ -1,4 +1,4 @@
-import INSIGHTS_DASHBOARD_SPECS, {getPoliciesInScope, getVisibleCharts} from '@pages/Insights/dashboardSpecs';
+import INSIGHTS_DASHBOARD_SPECS, {getChartSpec, getPoliciesInScope, getVisibleCharts} from '@pages/Insights/dashboardSpecs';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -37,5 +37,40 @@ describe('Insights dashboard charts', () => {
 
         // Then Top tags requires a group workspace with tags enabled in that scope
         expect(charts.some(({graphKey}) => graphKey === CONST.INSIGHTS.GRAPH.TOP_TAGS)).toBe(shouldShowTags);
+    });
+});
+
+describe('getChartSpec', () => {
+    it('points a chart with a violation stage control at the given stage', () => {
+        // Given Top violations, which counts the submitters' violations until a stage is picked
+        const graphKey = CONST.INSIGHTS.GRAPH.TOP_VIOLATIONS;
+
+        // When getting the chart for the approved stage
+        const chart = getChartSpec(CONST.INSIGHTS.DASHBOARD.COMPLIANCE, graphKey, CONST.INSIGHTS.VIOLATION_STAGE.APPROVED);
+
+        // Then it counts the approvers' violations by approval date
+        expect(chart?.graphKey).toBe(graphKey);
+        expect(chart?.dateFilterKey).toBe(CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL);
+        expect(chart?.has).toEqual([CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION]);
+    });
+
+    it('keeps the chart as declared without a stage', () => {
+        // Given Top violations as the dashboard declares it
+        const declared = INSIGHTS_DASHBOARD_SPECS[CONST.INSIGHTS.DASHBOARD.COMPLIANCE].supportingCharts.find(({graphKey}) => graphKey === CONST.INSIGHTS.GRAPH.TOP_VIOLATIONS);
+
+        // When getting the chart without a stage picked
+        const chart = getChartSpec(CONST.INSIGHTS.DASHBOARD.COMPLIANCE, CONST.INSIGHTS.GRAPH.TOP_VIOLATIONS, undefined);
+
+        // Then it keeps the default, the submitters' stage
+        expect(chart).toBe(declared);
+    });
+
+    it("returns no chart for a graph that isn't on the dashboard", () => {
+        // Given a Spend graph
+        // When getting it from the Compliance dashboard
+        const chart = getChartSpec(CONST.INSIGHTS.DASHBOARD.COMPLIANCE, CONST.INSIGHTS.GRAPH.TOP_MERCHANTS, undefined);
+
+        // Then there is none, so callers can treat the graph as unknown
+        expect(chart).toBeUndefined();
     });
 });

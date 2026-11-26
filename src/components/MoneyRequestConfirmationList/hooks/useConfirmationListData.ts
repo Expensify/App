@@ -71,6 +71,8 @@ function useConfirmationListDataWithPolicy({
     isDistanceRequest = false,
     isScanRequest: isScanRequestProp = false,
     distanceState,
+    onUnsavedAmountInputChange,
+    onSubmitWillStart,
 }: UseConfirmationListDataParams): ConfirmationListData {
     // Every distance branch below goes inert for the variants that pass no distance state.
     const {
@@ -268,8 +270,18 @@ function useConfirmationListDataWithPolicy({
         revealFieldErrors,
         setDidConfirmSplit,
         showDelegateNoAccessModal,
-        onConfirm,
-        onSendMoney,
+        onConfirm:
+            onConfirm &&
+            (() => {
+                onSubmitWillStart?.();
+                return onConfirm();
+            }),
+        onSendMoney:
+            onSendMoney &&
+            ((paymentMethod) => {
+                onSubmitWillStart?.();
+                return onSendMoney(paymentMethod);
+            }),
     });
 
     const amountDisplay = {amount: amountToBeUsed, formattedAmount, formattedAmountPerAttendee};
@@ -333,6 +345,7 @@ function useConfirmationListDataWithPolicy({
                 fieldViewRefs,
                 onSubmitForm: confirm,
                 onTaxAmountEmptyChange: setIsTaxAmountEmpty,
+                onUnsavedAmountInputChange,
             },
         },
 

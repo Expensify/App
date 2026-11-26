@@ -16,6 +16,7 @@ import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
 import useTheme from '@hooks/useTheme';
@@ -66,7 +67,6 @@ function TransactionPreviewContent({
     isWhisper,
     isHovered,
     chatReport,
-    personalDetails,
     report,
     policy,
     transaction,
@@ -79,7 +79,8 @@ function TransactionPreviewContent({
     areThereDuplicates,
     sessionAccountID,
     walletTermsErrors,
-    reportPreviewAction,
+    managerID,
+    ownerAccountID,
     shouldHideOnDelete = true,
     shouldShowPayerAndReceiver,
     navigateToReviewFields,
@@ -108,6 +109,7 @@ function TransactionPreviewContent({
         backgroundColor: theme.cardBG,
         shouldApplyOtherStyles: false,
     });
+    const [personalDetails] = usePersonalDetailsByIDs([ownerAccountID, managerID]);
     const accountIDToName = useMentionedAccountIDToNameMap(getDescription(transaction));
     const cardID = getViolationToDescribe(violations, transaction)?.data?.cardID;
     // Keep this the last hook and derive the violation again below it. React Compiler cannot cache values that alias
@@ -118,8 +120,6 @@ function TransactionPreviewContent({
     const isParentPolicyExpenseChat = isPolicyExpenseChat(chatReport);
     const transactionDetails: Partial<TransactionDetails> = getTransactionDetails(transaction, policy, isParentPolicyExpenseChat) ?? {};
     const {amount, comment: requestComment, merchant, category, currency: requestCurrency} = transactionDetails;
-    const managerID = report?.managerID ?? reportPreviewAction?.childManagerAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const ownerAccountID = report?.ownerAccountID ?? reportPreviewAction?.childOwnerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const ownerLogin = getLoginByAccountID(ownerAccountID, personalDetails);
     const currentUserEmail = currentUserDetails.email ?? '';
     const currentUserLogin = currentUserDetails.login;

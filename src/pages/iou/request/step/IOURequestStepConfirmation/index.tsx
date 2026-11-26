@@ -95,6 +95,7 @@ import {View} from 'react-native';
 import type {IOURequestStepConfirmationProps} from './types';
 import type {ConfirmationSubmissionParams, ConfirmationVariantProps} from './variants/types';
 
+import useConfirmationDiscardGuard from './useConfirmationDiscardGuard';
 import useConfirmationTransactionPager from './useConfirmationTransactionPager';
 import useParticipantPickerState from './useParticipantPickerState';
 import useSubmitDestinationPreMount from './useSubmitDestinationPreMount';
@@ -400,6 +401,14 @@ function IOURequestStepConfirmationContent({
     const submitLock = useSubmitLock();
     const {isConfirmed, formHasBeenSubmitted} = submitLock;
 
+    const {setHasUnsavedAmountInput, suppressDiscardPrompt} = useConfirmationDiscardGuard({
+        // Embedded on the start page, this confirmation is the flow's first step, so leaving it throws the draft away
+        shouldConfirmDiscardingChanges: shouldHideHeader,
+        requestType,
+        isAmountSet: !!transaction?.isAmountSet,
+        isSubmitting: isConfirmed,
+    });
+
     const {destinationReportID, optimisticP2PDestinationReportID, preMountDestinationReportID, revealPreMountDestination, cleanupPreMount, onExpenseWriteWillStart} =
         useSubmitDestinationPreMount({
             transaction,
@@ -653,6 +662,8 @@ function IOURequestStepConfirmationContent({
         expensesNumber: transactions.length,
         isTimeRequest,
         shouldHideToSection,
+        onUnsavedAmountInputChange: setHasUnsavedAmountInput,
+        onSubmitWillStart: suppressDiscardPrompt,
     };
 
     const renderSubmissionVariant = () => {

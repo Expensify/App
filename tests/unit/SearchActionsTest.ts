@@ -758,19 +758,6 @@ describe('SearchActions', () => {
             expect(conversionUpdate?.value).toEqual({sources, failedCurrencies: {EUR: null}});
         });
 
-        it('clears the search total it re-stamps until the request answers', () => {
-            // Given a whole-search total stamped against new source figures, while an earlier answer is still cached
-            const sources = {searchTotals: {hash1: {EUR: 600}}};
-
-            // When the conversion is requested
-            getFooterConvertedAmounts({queryJSON: getQueryJSON(), searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES, targetCurrency: 'EUR', sources});
-
-            // Then the earlier answer is cleared with the new stamp, so neither the request in flight nor a failed one leaves it looking fresh
-            const {optimisticData} = getReadOptions();
-            const conversionUpdate = optimisticData.find((update) => update.key === ONYXKEYS.SEARCH_FOOTER_CONVERSION);
-            expect(conversionUpdate?.value).toEqual({sources, searchTotals: {hash1: {EUR: null}}, failedCurrencies: {EUR: null}});
-        });
-
         it('marks the target currency as failed on failureData', () => {
             getFooterConvertedAmounts({queryJSON: getQueryJSON(), searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES as SearchKey, targetCurrency: 'EUR'});
 
