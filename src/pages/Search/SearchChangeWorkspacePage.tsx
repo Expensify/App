@@ -102,7 +102,7 @@ function SearchChangeWorkspacePage() {
     const currentSelection = policyID ?? sharedPolicyID;
     const isSaveDisabled = !policyID || (!areAllMatchingItemsSelected && currentPolicyIDs.every((currentPolicyID) => currentPolicyID === policyID));
     // Only the workspace checked when the page opened is pinned, so picking another one doesn't reorder the list.
-    const initialSelection = useInitialSelection(currentSelection, {resetOnFocus: true});
+    const initialSelection = useInitialSelection(sharedPolicyID, {resetOnFocus: true});
 
     const {data, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({
         policies,

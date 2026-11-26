@@ -48,9 +48,15 @@ let mockIsAppLoadPending = false;
 let mockSearchData: Record<string, unknown> = {};
 
 // The page renders outside a navigator, so the first selection is kept without the screen's focus events.
+// Coming back to the page takes a new snapshot, as `resetOnFocus` does on focus.
+let mockRefocusPage: (() => void) | undefined;
 jest.mock('@hooks/useInitialSelection', () => {
     const {useState} = jest.requireActual<typeof React>('react');
-    return <T,>(selection: T) => useState(selection)[0];
+    return <T,>(selection: T) => {
+        const [initialSelection, setInitialSelection] = useState(selection);
+        mockRefocusPage = () => setInitialSelection(selection);
+        return initialSelection;
+    };
 });
 jest.mock('@components/SelectionList', () => {
     function MockSelectionList({
@@ -264,6 +270,32 @@ describe('SearchChangeWorkspacePage', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then the list keeps its order, the same as the single report page
+        expect(mockListData.map((item) => item.policyID)).toEqual(initialOrder);
+    });
+
+    it('keeps the workspace the reports are on pinned after coming back to the page', async () => {
+        // Given two picked reports on Workspace 2, and Workspace 3 picked on the page
+        mockAreAllMatchingItemsSelected = false;
+        mockSelectedReports = [
+            {reportID: 'report1', policyID: 'policy2'},
+            {reportID: 'report2', policyID: 'policy2'},
+        ];
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy3`, makePolicy('policy3', 'Workspace 3', CONST.POLICY.ROLE.USER));
+        render(
+            <OnyxListItemProvider>
+                <SearchChangeWorkspacePage />
+            </OnyxListItemProvider>,
+        );
+        await waitForBatchedUpdatesWithAct();
+        const initialOrder = mockListData.map((item) => item.policyID);
+        act(() => mockSelectRow?.({policyID: 'policy3'}));
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user leaves the page and comes back to it
+        act(() => mockRefocusPage?.());
+        await waitForBatchedUpdatesWithAct();
+
+        // Then Workspace 2 stays pinned, so the list keeps its order
         expect(mockListData.map((item) => item.policyID)).toEqual(initialOrder);
     });
 
