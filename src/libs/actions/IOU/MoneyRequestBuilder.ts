@@ -1691,8 +1691,9 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     }
 
     if (isSplitExpense && existingTransaction) {
-        const {convertedAmount: originalConvertedAmount, ...existingTransactionWithoutConvertedAmount} = existingTransaction;
-        optimisticTransaction = fastMerge(existingTransactionWithoutConvertedAmount, optimisticTransaction, false);
+        // A split can move to another report, so it shows its own amount instead of the original's workspace amount until the next search
+        const {convertedAmount: originalConvertedAmount, policyConvertedAmount, ...existingTransactionWithoutConvertedAmounts} = existingTransaction;
+        optimisticTransaction = fastMerge(existingTransactionWithoutConvertedAmounts, optimisticTransaction, false);
         if (customUnit && optimisticTransaction.comment) {
             optimisticTransaction.comment.customUnit = customUnit;
         }

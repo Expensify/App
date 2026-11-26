@@ -1,6 +1,6 @@
 import type CONST from '@src/CONST';
 
-import type {ValueOf} from 'type-fest';
+import type {JsonObject, ValueOf} from 'type-fest';
 
 import type {Errors} from './OnyxCommon';
 
@@ -80,6 +80,19 @@ type AIInsightNeutralChip = (
 /** An AI insight's statistic: a change or an observed value */
 type AIInsightChip = AIInsightChangeChip | AIInsightNeutralChip;
 
+/** Source facts kept intact for Concierge; App does not interpret the graph-specific evidence. */
+type InsightsExplanationContext = {
+    graphKey: InsightsGraphKey;
+    groupBy:
+        | typeof CONST.SEARCH.GROUP_BY.DAY
+        | typeof CONST.SEARCH.GROUP_BY.WEEK
+        | typeof CONST.SEARCH.GROUP_BY.MONTH
+        | typeof CONST.SEARCH.GROUP_BY.QUARTER
+        | typeof CONST.SEARCH.GROUP_BY.YEAR;
+    signal: AIInsightSignal;
+    evidence: JsonObject;
+};
+
 /** AI-written insight about the dashboard's data */
 type AIInsight = {
     id: string;
@@ -96,6 +109,9 @@ type AIInsight = {
 
     /** Encoded ancestors for this tag; an empty string selects independent tags */
     parentTagPath?: string;
+
+    /** Missing on cards cached before structured Explain context was introduced. */
+    explainContext?: InsightsExplanationContext;
 };
 
 /** Expenses dated after the day the dashboard counts through, which every graph leaves out */
@@ -136,5 +152,5 @@ type InsightsDashboard = {
     responseJsonCode?: number;
 };
 
-export type {AIInsight, AIInsightChip, InsightsDashboardID, InsightsFutureExpenses, InsightsGraphKey, InsightsSearchKey};
+export type {AIInsight, AIInsightChip, InsightsDashboardID, InsightsExplanationContext, InsightsFutureExpenses, InsightsGraphKey, InsightsSearchKey};
 export default InsightsDashboard;

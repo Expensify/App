@@ -167,6 +167,11 @@ const ONYX_KEY_EXPORT_RULES: Record<string, ExportRule> = {
         allowList: [],
         maskList: ['bankName', 'bankAccountLastFour'],
     },
+    // Cached prompts and answers can contain private spending details.
+    [ONYXKEYS.COLLECTION.INSIGHTS_EXPLANATION]: {
+        allowList: ['createdAt'],
+        maskList: ['jsonQuery', 'response'],
+    },
     [ONYXKEYS.USER_WALLET]: {
         allowList: ['currentBalance', 'availableBalance', 'tierName'],
         maskList: [],
@@ -426,6 +431,7 @@ const safeOnyxKeys = new Set<string>([
     ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES,
     ONYXKEYS.VERIFY_3DS_SUBSCRIPTION_SOURCE,
     ONYXKEYS.VIEWING_PUBLIC_ROOM_REPORT_ID,
+    ONYXKEYS.WISE_ONBOARDING_UNSAVED_PAGES,
 ]);
 
 // ============================================================

@@ -74,7 +74,10 @@ jobs:
       # consuming app links.
       - name: Resolve Hermes version
         id: hermes
-        run: echo "VERSION=$(./scripts/artifacts-utils/get-hermes-version.sh)" >> "$GITHUB_OUTPUT"
+        # Assign before echoing: a failure inside echo's arguments would not stop the step.
+        run: |
+          VERSION=$(./scripts/artifacts-utils/get-hermes-version.sh)
+          echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Get Java version
         id: get-java-version
@@ -115,15 +118,15 @@ jobs:
           # Exclude ktfmt and test tasks from the included react-native build
           EXCLUDE_TASKS=(
             -x :react-native:packages:react-native:ReactAndroid:ktfmtCheck
-            -x :react-native:packages:react-native:ReactAndroid:ktfmtCheckMain
-            -x :react-native:packages:react-native:ReactAndroid:ktfmtCheckScripts
-            -x :react-native:packages:react-native:ReactAndroid:testDebugOptimizedUnitTest
             -x :react-native:packages:react-native:ReactAndroid:testDebugUnitTest
-            -x :react-native:packages:react-native:ReactAndroid:testReleaseUnitTest
           )
 
-          ./gradlew buildReactNativeArtifacts -PpatchedArtifacts.forceBuildFromSource=true -x lint -x test -x check "${EXCLUDE_TASKS[@]}"
-          ./gradlew publishReactNativeArtifacts -PpatchedArtifacts.forceBuildFromSource=true
+          # Build against the prebuilt Hermes the app links (HERMES_VERSION) instead of compiling Hermes from source,
+          # like upstream's release builds do. Both invocations need it, or the publish rebuilds against another Hermes.
+          USE_STABLE_HERMES=(--init-script "$GITHUB_WORKSPACE/scripts/artifacts-utils/android/useStableHermes.init.gradle")
+
+          ./gradlew buildReactNativeArtifacts -PpatchedArtifacts.forceBuildFromSource=true "${USE_STABLE_HERMES[@]}" -x lint -x test -x check "${EXCLUDE_TASKS[@]}"
+          ./gradlew publishReactNativeArtifacts -PpatchedArtifacts.forceBuildFromSource=true "${USE_STABLE_HERMES[@]}"
         env:
           GH_PUBLISH_ACTOR: ${{ github.actor }}
           GH_PUBLISH_TOKEN: ${{ github.token }}

@@ -59,6 +59,12 @@ const ONYXKEYS = {
     /** The Wise onboarding page saves still running, by save ID. RAM-only, since a page with an SSN skips the queue, so its save ends when the app closes and must not keep the flow saving after a reload. */
     RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES: 'wiseOnboardingPendingSaves',
 
+    /**
+     * The Wise onboarding pages that have not saved yet. They are kept apart from the reimbursement account, since the server replaces that key each time
+     * the page reads it, which would drop the marks. They are kept on disk, like the draft they describe.
+     */
+    WISE_ONBOARDING_UNSAVED_PAGES: 'wiseOnboardingUnsavedPages',
+
     /** The ID of the bank account whose business details the Wise intro page has started reading. RAM-only, since a reload ends the read. */
     RAM_ONLY_WISE_INTRO_READ_BANK_ACCOUNT_ID: 'wiseIntroReadBankAccountID',
 
@@ -1166,6 +1172,9 @@ const ONYXKEYS = {
         /** Data of the Insights Details panels, keyed by a hash of the graph, filters, period and item */
         INSIGHTS_DETAILS: 'insightsDetails_',
 
+        /** Preloaded Concierge answers keyed by question, account, and Insights filters. */
+        INSIGHTS_EXPLANATION: 'insightsExplanation_',
+
         // Shared NVPs
         /** Collection of agent prompts keyed by agent accountID, representing agents owned by the current user */
         /** Deprecated. Use agent_ instead */
@@ -1796,6 +1805,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.SNAPSHOT]: OnyxTypes.SearchResults;
     [ONYXKEYS.COLLECTION.INSIGHTS]: OnyxTypes.InsightsDashboard;
     [ONYXKEYS.COLLECTION.INSIGHTS_DETAILS]: OnyxTypes.InsightsDetails;
+    [ONYXKEYS.COLLECTION.INSIGHTS_EXPLANATION]: OnyxTypes.InsightsExplanation;
     [ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT]: OnyxTypes.Agent;
     [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END]: OnyxTypes.BillingGraceEndPeriod;
     [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER]: OnyxTypes.CardFeeds;
@@ -2032,6 +2042,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS]: boolean;
     [ONYXKEYS.RAM_ONLY_IS_LOADING_DEPOSIT_ACCOUNT_SETUP]: boolean;
     [ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES]: Record<string, boolean>;
+    [ONYXKEYS.WISE_ONBOARDING_UNSAVED_PAGES]: OnyxTypes.WiseOnboardingUnsavedPages;
     [ONYXKEYS.RAM_ONLY_WISE_INTRO_READ_BANK_ACCOUNT_ID]: number;
     [ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS]: string[] | null;
     [ONYXKEYS.RAM_ONLY_SEARCH_TRANSACTION_WRITES]: {writeID: number; oldestWriteID: number; transactionIDs: Record<string, number>; reportIDs: Record<string, number>};
