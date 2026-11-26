@@ -1,10 +1,11 @@
-// cspell:ignore Montag Dienstag Freitag Sonntag März Τρίτη Κυριακή Januar grudzień janv styczeń stycznia
+// cspell:ignore Montag Dienstag Freitag Sonntag März Τρίτη Κυριακή Januar Februar grudzień janv styczeń stycznia dnia godziny godzin minut
 // cspell:ignore Ιανουάριος Ιανουαρίου lundi novembre Δευτέρα Νοεμβρίου -- German, Polish, French and Greek weekday and month
 // names, asserted verbatim so the locale-driven formatters are covered rather than only the English path.
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import DateUtils from '@libs/DateUtils';
 import {translate} from '@libs/Localize';
+import {format as formatNumber} from '@libs/NumberFormatUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -70,6 +71,30 @@ describe('DateUtils', () => {
 
     const datetime = '2022-11-07 00:00:00';
     const timezone = 'Atlantic/Reykjavik';
+
+    describe('formatToReadableString', () => {
+        it.each(['', 'unknown-preset', '2026-02-30', '2026-13-01', '2026-11-08T00:00:00.000Z'])('returns an empty label for the invalid calendar date %s', (date) => {
+            // Given an invalid calendar date or a value outside the date-only contract
+            // When it reaches the shared formatter
+            const label = DateUtils.formatToReadableString(date, enUS);
+
+            // Then formatting cannot throw during render or display the unsupported raw value
+            expect(label).toBe('');
+        });
+
+        it('preserves a valid leap day and localized date output', () => {
+            // Given a valid custom day and locales with different component ordering
+            const date = '2024-02-29';
+
+            // When the shared formatter renders the date
+            const english = DateUtils.formatToReadableString(date, enUS);
+            const german = DateUtils.formatToReadableString(date, de);
+
+            // Then the day stays intact and formatting continues to respect each locale
+            expect(english).toBe('February 29, 2024');
+            expect(german).toBe('29. Februar 2024');
+        });
+    });
 
     it('getZoneAbbreviation should show zone abbreviation from the datetime', () => {
         const zoneAbbreviation = DateUtils.getZoneAbbreviation(datetime, timezone, enUS);
@@ -1286,6 +1311,46 @@ describe('DateUtils', () => {
         });
     });
 
+    describe('getFormattedDateRange', () => {
+        // cspell:ignore März
+        // `Intl` puts thin spaces around the en dash in an English range.
+        const THIN_SPACE = '\u2009';
+
+        it('shows a single day as an abbreviated month and day', () => {
+            // Given a trip that starts and ends on the same day
+            // When its date range is formatted
+            // Then only that day is shown, in English and in the German day-first order
+            expect(DateUtils.getFormattedDateRange(translateLocal, undefined, new Date(2026, 2, 17), new Date(2026, 2, 17))).toBe('Mar 17');
+            expect(DateUtils.getFormattedDateRange(translateLocal, de, new Date(2026, 2, 17), new Date(2026, 2, 17))).toBe('17. März');
+        });
+
+        it('joins a same-month range the way each language does', () => {
+            // Given a trip within one month
+            // When its date range is formatted
+            // Then the language's own range form is used. A hand-written `MMM d-d` gave `März 17-20` in German, which
+            // is not how German writes a range.
+            const start = new Date(2026, 2, 17);
+            const end = new Date(2026, 2, 20);
+            expect(DateUtils.getFormattedDateRange(translateLocal, undefined, start, end)).toBe(`Mar 17${THIN_SPACE}–${THIN_SPACE}20`);
+            expect(DateUtils.getFormattedDateRange(translateLocal, de, start, end)).toBe('17.–20. März');
+            expect(DateUtils.getFormattedDateRange(translateLocal, es, start, end)).toBe('17–20 mar');
+        });
+
+        it('joins dates in different months with the translated connector', () => {
+            // Given a trip that spans two months in the same year
+            // When its date range is formatted
+            // Then both dates are shown without a year and joined with the translated "to"
+            expect(DateUtils.getFormattedDateRange(translateLocal, undefined, new Date(2026, 1, 28), new Date(2026, 2, 1))).toBe('Feb 28 to Mar 1');
+        });
+
+        it('adds the year when the range crosses into another year', () => {
+            // Given a trip that spans New Year
+            // When its date range is formatted
+            // Then both dates carry their year so the range is not ambiguous
+            expect(DateUtils.getFormattedDateRange(translateLocal, undefined, new Date(2023, 11, 28), new Date(2024, 0, 5))).toBe('Dec 28, 2023 to Jan 5, 2024');
+        });
+    });
+
     describe('getFormattedDateRangeForSearch', () => {
         // cspell:ignore Sept
         // `Intl` puts thin spaces around the en dash in an English range.
@@ -1585,6 +1650,70 @@ describe('DateUtils', () => {
         });
     });
 
+    describe('getMonthDateRange', () => {
+        it('returns the first and last day of a month', () => {
+            // Given February of a leap year, whose last day differs from other years
+            // When its range is built
+            // Then the range ends on the 29th
+            expect(DateUtils.getMonthDateRange(2024, 2)).toEqual({start: '2024-02-01', end: '2024-02-29'});
+        });
+
+        it.each([0, 13, 1.5, Number.NaN])('returns undefined for month %p', (month) => {
+            // Given a month that doesn't exist, which `Date` would roll into another year
+            // When its range is built
+            // Then there is no range rather than one in the wrong year
+            expect(DateUtils.getMonthDateRange(2025, month)).toBeUndefined();
+        });
+
+        it('returns undefined for a year that is not an integer', () => {
+            // Given a missing year, which `format` would throw on
+            // When a range is built for it
+            // Then there is no range rather than a crash
+            expect(DateUtils.getMonthDateRange(Number.NaN, 6)).toBeUndefined();
+        });
+    });
+
+    describe('getQuarterDateRange', () => {
+        it('returns the first and last day of a quarter', () => {
+            // Given the last quarter of the year
+            // When its range is built
+            // Then it covers October through December
+            expect(DateUtils.getQuarterDateRange(2025, 4)).toEqual({start: '2025-10-01', end: '2025-12-31'});
+        });
+
+        it.each([0, 5, 2.5, Number.NaN])('returns undefined for quarter %p', (quarter) => {
+            // Given a quarter that doesn't exist, which `Date` would roll into another year
+            // When its range is built
+            // Then there is no range rather than one in the wrong year
+            expect(DateUtils.getQuarterDateRange(2025, quarter)).toBeUndefined();
+        });
+    });
+
+    describe('getYearDateRange', () => {
+        it('returns the first and last day of a year', () => {
+            // Given a year
+            // When its range is built
+            // Then it covers January 1 through December 31
+            expect(DateUtils.getYearDateRange(2025)).toEqual({start: '2025-01-01', end: '2025-12-31'});
+        });
+
+        it.each([2025.5, Number.NaN])('returns undefined for year %p', (year) => {
+            // Given a year that isn't a whole number, which would build a date string no search can parse
+            // When its range is built
+            // Then there is no range rather than an invalid filter
+            expect(DateUtils.getYearDateRange(year)).toBeUndefined();
+        });
+    });
+
+    describe('isDateStringInMonth', () => {
+        it('matches no date for a month outside the year', () => {
+            // Given month 13, which would otherwise roll into January of the next year
+            // When a January date is checked against it
+            // Then it doesn't match
+            expect(DateUtils.isDateStringInMonth('2026-01-15', 2025, 13)).toBe(false);
+        });
+    });
+
     describe('abbreviated date with a year', () => {
         // cspell:ignore Juni
         // Midday UTC, so the displayed day is the same in every timezone the test can run in.
@@ -1605,6 +1734,116 @@ describe('DateUtils', () => {
             expect(DateUtils.formatWithUTCTimeZone(DATETIME, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT, de)).toBe('20. Juni 2026');
             expect(DateUtils.formatWithUTCTimeZone(DATETIME, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT, es)).toBe('20 jun 2026');
             expect(DateUtils.formatWithUTCTimeZone(DATETIME, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT, ja)).toBe('2026/06/20');
+        });
+    });
+
+    describe('formatAverageDuration', () => {
+        const numberFormatIn =
+            (locale: Parameters<typeof formatNumber>[0]): LocaleContextProps['numberFormat'] =>
+            (number, options) =>
+                formatNumber(locale, number, options);
+
+        it('writes seconds out as days, rounded to one decimal place', () => {
+            // Given an average of two and a half days, and one that falls between tenths of a day
+            const twoAndAHalfDays = 2.5 * CONST.DATE.SECONDS_PER_DAY;
+            const almostThreeAndAHalfDays = 3.46 * CONST.DATE.SECONDS_PER_DAY;
+
+            // When each is formatted in English
+            const formatted = [twoAndAHalfDays, almostThreeAndAHalfDays].map((seconds) => DateUtils.formatAverageDuration(seconds, translateLocal, numberFormatIn(CONST.LOCALES.EN)));
+
+            // Then each reads in days with at most one decimal, because Insights compares how many days a stage takes
+            expect(formatted).toEqual(['2.5 days', '3.5 days']);
+        });
+
+        it('drops the decimal from a whole number of days', () => {
+            // Given an average of exactly two days
+            const twoDays = 2 * CONST.DATE.SECONDS_PER_DAY;
+
+            // When it is formatted in English
+            const formatted = DateUtils.formatAverageDuration(twoDays, translateLocal, numberFormatIn(CONST.LOCALES.EN));
+
+            // Then no trailing zero is written, so whole days read as the axis ticks do
+            expect(formatted).toBe('2 days');
+        });
+
+        it('writes a duration under an hour in minutes and one under a day in hours, and keeps the singular for exactly one of each', () => {
+            // Given averages of fifty minutes, a minute, two and a half hours, an hour, and exactly a day
+            const durations = [50 * 60, 60, 2.5 * 60 * 60, 60 * 60, CONST.DATE.SECONDS_PER_DAY];
+
+            // When each is formatted in English
+            const formatted = durations.map((seconds) => DateUtils.formatAverageDuration(seconds, translateLocal, numberFormatIn(CONST.LOCALES.EN)));
+
+            // Then each reads in the largest unit it fills, because tenths of a day would show a short stage as "0 days"
+            expect(formatted).toEqual(['50 minutes', '1 minute', '2.5 hours', '1 hour', '1 day']);
+        });
+
+        it('moves to the next unit when rounding reaches it', () => {
+            // Given an average just under an hour and one just under a day
+            const almostAnHour = 59.8 * 60;
+            const almostADay = CONST.DATE.SECONDS_PER_DAY - 60;
+
+            // When each is formatted in English
+            const formatted = [almostAnHour, almostADay].map((seconds) => DateUtils.formatAverageDuration(seconds, translateLocal, numberFormatIn(CONST.LOCALES.EN)));
+
+            // Then each reads in the next unit, because "60 minutes" and "24 hours" are a whole hour and a whole day
+            expect(formatted).toEqual(['1 hour', '1 day']);
+        });
+
+        it('writes a negative difference too small to show as zero, without a minus sign', () => {
+            // Given a difference of ten seconds in the falling direction, like a compared period that was slightly faster
+            const tenSecondsFaster = -10;
+
+            // When it is formatted in full and in compact notation in English
+            const formatted = [false, true].map((isCompact) => DateUtils.formatAverageDuration(tenSecondsFaster, translateLocal, numberFormatIn(CONST.LOCALES.EN), isCompact));
+
+            // Then it reads as zero, because rounding to whole minutes gives -0, and "-0 minutes" would suggest a change that is not there
+            expect(formatted).toEqual(['0 minutes', '0m']);
+        });
+
+        it('abbreviates minutes and hours when compact, like days', () => {
+            // Given an average of fifty minutes and one of two and a half hours
+            const durations = [50 * 60, 2.5 * 60 * 60];
+
+            // When each is formatted in compact notation in English
+            const formatted = durations.map((seconds) => DateUtils.formatAverageDuration(seconds, translateLocal, numberFormatIn(CONST.LOCALES.EN), true));
+
+            // Then each keeps its own unit as a single letter, so axis ticks read in the same unit as the bars
+            expect(formatted).toEqual(['50m', '2.5h']);
+        });
+
+        it('abbreviates the unit when compact, the way axis ticks show it', () => {
+            // Given an average of two and a half days
+            const twoAndAHalfDays = 2.5 * CONST.DATE.SECONDS_PER_DAY;
+
+            // When it is formatted in compact notation in English
+            const formatted = DateUtils.formatAverageDuration(twoAndAHalfDays, translateLocal, numberFormatIn(CONST.LOCALES.EN), true);
+
+            // Then the unit is a single letter, because axis ticks have little room and the tooltip writes the full unit
+            expect(formatted).toBe('2.5d');
+        });
+
+        it("formats the number in the viewer's locale", () => {
+            // Given an average of two and a half days, viewed in German
+            IntlStore.load(CONST.LOCALES.DE);
+            const twoAndAHalfDays = 2.5 * CONST.DATE.SECONDS_PER_DAY;
+
+            // When it is formatted with the German number format
+            const formatted = DateUtils.formatAverageDuration(twoAndAHalfDays, translateLocal, numberFormatIn(CONST.LOCALES.DE));
+
+            // Then the decimal separator is German, because the number is formatted before it reaches the translation
+            expect(formatted).toMatch(/^2,5 /);
+        });
+
+        it('uses the Polish form for fractions, which differs from the one for whole numbers', async () => {
+            // Given averages of two and a half and of five in each unit, viewed in Polish
+            await IntlStore.load(CONST.LOCALES.PL);
+            const durations = [2.5 * CONST.DATE.SECONDS_PER_DAY, 5 * CONST.DATE.SECONDS_PER_DAY, 2.5 * 60 * 60, 5 * 60 * 60, 5 * 60];
+
+            // When each is formatted with the Polish number format
+            const formatted = durations.map((seconds) => DateUtils.formatAverageDuration(seconds, translateLocal, numberFormatIn(CONST.LOCALES.PL)));
+
+            // Then fractions take the genitive singular ("2,5 dnia") and whole numbers from five take the genitive plural ("5 dni"), as Polish requires
+            expect(formatted).toEqual(['2,5 dnia', '5 dni', '2,5 godziny', '5 godzin', '5 minut']);
         });
     });
 });

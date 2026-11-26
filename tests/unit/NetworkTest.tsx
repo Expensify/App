@@ -1,6 +1,8 @@
 import {reconnectApp} from '@libs/actions/App';
 import * as Reconnect from '@libs/actions/Reconnect';
-import {AUTHENTICATION_COMMAND, SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
+import * as API from '@libs/API';
+import type {RequestMoneyParams} from '@libs/API/parameters';
+import {AUTHENTICATION_COMMAND, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {reset as resetFailureTracker} from '@libs/FailureTracker';
 import {resetReauthentication} from '@libs/Middleware/Reauthentication';
 
@@ -22,6 +24,8 @@ import type {Session as OnyxSession} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import Onyx from '../../__mocks__/react-native-onyx';
+import createMock from '../utils/createMock';
+import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -259,6 +263,35 @@ describe('NetworkTests', () => {
 
                 reconnectSpy.mockRestore();
             });
+    });
+
+    test('does not resend an expense the server already created after reauthentication', async () => {
+        const mockFetch = TestHelper.getGlobalFetchMock();
+        global.fetch = mockFetch;
+        const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}1` as const;
+
+        // Given an expense whose first create landed on the server but whose response was lost, so the queue replays it after the session expired
+        await TestHelper.signInWithTestUser(1, 'test@testguy.com');
+        let requestMoneyCalls = 0;
+        mockFetch.mockAPICommand(WRITE_COMMANDS.REQUEST_MONEY, () => {
+            requestMoneyCalls++;
+            return requestMoneyCalls === 1 ? {jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED} : {jsonCode: CONST.JSON_CODE.EXP_ERROR, message: CONST.ERROR_TITLE.ALREADY_CREATED_TRANSACTION};
+        });
+
+        // When the create gets a 407, the app reauthenticates and the replay is answered "Transaction already created."
+        API.write(WRITE_COMMANDS.REQUEST_MONEY, createMock<RequestMoneyParams>({transactionID: '1'}), {
+            optimisticData: [{onyxMethod: Onyx.METHOD.MERGE, key: transactionKey, value: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}}],
+            successData: [{onyxMethod: Onyx.METHOD.MERGE, key: transactionKey, value: {pendingAction: null}}],
+            failureData: [{onyxMethod: Onyx.METHOD.MERGE, key: transactionKey, value: {errors: {receiptError: 'failed'}}}],
+        });
+        await SequentialQueue.waitForIdle();
+
+        // Then the create is sent only twice (407, then "already created"), and the expense is no longer pending, has no error and is out of the queue
+        const transaction = await getOnyxValue(transactionKey);
+        expect(transaction?.pendingAction).toBeFalsy();
+        expect(transaction?.errors).toBeUndefined();
+        expect(requestMoneyCalls).toBe(2);
+        expect(PersistedRequests.getAll()).toHaveLength(0);
     });
 
     test('Request will not run until credentials are read from Onyx', () => {

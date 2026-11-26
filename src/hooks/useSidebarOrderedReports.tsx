@@ -415,6 +415,12 @@ function SidebarOrderedReportsContextProvider({
     // The reports for the active tab, plus the sticky report opened from it (kept visible even after it's read).
     const stickyReportID = stickyReport?.reportID;
     const stickyReportTab = stickyReport?.tab;
+
+    // The sticky report only stays while it's open. On narrow layouts going back to the list navigates away from it.
+    if (stickyReportID && derivedCurrentReportID !== prevDerivedCurrentReportID && derivedCurrentReportID !== stickyReportID) {
+        setStickyReport(undefined);
+    }
+
     const computedFilteredReportIDs = useMemo(() => {
         const baseFilteredReportIDs = SidebarUtils.filterReportsForInboxTab(orderedReportIDs, reportsToDisplayInLHN, activeTab);
         if (activeTab === CONST.INBOX_TAB.ALL || !stickyReportID || stickyReportTab !== activeTab || baseFilteredReportIDs.includes(stickyReportID)) {

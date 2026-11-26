@@ -44,8 +44,10 @@ type DynamicFieldAnswerMap = {
 
 /** Props every input gets from the renderer */
 type DynamicFieldInputProps<TAnswer extends FormValue = FormValue> = Required<ForwardedFSClassProps> &
-    Required<Pick<InputComponentBaseProps, 'inputID' | 'shouldSaveDraft'>> &
-    Pick<InputComponentBaseProps, 'onValueChange'> & {
+    Required<Pick<InputComponentBaseProps, 'inputID' | 'shouldSaveDraft'>> & {
+        /** Set on a field that asks for a new form when it changes. `otherAnswers` are answers the same change fills in under other keys, which the draft does not hold yet. */
+        onValueChange?: (value: FormValue, key: string, otherAnswers?: DynamicFormValues) => void;
+
         onBlur?: () => void;
 
         /** Offline, a field that asks the server for a new form cannot change, because the request would wait in the queue while the user goes on with a stale form */

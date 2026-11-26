@@ -7,6 +7,7 @@ import UserInfoCellsWithArrow from '@components/Search/SearchList/ListItem/UserI
 import Text from '@components/Text';
 import TransactionPreviewSkeletonView from '@components/TransactionPreviewSkeletonView';
 
+import {useMentionedAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -35,7 +36,7 @@ import {canEditMoneyRequest, getTransactionDetails, isPolicyExpenseChat, isRepor
 import StringUtils from '@libs/StringUtils';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
 import {createTransactionPreviewConditionals, getTransactionPreviewTextAndTranslationPaths} from '@libs/TransactionPreviewUtils';
-import {isManagedCardTransaction as isCardTransactionUtils, isGPSDistanceRequest, isMapDistanceRequest, isScanning} from '@libs/TransactionUtils';
+import {getDescription, isManagedCardTransaction as isCardTransactionUtils, isGPSDistanceRequest, isMapDistanceRequest, isScanning} from '@libs/TransactionUtils';
 import ViolationsUtils, {filterReceiptViolations} from '@libs/Violations/ViolationsUtils';
 
 import {fontScale} from '@styles/typography';
@@ -102,10 +103,12 @@ function TransactionPreviewContent({
     const {personalCardsWithBrokenConnection} = useCardFeedErrors();
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         shouldHighlight,
+        highlightKey: transaction?.transactionID,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.cardBG,
         shouldApplyOtherStyles: false,
     });
+    const accountIDToName = useMentionedAccountIDToNameMap(getDescription(transaction));
     const cardID = getViolationToDescribe(violations, transaction)?.data?.cardID;
     // Keep this the last hook and derive the violation again below it. React Compiler cannot cache values that alias
     // an array built before a hook call, and the whole preview derivation depends on this violation.
@@ -187,7 +190,7 @@ function TransactionPreviewContent({
     const isDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const shouldShowMerchantOrDescription = shouldShowDescription || shouldShowMerchant;
 
-    const description = truncate(StringUtils.lineBreaksToSpaces(Parser.htmlToText(requestComment ?? '')), {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
+    const description = truncate(StringUtils.lineBreaksToSpaces(Parser.htmlToText(requestComment ?? '', {accountIDToName})), {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const isApproved = isReportApproved({report});
     const pendingAction = action?.pendingAction;

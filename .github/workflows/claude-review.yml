@@ -7,7 +7,10 @@ permissions:
 
 on:
   pull_request_target:
-    types: [opened, ready_for_review]
+    # A review request runs Claude again, so the requested reviewer sees findings for the latest commit.
+    # A submitted review cannot start this workflow with secrets on a fork PR, so the request is the trigger instead.
+    # The "Check for an existing review of this commit" step skips a commit that Claude already reviewed, so a repeat request does not run a second review.
+    types: [opened, ready_for_review, review_requested]
   issue_comment:
     types: [created]
 
@@ -16,7 +19,7 @@ jobs:
     if: >-
       (github.event_name == 'pull_request_target' && github.event.pull_request.draft != true && !contains(github.event.pull_request.title, 'Revert')) ||
       (github.event_name == 'issue_comment' && github.event.issue.pull_request && contains(github.event.comment.body, '@claude review'))
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: blacksmith-2vcpu-ubuntu-2404-arm
     outputs:
       IS_AUTHORIZED: ${{ steps.gate.outputs.IS_AUTHORIZED }}
     steps:
@@ -40,7 +43,7 @@ jobs:
     concurrency:
       group: claude-review-${{ github.event.pull_request.html_url || github.event.issue.html_url }}
       cancel-in-progress: true
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: blacksmith-2vcpu-ubuntu-2404-arm
     env:
       PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
     steps:

@@ -1,6 +1,6 @@
 import {useSearchResultsContext} from '@components/Search/SearchContext';
 
-import {getSearchBulkEditPolicyID, isEverySearchBulkEditExpenseOwnedBy} from '@libs/SearchUIUtils';
+import {getSearchBulkEditExpenseOwnerAccountID, getSearchBulkEditPolicyID} from '@libs/SearchUIUtils';
 
 import {withSnapshotReports, withSnapshotTransactions} from '@pages/Search/SearchEditMultiple/SearchEditMultipleUtils';
 
@@ -12,10 +12,10 @@ import useOnyx from './useOnyx';
 
 /**
  * Resolves what bulk editing needs from the selected transactions, using snapshot-merged collections so that expenses
- * only present in the search snapshot (e.g. after a hard refresh) are still resolved correctly: the policyID, and
- * whether every selected expense is the current user's own.
+ * only present in the search snapshot (e.g. after a hard refresh) are still resolved correctly: the policyID, the
+ * account that owns every selected expense (undefined when the owners differ), and whether that's the current user.
  */
-function useSearchBulkEditSelection(): {policyID: string | undefined; isEverySelectedExpenseOwn: boolean} {
+function useSearchBulkEditSelection(): {policyID: string | undefined; ownerAccountID: number | undefined; isEverySelectedExpenseOwn: boolean} {
     const {currentSearchResults} = useSearchResultsContext();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID}`);
@@ -28,10 +28,12 @@ function useSearchBulkEditSelection(): {policyID: string | undefined; isEverySel
     const mergedReports = withSnapshotReports(allReports, snapshotData);
 
     const selectedTransactionIDs = draftTransaction?.selectedTransactionIDs ?? [];
+    const ownerAccountID = getSearchBulkEditExpenseOwnerAccountID(selectedTransactionIDs, currentUserAccountID, mergedTransactions, mergedReports);
 
     return {
         policyID: getSearchBulkEditPolicyID(selectedTransactionIDs, activePolicyID, mergedTransactions, mergedReports),
-        isEverySelectedExpenseOwn: isEverySearchBulkEditExpenseOwnedBy(selectedTransactionIDs, currentUserAccountID, mergedTransactions, mergedReports),
+        ownerAccountID,
+        isEverySelectedExpenseOwn: ownerAccountID === currentUserAccountID,
     };
 }
 

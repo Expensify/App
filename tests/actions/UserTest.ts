@@ -79,12 +79,15 @@ describe('actions/User', () => {
         });
     });
 
-    describe('joinExactOnlineWaitlist', () => {
+    describe('joinIntegrationWaitlist', () => {
         afterEach(() => {
             jest.restoreAllMocks();
         });
 
-        it('queues the signup timestamp with a rollback to the absent value', () => {
+        it.each([
+            {integration: CONST.POLICY.CONNECTIONS.NAME.EXACT_ONLINE, nvpKey: ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST, field: 'exactOnlineWaitlist'},
+            {integration: CONST.POLICY.CONNECTIONS.NAME.ODOO, nvpKey: ONYXKEYS.NVP_ODOO_WAITLIST, field: 'odooWaitlist'},
+        ] as const)('queues the $integration signup timestamp with a rollback to the absent value', ({integration, nvpKey, field}) => {
             // Given the account has not joined the waitlist
             const signupTimestamp = '2026-10-14 10:00:00.000';
             const errorTimestamp = 1;
@@ -92,32 +95,32 @@ describe('actions/User', () => {
             jest.spyOn(DateUtils, 'getMicroseconds').mockReturnValue(errorTimestamp);
 
             // When the account joins the waitlist
-            UserActions.joinExactOnlineWaitlist();
+            UserActions.joinIntegrationWaitlist(integration);
 
             // Then the queued request and confirmed signup share one timestamp, with the previous value restored on failure
             expect(getDBTime).toHaveBeenCalledTimes(1);
             expect(mockAPI.write).toHaveBeenCalledTimes(1);
             expect(mockAPI.write).toHaveBeenCalledWith(
                 WRITE_COMMANDS.SET_NAME_VALUE_PAIR,
-                {name: ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST, value: signupTimestamp},
+                {name: nvpKey, value: signupTimestamp},
                 {
                     optimisticData: [
                         {
                             onyxMethod: Onyx.METHOD.MERGE,
                             key: ONYXKEYS.ACCOUNT,
-                            value: {pendingFields: {exactOnlineWaitlist: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}, errorFields: {exactOnlineWaitlist: null}},
+                            value: {pendingFields: {[field]: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}, errorFields: {[field]: null}},
                         },
                     ],
                     successData: [
-                        {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST, value: signupTimestamp},
-                        {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.ACCOUNT, value: {pendingFields: {exactOnlineWaitlist: null}}},
+                        {onyxMethod: Onyx.METHOD.MERGE, key: nvpKey, value: signupTimestamp},
+                        {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.ACCOUNT, value: {pendingFields: {[field]: null}}},
                     ],
                     failureData: [
-                        {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST, value: ''},
+                        {onyxMethod: Onyx.METHOD.MERGE, key: nvpKey, value: ''},
                         {
                             onyxMethod: Onyx.METHOD.MERGE,
                             key: ONYXKEYS.ACCOUNT,
-                            value: {pendingFields: {exactOnlineWaitlist: null}, errorFields: {exactOnlineWaitlist: {[errorTimestamp]: anyString}}},
+                            value: {pendingFields: {[field]: null}, errorFields: {[field]: {[errorTimestamp]: anyString}}},
                         },
                     ],
                 },

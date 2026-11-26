@@ -5,6 +5,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileSafari} from '@libs/Browser';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
+import {toViewStyle} from '@libs/WebOnlyStyleUtils';
 
 import CONFIG from '@src/CONFIG';
 
@@ -42,6 +43,10 @@ const useSplitNavigatorScreenOptions = (sidebarScreenName?: string) => {
 
     const centralScreenEnter: EnterAnimation = !IS_MOBILE_SAFARI && shouldUseNarrowLayout ? {kind: 'slide-from-width'} : {kind: 'none'};
 
+    // On wide layout the split panes sit next to the flat navigation bar, whose width eases when it collapses. A card pinned to the
+    // measured screen width keeps the old width until the next layout pass, so the header buttons jump. Narrow layout keeps the Safari workaround.
+    const shouldPinCardToViewport = shouldUseNarrowLayout;
+
     return {
         sidebarScreen: {
             ...commonScreenOptions,
@@ -50,13 +55,13 @@ const useSplitNavigatorScreenOptions = (sidebarScreenName?: string) => {
             animation: shouldUseNarrowLayout && !IS_MOBILE_SAFARI ? Animations.SLIDE_FROM_RIGHT : Animations.NONE,
             web: {
                 // Note: The card* properties won't be applied on mobile platforms, as they use the native defaults.
-                cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, enter: {kind: 'slide-from-width'}}),
-                cardStyle: {
+                cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, enter: {kind: 'slide-from-width'}, shouldPinCardToViewport}),
+                cardStyle: toViewStyle({
                     ...StyleUtils.getNavigationModalCardStyle(),
                     width: shouldUseNarrowLayout ? NARROW_CARD_SAFE_AREA_WIDTH : sidebarWidth,
                     marginLeft: shouldUseNarrowLayout ? 0 : -sidebarWidth,
                     ...(shouldUseNarrowLayout ? {} : themeStyles.borderRight),
-                },
+                }),
             },
         },
 
@@ -68,9 +73,9 @@ const useSplitNavigatorScreenOptions = (sidebarScreenName?: string) => {
             animation: shouldUseNarrowLayout && !IS_MOBILE_SAFARI ? Animations.SLIDE_FROM_RIGHT : Animations.NONE,
             animationTypeForReplace: 'pop',
             web: {
-                cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, enter: centralScreenEnter}),
+                cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, enter: centralScreenEnter, shouldPinCardToViewport}),
                 cardStyle: shouldUseNarrowLayout
-                    ? {...StyleUtils.getNavigationModalCardStyle(), width: NARROW_CARD_SAFE_AREA_WIDTH}
+                    ? toViewStyle({...StyleUtils.getNavigationModalCardStyle(), width: NARROW_CARD_SAFE_AREA_WIDTH})
                     : {
                           ...themeStyles.h100,
                       },

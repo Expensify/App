@@ -1,8 +1,8 @@
-import CategoryPickerModal from '@components/CategoryPicker/CategoryPickerModal';
 import {EditableCell, usePopoverEditState} from '@components/EditableCell';
 import type {EditableProps} from '@components/EditableCell';
 import type {ListItem} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
+import type {TransactionItemRowProps} from '@components/TransactionItemRow/types';
 
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -17,13 +17,19 @@ import React from 'react';
 
 import type TransactionDataCellProps from './TransactionDataCellProps';
 
+import InlineCategoryPicker from './InlineCategoryPicker';
+
 type CategoryGLCodeCellProps = TransactionDataCellProps &
-    EditableProps<string> & {
+    Omit<EditableProps<string>, 'onSave'> & {
+        onSave?: TransactionItemRowProps['onEditCategory'];
         policyID?: string;
         policyCategories?: PolicyCategories;
 
         /** The account the expense belongs to, passed only when the current user owns it, so the picker lists just their categories */
         ownerAccountID?: number;
+
+        /** The account the expense belongs to, passed when someone else owns it, so the picker splits the categories by what that member can use */
+        submitterAccountID?: number;
     };
 
 /**
@@ -34,7 +40,7 @@ type CategoryGLCodeCellProps = TransactionDataCellProps &
  * Codes shared by several categories stay distinguishable by name. When no category on the workspace has a GL code
  * there is nothing to pick, so the cell stays read-only.
  */
-function CategoryGLCodeCell({shouldShowTooltip, transactionItem, canEdit: canEditCategory, onSave, policyID, policyCategories, ownerAccountID}: CategoryGLCodeCellProps) {
+function CategoryGLCodeCell({shouldShowTooltip, transactionItem, canEdit: canEditCategory, onSave, policyID, policyCategories, ownerAccountID, submitterAccountID}: CategoryGLCodeCellProps) {
     const styles = useThemeStyles();
     const [categoriesLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_CATEGORIES_LOADING_STATE}${policyID}`);
 
@@ -62,8 +68,9 @@ function CategoryGLCodeCell({shouldShowTooltip, transactionItem, canEdit: canEdi
             onStartEditing={startEditing}
             anchorRef={anchorRef}
             popoverContent={
-                <CategoryPickerModal
+                <InlineCategoryPicker
                     policyID={policyID}
+                    onSave={onSave}
                     selectedCategory={categoryForComparison}
                     shouldAlwaysShowGLCode
                     searchInputThreshold={CONST.INLINE_EDIT_PICKER_SEARCH_INPUT_THRESHOLD}
@@ -76,6 +83,7 @@ function CategoryGLCodeCell({shouldShowTooltip, transactionItem, canEdit: canEdi
                     shouldSwitchPositionIfOverflow={false}
                     onSelected={handleCategorySelected}
                     ownerAccountID={ownerAccountID}
+                    submitterAccountID={submitterAccountID}
                 />
             }
         >

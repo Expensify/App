@@ -8,6 +8,7 @@ import type {
     BankAccountHandlePlaidErrorParams,
     ConnectBankAccountParams,
     CreateCollectOnlyDepositAccountParams,
+    CreateTestBankAccountParams,
     DeletePaymentBankAccountParams,
     LinkPlaidToBankAccountParams,
     EnableGlobalReimbursementsForUSDBankAccountParams,
@@ -705,6 +706,12 @@ function addPersonalBankAccount(
     }
 
     API.write(WRITE_COMMANDS.ADD_PERSONAL_BANK_ACCOUNT, parameters, onyxData);
+}
+
+function createTestBankAccount(type: CreateTestBankAccountParams['type']) {
+    const parameters: CreateTestBankAccountParams = {type};
+
+    API.write(WRITE_COMMANDS.CREATE_TEST_BANK_ACCOUNT, parameters);
 }
 
 function deletePaymentBankAccount(
@@ -1812,7 +1819,7 @@ function createCorpayBankAccountForWalletFlow(data: InternationalBankAccountForm
         inputs: JSON.stringify(inputData),
     };
 
-    const onyxData: OnyxData<typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT> = {
+    const onyxData: OnyxData<typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT | typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -1833,6 +1840,11 @@ function createCorpayBankAccountForWalletFlow(data: InternationalBankAccountForm
                     errors: null,
                     isSuccess: true,
                 },
+            },
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT,
+                value: null,
             },
         ],
         failureData: [
@@ -2142,6 +2154,7 @@ export {
     linkPlaidToBankAccount,
     clearLinkPlaidBankAccountErrors,
     createCorpayBankAccount,
+    createTestBankAccount,
     deletePaymentBankAccount,
     handlePlaidError,
     openPersonalBankAccountSetupView,

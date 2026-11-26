@@ -1,8 +1,11 @@
 import CONST from '@src/CONST';
+import type {Comment} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 
+import {convertDistanceUnit, convertToDistanceInMeters} from './DistanceUnitConversionUtils';
 import {getMimeTypeFromUri} from './fileDownload/FileUtils';
 import getPlatform from './getPlatform';
+import {roundToTwoDecimalPlaces} from './NumberUtils';
 
 function getOdometerImageUri(image: FileObject | string | null | undefined): string {
     return typeof image === 'string' ? image : (image?.uri ?? '');
@@ -127,6 +130,44 @@ function shouldInitializeOdometerFromTransaction(state: OdometerResyncState, isE
     );
 }
 
-export {getOdometerImageUri, getOdometerImageName, getOdometerImageType, getOdometerImageIdentity, isExternalOdometerResync, shouldInitializeOdometerFromTransaction};
+/**
+ * The total distance for the given odometer readings, in the transaction's current distance unit.
+ *
+ * Readings stay exactly as entered so they match the odometer photos, but the quantity is converted when the expense moves to
+ * a workspace with a different distance unit. So when the readings match the saved ones, the saved quantity is returned as is,
+ * and changed readings are converted using their original unit to avoid accumulating rounding errors across edits.
+ */
+function getOdometerTotalDistance(start: number, end: number, comment: Comment | undefined): number {
+    const distance = end - start;
+    const savedStart = comment?.odometerStart;
+    const savedEnd = comment?.odometerEnd;
+    const savedQuantity = comment?.customUnit?.quantity;
+    const odometerUnit = comment?.odometerUnit;
+    const distanceUnit = comment?.customUnit?.distanceUnit;
+
+    if (savedQuantity !== undefined && savedQuantity !== null && savedEnd !== undefined && savedStart !== undefined && savedEnd > savedStart && start === savedStart && end === savedEnd) {
+        return savedQuantity;
+    }
+
+    if (odometerUnit && distanceUnit) {
+        return roundToTwoDecimalPlaces(convertDistanceUnit(convertToDistanceInMeters(distance, odometerUnit), distanceUnit));
+    }
+
+    // Older transactions may not have the original unit, so preserve their existing conversion when possible.
+    if (savedStart === undefined || savedEnd === undefined || savedQuantity === undefined || savedQuantity === null || savedEnd <= savedStart) {
+        return roundToTwoDecimalPlaces(distance);
+    }
+    return roundToTwoDecimalPlaces(distance * (savedQuantity / (savedEnd - savedStart)));
+}
+
+export {
+    getOdometerImageUri,
+    getOdometerImageName,
+    getOdometerImageType,
+    getOdometerImageIdentity,
+    getOdometerTotalDistance,
+    isExternalOdometerResync,
+    shouldInitializeOdometerFromTransaction,
+};
 export type {OdometerResyncState};
 export default revokeOdometerImageUri;

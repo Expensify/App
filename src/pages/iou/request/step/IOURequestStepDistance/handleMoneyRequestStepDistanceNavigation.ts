@@ -1,9 +1,10 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import {setCustomUnitRateID, setMoneyRequestDistance, setMoneyRequestMerchant, setMoneyRequestParticipantsFromReport, setMoneyRequestPendingFields} from '@libs/actions/IOU/MoneyRequest';
-import {createDistanceRequest, resetSplitShares} from '@libs/actions/IOU/Split';
+import {commitDistanceRequest, planDistanceRequest, resetSplitShares} from '@libs/actions/IOU/Split';
 import {trackExpense} from '@libs/actions/IOU/TrackExpense';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {
@@ -52,6 +53,7 @@ import type {
     ReusableDistanceRoute,
 } from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {Unit} from '@src/types/onyx/Policy';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 
@@ -70,6 +72,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     manualDistance?: number;
     currentUserLogin?: string;
     currentUserAccountID: number;
+    currentUserPersonalDetails: CurrentUserPersonalDetails;
     currentUserLocalCurrency: string | undefined;
     backTo?: Route;
     backToReport?: string;
@@ -94,6 +97,8 @@ type MoneyRequestStepDistanceNavigationParams = {
     gpsModifiedDistance?: number;
     odometerStart?: number;
     odometerEnd?: number;
+    /** Unit the readings were entered in, which can differ from the current rate's unit. */
+    odometerUnit?: Unit;
     odometerDistance?: number;
     previousOdometerDraft?: OnyxEntry<OdometerDraft>;
     recentWaypoints: OnyxEntry<RecentWaypoint[]>;
@@ -117,8 +122,8 @@ type MoneyRequestStepDistanceNavigationParams = {
     participants: Array<Participant | OptionData>;
     participantsPolicyTags: ParticipantsPolicyTags;
     rules: OnyxCollection<Rule>;
+    personalDetailsByLogins: PersonalDetailsByLogin;
     isVendorMatchingBetaEnabled: boolean | undefined;
-    moneyRequestReportTransactions: Transaction[];
 
     /** Current "Reuse route" list value, so the just used route can be saved locally */
     reusableDistanceRoutes?: ReusableDistanceRoute[];
@@ -180,6 +185,7 @@ function handleMoneyRequestStepDistanceNavigation({
     manualDistance,
     currentUserLogin,
     currentUserAccountID,
+    currentUserPersonalDetails,
     currentUserLocalCurrency,
     backTo,
     backToReport,
@@ -203,6 +209,7 @@ function handleMoneyRequestStepDistanceNavigation({
     policyForMovingExpenses,
     odometerStart,
     odometerEnd,
+    odometerUnit,
     odometerDistance,
     previousOdometerDraft,
     recentWaypoints,
@@ -227,8 +234,8 @@ function handleMoneyRequestStepDistanceNavigation({
     participantsPolicyTags,
     isOffline = false,
     rules,
+    personalDetailsByLogins,
     isVendorMatchingBetaEnabled,
-    moneyRequestReportTransactions,
     reusableDistanceRoutes,
 }: MoneyRequestStepDistanceNavigationParams): void {
     const isManualDistance = manualDistance !== undefined;
@@ -253,6 +260,14 @@ function handleMoneyRequestStepDistanceNavigation({
     const distance = manualDistance ?? gpsDistance ?? odometerDistance;
     const transactionIsFromGlobalCreate = getIsFromGlobalCreate(transaction);
     const transactionLinkedTrackedExpenseReportAction = transaction?.linkedTrackedExpenseReportAction;
+
+    // The start screen still has the original route after returning from confirmation. Use the draft's
+    // workspace instead, but let the first Next initialize its rate even when participants were prefilled.
+    const selectedWorkspace = transaction?.participants?.find((participant) => participant.isPolicyExpenseChat && participant.reportID === transaction.reportID);
+    if (isOdometerDistance && transactionIsFromGlobalCreate && !shouldSkipConfirmation && selectedWorkspace?.reportID && transaction?.comment?.customUnit?.customUnitRateID) {
+        navigateToConfirmationPage(CONST.IOU.TYPE.SUBMIT, transactionID, selectedWorkspace.reportID, backToReport);
+        return;
+    }
 
     // If a reportID exists in the report object, it's because either:
     // - The user started this flow from using the + button in the composer inside a report.
@@ -342,12 +357,14 @@ function handleMoneyRequestStepDistanceNavigation({
                                 selectedRouteDistance,
                                 odometerStart,
                                 odometerEnd,
+                                odometerUnit,
                                 taxCode: distanceTaxCode,
                                 taxAmount: distanceTaxAmount,
                                 isFromGlobalCreate: getIsFromGlobalCreate(transaction),
                             },
                             isASAPSubmitBetaEnabled,
                             currentUser: {accountID: currentUserAccountID, email: currentUserLogin ?? ''},
+                            currentUserPersonalDetails,
                             introSelected,
                             conciergeChat,
                             quickAction,
@@ -396,10 +413,9 @@ function handleMoneyRequestStepDistanceNavigation({
                 isLookingAroundUser,
                 isSelfDMDestination,
                 executeWrite: (overrides) => {
-                    const {transactionID: writtenDistanceTransactionID} = createDistanceRequest({
+                    const distanceRequestPlan = planDistanceRequest({
                         isVendorMatchingBetaEnabled,
                         report,
-                        moneyRequestReportTransactions,
                         participants,
                         currentUserLogin: currentUserLogin ?? '',
                         currentUserAccountID,
@@ -432,6 +448,7 @@ function handleMoneyRequestStepDistanceNavigation({
                             selectedRouteDistance,
                             odometerStart,
                             odometerEnd,
+                            odometerUnit,
                             taxCode: distanceTaxCode,
                             taxAmount: distanceTaxAmount,
                         },
@@ -451,13 +468,15 @@ function handleMoneyRequestStepDistanceNavigation({
                         getCurrencyDecimals,
                         participantsPolicyTags,
                         rules,
+                        personalDetailsByLogins,
                         reusableDistanceRoutes,
                     });
+                    commitDistanceRequest(distanceRequestPlan);
                     cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
                         report,
                         action,
                         draftTransactionIDs,
-                        transactionID: writtenDistanceTransactionID,
+                        transactionID: distanceRequestPlan.transactionID,
                         isFromGlobalCreate: transactionIsFromGlobalCreate,
                         backToReport,
                         optimisticChatReportID,
@@ -508,16 +527,15 @@ function handleMoneyRequestStepDistanceNavigation({
         // without a transaction, setCustomUnitRateID never resolves a rate, so the currency is never read.
         setCustomUnitRateID(transactionID, rateID, undefined, undefined, false, undefined);
 
-        // Update distance and distance unit in transaction object as it is usually set before this function is called using
-        // defaultExpensePolicy data which is not accurate in this case as defaultExpensePolicy has autoReporting set to false
-        // and because of this this report is converted to selfDM here
-        if (isSelfDMReport && distance !== undefined && unit) {
-            const ratePolicyForMovingExpenses = policyForMovingExpenses
-                ? DistanceRequestUtils.getRateByCustomUnitRateID({customUnitRateID: rateID, policy: policyForMovingExpenses})
-                : undefined;
-            const currency = ratePolicyForMovingExpenses?.currency ?? personalOutputCurrency ?? CONST.CURRENCY.USD;
-            const distanceUnit = ratePolicyForMovingExpenses?.unit ?? DistanceRequestUtils.getRateForP2P(currency, transaction).unit;
-            const distanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(distance, unit);
+        // Returning from confirmation can leave a different workspace's unit on the draft. Convert the latest
+        // input to the automatically selected recipient's rate, rather than reading the potentially stale transaction prop.
+        if (distance !== undefined && unit) {
+            const ratePolicy = isSelfDMReport ? policyForMovingExpenses : defaultExpensePolicy;
+            const targetRate = ratePolicy ? DistanceRequestUtils.getRateByCustomUnitRateID({customUnitRateID: rateID, policy: ratePolicy}) : undefined;
+            const currency = targetRate?.currency ?? personalOutputCurrency ?? CONST.CURRENCY.USD;
+            const distanceUnit = targetRate?.unit ?? DistanceRequestUtils.getRateForP2P(currency, transaction).unit;
+            const currentDistance = isGPSDistance ? (gpsModifiedDistance ?? distance) : distance;
+            const distanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(currentDistance, unit);
             const distanceInDistanceUnit = roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(distanceInMeters, distanceUnit));
             setMoneyRequestDistance(transactionID, distanceInDistanceUnit, true, distanceUnit);
         }

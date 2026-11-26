@@ -1,3 +1,4 @@
+import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
 import Table, {composeTableListHeader} from '@components/Table';
 
@@ -9,11 +10,13 @@ import {clearDraftRule} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
+import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
@@ -37,23 +40,32 @@ type PersonalExpenseRulesTableProps = {
     personalExpenseRules: PersonalExpenseRuleRowData[];
     selectedKeys: string[];
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
+
+    /** The actions the selected rules support, offered in the floating bar the wide layout shows while rows are selected. */
+    bulkActionOptions?: Array<DropdownOption<DeepValueOf<typeof CONST.EXPENSE_RULES.BULK_ACTION_TYPES>>>;
 };
 
-export default function PersonalExpenseRulesTable({headerComponent, personalExpenseRules, selectedKeys, onRowSelectionChange}: PersonalExpenseRulesTableProps) {
+export default function PersonalExpenseRulesTable({headerComponent, personalExpenseRules, selectedKeys, onRowSelectionChange, bulkActionOptions}: PersonalExpenseRulesTableProps) {
     const {translate, localeCompare} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
 
-    const personalExpenseRulesTableColumns: Array<TableColumn<PersonalExpenseRulesTableColumnKey>> = [
+    const personalExpenseRulesTableColumns: Array<TableColumn<PersonalExpenseRulesTableColumnKey, PersonalExpenseRuleRowData>> = [
         {
             key: 'merchant',
             label: translate('common.merchant'),
             sortable: true,
+            dynamicSizing: {
+                getContentToMeasure: (item) => [{text: item.merchant, fontSize: fontScale.text}],
+            },
         },
         {
             key: 'changes',
             label: translate('common.change'),
             sortable: true,
+            dynamicSizing: {
+                getContentToMeasure: (item) => [{text: item.changes, fontSize: fontScale.text}],
+            },
         },
         {
             key: 'actions',
@@ -101,6 +113,8 @@ export default function PersonalExpenseRulesTable({headerComponent, personalExpe
 
     return (
         <Table
+            shouldUseDynamicColumns
+            columnResizingID={CONST.TABLES.COLUMN_RESIZING_IDS.PERSONAL_EXPENSE_RULES}
             selectionEnabled
             title={translate('expenseRulesPage.title')}
             initialSortColumn="merchant"
@@ -130,8 +144,9 @@ export default function PersonalExpenseRulesTable({headerComponent, personalExpe
             <Table.NoResultsState />
             <Table.Header />
             <Table.Body />
+            {!!bulkActionOptions && <Table.BulkActionBar options={bulkActionOptions} />}
         </Table>
     );
 }
 
-export type {PersonalExpenseRuleRowData, PersonalExpenseRulesTableColumnKey};
+export type {PersonalExpenseRuleRowData};
