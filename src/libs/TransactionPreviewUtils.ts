@@ -17,7 +17,9 @@ import type {ActionErrorsByTransaction, TransactionDetails} from './ReportUtils'
 import {setReviewDuplicatesKey} from './actions/Transaction';
 import {isCategoryMissing} from './CategoryUtils';
 import DateUtils from './DateUtils';
+import {isReceiptError} from './ErrorUtils';
 import createDynamicRoute from './Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import Parser from './Parser';
 import {hasDynamicExternalWorkflow, isGroupPolicy as isGroupPolicyUtil} from './PolicyUtils';
 import {
     getMostRecentActiveDEWSubmitFailedAction,
@@ -247,7 +249,10 @@ function getTransactionPreviewTextAndTranslationPaths({
     }
 
     if (hasReceiptError(transaction) && RBRMessage === undefined) {
-        RBRMessage = {translationPath: 'iou.error.receiptFailureMessageShort'};
+        const transactionErrors = transaction?.errorFields?.route ?? transaction?.errorFields?.waypoints ?? transaction?.errors;
+        const receiptError = Object.values(transactionErrors ?? {}).find(isReceiptError);
+        const serverReason = receiptError?.message?.trim();
+        RBRMessage = serverReason ? {text: StringUtils.lineBreaksToSpaces(Parser.htmlToText(serverReason))} : {translationPath: 'iou.error.receiptFailureMessageShort'};
     }
 
     if (hasFieldErrors && RBRMessage === undefined) {

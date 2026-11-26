@@ -3,8 +3,8 @@ import {act, fireEvent, render, screen, within} from '@testing-library/react-nat
 import ComposeProviders from '@components/ComposeProviders';
 import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
+import type DropdownField from '@components/DropdownField';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import type ExpenseFieldDropdown from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {SearchContextProvider} from '@components/Search/SearchContextProvider';
 import ThemeProvider from '@components/ThemeProvider';
@@ -78,8 +78,8 @@ jest.mock('@hooks/usePermissions', () => () => ({
 const mockShouldOpenInDropdownByRow: Record<string, boolean> = {};
 const mockValueByRow: Record<string, string | undefined> = {};
 const mockOnVisibilityChangeByRow: Record<string, ((isVisible: boolean) => void) | undefined> = {};
-type ExpenseFieldDropdownMockProps = Pick<ComponentProps<typeof ExpenseFieldDropdown>, 'name' | 'shouldOpenInDropdown' | 'value' | 'onVisibilityChange'>;
-jest.mock('@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown', () => ({name, shouldOpenInDropdown, value, onVisibilityChange}: ExpenseFieldDropdownMockProps) => {
+type DropdownFieldMockProps = Pick<ComponentProps<typeof DropdownField>, 'name' | 'shouldOpenInDropdown' | 'value' | 'onVisibilityChange'>;
+jest.mock('@components/DropdownField', () => ({name, shouldOpenInDropdown, value, onVisibilityChange}: DropdownFieldMockProps) => {
     mockShouldOpenInDropdownByRow[name] = shouldOpenInDropdown;
     mockValueByRow[name] = value;
     mockOnVisibilityChangeByRow[name] = onVisibilityChange;

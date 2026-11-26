@@ -24,6 +24,7 @@ import type {OriginalMessageExportIntegration} from '../../src/types/onyx/Origin
 import type {CompanyAddress} from '../../src/types/onyx/Policy';
 import type {ReportCollectionDataSet} from '../../src/types/onyx/Report';
 import type {ReportActionsCollectionDataSet} from '../../src/types/onyx/ReportAction';
+import type {Reservation} from '../../src/types/onyx/Transaction';
 
 import {actionR14932 as mockIOUAction, originalMessageR14932 as mockOriginalMessage} from '../../__mocks__/reportData/actions';
 import {chatReportR14932 as mockChatReport, iouReportR14932 as mockIOUReport} from '../../__mocks__/reportData/reports';
@@ -2392,18 +2393,12 @@ describe('ReportActionsUtils', () => {
             expect(message).toBe('Funds were returned. You can retry the payment.');
         });
 
-        it.each([
-            [
-                CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_HELD,
-                'Payment on hold while our partner completes a review. Look for another update. Chat with <concierge-link>Concierge</concierge-link>.',
-            ],
-            [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_RELEASED, 'The review is complete and your payment is on its way. The final FX rate may change the amount.'],
-        ] as const)('should show the App copy for %s', (actionName, expectedMessage) => {
-            // Given a Wise hold or release action, which carries no fields
+        it('should show the App copy for a held payment', () => {
+            // Given a Wise hold action, which carries no fields
             const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
                 reportActionID: '1',
                 created: '2026-08-10 00:00:00.000',
-                actionName,
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_HELD,
                 originalMessage: {},
             };
 
@@ -2411,7 +2406,42 @@ describe('ReportActionsUtils', () => {
             const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
 
             // Then it uses the approved App copy instead of Auth's English fallback
-            expect(message).toBe(expectedMessage);
+            expect(message).toBe('Payment on hold while our partner completes a review. Look for another update. Chat with <concierge-link>Concierge</concierge-link>.');
+        });
+
+        it('should give the delivery estimate when a held payment is released', () => {
+            // Given a Wise release action with the estimate Wise gave once the hold cleared
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2026-08-10 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_RELEASED,
+                originalMessage: {expectedDate: '2026-08-20'},
+            };
+
+            // When the message is built
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            // Then the employee learns when the funds arrive, and nothing about the exchange rate, which Wise locked when we created the transfer
+            expect(message).toBe('Payment released, funds are expected to arrive by August 20, 2026.');
+        });
+
+        it.each([
+            ['carries no date', {}],
+            ['carries a date that cannot be read', {expectedDate: 'not a date'}],
+        ])('should say a held payment was released when the action %s', (_, originalMessage) => {
+            // Given a Wise release action without a usable delivery estimate
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2026-08-10 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_RELEASED,
+                originalMessage,
+            };
+
+            // When the message is built
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            // Then it still says the payment was released, without an empty date
+            expect(message).toBe('Payment released.');
         });
 
         it.each([
@@ -2779,6 +2809,28 @@ describe('ReportActionsUtils', () => {
         it('should return false for CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS action with empty message array', () => {
             const reportAction = buildOptimisticCreatedReportForUnapprovedAction('123456', '789012');
             expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(false);
+        });
+
+        it.each<{message: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT>['message']}>([
+            {message: []},
+            {message: [{html: '', text: '', type: CONST.REPORT.MESSAGE.TYPE.COMMENT}]},
+        ])('should keep delegate submit actions visible when their message is $message', ({message}) => {
+            // Given a delegate submit action whose text is rendered from originalMessage rather than message
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT,
+                reportActionID: '1',
+                created: '2026-11-19 12:00:00.000',
+                message,
+                originalMessage: {originalManager: '1', delegate: '2', isOnPolicy: false},
+            };
+
+            // When the live action is checked before OpenReport supplies rendered message fragments
+            const isDeleted = ReportActionsUtils.isDeletedAction(reportAction);
+            const isVisible = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID);
+
+            // Then the system message must remain visible without reopening the report
+            expect(isDeleted).toBe(false);
+            expect(isVisible).toBe(true);
         });
 
         it('should return false for CARD_ISSUED_VIRTUAL action with empty message array', () => {
@@ -9083,6 +9135,18 @@ describe('ReportActionsUtils', () => {
             expect(result).not.toContain(CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT);
         });
 
+        it('warns one month ahead for a Capital One feed without a custom name', () => {
+            // Given a one-month warning for a Capital One feed without a custom name, so Auth sends the internal feed name as the feed name
+            const capitalOneFeed = CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE;
+            const action = buildConsentExpiringAction({policyID: 'pol123', bank: capitalOneFeed, feedName: capitalOneFeed, warningDaysBeforeExpiry: 30});
+
+            // When the warning message is built
+            const result = ReportActionsUtils.getCompanyCardConsentExpiringMessage(translateLocal, action);
+
+            // Then it names the bank and says consent is needed in one month
+            expect(result).toContain('<strong>Capital One</strong> card connection will need renewed consent in one month');
+        });
+
         it('keeps the custom feed name', () => {
             // Given a warning for a feed the admin renamed
             const action = buildConsentExpiringAction({policyID: 'pol123', bank: amexFeed, feedName: 'Travel cards', warningDaysBeforeExpiry: 14});
@@ -10210,6 +10274,108 @@ describe('ReportActionsUtils', () => {
                 // Then it is hidden as before, so the new rule only brings back previews that have something to say
                 expect(result).toBe(false);
             });
+        });
+    });
+
+    describe('getReportActionBefore and isCurrentActionUnread', () => {
+        const buildAction = (reportActionID: string, created: string): ReportAction => ({reportActionID, created, actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT});
+        const firstAction = buildAction('first', '2026-01-01 00:00:01.000');
+        const secondAction = buildAction('second', '2026-01-01 00:00:02.000');
+        const thirdAction = buildAction('third', '2026-01-01 00:00:03.000');
+        const sortedActions = [firstAction, secondAction, thirdAction];
+
+        it('returns the action sorted right before, none for the first one, and not found for a missing one', () => {
+            // Given three actions sorted oldest first
+            // When the action before each one, and before an action that is not in the list, is looked up
+            // Then the middle one gets the first one, the first one gets none, and a missing one is reported as not found
+            expect(ReportActionsUtils.getReportActionBefore(sortedActions, 'second')).toEqual({isFound: true, previousReportAction: firstAction});
+            expect(ReportActionsUtils.getReportActionBefore(sortedActions, 'first')).toEqual({isFound: true, previousReportAction: undefined});
+            expect(ReportActionsUtils.getReportActionBefore(sortedActions, 'missing')).toEqual({isFound: false, previousReportAction: undefined});
+        });
+
+        it('marks only the first unread action as the current unread one', () => {
+            // Given a report read up to the first action, so the second and third are unread
+            const report = {reportID: '1', lastReadTime: '2026-01-01 00:00:01.500'};
+
+            // When each action is checked against the sorted list
+            // Then only the second one is the current unread action, because the action before the third is unread too
+            expect(ReportActionsUtils.isCurrentActionUnread(report, firstAction, sortedActions)).toBe(false);
+            expect(ReportActionsUtils.isCurrentActionUnread(report, secondAction, sortedActions)).toBe(true);
+            expect(ReportActionsUtils.isCurrentActionUnread(report, thirdAction, sortedActions)).toBe(false);
+            expect(ReportActionsUtils.isCurrentActionUnread(report, buildAction('missing', '2026-01-01 00:00:04.000'), sortedActions)).toBe(false);
+        });
+    });
+
+    describe('getTravelUpdateMessage', () => {
+        const formatDate = (datetime: string) => datetime;
+
+        function buildTravelUpdateAction(reservation: Partial<Reservation>): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE> {
+            return {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE,
+                created: '2026-11-20 10:00:00.000',
+                originalMessage: {
+                    operation: CONST.TRAVEL.UPDATE_OPERATION_TYPE.BOOKING_CREATED,
+                    type: CONST.RESERVATION_TYPE.HOTEL,
+                    start: {date: '2026-12-01'},
+                    end: {date: '2026-12-03'},
+                    pnrID: '1234567890',
+                    tripID: '9876543210',
+                    ...reservation,
+                },
+            };
+        }
+
+        it('describes a new hotel booking with the hotel name and check-in date', () => {
+            // Given a new hotel booking whose name Spotnana sent in all caps
+            const action = buildTravelUpdateAction({start: {date: '2026-12-01', longName: 'HILTON GARDEN INN'}, end: {date: '2026-12-03', longName: 'HILTON GARDEN INN'}});
+            // When the trip room message is built
+            // Then it names the hotel in normal capitalization with the check-in date, so the traveler can tell which stay was booked
+            expect(ReportActionsUtils.getTravelUpdateMessage(translateLocal, action, formatDate)).toBe('Your hotel reservation at Hilton Garden Inn (check-in 2026-12-01) has been booked.');
+        });
+
+        it('describes a new car booking with the vendor and pick-up date', () => {
+            // Given a new car rental booking with its vendor
+            const action = buildTravelUpdateAction({type: CONST.RESERVATION_TYPE.CAR, vendor: 'Hertz'});
+            // When the trip room message is built
+            // Then it names the vendor and pick-up date, so the traveler can tell which rental was booked
+            expect(ReportActionsUtils.getTravelUpdateMessage(translateLocal, action, formatDate)).toBe('Your Hertz car rental (pick-up 2026-12-01) has been booked.');
+        });
+
+        it('describes a new rail booking with the route and date', () => {
+            // Given a new rail booking that has both station cities
+            const action = buildTravelUpdateAction({
+                type: CONST.RESERVATION_TYPE.TRAIN,
+                start: {date: '2026-12-01', cityName: 'London', shortName: 'STP'},
+                end: {date: '2026-12-01', cityName: 'Paris', shortName: 'PNO'},
+            });
+            // When the trip room message is built
+            // Then it shows the route and date instead of the generic "was updated" copy
+            expect(ReportActionsUtils.getTravelUpdateMessage(translateLocal, action, formatDate)).toBe('Your rail ticket for London → Paris on 2026-12-01 has been booked.');
+        });
+
+        it('falls back to a generic booked message when the hotel has no name', () => {
+            // Given a new hotel booking that arrived without a hotel name
+            const action = buildTravelUpdateAction({});
+            // When the trip room message is built
+            // Then it falls back to the generic booked copy rather than showing an empty hotel name
+            expect(ReportActionsUtils.getTravelUpdateMessage(translateLocal, action, formatDate)).toBe('Your hotel reservation has been booked.');
+        });
+
+        it('falls back to a generic booked message when the rail stations are missing', () => {
+            // Given a new rail booking that arrived without station names
+            const action = buildTravelUpdateAction({type: CONST.RESERVATION_TYPE.TRAIN});
+            // When the trip room message is built
+            // Then it falls back to the generic booked copy rather than showing an empty route
+            expect(ReportActionsUtils.getTravelUpdateMessage(translateLocal, action, formatDate)).toBe('Your train reservation has been booked.');
+        });
+
+        it('falls back to a generic booked message for other reservation types', () => {
+            // Given a new booking for a type without its own booked copy
+            const action = buildTravelUpdateAction({type: CONST.RESERVATION_TYPE.FLIGHT});
+            // When the trip room message is built
+            // Then it still reads as a booking instead of falling through to the generic "was updated" copy
+            expect(ReportActionsUtils.getTravelUpdateMessage(translateLocal, action, formatDate)).toBe('Your flight reservation has been booked.');
         });
     });
 });
