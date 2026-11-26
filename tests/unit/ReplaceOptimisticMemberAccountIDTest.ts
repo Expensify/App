@@ -8,6 +8,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnyRequest} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
 
+import type {OnyxUpdate} from 'react-native-onyx';
+
 import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -86,6 +88,36 @@ describe('ReplaceOptimisticMemberAccountID middleware', () => {
         expect(persistedData?.deselectedAccountIDList).toBe(JSON.stringify([ADMIN_ACCOUNT_ID, INVITEE_REAL_ACCOUNT_ID]));
         expect(persistedData?.selectedAccountIDList).toBe(JSON.stringify([OTHER_MEMBER_ACCOUNT_ID]));
         expect(persistedData?.categoryNames).toBe(JSON.stringify(['Benefits']));
+    });
+
+    it('puts the invitee back under the real accountID when the queued category visibility change fails', async () => {
+        // Given a queued change that unchecks the admin from Benefits, which the invitee could use, so its failureData puts
+        // back both of them under the accountIDs known when it was made
+        const categoriesKey = `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}policyID` as const;
+        const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES>> = [
+            {onyxMethod: Onyx.METHOD.MERGE, key: categoriesKey, value: {Benefits: {pendingFields: {visibleTo: null}}}},
+        ];
+        const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES>> = [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: categoriesKey,
+                value: {Benefits: {visibleTo: {[ADMIN_ACCOUNT_ID]: true, [INVITEE_OPTIMISTIC_ACCOUNT_ID]: true}, pendingFields: {visibleTo: null}}},
+            },
+        ];
+        save<typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES>({...buildCategoryVisibilityRequest([INVITEE_OPTIMISTIC_ACCOUNT_ID], [ADMIN_ACCOUNT_ID]), successData, failureData});
+        await waitForBatchedUpdates();
+
+        // When the invite succeeds, which also drops the generated accountID from visibleTo
+        const response = buildInviteResponse({[INVITEE_REAL_ACCOUNT_ID]: {login: INVITEE_LOGIN}});
+        await replaceOptimisticMemberAccountID(Promise.resolve(response), buildInviteRequest(), true);
+
+        // Then a failure puts the invitee back under the real accountID, so they keep the category, and the successData,
+        // which has no accountIDs, is unchanged
+        const persistedRequest = getAll().at(0);
+        expect(persistedRequest?.failureData?.at(0)?.value).toEqual({
+            Benefits: {visibleTo: {[ADMIN_ACCOUNT_ID]: true, [INVITEE_REAL_ACCOUNT_ID]: true}, pendingFields: {visibleTo: null}},
+        });
+        expect(persistedRequest?.successData).toEqual(successData);
     });
 
     it('replaces the generated accountID of a phone number invited without the SMS domain in a member category visibility change', async () => {

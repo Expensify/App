@@ -4,6 +4,10 @@
  * server rejects the whole request when one of them is still the generated ID. Once the invite succeeds, this
  * middleware replaces those IDs in the queued requests with the real ones from the invite's response.
  *
+ * The same goes for their failureData, which puts back each member's earlier visibleTo entry under their accountID. The
+ * invite's successData drops the generated ID from visibleTo, so a failed change has to put the invitee back under the
+ * real one. Their successData only clears pending fields, so it has no accountIDs to replace.
+ *
  * A login's generated ID can match another account's real accountID, so only the IDs this invite actually generated
  * are replaced. The invite records them in its successData, which removes the placeholder personal details it created.
  *
@@ -12,6 +16,7 @@
 import type {SetPolicyCategoryMemberVisibilityParams, SetPolicyMemberCategoryVisibilityParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
+import {isRecord} from '@libs/ObjectUtils';
 import {getLoginsByAccountIDFromOnyxUpdates, getRemovedPersonalDetailsAccountIDsFromOnyxUpdates} from '@libs/PersonalDetailsUtils';
 import type {Middleware} from '@libs/Request';
 import {generateAccountID} from '@libs/UserUtils';
@@ -19,6 +24,8 @@ import {generateAccountID} from '@libs/UserUtils';
 import {getAll, update} from '@userActions/PersistedRequests';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {AnyRequest} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {Str} from 'expensify-common';
@@ -68,6 +75,34 @@ function replaceOptimisticAccountIDs(accountIDList: unknown, realAccountIDs: Map
     return JSON.stringify(accountIDs.map((accountID: unknown) => (typeof accountID === 'number' ? (realAccountIDs.get(accountID) ?? accountID) : accountID)));
 }
 
+/** Returns the Onyx updates with the generated IDs replaced in each category's visibleTo, or undefined when there is nothing to replace. */
+function replaceOptimisticAccountIDsInVisibleTo(onyxUpdates: AnyRequest['failureData'], realAccountIDs: Map<number, number>): AnyRequest['failureData'] {
+    let hasReplacedAccountID = false;
+    const rewrittenOnyxUpdates = onyxUpdates?.map((onyxUpdate) => {
+        if (!String(onyxUpdate.key).startsWith(ONYXKEYS.COLLECTION.POLICY_CATEGORIES) || !isRecord(onyxUpdate.value)) {
+            return onyxUpdate;
+        }
+
+        const categories: Record<string, unknown> = {};
+        for (const [categoryName, category] of Object.entries(onyxUpdate.value)) {
+            if (!isRecord(category) || !isRecord(category.visibleTo)) {
+                categories[categoryName] = category;
+                continue;
+            }
+
+            const visibleTo: Record<string, unknown> = {};
+            for (const [accountID, isVisible] of Object.entries(category.visibleTo)) {
+                const realAccountID = realAccountIDs.get(Number(accountID));
+                hasReplacedAccountID ||= realAccountID !== undefined;
+                visibleTo[realAccountID ?? accountID] = isVisible;
+            }
+            categories[categoryName] = {...category, visibleTo};
+        }
+        return {...onyxUpdate, value: categories};
+    });
+    return hasReplacedAccountID ? rewrittenOnyxUpdates : undefined;
+}
+
 const replaceOptimisticMemberAccountID: Middleware = (requestResponse, request) =>
     requestResponse.then((response) => {
         if (request?.command !== WRITE_COMMANDS.ADD_MEMBERS_TO_WORKSPACE || response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
@@ -106,10 +141,11 @@ const replaceOptimisticMemberAccountID: Middleware = (requestResponse, request) 
                 }
             }
 
-            if (isEmptyObject(rewrittenParams)) {
+            const rewrittenFailureData = replaceOptimisticAccountIDsInVisibleTo(queuedRequest.failureData, realAccountIDs);
+            if (isEmptyObject(rewrittenParams) && !rewrittenFailureData) {
                 continue;
             }
-            update(index, {...queuedRequest, data: {...queuedRequest.data, ...rewrittenParams}});
+            update(index, {...queuedRequest, data: {...queuedRequest.data, ...rewrittenParams}, failureData: rewrittenFailureData ?? queuedRequest.failureData});
         }
         return response;
     });
