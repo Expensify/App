@@ -45,6 +45,7 @@ function buildContexts(hash: number, resultsVersion: number, shouldUseLiveData: 
             sortedReportIDs: CONST.EMPTY_ARRAY,
             shouldShowFiltersBarLoading: false,
             lastSearchType: `${resultsVersion}`,
+            approvalWorkflowRules: undefined,
         },
     };
 }

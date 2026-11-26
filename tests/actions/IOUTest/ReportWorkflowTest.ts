@@ -6688,6 +6688,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                         ],
                     },
                     undefined,
+                    undefined,
                     false,
                 ),
             ).toBe(false);
@@ -6703,7 +6704,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     excludeEmptyChats: false,
                     doesReportHaveViolations: false,
                     isReportArchived: false,
-                    draftComment: undefined,
+                    hasDraftComment: undefined,
                     currentUserLogin: RORY_EMAIL,
                     currentUserAccountID: RORY_ACCOUNT_ID,
                     conciergeReportID: undefined,
@@ -6716,6 +6717,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                         ],
                     },
                     derivedIsEmptyReport: undefined,
+                    pendingExpenseActionMetadata: undefined,
                     hasGuidesEmails: false,
                 }),
             ).not.toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
