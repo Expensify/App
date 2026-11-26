@@ -275,6 +275,14 @@ function SidebarOrderedReportsContextProvider({
             reportsToUpdate.add(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`);
         }
 
+        // A thread can show or hide when its parent changes, e.g. a report left with one expense hides that expense's thread
+        const updatedParentKeys = new Set(reportsToUpdate);
+        for (const [key, report] of Object.entries(chatReports ?? {})) {
+            if (report?.parentReportID && updatedParentKeys.has(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`)) {
+                reportsToUpdate.add(key);
+            }
+        }
+
         // An expense report's violations and to-dos also show on its workspace chat, so recheck the chat too
         for (const key of Array.from(reportsToUpdate)) {
             const chatReportID = chatReports?.[key]?.chatReportID;
