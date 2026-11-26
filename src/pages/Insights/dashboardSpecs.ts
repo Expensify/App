@@ -72,6 +72,9 @@ type InsightsViolationStage = ValueOf<typeof CONST.INSIGHTS.VIOLATION_STAGE>;
 /** Violation stage the user picked on each chart that offers one */
 type InsightsViolationStages = Partial<Record<InsightsGraphKey, InsightsViolationStage>>;
 
+/** What a ranking chart ranks, which names its items when the user excludes some */
+type InsightsRankedItems = ValueOf<typeof CONST.INSIGHTS.RANKED_ITEMS>;
+
 type InsightsChartSpec = {
     /** Slot the request names the chart's snapshot under, and the response's `graphs` confirms it in */
     graphKey: InsightsGraphKey;
@@ -102,6 +105,9 @@ type InsightsChartSpec = {
 
     /** Stage whose violations a chart without a stage control counts, which Explain names */
     violationStage?: InsightsViolationStage;
+
+    /** Lets the user exclude individual items from a ranking chart, naming what it ranks. Left out by charts that show a whole or a fixed split of it. */
+    rankedItems?: InsightsRankedItems;
 
     /** The chart is shown when any workspace in scope passes this. A chart that declares none is always shown. */
     isPolicyEligible?: PolicyEligibilityCheck;
@@ -164,6 +170,7 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
         supportingCharts: [
             {
                 graphKey: CONST.INSIGHTS.GRAPH.TOP_SPENDERS,
+                rankedItems: CONST.INSIGHTS.RANKED_ITEMS.SPENDERS,
                 titleKey: 'search.tabs.topSpenders',
                 view: CONST.SEARCH.VIEW.BAR,
                 groupBy: CONST.SEARCH.GROUP_BY.FROM,
@@ -174,6 +181,7 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
             },
             {
                 graphKey: CONST.INSIGHTS.GRAPH.TOP_MERCHANTS,
+                rankedItems: CONST.INSIGHTS.RANKED_ITEMS.MERCHANTS,
                 titleKey: 'search.tabs.topMerchants',
                 view: CONST.SEARCH.VIEW.BAR,
                 groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
@@ -183,6 +191,7 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
             },
             {
                 graphKey: CONST.INSIGHTS.GRAPH.TOP_CATEGORIES,
+                rankedItems: CONST.INSIGHTS.RANKED_ITEMS.CATEGORIES,
                 titleKey: 'search.tabs.topCategories',
                 view: CONST.SEARCH.VIEW.PIE,
                 groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
@@ -193,6 +202,7 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
             },
             {
                 graphKey: CONST.INSIGHTS.GRAPH.TOP_TAGS,
+                rankedItems: CONST.INSIGHTS.RANKED_ITEMS.TAGS,
                 titleKey: 'search.tabs.topTags',
                 view: CONST.SEARCH.VIEW.PIE,
                 groupBy: CONST.SEARCH.GROUP_BY.TAG,
@@ -230,6 +240,7 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
             },
             {
                 graphKey: CONST.INSIGHTS.GRAPH.LONGEST_TO_SUBMIT,
+                rankedItems: CONST.INSIGHTS.RANKED_ITEMS.SUBMITTERS,
                 titleKey: 'insightsPage.longestToSubmit',
                 workflowStage: CONST.SEARCH.WORKFLOW_STAGES.CREATED_SUBMITTED,
                 view: CONST.SEARCH.VIEW.BAR,
@@ -241,6 +252,7 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
             },
             {
                 graphKey: CONST.INSIGHTS.GRAPH.SLOWEST_TO_APPROVE,
+                rankedItems: CONST.INSIGHTS.RANKED_ITEMS.APPROVERS,
                 titleKey: 'insightsPage.slowestToApprove',
                 workflowStage: CONST.SEARCH.WORKFLOW_STAGES.SUBMITTED_APPROVED,
                 view: CONST.SEARCH.VIEW.BAR,
@@ -253,6 +265,7 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
             },
             {
                 graphKey: CONST.INSIGHTS.GRAPH.MOST_TIME_TO_PAY,
+                rankedItems: CONST.INSIGHTS.RANKED_ITEMS.PAYERS,
                 titleKey: 'insightsPage.mostTimeToPay',
                 workflowStage: CONST.SEARCH.WORKFLOW_STAGES.APPROVED_PAID,
                 view: CONST.SEARCH.VIEW.BAR,
@@ -282,6 +295,7 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
         supportingCharts: [
             {
                 graphKey: CONST.INSIGHTS.GRAPH.VIOLATIONS_BY_SUBMITTER,
+                rankedItems: CONST.INSIGHTS.RANKED_ITEMS.SUBMITTERS,
                 violationStage: CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED,
                 titleKey: 'insightsPage.violationsBySubmitter',
                 ...VIOLATION_STAGE_FILTERS[CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED],
@@ -295,6 +309,7 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
             },
             {
                 graphKey: CONST.INSIGHTS.GRAPH.VIOLATIONS_BY_APPROVER,
+                rankedItems: CONST.INSIGHTS.RANKED_ITEMS.APPROVERS,
                 violationStage: CONST.INSIGHTS.VIOLATION_STAGE.APPROVED,
                 titleKey: 'insightsPage.violationsByApprover',
                 ...VIOLATION_STAGE_FILTERS[CONST.INSIGHTS.VIOLATION_STAGE.APPROVED],
@@ -438,5 +453,5 @@ export {
     shouldUpsellControlPlan,
     VIOLATION_HAS_VALUES,
 };
-export type {InsightsChartSpec, InsightsChartStage, InsightsDateFilterKey, InsightsViolationStage, InsightsViolationStages};
+export type {InsightsChartSpec, InsightsChartStage, InsightsDateFilterKey, InsightsRankedItems, InsightsViolationStage, InsightsViolationStages};
 export default INSIGHTS_DASHBOARD_SPECS;

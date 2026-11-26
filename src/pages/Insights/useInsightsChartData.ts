@@ -20,6 +20,7 @@ import type {InsightsDashboardChart} from './resolveDashboardState';
 
 import {isStackedChart, keepEnabledStageGroups} from './dashboardSpecs';
 import resolveComparisonPeriods from './insightsCompare';
+import {removeExcludedItems} from './insightsExclusions';
 import {getTrackedFrom, isBucketTracked} from './insightsTrackedFrom';
 import normalizeInsightsSnapshot from './normalizeInsightsSnapshot';
 
@@ -34,6 +35,9 @@ type InsightsChartData = {
 
     /** What the chart is compared against, set once both it and the chart's own rows are ready */
     comparison?: ChartComparison;
+
+    /** Whether the chart has data for its filters but the user excluded every item of it, which it shows in place of its empty state */
+    isEveryItemExcluded?: boolean;
 };
 
 const BLOCKING_STATES = new Set<InsightsChartState>([INSIGHTS_CHART_STATE.LOADING, INSIGHTS_CHART_STATE.ERROR, INSIGHTS_CHART_STATE.OFFLINE]);
@@ -47,14 +51,20 @@ function getMeanDuration(data: GroupedItem[]): number | undefined {
     return durations.length > 0 ? durations.reduce((sum, duration) => sum + duration, 0) / durations.length : undefined;
 }
 
-/** Resolves a chart's rows, and what it is compared against when the page compares. */
-function useInsightsChartData(dashboardChart: InsightsDashboardChart, filters: InsightsFilters): InsightsChartData {
+/** Caps a chart's rows to its query's limit, once the excluded items are left out, so the next items move up into their place */
+function limitRows(items: GroupedItem[] | undefined, limit: number | undefined): GroupedItem[] | undefined {
+    return items && limit ? items.slice(0, limit) : items;
+}
+
+/** Resolves a chart's rows, and what it is compared against when the page compares. Leaves out the items the user excluded from it. */
+function useInsightsChartData(dashboardChart: InsightsDashboardChart, filters: InsightsFilters, excludedItemKeys: string[]): InsightsChartData {
     const {chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageQueryJSON, averageSnapshot, average, isDashboardLoaded, stages} = dashboardChart;
     const theme = useTheme();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
-    const groupedData = useGroupedItems(normalizeInsightsSnapshot(snapshot, queryJSON?.groupBy), queryJSON);
+    // Groups every row the snapshot holds, since excluded items are left out before the rows are capped
+    const allGroupedData = useGroupedItems(normalizeInsightsSnapshot(snapshot, queryJSON?.groupBy), queryJSON && {...queryJSON, limit: undefined});
     const compare = filters.compare;
     const isPreviousPeriod = compare === CONST.SEARCH.COMPARE.PREVIOUS_PERIOD;
     const isTagAverage = compare === CONST.SEARCH.COMPARE.AVERAGE && dashboardChart.chart.graphKey === CONST.INSIGHTS.GRAPH.TOP_TAGS;
@@ -67,8 +77,8 @@ function useInsightsChartData(dashboardChart: InsightsDashboardChart, filters: I
     const isStacked = isStackedChart(chart);
     // A stacked chart's buckets hold a duration per stage rather than one of their own, and a bucket whose stages are all unavailable is still drawn
     const rowMetric = isStacked ? undefined : chart.metric;
-    const sortedData = keepEnabledStageGroups(groupedData, stages);
-    const comparedSortedData = keepEnabledStageGroups(comparedGroupedData, stages);
+    const sortedData = keepEnabledStageGroups(limitRows(removeExcludedItems(allGroupedData, excludedItemKeys), queryJSON?.limit), stages);
+    const comparedSortedData = keepEnabledStageGroups(removeExcludedItems(comparedGroupedData, excludedItemKeys), stages);
 
     const trackedFrom = getTrackedFrom(snapshot);
     const getDateRange = queryJSON?.groupBy ? CHART_GROUP_BY_CONFIG[queryJSON.groupBy].getDateRange : undefined;
@@ -78,6 +88,13 @@ function useInsightsChartData(dashboardChart: InsightsDashboardChart, filters: I
     const trackedData = keepTrackedBuckets(resolvedCurrent.data);
     const current: InsightsChartData =
         resolvedCurrent.state === INSIGHTS_CHART_STATE.READY && trackedData.length === 0 ? {data: [], state: INSIGHTS_CHART_STATE.EMPTY} : {...resolvedCurrent, data: trackedData};
+
+    if (current.state === INSIGHTS_CHART_STATE.EMPTY && excludedItemKeys.length > 0) {
+        const unfiltered = resolveInsightsChartData({snapshot, queryJSON, sortedData: keepEnabledStageGroups(allGroupedData, stages), metric: rowMetric, isOffline});
+        if (unfiltered.state === INSIGHTS_CHART_STATE.READY && keepTrackedBuckets(unfiltered.data).length > 0) {
+            return {...current, isEveryItemExcluded: true};
+        }
+    }
 
     if (current.state !== INSIGHTS_CHART_STATE.READY) {
         return current;

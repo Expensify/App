@@ -2526,6 +2526,12 @@ const ROUTES = {
             `insights/${dashboardID}/details/${graphKey}?item=${encodeURIComponent(itemKey)}${periodEnd ? `&end=${periodEnd}` : ''}${tagLevel ? `&level=${tagLevel}` : ''}${parentTagPath ? `&parent=${encodeURIComponent(parentTagPath)}` : ''}${asOfDate ? `&asOf=${asOfDate}` : ''}` as const,
     },
 
+    INSIGHTS_EXCLUDE: {
+        route: 'insights/:dashboardID/exclude/:graphKey',
+        getRoute: ({dashboardID, graphKey}: {dashboardID: ValueOf<typeof CONST.INSIGHTS.DASHBOARD>; graphKey: ValueOf<typeof CONST.INSIGHTS.GRAPH>}) =>
+            `insights/${dashboardID}/exclude/${graphKey}` as const,
+    },
+
     EXPENSE_REPORT_RHP: {
         route: 'e/:reportID',
         getRoute: ({reportID, backTo}: {reportID: string; backTo?: string}) => {

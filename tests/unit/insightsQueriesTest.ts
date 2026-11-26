@@ -90,6 +90,21 @@ describe('insightsQueries', () => {
             });
         });
 
+        it('sends the exclusions without moving the dashboard to a new entry', () => {
+            // Given the spend dashboard with and without a spender excluded from Top spenders
+            const exclusions = {[CONST.INSIGHTS.GRAPH.TOP_SPENDERS]: ['12345']};
+            const plain = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, FILTERS, SPEND_SPEC.supportingCharts);
+
+            // When the request with exclusions is built
+            const excluded = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, FILTERS, SPEND_SPEC.supportingCharts, {}, exclusions);
+
+            // Then the backend gets the exclusions to skip AI cards about those items, and the hash stays the same so the cached graphs and averages keep showing while the cards refetch
+            expect(parsePayload(excluded)).toMatchObject({exclusions});
+            expect(parsePayload(plain)).not.toHaveProperty('exclusions');
+            expect(excluded?.hash).toBe(plain?.hash);
+            expect(excluded?.snapshotHashes).toEqual(plain?.snapshotHashes);
+        });
+
         it('requests Compliance by submission or approval dates without sharing Spend snapshots', () => {
             // Given Spend and Compliance using the same year-to-date picker selections
             const spend = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, FILTERS, []);

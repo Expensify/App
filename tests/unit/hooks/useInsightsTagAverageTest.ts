@@ -51,7 +51,7 @@ describe('Top tags average comparison', () => {
 
         // When Average is selected
         const {result} = renderHook(() =>
-            useInsightsChartData({chart, queryJSON, snapshot, averageQueryJSON, averageSnapshot, average: {[CONST.SEARCH.CHART_METRIC.AMOUNT]: 99999}, isDashboardLoaded: true}, filters),
+            useInsightsChartData({chart, queryJSON, snapshot, averageQueryJSON, averageSnapshot, average: {[CONST.SEARCH.CHART_METRIC.AMOUNT]: 99999}, isDashboardLoaded: true}, filters, []),
         );
 
         // Then the comparison retains parent-specific rows instead of drawing a shared average line
@@ -68,7 +68,7 @@ describe('Top tags average comparison', () => {
         }
 
         // When Average is selected before the compared data arrives
-        const {result} = renderHook(() => useInsightsChartData({chart, queryJSON, snapshot: makeSnapshot(queryJSON), averageQueryJSON, averageSnapshot: undefined}, filters));
+        const {result} = renderHook(() => useInsightsChartData({chart, queryJSON, snapshot: makeSnapshot(queryJSON), averageQueryJSON, averageSnapshot: undefined}, filters, []));
 
         // Then the chart waits without borrowing another level's comparison data
         expect(result.current.state).toBe('loading');

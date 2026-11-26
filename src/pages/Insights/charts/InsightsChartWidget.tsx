@@ -33,16 +33,19 @@ import type {InsightsChartSpec, InsightsChartStage, InsightsViolationStage} from
 import {isStackedChart} from '@pages/Insights/dashboardSpecs';
 import {getInsightsDetailsItemParams} from '@pages/Insights/details/insightsDetailsItem';
 import getInsightsLastDay from '@pages/Insights/getInsightsLastDay';
+import {buildExclusionsFilterQuery} from '@pages/Insights/insightsExclusions';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
 import DEFAULT_INSIGHTS_FILTERS from '@pages/Insights/insightsFilters';
 import {getInsightsGroupByOptions, getQueryGroupBy, getShownGroupBy, isRunningTotalAvailable, isShowingRunningTotal} from '@pages/Insights/insightsGroupByUtils';
 import {applyInsightsFilters} from '@pages/Insights/insightsQueries';
 import {doesRangeStartBeforeTracking, getTrackedFrom} from '@pages/Insights/insightsTrackedFrom';
 import useInsightsChartData from '@pages/Insights/useInsightsChartData';
+import useInsightsExclusions from '@pages/Insights/useInsightsExclusions';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {InsightsDashboardID, InsightsScope, SearchResults} from '@src/types/onyx';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 import type {OnyxEntry} from 'react-native-onyx';
 import type {NonEmptyTuple} from 'type-fest';
@@ -53,8 +56,10 @@ import Animated, {FadeIn} from 'react-native-reanimated';
 
 import type {InsightsChartMenuAction} from './InsightsChartMenu';
 
+import InsightsAllExcludedState from './InsightsAllExcludedState';
 import InsightsChartMenu from './InsightsChartMenu';
 import InsightsDataTable from './InsightsDataTable';
+import InsightsExclusionsNote from './InsightsExclusionsNote';
 import InsightsRankingTable from './InsightsRankingTable';
 import InsightsTrackedFromNote from './InsightsTrackedFromNote';
 
@@ -153,7 +158,7 @@ function InsightsChartWidget({
     const theme = useTheme();
     const {translate} = useLocalize();
     const {cardPaddingHorizontal, cardPaddingBottom} = useLayoutSpacing();
-    const icons = useMemoizedLazyExpensifyIcons(['Expand', 'Table']);
+    const icons = useMemoizedLazyExpensifyIcons(['Expand', 'Table', 'EyeDisabled']);
     const {getCurrencyDecimals} = useCurrencyListActions();
     const controls: React.ReactNode[] = [];
     const notes: React.ReactNode[] = [];
@@ -165,10 +170,15 @@ function InsightsChartWidget({
         }
     }
 
-    const {data, state, comparison} = useInsightsChartData(
+    const savedExcludedItemKeys = useInsightsExclusions(chart.graphKey);
+    const rankedItems = chart.rankedItems;
+    const excludedItemKeys = rankedItems ? savedExcludedItemKeys : getEmptyArray<string>();
+    const {data, state, comparison, isEveryItemExcluded} = useInsightsChartData(
         {chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageQueryJSON, averageSnapshot, average, isDashboardLoaded, stages},
         filters,
+        excludedItemKeys,
     );
+    const openExcludePanel = () => Navigation.navigate(ROUTES.INSIGHTS_EXCLUDE.getRoute({dashboardID, graphKey: chart.graphKey}));
     const groupBy = chart.groupBy ?? getQueryGroupBy(filters);
     const isLoading = state === INSIGHTS_CHART_STATE.LOADING;
     useReportChartCaptureLoading(isLoading);
@@ -242,11 +252,18 @@ function InsightsChartWidget({
         state === INSIGHTS_CHART_STATE.READY || isLoading ? (
             <InsightsExplainButton
                 explainPrompt={translate('insightsPage.explainChartPrompt', translate(chart.titleKey))}
-                insightsScope={explainViolationStage ? {...insightsScope, violationStage: explainViolationStage} : insightsScope}
+                insightsScope={{
+                    ...insightsScope,
+                    ...(explainViolationStage && {violationStage: explainViolationStage}),
+                    ...(excludedItemKeys.length > 0 && {exclusions: {[chart.graphKey]: excludedItemKeys}}),
+                }}
             />
         ) : null;
 
-    const queryJSONForSearch = buildSearchQueryJSON(applyInsightsFilters(chart, filters, undefined, today, trackedFrom)) ?? queryJSON;
+    // The Spend page leaves out the excluded items too, so it lists what the chart plots
+    const exclusionsFilterQuery = buildExclusionsFilterQuery(groupBy, excludedItemKeys);
+    const searchQuery = applyInsightsFilters(chart, filters, undefined, today, trackedFrom);
+    const queryJSONForSearch = buildSearchQueryJSON(exclusionsFilterQuery ? `${searchQuery} ${exclusionsFilterQuery}` : searchQuery) ?? queryJSON;
     const openOnSpend = () => {
         if (!queryJSONForSearch) {
             return;
@@ -273,6 +290,16 @@ function InsightsChartWidget({
     }
 
     const canUseMenuActions = !!queryJSON && (state === INSIGHTS_CHART_STATE.READY || (isLoading && supportsDrillIn));
+    const shownMenuActions = canUseMenuActions ? [...menuActions] : [];
+    // Exclude stays reachable while the chart has exclusions, even when they leave nothing to show, so they can be removed
+    if (rankedItems && (state === INSIGHTS_CHART_STATE.READY || excludedItemKeys.length > 0)) {
+        shownMenuActions.push({
+            text: excludedItemKeys.length > 0 ? translate('insightsPage.exclude.titleWithCount', excludedItemKeys.length) : translate('insightsPage.exclude.title'),
+            sentryLabel: CONST.SENTRY_LABEL.INSIGHTS.CHART_MENU_EXCLUDE,
+            icon: icons.EyeDisabled,
+            onSelected: openExcludePanel,
+        });
+    }
     const shownViolationStage = chart.hasViolationStageControl ? violationStage : undefined;
     let headerMenu: React.ReactNode = null;
     // The stage row stays reachable while the picked stage is empty or failed, so the user can switch back
@@ -282,34 +309,45 @@ function InsightsChartWidget({
                 graphKey={chart.graphKey}
                 violationStage={shownViolationStage}
                 onViolationStageChange={onViolationStageChange}
-                actions={canUseMenuActions ? menuActions : []}
+                actions={shownMenuActions}
             />
         );
-    } else if (canUseMenuActions) {
+    } else if (shownMenuActions.length > 0) {
         headerMenu = (
             <WidgetHeaderMenu
                 size={CONST.BUTTON_SIZE.SMALL}
                 testID={`insightsChartMenu-${chart.graphKey}`}
                 sentryLabel={CONST.SENTRY_LABEL.INSIGHTS.CHART_MENU}
-                menuItems={menuActions.map((action) => ({...action, shouldCallAfterModalHide: true}))}
+                menuItems={shownMenuActions.map((action) => ({...action, shouldCallAfterModalHide: true}))}
             />
         );
     }
+    const exclusionsNote =
+        rankedItems && excludedItemKeys.length > 0 ? (
+            <InsightsExclusionsNote
+                rankedItems={rankedItems}
+                count={excludedItemKeys.length}
+                onPress={openExcludePanel}
+            />
+        ) : null;
 
     return (
         <WidgetContainer
             title={translate(chart.titleKey)}
             titleContent={
-                shownViolationStage ? (
+                shownViolationStage || exclusionsNote ? (
                     <>
                         <Text style={styles.getWidgetContainerTitleStyle(theme.text)}>{translate(chart.titleKey)}</Text>
-                        <Text
-                            variant="label"
-                            style={styles.textSupporting}
-                            numberOfLines={1}
-                        >
-                            {translate(`insightsPage.violationStage.${shownViolationStage}`)}
-                        </Text>
+                        {!!shownViolationStage && (
+                            <Text
+                                variant="label"
+                                style={styles.textSupporting}
+                                numberOfLines={1}
+                            >
+                                {translate(`insightsPage.violationStage.${shownViolationStage}`)}
+                            </Text>
+                        )}
+                        {exclusionsNote}
                     </>
                 ) : undefined
             }
@@ -331,7 +369,13 @@ function InsightsChartWidget({
             >
                 {state === INSIGHTS_CHART_STATE.OFFLINE && <ChartOfflineState />}
                 {state === INSIGHTS_CHART_STATE.ERROR && <ChartErrorState onRetry={onRetry} />}
-                {state === INSIGHTS_CHART_STATE.EMPTY && (
+                {state === INSIGHTS_CHART_STATE.EMPTY && !!rankedItems && isEveryItemExcluded && (
+                    <InsightsAllExcludedState
+                        rankedItems={rankedItems}
+                        onEditExclusions={openExcludePanel}
+                    />
+                )}
+                {state === INSIGHTS_CHART_STATE.EMPTY && !isEveryItemExcluded && (
                     <ChartEmptyState
                         testID={`insightsChartEmptyState-${chart.graphKey}`}
                         title={tagLevelName === undefined ? undefined : translate('insightsPage.noTaggedExpenses')}

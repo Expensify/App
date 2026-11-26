@@ -107,6 +107,7 @@ import type {
     BankAccountList,
     BillingGraceEndPeriod,
     ExportTemplate,
+    InsightsExclusionsSearchKey,
     InsightsSearchKey,
     IntroSelected,
     LastPaymentMethod,
@@ -1062,7 +1063,7 @@ function seedMyExpensesSearch(currentUserAccountID: number, searchName: string, 
 }
 
 /** Stores the query a Spend tab or Insights dashboard reopens with, for changes that make no request that would save it. */
-function saveSearchFilters(searchKey: SearchKey | InsightsSearchKey, query: SearchQueryString) {
+function saveSearchFilters(searchKey: SearchKey | InsightsSearchKey | InsightsExclusionsSearchKey, query: SearchQueryString) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.SEARCH_FILTERS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,

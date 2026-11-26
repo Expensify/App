@@ -16,6 +16,7 @@ import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
 import InsightsChartWidget from '@pages/Insights/charts/InsightsChartWidget';
 import INSIGHTS_DASHBOARD_SPECS from '@pages/Insights/dashboardSpecs';
+import {getExclusionsSearchKey} from '@pages/Insights/insightsExclusions';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
 import useInsightsChartData from '@pages/Insights/useInsightsChartData';
 
@@ -294,5 +295,109 @@ describe('Insights chart view and press', () => {
 
         // Then the chart gets no press override, so a press still opens Search filtered to the point
         expect(jest.mocked(SearchChartView).mock.lastCall?.[0].onGroupPress).toBeUndefined();
+    });
+});
+
+describe('Insights chart exclusions', () => {
+    const TOP_SPENDERS = INSIGHTS_DASHBOARD_SPECS[CONST.INSIGHTS.DASHBOARD.SPEND].supportingCharts.find(({graphKey}) => graphKey === CONST.INSIGHTS.GRAPH.TOP_SPENDERS);
+    const SPENDERS_QUERY = buildSearchQueryJSON('type:expense groupBy:from date>=2026-01-01 date<=2026-03-31 groupCurrency:USD');
+    const SPENDER: GroupedItem = {
+        groupedBy: CONST.SEARCH.GROUP_BY.FROM,
+        accountID: 2,
+        keyForList: '2',
+        count: 1,
+        total: 5000,
+        currency: CONST.CURRENCY.USD,
+        transactions: [],
+    };
+
+    function renderSpenders() {
+        if (!TOP_SPENDERS) {
+            throw new Error('Missing Top spenders chart');
+        }
+        return renderWidget({chart: TOP_SPENDERS, queryJSON: SPENDERS_QUERY});
+    }
+
+    async function saveExclusions(itemKeys: string[]) {
+        await Onyx.merge(ONYXKEYS.SEARCH_FILTERS, {[getExclusionsSearchKey(CONST.INSIGHTS.GRAPH.TOP_SPENDERS)]: {query: JSON.stringify(itemKeys), timestamp: ''}});
+        await waitForBatchedUpdatesWithAct();
+    }
+
+    beforeAll(() => Onyx.init({keys: ONYXKEYS}));
+
+    beforeEach(async () => {
+        jest.clearAllMocks();
+        await Onyx.set(ONYXKEYS.CURRENCY_LIST, currencyList);
+        await waitForBatchedUpdatesWithAct();
+        jest.mocked(useInsightsChartData).mockReturnValue({data: [SPENDER], state: INSIGHTS_CHART_STATE.READY, comparison: undefined});
+    });
+
+    afterEach(() => Onyx.clear());
+
+    it('offers Exclude last on a ranking chart and opens its panel', async () => {
+        // Given a ready Top spenders chart
+        renderSpenders();
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user picks the last option of its menu
+        const menuItems = jest.mocked(WidgetHeaderMenu).mock.lastCall?.[0].menuItems;
+        menuItems?.at(-1)?.onSelected?.();
+
+        // Then Exclude follows View on Spend and Download CSV, and opens the panel for this chart
+        expect(menuItems?.map((item) => item.text)).toEqual(['View on Spend', 'Download CSV', 'Exclude']);
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.INSIGHTS_EXCLUDE.getRoute({dashboardID: CONST.INSIGHTS.DASHBOARD.SPEND, graphKey: CONST.INSIGHTS.GRAPH.TOP_SPENDERS}));
+    });
+
+    it('leaves Exclude off charts that show a whole', async () => {
+        // Given the Spend over time chart, which plots every expense
+        // When it renders ready
+        jest.mocked(useInsightsChartData).mockReturnValue({data: DATA, state: INSIGHTS_CHART_STATE.READY, comparison: undefined});
+        renderWidget();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then its menu has no Exclude, since leaving items out would change its totals
+        expect(jest.mocked(WidgetHeaderMenu).mock.lastCall?.[0].menuItems.map((item) => item.text)).not.toContain('Exclude');
+    });
+
+    it('leaves the saved exclusions out of the chart and of View on Spend', async () => {
+        // Given a spender the user excluded from Top spenders
+        await saveExclusions(['1']);
+        renderSpenders();
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user opens the chart on Spend
+        jest.mocked(WidgetHeaderMenu).mock.lastCall?.[0].menuItems.at(0)?.onSelected?.();
+
+        // Then the chart data leaves them out, and Spend is narrowed with "is not" so it matches the chart
+        expect(jest.mocked(useInsightsChartData).mock.lastCall?.[2]).toEqual(['1']);
+        expect(jest.mocked(Navigation.navigate).mock.lastCall?.[0]).toContain(encodeURIComponent('-from:1'));
+    });
+
+    it('keeps Exclude reachable on an empty chart that has exclusions', async () => {
+        // Given saved exclusions on a chart with no data for the current filters
+        await saveExclusions(['1']);
+        jest.mocked(useInsightsChartData).mockReturnValue({data: [], state: INSIGHTS_CHART_STATE.EMPTY, comparison: undefined});
+
+        // When it renders
+        renderSpenders();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then only Exclude is offered, with its count showing something is excluded, so a saved exclusion can still be removed
+        expect(jest.mocked(WidgetHeaderMenu).mock.lastCall?.[0].menuItems.map((item) => item.text)).toEqual(['Exclude (1)']);
+    });
+
+    it('says every item is excluded instead of showing the empty state', async () => {
+        // Given a chart with data whose every item the user excluded
+        await saveExclusions(['1', '2']);
+        jest.mocked(useInsightsChartData).mockReturnValue({data: [], state: INSIGHTS_CHART_STATE.EMPTY, comparison: undefined, isEveryItemExcluded: true});
+
+        // When it renders
+        renderSpenders();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then it explains why nothing is plotted and offers a way back to the panel
+        expect(screen.getByText('All spenders are excluded')).toBeOnTheScreen();
+        expect(screen.queryByTestId(`insightsChartEmptyState-${CONST.INSIGHTS.GRAPH.TOP_SPENDERS}`)).toBeNull();
+        expect(screen.getByText('Edit exclusions')).toBeOnTheScreen();
     });
 });

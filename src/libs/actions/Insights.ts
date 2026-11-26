@@ -8,13 +8,15 @@ import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxKey} from '@src/ONYXKEYS';
-import type {InsightsDashboardID, InsightsSearchKey} from '@src/types/onyx';
+import type {InsightsDashboardID, InsightsExclusionsSearchKey, InsightsSearchKey} from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 import type {OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
+
+import {saveSearchFilters} from './Search';
 
 /** Sends an Insights read command and stores the response's JSON code, which distinguishes backend errors from requests that got no response */
 function requestInsights<TKey extends OnyxKey>(
@@ -129,4 +131,9 @@ function setInsightsFilters(searchKey: InsightsSearchKey, query: SearchQueryStri
     Onyx.merge(ONYXKEYS.SEARCH_FILTERS, {[searchKey]: {query}});
 }
 
-export {getInsights, getInsightsDetails, setInsightsFilters};
+/** Saves the items the user excluded from one chart, replacing its previous list. An empty list clears them, since the server needs a query to save. */
+function saveInsightsExclusions(searchKey: InsightsExclusionsSearchKey, excludedItemKeys: string[]) {
+    saveSearchFilters(searchKey, JSON.stringify(excludedItemKeys));
+}
+
+export {getInsights, getInsightsDetails, saveInsightsExclusions, setInsightsFilters};
