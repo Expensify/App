@@ -14,7 +14,7 @@ import useRequestStepWorkspaceList from '@hooks/useRequestStepWorkspaceList';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {fetchPerDiemRates} from '@libs/actions/Policy/PerDiem';
-import {getInitialPerDiemTargetReport, getSelectedWorkspacePolicyID} from '@libs/IOUUtils';
+import {getInitialPerDiemTargetReport} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getActivePoliciesWithExpenseChatAndPerDiemEnabled, getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import {findSelfDMReportID, getPolicyExpenseChat} from '@libs/ReportUtils';
@@ -59,6 +59,17 @@ function IOURequestStepPerDiemWorkspace({route, transaction}: IOURequestStepPerD
     // Picking a row only marks it and the footer button moves on, so a workspace that starts out selected can be kept
     // without having to tap it again.
     const [markedPolicyID, setMarkedPolicyID] = useState<string>();
+    const [prevIsLoadingPerDiemRates, setPrevIsLoadingPerDiemRates] = useState(isLoadingPerDiemRates);
+
+    if (isLoadingPerDiemRates !== prevIsLoadingPerDiemRates) {
+        setPrevIsLoadingPerDiemRates(isLoadingPerDiemRates);
+        // The fetch finished without giving the workspace a per diem unit, e.g. it failed, so stop waiting on it and show
+        // the list again. Otherwise going offline would hide the list and reconnecting would refetch and open that
+        // workspace even after the user marked another one. Offline, the fetch was only dropped and is asked again on reconnect.
+        if (prevIsLoadingPerDiemRates && isLoadingPerDiemRates === false && !isOffline && pendingPolicyID && !getPerDiemCustomUnit(pendingPolicy)) {
+            setPendingPolicyID(undefined);
+        }
+    }
 
     const selectWorkspace = (policy: OnyxEntry<Policy>) => {
         const {targetReport, targetIouType, transactionReportID} = getInitialPerDiemTargetReport(
@@ -87,8 +98,9 @@ function IOURequestStepPerDiemWorkspace({route, transaction}: IOURequestStepPerD
         }
         setPendingPolicyID(undefined);
 
-        // Read before the participants below are rewritten to the picked workspace
-        const isSameWorkspace = getSelectedWorkspacePolicyID(transaction, action) === policy?.id && transaction?.comment?.customUnit?.customUnitID === perDiemUnit.customUnitID;
+        // Per diem unit IDs are generated per workspace, so the unit alone tells the workspace apart. The participants can't,
+        // since the self DM a draft from global create sits on has no policyID.
+        const isSameWorkspace = transaction?.comment?.customUnit?.customUnitID === perDiemUnit.customUnitID;
 
         setTransactionReport(transactionID, {reportID: transactionReportID}, true);
         if (targetIouType === CONST.IOU.TYPE.TRACK) {
@@ -148,11 +160,7 @@ function IOURequestStepPerDiemWorkspace({route, transaction}: IOURequestStepPerD
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOffline]);
 
-    // Once the fetch finishes without giving the workspace a per diem unit, e.g. it failed, show the list again so the
-    // user can pick the workspace again instead of waiting on a loader that never ends.
-    const isWaitingForPerDiemRates = !!pendingPolicyID && (!!getPerDiemCustomUnit(pendingPolicy) || isOffline || isLoadingPerDiemRates !== false);
-
-    if (isWaitingForPerDiemRates) {
+    if (pendingPolicyID) {
         if (isOffline) {
             return <FullPageOfflineBlockingView>{null}</FullPageOfflineBlockingView>;
         }
