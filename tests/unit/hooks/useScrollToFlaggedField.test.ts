@@ -3,6 +3,7 @@ import {act, renderHook} from '@testing-library/react-native';
 import useScrollToFlaggedField from '@components/MoneyRequestConfirmationList/hooks/useScrollToFlaggedField';
 import type {SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 
+import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 
 import createMock from '../../utils/createMock';
@@ -13,7 +14,7 @@ function renderWithMerchantView(transactionIDOnScreen: string) {
     const {result, rerender} = renderHook(({transactionID}: {transactionID: string}) => useScrollToFlaggedField(listRef, transactionID), {
         initialProps: {transactionID: transactionIDOnScreen},
     });
-    const merchantView = createMock<View>({});
+    const merchantView = createMock<ComponentRef<typeof View>>({});
     result.current.fieldViewRefs.merchant.current = merchantView;
     return {result, rerender, scrollToReveal, merchantView};
 }

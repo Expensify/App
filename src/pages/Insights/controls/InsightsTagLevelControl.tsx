@@ -20,14 +20,16 @@ import InsightsGroupByPopup from './InsightsGroupByPopup';
 type InsightsTagLevelControlProps = {
     /** 1-based position in the workspace's configured tag lists. */
     tagLevel: number;
+
+    /** The selected level's name or its localized numbered fallback. */
+    label: string;
     options: InsightsTagLevelOption[];
     onChange: (update: Partial<InsightsFilters>) => void;
 };
 
-function InsightsTagLevelControl({tagLevel, options, onChange}: InsightsTagLevelControlProps) {
+function InsightsTagLevelControl({tagLevel, label, options, onChange}: InsightsTagLevelControlProps) {
     const styles = useThemeStyles();
-    const {translate, numberFormat} = useLocalize();
-    const label = options.find((option) => option.value === tagLevel)?.label ?? translate('insightsPage.tagLevel', numberFormat(tagLevel));
+    const {translate} = useLocalize();
     const selectLevel = (value: string) => {
         const option = options.find((item) => String(item.value) === value);
         if (option) {

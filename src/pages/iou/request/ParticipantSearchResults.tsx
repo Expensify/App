@@ -6,7 +6,6 @@ import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMembe
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {Section, SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 
-import useContactImport from '@hooks/useContactImport';
 import useContactPermissionModal from '@hooks/useContactPermissionModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -165,7 +164,6 @@ function ParticipantSearchResults({
     const icons = useMemoizedLazyExpensifyIcons(['UserPlus']);
     const {translate, dateFnsLocale, formatPhoneNumber} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
-    const {contactPermissionState, contacts, setContactPermissionState} = useContactImport();
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
@@ -270,7 +268,6 @@ function ParticipantSearchResults({
             getValidOptionsConfig,
             shouldInitialize: didScreenTransitionEnd,
             enablePhoneContacts: isNative,
-            contactOptions: contacts,
             initialSelected: participants,
             onSelectionChange: handleSelectionChange,
             onSingleSelect: (option: Participant | OptionData) => {
@@ -305,7 +302,7 @@ function ParticipantSearchResults({
     const showImportContacts =
         isNative &&
         !isCategorizeOrShareAction &&
-        !(contactPermissionState === RESULTS.GRANTED || contactPermissionState === RESULTS.LIMITED) &&
+        !(contactState?.permissionStatus === RESULTS.GRANTED || contactState?.permissionStatus === RESULTS.LIMITED) &&
         inputHelperText === translate('common.noResultsFound');
 
     /**
@@ -564,7 +561,7 @@ function ParticipantSearchResults({
 
     useContactPermissionModal({
         onGrant: contactState?.importContacts ?? (() => {}),
-        onDeny: contactState?.setContactPermissionState ?? setContactPermissionState,
+        onDeny: contactState?.setContactPermissionState ?? (() => {}),
         onFocusTextInput: () => {
             setTextInputAutoFocus(true);
         },

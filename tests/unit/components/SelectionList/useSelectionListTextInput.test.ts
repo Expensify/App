@@ -14,7 +14,7 @@ jest.mock('@hooks/useSyncFocus/useSyncFocusImplementation', () => ({
 
 const mockFocusedItemRefFocus = jest.mocked(focusedItemRef)?.focus;
 
-function keyPressEvent(key: string): Pick<TextInputKeyPressEvent, 'nativeEvent'> {
+function keyPressEvent(key: string): {nativeEvent: Pick<TextInputKeyPressEvent['nativeEvent'], 'key'>} {
     return {nativeEvent: {key}};
 }
 

@@ -113,7 +113,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const shouldShowAttachment = !isTextShared;
     const fileSource = shouldUsePreValidatedFile ? (validatedFile?.uri ?? '') : (currentAttachment?.content ?? '');
 
-    // Only get file name for actual files to avoid URI decoding errors on text content
+    // Shared text has no file, so there is no file name to read from its content
     let validateFileName;
     if (!shouldShowAttachment) {
         validateFileName = '';

@@ -55,5 +55,10 @@
         "usage": "exempt",
         "reason": "JavaScriptCore, declared through the jscFlavor variable in the else branch of the hermesEnabled check at android/app/build.gradle:218-222. android/gradle.properties sets hermesEnabled=true, so this branch is not taken today; the artifact is a native JS engine loaded by React Native rather than imported, so no source reference can prove or disprove it.",
         "reviewed": "2026-09-17"
+    },
+    "junit:junit": {
+        "usage": "exempt",
+        "reason": "testImplementation for the JVM unit tests under android/app/src/test, which this check does not scan; FileUtilsTest imports org.junit.",
+        "reviewed": "2026-11-24"
     }
 }

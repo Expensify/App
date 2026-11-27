@@ -1511,6 +1511,91 @@ describe('PerDiem', () => {
             const perDiemTransactions = Object.values(transactions ?? {}).filter((tx) => tx?.iouRequestType === CONST.IOU.REQUEST_TYPE.PER_DIEM);
             expect(perDiemTransactions.length).toBeGreaterThan(0);
         });
+
+        it('finalizes a deferred batch report state when submitPerDiemExpense is the last item', async () => {
+            // Given an Instant Submit workspace (ASAP beta off) and an open report created by an earlier deferred batch item
+            const policyID = 'per-diem-batch-policy';
+            const chatReportID = 'per-diem-batch-chat';
+            const existingReportID = 'per-diem-batch-iou';
+            const instantPolicy: Policy = {
+                ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
+                id: policyID,
+                autoReporting: true,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+            };
+            const chatReport: Report = {
+                reportID: chatReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                policyID,
+                ownerAccountID: currentUserPersonalDetails.accountID,
+                iouReportID: existingReportID,
+            };
+            const existingIOUReport: Report = {
+                reportID: existingReportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID,
+                chatReportID,
+                ownerAccountID: currentUserPersonalDetails.accountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                currency: CONST.CURRENCY.USD,
+                total: -500,
+                unheldTotal: -500,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, instantPolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, chatReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${existingReportID}`, existingIOUReport);
+            await waitForBatchedUpdates();
+
+            // When the final per diem expense in the batch runs with shouldDeferAutoSubmit set to false
+            submitPerDiemExpense({
+                isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+                currentUserEmailParam: currentUserPersonalDetails.login ?? '',
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
+                participantParams: {
+                    payeeEmail: currentUserPersonalDetails.login,
+                    payeeAccountID: currentUserPersonalDetails.accountID,
+                    participant: {reportID: chatReportID, isPolicyExpenseChat: true, policyID},
+                },
+                report: chatReport,
+                existingIOUReport,
+                shouldDeferAutoSubmit: false,
+                transactionParams: {
+                    created: DateUtils.getDBTime(),
+                    currency: CONST.CURRENCY.USD,
+                    customUnit: {
+                        customUnitID: 'A',
+                        name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                        customUnitRateID: 'B',
+                        subRates: [{id: '1', name: 'rate_a', quantity: 1, rate: 200}],
+                        attributes: {dates: {end: '2026-11-26', start: '2026-11-26'}},
+                    },
+                },
+                policyRecentlyUsedCurrencies: [],
+                policyParams: {
+                    policy: instantPolicy,
+                },
+                quickAction: undefined,
+                personalDetails: {[currentUserPersonalDetails.accountID]: currentUserPersonalDetails},
+                policyTags: {},
+                formatPhoneNumber,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                rules: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the optimistic report state transitions from OPEN to SUBMITTED
+            const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${existingReportID}`);
+            expect(updatedReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.SUBMITTED);
+            expect(updatedReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.SUBMITTED);
+        });
     });
 
     describe('submitPerDiemExpenseForSelfDM', () => {

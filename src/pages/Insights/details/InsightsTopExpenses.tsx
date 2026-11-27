@@ -1,12 +1,9 @@
-import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import Icon from '@components/Icon';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import {buildViewOnSpendQuery} from '@components/Search/chartDrillDown';
 import ChartOfflineState from '@components/Search/ChartOfflineState';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
-import type {SearchQueryString} from '@components/Search/types';
+import type {SearchQueryJSON, SearchQueryString} from '@components/Search/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import Text from '@components/Text';
 import TransactionItemRow from '@components/TransactionItemRow';
@@ -17,7 +14,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -42,31 +39,42 @@ import {fullPolicySnapshotLastModifiedByPolicyIDSelector} from '@selectors/Polic
 import React from 'react';
 import {View} from 'react-native';
 
-import useInsightsTopExpenses, {TOP_EXPENSES_STATE} from './useInsightsTopExpenses';
+import InsightsDetailsSectionError from './InsightsDetailsSectionError';
+import {INSIGHTS_DETAILS_SECTION_STATE} from './insightsDetailsSectionState';
+import InsightsFlaggedExpenseRow from './InsightsFlaggedExpenseRow';
+import useInsightsTopExpenses from './useInsightsTopExpenses';
 
 type InsightsTopExpensesProps = {
     /** Spend table query whose largest expenses the section lists */
-    query: SearchQueryString;
+    queryJSON: Readonly<SearchQueryJSON>;
+
+    title: string;
+
+    /** Shown in place of the list when the query has no expenses, the section is hidden without it */
+    emptyText?: string;
+
+    /** Omit to hide View all when the expenses cannot be opened with the same scope. */
+    viewAllQuery?: SearchQueryString;
+    onRetry: () => void;
 };
 
 /** Lists the largest expenses behind the clicked item, each opening in the RHP. */
-function InsightsTopExpenses({query}: InsightsTopExpensesProps) {
+function InsightsTopExpenses({queryJSON, title, emptyText, viewAllQuery, onRetry}: InsightsTopExpensesProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate, dateFnsLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
-    const {expenses, queryJSON, state, retry} = useInsightsTopExpenses(query);
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {expenses, violationsByTransactionID, state} = useInsightsTopExpenses(queryJSON);
     const icons = useMemoizedLazyExpensifyIcons(['ArrowUpRight']);
     const {markReportRHPWidth} = useWideRHPActions();
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-    const personalDetails = usePersonalDetails();
+    const [personalDetails] = usePersonalDetailsByIDs([currentUserAccountID, ...expenses.flatMap((expense) => [expense.reportAction?.actorAccountID, expense.report?.ownerAccountID])]);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [fullPolicySnapshotLastModifiedByPolicyID] = useOnyx(ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT, {selector: fullPolicySnapshotLastModifiedByPolicyIDSelector});
-    const isEmpty = state === TOP_EXPENSES_STATE.READY && expenses.length === 0;
+    const isEmpty = state === INSIGHTS_DETAILS_SECTION_STATE.READY && expenses.length === 0;
 
     const getRowAccessibilityLabel = (expense: TransactionListItemType) => {
         const amount = isScanning(expense)
@@ -78,7 +86,7 @@ function InsightsTopExpenses({query}: InsightsTopExpensesProps) {
             DateUtils.doesDateBelongToAPastYear(created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
             dateFnsLocale,
         );
-        return [expense.formattedMerchant ?? expense.merchant, amount, date].filter(Boolean).join(', ');
+        return [expense.formattedMerchant ?? expense.merchant, amount, date, ...(violationsByTransactionID?.[expense.transactionID] ?? [])].filter(Boolean).join(', ');
     };
 
     const openExpense = (expense: TransactionListItemType) => {
@@ -107,30 +115,17 @@ function InsightsTopExpenses({query}: InsightsTopExpensesProps) {
         });
     };
 
-    if (state === TOP_EXPENSES_STATE.STALE) {
+    if (state === INSIGHTS_DETAILS_SECTION_STATE.STALE || state === INSIGHTS_DETAILS_SECTION_STATE.ERROR) {
         return (
-            <FullPageErrorView
-                shouldShow
-                title={translate('search.searchResults.staleResults.title')}
-                subtitle={translate('search.searchResults.staleResults.subtitle')}
-                illustration="ChartSync"
-                illustrationWidth={variables.iconSizeUltraLarge}
-                illustrationHeight={variables.iconSizeUltraLarge}
-                buttonTranslationKey="search.searchResults.staleResults.buttonText"
-                onButtonPress={retry}
+            <InsightsDetailsSectionError
+                isStale={state === INSIGHTS_DETAILS_SECTION_STATE.STALE}
+                onRetry={onRetry}
             />
         );
     }
-    if (state === TOP_EXPENSES_STATE.ERROR) {
-        return (
-            <FullPageErrorView
-                shouldShow
-                title={translate('errorPage.title', {isBreakLine: shouldUseNarrowLayout})}
-                subtitle={translate('errorPage.subtitle')}
-                buttonTranslationKey="common.tryAgain"
-                onButtonPress={retry}
-            />
-        );
+
+    if (isEmpty && !emptyText) {
+        return null;
     }
 
     return (
@@ -140,11 +135,11 @@ function InsightsTopExpenses({query}: InsightsTopExpensesProps) {
                     variant="label"
                     style={styles.textSupporting}
                 >
-                    {translate('insightsPage.topExpenses')}
+                    {title}
                 </Text>
-                {!!queryJSON && expenses.length > 0 && (
+                {!!viewAllQuery && expenses.length > 0 && (
                     <PressableWithoutFeedback
-                        onPress={() => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildViewOnSpendQuery(queryJSON)}))}
+                        onPress={() => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: viewAllQuery}))}
                         accessibilityRole={CONST.ROLE.LINK}
                         accessibilityLabel={translate('insightsPage.viewAll')}
                         sentryLabel={CONST.SENTRY_LABEL.INSIGHTS.DETAILS_TOP_EXPENSES_VIEW_ALL}
@@ -165,20 +160,20 @@ function InsightsTopExpenses({query}: InsightsTopExpensesProps) {
                     </PressableWithoutFeedback>
                 )}
             </View>
-            {state === TOP_EXPENSES_STATE.LOADING && (
+            {state === INSIGHTS_DETAILS_SECTION_STATE.LOADING && (
                 <SearchRowSkeleton
                     shouldAnimate
                     fixedNumItems={TOP_EXPENSES_LIMIT}
                     shouldUseNarrowLayout
                 />
             )}
-            {state === TOP_EXPENSES_STATE.OFFLINE && <ChartOfflineState />}
+            {state === INSIGHTS_DETAILS_SECTION_STATE.OFFLINE && <ChartOfflineState />}
             {isEmpty && (
                 <Text
                     variant="label"
                     style={[styles.textSupporting, styles.p4]}
                 >
-                    {translate('insightsPage.noExpensesInRange')}
+                    {emptyText}
                 </Text>
             )}
             {expenses.map((item, index) => (
@@ -192,20 +187,27 @@ function InsightsTopExpenses({query}: InsightsTopExpensesProps) {
                     hoverStyle={styles.hoveredComponentBG}
                     style={[styles.ph4, styles.pv3, index < expenses.length - 1 && styles.borderBottom]}
                 >
-                    <TransactionItemRow
-                        transactionItem={item}
-                        report={item.report}
-                        policy={item.policy}
-                        shouldUseNarrowLayout
-                        isSelected={false}
-                        shouldShowTooltip
-                        shouldShowErrors={false}
-                        shouldShowCategoryOnNarrowLayout={false}
-                        dateColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
-                        amountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
-                        taxAmountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
-                        style={[styles.p0, styles.noBorderRadius]}
-                    />
+                    {violationsByTransactionID ? (
+                        <InsightsFlaggedExpenseRow
+                            expense={item}
+                            violations={violationsByTransactionID[item.transactionID] ?? []}
+                        />
+                    ) : (
+                        <TransactionItemRow
+                            transactionItem={item}
+                            report={item.report}
+                            policy={item.policy}
+                            shouldUseNarrowLayout
+                            isSelected={false}
+                            shouldShowTooltip
+                            shouldShowErrors={false}
+                            shouldShowCategoryOnNarrowLayout={false}
+                            dateColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+                            amountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+                            taxAmountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+                            style={[styles.p0, styles.noBorderRadius]}
+                        />
+                    )}
                 </PressableWithFeedback>
             ))}
         </View>

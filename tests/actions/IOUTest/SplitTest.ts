@@ -87,6 +87,7 @@ import {
     formatPhoneNumber,
     getCurrencyDecimalsLocal,
     getCurrencySymbolLocal,
+    getFetchMockCalls,
     getOnyxData,
     getRequiredOnyxUpdates,
     getRequiredWriteCall,
@@ -12711,6 +12712,32 @@ describe('planDistanceRequest and commitDistanceRequest', () => {
         expect(createdTransaction?.comment?.odometerEnd).toBe(10050);
     });
 
+    it('sends the unit the odometer readings were entered in with the distance request', async () => {
+        // Given readings entered in km on an expense whose distance was converted to miles
+        const testReport = createRandomReport(1, undefined);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${testReport.reportID}`, testReport);
+        const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+
+        // When the distance request is created
+        const {transactionID} = planAndCommitDistanceRequest(
+            getDefaultDistanceRequestParams(
+                testReport,
+                {amount: 500, distance: 2.49, odometerStart: 2, odometerEnd: 6, odometerUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS},
+                recentWaypoints,
+            ),
+        );
+        await waitForBatchedUpdates();
+
+        // Then the backend gets the readings' unit so it can convert end - start into the rate's unit
+        const requestBody = getFetchMockCalls(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST).at(0)?.[1]?.body;
+        const requestParams = requestBody instanceof FormData ? Object.fromEntries(requestBody) : {};
+        expect(requestParams).toEqual(expect.objectContaining({odometerStart: '2', odometerEnd: '6', odometerUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS}));
+
+        // And the optimistic transaction keeps the unit, so a later edit can send it too
+        const createdTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+        expect(createdTransaction?.comment?.odometerUnit).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
+    });
+
     it('creates distance request with category in policy expense chat', async () => {
         const policyID = 'testPolicy123';
         const testCategory = 'Travel';
@@ -13873,9 +13900,24 @@ describe('setDraftSplitTransaction', () => {
     const category = 'Advertising';
     const ruleTaxCode = 'id_TAX_RATE_1';
 
-    const buildSplitPolicy = (): Policy => ({...createRandomPolicy(Number(splitPolicyID)), taxRates: CONST.DEFAULT_TAX});
+    const buildSplitPolicy = (): Policy => ({...createRandomPolicy(Number(splitPolicyID)), taxRates: CONST.DEFAULT_TAX, tax: {trackingEnabled: true}});
 
     const buildSplitDraft = (): Transaction => ({...createRandomTransaction(1), taxCode: 'id_TAX_EXEMPT', taxAmount: 0, amount: 100});
+
+    it('uses the caller translator for pending route edits in a split draft', async () => {
+        // Given a draft and a translator whose output differs from the global locale
+        const translate = jest.fn(() => 'Split pending label');
+        const draftTransaction = {...buildSplitDraft(), comment: {waypoints: {}}};
+
+        // When an edited waypoint has no resolved route
+        setDraftSplitTransaction(translate, splitTransactionID, draftTransaction, {waypoints: {waypoint0: {address: 'New destination'}}}, getCurrencyDecimalsLocal, getCurrencySymbolLocal);
+        await waitForBatchedUpdates();
+
+        // Then the stored draft uses the caller's pending label
+        const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitTransactionID}`);
+        expect(translate).toHaveBeenCalledWith('iou.fieldPending');
+        expect(updatedTransaction?.modifiedMerchant).toBe('Split pending label');
+    });
 
     it('writes the tax the category rule asks for', async () => {
         // Given a split draft on a policy whose expense default puts a tax rate on the category
@@ -13885,7 +13927,7 @@ describe('setDraftSplitTransaction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitTransactionID}`, draftTransaction);
 
         // When that category is written to the split
-        setDraftSplitTransaction(splitTransactionID, draftTransaction, {category}, getCurrencyDecimalsLocal, getCurrencySymbolLocal, policy, undefined, undefined, rules);
+        setDraftSplitTransaction(translateLocal, splitTransactionID, draftTransaction, {category}, getCurrencyDecimalsLocal, getCurrencySymbolLocal, policy, undefined, undefined, rules);
         await waitForBatchedUpdates();
 
         // Then the rule's rate is on the draft, because a split is sent with whatever tax it holds
@@ -13902,7 +13944,18 @@ describe('setDraftSplitTransaction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitTransactionID}`, draftTransaction);
 
         // When the other category is written to the split
-        setDraftSplitTransaction(splitTransactionID, draftTransaction, {category: 'Benefits'}, getCurrencyDecimalsLocal, getCurrencySymbolLocal, policy, undefined, undefined, rules);
+        setDraftSplitTransaction(
+            translateLocal,
+            splitTransactionID,
+            draftTransaction,
+            {category: 'Benefits'},
+            getCurrencyDecimalsLocal,
+            getCurrencySymbolLocal,
+            policy,
+            undefined,
+            undefined,
+            rules,
+        );
         await waitForBatchedUpdates();
 
         // Then the workspace default replaces it, so the split does not keep the rate the previous category asked for
@@ -13919,7 +13972,18 @@ describe('setDraftSplitTransaction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitTransactionID}`, draftTransaction);
 
         // When another category is written to the split
-        setDraftSplitTransaction(splitTransactionID, draftTransaction, {category: 'Benefits'}, getCurrencyDecimalsLocal, getCurrencySymbolLocal, policy, undefined, undefined, rules);
+        setDraftSplitTransaction(
+            translateLocal,
+            splitTransactionID,
+            draftTransaction,
+            {category: 'Benefits'},
+            getCurrencyDecimalsLocal,
+            getCurrencySymbolLocal,
+            policy,
+            undefined,
+            undefined,
+            rules,
+        );
         await waitForBatchedUpdates();
 
         // Then the rate is kept, because a category change says nothing about a rule the category does not own
@@ -13935,7 +13999,7 @@ describe('setDraftSplitTransaction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitTransactionID}`, draftTransaction);
 
         // When a category is written to the split
-        setDraftSplitTransaction(splitTransactionID, draftTransaction, {category}, getCurrencyDecimalsLocal, getCurrencySymbolLocal, policy, undefined, undefined, {});
+        setDraftSplitTransaction(translateLocal, splitTransactionID, draftTransaction, {category}, getCurrencyDecimalsLocal, getCurrencySymbolLocal, policy, undefined, undefined, {});
         await waitForBatchedUpdates();
 
         // Then the tax it already carried is kept, since no rule asked for a different one
@@ -13952,7 +14016,18 @@ describe('setDraftSplitTransaction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitTransactionID}`, draftTransaction);
 
         // When a field other than the category is written
-        setDraftSplitTransaction(splitTransactionID, draftTransaction, {comment: 'Updated'}, getCurrencyDecimalsLocal, getCurrencySymbolLocal, policy, undefined, undefined, rules);
+        setDraftSplitTransaction(
+            translateLocal,
+            splitTransactionID,
+            draftTransaction,
+            {comment: 'Updated'},
+            getCurrencyDecimalsLocal,
+            getCurrencySymbolLocal,
+            policy,
+            undefined,
+            undefined,
+            rules,
+        );
         await waitForBatchedUpdates();
 
         // Then the rate is left as it was, because no category change can have brought a different rule into play
@@ -13968,7 +14043,7 @@ describe('setDraftSplitTransaction', () => {
         await waitForBatchedUpdates();
 
         // When a caller passes no transaction to start from
-        setDraftSplitTransaction(transactionID, undefined, {category: 'Advertising'}, getCurrencyDecimalsLocal, getCurrencySymbolLocal);
+        setDraftSplitTransaction(translateLocal, transactionID, undefined, {category: 'Advertising'}, getCurrencyDecimalsLocal, getCurrencySymbolLocal);
 
         await waitForBatchedUpdates();
 
@@ -13984,10 +14059,10 @@ describe('setDraftSplitTransaction', () => {
         await waitForBatchedUpdates();
 
         // When the user types a merchant, and later clears it again
-        setDraftSplitTransaction(transactionID, draftTransaction, {merchant: '(none)', isMerchantSet: true}, getCurrencyDecimalsLocal, getCurrencySymbolLocal);
+        setDraftSplitTransaction(translateLocal, transactionID, draftTransaction, {merchant: '(none)', isMerchantSet: true}, getCurrencyDecimalsLocal, getCurrencySymbolLocal);
         await waitForBatchedUpdates();
         const typedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
-        setDraftSplitTransaction(transactionID, typedDraft, {merchant: '', isMerchantSet: false}, getCurrencyDecimalsLocal, getCurrencySymbolLocal);
+        setDraftSplitTransaction(translateLocal, transactionID, typedDraft, {merchant: '', isMerchantSet: false}, getCurrencyDecimalsLocal, getCurrencySymbolLocal);
         await waitForBatchedUpdates();
         const clearedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
 

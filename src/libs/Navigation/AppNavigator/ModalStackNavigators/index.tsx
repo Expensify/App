@@ -595,6 +595,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/workspace/workflows/approvals/WorkspaceWorkflowsApprovalsApprovalLimitPage').default,
     [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_INVITE_MESSAGE]: () => require<ReactComponentModule>('../../../../pages/workspace/DynamicWorkspaceInviteMessagePage').default,
     [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_INVITE_MESSAGE_ROLE]: () => require<ReactComponentModule>('../../../../pages/workspace/DynamicWorkspaceInviteMessageRolePage').default,
+    [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_INVITE_MESSAGE_CATEGORY_VISIBILITY]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/DynamicWorkspaceInviteMessageCategoryVisibilityPage').default,
     [SCREENS.WORKSPACE.INVITE_MESSAGE_APPROVER]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceInviteMessageApproverPage').default,
     [SCREENS.WORKSPACE.WORKFLOWS_PAYER]: () => require<ReactComponentModule>('../../../../pages/workspace/workflows/WorkspaceWorkflowsPayerPage').default,
     [SCREENS.WORKSPACE.NAME]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceNamePage').default,
@@ -637,6 +639,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.ROOM_CREATE]: () => require<ReactComponentModule>('../../../../pages/workspace/rooms/WorkspaceRoomCreatePage').default,
     [SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkspaceMemberDetailsRolePage').default,
     [SCREENS.WORKSPACE.MEMBER_DETAILS_CATEGORY_VISIBILITY]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkspaceMemberCategoryVisibilityPage').default,
+    [SCREENS.WORKSPACE.MEMBERS_BULK_CATEGORY_VISIBILITY]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkspaceMemberCategoryVisibilityPage').default,
     [SCREENS.WORKSPACE.MEMBERS_ROLE]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkspaceMembersRolePage').default,
     [SCREENS.WORKSPACE.MEMBER_WORK_ARRANGEMENT]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkArrangementPage').default,
     [SCREENS.WORKSPACE.MEMBER_OFFICE_LOCATION]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkspaceMemberOfficeLocationPage').default,
@@ -650,6 +653,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_PAYROLL_CODE]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/CategoryPayrollCodePage').default,
     [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_GL_CODE]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/CategoryGLCodePage').default,
     [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_VISIBLE_TO]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/DynamicCategoryVisibleToPage').default,
+    [SCREENS.WORKSPACE.DYNAMIC_CATEGORIES_BULK_VISIBLE_TO]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/DynamicCategoryVisibleToPage').default,
     [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_FLAG_AMOUNTS_OVER]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/DynamicCategoryFlagAmountsOverPage').default,
     [SCREENS.WORKSPACE.DYNAMIC_EXPENSE_LIMIT_TYPE_SELECTOR]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/DynamicExpenseLimitTypeSelectorPage').default,
     [SCREENS.WORKSPACE.DYNAMIC_IMPORTED_MEMBERS_ROLE]: () => require<ReactComponentModule>('../../../../pages/workspace/members/DynamicImportedMembersRoleSelectionPage').default,
@@ -1119,6 +1123,16 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/workspace/accounting/digits/export/DigitsDefaultCompanyCardVendorPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.DIGITS_COMPANY_CARD_ACCOUNT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/digits/export/DigitsCompanyCardAccountPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DIGITS_ADVANCED]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/digits/advanced/DigitsAdvancedPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DIGITS_EXPORT_METHOD]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/digits/advanced/DigitsExportMethodPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DIGITS_BILL_PAYMENT_ACCOUNT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/digits/advanced/DigitsBillPaymentAccountPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DIGITS_EXPENSIFY_CARD_SETTLEMENT_ACCOUNT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/digits/advanced/DigitsExpensifyCardSettlementAccountPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DIGITS_TRAVEL_BILLING_SETTLEMENT_ACCOUNT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/digits/advanced/DigitsTravelBillingSettlementAccountPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DIGITS_TRAVEL_BILLING_PAYABLE_ACCOUNT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/digits/advanced/DigitsTravelBillingPayableAccountPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_PREREQUISITES]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/businessCentral/BusinessCentralPrerequisitesPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_SETUP]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/businessCentral/BusinessCentralSetupPage').default,
