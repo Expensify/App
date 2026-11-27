@@ -2065,7 +2065,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - react-native-key-command (1.0.14):
+  - react-native-key-command (1.0.36):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2931,8 +2931,10 @@ PODS:
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
+    - React-bridging
     - React-Core
     - React-Core-prebuilt
+    - React-cxxstableapi
     - React-debug
     - React-Fabric
     - React-featureflags
@@ -2945,7 +2947,6 @@ PODS:
     - React-rendererdebug
     - React-utils
     - ReactCodegen
-    - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
@@ -4217,7 +4218,7 @@ SPEC CHECKSUMS:
   react-native-config: eb6701f1dedce0fdd239789584c4194203787b76
   react-native-document-picker: 0e19e3476259c7db349c80cdf3a58cc87ed20d65
   react-native-image-picker: d0f7a66456b149d286f0a2053f098a259c582dcb
-  react-native-key-command: 417e67b936c57b74d598c3daef68db9a7473bee3
+  react-native-key-command: 942197a2739c5a4c6584e99a20ec384f6f47df92
   react-native-keyboard-controller: b065d606021ad41fa9b4beb69dd3192f5c164f31
   react-native-netinfo: 054cbd987a44f46869a44984c9ac925026cd8eeb
   react-native-pager-view: 6c0a0c13ea69bf410a7c319794a2ef95070b35af
@@ -4272,6 +4273,10 @@ SPEC CHECKSUMS:
   RNCClipboard: 27d5e530990704ebda46ddd789fb816fbca618f6
   RNCPicker: 01875a14ce7793f0c38e117310fb880ada4727b2
   RNDeviceInfo: 481ea18bdb0d12b594f21fd59b7580b5fb7745e0
+  RNEntrustIDV: 8d4c4d2345556eebcba5598c800e07ce053acb1b
+  RNEntrustIDVDeviceSecurity: 0105531e9e56d85c23b6f37e161ef37f1b430348
+  RNEntrustIDVDocument: 8b3c979785b336fc1590f34bbe3de58e46d01625
+  RNEntrustIDVWelcome: 616eeb7c8969ca8061fb7cad7467ed240fc188bc
   RNFBAnalytics: 2f451df50833a890974d55a93557da878a85b29e
   RNFBApp: db9c2e6d36fe579ab19b82c0a4a417ff7569db7e
   RNFS: 89de7d7f4c0f6bafa05343c578f61118c8282ed8
@@ -4281,7 +4286,7 @@ SPEC CHECKSUMS:
   RNLocalize: cd0439b88f484ac3887e92e3009a6e4d76a5e1bf
   rnmapbox-maps: caecd2d438e40bcc9959bf94861c441eac95c761
   RNNitroSQLite: f895613421b40edf66a3fd1409bcfd06537160b3
-  RNPermissions: c03308b0e62689d0ad3d6093c82376195c7062d4
+  RNPermissions: 06b631418890451fb5564ac813a4a4053dde6f8f
   RNReactNativeHapticFeedback: 8304814aeaf457ff618b68e4a1af509e3a14dd92
   RNReanimated: 7441a3e18948e714df88b0827bff442c9bba2882
   RNScreens: 79f648b45411882349444a9dd7453ca23c62356e
