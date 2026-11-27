@@ -49,6 +49,9 @@ type ConfirmationFieldsContextValue = {
 
     /** Records the receipt whose inline tax amount input was emptied, or undefined once it holds a value, so submission can be blocked while it is left empty (new manual expense flow). */
     setEmptyTaxAmountTransactionID?: (transactionID: string | undefined) => void;
+
+    /** Reports whether the inline amount field holds input the draft can't show as the user's: a sign with no digits, or a currency the user picked (new manual expense flow). */
+    onUnsavedAmountInputChange?: (hasUnsavedInput: boolean) => void;
 };
 
 const ConfirmationFieldsContext = createContext<ConfirmationFieldsContextValue | null>(null);

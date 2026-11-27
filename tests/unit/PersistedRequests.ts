@@ -14,6 +14,9 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 
 jest.mock('@libs/ActiveClientManager', () => jest.requireActual<Record<string, unknown>>('../../src/libs/ActiveClientManager/index.ts'));
 
+// These cases cover web, where a request holding a File can't be stored, and Jest would otherwise load the native variant
+jest.mock('@libs/canPersistRequest', () => jest.requireActual<Record<string, unknown>>('../../src/libs/canPersistRequest/index.ts'));
+
 async function registerAsFollowerTab() {
     initActiveClientManager();
     await waitForBatchedUpdates();

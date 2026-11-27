@@ -155,7 +155,7 @@ import {
     canSendInvoice,
     getCleanedTagName,
     getCommaSeparatedTagNameWithSanitizedColons,
-    getSubmitToAccountID,
+    isSubmittingToSelf,
     getTagGLCode,
     getValidConnectedIntegration,
     getVendorDisplayName,
@@ -212,10 +212,12 @@ import {
     getReportStatusTooltipTranslation,
     getReportStatusTranslation,
     getTransactionDisplayAmount,
+    getTransactionPolicyConvertedDisplayAmount,
     hasHeldExpenses,
     hasInvoiceReports,
     hasReportBeenRejectedToSubmitter,
     isAllowedToApproveExpenseReport as isAllowedToApproveExpenseReportUtils,
+    isApproverAllowedToApprove,
     isArchivedReport,
     isClosedReport,
     isExpenseReport as isExpenseReportUtil,
@@ -233,7 +235,7 @@ import {
     shouldReportShowSubscript,
 } from './ReportUtils';
 import {getAmountFilterDisplayValue} from './SearchAmountFilterUtils';
-import {getCustomColumns, groupByRequiredColumns} from './SearchColumnsUtils';
+import {getCustomColumns, getSortByForColumn, groupByRequiredColumns} from './SearchColumnsUtils';
 import {isReportEntry, TODO_SEARCH_KEYS} from './SearchKeyUtils';
 import {
     buildSearchQueryJSON,
@@ -399,6 +401,7 @@ const transactionColumnNamesToSortingProperty: TransactionSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: 'taxAmount' as const,
     [CONST.SEARCH.TABLE_COLUMNS.RECEIPT]: null,
     [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID]: 'withdrawalID' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.TRANSACTION_ID]: 'transactionID' as const,
     [CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS]: 'formattedViolations' as const,
 };
 
@@ -2479,21 +2482,23 @@ function getActions(
     }
 
     const ownerLogin = getLoginByAccountID(report.ownerAccountID, data.personalDetailsList);
+
     const canApprove = canApproveIOU(report, policy, reportMetadata, currentUserAccountID, allReportTransactions);
     const canSubmit =
         isGroupPolicy(policy) &&
         canSubmitReport(report, ownerLogin, policy, allReportTransactions, allViolations, isArchivedOrPendingDeletePolicy(policy), currentUserLogin, currentUserAccountID);
 
     // Resolving the submit-to route scans the workspace approval rules, so skip it when neither action can apply.
-    const submitToAccountID = canApprove || canSubmit ? getSubmitToAccountID(policy, report, ownerLogin, rules) : CONST.DEFAULT_NUMBER_ID;
+    const isSubmittedToOwner = canApprove || canSubmit ? isSubmittingToSelf(policy, report, ownerLogin, rules) : false;
+    const isAllowedToApproveExpenseReport = isApproverAllowedToApprove(policy, isSubmittedToOwner);
 
-    if (canApprove && isAllowedToApproveExpenseReportUtils(report, submitToAccountID, policy)) {
+    if (canApprove && isAllowedToApproveExpenseReport) {
         allActions.push(CONST.SEARCH.ACTION_TYPES.APPROVE);
     }
 
     // We check submit eligibility separately from approve: on Submit workspaces the popover picks
     // the manager, so don't block Submit when the default submit-to route is the owner.
-    if (canSubmit && isSubmitActionAllowedForSearch(report, policy, submitToAccountID, currentUserAccountID)) {
+    if (canSubmit && isSubmitActionAllowedForSearch(report, policy, isSubmittedToOwner, currentUserAccountID)) {
         allActions.push(CONST.SEARCH.ACTION_TYPES.SUBMIT);
     }
 
@@ -2523,16 +2528,16 @@ function getSubmitExclusion(ownerAccountID: number | undefined, currentAccountID
  * should not be blocked by `isSubmitterApproveBlockedOnSubmitWorkspace` on the default submit-to
  * route (that guard is for Approve). Non-submit workspaces keep the preventSelfApproval gate.
  */
-function isSubmitActionAllowedForSearch(report: OnyxEntry<OnyxTypes.Report>, policy: OnyxEntry<OnyxTypes.Policy>, submitToAccountID: number, currentUserAccountID: number): boolean {
+function isSubmitActionAllowedForSearch(report: OnyxEntry<OnyxTypes.Report>, policy: OnyxEntry<OnyxTypes.Policy>, isSubmittedToOwner: boolean, currentUserAccountID: number): boolean {
     if (isSubmitPolicy(policy)) {
         const isReportSubmitter = report?.ownerAccountID === currentUserAccountID;
-        if (submitToAccountID === report?.ownerAccountID && policy?.preventSelfApproval && !isReportSubmitter) {
+        if (isSubmittedToOwner && policy?.preventSelfApproval && !isReportSubmitter) {
             return false;
         }
         return true;
     }
 
-    return isAllowedToApproveExpenseReportUtils(report, submitToAccountID, policy);
+    return isApproverAllowedToApprove(policy, isSubmittedToOwner);
 }
 
 /**
@@ -2870,7 +2875,15 @@ function getReportActionsSections(
                 const isReportArchived = isArchivedReport(data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]);
                 if (
                     !reportID ||
-                    !isReportActionVisible(reportAction, reportID, canUserPerformWriteAction(report, isReportArchived), visibleReportActionsData, undefined, reportActionsCollection) ||
+                    !isReportActionVisible(
+                        reportAction,
+                        reportID,
+                        canUserPerformWriteAction(report, isReportArchived),
+                        visibleReportActionsData,
+                        undefined,
+                        reportActionsCollection,
+                        isInvoiceReport(report),
+                    ) ||
                     isDeletedAction(reportAction) ||
                     isResolvedActionableWhisper(reportAction) ||
                     reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED ||
@@ -4644,6 +4657,14 @@ function getSortedTransactionData(
         });
     }
 
+    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.CONVERTED_AMOUNT) {
+        return data.sort((a, b) => {
+            const aValue = getTransactionPolicyConvertedDisplayAmount(a, a.report, a.policy);
+            const bValue = getTransactionPolicyConvertedDisplayAmount(b, b.report, b.policy);
+            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare, true);
+        });
+    }
+
     if (sortBy === CONST.SEARCH.TABLE_COLUMNS.MCC) {
         return data.sort((a, b) => {
             const aValue = getMCCForDisplay(a.mcc);
@@ -5127,6 +5148,8 @@ function getSearchColumnTranslationKey(column: SearchSortBy, type?: SearchDataTy
             return 'common.violations';
         case CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT:
             return 'common.purchaseAmount';
+        case CONST.SEARCH.TABLE_COLUMNS.CONVERTED_AMOUNT:
+            return 'common.convertedAmount';
         case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE:
             return 'common.reimbursable';
         case CONST.SEARCH.TABLE_COLUMNS.BILLABLE:
@@ -5175,6 +5198,8 @@ function getSearchColumnTranslationKey(column: SearchSortBy, type?: SearchDataTy
             return 'common.total';
         case CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID:
             return 'common.reportID';
+        case CONST.SEARCH.TABLE_COLUMNS.TRANSACTION_ID:
+            return 'common.transactionID';
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS:
             return 'common.withdrawalStatus';
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_BANK_ACCOUNT:
@@ -5251,26 +5276,6 @@ function getSearchColumnTranslationKey(column: SearchSortBy, type?: SearchDataTy
 
 function isColumnSortable(column: SearchColumnType) {
     return !nonSortableColumns.has(column);
-}
-
-function getSortByForColumn(column: SearchColumnType): SearchSortBy {
-    // The trip columns sort by the trip search's own sort keys
-    if (column === CONST.SEARCH.TABLE_COLUMNS.START_DATE) {
-        return CONST.SEARCH.TABLE_COLUMNS.DATE;
-    }
-    if (column === CONST.SEARCH.TABLE_COLUMNS.TRIP_NAME) {
-        return CONST.SEARCH.TABLE_COLUMNS.TITLE;
-    }
-    if (column === CONST.SEARCH.TABLE_COLUMNS.TRAVELER) {
-        return CONST.SEARCH.TABLE_COLUMNS.FROM;
-    }
-    if (column === CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE) {
-        return CONST.SEARCH.SORT_BY_COLUMNS.CATEGORY_GL_CODE;
-    }
-    if (column === CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE) {
-        return CONST.SEARCH.SORT_BY_COLUMNS.TAG_GL_CODE;
-    }
-    return column;
 }
 
 type OverflowMenuIconsType = Record<'Pencil' | 'Trashcan' | 'LinkCopy' | 'Checkmark', IconAsset>;
@@ -5852,8 +5857,6 @@ type HasOptionAvailability = {
 
 type GetHasOptionsConfig = {
     policies?: OnyxCollection<OnyxTypes.Policy>;
-    /** The IDs of the workspaces whose categories have rules, from `policyIDsWithCategoryRulesSelector`. */
-    policyIDsWithCategoryRules?: Record<string, true>;
     /** Skip workspace feature filtering so already-selected values still resolve to labels. */
     shouldShowAllOptions?: boolean;
     /**
@@ -5866,10 +5869,9 @@ type GetHasOptionsConfig = {
 /**
  * Which expense `has:` options can apply for the current user, based on accessible workspaces.
  * Pass an empty collection when the user has no workspaces so Tag/Category/Submitted/Approved violation stay hidden.
- * Violations only show for workspaces with Rules on. Migrated Control workspaces leave areRulesEnabled undefined,
- * so those fall back to whether their own categories have Classic category rules.
+ * Violations show for any group workspace because expenses get violations even when Rules is off.
  */
-function getHasOptionAvailability(policies: OnyxCollection<OnyxTypes.Policy> | undefined, policyIDsWithCategoryRules: Record<string, true> = {}): HasOptionAvailability {
+function getHasOptionAvailability(policies: OnyxCollection<OnyxTypes.Policy> | undefined): HasOptionAvailability {
     let shouldShowTag = false;
     let shouldShowCategory = false;
     let shouldShowSubmittedViolation = false;
@@ -5882,9 +5884,8 @@ function getHasOptionAvailability(policies: OnyxCollection<OnyxTypes.Policy> | u
 
         shouldShowTag ||= policy.areTagsEnabled === true;
         shouldShowCategory ||= policy.areCategoriesEnabled === true;
-        const shouldShowRulesBasedViolation = arePolicyRulesEnabled(policy, undefined, !!policyIDsWithCategoryRules[policy.id]);
-        shouldShowSubmittedViolation ||= shouldShowRulesBasedViolation;
-        shouldShowApprovedViolation ||= shouldShowRulesBasedViolation;
+        shouldShowSubmittedViolation = true;
+        shouldShowApprovedViolation = true;
 
         if (shouldShowTag && shouldShowCategory && shouldShowSubmittedViolation && shouldShowApprovedViolation) {
             break;
@@ -5895,19 +5896,19 @@ function getHasOptionAvailability(policies: OnyxCollection<OnyxTypes.Policy> | u
 }
 
 /**
- * Options for the `has:` filter / autocomplete. Tag, Category, Submitted violation, and Approved violation are omitted when
- * no accessible workspace has the matching feature enabled. Pass `policies` from the picker and autocomplete.
+ * Options for the `has:` filter / autocomplete. Tag and Category require the matching workspace feature to be enabled;
+ * Submitted violation and Approved violation require an accessible group workspace. Pass `policies` from the picker and autocomplete.
  * Pass `shouldShowAllOptions` for display/validation so already-selected values still resolve to labels.
  * Pass `selectedValues` in the picker so query/saved selections stay selectable until the user clears them.
  */
 function getHasOptions(translate: LocalizedTranslate, type: SearchDataTypes, config: GetHasOptionsConfig = {}) {
-    const {policies, policyIDsWithCategoryRules, shouldShowAllOptions = false, selectedValues} = config;
+    const {policies, shouldShowAllOptions = false, selectedValues} = config;
 
     switch (type) {
         case CONST.SEARCH.DATA_TYPES.EXPENSE: {
             const availability = shouldShowAllOptions
                 ? {shouldShowTag: true, shouldShowCategory: true, shouldShowSubmittedViolation: true, shouldShowApprovedViolation: true}
-                : getHasOptionAvailability(policies, policyIDsWithCategoryRules);
+                : getHasOptionAvailability(policies);
             const shouldShowTag = availability.shouldShowTag || !!selectedValues?.includes(CONST.SEARCH.HAS_VALUES.TAG);
             const shouldShowCategory = availability.shouldShowCategory || !!selectedValues?.includes(CONST.SEARCH.HAS_VALUES.CATEGORY);
             const shouldShowSubmittedViolation = availability.shouldShowSubmittedViolation || !!selectedValues?.includes(CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION);
@@ -6025,35 +6026,32 @@ function getApprovedViolationsForTransaction(reportActions: OnyxTypes.ReportActi
 }
 
 /**
- * Returns the violations to show for a transaction based on the current `has` filter.
+ * Returns the names of the violations to show for a transaction based on the current `has` filter.
  * Submitted and approved snapshots are collected independently, then merged in a Set so
  * a search that includes both filters does not list the same violation twice.
  */
+function getViolationNamesForTransaction(reportActions: OnyxTypes.ReportAction[] | undefined, transactionID: string | undefined, has: HasFilterValues | undefined): Set<string> {
+    const violationNames = new Set<string>();
+    if (!reportActions?.length || !transactionID) {
+        return violationNames;
+    }
+    if (has?.includes(CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION)) {
+        collectSubmittedViolationNamesForTransaction(violationNames, reportActions, transactionID);
+    }
+    if (has?.includes(CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION)) {
+        collectApprovedViolationNamesForTransaction(violationNames, reportActions, transactionID);
+    }
+    return violationNames;
+}
+
+/** Returns the violations to show for a transaction based on the current `has` filter, as one sorted label. */
 function getViolationsForTransaction(
     reportActions: OnyxTypes.ReportAction[] | undefined,
     transactionID: string | undefined,
     has: HasFilterValues | undefined,
     translate?: LocalizedTranslate,
 ): string | undefined {
-    if (!reportActions?.length || !transactionID) {
-        return undefined;
-    }
-
-    const shouldIncludeSubmittedViolations = !!has?.includes(CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION);
-    const shouldIncludeApprovedViolations = !!has?.includes(CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION);
-    if (!shouldIncludeSubmittedViolations && !shouldIncludeApprovedViolations) {
-        return undefined;
-    }
-
-    const violationNames = new Set<string>();
-    if (shouldIncludeSubmittedViolations) {
-        collectSubmittedViolationNamesForTransaction(violationNames, reportActions, transactionID);
-    }
-    if (shouldIncludeApprovedViolations) {
-        collectApprovedViolationNamesForTransaction(violationNames, reportActions, transactionID);
-    }
-
-    return formatTransactionViolationNames(violationNames, translate);
+    return formatTransactionViolationNames(getViolationNamesForTransaction(reportActions, transactionID, has), translate);
 }
 
 function getTypeOptions(translate: LocalizedTranslate, policies: OnyxCollection<OnyxTypes.Policy>, currentUserLogin?: string) {
@@ -6374,6 +6372,12 @@ const FILTER_TO_SYNTAX_KEY = {
     [FILTER_KEYS.TOTAL_GREATER_THAN_OR_EQUAL_TO]: CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL,
     [FILTER_KEYS.TOTAL_LESS_THAN_OR_EQUAL_TO]: CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL,
 
+    [FILTER_KEYS.CONVERTED_AMOUNT_EQUAL_TO]: CONST.SEARCH.SYNTAX_FILTER_KEYS.CONVERTED_AMOUNT,
+    [FILTER_KEYS.CONVERTED_AMOUNT_LESS_THAN]: CONST.SEARCH.SYNTAX_FILTER_KEYS.CONVERTED_AMOUNT,
+    [FILTER_KEYS.CONVERTED_AMOUNT_GREATER_THAN]: CONST.SEARCH.SYNTAX_FILTER_KEYS.CONVERTED_AMOUNT,
+    [FILTER_KEYS.CONVERTED_AMOUNT_GREATER_THAN_OR_EQUAL_TO]: CONST.SEARCH.SYNTAX_FILTER_KEYS.CONVERTED_AMOUNT,
+    [FILTER_KEYS.CONVERTED_AMOUNT_LESS_THAN_OR_EQUAL_TO]: CONST.SEARCH.SYNTAX_FILTER_KEYS.CONVERTED_AMOUNT,
+
     [FILTER_KEYS.PURCHASE_AMOUNT_EQUAL_TO]: CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT,
     [FILTER_KEYS.PURCHASE_AMOUNT_LESS_THAN]: CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT,
     [FILTER_KEYS.PURCHASE_AMOUNT_GREATER_THAN]: CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT,
@@ -6607,6 +6611,13 @@ const FILTER_VIEW_MAP = {
         advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.REPORT_ID,
         applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.REPORT_ID,
     },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_ID]: {
+        labelKey: 'common.transactionID',
+        icon: 'Fingerprint',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.TRANSACTION_ID,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.TRANSACTION_ID,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.TRANSACTION_ID,
+    },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS]: {
         labelKey: 'common.status',
         icon: 'DotIndicator',
@@ -6711,6 +6722,13 @@ const FILTER_VIEW_MAP = {
         filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.AMOUNT,
         advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.AMOUNT,
         applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.AMOUNT,
+    },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.CONVERTED_AMOUNT]: {
+        labelKey: 'common.convertedAmount',
+        icon: 'Coins',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.CONVERTED_AMOUNT,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.CONVERTED_AMOUNT,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.CONVERTED_AMOUNT,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT]: {
         labelKey: 'common.purchaseAmount',
@@ -6821,7 +6839,14 @@ function getDateDisplayValue(syntaxKey: SearchDateFilterKeys, form: Partial<Sear
     const parts: string[] = [];
 
     if (on) {
-        parts.push(isSearchDatePreset(on) ? translate(`search.filters.date.presets.${on}`) : `${translate('common.on')} ${DateUtils.formatToReadableString(on, dateFnsLocale)}`);
+        if (isSearchDatePreset(on)) {
+            parts.push(translate(`search.filters.date.presets.${on}`));
+        } else {
+            const formattedOn = DateUtils.formatToReadableString(on, dateFnsLocale);
+            if (formattedOn) {
+                parts.push(`${translate('common.on')} ${formattedOn}`);
+            }
+        }
     }
 
     if (after) {
@@ -6940,6 +6965,7 @@ function getDisplayValue(
     type: SearchDataTypes,
     translate: LocalizedTranslate,
     localeCompare: LocaleContextProps['localeCompare'],
+    convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'],
 ) {
     if (key === FILTER_KEYS.TYPE) {
         const filterValue = form[key];
@@ -6966,6 +6992,11 @@ function getDisplayValue(
             ?.sort((a, b) => sortOptionsWithEmptyValue(a, b, localeCompare))
             .map((value) => (value === CONST.SEARCH.VENDOR_EMPTY_VALUE ? translate('search.noVendor') : value))
             .join(', ');
+    }
+
+    // Bare amounts are stored in hundredths, so they need formatting to read as the amount typed in the query
+    if (isAmountFilterKey(removeNegation(key))) {
+        return getAmountFilterDisplayValue(form[key]?.toString(), convertToDisplayStringWithoutCurrency);
     }
 
     if (key === FILTER_KEYS.CURRENCY || key === FILTER_KEYS.CURRENCY_NOT || key === FILTER_KEYS.PURCHASE_CURRENCY || key === FILTER_KEYS.PURCHASE_CURRENCY_NOT) {
@@ -7305,7 +7336,7 @@ function mapFiltersFormToLabelValueList(
 
         const baseKey = removeNegation(key);
         const labelKey = FILTER_VIEW_MAP[baseKey].labelKey;
-        const value = getDisplayValue(key, searchAdvancedFiltersForm, type, translate, localeCompare);
+        const value = getDisplayValue(key, searchAdvancedFiltersForm, type, translate, localeCompare, convertToDisplayStringWithoutCurrency);
         const label = getLabelValue(key, labelKey, translate);
 
         if (label && value && !(Array.isArray(value) && value.length === 0)) {
@@ -7350,11 +7381,10 @@ function getMultiSelectFilterOptions(
     type: SearchDataTypes,
     translate: LocalizedTranslate,
     policies?: OnyxCollection<OnyxTypes.Policy>,
-    policyIDsWithCategoryRules?: Record<string, true>,
     shouldReturnTripRooms = false,
 ) {
     if (filterKey === FILTER_KEYS.HAS) {
-        return getHasOptions(translate, type, {policies, policyIDsWithCategoryRules});
+        return getHasOptions(translate, type, {policies});
     }
 
     if (filterKey === FILTER_KEYS.IS) {
@@ -7762,8 +7792,10 @@ function getColumnsToShow({
               [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: false,
               [CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.CONVERTED_AMOUNT]: false,
               [CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID]: false,
               [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.TRANSACTION_ID]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TITLE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: true,
@@ -8365,17 +8397,30 @@ function isEverySearchBulkEditExpenseOwnedBy(
     allTransactions: OnyxCollection<OnyxTypes.Transaction> | undefined,
     allReports: OnyxCollection<OnyxTypes.Report> | undefined,
 ): boolean {
-    if (selectedTransactionIDs.length === 0) {
-        return false;
-    }
+    return getSearchBulkEditExpenseOwnerAccountID(selectedTransactionIDs, accountID, allTransactions, allReports) === accountID;
+}
 
-    return selectedTransactionIDs.every((transactionID) => {
+/**
+ * Returns the account that owns every selected expense, or undefined when there's no selection or the owners differ. An
+ * unreported expense has no report to read the owner from, so it counts as the current user's, since only they can see it.
+ */
+function getSearchBulkEditExpenseOwnerAccountID(
+    selectedTransactionIDs: string[],
+    currentUserAccountID: number,
+    allTransactions: OnyxCollection<OnyxTypes.Transaction> | undefined,
+    allReports: OnyxCollection<OnyxTypes.Report> | undefined,
+): number | undefined {
+    let ownerAccountID: number | undefined;
+    for (const transactionID of selectedTransactionIDs) {
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-        if (!transaction?.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-            return true;
+        const isUnreported = !transaction?.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+        const expenseOwnerAccountID = isUnreported ? currentUserAccountID : allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`]?.ownerAccountID;
+        if (expenseOwnerAccountID === undefined || (ownerAccountID !== undefined && expenseOwnerAccountID !== ownerAccountID)) {
+            return undefined;
         }
-        return allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`]?.ownerAccountID === accountID;
-    });
+        ownerAccountID = expenseOwnerAccountID;
+    }
+    return ownerAccountID;
 }
 
 function filterValidHasValues(hasValues: HasFilterValues | undefined, type: SearchDataTypes | undefined, translate: LocalizedTranslate): HasFilterValues | undefined {
@@ -8644,6 +8689,7 @@ export {
     getSnapshotFooterTotal,
     getSearchBulkEditPolicyID,
     isEverySearchBulkEditExpenseOwnedBy,
+    getSearchBulkEditExpenseOwnerAccountID,
     getSuggestedSearches,
     getSections,
     getSuggestedSearchesVisibility,
@@ -8722,6 +8768,7 @@ export {
     getViolationFilterOptions,
     getSubmittedViolationsForTransaction,
     getApprovedViolationsForTransaction,
+    getViolationNamesForTransaction,
     getViolationsForTransaction,
     getSettlementStatus,
     getSettlementStatusBadgeProps,

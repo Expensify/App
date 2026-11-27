@@ -289,11 +289,15 @@ function getForwardsToFromRules(policy: OnyxEntry<Policy>, context: ApprovalWork
 
     const trigger = context.currentApproverEmail ? CONST.RULES.TRIGGERS.REPORT_APPROVE : CONST.RULES.TRIGGERS.REPORT_SUBMIT;
 
-    // Sort by Onyx key so the rule picked stays the same across evaluations when more than one matches (which should not happen).
-    const ruleKeys = Object.keys(rules ?? {}).sort();
-    for (const ruleKey of ruleKeys) {
+    // Pick the matching rule with the lowest Onyx key so the result stays the same across evaluations when more than one matches (which should not happen).
+    let matchedRuleKey: string | undefined;
+    let matchedRule: ApprovalWorkflowRule | undefined;
+    for (const ruleKey of Object.keys(rules ?? {})) {
         const rule = rules?.[ruleKey];
         if (!rule || rule.scope !== CONST.RULES.SCOPE.POLICY || rule.scopeID !== policy.id || rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            continue;
+        }
+        if (matchedRuleKey !== undefined && ruleKey >= matchedRuleKey) {
             continue;
         }
         if (!isApprovalWorkflowRule(rule) || !Object.values(rule.triggers ?? {}).includes(trigger)) {
@@ -303,18 +307,21 @@ function getForwardsToFromRules(policy: OnyxEntry<Policy>, context: ApprovalWork
             continue;
         }
 
-        return {forwardsTo: Object.values(rule.actions ?? {}).find((action) => action.name === CONST.RULES.ACTIONS.FORWARD_TO)?.approver};
+        matchedRuleKey = ruleKey;
+        matchedRule = rule;
     }
 
-    return undefined;
+    if (!matchedRule) {
+        return undefined;
+    }
+
+    return {forwardsTo: Object.values(matchedRule.actions ?? {}).find((action) => action.name === CONST.RULES.ACTIONS.FORWARD_TO)?.approver};
 }
 
-function getManagerAccountEmail(policy: OnyxEntry<Policy>, ownerLogin: string | undefined, rules: OnyxCollection<Rule>, reportTotal = 0): string {
-    const ruleMatch = getForwardsToFromRules(policy, {submitterEmail: ownerLogin ?? '', reportTotal}, rules);
-    if (ruleMatch) {
-        return ruleMatch.forwardsTo ?? '';
-    }
-
+/**
+ * The manager per the policy's workflow config alone (default approver or employee submitsTo), ignoring approval workflow rules.
+ */
+function getWorkflowManagerEmail(policy: OnyxEntry<Policy>, ownerLogin: string | undefined): string {
     const defaultApprover = getDefaultApprover(policy);
 
     // For policy using the optional or basic workflow, the manager is the policy default approver.
@@ -328,6 +335,15 @@ function getManagerAccountEmail(policy: OnyxEntry<Policy>, ownerLogin: string | 
     }
 
     return employee?.submitsTo ?? defaultApprover ?? '';
+}
+
+function getManagerAccountEmail(policy: OnyxEntry<Policy>, ownerLogin: string | undefined, rules: OnyxCollection<Rule>, reportTotal = 0): string {
+    const ruleMatch = getForwardsToFromRules(policy, {submitterEmail: ownerLogin ?? '', reportTotal}, rules);
+    if (ruleMatch) {
+        return ruleMatch.forwardsTo ?? '';
+    }
+
+    return getWorkflowManagerEmail(policy, ownerLogin);
 }
 
 /**
@@ -369,7 +385,7 @@ function getSubmitToEmail(
         return ruleMatch.forwardsTo ?? '';
     }
 
-    const managerEmail = getManagerAccountEmail(policy, ownerLogin, rules, expenseReport?.total ?? 0);
+    const managerEmail = getWorkflowManagerEmail(policy, ownerLogin);
 
     // Falls back to the default approver when the manager is unavailable.
     if (shouldFallBackWhenManagerIsNotMember && managerEmail && !policy?.employeeList?.[managerEmail] && !getHRAdvancedModeFinalApprover(policy)) {

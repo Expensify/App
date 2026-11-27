@@ -73,6 +73,18 @@ function getSearchParamFromUrl(currentUrl: string, param: string) {
     return currentUrl ? new URL(currentUrl).searchParams.get(param) : null;
 }
 
+/**
+ * Decodes a URI component without throwing. Returns the value unchanged when it has malformed
+ * percent-encoding (e.g. a lone "%" or a truncated multi-byte escape), which can come from untrusted content.
+ */
+function decodeURIComponentSafely(value: string): string {
+    try {
+        return decodeURIComponent(value);
+    } catch {
+        return value;
+    }
+}
+
 function getSearchParamFromPath(path: string, param: string) {
     if (!path) {
         return null;
@@ -80,14 +92,6 @@ function getSearchParamFromPath(path: string, param: string) {
 
     const [pathWithoutHash] = path.split('#', 2);
     const queryIndex = pathWithoutHash.indexOf('?');
-
-    const safeDecode = (value: string) => {
-        try {
-            return decodeURIComponent(value);
-        } catch {
-            return value;
-        }
-    };
 
     const getParamFromQueryString = (queryString: string) => {
         if (!queryString) {
@@ -102,7 +106,7 @@ function getSearchParamFromPath(path: string, param: string) {
         }
 
         // Match previous behavior: decode the query value twice and truncate on decoded delimiters.
-        return safeDecode(safeDecode(rawValue));
+        return decodeURIComponentSafely(decodeURIComponentSafely(rawValue));
     };
 
     if (queryIndex !== -1) {
@@ -120,7 +124,7 @@ function getSearchParamFromPath(path: string, param: string) {
         return null;
     }
 
-    const decodedBackTo = safeDecode(encodedBackTo);
+    const decodedBackTo = decodeURIComponentSafely(encodedBackTo);
     const backToQueryIndex = decodedBackTo.indexOf('?');
     if (backToQueryIndex === -1) {
         return null;
@@ -162,6 +166,7 @@ function hasSecureLinkKey(url: string | null | undefined): boolean {
 }
 
 export {
+    decodeURIComponentSafely,
     getSearchParamFromUrl,
     getSearchParamFromPath,
     hasSameExpensifyOrigin,

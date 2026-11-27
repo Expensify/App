@@ -80,6 +80,9 @@ type ProviderProps = {
     /** Records the receipt whose inline tax amount input was emptied, or undefined once it holds a value, so submission can be blocked while it is left empty */
     setEmptyTaxAmountTransactionID?: (transactionID: string | undefined) => void;
 
+    /** Reports whether the inline amount field holds input the draft can't show as the user's: a sign with no digits, or a currency the user picked */
+    onUnsavedAmountInputChange?: (hasUnsavedInput: boolean) => void;
+
     /** Block components rendered inside the Provider */
     children: ReactNode;
 };
@@ -108,6 +111,7 @@ function Provider({
     fieldViewRefs,
     onSubmitForm,
     setEmptyTaxAmountTransactionID,
+    onUnsavedAmountInputChange,
     children,
 }: ProviderProps) {
     const value = {
@@ -134,6 +138,7 @@ function Provider({
         fieldViewRefs,
         onSubmitForm,
         setEmptyTaxAmountTransactionID,
+        onUnsavedAmountInputChange,
     };
     return <ConfirmationFieldsContext.Provider value={value}>{children}</ConfirmationFieldsContext.Provider>;
 }
