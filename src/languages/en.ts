@@ -10434,7 +10434,8 @@ const translations = {
                 confirmErrorCategory: 'Please select a category.',
                 confirmErrorAmount: 'Please enter an amount.',
                 dailyBudget: 'Daily budget',
-                dailyBudgetOver: (amount: string) => `Daily total over ${amount}`,
+                // @context Total daily expense spend exceeds this cap. It does not refer to a remaining balance.
+                dailyBudgetOver: (amount: string) => `Daily spend over ${amount}`,
                 dailyBudgetDescription:
                     'Counts expenses across reports for the same expense date. Category, tag, and submitter narrow what counts. With a category or tag, the total is per submitter.',
                 dailyBudgetSelectorError: 'A daily budget can match one submitter and one tag. If you already chose a tag, reselect it to choose its tag list.',
