@@ -125,6 +125,7 @@ function SidebarOrderedReportsContextProvider({
     const policiesUpdates = useCollectionDelta(allPolicies);
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const transactionsUpdates = useCollectionDelta(transactions);
+    const prevTransactions = usePrevious(transactions);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const transactionViolationsUpdates = useCollectionDelta(transactionViolations);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
@@ -172,6 +173,9 @@ function SidebarOrderedReportsContextProvider({
     const prevPriorityMode = usePrevious(priorityMode);
     const prevIsOffline = usePrevious(isOffline);
     const prevConciergeReportID = usePrevious(conciergeReportID);
+    const prevCurrentUserLogin = usePrevious(currentUserLogin);
+    const prevAccountID = usePrevious(accountID);
+    const prevSession = usePrevious(session);
 
     /**
      * Find the reports that need to be updated in the LHN
@@ -179,12 +183,16 @@ function SidebarOrderedReportsContextProvider({
     const getUpdatedReports = useCallback(() => {
         const reportsToUpdate = new Set<string>();
 
+        // These decide whether and how every report shows, so recheck all of them
         if (
             isDefaultRoomsBetaEnabled !== prevIsDefaultRoomsBetaEnabled ||
             isBillPayBetaEnabled !== prevIsBillPayBetaEnabled ||
             priorityMode !== prevPriorityMode ||
             isOffline !== prevIsOffline ||
-            conciergeReportID !== prevConciergeReportID
+            conciergeReportID !== prevConciergeReportID ||
+            currentUserLogin !== prevCurrentUserLogin ||
+            accountID !== prevAccountID ||
+            session !== prevSession
         ) {
             for (const key of Object.keys(chatReports ?? {})) {
                 reportsToUpdate.add(key);
@@ -206,8 +214,14 @@ function SidebarOrderedReportsContextProvider({
             }
         }
         if (transactionsUpdates) {
-            for (const key of Object.values(transactionsUpdates ?? {}).map((transaction) => `${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`)) {
-                reportsToUpdate.add(key);
+            for (const [transactionKey, transaction] of Object.entries(transactionsUpdates)) {
+                reportsToUpdate.add(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
+
+                // A moved or deleted expense also changes the report it left
+                const previousReportID = prevTransactions?.[transactionKey]?.reportID;
+                if (previousReportID && previousReportID !== transaction?.reportID) {
+                    reportsToUpdate.add(`${ONYXKEYS.COLLECTION.REPORT}${previousReportID}`);
+                }
             }
         }
         if (transactionViolationsUpdates) {
@@ -261,6 +275,23 @@ function SidebarOrderedReportsContextProvider({
             reportsToUpdate.add(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`);
         }
 
+        // A thread can show or hide when its parent changes, e.g. a report left with one expense hides that expense's thread
+        const updatedParentKeys = new Set(reportsToUpdate);
+        for (const [key, report] of Object.entries(chatReports ?? {})) {
+            if (report?.parentReportID && updatedParentKeys.has(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`)) {
+                reportsToUpdate.add(key);
+            }
+        }
+
+        // An expense report's violations and to-dos also show on its workspace chat, so recheck the chat too
+        for (const key of Array.from(reportsToUpdate)) {
+            const chatReportID = chatReports?.[key]?.chatReportID;
+            if (!chatReportID) {
+                continue;
+            }
+            reportsToUpdate.add(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
+        }
+
         return Array.from(reportsToUpdate);
     }, [
         reportUpdates,
@@ -272,6 +303,7 @@ function SidebarOrderedReportsContextProvider({
         policiesUpdates,
         chatReports,
         transactions,
+        prevTransactions,
         lhnReportAttributes,
         isDefaultRoomsBetaEnabled,
         isBillPayBetaEnabled,
@@ -283,6 +315,12 @@ function SidebarOrderedReportsContextProvider({
         prevIsOffline,
         conciergeReportID,
         prevConciergeReportID,
+        currentUserLogin,
+        prevCurrentUserLogin,
+        accountID,
+        prevAccountID,
+        session,
+        prevSession,
         prevDerivedCurrentReportID,
         derivedCurrentReportID,
     ]);
@@ -291,15 +329,18 @@ function SidebarOrderedReportsContextProvider({
         const updatedReports = getUpdatedReports();
         const hasCachedReports = Object.keys(currentReportsToDisplay).length > 0;
 
-        // When a dependency changes but no report-specific keys were updated, getUpdatedReports() returns [].
-        // Rather than falling through to a full scan of all reports, recheck only the already-displayed reports.
-        let effectiveUpdatedReports = updatedReports.length === 0 && hasCachedReports ? Object.keys(currentReportsToDisplay) : updatedReports;
+        let effectiveUpdatedReports = updatedReports;
 
         // When guide personal details hydrate after the reports collection, guideAccountIDs changes but
         // getUpdatedReports() returns no report keys. Re-evaluate all reports so domain rooms previously
         // filtered out can appear in the LHN.
         if (hasCachedReports && prevGuideAccountIDs !== undefined && guideAccountIDs !== prevGuideAccountIDs) {
             effectiveUpdatedReports = Object.keys(chatReports ?? {});
+        }
+
+        // No report changed, so the reports kept from the last run are still the ones to show
+        if (hasCachedReports && effectiveUpdatedReports.length === 0) {
+            return currentReportsToDisplay;
         }
         const shouldDoIncrementalUpdate = effectiveUpdatedReports.length > 0 && hasCachedReports;
         let reportsToDisplay: ReportsToDisplayInLHN = {};

@@ -1010,4 +1010,112 @@ describe('useSidebarOrderedReports', () => {
         // no longer triggers a render of its own, so nothing else would recheck it
         expect(keysOfLastCall()).toEqual(expect.arrayContaining([threadKey, parentKey]));
     });
+
+    it('should recheck the report an expense moved away from', async () => {
+        // Given two displayed expense reports and an expense on the first one
+        const displayedReports = createMockReports({
+            report1: {type: CONST.REPORT.TYPE.EXPENSE},
+            report2: {type: CONST.REPORT.TYPE.EXPENSE},
+        });
+        mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue(displayedReports);
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}1`, displayedReports['1']);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}2`, displayedReports['2']);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}10`, {
+                transactionID: '10',
+                reportID: '1',
+                amount: 100,
+                currency: CONST.CURRENCY.USD,
+                created: '2024-01-01',
+                merchant: 'Merchant',
+            });
+        });
+        renderHook(() => useSidebarOrderedReports(), {wrapper: TestWrapper});
+        await waitForBatchedUpdatesWithAct();
+        mockSidebarUtils.updateReportsToDisplayInLHN.mockClear();
+
+        // When the expense moves to the second report
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}10`, {reportID: '2'});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then both reports are rechecked, because the report it left can lose its to-do or red dot too
+        expect(mockSidebarUtils.updateReportsToDisplayInLHN).toHaveBeenCalledWith(
+            expect.objectContaining({updatedReportsKeys: expect.arrayContaining([`${ONYXKEYS.COLLECTION.REPORT}1`, `${ONYXKEYS.COLLECTION.REPORT}2`])}),
+        );
+    });
+
+    it('should recheck the workspace chat when one of its expense reports changes', async () => {
+        // Given a displayed workspace chat and an expense report in it
+        const displayedReports = createMockReports({
+            report3: {chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT},
+            report4: {type: CONST.REPORT.TYPE.EXPENSE, chatReportID: '3'},
+        });
+        mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue(displayedReports);
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}3`, displayedReports['3']);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}4`, displayedReports['4']);
+        });
+        renderHook(() => useSidebarOrderedReports(), {wrapper: TestWrapper});
+        await waitForBatchedUpdatesWithAct();
+        mockSidebarUtils.updateReportsToDisplayInLHN.mockClear();
+
+        // When only the expense report changes, e.g. it gets submitted
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}4`, {stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the workspace chat is rechecked too, because it shows the expense report's to-do and red dot
+        expect(mockSidebarUtils.updateReportsToDisplayInLHN).toHaveBeenCalledWith(
+            expect.objectContaining({updatedReportsKeys: expect.arrayContaining([`${ONYXKEYS.COLLECTION.REPORT}3`, `${ONYXKEYS.COLLECTION.REPORT}4`])}),
+        );
+    });
+
+    it('should recheck every report when the session changes', async () => {
+        // Given one displayed report and one that is not displayed
+        const displayedReports = createMockReports({report5: {}});
+        mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue(displayedReports);
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}5`, displayedReports['5']);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}6`, createMockReports({report6: {}})['6']);
+        });
+        renderHook(() => useSidebarOrderedReports(), {wrapper: TestWrapper});
+        await waitForBatchedUpdatesWithAct();
+        mockSidebarUtils.updateReportsToDisplayInLHN.mockClear();
+
+        // When the session changes, which no single report records
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then every report is rechecked, including the hidden one, because who is signed in decides what every row shows
+        expect(mockSidebarUtils.updateReportsToDisplayInLHN).toHaveBeenCalledWith(
+            expect.objectContaining({updatedReportsKeys: expect.arrayContaining([`${ONYXKEYS.COLLECTION.REPORT}5`, `${ONYXKEYS.COLLECTION.REPORT}6`])}),
+        );
+    });
+
+    it('should keep the LHN list without rechecking when no report changed', async () => {
+        // Given a displayed report and a workspace that no report belongs to
+        const displayedReports = createMockReports({report7: {}});
+        mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue(displayedReports);
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}7`, displayedReports['7']);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}8`, {id: '8', name: 'Workspace'});
+        });
+        renderHook(() => useSidebarOrderedReports(), {wrapper: TestWrapper});
+        await waitForBatchedUpdatesWithAct();
+        mockSidebarUtils.updateReportsToDisplayInLHN.mockClear();
+
+        // When that workspace changes, which no report in the LHN depends on
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}8`, {name: 'Renamed workspace'});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then no report is rechecked, because none of them changed
+        expect(mockSidebarUtils.updateReportsToDisplayInLHN).not.toHaveBeenCalled();
+    });
 });
