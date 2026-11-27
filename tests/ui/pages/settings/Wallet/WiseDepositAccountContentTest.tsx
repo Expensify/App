@@ -1,4 +1,4 @@
-import {act, fireEvent, render, screen} from '@testing-library/react-native';
+import {act, cleanup, fireEvent, render, screen} from '@testing-library/react-native';
 
 import getAddressInputKeys from '@components/DynamicForm/utils/getAddressInputKeys';
 import {getPages} from '@components/DynamicForm/utils/paginate';
@@ -394,11 +394,34 @@ describe('WiseDepositAccountContent', () => {
                 fireEvent.press(screen.getByText('common.tryAgain'), {preventDefault: jest.fn()});
                 await waitForBatchedUpdatesWithAct();
 
-                // Then the EUR form is asked for again, with no answers, since a new currency starts the form over
+                // Then the EUR form is asked for again with only the currency, since a new currency starts the form over
                 const requests = getFieldsRequests();
                 expect(requests).toHaveLength(requestCountBeforeRetry + 1);
                 expect(requests.at(-1)).toMatchObject({country: 'GB', currency: 'EUR'});
-                expect(requests.at(-1)).not.toHaveProperty('inputs');
+                const inputs = requests.at(-1)?.inputs;
+                expect(typeof inputs === 'string' ? JSON.parse(inputs) : undefined).toEqual({currency: 'EUR'});
+            });
+
+            it('asks for the form again from a screen opened after the failure', async () => {
+                await renderScreen(FIRST_PAGE_NAME);
+
+                // Given a pick of EUR whose refresh failed
+                await pickCurrency('EUR');
+                await failRefresh();
+
+                // And a new screen in its place, as when a pick from the confirmation page replaces the screen or Back shows an earlier one, which never sent that refresh
+                cleanup();
+                await renderScreen(FIRST_PAGE_NAME);
+                const requestCountBeforeRetry = getFieldsRequests().length;
+
+                // When the user presses Try again there
+                fireEvent.press(screen.getByText('common.tryAgain'), {preventDefault: jest.fn()});
+                await waitForBatchedUpdatesWithAct();
+
+                // Then the EUR form the failed refresh asked for is asked for again, read from the draft rather than from what the screen sent
+                const requests = getFieldsRequests();
+                expect(requests).toHaveLength(requestCountBeforeRetry + 1);
+                expect(requests.at(-1)).toMatchObject({country: 'GB', currency: 'EUR'});
             });
 
             it('sends the answers the user has now when the user tries again', async () => {
@@ -500,15 +523,15 @@ describe('WiseDepositAccountContent', () => {
         await Onyx.merge(ONYXKEYS.RAM_ONLY_WISE_BANK_ACCOUNT_FIELDS, {errors: {refreshError: 'The form could not be refreshed'}});
         await waitForBatchedUpdatesWithAct();
 
-        // Then the user sees why the fields did not change, on the page they are on
-        expect(screen.getByText('The form could not be refreshed')).toBeOnTheScreen();
+        // Then the user sees why the fields did not change, on the page they are on, next to Try again
+        expect(screen.getByText('The form could not be refreshed', {exact: false})).toBeOnTheScreen();
 
         // When the user tries again, which clears the error while the request runs
         await Onyx.merge(ONYXKEYS.RAM_ONLY_WISE_BANK_ACCOUNT_FIELDS, {isLoading: true, errors: null});
         await waitForBatchedUpdatesWithAct();
 
         // Then the old error is gone
-        expect(screen.queryByText('The form could not be refreshed')).not.toBeOnTheScreen();
+        expect(screen.queryByText('The form could not be refreshed', {exact: false})).not.toBeOnTheScreen();
     });
 
     it('opens the new form instead of the success screen after a success from an earlier visit', async () => {

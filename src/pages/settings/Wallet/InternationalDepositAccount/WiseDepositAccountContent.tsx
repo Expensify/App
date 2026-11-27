@@ -3,7 +3,7 @@ import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import DynamicFormFlow from '@components/DynamicForm';
 import type {DynamicFormValues} from '@components/DynamicForm/types';
-import getRefreshAnswers from '@components/DynamicForm/utils/getRefreshAnswers';
+import getRefreshAnswers, {getClearedAnswerKeys} from '@components/DynamicForm/utils/getRefreshAnswers';
 import type {FormValue} from '@components/Form/types';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Header from '@components/Header';
@@ -59,16 +59,6 @@ type WiseDepositAccountContentProps = {
     isEditing?: boolean;
 };
 
-/** A refresh the user asked for, kept so Try again can send it again once it fails */
-type RefreshRequest = {
-    inputID: string;
-    value: FormValue;
-    otherAnswers?: DynamicFormValues;
-
-    /** The pick was a new currency, which starts the form over and asks for the new currency's form without any answers */
-    isNewCurrency: boolean;
-};
-
 const onSuccessFallbackRouteSelector = (personalBankAccount: OnyxEntry<PersonalBankAccount>) => personalBankAccount?.onSuccessFallbackRoute;
 
 /** The schema's currency field, which also picks the kind of account Wise asks for */
@@ -112,8 +102,6 @@ function WiseDepositAccountContent({backTo, subPage, isEditing}: WiseDepositAcco
     const [formStartCount, setFormStartCount] = useState(0);
     // Read once when the screen opens: a success that arrives later belongs to this visit and shows the success screen
     const [hasSuccessFromEarlierVisit, setHasSuccessFromEarlierVisit] = useState(() => !!formState?.isSuccess);
-    // Kept on the screen rather than in the form, since a new currency remounts the form and its retry still has to know what to ask for
-    const [lastRefreshRequest, setLastRefreshRequest] = useState<RefreshRequest>();
     // The error a retry already answered. The error clears only once Onyx catches up, so a second tap in the meantime would send the request twice.
     const retriedErrorsRef = useRef<Errors | undefined>(undefined);
     const errorMessage = getLatestErrorMessage(wiseBankAccountFields);
@@ -161,7 +149,6 @@ function WiseDepositAccountContent({backTo, subPage, isEditing}: WiseDepositAcco
 
     // Back from the first form page shows the country list again, so the URL drops the form page to match it
     const returnToCountryList = () => {
-        setLastRefreshRequest(undefined);
         clearWiseBankAccountFieldsKeepingCountry(selectedCountry);
         Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute(backTo), {forceReplace: true});
     };
@@ -221,8 +208,6 @@ function WiseDepositAccountContent({backTo, subPage, isEditing}: WiseDepositAcco
             return;
         }
         clearDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);
-        // A refresh asked of the old country's form must not be sent again for the new one
-        setLastRefreshRequest(undefined);
         // A success from an earlier visit is kept on the device, so it is dropped before the new form arrives
         clearWiseBankAccountForm();
         setHasSuccessFromEarlierVisit(false);
@@ -247,36 +232,32 @@ function WiseDepositAccountContent({backTo, subPage, isEditing}: WiseDepositAcco
         }
     };
 
-    // The answers are read from the draft each time, so a retry sends what the user has answered since the refresh failed
-    const requestFieldsForAnswer = (inputID: string, value: FormValue, otherAnswers?: DynamicFormValues) => {
+    const refreshForm = (inputID: string, value: FormValue, otherAnswers?: DynamicFormValues) => {
+        // The draft this render read still holds the currency from before the pick, so picking the same currency again keeps the answers
+        if (inputID === CURRENCY_INPUT_ID && typeof value === 'string' && value !== getAnswerCurrency(draftValues ?? {})) {
+            startOverWithCurrency(value);
+            return;
+        }
+        // The answers a change clears, such as the zip of the old country, are cleared in the draft too, so Try again, which reads the draft, does not send them back
+        const clearedKeys = getClearedAnswerKeys(otherAnswers);
+        if (clearedKeys.length > 0) {
+            setDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM, Object.fromEntries(clearedKeys.map((key) => [key, ''])));
+        }
         const answers = getRefreshAnswers(getCurrentSchemaAnswers(schema, draftValues), inputID, value, otherAnswers);
         getWiseBankAccountFields(selectedCountry, getAnswerCurrency(answers), answers);
     };
 
-    const refreshForm = (inputID: string, value: FormValue, otherAnswers?: DynamicFormValues) => {
-        // The draft this render read still holds the currency from before the pick, so picking the same currency again keeps the answers
-        const isNewCurrency = inputID === CURRENCY_INPUT_ID && typeof value === 'string' && value !== getAnswerCurrency(draftValues ?? {});
-        setLastRefreshRequest({inputID, value, otherAnswers, isNewCurrency});
-        if (isNewCurrency) {
-            startOverWithCurrency(value);
-            return;
-        }
-        requestFieldsForAnswer(inputID, value, otherAnswers);
-    };
-
-    // The draft already holds a new currency the user started over with, so its retry only asks for that currency's form again
+    // The draft holds every pick, so the retry works from any page or screen, including one opened after the failure, and sends what the user has answered since.
+    // A new currency left only the currency in the draft, so its retry asks for that currency's form again.
     const retryRefresh = () => {
         const failedErrors = wiseBankAccountFields?.errors;
-        if (!lastRefreshRequest || !failedErrors || retriedErrorsRef.current === failedErrors) {
+        if (!failedErrors || retriedErrorsRef.current === failedErrors) {
             return;
         }
         retriedErrorsRef.current = failedErrors;
-        const {inputID, value, otherAnswers, isNewCurrency} = lastRefreshRequest;
-        if (isNewCurrency && typeof value === 'string') {
-            getWiseBankAccountFields(selectedCountry, value);
-            return;
-        }
-        requestFieldsForAnswer(inputID, value, otherAnswers);
+        // An empty answer is one the user has not given or one a change cleared, and the refresh leaves a cleared one out, so none is sent
+        const answers = Object.fromEntries(Object.entries(getCurrentSchemaAnswers(schema, draftValues)).filter(([, answer]) => answer !== ''));
+        getWiseBankAccountFields(selectedCountry, getAnswerCurrency(answers), answers);
     };
 
     // The flow keeps the answers when nothing is sent, so the user can tick the terms and confirm again. The tick itself is not sent, as in the Corpay flow.
@@ -326,7 +307,7 @@ function WiseDepositAccountContent({backTo, subPage, isEditing}: WiseDepositAcco
                 submitError={getLatestErrorMessage(formState)}
                 isRefreshingRequirements={!!wiseBankAccountFields.isLoading}
                 refreshError={errorMessage}
-                onRetryRefresh={lastRefreshRequest ? retryRefresh : undefined}
+                onRetryRefresh={retryRefresh}
                 onBack={returnToCountryList}
             >
                 <CheckboxWithLabel
