@@ -150,6 +150,7 @@ import {approveMoneyRequest} from './IOU/ReportWorkflow';
 import {isCurrencySupportedForGlobalReimbursement} from './Policy/Policy';
 import {setOptimisticTransactionThread} from './Report';
 import {saveLastSearchParams} from './ReportNavigation';
+import {trackSearchSnapshotAccess} from './SearchSnapshotCache';
 
 type OnyxSearchResponse = {
     data: SearchResults['data'];
@@ -1628,6 +1629,7 @@ function search({
         isSent: false,
     };
     inFlightSearchRequests.set(dedupeKey, inFlightRequestState);
+    trackSearchSnapshotAccess([queryJSON.hash]);
 
     if (shouldUpdateLastSearchParams) {
         saveLastSearchParams({
@@ -1750,6 +1752,8 @@ function search({
                 throw error;
             })
             .finally(() => {
+                // Both outcomes rewrite the snapshot, so it needs an access record even if it was evicted mid-flight
+                trackSearchSnapshotAccess([queryJSON.hash]);
                 releaseSearchSnapshot(jsonQuery);
                 inFlightSearchRequests.delete(dedupeKey);
                 return inFlightRequestState.pendingUpgradeRequest?.();

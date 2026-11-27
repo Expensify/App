@@ -74,6 +74,7 @@ type SendInvoiceInformation = {
         | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
         | typeof ONYXKEYS.COLLECTION.POLICY
         | typeof ONYXKEYS.COLLECTION.SNAPSHOT
+        | typeof ONYXKEYS.SEARCH_SNAPSHOT_ACCESS
         | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
     >;
 };
@@ -146,6 +147,7 @@ function buildOnyxDataForInvoice(
     | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
     | typeof ONYXKEYS.COLLECTION.POLICY
     | typeof ONYXKEYS.COLLECTION.SNAPSHOT
+    | typeof ONYXKEYS.SEARCH_SNAPSHOT_ACCESS
     | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
 > {
     const {chat, iou, transactionParams, policyParams, optimisticData: optimisticDataParams, companyName, companyWebsite, participant, currentUserPersonalDetails} = invoiceParams;
@@ -165,6 +167,7 @@ function buildOnyxDataForInvoice(
             | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
             | typeof ONYXKEYS.COLLECTION.POLICY
             | typeof ONYXKEYS.COLLECTION.SNAPSHOT
+            | typeof ONYXKEYS.SEARCH_SNAPSHOT_ACCESS
         >
     > = [
         {

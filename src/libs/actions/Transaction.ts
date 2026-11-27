@@ -966,6 +966,7 @@ function getChangeTransactionsReportOnyxData({
             | typeof ONYXKEYS.COLLECTION.TRANSACTION
             | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
             | typeof ONYXKEYS.COLLECTION.SNAPSHOT
+            | typeof ONYXKEYS.SEARCH_SNAPSHOT_ACCESS
             | typeof ONYXKEYS.SELF_DM_REPORT_ID
         >
     > = [];

@@ -8481,6 +8481,10 @@ const CONST = {
 
     SEARCH: {
         RESULTS_PAGE_SIZE: 50,
+        /** How many snapshots of ordinary searches stay cached. Saved and suggested searches don't count toward it */
+        MAX_CACHED_SNAPSHOTS: 25,
+        /** How many snapshots of saved and suggested searches stay cached, so pins of edited or deleted saved searches age out */
+        MAX_CACHED_PINNED_SNAPSHOTS: 25,
         // Keep in sync with FilterUtils::MAX_KEYWORD_TOKENS in Auth.
         MAX_KEYWORD_TOKENS: 50,
         QUERY_ERROR_UUID: {

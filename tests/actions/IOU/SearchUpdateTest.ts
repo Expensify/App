@@ -654,6 +654,31 @@ describe('actions/IOU', () => {
             }
         });
 
+        it('records access for every snapshot it writes, in the same batch as the snapshots', () => {
+            // Given an active merchant search the new expense matches
+            const queryJSON = buildSearchQueryJSON('type:expense merchant:Unique');
+            if (!queryJSON) {
+                throw new Error('Expected a valid merchant query');
+            }
+            jest.mocked(getCurrentSearchQueryJSON).mockReturnValueOnce(queryJSON);
+
+            // When the expense creation builds its optimistic data
+            const result = getSearchOnyxUpdate({
+                transaction: {...createRandomTransaction(1), merchant: 'Unique', modifiedMerchant: undefined},
+                participant: {accountID: 42, login: 'test@test.com'},
+                transactionThreadReportID: undefined,
+                isInvoice: false,
+            });
+
+            // Then each written snapshot gets an access record applied with it, so one evicted before the deferred write lands is still tracked
+            const writtenHashes = (result?.optimisticData ?? [])
+                .filter((update) => update.key.startsWith(ONYXKEYS.COLLECTION.SNAPSHOT))
+                .map((update) => update.key.slice(ONYXKEYS.COLLECTION.SNAPSHOT.length));
+            const accessUpdate = result?.optimisticData?.find((update) => update.key === ONYXKEYS.SEARCH_SNAPSHOT_ACCESS);
+            expect(writtenHashes).toContain(String(queryJSON.hash));
+            expect(Object.keys(accessUpdate?.value ?? {}).sort()).toEqual(writtenHashes.sort());
+        });
+
         it('returns undefined when the participant has no accountID', () => {
             const result = getSearchOnyxUpdate({
                 transaction: {...createRandomTransaction(1)},

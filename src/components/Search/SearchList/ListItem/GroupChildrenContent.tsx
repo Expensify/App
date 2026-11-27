@@ -3,6 +3,7 @@ import {resolveGroupCount} from '@components/Search/selectionBuilders';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useShowSearchSnapshots from '@hooks/useShowSearchSnapshots';
 
 import {search} from '@libs/actions/Search';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
@@ -42,6 +43,7 @@ function GroupChildrenContent({
     const isExpenseReportType = searchType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
 
     const [transactionsSnapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${groupItem.transactionsQueryJSON?.hash}`);
+    useShowSearchSnapshots(isExpanded && groupItem.transactionsQueryJSON ? [groupItem.transactionsQueryJSON.hash] : undefined);
     const [transactionsVisibleLimit, setTransactionsVisibleLimit] = useState<number>(CONST.TRANSACTION.RESULTS_PAGE_SIZE);
     const snapshotData = transactionsSnapshot?.data;
 

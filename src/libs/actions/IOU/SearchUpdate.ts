@@ -191,7 +191,9 @@ function getSearchOnyxUpdate({
     isInvoice,
     previousMoneyRequestAction,
     currentUserPersonalDetails: passedCurrentUserPersonalDetails,
-}: GetSearchOnyxUpdateParams): OnyxData<typeof ONYXKEYS.COLLECTION.SNAPSHOT> | undefined {
+}: GetSearchOnyxUpdateParams):
+    | {optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT | typeof ONYXKEYS.SEARCH_SNAPSHOT_ACCESS>>; successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>>}
+    | undefined {
     const toAccountID = participant?.accountID;
     // Callers that already have the current user's details (e.g. read from the CurrentUserPersonalDetails context) pass them in.
     // The rest fall back to the Onyx subscription until they are migrated.
@@ -417,8 +419,16 @@ function getSearchOnyxUpdate({
         return;
     }
 
+    // Written with the snapshots so a snapshot this batch creates or restores after an eviction always has an access record
+    const lastAccessed = Date.now();
+    const accessUpdate: OnyxUpdate<typeof ONYXKEYS.SEARCH_SNAPSHOT_ACCESS> = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: ONYXKEYS.SEARCH_SNAPSHOT_ACCESS,
+        value: Object.fromEntries([...writtenHashes].map((hash) => [hash, {lastAccessed}])),
+    };
+
     return {
-        optimisticData,
+        optimisticData: [...optimisticData, accessUpdate],
         successData,
     };
 }

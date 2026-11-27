@@ -20,6 +20,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
+import useShowSearchSnapshots from '@hooks/useShowSearchSnapshots';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -421,6 +422,8 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
     const query = isResolved && arePoliciesLoaded && !shouldUpsell ? buildInsightsJsonQuery(dashboardID, filters, eligibleCharts, violationStages) : undefined;
     const hash = query?.hash;
     const snapshotHashes = query?.snapshotHashes.join(',');
+    // A dashboard shows several snapshots at once, which must stay cached even when they outnumber the cap
+    useShowSearchSnapshots(query?.snapshotHashes);
     const updateViolationStage = (graphKey: InsightsGraphKey, stage: InsightsViolationStage) => {
         if (isExporting) {
             return;

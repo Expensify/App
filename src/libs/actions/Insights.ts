@@ -16,6 +16,8 @@ import type {OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
+import {trackSearchSnapshotAccess} from './SearchSnapshotCache';
+
 // Remounts share generation, but completed answers stay only in the evictable Onyx cache.
 const pendingExplanations = new Map<string, Promise<void>>();
 
@@ -25,11 +27,16 @@ function requestInsights<TKey extends OnyxKey>(
     jsonQuery: string,
     key: `${typeof ONYXKEYS.COLLECTION.INSIGHTS | typeof ONYXKEYS.COLLECTION.INSIGHTS_DETAILS}${string}`,
     onyxData: OnyxData<TKey>,
+    snapshotHashes: number[],
 ) {
+    trackSearchSnapshotAccess(snapshotHashes);
+
     waitForWrites(command).then(() =>
         // API.read() hides the response code and network rejections, which are needed to tell backend errors from failed requests, same as Search
         makeRequestWithSideEffects(command, {jsonQuery}, onyxData)
             .then((result) => {
+                // The response rewrites the snapshots, so they need an access record even if they were evicted mid-flight
+                trackSearchSnapshotAccess(snapshotHashes);
                 if (typeof result?.jsonCode !== 'number' || result.jsonCode === CONST.JSON_CODE.SUCCESS) {
                     return;
                 }
@@ -86,7 +93,7 @@ function getInsights(dashboard: InsightsDashboardID, hash: number, jsonQuery: st
         },
     }));
 
-    requestInsights(READ_COMMANDS.GET_INSIGHTS, jsonQuery, key, {optimisticData, successData, failureData});
+    requestInsights(READ_COMMANDS.GET_INSIGHTS, jsonQuery, key, {optimisticData, successData, failureData}, snapshotHashes);
 }
 
 /** Fetches the Details panel's sections and fills the snapshot with its Top expenses */
@@ -125,7 +132,7 @@ function getInsightsDetails(hash: number, jsonQuery: string, topExpensesSnapshot
         },
     ];
 
-    requestInsights(READ_COMMANDS.GET_INSIGHTS_DETAILS, jsonQuery, key, {optimisticData, successData, failureData});
+    requestInsights(READ_COMMANDS.GET_INSIGHTS_DETAILS, jsonQuery, key, {optimisticData, successData, failureData}, [topExpensesSnapshotHash]);
 }
 
 function setInsightsFilters(searchKey: InsightsSearchKey, query: SearchQueryString) {

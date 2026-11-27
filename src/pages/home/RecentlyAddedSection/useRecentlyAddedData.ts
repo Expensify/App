@@ -2,6 +2,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useShowSearchSnapshots from '@hooks/useShowSearchSnapshots';
 import useTabFocusedRefresh from '@hooks/useTabFocusedRefresh';
 
 import {search} from '@libs/actions/Search';
@@ -108,6 +109,7 @@ function useRecentlyAddedData(): RecentlyAddedData {
     const hash = queryJSON?.hash;
 
     const [searchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
+    useShowSearchSnapshots(hash === undefined ? undefined : [hash]);
     const [spendDataSignature] = useOnyx(ONYXKEYS.DERIVED.SPEND_DATA_SIGNATURE);
 
     // Read by key only, never iterated: the collection holds tens of thousands of entries.
