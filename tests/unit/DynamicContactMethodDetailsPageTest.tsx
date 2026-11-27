@@ -1,7 +1,9 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
+import BaseValidateCodeForm from '@components/ValidateCodeActionModal/ValidateCodeForm/BaseValidateCodeForm';
 import ValidateCodeCountdown from '@components/ValidateCodeCountdown';
+import ValidateCodeInput from '@components/ValidateCodeInput';
 
 import * as UserActions from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
@@ -11,6 +13,7 @@ import DynamicContactMethodDetailsPage from '@pages/settings/Profile/Contacts/Dy
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import {NavigationContainer} from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
 
 import type {MockFetch} from '../utils/TestHelper';
@@ -178,7 +181,21 @@ describe('DynamicContactMethodDetailsPage', () => {
         fireEvent.press(screen.UNSAFE_getByProps({sentryLabel: CONST.SENTRY_LABEL.VALIDATE_CODE.RESEND_CODE}));
         // Then the user sees the resend error and returns once verification succeeds.
         expect(await screen.findByText('contacts.genericFailureMessages.requestContactMethodValidateCode')).toBeOnTheScreen();
+        expect(screen.UNSAFE_getByType(ValidateCodeInput).props.hasError).toBe(false);
+        fireEvent(screen.UNSAFE_getByProps({shouldDisplayErrorAbove: true}), 'close');
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.queryByText('contacts.genericFailureMessages.requestContactMethodValidateCode')).toBeNull();
+        // A rejected verification must still mark the input invalid, until another resend clears it.
+        fireEvent(screen.UNSAFE_getByType(ValidateCodeInput), 'changeText', '123456');
+        fireEvent(screen.UNSAFE_getByType(ValidateCodeInput), 'fulfill');
+        expect(await screen.findByText('contacts.genericFailureMessages.validateSecondaryLogin')).toBeOnTheScreen();
+        expect(screen.UNSAFE_getByType(ValidateCodeInput).props.hasError).toBe(true);
         mockFetch.succeed();
+        fireEvent(screen.UNSAFE_getByType(ValidateCodeCountdown), 'countdownFinish');
+        fireEvent.press(screen.UNSAFE_getByProps({sentryLabel: CONST.SENTRY_LABEL.VALIDATE_CODE.RESEND_CODE}));
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.queryByText('contacts.genericFailureMessages.validateSecondaryLogin')).toBeNull();
+        expect(screen.UNSAFE_getByType(ValidateCodeInput).props.hasError).toBe(false);
 
         await act(async () => {
             Onyx.merge(ONYXKEYS.LOGINS, {
@@ -193,6 +210,56 @@ describe('DynamicContactMethodDetailsPage', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(Navigation.goBack).toHaveBeenCalled();
+    });
+
+    it.each([
+        ['flow', false],
+        ['flow', true],
+        ['code', false],
+        ['code', true],
+    ] as const)('keeps a retained %s error hidden after resend (request fails: %s)', async (errorSource, shouldFail) => {
+        // Given an old flow or code error that requesting another code does not clear.
+        const staleError = {[Date.now()]: 'Stale verification error'};
+        await Onyx.merge(ONYXKEYS.VALIDATE_ACTION_CODE, {
+            errorFields: {
+                validateLogin: errorSource === 'code' ? staleError : null,
+            },
+        });
+        await waitForBatchedUpdates();
+        render(
+            <NavigationContainer>
+                <HTMLProviderWrapper>
+                    <BaseValidateCodeForm
+                        validateCodeActionErrorField="validateLogin"
+                        validateError={errorSource === 'flow' ? staleError : undefined}
+                        sendValidateCode={() => UserActions.requestValidateCodeAction()}
+                        clearError={jest.fn()}
+                        handleSubmitForm={jest.fn()}
+                    />
+                </HTMLProviderWrapper>
+            </NavigationContainer>,
+        );
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.queryByText('Stale verification error')).toBeNull();
+        if (errorSource === 'flow') {
+            fireEvent.press(screen.UNSAFE_getByProps({sentryLabel: CONST.SENTRY_LABEL.VALIDATE_CODE.VERIFY}));
+            expect(screen.getByText('Stale verification error')).toBeOnTheScreen();
+        }
+        // When the real resend action succeeds or fails, regardless of whether verification exposed the old error.
+        fireEvent(screen.UNSAFE_getByType(ValidateCodeCountdown), 'countdownFinish');
+        if (shouldFail) {
+            mockFetch.fail();
+        }
+        fireEvent.press(screen.UNSAFE_getByProps({sentryLabel: CONST.SENTRY_LABEL.VALIDATE_CODE.RESEND_CODE}));
+        await waitForBatchedUpdatesWithAct();
+        // Then only a send failure is displayed, without marking the code input invalid.
+        expect(screen.queryByText('Stale verification error')).toBeNull();
+        expect(screen.UNSAFE_getByType(ValidateCodeInput).props.hasError).toBe(false);
+        if (shouldFail) {
+            expect(await screen.findByText('contacts.genericFailureMessages.requestContactMethodValidateCode')).toBeOnTheScreen();
+        } else {
+            expect(screen.queryByText('contacts.genericFailureMessages.requestContactMethodValidateCode')).toBeNull();
+        }
     });
 
     it('goes back to the contact methods list when the screen is refocused after being validated under another screen', async () => {

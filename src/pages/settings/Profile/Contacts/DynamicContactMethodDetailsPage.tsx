@@ -377,14 +377,16 @@ function DynamicContactMethodDetailsPage({route}: DynamicContactMethodDetailsPag
                     <ValidateCodeActionForm
                         hasValidateCodeBeenSent={hasValidateCodeBeenSent}
                         handleSubmitForm={(validateCode) => validateSecondaryLogin(contactMethod, validateCode)}
-                        validateError={!isEmptyObject(validateLoginError) ? validateLoginError : getLatestErrorField(loginData, 'validateCodeSent')}
+                        validateError={validateLoginError}
+                        resendError={getLatestErrorField(loginData, 'validateCodeSent')}
                         clearError={() => {
                             // When removing unverified contact methods, the ValidateCodeActionForm unmounts and triggers clearError.
                             // This causes loginData to become an object, which makes sendValidateCode trigger, so we add this check to prevent clearing the error.
                             if (!loginDataRef.current?.partnerUserID || loginDataRef.current?.pendingFields?.deletedLogin) {
                                 return;
                             }
-                            clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent');
+                            clearContactMethodErrors(contactMethod, 'validateLogin');
+                            clearContactMethodErrors(contactMethod, 'validateCodeSent');
                         }}
                         sendValidateCode={() => {
                             if (!loginData.partnerUserID || loginData.pendingFields?.deletedLogin) {

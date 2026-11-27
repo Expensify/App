@@ -69,6 +69,8 @@ type ValidateCodeFormProps = {
     validateCodeActionErrorField: string;
 
     validateError?: Errors;
+    /** Send failures are displayed without marking the code input invalid. */
+    resendError?: Errors;
     handleSubmitForm: (validateCode: string) => void;
     buttonStyles?: StyleProp<ViewStyle>;
     clearError: () => void;
@@ -97,6 +99,7 @@ function BaseValidateCodeForm({
     validateCodeActionErrorField,
     validatePendingAction,
     validateError,
+    resendError,
     handleSubmitForm,
     clearError,
     sendValidateCode,
@@ -254,7 +257,7 @@ function BaseValidateCodeForm({
      * Request a validateCode be sent to verify this contact method
      */
     const resendValidateCode = () => {
-        setCanShowError(true);
+        setCanShowError(false);
         sendValidateCode();
         inputValidateCodeRef.current?.clear();
         countdownRef.current?.resetCountdown();
@@ -316,6 +319,7 @@ function BaseValidateCodeForm({
     // latestValidateCodeError only holds an error related to bad validateCode
     // while validateError holds flow-specific errors
     const finalValidateError = !isEmptyObject(latestValidateCodeError) ? latestValidateCodeError : validateError;
+    const codeSendError = !isEmptyObject(resendError) ? resendError : defaultValidateCodeError;
     return (
         <>
             <ValidateCodeInput
@@ -378,7 +382,7 @@ function BaseValidateCodeForm({
             <OfflineWithFeedback
                 shouldDisplayErrorAbove
                 pendingAction={validatePendingAction}
-                errors={canShowError && !isEmptyObject(finalValidateError) ? finalValidateError : defaultValidateCodeError}
+                errors={canShowError && !isEmptyObject(finalValidateError) ? finalValidateError : codeSendError}
                 errorRowStyles={[styles.mt2, styles.textWrap]}
                 onClose={() => {
                     clearError();

@@ -15,6 +15,7 @@ function ValidateCodeActionForm({
     descriptionSecondaryStyles,
     validatePendingAction,
     validateError,
+    resendError,
     hasValidateCodeBeenSent,
     handleSubmitForm,
     clearError,
@@ -57,6 +58,7 @@ function ValidateCodeActionForm({
                 validatePendingAction={validatePendingAction}
                 validateCodeActionErrorField="validateLogin"
                 validateError={validateError}
+                resendError={resendError}
                 handleSubmitForm={handleSubmitForm}
                 sendValidateCode={sendValidateCode}
                 clearError={clearError}

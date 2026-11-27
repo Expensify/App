@@ -20,6 +20,8 @@ type ValidateCodeActionFormProps = {
     validatePendingAction?: PendingAction | null;
 
     validateError?: Errors;
+    /** Send failures are displayed without marking the code input invalid. */
+    resendError?: Errors;
     handleSubmitForm: (validateCode: string) => void;
     clearError: () => void;
 
