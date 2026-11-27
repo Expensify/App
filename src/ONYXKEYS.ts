@@ -1123,9 +1123,9 @@ const ONYXKEYS = {
         /** Session-scoped loading flags for a policy's on-demand tags read, keyed by policyID.
          *  Registered as RAM-only in `setup/index.ts`. */
         RAM_ONLY_POLICY_TAGS_LOADING_STATE: 'policyTagsLoadingState_',
-        /** ID of the last GetInsights request that succeeded, keyed by dashboard ID and query hash like the Insights collection.
+        /** The last GetInsights request that succeeded and the tag levels its response listed, keyed by dashboard ID and query hash like the Insights collection.
          *  Registered as RAM-only in `setup/index.ts`, so a response stored in an earlier session never matches a request. */
-        RAM_ONLY_INSIGHTS_RESPONSE_REQUEST_ID: 'insightsResponseRequestID_',
+        RAM_ONLY_INSIGHTS_RESPONSE_TAG_LEVELS: 'insightsResponseTagLevels_',
         /** The policy lastModified of the last full policy snapshot OpenReport returned, keyed by policyID.
          *  Registered as RAM-only in `setup/index.ts`, so it never outlives the in-memory policy collections it vouches for. */
         RAM_ONLY_FULL_POLICY_SNAPSHOT: 'ramOnlyFullPolicySnapshot_',
@@ -1774,7 +1774,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_ROW_FOCUS]: boolean;
     [ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_CATEGORIES_LOADING_STATE]: OnyxTypes.PolicyDataLoadingState;
     [ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_TAGS_LOADING_STATE]: OnyxTypes.PolicyDataLoadingState;
-    [ONYXKEYS.COLLECTION.RAM_ONLY_INSIGHTS_RESPONSE_REQUEST_ID]: string;
+    [ONYXKEYS.COLLECTION.RAM_ONLY_INSIGHTS_RESPONSE_TAG_LEVELS]: OnyxTypes.InsightsResponseTagLevels;
     [ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT]: OnyxTypes.FullPolicySnapshot;
     [ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE]: OnyxTypes.ReportPaginationState;
     [ONYXKEYS.COLLECTION.REPORT_ACTIONS]: OnyxTypes.ReportActions;

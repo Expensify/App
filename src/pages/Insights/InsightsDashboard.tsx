@@ -33,6 +33,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {AIInsight, InsightsDashboard as InsightsDashboardRecord, InsightsDashboardID, InsightsFutureExpenses, InsightsGraphKey, InsightsScope} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import viewRef from '@src/types/utils/viewRef';
 
 import type {OnyxCollection} from 'react-native-onyx';
@@ -284,6 +285,7 @@ function InsightsDashboardContent({
             isDashboardLoaded,
             eligiblePolicyIDs,
             stages,
+            isAwaitingData,
         }: InsightsDashboardChart,
         isHeadline = false,
     ) => (
@@ -301,6 +303,7 @@ function InsightsDashboardContent({
             isDashboardLoaded={isDashboardLoaded}
             eligiblePolicyIDs={eligiblePolicyIDs}
             stages={stages}
+            isAwaitingData={isAwaitingData}
             filters={filters}
             insightsScope={insightsScope}
             countDimension={countDimension}
@@ -459,9 +462,9 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
     }, [dashboardID, hash, queryGroupBy, snapshotHashes, isDashboardVisible, isFocused, isOffline]);
 
     const [dashboard] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS}${dashboardID}_${hash}`);
-    const [respondedRequestID] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_INSIGHTS_RESPONSE_REQUEST_ID}${dashboardID}_${hash}`);
-    // A stored response can predate a workspace's new tag levels, so the selected level is only checked against the response to the latest request for these filters.
-    const hasLatestResponse = !!lastRequest && lastRequest.hash === hash && respondedRequestID === lastRequest.requestID;
+    const [responseTagLevels] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_INSIGHTS_RESPONSE_TAG_LEVELS}${dashboardID}_${hash}`);
+    // A stored response can predate a workspace's new tag levels, so the selected level is only checked against the levels the response to the latest request for these filters listed.
+    const hasLatestResponse = !!lastRequest && lastRequest.hash === hash && responseTagLevels?.requestID === lastRequest.requestID;
     const [hasLoadedBefore = false] = useOnyx(ONYXKEYS.COLLECTION.INSIGHTS, {
         selector: hasStoredDashboardResponse,
     });
@@ -475,7 +478,11 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
         ),
     );
     // The response for a level no workspace in scope has holds no tagged expenses, so Top tags shows its loading state instead of an empty chart until the level falls back and its data arrives. A stored response can be older than the chart's cached data, so data the chart already has stays on screen.
-    const isTopTagsWaitingForLevel = isTagLevelFallbackPending(dashboard, filters.tagLevel, isOffline);
+    const isTopTagsWaitingForLevel = isTagLevelFallbackPending(
+        hasLatestResponse ? responseTagLevels.tagLevels : dashboard?.tagLevels,
+        filters.tagLevel,
+        !isOffline && isEmptyObject(dashboard?.errors),
+    );
     const charts = visibleChartQueries.map((chartQuery): InsightsDashboardChart => {
         const graph = dashboard?.graphs?.[chartQuery.chart.graphKey];
         return {
@@ -495,7 +502,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
         };
     });
     const tagLevelOptions = useInsightsTagLevelOptions({
-        respondedTagLevels: hasLatestResponse ? dashboard?.tagLevels : undefined,
+        respondedTagLevels: hasLatestResponse ? responseTagLevels.tagLevels : undefined,
         policyIDs: filters.policyIDs,
         tagPolicyIDs: dashboardID === CONST.INSIGHTS.DASHBOARD.SPEND ? policiesInScope.filter(isPolicyEligibleForTopTags).map(({id}) => id) : [],
         selectedTagLevel: filters.tagLevel,

@@ -5,6 +5,7 @@ import {getCachedTagLevels, getFittingTagLevel, getInsightsTagLevelOptions, getS
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTagLists} from '@src/types/onyx';
+import type {InsightsTagLevel} from '@src/types/onyx/InsightsDashboard';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
@@ -112,36 +113,26 @@ describe('Insights tag levels', () => {
     });
 
     describe('isTagLevelFallbackPending', () => {
-        const oneLevel = {tagLevels: [{level: 1, names: ['Region']}]};
+        const oneLevel: InsightsTagLevel[] = [{level: 1, names: ['Region']}];
+        const twoLevels: InsightsTagLevel[] = [...oneLevel, {level: 2, names: []}];
 
-        it('waits for the fallback when the response leaves out the selected level', () => {
-            // Given a response for level two from workspaces that only have level one
-            // When the dashboard checks it online
+        it('waits for the fallback when the levels leave out the selected level', () => {
+            // Given levels from workspaces that only have level one while level two is selected
+            // When the dashboard checks them while it can still fetch again
             // Then the level is about to fall back, so Top tags waits instead of showing an empty chart
-            expect(isTagLevelFallbackPending(oneLevel, 2, false)).toBe(true);
+            expect(isTagLevelFallbackPending(oneLevel, 2, true)).toBe(true);
         });
 
         it.each([
-            [
-                'the response lists the selected level',
-                {
-                    tagLevels: [
-                        {level: 1, names: []},
-                        {level: 2, names: []},
-                    ],
-                },
-                2,
-                false,
-            ],
-            ['the default level is selected', oneLevel, 1, false],
-            ['no response has arrived', undefined, 2, false],
-            ['the request failed', {...oneLevel, errors: {error: 'failed'}}, 2, false],
-            ['the dashboard is offline, so nothing is fetched again', oneLevel, 2, true],
-        ])('does not wait when %s', (_, dashboard, selectedTagLevel, isOffline) => {
-            // Given a response and a selected level
+            ['the levels list the selected level', twoLevels, 2, true],
+            ['the default level is selected', oneLevel, 1, true],
+            ['no levels are known yet', undefined, 2, true],
+            ['nothing will be fetched again, offline or after a failed request', oneLevel, 2, false],
+        ])('does not wait when %s', (_, tagLevels, selectedTagLevel, canFetchAgain) => {
+            // Given levels and a selected level
             // When the dashboard checks them
             // Then Top tags shows what it has, since no fallback is coming
-            expect(isTagLevelFallbackPending(dashboard, selectedTagLevel, isOffline)).toBe(false);
+            expect(isTagLevelFallbackPending(tagLevels, selectedTagLevel, canFetchAgain)).toBe(false);
         });
     });
 

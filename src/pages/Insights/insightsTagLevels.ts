@@ -5,7 +5,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {InsightsDashboard, PolicyTagLists} from '@src/types/onyx';
 import type {InsightsTagLevel} from '@src/types/onyx/InsightsDashboard';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
@@ -37,14 +36,15 @@ function getFittingTagLevel(level: number, tagLevels: InsightsTagLevel[]): numbe
 }
 
 /**
- * Checks whether the response stored for the current filters already shows that no workspace in scope has the selected level, so the level is about to fall back and be fetched again.
- * Offline nothing is fetched again, so the chart keeps showing what the stored response holds.
+ * Checks whether the levels for the current filters already show that no workspace in scope has the selected level, so the level is about to fall back and be fetched again.
+ * @param tagLevels - Levels from the response to the latest request once it arrived, otherwise the ones stored for the current filters
+ * @param canFetchAgain - False offline or after a failed request, when nothing is fetched again and the chart keeps showing what it has
  */
-function isTagLevelFallbackPending(dashboard: InsightsDashboard | undefined, selectedTagLevel: number | undefined, isOffline: boolean): boolean {
-    if (isOffline || !dashboard?.tagLevels || selectedTagLevel === undefined || !isEmptyObject(dashboard.errors)) {
+function isTagLevelFallbackPending(tagLevels: InsightsTagLevel[] | undefined, selectedTagLevel: number | undefined, canFetchAgain: boolean): boolean {
+    if (!canFetchAgain || !tagLevels || selectedTagLevel === undefined) {
         return false;
     }
-    return getFittingTagLevel(selectedTagLevel, dashboard.tagLevels) !== selectedTagLevel;
+    return getFittingTagLevel(selectedTagLevel, tagLevels) !== selectedTagLevel;
 }
 
 /**

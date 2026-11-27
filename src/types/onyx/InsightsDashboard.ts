@@ -135,6 +135,15 @@ type InsightsTagLevel = {
     names: string[];
 };
 
+/** A successful GetInsights request's ID and the tag levels its response listed, stored in one write so they are always read together */
+type InsightsResponseTagLevels = {
+    /** ID the dashboard gave the request */
+    requestID: string;
+
+    /** Levels the response listed, absent when the request didn't ask for Top tags */
+    tagLevels?: InsightsTagLevel[];
+};
+
 /** What the backend returns for one dashboard and set of filters */
 type InsightsDashboard = {
     /** Snapshots the response filled, keyed by the graph slot each chart's spec declares */
@@ -167,5 +176,15 @@ type InsightsDashboard = {
     responseJsonCode?: number;
 };
 
-export type {AIInsight, AIInsightChip, InsightsDashboardID, InsightsExplanationContext, InsightsFutureExpenses, InsightsGraphKey, InsightsSearchKey, InsightsTagLevel};
+export type {
+    AIInsight,
+    AIInsightChip,
+    InsightsDashboardID,
+    InsightsExplanationContext,
+    InsightsFutureExpenses,
+    InsightsGraphKey,
+    InsightsResponseTagLevels,
+    InsightsSearchKey,
+    InsightsTagLevel,
+};
 export default InsightsDashboard;
