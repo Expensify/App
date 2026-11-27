@@ -41,7 +41,7 @@ function getWiseKYCReviewEmbeddedLink(bankAccountID: number, redirectURL: string
 
 /**
  * Asks Wise for a price for paying the report, unless the report holds a valid one for the same payment.
- * The server merges the new quote into `report.wiseQuote`, so the old quote is dropped first.
+ * The server merges the new quote into `report.wiseQuote`, or the reason Wise refused it into `report.wiseQuoteError`, so the old ones are dropped first.
  */
 function getWiseQuote(report: Report, full: boolean, isFXCostPaidByCompany: boolean | undefined) {
     const request = getWiseQuoteRequest(report, full, isFXCostPaidByCompany);
@@ -55,7 +55,7 @@ function getWiseQuote(report: Report, full: boolean, isFXCostPaidByCompany: bool
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: reportKey,
-                value: {wiseQuote: null, wiseQuoteRequest: request, errorFields: {wiseQuote: null}},
+                value: {wiseQuote: null, wiseQuoteError: null, wiseQuoteRequest: request, errorFields: {wiseQuote: null}},
             },
         ],
         failureData: [
