@@ -57,6 +57,15 @@ function getOnboardingChoices(customChoices: OnboardingPurpose[]) {
     return selectableOnboardingChoices.filter((choice) => customChoices.includes(choice));
 }
 
+const purposeItemSentryLabels = {
+    [CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE]: CONST.SENTRY_LABEL.ONBOARDING.PURPOSE_ITEM.JOIN_WORKSPACE,
+    [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: CONST.SENTRY_LABEL.ONBOARDING.PURPOSE_ITEM.MANAGE_TEAM,
+    [CONST.ONBOARDING_CHOICES.EMPLOYER]: CONST.SENTRY_LABEL.ONBOARDING.PURPOSE_ITEM.EMPLOYER,
+    [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: CONST.SENTRY_LABEL.ONBOARDING.PURPOSE_ITEM.TRACK_BUSINESS,
+    [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: CONST.SENTRY_LABEL.ONBOARDING.PURPOSE_ITEM.TRACK_PERSONAL,
+    [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: CONST.SENTRY_LABEL.ONBOARDING.PURPOSE_ITEM.LOOKING_AROUND,
+};
+
 function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, route}: BaseOnboardingPurposeProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -117,7 +126,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
             iconStyles: [styles.mh3],
             wrapperStyle: [styles.purposeMenuItem],
             numberOfLinesTitle: 0,
-            sentryLabel: CONST.SENTRY_LABEL.ONBOARDING.PURPOSE_ITEM,
+            sentryLabel: purposeItemSentryLabels[choice],
             onPress: () => {
                 if (choice === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE && isJoinWorkspaceNavigationPending.current) {
                     return;
