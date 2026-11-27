@@ -184,6 +184,23 @@ describe('AddExistingExpense', () => {
             // Then the time expense does not appear, because time expenses can only go to workspaces with time tracking enabled
             expect(eligibleTransactionIDs).toEqual([]);
         });
+
+        it('should exclude expenses whose create the server rejected', () => {
+            // Given an unreported expense whose create failed, one whose create is still pending, and a regular one
+            const failedCreateTransaction = generateTransaction({
+                transactionID: 'failedCreate',
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                errors: {[Date.now()]: 'Unexpected error submitting this expense. Please try again later.'},
+            });
+            const pendingCreateTransaction = generateTransaction({transactionID: 'pendingCreate', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
+            const regularTransaction = generateTransaction({transactionID: 'regular'});
+
+            // When the list of expenses to add is built
+            const eligibleTransactionIDs = getEligibleTransactionIDs([failedCreateTransaction, pendingCreateTransaction, regularTransaction]);
+
+            // Then the failed one is left out, because the server has no such expense, while a create that is only pending still goes after it in the queue
+            expect(eligibleTransactionIDs).toEqual(['pendingCreate', 'regular']);
+        });
     });
 
     describe('createUnreportedExpenses', () => {

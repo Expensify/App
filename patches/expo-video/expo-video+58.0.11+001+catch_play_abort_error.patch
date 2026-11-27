@@ -1,0 +1,49 @@
+diff --git a/node_modules/expo-video/build/VideoPlayer.web.js b/node_modules/expo-video/build/VideoPlayer.web.js
+index de8d390..c78a543 100644
+--- a/node_modules/expo-video/build/VideoPlayer.web.js
++++ b/node_modules/expo-video/build/VideoPlayer.web.js
+@@ -259,7 +259,7 @@ export default class VideoPlayerWeb extends globalThis.expo.SharedObject {
+     }
+     play() {
+         this._mountedVideos.forEach((video)=>{
+-            video.play();
++            video.play()?.catch((e) => { if (e.name !== 'AbortError') throw e; });
+         });
+     }
+     pause() {
+@@ -274,7 +274,7 @@ export default class VideoPlayerWeb extends globalThis.expo.SharedObject {
+             if (uri) {
+                 video.setAttribute('src', uri);
+                 video.load();
+-                video.play();
++                video.play()?.catch((e) => { if (e.name !== 'AbortError') throw e; });
+             } else {
+                 video.removeAttribute('src');
+                 video.load();
+@@ -298,7 +298,7 @@ export default class VideoPlayerWeb extends globalThis.expo.SharedObject {
+     replay() {
+         this._mountedVideos.forEach((video)=>{
+             video.currentTime = 0;
+-            video.play();
++            video.play()?.catch((e) => { if (e.name !== 'AbortError') throw e; });
+         });
+         this.playing = true;
+     }
+@@ -313,7 +313,7 @@ export default class VideoPlayerWeb extends globalThis.expo.SharedObject {
+         if (firstVideo.paused) {
+             video.pause();
+         } else {
+-            video.play();
++            video.play()?.catch((e) => { if (e.name !== 'AbortError') throw e; });
+         }
+         video.currentTime = firstVideo.currentTime;
+         video.volume = firstVideo.volume;
+@@ -340,7 +340,7 @@ export default class VideoPlayerWeb extends globalThis.expo.SharedObject {
+             this.playing = true;
+             this._mountedVideos.forEach((mountedVideo)=>{
+                 if (e.target !== mountedVideo) {
+-                    mountedVideo.play();
++                    mountedVideo.play()?.catch((err) => { if (err.name !== 'AbortError') throw err; });
+                 }
+             });
+         };
