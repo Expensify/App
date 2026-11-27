@@ -24,19 +24,15 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
-import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getReportIDForTransaction} from '@libs/MoneyRequestReportUtils';
 import openInternalRouteInNewTab, {isModifiedMousePress} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import Navigation from '@libs/Navigation/Navigation';
-import {getReportAction} from '@libs/ReportActionsUtils';
-import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {queryHasViolationFilter} from '@libs/SearchQueryUtils';
 import {createAndOpenSearchTransactionThread, getColumnsToShow, getGroupColumnWidthFlags, getGroupTableScrollLayout} from '@libs/SearchUIUtils';
 import {COPYABLE_ROW_DATA_SET} from '@libs/SelectionScraper';
 import {isDeletedTransaction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
-import type {TransactionPreviewData} from '@userActions/Search';
 import {CAROUSEL_SOURCE, setActiveTransactionIDs} from '@userActions/TransactionThreadNavigation';
 
 import CONST from '@src/CONST';
@@ -50,7 +46,6 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 import React from 'react';
 import {View} from 'react-native';
-import Onyx from 'react-native-onyx';
 
 import type {TransactionGroupListExpandedProps, TransactionListItemType} from './types';
 
@@ -172,31 +167,7 @@ function TransactionGroupListExpandedImpl({
     const {scrollViewRef: horizontalScrollViewRef, syncProps: horizontalSyncProps} = useSyncedHorizontalScroll(syncScrollKey, shouldScrollHorizontally);
 
     const {markReportRHPWidth} = useWideRHPActions();
-    const selectRow = onSelectRow as (
-        item: ListItem,
-        transactionPreviewData?: TransactionPreviewData,
-        event?: ModifiedMouseEvent,
-        rowPersonalDetails?: OnyxTypes.PersonalDetailsList,
-    ) => void;
-    const getTransactionPreviewData = async (transactionItem: TransactionListItemType): Promise<TransactionPreviewData> => {
-        // eslint-disable-next-line rulesdir/no-onyx-get-snapshot-key -- the snapshot here is the parent query's, which never holds an expanded group's expenses, and these flags pick what setOptimisticDataForTransactionThreadPreview writes to live Onyx, so they check live keys like TransactionListItem does
-        const [liveParentReport, liveTransactionThreadReport, transaction] = await Onyx.multiGet([
-            `${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionItem?.reportID)}`,
-            `${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionItem?.reportAction?.childReportID)}`,
-            `${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionItem?.transactionID)}`,
-        ]);
-        const parentReportAction = getReportAction(transactionItem?.reportID, transactionItem?.reportAction?.reportActionID);
-        const parentReport = getReportOrDraftReport({reportID: transactionItem?.reportID, report: liveParentReport});
-        const transactionThreadReport = getReportOrDraftReport({reportID: transactionItem?.reportAction?.childReportID, report: liveTransactionThreadReport});
-
-        return {
-            hasParentReport: !!parentReport,
-            hasTransaction: !!transaction,
-            hasParentReportAction: !!parentReportAction,
-            hasTransactionThreadReport: !!transactionThreadReport,
-        };
-    };
-
+    const selectRow = onSelectRow as (item: ListItem, shouldSetOptimisticPreviewData?: boolean, event?: ModifiedMouseEvent, rowPersonalDetails?: OnyxTypes.PersonalDetailsList) => void;
     const openReportInRHP = (transactionItem: TransactionListItemType, event?: ModifiedMouseEvent) => {
         const backTo = Navigation.getActiveRoute();
         const reportID = getReportIDForTransaction(transactionItem, transactionItem?.reportAction?.childReportID);
@@ -253,7 +224,7 @@ function TransactionGroupListExpandedImpl({
 
         // The arrow navigation in RHP is only allowed for group-by:reports
         if (!isExpenseReportType) {
-            getTransactionPreviewData(transactionItem).then((transactionPreviewData) => selectRow(transactionItem as ListItem, transactionPreviewData, event, personalDetails));
+            selectRow(transactionItem as ListItem, true, event, personalDetails);
             return;
         }
 

@@ -22,8 +22,6 @@ import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {TransactionPreviewData} from '@libs/actions/Search';
-import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import {queryHasViolationFilter} from '@libs/SearchQueryUtils';
 import {getColumnsToShow, getGroupColumnWidthFlags, getGroupTableScrollLayout, isCashBackWithdrawalGroup} from '@libs/SearchUIUtils';
@@ -33,17 +31,13 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportAction, ReportActions} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 import type {ComponentRef} from 'react';
 import type {NativeSyntheticEvent} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useRef} from 'react';
 import {View} from 'react-native';
-// eslint-disable-next-line no-restricted-imports
-import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
 import Animated from 'react-native-reanimated';
 
 import type {GroupHeaderItemType, SearchListActionProps, SearchListItem, TransactionListItemType} from './types';
@@ -71,7 +65,7 @@ type GroupHeaderProps = SearchListActionProps & {
     canSelectMultiple: boolean;
     isExpanded: boolean;
     onToggle: () => void;
-    onSelectRow: (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => void;
+    onSelectRow: (item: SearchListItem, shouldSetOptimisticPreviewData?: boolean, event?: ModifiedMouseEvent) => void;
     onCheckboxPress: (item: GroupHeaderItemType, itemTransactions?: TransactionListItemType[]) => void;
     onLongPressRow?: (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => void;
     onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void;
@@ -119,23 +113,6 @@ function GroupHeader({
 
     const groupItem = item;
     const isExpenseReportType = searchType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
-
-    const oneTransactionItem = groupItem.isOneTransactionReport ? groupItem.transactions.at(0) : undefined;
-    const oneTransactionReportID = getNonEmptyStringOnyxID(oneTransactionItem?.reportID);
-    const oneTransactionID = getNonEmptyStringOnyxID(oneTransactionItem?.transactionID);
-    const oneTransactionChildReportID = oneTransactionItem?.reportAction?.childReportID;
-    const [parentReport] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionReportID}`);
-    const [oneTransactionThreadReport] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionChildReportID}`);
-    const [oneTransaction] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.TRANSACTION}${oneTransactionID}`);
-    const [parentReportAction] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneTransactionReportID}`, {
-        selector: (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => reportActions?.[`${oneTransactionItem?.reportAction?.reportActionID}`],
-    });
-    const transactionPreviewData: TransactionPreviewData = {
-        hasParentReport: !!parentReport,
-        hasTransaction: !!oneTransaction,
-        hasParentReportAction: !!parentReportAction,
-        hasTransactionThreadReport: !!oneTransactionThreadReport,
-    };
 
     const [transactionsSnapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${groupItem.transactionsQueryJSON?.hash}`);
     const snapshotData = transactionsSnapshot?.data;
@@ -209,7 +186,7 @@ function GroupHeader({
     };
 
     const handleSelectRow = (rowItem: SearchListItem, event?: ModifiedMouseEvent) => {
-        onSelectRow(withOriginalKey(rowItem), transactionPreviewData, event);
+        onSelectRow(withOriginalKey(rowItem), true, event);
     };
 
     const renderHeader = (hovered: boolean) => {
@@ -408,7 +385,7 @@ function GroupHeader({
         }
 
         if (isExpenseReportType) {
-            onSelectRow(withOriginalKey(item), transactionPreviewData, event);
+            onSelectRow(withOriginalKey(item), true, event);
         }
         if (!isExpenseReportType && !isCashBackWithdrawal) {
             onToggle();

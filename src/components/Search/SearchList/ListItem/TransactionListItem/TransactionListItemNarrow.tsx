@@ -44,7 +44,6 @@ function TransactionListItemNarrow<TItem extends ListItem>({
     transactionViolations,
     handleActionButtonPress,
     shouldDisableActionPointerEvents,
-    transactionPreviewData,
     reportActions,
     nonPersonalAndWorkspaceCards,
     isAttendeesEnabledForMovingPolicy,
@@ -73,7 +72,7 @@ function TransactionListItemNarrow<TItem extends ListItem>({
             }
             return;
         }
-        onSelectRow(item, transactionPreviewData, event);
+        onSelectRow(item, true, event);
     };
 
     const pressableStyle = [
@@ -170,7 +169,7 @@ function TransactionListItemNarrow<TItem extends ListItem>({
                             checkboxSentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_LIST_ITEM_CHECKBOX}
                             style={[styles.p3, styles.pv2, styles.p0, styles.pt3, isLastItem ? styles.tableBottomRadius : styles.noBorderRadius]}
                             violations={transactionViolations}
-                            onArrowRightPress={isDeletedTransaction ? undefined : (event) => onSelectRow(item, transactionPreviewData, event)}
+                            onArrowRightPress={isDeletedTransaction ? undefined : (event) => onSelectRow(item, true, event)}
                             isHover={false}
                             nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                             reportActions={reportActions}

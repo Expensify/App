@@ -20,7 +20,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {search} from '@libs/actions/Search';
-import type {TransactionPreviewData} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
@@ -32,17 +31,13 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportAction, ReportActions, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 
 import type {ComponentRef} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
-// Use the original useOnyx hook to get the real-time data from Onyx and not from the snapshot
-// eslint-disable-next-line no-restricted-imports
-import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
 
 import type {
     TransactionCardGroupListItemType,
@@ -118,20 +113,6 @@ function TransactionGroupListItemImpl({
     const currentUserDetails = useCurrentUserPersonalDetails();
     const isScreenFocused = useIsFocused();
     const {isOffline} = useNetwork();
-
-    const oneTransactionItem = groupItem.isOneTransactionReport ? groupItem.transactions.at(0) : undefined;
-    const [parentReport] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(oneTransactionItem?.reportID)}`);
-    const [oneTransactionThreadReport] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionItem?.reportAction?.childReportID}`);
-    const [oneTransaction] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(oneTransactionItem?.transactionID)}`);
-    const [parentReportAction] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(oneTransactionItem?.reportID)}`, {
-        selector: (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => reportActions?.[`${oneTransactionItem?.reportAction?.reportActionID}`],
-    });
-    const transactionPreviewData: TransactionPreviewData = {
-        hasParentReport: !!parentReport,
-        hasTransaction: !!oneTransaction,
-        hasParentReportAction: !!parentReportAction,
-        hasTransactionThreadReport: !!oneTransactionThreadReport,
-    };
 
     const [transactionsSnapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${groupItem.transactionsQueryJSON?.hash}`);
 
@@ -299,7 +280,7 @@ function TransactionGroupListItemImpl({
         }
         const isEmptyGroupWithoutTransactionsQuery = transactions.length === 0 && !groupItem.transactionsQueryJSON;
         if (isExpenseReportType || isEmptyGroupWithoutTransactionsQuery) {
-            onSelectRow(item, transactionPreviewData, event);
+            onSelectRow(item, true, event);
         }
         if (!isExpenseReportType) {
             handleToggle();
@@ -528,7 +509,7 @@ function TransactionGroupListItemImpl({
             return (
                 <ReportListItemHeader
                     report={liveGroupItem as TransactionReportGroupListItemType}
-                    onSelectRow={(listItem, event) => onSelectRow(listItem, transactionPreviewData, event)}
+                    onSelectRow={(listItem, event) => onSelectRow(listItem, true, event)}
                     onCheckboxPress={handleSelectionButtonPress}
                     isDisabled={isDisabled}
                     isFocused={isFocused}

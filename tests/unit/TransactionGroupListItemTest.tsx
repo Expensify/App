@@ -1,10 +1,9 @@
-import {fireEvent, render, screen, waitFor} from '@testing-library/react-native';
+import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
-import {SearchQueryContext} from '@components/Search/SearchContextDefinitions';
 import {SearchContextProvider} from '@components/Search/SearchContextProvider';
 import type {
     TransactionCategoryGroupListItemType,
@@ -13,7 +12,6 @@ import type {
     TransactionReportGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
 } from '@components/Search/SearchList/ListItem/types';
-import {SearchScopeProvider} from '@components/Search/SearchScopeProvider';
 import type * as WideRHPContextProviderModule from '@components/WideRHPContextProvider';
 
 import registerMiddlewares from '@libs/Middleware/register';
@@ -29,7 +27,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as CoreNavigation from '@react-navigation/core';
 
 import * as NativeNavigation from '@react-navigation/native';
-import React, {act, useContext, useState} from 'react';
+import React, {act} from 'react';
 import Onyx from 'react-native-onyx';
 
 import type * as MockUsePaymentContextUtil from '../utils/mockUsePaymentContext';
@@ -852,51 +850,6 @@ describe('Lazily loaded group selection', () => {
         // Then the group should expand, and not be selected
         expect(screen.getByLabelText('Collapse')).toBeTruthy();
         expect(mockOnSelectRow).not.toHaveBeenCalled();
-    });
-
-    it('should report an expense stored in live Onyx as present when its row in an expanded group is pressed on Search', async () => {
-        // Given an expense stored in live Onyx, and a grouped Search snapshot without it, because an expanded group fetches its expenses into its own snapshot
-        const PARENT_SEARCH_HASH = 98765;
-        const groupTransaction: TransactionListItemType = {...mockTransaction, transactionID: 'live1', keyForList: 'live1'};
-        await act(async () => {
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}live1`, {
-                transactionID: 'live1',
-                reportID: groupTransaction.reportID,
-                amount: 100,
-                currency: 'USD',
-                created: '2025-09-19',
-                merchant: 'Live',
-            });
-            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${PARENT_SEARCH_HASH}`, {data: {}});
-            await waitForBatchedUpdatesWithAct();
-        });
-
-        function ParentSearchQueryProvider({children}: {children: React.ReactNode}) {
-            const searchQueryContext = useContext(SearchQueryContext);
-            const [parentSearchQueryContext] = useState(() => ({...searchQueryContext, currentSearchHash: PARENT_SEARCH_HASH}));
-            return <SearchQueryContext.Provider value={parentSearchQueryContext}>{children}</SearchQueryContext.Provider>;
-        }
-
-        // When the group is expanded inside the Search scope and the expense row is pressed
-        render(
-            <SearchScopeProvider>
-                <ParentSearchQueryProvider>
-                    <TransactionGroupListItem
-                        {...defaultProps}
-                        item={{...mockCategoryGroup, transactions: [groupTransaction]}}
-                    />
-                </ParentSearchQueryProvider>
-            </SearchScopeProvider>,
-            {wrapper: TestWrapper},
-        );
-        await waitForBatchedUpdatesWithAct();
-        fireEvent.press(screen.getByLabelText('Expand'));
-        await waitForBatchedUpdatesWithAct();
-        fireEvent.press(screen.getByTestId('transaction-item-row'));
-        await waitForBatchedUpdatesWithAct();
-
-        // Then the row reports the stored expense as present, so opening it doesn't write placeholder data over it
-        await waitFor(() => expect(mockOnSelectRow).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({hasTransaction: true}), undefined, expect.anything()));
     });
 });
 

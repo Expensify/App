@@ -27,7 +27,6 @@ import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchActionPress from '@hooks/useSearchActionPress';
 
-import type {TransactionPreviewData} from '@libs/actions/Search';
 import {handleActionButtonPress as handleActionButtonPressUtil} from '@libs/actions/Search';
 import {syncMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -50,10 +49,10 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {loginSelector} from '@src/selectors/PersonalDetails';
 import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
-import type {Policy, Report, ReportAction, ReportActions, TransactionViolations} from '@src/types/onyx';
+import type {Policy, Report, TransactionViolations} from '@src/types/onyx';
 import type {TransactionViolation} from '@src/types/onyx/TransactionViolation';
 
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 // NOTE: The narrow-layout rendering of this component has a static twin in
@@ -139,7 +138,6 @@ function TransactionListItemInner<TItem extends ListItem>({
     const [policyTagLists] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(policyID)}`);
 
     const [parentReport] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionItem.reportID)}`);
-    const [transactionThreadReport] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT}${transactionItem?.reportAction?.childReportID}`);
     const [submitterLogin] = usePersonalDetail(transactionItem?.report?.ownerAccountID, loginSelector);
     const [transaction] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionItem.transactionID)}`);
     const transactionViolationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transactionItem.transactionID)}` as const;
@@ -148,10 +146,6 @@ function TransactionListItemInner<TItem extends ListItem>({
     // otherwise the row hides violations the Search API already returned
     const transactionViolationsForRow = liveTransactionViolations ?? snapshotData?.[transactionViolationsKey];
     const allViolations: OnyxCollection<TransactionViolations> = {[transactionViolationsKey]: transactionViolationsForRow};
-    const parentReportActionID = transactionItem?.reportAction?.reportActionID;
-    const [parentReportAction] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(transactionItem.reportID)}`, {
-        selector: (actions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => actions?.[`${parentReportActionID}`],
-    });
     const currentUserDetails = useCurrentUserPersonalDetails();
     const chatReportID = snapshotReport?.chatReportID ?? snapshotReport?.parentReportID;
     const [parentChatReport] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(chatReportID)}`);
@@ -176,12 +170,6 @@ function TransactionListItemInner<TItem extends ListItem>({
         snapshotActions: reportActions,
         enabled: !!snapshotData,
     });
-    const transactionPreviewData: TransactionPreviewData = {
-        hasParentReport: !!parentReport,
-        hasTransaction: !!transaction,
-        hasParentReportAction: !!parentReportAction,
-        hasTransactionThreadReport: !!transactionThreadReport,
-    };
 
     // Prefer live Onyx policy data over snapshot to ensure fresh policy settings
     // like isAttendeeTrackingEnabled is not missing
@@ -256,7 +244,7 @@ function TransactionListItemInner<TItem extends ListItem>({
             getCurrencyDecimals,
             hash: currentSearchHash,
             item: liveTransactionItem,
-            goToItem: () => onSelectRow(item, transactionPreviewData, event),
+            goToItem: () => onSelectRow(item, true, event),
             policyID: explicitPolicyID,
             snapshotReport,
             snapshotPolicy,
@@ -314,7 +302,6 @@ function TransactionListItemInner<TItem extends ListItem>({
         transactionViolations,
         handleActionButtonPress,
         shouldDisableActionPointerEvents: shouldDisableSearchSubmitPress,
-        transactionPreviewData,
         reportActions,
         policyCategories,
         policyTagLists,

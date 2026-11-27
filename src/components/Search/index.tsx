@@ -38,6 +38,7 @@ import {
     setActiveTransactionIDs,
     shouldRefreshActiveTransactionIDs,
 } from '@libs/actions/TransactionThreadNavigation';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import openInternalRouteInNewTab, {isModifiedMousePress} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
@@ -709,10 +710,25 @@ function Search({
     }, [carouselSource, hash]);
 
     const selectRow = useCallback(
-        async (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent, rowPersonalDetails?: PersonalDetailsList) => {
+        async (item: SearchListItem, shouldSetOptimisticPreviewData?: boolean, event?: ModifiedMouseEvent, rowPersonalDetails?: PersonalDetailsList) => {
             const readConciergeChat = async () => {
                 const conciergeReportID = await Onyx.get(ONYXKEYS.CONCIERGE_REPORT_ID);
                 return Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+            };
+            const readTransactionPreviewData = async (transaction: TransactionListItemType): Promise<TransactionPreviewData> => {
+                // eslint-disable-next-line rulesdir/no-onyx-get-snapshot-key -- Search renders the SearchScopeProvider below this handler, so useOnyx here would read live keys too, and these flags pick what setOptimisticDataForTransactionThreadPreview writes to live Onyx
+                const [parentReport, transactionThreadReport, liveTransaction, parentReportActions] = await Onyx.multiGet([
+                    `${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction.reportID)}`,
+                    `${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction.reportAction?.childReportID)}`,
+                    `${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction.transactionID)}`,
+                    `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(transaction.reportID)}`,
+                ]);
+                return {
+                    hasParentReport: !!parentReport,
+                    hasTransactionThreadReport: !!transactionThreadReport,
+                    hasTransaction: !!liveTransaction,
+                    hasParentReportAction: !!parentReportActions?.[`${transaction.reportAction?.reportActionID}`],
+                };
             };
             // A cash back row has no expenses to open, and Enter on a focused row still lands here.
             if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isCashBackWithdrawalGroup(item)) {
@@ -812,10 +828,10 @@ function Search({
 
             if (isTransactionGroupListItemType(item)) {
                 const firstTransaction = item.transactions.at(0);
-                if (item.isOneTransactionReport && firstTransaction && transactionPreviewData) {
+                if (item.isOneTransactionReport && firstTransaction && shouldSetOptimisticPreviewData) {
                     if (!firstTransaction?.reportAction?.childReportID) {
                         // Nothing after this needs the thread ID, so read the Concierge chat without awaiting and keep the new-tab and navigation code inside the click
-                        readConciergeChat().then((conciergeChat) => {
+                        Promise.all([readConciergeChat(), readTransactionPreviewData(firstTransaction)]).then(([conciergeChat, transactionPreviewData]) => {
                             createAndOpenSearchTransactionThread({
                                 conciergeChat,
                                 getCurrencyDecimals,
@@ -835,12 +851,14 @@ function Search({
                             });
                         });
                     } else {
-                        setOptimisticDataForTransactionThreadPreview(
-                            firstTransaction,
-                            transactionPreviewData,
-                            getCurrencyDecimals,
-                            delegateAccountID,
-                            firstTransaction?.reportAction?.childReportID,
+                        readTransactionPreviewData(firstTransaction).then((transactionPreviewData) =>
+                            setOptimisticDataForTransactionThreadPreview(
+                                firstTransaction,
+                                transactionPreviewData,
+                                getCurrencyDecimals,
+                                delegateAccountID,
+                                firstTransaction?.reportAction?.childReportID,
+                            ),
                         );
                     }
                 }
@@ -898,8 +916,16 @@ function Search({
                 return;
             }
 
-            if (isTransactionItem && transactionPreviewData) {
-                setOptimisticDataForTransactionThreadPreview(transactionItem, transactionPreviewData, getCurrencyDecimals, delegateAccountID, transactionItem?.reportAction?.childReportID);
+            if (isTransactionItem && shouldSetOptimisticPreviewData) {
+                readTransactionPreviewData(transactionItem).then((transactionPreviewData) =>
+                    setOptimisticDataForTransactionThreadPreview(
+                        transactionItem,
+                        transactionPreviewData,
+                        getCurrencyDecimals,
+                        delegateAccountID,
+                        transactionItem?.reportAction?.childReportID,
+                    ),
+                );
             }
 
             const route = ROUTES.SEARCH_REPORT.getRoute({
@@ -937,8 +963,8 @@ function Search({
     );
 
     const onSelectRow = useCallback(
-        (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent, rowPersonalDetails?: PersonalDetailsList) => {
-            selectRow(item, transactionPreviewData, event, rowPersonalDetails);
+        (item: SearchListItem, shouldSetOptimisticPreviewData?: boolean, event?: ModifiedMouseEvent, rowPersonalDetails?: PersonalDetailsList) => {
+            selectRow(item, shouldSetOptimisticPreviewData, event, rowPersonalDetails);
         },
         [selectRow],
     );

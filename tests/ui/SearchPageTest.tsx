@@ -57,6 +57,7 @@ import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
 import getOnyxValue from '../utils/getOnyxValue';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 registerMiddlewares();
 
@@ -116,7 +117,7 @@ jest.mock('@react-navigation/core', () => ({
 type ListProps = {
     onEndReached?: () => void;
     onViewableItemsChanged?: () => void;
-    onSelectRow?: (item: SearchListItem, transactionPreviewData?: SearchActions.TransactionPreviewData, event?: ModifiedMouseEvent) => void;
+    onSelectRow?: (item: SearchListItem, shouldSetOptimisticPreviewData?: boolean, event?: ModifiedMouseEvent) => void;
     ListFooterComponent?: unknown;
 };
 
@@ -1605,6 +1606,110 @@ describe('SearchPageNarrow', () => {
                 expect(mockOpenInternalRouteInNewTab).toHaveBeenCalledWith(expect.any(String), ctrlClick);
                 expect(mockMarkReportRHPWidth).not.toHaveBeenCalled();
                 expect(navigateSpy).not.toHaveBeenCalled();
+            });
+        });
+
+        describe('the placeholder data an expense row press saves before the expense opens', () => {
+            const expenseRow = createMock<TransactionListItemType>({
+                keyForList: 'expense_1',
+                transactionID: 'expense_1',
+                reportID: 'todo_1',
+                merchant: 'From Search',
+                reportAction: {childReportID: 'thread_1'},
+            });
+            let navigateSpy: jest.SpyInstance;
+
+            beforeEach(() => {
+                navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+            });
+
+            afterEach(() => {
+                navigateSpy.mockRestore();
+            });
+
+            async function pressExpenseRow() {
+                await seedTodoReports(1);
+                await seedTodoSnapshot(false);
+                renderPage(TODO_QUERY);
+                await act(async () => {
+                    jest.advanceTimersByTime(0);
+                });
+                await act(async () => {
+                    listProps.onSelectRow?.(expenseRow, true);
+                });
+                await waitForBatchedUpdatesWithAct();
+            }
+
+            it('should save the expense from the row when live Onyx does not have it', async () => {
+                // Given an expense that only the Search results know about
+                // When its row is pressed
+                await pressExpenseRow();
+
+                // Then the row's expense is saved, so the expense can show before the server answers
+                expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}expense_1`)).toEqual(expect.objectContaining({merchant: 'From Search'}));
+            });
+
+            it('should keep an expense already stored in live Onyx', async () => {
+                // Given the expense is already stored, with data newer than the Search results
+                await act(async () => {
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}expense_1`, createMock<Transaction>({transactionID: 'expense_1', reportID: 'todo_1', merchant: 'Stored'}));
+                });
+
+                // When its row is pressed
+                await pressExpenseRow();
+
+                // Then the stored expense is not overwritten with the row's older data
+                expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}expense_1`)).toEqual(expect.objectContaining({merchant: 'Stored'}));
+            });
+
+            describe('a report with one expense', () => {
+                const EXPENSE_ACTION_ID = '4815162342';
+                const oneExpenseReportRow = createMock<TransactionReportGroupListItemType>({
+                    keyForList: 'todo_1',
+                    reportID: 'todo_1',
+                    groupedBy: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                    isOneTransactionReport: true,
+                    transactions: [
+                        createMock<TransactionListItemType>({
+                            transactionID: 'expense_1',
+                            reportID: 'todo_1',
+                            amount: 100,
+                            currency: 'USD',
+                            reportAction: {reportActionID: EXPENSE_ACTION_ID, childReportID: 'thread_1'},
+                        }),
+                    ],
+                });
+
+                async function pressOneExpenseReportRow(shouldSetOptimisticPreviewData?: boolean) {
+                    await seedTodoReports(1);
+                    await seedTodoSnapshot(false);
+                    renderPage(TODO_QUERY);
+                    await act(async () => {
+                        jest.advanceTimersByTime(0);
+                    });
+                    await act(async () => {
+                        listProps.onSelectRow?.(oneExpenseReportRow, shouldSetOptimisticPreviewData);
+                    });
+                    await waitForBatchedUpdatesWithAct();
+                }
+
+                it('should save the expense action from a group row before the report opens', async () => {
+                    // Given a report with one expense whose action live Onyx does not have
+                    // When a group row that asks for placeholder data is pressed
+                    await pressOneExpenseReportRow(true);
+
+                    // Then the expense action is saved, so the report can show the expense before the server answers
+                    expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}todo_1`))?.[EXPENSE_ACTION_ID]).toBeDefined();
+                });
+
+                it('should only open the report when the row does not ask for placeholder data', async () => {
+                    // Given the same report, pressed from a row that never saved placeholder data, like the Reports list or the Enter key
+                    // When the row is pressed
+                    await pressOneExpenseReportRow();
+
+                    // Then nothing is saved for the expense, as before
+                    expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}todo_1`))?.[EXPENSE_ACTION_ID]).toBeUndefined();
+                });
             });
         });
 
