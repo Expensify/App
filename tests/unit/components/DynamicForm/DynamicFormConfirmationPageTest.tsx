@@ -36,6 +36,12 @@ const mockConfirmationStep = jest.fn((props: CapturedConfirmationStepProps) => p
 jest.mock('@components/SubStepForms/ConfirmationStep', () => (props: CapturedConfirmationStepProps) => mockConfirmationStep(props));
 jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: (key: string) => key})));
 
+let mockIsOffline = false;
+jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: mockIsOffline})));
+
+const mockShowContinueOfflineModal = jest.fn<void, [{onSaveForLater: () => void; onContinue: () => void}]>();
+jest.mock('@components/DynamicForm/hooks/useContinueOfflineModal', () => jest.fn(() => ({showContinueOfflineModal: mockShowContinueOfflineModal})));
+
 function renderPage(props: Partial<DynamicFormSubPageProps>) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the page reads only a few of the flow's props, and the rest have no bearing on loading
     const pageProps = {
@@ -71,6 +77,7 @@ describe('DynamicFormConfirmationPage', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        mockIsOffline = false;
         await Onyx.clear();
     });
 
@@ -160,6 +167,60 @@ describe('DynamicFormConfirmationPage', () => {
             expect(getConfirmationStepProps()?.isFixErrorsAlertVisible).toBe(false);
         });
     });
+    describe('offline', () => {
+        it('lets the flow mark an unfinished form instead of asking about the connection', () => {
+            // Given an offline device on a confirmation page that offers to continue later, whose flow finds the form unfinished
+            mockIsOffline = true;
+            const onNext = jest.fn();
+            const markUnfinishedForm = jest.fn(() => true);
+            renderPage({onNext, onSaveForLater: jest.fn(), markUnfinishedForm});
+
+            // When the user presses Confirm
+            pressConfirm();
+
+            // Then the flow marks what is missing, and neither the modal opens nor the form is sent, since the user could not go on even once online
+            expect(markUnfinishedForm).toHaveBeenCalledTimes(1);
+            expect(mockShowContinueOfflineModal).not.toHaveBeenCalled();
+            expect(onNext).not.toHaveBeenCalled();
+        });
+
+        it('asks about the connection once the form is complete, and confirms when Try again finds it back', () => {
+            // Given an offline device on a confirmation page that offers to continue later, whose flow finds the form complete
+            mockIsOffline = true;
+            const onNext = jest.fn();
+            const onSaveForLater = jest.fn();
+            renderPage({onNext, onSaveForLater, markUnfinishedForm: jest.fn(() => false)});
+
+            // When the user presses Confirm, and then Try again finds the connection back
+            pressConfirm();
+            const modalOptions = mockShowContinueOfflineModal.mock.lastCall?.[0];
+            const wasSentBeforeTryAgain = onNext.mock.calls.length > 0;
+            modalOptions?.onContinue();
+
+            // Then the modal opens with the flow's way to leave, nothing is sent before Try again, and Try again confirms with no answers in place, as a press does
+            expect(mockShowContinueOfflineModal).toHaveBeenCalledTimes(1);
+            expect(modalOptions?.onSaveForLater).toBe(onSaveForLater);
+            expect(wasSentBeforeTryAgain).toBe(false);
+            expect(onNext).toHaveBeenCalledTimes(1);
+            expect(onNext).toHaveBeenCalledWith();
+        });
+
+        it('confirms straight away online without checking the form first', () => {
+            // Given an online device on a confirmation page that offers to continue later
+            const onNext = jest.fn();
+            const markUnfinishedForm = jest.fn(() => false);
+            renderPage({onNext, onSaveForLater: jest.fn(), markUnfinishedForm});
+
+            // When the user presses Confirm
+            pressConfirm();
+
+            // Then the press goes to the flow, which checks the form as it submits, so the page does not walk the pages a second time
+            expect(onNext).toHaveBeenCalledWith();
+            expect(markUnfinishedForm).not.toHaveBeenCalled();
+            expect(mockShowContinueOfflineModal).not.toHaveBeenCalled();
+        });
+    });
+
     describe('answers the server rejected', () => {
         const pages: DynamicFormPage[] = [
             {key: 'bank', title: 'Bank', content: [{key: 'swiftCode', type: 'text', required: true, label: 'SWIFT code'}]},

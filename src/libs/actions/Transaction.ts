@@ -1228,16 +1228,20 @@ function getChangeTransactionsReportOnyxData({
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {
                 reportID,
+                // A retry that works must not leave the error from an earlier failed move on the expense
+                errors: null,
                 ...(shouldClearAmount && {pendingAction: null}),
             },
         });
 
+        // Without an error a failed move looks like it never happened, and the user can't tell the expense didn't sync
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {
                 reportID: transaction.reportID,
                 comment: transaction.comment,
+                errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericEditFailureMessage'),
                 originalAmount: transaction.originalAmount,
                 originalCurrency: transaction.originalCurrency,
                 ...(shouldClearAmount && {pendingAction: transaction.pendingAction ?? null}),
@@ -1875,6 +1879,7 @@ function getChangeTransactionsReportOnyxData({
             originalCurrency: shouldCopyOriginalCurrency ? transaction.originalCurrency : undefined,
             reimbursable: transactionReimbursable,
             ...(shouldClearAmount && {convertedAmount: null, convertedTaxAmount: null}),
+            policyConvertedAmount: null,
         } as Transaction;
 
         const searchIOUAction = {

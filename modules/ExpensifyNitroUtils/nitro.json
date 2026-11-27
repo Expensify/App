@@ -20,9 +20,9 @@
             "swift": "HybridDocumentDetectorModule",
             "kotlin": "HybridDocumentDetectorModule"
         },
-        "VerticalBarModule": {
-            "ios": {"language": "swift", "implementationClassName": "HybridVerticalBarModule"},
-            "android": {"language": "kotlin", "implementationClassName": "HybridVerticalBarModule"}
+        "WindowBarsModule": {
+            "ios": {"language": "swift", "implementationClassName": "HybridWindowBarsModule"},
+            "android": {"language": "kotlin", "implementationClassName": "HybridWindowBarsModule"}
         },
         "ShareActionHandler": {
             "ios": {"language": "swift", "implementationClassName": "HybridShareActionHandler"},

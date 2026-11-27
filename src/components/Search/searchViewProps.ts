@@ -3,7 +3,7 @@ import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRout
 
 import type {GetReportTableColumnStylesParams} from '@styles/utils';
 
-import type {CardList, PolicyCategories, PolicyTagLists, Transaction} from '@src/types/onyx';
+import type {CardList, PersonalDetailsList, PolicyCategories, PolicyTagLists, Transaction} from '@src/types/onyx';
 
 import type React from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
@@ -54,7 +54,7 @@ type CommonSearchViewProps = {
     newTransactions: Transaction[];
 
     /** The navigation handler for a row tap (owned by the router). */
-    onSelectRow: (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => void;
+    onSelectRow: (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent, rowPersonalDetails?: PersonalDetailsList) => void;
 
     /** The list footer (pagination / pending skeleton). */
     ListFooterComponent?: React.JSX.Element;

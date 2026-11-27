@@ -51,6 +51,8 @@ type TrackExpenseParams = {
 
     /** Distance unit the odometer readings were entered in, so the backend can convert them when the rate uses a different unit */
     odometerUnit?: Unit;
+    /** Defers instant auto-submit so earlier items in a batch do not close the report before remaining items arrive. */
+    shouldDeferAutoSubmit?: boolean;
 };
 
 export default TrackExpenseParams;
