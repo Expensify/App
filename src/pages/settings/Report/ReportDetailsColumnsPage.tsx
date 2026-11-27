@@ -1,6 +1,7 @@
 import ColumnsSettingsList from '@components/ColumnsSettingsList';
 import type {SearchCustomColumnIds} from '@components/Search/types';
 
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 
@@ -43,6 +44,7 @@ const ALL_REPORT_DETAILS_CUSTOM_COLUMNS = Object.values(CONST.SEARCH.REPORT_DETA
 function ReportDetailsColumnsPage() {
     const route = useRoute<PlatformStackRouteProp<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.COLUMNS>>();
     const reportID = route.params.reportID;
+    const isCustomizeFields = route.params.isCustomizeFields;
     const [reportDetailsColumns] = useOnyx(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
@@ -57,6 +59,7 @@ function ReportDetailsColumnsPage() {
         },
     });
     const {isBetaEnabled} = usePermissions();
+    const {translate} = useLocalize();
 
     // The vendor column only exists for workspaces with the vendor feature, so hide it when this report's workspace lacks it.
     const isVendorColumnAvailable = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
@@ -88,15 +91,31 @@ function ReportDetailsColumnsPage() {
         effectiveColumns = visibleColumns.filter(isReportDetailsCustomColumn);
     }
 
-    const allColumns = ALL_REPORT_DETAILS_CUSTOM_COLUMNS.filter(isColumnAvailable);
-    const currentColumns = effectiveColumns.filter(isColumnAvailable);
-    const requiredColumns = getRequiredReportDetailsColumns();
+    const allColumns: SearchCustomColumnIds[] = ALL_REPORT_DETAILS_CUSTOM_COLUMNS.filter(
+        (column) => isColumnAvailable(column) && (!isCustomizeFields || column !== CONST.SEARCH.TABLE_COLUMNS.RECEIPT),
+    );
+    const currentColumns = effectiveColumns.filter((column) => isColumnAvailable(column) && allColumns.includes(column));
+    const requiredColumns = isCustomizeFields
+        ? new Set<SearchCustomColumnIds>([CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT])
+        : getRequiredReportDetailsColumns();
 
     const handleSave = (selectedColumnIds: SearchCustomColumnIds[]) => {
         // Skip saving if columns haven't changed from the effective state, to avoid
         // switching from the default path to the custom path in getColumnsToShow unnecessarily.
         if (!arraysEqual(selectedColumnIds, currentColumns)) {
-            setReportDetailsColumns(selectedColumnIds, reportDetailsColumns);
+            // Receipt is hidden in this picker, but its saved selection and position still control the report table.
+            const hasSavedColumns = savedColumns.length > 0;
+            const shouldShowReceiptColumn = hasSavedColumns
+                ? reportDetailsColumns?.includes(CONST.SEARCH.TABLE_COLUMNS.RECEIPT)
+                : REPORT_DETAILS_DEFAULT_COLUMNS.includes(CONST.SEARCH.TABLE_COLUMNS.RECEIPT);
+            const receiptColumnIndex = hasSavedColumns
+                ? (reportDetailsColumns ?? []).indexOf(CONST.SEARCH.TABLE_COLUMNS.RECEIPT)
+                : REPORT_DETAILS_DEFAULT_COLUMNS.indexOf(CONST.SEARCH.TABLE_COLUMNS.RECEIPT);
+            const columnsToSave = isCustomizeFields && shouldShowReceiptColumn ? [...selectedColumnIds] : selectedColumnIds;
+            if (isCustomizeFields && shouldShowReceiptColumn) {
+                columnsToSave.splice(Math.max(receiptColumnIndex, 0), 0, CONST.SEARCH.TABLE_COLUMNS.RECEIPT);
+            }
+            setReportDetailsColumns(columnsToSave, reportDetailsColumns);
         }
         Navigation.goBack();
     };
@@ -107,6 +126,7 @@ function ReportDetailsColumnsPage() {
 
     return (
         <ColumnsSettingsList
+            title={isCustomizeFields ? translate('iou.customizeFields') : undefined}
             allColumns={allColumns}
             defaultSelectedColumns={REPORT_DETAILS_DEFAULT_COLUMNS}
             currentColumns={currentColumns}

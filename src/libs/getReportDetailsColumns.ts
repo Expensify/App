@@ -30,7 +30,8 @@ function getReportDetailsColumns({report, policy, transactions, columns, shouldS
         currentAccountID: undefined,
         data: transactions,
         report,
-        visibleColumns: isExpenseReportViewFromIOUReport ? [] : columns,
+        // Keep the data-driven IOU defaults until the user saves report column preferences.
+        visibleColumns: isExpenseReportViewFromIOUReport && !columns?.length ? [] : columns,
         isExpenseReportView: true,
         isExpenseReportViewFromIOUReport,
         shouldShowBillableColumn: isBillableEnabledOnPolicy(policy),

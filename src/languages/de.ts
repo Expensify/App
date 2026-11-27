@@ -1610,6 +1610,7 @@ const translations: TranslationDeepObject<typeof en> = {
         cancelPayment: 'Zahlung stornieren',
         cancelPaymentConfirmation: 'Sind Sie sicher, dass Sie diese Zahlung stornieren möchten?',
         viewDetails: 'Details anzeigen',
+        customizeFields: 'Felder anpassen',
         pending: 'Ausstehend',
         canceled: 'Storniert',
         posted: 'Gebucht',

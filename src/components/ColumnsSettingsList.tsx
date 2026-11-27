@@ -49,6 +49,8 @@ type ColumnItem = {
 };
 
 type ColumnsSettingsListProps = {
+    /** Optional title override for callers that use the column picker to customize fields. */
+    title?: string;
     allColumns: SearchCustomColumnIds[];
 
     /** The default set of selected columns when no customization has been applied */
@@ -83,6 +85,7 @@ type ColumnsSettingsListProps = {
 };
 
 function ColumnsSettingsList({
+    title,
     allColumns,
     defaultSelectedColumns,
     currentColumns,
@@ -143,7 +146,7 @@ function ColumnsSettingsList({
         return [...selected, ...unselected];
     });
 
-    const selectedColumnIds = columns.filter((col) => col.isSelected).map((col) => col.columnId);
+    const selectedColumnIds = columns.filter((col) => col.isSelected || requiredColumns.has(col.columnId)).map((col) => col.columnId);
 
     const allColumnsList = sortColumns(
         columns.map(({columnId, isSelected}) => {
@@ -278,7 +281,7 @@ function ColumnsSettingsList({
             offlineIndicatorStyle={styles.mtAuto}
             includeSafeAreaPaddingBottom
         >
-            <HeaderWithBackButton title={translate('search.columns')}>
+            <HeaderWithBackButton title={title ?? translate('search.columns')}>
                 {isResetColumnsVisible && (
                     <TextLink
                         onPress={resetColumns}

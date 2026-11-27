@@ -1412,6 +1412,11 @@ function getSecondaryTransactionThreadActions({
         }
     }
 
+    // Personal-space expenses can still belong to a workspace, so show field preferences for those expenses too.
+    if (isExpenseReportUtils(parentReport) || isExpenseReportUtils(transactionThreadReport) || (isSelfDMReportUtils(parentReport) && !!policy?.id)) {
+        options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.CUSTOMIZE_FIELDS);
+    }
+
     options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS);
 
     if (isDeleteAction(parentReport, [reportTransaction], currentUserAccountID, rules, parentReportOwnerLogin, policy, cardList, parentReportActionsList)) {

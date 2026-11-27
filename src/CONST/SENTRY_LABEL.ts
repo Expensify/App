@@ -1235,6 +1235,7 @@ const SENTRY_LABEL = {
     MORE_MENU: {
         MORE_BUTTON: 'MoreMenu-MoreButton',
         VIEW_DETAILS: 'MoreMenu-ViewDetails',
+        CUSTOMIZE_FIELDS: 'MoreMenu-CustomizeFields',
         EXPORT: 'MoreMenu-Export',
         EXPORT_FILE: 'MoreMenu-ExportFile',
         DOWNLOAD_PDF: 'MoreMenu-DownloadPDF',

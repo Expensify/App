@@ -2188,6 +2188,7 @@ const CONST = {
             DUPLICATE_EXPENSE: 'duplicateExpense',
             DUPLICATE_REPORT: 'duplicateReport',
             MOVE_EXPENSE: 'moveExpense',
+            CUSTOMIZE_FIELDS: 'customizeFields',
         },
         PRIMARY_ACTIONS: {
             SUBMIT: 'submit',
@@ -2246,6 +2247,7 @@ const CONST = {
             MOVE_EXPENSE: 'moveExpense',
             SEND_TO_SOMEONE: 'sendToSomeone',
             SEND_TO_EMPLOYER: 'sendToEmployer',
+            CUSTOMIZE_FIELDS: 'customizeFields',
         },
         SELECTED_TRANSACTIONS_BULK_ACTION_TYPES: {
             HOLD: 'hold',

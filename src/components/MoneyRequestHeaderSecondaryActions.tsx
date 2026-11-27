@@ -138,6 +138,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
         'Checkmark',
         'DocumentMerge',
         'ExpenseCopy',
+        'Columns',
         'Info',
         'Send',
         'Stopwatch',
@@ -587,6 +588,19 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             icon: expensifyIcons.Info,
             onSelected: () => {
                 navigateToDetailsPage(report, isInSidePanel);
+            },
+        },
+        [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.CUSTOMIZE_FIELDS]: {
+            value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.CUSTOMIZE_FIELDS,
+            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.CUSTOMIZE_FIELDS,
+            text: translate('iou.customizeFields'),
+            icon: expensifyIcons.Columns,
+            onSelected: () => {
+                if (!parentReport?.reportID) {
+                    return;
+                }
+
+                Navigation.navigate(ROUTES.REPORT_SETTINGS_COLUMNS.getRoute(parentReport.reportID, true));
             },
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DELETE]: {
