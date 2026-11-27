@@ -74,6 +74,7 @@ import {getMicroSecondOnyxErrorWithTranslationKey, getMicroSecondTranslationErro
 import fileDownload from '@libs/fileDownload';
 import {getExportFileName} from '@libs/fileDownload/FileUtils';
 import {trackFullstoryEvent} from '@libs/Fullstory/utils';
+import getDistanceTransactionForPolicyChange from '@libs/getDistanceTransactionForPolicyChange';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import HttpUtils from '@libs/HttpUtils';
 import Log from '@libs/Log';
@@ -102,6 +103,8 @@ import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {isMapOrGPSRequired} from '@libs/PolicyDistanceRatesUtils';
 import {
     getDefaultApprover,
+    hasDependentTags,
+    isGroupPolicy,
     getMemberAccountIDsForWorkspace,
     getReimbursementChoice,
     getSubmitToAccountID,
@@ -124,6 +127,8 @@ import {
     buildOptimisticChangeFieldAction,
     buildOptimisticChangePolicyReportAction,
     buildOptimisticChatReport,
+    buildOptimisticConciergeAutoSelectDistanceRateReportAction,
+    buildOptimisticConciergeDistanceRateModifiedExpenseReportAction,
     buildOptimisticCreatedReportAction,
     buildOptimisticEmptyReport,
     buildOptimisticExportIntegrationAction,
@@ -195,8 +200,10 @@ import {startSendMessagePhase} from '@libs/telemetry/sendMessageSpans';
 import {
     getAmount,
     getCurrency,
+    getConvertedAmount,
     getNegatedAmountTransaction,
     hasAppliedCommuterExclusion,
+    hasValidModifiedAmount,
     isOnHold,
     isManualDistanceRequest,
     isOdometerDistanceRequest,
@@ -205,6 +212,7 @@ import {
 } from '@libs/TransactionUtils';
 import {appendParam, getSearchParamFromPath} from '@libs/Url';
 import {buildSecureDownloadURL} from '@libs/UrlUtils';
+import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import Visibility from '@libs/Visibility';
 
 import {showSupportalPermissionDenied} from '@userActions/App';
@@ -8519,11 +8527,16 @@ function updatePolicyIdForReportAndThreads(
             | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
             | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS
             | typeof ONYXKEYS.COLLECTION.TRANSACTION
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
         >
     >,
     failureData: Array<
         OnyxUpdate<
-            typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS | typeof ONYXKEYS.COLLECTION.TRANSACTION
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
         >
     >,
 ) {
@@ -8559,6 +8572,23 @@ function navigateToTrainingModal(isChangePolicyTrainingModalDismissed: boolean) 
     Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.CHANGE_POLICY_EDUCATIONAL.path), {waitForTransition: true});
 }
 
+type ChangePolicyExpenseData = {
+    sourcePolicy: OnyxEntry<Policy>;
+    policies: OnyxCollection<Policy>;
+    policyCategories: OnyxEntry<PolicyCategories>;
+    policyTagList: OnyxEntry<PolicyTagLists>;
+    transactionViolations: OnyxCollection<TransactionViolations>;
+    reportActions: OnyxEntry<ReportActions>;
+    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
+    isVendorMatchingBetaEnabled: boolean;
+};
+
+type DistanceRateThreadData = {
+    modifiedExpenseReportActionID: string;
+    transactionThreadReportID?: string;
+    transactionThreadCreatedReportActionID?: string;
+};
+
 function buildOptimisticChangePolicyData({
     report,
     parentReport,
@@ -8578,6 +8608,14 @@ function buildOptimisticChangePolicyData({
     rules,
     delegateAccountID,
     personalDetailsByLogins,
+    sourcePolicy,
+    policies,
+    policyCategories,
+    policyTagList,
+    transactionViolations,
+    reportActions,
+    getCurrencySymbol,
+    isVendorMatchingBetaEnabled,
 }: {
     report: Report;
     parentReport: OnyxEntry<Report>;
@@ -8597,7 +8635,7 @@ function buildOptimisticChangePolicyData({
     rules: OnyxCollection<Rule>;
     delegateAccountID: number | undefined;
     personalDetailsByLogins: PersonalDetailsByLogin;
-}) {
+} & ChangePolicyExpenseData) {
     const optimisticData: Array<
         OnyxUpdate<
             | typeof ONYXKEYS.COLLECTION.REPORT
@@ -8605,12 +8643,17 @@ function buildOptimisticChangePolicyData({
             | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
             | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS
             | typeof ONYXKEYS.COLLECTION.TRANSACTION
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
         >
     > = [];
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [];
     const failureData: Array<
         OnyxUpdate<
-            typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS | typeof ONYXKEYS.COLLECTION.TRANSACTION
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
         >
     > = [];
 
@@ -8909,6 +8952,174 @@ function buildOptimisticChangePolicyData({
         },
     });
 
+    // Auth checks the original status before this move can reopen or close the report.
+    const isDestinationGroupPolicy = isGroupPolicy(policy);
+    const shouldMigrateDistanceRates = isOpenOrSubmitted && isDestinationGroupPolicy;
+    // Keep the expense explanation before the move so the combined single-expense timeline does not reorder after sync.
+    const modifiedExpenseActionCreated = DateUtils.subtractMillisecondsFromDateTime(optimisticMovedReportAction.created, 1);
+    const distanceRateUpdatedActionCreated = DateUtils.addMillisecondsFromDateTime(optimisticMovedReportAction.created, 1);
+    const transactionIDToReportActionAndThreadData: Record<string, DistanceRateThreadData> = {};
+    const expenseActions = Object.values(reportActions ?? {});
+    const policyHasDependentTags = hasDependentTags(policy, policyTagList);
+    let hasFallbackDistanceRate = false;
+    let hasRepricedTransaction = false;
+    // Queued deletions retain their report ID, but moving the report must not revive or count them.
+    const activeReportTransactions = reportTransactions.filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const updatedReportTransactions = activeReportTransactions.map((transaction) => {
+        const {updatedTransaction, repricedTransaction, isFallback} = shouldMigrateDistanceRates
+            ? getDistanceTransactionForPolicyChange({transaction, policy, sourcePolicy, policies, rules, isExpenseReport: true, getCurrencySymbol, getCurrencyDecimals})
+            : {updatedTransaction: transaction, isFallback: false, repricedTransaction: undefined};
+        hasFallbackDistanceRate ||= isFallback;
+        hasRepricedTransaction ||= !!repricedTransaction;
+        if (updatedTransaction !== transaction) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+                value: {
+                    comment: {customUnit: {...updatedTransaction.comment?.customUnit, defaultP2PRate: null}},
+                    ...(isFallback
+                        ? {
+                              amount: updatedTransaction.amount,
+                              modifiedAmount: updatedTransaction.modifiedAmount,
+                              modifiedMerchant: updatedTransaction.modifiedMerchant,
+                              modifiedCurrency: updatedTransaction.modifiedCurrency,
+                              taxCode: updatedTransaction.taxCode ?? null,
+                              taxValue: updatedTransaction.taxValue ?? null,
+                              taxAmount: updatedTransaction.taxAmount ?? null,
+                          }
+                        : {}),
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            });
+            successData.push({onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, value: {pendingAction: null}});
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+                value: {
+                    comment: {
+                        customUnit: {
+                            customUnitRateID: transaction.comment?.customUnit?.customUnitRateID ?? null,
+                            defaultP2PRate: transaction.comment?.customUnit?.defaultP2PRate ?? null,
+                            distanceUnit: transaction.comment?.customUnit?.distanceUnit ?? null,
+                            quantity: transaction.comment?.customUnit?.quantity ?? null,
+                        },
+                    },
+                    amount: transaction.amount,
+                    modifiedAmount: transaction.modifiedAmount ?? null,
+                    modifiedMerchant: transaction.modifiedMerchant ?? null,
+                    modifiedCurrency: transaction.modifiedCurrency ?? null,
+                    taxCode: transaction.taxCode ?? null,
+                    taxValue: transaction.taxValue ?? null,
+                    taxAmount: transaction.taxAmount ?? null,
+                    pendingAction: transaction.pendingAction ?? null,
+                },
+            });
+        }
+        if (isDestinationGroupPolicy) {
+            optimisticData.push(
+                ViolationsUtils.getViolationsOnyxData({
+                    updatedTransaction,
+                    transactionViolations: transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] ?? [],
+                    policy,
+                    policyTagList: policyTagList ?? {},
+                    policyCategories: policyCategories ?? {},
+                    hasDependentTags: policyHasDependentTags,
+                    isInvoiceTransaction: false,
+                    shouldRemoveRejectedExpenseViolation: true,
+                    ownerLogin,
+                    isVendorMatchingBetaEnabled,
+                    iouReport: {...report, policyID: policy.id},
+                }),
+            );
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
+                value: transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] ?? null,
+            });
+        }
+        if (!repricedTransaction) {
+            return updatedTransaction;
+        }
+        const iouAction = ReportActionsUtils.getIOUActionForTransactionID(expenseActions, transaction.transactionID);
+        // Legacy expenses can store '0' instead of a real thread ID on either link.
+        const iouThreadReportID = iouAction?.childReportID === '0' ? undefined : iouAction?.childReportID;
+        const expenseThreadReportID = transaction.transactionThreadReportID === '0' ? undefined : transaction.transactionThreadReportID;
+        let transactionThreadReportID = iouThreadReportID || expenseThreadReportID;
+        let transactionThreadCreatedReportActionID: string | undefined;
+        if (!transactionThreadReportID && iouAction) {
+            // Construct local data only. Opening each thread would queue an API request per expense.
+            const thread = buildTransactionThread(iouAction, {...report, policyID: policy.id}, currentUserAccountID, undefined, generateReportID());
+            transactionThreadReportID = thread.reportID;
+            const createdAction = buildOptimisticCreatedReportAction({
+                currentUserAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+                emailCreatingAction: CONST.EMAIL.CONCIERGE,
+                created: optimisticMovedReportAction.created,
+            });
+            transactionThreadCreatedReportActionID = createdAction.reportActionID;
+            optimisticData.push(
+                {onyxMethod: Onyx.METHOD.SET, key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`, value: thread},
+                {onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${thread.reportID}`, value: {[createdAction.reportActionID]: createdAction}},
+                {onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, value: {transactionThreadReportID: thread.reportID}},
+            );
+            successData.push({onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${thread.reportID}`, value: {[createdAction.reportActionID]: {pendingAction: null}}});
+            failureData.push(
+                {onyxMethod: Onyx.METHOD.SET, key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`, value: null},
+                {onyxMethod: Onyx.METHOD.SET, key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${thread.reportID}`, value: null},
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+                    value: {transactionThreadReportID: transaction.transactionThreadReportID ?? null},
+                },
+            );
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+                value: {[iouAction.reportActionID]: {childReportID: thread.reportID}},
+            });
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+                value: {[iouAction.reportActionID]: {childReportID: iouAction.childReportID ?? null}},
+            });
+        }
+        if (!transactionThreadReportID) {
+            return updatedTransaction;
+        }
+        const modifiedAction = buildOptimisticConciergeDistanceRateModifiedExpenseReportAction({
+            transactionThreadReportID,
+            oldTransaction: transaction,
+            updatedTransaction: repricedTransaction,
+            policy,
+            created: modifiedExpenseActionCreated,
+        });
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+            value: {[modifiedAction.reportActionID]: modifiedAction},
+        });
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+            value: {[modifiedAction.reportActionID]: {pendingAction: null}},
+        });
+        if (!transactionThreadCreatedReportActionID) {
+            failureData.push({onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`, value: {[modifiedAction.reportActionID]: null}});
+        }
+        transactionIDToReportActionAndThreadData[transaction.transactionID] = {
+            modifiedExpenseReportActionID: modifiedAction.reportActionID,
+            ...(transactionThreadCreatedReportActionID ? {transactionThreadReportID, transactionThreadCreatedReportActionID} : {}),
+        };
+        return updatedTransaction;
+    });
+    let distanceRateUpdatedReportActionID: string | undefined;
+    if (hasFallbackDistanceRate) {
+        const action = buildOptimisticConciergeAutoSelectDistanceRateReportAction(policy.name, distanceRateUpdatedActionCreated);
+        distanceRateUpdatedReportActionID = action.reportActionID;
+        optimisticData.push({onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, value: {[action.reportActionID]: action}});
+        successData.push({onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, value: {[action.reportActionID]: {pendingAction: null}}});
+        failureData.push({onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, value: {[action.reportActionID]: null}});
+    }
+
     const currentSearchQueryJSON = getCurrentSearchQueryJSON();
 
     // Search data might not have the new policy data so we should add it optimistically.
@@ -8941,14 +9152,16 @@ function buildOptimisticChangePolicyData({
         },
     });
 
-    // 6. Handle transactions when moving to a workspace with a different currency
-    // Clear convertedAmount (which is calculated for the old workspace currency) and add pendingAction for proper UI feedback
-    // Only clear for transactions that don't match the destination currency - matching transactions can keep their values
+    // 6. Invalidate stale conversions after workspace currency changes or expense repricing.
+    // A changed amount or expense currency invalidates convertedAmount even when the expense uses the destination currency.
+    // Unchanged expenses keep conversions that are still valid for the destination.
     const sourceCurrency = report.currency;
     const destinationCurrency = policy.outputCurrency;
 
-    for (const transaction of reportTransactions) {
-        if (!shouldClearConvertedAmount(transaction, sourceCurrency, destinationCurrency)) {
+    for (const [index, transaction] of updatedReportTransactions.entries()) {
+        const originalTransaction = activeReportTransactions[index];
+        const hasChangedPrice = getAmount(transaction, true) !== getAmount(originalTransaction, true) || getCurrency(transaction) !== getCurrency(originalTransaction);
+        if (!shouldClearConvertedAmount(transaction, sourceCurrency, destinationCurrency) && !hasChangedPrice) {
             continue;
         }
 
@@ -8971,45 +9184,78 @@ function buildOptimisticChangePolicyData({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {
-                pendingAction: transaction.pendingAction ?? null,
-                convertedAmount: transaction.convertedAmount,
+                pendingAction: originalTransaction.pendingAction ?? null,
+                convertedAmount: originalTransaction.convertedAmount ?? null,
             },
         });
     }
 
-    // 7. Update report totals when source and destination currencies differ
-    // Only include transactions that match the destination currency (their amounts can be used directly)
-    if (sourceCurrency && destinationCurrency && sourceCurrency !== destinationCurrency) {
-        let newTotal = 0;
-        let newUnheldTotal = 0;
-        let newNonReimbursableTotal = 0;
-        let newUnheldNonReimbursableTotal = 0;
-        let newReimbursableTotal = 0;
-        let newUnheldReimbursableTotal = 0;
+    // 7. Repricing can change totals even when the report's output currency stays the same.
+    if (destinationCurrency && ((sourceCurrency && sourceCurrency !== destinationCurrency) || hasRepricedTransaction)) {
+        const isReportCurrencyUnchanged = sourceCurrency === destinationCurrency;
+        const getReportCurrencyAmount = (transaction: Transaction, canUseConversion: boolean): number | undefined => {
+            if (getCurrency(transaction) === destinationCurrency) {
+                if (transaction.amount == null && !hasValidModifiedAmount(transaction)) {
+                    return undefined;
+                }
+                return getAmount(transaction, true);
+            }
+            return canUseConversion && transaction.convertedAmount != null ? getConvertedAmount(transaction, true) : undefined;
+        };
+        const hasUnvaluedTransaction = updatedReportTransactions.some((transaction, index) => {
+            const originalTransaction = activeReportTransactions[index];
+            const isPriceUnchanged = getAmount(transaction, true) === getAmount(originalTransaction, true) && getCurrency(transaction) === getCurrency(originalTransaction);
+            return getReportCurrencyAmount(transaction, isReportCurrencyUnchanged && isPriceUnchanged) === undefined;
+        });
+        // Unknown FX may already be included in cached totals, or excluded for an expense added offline.
+        // Apply only known differences to that baseline and leave absent subtotals unknown.
+        const shouldAdjustCachedTotals = isReportCurrencyUnchanged && hasUnvaluedTransaction;
+        let newTotal = shouldAdjustCachedTotals ? report.total : 0;
+        let newUnheldTotal = shouldAdjustCachedTotals ? report.unheldTotal : 0;
+        let newNonReimbursableTotal = shouldAdjustCachedTotals ? report.nonReimbursableTotal : 0;
+        let newUnheldNonReimbursableTotal = shouldAdjustCachedTotals ? report.unheldNonReimbursableTotal : 0;
+        let newReimbursableTotal = shouldAdjustCachedTotals ? report.reimbursableTotal : 0;
+        let newUnheldReimbursableTotal = shouldAdjustCachedTotals ? report.unheldReimbursableTotal : 0;
 
-        for (const transaction of reportTransactions) {
-            const transactionCurrency = getCurrency(transaction);
+        for (const [index, transaction] of updatedReportTransactions.entries()) {
+            const originalTransaction = activeReportTransactions[index];
+            const isPriceUnchanged = getAmount(transaction, true) === getAmount(originalTransaction, true) && getCurrency(transaction) === getCurrency(originalTransaction);
+            const updatedAmount = getReportCurrencyAmount(transaction, isReportCurrencyUnchanged && isPriceUnchanged);
+            let transactionAmount = updatedAmount;
+            if (shouldAdjustCachedTotals) {
+                if (isPriceUnchanged) {
+                    continue;
+                }
+                const originalAmount = getReportCurrencyAmount(originalTransaction, true);
+                if (originalAmount === undefined || updatedAmount === undefined) {
+                    continue;
+                }
+                transactionAmount = updatedAmount - originalAmount;
+            }
+            if (transactionAmount === undefined) {
+                continue;
+            }
 
-            // Only include transactions that match the destination currency
-            if (transactionCurrency === destinationCurrency) {
-                const transactionAmount = getAmount(transaction, true);
+            if (newTotal !== undefined) {
                 newTotal -= transactionAmount;
-                // `unheldTotal` is the signed sum of the transactions that are not on hold, so it has to be
-                // recomputed here too. `getNonHeldAndFullAmount` prefers it over the derived sum, so leaving the
-                // old-currency value behind would show the hold and Pay amounts in the source currency.
-                if (!isOnHold(transaction)) {
-                    newUnheldTotal -= transactionAmount;
-                }
-                if (!transaction.reimbursable) {
+            }
+            // Keep the signed hold and reimbursement subtotals in step with the same contribution or delta.
+            if (!isOnHold(transaction) && newUnheldTotal !== undefined) {
+                newUnheldTotal -= transactionAmount;
+            }
+            if (!transaction.reimbursable) {
+                if (newNonReimbursableTotal !== undefined) {
                     newNonReimbursableTotal -= transactionAmount;
-                } else {
-                    newReimbursableTotal -= transactionAmount;
-                    if (!isOnHold(transaction)) {
-                        newUnheldReimbursableTotal -= transactionAmount;
-                    }
                 }
-                if (!transaction.reimbursable || isOnHold(transaction)) {
+                if (!isOnHold(transaction) && newUnheldNonReimbursableTotal !== undefined) {
                     newUnheldNonReimbursableTotal -= transactionAmount;
+                }
+            } else {
+                if (newReimbursableTotal !== undefined) {
+                    newReimbursableTotal -= transactionAmount;
+                }
+                if (!isOnHold(transaction) && newUnheldReimbursableTotal !== undefined) {
+                    newUnheldReimbursableTotal -= transactionAmount;
                 }
             }
         }
@@ -9036,7 +9282,7 @@ function buildOptimisticChangePolicyData({
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 pendingFields: {
-                    total: null,
+                    total: report.pendingFields?.total ?? null,
                 },
             },
         });
@@ -9044,22 +9290,53 @@ function buildOptimisticChangePolicyData({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                currency: report.currency,
-                total: report.total,
-                unheldTotal: report.unheldTotal,
-                nonReimbursableTotal: report.nonReimbursableTotal,
-                unheldNonReimbursableTotal: report.unheldNonReimbursableTotal,
-                reimbursableTotal: report.reimbursableTotal,
-                unheldReimbursableTotal: report.unheldReimbursableTotal,
+                currency: report.currency ?? null,
+                total: report.total ?? null,
+                unheldTotal: report.unheldTotal ?? null,
+                nonReimbursableTotal: report.nonReimbursableTotal ?? null,
+                unheldNonReimbursableTotal: report.unheldNonReimbursableTotal ?? null,
+                reimbursableTotal: report.reimbursableTotal ?? null,
+                unheldReimbursableTotal: report.unheldReimbursableTotal ?? null,
                 pendingFields: {
                     ...(report.pendingFields ?? {}),
-                    total: null,
+                    total: report.pendingFields?.total ?? null,
                 },
             },
         });
+        const previewMessage = getReportPreviewReportActionMessage(
+            {
+                reportOrID: {
+                    ...report,
+                    policyID: policy.id,
+                    parentReportID: newPolicyExpenseChatReportID,
+                    currency: destinationCurrency,
+                    total: newTotal,
+                    unheldTotal: newUnheldTotal,
+                    reimbursableTotal: newReimbursableTotal,
+                    nonReimbursableTotal: newNonReimbursableTotal,
+                    unheldReimbursableTotal: newUnheldReimbursableTotal,
+                    unheldNonReimbursableTotal: newUnheldNonReimbursableTotal,
+                },
+                policy,
+            },
+            getCurrencyDecimals,
+        );
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${newPolicyExpenseChatReportID}`,
+            value: {[optimisticReportPreviewAction.reportActionID]: {message: [{html: previewMessage, text: previewMessage, isEdited: false, type: CONST.REPORT.MESSAGE.TYPE.COMMENT}]}},
+        });
     }
 
-    return {optimisticData, successData, failureData, optimisticReportPreviewAction, optimisticMovedReportAction};
+    return {
+        optimisticData,
+        successData,
+        failureData,
+        optimisticReportPreviewAction,
+        optimisticMovedReportAction,
+        distanceRateUpdatedReportActionID,
+        transactionIDToReportActionAndThreadData,
+    };
 }
 
 function shouldBlockChangeReportPolicyForMapOrGPSRequirement(reportTransactions: Transaction[], policy: Policy): boolean {
@@ -9091,6 +9368,7 @@ function changeReportPolicy({
     rules,
     delegateAccountID,
     personalDetailsByLogins,
+    ...expenseData
 }: {
     report: Report;
     parentReport: OnyxEntry<Report>;
@@ -9110,12 +9388,21 @@ function changeReportPolicy({
     rules: OnyxCollection<Rule>;
     delegateAccountID: number | undefined;
     personalDetailsByLogins: PersonalDetailsByLogin;
-}) {
+} & ChangePolicyExpenseData) {
     if (!report || !policy || report.policyID === policy.id || !isExpenseReport(report) || shouldBlockChangeReportPolicyForMapOrGPSRequirement(reportTransactions, policy)) {
         return;
     }
 
-    const {optimisticData, successData, failureData, optimisticReportPreviewAction, optimisticMovedReportAction} = buildOptimisticChangePolicyData({
+    const {
+        optimisticData,
+        successData,
+        failureData,
+        optimisticReportPreviewAction,
+        optimisticMovedReportAction,
+        distanceRateUpdatedReportActionID,
+        transactionIDToReportActionAndThreadData,
+    } = buildOptimisticChangePolicyData({
+        ...expenseData,
         report,
         parentReport,
         policy,
@@ -9140,6 +9427,8 @@ function changeReportPolicy({
         policyID: policy.id,
         reportPreviewReportActionID: optimisticReportPreviewAction.reportActionID,
         changePolicyReportActionID: optimisticMovedReportAction.reportActionID,
+        distanceRateUpdatedReportActionID,
+        transactionIDToReportActionAndThreadData: JSON.stringify(transactionIDToReportActionAndThreadData),
     };
     API.write(WRITE_COMMANDS.CHANGE_REPORT_POLICY, params, {optimisticData, successData, failureData});
 
@@ -9171,6 +9460,7 @@ function changeReportPolicyAndInviteSubmitter({
     rules,
     personalDetailsByLogins,
     delegateAccountID,
+    ...expenseData
 }: {
     report: Report;
     parentReport: OnyxEntry<Report>;
@@ -9191,7 +9481,7 @@ function changeReportPolicyAndInviteSubmitter({
     rules: OnyxCollection<Rule>;
     personalDetailsByLogins: PersonalDetailsByLogin;
     delegateAccountID: number | undefined;
-}) {
+} & ChangePolicyExpenseData) {
     if (
         !report.reportID ||
         !policy?.id ||
@@ -9237,7 +9527,10 @@ function changeReportPolicyAndInviteSubmitter({
         failureData: failureChangePolicyData,
         optimisticReportPreviewAction,
         optimisticMovedReportAction,
+        distanceRateUpdatedReportActionID,
+        transactionIDToReportActionAndThreadData,
     } = buildOptimisticChangePolicyData({
+        ...expenseData,
         report,
         parentReport,
         policy,
@@ -9269,6 +9562,8 @@ function changeReportPolicyAndInviteSubmitter({
         changePolicyReportActionID: optimisticMovedReportAction.reportActionID,
         policyExpenseChatReportID: optimisticPolicyExpenseChatReportID,
         policyExpenseCreatedReportActionID: optimisticPolicyExpenseChatCreatedReportActionID,
+        distanceRateUpdatedReportActionID,
+        transactionIDToReportActionAndThreadData: JSON.stringify(transactionIDToReportActionAndThreadData),
     };
     API.write(WRITE_COMMANDS.CHANGE_REPORT_POLICY_AND_INVITE_SUBMITTER, params, {optimisticData, successData, failureData});
 

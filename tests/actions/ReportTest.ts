@@ -16,6 +16,7 @@ import {onServerDataReady} from '@libs/actions/Welcome';
 import {getOnboardingMessages} from '@libs/actions/Welcome/OnboardingFlow';
 import AgentZeroOptimisticStore from '@libs/AgentZeroOptimisticStore';
 import * as API from '@libs/API';
+import type ChangeReportPolicyParams from '@libs/API/parameters/ChangeReportPolicyParams';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import trackConciergeResponse from '@libs/ConciergeResponseIndicator';
 import {trackFullstoryEvent} from '@libs/Fullstory/utils';
@@ -25,7 +26,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
-import {getOriginalMessage, getReportActionMessage, isActionOfType, isDeletedAction} from '@libs/ReportActionsUtils';
+import {getCombinedReportActions, getOriginalMessage, getReportActionMessage, isActionOfType, isDeletedAction} from '@libs/ReportActionsUtils';
 import {buildReportIDToNameMap, getMentionedReportIDs} from '@libs/ReportIDToNameMapUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {appendParam} from '@libs/Url';
@@ -50,6 +51,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
+import type {Unit} from '@src/types/onyx/Policy';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -63,7 +65,7 @@ import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import type {MockFetch} from '../utils/TestHelper';
 
 import createCollection from '../utils/collections/createCollection';
-import createRandomPolicy from '../utils/collections/policies';
+import createRandomPolicy, {createCategoryTaxRulesCollection} from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
@@ -266,6 +268,17 @@ const parseGuidedSetupData = (value: string): GuidedSetupData => {
 };
 
 type APIWriteSpy = jest.SpiedFunction<typeof API.write>;
+
+const emptyChangePolicyExpenseData = {
+    sourcePolicy: undefined,
+    policies: undefined,
+    policyCategories: undefined,
+    policyTagList: undefined,
+    transactionViolations: undefined,
+    reportActions: undefined,
+    getCurrencySymbol: TestHelper.getCurrencySymbolLocal,
+    isVendorMatchingBetaEnabled: false,
+};
 
 describe('actions/Report', () => {
     let apiWriteSpy: APIWriteSpy;
@@ -5213,6 +5226,7 @@ describe('actions/Report', () => {
             };
 
             Report.changeReportPolicy({
+                ...emptyChangePolicyExpenseData,
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
@@ -5252,6 +5266,7 @@ describe('actions/Report', () => {
 
             // When moving to another workspace
             Report.changeReportPolicy({
+                ...emptyChangePolicyExpenseData,
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
@@ -5317,6 +5332,7 @@ describe('actions/Report', () => {
 
             // When moving to another workspace
             Report.changeReportPolicy({
+                ...emptyChangePolicyExpenseData,
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
@@ -5392,6 +5408,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
 
             Report.changeReportPolicy({
+                ...emptyChangePolicyExpenseData,
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
@@ -5493,6 +5510,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
 
             Report.changeReportPolicy({
+                ...emptyChangePolicyExpenseData,
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
@@ -5582,6 +5600,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
 
             Report.changeReportPolicy({
+                ...emptyChangePolicyExpenseData,
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
@@ -5639,6 +5658,7 @@ describe('actions/Report', () => {
 
             // When moving to another workspace
             Report.changeReportPolicyAndInviteSubmitter({
+                ...emptyChangePolicyExpenseData,
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
@@ -5734,6 +5754,7 @@ describe('actions/Report', () => {
 
             // Call changeReportPolicyAndInviteSubmitter
             Report.changeReportPolicyAndInviteSubmitter({
+                ...emptyChangePolicyExpenseData,
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
@@ -5783,6 +5804,7 @@ describe('actions/Report', () => {
             };
 
             Report.changeReportPolicyAndInviteSubmitter({
+                ...emptyChangePolicyExpenseData,
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
@@ -5818,6 +5840,7 @@ describe('actions/Report', () => {
             };
 
             Report.changeReportPolicyAndInviteSubmitter({
+                ...emptyChangePolicyExpenseData,
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
@@ -5852,6 +5875,7 @@ describe('actions/Report', () => {
             };
 
             Report.changeReportPolicyAndInviteSubmitter({
+                ...emptyChangePolicyExpenseData,
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
@@ -5886,6 +5910,7 @@ describe('actions/Report', () => {
             };
 
             Report.changeReportPolicyAndInviteSubmitter({
+                ...emptyChangePolicyExpenseData,
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
@@ -5922,6 +5947,7 @@ describe('actions/Report', () => {
 
             // Do not set personal details for ownerAccountID so getLoginByAccountID returns empty
             Report.changeReportPolicyAndInviteSubmitter({
+                ...emptyChangePolicyExpenseData,
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
@@ -5978,6 +6004,7 @@ describe('actions/Report', () => {
             mockFetch.pause?.();
 
             Report.changeReportPolicyAndInviteSubmitter({
+                ...emptyChangePolicyExpenseData,
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
@@ -6618,6 +6645,954 @@ describe('actions/Report', () => {
         });
     });
 
+    describe.each([false, true])('workspace distance rates (invite submitter: %s)', (inviteSubmitter) => {
+        const reportID = 'workspaceDistanceReport';
+        const ownerLogin = 'distance-owner@example.com';
+        let mockFetch: MockFetch;
+
+        function createDistancePolicy(id: string, rate: number, currency = 'USD'): OnyxTypes.Policy {
+            return {
+                ...createRandomPolicy(2),
+                id,
+                name: id,
+                type: CONST.POLICY.TYPE.TEAM,
+                outputCurrency: 'USD',
+                customUnits: {
+                    distance: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID: 'distance',
+                        enabled: true,
+                        attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                        rates: {[`${id}Rate`]: {customUnitRateID: `${id}Rate`, name: 'Distance rate', enabled: true, currency, rate}},
+                    },
+                },
+            };
+        }
+
+        function createDistanceTransaction(): OnyxTypes.Transaction {
+            return {
+                transactionID: 'distanceExpense',
+                reportID,
+                created: '2026-03-15',
+                amount: -500,
+                currency: 'USD',
+                merchant: '10.00 mi @ $0.50 / mi',
+                reimbursable: true,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitRateID: 'sourceRate',
+                        quantity: 10,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    },
+                },
+            };
+        }
+
+        async function changeWorkspace({
+            transactions = [createDistanceTransaction()],
+            policy = createDistancePolicy('destination', 80),
+            reportOverrides = {},
+            reportActions = {},
+            transactionViolations = {},
+            rules,
+        }: {
+            transactions?: OnyxTypes.Transaction[];
+            policy?: OnyxTypes.Policy;
+            reportOverrides?: Partial<OnyxTypes.Report>;
+            reportActions?: OnyxTypes.ReportActions;
+            transactionViolations?: OnyxCollection<OnyxTypes.TransactionViolations>;
+            rules?: OnyxCollection<OnyxTypes.Rule>;
+        } = {}) {
+            const sourcePolicy = createDistancePolicy('source', 50);
+            const report: OnyxTypes.Report = {
+                ...createRandomReport(1, undefined),
+                reportID,
+                policyID: sourcePolicy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                currency: 'USD',
+                total: -500,
+                ownerAccountID: 1,
+                isWaitingOnBankAccount: false,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                ...reportOverrides,
+            };
+            mockFetch = TestHelper.createGlobalFetchMock();
+            global.fetch = mockFetch;
+            mockFetch.pause();
+            await Promise.all([
+                Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report),
+                Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${sourcePolicy.id}`, sourcePolicy),
+                Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy),
+                Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActions),
+                ...transactions.map((transaction) => Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction)),
+                ...transactions.map((transaction) =>
+                    Onyx.set(
+                        `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
+                        transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] ?? null,
+                    ),
+                ),
+            ]);
+            await waitForBatchedUpdates();
+            const common = {
+                report,
+                policy,
+                sourcePolicy,
+                reportActions,
+                transactionViolations,
+                policyCategories: {},
+                policyTagList: {},
+                policies: {[`${ONYXKEYS.COLLECTION.POLICY}${sourcePolicy.id}`]: sourcePolicy},
+                parentReport: undefined,
+                reportPreviewAction: undefined,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                getCurrencySymbol: TestHelper.getCurrencySymbolLocal,
+                isVendorMatchingBetaEnabled: false,
+                managerLogin: undefined,
+                hasViolationsParam: false,
+                isChangePolicyTrainingModalDismissed: true,
+                isASAPSubmitBetaEnabled: false,
+                isTrackIntentUser: false,
+                reportTransactions: transactions,
+                rules,
+                delegateAccountID: undefined,
+                personalDetailsByLogins: {[ownerLogin]: {accountID: 1, login: ownerLogin}},
+                isReportLastVisibleArchived: false,
+            };
+            if (inviteSubmitter) {
+                Report.changeReportPolicyAndInviteSubmitter({...common, currentUser: {accountID: 2}, submitterLogin: ownerLogin, employeeList: {}, reportActionsList: {}});
+            } else {
+                Report.changeReportPolicy({...common, currentUserAccountID: 1, email: ownerLogin, ownerLogin});
+            }
+            await waitForBatchedUpdates();
+            const command = inviteSubmitter ? WRITE_COMMANDS.CHANGE_REPORT_POLICY_AND_INVITE_SUBMITTER : WRITE_COMMANDS.CHANGE_REPORT_POLICY;
+            const call = apiWriteSpy.mock.calls.find(([name]) => name === command);
+            function isPolicyParams(value: unknown): value is ChangeReportPolicyParams {
+                return !!value && typeof value === 'object' && 'reportID' in value && 'policyID' in value && 'reportPreviewReportActionID' in value && 'changePolicyReportActionID' in value;
+            }
+            type ThreadMap = Record<string, {modifiedExpenseReportActionID: string; transactionThreadReportID?: string; transactionThreadCreatedReportActionID?: string}>;
+            function isThreadMap(value: unknown): value is ThreadMap {
+                return (
+                    !!value &&
+                    typeof value === 'object' &&
+                    Object.values(value).every(
+                        (entry: unknown) => !!entry && typeof entry === 'object' && 'modifiedExpenseReportActionID' in entry && typeof entry.modifiedExpenseReportActionID === 'string',
+                    )
+                );
+            }
+            const params = call?.[1];
+            if (!isPolicyParams(params)) {
+                throw new Error('Expected change-workspace API parameters');
+            }
+            const threadMap: unknown = JSON.parse(params.transactionIDToReportActionAndThreadData ?? '{}');
+            if (!isThreadMap(threadMap)) {
+                throw new Error('Expected transaction thread map');
+            }
+            return {params, threadMap, requestData: call?.[2]};
+        }
+
+        afterEach(async () => {
+            mockFetch?.succeed();
+            await mockFetch?.resume();
+        });
+
+        describe('distance taxes', () => {
+            function createTaxPolicy(rate = 80, currency = 'USD', unit: Unit = CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES) {
+                return {
+                    ...createDistancePolicy('destination', rate, currency),
+                    tax: {trackingEnabled: true},
+                    taxRates: {
+                        name: 'Tax',
+                        defaultExternalID: 'defaultTax',
+                        defaultValue: '10%',
+                        foreignTaxDefault: 'defaultTax',
+                        taxes: {
+                            destinationTax: {name: 'Destination VAT', value: '20%', isDisabled: false},
+                            defaultTax: {name: 'Default VAT', value: '10%', isDisabled: false},
+                            categoryTax: {name: 'Category VAT', value: '5%'},
+                        },
+                    },
+                    customUnits: {
+                        distance: {
+                            customUnitID: 'distance',
+                            name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                            enabled: true,
+                            attributes: {unit, taxEnabled: true},
+                            rates: {
+                                destinationRate: {
+                                    customUnitRateID: 'destinationRate',
+                                    name: 'Distance rate',
+                                    enabled: true,
+                                    currency,
+                                    rate,
+                                    attributes: {taxRateExternalID: 'destinationTax', taxClaimablePercentage: 1},
+                                },
+                            },
+                        },
+                    },
+                };
+            }
+
+            it.each(['rate', 'partialClaim', 'default', 'category', 'noTax', 'samePrice', 'absentSourceTax', 'kilometersCurrency', 'zeroDecimals'])(
+                'recalculates fallback taxes and restores them on failure: %s',
+                async (scenario) => {
+                    // Given different source taxes and a destination with its own distance tax settings
+                    const transaction: OnyxTypes.Transaction = {
+                        ...createDistanceTransaction(),
+                        category: 'Mileage',
+                        ...(scenario === 'absentSourceTax' ? {} : {taxCode: 'sourceTax', taxValue: '9%', taxAmount: -41}),
+                    };
+                    let currency = 'USD';
+                    if (scenario === 'zeroDecimals') {
+                        currency = 'JPY';
+                    } else if (scenario === 'kilometersCurrency') {
+                        currency = 'EUR';
+                    }
+                    const policy = createTaxPolicy(
+                        80,
+                        currency,
+                        scenario === 'kilometersCurrency' || scenario === 'zeroDecimals' ? CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS : CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    );
+                    const destinationRate = policy.customUnits.distance.rates.destinationRate;
+                    let expectedTaxCode = 'destinationTax';
+                    let expectedTaxValue: string | undefined = '20%';
+                    let expectedTaxAmount = -133;
+                    if (scenario === 'partialClaim') {
+                        destinationRate.attributes.taxClaimablePercentage = 0.5;
+                        expectedTaxAmount = -67;
+                    }
+                    if (scenario === 'default' || scenario === 'noTax' || scenario === 'category') {
+                        policy.taxRates.taxes.destinationTax.isDisabled = true;
+                        expectedTaxCode = 'defaultTax';
+                        expectedTaxValue = '10%';
+                        expectedTaxAmount = -73;
+                    }
+                    if (scenario === 'category') {
+                        expectedTaxCode = 'categoryTax';
+                        expectedTaxValue = '5%';
+                        expectedTaxAmount = -38;
+                    }
+                    if (scenario === 'noTax') {
+                        policy.taxRates.taxes.defaultTax.isDisabled = true;
+                        expectedTaxCode = '';
+                        expectedTaxValue = undefined;
+                        expectedTaxAmount = 0;
+                    }
+                    if (scenario === 'samePrice' && transaction.comment?.customUnit) {
+                        transaction.comment.customUnit.customUnitRateID = 'deletedRate';
+                        transaction.amount = -800;
+                        transaction.merchant = '10.00 mi @ $0.80 / mi';
+                    }
+                    if (scenario === 'kilometersCurrency') {
+                        expectedTaxAmount = -215;
+                    }
+                    if (scenario === 'zeroDecimals') {
+                        expectedTaxAmount = -200;
+                    }
+                    const originalViolations: OnyxTypes.TransactionViolations = [{name: CONST.VIOLATIONS.TAX_OUT_OF_POLICY, type: CONST.VIOLATION_TYPES.VIOLATION}];
+
+                    // When either workspace move is queued, taxes must use its destination rate before validation
+                    const {params, threadMap} = await changeWorkspace({
+                        transactions: [transaction],
+                        policy,
+                        rules: scenario === 'rate' || scenario === 'category' ? createCategoryTaxRulesCollection(policy.id, 'Mileage', 'categoryTax') : undefined,
+                        reportActions: {
+                            distanceIOUAction: {
+                                reportActionID: 'distanceIOUAction',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                                actorAccountID: 1,
+                                created: '2026-03-15 00:00:00.000',
+                                originalMessage: {IOUTransactionID: transaction.transactionID, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE},
+                            },
+                        },
+                        transactionViolations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: originalViolations},
+                    });
+
+                    // Then the destination tax replaces the source tax, including clearing an unavailable tax value
+                    const updated = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`);
+                    expect(updated?.taxCode).toBe(expectedTaxCode);
+                    expect(updated?.taxValue).toBe(expectedTaxValue);
+                    expect(updated?.taxAmount).toBeCloseTo(expectedTaxAmount);
+                    expect(
+                        (await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`))?.some(
+                            (violation) => violation.name === CONST.VIOLATIONS.TAX_OUT_OF_POLICY,
+                        ),
+                    ).toBe(false);
+                    if (scenario === 'kilometersCurrency') {
+                        expect(updated?.comment?.customUnit).toMatchObject({quantity: 16.09, distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS});
+                        expect(updated?.modifiedCurrency).toBe('EUR');
+                    }
+                    if (scenario === 'samePrice') {
+                        expect(params.distanceRateUpdatedReportActionID).toBeDefined();
+                        expect(threadMap).toEqual({});
+                    }
+                    mockFetch.fail();
+                    await mockFetch.resume();
+                    await waitForBatchedUpdates();
+                    expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`)).toEqual(transaction);
+                    expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`)).toEqual(originalViolations);
+                },
+            );
+
+            it.each(['matching', 'loadingWaypoints', 'policyDisabled', 'distanceDisabled'])('preserves tax fields when tax repricing is skipped: %s', async (scenario) => {
+                // Given existing tax fields that must not be recalculated outside an eligible fallback
+                const transaction = {
+                    ...createDistanceTransaction(),
+                    taxCode: 'sourceTax',
+                    taxValue: '9%',
+                    taxAmount: -41,
+                    ...(scenario === 'loadingWaypoints' ? {pendingFields: {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}} : {}),
+                };
+                const policy = createTaxPolicy(scenario === 'matching' ? 50 : 80);
+                if (scenario === 'policyDisabled') {
+                    policy.tax.trackingEnabled = false;
+                }
+                if (scenario === 'distanceDisabled') {
+                    policy.customUnits.distance.attributes.taxEnabled = false;
+                }
+
+                // When the workspace changes with matching rates, pending waypoints or tax tracking disabled
+                await changeWorkspace({transactions: [transaction], policy});
+
+                // Then source taxes remain intact instead of being silently cleared or recalculated
+                expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`)).toMatchObject({taxCode: 'sourceTax', taxValue: '9%', taxAmount: -41});
+            });
+        });
+
+        it.each(['matching', 'fallback', 'samePriceFallback', 'existingThread', 'currency', 'approved', 'closed', 'loadingWaypoints', 'sameRateID'] as const)(
+            'updates the expense and API IDs for %s',
+            async (scenario) => {
+                // Given a distance expense moving between workspaces with different rate-selection outcomes
+                const transaction = createDistanceTransaction();
+                const policy = createDistancePolicy('destination', scenario === 'matching' ? 50 : 80, scenario === 'currency' ? 'EUR' : 'USD');
+                if (scenario === 'matching') {
+                    transaction.modifiedAmount = -900;
+                    transaction.modifiedMerchant = 'Manually edited merchant';
+                }
+                if (scenario === 'samePriceFallback' && transaction.comment?.customUnit) {
+                    transaction.comment.customUnit.customUnitRateID = 'deletedRate';
+                    transaction.amount = -800;
+                    transaction.merchant = '10.00 mi @ $0.80 / mi';
+                }
+                if (scenario === 'loadingWaypoints') {
+                    transaction.pendingFields = {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE};
+                }
+                if (scenario === 'sameRateID' && transaction.comment?.customUnit) {
+                    transaction.comment.customUnit.customUnitRateID = 'destinationRate';
+                }
+                const iouAction: OnyxTypes.ReportAction = {
+                    reportActionID: 'distanceIOUAction',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    actorAccountID: 1,
+                    created: '2026-03-15 00:00:00.000',
+                    originalMessage: {IOUTransactionID: transaction.transactionID, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE},
+                    ...(scenario === 'existingThread' ? {childReportID: 'existingDistanceThread'} : {}),
+                };
+                const isSkipped = ['approved', 'closed', 'sameRateID'].includes(scenario);
+                const isUnchanged = isSkipped || scenario === 'matching' || scenario === 'samePriceFallback' || scenario === 'loadingWaypoints';
+
+                // When either workspace-change command runs while its API response is paused
+                const {params, threadMap} = await changeWorkspace({
+                    transactions: [transaction],
+                    policy,
+                    reportActions: {[iouAction.reportActionID]: iouAction},
+                    reportOverrides:
+                        scenario === 'approved' || scenario === 'closed'
+                            ? {stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: scenario === 'approved' ? CONST.REPORT.STATUS_NUM.APPROVED : CONST.REPORT.STATUS_NUM.CLOSED}
+                            : {},
+                });
+
+                // Then matching and ineligible expenses keep their values, while fallback prices use the destination rate
+                const updated = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`);
+                expect(updated?.amount).toBe(isUnchanged ? transaction.amount : -800);
+                let expectedModifiedAmount: number | undefined;
+                if (scenario === 'matching') {
+                    expectedModifiedAmount = -900;
+                } else if (scenario === 'samePriceFallback' || !isUnchanged) {
+                    expectedModifiedAmount = -800;
+                }
+                expect(updated?.modifiedAmount).toBe(expectedModifiedAmount);
+                expect(updated?.comment?.customUnit?.customUnitRateID).toBe(isSkipped ? transaction.comment?.customUnit?.customUnitRateID : 'destinationRate');
+                if (scenario === 'matching') {
+                    expect(updated?.modifiedMerchant).toBe('Manually edited merchant');
+                }
+                if (isSkipped || scenario === 'matching') {
+                    expect(params.distanceRateUpdatedReportActionID).toBeUndefined();
+                } else {
+                    const actions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
+                    const action = params.distanceRateUpdatedReportActionID ? actions?.[params.distanceRateUpdatedReportActionID] : undefined;
+                    expect(action).toMatchObject({
+                        actionName: CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_SELECT_DISTANCE_RATE,
+                        actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+                        originalMessage: {policyName: 'destination'},
+                    });
+                    expect(action?.created).toBe(DateUtils.addMillisecondsFromDateTime(actions?.[params.changePolicyReportActionID]?.created ?? '', 1));
+                }
+                if (isUnchanged) {
+                    expect(threadMap).toEqual({});
+                } else {
+                    const entry = threadMap[transaction.transactionID];
+                    const threadID = scenario === 'existingThread' ? 'existingDistanceThread' : entry.transactionThreadReportID;
+                    const actions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadID}`);
+                    expect(actions?.[entry.modifiedExpenseReportActionID]).toMatchObject({
+                        actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                        actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+                    });
+                    if (scenario === 'existingThread') {
+                        expect(entry.transactionThreadCreatedReportActionID).toBeUndefined();
+                    } else {
+                        expect(typeof entry.transactionThreadReportID).toBe('string');
+                        expect(typeof entry.transactionThreadCreatedReportActionID).toBe('string');
+                        expect(updated?.transactionThreadReportID).toBe(threadID);
+                    }
+                    expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`))?.total).toBe(scenario === 'currency' ? -500 : -800);
+                }
+                if (scenario === 'currency') {
+                    expect(updated?.modifiedCurrency).toBe('EUR');
+                }
+            },
+        );
+
+        it.each([false, true])('keeps fallback messages ordered after reconciliation with an existing thread: %s', async (hasExistingThread) => {
+            // Given one fallback expense whose thread is displayed together with its report's messages
+            const transaction = createDistanceTransaction();
+            const iouAction: OnyxTypes.ReportAction = {
+                reportActionID: 'distanceIOUAction',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: 1,
+                created: '2026-03-15 00:00:00.000',
+                originalMessage: {IOUTransactionID: transaction.transactionID, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE},
+                ...(hasExistingThread ? {childReportID: 'existingDistanceThread'} : {}),
+            };
+
+            // When the move is queued before an authoritative response replaces its message timestamps
+            const {params, threadMap} = await changeWorkspace({transactions: [transaction], reportActions: {[iouAction.reportActionID]: iouAction}});
+            const entry = threadMap[transaction.transactionID];
+            const threadID = hasExistingThread ? 'existingDistanceThread' : entry.transactionThreadReportID;
+            const notificationID = params.distanceRateUpdatedReportActionID;
+            if (!threadID || !notificationID) {
+                throw new Error('Expected fallback expense thread and distance notification');
+            }
+            const expectedOrder = [entry.modifiedExpenseReportActionID, params.changePolicyReportActionID, notificationID];
+            const readTimeline = async () => {
+                const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
+                const threadActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadID}`);
+                const orderedIDs = getCombinedReportActions(Object.values(reportActions ?? {}), threadID, Object.values(threadActions ?? {}))
+                    .map((action) => action.reportActionID)
+                    .filter((id) => expectedOrder.includes(id))
+                    .reverse();
+                return {reportActions, threadActions, orderedIDs};
+            };
+            const optimistic = await readTimeline();
+            const workspaceChangeCreated = optimistic.reportActions?.[params.changePolicyReportActionID]?.created;
+            if (!workspaceChangeCreated) {
+                throw new Error('Expected workspace-change timestamp');
+            }
+
+            // Then the expense explanation precedes the move and the report notice follows it without timestamp ties
+            expect(optimistic.threadActions?.[entry.modifiedExpenseReportActionID]?.created).toBe(DateUtils.subtractMillisecondsFromDateTime(workspaceChangeCreated, 1));
+            expect(optimistic.reportActions?.[notificationID]?.created).toBe(DateUtils.addMillisecondsFromDateTime(workspaceChangeCreated, 1));
+            expect(optimistic.orderedIDs).toEqual(expectedOrder);
+
+            // Model the reported server chronology at an independent absolute time, not the client's timestamps
+            const serverExpenseCreated = '2026-03-15 12:00:00.099';
+            const serverWorkspaceCreated = '2026-03-15 12:00:00.100';
+            const serverNotificationCreated = '2026-03-15 12:00:00.101';
+            const command = inviteSubmitter ? WRITE_COMMANDS.CHANGE_REPORT_POLICY_AND_INVITE_SUBMITTER : WRITE_COMMANDS.CHANGE_REPORT_POLICY;
+            mockFetch.mockAPICommand(command, () => ({
+                onyxData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+                        value: {[params.changePolicyReportActionID]: {created: serverWorkspaceCreated}, [notificationID]: {created: serverNotificationCreated}},
+                    },
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadID}`,
+                        value: {[entry.modifiedExpenseReportActionID]: {created: serverExpenseCreated}},
+                    },
+                ],
+            }));
+            await mockFetch.resume();
+            await waitForNetworkPromises();
+            await waitForBatchedUpdates();
+            const reconciled = await readTimeline();
+            expect(reconciled.threadActions?.[entry.modifiedExpenseReportActionID]?.created).toBe(serverExpenseCreated);
+            expect(reconciled.reportActions?.[params.changePolicyReportActionID]?.created).toBe(serverWorkspaceCreated);
+            expect(reconciled.reportActions?.[notificationID]?.created).toBe(serverNotificationCreated);
+            expect(reconciled.orderedIDs).toEqual(expectedOrder);
+        });
+
+        it.each([undefined, '0', 'existingDistanceThread'])('handles a missing IOU action with thread ID: %s', async (transactionThreadReportID) => {
+            // Given an expense whose IOU action has not been loaded
+            const transaction = {...createDistanceTransaction(), transactionThreadReportID};
+
+            // When repricing without a loaded IOU action
+            const {params, threadMap, requestData} = await changeWorkspace({transactions: [transaction]});
+
+            // Then repricing still works, but no orphan thread or CREATED action is generated
+            const updated = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`);
+            expect(updated?.modifiedAmount).toBe(-800);
+            expect(params.distanceRateUpdatedReportActionID).toBeDefined();
+            expect(requestData?.optimisticData?.filter((update) => update.onyxMethod === Onyx.METHOD.SET && update.key.startsWith(ONYXKEYS.COLLECTION.REPORT))).toEqual([]);
+            expect(requestData?.optimisticData?.some((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}0`)).toBe(false);
+            if (transactionThreadReportID === 'existingDistanceThread') {
+                const entry = threadMap[transaction.transactionID];
+                expect(entry.transactionThreadCreatedReportActionID).toBeUndefined();
+                const actions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}existingDistanceThread`);
+                expect(actions?.[entry.modifiedExpenseReportActionID]?.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE);
+            } else {
+                expect(threadMap).toEqual({});
+                expect(updated?.transactionThreadReportID).toBe(transactionThreadReportID);
+            }
+        });
+
+        it.each([
+            {childReportID: '0', transactionThreadReportID: '0', existingThreadID: undefined},
+            {childReportID: '0', transactionThreadReportID: 'existingDistanceThread', existingThreadID: 'existingDistanceThread'},
+            {childReportID: '', transactionThreadReportID: 'existingDistanceThread', existingThreadID: 'existingDistanceThread'},
+            {childReportID: 'existingIOUThread', transactionThreadReportID: '0', existingThreadID: 'existingIOUThread'},
+        ])('ignores placeholder thread IDs for $childReportID / $transactionThreadReportID', async ({childReportID, transactionThreadReportID, existingThreadID}) => {
+            // Given a legacy expense whose IOU action or transaction has a placeholder thread ID
+            const transaction = {...createDistanceTransaction(), transactionThreadReportID};
+            const iouAction: OnyxTypes.ReportAction = {
+                reportActionID: 'distanceIOUAction',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: 1,
+                created: '2026-03-15 00:00:00.000',
+                originalMessage: {IOUTransactionID: transaction.transactionID, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE},
+                childReportID,
+            };
+
+            // When the move needs an expense explanation
+            const {threadMap, requestData} = await changeWorkspace({transactions: [transaction], reportActions: {[iouAction.reportActionID]: iouAction}});
+
+            // Then a real existing thread is reused or a new linked thread is created, never report zero
+            const entry = threadMap[transaction.transactionID];
+            const threadID = existingThreadID ?? entry.transactionThreadReportID;
+            expect(threadID).toBeTruthy();
+            expect(threadID).not.toBe('0');
+            const threadActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadID}`);
+            expect(threadActions?.[entry.modifiedExpenseReportActionID]?.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE);
+            const updatedKeys = [
+                ...(requestData?.optimisticData?.map((update) => update.key) ?? []),
+                ...(requestData?.successData?.map((update) => update.key) ?? []),
+                ...(requestData?.failureData?.map((update) => update.key) ?? []),
+            ];
+            expect(updatedKeys.some((key) => key === `${ONYXKEYS.COLLECTION.REPORT}0` || key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}0`)).toBe(false);
+            if (existingThreadID) {
+                expect(entry.transactionThreadReportID).toBeUndefined();
+                expect(entry.transactionThreadCreatedReportActionID).toBeUndefined();
+            } else {
+                expect(entry.transactionThreadCreatedReportActionID).toBeDefined();
+                expect(entry.transactionThreadCreatedReportActionID && threadActions?.[entry.transactionThreadCreatedReportActionID]?.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.CREATED);
+                expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${threadID}`)).toMatchObject({parentReportID: reportID, parentReportActionID: iouAction.reportActionID});
+                expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`))?.transactionThreadReportID).toBe(threadID);
+                expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`))?.[iouAction.reportActionID]?.childReportID).toBe(threadID);
+            }
+            mockFetch.fail();
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`)).toEqual(transaction);
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`))?.[iouAction.reportActionID]?.childReportID).toBe(childReportID);
+            if (!existingThreadID) {
+                expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${threadID}`)).toBeUndefined();
+                expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadID}`)).toBeUndefined();
+            }
+        });
+
+        it.each(['USD', 'EUR'])('preserves pending deletion when repricing into a %s report', async (outputCurrency) => {
+            // Given deletion tombstones before an active expense, including an ordinary expense in the destination currency
+            const deletedDistance = {
+                ...createDistanceTransaction(),
+                transactionID: 'deletedDistance',
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                convertedAmount: -500,
+            };
+            const deletedOrdinary = {
+                ...deletedDistance,
+                transactionID: 'deletedOrdinary',
+                currency: outputCurrency,
+                amount: -300,
+                reimbursable: false,
+                iouRequestType: undefined,
+                comment: {comment: 'Deleted lunch'},
+            };
+            const distance = {...createDistanceTransaction(), convertedAmount: -500};
+            const policy = {...createDistancePolicy('destination', 80, outputCurrency), outputCurrency};
+            const deletedIOUAction: OnyxTypes.ReportAction = {
+                reportActionID: 'deletedIOUAction',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: 1,
+                created: '2026-03-15 00:00:00.000',
+                originalMessage: {IOUTransactionID: deletedDistance.transactionID, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE},
+            };
+            const originalTotals = {total: -500, unheldTotal: -500, reimbursableTotal: -500, unheldReimbursableTotal: -500, nonReimbursableTotal: 0, unheldNonReimbursableTotal: 0};
+
+            // When changing workspace while the deletions are still queued
+            const {threadMap, requestData} = await changeWorkspace({
+                transactions: [deletedDistance, deletedOrdinary, distance],
+                policy,
+                reportActions: {[deletedIOUAction.reportActionID]: deletedIOUAction},
+                reportOverrides: originalTotals,
+            });
+
+            // Then only the active expense is repriced and counted, and no phase of the move writes to the deleted expenses
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${distance.transactionID}`))?.modifiedAmount).toBe(-800);
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`)).toMatchObject({
+                total: -800,
+                unheldTotal: -800,
+                reimbursableTotal: -800,
+                unheldReimbursableTotal: -800,
+                nonReimbursableTotal: 0,
+                unheldNonReimbursableTotal: 0,
+            });
+            const updatedKeys = [
+                ...(requestData?.optimisticData?.map((update) => update.key) ?? []),
+                ...(requestData?.successData?.map((update) => update.key) ?? []),
+                ...(requestData?.failureData?.map((update) => update.key) ?? []),
+            ];
+            for (const deletedTransaction of [deletedDistance, deletedOrdinary]) {
+                expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${deletedTransaction.transactionID}`)).toEqual(deletedTransaction);
+                expect(threadMap[deletedTransaction.transactionID]).toBeUndefined();
+                expect(
+                    updatedKeys.some(
+                        (key) =>
+                            key === `${ONYXKEYS.COLLECTION.TRANSACTION}${deletedTransaction.transactionID}` ||
+                            key === `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${deletedTransaction.transactionID}`,
+                    ),
+                ).toBe(false);
+            }
+            mockFetch.fail();
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${distance.transactionID}`)).toEqual(distance);
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${deletedDistance.transactionID}`)).toEqual(deletedDistance);
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${deletedOrdinary.transactionID}`)).toEqual(deletedOrdinary);
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`)).toMatchObject(originalTotals);
+        });
+
+        it.each(['sourceRate', 'deletedRate'])('keeps the quantity of a legacy expense without a unit and rate %s', async (customUnitRateID) => {
+            // Given a legacy manual expense without a stored unit and a destination using kilometers
+            const transaction = createDistanceTransaction();
+            if (transaction.comment?.customUnit) {
+                delete transaction.comment.customUnit.distanceUnit;
+                transaction.comment.customUnit.customUnitRateID = customUnitRateID;
+            }
+            const policy = createDistancePolicy('destination', 80);
+            const distanceUnit = policy.customUnits?.distance;
+            if (distanceUnit) {
+                distanceUnit.attributes = {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS};
+            }
+
+            // When moving the expense to the kilometer workspace
+            await changeWorkspace({transactions: [transaction], policy});
+
+            // Then an unknown source unit is not assumed to be miles
+            const updated = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`);
+            expect(updated?.comment?.customUnit).toMatchObject({quantity: 10, distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, customUnitRateID: 'destinationRate'});
+            expect(updated?.modifiedAmount).toBe(-800);
+        });
+
+        it('updates a pending waypoint rate without repricing and restores its metadata on failure', async () => {
+            // Given an expense awaiting waypoints with manually edited price fields
+            const transaction = {
+                ...createDistanceTransaction(),
+                pendingFields: {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                modifiedAmount: -700,
+                modifiedMerchant: 'Edited distance',
+                modifiedCurrency: 'EUR',
+            };
+
+            // When changing workspace before the waypoint response, then failing the move
+            const {threadMap} = await changeWorkspace({transactions: [transaction]});
+            const updated = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`);
+            expect(updated).toMatchObject({amount: -500, modifiedAmount: -700, modifiedMerchant: 'Edited distance', modifiedCurrency: 'EUR'});
+            expect(updated?.comment?.customUnit?.customUnitRateID).toBe('destinationRate');
+            expect(threadMap).toEqual({});
+            mockFetch.fail();
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+
+            // Then neither the original metadata nor the pending price fields are lost
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`)).toEqual(transaction);
+        });
+
+        it('counts only unheld non-reimbursable expenses in their subtotal and restores totals on failure', async () => {
+            // Given all four combinations of hold and reimbursement with distinct amounts
+            const distance = createDistanceTransaction();
+            const ordinary = (transactionID: string, amount: number, reimbursable: boolean, held: boolean): OnyxTypes.Transaction => ({
+                ...createDistanceTransaction(),
+                transactionID,
+                amount,
+                reimbursable,
+                iouRequestType: undefined,
+                comment: {comment: 'Lunch', ...(held ? {hold: 'holdReportActionID'} : {})},
+            });
+            const originalTotals = {
+                total: -1400,
+                unheldTotal: -700,
+                nonReimbursableTotal: -600,
+                unheldNonReimbursableTotal: -200,
+                reimbursableTotal: -800,
+                unheldReimbursableTotal: -500,
+            };
+
+            // When the unheld reimbursable distance expense changes price
+            await changeWorkspace({
+                transactions: [
+                    distance,
+                    ordinary('unheldNonReimbursable', -200, false, false),
+                    ordinary('heldReimbursable', -300, true, true),
+                    ordinary('heldNonReimbursable', -400, false, true),
+                ],
+                reportOverrides: originalTotals,
+            });
+
+            // Then held expenses and reimbursable expenses cannot enter the unheld non-reimbursable subtotal
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`)).toMatchObject({
+                total: -1700,
+                unheldTotal: -1000,
+                nonReimbursableTotal: -600,
+                unheldNonReimbursableTotal: -200,
+                reimbursableTotal: -1100,
+                unheldReimbursableTotal: -800,
+            });
+            mockFetch.fail();
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`)).toMatchObject(originalTotals);
+        });
+
+        it.each([
+            {conversion: 'missing', fails: false},
+            {conversion: 'missing', fails: true},
+            {conversion: 'known', fails: false},
+            {conversion: 'zero', fails: false},
+        ])('preserves foreign contributions with $conversion conversions when failure is $fails', async ({conversion, fails}) => {
+            // Given cached report totals include a held foreign debit and an unheld foreign refund
+            const distance = createDistanceTransaction();
+            const debitContribution = conversion === 'zero' ? 0 : -900;
+            const refundContribution = conversion === 'zero' ? 0 : 300;
+            const foreignDebit: OnyxTypes.Transaction = {
+                ...distance,
+                transactionID: 'foreignDebit',
+                amount: -1200,
+                currency: 'CAD',
+                reimbursable: false,
+                iouRequestType: undefined,
+                comment: {comment: 'Foreign purchase', hold: 'foreignHold'},
+                ...(conversion === 'missing' ? {} : {convertedAmount: debitContribution}),
+            };
+            const foreignRefund: OnyxTypes.Transaction = {
+                ...foreignDebit,
+                transactionID: 'foreignRefund',
+                amount: 200,
+                currency: 'EUR',
+                comment: {comment: 'Foreign refund'},
+                ...(conversion === 'missing' ? {} : {convertedAmount: refundContribution}),
+            };
+            const originalTotals = {
+                total: -500 + debitContribution + refundContribution,
+                unheldTotal: -500 + refundContribution,
+                reimbursableTotal: -500,
+                unheldReimbursableTotal: -500,
+                nonReimbursableTotal: debitContribution + refundContribution,
+                unheldNonReimbursableTotal: refundContribution,
+            };
+            const repricedTotals = {
+                ...originalTotals,
+                total: originalTotals.total - 300,
+                unheldTotal: originalTotals.unheldTotal - 300,
+                reimbursableTotal: -800,
+                unheldReimbursableTotal: -800,
+            };
+
+            // When a USD distance expense reprices without changing the report's output currency
+            const previousTotalPending = fails || conversion === 'known' ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined;
+            const {params} = await changeWorkspace({
+                transactions: [distance, foreignDebit, foreignRefund],
+                reportOverrides: {...originalTotals, pendingFields: {total: previousTotalPending, reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}},
+            });
+            const expectedOptimisticTotals = repricedTotals;
+            const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+            const previewChatID = updatedReport?.parentReportID;
+            if (!previewChatID) {
+                throw new Error('Expected destination workspace chat');
+            }
+            const getPreview = async () => (await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${previewChatID}`))?.[params.reportPreviewReportActionID];
+
+            // Then the known USD delta updates totals and preview without changing any cached foreign contribution
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${distance.transactionID}`))?.modifiedAmount).toBe(-800);
+            expect(updatedReport).toMatchObject(expectedOptimisticTotals);
+            expect(updatedReport?.pendingFields?.total).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            const expectedPreviewAmount = (Math.abs(expectedOptimisticTotals.total) / 100).toFixed(2);
+            expect(getReportActionMessage(await getPreview())?.text).toContain(`$${expectedPreviewAmount}`);
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${foreignDebit.transactionID}`)).toEqual(foreignDebit);
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${foreignRefund.transactionID}`)).toEqual(foreignRefund);
+            if (fails) {
+                mockFetch.fail();
+            } else {
+                const command = inviteSubmitter ? WRITE_COMMANDS.CHANGE_REPORT_POLICY_AND_INVITE_SUBMITTER : WRITE_COMMANDS.CHANGE_REPORT_POLICY;
+                const serverPreview = `Owner spent $${(Math.abs(repricedTotals.total) / 100).toFixed(2)}`;
+                mockFetch.mockAPICommand(command, () => ({
+                    onyxData: [
+                        {onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, value: repricedTotals},
+                        {
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${previewChatID}`,
+                            value: {[params.reportPreviewReportActionID]: {message: [{text: serverPreview, html: serverPreview, isEdited: false, type: CONST.REPORT.MESSAGE.TYPE.COMMENT}]}},
+                        },
+                    ],
+                }));
+            }
+            await mockFetch.resume();
+            await waitForNetworkPromises();
+            await waitForBatchedUpdates();
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`)).toMatchObject(fails ? originalTotals : repricedTotals);
+            const reconciledReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+            expect(reconciledReport?.pendingFields?.total).toBe(previousTotalPending);
+            expect(reconciledReport?.pendingFields?.reportName).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            if (fails) {
+                expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${distance.transactionID}`)).toEqual(distance);
+                expect(await getPreview()).toBeUndefined();
+            } else {
+                expect(getReportActionMessage(await getPreview())?.text).toContain(`$${(Math.abs(repricedTotals.total) / 100).toFixed(2)}`);
+            }
+        });
+
+        it('updates the USD total when a foreign expense added offline has no cached contribution', async () => {
+            // Given the cached USD total excludes a newly added CAD expense awaiting conversion
+            const distance = createDistanceTransaction();
+            const foreign: OnyxTypes.Transaction = {
+                ...distance,
+                transactionID: 'offlineCADExpense',
+                amount: -1000,
+                currency: 'CAD',
+                iouRequestType: undefined,
+                comment: {comment: 'Offline purchase'},
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            };
+            const originalTotals = {total: -500, unheldTotal: -500, reimbursableTotal: -500, unheldReimbursableTotal: -500, nonReimbursableTotal: 0, unheldNonReimbursableTotal: 0};
+
+            // When moving the report reprices its USD expense from five to eight dollars
+            const {params} = await changeWorkspace({transactions: [distance, foreign], reportOverrides: originalTotals});
+
+            // Then the known difference applies immediately and the unresolved report total is visibly pending
+            const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+            expect(updatedReport).toMatchObject({
+                total: -800,
+                unheldTotal: -800,
+                reimbursableTotal: -800,
+                unheldReimbursableTotal: -800,
+                nonReimbursableTotal: 0,
+                unheldNonReimbursableTotal: 0,
+                pendingFields: {total: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+            });
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${distance.transactionID}`))?.modifiedAmount).toBe(-800);
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${foreign.transactionID}`)).toEqual(foreign);
+            const previews = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${updatedReport?.parentReportID}`);
+            expect(getReportActionMessage(previews?.[params.reportPreviewReportActionID])?.text).toContain('$8.00');
+            mockFetch.fail();
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+            const restored = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+            expect(restored).toMatchObject(originalTotals);
+            expect(restored?.pendingFields?.total).toBeUndefined();
+        });
+
+        it('does not invent missing cached subtotals while applying a known repricing delta', async () => {
+            // Given only the report total is cached and an unchanged foreign expense has no conversion
+            const foreign: OnyxTypes.Transaction = {
+                ...createDistanceTransaction(),
+                transactionID: 'foreignExpense',
+                currency: 'CAD',
+                iouRequestType: undefined,
+                comment: {comment: 'Foreign purchase'},
+            };
+            const missingSubtotals = {
+                unheldTotal: undefined,
+                reimbursableTotal: undefined,
+                unheldReimbursableTotal: undefined,
+                nonReimbursableTotal: undefined,
+                unheldNonReimbursableTotal: undefined,
+            };
+
+            // When the USD expense reprices but the missing foreign contribution cannot be reconstructed
+            await changeWorkspace({transactions: [createDistanceTransaction(), foreign], reportOverrides: {total: -500, ...missingSubtotals}});
+
+            // Then the known total delta is applied without assuming any unknown subtotal was zero
+            const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+            expect(updatedReport?.total).toBe(-800);
+            expect(updatedReport?.pendingFields?.total).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            for (const field of ['unheldTotal', 'reimbursableTotal', 'unheldReimbursableTotal', 'nonReimbursableTotal', 'unheldNonReimbursableTotal'] as const) {
+                expect(updatedReport?.[field]).toBeUndefined();
+            }
+        });
+
+        it('keeps a currency reprice with unknown FX pending and restores the original conversion on failure', async () => {
+            // Given a USD report expense with a cached conversion that will be invalid after an EUR rate is selected
+            const distance = {...createDistanceTransaction(), convertedAmount: -500};
+
+            // When its fallback changes the expense currency without supplying a fresh USD conversion
+            await changeWorkspace({transactions: [distance], policy: createDistancePolicy('destination', 80, 'EUR')});
+
+            // Then the old report contribution is retained as pending, not replaced with a fabricated conversion
+            const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+            expect(updatedReport?.total).toBe(-500);
+            expect(updatedReport?.pendingFields?.total).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${distance.transactionID}`);
+            expect(updatedTransaction?.modifiedCurrency).toBe('EUR');
+            expect(updatedTransaction?.convertedAmount).toBeUndefined();
+            mockFetch.fail();
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${distance.transactionID}`)).toEqual(distance);
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`))?.pendingFields?.total).toBeUndefined();
+        });
+
+        it('recomputes all violations and rolls back expense fields, totals and newly created threads on failure', async () => {
+            // Given distance and ordinary expenses, including an existing ordinary-expense violation
+            const distance = {...createDistanceTransaction(), convertedAmount: -500};
+            const ordinary: OnyxTypes.Transaction = {...createDistanceTransaction(), transactionID: 'ordinaryExpense', iouRequestType: undefined, comment: {comment: 'Lunch'}};
+            const originalViolations: OnyxTypes.TransactionViolations = [{name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE, type: CONST.VIOLATION_TYPES.VIOLATION}];
+            // When changing workspace optimistically and then receiving a failed API response
+            const {params, threadMap, requestData} = await changeWorkspace({
+                transactions: [distance, ordinary],
+                reportActions: {
+                    distanceIOUAction: {
+                        reportActionID: 'distanceIOUAction',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                        actorAccountID: 1,
+                        created: '2026-03-15 00:00:00.000',
+                        originalMessage: {IOUTransactionID: distance.transactionID, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE},
+                    },
+                },
+                transactionViolations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${ordinary.transactionID}`]: originalViolations},
+            });
+            expect(requestData?.optimisticData?.filter((update) => update.key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS))).toHaveLength(2);
+            expect(
+                (await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${ordinary.transactionID}`))?.some(
+                    (violation) => violation.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE,
+                ),
+            ).toBe(false);
+            const entry = threadMap[distance.transactionID];
+            mockFetch.fail();
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+            // Then every added price field and thread is removed, and original values and violations return
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${distance.transactionID}`)).toEqual(distance);
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${ordinary.transactionID}`)).toEqual(originalViolations);
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${entry.transactionThreadReportID}`)).toBeUndefined();
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`))?.total).toBe(-500);
+            const actions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
+            expect(params.distanceRateUpdatedReportActionID && actions?.[params.distanceRateUpdatedReportActionID]).toBeUndefined();
+        });
+    });
+
     describe('buildOptimisticChangePolicyData', () => {
         const getPolicyOwnerPersonalDetailsByLogins = (destinationPolicy: OnyxTypes.Policy): PersonalDetailsByLogin => ({
             [destinationPolicy.owner]: {accountID: destinationPolicy.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, login: destinationPolicy.owner},
@@ -6631,6 +7606,7 @@ describe('actions/Report', () => {
             };
             const policy = createRandomPolicy(Number(1));
             Report.buildOptimisticChangePolicyData({
+                ...emptyChangePolicyExpenseData,
                 report,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
@@ -6671,6 +7647,7 @@ describe('actions/Report', () => {
             };
             const policy = createRandomPolicy(Number(1));
             const {optimisticReportPreviewAction} = Report.buildOptimisticChangePolicyData({
+                ...emptyChangePolicyExpenseData,
                 report,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
@@ -6703,6 +7680,7 @@ describe('actions/Report', () => {
             };
             const policy = createRandomPolicy(Number(1));
             const {optimisticMovedReportAction} = Report.buildOptimisticChangePolicyData({
+                ...emptyChangePolicyExpenseData,
                 report,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
@@ -6753,6 +7731,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             const {optimisticData, successData, failureData} = Report.buildOptimisticChangePolicyData({
+                ...emptyChangePolicyExpenseData,
                 report,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
@@ -6822,6 +7801,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             const {optimisticData} = Report.buildOptimisticChangePolicyData({
+                ...emptyChangePolicyExpenseData,
                 report,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
@@ -6875,6 +7855,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             const {optimisticData} = Report.buildOptimisticChangePolicyData({
+                ...emptyChangePolicyExpenseData,
                 report,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
@@ -6941,6 +7922,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             const {optimisticData} = Report.buildOptimisticChangePolicyData({
+                ...emptyChangePolicyExpenseData,
                 report,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
@@ -7010,6 +7992,7 @@ describe('actions/Report', () => {
             const policy = createRandomPolicy(Number(1));
 
             const {optimisticData, failureData} = Report.buildOptimisticChangePolicyData({
+                ...emptyChangePolicyExpenseData,
                 report,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
@@ -7033,8 +8016,8 @@ describe('actions/Report', () => {
             const optimisticReportActionData = optimisticData.find((data) => data.key === parentReportActionKey);
             const failureReportActionData = failureData.find((data) => data.key === parentReportActionKey);
 
-            function isReportActions(value: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>['value']): value is OnyxTypes.ReportActions {
-                return !!value && parentReportActionID in value;
+            function isReportActions(value: unknown): value is OnyxTypes.ReportActions {
+                return !!value && typeof value === 'object' && parentReportActionID in value;
             }
 
             expect(optimisticReportActionData).toBeDefined();
@@ -7096,6 +8079,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             const {optimisticData, failureData} = Report.buildOptimisticChangePolicyData({
+                ...emptyChangePolicyExpenseData,
                 report,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,

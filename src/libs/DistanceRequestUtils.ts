@@ -666,6 +666,8 @@ function getRateMatchingCurrentRate(mileageRates: Record<string, MileageRate>, c
  * `isMatchingRate` distinguishes an eligible equivalent rate from a fallback with the same value.
  *
  * Let's ensure this logic is consistent with the logic in the backend (Auth), which is authoritative here.
+ *
+ * @returns The selected rate and whether it matches the current rate, or undefined when no usable destination rate exists.
  */
 function getRateForPolicyChange({
     transaction,

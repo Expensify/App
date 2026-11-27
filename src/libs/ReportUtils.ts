@@ -9534,6 +9534,23 @@ function buildOptimisticChangePolicyReportAction(
     };
 }
 
+/** Builds the report explanation when Auth selects fallback distance rates for a new workspace. */
+function buildOptimisticConciergeAutoSelectDistanceRateReportAction(policyName: string, created: string): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_SELECT_DISTANCE_RATE> {
+    return {
+        actionName: CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_SELECT_DISTANCE_RATE,
+        actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+        avatar: getDefaultAvatarURL({accountID: CONST.ACCOUNT_ID.CONCIERGE, accountEmail: CONST.EMAIL.CONCIERGE}),
+        created,
+        // eslint-disable-next-line @typescript-eslint/no-deprecated -- Auth uses this legacy payload shape for the Concierge action.
+        originalMessage: {policyName},
+        message: [],
+        person: [{style: 'strong', text: CONST.DISPLAY_NAME.EXPENSIFY_CONCIERGE, type: 'TEXT'}],
+        reportActionID: rand64(),
+        shouldShow: true,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+    };
+}
+
 function buildOptimisticTransactionAction(
     type: typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION | typeof CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION | typeof CONST.REPORT.ACTIONS.TYPE.UNDELETED_TRANSACTION,
     transactionThreadReportID: string | undefined,
@@ -9791,6 +9808,38 @@ function buildOptimisticModifiedExpenseReportAction(
         reportID: transactionThread?.reportID,
         shouldShow: true,
         delegateAccountID: delegateAccountIDParam,
+    };
+}
+
+/**
+ * Builds the Concierge explanation for a distance expense repriced onto the new workspace's fallback rate.
+ * The server uses the supplied optimistic ID to replace this action.
+ *
+ * @param created Lets the caller order the explanation after the workspace change.
+ */
+function buildOptimisticConciergeDistanceRateModifiedExpenseReportAction({
+    transactionThreadReportID,
+    oldTransaction,
+    updatedTransaction,
+    policy,
+    created,
+}: {
+    transactionThreadReportID: string;
+    oldTransaction: OnyxInputOrEntry<Transaction>;
+    updatedTransaction: OnyxInputOrEntry<Transaction>;
+    policy: OnyxInputOrEntry<Policy>;
+    created: string;
+}): OptimisticModifiedExpenseReportAction {
+    const customUnitRateID = updatedTransaction?.comment?.customUnit?.customUnitRateID;
+    const transactionChanges: TransactionChanges = {customUnitRateID};
+    const reportAction = buildOptimisticModifiedExpenseReportAction({reportID: transactionThreadReportID}, oldTransaction, transactionChanges, true, policy, undefined, updatedTransaction);
+    return {
+        ...reportAction,
+        actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+        avatar: getDefaultAvatarURL({accountID: CONST.ACCOUNT_ID.CONCIERGE, accountEmail: CONST.EMAIL.CONCIERGE}),
+        created,
+        message: [{text: CONST.DISPLAY_NAME.EXPENSIFY_CONCIERGE, style: 'strong', type: CONST.REPORT.MESSAGE.TYPE.TEXT}],
+        person: [{style: 'strong', text: CONST.DISPLAY_NAME.EXPENSIFY_CONCIERGE, type: 'TEXT'}],
     };
 }
 
@@ -16383,6 +16432,8 @@ export {
     buildOptimisticIOUReport,
     buildOptimisticIOUReportAction,
     buildOptimisticModifiedExpenseReportAction,
+    buildOptimisticConciergeDistanceRateModifiedExpenseReportAction,
+    buildOptimisticConciergeAutoSelectDistanceRateReportAction,
     buildOptimisticMoneyRequestEntities,
     buildOptimisticMovedReportAction,
     buildOptimisticChangePolicyReportAction,
