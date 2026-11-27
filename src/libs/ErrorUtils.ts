@@ -117,22 +117,20 @@ function getLatestErrorMessage<TOnyxData extends OnyxDataWithErrors>(onyxData: O
     return getErrorMessageWithTranslationData(errors[key] ?? '');
 }
 
-function getLatestMessageErrorKey(errors: Record<string, unknown> | null | undefined): string | undefined {
-    return Object.keys(errors ?? {})
-        .filter((key) => !isReceiptError(errors?.[key]))
-        .sort()
-        .reverse()
-        .at(0);
-}
-
 function getLatestErrorMessageField<TOnyxData extends OnyxDataWithErrors>(onyxData: OnyxEntry<TOnyxData>): Errors {
     const errors = onyxData?.errors ?? {};
 
     if (isEmptyValueObject(errors)) {
         return {};
     }
+    // Receipt errors are handled separately by MoneyRequestReceiptView and DotIndicatorMessage
+    // and should never surface as a generic text error via this utility.
+    const filteredKeys = Object.keys(errors)
+        .filter((k) => !isReceiptError(errors[k]))
+        .sort()
+        .reverse();
 
-    const key = getLatestMessageErrorKey(errors);
+    const key = filteredKeys.at(0) ?? '';
     if (!key) {
         return {};
     }
@@ -300,7 +298,6 @@ export {
     getLatestErrorFieldForAnyField,
     getLatestErrorMessage,
     getLatestErrorMessageField,
-    getLatestMessageErrorKey,
     getLatestError,
     getLatestStringErrorMessage,
     getMicroSecondOnyxErrorWithTranslationKey,

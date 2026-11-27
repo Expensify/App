@@ -15,7 +15,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyTagLists, Report, ReviewDuplicates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
-import type {Comment} from '@src/types/onyx/Transaction';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -31,7 +30,7 @@ type FieldsToChange = {
     category?: Array<string | undefined>;
     merchant?: Array<string | undefined>;
     tag?: Array<string | undefined>;
-    description?: Array<Comment | undefined>;
+    description?: string[];
     taxCode?: Array<string | undefined>;
     billable?: Array<boolean | undefined>;
     reimbursable?: Array<boolean | undefined>;
@@ -297,6 +296,9 @@ function compareDuplicateTransactionFields(
                         if (keys.includes('modifiedMerchant') && keys.includes('merchant')) {
                             return getMerchant(item);
                         }
+                        if (keys.includes('comment')) {
+                            return getDescription(item);
+                        }
                         return keys.map((key) => item?.[key]);
                     })
                     .flat(),
@@ -342,7 +344,7 @@ function compareDuplicateTransactionFields(
                 const allCommentsAreEqual = areAllCommentsEqual(transactions, firstTransaction);
                 const allCommentsAreEmpty = isFirstTransactionCommentEmptyObject && transactions.every((item) => getDescription(item) === '');
                 if (allCommentsAreEqual || allCommentsAreEmpty) {
-                    keep[fieldName] = firstTransaction?.comment?.comment ?? firstTransaction?.comment;
+                    keep[fieldName] = getDescription(firstTransaction);
                 } else {
                     processChanges(fieldName, transactions, keys);
                 }
