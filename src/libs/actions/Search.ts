@@ -300,7 +300,7 @@ type HandleActionButtonPressParams = {
     personalPolicyID: string | undefined;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
     amountOwed: OnyxEntry<number>;
-    onUndelete?: () => void;
+    onUndelete?: () => void | Promise<void>;
     onPendingCardTransactionsBlock?: () => void;
     onAllHeldExpensesBlock?: () => void;
     /** Confirms any unacknowledged report violations before proceeding with the SUBMIT action. */

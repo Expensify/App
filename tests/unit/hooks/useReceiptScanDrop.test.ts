@@ -53,7 +53,9 @@ describe('useReceiptScanDrop', () => {
         await waitForBatchedUpdatesWithAct();
         const [firstFile, secondFile] = [new File(['first'], 'first.png', {type: 'image/png'}), new File(['second'], 'second.png', {type: 'image/png'})];
         jest.mocked(initMoneyRequest).mockReturnValue(createMock<NonNullable<ReturnType<typeof initMoneyRequest>>>({}));
-        mockOnFilesValidated([firstFile], []);
+        await act(async () => {
+            await mockOnFilesValidated([firstFile], []);
+        });
         expect(jest.mocked(setMoneyRequestReceipt)).toHaveBeenLastCalledWith(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, 'blob:first', 'first.png', true, 'image/png');
         expect(jest.mocked(navigateToParticipantPage)).toHaveBeenCalledWith(CONST.IOU.TYPE.CREATE, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, expect.any(String));
         jest.clearAllMocks();
@@ -62,7 +64,9 @@ describe('useReceiptScanDrop', () => {
         await waitForBatchedUpdatesWithAct();
         jest.mocked(initMoneyRequest).mockReturnValue(createMock<NonNullable<ReturnType<typeof initMoneyRequest>>>({transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID}));
         jest.mocked(buildOptimisticTransactionAndCreateDraft).mockReturnValue(createMock<ReturnType<typeof buildOptimisticTransactionAndCreateDraft>>({transactionID: 'later'}));
-        mockOnFilesValidated([firstFile, secondFile], []);
+        await act(async () => {
+            await mockOnFilesValidated([firstFile, secondFile], []);
+        });
         await waitForBatchedUpdatesWithAct();
         expect(createObjectURLSpy.mock.calls.slice(-2).map(([file]) => file)).toEqual([firstFile, secondFile]);
         expect(jest.mocked(setMoneyRequestReceipt).mock.calls.map(([transactionID]) => transactionID)).toEqual([CONST.IOU.OPTIMISTIC_TRANSACTION_ID, 'later']);
@@ -70,5 +74,33 @@ describe('useReceiptScanDrop', () => {
         expect(jest.mocked(setMoneyRequestParticipantsFromReport).mock.calls.map(([transactionID]) => transactionID)).toEqual([CONST.IOU.OPTIMISTIC_TRANSACTION_ID, 'later']);
         expect(jest.mocked(Navigation.navigate)).toHaveBeenCalledTimes(1);
         expect(jest.mocked(navigateToParticipantPage)).not.toHaveBeenCalled();
+    });
+    it('reads the date, drafts and billing state from Onyx when a receipt is dropped', async () => {
+        // Given a current date, an existing draft, and a group workspace whose owner is past the billing grace period
+        const ownerAccountID = 99;
+        const pastGracePeriodEnd = Math.floor(Date.now() / 1000) - CONST.DATE.SECONDS_PER_DAY;
+        await act(async () => {
+            await Onyx.multiSet({
+                [ONYXKEYS.CURRENT_DATE]: '2026-01-15',
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}draft1` as const]: {transactionID: 'draft1'},
+                [ONYXKEYS.NVP_ACTIVE_POLICY_ID]: 'policy',
+                [`${ONYXKEYS.COLLECTION.POLICY}policy` as const]: {id: 'policy', type: CONST.POLICY.TYPE.TEAM, ownerAccountID},
+                [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}${ownerAccountID}` as const]: {value: pastGracePeriodEnd},
+            });
+        });
+        jest.spyOn(URL, 'createObjectURL').mockReturnValue('blob:first');
+        renderHook(() => useReceiptScanDrop());
+        await waitForBatchedUpdatesWithAct();
+        jest.mocked(initMoneyRequest).mockReturnValue(createMock<NonNullable<ReturnType<typeof initMoneyRequest>>>({transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID}));
+
+        // When a receipt is dropped
+        await act(async () => {
+            await mockOnFilesValidated([new File(['first'], 'first.png', {type: 'image/png'})], []);
+        });
+
+        // Then the money request starts from the stored date and drafts, and the restricted workspace sends the user to pick participants
+        expect(jest.mocked(initMoneyRequest)).toHaveBeenCalledWith(expect.objectContaining({currentDate: '2026-01-15', draftTransactionIDs: ['draft1']}));
+        expect(jest.mocked(navigateToParticipantPage)).toHaveBeenCalledWith(CONST.IOU.TYPE.CREATE, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, expect.any(String));
+        expect(jest.mocked(Navigation.navigate)).not.toHaveBeenCalled();
     });
 });

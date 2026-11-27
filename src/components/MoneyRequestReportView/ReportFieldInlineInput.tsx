@@ -54,7 +54,7 @@ type ReportFieldInlineInputProps = {
     /** Policy field list, used to reject values that make a formula refer to itself */
     fieldList?: FieldList;
 
-    onSaveValue: (value: string) => void;
+    onSaveValue: (value: string) => void | Promise<void>;
 
     /**
      * Removes the field from the report. Passed only for a field that was deleted from the workspace, so the field

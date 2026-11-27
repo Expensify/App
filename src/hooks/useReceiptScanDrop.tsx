@@ -18,6 +18,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 
 import {policyExpenseChatSelector} from '@selectors/Report';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
+import Onyx from 'react-native-onyx';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useFilesValidation from './useFilesValidation';
@@ -37,27 +38,27 @@ function useReceiptScanDrop() {
     const isAnonymousUser = useIsAnonymousUser();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const selfDMReport = useSelfDMReport();
-    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
-    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [hasOnlyPersonalPolicies = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasOnlyPersonalPoliciesUtil});
-    const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const [personalPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`);
-    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
-        selector: validTransactionDraftIDsSelector,
-    });
     const [activePolicyExpenseChat] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: policyExpenseChatSelector(currentUserPersonalDetails.accountID, activePolicy?.id)});
     // Memoize the new report ID to avoid re-generating it on every render and cause the hook to change, which leads to performance issues.
     const newReportID = generateReportID();
 
-    const saveFileAndInitMoneyRequest = (files: FileObject[]) => {
+    const saveFileAndInitMoneyRequest = async (files: FileObject[]) => {
         if (!areBlobBackedFiles(files)) {
             return;
         }
 
+        const [userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed, currentDate, draftTransactions] = await Onyx.multiGet([
+            ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END,
+            ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END,
+            ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED,
+            ONYXKEYS.CURRENT_DATE,
+            ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
+        ]);
         const initialTransaction = initMoneyRequest({
             isFromGlobalCreate: true,
             isFromFloatingActionButton: true,
@@ -68,7 +69,7 @@ function useReceiptScanDrop() {
             newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
             currentDate,
             hasOnlyPersonalPolicies,
-            draftTransactionIDs,
+            draftTransactionIDs: validTransactionDraftIDsSelector(draftTransactions),
         });
 
         if (!initialTransaction) {
