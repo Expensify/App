@@ -119,13 +119,8 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
         if (!targetTransaction || !mergeTransaction || !sourceTransaction) {
             return;
         }
-        // An unreported expense has its IOU action in the self DM, so both lists are searched
-        const sourceIOUActionForDeleteCheck = getIOUActionForTransactionID(
-            [...Object.values(sourceReportActions ?? {}), ...Object.values(selfDMReportActions ?? {})],
-            sourceTransaction.transactionID,
-            true,
-        );
-        if (isMergeSourceDeleted(isSourcePendingDelete, sourceIOUActionForDeleteCheck)) {
+        const sourceActionsForDeleteCheck = [...Object.values(sourceReportActions ?? {}), ...Object.values(selfDMReportActions ?? {})];
+        if (isMergeSourceDeleted(sourceTransaction.transactionID, isSourcePendingDelete, sourceActionsForDeleteCheck)) {
             setMergeErrorMessage(translate('transactionMerge.confirmationPage.sourceExpenseDeleted'));
             return;
         }
