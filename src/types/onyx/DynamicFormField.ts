@@ -62,6 +62,30 @@ type DynamicFormLink = {
     type?: never;
 };
 
+/** Advice about a whole page in its content, such as a limit on what the account can receive. It asks nothing and shows wherever the schema puts it. Advice about one field is that field's `description` instead. */
+type DynamicFormNotice = {
+    /** Can match a field's key, since notices and fields are told apart by `type` */
+    key: string;
+
+    /** What tells a notice apart from a heading, which has no `type` and no `url` either */
+    presentation: 'notice';
+
+    /** The schema author's wording, shown when there is no textKey */
+    text?: string;
+
+    /** Translation of `text`, used instead of it when set */
+    textKey?: TranslationPaths;
+
+    /** Hides the notice while the condition is not met */
+    showWhen?: DynamicFormCondition;
+
+    /** Only a field has a type, which is what tells a notice apart from a field */
+    type?: never;
+
+    /** Only a link has a URL, which is what tells a link apart from a notice */
+    url?: never;
+};
+
 /** One allowed value of a select or radio field */
 type DynamicFormFieldOption = Pick<DynamicFormFieldBase, 'label' | 'labelKey'> & {
     /** Value submitted to the server */
@@ -134,8 +158,11 @@ type DynamicFormTextField = DynamicFormFieldBase & {
     rule?: 'legalName' | 'phone';
 };
 
+/** The format checks a text field, a number field and the zip of an address share */
+type DynamicFormFieldFormat = Pick<DynamicFormTextField, 'regex' | 'minLength' | 'maxLength' | 'example'>;
+
 /** Text that must parse as a finite number, typed on the numeric keyboard */
-type DynamicFormNumberField = DynamicFormFieldBase & Pick<DynamicFormTextField, 'regex' | 'minLength' | 'maxLength' | 'example'> & {type: 'number'};
+type DynamicFormNumberField = DynamicFormFieldBase & DynamicFormFieldFormat & {type: 'number'};
 
 /** One answer out of a list of options */
 type DynamicFormChoiceField = DynamicFormFieldBase & {
@@ -177,6 +204,27 @@ type DynamicFormAddressField = DynamicFormFieldBase & {
 
     /** Checks the zip against the format of the chosen country */
     rule?: 'zipCode';
+
+    /** Longest street the field takes, in characters. No limit when not set. Typing stops at it, and a longer address search pick is flagged. */
+    maxLength?: number;
+
+    /** Codes of the countries the address can be in. Every country the App knows when not set or empty. */
+    countries?: string[];
+
+    /** The states of the picked country, in place of the App's own lists. An empty list asks for no state. */
+    states?: DynamicFormFieldOption[];
+
+    /** True shows the zip input and requires it, false hides it. When not set the input shows, and is required unless the country's zip format allows an empty zip. */
+    isZipCodeAsked?: boolean;
+
+    /** Checks of a filled-in zip, the same ones a text field takes. They apply as well as `rule: 'zipCode'`, not in place of it. */
+    zipCodeFormat?: DynamicFormFieldFormat;
+
+    /** Checks of a filled-in city, the same ones a text field takes */
+    cityFormat?: DynamicFormFieldFormat;
+
+    /** What the picked country calls its states, such as "Province", shown on the state row in place of "State" */
+    stateLabel?: string;
 };
 
 /** Uploaded documents */
@@ -189,6 +237,27 @@ type DynamicFormFileField = DynamicFormFieldBase & {
 
     /** Largest size of one file, in bytes. The form-wide limit applies when not set. */
     maxFileSize?: number;
+
+    /** Upload buttons, each taking its own kinds of document. Files list under their button, and the answer is one `{id, fileType, files}` entry per kind used. A required field needs a file on every button. */
+    uploads?: DynamicFormFileUpload[];
+};
+
+/** One upload button of a file field */
+type DynamicFormFileUpload = {
+    /** The kinds of document the button takes. With one kind the button opens the file picker, with more it asks which kind first. */
+    fileTypes: DynamicFormFieldOption[];
+
+    /** Button text, shown when there is no labelKey. "Upload file" when neither is set. */
+    label?: string;
+
+    /** Translation of `label`, used instead of it when set */
+    labelKey?: TranslationPaths;
+
+    /** Hint under the button, such as what the document must show */
+    description?: string;
+
+    /** Translation of `description`, used instead of it when set */
+    descriptionKey?: TranslationPaths;
 };
 
 /** A money amount */
@@ -284,8 +353,8 @@ type DynamicFormListItem = {
 /** A field as the schema sends it, which can be of a type this App version does not know */
 type DynamicFormSchemaField = DynamicFormField | (DynamicFormFieldBase & {type: string});
 
-/** A heading, a link or a field of a page */
-type DynamicFormContentItem = DynamicFormHeading | DynamicFormLink | DynamicFormSchemaField;
+/** A heading, a link, a notice or a field of a page */
+type DynamicFormContentItem = DynamicFormHeading | DynamicFormLink | DynamicFormNotice | DynamicFormSchemaField;
 
 /** A page of a multi-page form. It is a heading with its own content, so it can carry a title, a description and a `showWhen`. */
 type DynamicFormPage = DynamicFormHeading & {
@@ -320,13 +389,16 @@ export type {
     DynamicFormContentItem,
     DynamicFormCountryField,
     DynamicFormField,
+    DynamicFormFieldFormat,
     DynamicFormFieldOption,
+    DynamicFormFileUpload,
     DynamicFormFieldType,
     DynamicFormHeading,
     DynamicFormLink,
     DynamicFormListField,
     DynamicFormListItem,
     DynamicFormMultiChoiceField,
+    DynamicFormNotice,
     DynamicFormNumberField,
     DynamicFormPage,
     DynamicFormSchema,

@@ -1,5 +1,7 @@
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+
 import type CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
@@ -18,7 +20,7 @@ type BaseSelectionListProps<TItem extends ListItem> = {
     /** Component rendering each row. `NoInfer` keeps the row component from widening `TItem`, which is inferred from `data`/`sections` */
     ListItem: ListItemComponent<NoInfer<TItem>>;
     initiallyFocusedItemKey?: string;
-    onSelectRow: (item: TItem) => void;
+    onSelectRow: (item: TItem) => void | Promise<void>;
     canSelectMultiple?: boolean;
     footerContent?: React.ReactNode;
 
@@ -181,6 +183,9 @@ type TextInputOptions = {
     /** Input mode e.g., 'text', 'email', 'numeric') */
     inputMode?: InputModeOptions;
 
+    /** Web only. Defaults to true because selection searches are not credential inputs. */
+    shouldIgnorePasswordManager?: boolean;
+
     errorText?: string;
 
     /** Whether the text input should be shown as a header inside list */
@@ -194,6 +199,9 @@ type TextInputOptions = {
 
     /** Whether the text input should intercept swipes */
     shouldInterceptSwipe?: boolean;
+
+    /** FullStory class for the text input, to mask searches that can hold sensitive data */
+    forwardedFSClass?: ForwardedFSClassProps['forwardedFSClass'];
 
     /** Styles for the text input */
     style?: {

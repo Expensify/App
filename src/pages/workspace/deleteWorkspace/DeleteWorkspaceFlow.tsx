@@ -31,7 +31,6 @@ import {accountIDToLoginSelector} from '@src/selectors/PersonalDetails';
 import {createOwnedPaidPoliciesCountsSelector} from '@src/selectors/Policy';
 import {reimbursementAccountErrorSelector} from '@src/selectors/ReimbursementAccount';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useRef} from 'react';
@@ -65,15 +64,14 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
     const {showConfirmModal, closeModal} = useConfirmModal();
 
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [policies, policiesResult] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const [lastAccessedWorkspacePolicyID] = useOnyx(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID);
     const [reimbursementAccountError] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: reimbursementAccountErrorSelector});
-    const [privateSubscription, privateSubscriptionResult] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
-    const [canDowngrade, accountResult] = useOnyx(ONYXKEYS.ACCOUNT, {selector: canDowngradeSelector});
-    const [, amountOwedResult] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
+    const [canDowngrade] = useOnyx(ONYXKEYS.ACCOUNT, {selector: canDowngradeSelector});
     const ownedPaidPoliciesCountsSelector = createOwnedPaidPoliciesCountsSelector(session?.accountID);
     const ownedPaidPoliciesCounts = ownedPaidPoliciesCountsSelector(policies);
 
@@ -81,32 +79,18 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
 
     // We need this to update translation for deleting a workspace when it has third party card feeds or expensify card assigned.
     const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const [cardFeeds, cardFeedsResult, defaultCardFeeds] = useCardFeeds(policyID);
+    const [cardFeeds, , defaultCardFeeds] = useCardFeeds(policyID);
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
     const [lastSelectedExpensifyCardFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED}${policyID}`);
-    const [cardsList, cardsListResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {
+    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {
         selector: filterInactiveCards,
     });
-    const [travelCardsList, travelCardsListResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${getTravelBillingFeedID(workspaceAccountID)}`, {
+    const [travelCardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${getTravelBillingFeedID(workspaceAccountID)}`, {
         selector: filterInactiveCards,
     });
-    const [travelCardSettings, travelCardSettingsResult] = useOnyx(getTravelBillingCardSettingsKey(workspaceAccountID));
-    const {reportsToArchive, transactionViolations, reportsResult, transactionsResult, transactionViolationsResult} = useTransactionViolationOfWorkspace(policyID);
+    const [travelCardSettings] = useOnyx(getTravelBillingCardSettingsKey(workspaceAccountID));
+    const {reportsToArchive, transactionViolations} = useTransactionViolationOfWorkspace(policyID);
     const [accountIDToLogin] = useAllPersonalDetails(accountIDToLoginSelector(reportsToArchive));
-
-    const isLoadingData = isLoadingOnyxValue(
-        policiesResult,
-        accountResult,
-        amountOwedResult,
-        privateSubscriptionResult,
-        cardFeedsResult,
-        cardsListResult,
-        travelCardsListResult,
-        travelCardSettingsResult,
-        reportsResult,
-        transactionsResult,
-        transactionViolationsResult,
-    );
 
     const hasCardFeedOrExpensifyCard =
         !isEmptyObject(cardFeeds) || !isEmptyObject(cardsList) || ((policy?.areExpensifyCardsEnabled || policy?.areCompanyCardsEnabled) && policy?.policyAccountID);
@@ -244,10 +228,10 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
 
     const {setIsDeletingPaidWorkspace} = usePayAndDowngrade(continueDeleteWorkspace);
 
-    // Runs the pre-deletion checks and opens the confirmation modal once all the Onyx data the flow depends on has loaded.
+    // Runs the pre-deletion checks and opens the confirmation modal once, on mount.
     const hasStartedRef = useRef(false);
     useEffect(() => {
-        if (hasStartedRef.current || isLoadingData) {
+        if (hasStartedRef.current) {
             return;
         }
         hasStartedRef.current = true;

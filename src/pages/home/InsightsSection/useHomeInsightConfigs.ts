@@ -18,7 +18,11 @@ import type {SentryLabel, WithRequiredSentryLabel} from '@src/types/utils/Sentry
 // Home only shows Spend charts, which also exist as Search menu items
 type HomeInsightGraphKey = Extract<
     InsightsGraphKey,
-    typeof CONST.INSIGHTS.GRAPH.SPEND_OVER_TIME | typeof CONST.INSIGHTS.GRAPH.TOP_SPENDERS | typeof CONST.INSIGHTS.GRAPH.TOP_MERCHANTS | typeof CONST.INSIGHTS.GRAPH.TOP_CATEGORIES
+    | typeof CONST.INSIGHTS.GRAPH.SPEND_OVER_TIME
+    | typeof CONST.INSIGHTS.GRAPH.TOP_SPENDERS
+    | typeof CONST.INSIGHTS.GRAPH.TOP_MERCHANTS
+    | typeof CONST.INSIGHTS.GRAPH.TOP_CATEGORIES
+    | typeof CONST.INSIGHTS.GRAPH.TOP_TAGS
 >;
 
 type HomeInsightChartSpec = InsightsChartSpec & {graphKey: HomeInsightGraphKey};
@@ -31,6 +35,7 @@ const HOME_INSIGHT_ICONS: Record<HomeInsightGraphKey, SearchTypeMenuItem['icon']
     [CONST.INSIGHTS.GRAPH.TOP_SPENDERS]: 'User',
     [CONST.INSIGHTS.GRAPH.TOP_MERCHANTS]: 'Basket',
     [CONST.INSIGHTS.GRAPH.TOP_CATEGORIES]: 'Folder',
+    [CONST.INSIGHTS.GRAPH.TOP_TAGS]: 'Tag',
 };
 
 const HOME_INSIGHT_SENTRY_LABELS: Record<HomeInsightGraphKey, SentryLabel> = {
@@ -38,6 +43,7 @@ const HOME_INSIGHT_SENTRY_LABELS: Record<HomeInsightGraphKey, SentryLabel> = {
     [CONST.INSIGHTS.GRAPH.TOP_SPENDERS]: CONST.SENTRY_LABEL.HOME_PAGE.INSIGHT_TITLE_DROPDOWN_ITEM.TOP_SPENDERS,
     [CONST.INSIGHTS.GRAPH.TOP_MERCHANTS]: CONST.SENTRY_LABEL.HOME_PAGE.INSIGHT_TITLE_DROPDOWN_ITEM.TOP_MERCHANTS,
     [CONST.INSIGHTS.GRAPH.TOP_CATEGORIES]: CONST.SENTRY_LABEL.HOME_PAGE.INSIGHT_TITLE_DROPDOWN_ITEM.TOP_CATEGORIES,
+    [CONST.INSIGHTS.GRAPH.TOP_TAGS]: CONST.SENTRY_LABEL.HOME_PAGE.INSIGHT_TITLE_DROPDOWN_ITEM.TOP_TAGS,
 };
 
 /** Whether the chart is one Home can show. */
@@ -66,11 +72,14 @@ function buildInsightConfigFromChart(chart: HomeInsightChartSpec, filters: Insig
 
 /**
  * Builds the configs for the Home insights the current user should see, in display order.
- * The charts and their visibility match the Insights Spend dashboard.
+ * Home's supported charts use the Insights dashboard filters and visibility.
  */
 function useHomeInsightConfigs(): {configs: HomeInsightConfig[]; date: InsightsFilters['date']; isResolved: boolean; shouldShowRunningTotal: boolean} {
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    // Home has no tag level picker, so it leaves out the workspaces that would make the filters load and check tag lists.
+    // That takes one request per workspace, which large accounts cannot afford on every Home load. Home uses the saved
+    // tag level as is, and the Insights page corrects a level that no longer exists.
     const {filters, isResolved: areFiltersResolved} = useInsightsFilters(CONST.INSIGHTS.DASHBOARD.SPEND);
 
     const {headlineChart, supportingCharts} = INSIGHTS_DASHBOARD_SPECS[CONST.INSIGHTS.DASHBOARD.SPEND];

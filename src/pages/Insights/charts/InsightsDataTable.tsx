@@ -21,6 +21,8 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import formatTagParentPath from '@libs/formatTagParentPath';
+
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -94,7 +96,8 @@ function InsightsDataTable({rows, formatValue, isLoading, skeletonRowCount = SKE
                 const changePercentage = hasChange ? formatChangePercentage(primaryValue, comparedValue, preferredLocale) : undefined;
                 const isIncrease = hasChange && primaryValue > comparedValue;
                 const isNewSpend = comparedValue === 0;
-                const changeColor = StyleUtils.getSpendChangeColor(isIncrease);
+                const isLevelTag = item.groupedBy === CONST.SEARCH.GROUP_BY.TAG && item.tagLevel !== undefined;
+                const parentLabel = isLevelTag ? formatTagParentPath(item.parentTagPath) : '';
 
                 const rowContent = (
                     <>
@@ -110,7 +113,17 @@ function InsightsDataTable({rows, formatValue, isLoading, skeletonRowCount = SKE
                             ) : (
                                 <View style={[styles.chartInlineTableDot, !!point.color && StyleUtils.getBackgroundColorStyle(point.color)]} />
                             )}
-                            <Text style={[styles.flex1, styles.mnw0, styles.breakWord]}>{point.label}</Text>
+                            <View style={[styles.flex1, styles.mnw0]}>
+                                <Text style={styles.breakWord}>{isLevelTag ? item.formattedTagName : point.label}</Text>
+                                {!!parentLabel && (
+                                    <Text
+                                        variant="label"
+                                        style={[styles.textSupporting, styles.breakWord]}
+                                    >
+                                        {parentLabel}
+                                    </Text>
+                                )}
+                            </View>
                         </View>
                         <View style={[styles.flexShrink0, styles.alignItemsEnd]}>
                             <Text style={styles.textAlignRight}>{formatGroupValue(item, primaryValue ?? 0)}</Text>
@@ -130,11 +143,11 @@ function InsightsDataTable({rows, formatValue, isLoading, skeletonRowCount = SKE
                                 >
                                     <Icon
                                         src={isIncrease ? icons.ArrowUpLong : icons.ArrowDownLong}
-                                        fill={changeColor}
+                                        fill={StyleUtils.getSpendChangeIconColor(isIncrease)}
                                         width={variables.iconSizeXXSmall}
                                         height={variables.iconSizeXXSmall}
                                     />
-                                    <Text style={[styles.textLabel, StyleUtils.getColorStyle(changeColor)]}>{changePercentage}</Text>
+                                    <Text style={[styles.textLabel, StyleUtils.getColorStyle(StyleUtils.getSpendChangeTextColor(isIncrease))]}>{changePercentage}</Text>
                                 </View>
                             )}
                         </View>

@@ -10,18 +10,18 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getDeviceOrientationAwareImageSize from '@libs/cropOrRotateImage/getDeviceOrientationAwareImageSize';
-import {containsOnlyEmojis} from '@libs/EmojiUtils';
+import {containsOnlyEmojisInDraft} from '@libs/EmojiUtils';
 import {getExtensionFromMimeType, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import getLandscapeTextInputRefProxy from '@libs/getLandscapeTextInputRefProxy';
-import Parser from '@libs/Parser';
 
 import getFileSize from '@pages/Share/getFileSize';
 
 import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
 
-import type {MarkdownStyle, MarkdownTextInput} from '@expensify/react-native-live-markdown';
-import type {NativeSyntheticEvent, TextInputChangeEvent} from 'react-native';
+import type {MarkdownStyle} from '@expensify/react-native-live-markdown';
+import type {ComponentRef} from 'react';
+import type {NativeSyntheticEvent, TextInput, TextInputChangeEvent} from 'react-native';
 
 import React, {useEffect, useRef} from 'react';
 import {StyleSheet} from 'react-native';
@@ -69,8 +69,8 @@ function Composer({
     ref,
     ...props
 }: ComposerProps) {
-    const textInputRef = useRef<MarkdownTextInput | null>(null);
-    const textContainsOnlyEmojis = containsOnlyEmojis(Parser.htmlToText(Parser.replace(value ?? '')));
+    const textInputRef = useRef<ComponentRef<typeof TextInput> | null>(null);
+    const textContainsOnlyEmojis = containsOnlyEmojisInDraft(value ?? '');
     const theme = useTheme();
     const markdownStyle = useMarkdownStyle(textContainsOnlyEmojis, !isGroupPolicyReport ? excludeReportMentionStyle : excludeNoStyles);
     const styles = useThemeStyles();

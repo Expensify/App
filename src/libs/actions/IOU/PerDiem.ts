@@ -1,4 +1,5 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
@@ -16,7 +17,7 @@ import * as NumberUtils from '@libs/NumberUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {getPerDiemCustomUnit, getPerDiemRateCustomUnitRate, getReimbursementChoice} from '@libs/PolicyUtils';
 import {getReportActionHtml, getReportActionText} from '@libs/ReportActionsUtils';
-import type {OptimisticIOUReportAction} from '@libs/ReportUtils';
+import type {OptimisticIOUReportAction, ReportStateAndStatus} from '@libs/ReportUtils';
 import {
     buildOptimisticChatReport,
     buildOptimisticCreatedReportAction,
@@ -28,6 +29,7 @@ import {
     generateReportID,
     getChatByParticipants,
     getChatReportFromMoneyRequestReport,
+    getFinalizedDeferredBatchReportState,
     getNewestOutstandingReportForUser,
     getReimbursableTotal,
     getUnheldReimbursableTotal,
@@ -278,6 +280,7 @@ type PerDiemExpenseInformation = {
     writeBarrier?: WriteReadyBarrier;
     rules: OnyxCollection<OnyxTypes.Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
+    personalDetailsByLogins: PersonalDetailsByLogin;
 };
 
 type PerDiemExpenseInformationParams = {
@@ -310,6 +313,9 @@ type PerDiemExpenseInformationParams = {
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<OnyxTypes.Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
+    personalDetailsByLogins: PersonalDetailsByLogin;
+    /** Keeps a newly created optimistic expense report open when auto-submit is deferred for a batch item. */
+    shouldDeferAutoSubmit?: boolean;
 };
 
 type PerDiemExpenseInformationForSelfDM = {
@@ -429,6 +435,8 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         getCurrencyDecimals,
         rules,
         isVendorMatchingBetaEnabled,
+        personalDetailsByLogins,
+        shouldDeferAutoSubmit,
     } = perDiemExpenseInformation;
     const {payeeAccountID = currentUserAccountIDParam, payeeEmail = currentUserEmailParam, participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
@@ -492,6 +500,8 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
     const optimisticTransactionID = uiProvidedOptimisticTransactionID ?? NumberUtils.rand64();
     const optimisticReportID = generateReportID();
 
+    let previousIOUReportState: ReportStateAndStatus | undefined;
+
     if (!iouReport || shouldCreateNewMoneyRequestReport) {
         const reportTransactions = buildMinimalTransactionForFormula(optimisticTransactionID, optimisticReportID, created, amount, currency, merchant);
 
@@ -507,6 +517,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
                   isASAPSubmitBetaEnabled,
                   getCurrencyDecimals,
                   rules,
+                  shouldDeferAutoSubmit,
               })
             : buildOptimisticIOUReport(payeeAccountID, payerAccountID, amount, chatReport.reportID, currency, getCurrencyDecimals);
     } else if (isPolicyExpenseChat) {
@@ -554,6 +565,18 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
                     iouReport.unheldReimbursableTotal = previousUnheldReimbursableTotal - amount;
                 }
             }
+        }
+        const finalizedBatchReportState = getFinalizedDeferredBatchReportState({
+            iouReport,
+            hasExistingIOUReport: !!existingIOUReportParam,
+            shouldDeferAutoSubmit,
+            policy,
+            isASAPSubmitBetaEnabled,
+        });
+        if (finalizedBatchReportState) {
+            iouReport.stateNum = finalizedBatchReportState.nextState.stateNum;
+            iouReport.statusNum = finalizedBatchReportState.nextState.statusNum;
+            previousIOUReportState = finalizedBatchReportState.previousState;
         }
     } else {
         iouReport = updateIOUOwnerAndTotal(iouReport, payeeAccountID, amount, currency);
@@ -666,10 +689,12 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         policy,
         isTrackIntentUser,
         rules,
+        personalDetailsByLogins,
     });
 
     // STEP 5: Build Onyx Data
     const {optimisticData, successData, failureData} = buildOnyxDataForMoneyRequest({
+        shouldFlagNewTransactionForReportTable: true,
         shouldGenerateTransactionThreadReport: false,
         participant,
         isNewChatReport,
@@ -715,6 +740,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         getCurrencyDecimals,
         rules,
         isVendorMatchingBetaEnabled,
+        previousIOUReportState,
     });
 
     return {
@@ -1086,6 +1112,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         writeBarrier,
         rules,
         isVendorMatchingBetaEnabled,
+        personalDetailsByLogins,
     } = submitPerDiemExpenseInformation;
     const {currency, comment = '', category, tag, created, customUnit, attendees, isFromGlobalCreate} = transactionParams;
 
@@ -1140,6 +1167,8 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         isTrackIntentUser,
         getCurrencyDecimals,
         rules,
+        personalDetailsByLogins,
+        shouldDeferAutoSubmit,
     });
 
     const customUnitRate = getPerDiemRateCustomUnitRate(policyParams.policy, customUnit.customUnitRateID);

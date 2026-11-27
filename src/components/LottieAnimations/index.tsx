@@ -76,11 +76,6 @@ const DotLottieAnimations = {
         h: 120,
         backgroundColor: colors.blue700,
     },
-    Plane: {
-        file: require<LottieViewProps['source']>('@assets/animations/Plane.lottie'),
-        w: 180,
-        h: 200,
-    },
     TripsEmptyState: {
         file: require<LottieViewProps['source']>('@assets/animations/TripsEmptyState.lottie'),
         w: 375,
@@ -95,6 +90,11 @@ const DotLottieAnimations = {
         file: require<LottieViewProps['source']>('@assets/animations/Fingerprint.lottie'),
         w: 204,
         h: 204,
+    },
+    SparkleRotate: {
+        file: require<LottieViewProps['source']>('@assets/animations/SparkleRotate.lottie'),
+        w: 120,
+        h: 120,
     },
     ConciergeThinkingScanGradient: {
         file: require<LottieViewProps['source']>('@assets/animations/ConciergeThinkingScanGradient.lottie'),

@@ -5,13 +5,14 @@ import type ExportInsightsDashboard from '@pages/Insights/exportInsightsDashboar
 import type {InsightsCaptureRef} from '@pages/Insights/exportInsightsDashboard/types';
 
 import type {Options} from 'modern-screenshot';
+import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 
-import {Skia} from '@shopify/react-native-skia';
 import {domToCanvas} from 'modern-screenshot';
 import {PixelRatio, Platform} from 'react-native';
 import RNFS from 'react-native-fs';
 import Share from 'react-native-share';
+import {Skia} from 'react-native-skia';
 import {captureRef, releaseCapture} from 'react-native-view-shot';
 
 import createMock from '../utils/createMock';
@@ -28,7 +29,7 @@ jest.mock('modern-screenshot', () => ({domToCanvas: jest.fn()}));
 jest.mock('react-native-view-shot', () => ({captureRef: jest.fn(), releaseCapture: jest.fn()}));
 jest.mock('react-native-share', () => ({open: jest.fn()}));
 jest.mock('react-native-fs', () => ({CachesDirectoryPath: '/cache', writeFile: jest.fn(), unlink: jest.fn()}));
-jest.mock('@shopify/react-native-skia', () => ({
+jest.mock('react-native-skia', () => ({
     Skia: {
         Surface: {
             MakeOffscreen: jest.fn(() => ({
@@ -173,7 +174,7 @@ describe('exportInsightsDashboard on web', () => {
 
 describe('exportInsightsDashboard on native', () => {
     function makeRef(height: number, x = 0, width = 400): InsightsCaptureRef {
-        return {current: createMock<View>({measureInWindow: (callback) => callback(x, 0, width, height)})};
+        return {current: createMock<ComponentRef<typeof View>>({measureInWindow: (callback) => callback(x, 0, width, height)})};
     }
 
     beforeEach(() => {

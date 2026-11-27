@@ -2,17 +2,17 @@ import type {Emoji} from '@assets/emojis/types';
 
 import Composer from '@components/Composer';
 import type {ComposerRef, CustomSelectionChangeEvent, TextSelection} from '@components/Composer/types';
+import FSClassContext from '@components/FSClassView/FSClassContext';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
 
-import useAccountIDToNameMap from '@hooks/useAccountIDToNameMap';
+import {useMentionedAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
-import useKeyboardState from '@hooks/useKeyboardState';
+import useKeyboardShownRef from '@hooks/useKeyboardShownRef';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
-import useReportIDToNameMap from '@hooks/useReportIDToNameMap';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelState from '@hooks/useSidePanelState';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -33,6 +33,7 @@ import {detectAndRewritePaste} from '@libs/MarkdownLinkHelpers';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import Parser from '@libs/Parser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
+import {buildReportIDToNameMap, getMentionedReportIDs} from '@libs/ReportIDToNameMapUtils';
 import {isValidReportIDFromPath, shouldAutoFocusOnKeyPress} from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
@@ -62,6 +63,7 @@ import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
 import lodashDebounce from 'lodash/debounce';
 import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {DeviceEventEmitter, NativeModules, StyleSheet, View} from 'react-native';
+import Onyx from 'react-native-onyx';
 import {useAnimatedRef} from 'react-native-reanimated';
 
 import type {SuggestionsRef} from './ReportActionCompose';
@@ -210,7 +212,7 @@ function ComposerWithSuggestions({
 }: ComposerWithSuggestionsProps) {
     const lastReportAction = useLastEditableAction(reportID);
     const route = useRoute();
-    const {isKeyboardShown} = useKeyboardState();
+    const isKeyboardShownRef = useKeyboardShownRef();
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -286,8 +288,10 @@ function ComposerWithSuggestions({
 
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
-    const reportIDToName = useReportIDToNameMap();
-    const accountIDToName = useAccountIDToNameMap();
+    // ArrowUp edits the last message, so only the users it mentions are needed
+    const lastReportActionMessage = Array.isArray(lastReportAction?.message) ? (lastReportAction?.message?.at(-1) ?? null) : (lastReportAction?.message ?? null);
+    const lastReportActionHtml = lastReportActionMessage?.html ?? '';
+    const accountIDToName = useMentionedAccountIDToNameMap(lastReportActionHtml);
 
     const commentRef = useRef(initialText);
 
@@ -555,9 +559,19 @@ function ComposerWithSuggestions({
         updateComment(insertText(commentRef.current, selection, newText), true);
     };
 
+    const editLastReportAction = async () => {
+        if (!lastReportAction) {
+            return;
+        }
+        // eslint-disable-next-line rulesdir/no-onyx-get-snapshot-key -- Parser used to read these names from a module-level Onyx.connect; the composer never renders inside a Search scope, so this reads the same live reports that connect did
+        const reports = await Onyx.get(ONYXKEYS.COLLECTION.REPORT);
+        const reportIDToName = buildReportIDToNameMap(reports, getMentionedReportIDs(lastReportActionHtml));
+        saveReportActionDraft(reportID, lastReportAction, reportActions, Parser.htmlToMarkdown(lastReportActionHtml, {reportIDToName, accountIDToName}), isOffline);
+    };
+
     const handleKeyPress = (event: TextInputKeyPressEvent) => {
         const webEvent = event as unknown as KeyboardEvent;
-        if (!webEvent || canSkipTriggerHotkeys(shouldUseNarrowLayout, isKeyboardShown)) {
+        if (!webEvent || canSkipTriggerHotkeys(shouldUseNarrowLayout, isKeyboardShownRef.current)) {
             return;
         }
 
@@ -575,10 +589,7 @@ function ComposerWithSuggestions({
         const isEmptyComment = !text || !!text.match(CONST.REGEX.EMPTY_COMMENT);
         if (webEvent.key === CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey && selection.start <= 0 && isEmptyComment && !includeChronos) {
             webEvent.preventDefault();
-            if (lastReportAction) {
-                const message = Array.isArray(lastReportAction?.message) ? (lastReportAction?.message?.at(-1) ?? null) : (lastReportAction?.message ?? null);
-                saveReportActionDraft(reportID, lastReportAction, reportActions, Parser.htmlToMarkdown(message?.html ?? '', {reportIDToName, accountIDToName}), isOffline);
-            }
+            editLastReportAction();
         }
         // Flag emojis like "Wales" have several code points. Default backspace key action does not remove such flag emojis completely.
         // so we need to handle backspace key action differently with grapheme segmentation.
@@ -914,7 +925,8 @@ function ComposerWithSuggestions({
     const containerComposeStyles = StyleSheet.flatten(StyleUtils.getContainerComposeStyles());
 
     const handleContentSizeChange = (e: TextInputContentSizeChangeEvent) => {
-        const paddingTopAndBottom = (containerComposeStyles.paddingVertical as number) * 2;
+        const paddingVertical = containerComposeStyles?.paddingVertical;
+        const paddingTopAndBottom = (typeof paddingVertical === 'number' ? paddingVertical : 0) * 2;
         const inputHeight = e.nativeEvent.contentSize.height;
         const totalHeight = inputHeight + paddingTopAndBottom;
 
@@ -1007,19 +1019,22 @@ function ComposerWithSuggestions({
                 />
             </View>
 
-            <Suggestions
-                ref={suggestionsRef}
-                isComposerFocused={isComposerFocused}
-                updateComment={updateComment}
-                measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
-                isGroupPolicyReport={isGroupPolicyReport}
-                policyID={policyID}
-                // Input
-                value={text}
-                selection={selection}
-                setSelection={onSuggestionSelected}
-                resetKeyboardInput={resetKeyboardInput}
-            />
+            {/* The suggestions render in a portal, outside the chat's masked views, so they take the chat's FullStory class from this context */}
+            <FSClassContext.Provider value={forwardedFSClass}>
+                <Suggestions
+                    ref={suggestionsRef}
+                    isComposerFocused={isComposerFocused}
+                    updateComment={updateComment}
+                    measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
+                    isGroupPolicyReport={isGroupPolicyReport}
+                    policyID={policyID}
+                    // Input
+                    value={text}
+                    selection={selection}
+                    setSelection={onSuggestionSelected}
+                    resetKeyboardInput={resetKeyboardInput}
+                />
+            </FSClassContext.Provider>
 
             {isValidReportIDFromPath(reportID) && (
                 <SilentCommentUpdater

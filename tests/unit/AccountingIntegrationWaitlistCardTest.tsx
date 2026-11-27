@@ -169,8 +169,8 @@ describe('AccountingIntegrationWaitlistCard', () => {
         );
         await waitForBatchedUpdatesWithAct();
 
-        // Then the card shows the waitlist status in place of the button
-        expect(screen.getByText('You’re on the waitlist')).toBeTruthy();
+        // Then the button changes to a disabled On waitlist button, matching the other waitlist cards, so the workspace can't sign up twice
+        expect(screen.getByRole('button', {name: 'On waitlist'})).toBeDisabled();
         expect(screen.queryByRole('button', {name: 'Join waitlist'})).toBeNull();
     });
 

@@ -22,24 +22,24 @@ function PressableWithSecondaryInteraction({
     preventDefaultContextMenu,
     withoutFocusOnSecondaryInteraction,
     enableLongPressWithHover,
+    sentryLabel: rawSentryLabel,
     ref,
     ...rest
 }: PressableWithSecondaryInteractionProps) {
     // Forward the a11y slot so it reaches the underlying pressable even when the descendant isn't `<PressableWithFeedback>`.
-    const {onSecondaryInteraction, accessibilityState, accessibilityHasPopup, nativeID, accessibilityControls} = usePressResponderProps({
+    const {onSecondaryInteraction, accessibilityState, accessibilityHasPopup, nativeID, accessibilityControls, sentryLabel} = usePressResponderProps({
         onSecondaryInteraction: rawOnSecondaryInteraction,
         accessibilityState: rest.accessibilityState,
         accessibilityHasPopup: rest.accessibilityHasPopup,
         nativeID: rest.nativeID,
         accessibilityControls: rest.accessibilityControls,
+        sentryLabel: rawSentryLabel,
     });
 
     const executeSecondaryInteraction = (event: GestureResponderEvent) => {
         event.preventDefault();
         onSecondaryInteraction?.(event);
     };
-
-    const sentryLabel = castToSentryLabel(rest.sentryLabel);
 
     // Use Text node for inline mode to prevent content overflow.
     if (inline) {
@@ -48,7 +48,7 @@ function PressableWithSecondaryInteraction({
                 // The cast hides the press props and the label, since TypeScript can't tie a handler in `rest` to its label.
                 // At runtime `rest` still passes any onPress with its label.
                 {...(rest as Omit<TextProps, 'onPress' | 'onLongPress' | 'sentryLabel'>)}
-                sentryLabel={sentryLabel}
+                sentryLabel={castToSentryLabel(sentryLabel)}
                 onLongPress={onSecondaryInteraction ? executeSecondaryInteraction : undefined}
                 suppressHighlighting={suppressHighlighting}
             >
@@ -59,9 +59,7 @@ function PressableWithSecondaryInteraction({
 
     return (
         <PressableWithFeedback
-            // `{...rest}` already forwards the label, but the sentryLabel lint rule only sees a literal attribute, not what a spread contains.
-            // Remove this once `sentryLabel` is required in the props type and the lint rule is gone.
-            sentryLabel={rest.sentryLabel}
+            sentryLabel={castToSentryLabel(sentryLabel)}
             {...rest}
             accessibilityState={accessibilityState}
             accessibilityHasPopup={accessibilityHasPopup}

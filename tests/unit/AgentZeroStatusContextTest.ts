@@ -270,6 +270,44 @@ describe('AgentZeroStatusContext', () => {
             expect(result.current.candidateAgentIDs).toContain(CONST.ACCOUNT_ID.CONCIERGE);
         });
 
+        it('does not show thinking over a preloaded Concierge reply in a new thread', async () => {
+            // Given a thread with an already visible answer and a newer server-created action.
+            await seedServerDrivenReport({type: CONST.REPORT.TYPE.CHAT, parentReportID: '999', parentReportActionID: '789'});
+            const replyActionID = '100';
+            const createdActionID = '101';
+            AgentZeroOptimisticStore.increment(reportID, CONST.ACCOUNT_ID.CONCIERGE, null);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                [replyActionID]: {
+                    reportActionID: replyActionID,
+                    actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    created: '2026-11-23 13:00:00.001',
+                },
+                [createdActionID]: {reportActionID: createdActionID, actorAccountID: currentUserAccountID, actionName: CONST.REPORT.ACTIONS.TYPE.CREATED, created: '2026-11-23 13:00:01.000'},
+            });
+
+            // When the server starts processing the already visible reply.
+            await setProcessingIndicator({[CONST.ACCOUNT_ID.CONCIERGE]: 'Concierge is thinking...'});
+            const {result} = renderHook(() => useAgentZeroStatus(), {wrapper});
+
+            // Then the reply counts as the latest comment so no thinking bubble appears.
+            await waitForBatchedUpdates();
+            expect(result.current.candidateAgentIDs).not.toContain(CONST.ACCOUNT_ID.CONCIERGE);
+            expect(AgentZeroOptimisticStore.getEntry(reportID, CONST.ACCOUNT_ID.CONCIERGE)).toBeUndefined();
+
+            // When the user adds a follow-up, then Concierge can show its indicator again.
+            const followupActionID = '102';
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                [followupActionID]: {
+                    reportActionID: followupActionID,
+                    actorAccountID: currentUserAccountID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    created: '2026-11-23 13:01:00.000',
+                },
+            });
+            await waitFor(() => expect(result.current.candidateAgentIDs).toContain(CONST.ACCOUNT_ID.CONCIERGE));
+        });
+
         it('stays inert on an expense report while no agent is processing', async () => {
             // Given an expense report the server has not written an indicator for
             await seedServerDrivenReport({type: CONST.REPORT.TYPE.EXPENSE});

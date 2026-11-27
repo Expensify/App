@@ -66,6 +66,7 @@ describe('Column availability single source of truth', () => {
         TABLE_COLUMNS.GROUP_AMOUNT_DEBITED,
         TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED,
         TABLE_COLUMNS.GROUP_APPROVER,
+        TABLE_COLUMNS.GROUP_VIOLATION,
     ]);
 
     test('every TABLE_COLUMNS value is classified in COLUMN_AVAILABILITY or owned by another surface', () => {
@@ -114,6 +115,17 @@ describe('Column availability single source of truth', () => {
         expect(reportColumns).toContain(TABLE_COLUMNS.ATTENDEES);
         expect(reportColumns).toContain(TABLE_COLUMNS.TOTAL_PER_ATTENDEE);
         expect(reportColumns).toContain(TABLE_COLUMNS.ORIGINAL_AMOUNT);
+    });
+
+    test('the Converted amount column is offered in Search but not in the single-report picker', () => {
+        // Given the column that shows each expense in its workspace currency
+        // When the two pickers are built
+        const expenseColumns = Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE);
+        const reportColumns = Object.values(CONST.SEARCH.REPORT_DETAILS_CUSTOM_COLUMNS);
+
+        // Then only Search offers it, because the column is scoped to expense searches
+        expect(expenseColumns).toContain(TABLE_COLUMNS.CONVERTED_AMOUNT);
+        expect(reportColumns).not.toContain(TABLE_COLUMNS.CONVERTED_AMOUNT);
     });
 
     test('report-level columns stay out of the single-report picker', () => {

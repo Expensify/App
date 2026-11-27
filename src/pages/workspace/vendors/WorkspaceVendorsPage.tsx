@@ -1,7 +1,7 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderCentralPane from '@components/Header/composed/HeaderCentralPane';
 import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {WorkspaceVendorTableRowData} from '@components/Tables/WorkspaceVendorsTable';
@@ -45,7 +45,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
-type VendorBulkActionsProps = {
+type UseVendorBulkActionOptionsParams = {
     policyID: string;
     selectedVendorKeys: string[];
     policyVendors?: OnyxEntry<PolicyVendors>;
@@ -53,10 +53,8 @@ type VendorBulkActionsProps = {
     onClearSelection: () => void;
 };
 
-function VendorBulkActions({policyID, selectedVendorKeys, policyVendors, defaultVendorID, onClearSelection}: VendorBulkActionsProps) {
-    const styles = useThemeStyles();
+function useVendorBulkActionOptions({policyID, selectedVendorKeys, policyVendors, defaultVendorID, onClearSelection}: UseVendorBulkActionOptionsParams) {
     const {translate} = useLocalize();
-    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close']);
     const policyData = usePolicyData(policyID);
     const {isBetaEnabled} = usePermissions();
@@ -105,17 +103,33 @@ function VendorBulkActions({policyID, selectedVendorKeys, policyVendors, default
         });
     }
 
+    return options;
+}
+
+type VendorBulkActionsButtonProps = {
+    /** The actions the selected vendors support, built by the page so the floating bar offers the same list */
+    options: ReturnType<typeof useVendorBulkActionOptions>;
+
+    /** How many vendor rows the actions apply to */
+    selectedVendorsCount: number;
+};
+
+function VendorBulkActions({options, selectedVendorsCount}: VendorBulkActionsButtonProps) {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
+
     return (
         <ButtonWithDropdownMenu
             variant={CONST.BUTTON_VARIANT.SUCCESS}
             onPress={() => null}
             shouldAlwaysShowDropdownMenu
             size={CONST.BUTTON_SIZE.MEDIUM}
-            customText={translate('workspace.common.selected', {count: selectedVendorKeys.length})}
+            customText={translate('workspace.common.selected', {count: selectedVendorsCount})}
             options={options}
             isSplitButton={false}
-            style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
-            isDisabled={!selectedVendorKeys.length || options.length === 0}
+            style={shouldDisplayButtonsInSeparateLine && [styles.flexGrow1, styles.mb3]}
+            isDisabled={selectedVendorsCount === 0 || options.length === 0}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.VENDORS.BULK_ACTIONS_DROPDOWN}
             testID="WorkspaceVendorsPage-header-dropdown-menu-button"
         />
@@ -226,7 +240,10 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
     ) : undefined;
 
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
-    const canShowBulkActions = canWriteVendors && (selectedVendorKeys.length > 0 || selectionModeHeader);
+    // The wide layout offers these actions in the floating bar over the table instead, so its header keeps the
+    // page's own buttons no matter what is selected.
+    const canShowBulkActions = canWriteVendors && selectionModeHeader;
+    const vendorBulkActionOptions = useVendorBulkActionOptions({policyID, selectedVendorKeys, policyVendors, defaultVendorID, onClearSelection: clearTableSelection});
     const isLoading = !isOffline && policyVendors === undefined;
 
     return (
@@ -244,10 +261,8 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
                 shouldShowOfflineIndicatorInWideScreen
                 offlineIndicatorStyle={styles.mtAuto}
             >
-                <HeaderWithBackButton
-                    shouldUseHeadlineHeader={!selectionModeHeader}
-                    shouldShowBackButton={shouldUseNarrowLayout}
-                    shouldDisplayHelpButton
+                <HeaderCentralPane
+                    isHeadline={!selectionModeHeader}
                     title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.vendors')}
                     onBackButtonPress={() => {
                         if (isMobileSelectionModeEnabled) {
@@ -260,22 +275,16 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
                 >
                     {!shouldDisplayButtonsInSeparateLine && canShowBulkActions && (
                         <VendorBulkActions
-                            policyID={policyID}
-                            selectedVendorKeys={selectedVendorKeys}
-                            policyVendors={policyVendors}
-                            defaultVendorID={defaultVendorID}
-                            onClearSelection={clearTableSelection}
+                            options={vendorBulkActionOptions}
+                            selectedVendorsCount={selectedVendorKeys.length}
                         />
                     )}
-                </HeaderWithBackButton>
+                </HeaderCentralPane>
                 {shouldDisplayButtonsInSeparateLine && canShowBulkActions && (
                     <View style={[styles.pl5, styles.pr5]}>
                         <VendorBulkActions
-                            policyID={policyID}
-                            selectedVendorKeys={selectedVendorKeys}
-                            policyVendors={policyVendors}
-                            defaultVendorID={defaultVendorID}
-                            onClearSelection={clearTableSelection}
+                            options={vendorBulkActionOptions}
+                            selectedVendorsCount={selectedVendorKeys.length}
                         />
                     </View>
                 )}
@@ -294,6 +303,7 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
                         selectedKeys={selectedVendorKeys}
                         onRowSelectionChange={setSelectedVendorKeys}
                         headerComponent={headerContent}
+                        bulkActionOptions={canWriteVendors && vendorBulkActionOptions.length > 0 ? vendorBulkActionOptions : undefined}
                     />
                 )}
             </ScreenWrapper>

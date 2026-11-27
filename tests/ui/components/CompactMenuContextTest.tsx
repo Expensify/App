@@ -249,6 +249,7 @@ describe('MenuItem.Root compact sizing', () => {
                 <MenuItem.Root
                     isCompact={isCompact}
                     onPress={onPress}
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 >
                     <MenuItem.Row>
                         <MenuItem.Content>

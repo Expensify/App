@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import type {RenderAPI} from '@testing-library/react-native';
 
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
+
 import {bulkDuplicateExpenses, bulkDuplicateReports, duplicateExpenseTransaction, duplicateReport, mergeDuplicates, resolveDuplicates} from '@libs/actions/IOU/Duplicate';
 import type {BulkDuplicateReportsParams, DuplicateReportParams} from '@libs/actions/IOU/Duplicate';
 import {getReportPreviewReportAction} from '@libs/actions/IOU/MoneyRequestBuilder';
@@ -14,7 +16,7 @@ import {getOriginalMessage, getReportAction} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReport, buildOptimisticIOUReportAction, buildTransactionThread} from '@libs/ReportUtils';
 import {toIndexMap} from '@libs/RuleUtils';
 import {buildOptimisticTransaction, isTimeRequest} from '@libs/TransactionUtils';
-import type {MergeDuplicatesTransactionParams} from '@libs/TransactionUtils';
+import type {MergeDuplicatesTransactionParams} from '@libs/TransactionUtils/duplicates';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -70,6 +72,10 @@ jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.
 
 const RORY_EMAIL = 'rory@expensifail.com';
 const RORY_ACCOUNT_ID = 3;
+// Mirrors the PERSONAL_DETAILS_LIST seeded in Onyx, keyed by login the way PersonalDetailsByLoginProvider builds it
+const RORY_PERSONAL_DETAILS_BY_LOGINS: PersonalDetailsByLogin = {
+    [RORY_EMAIL]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
+};
 
 type WriteMockCall = [string, Record<PropertyKey, unknown>, unknown?];
 
@@ -1847,6 +1853,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 conciergeChat,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 participantsPolicyTags: {},
@@ -1868,6 +1875,7 @@ describe('actions/Duplicate', () => {
                 targetPolicyTags,
                 policyTagList: targetPolicyTags ?? {},
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
@@ -1893,6 +1901,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 conciergeChat: undefined,
                 transaction: mockCashExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -1912,6 +1921,7 @@ describe('actions/Duplicate', () => {
                 targetPolicyTags,
                 policyTagList: targetPolicyTags ?? {},
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
@@ -1961,17 +1971,27 @@ describe('actions/Duplicate', () => {
                 pendingFields: undefined,
             };
             const {waypoints, ...restOfComment} = mockTransaction.comment ?? {};
-            const sourceTransaction: Transaction = {...mockTransaction, reportID: sourceExpenseReport.reportID, amount: mockTransaction.amount * -1, comment: restOfComment};
+            // Expense reports store a refund and its edited tax with the opposite sign to their displayed values
+            const sourceTransaction: Transaction = {
+                ...mockTransaction,
+                reportID: sourceExpenseReport.reportID,
+                amount: 1000,
+                taxAmount: 48,
+                taxCode: 'tax-rate-5',
+                comment: restOfComment,
+            };
 
             await Onyx.set(ONYXKEYS.SESSION, {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL});
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${sourcePolicy.id}`, sourcePolicy);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${sourceChatReport.reportID}`, sourceChatReport);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${sourceExpenseReport.reportID}`, sourceExpenseReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction.transactionID}`, sourceTransaction);
             await waitForBatchedUpdates();
 
             // When the expense is duplicated with that expense report as the target
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 conciergeChat: undefined,
                 transaction: sourceTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -1991,6 +2011,7 @@ describe('actions/Duplicate', () => {
                 targetPolicyTags: {},
                 policyTagList: {},
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
@@ -2002,7 +2023,16 @@ describe('actions/Duplicate', () => {
             await waitForBatchedUpdates();
 
             // Then the duplicate is requested on the source expense report, not on the report the workspace chat points at
-            expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.REQUEST_MONEY, expect.objectContaining({iouReportID: sourceExpenseReport.reportID}), expect.objectContaining({}));
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.REQUEST_MONEY,
+                expect.objectContaining({iouReportID: sourceExpenseReport.reportID, amount: -1000, signedTaxAmount: -48, taxCode: sourceTransaction.taxCode}),
+                expect.objectContaining({}),
+            );
+            const [, params] = getRequiredWriteCall(writeSpy.mock.calls);
+            expect(params).not.toHaveProperty('taxAmount');
+            const duplicate = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${String(params.transactionID)}`);
+            expect(duplicate).toEqual(expect.objectContaining({amount: 1000, taxAmount: 48, taxCode: sourceTransaction.taxCode}));
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction.transactionID}`)).toEqual(sourceTransaction);
         });
 
         it('should create a duplicate time expense successfully', async () => {
@@ -2030,6 +2060,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 conciergeChat: undefined,
                 transaction: mockTimeExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2049,6 +2080,7 @@ describe('actions/Duplicate', () => {
                 targetPolicyTags,
                 policyTagList: targetPolicyTags ?? {},
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
@@ -2093,6 +2125,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 conciergeChat: undefined,
                 transaction: mockScanExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2112,6 +2145,7 @@ describe('actions/Duplicate', () => {
                 targetPolicyTags,
                 policyTagList: targetPolicyTags ?? {},
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
@@ -2149,6 +2183,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 conciergeChat: undefined,
                 transaction: mockScanExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2168,6 +2203,7 @@ describe('actions/Duplicate', () => {
                 targetPolicyTags,
                 policyTagList: targetPolicyTags ?? {},
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
@@ -2220,6 +2256,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 conciergeChat: undefined,
                 transaction: mockGPSDistanceTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2239,6 +2276,7 @@ describe('actions/Duplicate', () => {
                 targetPolicyTags,
                 policyTagList: targetPolicyTags ?? {},
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
@@ -2300,6 +2338,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 conciergeChat: undefined,
                 transaction: mockGPSDistanceTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2319,6 +2358,7 @@ describe('actions/Duplicate', () => {
                 targetPolicyTags,
                 policyTagList: targetPolicyTags ?? {},
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
@@ -2367,6 +2407,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 conciergeChat: undefined,
                 transaction: mockCashExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2386,6 +2427,7 @@ describe('actions/Duplicate', () => {
                 targetPolicyTags,
                 policyTagList: targetPolicyTags ?? {},
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
@@ -2427,6 +2469,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 conciergeChat: undefined,
                 transaction: mockCashExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2445,6 +2488,7 @@ describe('actions/Duplicate', () => {
                 targetPolicyTags,
                 policyTagList: targetPolicyTags ?? {},
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
@@ -2496,6 +2540,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 conciergeChat: undefined,
                 transaction: mockTimeExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2514,6 +2559,7 @@ describe('actions/Duplicate', () => {
                 targetPolicyTags,
                 policyTagList: targetPolicyTags ?? {},
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
@@ -2549,6 +2595,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 conciergeChat: undefined,
                 transaction: undefined,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2568,6 +2615,7 @@ describe('actions/Duplicate', () => {
                 targetPolicyTags,
                 policyTagList: targetPolicyTags ?? {},
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
@@ -2597,6 +2645,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 conciergeChat: undefined,
                 transaction: mockCashExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2616,6 +2665,7 @@ describe('actions/Duplicate', () => {
                 targetPolicyTags,
                 policyTagList: targetPolicyTags ?? {},
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
@@ -2646,6 +2696,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 conciergeChat: undefined,
                 transaction: mockUnreportedTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2665,6 +2716,7 @@ describe('actions/Duplicate', () => {
                 targetPolicyTags,
                 policyTagList: targetPolicyTags ?? {},
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
@@ -2699,6 +2751,7 @@ describe('actions/Duplicate', () => {
             // When it is duplicated on its own, outside a bulk action
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 conciergeChat: undefined,
                 transaction: mockDistanceTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2718,6 +2771,7 @@ describe('actions/Duplicate', () => {
                 targetPolicyTags,
                 policyTagList: targetPolicyTags ?? {},
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
@@ -2756,6 +2810,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 conciergeChat: undefined,
                 transaction: mockDistanceTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2775,6 +2830,7 @@ describe('actions/Duplicate', () => {
                 targetPolicyTags,
                 policyTagList: targetPolicyTags ?? {},
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
@@ -2834,6 +2890,7 @@ describe('actions/Duplicate', () => {
             // When the expense is duplicated
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 conciergeChat: undefined,
                 transaction: mockDistanceTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2853,6 +2910,7 @@ describe('actions/Duplicate', () => {
                 targetPolicyTags,
                 policyTagList: targetPolicyTags ?? {},
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
@@ -2895,6 +2953,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 conciergeChat: undefined,
                 transaction: mockPerDiemTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2914,6 +2973,7 @@ describe('actions/Duplicate', () => {
                 targetPolicyTags,
                 policyTagList: targetPolicyTags ?? {},
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
@@ -2968,6 +3028,7 @@ describe('actions/Duplicate', () => {
             // When duplicating the transaction
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 conciergeChat: undefined,
                 transaction: mockTransactionWithLinkedAction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2987,6 +3048,7 @@ describe('actions/Duplicate', () => {
                 targetPolicyTags,
                 policyTagList: targetPolicyTags ?? {},
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
@@ -3024,6 +3086,7 @@ describe('actions/Duplicate', () => {
             // When duplicating the transaction without targetPolicy
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 conciergeChat: undefined,
                 transaction: mockCashExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -3043,6 +3106,7 @@ describe('actions/Duplicate', () => {
                 targetPolicyTags,
                 policyTagList: targetPolicyTags ?? {},
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
@@ -3091,6 +3155,7 @@ describe('actions/Duplicate', () => {
             // When duplicating the transaction
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 conciergeChat: undefined,
                 transaction: mockCashExpense,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -3110,6 +3175,7 @@ describe('actions/Duplicate', () => {
                 targetPolicyTags,
                 policyTagList: targetPolicyTags ?? {},
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
@@ -3271,6 +3337,7 @@ describe('actions/Duplicate', () => {
 
         const getDefaultParams = (sourceTransactions: Transaction[], overrides: Partial<DuplicateReportParams> = {}): DuplicateReportParams => ({
             isVendorMatchingBetaEnabled: false,
+            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
             sourceReport: undefined,
             sourceReportTransactions: sourceTransactions,
             sourceReportName: 'Original Report',
@@ -3343,6 +3410,29 @@ describe('actions/Duplicate', () => {
             expect(createReportCall?.[1]).toEqual(expect.objectContaining({reportName: 'Copy of Original Report'}));
 
             expect(Navigation.navigate).not.toHaveBeenCalled();
+        });
+
+        it('preserves the signed tax when duplicating a report with a negative expense', async () => {
+            // Given a refund whose nonzero tax was edited and saved with the expense report storage sign
+            const sourceReport: Report = {reportID: 'source-report', type: CONST.REPORT.TYPE.EXPENSE, policyID: mockPolicy.id};
+            const sourceTransaction = createCashTransaction('refund', {reportID: sourceReport.reportID, amount: 1000, taxAmount: 48, taxCode: 'tax-rate-5'});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${sourceReport.reportID}`, sourceReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction.transactionID}`, sourceTransaction);
+            await waitForBatchedUpdates();
+
+            // When the whole report is duplicated, its expense uses the same signed API contract
+            duplicateReport(getDefaultParams([sourceTransaction], {sourceReport}));
+            await waitForBatchedUpdates();
+
+            // Then the duplicate keeps the original tax and the source remains unchanged
+            const requestCalls = writeSpy.mock.calls.filter(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
+            expect(requestCalls).toHaveLength(1);
+            const [, params] = getRequiredWriteCall(requestCalls);
+            expect(params).toEqual(expect.objectContaining({amount: -1000, signedTaxAmount: -48, taxCode: sourceTransaction.taxCode}));
+            expect(params).not.toHaveProperty('taxAmount');
+            const duplicate = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${String(params.transactionID)}`);
+            expect(duplicate).toEqual(expect.objectContaining({amount: 1000, taxAmount: 48, taxCode: sourceTransaction.taxCode}));
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction.transactionID}`)).toEqual(sourceTransaction);
         });
 
         it('should filter out credit card import transactions', async () => {
@@ -4015,6 +4105,7 @@ describe('actions/Duplicate', () => {
             // When the selected expenses are duplicated
             bulkDuplicateExpenses({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 conciergeChat: undefined,
                 transactionIDs: ['bulk_1', 'bulk_2', 'bulk_3'],
                 allTransactions,
@@ -4033,6 +4124,7 @@ describe('actions/Duplicate', () => {
                 transactionDrafts: undefined,
                 recentWaypoints: [],
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
@@ -4047,12 +4139,16 @@ describe('actions/Duplicate', () => {
             const requestMoneyCalls = writeSpy.mock.calls.filter(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
             expect(requestMoneyCalls).toHaveLength(3);
 
-            const iouReportIDs = new Set(requestMoneyCalls.map((call) => call[1].iouReportID));
+            const iouReportIDs = new Set(requestMoneyCalls.map((call) => String(call[1].iouReportID)));
             expect(iouReportIDs.size).toBe(1);
 
             // Then the expense-added growl is signaled
             expect(signalExpenseAddedGrowl).toHaveBeenCalledTimes(1);
             expect(jest.mocked(signalExpenseAddedGrowl).mock.calls.at(0)?.at(1)).toBe(CONST.SEARCH.DATA_TYPES.EXPENSE);
+
+            // And no copy is flagged as new, since every copy lands on a report this action created, though the later ones look like an insertion by count
+            const [copyReportID] = [...iouReportIDs];
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${copyReportID}`))?.pendingNewTransactionIDs).toBeUndefined();
         });
 
         it('should read each written transaction ID from the distance plan when bulk-duplicating distance expenses', async () => {
@@ -4081,6 +4177,7 @@ describe('actions/Duplicate', () => {
             // When they are duplicated in one bulk action
             bulkDuplicateExpenses({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 conciergeChat: undefined,
                 transactionIDs: distanceTransactionIDs,
                 allTransactions,
@@ -4099,6 +4196,7 @@ describe('actions/Duplicate', () => {
                 transactionDrafts: undefined,
                 recentWaypoints: [],
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
@@ -4144,6 +4242,7 @@ describe('actions/Duplicate', () => {
             // When the selected expenses are duplicated
             bulkDuplicateExpenses({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 conciergeChat: undefined,
                 transactionIDs: ['bulk_reported', 'bulk_unreported'],
                 allTransactions,
@@ -4162,6 +4261,7 @@ describe('actions/Duplicate', () => {
                 transactionDrafts: undefined,
                 recentWaypoints: [],
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
@@ -4219,6 +4319,7 @@ describe('actions/Duplicate', () => {
             // When both expenses are bulk duplicated with that expense report as the target
             bulkDuplicateExpenses({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 conciergeChat: undefined,
                 transactionIDs: ['bulk_source_1', 'bulk_source_2'],
                 allTransactions,
@@ -4237,6 +4338,7 @@ describe('actions/Duplicate', () => {
                 transactionDrafts: undefined,
                 recentWaypoints: [],
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
@@ -4318,6 +4420,7 @@ describe('actions/Duplicate', () => {
             // When both expenses are bulk duplicated with that expense report as the target
             bulkDuplicateExpenses({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 conciergeChat: undefined,
                 transactionIDs: ['instant_source_1', 'instant_source_2'],
                 allTransactions,
@@ -4336,6 +4439,7 @@ describe('actions/Duplicate', () => {
                 transactionDrafts: undefined,
                 recentWaypoints: [],
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
@@ -4355,6 +4459,100 @@ describe('actions/Duplicate', () => {
             // And the optimistic total counts both copies instead of being rebuilt from the report as it was before the first copy
             const updatedSourceReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${sourceExpenseReport.reportID}`);
             expect(updatedSourceReport?.total).toBe(-1600);
+        });
+
+        it('should finalize the shared optimistic report state when a bulk duplicate batch ends with a distance expense', async () => {
+            // Given an Instant Submit workspace (ASAP Submit beta off) with a regular expense followed by a manual distance expense
+            const instantSubmitPolicy: Policy = {
+                ...mockPolicy,
+                autoReporting: true,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+            };
+            const chatReport: Report = {
+                ...createRandomReport(55, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                policyID: instantSubmitPolicy.id,
+                ownerAccountID: RORY_ACCOUNT_ID,
+                iouReportID: undefined,
+                hasOutstandingChildRequest: false,
+            };
+            const regularTransaction: Transaction = {
+                ...createRandomTransaction(1),
+                transactionID: 'mixed_regular_1',
+                reportID: 'source-report-1',
+                amount: -500,
+                currency: 'USD',
+                reimbursable: true,
+            };
+            const distanceTransaction: Transaction = {
+                ...createRandomTransaction(2),
+                transactionID: 'mixed_distance_2',
+                reportID: 'source-report-1',
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
+                amount: -700,
+                currency: 'USD',
+                reimbursable: true,
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitRateID: 'rate-1',
+                        quantity: 10,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    },
+                },
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${instantSubmitPolicy.id}`, instantSubmitPolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
+
+            // When both expenses are bulk-duplicated onto the workspace chat
+            bulkDuplicateExpenses({
+                isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
+                transactionIDs: [regularTransaction.transactionID, distanceTransaction.transactionID],
+                allTransactions: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${regularTransaction.transactionID}`]: regularTransaction,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${distanceTransaction.transactionID}`]: distanceTransaction,
+                },
+                sourcePolicyIDMap: {},
+                targetPolicy: instantSubmitPolicy,
+                targetPolicyCategories: {},
+                targetPolicyTags: {},
+                targetReport: chatReport,
+                policyTagList: {},
+                personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+                isASAPSubmitBetaEnabled: false,
+                introSelected: undefined,
+                quickAction: undefined,
+                policyRecentlyUsedCurrencies: [],
+                isSelfTourViewed: false,
+                transactionDrafts: undefined,
+                recentWaypoints: [],
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
+                conciergeChat: undefined,
+                currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
+                rules: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the final distance item finalizes the shared optimistic report from OPEN to SUBMITTED
+            const requestMoneyCall = writeSpy.mock.calls.find(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
+            const distanceCall = writeSpy.mock.calls.find(isWriteMockCallForCommand(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST));
+            expect(requestMoneyCall?.[1].shouldDeferAutoSubmit).toBe(true);
+            expect(distanceCall?.[1].shouldDeferAutoSubmit).toBe(false);
+            const sharedReportID = requestMoneyCall?.[1].iouReportID;
+            expect(sharedReportID).toBeTruthy();
+            expect(distanceCall?.[1].iouReportID).toBe(sharedReportID);
+            const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${String(sharedReportID)}`);
+            expect(updatedReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.SUBMITTED);
+            expect(updatedReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.SUBMITTED);
         });
 
         it('should move the remaining copies to a new report when a copy makes the expense report target stop accepting expenses', async () => {
@@ -4421,6 +4619,11 @@ describe('actions/Duplicate', () => {
             // When both expenses are bulk duplicated onto that report, so the first copy raises its total from 800 to 1300
             bulkDuplicateExpenses({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: {
+                    ...RORY_PERSONAL_DETAILS_BY_LOGINS,
+                    [firstApproverEmail]: {accountID: firstApproverAccountID, login: firstApproverEmail},
+                    [overLimitApproverEmail]: {accountID: overLimitApproverAccountID, login: overLimitApproverEmail},
+                },
                 conciergeChat: undefined,
                 transactionIDs: ['limit_source_1', 'limit_source_2'],
                 allTransactions,
@@ -4439,6 +4642,7 @@ describe('actions/Duplicate', () => {
                 transactionDrafts: undefined,
                 recentWaypoints: [],
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
@@ -4529,6 +4733,7 @@ describe('actions/Duplicate', () => {
 
         const getDefaultBulkParams = (reportIDs: string[], overrides: Partial<BulkDuplicateReportsParams> = {}): BulkDuplicateReportsParams => ({
             isVendorMatchingBetaEnabled: false,
+            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
             selectedReports: reportIDs.map((id) => ({
                 reportID: id,
                 policyID: undefined,
