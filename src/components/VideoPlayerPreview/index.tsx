@@ -113,6 +113,8 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
         updateCurrentURLAndReportID(videoUrl, report, reportID);
         if (isSmallScreenWidth) {
             onShowModalPress();
+        } else {
+            setIsThumbnail(false);
         }
     };
 
