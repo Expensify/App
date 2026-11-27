@@ -61,6 +61,45 @@ describe('useReceiptTranslation', () => {
         expect(result.current.canTranslate).toBe(true);
     });
 
+    it.each([CONST.POLICY.ROLE.CARD_ADMIN, CONST.POLICY.ROLE.PAYMENTS_ADMIN, CONST.POLICY.ROLE.PEOPLE_ADMIN, CONST.POLICY.ROLE.AUDITOR])(
+        'shows Translate to the %s role on a Control workspace',
+        async (role) => {
+            // Given a Control workspace where the current user has this role but doesn't approve the report
+            await seedWorkspace({policyType: CONST.POLICY.TYPE.CORPORATE, role, managerID: OTHER_APPROVER_ACCOUNT_ID});
+
+            // When the hook reads the expense's receipt
+            const {result} = renderHook(() => useReceiptTranslation(transaction));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then they can translate, because admin roles and auditors review receipts on the workspace
+            expect(result.current.canTranslate).toBe(true);
+        },
+    );
+
+    it('hides Translate from a card admin role left over on a Collect workspace', async () => {
+        // Given a Collect workspace that still has the current user as card admin from before a downgrade from Control
+        await seedWorkspace({policyType: CONST.POLICY.TYPE.TEAM, role: CONST.POLICY.ROLE.CARD_ADMIN, managerID: OTHER_APPROVER_ACCOUNT_ID});
+
+        // When the hook reads the expense's receipt
+        const {result} = renderHook(() => useReceiptTranslation(transaction));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then they can't translate, because card admin only exists on Control workspaces
+        expect(result.current.canTranslate).toBe(false);
+    });
+
+    it('shows Translate to an approve-only member who approves the report', async () => {
+        // Given a Control workspace where the current user is approve-only and approves this report
+        await seedWorkspace({policyType: CONST.POLICY.TYPE.CORPORATE, role: CONST.POLICY.ROLE.APPROVE_ONLY, managerID: CURRENT_USER_ACCOUNT_ID});
+
+        // When the hook reads the expense's receipt
+        const {result} = renderHook(() => useReceiptTranslation(transaction));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then they can translate as the report's approver
+        expect(result.current.canTranslate).toBe(true);
+    });
+
     it("shows Translate to the report's approver on a paid workspace", async () => {
         // Given a paid workspace where the current user is a plain member who approves this report
         await seedWorkspace({policyType: CONST.POLICY.TYPE.TEAM, role: CONST.POLICY.ROLE.USER, managerID: CURRENT_USER_ACCOUNT_ID});
