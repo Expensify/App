@@ -984,6 +984,8 @@ const SENTRY_LABEL = {
         SAVE_BUTTON: 'DateFilter-SaveButton',
         CUSTOM_DATE_ITEM: 'DateFilter-CustomDateItem',
         CUSTOM_RANGE_ITEM: 'DateFilter-CustomRangeItem',
+        RANGE_FROM_CLEAR_BUTTON: 'DateFilter-RangeFromClearButton',
+        RANGE_TO_CLEAR_BUTTON: 'DateFilter-RangeToClearButton',
     },
     REPORT: {
         FLOATING_MESSAGE_COUNTER: 'Report-FloatingMessageCounter',

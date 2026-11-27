@@ -15,12 +15,14 @@ import type {SearchDateModifier} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 
+import type {ComponentType} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 
 import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {SearchDatePresetFilterBaseHandle, SearchDateValues} from './DatePresetFilterBase';
+import type {RangeDatePickerProps} from './RangeDatePicker';
 
 import DatePresetFilterBase from './DatePresetFilterBase';
 
@@ -62,6 +64,8 @@ type DateFilterBaseProps = {
     shouldShowButtonsOnlyWithDateModifier?: boolean;
     /** Whether to render the built-in HeaderWithBackButton. Defaults to true. */
     shouldShowHeader?: boolean;
+    /** Replaces the built-in calendars and their range summary with a self-contained range editor. */
+    RangePicker?: ComponentType<RangeDatePickerProps>;
     ref?: React.Ref<DateFilterBaseHandle>;
     style?: StyleProp<ViewStyle>;
 };
@@ -81,6 +85,7 @@ function DateFilterBase({
     shouldShowActionButtons: shouldShowActionButtonsProp = true,
     shouldShowButtonsOnlyWithDateModifier = false,
     shouldShowHeader = true,
+    RangePicker,
     ref,
     selectedDateModifier: selectedDateModifierProp,
     onSelectDateModifier,
@@ -214,7 +219,7 @@ function DateFilterBase({
     );
 
     const shouldShowActionButtons = shouldShowActionButtonsProp && (!shouldShowButtonsOnlyWithDateModifier || !!selectedDateModifier);
-    const shouldShowRangeSummary = selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE && !!rangeDisplayText;
+    const shouldShowRangeSummary = !RangePicker && selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE && !!rangeDisplayText;
 
     return (
         <View style={style}>
@@ -239,6 +244,7 @@ function DateFilterBase({
                     onDateValuesChange={handleDateValuesChange}
                     onRangeValidationErrorChange={setShouldShowRangeError}
                     forceVerticalCalendars
+                    RangePicker={RangePicker}
                 />
             </ScrollView>
             {shouldShowRangeError && (

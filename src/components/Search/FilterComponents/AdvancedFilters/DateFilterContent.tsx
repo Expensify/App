@@ -2,6 +2,7 @@ import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import DateFilterBase from '@components/Search/FilterComponents/DateFilterBase';
 import type {DateFilterBaseHandle} from '@components/Search/FilterComponents/DateFilterBase';
+import type {RangeDatePickerProps} from '@components/Search/FilterComponents/RangeDatePicker';
 import type {SearchDateFilterKeys} from '@components/Search/types';
 
 import useLocalize from '@hooks/useLocalize';
@@ -15,6 +16,7 @@ import type {SearchDateModifier} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
+import type {ComponentType} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
@@ -27,11 +29,13 @@ type DateFilterContentProps = WithRequiredSentryLabel & {
     hasFeed: boolean;
     size?: Exclude<ValueOf<typeof CONST.BUTTON_SIZE>, typeof CONST.BUTTON_SIZE.SMALL>;
     style?: StyleProp<ViewStyle>;
+    /** Replaces the built-in calendars and their range summary. */
+    RangePicker?: ComponentType<RangeDatePickerProps>;
     onDateModifierSelected: (modifier: SearchDateModifier | null) => void;
     onChange: (values: SearchDateValues) => void;
 };
 
-function DateFilterContent({baseFilterKey, value, selectedDateModifier, hasFeed, size, style, sentryLabel, onDateModifierSelected, onChange}: DateFilterContentProps) {
+function DateFilterContent({baseFilterKey, value, selectedDateModifier, hasFeed, size, style, RangePicker, sentryLabel, onDateModifierSelected, onChange}: DateFilterContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const dateFilterRef = useRef<DateFilterBaseHandle>(null);
@@ -61,6 +65,7 @@ function DateFilterContent({baseFilterKey, value, selectedDateModifier, hasFeed,
                 presets={getDatePresets(baseFilterKey, hasFeed)}
                 onSubmit={onChange}
                 shouldShowActionButtons={false}
+                RangePicker={RangePicker}
             />
             {!!selectedDateModifier && (
                 <Button
