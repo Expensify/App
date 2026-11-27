@@ -2512,7 +2512,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.INSIGHTS]: {
                     path: ROUTES.INSIGHTS.route,
-                    alias: [{path: 'insights', exact: true}],
                     exact: true,
                 },
                 [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: {

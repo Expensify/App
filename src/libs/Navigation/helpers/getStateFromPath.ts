@@ -1,14 +1,13 @@
 import Log from '@libs/Log';
 import {config} from '@libs/Navigation/linkingConfig/config';
 
-import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
 
 import type {NavigationState, PartialState} from '@react-navigation/native';
 
-import {findFocusedRoute, getStateFromPath as RNGetStateFromPath} from '@react-navigation/native';
+import {getStateFromPath as RNGetStateFromPath} from '@react-navigation/native';
 
 import findAllMatchingDynamicSuffixes from './dynamicRoutesUtils/findAllMatchingDynamicSuffixes';
 import getPathWithoutDynamicSuffix from './dynamicRoutesUtils/getPathWithoutDynamicSuffix';
@@ -77,16 +76,6 @@ function getStateFromPath(path: string): PartialState<NavigationState> {
     if (!state) {
         throw new Error('Failed to parse the path to a navigation state.');
     }
-
-    if (/^\/[^/?#]+\/?(?:[?#]|$)/.test(normalizedPathAfterRedirection)) {
-        const focusedRoute = findFocusedRoute(state);
-        if (focusedRoute?.name === SCREENS.INSIGHTS) {
-            // Drop the alias path so browser history uses the full Spend URL even before the tab mounts.
-            focusedRoute.params = {...focusedRoute.params, dashboardID: CONST.INSIGHTS.DASHBOARD.SPEND};
-            focusedRoute.path = undefined;
-        }
-    }
-
     return state;
 }
 

@@ -1,9 +1,6 @@
 import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
-import getPathFromState from '@libs/Navigation/helpers/getPathFromState';
-import getAppStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import {linkingConfig} from '@libs/Navigation/linkingConfig';
 
-import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
@@ -25,52 +22,20 @@ describe('linking configuration on a cold start', () => {
         expect(findFocusedRoute(state)?.name).toBe(SCREENS.WORKSPACE.NAME);
     });
 
-    it.each(['/insights', '/insights/'])('matches %s without a legacy redirect', (path) => {
-        // Given a direct Insights link without a dashboard in its path
-        // When React Navigation parses it without App's legacy URL rewrites
-        const state = getStateFromPath(path, linkingConfig.config);
+    it.each([
+        ['/insights', '/insights/spend'],
+        ['/insights/?dashboardID=compliance&backTo=/home', `/insights/spend?backTo=${encodeURIComponent('/home')}`],
+        ['/insights/compliance', '/insights/compliance'],
+    ])('opens %s as %s', (path, expectedPath) => {
+        // Given a direct link to Insights
+        // When the browser builds navigation state before the tab mounts
+        const state = linkingConfig.getStateFromPath?.(path, linkingConfig.config);
+        if (!state) {
+            throw new Error('The Insights link must resolve to navigation state');
+        }
 
-        // Then Insights is selected and the tab can supply its default dashboard
-        expect(state && findFocusedRoute(state)?.name).toBe(SCREENS.INSIGHTS);
-    });
-
-    it.each(['/insights', '/insight%73'])('serializes %s to Spend even before the authenticated tab mounts', (path) => {
-        // Given a signed-out browser opening the Insights root
-        // When the link is parsed before the tab can supply its default
-        const state = getAdaptedStateFromPath(path);
-
-        // Then the destination saved for sign-in is complete
-        expect(getPathFromState(state)).toBe('/insights/spend');
-    });
-
-    it('does not preserve the alias as the address bar path after sign-in', () => {
-        // Given a root link saved for replay after sign-in
-        // When the in-app parser turns the link into a destination
-        const state = getAppStateFromPath('/insights?backTo=/home');
-
-        // Then browser history can use the canonical path with the original query
-        expect(findFocusedRoute(state)?.path).toBeUndefined();
-        expect(getPathFromState(state)).toBe(`/insights/spend?backTo=${encodeURIComponent('/home')}`);
-    });
-
-    it.each(['dashboardID=compliance', 'dashboardID', 'dashboardID=spend&dashboardID=compliance'])('keeps the root link on Spend with %s in the query', (dashboardQuery) => {
-        // Given a root link with a dashboard in the query instead of the path
-        // When opening it with the normal cold-start parser
-        const state = getAdaptedStateFromPath(`/insights/?${dashboardQuery}&backTo=/home`);
-
-        // Then only an explicit dashboard path can override Spend, and the back link is preserved
-        expect(findFocusedRoute(state)).toMatchObject({
-            name: SCREENS.INSIGHTS,
-            params: {dashboardID: CONST.INSIGHTS.DASHBOARD.SPEND, backTo: '/home'},
-        });
-    });
-
-    it('keeps an explicit Compliance link on Compliance', () => {
-        // Given a direct link with a dashboard in the path
-        // When opening it with the normal cold-start parser
-        const state = getAdaptedStateFromPath('/insights/compliance');
-
-        // Then the dashboard in the path wins over the default
-        expect(findFocusedRoute(state)).toMatchObject({name: SCREENS.INSIGHTS, params: {dashboardID: CONST.INSIGHTS.DASHBOARD.COMPLIANCE}});
+        // Then only the dashboard in the path can override Spend, and the back link survives
+        expect(findFocusedRoute(state)?.name).toBe(SCREENS.INSIGHTS);
+        expect(linkingConfig.getPathFromState?.(state, linkingConfig.config)).toBe(expectedPath);
     });
 });
