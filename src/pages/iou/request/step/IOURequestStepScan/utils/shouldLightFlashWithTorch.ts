@@ -12,13 +12,27 @@ type TorchForFlashConditions = {
     flash: boolean;
     hasFlash: boolean;
     hasTorch: boolean;
-    isBetaEnabled: boolean;
     isMultiScanEnabled: boolean;
     canUpgradeReceiptQuality: boolean;
 };
 
-function shouldLightFlashWithTorch({flash, hasFlash, hasTorch, isBetaEnabled, isMultiScanEnabled, canUpgradeReceiptQuality}: TorchForFlashConditions): boolean {
-    return cameraPlatformConfig.canLightFlashWithTorch && isBetaEnabled && flash && hasFlash && hasTorch && canUpgradeReceiptQuality && !isMultiScanEnabled;
+function shouldLightFlashWithTorch({flash, hasFlash, hasTorch, isMultiScanEnabled, canUpgradeReceiptQuality}: TorchForFlashConditions): boolean {
+    return cameraPlatformConfig.canLightFlashWithTorch && flash && hasFlash && hasTorch && canUpgradeReceiptQuality && !isMultiScanEnabled;
+}
+
+type TorchLitConditions = {
+    isTorchRequested: boolean;
+    isAppInForeground: boolean;
+    isScreenFocused: boolean;
+    hasPendingPhotoCapture: boolean;
+};
+
+/**
+ * A pending upgrade photo keeps the torch on even after the screen blurs or the app goes to the background, because it must
+ * be lit like the snapshot it replaces.
+ */
+function shouldKeepTorchLit({isTorchRequested, isAppInForeground, isScreenFocused, hasPendingPhotoCapture}: TorchLitConditions): boolean {
+    return isTorchRequested && (hasPendingPhotoCapture || (isScreenFocused && isAppInForeground));
 }
 
 /** What the camera reports at shutter time about a torch that was asked to light the capture */
@@ -50,4 +64,4 @@ function getTorchModeProp(hasTorch: boolean, isTorchOn: boolean): TorchMode | un
 }
 
 export default shouldLightFlashWithTorch;
-export {getTorchFallbackReason, getTorchModeProp, TORCH_SETTLE_MS};
+export {getTorchFallbackReason, getTorchModeProp, shouldKeepTorchLit, TORCH_SETTLE_MS};
