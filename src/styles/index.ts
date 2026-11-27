@@ -1596,6 +1596,10 @@ const staticStyles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeNormal,
         },
 
+        editableCellMultilineInputStyle: {
+            height: 'auto',
+        },
+
         editableCellSymbolStyle: {
             ...FontUtils.fontFamily.platform.EXP_NEUE,
             color: theme.textSupporting,

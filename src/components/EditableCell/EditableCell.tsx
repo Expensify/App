@@ -13,6 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
 import type {ComponentRef, ReactNode, RefObject} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
 
 import React, {useDeferredValue, useEffect, useId, useState} from 'react';
 import {View} from 'react-native';
@@ -27,6 +28,9 @@ type EditableCellProps = {
 
     /** Content to display when editing (inline replacement like TextInput). If omitted while isEditing, children are shown with an active border (popover mode). */
     editContent?: ReactNode;
+
+    /** Applies only to the inline edit box, not display or popover containers. */
+    editContentContainerStyle?: StyleProp<ViewStyle>;
 
     /** Popover or modal rendered as a sibling to the cell (e.g. date picker, category picker). Rendered for all edit-capable branches. */
     popoverContent?: ReactNode;
@@ -72,6 +76,7 @@ type EditableCellProps = {
 function EditableCell({
     children,
     editContent,
+    editContentContainerStyle,
     popoverContent,
     isEditing,
     canEdit,
@@ -130,7 +135,7 @@ function EditableCell({
 
     // Inline edit mode: replace display content with the edit input
     if (isEditing && editContent) {
-        return <View style={[styles.editableCell, styles.editableCellFocus]}>{editContent}</View>;
+        return <View style={[styles.editableCell, styles.editableCellFocus, editContentContainerStyle]}>{editContent}</View>;
     }
 
     // Popover edit mode: keep showing display content with active border
