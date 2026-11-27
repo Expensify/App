@@ -39,6 +39,7 @@ jest.mock('@libs/deferModalPresentationAfterPopoverDismiss', () => ({
 const BANK_ACCOUNT_ID = 9053192;
 const ACCOUNT_NUMBER = 'XXXXXX1234';
 const INTRO_ROUTE = `r/123/global-reimbursements/${BANK_ACCOUNT_ID}`;
+const STATUS_ROUTE = `${INTRO_ROUTE}/status`;
 
 function createBusinessBankAccount(globalReimbursementProvider: ValueOf<typeof CONST.GLOBAL_REIMBURSEMENT_PROVIDER> | undefined, wise: BankAccountAdditionalData['wise']): BankAccount {
     return {
@@ -96,19 +97,32 @@ describe('EnableGlobalReimbursementsPayModal', () => {
     });
 
     it.each([
-        ['an account that has not started', undefined, undefined],
-        ['an onboarding the admin left before Submit', CONST.GLOBAL_REIMBURSEMENT_PROVIDER.WISE, undefined],
-        ['an onboarding Wise needs more info for', CONST.GLOBAL_REIMBURSEMENT_PROVIDER.WISE, {status: CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED}],
-    ])('opens the intro over the report for %s when Pay is blocked', async (_label, globalReimbursementProvider, wise) => {
-        // Given an admin on the Wise beta with a USD business account that is not set up for global reimbursements
+        ['an account that has not started', undefined],
+        ['an onboarding the admin left before Submit', CONST.GLOBAL_REIMBURSEMENT_PROVIDER.WISE],
+    ])('opens the intro over the report for %s when Pay is blocked', async (_label, globalReimbursementProvider) => {
+        // Given an admin on the Wise beta with a USD business account whose onboarding was not submitted to Wise
         // When paying a report from that account is blocked
-        await blockPay({bankAccount: createBusinessBankAccount(globalReimbursementProvider, wise)});
+        await blockPay({bankAccount: createBusinessBankAccount(globalReimbursementProvider, undefined)});
 
-        // Then the intro opens over the report whatever the onboarding's progress, since the intro is where the admin starts or continues it
+        // Then the intro opens over the report, since the intro is where the admin starts or continues the setup
         expect(Navigation.navigate).toHaveBeenCalledTimes(1);
         expect(Navigation.navigate).toHaveBeenCalledWith(INTRO_ROUTE, {skipMatchingFullScreenRoute: true});
         expect(mockShowConfirmModal).not.toHaveBeenCalled();
     });
+
+    it.each([CONST.WISE.ONBOARDING_STATUS.IN_REVIEW, CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED, CONST.WISE.ONBOARDING_STATUS.NOT_APPROVED])(
+        'opens the onboarding status over the report for a business Wise holds as %s when Pay is blocked',
+        async (status) => {
+            // Given an admin on the Wise beta whose business was already submitted to Wise
+            // When paying a report from that account is blocked
+            await blockPay({bankAccount: createBusinessBankAccount(CONST.GLOBAL_REIMBURSEMENT_PROVIDER.WISE, {status})});
+
+            // Then the status page opens over the report, since the admin has nothing left to submit and the intro would offer the setup again
+            expect(Navigation.navigate).toHaveBeenCalledTimes(1);
+            expect(Navigation.navigate).toHaveBeenCalledWith(STATUS_ROUTE, {skipMatchingFullScreenRoute: true});
+            expect(mockShowConfirmModal).not.toHaveBeenCalled();
+        },
+    );
 
     it('asks to enable global reimbursements through Corpay without the Wise beta', async () => {
         // Given an admin who is not on the Wise beta, with an onboarding they could otherwise continue
