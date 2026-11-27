@@ -373,8 +373,11 @@ describe('PolicyInlineEdit', () => {
 
             // Then failureData restores nameValuePairs.cardTitle to the actual previous title
             const {onyxData} = getWriteCall(WRITE_COMMANDS.UPDATE_COMPANY_CARD_NAME);
-            const failureData = (onyxData as {failureData?: Array<{key: string; value: Record<string, unknown>}>})?.failureData ?? [];
-            const cardListRollback = failureData.find((update) => update.key === WORKSPACE_CARDS_KEY);
+            const onyxDataRecord = requireRecord(onyxData, 'Missing onyx data');
+            const rawFailureData = Array.isArray(onyxDataRecord.failureData) ? onyxDataRecord.failureData : [];
+            const cardListRollback = rawFailureData.find(
+                (item): item is {key: string; value: Record<string, unknown>} => isRecord(item) && typeof item.key === 'string' && item.key === WORKSPACE_CARDS_KEY,
+            );
             expect(cardListRollback?.value?.[CARD_ID]).toMatchObject({
                 nameValuePairs: expect.objectContaining({cardTitle: actualCardTitle}),
             });
