@@ -43,7 +43,7 @@ import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate}
 import cloneDeep from 'lodash/cloneDeep';
 import Onyx from 'react-native-onyx';
 
-import {getAllReportActionsFromIOU, getAllTransactions, getAllTransactionViolations} from '.';
+import {getAllReportActionsFromIOU, getAllTransactions} from '.';
 import {getReportPreviewReportAction, maybeUpdateReportNameForFormulaTitle} from './MoneyRequestBuilder';
 import {getGroupPendingDeleteOnyxUpdate} from './SearchUpdate';
 
@@ -56,7 +56,6 @@ type PrepareToCleanUpMoneyRequestResult = {
     transactionThreadID: string | undefined;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     transaction: OnyxEntry<OnyxTypes.Transaction>;
-    transactionViolations: OnyxEntry<OnyxTypes.TransactionViolations>;
     reportPreviewAction: OnyxInputValue<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>;
     iouReportActions: OnyxEntry<OnyxTypes.ReportActions>;
     isTotalIndeterminate: boolean;
@@ -125,9 +124,6 @@ function prepareToCleanUpMoneyRequest({
     chatReportActions,
 }: PrepareToCleanUpMoneyRequestParams): PrepareToCleanUpMoneyRequestResult {
     const allTransactions = getAllTransactions();
-    // TODO: https://github.com/Expensify/App/issues/66512
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const allTransactionViolations = getAllTransactionViolations();
     const allReportActions = getAllReportActionsFromIOU();
 
     // STEP 1: Get all collections we're updating
@@ -135,7 +131,6 @@ function prepareToCleanUpMoneyRequest({
     const reportPreviewAction = getReportPreviewReportAction(iouReport?.chatReportID, iouReport?.reportID, chatReportActions);
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const isTransactionOnHold = isOnHold(transaction);
-    const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
 
     // STEP 2: Decide if we need to:
     // 1. Delete the transactionThread - delete if there are no visible comments in the thread
@@ -334,7 +329,6 @@ function prepareToCleanUpMoneyRequest({
         transactionThreadID: transactionThreadReport?.reportID,
         transactionThreadReport,
         transaction,
-        transactionViolations,
         reportPreviewAction,
         iouReportActions,
         isTotalIndeterminate,
@@ -858,7 +852,6 @@ function deleteMoneyRequest({
         updatedReportPreviewAction,
         transactionThreadID,
         transaction,
-        transactionViolations,
         reportPreviewAction,
         iouReportActions,
         isTotalIndeterminate,
@@ -1104,7 +1097,7 @@ function deleteMoneyRequest({
     failureData.push({
         onyxMethod: Onyx.METHOD.SET,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-        value: transactionViolations ?? null,
+        value: allTransactionViolationsParam?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? null,
     });
 
     failureData.push(...cleanUpTransactionThreadReportOnyxData.failureData);

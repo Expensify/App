@@ -8,6 +8,7 @@ import {updateMoneyRequestAmountAndCurrency} from '@libs/actions/IOU/UpdateMoney
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {addComment, openReport} from '@libs/actions/Report';
 import {subscribeToUserEvents} from '@libs/actions/User';
+import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getOriginalMessage, getReportActionMessage, getReportActionText, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport} from '@libs/ReportUtils';
@@ -19,7 +20,7 @@ import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import DateUtils from '@src/libs/DateUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {IntroSelected, Policy, Report} from '@src/types/onyx';
+import type {IntroSelected, Policy, Report, TransactionViolations} from '@src/types/onyx';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
 import type Transaction from '@src/types/onyx/Transaction';
@@ -48,6 +49,7 @@ import {
 } from '../../utils/TestHelper';
 import {isObject} from '../../utils/typeGuards';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
+import waitForNetworkPromises from '../../utils/waitForNetworkPromises';
 
 const topMostReportID = '23423423';
 jest.mock('@src/libs/Navigation/Navigation', () => ({
@@ -2099,6 +2101,154 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             });
 
             expect(deletedTransaction).toBeUndefined();
+        });
+    });
+
+    describe('deleteMoneyRequest failureData for the deleted transaction violations', () => {
+        const TEST_USER_ACCOUNT_ID = 1;
+        const TEST_USER_LOGIN = 'test@email.com';
+
+        let writeSpy: jest.SpyInstance<ReturnType<typeof API.write>, Parameters<typeof API.write>> | undefined;
+
+        afterEach(() => {
+            writeSpy?.mockRestore();
+            writeSpy = undefined;
+        });
+
+        function buildDeleteFixtures(id: number) {
+            const expenseReport: Report = {
+                ...createRandomReport(id, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                total: 100,
+                currency: CONST.CURRENCY.USD,
+            };
+            const transaction: Transaction = {
+                ...createRandomTransaction(id),
+                amount: 100,
+                currency: CONST.CURRENCY.USD,
+                reportID: expenseReport.reportID,
+                reimbursable: true,
+            };
+            const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                ...createRandomReportAction(id),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportID: expenseReport.reportID,
+                childReportID: undefined,
+                originalMessage: {
+                    amount: transaction.amount,
+                    currency: transaction.currency,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    IOUTransactionID: transaction.transactionID,
+                },
+                message: undefined,
+                previousMessage: undefined,
+            };
+            return {expenseReport, transaction, moneyRequestAction, violationsKey: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}` as const};
+        }
+
+        function callDeleteMoneyRequest(
+            {expenseReport, transaction, moneyRequestAction}: ReturnType<typeof buildDeleteFixtures>,
+            allTransactionViolationsParam: OnyxCollection<TransactionViolations>,
+        ) {
+            deleteMoneyRequest({
+                isArchivedIOUReport: false,
+                isChatIOUReportArchived: false,
+                transactionThreadReportActions: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                transactionID: transaction.transactionID,
+                reportAction: moneyRequestAction,
+                transactions: {},
+                violations: {},
+                iouReport: expenseReport,
+                iouReportTransactions: [transaction],
+                chatReport: expenseReport,
+                transactionThreadReport: undefined,
+                allTransactionViolationsParam,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                currentUserEmail: TEST_USER_LOGIN,
+            });
+        }
+
+        function getViolationsFailureUpdate(violationsKey: string) {
+            const deleteCall = writeSpy?.mock.calls.find(([command]) => command === WRITE_COMMANDS.DELETE_MONEY_REQUEST);
+            return deleteCall?.[2]?.failureData?.find((update) => update.key === violationsKey);
+        }
+
+        it('restores the violations from allTransactionViolationsParam instead of the ones stored in Onyx', async () => {
+            // Given a transaction whose violations in Onyx differ from the ones the caller passes in
+            const fixtures = buildDeleteFixtures(30);
+            const onyxViolations: TransactionViolations = [{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION}];
+            const paramViolations: TransactionViolations = [{name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE, type: CONST.VIOLATION_TYPES.VIOLATION}];
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${fixtures.transaction.transactionID}`, fixtures.transaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${fixtures.expenseReport.reportID}`, fixtures.expenseReport);
+            await Onyx.set(fixtures.violationsKey, onyxViolations);
+            await waitForBatchedUpdates();
+            writeSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+
+            // When the expense is deleted with the caller's violations collection
+            callDeleteMoneyRequest(fixtures, {[fixtures.violationsKey]: paramViolations});
+
+            // Then the rollback for the deleted transaction's violations uses the caller's data, because the action no longer reads violations from Onyx directly
+            const violationsFailureUpdate = getViolationsFailureUpdate(fixtures.violationsKey);
+            expect(violationsFailureUpdate?.onyxMethod).toBe(Onyx.METHOD.SET);
+            expect(violationsFailureUpdate?.value).toEqual(paramViolations);
+        });
+
+        it('sets the violations to null on failure when allTransactionViolationsParam has no entry for the transaction', async () => {
+            // Given violations stored in Onyx for the transaction, but a caller collection that only has another transaction's violations
+            const fixtures = buildDeleteFixtures(31);
+            const otherTransactionViolationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}otherTransaction`;
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${fixtures.transaction.transactionID}`, fixtures.transaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${fixtures.expenseReport.reportID}`, fixtures.expenseReport);
+            await Onyx.set(fixtures.violationsKey, [{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION}]);
+            await waitForBatchedUpdates();
+            writeSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+
+            // When the expense is deleted
+            callDeleteMoneyRequest(fixtures, {[otherTransactionViolationsKey]: [{name: CONST.VIOLATIONS.MISSING_TAG, type: CONST.VIOLATION_TYPES.VIOLATION}]});
+
+            // Then only the deleted transaction's entry is read from the caller's collection, so there is nothing to restore and the rollback clears the key
+            const violationsFailureUpdate = getViolationsFailureUpdate(fixtures.violationsKey);
+            expect(violationsFailureUpdate?.onyxMethod).toBe(Onyx.METHOD.SET);
+            expect(violationsFailureUpdate?.value).toBeNull();
+        });
+
+        it('sets the violations to null on failure when allTransactionViolationsParam is undefined', async () => {
+            // Given violations stored in Onyx for the transaction, but the caller has not loaded the violations collection
+            const fixtures = buildDeleteFixtures(32);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${fixtures.transaction.transactionID}`, fixtures.transaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${fixtures.expenseReport.reportID}`, fixtures.expenseReport);
+            await Onyx.set(fixtures.violationsKey, [{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION}]);
+            await waitForBatchedUpdates();
+            writeSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+
+            // When the expense is deleted without a violations collection
+            callDeleteMoneyRequest(fixtures, undefined);
+
+            // Then the rollback still targets the deleted transaction's violations key, falling back to null instead of crashing
+            const violationsFailureUpdate = getViolationsFailureUpdate(fixtures.violationsKey);
+            expect(violationsFailureUpdate?.onyxMethod).toBe(Onyx.METHOD.SET);
+            expect(violationsFailureUpdate?.value).toBeNull();
+        });
+
+        it('rolls the violations back to the caller-provided ones when the DeleteMoneyRequest request fails', async () => {
+            // Given a transaction whose violations in Onyx differ from the ones in the caller's collection
+            const fixtures = buildDeleteFixtures(33);
+            const onyxViolations: TransactionViolations = [{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION}];
+            const paramViolations: TransactionViolations = [{name: CONST.VIOLATIONS.MISSING_TAG, type: CONST.VIOLATION_TYPES.VIOLATION}];
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${fixtures.transaction.transactionID}`, fixtures.transaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${fixtures.expenseReport.reportID}`, fixtures.expenseReport);
+            await Onyx.set(fixtures.violationsKey, onyxViolations);
+            await waitForBatchedUpdates();
+
+            // When the delete request fails on the server
+            mockFetch.fail();
+            callDeleteMoneyRequest(fixtures, {[fixtures.violationsKey]: paramViolations});
+            await waitForNetworkPromises();
+
+            // Then the violations of the deleted transaction are restored from the caller's collection, so the user still sees them after the failed delete
+            const restoredViolations = await getOnyxValue(fixtures.violationsKey);
+            expect(restoredViolations).toEqual(paramViolations);
         });
     });
 
