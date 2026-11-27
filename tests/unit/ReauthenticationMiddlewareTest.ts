@@ -342,6 +342,39 @@ describe('Reauthentication middleware', () => {
         }
     });
 
+    test('hands the 407 back without reauthenticating a request pinned to a server other than the active one', () => {
+        // Given a request pinned to staging while the app is on production, like a LogOut sent after switching servers
+        const request: OnyxRequest<typeof ONYXKEYS.NETWORK> = {
+            command: 'TestCommand',
+            data: {apiRequestType: CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS},
+            server: CONST.SERVER.STAGING,
+        };
+
+        // When it gets a 407
+        return Reauthentication(Promise.resolve({jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED}), request, false).then((response) => {
+            // Then the 407 goes back to the caller and no new token is fetched, because reauthentication signs in on the
+            // active server and a token from there can't work on staging
+            expect(response?.jsonCode).toBe(CONST.JSON_CODE.NOT_AUTHENTICATED);
+            expect(reauthenticate).not.toHaveBeenCalled();
+        });
+    });
+
+    test('reauthenticates a request pinned to the active server as usual', () => {
+        // Given a request pinned to production, which is also the active server
+        jest.mocked(reauthenticate).mockResolvedValueOnce({wasSuccessful: false});
+        const request: OnyxRequest<typeof ONYXKEYS.NETWORK> = {
+            command: 'TestCommand',
+            data: {apiRequestType: CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS},
+            server: CONST.SERVER.PRODUCTION,
+        };
+
+        // When it gets a 407
+        return Reauthentication(Promise.resolve({jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED}), request, false).then(() => {
+            // Then it is reauthenticated like any other request, because the new token comes from the server it is pinned to
+            expect(reauthenticate).toHaveBeenCalledTimes(1);
+        });
+    });
+
     describe('replay after a successful reauthentication', () => {
         beforeEach(() => {
             Request.addMiddleware(Reauthentication);

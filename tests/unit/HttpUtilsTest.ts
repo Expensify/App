@@ -1,4 +1,4 @@
-import {WRITE_COMMANDS} from '@libs/API/types';
+import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -125,5 +125,17 @@ describe('HttpUtils', () => {
         // Then it is retried only once, because the second 426 came from the server, and the user is asked to update
         expect(fetchMock).toHaveBeenCalledTimes(2);
         expect(mockAlertUser).toHaveBeenCalledTimes(1);
+    });
+
+    it('sends a request pinned to a server to that server instead of the active one', async () => {
+        // Given the test build uses its own default server, not staging
+        const fetchMock = jest.fn().mockResolvedValue({ok: true, status: 200, headers: {get: () => null}, json: () => Promise.resolve({jsonCode: CONST.JSON_CODE.SUCCESS})});
+        global.fetch = fetchMock;
+
+        // When a LogOut pinned to staging is sent
+        await HttpUtils.xhr(SIDE_EFFECT_REQUEST_COMMANDS.LOG_OUT, {}, CONST.NETWORK.METHOD.POST, false, false, CONST.SERVER.STAGING);
+
+        // Then it reaches staging, because the pin has to survive the trip from the request to the URL
+        expect(fetchMock).toHaveBeenCalledWith('https://staging.expensify.com/api/LogOut?', expect.anything());
     });
 });

@@ -6,6 +6,7 @@ import {
     resolveReconnectDuplicationConflictAction,
 } from '@libs/actions/RequestConflictUtils';
 import type {AnyRequestMatcher, EnablePolicyFeatureCommand} from '@libs/actions/RequestConflictUtils';
+import type {Server} from '@libs/ApiUtils';
 import Log from '@libs/Log';
 import {waitForIdle as waitForSequentialQueueIdle} from '@libs/Network/SequentialQueue';
 
@@ -150,14 +151,16 @@ function writeWithNoDuplicatesEnableFeatureConflicts<TCommand extends EnablePoli
  * It works just like API.read(), except that it will return a promise.
  * Using this method is discouraged and will throw an ESLint error. Use it sparingly and only when all other alternatives have been exhausted.
  * It is best to discuss it in Slack anytime you are tempted to use this method.
+ * @param server the server to send the request to, even if the active server changes before it is sent
  */
 function makeRequestWithSideEffects<TCommand extends SideEffectRequestCommand, TKey extends OnyxKey>(
     command: TCommand,
     apiCommandParameters: ApiRequestCommandParameters[TCommand],
     onyxData: OnyxData<TKey> = {},
+    server?: Server,
 ): Promise<void | Response<TKey>> {
     Log.info('[API] Called API makeRequestWithSideEffects', false, buildLogParams(command, apiCommandParameters ?? {}));
-    const request = prepareRequest(command, CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS, apiCommandParameters, onyxData);
+    const request = prepareRequest(command, CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS, apiCommandParameters, onyxData, {}, server);
 
     // Return a promise containing the response from HTTPS
     return processRequest(request, CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS);

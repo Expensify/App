@@ -88,11 +88,13 @@ function getCurrentActiveServerState(): ActiveServerState {
 
 /**
  * Get the currently used API endpoint, unless forceProduction is set to true
- * (Non-production environments allow for dynamically switching the API)
+ * (Non-production environments allow for dynamically switching the API).
+ * A request's `server` replaces the active server as is, skipping the checks in `resolveActiveServer`, so it must
+ * be a server the app was actually using, such as one taken from `getActiveServer()`.
  */
-function getApiRoot<TKey extends OnyxKey = never>(request?: Partial<Pick<Request<TKey>, 'shouldUseSecure' | 'shouldSkipWebProxy' | 'command'>>, forceProduction = false): string {
+function getApiRoot<TKey extends OnyxKey = never>(request?: Partial<Pick<Request<TKey>, 'shouldUseSecure' | 'shouldSkipWebProxy' | 'command' | 'server'>>, forceProduction = false): string {
     const shouldUseSecure = request?.shouldUseSecure ?? false;
-    const server = forceProduction ? CONST.SERVER.PRODUCTION : getCurrentActiveServerState().activeServer;
+    const server = forceProduction ? CONST.SERVER.PRODUCTION : (request?.server ?? getCurrentActiveServerState().activeServer);
 
     if (server === CONST.SERVER.QA) {
         // No web-proxy branch: Cloudflare Access answers the preflight and matches the bearer against the

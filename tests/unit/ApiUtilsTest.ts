@@ -212,6 +212,75 @@ describe('ApiUtils', () => {
         });
     });
 
+    describe('server pinned on the request', () => {
+        it('sends a request pinned to QA to QA while production is active', async () => {
+            // Given production is the active server
+            await setActiveServer(CONST.SERVER.PRODUCTION);
+
+            // When a request is pinned to QA, like a LogOut sent while switching away from QA
+            const apiRoot = ApiUtils.getApiRoot({server: CONST.SERVER.QA});
+
+            // Then it goes to QA, whose database knows the token being signed out
+            expect(apiRoot).toBe('https://qa.exops.io/');
+        });
+
+        it('sends a request pinned to production to production while QA is active', async () => {
+            // Given the app has already switched to QA
+            await setActiveServer(CONST.SERVER.QA);
+
+            // When a request is pinned to production, the server the app just left
+            const apiRoot = ApiUtils.getApiRoot({server: CONST.SERVER.PRODUCTION});
+
+            // Then it still goes to production instead of following the switch
+            expect(apiRoot).toBe('https://www.expensify.com/');
+        });
+
+        it('uses the secure host of the pinned server', async () => {
+            // Given production is the active server
+            await setActiveServer(CONST.SERVER.PRODUCTION);
+
+            // When a secure request is pinned to QA
+            const apiRoot = ApiUtils.getApiRoot({server: CONST.SERVER.QA, shouldUseSecure: true});
+
+            // Then it goes to QA's secure host, because the pin replaces only the server, not the rest of the routing
+            expect(apiRoot).toBe('https://qa-secure.exops.io/');
+        });
+
+        it('routes a request pinned to staging through the web proxy', async () => {
+            // Given the web proxy is on and production is the active server
+            mockConfig.IS_USING_WEB_PROXY = true;
+            await setActiveServer(CONST.SERVER.PRODUCTION);
+
+            // When a request is pinned to staging
+            const apiRoot = ApiUtils.getApiRoot({server: CONST.SERVER.STAGING});
+
+            // Then it takes the same proxy path an active staging server would
+            expect(apiRoot).toBe('/staging/');
+        });
+
+        it('lets forceProduction win over a pinned server', async () => {
+            // Given QA is the active server
+            await setActiveServer(CONST.SERVER.QA);
+
+            // When a request pinned to QA is resolved with forceProduction
+            const apiRoot = ApiUtils.getApiRoot({server: CONST.SERVER.QA}, true);
+
+            // Then it goes to production, because forceProduction callers must never reach another server
+            expect(apiRoot).toBe('https://www.expensify.com/');
+        });
+
+        it('builds the command URL from the pinned server', async () => {
+            // Given production is the active server
+            await setActiveServer(CONST.SERVER.PRODUCTION);
+
+            // When the URL for a LogOut pinned to QA is built
+            const url = ApiUtils.getCommandURL({command: 'LogOut', server: CONST.SERVER.QA});
+
+            // Then it points at QA
+            expect(url).toBe('https://qa.exops.io/api/LogOut?');
+        });
+    });
+
     describe('getActiveServer', () => {
         it('returns staging when the staging server is active', async () => {
             await setActiveServer(CONST.SERVER.STAGING);

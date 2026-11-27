@@ -1,3 +1,4 @@
+import type {Server} from '@libs/ApiUtils';
 import Log from '@libs/Log';
 import {push as pushToSequentialQueue} from '@libs/Network/SequentialQueue';
 import {getIsOffline} from '@libs/NetworkState';
@@ -30,6 +31,7 @@ function buildLogParams(command: string, params: Record<string, unknown>): Recor
 
 /**
  * Prepare the request to be sent. Bind data together with request metadata and apply optimistic Onyx data.
+ * @param server the server to send the request to, even if the active server changes before it is sent
  */
 function prepareRequest<TCommand extends ApiCommand, TKey extends OnyxKey>(
     command: TCommand,
@@ -37,6 +39,7 @@ function prepareRequest<TCommand extends ApiCommand, TKey extends OnyxKey>(
     params: ApiRequestCommandParameters[TCommand],
     onyxData: OnyxData<TKey> = {},
     conflictResolver: RequestConflictResolver<TKey> = {},
+    server?: Server,
 ): OnyxRequest<TKey> {
     Log.info('[API] Preparing request', false, {command, type});
 
@@ -75,6 +78,7 @@ function prepareRequest<TCommand extends ApiCommand, TKey extends OnyxKey>(
     const request: SetRequired<OnyxRequest<TKey>, 'data'> = {
         command,
         data,
+        server,
         initiatedOffline: getIsOffline(),
         requestIndex: requestIndex++,
         ...onyxDataWithoutOptimisticData,

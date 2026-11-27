@@ -1,7 +1,7 @@
 import {waitFor} from '@testing-library/react-native';
 
 import {initReconnect} from '@libs/actions/Reconnect';
-import {READ_COMMANDS, WRITE_COMMANDS, AUTHENTICATION_COMMAND} from '@libs/API/types';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS, AUTHENTICATION_COMMAND} from '@libs/API/types';
 import type {ApiRequestCommandParameters} from '@libs/API/types';
 
 import CONST from '@src/CONST';
@@ -50,6 +50,13 @@ const splitParams = (amount = 1): ApiRequestCommandParameters[typeof MOCK_COMMAN
 });
 const nameValueParams = (value: string): ApiRequestCommandParameters[typeof MOCK_COMMAND_THREE] => ({name: 'test', value});
 const openAppParams = (): ApiRequestCommandParameters[typeof WRITE_COMMANDS.OPEN_APP] => ({policyIDList: [], enablePriorityModeFilter: true});
+const logOutParams = (): ApiRequestCommandParameters[typeof SIDE_EFFECT_REQUEST_COMMANDS.LOG_OUT] => ({
+    authToken: 'token',
+    partnerUserID: '',
+    partnerName: '',
+    partnerPassword: '',
+    shouldRetry: false,
+});
 const readParams = (reportID: string): ApiRequestCommandParameters[typeof MOCK_READ_COMMAND] => ({reportID});
 
 jest.mock('@src/libs/Log');
@@ -965,6 +972,30 @@ describe('APITests', () => {
                 });
                 expect(supportalModalSet).toBe(true);
             });
+    });
+
+    test('makeRequestWithSideEffects sends the request to the server it is pinned to', async () => {
+        // Given a network layer that records what it is asked to send
+        const xhr = jest.spyOn(HttpUtils, 'xhr').mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS});
+
+        // When a LogOut is pinned to QA, as when signing out of the server being left
+        await API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.LOG_OUT, logOutParams(), {}, CONST.SERVER.QA);
+
+        // Then the pin reaches HttpUtils.xhr, which builds the URL from it, so a server switch made meanwhile doesn't redirect it
+        expect(xhr).toHaveBeenCalledTimes(1);
+        expect(xhr.mock.calls.at(0)?.at(5)).toBe(CONST.SERVER.QA);
+    });
+
+    test('makeRequestWithSideEffects without a pinned server follows the active server', async () => {
+        // Given a network layer that records what it is asked to send
+        const xhr = jest.spyOn(HttpUtils, 'xhr').mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS});
+
+        // When a request is sent without a server
+        await API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.LOG_OUT, logOutParams(), {});
+
+        // Then no server is passed on, so the URL is built from whatever server is active when it is sent
+        expect(xhr).toHaveBeenCalledTimes(1);
+        expect(xhr.mock.calls.at(0)?.at(5)).toBeUndefined();
     });
 });
 
