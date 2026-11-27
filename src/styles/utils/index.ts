@@ -3,6 +3,7 @@ import type ImageSVGProps from '@components/ImageSVG/types';
 import {LETTER_AVATAR_COLOR_OPTIONS} from '@libs/Avatars/letterAvatarPalette';
 import {isMobile, isMobileChrome} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
+import hasVerticalBar from '@libs/hasVerticalBar';
 import {hashText} from '@libs/UserUtils';
 import {toDimensionValue, toViewStyle} from '@libs/WebOnlyStyleUtils';
 
@@ -451,11 +452,15 @@ function getPlatformSafeAreaPadding(insets?: EdgeInsets, insetsPercentageProp?: 
         }
     }
 
+    // The trimmed side insets suit an iPhone's notch, which leaves room beside it. On a foldable iPhone the side inset is the
+    // vertical bar, which the status bar and bar items fill, so anything less than the whole inset puts content under them.
+    const sideInsetsPercentage = hasVerticalBar() ? 1 : insetsPercentage;
+
     return {
         paddingTop: insets?.top ?? 0,
         paddingBottom: (insets?.bottom ?? 0) * insetsPercentage,
-        paddingLeft: (insets?.left ?? 0) * insetsPercentage,
-        paddingRight: (insets?.right ?? 0) * insetsPercentage,
+        paddingLeft: (insets?.left ?? 0) * sideInsetsPercentage,
+        paddingRight: (insets?.right ?? 0) * sideInsetsPercentage,
     };
 }
 
