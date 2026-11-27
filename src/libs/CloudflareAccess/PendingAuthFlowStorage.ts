@@ -7,8 +7,11 @@ import {isRecord} from '@libs/ObjectUtils';
 
 import CONST from '@src/CONST';
 
-/** Cloudflare's authorization codes are short-lived anyway. An older record is treated as absent */
-const PENDING_AUTH_FLOW_TTL_MS = 10 * 60 * 1000;
+/**
+ * Cloudflare puts no limit on the time spent at its pages, and Chrome reloads the page on Back after about 10 minutes
+ * there, so the record has to outlive any pause. An older record is treated as absent, so the boot sweep removes abandoned ones
+ */
+const PENDING_AUTH_FLOW_TTL_MS = 24 * 60 * 60 * 1000;
 
 type PendingAuthFlow = {
     /** CSRF/provenance value echoed back by Cloudflare on the callback */
@@ -105,27 +108,19 @@ function consumePendingAuthFlow(state: string): PendingAuthFlow | null {
     return parseUnexpiredFlow(raw);
 }
 
-function removeStoredFlows(shouldRemove: (raw: string | null) => boolean): void {
+function sweepExpiredPendingAuthFlows(): void {
     const storage = getLocalStorage();
     if (!storage) {
         return;
     }
     try {
         for (const key of Object.keys(storage)) {
-            if (key.startsWith(CONST.LOCAL_STORAGE_KEYS.QA_AUTH_REDIRECT_FLOW_PREFIX) && shouldRemove(storage.getItem(key))) {
+            if (key.startsWith(CONST.LOCAL_STORAGE_KEYS.QA_AUTH_REDIRECT_FLOW_PREFIX) && !parseUnexpiredFlow(storage.getItem(key))) {
                 storage.removeItem(key);
             }
         }
     } catch {}
 }
 
-function sweepExpiredPendingAuthFlows(): void {
-    removeStoredFlows((raw) => !parseUnexpiredFlow(raw));
-}
-
-function clearPendingAuthFlows(): void {
-    removeStoredFlows(() => true);
-}
-
-export {clearPendingAuthFlows, consumePendingAuthFlow, savePendingAuthFlow, sweepExpiredPendingAuthFlows};
+export {consumePendingAuthFlow, savePendingAuthFlow, sweepExpiredPendingAuthFlows};
 export type {PendingAuthFlow};

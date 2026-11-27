@@ -13,6 +13,8 @@ type CapturedAuthCallback = {
     outcome: CloudflareSignInOutcome;
     errorMessage?: string;
     exchange?: AuthorizationCodeExchange;
+    /** When the round trip left for Cloudflare, from its record. Absent when no record matched */
+    flowCreatedAt?: number;
 };
 
 type CaptureCloudflareAuthCallbackURL = () => void;

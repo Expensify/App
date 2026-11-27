@@ -41,9 +41,7 @@ jest.mock('@libs/CloudflareAccess/getWebCrypto', () => ({
 // Lazy-require so the @src/CONFIG mock factory sees an initialized mockQAAuth. Otherwise the
 // hoisted import order would resolve CONFIG.default while mockQAAuth was still in the TDZ.
 const {getQAResource, isQAAuthConfigured, isQAServerRequest} = require<typeof ConfigModule>('@libs/CloudflareAccess/Config/index.ts');
-const {clearPendingAuthFlows, consumePendingAuthFlow, savePendingAuthFlow, sweepExpiredPendingAuthFlows} = require<
-    typeof PendingAuthFlowStorageModule
->('@libs/CloudflareAccess/PendingAuthFlowStorage');
+const {consumePendingAuthFlow, savePendingAuthFlow, sweepExpiredPendingAuthFlows} = require<typeof PendingAuthFlowStorageModule>('@libs/CloudflareAccess/PendingAuthFlowStorage');
 const {buildAuthorizeURL, exchangeCode, OAuthError, refreshTokens} = require<typeof OAuthClientModule>('@libs/CloudflareAccess/OAuthClient');
 const {default: getAuthServerEndpoints} = require<typeof AuthServerMetadataModule>('@libs/CloudflareAccess/AuthServerMetadata');
 const {generatePKCEPair, generateState} = require<typeof PKCEModule>('@libs/CloudflareAccess/generatePKCE');
@@ -474,7 +472,7 @@ describe('authServerMetadata', () => {
 
 describe('pendingAuthFlowStorage', () => {
     const FLOW = {state: 'state-1', codeVerifier: 'verifier-1', returnURL: 'http://localhost/settings/troubleshoot', createdAt: 1_700_000_000_000};
-    const OTHER_FLOW = {...FLOW, state: 'state-2'};
+    const ONE_DAY_MS = 24 * 60 * 60 * 1000;
     const STORAGE_KEY = `${CONST.LOCAL_STORAGE_KEYS.QA_AUTH_REDIRECT_FLOW_PREFIX}${FLOW.state}`;
     const realLocalStorage = window.localStorage;
 
@@ -511,12 +509,21 @@ describe('pendingAuthFlowStorage', () => {
         expect(consumePendingAuthFlow(FLOW.state)).toBeNull();
     });
 
-    it('treats an expired record as absent, so a stale verifier is never exchanged', () => {
+    it('keeps the record through a long pause at Cloudflare, so a late Allow still completes', () => {
+        // Given a saved flow
+        savePendingAuthFlow(FLOW);
+        // When the tester comes back from the consent page hours later
+        nowSpy.mockReturnValue(FLOW.createdAt + ONE_DAY_MS - 60_000);
+        // Then the record is still there. Cloudflare doesn't limit the time spent on its pages, and Chrome reloads the page on Back after about 10 minutes there, so a shorter expiry would fail the exchange and hide where the page came back from
+        expect(consumePendingAuthFlow(FLOW.state)).toEqual(FLOW);
+    });
+
+    it('treats a record older than a day as absent', () => {
         // Given a saved flow
         savePendingAuthFlow(FLOW);
         // When the clock moves past the expiry window
-        nowSpy.mockReturnValue(FLOW.createdAt + 11 * 60 * 1000);
-        // Then the record must read as absent. The expiry bounds how long a parked verifier stays exchangeable, limiting what a forgotten record is worth to an attacker
+        nowSpy.mockReturnValue(FLOW.createdAt + ONE_DAY_MS + 60_000);
+        // Then the record reads as absent. Nobody will read a round trip abandoned that long ago, and the expiry lets the boot sweep remove it
         expect(consumePendingAuthFlow(FLOW.state)).toBeNull();
     });
 
@@ -568,20 +575,5 @@ describe('pendingAuthFlowStorage', () => {
         // When the save is attempted
         // Then it throws
         expect(() => savePendingAuthFlow(FLOW)).toThrow('QuotaExceededError');
-    });
-
-    it('clears every pending record and nothing else', () => {
-        // Given two round trips in flight and a record another feature keeps in the same origin's localStorage
-        savePendingAuthFlow(FLOW);
-        savePendingAuthFlow(OTHER_FLOW);
-        window.localStorage.setItem('unrelated-key', 'kept');
-
-        // When the pending flows are cleared
-        clearPendingAuthFlows();
-
-        // Then neither round trip can complete any more, while the other feature's record is untouched
-        expect(consumePendingAuthFlow(FLOW.state)).toBeNull();
-        expect(consumePendingAuthFlow(OTHER_FLOW.state)).toBeNull();
-        expect(window.localStorage.getItem('unrelated-key')).toBe('kept');
     });
 });

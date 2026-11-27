@@ -6,7 +6,7 @@ import {isQAAuthConfigured} from '@libs/CloudflareAccess/Config';
 import {generatePKCEPair, generateState} from '@libs/CloudflareAccess/generatePKCE';
 import {buildAuthorizeURL, exchangeCode, OAuthError, refreshTokens} from '@libs/CloudflareAccess/OAuthClient';
 import type {AuthorizationCodeExchange} from '@libs/CloudflareAccess/OAuthClient';
-import {clearPendingAuthFlows, savePendingAuthFlow} from '@libs/CloudflareAccess/PendingAuthFlowStorage';
+import {savePendingAuthFlow} from '@libs/CloudflareAccess/PendingAuthFlowStorage';
 import Log from '@libs/Log';
 import {registerSessionCleanupCallback} from '@libs/SessionCleanup';
 
@@ -30,7 +30,6 @@ function resetSessionState() {
     sessionGeneration++;
     sessionCache = null;
     codeExchangeErrorMessage = undefined;
-    clearPendingAuthFlows();
 }
 
 // Definite assignment: the Promise executor runs synchronously, so this is set before anything reads it
