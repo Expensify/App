@@ -63,6 +63,11 @@ function ConnectionsGmailPage({route}: ConnectionsGmailPageProps) {
             if (action !== ModalActions.CONFIRM) {
                 return;
             }
+            // The page has nothing left to show once the last connection goes, so leave it before removing
+            if (connections.length === 1) {
+                Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID), {afterTransition: () => disconnectGmail(connection.connectionID)});
+                return;
+            }
             disconnectGmail(connection.connectionID);
         });
     };
@@ -143,7 +148,7 @@ function ConnectionsGmailPage({route}: ConnectionsGmailPageProps) {
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
-            shouldBeBlocked={!isBetaEnabled(CONST.BETAS.RECEIPT_SYNC)}
+            shouldBeBlocked={!isBetaEnabled(CONST.BETAS.RECEIPT_SYNC) || !connections.length}
             fullPageNotFoundViewProps={{onBackButtonPress: goBack}}
         >
             <ScreenWrapper
