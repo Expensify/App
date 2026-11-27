@@ -1,11 +1,16 @@
 import {act, render} from '@testing-library/react-native';
 
+import InputWrapper from '@components/Form/InputWrapper';
+
 import IOURequestStepDescription from '@pages/iou/request/step/DynamicIOURequestStepDescription';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+import type {Transaction} from '@src/types/onyx';
 
 import React from 'react';
+import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -48,13 +53,31 @@ jest.mock('@hooks/useDiscardChangesConfirmation', () => ({
 // The "OrNotFound" HOCs gate rendering on Onyx report/transaction data that is irrelevant to this wiring test.
 // Stub them to pass-through so the real component body runs directly.
 jest.mock('@pages/iou/request/step/withWritableReportOrNotFound', () => (Component: React.ComponentType) => Component);
-jest.mock('@pages/iou/request/step/withFullTransactionOrNotFound', () => (Component: React.ComponentType) => Component);
+let mockTransaction: Transaction | undefined;
+jest.mock(
+    '@pages/iou/request/step/withFullTransactionOrNotFound',
+    () => (Component: React.ComponentType<{transaction?: Transaction}>) => (props: React.ComponentProps<typeof IOURequestStepDescription>) => (
+        <Component
+            {...props}
+            transaction={mockTransaction}
+        />
+    ),
+);
 
-// The JSX children are irrelevant here — the `onCancel` closure is created in the component body before render.
-// Stubbing them keeps the render trivial and stable.
-jest.mock('@pages/iou/request/step/StepScreenWrapper', () => () => null);
-jest.mock('@components/Form/FormProvider', () => () => null);
-jest.mock('@components/Form/InputWrapper', () => () => null);
+// Keep navigation and form machinery out of these tests while retaining the input's initial value
+jest.mock(
+    '@pages/iou/request/step/StepScreenWrapper',
+    () =>
+        ({children}: React.PropsWithChildren) =>
+            children,
+);
+jest.mock(
+    '@components/Form/FormProvider',
+    () =>
+        ({children}: React.PropsWithChildren) =>
+            children,
+);
+jest.mock('@components/Form/InputWrapper', () => jest.fn(() => null));
 
 jest.mock('@hooks/useThemeStyles', () => ({
     __esModule: true,
@@ -80,6 +103,75 @@ const ROUTE = createMock<React.ComponentProps<typeof IOURequestStepDescription>[
     },
 });
 const NAVIGATION = createMock<React.ComponentProps<typeof IOURequestStepDescription>['navigation']>({});
+
+describe('IOURequestStepDescription - initial description', () => {
+    afterEach(() => {
+        mockTransaction = undefined;
+    });
+
+    it.each([
+        [12345, '12345'],
+        [0, '0'],
+        [undefined, ''],
+        [null, ''],
+        ['<strong>Lunch</strong>', '*Lunch*'],
+    ])('normalizes existing description %j before converting it to markdown', async (description, expected) => {
+        // Given an existing expense can have a numeric API description despite the declared string type
+        mockTransaction = Object.assign(createMock<Transaction>({transactionID: 'txn-1'}), {comment: {comment: description}});
+        const route = {...ROUTE, params: {...ROUTE.params, action: CONST.IOU.ACTION.EDIT}};
+
+        // When the description editor opens
+        render(
+            <IOURequestStepDescription
+                route={route}
+                navigation={NAVIGATION}
+            />,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the input receives markdown text without a parser error
+        expect(InputWrapper).toHaveBeenLastCalledWith(expect.objectContaining({defaultValue: expected}), undefined);
+    });
+
+    it('normalizes a draft description before filling the input', async () => {
+        // Given draft descriptions are already markdown and should only be normalized
+        mockTransaction = Object.assign(createMock<Transaction>({transactionID: 'txn-1'}), {comment: {comment: 0}});
+
+        // When the draft description editor opens
+        render(
+            <IOURequestStepDescription
+                route={ROUTE}
+                navigation={NAVIGATION}
+            />,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then numeric zero remains visible rather than an empty input
+        expect(InputWrapper).toHaveBeenLastCalledWith(expect.objectContaining({defaultValue: '0'}), undefined);
+    });
+
+    it('normalizes the split draft description instead of using the original transaction', async () => {
+        // Given an edited split has its own numeric description
+        mockTransaction = createMock<Transaction>({transactionID: 'txn-1', comment: {comment: 'Original'}});
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}txn-1`, Object.assign(createMock<Transaction>({...mockTransaction}), {comment: {comment: 12345}}));
+        });
+        const route = {...ROUTE, params: {...ROUTE.params, action: CONST.IOU.ACTION.EDIT, iouType: CONST.IOU.TYPE.SPLIT_EXPENSE}};
+
+        // When the split description editor opens
+        render(
+            <IOURequestStepDescription
+                route={route}
+                navigation={NAVIGATION}
+            />,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the split's normalized text takes precedence
+        expect(InputWrapper).toHaveBeenLastCalledWith(expect.objectContaining({defaultValue: '12345'}), undefined);
+        await act(async () => Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}txn-1`, null));
+    });
+});
 
 describe('IOURequestStepDescription - discard modal onCancel', () => {
     beforeEach(() => {

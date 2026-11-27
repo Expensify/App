@@ -24,7 +24,7 @@ jobs:
   knip-compare:
     name: Compare knip issues against main
     if: github.actor != 'os-botify[bot]'
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: blacksmith-2vcpu-ubuntu-2404-arm
     env:
       # Use the PR's target branch so staging and production PRs are not compared with main.
       BASE_REF: ${{ github.base_ref || 'main' }}

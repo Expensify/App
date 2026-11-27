@@ -152,7 +152,7 @@ type ShouldDisplayReportInLHNParams = {
     isDefaultRoomsBetaEnabled: boolean;
     isBillPayBetaEnabled?: boolean;
     transactionViolations: OnyxCollection<TransactionViolation[]>;
-    draftComment: OnyxEntry<string>;
+    hasDraftComment: boolean;
     transactions: OnyxCollection<Transaction>;
     isOffline: boolean;
     isReportArchived?: boolean;
@@ -173,7 +173,7 @@ function shouldDisplayReportInLHN({
     isDefaultRoomsBetaEnabled,
     isBillPayBetaEnabled = false,
     transactionViolations,
-    draftComment,
+    hasDraftComment,
     transactions,
     isOffline,
     isReportArchived,
@@ -222,7 +222,7 @@ function shouldDisplayReportInLHN({
     const requiresAttention = reportAttributes?.[report?.reportID]?.requiresAttention;
     const isSystemChat = isSystemChatUtil(report);
     const shouldOverrideHidden =
-        !!draftComment ||
+        hasDraftComment ||
         hasErrorsOtherThanFailedReceipt ||
         isFocused ||
         // An anonymous user can only access public rooms, and such a room's notification preference
@@ -248,10 +248,13 @@ function shouldDisplayReportInLHN({
         isBillPayBetaEnabled,
         excludeEmptyChats: true,
         doesReportHaveViolations,
-        draftComment,
+        hasDraftComment,
         includeSelfDM: true,
         isReportArchived,
         requiresAttention,
+        // `requiresAttention` comes from reportAttributes, which already applies the pending-DEW-approve check with the
+        // real metadata. The metadata below is only read before reportAttributes has computed this report.
+        pendingExpenseActionMetadata: undefined,
         derivedIsEmptyReport: reportAttributes?.[report?.reportID]?.isEmpty,
         currentUserLogin,
         currentUserAccountID,
@@ -387,7 +390,7 @@ function getReportsToDisplayInLHN({
             isDefaultRoomsBetaEnabled,
             isBillPayBetaEnabled,
             transactionViolations,
-            draftComment: reportDraftComment,
+            hasDraftComment: !!reportDraftComment,
             transactions,
             isOffline,
             isReportArchived,
@@ -494,7 +497,7 @@ function updateReportsToDisplayInLHN({
             isDefaultRoomsBetaEnabled,
             isBillPayBetaEnabled,
             transactionViolations,
-            draftComment: reportDraftComment,
+            hasDraftComment: !!reportDraftComment,
             transactions,
             isOffline,
             isReportArchived,
@@ -811,6 +814,7 @@ function getOptionData({
     lastMessageTextFromReport: lastMessageTextFromReportProp,
     card,
     lastAction,
+    lastOriginalAction,
     translate,
     dateFnsLocale,
     convertToDisplayString,
@@ -845,6 +849,7 @@ function getOptionData({
     reportAttributes: OnyxEntry<ReportAttributes>;
     card: Card | undefined;
     lastAction: ReportAction | undefined;
+    lastOriginalAction: OnyxEntry<ReportAction>;
     translate: LocalizedTranslate;
     dateFnsLocale: DateFnsLocale | undefined;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
@@ -1016,6 +1021,7 @@ function getOptionData({
         reportAttributesDerived,
         visibleReportActionsData,
         oneTransactionThreadReportID: reportAttributes?.oneTransactionThreadReportID,
+        lastOriginalAction,
         currentUserAccountID,
         currentUserLogin,
         isTrackIntentUser,

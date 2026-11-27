@@ -1,11 +1,14 @@
 import {act, renderHook, waitFor} from '@testing-library/react-native';
 
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
+
 import useOnyx from '@hooks/useOnyx';
 
 import {selectReusableRoute} from '@libs/actions/ReusableDistanceRoutes';
 import {
     changeTransactionsReport as changeTransactionsReportAction,
     dismissDuplicateTransactionViolation,
+    getDuplicateTransactionDetails,
     markAsCash,
     removeWaypoint,
     sanitizeWaypointsForAPI,
@@ -17,10 +20,11 @@ import * as API from '@libs/API';
 import type {ChangeTransactionsReportParams} from '@libs/API/parameters';
 import DateUtils from '@libs/DateUtils';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
+import {setForceOffline} from '@libs/NetworkState';
 import * as NextStepUtils from '@libs/NextStepUtils';
 import {rand64} from '@libs/NumberUtils';
 import {isRecord} from '@libs/ObjectUtils';
-import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
+import {getIOUActionForTransactionID, getOriginalMessage} from '@libs/ReportActionsUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -44,6 +48,7 @@ import type {PersonalDetails, Policy, PolicyTagLists, RecentWaypoint, Report, Re
 import type {ReportMergeUpdate} from '../utils/typeGuards';
 
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
+import {removeTransactionFromDuplicateTransactionViolation} from '../../src/libs/TransactionUtils/duplicates';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomPolicyCategories from '../utils/collections/policyCategory';
@@ -54,14 +59,6 @@ import * as TestHelper from '../utils/TestHelper';
 import {hasDefinedProperty, parseJSONRecord, readProperty, isReportMergeUpdate, isReportStateMergeUpdate} from '../utils/typeGuards';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-type LegacyChangeTransactionsReportProps = Omit<
-    Parameters<typeof changeTransactionsReportAction>[0],
-    'transactions' | 'allTransactionViolation' | 'personalPolicyOutputCurrency' | 'selfDMReportActions' | 'delegateAccountID' | 'getCurrencyDecimals' | 'getCurrencySymbol' | 'rules'
-> & {
-    allTransactions: OnyxCollection<Transaction>;
-    transactionViolations?: OnyxCollection<TransactionViolation[]>;
-    personalPolicyOutputCurrency?: string;
-};
 type CapturedOnyxData = {
     optimisticData?: Array<{key: string; value: unknown}>;
     successData?: Array<{key: string; value: unknown}>;
@@ -74,23 +71,6 @@ function isCapturedOnyxData(value: unknown): value is CapturedOnyxData {
 
 function isChangeTransactionsReportParams(value: unknown): value is ChangeTransactionsReportParams {
     return isRecord(value) && typeof value.reportID === 'string' && typeof value.transactionList === 'string' && typeof value.transactionIDToReportActionAndThreadData === 'string';
-}
-
-// Wrapper mirroring the pre-refactor signature so existing test call sites compile unchanged.
-function changeTransactionsReport({allTransactions, transactionIDs, transactionViolations = {}, personalPolicyOutputCurrency, ...rest}: LegacyChangeTransactionsReportProps) {
-    const transactions = transactionIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((transaction): transaction is Transaction => !!transaction);
-    changeTransactionsReportAction({
-        transactionIDs,
-        transactions,
-        allTransactionViolation: transactionViolations,
-        personalPolicyOutputCurrency,
-        selfDMReportActions: undefined,
-        delegateAccountID: undefined,
-        getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
-        getCurrencySymbol: TestHelper.getCurrencySymbolLocal,
-        rules: undefined,
-        ...rest,
-    });
 }
 
 function generateTransaction(values: Partial<Transaction> = {}): Transaction {
@@ -115,10 +95,57 @@ function generateTransaction(values: Partial<Transaction> = {}): Transaction {
 }
 
 const CURRENT_USER_ID = 1;
+const CURRENT_USER_EMAIL = 'test@example.com';
+const CURRENT_USER_PERSONAL_DETAILS_BY_LOGINS: PersonalDetailsByLogin = {
+    [CURRENT_USER_EMAIL]: {accountID: CURRENT_USER_ID, login: CURRENT_USER_EMAIL},
+};
 const CURRENT_USER_CASH_CARD_ID = 777;
 const FAKE_NEW_REPORT_ID = '2';
 const FAKE_OLD_REPORT_ID = '3';
 const FAKE_SELF_DM_REPORT_ID = '4';
+
+type LegacyChangeTransactionsReportProps = Omit<
+    Parameters<typeof changeTransactionsReportAction>[0],
+    | 'transactions'
+    | 'allTransactionViolation'
+    | 'personalPolicyOutputCurrency'
+    | 'selfDMReportActions'
+    | 'delegateAccountID'
+    | 'getCurrencyDecimals'
+    | 'getCurrencySymbol'
+    | 'rules'
+    | 'personalDetailsByLogins'
+> & {
+    allTransactions: OnyxCollection<Transaction>;
+    transactionViolations?: OnyxCollection<TransactionViolation[]>;
+    personalPolicyOutputCurrency?: string;
+    personalDetailsByLogins?: PersonalDetailsByLogin;
+};
+
+// Wrapper mirroring the pre-refactor signature so existing test call sites compile unchanged.
+function changeTransactionsReport({
+    allTransactions,
+    transactionIDs,
+    transactionViolations = {},
+    personalPolicyOutputCurrency,
+    personalDetailsByLogins = CURRENT_USER_PERSONAL_DETAILS_BY_LOGINS,
+    ...rest
+}: LegacyChangeTransactionsReportProps) {
+    const transactions = transactionIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((transaction): transaction is Transaction => !!transaction);
+    changeTransactionsReportAction({
+        transactionIDs,
+        transactions,
+        allTransactionViolation: transactionViolations,
+        personalPolicyOutputCurrency,
+        selfDMReportActions: undefined,
+        delegateAccountID: undefined,
+        getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+        getCurrencySymbol: TestHelper.getCurrencySymbolLocal,
+        rules: undefined,
+        personalDetailsByLogins,
+        ...rest,
+    });
+}
 
 function generateIOUAction(transaction: Transaction, reportID: string): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> {
     return {
@@ -175,7 +202,6 @@ describe('Transaction', () => {
             keys: ONYXKEYS,
             initialKeyStates: {
                 [ONYXKEYS.SESSION]: {accountID: CURRENT_USER_ID},
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[CURRENT_USER_ID]: currentUserPersonalDetails},
                 ...reportCollectionDataSet,
             },
         });
@@ -690,6 +716,91 @@ describe('Transaction', () => {
                 expect(sourceReportStateUpdate.value.statusNum).toBe(CONST.REPORT.STATUS_NUM.OPEN);
             } finally {
                 buildOptimisticNextStepSpy.mockRestore();
+                mockAPIWrite.mockRestore();
+            }
+        });
+
+        it('updates the source submitted report next step to wait on the approver when it keeps other expenses', async () => {
+            const mockAPIWrite = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+            const policyID = 'approvalPolicyMove';
+            const approverEmail = 'approver-move@example.com';
+            const approverAccountID = 555;
+            const approverPersonalDetails: PersonalDetails = {accountID: approverAccountID, login: approverEmail};
+            const policy: Policy = {
+                ...createRandomPolicy(1),
+                id: policyID,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                approver: approverEmail,
+                employeeList: {},
+            };
+
+            const transaction = generateTransaction({
+                reportID: FAKE_OLD_REPORT_ID,
+                amount: -100,
+                currency: CONST.CURRENCY.USD,
+            });
+            const oldIOUAction = createIOUAction(transaction);
+            const submittedReport: Report = {
+                ...createExpenseReport(7),
+                reportID: FAKE_OLD_REPORT_ID,
+                policyID,
+                ownerAccountID: CURRENT_USER_ID,
+                managerID: undefined,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                currency: CONST.CURRENCY.USD,
+                total: -300,
+                transactionCount: 3,
+            };
+
+            // Given a submitted report on a basic-approval workspace that keeps other expenses after the move
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_OLD_REPORT_ID}`, submittedReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
+            const report = await getReportFromUseOnyx(FAKE_NEW_REPORT_ID);
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+            };
+            await loadReports();
+
+            // When one of its expenses is moved to another report
+            changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
+                transactionIDs: [transaction.transactionID],
+                isASAPSubmitBetaEnabled: false,
+                accountID: CURRENT_USER_ID,
+                email: 'test@example.com',
+                currentUserPersonalDetails,
+                newReport: report,
+                policy,
+                allTransactions,
+                policyTagList: undefined,
+                reports,
+                transactionViolations: {},
+                isTrackIntentUser: false,
+                cardList: undefined,
+                personalDetailsByLogins: {...CURRENT_USER_PERSONAL_DETAILS_BY_LOGINS, [approverEmail]: approverPersonalDetails},
+            });
+            await waitForBatchedUpdates();
+
+            try {
+                // Then the source report stays submitted, so its optimistic next step waits on the workspace approver
+                const [, , onyxData] = TestHelper.getRequiredWriteCall(mockAPIWrite.mock.calls, 0);
+                const reportKey: ReportMergeUpdate['key'] = `${ONYXKEYS.COLLECTION.REPORT}${FAKE_OLD_REPORT_ID}`;
+                const reportUpdates = TestHelper.getRequiredOnyxUpdates(onyxData, 'optimisticData');
+                const sourceReportUpdate = reportUpdates.findLast((update) => isReportMergeUpdate(update, reportKey));
+                if (!sourceReportUpdate) {
+                    throw new Error('Expected a typed source report update');
+                }
+
+                expect(sourceReportUpdate.value.nextStep).toEqual({
+                    actorAccountID: approverAccountID,
+                    icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                    messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE,
+                });
+            } finally {
                 mockAPIWrite.mockRestore();
             }
         });
@@ -2150,7 +2261,10 @@ describe('Transaction', () => {
             mockAPIWrite.mockRestore();
         });
 
-        it('should auto-select a valid distance rate when the current rate is disabled on the destination workspace', async () => {
+        it('should auto-select a valid distance rate when the current rate is disabled on a different destination workspace', async () => {
+            // Given a move between workspaces, so the destination must select a rate
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_OLD_REPORT_ID}`, {reportID: FAKE_OLD_REPORT_ID, policyID: 'otherPolicy', type: CONST.REPORT.TYPE.EXPENSE});
+            await loadReports();
             const policyID = '101';
             const disabledRateID = 'disabled_rate';
             const enabledRateID = 'enabled_rate';
@@ -2217,6 +2331,7 @@ describe('Transaction', () => {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
             };
 
+            // When the disabled rate is moved to the destination workspace
             changeTransactionsReport({
                 isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
@@ -2235,6 +2350,7 @@ describe('Transaction', () => {
             });
             await waitForBatchedUpdates();
 
+            // Then the enabled destination rate is selected
             const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`);
             expect(updatedTransaction?.comment?.customUnit?.customUnitRateID).toBe(enabledRateID);
         });
@@ -2401,6 +2517,257 @@ describe('Transaction', () => {
             const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`);
             // Rate should remain unchanged since it was already valid
             expect(updatedTransaction?.comment?.customUnit?.customUnitRateID).toBe(validRateID);
+        });
+
+        describe('distance rate selection on workspace changes', () => {
+            const SOURCE_POLICY_ID = 'sourcePolicy';
+            const DESTINATION_POLICY_ID = 'destinationPolicy';
+
+            function createDistancePolicy(
+                policyID: string,
+                rates: Record<string, {rate: number; enabled?: boolean; endDate?: string}>,
+                unit: Unit = CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+            ): Policy {
+                return {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    id: policyID,
+                    outputCurrency: 'USD',
+                    customUnits: {
+                        distanceUnit: {
+                            attributes: {unit},
+                            customUnitID: 'distanceUnit',
+                            defaultCategory: '',
+                            enabled: true,
+                            name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                            rates: Object.fromEntries(
+                                Object.entries(rates).map(([customUnitRateID, {rate, enabled = true, endDate}], index) => [
+                                    customUnitRateID,
+                                    {currency: 'USD', customUnitRateID, enabled, name: customUnitRateID, rate, index, endDate},
+                                ]),
+                            ),
+                        },
+                    },
+                };
+            }
+
+            function createDistanceTransaction(reportID: string, customUnitRateID: string): Transaction {
+                return generateTransaction({
+                    reportID,
+                    amount: -500,
+                    currency: 'USD',
+                    merchant: '10.00 mi @ $0.50 / mi',
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                    comment: {
+                        type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                        customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE, customUnitRateID, distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, quantity: 10},
+                    },
+                });
+            }
+
+            async function moveDistanceExpense(transaction: Transaction, policies: Record<string, Policy>, sourcePolicyID?: string) {
+                const mockAPIWrite = jest.spyOn(API, 'write');
+                const destinationReport = {
+                    ...createExpenseReport(Number(FAKE_NEW_REPORT_ID)),
+                    reportID: FAKE_NEW_REPORT_ID,
+                    policyID: DESTINATION_POLICY_ID,
+                    ownerAccountID: CURRENT_USER_ID,
+                    currency: 'USD',
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                };
+                if (sourcePolicyID) {
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_OLD_REPORT_ID}`, {reportID: FAKE_OLD_REPORT_ID, policyID: sourcePolicyID, type: CONST.REPORT.TYPE.EXPENSE});
+                }
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_NEW_REPORT_ID}`, destinationReport);
+                await loadReports();
+
+                changeTransactionsReport({
+                    isVendorMatchingBetaEnabled: false,
+                    transactionIDs: [transaction.transactionID],
+                    isASAPSubmitBetaEnabled: false,
+                    accountID: CURRENT_USER_ID,
+                    email: CURRENT_USER_EMAIL,
+                    currentUserPersonalDetails,
+                    newReport: destinationReport,
+                    policy: policies[DESTINATION_POLICY_ID],
+                    policies: Object.fromEntries(Object.entries(policies).map(([id, policy]) => [`${ONYXKEYS.COLLECTION.POLICY}${id}`, policy])),
+                    allTransactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction},
+                    policyTagList: undefined,
+                    reports,
+                    transactionViolations: {},
+                    isTrackIntentUser: false,
+                    cardList: undefined,
+                });
+                await waitForBatchedUpdates();
+
+                const [, params, data] = TestHelper.getRequiredWriteCall(mockAPIWrite.mock.calls, 0);
+                if (!isChangeTransactionsReportParams(params)) {
+                    throw new Error('Expected ChangeTransactionsReport params');
+                }
+                if (!isCapturedOnyxData(data)) {
+                    throw new Error('Expected ChangeTransactionsReport Onyx data');
+                }
+                const threadData = readProperty(parseJSONRecord(params.transactionIDToReportActionAndThreadData, 'transaction threads'), transaction.transactionID);
+                const actions = (data?.optimisticData ?? [])
+                    .filter((update) => update.key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS))
+                    .flatMap((update) => {
+                        const value: unknown = update.value;
+                        return isRecord(value) ? Object.values(value) : [];
+                    });
+                const modifiedExpenseActions = actions.filter(
+                    (action): action is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE> =>
+                        isRecord(action) && action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                );
+                const movedAction = actions.find((action) => isRecord(action) && action.reportActionID === readProperty(threadData, 'movedReportActionID'));
+                mockAPIWrite.mockRestore();
+                return {
+                    threadData,
+                    modifiedExpenseActions,
+                    movedAction,
+                    data,
+                    transaction: await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`),
+                    violations: await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`),
+                };
+            }
+
+            it.each(['disabledRate', 'deletedRate'])('preserves an invalid %s when moving between reports on the same workspace', async (rateID) => {
+                // Given a workspace expense with a disabled or deleted rate
+                const transaction = createDistanceTransaction(FAKE_OLD_REPORT_ID, rateID);
+                const policies = {[DESTINATION_POLICY_ID]: createDistancePolicy(DESTINATION_POLICY_ID, {defaultRate: {rate: 67}, disabledRate: {rate: 50, enabled: false}})};
+
+                // When its report changes without changing workspace
+                const result = await moveDistanceExpense(transaction, policies, DESTINATION_POLICY_ID);
+
+                // Then the invalid rate and amount stay unchanged and the violation remains visible
+                expect(result.transaction?.comment?.customUnit?.customUnitRateID).toBe(rateID);
+                expect(result.transaction?.amount).toBe(-500);
+                expect(result.violations?.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY)).toBe(true);
+                expect(result.modifiedExpenseActions).toHaveLength(0);
+                expect(readProperty(result.threadData, 'modifiedExpenseReportActionID')).toBeUndefined();
+            });
+
+            it('preserves the disabled rate when an unreported expense returns to its workspace', async () => {
+                // Given an unreported expense that still carries its original workspace rate
+                const transaction = createDistanceTransaction(CONST.REPORT.UNREPORTED_REPORT_ID, 'disabledRate');
+                const policies = {[DESTINATION_POLICY_ID]: createDistancePolicy(DESTINATION_POLICY_ID, {defaultRate: {rate: 67}, disabledRate: {rate: 50, enabled: false}})};
+
+                // When it moves back to that workspace
+                const result = await moveDistanceExpense(transaction, policies);
+
+                // Then the disabled rate does not cause a workspace change or repricing
+                expect(result.transaction?.comment?.customUnit?.customUnitRateID).toBe('disabledRate');
+                expect(result.transaction?.amount).toBe(-500);
+                expect(result.modifiedExpenseActions).toHaveLength(0);
+            });
+
+            it.each([FAKE_OLD_REPORT_ID, CONST.REPORT.UNREPORTED_REPORT_ID])('matches the source rate and preserves an edited amount when moving from report %s', async (reportID) => {
+                // Given an expense with a disabled source rate and a manually overridden amount
+                const transaction = {...createDistanceTransaction(reportID, 'sourceRate'), modifiedAmount: -900};
+                const policies = {
+                    [SOURCE_POLICY_ID]: createDistancePolicy(SOURCE_POLICY_ID, {sourceRate: {rate: 50, enabled: false}}),
+                    [DESTINATION_POLICY_ID]: createDistancePolicy(DESTINATION_POLICY_ID, {defaultRate: {rate: 67}, matchingRate: {rate: 50}}),
+                };
+
+                // When another workspace has an eligible equivalent rate
+                const result = await moveDistanceExpense(transaction, policies, reportID === FAKE_OLD_REPORT_ID ? SOURCE_POLICY_ID : undefined);
+
+                // Then only the rate ID changes, not the expense's price or merchant
+                expect(result.transaction?.comment?.customUnit?.customUnitRateID).toBe('matchingRate');
+                expect(result.transaction?.modifiedAmount).toBe(-900);
+                expect(result.transaction?.merchant).toBe(transaction.merchant);
+                expect(result.transaction?.modifiedMerchant).toBeUndefined();
+                expect(result.modifiedExpenseActions).toHaveLength(0);
+            });
+
+            it.each([
+                {reportID: FAKE_OLD_REPORT_ID, destinationUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, shouldMatch: true},
+                {reportID: CONST.REPORT.UNREPORTED_REPORT_ID, destinationUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, shouldMatch: true},
+                {reportID: FAKE_OLD_REPORT_ID, destinationUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, shouldMatch: false},
+                {reportID: CONST.REPORT.UNREPORTED_REPORT_ID, destinationUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, shouldMatch: false},
+            ])('uses the stored expense unit when moving from report $reportID to $destinationUnit rates', async ({reportID, destinationUnit, shouldMatch}) => {
+                // Given a miles expense whose source workspace has since switched to kilometers
+                const transaction = {...createDistanceTransaction(reportID, 'sourceRate'), modifiedAmount: -900};
+                const policies = {
+                    [SOURCE_POLICY_ID]: createDistancePolicy(SOURCE_POLICY_ID, {sourceRate: {rate: 50, enabled: false}}, CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS),
+                    [DESTINATION_POLICY_ID]: createDistancePolicy(DESTINATION_POLICY_ID, {defaultRate: {rate: 67}, sameValueRate: {rate: 50}}, destinationUnit),
+                };
+
+                // When moving to a workspace whose rate unit may match the expense but not the source workspace
+                const result = await moveDistanceExpense(transaction, policies, reportID === FAKE_OLD_REPORT_ID ? SOURCE_POLICY_ID : undefined);
+
+                // Then only a genuinely equivalent rate preserves the edited amount and avoids a rate-change message
+                expect(result.transaction?.comment?.customUnit?.customUnitRateID).toBe(shouldMatch ? 'sameValueRate' : 'defaultRate');
+                expect(result.transaction?.comment?.customUnit?.distanceUnit).toBe(destinationUnit);
+                expect(result.transaction?.comment?.customUnit?.quantity).toBe(shouldMatch ? 10 : 16.09);
+                expect(result.transaction?.modifiedAmount).toBe(shouldMatch ? -900 : -1078);
+                expect(result.transaction?.merchant).toBe(transaction.merchant);
+                if (shouldMatch) {
+                    expect(result.transaction?.modifiedMerchant).toBeUndefined();
+                } else {
+                    expect(result.transaction?.modifiedMerchant).not.toBe(transaction.merchant);
+                }
+                expect(result.modifiedExpenseActions).toHaveLength(shouldMatch ? 0 : 1);
+            });
+
+            it('reprices a fallback and sends one Concierge action ordered after the move, with cleanup on success and failure', async () => {
+                // Given an expense with no equivalent rate on the destination
+                const transaction = createDistanceTransaction(FAKE_OLD_REPORT_ID, 'sourceRate');
+                const policies = {
+                    [SOURCE_POLICY_ID]: createDistancePolicy(SOURCE_POLICY_ID, {sourceRate: {rate: 50}}),
+                    [DESTINATION_POLICY_ID]: createDistancePolicy(DESTINATION_POLICY_ID, {defaultRate: {rate: 67}}),
+                };
+
+                // When the expense changes workspace
+                const result = await moveDistanceExpense(transaction, policies, SOURCE_POLICY_ID);
+
+                // Then the optimistic message and the API share an ID so the server replaces the message
+                expect(result.transaction?.modifiedAmount).toBe(-670);
+                expect(result.modifiedExpenseActions).toHaveLength(1);
+                const action = result.modifiedExpenseActions.at(0);
+                if (!action) {
+                    throw new Error('Expected a Concierge rate adjustment');
+                }
+                expect(action?.actorAccountID).toBe(CONST.ACCOUNT_ID.CONCIERGE);
+                expect(getOriginalMessage(action)).toEqual(expect.objectContaining({oldAmount: 500, amount: 670, oldMerchant: transaction.merchant}));
+                expect(readProperty(result.threadData, 'modifiedExpenseReportActionID')).toBe(action?.reportActionID);
+                expect(action?.created).toBe(DateUtils.addMillisecondsFromDateTime(String(readProperty(result.movedAction, 'created')), 1));
+                expect(result.data.successData).toEqual(expect.arrayContaining([expect.objectContaining({value: {[action.reportActionID]: {pendingAction: null}}})]));
+                expect(result.data.failureData).toEqual(expect.arrayContaining([expect.objectContaining({value: {[action.reportActionID]: null}})]));
+            });
+
+            it.each([
+                {endDate: '2026-03-14', shouldReprice: true},
+                {endDate: '2026-03-15', shouldReprice: false},
+            ])('distinguishes an expired fallback from an eligible match ending $endDate', async ({endDate, shouldReprice}) => {
+                // Given an edited expense and an equivalent destination rate whose eligibility depends on the date
+                const transaction = {...createDistanceTransaction(FAKE_OLD_REPORT_ID, 'sourceRate'), created: '2026-03-15', modifiedAmount: -900};
+                const policies = {
+                    [SOURCE_POLICY_ID]: createDistancePolicy(SOURCE_POLICY_ID, {sourceRate: {rate: 50}}),
+                    [DESTINATION_POLICY_ID]: createDistancePolicy(DESTINATION_POLICY_ID, {destinationRate: {rate: 50, endDate}}),
+                };
+
+                // When the expense moves to the new workspace
+                const result = await moveDistanceExpense(transaction, policies, SOURCE_POLICY_ID);
+
+                // Then only a valid match preserves the override; expired fallback rates still reprice
+                expect(result.transaction?.modifiedAmount).toBe(shouldReprice ? -500 : -900);
+                expect(result.modifiedExpenseActions).toHaveLength(shouldReprice ? 1 : 0);
+            });
+
+            it('keeps the violation when the destination has no enabled rates', async () => {
+                // Given a destination with only a disabled rate
+                const transaction = createDistanceTransaction(FAKE_OLD_REPORT_ID, 'sourceRate');
+                const policies = {[DESTINATION_POLICY_ID]: createDistancePolicy(DESTINATION_POLICY_ID, {disabledRate: {rate: 67, enabled: false}})};
+
+                // When a distance expense moves there
+                const result = await moveDistanceExpense(transaction, policies, SOURCE_POLICY_ID);
+
+                // Then no rate can be selected and the user is still prompted to fix the violation
+                expect(result.transaction?.comment?.customUnit?.customUnitRateID).toBe('sourceRate');
+                expect(result.violations?.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY)).toBe(true);
+                expect(result.modifiedExpenseActions).toHaveLength(0);
+            });
         });
 
         describe('when all matching items are selected (jsonQuery + hash)', () => {
@@ -3451,6 +3818,81 @@ describe('Transaction', () => {
         });
     });
 
+    describe('getDuplicateTransactionDetails', () => {
+        const TRANSACTION_ID = 'duplicateTransaction';
+        const LOADING_KEY = `${ONYXKEYS.COLLECTION.RAM_ONLY_IS_LOADING_DUPLICATE_TRANSACTION_DETAILS}${TRANSACTION_ID}` as const;
+        const TIMEOUT_MS = 10 * 1000;
+
+        afterEach(async () => {
+            jest.useRealTimers();
+            setForceOffline(false);
+            mockFetch.resume?.();
+            await waitForBatchedUpdates();
+        });
+
+        it('sets the loading flag while the request is in flight and clears it when the request finishes', async () => {
+            // Given a request that hasn't been answered yet
+            mockFetch.pause?.();
+
+            // When the duplicate details are requested
+            getDuplicateTransactionDetails(TRANSACTION_ID);
+            await waitForBatchedUpdates();
+
+            // Then the flag is set, so the review page can show a loader instead of a partial list
+            expect(await getOnyxValue(LOADING_KEY)).toBe(true);
+
+            // When the server answers
+            await mockFetch.resume?.();
+            await waitForBatchedUpdates();
+
+            // Then the flag is cleared, so the review page renders the duplicates
+            expect(await getOnyxValue(LOADING_KEY)).toBe(false);
+        });
+
+        it('clears the loading flag after the timeout when the request never finishes', async () => {
+            // Given a request that never gets an answer, which is what a read that throws looks like to the flag
+            jest.useFakeTimers({doNotFake: ['setImmediate', 'nextTick', 'queueMicrotask']});
+            mockFetch.pause?.();
+
+            // When the duplicate details are requested and the timeout hasn't passed
+            getDuplicateTransactionDetails(TRANSACTION_ID);
+            await jest.advanceTimersByTimeAsync(TIMEOUT_MS - 1);
+
+            // Then the flag is still set
+            expect(await getOnyxValue(LOADING_KEY)).toBe(true);
+
+            // When the timeout passes
+            await jest.advanceTimersByTimeAsync(1);
+
+            // Then the flag is cleared, so the user isn't stuck on the loader
+            expect(await getOnyxValue(LOADING_KEY)).toBe(false);
+        });
+
+        it('does not set the loading flag offline', async () => {
+            // Given the user is offline, where a read applies none of its Onyx data
+            setForceOffline(true);
+
+            // When the duplicate details are requested
+            getDuplicateTransactionDetails(TRANSACTION_ID);
+            await waitForBatchedUpdates();
+
+            // Then the flag is never set, so it can't be left stuck on with nothing to clear it
+            expect(await getOnyxValue(LOADING_KEY)).toBeUndefined();
+        });
+
+        it('does nothing without a transaction ID', async () => {
+            // Given no transaction to look up
+            const fetchCallCount = mockFetch.mock.calls.length;
+
+            // When the duplicate details are requested
+            getDuplicateTransactionDetails(undefined);
+            await waitForBatchedUpdates();
+
+            // Then no request is sent
+            expect(mockFetch.mock.calls.length).toBe(fetchCallCount);
+        });
+    });
+
     describe('dismissDuplicateTransactionViolation', () => {
         it('should optimistically remove DUPLICATED_TRANSACTION violation and add dismissed violation report action', async () => {
             const transactionID = 'dismissTxn1';
@@ -3498,6 +3940,7 @@ describe('Transaction', () => {
                 allTransactions,
                 currentTransactionViolations: [{transactionID, violations: mockViolations}],
                 isTrackIntentUser: false,
+                personalDetailsByLogins: CURRENT_USER_PERSONAL_DETAILS_BY_LOGINS,
                 rules: undefined,
             });
             await waitForBatchedUpdates();
@@ -3565,6 +4008,7 @@ describe('Transaction', () => {
                 allTransactions,
                 currentTransactionViolations: [{transactionID, violations: mockViolations}],
                 isTrackIntentUser: false,
+                personalDetailsByLogins: CURRENT_USER_PERSONAL_DETAILS_BY_LOGINS,
                 rules: undefined,
             });
             await waitForBatchedUpdates();
@@ -3645,6 +4089,7 @@ describe('Transaction', () => {
                 allTransactions: {[transactionKey]: staleTransaction},
                 currentTransactionViolations: [{transactionID, violations: mockViolations}],
                 isTrackIntentUser: false,
+                personalDetailsByLogins: CURRENT_USER_PERSONAL_DETAILS_BY_LOGINS,
                 rules: undefined,
             });
             await waitForBatchedUpdates();
@@ -3685,6 +4130,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 allTransactions,
                 isTrackIntentUser: false,
+                personalDetailsByLogins: CURRENT_USER_PERSONAL_DETAILS_BY_LOGINS,
                 rules: undefined,
             });
             await waitForBatchedUpdates();
@@ -3693,6 +4139,173 @@ describe('Transaction', () => {
             expect(optimisticViolations).toEqual([]);
 
             await mockFetch.resume();
+        });
+
+        it('should only mark the transactions that have the DUPLICATED_TRANSACTION violation as dismissed', async () => {
+            // Given a duplicate review of two transactions where only the draft one has the violation, as happens when the other one is on a paid report
+            const flaggedTransactionID = 'dismissTxnFlagged';
+            const unflaggedTransactionID = 'dismissTxnUnflagged';
+            const flaggedTransactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${flaggedTransactionID}` as const;
+            const unflaggedTransactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${unflaggedTransactionID}` as const;
+            const testerEmail = 'tester@example.com';
+            const duplicateViolations: TransactionViolation[] = [{name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION, type: 'warning'}];
+            const flaggedTransaction = generateTransaction({transactionID: flaggedTransactionID, reportID: FAKE_OLD_REPORT_ID});
+            const unflaggedTransaction = generateTransaction({transactionID: unflaggedTransactionID, reportID: FAKE_NEW_REPORT_ID});
+
+            mockFetch.pause();
+            await Onyx.merge(flaggedTransactionKey, flaggedTransaction);
+            await Onyx.merge(unflaggedTransactionKey, unflaggedTransaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${flaggedTransactionID}`, duplicateViolations);
+
+            // When the user keeps all of them
+            dismissDuplicateTransactionViolation({
+                transactionIDs: [flaggedTransactionID, unflaggedTransactionID],
+                dismissedPersonalDetails: {login: testerEmail, accountID: CURRENT_USER_ID},
+                expenseReport: newReport,
+                policy: undefined,
+                isASAPSubmitBetaEnabled: false,
+                allTransactions: {[flaggedTransactionKey]: flaggedTransaction, [unflaggedTransactionKey]: unflaggedTransaction},
+                currentTransactionViolations: [
+                    {transactionID: flaggedTransactionID, violations: duplicateViolations},
+                    {transactionID: unflaggedTransactionID, violations: []},
+                ],
+                isTrackIntentUser: false,
+                personalDetailsByLogins: CURRENT_USER_PERSONAL_DETAILS_BY_LOGINS,
+                rules: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then only the flagged transaction gets the dismissal, because a dismissal left on the other one would hide a violation the server raises on it later
+            const optimisticFlaggedTransaction = await getOnyxValue(flaggedTransactionKey);
+            const optimisticUnflaggedTransaction = await getOnyxValue(unflaggedTransactionKey);
+            expect(optimisticFlaggedTransaction?.comment?.dismissedViolations?.[CONST.VIOLATIONS.DUPLICATED_TRANSACTION]?.[testerEmail]).toEqual(expect.any(Number));
+            expect(optimisticUnflaggedTransaction?.comment?.dismissedViolations?.[CONST.VIOLATIONS.DUPLICATED_TRANSACTION]).toBeUndefined();
+
+            await mockFetch.resume();
+        });
+
+        it('should only add the dismissed violation report action to the transactions that have the DUPLICATED_TRANSACTION violation', async () => {
+            // Given a duplicate review of two transactions with their own threads, where only one of them has the violation
+            const flaggedTransactionID = 'dismissActionTxnFlagged';
+            const unflaggedTransactionID = 'dismissActionTxnUnflagged';
+            const flaggedThreadReportID = 'threadDismissFlagged';
+            const unflaggedThreadReportID = 'threadDismissUnflagged';
+            const flaggedTransactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${flaggedTransactionID}` as const;
+            const unflaggedTransactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${unflaggedTransactionID}` as const;
+            const duplicateViolations: TransactionViolation[] = [{name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION, type: 'warning'}];
+            const flaggedTransaction = generateTransaction({transactionID: flaggedTransactionID, reportID: FAKE_OLD_REPORT_ID});
+            const unflaggedTransaction = generateTransaction({transactionID: unflaggedTransactionID, reportID: FAKE_NEW_REPORT_ID});
+            const buildIOUAction = (transaction: Transaction, childReportID: string) => ({
+                reportActionID: rand64(),
+                reportID: transaction.reportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                childReportID,
+                actorAccountID: CURRENT_USER_ID,
+                created: DateUtils.getDBTime(),
+                originalMessage: {
+                    IOUTransactionID: transaction.transactionID,
+                    amount: transaction.amount,
+                    currency: transaction.currency,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            });
+            const flaggedIOUAction = buildIOUAction(flaggedTransaction, flaggedThreadReportID);
+            const unflaggedIOUAction = buildIOUAction(unflaggedTransaction, unflaggedThreadReportID);
+
+            mockFetch.pause();
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[flaggedIOUAction.reportActionID]: flaggedIOUAction});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_NEW_REPORT_ID}`, {[unflaggedIOUAction.reportActionID]: unflaggedIOUAction});
+
+            // When the user keeps all of them
+            dismissDuplicateTransactionViolation({
+                transactionIDs: [flaggedTransactionID, unflaggedTransactionID],
+                dismissedPersonalDetails: {login: 'tester@example.com', accountID: CURRENT_USER_ID},
+                expenseReport: newReport,
+                policy: undefined,
+                isASAPSubmitBetaEnabled: false,
+                allTransactions: {[flaggedTransactionKey]: flaggedTransaction, [unflaggedTransactionKey]: unflaggedTransaction},
+                currentTransactionViolations: [
+                    {transactionID: flaggedTransactionID, violations: duplicateViolations},
+                    {transactionID: unflaggedTransactionID, violations: []},
+                ],
+                isTrackIntentUser: false,
+                personalDetailsByLogins: CURRENT_USER_PERSONAL_DETAILS_BY_LOGINS,
+                rules: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then only the flagged transaction's thread gets the optimistic action, because the server does not add one to the other thread and it would disappear on success
+            const flaggedThreadActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${flaggedThreadReportID}`);
+            const unflaggedThreadActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${unflaggedThreadReportID}`);
+            expect(Object.values(flaggedThreadActions ?? {}).filter((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION)).toHaveLength(1);
+            expect(Object.values(unflaggedThreadActions ?? {})).toHaveLength(0);
+
+            await mockFetch.resume();
+        });
+
+        it('should set the next step to wait on the approver when dismissing duplicates on a submitted report', async () => {
+            const transactionID = 'dismissTxnApprover';
+            const threadReportID = 'threadDismissApprover';
+            const policyID = 'approvalPolicyDismiss';
+            const approverEmail = 'approver-dismiss@example.com';
+            const approverAccountID = 556;
+            const approverPersonalDetails: PersonalDetails = {accountID: approverAccountID, login: approverEmail};
+            const mockViolations: TransactionViolation[] = [{name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION, type: 'warning'}];
+            const policy: Policy = {
+                ...createRandomPolicy(1),
+                id: policyID,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                approver: approverEmail,
+                employeeList: {},
+            };
+            const submittedReport: Report = {
+                ...createExpenseReport(8),
+                reportID: FAKE_OLD_REPORT_ID,
+                policyID,
+                ownerAccountID: CURRENT_USER_ID,
+                managerID: undefined,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                transactionCount: 2,
+            };
+
+            mockFetch.pause();
+
+            // Given a submitted report on a basic-approval workspace whose only violation is a duplicate
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_OLD_REPORT_ID}`, submittedReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, mockViolations);
+            const transaction = generateTransaction({transactionID, reportID: FAKE_OLD_REPORT_ID});
+            const iouAction = generateIOUAction(transaction, FAKE_OLD_REPORT_ID);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[iouAction.reportActionID]: {...iouAction, childReportID: threadReportID}});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`, {});
+
+            // When the duplicate violation is dismissed
+            dismissDuplicateTransactionViolation({
+                transactionIDs: [transactionID],
+                dismissedPersonalDetails: {login: 'tester@example.com', accountID: CURRENT_USER_ID},
+                expenseReport: submittedReport,
+                policy,
+                isASAPSubmitBetaEnabled: false,
+                allTransactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction},
+                currentTransactionViolations: [{transactionID, violations: mockViolations}],
+                isTrackIntentUser: false,
+                personalDetailsByLogins: {...CURRENT_USER_PERSONAL_DETAILS_BY_LOGINS, [approverEmail]: approverPersonalDetails},
+                rules: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the report stays submitted with no other violations, so its optimistic next step waits on the workspace approver
+            const optimisticReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_OLD_REPORT_ID}`);
+            expect(optimisticReport?.nextStep).toEqual({
+                actorAccountID: approverAccountID,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE,
+            });
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
         });
 
         describe('integration with useOnyx', () => {
@@ -3742,6 +4355,7 @@ describe('Transaction', () => {
                         allTransactions,
                         currentTransactionViolations: [{transactionID, violations: mockViolations}],
                         isTrackIntentUser: false,
+                        personalDetailsByLogins: CURRENT_USER_PERSONAL_DETAILS_BY_LOGINS,
                         rules: undefined,
                     });
                     await waitForBatchedUpdates();
@@ -3799,7 +4413,7 @@ describe('removeTransactionFromDuplicateTransactionViolation', () => {
             [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TXN_B}`]: [makeDuplicateViolation([TXN_A, TXN_C])],
         };
 
-        TransactionUtils.removeTransactionFromDuplicateTransactionViolation(onyxData, TXN_A, makeTransactionCollection(TXN_A, TXN_B, TXN_C), transactionViolations);
+        removeTransactionFromDuplicateTransactionViolation(onyxData, TXN_A, makeTransactionCollection(TXN_A, TXN_B, TXN_C), transactionViolations);
 
         expect(onyxData.successData?.length).toBe(1);
         const successEntry = onyxData.successData?.at(0);
@@ -3820,7 +4434,7 @@ describe('removeTransactionFromDuplicateTransactionViolation', () => {
             [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TXN_B}`]: [makeDuplicateViolation([TXN_A])],
         };
 
-        TransactionUtils.removeTransactionFromDuplicateTransactionViolation(onyxData, TXN_A, makeTransactionCollection(TXN_A, TXN_B), transactionViolations);
+        removeTransactionFromDuplicateTransactionViolation(onyxData, TXN_A, makeTransactionCollection(TXN_A, TXN_B), transactionViolations);
 
         expect(onyxData.optimisticData?.length).toBe(1);
         expect(onyxData.successData?.length).toBe(1);
@@ -3839,10 +4453,30 @@ describe('removeTransactionFromDuplicateTransactionViolation', () => {
             [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TXN_B}`]: [makeDuplicateViolation([TXN_A])],
         };
 
-        TransactionUtils.removeTransactionFromDuplicateTransactionViolation(onyxData, TXN_A, makeTransactionCollection(TXN_A, TXN_B), transactionViolations);
+        removeTransactionFromDuplicateTransactionViolation(onyxData, TXN_A, makeTransactionCollection(TXN_A, TXN_B), transactionViolations);
 
         const successEntry = onyxData.successData?.at(0);
         expect(successEntry?.value).toBeNull();
+    });
+
+    it('should clean the duplicate violation of a peer whose report is not loaded', () => {
+        // Given a peer on a report that is missing from Onyx, e.g. right after clearing the cache
+        const onyxData: OnyxData<UpdateMoneyRequestDataKeys> = {optimisticData: [], successData: [], failureData: []};
+        const transactions = {
+            ...makeTransactionCollection(TXN_A),
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}${TXN_B}`]: createMock<Transaction>({transactionID: TXN_B, reportID: 'unloadedPeerReport'}),
+        };
+        const transactionViolations = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TXN_A}`]: [makeDuplicateViolation([TXN_B])],
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TXN_B}`]: [makeDuplicateViolation([TXN_A])],
+        };
+
+        // When transaction A is removed from the duplicate violations
+        removeTransactionFromDuplicateTransactionViolation(onyxData, TXN_A, transactions, transactionViolations);
+
+        // Then the peer's violation is still cleared, so it isn't left as a one-sided duplicate
+        expect(onyxData.optimisticData?.at(0)?.key).toBe(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TXN_B}`);
+        expect(onyxData.optimisticData?.at(0)?.value).toBeNull();
     });
 
     it('should preserve failureData for rollback with original violations', () => {
@@ -3854,7 +4488,7 @@ describe('removeTransactionFromDuplicateTransactionViolation', () => {
             [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TXN_B}`]: originalBViolations,
         };
 
-        TransactionUtils.removeTransactionFromDuplicateTransactionViolation(onyxData, TXN_A, makeTransactionCollection(TXN_A, TXN_B), transactionViolations);
+        removeTransactionFromDuplicateTransactionViolation(onyxData, TXN_A, makeTransactionCollection(TXN_A, TXN_B), transactionViolations);
 
         expect(onyxData.failureData?.length).toBe(1);
         const failureEntry = onyxData.failureData?.at(0);
@@ -3870,7 +4504,7 @@ describe('removeTransactionFromDuplicateTransactionViolation', () => {
             [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TXN_B}`]: [makeDuplicateViolation([TXN_A]), makeCategoryViolation()],
         };
 
-        TransactionUtils.removeTransactionFromDuplicateTransactionViolation(onyxData, TXN_A, makeTransactionCollection(TXN_A, TXN_B), transactionViolations);
+        removeTransactionFromDuplicateTransactionViolation(onyxData, TXN_A, makeTransactionCollection(TXN_A, TXN_B), transactionViolations);
 
         const successEntry = onyxData.successData?.at(0);
         expect(successEntry?.value).toEqual([makeCategoryViolation()]);
@@ -3890,7 +4524,7 @@ describe('removeTransactionFromDuplicateTransactionViolation', () => {
             [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TXN_B}`]: [makeDuplicateViolation([TXN_A])],
         };
 
-        TransactionUtils.removeTransactionFromDuplicateTransactionViolation(onyxData, TXN_A, makeTransactionCollection(TXN_A, TXN_B), transactionViolations);
+        removeTransactionFromDuplicateTransactionViolation(onyxData, TXN_A, makeTransactionCollection(TXN_A, TXN_B), transactionViolations);
 
         expect(onyxData.optimisticData?.length).toBe(1);
         expect(onyxData.successData).toBeUndefined();

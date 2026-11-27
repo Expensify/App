@@ -47,7 +47,6 @@ import {
     getReportOrDraftReport,
     getViolatingReportIDForRBRInLHN,
     hasExpensifyGuidesEmails,
-    hasIOUWaitingOnCurrentUserBankAccount,
     isChatThread,
     isDefaultRoom,
     isDM,
@@ -228,7 +227,7 @@ type GetAlternateTextConfig = {
     policyTags?: OnyxEntry<PolicyTagLists>;
     conciergeReportID: string | undefined;
     transactionThreadIDs?: Record<string, string | undefined>;
-    lastActions?: Record<string, ReportAction>;
+    lastActions: Record<string, ReportAction> | undefined;
     isTrackIntentUser?: boolean;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     currentUserAccountID: number;
@@ -397,7 +396,7 @@ type CreateOptionParams = {
     sortedActions?: Record<string, ReportAction[]>;
     currentUserAccountID: number;
     transactionThreadIDs?: Record<string, string | undefined>;
-    lastActions?: Record<string, ReportAction>;
+    lastActions: Record<string, ReportAction> | undefined;
     // TODO: Remove optional (?) once all callers pass pendingDeleteMemberAccountIDs. Refactor issue: https://github.com/Expensify/App/issues/66421
     pendingDeleteMemberAccountIDs?: string[];
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
@@ -664,6 +663,8 @@ function getReportOption({
         // `sortedActions` is only read to build the report preview last message. These options are static (`showChatPreviewLine: false`) and their
         // consumers don't render `lastMessageText`, so we verified nothing in this flow depends on it and pass undefined instead of threading it from every caller.
         sortedActions: undefined,
+        // `lastActions` is only read to build the chat preview line, which `showChatPreviewLine: false` disables, so we pass undefined.
+        lastActions: undefined,
         // `transactionThreadIDs` is only read to resolve the chat preview's last action. With `showChatPreviewLine: false` the preview is never built
         // (and `alternateText` is overwritten below), so we pass undefined instead of threading it from every caller.
         transactionThreadIDs: undefined,
@@ -761,6 +762,8 @@ function getReportDisplayOption({
         // `sortedActions` is only read to build the report preview last message. These options are static (`showChatPreviewLine: false`) and their
         // consumers don't render `lastMessageText`, so we verified nothing in this flow depends on it and pass undefined instead of threading it from every caller.
         sortedActions: undefined,
+        // `lastActions` is only read to build the chat preview line, which `showChatPreviewLine: false` disables, so we pass undefined.
+        lastActions: undefined,
         // `transactionThreadIDs` is only read to resolve the chat preview's last action. With `showChatPreviewLine: false` the preview is never built,
         // so we pass undefined instead of threading it from every caller.
         transactionThreadIDs: undefined,
@@ -830,6 +833,8 @@ function getPolicyExpenseReportOption(
         conciergeReportID: undefined,
         // Passing pendingDeleteMemberAccountIDs as undefined is intentional, a policy expense chat is never a group chat.
         pendingDeleteMemberAccountIDs: undefined,
+        // Passing lastActions as undefined is intentional, a policy expense chat option never builds the chat preview line that reads it.
+        lastActions: undefined,
         config: {
             showChatPreviewLine: false,
             forcePolicyNamePreview: false,
@@ -876,9 +881,8 @@ function isDisablingOrDeletingLastEnabledCategory(
     policy: Policy | undefined,
     policyCategories: PolicyCategories | undefined,
     selectedCategories: Array<PolicyCategory | undefined>,
+    enabledCategoriesCount: number = getEnabledCategoriesCount(policyCategories),
 ): boolean {
-    const enabledCategoriesCount = getEnabledCategoriesCount(policyCategories);
-
     if (!enabledCategoriesCount) {
         return false;
     }
@@ -933,7 +937,11 @@ function isOptionEnabled(option?: PolicyTag | PolicyCategory): boolean {
 /**
  * Verifies that there is at least one enabled option
  */
-function hasEnabledOptions(options: PolicyCategories | PolicyTag[]): boolean {
+function hasEnabledOptions(options: PolicyCategories | PolicyTag[] | null | undefined): boolean {
+    if (!options) {
+        return false;
+    }
+
     return Object.values(options).some(isOptionEnabled);
 }
 
@@ -944,7 +952,7 @@ function hasEnabledOptions(options: PolicyCategories | PolicyTag[]): boolean {
  * @param selectedOptions - Array of selected options to compare with.
  * @returns true if the report option matches any of the selected options by accountID or reportID, false otherwise.
  */
-function isReportSelected(reportOption: SearchOptionData, selectedOptions: Array<Partial<SearchOptionData>>) {
+function isReportSelected(reportOption: SearchOptionData, selectedOptions: ReadonlyArray<Partial<SearchOptionData>>) {
     if (!selectedOptions || selectedOptions.length === 0) {
         return false;
     }
@@ -982,7 +990,7 @@ function processReport(
         // TODO: Remove optional (?) once all callers pass sortedActions. Refactor issue: https://github.com/Expensify/App/issues/66381
         sortedActions?: Record<string, ReportAction[]>;
         transactionThreadIDs?: Record<string, string | undefined>;
-        lastActions?: Record<string, ReportAction>;
+        lastActions: Record<string, ReportAction> | undefined;
         currentUserLogin?: string;
     },
     rules: OnyxCollection<Rule>,
@@ -1152,6 +1160,8 @@ function buildFullOption(
             translate,
             // Passing pendingDeleteMemberAccountIDs as undefined is intentional, `report` here is always a 1:1 DM, never a group chat.
             pendingDeleteMemberAccountIDs: undefined,
+            // Passing lastActions as undefined is intentional, contact options show personal details and never build the chat preview line that reads it.
+            lastActions: undefined,
             // Passing transactionThreadIDs as undefined is intentional, contact options show personal details and never build the chat preview line that reads it.
             transactionThreadIDs: undefined,
             formatPhoneNumber,
@@ -1224,7 +1234,7 @@ function createFilteredOptionList(
         currentUserAccountID: number;
         currentUserLogin?: string;
         transactionThreadIDs?: Record<string, string | undefined>;
-        lastActions?: Record<string, ReportAction>;
+        lastActions: Record<string, ReportAction> | undefined;
         dateFnsLocale: DateFnsLocale | undefined;
         convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
         conciergeReportID: string | undefined;
@@ -1244,7 +1254,7 @@ function createFilteredOptionList(
          * Account IDs pending removal, keyed by reportID, so group chat names and avatar labels leave them out.
          * TODO: Make it required once every caller passes it. Refactor issue: https://github.com/Expensify/App/issues/66421
          */
-        pendingDeleteMemberAccountIDsByReportID?: Record<string, string[]>;
+        pendingDeleteMemberAccountIDsByReportID?: Readonly<Record<string, string[]>>;
         formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
         /** The user's default workspace. Its expense chat is always kept by the recent-reports cap */
         activePolicyID?: string;
@@ -1469,7 +1479,7 @@ type CreateOptionFromReportParams = {
     policy: OnyxEntry<Policy>;
     sortedActions: Record<string, ReportAction[]> | undefined;
     transactionThreadIDs?: Record<string, string | undefined>;
-    lastActions?: Record<string, ReportAction>;
+    lastActions: Record<string, ReportAction> | undefined;
     currentUserAccountID: number;
     currentUserLogin?: string;
     conciergeReportID: string | undefined;
@@ -1909,6 +1919,8 @@ function getUserToInviteOption({
         conciergeReportID: undefined,
         // Passing pendingDeleteMemberAccountIDs as undefined is intentional, there is no report to build a group chat name from.
         pendingDeleteMemberAccountIDs: undefined,
+        // Passing lastActions as undefined is intentional, the invite option has no report, so there is no chat preview to build.
+        lastActions: undefined,
         // Passing transactionThreadIDs as undefined is intentional, the invite option has no report, so there is no chat preview to resolve.
         transactionThreadIDs: undefined,
         config: {showChatPreviewLine},
@@ -1950,6 +1962,7 @@ function isValidReport(
     chatReport: OnyxEntry<Report>,
     hasGuidesEmails: boolean,
     derivedIsEmptyReport: boolean | undefined,
+    derivedRequiresAttention: boolean | undefined,
 ): boolean {
     const {
         isDefaultRoomsBetaEnabled = false,
@@ -1991,13 +2004,18 @@ function isValidReport(
         login: option.login,
         includeDomainEmail,
         isReportArchived: option.private_isArchived,
-        draftComment,
+        hasDraftComment: !!draftComment,
         currentUserLogin,
         currentUserAccountID,
         conciergeReportID,
         hasGuidesEmails,
         derivedIsEmptyReport,
         transactionViolations,
+        requiresAttention: derivedRequiresAttention,
+        // `requiresAttention` comes from reportAttributes, which already applies the pending-DEW-approve check with the
+        // real metadata, so every caller has to pass `reportAttributesDerived` for that check to hold here. The metadata
+        // below is only read before reportAttributes has computed this report.
+        pendingExpenseActionMetadata: undefined,
     });
 
     if (!shouldBeInOptionList) {
@@ -2050,11 +2068,6 @@ function isValidReport(
     }
 
     if (!canUserPerformWriteAction(option.item, option.private_isArchived) && !includeReadOnly) {
-        return false;
-    }
-
-    // In case user needs to add credit bank account, don't allow them to submit an expense from the workspace.
-    if (includeOwnedWorkspaceChats && hasIOUWaitingOnCurrentUserBankAccount(option.item)) {
         return false;
     }
 
@@ -2186,7 +2199,7 @@ function prepareReportOptionsForDisplay(
         localeCompare?: LocaleContextProps['localeCompare'];
         formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
         transactionThreadIDs?: Record<string, string | undefined>;
-        lastActions?: Record<string, ReportAction>;
+        lastActions: Record<string, ReportAction> | undefined;
     },
     conciergeReportID: string | undefined,
     sortedActions: Record<string, ReportAction[]> | undefined,
@@ -2510,6 +2523,7 @@ function getValidOptions(
                 // TODO: Pass guideAccountIDs in Phase B. hasExpensifyGuidesEmails falls back to the personal details store until then. See https://github.com/Expensify/App/issues/66413.
                 isDefaultRoom(report.item) ? hasExpensifyGuidesEmails(Object.keys(report.item?.participants ?? {}).map(Number), undefined) : false,
                 report.reportID ? reportAttributesDerived?.[report.reportID]?.isEmpty : undefined,
+                report.reportID ? reportAttributesDerived?.[report.reportID]?.requiresAttention : undefined,
             );
         };
 
@@ -2783,7 +2797,7 @@ type SearchOptionsConfig = {
     allPolicyTags?: OnyxCollection<PolicyTagLists>;
     sortedActions: Record<string, ReportAction[]> | undefined;
     transactionThreadIDs?: Record<string, string | undefined>;
-    lastActions?: Record<string, ReportAction>;
+    lastActions: Record<string, ReportAction> | undefined;
     currentUserLogin?: string;
     localeCompare?: LocaleContextProps['localeCompare'];
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
@@ -3007,6 +3021,83 @@ function getNoneOption(searchValue: string, isSelected: boolean, translate: Loca
     ];
 }
 
+type SelectedOptionDetailsParams = {
+    privateIsArchivedMap: Record<string, boolean>;
+    currentUserAccountID: number;
+    allPolicies: OnyxCollection<Policy>;
+    translate: LocalizedTranslate;
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    dateFnsLocale: DateFnsLocale | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    // Resolves a single report by ID instead of receiving the whole reports collection, so callers only subscribe to the reports they actually need.
+    getReportByID: (reportID: string | undefined) => OnyxEntry<Report>;
+    rules: OnyxCollection<Rule>;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
+};
+
+/**
+ * Returns the selected options to show for the search term.
+ * We show the selected participants at the top of the list when there is no search term or maximum number of participants has already been selected
+ * However, if there is a search term we remove the selected participants from the top of the list unless they are part of the search results
+ * This clears up space on mobile views, where if you create a group with 4+ people you can't see the selected participants and the search results at the same time
+ * If you select a new user you don't have a contact for, they won't get returned as part of a recent report or personal details
+ * This will add them to the list of options, deduping them if they already exist in the other lists
+ */
+function getSelectedOptionsForSearchTerm<TOptions extends ReadonlyArray<Participant | SearchOptionData>>(
+    searchTerm: string,
+    selectedOptions: TOptions,
+    listedOptions: SearchOptionData[],
+    currentUserAccountID: number,
+    translate: LocalizedTranslate,
+): TOptions | Array<TOptions[number]> {
+    if (searchTerm === '') {
+        return selectedOptions;
+    }
+
+    const cleanSearchTerm = searchTerm.trim().toLowerCase();
+    return selectedOptions.filter((participant) => {
+        const accountID = participant.accountID ?? null;
+        const isPartOfSearchTerm = doesPersonalDetailMatchSearchTerm(participant, currentUserAccountID, cleanSearchTerm, translate);
+        const isListed = listedOptions.some((option) => option.accountID === accountID);
+        return isPartOfSearchTerm && !isListed;
+    });
+}
+
+function getSelectedOptionWithDetails(participant: Participant | SearchOptionData, params: SelectedOptionDetailsParams) {
+    const {
+        privateIsArchivedMap,
+        currentUserAccountID,
+        allPolicies,
+        translate,
+        convertToDisplayString,
+        dateFnsLocale,
+        formatPhoneNumber,
+        getReportByID,
+        rules,
+        personalDetails,
+        reportAttributesDerived,
+    } = params;
+    const isReportPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
+    if (isReportPolicyExpenseChat) {
+        const expenseReport = getReportByID(participant.reportID);
+        const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReport?.reportID}`];
+        const expenseReportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${expenseReport?.policyID}`];
+        return getPolicyExpenseReportOption(
+            participant,
+            privateIsArchived,
+            personalDetails,
+            expenseReport,
+            expenseReportPolicy,
+            {translate, dateFnsLocale, convertToDisplayString, formatPhoneNumber},
+            currentUserAccountID,
+            rules,
+            reportAttributesDerived,
+        );
+    }
+    return getParticipantsOption(participant, personalDetails, translate);
+}
+
 /**
  * Handles the logic for displaying selected participants from the search term
  */
@@ -3032,78 +3123,45 @@ function formatSectionsFromSearchTerm(
     filteredWorkspaceChats: SearchOptionData[] = [],
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
 ): SectionForSearchTerm {
-    // We show the selected participants at the top of the list when there is no search term or maximum number of participants has already been selected
-    // However, if there is a search term we remove the selected participants from the top of the list unless they are part of the search results
-    // This clears up space on mobile views, where if you create a group with 4+ people you can't see the selected participants and the search results at the same time
-    if (searchTerm === '') {
-        return {
-            section: {
-                title: undefined,
-                sectionIndex: 0,
-                data: shouldGetOptionDetails
-                    ? selectedOptions.map((participant) => {
-                          const isReportPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
-                          if (isReportPolicyExpenseChat) {
-                              const expenseReport = getReportByID(participant.reportID);
-                              const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReport?.reportID}`];
-                              const expenseReportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${expenseReport?.policyID}`];
-                              return getPolicyExpenseReportOption(
-                                  participant,
-                                  privateIsArchived,
-                                  personalDetails,
-                                  expenseReport,
-                                  expenseReportPolicy,
-                                  {translate, dateFnsLocale, convertToDisplayString, formatPhoneNumber},
-                                  currentUserAccountID,
-                                  rules,
-                                  reportAttributesDerived,
-                              );
-                          }
-                          return getParticipantsOption(participant, personalDetails, translate);
-                      })
-                    : selectedOptions,
-            },
-        };
-    }
-
-    const cleanSearchTerm = searchTerm.trim().toLowerCase();
-    // If you select a new user you don't have a contact for, they won't get returned as part of a recent report or personal details
-    // This will add them to the list of options, deduping them if they already exist in the other lists
-    const selectedParticipantsWithoutDetails = selectedOptions.filter((participant) => {
-        const accountID = participant.accountID ?? null;
-        const isPartOfSearchTerm = doesPersonalDetailMatchSearchTerm(participant, currentUserAccountID, cleanSearchTerm, translate);
-        const isReportInRecentReports = filteredRecentReports.some((report) => report.accountID === accountID) || filteredWorkspaceChats.some((report) => report.accountID === accountID);
-        const isReportInPersonalDetails = filteredPersonalDetails.some((personalDetail) => personalDetail.accountID === accountID);
-
-        return isPartOfSearchTerm && !isReportInRecentReports && !isReportInPersonalDetails;
-    });
-
+    const options = getSelectedOptionsForSearchTerm(
+        searchTerm,
+        selectedOptions,
+        [...filteredRecentReports, ...filteredWorkspaceChats, ...filteredPersonalDetails],
+        currentUserAccountID,
+        translate,
+    );
+    const detailsParams = {
+        privateIsArchivedMap,
+        currentUserAccountID,
+        allPolicies,
+        translate,
+        convertToDisplayString,
+        dateFnsLocale,
+        formatPhoneNumber,
+        getReportByID,
+        rules,
+        personalDetails,
+        reportAttributesDerived,
+    };
     return {
         section: {
             title: undefined,
             sectionIndex: 0,
-            data: shouldGetOptionDetails
-                ? selectedParticipantsWithoutDetails.map((participant) => {
-                      const isReportPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
-                      if (isReportPolicyExpenseChat) {
-                          const expenseReport = getReportByID(participant.reportID);
-                          const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReport?.reportID}`];
-                          const expenseReportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${expenseReport?.policyID}`];
-                          return getPolicyExpenseReportOption(
-                              participant,
-                              privateIsArchived,
-                              personalDetails,
-                              expenseReport,
-                              expenseReportPolicy,
-                              {translate, dateFnsLocale, convertToDisplayString, formatPhoneNumber},
-                              currentUserAccountID,
-                              rules,
-                              reportAttributesDerived,
-                          );
-                      }
-                      return getParticipantsOption(participant, personalDetails, translate);
-                  })
-                : selectedParticipantsWithoutDetails,
+            data: shouldGetOptionDetails ? options.map((option) => getSelectedOptionWithDetails(option, detailsParams)) : options,
+        },
+    };
+}
+
+/**
+ * Returns the section of selected IOU participants for the search term, each with its option details
+ */
+function formatSelectedParticipantsFromSearchTerm(searchTerm: string, participants: readonly Participant[], params: SelectedOptionDetailsParams): SectionForSearchTerm {
+    const options = getSelectedOptionsForSearchTerm(searchTerm, participants, [], params.currentUserAccountID, params.translate);
+    return {
+        section: {
+            title: undefined,
+            sectionIndex: 0,
+            data: options.map((participant) => getSelectedOptionWithDetails(participant, params)),
         },
     };
 }
@@ -3500,6 +3558,7 @@ export {
     filterWorkspaceChats,
     formatMemberForList,
     formatSectionsFromSearchTerm,
+    formatSelectedParticipantsFromSearchTerm,
     getAlternateText,
     getEmptyOptions,
     getHeaderMessage,

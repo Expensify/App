@@ -26,7 +26,6 @@ import {openExternalLink} from '@userActions/Link';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
@@ -47,16 +46,11 @@ function AccountFlowEntryPoint({policyName = '', onBackButtonPress}: AccountFlow
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bank', 'Connect', 'Lightbulb', 'Lock']);
 
     const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED);
-    const [personalBankAccount, personalBankAccountResult] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
-    const isLoadingPersonalBankAccount = isLoadingOnyxValue(personalBankAccountResult);
+    const [personalBankAccount] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
     const onSuccessFallbackRoute = personalBankAccount?.onSuccessFallbackRoute;
     const exitReportID = personalBankAccount?.exitReportID;
 
     useEffect(() => {
-        if (isLoadingPersonalBankAccount) {
-            return;
-        }
-
         // Clear stale flow state on entry but keep onSuccessFallbackRoute and exitReportID if they were set before.
         // openPersonalBankAccountSetupView also resets state, but this handles direct navigation to this screen.
         const preservedData = {
@@ -64,8 +58,9 @@ function AccountFlowEntryPoint({policyName = '', onBackButtonPress}: AccountFlow
             ...(exitReportID ? {exitReportID} : {}),
         };
         clearPersonalBankAccount(Object.keys(preservedData).length > 0 ? preservedData : undefined);
+        // The flow state is cleared once, on entry. Later changes to the preserved fields come from this flow and must not clear it again.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isLoadingPersonalBankAccount]);
+    }, []);
 
     const handleConnectManually = () => {
         updateAddPersonalBankAccountDraft({
@@ -136,14 +131,24 @@ function AccountFlowEntryPoint({policyName = '', onBackButtonPress}: AccountFlow
                     </View>
                 </Section>
                 <View style={[styles.mv0, styles.mh5, styles.flexRow, styles.justifyContentBetween]}>
-                    <TextLink href={CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}>{translate('common.privacy')}</TextLink>
+                    <TextLink
+                        sentryLabel={CONST.SENTRY_LABEL.BANK_ACCOUNT.PRIVACY_LINK}
+                        href={CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}
+                    >
+                        {translate('common.privacy')}
+                    </TextLink>
                     <PressableWithoutFeedback
                         onPress={() => openExternalLink(CONST.ENCRYPTION_AND_SECURITY_HELP_URL)}
                         style={[styles.flexRow, styles.alignItemsCenter]}
                         accessibilityLabel={translate('bankAccount.yourDataIsSecure')}
                         sentryLabel={CONST.SENTRY_LABEL.BANK_ACCOUNT.DATA_SECURE_LINK}
                     >
-                        <TextLink href={CONST.ENCRYPTION_AND_SECURITY_HELP_URL}>{translate('bankAccount.yourDataIsSecure')}</TextLink>
+                        <TextLink
+                            sentryLabel={CONST.SENTRY_LABEL.BANK_ACCOUNT.DATA_SECURE_LINK}
+                            href={CONST.ENCRYPTION_AND_SECURITY_HELP_URL}
+                        >
+                            {translate('bankAccount.yourDataIsSecure')}
+                        </TextLink>
                         <View style={styles.ml1}>
                             <Icon
                                 src={expensifyIcons.Lock}

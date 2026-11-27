@@ -29,6 +29,18 @@ describe('sanitizeLogParams', () => {
         expect(result).toEqual({authToken: '<redacted>', password: '<redacted>', token: '<redacted>'});
     });
 
+    it('redacts the explanation query from both API and network logs', () => {
+        // Given an Insights explanation query with card evidence.
+        const command = 'GetInsightsExplanation';
+        const data = {jsonQuery: JSON.stringify({evidence: {total: 4623}}), hash: 123};
+
+        // When the request parameters are logged, then the evidence is redacted without changing the request.
+        expect(sanitizeLogParams({command, ...data})).toEqual({command, jsonQuery: '<redacted>', hash: 123});
+        expect(sanitizeLogParams({command, data})).toEqual({command, data: {jsonQuery: '<redacted>', hash: 123}});
+        expect(sanitizeLogParams({command: 'GetInsights', data}).data).toEqual(data);
+        expect(data.jsonQuery).toContain('4623');
+    });
+
     it('redacts card number and CVV so payment card details never reach the logs', () => {
         const result = sanitizeLogParams({
             command: 'AddPaymentCard',
@@ -51,6 +63,31 @@ describe('sanitizeLogParams', () => {
                 addressZip: '94105',
             },
         });
+    });
+
+    it('redacts the Expensify Card PIN that card PIN commands send', () => {
+        // Given the parameters of a PIN change, which the API logs before sending and again if the request fails
+        const params = {command: 'ChangeCardPIN', cardID: 123, pin: '1234', signedChallenge: '{"signature":"secret"}', authenticationMethod: 'BIOMETRICS'};
+
+        // When they are sanitized for the logs
+        const result = sanitizeLogParams(params);
+
+        // Then the PIN is redacted, so it never reaches the server logs, and the card and authentication method stay readable
+        expect(result).toEqual({command: 'ChangeCardPIN', cardID: 123, pin: '<redacted>', signedChallenge: '<redacted>', authenticationMethod: 'BIOMETRICS'});
+    });
+
+    it('redacts the PIN and card details that card reveal commands return', () => {
+        // Given the responses of the PIN and card reveal commands, which the Logging middleware logs
+        const revealPINResponse = {jsonCode: 200, pin: '1234'};
+        const revealCardResponse = {jsonCode: 200, pan: '4111111111111111', expiration: '0430', cvv: '123'};
+
+        // When they are sanitized for the logs
+        const revealPINResult = sanitizeLogParams(revealPINResponse);
+        const revealCardResult = sanitizeLogParams(revealCardResponse);
+
+        // Then the PIN, card number, expiry and CVV are redacted, and the response code stays readable
+        expect(revealPINResult).toEqual({jsonCode: 200, pin: '<redacted>'});
+        expect(revealCardResult).toEqual({jsonCode: 200, pan: '<redacted>', expiration: '<redacted>', cvv: '<redacted>'});
     });
 
     it('redacts the inputs of a Wise onboarding page, which can hold an SSN', () => {

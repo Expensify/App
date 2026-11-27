@@ -9,7 +9,7 @@ import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
-import {AddWorkEmail, MergeIntoAccountAndLogin} from '@libs/actions/Session';
+import {addWorkEmail, MergeIntoAccountAndLogin} from '@libs/actions/Session';
 import HttpUtils from '@libs/HttpUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
@@ -282,7 +282,7 @@ describe('Onboarding work email navigation', () => {
         // Submitting a work email that needs validation must replace the work email screen, not push on top of it.
         let restoreXhr = mockResponseOnce({shouldValidate: true});
         await act(async () => {
-            AddWorkEmail(workEmail);
+            addWorkEmail(workEmail);
             await waitForBatchedUpdates();
         });
         restoreXhr();

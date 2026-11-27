@@ -1,14 +1,25 @@
 import {act, renderHook} from '@testing-library/react-native';
 
-import useReportIDToNameMap, {buildMentionedRoomPlaceholderMap, buildReportIDToNameMap, getMentionedReportIDs, getReportIDToNameMapForRoomsInMarkdown} from '@hooks/useReportIDToNameMap';
+import useReportIDToNameMap, {useMentionedReportIDToNameMap} from '@hooks/useReportIDToNameMap';
 
+import {
+    buildMentionedReportIDToNameMapFromReportNames,
+    buildMentionedRoomPlaceholderMap,
+    buildReportIDToNameMap,
+    getMentionedReportIDs,
+    getMentionedReportIDsInReportActions,
+    getReportIDToNameMapForRoomsInMarkdown,
+} from '@libs/ReportIDToNameMapUtils';
+
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
+import type {Report, ReportAction} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
+import createMock from '../utils/createMock';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 function createReport(reportID: string, overrides: Partial<Report> = {}): Report {
@@ -199,6 +210,75 @@ describe('getMentionedReportIDs', () => {
     });
 });
 
+describe('useMentionedReportIDToNameMap', () => {
+    const renderMentioned = async (html: string | undefined) => {
+        const hook = renderHook(() => useMentionedReportIDToNameMap(html));
+        await act(async () => {
+            await waitForBatchedUpdates();
+        });
+        return hook;
+    };
+
+    it('maps only the reports mentioned in the HTML', async () => {
+        // Given three reports, two of which are mentioned
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}1`, createReport('1', {reportName: '#admins'}));
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}2`, createReport('2', {reportName: '#announce'}));
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}3`, createReport('3', {reportName: undefined}));
+
+        // When mapping the mentioned reports
+        const {result} = await renderMentioned('<mention-report reportID="1"/> and <mention-report reportID="3"/>');
+
+        // Then the unmentioned report is left out and the fallback name is still the reportID
+        const adminsRoomID = '1';
+        const unnamedReportID = '3';
+        expect(result.current).toEqual({[adminsRoomID]: '#admins', [unnamedReportID]: unnamedReportID});
+    });
+
+    it('keeps the same reference when an unrelated report changes', async () => {
+        // Given a map scoped to one mentioned report
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}1`, createReport('1', {reportName: '#admins'}));
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}2`, createReport('2', {reportName: '#announce'}));
+        const {result} = await renderMentioned('<mention-report reportID="1"/>');
+        const firstResult = result.current;
+
+        // When a report that is not mentioned is renamed
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}2`, {reportName: '#renamed'});
+            await waitForBatchedUpdates();
+        });
+
+        // Then the selector output is unchanged, so the caller does not re-render for that write
+        expect(result.current).toBe(firstResult);
+    });
+
+    it('updates when a mentioned report is renamed', async () => {
+        // Given a map scoped to one mentioned report
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}1`, createReport('1', {reportName: '#admins'}));
+        const {result} = await renderMentioned('<mention-report reportID="1"/>');
+        expect(result.current['1']).toBe('#admins');
+
+        // When that report is renamed
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {reportName: '#renamed'});
+            await waitForBatchedUpdates();
+        });
+
+        // Then the new name is what htmlToMarkdown will see
+        expect(result.current['1']).toBe('#renamed');
+    });
+
+    it('returns an empty map when nothing is mentioned', async () => {
+        // Given reports exist but the HTML mentions none of them
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}1`, createReport('1', {reportName: '#admins'}));
+
+        // When mapping the mentioned reports
+        const {result} = await renderMentioned('plain text');
+
+        // Then no report is walked or returned
+        expect(result.current).toEqual({});
+    });
+});
+
 describe('buildReportIDToNameMap', () => {
     const adminsRoomID = '1';
     const announceRoomID = '2';
@@ -283,5 +363,70 @@ describe('buildMentionedRoomPlaceholderMap', () => {
 
         // Then nothing is mapped
         expect(map).toEqual({});
+    });
+});
+
+describe('getMentionedReportIDsInReportActions', () => {
+    it('returns the rooms mentioned in every message fragment of every action, once each', () => {
+        // Given two actions, one with several fragments, that mention the same room more than once
+        const firstAction = createMock<ReportAction>({
+            message: [
+                {type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: 'a <mention-report reportID="1"></mention-report>', text: 'a'},
+                {type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: 'b <mention-report reportID="2"></mention-report>', text: 'b'},
+            ],
+        });
+        const secondAction = createMock<ReportAction>({
+            message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: 'c <mention-report reportID="1"></mention-report>', text: 'c'}],
+        });
+
+        // When reading the mentioned reportIDs, with a missing action as LHN rows pass when there is no swapped action
+        const reportIDs = getMentionedReportIDsInReportActions([firstAction, undefined, secondAction]);
+
+        // Then each room is looked up once, so the LHN text and thread names name all of them
+        expect(reportIDs).toEqual(['1', '2']);
+    });
+});
+
+describe('buildMentionedReportIDToNameMapFromReportNames', () => {
+    it('maps only the mentioned rooms that have a name', () => {
+        // Given derived report names for more reports than the action mentions
+        const [namedRoomID, otherRoomID, unnamedRoomID, unloadedRoomID] = ['1', '2', '3', '4'];
+        const reportNames = {[namedRoomID]: {reportName: '#one', rawReportName: '#one'}, [otherRoomID]: {reportName: '#two', rawReportName: '#two'}, [unnamedRoomID]: {reportName: ''}};
+        const reportAction = createMock<ReportAction>({
+            message: [
+                {
+                    type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                    html: `<mention-report reportID="${namedRoomID}"></mention-report> <mention-report reportID="${unnamedRoomID}"></mention-report> <mention-report reportID="${unloadedRoomID}"></mention-report>`,
+                    text: '',
+                },
+            ],
+        });
+
+        // When building the map for the rooms the action mentions, one of which has no name and one of which isn't loaded
+        const map = buildMentionedReportIDToNameMapFromReportNames(reportNames, [reportAction]);
+
+        // Then only the named room is mapped, so rooms the action doesn't mention aren't copied and no room gets an empty name
+        expect(map).toEqual({[namedRoomID]: '#one'});
+    });
+
+    it('prefers the raw name and falls back to the display name for entries restored without one', () => {
+        // Given an archived room whose display name has the archived suffix, and a room whose entry was saved by an older version without a raw name
+        const [archivedRoomID, restoredRoomID] = ['1', '2'];
+        const reportNames = {[archivedRoomID]: {reportName: '#archived (archived) ', rawReportName: '#archived'}, [restoredRoomID]: {reportName: '#restored'}};
+        const reportAction = createMock<ReportAction>({
+            message: [
+                {
+                    type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                    html: `<mention-report reportID="${archivedRoomID}"></mention-report> <mention-report reportID="${restoredRoomID}"></mention-report>`,
+                    text: '',
+                },
+            ],
+        });
+
+        // When building the map for the rooms the action mentions
+        const map = buildMentionedReportIDToNameMapFromReportNames(reportNames, [reportAction]);
+
+        // Then the archived room keeps its raw name, and the restored room is still named instead of being left out, which would render as #Hidden
+        expect(map).toEqual({[archivedRoomID]: '#archived', [restoredRoomID]: '#restored'});
     });
 });

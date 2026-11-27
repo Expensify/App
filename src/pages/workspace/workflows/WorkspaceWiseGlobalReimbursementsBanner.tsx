@@ -1,9 +1,11 @@
 import WiseGlobalReimbursementsBanner from '@components/WiseGlobalReimbursementsBanner';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDeferUntilScreenRevealed from '@hooks/useDeferUntilScreenRevealed';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
+import useRunWhenOnline from '@hooks/useRunWhenOnline';
 import useShouldSuppressPromotionalUI from '@hooks/useShouldSuppressPromotionalUI';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -37,10 +39,12 @@ function WorkspaceWiseGlobalReimbursementsBanner({policyID}: WorkspaceWiseGlobal
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
     const shouldSuppressPromotionalUI = useShouldSuppressPromotionalUI();
+    const runWhenOnline = useRunWhenOnline();
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [isDismissed = true] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {selector: isBannerDismissedSelector});
 
-    const bankAccountID = getWorkspaceWiseGlobalReimbursementsBannerBankAccountID(policy, bankAccountList);
+    // Saving the first onboarding page in the RHP retires the banner, so it waits for the RHP to close instead of vanishing behind it
+    const bankAccountID = useDeferUntilScreenRevealed(getWorkspaceWiseGlobalReimbursementsBannerBankAccountID(policy, bankAccountList));
 
     if (!isBetaEnabled(CONST.BETAS.WISE_REIMBURSEMENTS) || !isPolicyAdmin(policy, currentUserLogin) || shouldSuppressPromotionalUI || isDismissed || !bankAccountID) {
         return null;
@@ -49,7 +53,7 @@ function WorkspaceWiseGlobalReimbursementsBanner({policyID}: WorkspaceWiseGlobal
     return (
         <View style={styles.mt6}>
             <WiseGlobalReimbursementsBanner
-                onGetStartedPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.getRoute(bankAccountID)))}
+                onGetStartedPress={() => runWhenOnline(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.getRoute(bankAccountID))))}
                 onDismissPress={() => dismissProductTraining(CONST.WISE_GLOBAL_REIMBURSEMENTS_WORKSPACE_BANNER, true)}
                 sentryLabels={CONST.SENTRY_LABEL.WISE_GLOBAL_REIMBURSEMENTS_WORKSPACE_BANNER}
             />

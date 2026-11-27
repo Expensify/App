@@ -210,4 +210,27 @@ describe('TaxOptionsListUtils', () => {
         });
         expect(selectedDeletedResult).toStrictEqual(selectedDeletedResultList);
     });
+
+    it('does not repeat the percentage of a rate whose name already ends with it', () => {
+        // Given a default rate named with its percentage, like the one created for UK fuel-band distance rates, next to a plain one
+        const policy = createMock<Policy>({
+            taxRates: {
+                name: 'Tax',
+                defaultExternalID: 'STANDARD_VAT',
+                defaultValue: '20%',
+                foreignTaxDefault: 'STANDARD_VAT',
+                taxes: {
+                    STANDARD_VAT: {name: 'Standard VAT (20%)', value: '20%'},
+                    ZERO_RATED: {name: 'Zero rated', value: '0%'},
+                },
+            },
+        });
+
+        // When the picker builds its options
+        const sections = getTaxRatesSection({policy, searchValue: '', localeCompare, translate: translateLocal});
+
+        // Then the named rate shows its percentage once, and the plain rate still gets its percentage added
+        const optionTexts = sections.flatMap((section) => section.data.map((option) => option.text));
+        expect(optionTexts).toEqual(['Standard VAT (20%) • Default', 'Zero rated (0%)']);
+    });
 });

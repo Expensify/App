@@ -9,7 +9,7 @@ import {toDate} from 'date-fns-tz';
 
 import DateUtils from './DateUtils';
 import tokenizedSearch from './tokenizedSearch';
-import {getWaypointIndex, hasPendingDistanceReceiptRegeneration} from './TransactionUtils';
+import {getValidWaypoints, getWaypointIndex, hasPendingDistanceReceiptRegeneration} from './TransactionUtils';
 import tryResolveUrlFromApiRoot from './tryResolveUrlFromApiRoot';
 
 /**
@@ -63,15 +63,40 @@ function formatLastUsed(inserted: string, dateFnsLocale: DateFnsLocale | undefin
 }
 
 /**
- * Resolves the reusable routes that can be shown. While online, routes whose source expense still has a pending map
- * receipt (just created, or its waypoints/distance edited) are left out until the server generates the new map image,
- * the same check the report preview uses before loading a distance receipt.
+ * Checks that every waypoint on the route is valid. Routes created offline with invalid addresses
+ * receive zero coordinates once synced, so getValidWaypoints drops them and the count no longer matches.
+ */
+function hasValidWaypoints(waypoints: WaypointCollection | undefined): boolean {
+    if (!waypoints) {
+        return false;
+    }
+    const waypointsCount = Object.keys(waypoints).length;
+    return waypointsCount >= 2 && Object.keys(getValidWaypoints(waypoints)).length === waypointsCount;
+}
+
+/**
+ * Resolves the reusable routes that can be shown. Routes with invalid waypoints or no resolved route distance are
+ * excluded. While online, routes whose source expense still has a pending map receipt (just created, or its
+ * waypoints/distance edited) are left out until the server generates the new map image, the same check the report
+ * preview uses before loading a distance receipt.
  */
 function getAvailableReusableDistanceRoutes(routes: ReusableDistanceRoute[] | undefined, transactions: OnyxCollection<Transaction> | undefined, isOffline: boolean): ReusableDistanceRoute[] {
-    if (!routes?.length || isOffline) {
-        return routes ?? [];
+    if (!routes?.length) {
+        return [];
     }
-    return routes.filter((route) => !hasPendingDistanceReceiptRegeneration(transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${route.transactionID}`]));
+    return routes.filter((route) => {
+        const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${route.transactionID}`];
+        if (!hasValidWaypoints(route.waypoints) || (transaction?.comment?.waypoints && !hasValidWaypoints(transaction.comment.waypoints))) {
+            return false;
+        }
+        const hasPendingReceipt = hasPendingDistanceReceiptRegeneration(transaction);
+        if (!isOffline && hasPendingReceipt) {
+            return false;
+        }
+        const distance = transaction?.comment?.customUnit?.quantity ?? route.distance;
+        const isPendingOfflineRoute = isOffline && (hasPendingReceipt || Object.values(route.waypoints).some((waypoint) => waypoint.lat === undefined || waypoint.lng === undefined));
+        return (distance ?? 0) > 0 || isPendingOfflineRoute;
+    });
 }
 
 /**

@@ -53,6 +53,36 @@ describe('insightsDetailsItem', () => {
         expect(itemParams).toEqual({itemKey: '42'});
     });
 
+    it('trims a period to the date range on the date the chart counts by', () => {
+        // Given March clicked on a Compliance chart counting by submission date, whose Date range runs from February 20 to March 20
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- only the fields the key reads are needed
+        const item = {groupedBy: CONST.SEARCH.GROUP_BY.MONTH, year: 2026, month: 3} as GroupedItem;
+        const queryJSON = buildSearchQueryJSON('type:expense any-submission>=2026-02-20 any-submission<=2026-03-20');
+
+        // When the Details panel's URL params are built for it
+        const itemParams = queryJSON && getInsightsDetailsItemParams(item, queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_SUBMISSION);
+
+        // Then the period is the part of March inside the submission date range
+        expect(itemParams).toEqual({itemKey: '2026-03-01', periodEnd: '2026-03-20'});
+    });
+
+    it('names an approver group by their account ID and a violation group by its name', () => {
+        // Given an approver group and a violation group from the Compliance charts
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- only the fields the key reads are needed
+        const approver = {groupedBy: CONST.SEARCH.GROUP_BY.APPROVER, accountID: 7} as GroupedItem;
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- only the fields the key reads are needed
+        const violation = {groupedBy: CONST.SEARCH.GROUP_BY.VIOLATION, violation: CONST.VIOLATIONS.RECEIPT_REQUIRED} as GroupedItem;
+        const queryJSON = buildSearchQueryJSON('type:expense');
+
+        // When the Details panel's URL params are built for them
+        const approverParams = queryJSON && getInsightsDetailsItemParams(approver, queryJSON);
+        const violationParams = queryJSON && getInsightsDetailsItemParams(violation, queryJSON);
+
+        // Then the keys are the account ID and the violation's name, which don't change with the display language
+        expect(approverParams).toEqual({itemKey: '7'});
+        expect(violationParams).toEqual({itemKey: CONST.VIOLATIONS.RECEIPT_REQUIRED});
+    });
+
     it('resolves a month to its label and a filter on its dates', () => {
         // Given the keys of February on a chart grouped by month
         // When the panel resolves them
@@ -69,6 +99,45 @@ describe('insightsDetailsItem', () => {
 
         // Then the title is the member's display name and the filter narrows to their expenses
         expect(item).toEqual({title: 'Jane Doe', filterQuery: 'from:1'});
+    });
+
+    it('resolves a period to a filter on the date the chart counts by', () => {
+        // Given the keys of March on a Compliance chart counting violations by submission date
+        // When the panel resolves them
+        const item = resolveInsightsDetailsItem({
+            groupBy: CONST.SEARCH.GROUP_BY.MONTH,
+            itemKey: '2026-03-01',
+            periodEnd: '2026-03-31',
+            dateFilterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_SUBMISSION,
+            member: undefined,
+            dateFnsLocale: undefined,
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the resolver only reads the translation keys it passes
+            translate: translate as never,
+        });
+
+        // Then the filter narrows the submission date, so the expenses listed are the ones the chart counted in March
+        expect(item?.filterQuery).toBe(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_SUBMISSION}>=2026-03-01 ${CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_SUBMISSION}<=2026-03-31`);
+    });
+
+    it('resolves an approver key to their name and a filter on the reports they approved', () => {
+        // Given the key of an approver on Violations by approver
+        // When the panel resolves it
+        const item = resolve(CONST.SEARCH.GROUP_BY.APPROVER, '1');
+
+        // Then the title is the approver's display name and the filter narrows to their approvals
+        expect(item).toEqual({title: 'Jane Doe', filterQuery: 'approver:1'});
+    });
+
+    it('resolves a violation key to its name and a filter on the violation', () => {
+        // Given the key of a violation on Top violations
+        // When the panel resolves it
+        const item = resolve(CONST.SEARCH.GROUP_BY.VIOLATION, CONST.VIOLATIONS.RECEIPT_REQUIRED);
+
+        // Then the title is the violation's short name and the filter narrows to expenses with it
+        expect(item).toEqual({
+            title: `violations.shortName.${CONST.VIOLATIONS.RECEIPT_REQUIRED}`,
+            filterQuery: `${CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION}:${CONST.VIOLATIONS.RECEIPT_REQUIRED}`,
+        });
     });
 
     it.each([
@@ -101,5 +170,53 @@ describe('insightsDetailsItem', () => {
 
         // Then the title reads No merchant, matching the chart's label for that group
         expect(item?.title).toBe('search.noMerchant');
+    });
+
+    it('names a dependent tag group by its tag and parents', () => {
+        // Given a second-level tag that depends on a first-level tag
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- only the fields the key reads are needed
+        const item = {groupedBy: CONST.SEARCH.GROUP_BY.TAG, tag: 'Krakow', tagLevel: 2, parentTagPath: 'Poland'} as GroupedItem;
+        const queryJSON = buildSearchQueryJSON('type:expense');
+
+        // When the Details panel's URL params are built for it
+        const itemParams = queryJSON && getInsightsDetailsItemParams(item, queryJSON);
+
+        // Then the URL carries the level and parents too, since the same tag on another level or under another parent is a different group
+        expect(itemParams).toEqual({itemKey: 'Krakow', tagLevel: 2, parentTagPath: 'Poland'});
+    });
+
+    it('resolves a dependent tag to its label and a filter on its level and parents', () => {
+        // Given the keys of a second-level tag on a chart grouped by the second tag level
+        // When the panel resolves them
+        const item = resolveInsightsDetailsItem({
+            groupBy: CONST.SEARCH.GROUP_BY.TAG,
+            itemKey: 'Krakow',
+            parentTagPath: 'Poland',
+            tagLevel: 2,
+            member: undefined,
+            dateFnsLocale: undefined,
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the resolver only reads the translation keys it passes
+            translate: translate as never,
+        });
+
+        // Then the title names the parent like the chart's label, and the filter skips Krakow under other parents
+        expect(item).toEqual({title: 'Krakow (Poland)', filterQuery: 'tag:Krakow tagLevel:2 tagParent:Poland'});
+    });
+
+    it('resolves no tag for a level that is not a positive whole number', () => {
+        // Given a tag level that is not a level, as in a hand-edited URL
+        // When the panel resolves it
+        const item = resolveInsightsDetailsItem({
+            groupBy: CONST.SEARCH.GROUP_BY.TAG,
+            itemKey: 'Krakow',
+            tagLevel: Number('foo'),
+            member: undefined,
+            dateFnsLocale: undefined,
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the resolver only reads the translation keys it passes
+            translate: translate as never,
+        });
+
+        // Then nothing resolves, so the panel shows the not found page instead of listing every expense with the tag
+        expect(item).toBeUndefined();
     });
 });

@@ -11,16 +11,18 @@ import useLoadPolicyCategories from '@hooks/useLoadPolicyCategories';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {getCategoryListSections} from '@libs/CategoryOptionListUtils';
-import type {Category} from '@libs/CategoryOptionListUtils';
-import {canCreateCategoryFromSearch, getEnabledCategoriesCount, getVisibleCategories} from '@libs/CategoryUtils';
+import type {Category, CategoryTreeSection} from '@libs/CategoryOptionListUtils';
+import {canCreateCategoryFromSearch, getEnabledCategoriesCount, getUnavailableCategories, getVisibleCategories} from '@libs/CategoryUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getHeaderMessageForNonUserList, getNoneOption} from '@libs/OptionsListUtils';
 import type {OptionTree} from '@libs/OptionsListUtils/types';
+import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {cancelSpan, endSpanWithAttributes} from '@libs/telemetry/activeSpans';
 
@@ -28,6 +30,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {PolicyCategories} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
@@ -74,11 +77,21 @@ type CategoryPickerProps = {
     ownerAccountID?: number;
 
     /**
-     * Reports how many rows the unfiltered list renders, for a pop-over wrapper to size itself from. The category
-     * count does not match: nested names add a row per parent, a selected out-of-policy category adds one, and
-     * the `Recent` and `All` headings add one each. Only reported unfiltered, so searching never resizes it.
+     * The expense owner when someone else recodes it. Categories are grouped by whether the owner can use them.
      */
-    onRenderedRowCountChange?: (rowCount: number) => void;
+    submitterAccountID?: number;
+};
+
+/**
+ * Titles a group of sections built by getCategoryListSections: the first section with rows gets the group's title,
+ * since a section's title only shows when it has rows. Offsetting the indexes keeps the header keys unique across groups.
+ */
+/** Larger than any sectionIndex getCategoryListSections returns, so offset groups never share a header key */
+const SECTION_INDEX_OFFSET = 10;
+
+const titleSectionGroup = (sections: CategoryTreeSection[], title: string, sectionIndexOffset: number): CategoryTreeSection[] => {
+    const titledSectionIndex = sections.findIndex((section) => section.data.length > 0);
+    return sections.map((section, index) => ({...section, title: index === titledSectionIndex ? title : '', sectionIndex: (section.sectionIndex ?? 0) + sectionIndexOffset}));
 };
 
 const getSelectedOptions = (selectedCategory?: string): Category[] => {
@@ -95,98 +108,187 @@ const getSelectedOptions = (selectedCategory?: string): Category[] => {
     ];
 };
 
-function CategoryPicker({
-    selectedCategory,
-    policyID,
-    onSubmit,
-    onCreateCategory,
-    shouldShowNoneOption = false,
-    addBottomSafeAreaPadding = false,
-    shouldAutoFocusSearchInput = false,
-    shouldAlwaysShowGLCode = false,
-    searchInputThreshold = CONST.STANDARD_LIST_ITEM_LIMIT,
-    onRenderedRowCountChange,
-    ownerAccountID,
-}: CategoryPickerProps) {
-    const styles = useThemeStyles();
-    const theme = useTheme();
-    const icons = useMemoizedLazyExpensifyIcons(['Plus']);
-    const {inputCallbackRef} = useAutoFocusInput();
+type CategoryPickerOptionsProps = Pick<
+    CategoryPickerProps,
+    'selectedCategory' | 'policyID' | 'shouldShowNoneOption' | 'shouldAlwaysShowGLCode' | 'searchInputThreshold' | 'ownerAccountID' | 'submitterAccountID'
+>;
+
+function useCategoryPickerData(policyID: string | undefined, submitterAccountID?: number) {
     const [shouldShowGLCodeFromPolicy] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(policyID)}`, {
         selector: (policy) => !!policy?.showCategoryGLCodes && !!policy?.glCodes,
     });
-    const shouldShowGLCode = shouldAlwaysShowGLCode || !!shouldShowGLCodeFromPolicy;
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`);
     const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${getNonEmptyStringOnyxID(policyID)}`);
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`);
-    const {isOffline} = useNetwork();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
+    const [submitterPersonalDetails] = usePersonalDetailsByIDs([submitterAccountID]);
+    return {policyCategories, policyCategoriesDraft, policyRecentlyUsedCategories, shouldShowGLCodeFromPolicy, translate, localeCompare, formatPhoneNumber, submitterPersonalDetails};
+}
 
-    // Backfill the policy's categories on demand so lazy-loaded accounts don't get stuck showing only the selected category.
-    const {isLoadingPolicyCategories} = useLoadPolicyCategories(policyID);
-
-    const {translate, localeCompare} = useLocalize();
-    const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
-    const offlineMessage = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
+function getCategoryPickerOptions(
+    {
+        policyCategories,
+        policyCategoriesDraft,
+        policyRecentlyUsedCategories,
+        shouldShowGLCodeFromPolicy,
+        translate,
+        localeCompare,
+        formatPhoneNumber,
+        submitterPersonalDetails,
+    }: ReturnType<typeof useCategoryPickerData>,
+    {
+        selectedCategory,
+        shouldShowNoneOption = false,
+        shouldAlwaysShowGLCode = false,
+        searchInputThreshold = CONST.STANDARD_LIST_ITEM_LIMIT,
+        ownerAccountID,
+        submitterAccountID,
+    }: Omit<CategoryPickerOptionsProps, 'policyID'>,
+) {
+    const shouldShowGLCode = shouldAlwaysShowGLCode || !!shouldShowGLCodeFromPolicy;
+    const allCategories = policyCategories ?? policyCategoriesDraft ?? {};
 
     const selectedOptions = getSelectedOptions(selectedCategory);
-
-    const allCategories = policyCategories ?? policyCategoriesDraft ?? {};
     const categories = ownerAccountID === undefined ? allCategories : getVisibleCategories(allCategories, ownerAccountID);
     const validPolicyRecentlyUsedCategories = policyRecentlyUsedCategories?.filter?.((p) => !isEmptyObject(p));
-    const sections = getCategoryListSections({
-        searchValue: debouncedSearchValue,
-        selectedOptions,
-        categories,
-        localeCompare,
-        recentlyUsedCategories: validPolicyRecentlyUsedCategories,
-        translate,
-        shouldShowGLCode,
-        searchInputThreshold,
-    });
+    const unavailableCategories = submitterAccountID === undefined ? {} : getUnavailableCategories(allCategories, submitterAccountID);
+    const getSectionsForQuery = (searchValue: string): CategoryTreeSection[] => {
+        if (submitterAccountID === undefined || isEmptyObject(unavailableCategories)) {
+            return getCategoryListSections({
+                searchValue,
+                selectedOptions,
+                categories,
+                localeCompare,
+                recentlyUsedCategories: validPolicyRecentlyUsedCategories,
+                translate,
+                shouldShowGLCode,
+                searchInputThreshold,
+            });
+        }
 
-    const noneOption: OptionTree[] = shouldShowNoneOption
-        ? getNoneOption(debouncedSearchValue, !selectedCategory, translate).map(
-              (option): OptionTree => ({
+        const submitterName = getDisplayNameForParticipant({
+            accountID: submitterAccountID,
+            personalDetailsData: submitterPersonalDetails,
+            formatPhoneNumber,
+            hiddenTranslation: translate('common.hidden'),
+        });
+        // Keep the selected category above the groups without repeating it in either group.
+        const selectedPolicyCategory = selectedCategory ? allCategories[selectedCategory] : undefined;
+        const withoutSelectedCategory = (groupCategories: PolicyCategories): PolicyCategories =>
+            Object.fromEntries(Object.entries(groupCategories).filter(([categoryName]) => categoryName !== selectedCategory));
+        // Suppress Recent and All within each group, so the availability headings are the only headings.
+        const buildGroupSections = (groupCategories: PolicyCategories, groupSelectedOptions: Category[]) =>
+            getCategoryListSections({
+                searchValue,
+                selectedOptions: groupSelectedOptions,
+                categories: groupCategories,
+                localeCompare,
+                translate,
+                shouldShowGLCode,
+                searchInputThreshold: Number.POSITIVE_INFINITY,
+            });
+        const selectedSections = buildGroupSections(selectedCategory && selectedPolicyCategory ? {[selectedCategory]: selectedPolicyCategory} : {}, selectedOptions);
+        const availableSections = buildGroupSections(withoutSelectedCategory(getVisibleCategories(allCategories, submitterAccountID)), []);
+        const unavailableSections = buildGroupSections(withoutSelectedCategory(unavailableCategories), []);
+        return [
+            ...selectedSections.map((section) => ({...section, title: ''})),
+            ...titleSectionGroup(availableSections, translate('workspace.categories.availableToMember', submitterName), SECTION_INDEX_OFFSET),
+            ...titleSectionGroup(unavailableSections, translate('workspace.categories.notAvailableToMember', submitterName), SECTION_INDEX_OFFSET * 2),
+        ];
+    };
+    const getSections = (searchValue: string) => {
+        const sections = getSectionsForQuery(searchValue);
+
+        const noneOption: OptionTree[] = shouldShowNoneOption
+            ? getNoneOption(searchValue, !selectedCategory, translate).map((option): OptionTree => ({
                   text: option.text,
                   keyForList: option.keyForList,
                   searchText: '',
                   tooltipText: option.text,
                   isDisabled: false,
                   isSelected: option.isSelected,
-              }),
-          )
-        : [];
-    const noneOptionSection = {
-        title: '',
-        data: noneOption,
-        sectionIndex: -1,
-    };
-    const selectedCategorySectionIndex = sections.findIndex((section) => section.data.some((category) => category.searchText === selectedCategory));
-    const sectionsWithNoneOption =
-        noneOption.length > 0 ? [...sections.slice(0, selectedCategorySectionIndex + 1), noneOptionSection, ...sections.slice(selectedCategorySectionIndex + 1)] : sections;
-
-    const sectionsWithTitleStyles = sectionsWithNoneOption.map((section) => ({...section, data: section.data.map((category) => ({...category, titleStyles: styles.w100}))}));
-    const categoryData = sectionsWithNoneOption.flatMap((section) => section.data);
-    const renderedRowCount = sectionsWithNoneOption.reduce((total, section) => total + section.data.length + (section.title ? 1 : 0), 0);
-
-    useEffect(() => {
-        if (debouncedSearchValue) {
-            return;
+              }))
+            : [];
+        if (noneOption.length === 0) {
+            return sections;
         }
-        onRenderedRowCountChange?.(renderedRowCount);
-    }, [renderedRowCount, debouncedSearchValue, onRenderedRowCountChange]);
+        const noneOptionSection = {title: '', data: noneOption, sectionIndex: -1};
+        const selectedCategorySectionIndex = sections.findIndex((section) => section.data.some((category) => category.searchText === selectedCategory));
+        return [...sections.slice(0, selectedCategorySectionIndex + 1), noneOptionSection, ...sections.slice(selectedCategorySectionIndex + 1)];
+    };
 
     const categoriesCount = getEnabledCategoriesCount(categories);
+    return {
+        allCategories,
+        hasDraftCategories: policyCategoriesDraft !== undefined,
+        shouldShowTextInput: categoriesCount >= searchInputThreshold,
+        // Drafts can show search in the list, but the sheet's search space and keyboard handling use saved categories.
+        hasSearchablePolicyCategories: (policyCategories ? categoriesCount : 0) >= searchInputThreshold,
+        getSections,
+    };
+}
+
+function useCategoryPickerOptions({policyID, ...options}: CategoryPickerOptionsProps) {
+    const data = useCategoryPickerData(policyID, options.submitterAccountID);
+    return getCategoryPickerOptions(data, options);
+}
+
+type CategoryPickerListProps = Pick<
+    CategoryPickerProps,
+    'policyID' | 'selectedCategory' | 'onSubmit' | 'onCreateCategory' | 'addBottomSafeAreaPadding' | 'shouldAutoFocusSearchInput' | 'ownerAccountID'
+> & {
+    options: ReturnType<typeof getCategoryPickerOptions>;
+    /** Sections for the debounced query, so the create row uses the same query as the displayed results. */
+    sections: ReturnType<ReturnType<typeof getCategoryPickerOptions>['getSections']>;
+    searchValue: string;
+    debouncedSearchValue: string;
+    setSearchValue: (value: string) => void;
+};
+
+function useCategoryPickerListProps({
+    selectedCategory,
+    policyID,
+    onSubmit,
+    onCreateCategory,
+    addBottomSafeAreaPadding = false,
+    shouldAutoFocusSearchInput = false,
+    ownerAccountID,
+    options,
+    sections,
+    searchValue,
+    debouncedSearchValue,
+    setSearchValue,
+}: CategoryPickerListProps) {
+    const styles = useThemeStyles();
+    const theme = useTheme();
+    const icons = useMemoizedLazyExpensifyIcons(['Plus']);
+    const {inputCallbackRef} = useAutoFocusInput();
+    const {isOffline} = useNetwork();
+    const {translate} = useLocalize();
+    const offlineMessage = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
+
+    const sectionsWithTitleStyles = sections.map((section) => ({
+        ...section,
+        data: section.data.map((category) => ({
+            ...category,
+            titleStyles: styles.w100,
+        })),
+    }));
+    const categoryData = sections.flatMap((section) => section.data);
     const selectedOptionKey = categoryData.find((category) => category.searchText === selectedCategory)?.keyForList;
 
+    // Backfill the policy's categories when the list mounts so it doesn't get stuck showing only the selected category.
+    const {isLoadingPolicyCategories} = useLoadPolicyCategories(policyID);
     // While the on-demand fetch above is in flight, show the list skeleton instead of flashing the selected-only
     // fallback. A draft collection is a complete local list, so it renders immediately rather than waiting on the read.
-    const isLoadingNewOptions = isLoadingPolicyCategories && policyCategoriesDraft === undefined;
+    const isLoadingNewOptions = isLoadingPolicyCategories && !options.hasDraftCategories;
 
     // An effect event, so the owner is read when the list renders without making it a dependency: only the list
     // rendering ends the span. Once ended, the span is gone, so later renders don't touch it.
     const endOpenCategoryPickerSpan = useEffectEvent(() => {
-        endSpanWithAttributes(CONST.TELEMETRY.SPAN_OPEN_CATEGORY_PICKER, {[CONST.TELEMETRY.ATTRIBUTE_IS_FILTERED]: ownerAccountID !== undefined});
+        endSpanWithAttributes(CONST.TELEMETRY.SPAN_OPEN_CATEGORY_PICKER, {
+            [CONST.TELEMETRY.ATTRIBUTE_IS_FILTERED]: ownerAccountID !== undefined,
+        });
     });
 
     useEffect(() => {
@@ -200,7 +302,7 @@ function CategoryPicker({
     useEffect(() => () => cancelSpan(CONST.TELEMETRY.SPAN_OPEN_CATEGORY_PICKER), []);
 
     const createCategoryName = StringUtils.sanitizeName(debouncedSearchValue);
-    const shouldShowCreateCategoryRow = !!onCreateCategory && !isLoadingNewOptions && categoryData.length === 0 && canCreateCategoryFromSearch(allCategories, createCategoryName);
+    const shouldShowCreateCategoryRow = !!onCreateCategory && !isLoadingNewOptions && categoryData.length === 0 && canCreateCategoryFromSearch(options.allCategories, createCategoryName);
 
     // The create row has to be a list item: an empty list renders its empty state instead of the list, and a row can take keyboard focus.
     const buildCreateCategorySection = () => {
@@ -229,7 +331,7 @@ function CategoryPicker({
                     ),
                 },
             ],
-            sectionIndex: sectionsWithNoneOption.length,
+            sectionIndex: sections.length,
         };
     };
     const visibleSections = shouldShowCreateCategoryRow ? [...sectionsWithTitleStyles, buildCreateCategorySection()] : sectionsWithTitleStyles;
@@ -255,23 +357,44 @@ function CategoryPicker({
         ref: inputCallbackRef as (ref: BaseTextInputRef | null) => void,
     };
 
-    return (
-        <SelectionListWithSections
-            // The list only renders the skeleton when it has no items, so the sections have to be emptied too.
-            // Otherwise the selected-only fallback row still shows while the fetch is in flight.
-            sections={isLoadingNewOptions ? getEmptyArray<never>() : visibleSections}
-            onSelectRow={selectCategory}
-            ListItem={SingleSelectListItem}
-            shouldShowTextInput={categoriesCount >= searchInputThreshold}
-            textInputOptions={textInputOptions}
-            shouldShowLoadingPlaceholder={isLoadingNewOptions}
-            isLoadingNewOptions={isLoadingNewOptions}
-            initiallyFocusedItemKey={selectedOptionKey}
-            addBottomSafeAreaPadding={addBottomSafeAreaPadding}
-            titleNumberOfLines={CONST.TRANSACTION_TAG_AND_CATEGORY_PICKER_MAX_TITLE_LINES}
-        />
-    );
+    return {
+        // The list only renders the skeleton when it has no items, so the sections have to be emptied too.
+        // Otherwise the selected-only fallback row still shows while the fetch is in flight.
+        sections: isLoadingNewOptions ? getEmptyArray<never>() : visibleSections,
+        onSelectRow: selectCategory,
+        ListItem: SingleSelectListItem,
+        shouldShowTextInput: options.shouldShowTextInput,
+        textInputOptions,
+        shouldShowLoadingPlaceholder: isLoadingNewOptions,
+        isLoadingNewOptions,
+        initiallyFocusedItemKey: selectedOptionKey,
+        addBottomSafeAreaPadding,
+        titleNumberOfLines: CONST.TRANSACTION_TAG_AND_CATEGORY_PICKER_MAX_TITLE_LINES,
+    };
+}
+
+function CategoryPickerList(props: CategoryPickerListProps) {
+    const listProps = useCategoryPickerListProps(props);
+    return <SelectionListWithSections {...listProps} />;
+}
+
+function CategoryPicker({
+    policyID,
+    selectedCategory,
+    ownerAccountID,
+    submitterAccountID,
+    shouldShowNoneOption,
+    shouldAlwaysShowGLCode,
+    searchInputThreshold,
+    ...pickerProps
+}: CategoryPickerProps) {
+    const options = useCategoryPickerOptions({policyID, selectedCategory, ownerAccountID, submitterAccountID, shouldShowNoneOption, shouldAlwaysShowGLCode, searchInputThreshold});
+    const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
+    const sections = options.getSections(debouncedSearchValue);
+    const listProps = useCategoryPickerListProps({...pickerProps, policyID, selectedCategory, ownerAccountID, options, sections, searchValue, debouncedSearchValue, setSearchValue});
+    return <SelectionListWithSections {...listProps} />;
 }
 
 export default CategoryPicker;
+export {CategoryPickerList, getCategoryPickerOptions, useCategoryPickerData};
 export type {CategoryPickerProps};

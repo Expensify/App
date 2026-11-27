@@ -1,5 +1,7 @@
+import Button from '@components/Button';
 import Text from '@components/Text';
 
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {AIInsight, InsightsScope} from '@src/types/onyx';
@@ -19,9 +21,14 @@ type InsightsAICardProps = {
 
 function InsightsAICard({insight, insightsScope}: InsightsAICardProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
+
+    // The same child tag can appear under different parents on the dashboard.
+    const explainScope =
+        insight.tagLevel !== undefined && insight.parentTagPath !== undefined ? {...insightsScope, tagLevel: insight.tagLevel, tagParent: insight.parentTagPath} : insightsScope;
 
     return (
-        <View style={[styles.flex1, styles.gap5, styles.justifyContentBetween]}>
+        <View style={styles.gap5}>
             <View style={[styles.ml3, styles.gap2]}>
                 <InsightsAIChip chip={insight.chip} />
                 <View style={styles.gap3}>
@@ -41,8 +48,10 @@ function InsightsAICard({insight, insightsScope}: InsightsAICardProps) {
             </View>
             <InsightsExplainButton
                 explainPrompt={insight.explainPrompt}
-                insightsScope={insightsScope}
-            />
+                insightsScope={insight.explainContext ? {...explainScope, insight: insight.explainContext} : explainScope}
+            >
+                <Button.Text style={[styles.textMicroBold, styles.textSupporting]}>{translate('insightsPage.explain')}</Button.Text>
+            </InsightsExplainButton>
         </View>
     );
 }

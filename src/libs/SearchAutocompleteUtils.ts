@@ -272,6 +272,7 @@ function filterOutRangesWithCorrectValue(
     const actionList = Object.values(CONST.SEARCH.ACTION_FILTERS) as string[];
     const datePresetList = Object.values(CONST.SEARCH.DATE_PRESETS) as string[];
     const hasList = Object.values(CONST.SEARCH.HAS_VALUES) as string[];
+    const violationNameList = Object.values(CONST.VIOLATIONS) as string[];
     const isList = Object.values(CONST.SEARCH.IS_VALUES) as string[];
     const footerCountList = Object.values(CONST.SEARCH.FOOTER_COUNT) as string[];
     const footerTotalList = Object.values(CONST.SEARCH.FOOTER_TOTAL) as string[];
@@ -318,6 +319,8 @@ function filterOutRangesWithCorrectValue(
             return expenseTypeList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.RECEIPT_TYPE:
             return receiptTypeList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION:
+            return substitutionMap[`${range.key}:${range.value}`] !== undefined || violationNameList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS:
             return transactionStatusList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE:
@@ -351,6 +354,7 @@ function filterOutRangesWithCorrectValue(
             return booleanList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_SUBMISSION:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID:
@@ -369,8 +373,10 @@ function filterOutRangesWithCorrectValue(
             return knownValues.exportedTo.has(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_ID:
             return !['', 'null', 'undefined', '0', '-1'].includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.CONVERTED_AMOUNT:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_DEBITED:
@@ -378,6 +384,8 @@ function filterOutRangesWithCorrectValue(
             // This uses the same regex as the AmountWithoutCurrencyInput component (allowing for 3 digit decimals as some currencies support that)
             return new RegExp(`^-?(?!.*[.,].*[.,])\\d{0,${CONST.IOU.AMOUNT_MAX_LENGTH}}(?:[.,]\\d{0,2})?$`).test(range.value);
         case CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS:
+        case CONST.SEARCH.SYNTAX_ROOT_KEYS.LEFT_PINNED_COLUMNS:
+        case CONST.SEARCH.SYNTAX_ROOT_KEYS.RIGHT_PINNED_COLUMNS:
             return userFriendlyColumnList.has(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.IS:
             return isList.includes(range.value);
