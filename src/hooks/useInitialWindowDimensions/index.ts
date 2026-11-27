@@ -37,7 +37,11 @@ export default function (): InitialWindowDimensions {
             const {window, screen} = newDimensions;
 
             setDimensions((oldState) => {
-                if (screen.width !== oldState.screenWidth || screen.height !== oldState.screenHeight || window.height > oldState.initialHeight) {
+                // The virtual keyboard only shrinks the window height, so any width change means the window itself was resized (e.g. rotation).
+                // Checking the screen size alone is not enough: on foldable phones like the iPhone Duo the screen keeps the cover panel size and doesn't change on rotation.
+                const hasWindowWidthChanged = window.width !== oldState.initialWidth;
+                const hasScreenChanged = screen.width !== oldState.screenWidth || screen.height !== oldState.screenHeight;
+                if (hasScreenChanged || hasWindowWidthChanged || window.height > oldState.initialHeight) {
                     return {
                         initialHeight: window.height,
                         initialWidth: window.width,

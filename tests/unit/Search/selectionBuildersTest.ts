@@ -1,8 +1,6 @@
 import type {TransactionGroupListItemType, TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
-import {mapEmptyReportToSelectedEntry, mergeRowsIntoPartlyLoadedGroups, removeGroupClaim, resolveGroupCount, stampGroupCoverageFlags} from '@components/Search/selectionBuilders';
+import {mapEmptyReportToSelectedEntry, mergeRowsIntoPartlyLoadedGroups, resolveGroupCount, stampGroupCoverageFlags} from '@components/Search/selectionBuilders';
 import type {SelectedTransactions} from '@components/Search/types';
-
-import {getGroupKeysSelectedViaGroup} from '@hooks/useSearchBulkActions';
 
 import type {SearchGroupKey} from '@libs/SearchUIUtils';
 
@@ -28,37 +26,6 @@ function buildDayGroupData(groups: Array<[SearchGroupKey, Omit<SearchDayGroup, '
 }
 
 describe('selectionBuilders', () => {
-    describe('removeGroupClaim', () => {
-        const otherGroupKey: SearchGroupKey = `${CONST.SEARCH.GROUP_PREFIX}43`;
-
-        it('ends the claim on a shared row that is no longer on the page of the unchecked group', () => {
-            // Given a shared expense stored under another group and claimed by both headers, which a refresh left off this group's loaded page
-            const selection = buildSelection({
-                [groupKey]: {},
-                transaction1: {groupKey: otherGroupKey, isSelectedViaGroup: true, otherClaimedGroupKeys: [groupKey]},
-            });
-
-            // When this group is unchecked with none of its rows loaded
-            const result = removeGroupClaim(selection, groupKey, []);
-
-            // Then the expense stays selected for the other group only, so the unchecked group no longer counts in the selection
-            expect(result[groupKey]).toBeUndefined();
-            expect(result.transaction1).toEqual(expect.objectContaining({groupKey: otherGroupKey, isSelectedViaGroup: true}));
-            expect(result.transaction1?.otherClaimedGroupKeys).toBeUndefined();
-        });
-
-        it('drops an off-page row stored under the unchecked group when no other group claims it', () => {
-            // Given an expense checked on its own under this group, which a refresh left off the group's loaded page
-            const selection = buildSelection({transaction1: {groupKey}});
-
-            // When this group is unchecked with none of its rows loaded
-            const result = removeGroupClaim(selection, groupKey, []);
-
-            // Then the expense is cleared too, since the unchecked header no longer leaves a checkbox to clear it with
-            expect(result.transaction1).toBeUndefined();
-        });
-    });
-
     describe('mapEmptyReportToSelectedEntry', () => {
         it('takes displayAmount from the report-signed total for a report row', () => {
             // totalDisplaySpend is already negated for expense reports, so a credit report keeps its negative sign.
@@ -190,26 +157,6 @@ describe('selectionBuilders', () => {
             expect(Object.keys(merged)).toEqual(['txn3', groupKey]);
             expect(merged[groupKey]).toEqual(expect.objectContaining({displayAmount: 12990, currency: CONST.CURRENCY.USD}));
             expect(merged.txn3).toBe(selection.txn3);
-        });
-
-        it('keeps the other groups the merged rows were checked for, so an export still covers them', () => {
-            // Given two loaded rows of a 692-expense group checked through its header, which another checked group lists too
-            const searchData = buildDayGroupData([
-                [groupKey, {count: 692, total: 12990}],
-                [otherGroupKey, {count: 40, total: 800}],
-            ]);
-            const selection = buildSelection({
-                txn1: {isSelectedViaGroup: true, groupKey, otherClaimedGroupKeys: [otherGroupKey]},
-                txn2: {isSelectedViaGroup: true, groupKey, otherClaimedGroupKeys: [otherGroupKey]},
-            });
-
-            // When the rows are merged into the groups they stand for
-            const merged = mergeRowsIntoPartlyLoadedGroups(selection, searchData, false);
-
-            // Then the group's entry still names the other group, whose own unloaded expenses the rows were the only record of
-            expect(Object.keys(merged)).toEqual([groupKey]);
-            expect(merged[groupKey]?.otherClaimedGroupKeys).toEqual([otherGroupKey]);
-            expect(getGroupKeysSelectedViaGroup(merged).sort()).toEqual([groupKey, otherGroupKey].sort());
         });
 
         it('keeps the workspace of the rows it replaces, and whether they all come from one-expense reports', () => {

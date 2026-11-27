@@ -112,12 +112,6 @@ type SelectedTransactionInfo = {
     /** Whether the transaction was selected through its group header */
     isSelectedViaGroup?: boolean;
 
-    /**
-     * Other groups whose header check also covers the transaction, when one expense can sit in several groups (as with violations).
-     * `groupKey` stays the group the row is stored under, so loading or unchecking another group changes only that group's claim.
-     */
-    otherClaimedGroupKeys?: string[];
-
     /** Whether every transaction in the group is selected. Only a fully loaded group earns it, and a partly loaded one can only keep it. */
     isEntireGroupSelected?: boolean;
 
@@ -381,6 +375,7 @@ type SearchTextFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_ID
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID
@@ -407,6 +402,7 @@ type SearchDateKey = `${SearchDateFilterKeys}${ValueOf<typeof CONST.SEARCH.DATE_
 type SearchAmountFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.CONVERTED_AMOUNT
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_DEBITED
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_REIMBURSED;

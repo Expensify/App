@@ -4,6 +4,7 @@
 import useGetReceiptPartnersIntegrationData from '@hooks/useGetReceiptPartnersIntegrationData';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import usePrevious from '@hooks/usePrevious';
 
@@ -14,6 +15,7 @@ import {openExternalLink} from '@userActions/Link';
 import {enablePolicyFeatureForConnection, openPolicyReceiptPartnersPage} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 
@@ -30,6 +32,7 @@ function useReceiptPartnerConnectionListings(policy: OnyxEntry<Policy>): Connect
     const {canWrite, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
     const prevIsUberConnected = usePrevious(isUberConnected);
     const {isOffline} = useNetwork();
+    const [isLoadingReceiptPartners] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_IS_LOADING_RECEIPT_PARTNERS}${policyID}`);
     const hasStartedUberConnectionRef = useRef(false);
 
     // The Uber connection finishes outside the app, so the invite flow opens once the connection shows up here. It only
@@ -102,7 +105,7 @@ function useReceiptPartnerConnectionListings(policy: OnyxEntry<Policy>): Connect
                           : undefined,
                   },
             onConnect: connectUber,
-            isLoading: !policy?.receiptPartners?.uber && !isOffline && !!policy?.isLoadingReceiptPartners,
+            isLoading: !policy?.receiptPartners?.uber && !isOffline && !!isLoadingReceiptPartners,
             onConfigure: () => Navigation.navigate(ROUTES.WORKSPACE_CONNECTIONS_RECEIPT_PARTNERS.getRoute(policyID)),
         },
     ];

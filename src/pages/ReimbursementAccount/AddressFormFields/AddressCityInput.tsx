@@ -15,10 +15,13 @@ import {useAddressFields} from './AddressFieldsProvider';
 type AddressCityInputProps = {
     /** Styles of the city input, which sits 24px below the street unless the caller spaces its inputs differently */
     containerStyles?: StyleProp<ViewStyle>;
+
+    /** Longest city the user can type, in characters. No limit when not set. */
+    maxLength?: number;
 };
 
 /** The city of an address */
-function AddressCityInput({containerStyles}: AddressCityInputProps) {
+function AddressCityInput({containerStyles, maxLength}: AddressCityInputProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {inputKeys, values, defaultValues, errors, shouldSaveDraft, forwardedFSClass} = useAddressFields();
@@ -35,6 +38,7 @@ function AddressCityInput({containerStyles}: AddressCityInputProps) {
             defaultValue={defaultValues?.city}
             errorText={errors?.city ? translate('bankAccount.error.addressCity') : ''}
             containerStyles={containerStyles ?? styles.mt6}
+            maxLength={maxLength}
             forwardedFSClass={forwardedFSClass}
             autoComplete="address-line2"
         />
