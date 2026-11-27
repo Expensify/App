@@ -30,16 +30,12 @@ function ReceiptAlternativeMethods({onLayout}: ReceiptAlternativeMethodsProps) {
     const theme = useTheme();
     const {environmentURL} = useEnvironment();
     const {translate} = useLocalize();
-    const {hasLoggedIntoMobileApp, isLastMobileAppLoginLoaded} = useHasLoggedIntoMobileApp();
-    const {hasPhoneNumberLogin, isPhoneNumberLoaded} = useHasPhoneNumberLogin();
+    const {hasLoggedIntoMobileApp} = useHasLoggedIntoMobileApp();
+    const {hasPhoneNumberLogin} = useHasPhoneNumberLogin();
     const buildDynamicRoute = useScreenBoundDynamicRoute();
 
     const downloadAppHref = `${environmentURL}${addLeadingForwardSlash(buildDynamicRoute(DYNAMIC_ROUTES.APP_DOWNLOAD_LINKS.path))}`;
     const contactMethodsHref = `${environmentURL}${addLeadingForwardSlash(buildDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHODS.path))}`;
-
-    if (!isLastMobileAppLoginLoaded || !isPhoneNumberLoaded) {
-        return null;
-    }
 
     return (
         <View

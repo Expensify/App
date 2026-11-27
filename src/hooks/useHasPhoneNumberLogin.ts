@@ -8,8 +8,8 @@ import {Str} from 'expensify-common';
 import useOnyx from './useOnyx';
 
 const useHasPhoneNumberLogin = () => {
-    const [loginList, loginListResult] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
-    const [session, sessionResult] = useOnyx(ONYXKEYS.SESSION);
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
 
     const isPrimaryEmailPhone = Str.endsWith(session?.email ?? '', CONST.SMS.DOMAIN);
 
@@ -17,9 +17,7 @@ const useHasPhoneNumberLogin = () => {
 
     const hasPhoneNumberLogin = isPrimaryEmailPhone || smsLoginExists;
 
-    const isPhoneNumberLoaded = loginListResult.status !== 'loading' && sessionResult.status !== 'loading';
-
-    return {hasPhoneNumberLogin, isPhoneNumberLoaded};
+    return {hasPhoneNumberLogin};
 };
 
 export default useHasPhoneNumberLogin;

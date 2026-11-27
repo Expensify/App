@@ -85,8 +85,8 @@ describe('ReceiptAlternativeMethods', () => {
     });
 
     it('renders all options when user has neither app nor phone number', () => {
-        mockUseHasLoggedIntoMobileApp.mockReturnValue({hasLoggedIntoMobileApp: false, isLastMobileAppLoginLoaded: true});
-        mockUseHasPhoneNumberLogin.mockReturnValue({hasPhoneNumberLogin: false, isPhoneNumberLoaded: true});
+        mockUseHasLoggedIntoMobileApp.mockReturnValue({hasLoggedIntoMobileApp: false});
+        mockUseHasPhoneNumberLogin.mockReturnValue({hasPhoneNumberLogin: false});
 
         renderComponent();
 
@@ -98,8 +98,8 @@ describe('ReceiptAlternativeMethods', () => {
     });
 
     it('shows add number option when user has app but no phone number', () => {
-        mockUseHasLoggedIntoMobileApp.mockReturnValue({hasLoggedIntoMobileApp: true, isLastMobileAppLoginLoaded: true});
-        mockUseHasPhoneNumberLogin.mockReturnValue({hasPhoneNumberLogin: false, isPhoneNumberLoaded: true});
+        mockUseHasLoggedIntoMobileApp.mockReturnValue({hasLoggedIntoMobileApp: true});
+        mockUseHasPhoneNumberLogin.mockReturnValue({hasPhoneNumberLogin: false});
 
         renderComponent();
 
@@ -109,8 +109,8 @@ describe('ReceiptAlternativeMethods', () => {
     });
 
     it('shows SMS instructions when user has phone but no app login', () => {
-        mockUseHasLoggedIntoMobileApp.mockReturnValue({hasLoggedIntoMobileApp: false, isLastMobileAppLoginLoaded: true});
-        mockUseHasPhoneNumberLogin.mockReturnValue({hasPhoneNumberLogin: true, isPhoneNumberLoaded: true});
+        mockUseHasLoggedIntoMobileApp.mockReturnValue({hasLoggedIntoMobileApp: false});
+        mockUseHasPhoneNumberLogin.mockReturnValue({hasPhoneNumberLogin: true});
 
         renderComponent();
 
@@ -120,22 +120,13 @@ describe('ReceiptAlternativeMethods', () => {
     });
 
     it('shows minimal options when user has both app and phone number', () => {
-        mockUseHasLoggedIntoMobileApp.mockReturnValue({hasLoggedIntoMobileApp: true, isLastMobileAppLoginLoaded: true});
-        mockUseHasPhoneNumberLogin.mockReturnValue({hasPhoneNumberLogin: true, isPhoneNumberLoaded: true});
+        mockUseHasLoggedIntoMobileApp.mockReturnValue({hasLoggedIntoMobileApp: true});
+        mockUseHasPhoneNumberLogin.mockReturnValue({hasPhoneNumberLogin: true});
 
         renderComponent();
 
         expect(screen.queryByText('Download the app to scan from your phone')).toBeNull();
         expect(screen.queryByText('Add your number')).toBeNull();
         expect(screen.getByText(`Text receipts to ${CONST.SMS.RECEIPTS_PHONE_NUMBER} (US numbers only)`)).toBeTruthy();
-    });
-
-    it('does not render until hooks have loaded', () => {
-        mockUseHasLoggedIntoMobileApp.mockReturnValue({hasLoggedIntoMobileApp: false, isLastMobileAppLoginLoaded: false});
-        mockUseHasPhoneNumberLogin.mockReturnValue({hasPhoneNumberLogin: false, isPhoneNumberLoaded: false});
-
-        const {toJSON} = renderComponent();
-
-        expect(toJSON()).toBeNull();
     });
 });

@@ -16,7 +16,6 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {authTokenSelector} from '@src/selectors/Session';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React, {useEffect} from 'react';
 
@@ -28,17 +27,10 @@ function LogInWithShortLivedAuthTokenPage({route}: LogInWithShortLivedAuthTokenP
     const {shortLivedAuthToken = '', shortLivedToken = '', authTokenType, exitTo, error, isSAML = false} = route?.params ?? {};
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [authToken] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenSelector});
-    const [credentials, credentialsMetadata] = useOnyx(ONYXKEYS.CREDENTIALS);
-    const [lastVisitedPath, lastVisitedPathMetadata] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
-    const isLoadingSignInData = isLoadingOnyxValue(lastVisitedPathMetadata, ...(isSAML ? [credentialsMetadata] : []));
+    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
+    const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
 
     useEffect(() => {
-        // Only a forced SAML re-auth keeps a last visited path, so it has to be read (along with the credentials
-        // the sign-in compares against) before the sign-in starts.
-        if (isLoadingSignInData) {
-            return;
-        }
-
         // We have to check for both shortLivedAuthToken and shortLivedToken, as the old mobile app uses shortLivedToken, and is not being actively updated.
         const token = shortLivedAuthToken || shortLivedToken;
 
@@ -86,11 +78,11 @@ function LogInWithShortLivedAuthTokenPage({route}: LogInWithShortLivedAuthTokenP
                 Navigation.navigate(exitTo as Route);
             });
         }
-        // Runs once the route, the credentials and the last visited path are known, later Onyx changes must not restart the sign-in.
+        // Runs once per route, later Onyx changes must not restart the sign-in.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [route, isLoadingSignInData]);
+    }, [route]);
 
-    if (account?.isLoading || isLoadingSignInData) {
+    if (account?.isLoading) {
         // No "Go Back" button: this is a deep-link entry point, so there is usually no history to pop back to.
         return <FullScreenLoadingIndicator shouldUseGoBackButton={false} />;
     }
