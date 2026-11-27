@@ -35,6 +35,7 @@ import InsightsDetailsSectionError from './InsightsDetailsSectionError';
 import {getInsightsDetailsSectionState, INSIGHTS_DETAILS_SECTION_STATE} from './insightsDetailsSectionState';
 import InsightsSummary from './InsightsSummary';
 import InsightsTopExpenses from './InsightsTopExpenses';
+import InsightsViolationRule from './InsightsViolationRule';
 import useRequestInsightsDetails from './useRequestInsightsDetails';
 
 type InsightsDetailsPageProps = PlatformStackScreenProps<InsightsDetailsParamList, typeof SCREENS.INSIGHTS_DETAILS>;
@@ -158,6 +159,12 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
                                     currency={filters.groupCurrency}
                                     summary={summary}
                                     state={detailsState}
+                                />
+                            )}
+                            {graphKey === CONST.INSIGHTS.GRAPH.TOP_VIOLATIONS && (
+                                <InsightsViolationRule
+                                    policyIDs={filters.policyIDs}
+                                    violation={itemKey}
                                 />
                             )}
                             {!!topExpensesQueryJSON && (!isTopSpenders || !!detailsQuery) && (
