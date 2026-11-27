@@ -3,9 +3,10 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 
-import {getLastFourDigits} from '@libs/BankAccountUtils';
+import {getLastFourDigits, isWiseOnboardingSubmitted} from '@libs/BankAccountUtils';
 import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentationAfterPopoverDismiss';
 import formatReportNamesAsBulletList from '@libs/formatReportNamesAsBulletList';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {getEnableGlobalReimbursementsBusinessNavigationRoute, getWiseGlobalReimbursementsIntroNavigationRoute} from '@libs/Navigation/helpers/enableGlobalReimbursementsNavigationUtils';
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -13,6 +14,7 @@ import {clearEnableGlobalReimbursementsModal, showEnableGlobalReimbursementsModa
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type EnableGlobalReimbursementsModal from '@src/types/onyx/EnableGlobalReimbursementsModal';
 
 import {useEffect, useEffectEvent, useRef} from 'react';
@@ -23,6 +25,7 @@ import {ModalActions} from './Modal/Global/ModalContext';
 function EnableGlobalReimbursementsPayModal() {
     const {translate} = useLocalize();
     const [enableGlobalReimbursementsModal] = useOnyx(ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const {showConfirmModal} = useConfirmModal();
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
@@ -63,7 +66,10 @@ function EnableGlobalReimbursementsPayModal() {
             if (isAccountLocked) {
                 showLockedAccountModal();
             } else {
-                Navigation.navigate(getWiseGlobalReimbursementsIntroNavigationRoute(modalData.bankAccountID, navigationPathAtSignal, modalData.isPayingMultipleReports), {
+                const introRoute = getWiseGlobalReimbursementsIntroNavigationRoute(modalData.bankAccountID, navigationPathAtSignal, modalData.isPayingMultipleReports);
+                // A business already submitted to Wise has nothing left to submit, so it sees where its onboarding stands instead of the intro
+                const isOnboardingSubmitted = isWiseOnboardingSubmitted(bankAccountList?.[modalData.bankAccountID]?.accountData);
+                Navigation.navigate(isOnboardingSubmitted ? createDynamicRoute(DYNAMIC_ROUTES.WISE_ONBOARDING_STATUS.path, introRoute) : introRoute, {
                     skipMatchingFullScreenRoute: true,
                 });
             }
