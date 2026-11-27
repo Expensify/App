@@ -61,19 +61,6 @@ function getEvenSplitQuantity(totalQuantity: number, splitCount: number, index: 
 }
 
 /**
- * The expense's billed distance in `unit`. A split can be moved to a rate that bills in the other unit, and an
- * expense isn't re-expressed when that happens, so its stored quantity can't be divided as it is.
- */
-function getBilledDistanceInUnit(transaction: OnyxEntry<OnyxTypes.Transaction>, unit: Unit | undefined): number {
-    const distance = getBilledDistance(transaction) ?? 0;
-    const transactionUnit = transaction?.comment?.customUnit?.distanceUnit;
-    if (!unit || !transactionUnit || unit === transactionUnit || distance === 0) {
-        return distance;
-    }
-    return roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(DistanceRequestUtils.convertToDistanceInMeters(distance, transactionUnit), unit));
-}
-
-/**
  * Calculate merchant for distance transactions based on distance and rate
  */
 function getDistanceMerchantFromDistance(
@@ -135,6 +122,19 @@ function getSplitReimbursable(policy: OnyxEntry<OnyxTypes.Policy>, parentReimbur
  */
 function shouldSplitByDistance(rate: number | undefined): boolean {
     return rate === 0;
+}
+
+/**
+ * The expense's billed distance in `unit`. A split can be moved to a rate that bills in the other unit, and an
+ * expense isn't re-expressed when that happens, so its stored quantity can't be divided as it is.
+ */
+function getBilledDistanceInUnit(transaction: OnyxEntry<OnyxTypes.Transaction>, unit: Unit | undefined): number {
+    const distance = getBilledDistance(transaction) ?? 0;
+    const transactionUnit = transaction?.comment?.customUnit?.distanceUnit;
+    if (!unit || !transactionUnit || unit === transactionUnit || distance === 0) {
+        return distance;
+    }
+    return roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(DistanceRequestUtils.convertToDistanceInMeters(distance, transactionUnit), unit));
 }
 
 /**
