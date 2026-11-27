@@ -1,7 +1,6 @@
 import AvatarSkeleton from '@components/AvatarSkeleton';
-import SkeletonLoader from '@components/SkeletonLoader';
-import type {SkeletonAnimation} from '@components/SkeletonLoader/types';
-import SkeletonRect, {SkeletonViewRect} from '@components/SkeletonRect';
+import SkeletonLoader, {SkeletonViewRect} from '@components/SkeletonLoader';
+import SkeletonRect from '@components/SkeletonRect';
 import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
 
 import useTheme from '@hooks/useTheme';
@@ -16,7 +15,7 @@ const ROW_HEIGHT = 64;
 const ROW_WIDTH = 360;
 const SPEED_SECONDS = 1.2;
 
-type ComparisonProps = {candidate: 'legacy' | SkeletonAnimation | 'static'};
+type ComparisonProps = {candidate: 'legacy' | 'pulse' | 'static'};
 
 function LegacyRow() {
     return (
@@ -101,7 +100,6 @@ function Comparison({candidate}: ComparisonProps) {
                         height={ROW_HEIGHT}
                         speed={SPEED_SECONDS}
                         animate={candidate !== 'static'}
-                        animation={candidate === 'pulse' ? 'pulse' : 'shimmer'}
                         backgroundColor={theme.skeletonLHNIn}
                         foregroundColor={theme.skeletonLHNOut}
                     >
@@ -151,12 +149,12 @@ function Geometry() {
 const meta: Meta<typeof Comparison> = {
     title: 'Components/SkeletonLoader',
     component: Comparison,
-    argTypes: {candidate: {control: 'select', options: ['legacy', 'shimmer', 'pulse', 'static']}},
+    argTypes: {candidate: {control: 'select', options: ['legacy', 'pulse', 'static']}},
     parameters: {
         docs: {
             description: {
                 component:
-                    'Each list has 10 loaders and 40 shapes. Legacy: 10 gradient loops; shimmer: 40 transform loops; pulse: 10 opacity loops and 80 static shapes; static: no loops. Profile one candidate at a time with the same viewport and reduced motion disabled. Animation counts are not CPU/frame-time measurements. Native clipping and release-profile results are required before accepting shimmer.',
+                    'Each list has 10 loaders and 40 shapes. Legacy: 10 gradient loops; pulse: 10 opacity loops and 80 static shapes; static: no loops. Pulse was selected by review, not measured profiling. Animation counts are not CPU/frame-time measurements.',
             },
         },
     },
@@ -166,10 +164,6 @@ function Legacy(args: ComparisonProps) {
     return <Comparison {...args} />;
 }
 Legacy.args = {candidate: 'legacy'};
-function Shimmer(args: ComparisonProps) {
-    return <Comparison {...args} />;
-}
-Shimmer.args = {candidate: 'shimmer'};
 function Pulse(args: ComparisonProps) {
     return <Comparison {...args} />;
 }
@@ -180,4 +174,4 @@ function Static(args: ComparisonProps) {
 Static.args = {candidate: 'static'};
 
 export default meta;
-export {Legacy, Shimmer, Pulse, Static, Geometry};
+export {Legacy, Pulse, Static, Geometry};

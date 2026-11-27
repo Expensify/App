@@ -4,7 +4,7 @@ import type {LayoutChangeEvent} from 'react-native';
 
 import React from 'react';
 
-import {SkeletonViewRect as SkeletonRect} from './SkeletonRect';
+import {SkeletonViewRect} from './SkeletonLoader';
 import ItemListSkeletonView from './Skeletons/ItemListSkeletonView';
 
 function getLinedWidth(index: number): `${number}%` {
@@ -47,20 +47,20 @@ function OptionsListSkeletonView({shouldAnimate = true, shouldStyleAsTable = fal
 
                 return (
                     <>
-                        <SkeletonRect
+                        <SkeletonViewRect
                             x={shouldStyleAsTable ? 16 : 20}
                             y={12}
                             width={40}
                             height={40}
                             borderRadius={20}
                         />
-                        <SkeletonRect
+                        <SkeletonViewRect
                             x={textStartX}
                             y={18}
                             width="20%"
                             height="8"
                         />
-                        <SkeletonRect
+                        <SkeletonViewRect
                             x={textStartX}
                             y={38}
                             width={shouldStyleAsTable ? '10%' : lineWidth}

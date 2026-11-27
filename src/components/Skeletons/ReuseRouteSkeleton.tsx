@@ -1,4 +1,4 @@
-import {SkeletonViewRect as SkeletonRect} from '@components/SkeletonRect';
+import {SkeletonViewRect} from '@components/SkeletonLoader';
 
 import useContainerWidth from '@hooks/useContainerWidth';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -34,20 +34,20 @@ function ReuseRouteSkeleton({fixedNumItems = 3}: ReuseRouteSkeletonProps) {
         const barX = rowPaddingHorizontal + iconSize + iconGap;
         return (
             <>
-                <SkeletonRect
+                <SkeletonViewRect
                     x={rowPaddingHorizontal}
                     y={rowTop + (rowHeight - iconSize) / 2}
                     width={iconSize}
                     height={iconSize}
                     borderRadius={iconSize / 2}
                 />
-                <SkeletonRect
+                <SkeletonViewRect
                     x={barX}
                     y={rowTop + 16}
                     width={36}
                     height={labelBarHeight}
                 />
-                <SkeletonRect
+                <SkeletonViewRect
                     x={barX}
                     y={rowTop + 37}
                     width={valueBarWidth}
@@ -59,7 +59,7 @@ function ReuseRouteSkeleton({fixedNumItems = 3}: ReuseRouteSkeletonProps) {
 
     const skeletonItem = () => (
         <>
-            <SkeletonRect
+            <SkeletonViewRect
                 x={cardPadding}
                 y={cardPadding}
                 width={cardWidth - cardPadding * 2}

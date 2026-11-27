@@ -3,11 +3,6 @@ import {css} from 'react-native-reanimated';
 const DEFAULT_SPEED_SECONDS = 1.2;
 const MILLISECONDS_PER_SECOND = 1000;
 
-const shimmer = css.keyframes({
-    from: {transform: [{translateX: '-100%'}]},
-    to: {transform: [{translateX: '100%'}]},
-});
-
 const pulse = css.keyframes({
     // eslint-disable-next-line @typescript-eslint/naming-convention -- CSS percentage selectors are not JavaScript identifiers.
     '0%, 100%': {opacity: 0},
@@ -15,9 +10,9 @@ const pulse = css.keyframes({
     '50%': {opacity: 1},
 });
 
-function getSkeletonAnimation(animation: 'shimmer' | 'pulse', speed: number) {
+function getSkeletonAnimation(speed: number) {
     return {
-        animationName: animation === 'shimmer' ? shimmer : pulse,
+        animationName: pulse,
         animationDuration: speed * MILLISECONDS_PER_SECOND,
         animationTimingFunction: 'linear',
         animationIterationCount: 'infinite',

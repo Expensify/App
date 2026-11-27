@@ -1,4 +1,4 @@
-import {SkeletonViewRect as SkeletonRect} from '@components/SkeletonRect';
+import {SkeletonViewRect} from '@components/SkeletonLoader';
 
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -13,8 +13,6 @@ const ICON_BORDER_RADIUS = variables.componentBorderRadiusNormal;
 // BaseWidgetItem renders its CTA button at `BUTTON_SIZE.SMALL`.
 const BUTTON_WIDTH = variables.widgetItemButtonMinWidth;
 const BUTTON_HEIGHT = variables.componentSizeSmall;
-// Keep the button's stadium shape at the small button height.
-const BUTTON_BORDER_RADIUS = BUTTON_HEIGHT / 2;
 
 // Row geometry read off the styles the real rows use (see BaseWidgetItem).
 function useWidgetSkeletonRowGeometry() {
@@ -38,7 +36,7 @@ type WidgetSkeletonRowIconProps = {
 
 function WidgetSkeletonRowIcon({horizontalPadding, rowHeight}: WidgetSkeletonRowIconProps) {
     return (
-        <SkeletonRect
+        <SkeletonViewRect
             x={horizontalPadding}
             y={(rowHeight - ICON_SLOT_SIZE) / 2}
             width={ICON_SLOT_SIZE}
@@ -59,12 +57,12 @@ type WidgetSkeletonRowButtonProps = {
 
 function WidgetSkeletonRowButton({cardWidth, horizontalPadding, rowHeight}: WidgetSkeletonRowButtonProps) {
     return (
-        <SkeletonRect
+        <SkeletonViewRect
             x={cardWidth - horizontalPadding - BUTTON_WIDTH}
             y={(rowHeight - BUTTON_HEIGHT) / 2}
             width={BUTTON_WIDTH}
             height={BUTTON_HEIGHT}
-            borderRadius={BUTTON_BORDER_RADIUS}
+            borderRadius={variables.buttonBorderRadius}
         />
     );
 }

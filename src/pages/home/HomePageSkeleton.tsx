@@ -1,6 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import {getCartesianChartHeight} from '@components/Charts/utils/chartHeights';
-import {SkeletonViewRect as SkeletonRect} from '@components/SkeletonRect';
+import {SkeletonViewRect} from '@components/SkeletonLoader';
 import ItemListSkeletonView from '@components/Skeletons/ItemListSkeletonView';
 import SkeletonTextLine, {BAR_HEIGHT} from '@components/Skeletons/SkeletonTextLine';
 import WidgetContainer from '@components/WidgetContainer';
@@ -74,13 +74,13 @@ function renderIconTwoBarRow({itemIndex, horizontalPadding, rowHeight, iconTextG
                 horizontalPadding={horizontalPadding}
                 rowHeight={rowHeight}
             />
-            <SkeletonRect
+            <SkeletonViewRect
                 x={textX}
                 y={upperBarY}
                 width={TWO_BAR_ROW_BAR_WIDTHS[itemIndex % TWO_BAR_ROW_BAR_WIDTHS.length]}
                 height={BAR_HEIGHT}
             />
-            <SkeletonRect
+            <SkeletonViewRect
                 x={textX}
                 y={lowerBarY}
                 width={LOWER_BAR_WIDTH}
@@ -97,13 +97,13 @@ function renderIconTwoBarWithTrailingRow(args: TrailingSkeletonRowArgs) {
     return (
         <>
             {renderIconTwoBarRow(args)}
-            <SkeletonRect
+            <SkeletonViewRect
                 x={width - horizontalPadding - TRAILING_BAR_WIDTH}
                 y={upperBarY}
                 width={TRAILING_BAR_WIDTH}
                 height={BAR_HEIGHT}
             />
-            <SkeletonRect
+            <SkeletonViewRect
                 x={width - horizontalPadding - TRAILING_SUB_BAR_WIDTH}
                 y={lowerBarY}
                 width={TRAILING_SUB_BAR_WIDTH}
@@ -184,7 +184,7 @@ function HomePageSkeletonTableCard() {
     );
 }
 
-// The card this stands in for has no bar-representable rows, so a shimmer stand-in would invent a row structure the real card does not have.
+// The card this stands in for has no bar-representable rows, so a skeleton stand-in would invent a row structure the real card does not have.
 function HomePageSkeletonSpinnerCard() {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();

@@ -7,8 +7,7 @@ import type {ValueOf} from 'type-fest';
 
 import React from 'react';
 
-import SkeletonLoader from './SkeletonLoader';
-import {SkeletonViewRect} from './SkeletonRect';
+import SkeletonLoader, {SkeletonViewRect} from './SkeletonLoader';
 
 type AvatarSkeletonProps = {
     size?: ValueOf<typeof CONST.AVATAR_SIZE>;

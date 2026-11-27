@@ -1,10 +1,8 @@
 import type {ReactNode} from 'react';
 import type {DimensionValue, StyleProp, ViewStyle} from 'react-native';
 
-type SkeletonAnimation = 'shimmer' | 'pulse';
-
 type SkeletonLoaderProps = {
-    /** Pure skeleton geometry; the pulse candidate renders it once for each color layer. */
+    /** Pure skeleton geometry, rendered once for each color layer. */
     children: ReactNode;
     width?: DimensionValue;
     height: DimensionValue;
@@ -14,8 +12,6 @@ type SkeletonLoaderProps = {
     animate?: boolean;
     /** Seconds, matching the legacy content loader. */
     speed?: number;
-    /** Both candidates remain available for the performance comparison. */
-    animation?: SkeletonAnimation;
     testID?: string;
 };
 
@@ -31,4 +27,4 @@ type SkeletonViewRectProps = {
     testID?: string;
 };
 
-export type {SkeletonAnimation, SkeletonLoaderProps, SkeletonViewRectProps};
+export type {SkeletonLoaderProps, SkeletonViewRectProps};

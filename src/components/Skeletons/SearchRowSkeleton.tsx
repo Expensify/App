@@ -1,5 +1,5 @@
 import useNavigationBarWidth from '@components/Navigation/FlatNavigationBar/useNavigationBarWidth';
-import {SkeletonViewRect as SkeletonRect} from '@components/SkeletonRect';
+import {SkeletonViewRect} from '@components/SkeletonLoader';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -82,52 +82,52 @@ function SearchRowSkeleton({
                     fixedNumItems={fixedNumItems}
                     renderSkeletonItem={() => (
                         <>
-                            <SkeletonRect
+                            <SkeletonViewRect
                                 x={16}
                                 y={16}
                                 width={16}
                                 height={16}
                                 borderRadius={8}
                             />
-                            <SkeletonRect
+                            <SkeletonViewRect
                                 width={40}
                                 height={4}
                                 x={38}
                                 y={22}
                             />
-                            <SkeletonRect
+                            <SkeletonViewRect
                                 x={containerWidth - 56}
                                 y={16}
                                 width={40}
                                 height={16}
                                 borderRadius={4}
                             />
-                            <SkeletonRect
+                            <SkeletonViewRect
                                 x={16}
                                 y={44}
                                 width={36}
                                 height={40}
                                 borderRadius={4}
                             />
-                            <SkeletonRect
+                            <SkeletonViewRect
                                 x={64}
                                 y={50}
                                 width={124}
                                 height={barHeight}
                             />
-                            <SkeletonRect
+                            <SkeletonViewRect
                                 x={containerWidth - 76}
                                 y={50}
                                 width={60}
                                 height={barHeight}
                             />
-                            <SkeletonRect
+                            <SkeletonViewRect
                                 x={64}
                                 y={72}
                                 width={60}
                                 height={barHeight}
                             />
-                            <SkeletonRect
+                            <SkeletonViewRect
                                 x={containerWidth - 48}
                                 y={72}
                                 width={32}
@@ -153,20 +153,20 @@ function SearchRowSkeleton({
                 style={[pageGutterMargin, styles.overflowHidden, isLoadMore && styles.tableBottomRadius, !isLoadMore && styles.tableTopRadius]}
                 renderSkeletonItem={() => (
                     <>
-                        <SkeletonRect
+                        <SkeletonViewRect
                             x={12}
                             y={12}
                             borderRadius={variables.componentBorderRadiusSmall}
                             width={variables.w28}
                             height={variables.h32}
                         />
-                        <SkeletonRect
+                        <SkeletonViewRect
                             x={52}
                             y={24}
                             width={30}
                             height={barHeight}
                         />
-                        <SkeletonRect
+                        <SkeletonViewRect
                             x={94}
                             y={24}
                             width={longBarWidth}
@@ -174,14 +174,14 @@ function SearchRowSkeleton({
                         />
                         {isLargeScreenWidth && (
                             <>
-                                <SkeletonRect
+                                <SkeletonViewRect
                                     x={226}
                                     y={24}
                                     width={longBarWidth}
                                     height={barHeight}
                                 />
 
-                                <SkeletonRect
+                                <SkeletonViewRect
                                     x={358}
                                     y={24}
                                     width={60}
@@ -190,7 +190,7 @@ function SearchRowSkeleton({
                             </>
                         )}
 
-                        <SkeletonRect
+                        <SkeletonViewRect
                             // We have to calculate this value to make sure the element is aligned to the button on the right side.
                             x={windowWidth - leftPaneWidth - rightArrowWidth - rightButtonWidth - gapWidth - centralPanePadding - gapWidth - rightSideElementWidth}
                             y={24}
@@ -198,7 +198,7 @@ function SearchRowSkeleton({
                             height={barHeight}
                         />
 
-                        <SkeletonRect
+                        <SkeletonViewRect
                             // We have to calculate this value to make sure the element is aligned to the right border.
                             x={windowWidth - leftPaneWidth - rightArrowWidth - rightSideElementWidth - gapWidth - centralPanePadding}
                             y={14}

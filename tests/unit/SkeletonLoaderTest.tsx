@@ -1,13 +1,13 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
-import SkeletonLoader from '@components/SkeletonLoader';
-import SkeletonRect, {SkeletonViewRect} from '@components/SkeletonRect';
+import SkeletonLoader, {SkeletonViewRect} from '@components/SkeletonLoader';
+import SkeletonRect from '@components/SkeletonRect';
 import ItemListSkeletonView from '@components/Skeletons/ItemListSkeletonView';
 
 import Accessibility from '@libs/Accessibility';
 
-import React, {useEffect} from 'react';
+import React from 'react';
 import {StyleSheet, View} from 'react-native';
 import {Rect} from 'react-native-svg';
 
@@ -17,6 +17,7 @@ jest.mock('@hooks/useThemeStyles', () => () => ({
     overflowHidden: {overflow: 'hidden'},
     mr5: {marginRight: 20},
     flex1: {flex: 1},
+    pointerEventsNone: {pointerEvents: 'none'},
 }));
 jest.mock('@hooks/useTheme', () => () => ({skeletonLHNIn: '#111111', skeletonLHNOut: '#333333'}));
 jest.mock('@libs/Accessibility', () => ({useReducedMotion: jest.fn(() => false)}));
@@ -69,10 +70,9 @@ describe('SkeletonLoader', () => {
         expect(bar).toMatchObject({left: 72, top: 12.5, width: '100%', height: 8, borderRadius: 2, overflow: 'hidden'});
         expect(getStyle('circle')).toMatchObject({width: 40, height: 40, borderRadius: 20});
         expect(getStyle('loader')).toMatchObject({overflow: 'hidden', height: 64});
-        expect(getStyle('bar-shimmer')).toMatchObject({left: -72, width: 200, animationDuration: 1200});
     });
 
-    it('uses measured dimensions when styles override the declared canvas width', () => {
+    it('keeps shape dimensions responsive when styles override the declared canvas width', () => {
         // Given a canvas whose actual width is changed by its caller's style.
         render(
             <SkeletonLoader
@@ -85,11 +85,12 @@ describe('SkeletonLoader', () => {
                 <Shapes />
             </SkeletonLoader>,
         );
-        // When the layout reports the actual viewport.
-        fireEvent(screen.getByTestId('loader', {includeHiddenElements: true}), 'layout', {nativeEvent: {layout: {width: 150, height: 64, x: 0, y: 0}}});
-        // Then shapes remain responsive without measurement and the strip uses the measured viewport.
+        // When the caller's style overrides the canvas, without any measurement.
+        const canvas = getStyle('loader');
+        // Then shapes remain responsive to the overridden viewport.
         expect(getStyle('bar')).toMatchObject({width: '100%'});
-        expect(getStyle('bar-shimmer')).toMatchObject({width: 150});
+        expect(canvas).toMatchObject({width: 150});
+        expect(screen.getByTestId('loader', {includeHiddenElements: true}).props.onLayout).toBeUndefined();
     });
 
     it('removes animation immediately for static mode and live reduced-motion changes', () => {
@@ -101,29 +102,29 @@ describe('SkeletonLoader', () => {
                 speed={3}
                 width={200}
                 height={64}
+                testID="loader"
             >
                 <Shapes />
             </SkeletonLoader>
         );
         const view = render(loader(true));
-        expect(getStyle('bar-shimmer')).toMatchObject({animationDuration: 3000});
+        expect(getStyle('loader-pulse')).toMatchObject({animationDuration: 3000});
         // When disabled by the caller, and then by the accessibility setting.
         view.rerender(loader(false));
-        expect(screen.queryByTestId('bar-shimmer', {includeHiddenElements: true})).toBeNull();
+        expect(screen.queryByTestId('loader-pulse', {includeHiddenElements: true})).toBeNull();
         view.rerender(loader(true));
         jest.mocked(Accessibility.useReducedMotion).mockReturnValue(true);
         view.rerender(loader(true));
-        // Then shapes retain their base color without any animated strips.
-        expect(screen.queryByTestId('bar-shimmer', {includeHiddenElements: true})).toBeNull();
+        // Then shapes retain their base color without an animated foreground layer.
+        expect(screen.queryByTestId('loader-pulse', {includeHiddenElements: true})).toBeNull();
         expect(getStyle('bar')).toMatchObject({backgroundColor: palette.backgroundColor});
     });
 
     it('fades a foreground shape group rather than the entire canvas', () => {
-        // Given the pulse comparison candidate.
+        // Given the pulse loader with two shapes.
         render(
             <SkeletonLoader
                 {...palette}
-                animation="pulse"
                 width={200}
                 height={64}
                 testID="loader"
@@ -135,7 +136,8 @@ describe('SkeletonLoader', () => {
         const pulseStyle = getStyle('loader-pulse');
         // Then only the foreground group animates and shape identifiers remain unique.
         expect(screen.getAllByTestId('bar', {includeHiddenElements: true})).toHaveLength(1);
-        expect(screen.queryByTestId('bar-shimmer', {includeHiddenElements: true})).toBeNull();
+        expect(getStyle('bar')).not.toHaveProperty('animationName');
+        expect(getStyle('circle')).not.toHaveProperty('animationName');
         expect(pulseStyle).toMatchObject({animationIterationCount: 'infinite'});
         expect(getStyle('loader')).not.toHaveProperty('animationName');
     });
@@ -172,7 +174,7 @@ describe('SkeletonLoader', () => {
         // Then row fading never divides by zero and height reservation remains intact.
         expect(StyleSheet.flatten(loader.props.style)).toMatchObject({opacity: 1, minHeight: 64, marginRight: 20});
         expect(screen.getByTestId('bar', {includeHiddenElements: true})).toBeTruthy();
-        expect(screen.queryByTestId('bar-shimmer', {includeHiddenElements: true})).toBeNull();
+        expect(view.UNSAFE_getAllByType(SkeletonViewRect)).toHaveLength(2);
     });
 
     it('fills the available list height and forwards the layout callback', () => {
@@ -193,7 +195,7 @@ describe('SkeletonLoader', () => {
         expect(screen.getAllByTestId('bar', {includeHiddenElements: true})).toHaveLength(3);
     });
 
-    it.each([undefined, '100%'] as const)('lays out percentage shapes before measurement with canvas width %s', (width) => {
+    it.each([undefined, '100%'] as const)('lays out percentage shapes without measurement with canvas width %s', (width) => {
         // Given a responsive loader with no numeric canvas dimensions.
         const loader = (animate: boolean) => (
             <SkeletonLoader
@@ -212,21 +214,21 @@ describe('SkeletonLoader', () => {
             </SkeletonLoader>
         );
         const view = render(loader(true));
-        // When layout has not fired, and then animation is disabled by either mechanism.
+        // When no measurement is available, and then animation is disabled by either mechanism.
         expect(getStyle('responsive')).toMatchObject({left: 12.5, width: '100%', height: '50%'});
-        expect(screen.queryByTestId('responsive-shimmer', {includeHiddenElements: true})).toBeNull();
+        expect(screen.getByTestId('loader-pulse', {includeHiddenElements: true})).toBeTruthy();
         view.rerender(loader(false));
         // Then static geometry never depends on an onLayout callback having fired.
         expect(getStyle('responsive')).toMatchObject({width: '100%', height: '50%'});
-        expect(screen.queryByTestId('responsive-shimmer', {includeHiddenElements: true})).toBeNull();
+        expect(screen.queryByTestId('loader-pulse', {includeHiddenElements: true})).toBeNull();
         jest.mocked(Accessibility.useReducedMotion).mockReturnValue(true);
         view.rerender(loader(true));
         expect(getStyle('responsive')).toMatchObject({width: '100%', height: '50%'});
-        expect(screen.queryByTestId('responsive-shimmer', {includeHiddenElements: true})).toBeNull();
+        expect(screen.queryByTestId('loader-pulse', {includeHiddenElements: true})).toBeNull();
     });
 
-    it.each(['disabled', 'reduced-motion'])('starts shimmer after initially %s motion is enabled without a resize', (mode) => {
-        // Given a responsive loader whose first measurement occurs while motion is off.
+    it.each(['disabled', 'reduced-motion'])('starts pulse after initially %s motion is enabled without a resize', (mode) => {
+        // Given a responsive loader with motion initially off.
         jest.mocked(Accessibility.useReducedMotion).mockReturnValue(mode === 'reduced-motion');
         const loader = (animate: boolean) => (
             <SkeletonLoader
@@ -239,51 +241,60 @@ describe('SkeletonLoader', () => {
             </SkeletonLoader>
         );
         const view = render(loader(mode !== 'disabled'));
-        fireEvent(screen.getByTestId('loader', {includeHiddenElements: true}), 'layout', {nativeEvent: {layout: {width: 200, height: 64, x: 0, y: 0}}});
-        expect(screen.queryByTestId('bar-shimmer', {includeHiddenElements: true})).toBeNull();
+        expect(screen.queryByTestId('loader-pulse', {includeHiddenElements: true})).toBeNull();
         // When motion is enabled without another layout event.
         jest.mocked(Accessibility.useReducedMotion).mockReturnValue(false);
         view.rerender(loader(true));
-        // Then the strip uses the original measurement and static geometry remains unchanged.
-        expect(getStyle('bar-shimmer')).toMatchObject({width: 200});
+        // Then pulse starts without waiting for layout and static geometry remains unchanged.
+        expect(getStyle('loader-pulse')).toMatchObject({animationIterationCount: 'infinite'});
         expect(getStyle('bar')).toMatchObject({width: '100%'});
     });
 
-    it('preserves mounted geometry through measurement, resize and motion changes', () => {
-        // Given geometry with mount and unmount effects, like consumers may provide.
-        const mount = jest.fn();
-        const unmount = jest.fn();
-        function MountedShapes() {
-            useEffect(() => {
-                mount();
-                return unmount;
-            }, []);
-            return <Shapes />;
-        }
-        const loader = (animate: boolean, speed = 1.2) => (
+    it('preserves base geometry through resize and motion changes', () => {
+        // Given mounted geometry inside a responsive loader.
+        const loader = (animate: boolean, speed = 1.2, width = 200) => (
             <SkeletonLoader
                 {...palette}
                 height={64}
                 animate={animate}
                 speed={speed}
                 testID="loader"
+                width={width}
             >
-                <MountedShapes />
+                <Shapes />
             </SkeletonLoader>
         );
         const view = render(loader(true));
-        // When the first measurement arrives and the canvas subsequently resizes.
-        for (const width of [200, 320]) {
-            fireEvent(screen.getByTestId('loader', {includeHiddenElements: true}), 'layout', {nativeEvent: {layout: {width, height: 64, x: 0, y: 0}}});
-            expect(getStyle('bar-shimmer')).toMatchObject({width});
-        }
+        const baseShape = screen.getByTestId('bar', {includeHiddenElements: true});
+        // When the canvas resizes and motion settings change.
+        view.rerender(loader(true, 1.2, 320));
+        expect(screen.getByTestId('bar', {includeHiddenElements: true})).toBe(baseShape);
         view.rerender(loader(false));
         view.rerender(loader(true, 3));
         jest.mocked(Accessibility.useReducedMotion).mockReturnValue(true);
         view.rerender(loader(true, 3));
-        // Then the geometry subtree remains mounted while only animation styles change.
-        expect(mount).toHaveBeenCalledTimes(1);
-        expect(unmount).not.toHaveBeenCalled();
+        // Then the base shape remains mounted while the animated foreground comes and goes.
+        expect(screen.getByTestId('bar', {includeHiddenElements: true})).toBe(baseShape);
+    });
+
+    it('keeps the loader non-interactive and hidden from accessibility', () => {
+        // Given caller styles that would otherwise accept pointer events.
+        render(
+            <SkeletonLoader
+                {...palette}
+                height={64}
+                style={{pointerEvents: 'auto'}}
+                testID="loader"
+            >
+                <Shapes />
+            </SkeletonLoader>,
+        );
+        // When the loader is rendered.
+        const loader = screen.getByTestId('loader', {includeHiddenElements: true});
+        // Then it neither intercepts interaction nor exposes decorative geometry to accessibility.
+        expect(getStyle('loader')).toMatchObject({pointerEvents: 'none'});
+        expect(loader.props.pointerEvents).toBeUndefined();
+        expect(loader.props).toMatchObject({accessible: false, accessibilityElementsHidden: true, importantForAccessibility: 'no-hide-descendants'});
     });
 
     it('migrates real options-list geometry, including circles and percentages, without SVG descendants', () => {

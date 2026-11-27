@@ -2,13 +2,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import React, {useContext} from 'react';
 import {View} from 'react-native';
-import Animated from 'react-native-reanimated';
 
 import type {SkeletonViewRectProps} from './types';
 
-import {getSkeletonAnimation} from './animations';
 import {getSkeletonRadius, resolveSkeletonDimension} from './geometry';
-import getGradientStyle from './getGradientStyle';
 import SkeletonContext from './SkeletonContext';
 
 function SkeletonViewRect({x = 0, y = 0, width, height, borderRadius, testID}: SkeletonViewRectProps) {
@@ -33,19 +30,7 @@ function SkeletonViewRect({x = 0, y = 0, width, height, borderRadius, testID}: S
         <View
             testID={loader.isForegroundLayer ? undefined : testID}
             style={[styles.pAbsolute, styles.overflowHidden, shapeStyle]}
-        >
-            {loader.isAnimating && loader.animation === 'shimmer' && loader.width > 0 && (
-                <Animated.View
-                    testID={testID ? `${testID}-shimmer` : undefined}
-                    style={[
-                        styles.pAbsolute,
-                        {left: -x, top: 0, width: loader.width, height: '100%'},
-                        getGradientStyle(loader.backgroundColor, loader.foregroundColor),
-                        getSkeletonAnimation('shimmer', loader.speed),
-                    ]}
-                />
-            )}
-        </View>
+        />
     );
 }
 

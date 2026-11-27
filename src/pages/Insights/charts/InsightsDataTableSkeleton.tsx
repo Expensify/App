@@ -1,4 +1,4 @@
-import {SkeletonViewRect as SkeletonRect} from '@components/SkeletonRect';
+import {SkeletonViewRect} from '@components/SkeletonLoader';
 import ItemListSkeletonView from '@components/Skeletons/ItemListSkeletonView';
 
 import useContainerWidth from '@hooks/useContainerWidth';
@@ -57,20 +57,20 @@ function InsightsDataTableSkeleton({fixedNumItems, shouldShowIndicator = true, r
                 renderSkeletonItem={() => (
                     <>
                         {shouldShowIndicator && (
-                            <SkeletonRect
+                            <SkeletonViewRect
                                 x={rowPaddingX}
                                 width={INDICATOR_SIZE}
                                 height={INDICATOR_SIZE}
                                 borderRadius={INDICATOR_SIZE / 2}
                             />
                         )}
-                        <SkeletonRect
+                        <SkeletonViewRect
                             x={textStartX}
                             y={barOffsetY}
                             width={LABEL_WIDTH}
                             height={BAR_HEIGHT}
                         />
-                        <SkeletonRect
+                        <SkeletonViewRect
                             x={amountX}
                             y={barOffsetY}
                             width={AMOUNT_WIDTH}

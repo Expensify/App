@@ -1,4 +1,4 @@
-import {SkeletonViewRect as SkeletonRect} from '@components/SkeletonRect';
+import {SkeletonViewRect} from '@components/SkeletonLoader';
 
 import useContainerWidth from '@hooks/useContainerWidth';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -48,37 +48,37 @@ function UnreportedExpensesSkeleton({fixedNumberOfItems}: UnreportedExpensesSkel
     const skeletonItem = (args: {itemIndex: number}) => {
         return (
             <>
-                <SkeletonRect
+                <SkeletonViewRect
                     x={16}
                     y={26}
                     width={20}
                     height={20}
                 />
-                <SkeletonRect
+                <SkeletonViewRect
                     x={48}
                     y={16}
                     width={36}
                     height={40}
                 />
-                <SkeletonRect
+                <SkeletonViewRect
                     x={96}
                     y={18}
                     width={getMessageSkeletonWidth(args.itemIndex)}
                     height={12}
                 />
-                <SkeletonRect
+                <SkeletonViewRect
                     x={96}
                     y={42}
                     width={60}
                     height={8}
                 />
-                <SkeletonRect
+                <SkeletonViewRect
                     x={pageWidth - 16 - getExpenseAmountSkeletonWidth(args.itemIndex)}
                     y={18}
                     width={getExpenseAmountSkeletonWidth(args.itemIndex)}
                     height={12}
                 />
-                <SkeletonRect
+                <SkeletonViewRect
                     x={pageWidth - 16 - 32}
                     y={42}
                     width={32}

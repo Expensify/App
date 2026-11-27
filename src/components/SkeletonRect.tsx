@@ -26,6 +26,3 @@ function SkeletonRect({borderRadius, height, ...rest}: SkeletonRectProps) {
 }
 
 export default SkeletonRect;
-
-// Keep the default SVG export until all legacy content-loader consumers migrate.
-export {default as SkeletonViewRect} from './SkeletonLoader/SkeletonViewRect';
