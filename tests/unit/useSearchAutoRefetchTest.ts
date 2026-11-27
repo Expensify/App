@@ -126,6 +126,7 @@ describe('useSearchAutoRefetch', () => {
         },
         searchKey: undefined,
         shouldCalculateTotals: false,
+        shouldCalculateFirstPageTotals: false,
         offset: 0,
     };
 
@@ -1047,6 +1048,20 @@ describe('useSearchAutoRefetch', () => {
 
             // Then the search starts over, since the job can change reports on the pages already loaded
             expect(search).toHaveBeenCalledWith(expect.objectContaining({offset: 0}));
+        });
+
+        it('works out totals for the first page when a Select all job finishes after more pages loaded', async () => {
+            // Given a saved search on its third page, where later pages skip totals but the first page gets them
+            await Onyx.set(BULK_ACTION_KEY, {state: CONST.BULK_ACTION.STATE.RUNNING, action: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_WORKSPACE});
+            renderHook(() => useSearchAutoRefetch({...baseProps, offset: 100, shouldCalculateTotals: false, shouldCalculateFirstPageTotals: true}));
+            await waitForBatchedUpdatesWithAct();
+
+            // When the job finishes
+            await Onyx.merge(BULK_ACTION_KEY, {state: CONST.BULK_ACTION.STATE.DONE, total: 1, failedReportIDs: []});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the first page is fetched with totals, so the footer keeps its count and total
+            expect(search).toHaveBeenCalledWith(expect.objectContaining({offset: 0, shouldCalculateTotals: true}));
         });
 
         it('does not search again for a Select all job that finished while its tab was preloaded', async () => {

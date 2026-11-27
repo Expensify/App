@@ -60,6 +60,9 @@ type UseSearchAutoRefetch = {
 
     /** Whether the refetch should recalculate result totals */
     shouldCalculateTotals: boolean;
+
+    /** Whether a refetch from the first page should recalculate result totals */
+    shouldCalculateFirstPageTotals: boolean;
 };
 
 type DeferredRefetchBaseline = {
@@ -93,6 +96,7 @@ function useSearchAutoRefetch({
     searchKey,
     offset,
     shouldCalculateTotals,
+    shouldCalculateFirstPageTotals,
 }: UseSearchAutoRefetch) {
     const isFocused = useIsFocused();
     const {isOffline} = useNetwork();
@@ -337,7 +341,7 @@ function useSearchAutoRefetch({
         // The job can change reports on every page, so the results are fetched again from the first one.
         TransitionTracker.runAfterTransitions({
             callback: () => {
-                search({queryJSON, searchKey, offset: 0, shouldCalculateTotals, isLoading: !!searchResults?.search?.isLoading});
+                search({queryJSON, searchKey, offset: 0, shouldCalculateTotals: shouldCalculateFirstPageTotals, isLoading: !!searchResults?.search?.isLoading});
             },
         });
     }, [
@@ -349,7 +353,7 @@ function useSearchAutoRefetch({
         isInPreloadedTab,
         queryJSON,
         searchKey,
-        shouldCalculateTotals,
+        shouldCalculateFirstPageTotals,
         searchResults?.search?.isLoading,
         searchResultsData,
     ]);
