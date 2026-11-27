@@ -29,6 +29,7 @@ function ConciergeAnimatedAvatar() {
     const [ANIMATION] = useState(() => ANIMATION_VARIANTS[Math.floor(Math.random() * ANIMATION_VARIANTS.length)]);
 
     return (
+        // The thinking animations draw outside of the avatar circle, because scripts/fixLottieAssets.ts removes the mattes that clipped them, so this container has to do it
         <View style={[StyleUtils.getAvatarStyle(CONST.AVATAR_SIZE.DEFAULT), styles.overflowHidden]}>
             {/* Plain Concierge avatar shown underneath while the Lottie animation isn't ready yet. Lottie renders a
                 transparent placeholder until it loads, so the static image fills the grey gap and the animation

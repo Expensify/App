@@ -1083,6 +1083,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
         case 'cardNumber':
         case 'taxValue':
         case 'groupCurrency':
+        case 'policyCurrency':
         case 'transactionType':
         case 'transactionThreadReportID':
         case 'mcc':
@@ -1114,6 +1115,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
         case 'convertedTaxAmount':
         case 'groupAmount':
         case 'groupExchangeRate':
+        case 'policyConvertedAmount':
         case 'currencyConversionRate':
             return validateNumber(value);
         case 'iouRequestType':
@@ -1269,6 +1271,8 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     groupAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     groupCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     groupExchangeRate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    policyConvertedAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    policyCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     currencyConversionRate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     splitsStartDate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     splitsEndDate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1622,7 +1626,7 @@ function getReasonForShowingRowInLHN({
         doesReportHaveViolations,
         includeSelfDM: true,
         isReportArchived,
-        draftComment,
+        hasDraftComment: !!draftComment,
         currentUserLogin,
         currentUserAccountID,
         conciergeReportID,

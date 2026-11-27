@@ -406,6 +406,7 @@ const translations: TranslationDeepObject<typeof en> = {
         reportID: 'Berichts-ID',
         longReportID: 'Langer Bericht-ID',
         withdrawalID: 'Auszahlungs-ID',
+        transactionID: 'Transaktions-ID',
         internationalReimbursementIDs: 'Internationale Erstattungs-IDs',
         amountDebited: 'Belasteter Betrag',
         amountReimbursed: 'Erstatteter Betrag',
@@ -504,6 +505,7 @@ const translations: TranslationDeepObject<typeof en> = {
         corpayPayModalPrompt:
             'Diese einreichende Person hat ein Bankkonto in einer anderen Währung als USD. Aktiviere globale Rückerstattungen, um den Bericht zu bezahlen, oder bitte sie, ein USD-Bankkonto hinzuzufügen.',
         purchaseAmount: 'Kaufbetrag',
+        convertedAmount: 'Umgerechneter Betrag',
         originalAmount: 'Ursprünglicher Betrag',
         frequency: 'Häufigkeit',
         link: 'Link',
@@ -809,6 +811,11 @@ const translations: TranslationDeepObject<typeof en> = {
         setPin: {didNotShipCard: 'Wir haben Ihre Karte nicht versendet. Bitte versuchen Sie es erneut.'},
         revealPin: {couldNotReveal: 'Wir konnten Ihre PIN nicht anzeigen. Bitte versuchen Sie es erneut.'},
         changePin: {didNotChange: 'Wir haben Ihre PIN nicht geändert. Bitte versuchen Sie es erneut.'},
+        addToWallet: {
+            failedHeader: 'Karte konnte nicht hinzugefügt werden',
+            failedTitle: 'Wir konnten Ihre Karte nicht zu Ihrer Wallet hinzufügen',
+            failedSubtitle: 'Beim Hinzufügen der Karte ist etwas schiefgelaufen. Wenn sie bereits in Ihrer Wallet ist, können Sie sie dort verwenden.',
+        },
         revealCardDetail: {couldNotReveal: 'Wir konnten Ihre Kartendaten nicht anzeigen. Bitte versuchen Sie es noch einmal.'},
     },
     validateCodeModal: {
@@ -1346,7 +1353,10 @@ const translations: TranslationDeepObject<typeof en> = {
             label: 'Verstöße gegen',
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Einreichende',
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: 'Genehmigende',
+            chartTitle: (title: string, stage: string) => `${title} (${stage})`,
         },
+        flaggedExpenses: 'Markierte Ausgaben',
+        noFlaggedExpensesInRange: 'Keine markierten Ausgaben in diesem Zeitraum',
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -4506,7 +4516,9 @@ ${amount} für ${merchant} – ${date}`,
     },
     welcomeSignUpForm: {
         join: 'Beitreten',
-        marketingSMSConsent: 'Ich stimme zu, Marketing-SMS von Expensify zu erhalten',
+        transactionalSMSConsent: 'Mit der Angabe meiner Telefonnummer stimme ich zu, transaktionsbezogene Kontobenachrichtigungen von Expensify zu erhalten.',
+        transactionalSMSConsentFinePrint: 'Es können die üblichen Gebühren für Nachrichten und Daten anfallen. Antworte STOP, um dich abzumelden.',
+        marketingSMSConsent: 'Ich stimme zu, Marketing-SMS von Expensify zu erhalten.',
     },
     detailsPage: {
         localTime: 'Ortszeit',
@@ -4693,6 +4705,14 @@ ${amount} für ${merchant} – ${date}`,
         numberedItem: ({item, number}: {item: string; number: number}) => `${item} ${number}`,
         questionsChanged: 'Die Fragen auf dieser Seite haben sich geändert',
         onFile: 'Vorhanden',
+        continueOffline: {
+            title: 'Sie können offline nicht fortfahren',
+            prompt: 'Zum Ausfüllen dieses Formulars wird eine Internetverbindung benötigt. Keine Sorge, wir speichern Ihren Fortschritt und Sie können fortfahren, sobald Sie wieder online sind.',
+            saveForLater: 'Speichern und später ausfüllen',
+            progressSaved: 'Ihr Fortschritt wurde gespeichert',
+            promptWithSensitiveAnswers:
+                'Für das Ausfüllen dieses Formulars ist eine Internetverbindung erforderlich. Wir speichern Ihren Fortschritt, damit Sie weitermachen können, sobald Sie wieder online sind. Zu Ihrer Sicherheit werden vertrauliche Angaben nicht gespeichert und müssen erneut eingegeben werden.',
+        },
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'Der SWIFT/BIC muss 8 oder 11 Zeichen lang sein, mit 6 Buchstaben gefolgt von 2 oder 5 Buchstaben oder Ziffern.',
@@ -4713,6 +4733,15 @@ ${amount} für ${merchant} – ${date}`,
         updateSuccessMessage: 'Glückwunsch, dein Bankkonto ist eingerichtet und bereit, Rückerstattungen zu empfangen.',
         bankDetails: 'Bankdaten',
         accountHolderDetails: 'Kontoinhaberangaben',
+        notices: {
+            katakanaName:
+                'Geben Sie Ihren Namen genau so ein, wie er auf Ihrem japanischen Bankkonto erscheint. Er wird normalerweise in カタカナ (Katakana) geschrieben. Eine Abweichung kann Ihre Zahlung verzögern oder zu einer Ablehnung führen.',
+            alipayRecipients: 'Nur Empfänger mit Wohnsitz in Festlandchina, Hongkong oder Macao können über Alipay bezahlt werden.',
+            alipayLimits:
+                'Alipay kann bis zu 50.000 CNY pro Zahlung und zwischen 300.000 und 600.000 CNY pro Jahr empfangen. Monatliche Limits für die Anzahl der Zahlungen können je nach Verwendungszweck der Zahlung ebenfalls gelten.',
+            malaysianNonResidentLimit:
+                'Nichtansässige mit einem Bankkonto in Malaysia können nur 10.000 Malaysische Ringgit pro Tag empfangen. Eine Zahlung über diesem Limit kann dazu führen, dass Ihre Bank Ihr Konto schließt.',
+        },
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Expensify-Passwort eingeben',
@@ -7319,6 +7348,8 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             createFailureMessage: 'Beim Erstellen der Kategorie ist ein Fehler aufgetreten, bitte versuche es erneut.',
             addCategory: 'Kategorie hinzufügen',
             createCategoryFromSearch: (categoryName: string) => `Kategorie „${categoryName}“ erstellen`,
+            availableToMember: (memberName: string) => `Verfügbar für ${memberName}`,
+            notAvailableToMember: (memberName: string) => `Für ${memberName} nicht verfügbar`,
             editCategory: 'Kategorie bearbeiten',
             editCategories: 'Kategorien bearbeiten',
             findCategory: 'Kategorie finden',
@@ -7336,12 +7367,14 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 description: `Mindestens eine Kategorie muss aktiviert bleiben, da dein Workspace Kategorien erfordert.`,
             },
             visibleTo: 'Sichtbar für',
+            editVisibility: 'Sichtbarkeit bearbeiten',
             membersCount: ({count}: {count: number}) => ({
                 one: '1 Mitglied',
                 other: `${count} Mitglieder`,
             }),
             visibleToDescription: ({categoryName}: {categoryName: string}) =>
                 `Wählen Sie aus, welche Mitglieder die Kategorie ${categoryName} beim Einreichen von Ausgaben verwenden können.`,
+            bulkVisibleToDescription: 'Wählen Sie aus, welche Mitglieder diese Kategorien beim Einreichen von Ausgaben verwenden können.',
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `${categoryName} kann nicht deaktiviert werden`,
                 bulkTitle: 'Diese Kategorien können nicht deaktiviert werden',
@@ -8082,6 +8115,9 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             },
             changeOfficeLocation: 'Bürostandort ändern',
             changeWorkArrangement: 'Arbeitsvereinbarung ändern',
+            editCategoryVisibility: 'Kategoriesichtbarkeit bearbeiten',
+            bulkCategoryVisibilitySaved: ({categoryCount, memberCount}: {categoryCount: string; memberCount: string}) =>
+                `Legen Sie ${categoryCount} für ${memberCount} fest. Dadurch wird deren aktuelle Kategorien-Sichtbarkeit ersetzt.`,
             changeRole: 'Rolle ändern',
             newRolesBanner: {
                 title: 'Neue Rollen verfügbar',
@@ -8120,7 +8156,6 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                 willBeReadyToUse: 'Diese Karte ist sofort einsatzbereit.',
                 willBeReadyToShip: 'Diese Karte ist sofort versandbereit.',
                 cardholder: 'Karteninhaber',
-                cardholderEmail: 'E-Mail-Adresse des Karteninhabers',
                 cardType: 'Kartentyp',
                 limit: 'Limit',
                 limitType: 'Limittyp',

@@ -12,7 +12,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EnableGlobalReimbursementsForm';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React, {useEffect} from 'react';
 
@@ -28,8 +27,7 @@ function EnableGlobalReimbursementsSignPage({route}: EnableGlobalReimbursementsS
     const currency = route.params?.bankCurrency ?? bankAccount?.bankCurrency ?? '';
     const country = route.params?.bankCountry ?? bankAccount?.bankCountry;
     const [enableGlobalReimbursements] = useOnyx(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS);
-    const [enableGlobalReimbursementsDraft, enableGlobalReimbursementsDraftMetadata] = useOnyx(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS_DRAFT);
-    const isLoadingDraft = isLoadingOnyxValue(enableGlobalReimbursementsDraftMetadata);
+    const [enableGlobalReimbursementsDraft] = useOnyx(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS_DRAFT);
     const defaultValue = enableGlobalReimbursementsDraft?.[INPUT_IDS.ACH_AUTHORIZATION_FORM] ?? [];
     const bankStatement = enableGlobalReimbursementsDraft?.[INPUT_IDS.BANK_STATEMENT];
 
@@ -48,12 +46,12 @@ function EnableGlobalReimbursementsSignPage({route}: EnableGlobalReimbursementsS
     };
 
     useEffect(() => {
-        if (bankStatement?.length || isLoadingDraft) {
+        if (bankStatement?.length) {
             return;
         }
 
         Navigation.navigate(getAgreementsRoute(Number(bankAccountID), persistedRouteParams), isDynamic ? {forceReplace: true} : undefined);
-    }, [bankAccountID, bankStatement?.length, getAgreementsRoute, isDynamic, isLoadingDraft, persistedRouteParams]);
+    }, [bankAccountID, bankStatement?.length, getAgreementsRoute, isDynamic, persistedRouteParams]);
 
     const onSubmit = () => {
         enableGlobalReimbursementsForUSDBankAccount({
