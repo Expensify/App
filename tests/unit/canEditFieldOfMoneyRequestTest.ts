@@ -338,6 +338,70 @@ describe('canEditFieldOfMoneyRequest', () => {
                 expect(canEditReportField).toBe(true);
             });
 
+            it('should return false when the server rejected the expense create', async () => {
+                // Given the same expense the submitter could move, but its create came back with an error and is still pending as added
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${IOUReportID}`, expenseReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_OUTSTANDING_REPORT_1_ID}`, outstandingExpenseReport1);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_OUTSTANDING_REPORT_2_ID}`, outstandingExpenseReport2);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, expensePolicy);
+                await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [currentUserAccountID]: {
+                        accountID: currentUserAccountID,
+                        login: currentUserEmail,
+                    },
+                });
+                await waitForBatchedUpdates();
+                const outstandingReportsByPolicyID = await OnyxUtils.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
+                const failedCreateTransaction = {
+                    ...moneyRequestTransaction,
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    errors: {[Date.now()]: 'Unexpected error submitting this expense. Please try again later.'},
+                };
+
+                // When the submitter tries to move it to another report
+                const canEditReportField = canEditFieldOfMoneyRequest({
+                    rules: undefined,
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
+                    outstandingReportsByPolicyID,
+                    transaction: failedCreateTransaction,
+                    reportNameValuePairs: undefined,
+                });
+
+                // Then the move is not offered, because the server has no such expense and would reject the move
+                expect(canEditReportField).toBe(false);
+            });
+
+            it('should return true while the expense create is still pending without an error', async () => {
+                // Given an expense whose create is queued or in flight, so it is pending as added but has no error
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${IOUReportID}`, expenseReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_OUTSTANDING_REPORT_1_ID}`, outstandingExpenseReport1);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_OUTSTANDING_REPORT_2_ID}`, outstandingExpenseReport2);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, expensePolicy);
+                await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [currentUserAccountID]: {
+                        accountID: currentUserAccountID,
+                        login: currentUserEmail,
+                    },
+                });
+                await waitForBatchedUpdates();
+                const outstandingReportsByPolicyID = await OnyxUtils.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
+                const pendingCreateTransaction = {...moneyRequestTransaction, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
+
+                // When the submitter tries to move it to another report
+                const canEditReportField = canEditFieldOfMoneyRequest({
+                    rules: undefined,
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
+                    outstandingReportsByPolicyID,
+                    transaction: pendingCreateTransaction,
+                    reportNameValuePairs: undefined,
+                });
+
+                // Then the move is still offered, because the queue sends it after the create
+                expect(canEditReportField).toBe(true);
+            });
+
             it('should return false when the expense report is archived', async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${IOUReportID}`, expenseReport);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_OUTSTANDING_REPORT_1_ID}`, outstandingExpenseReport1);

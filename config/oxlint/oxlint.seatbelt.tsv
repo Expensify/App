@@ -136,7 +136,7 @@
 "../../src/components/FeedbackSurvey.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/components/FilePicker/index.native.tsx"	"react-hooks/refs"	1
 "../../src/components/FilePicker/index.tsx"	"react-hooks/refs"	1
-"../../src/components/FlatList/hooks/useFlatListHandle.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
+"../../src/components/FlatList/hooks/useFlatListHandle.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/FocusableMenuItem.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/components/FocusTrap/FocusTrapContainerElement/index.web.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/FocusTrap/FocusTrapForScreen/index.web.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -934,8 +934,6 @@
 "../../src/libs/ShortcutManager/index.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/libs/SidebarUtils.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/libs/SidebarUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/libs/StatusBar/index.android.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/libs/StatusBar/index.web.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/StatusBar/types.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/telemetry/forwardLogsToSentry.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/telemetry/TelemetrySynchronizer.ts"	"rulesdir/no-direct-personal-details-list"	1
@@ -1966,7 +1964,7 @@
 "../../tests/ui/MoneyRequestReportActionsListRejectModalTest.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	11
 "../../tests/ui/MoneyRequestReportActionsListSystemMessagesTest.tsx"	"@typescript-eslint/no-deprecated/originalMessage"	2
 "../../tests/ui/MoneyRequestReportActionsListSystemMessagesTest.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
-"../../tests/ui/MoneyRequestReportPreview.test.tsx"	"@typescript-eslint/no-deprecated/originalMessage"	5
+"../../tests/ui/MoneyRequestReportPreview.test.tsx"	"@typescript-eslint/no-deprecated/originalMessage"	3
 "../../tests/ui/MoneyRequestReportPreview.test.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	4
 "../../tests/ui/MoneyRequestReportPreview.test.tsx"	"no-restricted-imports"	1
 "../../tests/ui/MoneyRequestViewReceiptTest.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	2
