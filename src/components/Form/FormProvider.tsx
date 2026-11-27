@@ -100,6 +100,9 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TF
     /** Whether to render the submit button above the footer. */
     shouldRenderFooterAboveSubmit?: boolean;
 
+    /** Whether to render the footer above the alert, so the alert sits directly above the submit button */
+    shouldRenderFooterAboveAlert?: boolean;
+
     isLoading?: boolean;
     addBottomSafeAreaPadding?: boolean;
     addOfflineIndicatorBottomSafeAreaPadding?: boolean;

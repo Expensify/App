@@ -9,6 +9,7 @@ import type {CurrencyList, GovernmentMileageRate, Policy} from '@src/types/onyx'
 import type {CustomUnit, Rate, RateAttributes, Unit} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 
+import type {Locale as DateFnsLocale} from 'date-fns';
 import type {NullishDeep, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
 
@@ -17,6 +18,8 @@ import Onyx from 'react-native-onyx';
 
 import type {Option} from './searchOptions';
 
+import {convertAmountToDisplayString} from './CurrencyUtils';
+import DateUtils from './DateUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from './ErrorUtils';
 import getPermittedDecimalSeparator from './getPermittedDecimalSeparator';
 import {getGovernmentRateSeries, isFuelBandGovernmentRate} from './GovernmentRateUtils';
@@ -534,6 +537,52 @@ function getNoGovernmentRateNote(translate: LocalizedTranslate, country: Country
     return translate('workspace.distanceRates.addRatePage.noGovernmentRateForCountry', translate(`allCountries.${country}`));
 }
 
+function isCountryWithGovernmentRateNote(country: string): country is TupleToUnion<typeof CONST.CUSTOM_UNITS.DISTANCE_RATE_COUNTRIES_WITH_GOVERNMENT_RATE_NOTE> {
+    const countriesWithNote: readonly string[] = CONST.CUSTOM_UNITS.DISTANCE_RATE_COUNTRIES_WITH_GOVERNMENT_RATE_NOTE;
+    return countriesWithNote.includes(country);
+}
+
+/** Whether the Add rate summary shows a note for this country's government rate. Belgium and Sweden build theirs from the rate. */
+function hasGovernmentRateNote(country: GovernmentRateCountry): boolean {
+    return isCountryWithGovernmentRateNote(country) || country === CONST.COUNTRY.BE || country === CONST.COUNTRY.SE;
+}
+
+/**
+ * Explains how the authority's rules apply to the country's government rate, for the Add rate summary. Returns undefined
+ * when the country has no note, or when its note needs the rate and the rate hasn't loaded yet.
+ */
+function getGovernmentRateNote(
+    translate: LocalizedTranslate,
+    country: GovernmentRateCountry,
+    governmentRate: GovernmentMileageRate | undefined,
+    dateFnsLocale: DateFnsLocale | undefined,
+): string | undefined {
+    if (isCountryWithGovernmentRateNote(country)) {
+        return translate(`workspace.distanceRates.addRatePage.governmentRateNotes.${country}`);
+    }
+
+    if (!governmentRate) {
+        return undefined;
+    }
+
+    if (country === CONST.COUNTRY.BE) {
+        return translate(
+            'workspace.distanceRates.addRatePage.governmentRateIndexedQuarterly',
+            DateUtils.formatWithUTCTimeZone(governmentRate.startDate, CONST.DATE.MONTH_DAY_YEAR_FORMAT, dateFnsLocale),
+        );
+    }
+
+    if (country === CONST.COUNTRY.SE) {
+        const amountPerKilometer = getGovernmentRateAmountForUnit(governmentRate.rate, governmentRate.sourceRateID, CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
+        return translate(
+            'workspace.distanceRates.addRatePage.governmentRatePerSwedishMil',
+            convertAmountToDisplayString(amountPerKilometer * CONST.CUSTOM_UNITS.KILOMETERS_PER_SWEDISH_MIL, governmentRate.currency),
+        );
+    }
+
+    return undefined;
+}
+
 /**
  * Builds the optimistic, success and failure Onyx data for enabling or disabling government rate auto-update,
  * including the optimistic copy of the country's reference rates and the distance unit correction. Shared by the
@@ -829,6 +878,8 @@ export {
     getEuroDistanceRateCountryOptions,
     getCurrentGovernmentMileageRate,
     getNoGovernmentRateNote,
+    hasGovernmentRateNote,
+    getGovernmentRateNote,
     getGovernmentRateAmountForUnit,
     isEuroDistanceRateCountry,
 };

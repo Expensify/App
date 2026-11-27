@@ -11,7 +11,9 @@ import {
     getGovernmentRateCountryForCurrency,
     getGovernmentRateCountryPhraseTranslationKey,
     getGovernmentRateSeries,
+    getGovernmentRateNote,
     getNoGovernmentRateNote,
+    hasGovernmentRateNote,
     hasGovernmentRateForCurrency,
     isCurrencySupportedForAutoUpdate,
     isGovernmentRateCountry,
@@ -633,6 +635,41 @@ describe('PolicyDistanceRatesUtils', () => {
             expect(getNoGovernmentRateNote(translateLocal, 'FR')).toBe(translateLocal('workspace.distanceRates.addRatePage.noGovernmentRateNotes.FR'));
             expect(getNoGovernmentRateNote(translateLocal, 'IE')).toBe(translateLocal('workspace.distanceRates.addRatePage.noGovernmentRateForCountry', translateLocal('allCountries.IE')));
             expect(getNoGovernmentRateNote(translateLocal, undefined)).toBe(translateLocal('workspace.distanceRates.addRatePage.noGovernmentRateForOtherCountry'));
+        });
+    });
+
+    describe('getGovernmentRateNote', () => {
+        const belgiumRate: GovernmentMileageRate = {sourceRateID: 'BE_2026-07-01', currency: 'EUR', name: '2026 Belgium', rate: 43.69, startDate: '2026-07-01'};
+        const swedenRate: GovernmentMileageRate = {sourceRateID: 'SE_2026-01-01', currency: 'SEK', name: '2026 Sweden', rate: 250, startDate: '2026-01-01'};
+
+        it('shows a fixed note for countries whose rules do not depend on the rate', () => {
+            // Given a country with a fixed note, before its rate has loaded
+            // When we build the note
+            // Then the note is shown without waiting for the rate
+            expect(hasGovernmentRateNote('NO')).toBe(true);
+            expect(getGovernmentRateNote(translateLocal, 'NO', undefined, undefined)).toBe(translateLocal('workspace.distanceRates.addRatePage.governmentRateNotes.NO'));
+        });
+
+        it('builds the Belgium and Sweden notes from the rate once it loads', () => {
+            // Given Belgium and Sweden, whose notes quote the published rate
+            // When we build the notes before and after the rate loads
+            // Then they wait for the rate, then show its start date and its amount per Swedish mil
+            expect(hasGovernmentRateNote('BE')).toBe(true);
+            expect(hasGovernmentRateNote('SE')).toBe(true);
+            expect(getGovernmentRateNote(translateLocal, 'BE', undefined, undefined)).toBeUndefined();
+            expect(getGovernmentRateNote(translateLocal, 'SE', undefined, undefined)).toBeUndefined();
+            expect(getGovernmentRateNote(translateLocal, 'BE', belgiumRate, undefined)).toBe(
+                translateLocal('workspace.distanceRates.addRatePage.governmentRateIndexedQuarterly', 'July 1, 2026'),
+            );
+            expect(getGovernmentRateNote(translateLocal, 'SE', swedenRate, undefined)).toBe(translateLocal('workspace.distanceRates.addRatePage.governmentRatePerSwedishMil', 'SEK 25.00'));
+        });
+
+        it('has no note for countries whose rate needs no explanation', () => {
+            // Given a country the summary shows only the unit line for
+            // When we check for a note
+            // Then there is none, so no loading line is shown either
+            expect(hasGovernmentRateNote('US')).toBe(false);
+            expect(getGovernmentRateNote(translateLocal, 'US', undefined, undefined)).toBeUndefined();
         });
     });
 });

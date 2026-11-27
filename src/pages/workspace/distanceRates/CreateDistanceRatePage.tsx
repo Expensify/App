@@ -72,6 +72,7 @@ import React, {useEffect, useRef, useState} from 'react';
 import {Keyboard, View} from 'react-native';
 import Onyx from 'react-native-onyx';
 
+import DistanceRateCalculationSummary from './DistanceRateCalculationSummary';
 import EuroCountryDropdown from './EuroCountryDropdown';
 
 type CreateDistanceRatePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CREATE_DISTANCE_RATE>;
@@ -295,19 +296,28 @@ function CreateDistanceRatePage({
                         style={[styles.mh5, styles.flex1]}
                         submitButtonStyles={shouldShowCountryAndKind ? undefined : [styles.mt0]}
                         shouldValidateOnBlur={!shouldShowCountryAndKind}
+                        footerContent={
+                            shouldShowCountryAndKind ? (
+                                <DistanceRateCalculationSummary
+                                    unit={isGovernmentKind ? governmentRateUnit : distanceUnit}
+                                    currency={currency}
+                                    governmentRateCountry={isGovernmentKind ? governmentRateCountry : undefined}
+                                    governmentRate={currentGovernmentRate}
+                                />
+                            ) : undefined
+                        }
+                        shouldRenderFooterAboveAlert
                         addBottomSafeAreaPadding
                     >
                         {shouldShowCountryAndKind ? (
                             <>
                                 {canPickEuroCountry ? (
-                                    <View style={styles.mhn4}>
-                                        <EuroCountryDropdown
-                                            label={translate('workspace.distanceRates.addRatePage.whichCountry')}
-                                            selectedCountry={country ?? ''}
-                                            countries={getEuroDistanceRateCountryOptions(translate, localeCompare)}
-                                            onSelectCountry={selectEuroCountry}
-                                        />
-                                    </View>
+                                    <EuroCountryDropdown
+                                        label={translate('workspace.distanceRates.addRatePage.whichCountry')}
+                                        selectedCountry={country ?? ''}
+                                        countries={getEuroDistanceRateCountryOptions(translate, localeCompare)}
+                                        onSelectCountry={selectEuroCountry}
+                                    />
                                 ) : (
                                     <View style={styles.mhn5}>
                                         <MenuItemField
