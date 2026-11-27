@@ -50,6 +50,7 @@ import usePermissions from './usePermissions';
 import {useGetPersonalDetailsByLogin} from './usePersonalDetailByLogin';
 import {usePersonalDetail} from './usePersonalDetails';
 import usePolicy from './usePolicy';
+import useReportIsArchived from './useReportIsArchived';
 import useSearchShouldCalculateTotals from './useSearchShouldCalculateTotals';
 import useShouldReturnTripRooms from './useShouldReturnTripRooms';
 import useVerifyAccountAndResume from './useVerifyAccountAndResume';
@@ -128,6 +129,7 @@ function useSelectionModePayment({
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
     const activePolicy = usePolicy(activePolicyID);
     const chatReportPolicy = usePolicy(chatReport?.policyID);
+    const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
     const getChatReportActions = usePayChatReportActions(chatReport, existingB2BInvoiceReport);
 
@@ -232,6 +234,7 @@ function useSelectionModePayment({
                 delegateAccountID,
                 isTrackIntentUser,
                 rules,
+                isChatIOUReportArchived: isChatReportArchived,
             });
         } else if (paymentMethod === CONST.PAYMENT_METHODS.ABA) {
             if (moneyRequestReport?.reportID) {
@@ -274,6 +277,7 @@ function useSelectionModePayment({
                 isTrackIntentUser,
                 conciergeChat,
                 rules,
+                isChatIOUReportArchived: isChatReportArchived,
             });
         }
 
@@ -371,6 +375,7 @@ function useSelectionModePayment({
             ownerLogin,
             delegateAccountID,
             allTransactionViolations,
+            isChatReportArchived,
         });
     };
 

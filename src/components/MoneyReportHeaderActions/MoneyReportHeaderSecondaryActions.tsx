@@ -262,6 +262,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                 delegateAccountID,
                 isTrackIntentUser,
                 rules,
+                isChatIOUReportArchived: isChatReportArchived,
             });
         } else if (paymentMethod === CONST.PAYMENT_METHODS.ABA) {
             if (moneyRequestReport?.reportID) {
@@ -297,6 +298,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                 isTrackIntentUser,
                 conciergeChat,
                 rules,
+                isChatIOUReportArchived: isChatReportArchived,
             });
         }
     };
@@ -523,6 +525,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                 ownerLogin: submitterLogin,
                 delegateAccountID,
                 allTransactionViolations,
+                isChatReportArchived,
             });
 
         if (!isUserValidated && iouPaymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {

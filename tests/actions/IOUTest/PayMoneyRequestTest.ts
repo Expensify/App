@@ -2,7 +2,7 @@ import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 
 import {putOnHold} from '@libs/actions/IOU/Hold';
-import {cancelPayment, completePaymentOnboarding, markReportPaymentReceived, payMoneyRequest, payViaABA} from '@libs/actions/IOU/PayMoneyRequest';
+import {cancelPayment, completePaymentOnboarding, markReportPaymentReceived, payInvoice, payMoneyRequest, payViaABA} from '@libs/actions/IOU/PayMoneyRequest';
 import {requestMoney} from '@libs/actions/IOU/TrackExpense';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {createWorkspace, generatePolicyID} from '@libs/actions/Policy/Policy';
@@ -264,6 +264,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     }
                     const iouReportTransactions = await getReportTransactionsFromOnyx(iouReport.reportID);
                     payMoneyRequest({
+                        isChatIOUReportArchived: false,
                         bankAccountList: undefined,
                         isWiseReimbursementsBetaEnabled: false,
                         isASAPSubmitBetaEnabled: false,
@@ -494,6 +495,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     }
                     const iouReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
                     payMoneyRequest({
+                        isChatIOUReportArchived: false,
                         bankAccountList: undefined,
                         isWiseReimbursementsBetaEnabled: false,
                         isASAPSubmitBetaEnabled: false,
@@ -680,6 +682,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     }
                     const iouReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
                     payMoneyRequest({
+                        isChatIOUReportArchived: false,
                         bankAccountList: undefined,
                         isWiseReimbursementsBetaEnabled: false,
                         isASAPSubmitBetaEnabled: false,
@@ -741,6 +744,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             // When paying the IOU report
             const chatReportPolicy = chatReportPolicyFromChat(chatReport);
             payMoneyRequest({
+                isChatIOUReportArchived: false,
                 bankAccountList: undefined,
                 isWiseReimbursementsBetaEnabled: false,
                 isASAPSubmitBetaEnabled: false,
@@ -845,6 +849,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             // expense the requestor deleted in the meantime
             mockFetch?.fail?.();
             payMoneyRequest({
+                isChatIOUReportArchived: false,
                 bankAccountList: undefined,
                 isWiseReimbursementsBetaEnabled: false,
                 isASAPSubmitBetaEnabled: false,
@@ -893,6 +898,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 mockFetch?.pause?.();
 
                 payMoneyRequest({
+                    isChatIOUReportArchived: false,
                     bankAccountList: undefined,
                     isWiseReimbursementsBetaEnabled: false,
                     isASAPSubmitBetaEnabled: false,
@@ -950,6 +956,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
                 // When paying with the account provided by the caller.
                 payMoneyRequest({
+                    isChatIOUReportArchived: false,
                     bankAccountList: {[bankAccountID]: {bankCurrency: CONST.CURRENCY.USD, bankCountry: CONST.COUNTRY.US, accountData: {accountNumber: 'XXXX9876'}}},
                     isWiseReimbursementsBetaEnabled: false,
                     methodID: bankAccountID,
@@ -1071,6 +1078,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         policyID: CONST.POLICY.ID_FAKE,
                     };
                     payMoneyRequest({
+                        isChatIOUReportArchived: false,
                         bankAccountList: undefined,
                         isWiseReimbursementsBetaEnabled: false,
                         isASAPSubmitBetaEnabled: false,
@@ -1174,6 +1182,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
 
             const newExpenseReportID = payMoneyRequest({
+                isChatIOUReportArchived: false,
                 bankAccountList: undefined,
                 isWiseReimbursementsBetaEnabled: false,
                 isASAPSubmitBetaEnabled: false,
@@ -1286,6 +1295,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
             const pay = (expenseReport: Report, iouReportTransactions: Transaction[]) =>
                 payMoneyRequest({
+                    isChatIOUReportArchived: false,
                     bankAccountList: undefined,
                     isWiseReimbursementsBetaEnabled: false,
                     paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -1377,6 +1387,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
             const chatReportPolicyTrueTour = chatReportPolicyFromChat(chatReport);
             payMoneyRequest({
+                isChatIOUReportArchived: false,
                 bankAccountList: undefined,
                 isWiseReimbursementsBetaEnabled: false,
                 isASAPSubmitBetaEnabled: false,
@@ -1435,6 +1446,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
             const chatReportPolicyFalseTour = chatReportPolicyFromChat(chatReport);
             payMoneyRequest({
+                isChatIOUReportArchived: false,
                 bankAccountList: undefined,
                 isWiseReimbursementsBetaEnabled: false,
                 isASAPSubmitBetaEnabled: false,
@@ -1555,7 +1567,18 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
             mockFetch?.pause?.();
 
-            markReportPaymentReceived(chatReport, reimbursedReport, currentUserAccountID, currentUserEmail, mockChatReportActions, false, undefined, getCurrencyDecimalsLocal, undefined);
+            markReportPaymentReceived({
+                chatReport,
+                iouReport: reimbursedReport,
+                currentUserAccountID,
+                currentUserEmail,
+                chatReportActions: mockChatReportActions,
+                isTrackIntentUser: false,
+                allTransactionViolations: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                rules: undefined,
+                isChatReportArchived: false,
+            });
             await waitForBatchedUpdates();
 
             const updatedChatReport = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -1613,6 +1636,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             jest.mocked(Navigation.navigate).mockClear();
 
             payMoneyRequest({
+                isChatIOUReportArchived: false,
                 bankAccountList: undefined,
                 isWiseReimbursementsBetaEnabled: false,
                 isASAPSubmitBetaEnabled: false,
@@ -1690,6 +1714,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             jest.mocked(Navigation.navigate).mockClear();
 
             payMoneyRequest({
+                isChatIOUReportArchived: false,
                 bankAccountList: undefined,
                 isWiseReimbursementsBetaEnabled: false,
                 isASAPSubmitBetaEnabled: false,
@@ -1757,6 +1782,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             jest.mocked(Navigation.navigate).mockClear();
 
             payMoneyRequest({
+                isChatIOUReportArchived: false,
                 bankAccountList: undefined,
                 isWiseReimbursementsBetaEnabled: false,
                 isASAPSubmitBetaEnabled: false,
@@ -1803,6 +1829,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
             const chatReportPolicyAmountZero = chatReportPolicyFromChat(chatReport);
             payMoneyRequest({
+                isChatIOUReportArchived: false,
                 bankAccountList: undefined,
                 isWiseReimbursementsBetaEnabled: false,
                 isASAPSubmitBetaEnabled: false,
@@ -1962,26 +1989,38 @@ describe('actions/IOU/PayMoneyRequest', () => {
             getRequiredOnyxUpdate(getOnyxDataArg(), 'optimisticData', `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, Onyx.METHOD.MERGE, true).value;
 
         it('does nothing when the chat report is missing', () => {
-            markReportPaymentReceived(
-                undefined,
-                {
+            markReportPaymentReceived({
+                chatReport: undefined,
+                iouReport: {
                     ...createRandomReport(1, undefined),
                     type: CONST.REPORT.TYPE.EXPENSE,
                 },
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                undefined,
-                false,
-                {},
-                getCurrencyDecimalsLocal,
-                undefined,
-            );
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                chatReportActions: undefined,
+                isTrackIntentUser: false,
+                allTransactionViolations: {},
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                rules: undefined,
+                isChatReportArchived: false,
+            });
 
             expect(writeSpy).not.toHaveBeenCalled();
         });
 
         it('does nothing when the IOU report is missing', () => {
-            markReportPaymentReceived(createRandomReport(1, undefined), undefined, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, false, {}, getCurrencyDecimalsLocal, undefined);
+            markReportPaymentReceived({
+                chatReport: createRandomReport(1, undefined),
+                iouReport: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                chatReportActions: undefined,
+                isTrackIntentUser: false,
+                allTransactionViolations: {},
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                rules: undefined,
+                isChatReportArchived: false,
+            });
 
             expect(writeSpy).not.toHaveBeenCalled();
         });
@@ -1991,7 +2030,18 @@ describe('actions/IOU/PayMoneyRequest', () => {
             const {chatReport, reimbursedReport, chatReportActions} = await setUpChatWithOutstandingSibling();
 
             // When the submitter marks the payment as received
-            markReportPaymentReceived(chatReport, reimbursedReport, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, chatReportActions, false, {}, getCurrencyDecimalsLocal, undefined);
+            markReportPaymentReceived({
+                chatReport,
+                iouReport: reimbursedReport,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                chatReportActions,
+                isTrackIntentUser: false,
+                allTransactionViolations: {},
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                rules: undefined,
+                isChatReportArchived: false,
+            });
 
             // Then the expense report optimistically moves to the reimbursed state and the chat drops its iouReportID
             const [command, parameters] = getRequiredWriteCall(writeSpy.mock.calls, 0);
@@ -2014,7 +2064,18 @@ describe('actions/IOU/PayMoneyRequest', () => {
             const {chatReport, reimbursedReport, chatReportActions} = await setUpChatWithOutstandingSibling();
 
             // When the submitter marks the payment as received
-            markReportPaymentReceived(chatReport, reimbursedReport, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, chatReportActions, false, {}, getCurrencyDecimalsLocal, undefined);
+            markReportPaymentReceived({
+                chatReport,
+                iouReport: reimbursedReport,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                chatReportActions,
+                isTrackIntentUser: false,
+                allTransactionViolations: {},
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                rules: undefined,
+                isChatReportArchived: false,
+            });
 
             // Then a PAY action is added to the expense report, reported to the API and pending
             const [, parameters] = getRequiredWriteCall(writeSpy.mock.calls, 0);
@@ -2047,7 +2108,18 @@ describe('actions/IOU/PayMoneyRequest', () => {
             const {chatReport, reimbursedReport, chatReportActions} = await setUpChatWithOutstandingSibling();
 
             // When the payment is marked as received with no violations
-            markReportPaymentReceived(chatReport, reimbursedReport, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, chatReportActions, false, {}, getCurrencyDecimalsLocal, undefined);
+            markReportPaymentReceived({
+                chatReport,
+                iouReport: reimbursedReport,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                chatReportActions,
+                isTrackIntentUser: false,
+                allTransactionViolations: {},
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                rules: undefined,
+                isChatReportArchived: false,
+            });
 
             // Then the chat keeps its outstanding flag because the sibling report is still awaiting the user
             expect(getOptimisticChatReportValue(chatReport.reportID)).toMatchObject({
@@ -2060,19 +2132,20 @@ describe('actions/IOU/PayMoneyRequest', () => {
             const {chatReport, reimbursedReport, outstandingTransaction, chatReportActions} = await setUpChatWithOutstandingSibling();
 
             // When the payment is marked as received with those violations
-            markReportPaymentReceived(
+            markReportPaymentReceived({
                 chatReport,
-                reimbursedReport,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
+                iouReport: reimbursedReport,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
                 chatReportActions,
-                false,
-                {
+                isTrackIntentUser: false,
+                allTransactionViolations: {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${outstandingTransaction.transactionID}`]: [autoRejectedViolation],
                 },
-                getCurrencyDecimalsLocal,
-                undefined,
-            );
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                rules: undefined,
+                isChatReportArchived: false,
+            });
 
             // Then nothing is left for the user to act on, so the chat's outstanding flag is cleared
             expect(getOptimisticChatReportValue(chatReport.reportID)).toMatchObject({
@@ -2087,7 +2160,18 @@ describe('actions/IOU/PayMoneyRequest', () => {
             await waitForBatchedUpdates();
 
             // When the payment is marked as received while an empty violations collection is passed in
-            markReportPaymentReceived(chatReport, reimbursedReport, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, chatReportActions, false, {}, getCurrencyDecimalsLocal, undefined);
+            markReportPaymentReceived({
+                chatReport,
+                iouReport: reimbursedReport,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                chatReportActions,
+                isTrackIntentUser: false,
+                allTransactionViolations: {},
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                rules: undefined,
+                isChatReportArchived: false,
+            });
 
             // Then the outstanding flag still reflects the argument (no auto-rejection), proving the global collection is ignored
             expect(getOptimisticChatReportValue(chatReport.reportID)).toMatchObject({
@@ -2102,7 +2186,18 @@ describe('actions/IOU/PayMoneyRequest', () => {
             await waitForBatchedUpdates();
 
             // When the caller has no violations loaded yet and passes undefined
-            markReportPaymentReceived(chatReport, reimbursedReport, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, chatReportActions, false, undefined, getCurrencyDecimalsLocal, undefined);
+            markReportPaymentReceived({
+                chatReport,
+                iouReport: reimbursedReport,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                chatReportActions,
+                isTrackIntentUser: false,
+                allTransactionViolations: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                rules: undefined,
+                isChatReportArchived: false,
+            });
 
             // Then it behaves like an empty collection rather than falling back to Onyx
             expect(getOptimisticChatReportValue(chatReport.reportID)).toMatchObject({
@@ -2115,7 +2210,18 @@ describe('actions/IOU/PayMoneyRequest', () => {
             const {chatReport, reimbursedReport, chatReportActions} = await setUpChatWithOutstandingSibling();
 
             // When the submitter marks the payment as received
-            markReportPaymentReceived(chatReport, reimbursedReport, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, chatReportActions, false, {}, getCurrencyDecimalsLocal, undefined);
+            markReportPaymentReceived({
+                chatReport,
+                iouReport: reimbursedReport,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                chatReportActions,
+                isTrackIntentUser: false,
+                allTransactionViolations: {},
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                rules: undefined,
+                isChatReportArchived: false,
+            });
 
             // Then a server confirmation clears the pending fields
             const successReport = getRequiredOnyxUpdate(getOnyxDataArg(), 'successData', `${ONYXKEYS.COLLECTION.REPORT}${reimbursedReport.reportID}`, Onyx.METHOD.MERGE, true).value;
@@ -2247,6 +2353,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     }
                     const iouReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
                     payMoneyRequest({
+                        isChatIOUReportArchived: false,
                         bankAccountList: undefined,
                         isWiseReimbursementsBetaEnabled: false,
                         isASAPSubmitBetaEnabled: false,
@@ -2764,6 +2871,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 mockFetch?.pause?.();
                 const iouReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
                 payMoneyRequest({
+                    isChatIOUReportArchived: false,
                     bankAccountList: undefined,
                     isWiseReimbursementsBetaEnabled: false,
                     isASAPSubmitBetaEnabled: false,
@@ -3044,6 +3152,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             };
 
             payMoneyRequest({
+                isChatIOUReportArchived: false,
                 bankAccountList,
                 isWiseReimbursementsBetaEnabled,
                 isASAPSubmitBetaEnabled: false,
@@ -3315,6 +3424,166 @@ describe('actions/IOU/PayMoneyRequest', () => {
             // Then they're told why they can't, and no file is downloaded
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
             expect(fileDownload).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('payInvoice archived chat handling', () => {
+        let writeSpy: jest.SpiedFunction<typeof APIActions.write>;
+
+        beforeEach(() => {
+            writeSpy = jest.spyOn(APIActions, 'write').mockImplementation(jest.fn());
+        });
+
+        afterEach(() => {
+            writeSpy.mockRestore();
+        });
+
+        it('clears hasOutstandingChildRequest when isChatIOUReportArchived is true even if a sibling invoice remains', async () => {
+            // Given an archived individual invoice chat with a paid invoice and an unpaid sibling invoice preview
+            const invoiceChatReport: Report = {
+                ...createRandomReport(901, CONST.REPORT.CHAT_TYPE.INVOICE),
+                type: CONST.REPORT.TYPE.CHAT,
+                hasOutstandingChildRequest: true,
+                invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, accountID: CARLOS_ACCOUNT_ID},
+            };
+            const paidInvoiceReport: Report = {
+                ...createRandomReport(902, undefined),
+                type: CONST.REPORT.TYPE.INVOICE,
+                chatReportID: invoiceChatReport.reportID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                total: 1000,
+                currency: CONST.CURRENCY.USD,
+            };
+            const siblingInvoiceReport: Report = {
+                ...createRandomReport(903, undefined),
+                type: CONST.REPORT.TYPE.INVOICE,
+                chatReportID: invoiceChatReport.reportID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                total: 2000,
+                currency: CONST.CURRENCY.USD,
+            };
+            const siblingPreview: ReportAction = {
+                ...createRandomReportAction(904),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                originalMessage: {linkedReportID: siblingInvoiceReport.reportID},
+            };
+            const chatReportActions: ReportActions = {[siblingPreview.reportActionID]: siblingPreview};
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${invoiceChatReport.reportID}`, invoiceChatReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${paidInvoiceReport.reportID}`, paidInvoiceReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${siblingInvoiceReport.reportID}`, siblingInvoiceReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${invoiceChatReport.reportID}`, chatReportActions);
+            await waitForBatchedUpdates();
+
+            // When paying the first invoice while the invoice chat is archived
+            payInvoice({
+                paymentMethodType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                chatReport: invoiceChatReport,
+                invoiceReport: paidInvoiceReport,
+                invoiceReportTransactions: [],
+                introSelected: undefined,
+                currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
+                currentUserEmailParam: CARLOS_EMAIL,
+                currentUserLocalCurrency: CONST.CURRENCY.USD,
+                isASAPSubmitBetaEnabled: false,
+                isSelfTourViewed: false,
+                defaultWorkspaceName: 'Test Workspace',
+                conciergeChat: undefined,
+                chatReportActions,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                bankAccountList: undefined,
+                rules: undefined,
+                isChatIOUReportArchived: true,
+            });
+
+            // Then the sibling invoice cannot be paid in an archived chat, so hasOutstandingChildRequest is false
+            const onyxData = getRequiredWriteCall(writeSpy.mock.calls, 0)[2];
+            const optimisticChat = getRequiredOnyxUpdate(onyxData, 'optimisticData', `${ONYXKEYS.COLLECTION.REPORT}${invoiceChatReport.reportID}`, Onyx.METHOD.MERGE, true).value;
+            expect(optimisticChat).toMatchObject({hasOutstandingChildRequest: false});
+        });
+
+        it('treats existingB2BInvoiceReport as unarchived when paying an archived individual invoice room as business', async () => {
+            // Given an archived individual invoice room and an active B2B invoice room that holds an unpaid sibling invoice
+            const receiverPolicy: Policy = {
+                ...createRandomPolicy(905),
+                type: CONST.POLICY.TYPE.TEAM,
+                role: CONST.POLICY.ROLE.ADMIN,
+            };
+            const individualInvoiceChat: Report = {
+                ...createRandomReport(906, CONST.REPORT.CHAT_TYPE.INVOICE),
+                type: CONST.REPORT.TYPE.CHAT,
+                invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, accountID: CARLOS_ACCOUNT_ID},
+            };
+            const existingB2BInvoiceReport: Report = {
+                ...createRandomReport(907, CONST.REPORT.CHAT_TYPE.INVOICE),
+                type: CONST.REPORT.TYPE.CHAT,
+                invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, policyID: receiverPolicy.id},
+            };
+            const paidInvoiceReport: Report = {
+                ...createRandomReport(908, undefined),
+                type: CONST.REPORT.TYPE.INVOICE,
+                chatReportID: individualInvoiceChat.reportID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                total: 1000,
+                currency: CONST.CURRENCY.USD,
+            };
+            const siblingB2BInvoice: Report = {
+                ...createRandomReport(909, undefined),
+                type: CONST.REPORT.TYPE.INVOICE,
+                chatReportID: existingB2BInvoiceReport.reportID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                total: 2500,
+                currency: CONST.CURRENCY.USD,
+            };
+            const siblingPreview: ReportAction = {
+                ...createRandomReportAction(910),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                originalMessage: {linkedReportID: siblingB2BInvoice.reportID},
+            };
+            const b2bChatActions: ReportActions = {[siblingPreview.reportActionID]: siblingPreview};
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${receiverPolicy.id}`, receiverPolicy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${existingB2BInvoiceReport.reportID}`, existingB2BInvoiceReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${siblingB2BInvoice.reportID}`, siblingB2BInvoice);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${existingB2BInvoiceReport.reportID}`, b2bChatActions);
+            await waitForBatchedUpdates();
+
+            // When paying as a business so the payment targets existingB2BInvoiceReport instead of the archived individual room
+            payInvoice({
+                paymentMethodType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                chatReport: individualInvoiceChat,
+                invoiceReport: paidInvoiceReport,
+                invoiceReportTransactions: [],
+                introSelected: undefined,
+                currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
+                currentUserEmailParam: CARLOS_EMAIL,
+                currentUserLocalCurrency: CONST.CURRENCY.USD,
+                payAsBusiness: true,
+                existingB2BInvoiceReport,
+                activePolicy: receiverPolicy,
+                isASAPSubmitBetaEnabled: false,
+                isSelfTourViewed: false,
+                defaultWorkspaceName: 'Test Workspace',
+                conciergeChat: undefined,
+                chatReportActions: b2bChatActions,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                bankAccountList: undefined,
+                rules: undefined,
+                isChatIOUReportArchived: true,
+            });
+
+            // Then the active B2B room keeps hasOutstandingChildRequest true for its unpaid sibling invoice
+            const onyxData = getRequiredWriteCall(writeSpy.mock.calls, 0)[2];
+            const optimisticB2BChat = getRequiredOnyxUpdate(onyxData, 'optimisticData', `${ONYXKEYS.COLLECTION.REPORT}${existingB2BInvoiceReport.reportID}`, Onyx.METHOD.MERGE, true).value;
+            expect(optimisticB2BChat).toMatchObject({hasOutstandingChildRequest: true});
         });
     });
 });

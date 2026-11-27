@@ -469,6 +469,7 @@ function handleActionButtonPress({
                     rules,
                     getCurrencyDecimals,
                     personalDetailsByLogins,
+                    isChatReportArchived: isArchivedReport(searchData?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${snapshotReport.chatReportID}`]),
                 }),
             );
             return;
@@ -771,6 +772,7 @@ function getPayActionCallback({
         bankAccountList,
         paymentType: lastPolicyPaymentMethod,
         chatReport: chatReportForPayment,
+        isChatIOUReportArchived: isArchivedReport(searchData?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReportForPayment.reportID}`]),
         iouReport: snapshotReport,
         iouReportTransactions,
         introSelected,
@@ -817,6 +819,7 @@ type GetApproveActionCallbackParams = {
     rules: OnyxCollection<Rule>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     personalDetailsByLogins: PersonalDetailsByLogin;
+    isChatReportArchived: boolean;
 };
 
 function getApproveActionCallback({
@@ -840,6 +843,7 @@ function getApproveActionCallback({
     rules,
     getCurrencyDecimals,
     personalDetailsByLogins,
+    isChatReportArchived,
 }: GetApproveActionCallbackParams) {
     if (!item.reportID) {
         return;
@@ -868,6 +872,7 @@ function getApproveActionCallback({
         getCurrencyDecimals,
         allTransactionViolations: allViolations,
         personalDetailsByLogins,
+        isChatReportArchived,
     });
 }
 

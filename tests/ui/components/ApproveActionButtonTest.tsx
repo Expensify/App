@@ -87,7 +87,7 @@ let mockReportPreviewAction: ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS>
 jest.mock('@components/ReportActionItem/MoneyRequestReportPreview/MoneyRequestReportPreviewContext', () => ({
     __esModule: true,
     useReportPreviewData: () => ({iouReportID: TEST_IOU_REPORT_ID}),
-    useReportPreviewActionState: () => ({shouldShowPayButton: true, reportPreviewAction: mockReportPreviewAction}),
+    useReportPreviewActionState: () => ({shouldShowPayButton: true, reportPreviewAction: mockReportPreviewAction, isChatReportArchived: false}),
     useReportPreviewActions: () => ({startApprovedAnimation: mockStartApprovedAnimation}),
 }));
 

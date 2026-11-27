@@ -22,7 +22,7 @@ import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 
 import type useReportPreviewActionButtonData from './useReportPreviewActionButtonData';
 
-import {useReportPreviewActions} from './MoneyRequestReportPreviewContext';
+import {useReportPreviewActions, useReportPreviewActionState} from './MoneyRequestReportPreviewContext';
 
 function useConfirmApproveReportAction(actionButtonData: ReturnType<typeof useReportPreviewActionButtonData>, hasViolations: boolean) {
     const currentUserDetails = useCurrentUserPersonalDetails();
@@ -34,6 +34,7 @@ function useConfirmApproveReportAction(actionButtonData: ReturnType<typeof useRe
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
     const {startApprovedAnimation} = useReportPreviewActions();
+    const {isChatReportArchived} = useReportPreviewActionState();
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
@@ -68,6 +69,7 @@ function useConfirmApproveReportAction(actionButtonData: ReturnType<typeof useRe
                     delegateAccountID,
                     isTrackIntentUser,
                     allTransactionViolations,
+                    isChatReportArchived,
                 });
             }, full);
         }

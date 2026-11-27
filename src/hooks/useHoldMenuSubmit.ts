@@ -31,6 +31,7 @@ import usePermissions from './usePermissions';
 import {useGetPersonalDetailsByLogin} from './usePersonalDetailByLogin';
 import {usePersonalDetail} from './usePersonalDetails';
 import usePolicy from './usePolicy';
+import useReportIsArchived from './useReportIsArchived';
 import useReportTransactions from './useReportTransactions';
 
 type ActionHandledType = DeepValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE.PAY | typeof CONST.IOU.REPORT_ACTION_TYPE.APPROVE>;
@@ -73,6 +74,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
     const {getCurrencyDecimals} = useCurrencyListActions();
     const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const delegateAccountID = useDelegateAccountID();
+    const isChatReportArchived = useReportIsArchived(chatReport?.reportID ?? moneyRequestReport?.chatReportID);
     const {payReportsViaABA} = usePayViaABA();
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.email ?? '');
 
@@ -130,6 +132,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
                     delegateAccountID,
                     isTrackIntentUser,
                     allTransactionViolations: transactionViolations,
+                    isChatReportArchived,
                 });
             }, full);
         } else if (paymentMethod === CONST.PAYMENT_METHODS.ABA) {
@@ -164,6 +167,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
                 isTrackIntentUser,
                 conciergeChat,
                 rules,
+                isChatIOUReportArchived: isChatReportArchived,
             });
         }
         onClose();

@@ -59,6 +59,7 @@ const mockReportPreviewActionState = {
     onlyShowPayElsewhere: false,
     shouldShowPayButton: true,
     connectedIntegration: undefined,
+    isChatReportArchived: false,
 };
 
 function createOnyxResult<T>(value: NonNullable<T> | undefined): UseOnyxResult<T> {

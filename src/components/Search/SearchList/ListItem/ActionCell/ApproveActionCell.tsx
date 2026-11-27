@@ -41,6 +41,7 @@ function ApproveActionCell({isLoading, reportID, policyID, hash, shouldDisablePo
 
     const snapshotReport = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] as OnyxEntry<Report>;
     const snapshotPolicy = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] as OnyxEntry<Policy>;
+    const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
 
     // The button reads the report and transactions from the hook, so its options match what gets approved.
     const {
@@ -48,7 +49,7 @@ function ApproveActionCell({isLoading, reportID, policyID, hash, shouldDisablePo
         isAnyTransactionOnHold,
         moneyRequestReport: iouReport,
         transactions,
-    } = useConfirmApproval(reportID, () => {}, {
+    } = useConfirmApproval(reportID, () => {}, isChatReportArchived, {
         getAdditionalOnyxData: hash === undefined ? undefined : () => getSearchApproveOnyxData(hash, reportID, currentSearchKey),
         fallbackReport: snapshotReport,
         fallbackPolicy: snapshotPolicy,
@@ -59,7 +60,6 @@ function ApproveActionCell({isLoading, reportID, policyID, hash, shouldDisablePo
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const activePolicy = usePolicy(activePolicyID);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
 
     const invoiceReceiverPolicyID = iouReport?.invoiceReceiver && 'policyID' in iouReport.invoiceReceiver ? iouReport.invoiceReceiver.policyID : undefined;
     const invoiceReceiverPolicy = usePolicy(invoiceReceiverPolicyID);

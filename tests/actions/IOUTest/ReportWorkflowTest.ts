@@ -3548,6 +3548,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 isTrackIntentUser: false,
                 allTransactionViolations: undefined,
                 ownerLogin: undefined,
+                isChatReportArchived: false,
             });
 
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
@@ -3593,6 +3594,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 isTrackIntentUser: false,
                 allTransactionViolations: undefined,
                 ownerLogin: undefined,
+                isChatReportArchived: false,
             });
 
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
@@ -3649,6 +3651,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 isTrackIntentUser: false,
                 allTransactionViolations: undefined,
                 ownerLogin: undefined,
+                isChatReportArchived: false,
             });
 
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic/failure data structure
@@ -3749,6 +3752,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 isTrackIntentUser: false,
                 allTransactionViolations: undefined,
                 ownerLogin: undefined,
+                isChatReportArchived: false,
             });
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
             const onyxData: AnyOnyxData | undefined = jest.mocked(API.write).mock.calls.at(0)?.[2];
@@ -5022,6 +5026,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             delegateAccountID: undefined,
             ownerLogin: undefined,
             allTransactionViolations: undefined,
+            isChatReportArchived: false,
         });
 
         beforeEach(() => {
@@ -5224,6 +5229,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 isTrackIntentUser: false,
                 allTransactionViolations: undefined,
                 ownerLogin: undefined,
+                isChatReportArchived: false,
             });
             await waitForBatchedUpdates();
 
@@ -5280,6 +5286,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 isTrackIntentUser: false,
                 allTransactionViolations: undefined,
                 ownerLogin: undefined,
+                isChatReportArchived: false,
             });
             await waitForBatchedUpdates();
 
@@ -5335,6 +5342,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 isTrackIntentUser: false,
                 allTransactionViolations: undefined,
                 ownerLogin: undefined,
+                isChatReportArchived: false,
             });
             await waitForBatchedUpdates();
 
@@ -5382,6 +5390,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 isTrackIntentUser: false,
                 allTransactionViolations: undefined,
                 ownerLogin: undefined,
+                isChatReportArchived: false,
             });
             await waitForBatchedUpdates();
 
@@ -5516,6 +5525,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 isTrackIntentUser: false,
                 allTransactionViolations: undefined,
                 ownerLogin: undefined,
+                isChatReportArchived: false,
             });
             await waitForBatchedUpdates();
 
@@ -5551,6 +5561,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 isTrackIntentUser: false,
                 allTransactionViolations: undefined,
                 ownerLogin: undefined,
+                isChatReportArchived: false,
             });
             await waitForBatchedUpdates();
 
@@ -5584,6 +5595,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 isTrackIntentUser: false,
                 allTransactionViolations: undefined,
                 ownerLogin: undefined,
+                isChatReportArchived: false,
             });
             await waitForBatchedUpdates();
 
@@ -5647,6 +5659,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 isTrackIntentUser: false,
                 allTransactionViolations: undefined,
                 ownerLogin: undefined,
+                isChatReportArchived: false,
             });
             await waitForBatchedUpdates();
 
@@ -5710,6 +5723,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                         isTrackIntentUser: false,
                         allTransactionViolations: undefined,
                         ownerLogin: undefined,
+                        isChatReportArchived: false,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -5783,6 +5797,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 isTrackIntentUser: false,
                 allTransactionViolations: undefined,
                 ownerLogin: undefined,
+                isChatReportArchived: false,
             });
             await waitForBatchedUpdates();
 
@@ -5902,6 +5917,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 isTrackIntentUser: false,
                 allTransactionViolations: undefined,
                 ownerLogin: undefined,
+                isChatReportArchived: false,
             });
             await waitForBatchedUpdates();
 
@@ -5976,6 +5992,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 isTrackIntentUser: false,
                 allTransactionViolations: undefined,
                 ownerLogin: undefined,
+                isChatReportArchived: false,
             });
             await waitForBatchedUpdates();
 
@@ -6129,6 +6146,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 full: true,
                 shouldPlaySuccessSound: false,
                 allTransactionViolations,
+                isChatReportArchived: false,
             });
         }
 

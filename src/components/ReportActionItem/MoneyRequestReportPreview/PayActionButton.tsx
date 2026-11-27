@@ -60,7 +60,7 @@ function PayActionButton() {
     const {stopAnimation, startAnimation, onPaymentOptionsShow, onPaymentOptionsHide} = useReportPreviewActions();
     const {showHoldMenu} = useHoldMenuModal();
     const {buttonMaxWidth} = useReportPreviewUIState();
-    const {reportPreviewAction, canIOUBePaid, onlyShowPayElsewhere, shouldShowPayButton} = useReportPreviewActionState();
+    const {reportPreviewAction, canIOUBePaid, onlyShowPayElsewhere, shouldShowPayButton, isChatReportArchived} = useReportPreviewActionState();
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     // The button keeps loading while an action on the report is in flight, such as a payment held until the backend answers, so it can't be paid twice
@@ -145,6 +145,7 @@ function PayActionButton() {
                     delegateAccountID,
                     isTrackIntentUser,
                     rules,
+                    isChatIOUReportArchived: isChatReportArchived,
                 });
             } else if (paymentMethod === CONST.PAYMENT_METHODS.ABA) {
                 payReportsViaABA([iouReport], policy, {onPaid: startAnimation});
@@ -175,6 +176,7 @@ function PayActionButton() {
                     isTrackIntentUser,
                     conciergeChat,
                     rules,
+                    isChatIOUReportArchived: isChatReportArchived,
                 });
             }
         }
