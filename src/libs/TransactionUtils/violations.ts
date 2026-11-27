@@ -400,6 +400,12 @@ function isViolationDismissed(
         return true;
     }
 
+    // An admin or approver who codes the expense to a category the member can't use overrides it for everyone, so the
+    // member doesn't keep seeing a violation that was intentionally overridden
+    if (violation.name === CONST.VIOLATIONS.CATEGORY_NOT_ALLOWED) {
+        return dismissedByEmails.length > 0;
+    }
+
     // RTER violations on instant submit reports only need to be dismissed by one person to be considered dismissed
     if (violation.name === CONST.VIOLATIONS.RTER && policy && isInstantSubmitEnabled(policy)) {
         return dismissedByEmails.length > 0;
