@@ -12206,6 +12206,13 @@ function parseReportRouteParams(route: string): ReportRouteParams {
 
 function getReportIDFromLink(url: string | null): string {
     const route = getRouteFromLink(url);
+    const [path, query = ''] = route.split('#').at(0)?.split('?') ?? [];
+    if (path?.replaceAll(/^\/|\/$/g, '') === ROUTES.REPORT_ATTACHMENTS.route) {
+        // Attachment links also need OpenReport to initialize an anonymous public-room session.
+        const params = new URLSearchParams(query);
+        return params.get('type') === CONST.ATTACHMENT_TYPE.REPORT ? (params.get('reportID') ?? '') : '';
+    }
+
     const {reportID, isSubReportPageRoute} = parseReportRouteParams(route);
     if (isSubReportPageRoute) {
         // We allow the Sub-Report deep link routes (settings, details, etc.) to be handled by their respective component pages

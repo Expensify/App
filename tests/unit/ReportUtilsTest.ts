@@ -6507,6 +6507,51 @@ describe('ReportUtils', () => {
     });
 
     describe('getReportIDFromLink', () => {
+        it.each([
+            'attachment?type=r&reportID=75431276',
+            '/attachment/?type=r&reportID=75431276#preview',
+            'https://new.expensify.com/attachment?reportID=75431276&type=r#preview',
+            'new-expensify://attachment/?type=r&reportID=75431276',
+        ])('extracts the report ID for public-room startup from %s', (url) => {
+            // Given a report attachment link opened without a stored session
+            // When startup extracts the report ID
+            const reportID = getReportIDFromLink(url);
+
+            // Then it can initialize the public room before opening the attachment
+            expect(reportID).toBe('75431276');
+        });
+
+        it.each([
+            'attachment?type=r',
+            'attachment?type=r&reportID=',
+            'attachment?reportID=75431276',
+            'attachment?type=s&reportID=75431276',
+            'attachment?type=n&reportID=75431276',
+            'attachment?type=o&reportID=75431276',
+            'attachment/other?type=r&reportID=75431276',
+            'settings?type=r&reportID=75431276',
+            'attachment?type=r#reportID=75431276',
+            'attachment?reportID=75431276#type=r',
+            'r/75431276/details',
+            'sign-in-modal',
+        ])('does not extract a startup report ID from %s', (url) => {
+            // Given a link that is not a report or a complete report attachment
+            // When startup extracts the report ID
+            const reportID = getReportIDFromLink(url);
+
+            // Then it does not initialize an unrelated report
+            expect(reportID).toBe('');
+        });
+
+        it.each(['r/75431276', '/r/75431276'])('preserves report extraction from %s', (url) => {
+            // Given an existing report route
+            // When startup extracts the report ID
+            const reportID = getReportIDFromLink(url);
+
+            // Then ordinary report links still initialize the report
+            expect(reportID).toBe('75431276');
+        });
+
         it('should get the correct reportID from a deep link', () => {
             expect(getReportIDFromLink('new-expensify://r/75431276')).toBe('75431276');
             expect(getReportIDFromLink('https://www.expensify.cash/r/75431276')).toBe('75431276');

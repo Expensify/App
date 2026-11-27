@@ -112,6 +112,15 @@ beforeEach(() => {
 
 describe('Session', () => {
     describe('canAnonymousUserAccessRoute', () => {
+        test.each(['r/123', '/r/123', ROUTES.SIGN_IN_MODAL, `/${ROUTES.SIGN_IN_MODAL}`, 'attachment/?type=r&reportID=123#preview'])('preserves anonymous access to %s', (route) => {
+            // Given a report, sign-in modal, or report attachment route
+            // When startup checks anonymous route eligibility
+            const canAccess = SessionUtil.canAnonymousUserAccessRoute(route);
+
+            // Then the existing public-room and sign-in flows remain available
+            expect(canAccess).toBe(true);
+        });
+
         test.each(['', '/'])('allows a report attachment on refresh with prefix "%s"', (prefix) => {
             // Given an attachment URL from a report that an anonymous user can view
             const route = `${prefix}${ROUTES.REPORT_ATTACHMENTS.getRoute({type: CONST.ATTACHMENT_TYPE.REPORT, reportID: '123', source: 'https://example.com/image.png'})}`;

@@ -1761,15 +1761,6 @@ const canAnonymousUserAccessRoute = (route: string) => {
         return true;
     }
 
-    // Public room attachments must remain open on refresh instead of redirecting anonymous users to sign in.
-    const [normalizedPath, query = ''] = normalizedRoute.split('?');
-    if (normalizedPath === ROUTES.REPORT_ATTACHMENTS.route) {
-        const params = new URLSearchParams(query);
-        if (params.get('type') === CONST.ATTACHMENT_TYPE.REPORT && !!params.get('reportID')) {
-            return true;
-        }
-    }
-
     const isSecurityLink = CONST.REGEX.ROUTES.VALIDATE_LOGIN.test(`/${route}`);
     if (isSecurityLink) {
         return true;
