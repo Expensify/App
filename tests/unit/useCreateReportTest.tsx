@@ -4,7 +4,9 @@ import useCreateReport from '@hooks/useCreateReport';
 import useOnyx from '@hooks/useOnyx';
 import useShouldShowEmptyReportConfirmation from '@hooks/useShouldShowEmptyReportConfirmation';
 
+import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
+import type * as SubscriptionUtils from '@libs/SubscriptionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -71,7 +73,7 @@ jest.mock('@libs/ReportUtils', () => ({
     generateReportID: jest.fn(() => String(++reportIDCounter.value)),
 }));
 
-const mockShouldRestrictUserBillableActions = jest.fn(() => false);
+const mockShouldRestrictUserBillableActions = jest.fn<boolean, Parameters<typeof SubscriptionUtils.shouldRestrictUserBillableActions>>(() => false);
 jest.mock('@libs/SubscriptionUtils', () => ({
     shouldRestrictUserBillableActions: (...args: Parameters<typeof mockShouldRestrictUserBillableActions>) => mockShouldRestrictUserBillableActions(...args),
 }));
@@ -87,6 +89,11 @@ jest.mock('@hooks/usePreferredPolicy', () => () => mockUsePreferredPolicy());
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
 const POLICY_ID = 'policy-123';
+const SESSION = {accountID: 42, email: 'owner@test.com'};
+const OWNER_BILLING_GRACE_PERIOD_END = 1700000000;
+const AMOUNT_OWED = 1500;
+const USER_BILLING_GRACE_PERIOD_END_KEY = `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}42` as const;
+const USER_BILLING_GRACE_PERIOD_END = {value: 1700000001};
 
 function makePaidPolicy(id = POLICY_ID): Policy {
     return createMock<Policy>({
@@ -183,7 +190,8 @@ describe('useCreateReport', () => {
         Onyx.init({keys: ONYXKEYS});
     });
 
-    beforeEach(() => {
+    beforeEach(async () => {
+        await Onyx.clear();
         jest.clearAllMocks();
         reportIDCounter.value = 100;
         setEligiblePolicies([]);
@@ -462,6 +470,34 @@ describe('useCreateReport', () => {
     });
 
     describe('direct report creation', () => {
+        it('passes the stored session and billing data to the anonymous-user guard and the billing check', async () => {
+            // Given a single workspace and a stored session and billing data with non-default values, which decide whether the user is anonymous or billing-restricted
+            const policy = makePaidPolicy();
+            setEligiblePolicies([policy]);
+            await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: SESSION,
+                [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: OWNER_BILLING_GRACE_PERIOD_END,
+                [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: AMOUNT_OWED,
+                [USER_BILLING_GRACE_PERIOD_END_KEY]: USER_BILLING_GRACE_PERIOD_END,
+            });
+            const {result} = renderHook(() => useCreateReport({onCreateReport: jest.fn()}));
+
+            // When they press "Create report"
+            await act(async () => {
+                await result.current.createReport();
+            });
+
+            // Then the stored session still reaches the anonymous-user guard, and the stored billing data still reaches the billing check
+            expect(interceptAnonymousUser).toHaveBeenCalledWith(expect.any(Function), SESSION);
+            expect(mockShouldRestrictUserBillableActions).toHaveBeenCalledWith(
+                policy,
+                OWNER_BILLING_GRACE_PERIOD_END,
+                {[USER_BILLING_GRACE_PERIOD_END_KEY]: USER_BILLING_GRACE_PERIOD_END},
+                AMOUNT_OWED,
+                expect.anything(),
+            );
+        });
+
         it('calls onCreateReport directly when workspace is valid and no confirmation needed', async () => {
             // Given a single unrestricted workspace with no empty report to warn about
             const onCreateReport = jest.fn();
