@@ -6,9 +6,8 @@ import CONST from '@src/CONST';
 import type {ValueOf} from 'type-fest';
 
 import React from 'react';
-import {Circle} from 'react-native-svg';
 
-import SkeletonViewContentLoader from './SkeletonViewContentLoader';
+import SkeletonLoader, {SkeletonViewRect} from './SkeletonLoader';
 
 type AvatarSkeletonProps = {
     size?: ValueOf<typeof CONST.AVATAR_SIZE>;
@@ -21,19 +20,19 @@ function AvatarSkeleton({size = CONST.AVATAR_SIZE.SMALL}: AvatarSkeletonProps) {
     const skeletonCircleRadius = avatarSize / 2;
 
     return (
-        <SkeletonViewContentLoader
+        <SkeletonLoader
             animate
             height={avatarSize}
             width={avatarSize}
             backgroundColor={theme.skeletonLHNIn}
             foregroundColor={theme.skeletonLHNOut}
         >
-            <Circle
-                cx={skeletonCircleRadius}
-                cy={skeletonCircleRadius}
-                r={skeletonCircleRadius}
+            <SkeletonViewRect
+                width={avatarSize}
+                height={avatarSize}
+                borderRadius={skeletonCircleRadius}
             />
-        </SkeletonViewContentLoader>
+        </SkeletonLoader>
     );
 }
 

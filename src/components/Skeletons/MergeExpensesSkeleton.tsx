@@ -1,4 +1,4 @@
-import SkeletonRect from '@components/SkeletonRect';
+import {SkeletonViewRect} from '@components/SkeletonLoader';
 
 import useContainerWidth from '@hooks/useContainerWidth';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -25,33 +25,38 @@ function MergeExpensesSkeleton({fixedNumItems, speed}: MergeExpensesSkeletonProp
     const skeletonItem = () => {
         return (
             <>
-                <SkeletonRect
-                    transform={[{translateX: 12}, {translateY: 12}]}
+                <SkeletonViewRect
+                    x={12}
+                    y={12}
                     width={36}
                     height={40}
                 />
-                <SkeletonRect
-                    transform={[{translateX: 66}, {translateY: 22}]}
+                <SkeletonViewRect
+                    x={66}
+                    y={22}
                     width={longBarWidth}
                     height={barHeight}
                 />
 
-                <SkeletonRect
-                    transform={[{translateX: 66}, {translateY: 36}]}
+                <SkeletonViewRect
+                    x={66}
+                    y={36}
                     width={mediumBarWidth}
                     height={barHeight}
                 />
 
-                <SkeletonRect
+                <SkeletonViewRect
                     // We have to calculate this value to make sure the element is aligned to the right border.
-                    transform={[{translateX: pageWidth - 12 - mediumBarWidth}, {translateY: 22}]}
+                    x={pageWidth - 12 - mediumBarWidth}
+                    y={22}
                     width={mediumBarWidth}
                     height={barHeight}
                 />
 
-                <SkeletonRect
+                <SkeletonViewRect
                     // We have to calculate this value to make sure the element is aligned to the right border.
-                    transform={[{translateX: pageWidth - 12 - shortBarWidth}, {translateY: 36}]}
+                    x={pageWidth - 12 - shortBarWidth}
+                    y={36}
                     width={shortBarWidth}
                     height={barHeight}
                 />

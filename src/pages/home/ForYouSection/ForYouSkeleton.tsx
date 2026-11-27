@@ -1,4 +1,4 @@
-import SkeletonRect from '@components/SkeletonRect';
+import {SkeletonViewRect} from '@components/SkeletonLoader';
 import ItemListSkeletonView from '@components/Skeletons/ItemListSkeletonView';
 import {BAR_HEIGHT} from '@components/Skeletons/SkeletonTextLine';
 
@@ -29,8 +29,9 @@ function ForYouSkeleton() {
                     horizontalPadding={horizontalPadding}
                     rowHeight={rowHeight}
                 />
-                <SkeletonRect
-                    transform={[{translateX: titleX}, {translateY: (rowHeight - BAR_HEIGHT) / 2}]}
+                <SkeletonViewRect
+                    x={titleX}
+                    y={(rowHeight - BAR_HEIGHT) / 2}
                     width={TITLE_BAR_WIDTH}
                     height={BAR_HEIGHT}
                 />

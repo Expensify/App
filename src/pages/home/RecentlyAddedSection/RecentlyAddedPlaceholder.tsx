@@ -1,4 +1,4 @@
-import SkeletonRect from '@components/SkeletonRect';
+import {SkeletonViewRect} from '@components/SkeletonLoader';
 import ItemListSkeletonView from '@components/Skeletons/ItemListSkeletonView';
 import {BAR_HEIGHT} from '@components/Skeletons/SkeletonTextLine';
 
@@ -16,7 +16,7 @@ import {View} from 'react-native';
 import EmptyState from './EmptyState';
 
 type RecentlyAddedPlaceholderProps = {
-    /** When true, renders the shimmer skeleton; when false, renders the empty state. */
+    /** When true, renders the skeleton; when false, renders the empty state. */
     shouldShowSkeleton: boolean;
 };
 
@@ -40,10 +40,10 @@ const TYPE_WIDTH = 40;
 const DATE_WIDTH = 64;
 const separatorsSpacerStyle = {height: SEPARATORS_HEIGHT};
 
-// ItemListSkeletonView adds `mr5` to every row, so without this offset the right-aligned bars land past the svg and clip.
+// ItemListSkeletonView adds `mr5` to every row, so without this offset the right-aligned bars land past the canvas and clip.
 const ROW_RIGHT_MARGIN = 20;
 
-/** Varying the merchant width per row keeps the shimmer from reading as a rigid block. */
+/** Varying the merchant width per row keeps the skeleton from reading as a rigid block. */
 function getMerchantSkeletonWidth(itemIndex: number) {
     switch (itemIndex % 3) {
         case 0:
@@ -56,7 +56,7 @@ function getMerchantSkeletonWidth(itemIndex: number) {
 }
 
 /**
- * Shimmer while a search may still land, empty state once the answer is settled. Measures its own container rather than
+ * Skeleton while a search may still land, empty state once the answer is settled. Measures its own container rather than
  * the window, because it sits in a Home widget and not in the full-width Search pane.
  */
 function RecentlyAddedPlaceholder({shouldShowSkeleton}: RecentlyAddedPlaceholderProps) {
@@ -76,32 +76,37 @@ function RecentlyAddedPlaceholder({shouldShowSkeleton}: RecentlyAddedPlaceholder
 
         return (
             <>
-                <SkeletonRect
-                    transform={[{translateX: 0}, {translateY: (ITEM_HEIGHT - RECEIPT_HEIGHT) / 2}]}
+                <SkeletonViewRect
+                    x={0}
+                    y={(ITEM_HEIGHT - RECEIPT_HEIGHT) / 2}
                     width={RECEIPT_WIDTH}
                     height={RECEIPT_HEIGHT}
                     borderRadius={4}
                 />
-                <SkeletonRect
-                    transform={[{translateX: textX}, {translateY: firstLineY}]}
+                <SkeletonViewRect
+                    x={textX}
+                    y={firstLineY}
                     width={merchantWidth}
                     height={BAR_HEIGHT}
                 />
-                <SkeletonRect
-                    transform={[{translateX: textX}, {translateY: secondLineY}]}
+                <SkeletonViewRect
+                    x={textX}
+                    y={secondLineY}
                     width={DATE_WIDTH}
                     height={BAR_HEIGHT}
                 />
                 {/* Right-aligned, so they can only be placed once measured; a guessed position would visibly jump. */}
                 {containerWidth > 0 && (
                     <>
-                        <SkeletonRect
-                            transform={[{translateX: containerWidth - AMOUNT_WIDTH}, {translateY: firstLineY}]}
+                        <SkeletonViewRect
+                            x={containerWidth - AMOUNT_WIDTH}
+                            y={firstLineY}
                             width={AMOUNT_WIDTH}
                             height={BAR_HEIGHT}
                         />
-                        <SkeletonRect
-                            transform={[{translateX: containerWidth - TYPE_WIDTH}, {translateY: secondLineY}]}
+                        <SkeletonViewRect
+                            x={containerWidth - TYPE_WIDTH}
+                            y={secondLineY}
                             width={TYPE_WIDTH}
                             height={BAR_HEIGHT}
                         />
@@ -120,7 +125,7 @@ function RecentlyAddedPlaceholder({shouldShowSkeleton}: RecentlyAddedPlaceholder
             testID="recentlyAddedSkeleton"
             style={cardPaddingHorizontal}
         >
-            {/* Measured without padding: the padded parent's width includes the inset, which pushes the right-aligned bars off the svg. */}
+            {/* Measured without padding: the padded parent's width includes the inset, which pushes the right-aligned bars off the canvas. */}
             <View
                 style={styles.flex1}
                 onLayout={onLayout}

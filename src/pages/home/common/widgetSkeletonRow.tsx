@@ -1,4 +1,4 @@
-import SkeletonRect from '@components/SkeletonRect';
+import {SkeletonViewRect} from '@components/SkeletonLoader';
 
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -13,9 +13,6 @@ const ICON_BORDER_RADIUS = variables.componentBorderRadiusNormal;
 // BaseWidgetItem renders its CTA button at `BUTTON_SIZE.SMALL`.
 const BUTTON_WIDTH = variables.widgetItemButtonMinWidth;
 const BUTTON_HEIGHT = variables.componentSizeSmall;
-// The real button's `buttonBorderRadius` is 100, which CSS clamps proportionally down to a stadium.
-// SVG clamps `rx` and `ry` independently, so that same 100 would draw an ellipse.
-const BUTTON_BORDER_RADIUS = BUTTON_HEIGHT / 2;
 
 // Row geometry read off the styles the real rows use (see BaseWidgetItem).
 function useWidgetSkeletonRowGeometry() {
@@ -39,8 +36,9 @@ type WidgetSkeletonRowIconProps = {
 
 function WidgetSkeletonRowIcon({horizontalPadding, rowHeight}: WidgetSkeletonRowIconProps) {
     return (
-        <SkeletonRect
-            transform={[{translateX: horizontalPadding}, {translateY: (rowHeight - ICON_SLOT_SIZE) / 2}]}
+        <SkeletonViewRect
+            x={horizontalPadding}
+            y={(rowHeight - ICON_SLOT_SIZE) / 2}
             width={ICON_SLOT_SIZE}
             height={ICON_SLOT_SIZE}
             borderRadius={ICON_BORDER_RADIUS}
@@ -59,11 +57,12 @@ type WidgetSkeletonRowButtonProps = {
 
 function WidgetSkeletonRowButton({cardWidth, horizontalPadding, rowHeight}: WidgetSkeletonRowButtonProps) {
     return (
-        <SkeletonRect
-            transform={[{translateX: cardWidth - horizontalPadding - BUTTON_WIDTH}, {translateY: (rowHeight - BUTTON_HEIGHT) / 2}]}
+        <SkeletonViewRect
+            x={cardWidth - horizontalPadding - BUTTON_WIDTH}
+            y={(rowHeight - BUTTON_HEIGHT) / 2}
             width={BUTTON_WIDTH}
             height={BUTTON_HEIGHT}
-            borderRadius={BUTTON_BORDER_RADIUS}
+            borderRadius={variables.buttonBorderRadius}
         />
     );
 }

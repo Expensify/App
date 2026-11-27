@@ -3,28 +3,18 @@ import type {ComponentProps} from 'react';
 import React from 'react';
 import {Rect} from 'react-native-svg';
 
+import {getSkeletonRadius} from './SkeletonLoader/geometry';
+
 // react-native-svg only exports `RectProps` from its native entry, so on web the props come from the component itself.
 type RectProps = ComponentProps<typeof Rect>;
-
-const BORDER_RADIUS_SMALL = 2; // text bars (height <= 8)
-const BORDER_RADIUS_MEDIUM = 4; // content blocks (height > 8)
-const HEIGHT_THRESHOLD = 8;
 
 type SkeletonRectProps = Omit<RectProps, 'rx' | 'ry' | 'x' | 'y'> & {
     /** Sets both rx and ry. Auto-derived from height when omitted. */
     borderRadius?: number;
 };
 
-function getDefaultRadius(height: RectProps['height']): number {
-    const num = typeof height === 'number' ? height : parseFloat(String(height));
-    if (Number.isNaN(num)) {
-        return BORDER_RADIUS_MEDIUM;
-    }
-    return num <= HEIGHT_THRESHOLD ? BORDER_RADIUS_SMALL : BORDER_RADIUS_MEDIUM;
-}
-
 function SkeletonRect({borderRadius, height, ...rest}: SkeletonRectProps) {
-    const radius = borderRadius ?? getDefaultRadius(height);
+    const radius = borderRadius ?? getSkeletonRadius(height);
     return (
         <Rect
             {...rest}

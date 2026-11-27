@@ -1,4 +1,4 @@
-import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
+import SkeletonLoader from '@components/SkeletonLoader';
 
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -11,8 +11,8 @@ import React, {useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 
 type ListItemSkeletonProps = {
-    shouldAnimate?: boolean;
     renderSkeletonItem: (args: {itemIndex: number}) => React.ReactNode;
+    shouldAnimate?: boolean;
     fixedNumItems?: number;
     gradientOpacityEnabled?: boolean;
     itemViewStyle?: StyleProp<ViewStyle>;
@@ -71,9 +71,9 @@ function ItemListSkeletonView({
 
     const items = [];
     for (let i = 0; i < numItems; i++) {
-        const opacity = gradientOpacityEnabled ? 1 - i / (numItems - 1) : 1;
+        const opacity = gradientOpacityEnabled && numItems > 1 ? 1 - i / (numItems - 1) : 1;
         const loader = (
-            <SkeletonViewContentLoader
+            <SkeletonLoader
                 speed={speed}
                 key={`skeletonContainer${i}`}
                 animate={shouldAnimate}
@@ -94,7 +94,7 @@ function ItemListSkeletonView({
                 {renderSkeletonItem({
                     itemIndex: i,
                 })}
-            </SkeletonViewContentLoader>
+            </SkeletonLoader>
         );
         if (itemContainerStyle) {
             const isLastItem = i === numItems - 1;
