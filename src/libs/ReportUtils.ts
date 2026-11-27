@@ -11842,6 +11842,8 @@ type ShouldReportBeInOptionListParams = {
     /** Pre-computed isEmpty flag from reportAttributes derived value. When provided, skips the module-level reportAttributesDerivedValue read inside isEmptyReport. */
     derivedIsEmptyReport: boolean | undefined;
     hasGuidesEmails: boolean;
+    /** Whether the app is offline. In focus mode, a deleted expense still pending deletion counts towards the one-transaction thread while offline. */
+    isOffline: boolean;
 };
 
 function reasonForReportToBeInOptionList({
@@ -11866,6 +11868,7 @@ function reasonForReportToBeInOptionList({
     pendingExpenseActionMetadata,
     derivedIsEmptyReport,
     hasGuidesEmails,
+    isOffline,
 }: ShouldReportBeInOptionListParams): ValueOf<typeof CONST.REPORT_IN_LHN_REASONS> | null {
     const isInDefaultMode = !isInFocusMode;
 
@@ -11918,7 +11921,7 @@ function reasonForReportToBeInOptionList({
     const parentReport = deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`];
 
     // If this is a transaction thread associated with a report that only has one transaction, omit it
-    if (isOneTransactionThread(report, parentReport, parentReportAction)) {
+    if (isOneTransactionThread(report, parentReport, parentReportAction, isOffline)) {
         return null;
     }
 
@@ -11994,7 +11997,7 @@ function reasonForReportToBeInOptionList({
 
     // All unread chats (even archived ones) in GSD mode will be shown. This is because GSD mode is specifically for focusing the user on the most relevant chats, primarily, the unread ones
     if (isInFocusMode) {
-        const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, currentReportActions);
+        const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, currentReportActions, isOffline);
         const oneTransactionThreadReport = deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
         return isUnread(report, oneTransactionThreadReport, isReportArchived, derivedIsEmptyReport) && getReportNotificationPreference(report) !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE
             ? CONST.REPORT_IN_LHN_REASONS.IS_UNREAD

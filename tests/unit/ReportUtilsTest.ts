@@ -10541,6 +10541,7 @@ describe('ReportUtils', () => {
                 conciergeReportID: undefined,
                 derivedIsEmptyReport: undefined,
                 pendingExpenseActionMetadata: undefined,
+                isOffline: false,
             });
 
             // Then only users with the beta get the bill in the list
@@ -10566,6 +10567,7 @@ describe('ReportUtils', () => {
                 conciergeReportID: undefined,
                 derivedIsEmptyReport: undefined,
                 pendingExpenseActionMetadata: undefined,
+                isOffline: false,
             });
 
             // Then the bill stays out, so other lists keep hiding bills
@@ -10591,6 +10593,7 @@ describe('ReportUtils', () => {
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
                     pendingExpenseActionMetadata: undefined,
+                    isOffline: false,
                 }),
             ).toBeTruthy();
         });
@@ -10618,6 +10621,7 @@ describe('ReportUtils', () => {
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
                     pendingExpenseActionMetadata: undefined,
+                    isOffline: false,
                 }),
             ).toBeTruthy();
         });
@@ -10650,6 +10654,7 @@ describe('ReportUtils', () => {
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
                     pendingExpenseActionMetadata: undefined,
+                    isOffline: false,
                 }),
             ).toBeFalsy();
         });
@@ -10717,6 +10722,7 @@ describe('ReportUtils', () => {
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
                     pendingExpenseActionMetadata: undefined,
+                    isOffline: false,
                 }),
             ).toBeTruthy();
         });
@@ -10743,6 +10749,7 @@ describe('ReportUtils', () => {
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
                     pendingExpenseActionMetadata: undefined,
+                    isOffline: false,
                 }),
             ).toBeTruthy();
         });
@@ -10769,6 +10776,7 @@ describe('ReportUtils', () => {
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
                     pendingExpenseActionMetadata: undefined,
+                    isOffline: false,
                 }),
             ).toBeTruthy();
         });
@@ -10795,6 +10803,7 @@ describe('ReportUtils', () => {
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
                     pendingExpenseActionMetadata: undefined,
+                    isOffline: false,
                 }),
             ).toBeTruthy();
         });
@@ -10834,6 +10843,7 @@ describe('ReportUtils', () => {
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
                     pendingExpenseActionMetadata: undefined,
+                    isOffline: false,
                 }),
             ).toBeTruthy();
         });
@@ -10868,6 +10878,7 @@ describe('ReportUtils', () => {
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
                     pendingExpenseActionMetadata: undefined,
+                    isOffline: false,
                 }),
             ).toBeTruthy();
         });
@@ -10902,6 +10913,7 @@ describe('ReportUtils', () => {
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
                     pendingExpenseActionMetadata: undefined,
+                    isOffline: false,
                 }),
             ).toBeFalsy();
         });
@@ -10930,6 +10942,7 @@ describe('ReportUtils', () => {
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
                     pendingExpenseActionMetadata: undefined,
+                    isOffline: false,
                 }),
             ).toBeTruthy();
         });
@@ -10960,6 +10973,7 @@ describe('ReportUtils', () => {
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
                     pendingExpenseActionMetadata: undefined,
+                    isOffline: false,
                 }),
             ).toBeFalsy();
         });
@@ -10985,6 +10999,7 @@ describe('ReportUtils', () => {
                 conciergeReportID: undefined,
                 derivedIsEmptyReport: undefined,
                 pendingExpenseActionMetadata: undefined,
+                isOffline: false,
             });
 
             // Then it is excluded, because there would be nothing to render in the option item
@@ -11012,6 +11027,7 @@ describe('ReportUtils', () => {
                 conciergeReportID: undefined,
                 derivedIsEmptyReport: undefined,
                 pendingExpenseActionMetadata: undefined,
+                isOffline: false,
             });
 
             // Then it is kept, because a workspace chat renders its name and icon from its policy
@@ -11040,6 +11056,7 @@ describe('ReportUtils', () => {
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
                     pendingExpenseActionMetadata: undefined,
+                    isOffline: false,
                 }),
             ).toBeFalsy();
         });
@@ -11096,6 +11113,7 @@ describe('ReportUtils', () => {
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
                     pendingExpenseActionMetadata: undefined,
+                    isOffline: false,
                 }),
             ).toBeFalsy();
         });
@@ -11119,6 +11137,7 @@ describe('ReportUtils', () => {
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
                     pendingExpenseActionMetadata: undefined,
+                    isOffline: false,
                 }),
             ).toBeFalsy();
         });
@@ -11150,6 +11169,7 @@ describe('ReportUtils', () => {
                     conciergeReportID,
                     derivedIsEmptyReport: undefined,
                     pendingExpenseActionMetadata: undefined,
+                    isOffline: false,
                 }),
             ).toBe(CONST.REPORT_IN_LHN_REASONS.DEFAULT);
         });
@@ -11180,6 +11200,7 @@ describe('ReportUtils', () => {
                     hasGuidesEmails: false,
                     derivedIsEmptyReport: undefined,
                     pendingExpenseActionMetadata: undefined,
+                    isOffline: false,
                 }),
             ).toBe(CONST.REPORT_IN_LHN_REASONS.DEFAULT);
         });
@@ -11209,6 +11230,7 @@ describe('ReportUtils', () => {
                     hasGuidesEmails: false,
                     derivedIsEmptyReport: undefined,
                     pendingExpenseActionMetadata: undefined,
+                    isOffline: false,
                 }),
             ).toBeNull();
         });
@@ -11238,6 +11260,7 @@ describe('ReportUtils', () => {
                 hasGuidesEmails: false,
                 derivedIsEmptyReport: undefined,
                 pendingExpenseActionMetadata: undefined,
+                isOffline: false,
             };
 
             // When the param identifies this report as Concierge, the empty chat is kept in the option list...
@@ -11267,6 +11290,7 @@ describe('ReportUtils', () => {
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
                     pendingExpenseActionMetadata: undefined,
+                    isOffline: false,
                 }),
             ).toBeFalsy();
         });
@@ -11316,6 +11340,7 @@ describe('ReportUtils', () => {
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
                     pendingExpenseActionMetadata: undefined,
+                    isOffline: false,
                 }),
             ).toBeFalsy();
         });
@@ -11339,6 +11364,7 @@ describe('ReportUtils', () => {
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
                     pendingExpenseActionMetadata: undefined,
+                    isOffline: false,
                 }),
             ).toBeFalsy();
         });
@@ -11377,6 +11403,7 @@ describe('ReportUtils', () => {
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
                     pendingExpenseActionMetadata: undefined,
+                    isOffline: false,
                 }),
             ).toBeFalsy();
         });
@@ -11412,8 +11439,166 @@ describe('ReportUtils', () => {
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
                     pendingExpenseActionMetadata: undefined,
+                    isOffline: false,
                 }),
             ).toBe(CONST.REPORT_IN_LHN_REASONS.IS_UNREAD);
+        });
+
+        describe('in focus mode with a one-expense report whose second expense is pending deletion', () => {
+            const readTime = '2024-01-01 10:00:00.000';
+
+            // The expense report itself is read, so whether it shows as unread depends only on its one-transaction thread
+            function buildExpenseReportWithPendingDeletedExpense() {
+                const expenseReport: Report = {
+                    ...LHNTestUtils.getFakeReport([1, 2]),
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    lastReadTime: readTime,
+                    lastVisibleActionCreated: '2024-01-01 09:00:00.000',
+                    lastActorAccountID: 2,
+                };
+                const transactionThread: Report = {
+                    ...LHNTestUtils.getFakeReport([1, 2]),
+                    parentReportID: expenseReport.reportID,
+                    lastReadTime: '2024-01-01 09:00:00.000',
+                    lastVisibleActionCreated: '2024-01-01 11:00:00.000',
+                    lastActorAccountID: 2,
+                };
+                const liveExpenseAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                    ...LHNTestUtils.getFakeReportAction(),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    childReportID: transactionThread.reportID,
+                    pendingAction: null,
+                    originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID: 'liveTransaction', amount: 100, currency: CONST.CURRENCY.USD},
+                    message: [{type: 'COMMENT', html: '$1.00 expense', text: '$1.00 expense'}],
+                    previousMessage: undefined,
+                };
+                const pendingDeletedExpenseAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                    ...LHNTestUtils.getFakeReportAction(),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID: 'deletedTransaction', amount: 200, currency: CONST.CURRENCY.USD},
+                    message: [{type: 'COMMENT', html: '', text: '', deleted: readTime}],
+                    previousMessage: undefined,
+                };
+                transactionThread.parentReportActionID = liveExpenseAction.reportActionID;
+                return {expenseReport, transactionThread, liveExpenseAction, pendingDeletedExpenseAction};
+            }
+
+            async function setUpExpenseReport() {
+                const fixtures = buildExpenseReportWithPendingDeletedExpense();
+                await Onyx.merge(ONYXKEYS.SESSION, {accountID: 1});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${fixtures.expenseReport.reportID}`, fixtures.expenseReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${fixtures.transactionThread.reportID}`, fixtures.transactionThread);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fixtures.expenseReport.reportID}`, {
+                    [fixtures.liveExpenseAction.reportActionID]: fixtures.liveExpenseAction,
+                    [fixtures.pendingDeletedExpenseAction.reportActionID]: fixtures.pendingDeletedExpenseAction,
+                });
+                await waitForBatchedUpdates();
+                return fixtures;
+            }
+
+            function getReasonInFocusMode(expenseReport: Report, isOffline: boolean) {
+                return reasonForReportToBeInOptionList({
+                    report: expenseReport,
+                    chatReport: mockedChatReport,
+                    currentReportId: '',
+                    isInFocusMode: true,
+                    isDefaultRoomsBetaEnabled: true,
+                    doesReportHaveViolations: false,
+                    excludeEmptyChats: false,
+                    hasDraftComment: false,
+                    isReportArchived: undefined,
+                    hasGuidesEmails: false,
+                    conciergeReportID: undefined,
+                    requiresAttention: false,
+                    derivedIsEmptyReport: false,
+                    pendingExpenseActionMetadata: undefined,
+                    isOffline,
+                });
+            }
+
+            it('shows the report as unread while online, because the pending deletion is ignored and the unread thread counts', async () => {
+                // Given a read expense report with one live expense whose thread has a newer message, and a second expense pending deletion
+                const {expenseReport} = await setUpExpenseReport();
+
+                // When the app is online
+                const reason = getReasonInFocusMode(expenseReport, false);
+
+                // Then the pending deletion is skipped, the report is a one-expense report, and its unread thread keeps it in the focus-mode list
+                expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.IS_UNREAD);
+            });
+
+            it('hides the report while offline, because the expense pending deletion still counts and there is no single thread to read from', async () => {
+                // Given the same read expense report with one live expense and one expense pending deletion
+                const {expenseReport} = await setUpExpenseReport();
+
+                // When the app is offline
+                const reason = getReasonInFocusMode(expenseReport, true);
+
+                // Then the expense pending deletion still counts while offline, so the report has two expenses, its thread's unread
+                // message is not used, and the read report stays out of the focus-mode list. This shows the passed isOffline is
+                // used instead of the global network state.
+                expect(reason).toBeNull();
+            });
+
+            it('uses isOffline to decide whether the expense thread is hidden as a one-transaction thread', async () => {
+                // Given the transaction thread of the live expense, on a report that also has an expense pending deletion
+                const {transactionThread} = await setUpExpenseReport();
+                const params = {
+                    report: transactionThread,
+                    chatReport: mockedChatReport,
+                    currentReportId: '',
+                    isInFocusMode: false,
+                    isDefaultRoomsBetaEnabled: true,
+                    doesReportHaveViolations: false,
+                    excludeEmptyChats: false,
+                    hasDraftComment: false,
+                    isReportArchived: undefined,
+                    hasGuidesEmails: false,
+                    conciergeReportID: undefined,
+                    requiresAttention: false,
+                    derivedIsEmptyReport: false,
+                    pendingExpenseActionMetadata: undefined,
+                };
+
+                // When the reason is computed online and offline
+                const reasonOnline = reasonForReportToBeInOptionList({...params, isOffline: false});
+                const reasonOffline = reasonForReportToBeInOptionList({...params, isOffline: true});
+
+                // Then online the parent is a one-expense report, so its thread is hidden because the parent row already shows it.
+                // Offline the expense pending deletion still counts, the parent has two expenses, and the thread gets its own row.
+                expect(reasonOnline).toBeNull();
+                expect(reasonOffline).toBe(CONST.REPORT_IN_LHN_REASONS.DEFAULT);
+            });
+
+            it('passes isOffline through shouldReportBeInOptionList', async () => {
+                // Given the same read expense report with one live expense and one expense pending deletion
+                const {expenseReport} = await setUpExpenseReport();
+                const params = {
+                    report: expenseReport,
+                    chatReport: mockedChatReport,
+                    currentReportId: '',
+                    isInFocusMode: true,
+                    isDefaultRoomsBetaEnabled: true,
+                    doesReportHaveViolations: false,
+                    excludeEmptyChats: false,
+                    hasDraftComment: false,
+                    isReportArchived: undefined,
+                    hasGuidesEmails: false,
+                    conciergeReportID: undefined,
+                    requiresAttention: false,
+                    derivedIsEmptyReport: false,
+                    pendingExpenseActionMetadata: undefined,
+                };
+
+                // When the wrapper is called online and offline
+                const shouldShowOnline = shouldReportBeInOptionList({...params, isOffline: false});
+                const shouldShowOffline = shouldReportBeInOptionList({...params, isOffline: true});
+
+                // Then the result follows the isOffline it was given, the same as reasonForReportToBeInOptionList
+                expect(shouldShowOnline).toBe(true);
+                expect(shouldShowOffline).toBe(false);
+            });
         });
 
         it('should return false in focus mode when the report is unread but muted', async () => {
@@ -11445,6 +11630,7 @@ describe('ReportUtils', () => {
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
                     pendingExpenseActionMetadata: undefined,
+                    isOffline: false,
                 }),
             ).toBeFalsy();
         });
@@ -11471,6 +11657,7 @@ describe('ReportUtils', () => {
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
                     pendingExpenseActionMetadata: undefined,
+                    isOffline: false,
                 }),
             ).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_ADD_WORKSPACE_ROOM_ERRORS);
         });
@@ -11519,6 +11706,7 @@ describe('ReportUtils', () => {
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
                     pendingExpenseActionMetadata: undefined,
+                    isOffline: false,
                 }),
             ).toBeFalsy();
         });
@@ -11574,6 +11762,7 @@ describe('ReportUtils', () => {
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
                     pendingExpenseActionMetadata: undefined,
+                    isOffline: false,
                 }),
             ).toBe(CONST.REPORT_IN_LHN_REASONS.PINNED_BY_USER);
         });
@@ -11600,6 +11789,7 @@ describe('ReportUtils', () => {
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
                     pendingExpenseActionMetadata: undefined,
+                    isOffline: false,
                 }),
             ).toBeNull();
         });
@@ -11625,6 +11815,7 @@ describe('ReportUtils', () => {
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
                     pendingExpenseActionMetadata: undefined,
+                    isOffline: false,
                 }),
             ).toBeTruthy();
         });
@@ -11650,6 +11841,7 @@ describe('ReportUtils', () => {
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
                     pendingExpenseActionMetadata: undefined,
+                    isOffline: false,
                 }),
             ).toBeFalsy();
         });
@@ -11675,6 +11867,7 @@ describe('ReportUtils', () => {
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
                     pendingExpenseActionMetadata: undefined,
+                    isOffline: false,
                 }),
             ).toBeFalsy();
         });
@@ -11700,6 +11893,7 @@ describe('ReportUtils', () => {
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
                     pendingExpenseActionMetadata: undefined,
+                    isOffline: false,
                 }),
             ).toBeFalsy();
         });
@@ -11720,6 +11914,7 @@ describe('ReportUtils', () => {
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
                     pendingExpenseActionMetadata: undefined,
+                    isOffline: false,
                 }),
             ).toBeFalsy();
         });
@@ -11791,6 +11986,7 @@ describe('ReportUtils', () => {
                 conciergeReportID: undefined,
                 derivedIsEmptyReport: undefined,
                 pendingExpenseActionMetadata: undefined,
+                isOffline: false,
             });
 
             expect(reason).not.toBe(CONST.REPORT_IN_LHN_REASONS.HAS_IOU_VIOLATIONS);
@@ -22480,6 +22676,7 @@ describe('ReportUtils', () => {
             conciergeReportID: undefined,
             derivedIsEmptyReport: undefined,
             pendingExpenseActionMetadata: undefined,
+            isOffline: false,
         });
 
         expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
@@ -22543,6 +22740,7 @@ describe('ReportUtils', () => {
             conciergeReportID: undefined,
             derivedIsEmptyReport: undefined,
             pendingExpenseActionMetadata: undefined,
+            isOffline: false,
         });
 
         expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.DEFAULT);
@@ -22744,6 +22942,7 @@ describe('ReportUtils', () => {
                 conciergeReportID: undefined,
                 derivedIsEmptyReport: undefined,
                 pendingExpenseActionMetadata: undefined,
+                isOffline: false,
             });
 
             expect(reasonForOptionList).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
@@ -22799,6 +22998,7 @@ describe('ReportUtils', () => {
                 conciergeReportID: undefined,
                 derivedIsEmptyReport: undefined,
                 pendingExpenseActionMetadata: undefined,
+                isOffline: false,
             });
 
             expect(reasonForOptionList).toBe(null);
@@ -24104,6 +24304,7 @@ describe('ReportUtils', () => {
             derivedIsEmptyReport: undefined,
             pendingExpenseActionMetadata: undefined,
             currentUserAccountID: adminAccountID,
+            isOffline: false,
         });
 
         expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
@@ -24289,6 +24490,7 @@ describe('ReportUtils', () => {
             conciergeReportID: undefined,
             derivedIsEmptyReport: undefined,
             pendingExpenseActionMetadata: undefined,
+            isOffline: false,
         });
 
         expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.DEFAULT);
@@ -24494,6 +24696,7 @@ describe('ReportUtils', () => {
             conciergeReportID: undefined,
             derivedIsEmptyReport: undefined,
             pendingExpenseActionMetadata: undefined,
+            isOffline: false,
         });
 
         expect(reasonBeforeDelete).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
@@ -24520,6 +24723,7 @@ describe('ReportUtils', () => {
             conciergeReportID: undefined,
             derivedIsEmptyReport: undefined,
             pendingExpenseActionMetadata: undefined,
+            isOffline: false,
         });
 
         expect(reasonAfterDelete).toBe(CONST.REPORT_IN_LHN_REASONS.IS_ARCHIVED);
@@ -24624,6 +24828,7 @@ describe('ReportUtils', () => {
             conciergeReportID: undefined,
             derivedIsEmptyReport: undefined,
             pendingExpenseActionMetadata: undefined,
+            isOffline: false,
         });
 
         expect(reasonBeforeRemoval).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
@@ -24668,6 +24873,7 @@ describe('ReportUtils', () => {
             conciergeReportID: undefined,
             derivedIsEmptyReport: undefined,
             pendingExpenseActionMetadata: undefined,
+            isOffline: false,
         });
 
         expect(reasonAfterRemoval).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
@@ -26440,6 +26646,7 @@ describe('ReportUtils', () => {
                 conciergeReportID: undefined,
                 derivedIsEmptyReport: undefined,
                 pendingExpenseActionMetadata: undefined,
+                isOffline: false,
             });
             expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
 
@@ -26497,6 +26704,7 @@ describe('ReportUtils', () => {
                 conciergeReportID: undefined,
                 derivedIsEmptyReport: undefined,
                 pendingExpenseActionMetadata: undefined,
+                isOffline: false,
             });
             expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.DEFAULT);
 
@@ -29424,6 +29632,7 @@ describe('ReportUtils', () => {
                 conciergeReportID: undefined,
                 derivedIsEmptyReport: undefined,
                 pendingExpenseActionMetadata: undefined,
+                isOffline: false,
             });
             expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
 
@@ -29498,6 +29707,7 @@ describe('ReportUtils', () => {
                 conciergeReportID: undefined,
                 derivedIsEmptyReport: undefined,
                 pendingExpenseActionMetadata: undefined,
+                isOffline: false,
             });
             expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
 

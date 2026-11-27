@@ -128,6 +128,7 @@ function getUnreadReportIDsForUnreadIndicator(
             // this module another Onyx connection for a count that corrects itself on the next recompute.
             pendingExpenseActionMetadata: undefined,
             derivedIsEmptyReport,
+            isOffline,
         });
     });
     return unreadReports.flatMap((report) => (report?.reportID ? [report.reportID] : []));

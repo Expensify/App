@@ -143,6 +143,7 @@ function DebugReportPage({
             derivedIsEmptyReport,
             transactionViolations,
             pendingExpenseActionMetadata,
+            isOffline,
         });
         metadata = [
             {

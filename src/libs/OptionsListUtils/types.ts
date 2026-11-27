@@ -272,6 +272,7 @@ type IsValidReportsConfig = Pick<
     currentUserAccountID: number;
     currentUserLogin: string;
     conciergeReportID: string | undefined;
+    isOffline: boolean;
 };
 
 type GetOptionsConfig = {
