@@ -40,6 +40,9 @@ type TransactionViolationData = {
     /** Limit amount that the transaction violated */
     amount?: number;
 
+    /** Distinguishes a Rules Engine daily budget from a legacy per-person category cap. */
+    isDailyBudget?: boolean;
+
     /** Percentage amount of conversion surcharge applied to the transaction */
     surcharge?: number;
 

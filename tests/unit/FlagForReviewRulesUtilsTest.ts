@@ -284,6 +284,22 @@ describe('mirrored category flag limits', () => {
         expect(rule).toBeUndefined();
     });
 
+    it.each([EQUAL_TO, NOT_EQUAL_TO])('rejects attachment conditions with %s on daily budgets only', (operator) => {
+        // Given a presence check for an attachment alongside a receipt.
+        const draft = {hasToMatch: [CONST.SEARCH.HAS_VALUES.RECEIPT, CONST.SEARCH.HAS_VALUES.ATTACHMENT], hasMatchType: operator};
+        const enforcement = CONST.RULES.FLAG_FOR_REVIEW.ENFORCEMENT.WARNING;
+
+        // When building a regular flag and budgets using expense or report attachment checks.
+        const regularFlag = buildFlagForReviewRule(draft, 'USD', enforcement);
+        const budget = buildFlagForReviewRule({...draft, dailyBudgetToMatch: dailyCap.right}, 'USD', enforcement);
+        const reportAttachmentBudget = buildFlagForReviewRule({...draft, dailyBudgetToMatch: dailyCap.right, hasToMatch: ['report-attachment']}, 'USD', enforcement);
+
+        // Then the regular attachment check still round-trips, but neither budget can be saved.
+        expect(getFlagForReviewConditions(regularFlag)?.matchingConditions).toEqual([{left: HAS, operator, right: draft.hasToMatch}]);
+        expect(budget).toBeUndefined();
+        expect(reportAttachmentBudget).toBeUndefined();
+    });
+
     it('reads a stored budget tag without a level as an exact level-one tag', () => {
         // Given a saved tag budget with an unwrapped tag and Auth's default level.
         const rule = {...dailyRule, filters: {left: {left: TAG, operator: EQUAL_TO, right: 'Client A'}, operator: AND, right: dailyCap}};

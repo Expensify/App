@@ -43,6 +43,7 @@ import {
     getFlagForReviewRulePriority,
     getFlagRuleCategory,
     hasValidFlagBudgetSelectors,
+    isUnsupportedDailyBudgetHasValue,
     qualifyCategoryFlagRulePath,
     usesLegacyFlagLimitEditor,
 } from '@libs/FlagForReviewRulesUtils';
@@ -226,6 +227,8 @@ function FlagForReviewRulePageBase({
         errorMessage = translate('common.genericErrorMessage');
     } else if (isCategoryOnlyLimit && otherCategoryLimit && otherCategoryLimit.ruleID !== ruleID) {
         errorMessage = translate('workspace.rules.newRule.promptErrors.categoryHasRule');
+    } else if (form?.dailyBudgetToMatch && form.hasToMatch?.some(isUnsupportedDailyBudgetHasValue)) {
+        errorMessage = translate('common.error.invalidField', translate('common.attachment'));
     } else if (form?.dailyBudgetToMatch && !hasValidFlagBudgetSelectors(form)) {
         errorMessage = translate('workspace.rules.flagForReviewRule.dailyBudgetSelectorError');
     } else if (!form?.dailyBudgetToMatch && form?.budgetTagLevel && form.tagsToMatch?.length) {

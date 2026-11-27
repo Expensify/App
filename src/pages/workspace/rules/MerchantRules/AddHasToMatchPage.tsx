@@ -12,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {HAS_OPTIONS} from '@libs/ExpenseDefaultRuleUtils';
+import {isUnsupportedDailyBudgetHasValue} from '@libs/FlagForReviewRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -45,6 +46,7 @@ function AddHasToMatchPage({route}: AddHasToMatchPageProps) {
     const policy = usePolicy(policyID);
 
     const {selectedValues: selectedHasValues, toggleValue: toggleHasValue, toggleAll} = useRuleConditionSelection(form?.hasToMatch ?? []);
+    const hasDailyBudget = !!form && 'dailyBudgetToMatch' in form && !!form.dailyBudgetToMatch;
 
     // Held here rather than written straight to the rule, so that it is kept or dropped along with the parts it
     // applies to when Save or Back is pressed.
@@ -55,6 +57,9 @@ function AddHasToMatchPage({route}: AddHasToMatchPageProps) {
     const isOptionAvailable = (value: string) => {
         if (selectedHasValues.includes(value)) {
             return true;
+        }
+        if (hasDailyBudget && isUnsupportedDailyBudgetHasValue(value)) {
+            return false;
         }
         if (value === CONST.SEARCH.HAS_VALUES.CATEGORY) {
             return !!policy?.areCategoriesEnabled;

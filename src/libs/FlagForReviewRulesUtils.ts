@@ -63,6 +63,7 @@ const {CATEGORY, AMOUNT, MERCHANT, FROM, TAG} = CONST.SEARCH.SYNTAX_FILTER_KEYS;
 const {DAILY, EXPENSE} = CONST.POLICY.EXPENSE_LIMIT_TYPES;
 const DEFAULT_BUDGET_TAG_LEVEL = 1;
 const BUDGET_SUBMITTER_ID = /^[1-9]\d*$/;
+const REPORT_ATTACHMENT = 'report-attachment';
 
 function hasExplicitFlagAmount(maxExpenseAmount: number | null | undefined): maxExpenseAmount is number {
     return maxExpenseAmount !== null && maxExpenseAmount !== undefined && maxExpenseAmount !== CONST.DISABLED_MAX_EXPENSE_VALUE;
@@ -282,6 +283,12 @@ function hasValidFlagBudgetSelectors({tagsToMatch, submittersToMatch, budgetTagL
     );
 }
 
+function isUnsupportedDailyBudgetHasValue(value: string): boolean {
+    // Auth can't use private report actions to evaluate a daily budget.
+    const hasValue = value.trim();
+    return hasValue === CONST.SEARCH.HAS_VALUES.ATTACHMENT || hasValue === REPORT_ATTACHMENT;
+}
+
 function buildFlagForReviewRule(form: Partial<FlagForReviewRuleForm>, currency: string, enforcement: FlagRuleEnforcement | undefined): FlagForReviewRule | undefined {
     const {category, maxExpenseAmount, expenseLimitType, amountToMatch, dailyBudgetToMatch, budgetTagLevel, tagsToMatch} = form;
     const threshold = formatAmountFilterValue(maxExpenseAmount ?? '', currency);
@@ -290,7 +297,7 @@ function buildFlagForReviewRule(form: Partial<FlagForReviewRuleForm>, currency: 
     if (
         (maxExpenseAmount?.trim() && (!threshold || Number(maxExpenseAmount) < 0)) ||
         (expenseOperand && !parseFlagAmountLimit(expenseOperand, EXPENSE)) ||
-        (budgetOperand && (!parseFlagAmountLimit(budgetOperand, DAILY) || !hasValidFlagBudgetSelectors(form))) ||
+        (budgetOperand && (!parseFlagAmountLimit(budgetOperand, DAILY) || !hasValidFlagBudgetSelectors(form) || form.hasToMatch?.some(isUnsupportedDailyBudgetHasValue))) ||
         (!budgetOperand && !!budgetTagLevel && !!tagsToMatch?.length) ||
         (expenseLimitType === DAILY && (!category || convertToBackendAmount(Number(maxExpenseAmount)) <= 0 || !budgetOperand))
     ) {
@@ -457,6 +464,7 @@ export {
     hasExplicitFlagAmount,
     hasValidFlagBudgetSelectors,
     isFlagMerchantMatchType,
+    isUnsupportedDailyBudgetHasValue,
     qualifyCategoryFlagRulePath,
     usesLegacyFlagLimitEditor,
 };

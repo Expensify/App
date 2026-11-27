@@ -42,9 +42,6 @@ function FlagForReviewRuleCategoryPageBase({policyID, ruleID}: FlagForReviewRule
     const [storedDraft] = useOnyx(ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_FORM);
     const {areRulesLoading, haveRulesLoaded} = useRulesPrefetch(!!ruleID);
     const [rule] = useOnyx(`${ONYXKEYS.COLLECTION.RULE}${ruleID}`);
-    const conditions = rule?.scope === CONST.RULES.SCOPE.POLICY && rule.scopeID === policyID ? getFlagForReviewConditions(rule) : undefined;
-    const draftKey = getFlagForReviewDraftKey(policyID, ruleID);
-    const form = storedDraft?.draftKey === draftKey ? storedDraft : undefined;
 
     const {
         categories,
@@ -55,6 +52,10 @@ function FlagForReviewRuleCategoryPageBase({policyID, ruleID}: FlagForReviewRule
         policyID,
         isEligible: canMatchFlagRuleCategory,
     });
+
+    const conditions = rule?.scope === CONST.RULES.SCOPE.POLICY && rule.scopeID === policyID ? getFlagForReviewConditions(rule) : undefined;
+    const draftKey = getFlagForReviewDraftKey(policyID, ruleID);
+    const form = storedDraft?.draftKey === draftKey ? storedDraft : undefined;
 
     const selectedCategoryName = form?.[INPUT_IDS.CATEGORY] ?? conditions?.categoryName;
     const selectedCategoryItem = getCategoryPickerItem(selectedCategoryName ?? '');

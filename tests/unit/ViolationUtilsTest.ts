@@ -4576,6 +4576,25 @@ describe('getViolationTranslation', () => {
     const createComparison = (left: string, operator: RuleFilterComparison['operator'], right: RuleFilterComparison['right']): RuleFilterComparison => ({left, operator, right});
     const createAndFilter = (left: RuleFilterNode, right: RuleFilterNode): RuleFilterNode => ({left, operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, right});
 
+    it.each([
+        [true, 'Daily spend over $100.25'],
+        [false, 'Amount over daily $100.25/person category limit'],
+        [undefined, 'Amount over daily $100.25/person category limit'],
+    ])('uses daily budget wording only when isDailyBudget is true (%s)', (isDailyBudget, expected) => {
+        // Given a cap violation from the Rules Engine or an older snapshot.
+        const violation: TransactionViolation = {
+            name: CONST.VIOLATIONS.PER_DAY_LIMIT,
+            type: CONST.VIOLATION_TYPES.VIOLATION,
+            data: {amount: 10025, currency: CONST.CURRENCY.USD, ...(isDailyBudget === undefined ? {} : {isDailyBudget})},
+        };
+
+        // When formatting the message for the expense.
+        const message = ViolationsUtils.getViolationTranslation({dateFnsLocale: undefined, violation, translate: translateLocal, convertToDisplayString});
+
+        // Then only an explicit daily budget uses spend wording without the per-person qualifier.
+        expect(message).toBe(expected);
+    });
+
     const ruleViolationTestCases: Array<{description: string; filters: RuleFilterNode; expectedMessage: string}> = [
         {
             description: 'an uncategorized expense',

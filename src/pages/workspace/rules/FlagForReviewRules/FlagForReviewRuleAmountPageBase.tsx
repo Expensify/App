@@ -62,6 +62,7 @@ function FlagForReviewRuleAmountPageBase({policyID, categoryName, ruleID, isCate
     const {inputCallbackRef} = useAutoFocusInput();
     const {canWrite: canWriteRules} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     const {getCurrencyDecimals} = useCurrencyListActions();
+    const [expenseLimitType, setExpenseLimitType] = useState<PolicyCategoryExpenseLimitType>();
 
     const [storedDraft] = useOnyx(ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_FORM);
     const [categories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
@@ -71,15 +72,14 @@ function FlagForReviewRuleAmountPageBase({policyID, categoryName, ruleID, isCate
     const resolvedRuleID = ruleID ?? getCategoryFlagLimit(category, categoryFlagLimits)?.ruleID;
     const [rule] = useOnyx(`${ONYXKEYS.COLLECTION.RULE}${resolvedRuleID}`);
     const conditions = rule?.scope === CONST.RULES.SCOPE.POLICY && rule.scopeID === policyID ? getFlagForReviewConditions(rule) : undefined;
-    const usesCategoryLimitEditor = isCategoryLocked || !!categoryName || usesLegacyFlagLimitEditor(resolvedRuleID, categories, conditions);
     const draftKey = getFlagForReviewDraftKey(policyID, resolvedRuleID, categoryName);
     const cachedDraft = storedDraft?.draftKey === draftKey ? storedDraft : undefined;
     const draft = cachedDraft ?? (conditions ? getFlagForReviewDraft(conditions, getCurrencyDecimals, true) : undefined);
     const currency = draft?.currency ?? policy?.outputCurrency ?? CONST.CURRENCY.USD;
     const defaultValue = draft?.maxExpenseAmount ?? '';
     const isMerchantRule = !!draft?.merchantToMatch?.trim();
-    const [expenseLimitType, setExpenseLimitType] = useState<PolicyCategoryExpenseLimitType>();
     const selectedExpenseLimitType = isMerchantRule ? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE : (expenseLimitType ?? draft?.expenseLimitType ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE);
+    const usesCategoryLimitEditor = isCategoryLocked || !!categoryName || usesLegacyFlagLimitEditor(resolvedRuleID, categories, conditions);
 
     const getBackToRoute = () => {
         if (isCategoryScopedFlow) {

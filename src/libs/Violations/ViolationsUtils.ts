@@ -1331,7 +1331,10 @@ const ViolationsUtils = {
             case 'overLimitAttendee':
                 return translate('violations.overLimitAttendee', convertToDisplayString(amount, currency));
             case 'perDayLimit':
-                return translate('violations.perDayLimit', convertToDisplayString(amount, currency));
+                return translate(
+                    violation.data?.isDailyBudget === true ? 'workspace.rules.flagForReviewRule.dailyBudgetOver' : 'violations.perDayLimit',
+                    convertToDisplayString(amount, currency),
+                );
             case 'receiptNotSmartScanned':
                 return translate('violations.receiptNotSmartScanned');
             case 'receiptRequired':
