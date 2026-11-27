@@ -1,4 +1,4 @@
-import {renderHook} from '@testing-library/react-native';
+import {act, renderHook} from '@testing-library/react-native';
 
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import {useMoneyReportTransactionThread} from '@components/MoneyReportTransactionThreadContext';
@@ -132,7 +132,9 @@ describe('useHoldRejectActions - report-level reject', () => {
         await waitForBatchedUpdates();
 
         const {result, onRejectModalOpen} = renderRejectActions();
-        result.current[CONST.REPORT.SECONDARY_ACTIONS.REJECT].onSelected?.();
+        await act(async () => {
+            await result.current[CONST.REPORT.SECONDARY_ACTIONS.REJECT].onSelected?.();
+        });
 
         expect(onRejectModalOpen).toHaveBeenCalledWith(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_REPORT);
         expect(mockNavigate).not.toHaveBeenCalled();
@@ -143,7 +145,9 @@ describe('useHoldRejectActions - report-level reject', () => {
         await waitForBatchedUpdates();
 
         const {result, onRejectModalOpen} = renderRejectActions();
-        result.current[CONST.REPORT.SECONDARY_ACTIONS.REJECT].onSelected?.();
+        await act(async () => {
+            await result.current[CONST.REPORT.SECONDARY_ACTIONS.REJECT].onSelected?.();
+        });
 
         expect(mockNavigate).toHaveBeenCalledWith(ROUTES.REJECT_EXPENSE_REPORT.getRoute(TEST_REPORT_ID));
         expect(onRejectModalOpen).not.toHaveBeenCalled();
@@ -155,7 +159,9 @@ describe('useHoldRejectActions - report-level reject', () => {
         await waitForBatchedUpdates();
 
         const {result, onRejectModalOpen} = renderRejectActions();
-        result.current[CONST.REPORT.SECONDARY_ACTIONS.REJECT].onSelected?.();
+        await act(async () => {
+            await result.current[CONST.REPORT.SECONDARY_ACTIONS.REJECT].onSelected?.();
+        });
 
         expect(mockShowDelegateNoAccessModal).toHaveBeenCalled();
         expect(onRejectModalOpen).not.toHaveBeenCalled();
@@ -176,10 +182,40 @@ describe('useHoldRejectActions - report-level reject', () => {
         await waitForBatchedUpdates();
 
         const {result, onHoldEducationalOpen, onRejectModalOpen} = renderRejectActions();
-        result.current[CONST.REPORT.SECONDARY_ACTIONS.HOLD].onSelected?.();
+        await act(async () => {
+            await result.current[CONST.REPORT.SECONDARY_ACTIONS.HOLD].onSelected?.();
+        });
 
         expect(onHoldEducationalOpen).toHaveBeenCalled();
         expect(onRejectModalOpen).not.toHaveBeenCalled();
         expect(changeMoneyRequestHoldStatus).not.toHaveBeenCalled();
+    });
+
+    it('holds the expense with the onboarding intent when the hold explanation has been dismissed', async () => {
+        // Given a DM expense whose hold explanation was already dismissed, by a track-intent user
+        jest.mocked(isDM).mockReturnValue(true);
+        jest.mocked(useMoneyReportTransactionThread).mockReturnValue({
+            iouTransactionID: undefined,
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- minimal stub so HOLD onSelected can run
+            requestParentReportAction: {reportActionID: 'parent-action-1', actionName: CONST.REPORT.ACTIONS.TYPE.IOU} as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>,
+            transactionThreadReportID: undefined,
+            transactionThreadReport: undefined,
+            reportActions: [],
+        });
+        await Onyx.multiSet({
+            [ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION]: true,
+            [ONYXKEYS.NVP_INTRO_SELECTED]: {choice: CONST.ONBOARDING_CHOICES.TRACK_PERSONAL},
+        });
+        await waitForBatchedUpdates();
+
+        // When the user holds the expense
+        const {result, onHoldEducationalOpen} = renderRejectActions();
+        await act(async () => {
+            await result.current[CONST.REPORT.SECONDARY_ACTIONS.HOLD].onSelected?.();
+        });
+
+        // Then the hold is applied without the educational modal, and the stored onboarding intent still reaches the hold action
+        expect(onHoldEducationalOpen).not.toHaveBeenCalled();
+        expect(changeMoneyRequestHoldStatus).toHaveBeenCalledWith(expect.objectContaining({isTrackIntentUser: true}));
     });
 });

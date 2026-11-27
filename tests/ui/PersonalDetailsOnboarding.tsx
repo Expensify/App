@@ -220,7 +220,9 @@ describe('OnboardingPersonalDetails Page', () => {
     });
 
     it('should create a Submit workspace when submitting form with EMPLOYER and public domain', async () => {
-        jest.spyOn(Navigation, 'dismissModal').mockImplementation(({afterTransition} = {}) => afterTransition?.());
+        jest.spyOn(Navigation, 'dismissModal').mockImplementation(({afterTransition} = {}) => {
+            afterTransition?.();
+        });
         jest.spyOn(Navigation, 'setNavigationActionToMicrotaskQueue').mockImplementation((callback: () => void) => callback());
 
         await TestHelper.signInWithTestUser();

@@ -15,7 +15,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 // eslint-disable-next-line no-restricted-imports -- Need original useOnyx to avoid reading partial Search snapshot policy data.
-import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
+import Onyx, {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
 
 import useCreateEmptyReportConfirmation from './useCreateEmptyReportConfirmation';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
@@ -36,7 +36,7 @@ type UseCreateReportParams = {
 
 type UseCreateReportResult = {
     /** The callback to trigger when the user clicks "Create report" */
-    createReport: () => void;
+    createReport: () => void | Promise<void>;
     /** Whether the menu item/button should be visible */
     isVisible: boolean;
 };
@@ -58,7 +58,6 @@ export default function useCreateReport({
     shouldHandleNavigationBack = true,
     shouldSkipEmptyReportConfirmation = false,
 }: UseCreateReportParams): UseCreateReportResult {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     // Read live: under SearchScopeProvider (Reports empty view) useOnyx would serve stale snapshot policies.
     const [activePolicy] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
@@ -66,9 +65,6 @@ export default function useCreateReport({
     const defaultChatEnabledPolicySelector = (policies: OnyxCollection<OnyxTypes.Policy>) => getDefaultChatEnabledPolicySelection(policies, login, activePolicyID);
     const [defaultChatEnabledPolicySelection, policiesLoadStatus] = useOnyxWithoutSnapshots(ONYXKEYS.COLLECTION.POLICY, {selector: defaultChatEnabledPolicySelector});
     const [defaultChatEnabledPolicyByKey] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(defaultChatEnabledPolicySelection?.defaultChatEnabledPolicyID)}`);
-    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
-    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const {isRestrictedToPreferredPolicy, preferredPolicyID, isLoadingPreferredPolicy} = usePreferredPolicy();
     const [preferredPolicy, preferredPolicyLoadStatus] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(preferredPolicyID)}`);
 
@@ -90,7 +86,13 @@ export default function useCreateReport({
         shouldHandleNavigationBack,
     });
 
-    const createReport = () => {
+    const createReport = async () => {
+        const [session, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed] = await Onyx.multiGet([
+            ONYXKEYS.SESSION,
+            ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END,
+            ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END,
+            ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED,
+        ]);
         interceptAnonymousUser(() => {
             if (!arePoliciesLoaded) {
                 return;

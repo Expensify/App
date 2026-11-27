@@ -74,7 +74,9 @@ describe('useHoldMenuSubmit', () => {
         await waitForBatchedUpdatesWithAct();
 
         // When the user chooses whether to pay the held expenses too
-        result.current.onSubmit(full);
+        await act(async () => {
+            await result.current.onSubmit(full);
+        });
 
         // Then the ABA file is downloaded with that choice instead of marking the report as paid, and the menu closes
         expect(mockPayReportsViaABA).toHaveBeenCalledWith(
@@ -107,7 +109,9 @@ describe('useHoldMenuSubmit', () => {
         await waitForBatchedUpdatesWithAct();
 
         // When the user pays only the expenses that aren't on hold
-        result.current.onSubmit(false);
+        await act(async () => {
+            await result.current.onSubmit(false);
+        });
 
         // Then it's paid the usual way, without an ABA file
         expect(payMoneyRequest).toHaveBeenCalledWith(expect.objectContaining({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, full: false}));

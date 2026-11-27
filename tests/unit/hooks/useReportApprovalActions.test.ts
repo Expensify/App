@@ -93,7 +93,12 @@ describe('useLifecycleActions approval confirmation', () => {
     describe.each([false, true])('skipAnimation=%s', (skipAnimation) => {
         it.each([ModalActions.CLOSE, ModalActions.CONFIRM])('gates approval, animation, and selection cleanup on %s', async (action) => {
             // Given a selected report with a warning, using the real approval confirmation hook
-            mockShowConfirmModal.mockResolvedValue({action});
+            let answerModal: (result: {action: typeof action}) => void = () => {};
+            mockShowConfirmModal.mockReturnValue(
+                new Promise((resolve) => {
+                    answerModal = resolve;
+                }),
+            );
             const startApprovedAnimation = jest.fn();
             const startAnimation = jest.fn();
             const startSubmittingAnimation = jest.fn();
@@ -106,11 +111,17 @@ describe('useLifecycleActions approval confirmation', () => {
             // When approval is requested, all side effects must wait for the warning modal
             await act(async () => {
                 result.current.confirmApproval(skipAnimation);
-                expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
-                expect(mockedApproveMoneyRequest).not.toHaveBeenCalled();
-                expect(startApprovedAnimation).not.toHaveBeenCalled();
-                expect(mockClearSelectedTransactions).not.toHaveBeenCalled();
-                expect(onCleanup).not.toHaveBeenCalled();
+                await waitForBatchedUpdates();
+            });
+            expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+            expect(mockedApproveMoneyRequest).not.toHaveBeenCalled();
+            expect(startApprovedAnimation).not.toHaveBeenCalled();
+            expect(mockClearSelectedTransactions).not.toHaveBeenCalled();
+            expect(onCleanup).not.toHaveBeenCalled();
+            // When the user answers the warning
+            await act(async () => {
+                answerModal({action});
+                await waitForBatchedUpdates();
             });
 
             // Then cancellation preserves selection, while confirmation retains each caller's animation and cleanup behavior
@@ -140,7 +151,12 @@ describe('useHoldMenuSubmit approval confirmation', () => {
     describe.each([false, true])('full=%s', (full) => {
         it.each([ModalActions.CLOSE, ModalActions.CONFIRM])('gates approval and its completion callback on %s', async (action) => {
             // Given a hold menu with an unheld expense warning, so both partial and full approval require confirmation
-            mockShowConfirmModal.mockResolvedValue({action});
+            let answerModal: (result: {action: typeof action}) => void = () => {};
+            mockShowConfirmModal.mockReturnValue(
+                new Promise((resolve) => {
+                    answerModal = resolve;
+                }),
+            );
             const onConfirm = jest.fn();
             const onClose = jest.fn();
             const {result} = renderHook(() => useHoldMenuSubmit({moneyRequestReport: report, chatReport: undefined, requestType: CONST.IOU.REPORT_ACTION_TYPE.APPROVE, onClose, onConfirm}));
@@ -148,11 +164,16 @@ describe('useHoldMenuSubmit approval confirmation', () => {
 
             // When the user chooses the scope, the hold menu closes but approval must wait for the warning
             await act(async () => {
-                result.current.onSubmit(full);
-                expect(onClose).toHaveBeenCalledTimes(1);
-                expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
-                expect(mockedApproveMoneyRequest).not.toHaveBeenCalled();
-                expect(onConfirm).not.toHaveBeenCalled();
+                await result.current.onSubmit(full);
+            });
+            expect(onClose).toHaveBeenCalledTimes(1);
+            expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+            expect(mockedApproveMoneyRequest).not.toHaveBeenCalled();
+            expect(onConfirm).not.toHaveBeenCalled();
+            // When the user answers the warning
+            await act(async () => {
+                answerModal({action});
+                await waitForBatchedUpdates();
             });
 
             // Then only confirmation approves, and the animation callback runs only when approval completes

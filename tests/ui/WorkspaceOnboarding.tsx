@@ -1142,7 +1142,9 @@ describe('OnboardingWorkspaces Page', () => {
     });
 
     it('should create a Submit workspace when skip is pressed with EMPLOYER purpose', async () => {
-        jest.spyOn(Navigation, 'dismissModal').mockImplementation(({afterTransition} = {}) => afterTransition?.());
+        jest.spyOn(Navigation, 'dismissModal').mockImplementation(({afterTransition} = {}) => {
+            afterTransition?.();
+        });
         jest.spyOn(Navigation, 'setNavigationActionToMicrotaskQueue').mockImplementation((callback: () => void) => callback());
 
         await TestHelper.signInWithTestUser();
@@ -1201,7 +1203,9 @@ describe('OnboardingWorkspaces Page', () => {
     });
 
     it('should not set RHP_ADMINS_ROOM when joining a Submit workspace with the Join Workspace intent', async () => {
-        jest.spyOn(Navigation, 'dismissModal').mockImplementation(({afterTransition} = {}) => afterTransition?.());
+        jest.spyOn(Navigation, 'dismissModal').mockImplementation(({afterTransition} = {}) => {
+            afterTransition?.();
+        });
         jest.spyOn(Navigation, 'setNavigationActionToMicrotaskQueue').mockImplementation((callback: () => void) => callback());
 
         await TestHelper.signInWithTestUser();
@@ -1266,7 +1270,9 @@ describe('OnboardingWorkspaces Page', () => {
     });
 
     it('should complete onboarding without passing the joined workspace policyID and open Spend > Expenses with the side panel closed', async () => {
-        jest.spyOn(Navigation, 'dismissModal').mockImplementation(({afterTransition} = {}) => afterTransition?.());
+        jest.spyOn(Navigation, 'dismissModal').mockImplementation(({afterTransition} = {}) => {
+            afterTransition?.();
+        });
         jest.spyOn(Navigation, 'setNavigationActionToMicrotaskQueue').mockImplementation((callback: () => void) => callback());
 
         await TestHelper.signInWithTestUser();

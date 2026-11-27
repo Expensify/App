@@ -118,7 +118,7 @@ jest.mock('@components/Button', () => {
     return MockButton;
 });
 
-function getDismissModalAfterTransition(): (() => void) | undefined {
+function getDismissModalAfterTransition(): (() => void | Promise<void>) | undefined {
     const options = jest.mocked(Navigation.dismissModal).mock.calls.at(0)?.at(0);
     if (typeof options !== 'object' || options === null || !('afterTransition' in options)) {
         return undefined;

@@ -20,7 +20,7 @@ type FABFocusableMenuItemProps = Omit<MenuItemProps, 'focused' | 'onFocus' | 'wr
     WithRequiredSentryLabel & {
         itemId: string;
         isVisible?: boolean;
-        onPress?: () => void;
+        onPress?: () => void | Promise<void>;
         shouldCallAfterModalHide?: boolean;
     };
 
