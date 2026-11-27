@@ -6834,6 +6834,8 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 description: 'Kies waar je terugbetaalbare uitgaven wilt exporteren.',
                 accountRequiredError: 'Selecteer een Rillet-vergoedingsrekening.',
             },
+            autoCreateVendor: 'Leveranciers automatisch aanmaken',
+            autoCreateVendorDescription: 'Expensify maakt automatisch leveranciers aan in Rillet als ze nog niet bestaan.',
             achPaymentAccount: {label: 'ACH-betaalrekening', description: 'Kies vanwaar je rapporten wilt betalen en wij maken de betaling aan in Rillet.'},
         },
         dualEntry: {

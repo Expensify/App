@@ -6590,6 +6590,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             },
             fxExpenseAccount: {label: 'Rillet 货币转换手续费科目', description: '当您的公司承担一笔境外付款的货币兑换成本时，我们会在 Rillet 中将该成本作为一条日记账分录记入此科目。'},
             reimbursementAccount: {label: '报销账户', description: '选择可报销费用的导出位置。', accountRequiredError: '请选择一个 Rillet 报销账户。'},
+            autoCreateVendor: '自动创建供应商',
+            autoCreateVendorDescription: '如果供应商尚未在 Rillet 中存在，Expensify 将自动创建这些供应商。',
             achPaymentAccount: {label: 'ACH 付款账户', description: '请选择用于支付报表的来源，我们会在 Rillet 中创建付款。'},
         },
         dualEntry: {

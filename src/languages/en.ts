@@ -7076,6 +7076,8 @@ const translations = {
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Out-of-pocket expenses will export when paid',
                 },
             },
+            autoCreateVendor: 'Auto-create vendors',
+            autoCreateVendorDescription: "Expensify will automatically create vendors in Rillet if they don't exist already.",
             syncReimbursedReports: 'Sync reimbursed reports',
             syncReimbursedReportsDescription: 'When a report is paid via ACH, a payment will be generated in this account.',
             achPaymentAccount: {

@@ -6877,6 +6877,8 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 description: 'Wybierz miejsce eksportu wydatków podlegających zwrotowi.',
                 accountRequiredError: 'Wybierz proszę konto zwrotu Rillet.',
             },
+            autoCreateVendor: 'Automatycznie twórz dostawców',
+            autoCreateVendorDescription: 'Expensify automatycznie utworzy dostawców w Rillet, jeśli jeszcze nie istnieją.',
             achPaymentAccount: {label: 'Konto płatności ACH', description: 'Wybierz, z którego miejsca chcesz opłacać raporty, a my utworzymy płatność w Rillet.'},
         },
         dualEntry: {

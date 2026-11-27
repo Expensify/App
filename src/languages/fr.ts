@@ -6896,6 +6896,8 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 description: 'Choisissez où exporter les dépenses remboursables.',
                 accountRequiredError: 'Veuillez sélectionner un compte de remboursement Rillet.',
             },
+            autoCreateVendor: 'Créer automatiquement des fournisseurs',
+            autoCreateVendorDescription: "Expensify créera automatiquement des fournisseurs dans Rillet s'ils n'existent pas déjà.",
             achPaymentAccount: {label: 'Compte de paiement ACH', description: 'Choisissez l’origine de paiement des notes de frais et nous créerons le paiement dans Rillet.'},
         },
         dualEntry: {

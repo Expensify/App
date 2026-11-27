@@ -14,6 +14,7 @@ import useTravelBillingFundID from '@hooks/useTravelBillingFundID';
 
 import {
     clearRilletErrorField,
+    updateRilletAutoCreateVendor,
     updateRilletAutoSync,
     updateRilletSyncExpensifyCardSettlements,
     updateRilletSyncReimbursedReports,
@@ -49,6 +50,7 @@ function RilletAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const rilletData = policy?.connections?.rillet?.data;
     const autoSync = rilletConfig?.autoSync?.enabled ?? true;
     const accountingMethod = rilletConfig?.export?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL;
+    const autoCreateVendor = rilletConfig?.export?.autoCreateVendor ?? false;
     const syncReimbursedReports = rilletConfig?.sync?.syncReimbursedReports ?? true;
     const achPaymentAccount = rilletData?.accounts?.find((account) => account.code === rilletConfig?.sync?.billPaymentAccountCode);
     const canConfigureCurrencyConversionFees = useCanConfigureCurrencyConversionFees(policy);
@@ -120,6 +122,20 @@ function RilletAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     </MenuItem.Root>
                 </OfflineWithFeedback>
             </Accordion>
+            <View style={[styles.mv3, styles.mh5, styles.borderTop]} />
+            <ToggleSettingOptionRow
+                title={translate('workspace.rillet.autoCreateVendor')}
+                subtitle={translate('workspace.rillet.autoCreateVendorDescription')}
+                switchAccessibilityLabel={translate('workspace.rillet.autoCreateVendor')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.RILLET.AUTO_CREATE_VENDOR_SWITCH}
+                shouldPlaceSubtitleBelowSwitch
+                wrapperStyle={[styles.mv3, styles.mh5]}
+                isActive={autoCreateVendor}
+                onToggle={() => policyID && updateRilletAutoCreateVendor(policyID, !autoCreateVendor, autoCreateVendor)}
+                pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.AUTO_CREATE_VENDOR], rilletConfig?.pendingFields)}
+                errors={getLatestErrorField(rilletConfig ?? {}, CONST.RILLET_CONFIG.AUTO_CREATE_VENDOR)}
+                onCloseError={() => policyID && clearRilletErrorField(policyID, CONST.RILLET_CONFIG.AUTO_CREATE_VENDOR)}
+            />
             <View style={[styles.mv3, styles.mh5, styles.borderTop]} />
             <ToggleSettingOptionRow
                 title={translate('workspace.rillet.syncReimbursedReports')}

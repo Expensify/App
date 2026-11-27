@@ -4528,6 +4528,7 @@ const CONST = {
         CREDIT_CARD_ACCOUNTCODE: 'creditCardAccountCode',
         EXPORT_TO_MULTIPLE_ACCOUNTS: 'exportToMultipleAccounts',
         ACCOUNTING_METHOD: 'accountingMethod',
+        AUTO_CREATE_VENDOR: 'autoCreateVendor',
         AUTO_SYNC: 'autoSync',
         SYNC_REIMBURSED_REPORTS: 'syncReimbursedReports',
         BILL_PAYMENT_ACCOUNT_CODE: 'billPaymentAccountCode',

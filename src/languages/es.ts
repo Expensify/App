@@ -6834,6 +6834,8 @@ ${amount} para ${merchant} - ${date}`,
                 description: 'Elige dónde exportar los gastos reembolsables.',
                 accountRequiredError: 'Selecciona una cuenta de reembolso de Rillet.',
             },
+            autoCreateVendor: 'Crear proveedores automáticamente',
+            autoCreateVendorDescription: 'Expensify creará automáticamente proveedores en Rillet si aún no existen.',
             achPaymentAccount: {label: 'Cuenta de pago ACH', description: 'Elige desde dónde pagar los informes y crearemos el pago en Rillet.'},
         },
         dualEntry: {

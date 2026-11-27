@@ -6755,6 +6755,8 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 description: '海外で行われた支払いについて、会社が為替換算コストを負担する場合、そのコストは仕訳として Rillet のこの勘定科目に計上します。',
             },
             reimbursementAccount: {label: '精算用口座', description: '精算対象経費のエクスポート先を選択してください。', accountRequiredError: 'Rillet の精算用口座を選択してください。'},
+            autoCreateVendor: 'ベンダーを自動作成',
+            autoCreateVendorDescription: 'Expensify は、存在しない場合は Rillet にベンダーを自動的に作成します。',
             achPaymentAccount: {label: 'ACH 支払い口座', description: 'どこからレポートを支払うかを選択すると、Rillet 内に支払いを作成します。'},
         },
         dualEntry: {

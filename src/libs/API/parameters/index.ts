@@ -60,6 +60,7 @@ export type {default as UpdateRilletExportToMultipleAccountsParams} from './Upda
 export type {default as UpdateRilletCardProgramAccountParams} from './UpdateRilletCardProgramAccountParams';
 export type {default as UpdateRilletAutoSyncParams} from './UpdateRilletAutoSyncParams';
 export type {default as UpdateRilletAccountingMethodParams} from './UpdateRilletAccountingMethodParams';
+export type {default as UpdateRilletAutoCreateVendorParams} from './UpdateRilletAutoCreateVendorParams';
 export type {default as UpdateRilletSyncReimbursedReportsParams} from './UpdateRilletSyncReimbursedReportsParams';
 export type {default as UpdateRilletBillPaymentAccountParams} from './UpdateRilletBillPaymentAccountParams';
 export type {default as UpdateRilletFxExpenseAccountParams} from './UpdateRilletFxExpenseAccountParams';
