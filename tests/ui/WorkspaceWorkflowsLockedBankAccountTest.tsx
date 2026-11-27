@@ -189,8 +189,8 @@ describe('WorkspaceWorkflowsPageRevamp - bank account row', () => {
     });
 
     it('lets the reimburser request an unlock while offline, because the request is optimistic and queues until reconnect', async () => {
-        await setUpLockedBankAccount(CURRENT_USER_LOGIN);
         // Given a Concierge chat and tour progress that differ from the defaults, so a value that never reaches the chat call fails
+        await setUpLockedBankAccount(CURRENT_USER_LOGIN);
         await act(async () => {
             await Onyx.merge(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_REPORT_ID);
             await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {selfTourViewed: true, hasCompletedGuidedSetupFlow: false});
@@ -200,6 +200,7 @@ describe('WorkspaceWorkflowsPageRevamp - bank account row', () => {
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
+        // When the reimburser presses Unlock while offline
         fireEvent.press(screen.getByText(TestHelper.translateLocal('walletPage.bankAccountStatus.unlock')));
         await waitForBatchedUpdatesWithAct();
 
