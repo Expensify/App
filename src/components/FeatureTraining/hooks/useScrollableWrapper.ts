@@ -72,6 +72,7 @@ function useScrollableWrapper({shouldUseScrollView: shouldUseScrollViewProp = fa
             contentContainerStyle: wrapperStyles.containerStyle,
             keyboardShouldPersistTaps: shouldUseScrollView ? ('handled' as const) : undefined,
             addBottomSafeAreaPadding: shouldUseScrollView ? shouldAddBottomSafeAreaPadding : undefined,
+            addOfflineIndicatorBottomSafeAreaPadding: shouldUseScrollView ? false : undefined,
             ref: shouldUseScrollView ? scrollViewRef : undefined,
             onLayout,
             onContentSizeChange,

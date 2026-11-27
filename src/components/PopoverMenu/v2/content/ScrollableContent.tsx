@@ -58,6 +58,7 @@ function ScrollableContent({contentContainerStyle, children, ...rest}: Scrollabl
             <ScrollView
                 contentContainerStyle={[isSmallScreenWidth ? [styles.pt4, styles.pb4] : [styles.pt2, styles.pb2], contentContainerStyle]}
                 addBottomSafeAreaPadding={shouldAddBottomSafeAreaPadding}
+                addOfflineIndicatorBottomSafeAreaPadding={false}
             >
                 {children}
             </ScrollView>

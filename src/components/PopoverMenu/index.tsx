@@ -277,6 +277,7 @@ function PopoverMenuContent({
     const shouldAddBottomSafeAreaPadding = addBottomSafeAreaPadding && shouldAddBottomSafeAreaPaddingForLayout;
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding: shouldAddBottomSafeAreaPadding,
+        addOfflineIndicatorBottomSafeAreaPadding: false,
         style: contentContainerStyle,
     });
 
@@ -286,6 +287,7 @@ function PopoverMenuContent({
                 ref={scrollViewRef}
                 contentContainerStyle={contentContainerStyle}
                 addBottomSafeAreaPadding={shouldAddBottomSafeAreaPadding}
+                addOfflineIndicatorBottomSafeAreaPadding={false}
                 keyboardShouldPersistTaps={keyboardShouldPersistTaps}
                 onLayout={onLayout}
                 onScroll={onScroll}

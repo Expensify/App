@@ -58,7 +58,7 @@ function BaseReactionList({hasUserReacted = false, users, isVisible = false, add
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {hoveredComponentBG, reactionListContainer, reactionListContainerFixedWidth, pt2, pb2} = useThemeStyles();
     const {accountID} = useCurrentUserPersonalDetails();
-    const contentContainerStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding, style: [pt2, pb2]});
+    const contentContainerStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding, addOfflineIndicatorBottomSafeAreaPadding: false, style: [pt2, pb2]});
 
     if (!isVisible) {
         return null;
