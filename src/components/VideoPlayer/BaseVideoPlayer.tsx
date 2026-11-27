@@ -631,7 +631,7 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
                                             contentFit="contain"
                                             onFullscreenEnter={() => {
                                                 setIsFullScreen(true);
-                                                if (!(videoPlayerElementParentRef.current && 'addEventListener' in videoPlayerElementParentRef.current)) {
+                                                if (typeof HTMLDivElement === 'undefined' || !(videoPlayerElementParentRef.current instanceof HTMLDivElement)) {
                                                     return;
                                                 }
                                                 // When the video is in fullscreen, we don't want the scroll to be captured by the InvertedFlashList of report screen.
@@ -640,7 +640,7 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
                                             }}
                                             onFullscreenExit={() => {
                                                 setIsFullScreen(false);
-                                                if (videoPlayerElementParentRef.current && 'removeEventListener' in videoPlayerElementParentRef.current) {
+                                                if (typeof HTMLDivElement !== 'undefined' && videoPlayerElementParentRef.current instanceof HTMLDivElement) {
                                                     videoPlayerElementParentRef.current.removeEventListener('wheel', stopWheelPropagation);
                                                 }
                                                 updateVolume(videoPlayerRef.current.muted ? 0 : videoPlayerRef.current.volume || 1);

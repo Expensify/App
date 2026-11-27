@@ -238,6 +238,10 @@ export default {
     flatNavigationBarCreateButtonInset: 14,
     // Space between the Create button and the first row below it.
     flatNavigationBarCreateButtonGap: 16,
+    // Colored square behind each create menu icon, so every action reads as its own color.
+    flatNavigationBarCreateMenuIconTileSize: 32,
+    flatNavigationBarCreateMenuWidth: 300,
+    flatNavigationBarCreateMenuPaddingVertical: 12,
     flatNavigationBarLogoWidth,
     flatNavigationBarLogoHeight,
     popoverMargin: 18,

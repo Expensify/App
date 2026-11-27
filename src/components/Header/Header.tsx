@@ -1,6 +1,7 @@
 import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTopInsetHeaderStyle from '@hooks/useTopInsetHeaderStyle';
 
 import type {ReactNode} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -11,7 +12,7 @@ import HeaderContext from './context/HeaderContext';
 
 /** Bar-level configuration for the composed `<Header>` (content lives in the child blocks). */
 type HeaderProps = {
-    /** The composed content of the header: primitive blocks and the `Header.Right` zone. */
+    /** The composed content of the header: primitive blocks. */
     children: ReactNode;
 
     shouldSkipFocusAfterTransition?: boolean;
@@ -20,18 +21,21 @@ type HeaderProps = {
     style?: StyleProp<ViewStyle>;
 };
 
-/** Composed counterpart of `HeaderWithBackButton`. Content is composed from primitive blocks and the `Header.Right` zone (see the barrel for a full example). */
+/** Composed counterpart of `HeaderWithBackButton`. Content is composed from primitive blocks (see the barrel for a full example). */
 function Header({children, shouldSkipFocusAfterTransition = false, style}: HeaderProps) {
     const isInLandscapeMode = useIsInLandscapeMode();
     const {contentHeaderHeightStyle} = useContentHeaderHeight();
     const styles = useThemeStyles();
+    const headerStyle = [styles.headerBar, contentHeaderHeightStyle, style];
+    const topInsetHeaderStyle = useTopInsetHeaderStyle(headerStyle);
 
     return (
         <View
-            style={[styles.headerBar, contentHeaderHeightStyle, style]}
+            style={[headerStyle, topInsetHeaderStyle]}
             onTouchStart={isInLandscapeMode ? () => Keyboard.dismiss() : undefined}
         >
-            <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden, styles.mr3]}>
+            {/* No overflowHidden: it would clip children that render outside the bar, e.g. focus outlines and tooltips */}
+            <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.mr3]}>
                 <HeaderContext
                     value={{
                         shouldSkipFocusAfterTransition,
