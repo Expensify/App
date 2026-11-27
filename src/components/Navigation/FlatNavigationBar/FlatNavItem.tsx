@@ -59,7 +59,7 @@ type FlatNavItemProps = {
 
     sentryLabel: SentryLabel;
 
-    onPress: () => void;
+    onPress: () => void | Promise<void>;
 
     /** Route of the destination, so the row can be opened in a new browser tab */
     linkRoute?: Route;

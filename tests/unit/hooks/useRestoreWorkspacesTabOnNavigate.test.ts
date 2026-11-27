@@ -19,9 +19,11 @@ import type {NavigationState} from '@react-navigation/native';
 import type {PartialDeep} from 'type-fest';
 
 import {StackActions, TabActions} from '@react-navigation/native';
+import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../../utils/collections/policies';
 import createMock from '../../utils/createMock';
+import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState', () => ({
     getPreservedNavigatorState: jest.fn(() => undefined),
@@ -100,13 +102,8 @@ function setupOnyxForPolicy() {
     });
 }
 
-function setupOnyxForDomain() {
-    mockUseOnyx.mockImplementation((key) => {
-        if (key === ONYXKEYS.COLLECTION.DOMAIN) {
-            return [{[`${ONYXKEYS.COLLECTION.DOMAIN}${fakeDomainAccountID}`]: mockDomain}, {status: 'loaded'}];
-        }
-        return [undefined, {status: 'loaded'}];
-    });
+async function setupOnyxForDomain() {
+    await Onyx.set(`${ONYXKEYS.COLLECTION.DOMAIN}${fakeDomainAccountID}`, mockDomain);
 }
 
 type NavigationRouteInput = PartialDeep<NavigationState['routes'][number]>;
@@ -133,7 +130,13 @@ function buildStateWithUserOnDifferentTab(workspaceRoutes: NavigationRouteInput[
 }
 
 describe('useRestoreWorkspacesTabOnNavigate', () => {
-    beforeEach(() => {
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    beforeEach(async () => {
+        await Onyx.clear();
+        await waitForBatchedUpdates();
         jest.clearAllMocks();
         mockUseOnyx.mockReturnValue([undefined, {status: 'loaded'}]);
         mockResponsiveLayout.mockReturnValue({shouldUseNarrowLayout: false});
@@ -142,7 +145,7 @@ describe('useRestoreWorkspacesTabOnNavigate', () => {
         mockedGetRootState.mockReturnValue(createMock<NavigationState>({routes: []}));
     });
 
-    it('restores to the last visited workspace when re-entering the Workspaces tab', () => {
+    it('restores to the last visited workspace when re-entering the Workspaces tab', async () => {
         setupOnyxForPolicy();
         mockedGetRootState.mockReturnValue(
             buildStateWithUserOnDifferentTab([
@@ -154,7 +157,7 @@ describe('useRestoreWorkspacesTabOnNavigate', () => {
         );
 
         const {result} = renderHook(() => useRestoreWorkspacesTabOnNavigate());
-        result.current();
+        await result.current();
 
         expect(mockedDispatch).toHaveBeenCalledWith({
             ...TabActions.jumpTo(NAVIGATORS.WORKSPACE_NAVIGATOR),
@@ -163,7 +166,7 @@ describe('useRestoreWorkspacesTabOnNavigate', () => {
         expect(Navigation.navigate).not.toHaveBeenCalled();
     });
 
-    it('falls back to the workspaces list when no workspace was previously visited', () => {
+    it('falls back to the workspaces list when no workspace was previously visited', async () => {
         mockedGetRootState.mockReturnValue(
             createMock<NavigationState>({
                 routes: [
@@ -176,12 +179,12 @@ describe('useRestoreWorkspacesTabOnNavigate', () => {
         );
 
         const {result} = renderHook(() => useRestoreWorkspacesTabOnNavigate());
-        result.current();
+        await result.current();
 
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACES_LIST.route);
     });
 
-    it('falls back to the workspaces list when the last visited policy was deleted', () => {
+    it('falls back to the workspaces list when the last visited policy was deleted', async () => {
         mockedIsPendingDeletePolicy.mockReturnValue(true);
 
         setupOnyxForPolicy();
@@ -195,7 +198,7 @@ describe('useRestoreWorkspacesTabOnNavigate', () => {
         );
 
         const {result} = renderHook(() => useRestoreWorkspacesTabOnNavigate());
-        result.current();
+        await result.current();
 
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACES_LIST.route);
     });
@@ -203,7 +206,7 @@ describe('useRestoreWorkspacesTabOnNavigate', () => {
     // Regression: clicking the Workspaces tab from any other tab should restore the user's last
     // workspace sub-page via an in-place TabActions.jumpTo against the topmost TAB_NAVIGATOR,
     // not by pushing a fresh TAB_NAVIGATOR through Navigation.navigate.
-    it('jumps to the existing WORKSPACE_NAVIGATOR tab when restoring on a wide layout', () => {
+    it('jumps to the existing WORKSPACE_NAVIGATOR tab when restoring on a wide layout', async () => {
         setupOnyxForPolicy();
         mockedGetRootState.mockReturnValue(
             buildStateWithUserOnDifferentTab([
@@ -221,7 +224,7 @@ describe('useRestoreWorkspacesTabOnNavigate', () => {
         );
 
         const {result} = renderHook(() => useRestoreWorkspacesTabOnNavigate());
-        result.current();
+        await result.current();
 
         expect(mockedDispatch).toHaveBeenCalledWith({
             ...TabActions.jumpTo(NAVIGATORS.WORKSPACE_NAVIGATOR),
@@ -236,7 +239,7 @@ describe('useRestoreWorkspacesTabOnNavigate', () => {
     // regression to flat-walking all tabs. With an empty topmost workspace slot the hook still jumps
     // to the topmost tab (rather than pushing a new TAB_NAVIGATOR via Navigation.navigate); cold-start
     // hydration is then handled by WorkspaceRouter.getInitialState from sessionStorage.
-    it('jumps to the topmost TabNavigator even when its workspace slot is empty', () => {
+    it('jumps to the topmost TabNavigator even when its workspace slot is empty', async () => {
         setupOnyxForPolicy();
         mockedGetRootState.mockReturnValue(
             createMock<NavigationState>({
@@ -282,7 +285,7 @@ describe('useRestoreWorkspacesTabOnNavigate', () => {
         );
 
         const {result} = renderHook(() => useRestoreWorkspacesTabOnNavigate());
-        result.current();
+        await result.current();
 
         expect(mockedDispatch).toHaveBeenCalledWith({
             ...TabActions.jumpTo(NAVIGATORS.WORKSPACE_NAVIGATOR),
@@ -294,7 +297,7 @@ describe('useRestoreWorkspacesTabOnNavigate', () => {
     // On narrow layouts (mobile), the consumer pops the workspace split to its initial page
     // *before* jumping to the tab to prevent a sub-page from flashing in. We assert both dispatches
     // fire in order. TransitionTracker is mocked to invoke its callback synchronously.
-    it('pops the workspace split to its initial page, then jumps to the tab, on narrow layouts', () => {
+    it('pops the workspace split to its initial page, then jumps to the tab, on narrow layouts', async () => {
         mockResponsiveLayout.mockReturnValue({shouldUseNarrowLayout: true});
         setupOnyxForPolicy();
         const WORKSPACE_SPLIT_STATE_KEY = 'workspace-split-1';
@@ -315,7 +318,7 @@ describe('useRestoreWorkspacesTabOnNavigate', () => {
         );
 
         const {result} = renderHook(() => useRestoreWorkspacesTabOnNavigate());
-        result.current();
+        await result.current();
 
         expect(mockedDispatch).toHaveBeenNthCalledWith(1, {...StackActions.popToTop(), target: WORKSPACE_SPLIT_STATE_KEY});
         expect(mockedDispatch).toHaveBeenNthCalledWith(2, {...TabActions.jumpTo(NAVIGATORS.WORKSPACE_NAVIGATOR), target: TAB_NAV_STATE_KEY});
@@ -326,8 +329,8 @@ describe('useRestoreWorkspacesTabOnNavigate', () => {
     // Domain restore: when the last workspace-tab route is a DOMAIN_SPLIT_NAVIGATOR with an
     // accessible accountID, jump to the existing WORKSPACE_NAVIGATOR tab so the preserved
     // DOMAIN_SPLIT_NAVIGATOR state is shown without pushing a new TAB_NAVIGATOR.
-    it('jumps to the existing WORKSPACE_NAVIGATOR tab when restoring a domain', () => {
-        setupOnyxForDomain();
+    it('jumps to the existing WORKSPACE_NAVIGATOR tab when restoring a domain', async () => {
+        await setupOnyxForDomain();
         mockedGetRootState.mockReturnValue(
             buildStateWithUserOnDifferentTab([
                 {
@@ -338,7 +341,7 @@ describe('useRestoreWorkspacesTabOnNavigate', () => {
         );
 
         const {result} = renderHook(() => useRestoreWorkspacesTabOnNavigate());
-        result.current();
+        await result.current();
 
         expect(mockedDispatch).toHaveBeenCalledWith({
             ...TabActions.jumpTo(NAVIGATORS.WORKSPACE_NAVIGATOR),
@@ -349,14 +352,8 @@ describe('useRestoreWorkspacesTabOnNavigate', () => {
 
     // If the last route was a domain but it's no longer present in the Onyx domain collection
     // (e.g. user lost access), the lookup yields undefined and we fall back to the workspaces list.
-    it('falls back to the workspaces list when the last visited domain is missing from Onyx', () => {
-        // Onyx returns no matching domain for the params.domainAccountID
-        mockUseOnyx.mockImplementation((key) => {
-            if (key === ONYXKEYS.COLLECTION.DOMAIN) {
-                return [{}, {status: 'loaded'}];
-            }
-            return [undefined, {status: 'loaded'}];
-        });
+    it('falls back to the workspaces list when the last visited domain is missing from Onyx', async () => {
+        // Given Onyx holds no domain for the last visited domainAccountID
         mockedGetRootState.mockReturnValue(
             buildStateWithUserOnDifferentTab([
                 {
@@ -366,28 +363,24 @@ describe('useRestoreWorkspacesTabOnNavigate', () => {
             ]),
         );
 
+        // When the user navigates to the Workspaces tab
         const {result} = renderHook(() => useRestoreWorkspacesTabOnNavigate());
-        result.current();
+        await result.current();
 
+        // Then the list opens, because the domain is no longer accessible
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACES_LIST.route);
     });
 
-    it('passes the session from Onyx to the Workspaces navigation', () => {
+    it('passes the session from Onyx to the Workspaces navigation', async () => {
         // Given an anonymous session in Onyx, which decides whether the user is redirected to sign in
-        const session = {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS};
-        mockUseOnyx.mockImplementation((key) => {
-            if (key === ONYXKEYS.SESSION) {
-                return [session, {status: 'loaded'}];
-            }
-            return [undefined, {status: 'loaded'}];
-        });
+        await Onyx.set(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS, email: 'anonymous@example.com'});
         mockedGetRootState.mockReturnValue(buildStateWithUserOnDifferentTab([]));
 
         // When the user navigates to the Workspaces tab
         const {result} = renderHook(() => useRestoreWorkspacesTabOnNavigate());
-        result.current();
+        await result.current();
 
-        // Then the session is forwarded to interceptAnonymousUser
-        expect(interceptAnonymousUser).toHaveBeenCalledWith(expect.any(Function), session);
+        // Then only the token type of the session is forwarded to interceptAnonymousUser
+        expect(interceptAnonymousUser).toHaveBeenCalledWith(expect.any(Function), {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
     });
 });

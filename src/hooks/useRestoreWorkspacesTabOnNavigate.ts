@@ -11,6 +11,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
 import {authTokenTypeSelector} from '@selectors/Session';
+import Onyx from 'react-native-onyx';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
@@ -31,10 +32,8 @@ function useRestoreWorkspacesTabOnNavigate() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
 
-    return () => {
+    return async () => {
         // Find the last route the user had open in the Workspaces tab (workspace, domain, or list).
         // Priority: live nav state (root level) -> inside TabNavigator -> preserved state -> session storage.
         const rootState = navigationRef.isReady() ? navigationRef.getRootState() : undefined;
@@ -62,6 +61,8 @@ function useRestoreWorkspacesTabOnNavigate() {
         const paramsPolicyID = params && 'policyID' in params ? params.policyID : undefined;
         const paramsDomainAccountID = params && 'domainAccountID' in params ? params.domainAccountID : undefined;
 
+        const [allDomains, session] = await Onyx.multiGet([ONYXKEYS.COLLECTION.DOMAIN, ONYXKEYS.SESSION]);
+
         // Fetch the policy/domain to verify it's still accessible (not deleted/hidden) before restoring
         const lastViewedPolicy =
             lastWorkspacesTabNavigatorRoute?.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR && paramsPolicyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${paramsPolicyID}`] : undefined;
@@ -77,7 +78,7 @@ function useRestoreWorkspacesTabOnNavigate() {
             domain: lastViewedDomain,
             lastWorkspacesTabNavigatorRoute,
             lastTabNavigatorRoute,
-            session,
+            session: authTokenTypeSelector(session),
         });
     };
 }
