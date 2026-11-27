@@ -17,6 +17,7 @@ function createMockContext(overrides: Partial<FABMenuContextType> = {}): FABMenu
         registeredItems: [],
         registerItem: jest.fn(),
         unregisterItem: jest.fn(),
+        shouldShowIconTiles: false,
         ...overrides,
     };
 }

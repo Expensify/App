@@ -690,6 +690,38 @@ describe('actions/Transaction', () => {
                 expect(carouselTransactionIDs).toEqual(transactionIDs.slice(1));
             });
 
+            it('shows an error on the expense when the move fails', async () => {
+                // Given the server will reject the move, as it does for an expense it never received
+                const mockFetch = getGlobalFetchMock();
+                mockFetch.fail();
+                global.fetch = mockFetch;
+
+                // When one of the report's expenses is moved to another report
+                await moveFirstTransactionToDestination();
+
+                // Then the expense goes back to its report with an error, so the user sees that it didn't sync instead of the move just undoing itself
+                const movedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDs.at(0)}`);
+                expect(movedTransaction?.reportID).toBe(sourceReport.reportID);
+                expect(Object.values(movedTransaction?.errors ?? {})).toEqual(['Unexpected error editing this expense. Please try again later.']);
+            });
+
+            it('clears the move error when a later move of the expense works', async () => {
+                // Given a move the server rejected, which left an error on the expense
+                const mockFetch = getGlobalFetchMock();
+                mockFetch.fail();
+                global.fetch = mockFetch;
+                await moveFirstTransactionToDestination();
+
+                // When the user moves the expense again without dismissing the error, and this time the server accepts it
+                mockFetch.succeed();
+                await moveFirstTransactionToDestination();
+
+                // Then the expense is on the new report with no error, so it doesn't still look like it failed to sync
+                const movedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDs.at(0)}`);
+                expect(movedTransaction?.reportID).toBe(destinationReport.reportID);
+                expect(movedTransaction?.errors).toBeUndefined();
+            });
+
             it('leaves a carousel seeded from another source untouched', async () => {
                 // Given a carousel seeded from search results, which legitimately spans several reports
                 await setActiveTransactionIDs(transactionIDs, {source: CAROUSEL_SOURCE.search(12345)});
@@ -870,6 +902,63 @@ describe('actions/Transaction', () => {
             expect(updated).not.toHaveProperty('action');
             expect(updated).not.toHaveProperty('from');
             expect(updated).not.toHaveProperty('to');
+        });
+
+        it('does not keep the workspace amount from Search on a moved expense', async () => {
+            // Given an expense that Search returned with its amount converted to its workspace's currency
+            const policyID = generatePolicyID();
+            const mockPolicy: Policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), id: policyID, outputCurrency: CONST.CURRENCY.EUR, pendingAction: undefined};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, mockPolicy);
+
+            const transactionID = 'txn-converted-move';
+            const transaction: Transaction = {
+                transactionID,
+                reportID: 'source-report-converted-move',
+                amount: -10000,
+                currency: CONST.CURRENCY.EUR,
+                policyConvertedAmount: -12000,
+                reimbursable: true,
+                merchant: 'Merchant',
+                created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+
+            const expenseReport = {
+                reportID: 'dest-expense-report-converted-move',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID,
+                chatReportID: 'dest-chat-report-converted-move',
+                ownerAccountID: RORY_ACCOUNT_ID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            } as Report;
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await waitForBatchedUpdates();
+
+            // When it is moved to a report on another workspace
+            changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
+                transactionIDs: [transactionID],
+                isASAPSubmitBetaEnabled: false,
+                accountID: RORY_ACCOUNT_ID,
+                email: RORY_EMAIL,
+                currentUserPersonalDetails,
+                newReport: expenseReport,
+                policy: mockPolicy,
+                allTransactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction},
+                policyTagList: undefined,
+                transactionViolations: {},
+                reports: undefined,
+                isTrackIntentUser: false,
+                cardList: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then Search shows it without the old workspace amount, because that amount was converted to the old workspace's currency
+            const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${unapprovedCashHash}`);
+            const searchTransaction = snapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+            expect(searchTransaction?.reportID).toBe(expenseReport.reportID);
+            expect(searchTransaction?.policyConvertedAmount).toBeUndefined();
         });
 
         describe('unheldTotal', () => {
