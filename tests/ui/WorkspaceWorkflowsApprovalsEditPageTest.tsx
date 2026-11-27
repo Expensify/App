@@ -72,6 +72,7 @@ jest.mock('@react-navigation/native', () => {
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),
+    getActiveRoute: jest.fn(() => ''),
     getActiveRouteWithoutParams: jest.fn(() => ''),
     isNavigationReady: jest.fn(() => Promise.resolve()),
     dismissModal: jest.fn(),
@@ -219,6 +220,37 @@ describe('WorkspaceWorkflowsApprovalsEditPage', () => {
         expect(updateApprovalWorkflowRules).not.toHaveBeenCalled();
         expect(Navigation.goBack).not.toHaveBeenCalled();
         expect(screen.queryByText(translateLocal('common.delete'))).not.toBeOnTheScreen();
+    });
+
+    it.each([true, false])('uses the appropriate Members not-found subtitle for a permission failure (denied=%s)', async (isPermissionDenied) => {
+        // Given a valid member draft, with either restricted workflows or a mismatched route
+        const draft: ApprovalWorkflowOnyx = {
+            action: CONST.APPROVAL_WORKFLOW.ACTION.EDIT,
+            members: [{email: BOB_EMAIL, displayName: 'bob'}],
+            approvers: [{email: CAROL_EMAIL, displayName: 'carol'}],
+            originalApprovers: [{email: CAROL_EMAIL, displayName: 'carol'}],
+            availableMembers: [],
+            usedApproverEmails: [],
+            isDefault: false,
+            memberWorkflow: {policyID: POLICY_ID, member: {email: BOB_EMAIL, displayName: 'bob'}, isConfirmed: false},
+        };
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.APPROVAL_WORKFLOW, draft);
+            if (isPermissionDenied) {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
+                    dynamicExternalWorkflowHidePeople: true,
+                });
+            }
+        });
+
+        // When the member editor is opened
+        renderEditPage({...mockRoute, params: {...mockRoute.params, ...{memberToMove: isPermissionDenied ? BOB_EMAIL : CAROL_EMAIL}}});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then only a permission restriction uses the unauthorized subtitle
+        expect(screen.getByText(translateLocal(isPermissionDenied ? 'workspace.common.notAuthorized' : 'notFound.pageNotFound'))).toBeOnTheScreen();
+        expect(screen.queryByText(translateLocal(isPermissionDenied ? 'notFound.pageNotFound' : 'workspace.common.notAuthorized'))).not.toBeOnTheScreen();
     });
 
     it('preserves pending edits when resuming an EDIT-mode workflow on first mount', async () => {

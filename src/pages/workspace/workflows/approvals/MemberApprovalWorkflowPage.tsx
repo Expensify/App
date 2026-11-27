@@ -53,6 +53,9 @@ function MemberApprovalWorkflowPage({policy, route}: MemberApprovalWorkflowPageP
     const formRef = useRef<ComponentRef<typeof ScrollView>>(null);
     const context = approvalWorkflow?.memberWorkflow;
     const isCreate = context?.isConfirmed && !context.destination;
+    const isPermissionDenied =
+        !!policy &&
+        (!canMemberWrite(policy, login, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS) || isApprovalWorkflowLockedByIntegration(policy) || shouldHideDynamicExternalWorkflowPeople(policy));
     const shouldShowNotFoundView =
         !policy ||
         !context ||
@@ -60,9 +63,7 @@ function MemberApprovalWorkflowPage({policy, route}: MemberApprovalWorkflowPageP
         context.member.email !== route.params.memberToMove ||
         !policy.employeeList?.[context.member.email] ||
         isPendingDeletePolicy(policy) ||
-        !canMemberWrite(policy, login, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS) ||
-        isApprovalWorkflowLockedByIntegration(policy) ||
-        shouldHideDynamicExternalWorkflowPeople(policy);
+        isPermissionDenied;
 
     const saveWorkflow = async () => {
         if (shouldShowNotFoundView || !approvalWorkflow || !context?.isConfirmed || !validateApprovalWorkflow(approvalWorkflow)) {
@@ -117,6 +118,7 @@ function MemberApprovalWorkflowPage({policy, route}: MemberApprovalWorkflowPageP
             >
                 <FullPageNotFoundView
                     shouldShow={shouldShowNotFoundView}
+                    subtitleKey={isPermissionDenied ? 'workspace.common.notAuthorized' : undefined}
                     onBackButtonPress={goBackFromInvalidPolicy}
                     onLinkPress={goBackFromInvalidPolicy}
                 >
