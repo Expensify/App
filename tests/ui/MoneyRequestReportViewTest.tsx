@@ -247,4 +247,63 @@ describe('MoneyRequestReportView', () => {
         expect(mockReportActionsListBody).not.toHaveBeenCalled();
         expect(mockUserTypingEventListener).not.toHaveBeenCalled();
     });
+    it('shows the table view for a single expense whose thread report is missing offline', () => {
+        // Given an offline report with one expense whose thread report isn't in Onyx, as after clearing the cache
+        mockUseNetwork.mockReturnValue({isOffline: true});
+        jest.spyOn(MoneyRequestReportUtils, 'getAllNonDeletedTransactions').mockReturnValue([{transactionID: 't1', reportID: REPORT_ID} as OnyxTypes.Transaction]);
+
+        // When the report renders
+        renderMoneyRequestReportView(jest.fn());
+
+        // Then the table shows the expense from its own data, because the single-expense layout would be empty without the thread
+        expect(mockMoneyRequestReportActionsList).toHaveBeenCalled();
+        expect(mockReportActionsListBody).not.toHaveBeenCalled();
+    });
+
+    it('keeps the single-expense layout offline when the thread report is loaded', () => {
+        // Given an offline report with one expense whose thread report is in Onyx
+        mockUseNetwork.mockReturnValue({isOffline: true});
+        jest.spyOn(MoneyRequestReportUtils, 'getAllNonDeletedTransactions').mockReturnValue([{transactionID: 't1', reportID: REPORT_ID} as OnyxTypes.Transaction]);
+        mockUseOnyx.mockImplementation((key: string) => {
+            if (key === ONYXKEYS.IS_LOADING_APP) {
+                return [false, {status: 'loaded'}];
+            }
+            if (key === `${ONYXKEYS.COLLECTION.REPORT}thread-1`) {
+                return [{reportID: 'thread-1'}, {status: 'loaded'}];
+            }
+            return [undefined, {status: 'loaded'}];
+        });
+
+        // When the report renders
+        renderMoneyRequestReportView(jest.fn());
+
+        // Then it keeps the usual single-expense layout, since nothing is missing
+        expect(mockMoneyRequestReportActionsList).not.toHaveBeenCalled();
+        expect(mockReportActionsListBody).toHaveBeenCalled();
+    });
+    it('keeps the single-expense layout online while the thread report is missing', () => {
+        // Given an online report with one expense whose thread report hasn't arrived yet
+        jest.spyOn(MoneyRequestReportUtils, 'getAllNonDeletedTransactions').mockReturnValue([{transactionID: 't1', reportID: REPORT_ID} as OnyxTypes.Transaction]);
+
+        // When the report renders
+        renderMoneyRequestReportView(jest.fn());
+
+        // Then it keeps the single-expense layout, because OpenReport brings the thread and a table would only flash
+        expect(mockMoneyRequestReportActionsList).not.toHaveBeenCalled();
+        expect(mockReportActionsListBody).toHaveBeenCalled();
+    });
+
+    it('keeps the single-expense layout offline for an expense without a thread yet', () => {
+        // Given an offline report with one expense that has no thread at all, which the report page creates optimistically
+        mockUseNetwork.mockReturnValue({isOffline: true});
+        jest.spyOn(MoneyRequestReportUtils, 'getAllNonDeletedTransactions').mockReturnValue([{transactionID: 't1', reportID: REPORT_ID} as OnyxTypes.Transaction]);
+        jest.spyOn(ReportActionsUtils, 'getOneTransactionThreadReportID').mockReturnValue(CONST.FAKE_REPORT_ID);
+
+        // When the report renders
+        renderMoneyRequestReportView(jest.fn());
+
+        // Then it keeps the single-expense layout, since the optimistic thread is about to fill it
+        expect(mockMoneyRequestReportActionsList).not.toHaveBeenCalled();
+        expect(mockReportActionsListBody).toHaveBeenCalled();
+    });
 });

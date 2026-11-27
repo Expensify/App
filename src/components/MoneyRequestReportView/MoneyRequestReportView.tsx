@@ -164,10 +164,15 @@ function MoneyRequestReportView({report, reportIDFromRoute, reportLoadingState, 
 
     const shouldShowOpenReportLoadingSkeleton = !!(isReportLoadPending && reportActions.length === 0 && !isOffline) || shouldWaitForTransactions;
 
-    const isEmptyTransactionReport = visibleTransactions?.length === 0 && transactionThreadReportID === undefined;
-    const shouldDisplayMoneyRequestActionsList = !!isEmptyTransactionReport || shouldDisplayReportTableView(report, visibleTransactions ?? []);
-
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
+
+    // The single-expense layout reads the expense's thread report, which an offline report can lack after the cache is
+    // cleared. The table shows the expense from its own data instead of an empty report until the thread loads.
+    const isTransactionThreadMissingOffline =
+        isOffline && visibleTransactions.length === 1 && !!transactionThreadReportID && transactionThreadReportID !== CONST.FAKE_REPORT_ID && !transactionThreadReport;
+
+    const isEmptyTransactionReport = visibleTransactions?.length === 0 && transactionThreadReportID === undefined;
+    const shouldDisplayMoneyRequestActionsList = !!isEmptyTransactionReport || shouldDisplayReportTableView(report, visibleTransactions ?? []) || isTransactionThreadMissingOffline;
     const shouldShowWideRHPReceipt = visibleTransactions.length === 1 && !isSmallScreenWidth && !!transactionThreadReport;
 
     const reportHeaderView = isTransactionThreadView ? (
