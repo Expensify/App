@@ -12,6 +12,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type TransitionTracker from '@libs/Navigation/TransitionTracker';
 
 import CONST from '@src/CONST';
+import type {IOUAction} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import React from 'react';
@@ -36,7 +37,9 @@ jest.mock('@libs/Navigation/TransitionTracker', () => ({
     },
 }));
 
-jest.mock('@hooks/useUpdateTransactionCategory', () => () => ({updateCategory: jest.fn()}));
+// Records the expense each render hands the hook, which is what a pick writes from.
+const mockUseUpdateTransactionCategory = jest.fn<{updateCategory: jest.Mock}, [unknown]>(() => ({updateCategory: jest.fn()}));
+jest.mock('@hooks/useUpdateTransactionCategory', () => (params: unknown) => mockUseUpdateTransactionCategory(params));
 
 const mockCreateAndApplyCategory = jest.fn();
 jest.mock('@hooks/useCreateAndApplyCategory', () => () => mockCreateAndApplyCategory);
@@ -48,43 +51,62 @@ jest.mock('@hooks/usePolicyData', () => {
 
 const mockSentryLabel = CONST.SENTRY_LABEL.TEST.LABEL;
 
+const mockCurrentUserAccountID = 1;
+jest.mock('@hooks/useCurrentUserPersonalDetails', () => () => ({accountID: mockCurrentUserAccountID}));
+
+// Records whose categories the list is filtered by.
+const mockPickerAccountIDs = jest.fn();
+
 jest.mock('@components/CategoryPicker/CategoryPickerModal', () => {
     const {default: Pressable} = jest.requireActual<{default: typeof PressableWithoutFeedback}>('@components/Pressable/PressableWithoutFeedback');
     const {default: Text} = jest.requireActual<{default: typeof TextComponent}>('@components/Text');
-    return ({onAddCategory, onCreateCategory}: {onAddCategory?: () => void; onCreateCategory?: (categoryName: string) => void}) => (
-        <>
-            {!!onAddCategory && (
-                <Pressable
-                    accessibilityLabel="addCategory"
-                    onPress={onAddCategory}
-                    sentryLabel={mockSentryLabel}
-                >
-                    <Text>addCategory</Text>
-                </Pressable>
-            )}
-            {!!onCreateCategory && (
-                <Pressable
-                    accessibilityLabel="createCategory"
-                    onPress={() => onCreateCategory('Training')}
-                    sentryLabel={mockSentryLabel}
-                >
-                    <Text>createCategory</Text>
-                </Pressable>
-            )}
-        </>
-    );
+    return ({
+        onAddCategory,
+        onCreateCategory,
+        ownerAccountID,
+        submitterAccountID,
+    }: {
+        onAddCategory?: () => void;
+        onCreateCategory?: (categoryName: string) => void;
+        ownerAccountID?: number;
+        submitterAccountID?: number;
+    }) => {
+        mockPickerAccountIDs({ownerAccountID, submitterAccountID});
+        return (
+            <>
+                {!!onAddCategory && (
+                    <Pressable
+                        accessibilityLabel="addCategory"
+                        onPress={onAddCategory}
+                        sentryLabel={mockSentryLabel}
+                    >
+                        <Text>addCategory</Text>
+                    </Pressable>
+                )}
+                {!!onCreateCategory && (
+                    <Pressable
+                        accessibilityLabel="createCategory"
+                        onPress={() => onCreateCategory('Training')}
+                        sentryLabel={mockSentryLabel}
+                    >
+                        <Text>createCategory</Text>
+                    </Pressable>
+                )}
+            </>
+        );
+    };
 });
 
 const TRANSACTION_ID = '1';
 const REPORT_ID = 'reportID';
 const POLICY = createRandomPolicy(1);
 
-const renderDropdown = (onClose: () => void, canAddCategory = true) =>
+const renderDropdown = (onClose: () => void, canAddCategory = true, action: IOUAction = CONST.IOU.ACTION.CREATE) =>
     render(
         <ConfirmationFieldsProvider
             transactionID={TRANSACTION_ID}
             reportID={REPORT_ID}
-            action={CONST.IOU.ACTION.CREATE}
+            action={action}
             iouType={CONST.IOU.TYPE.SUBMIT}
         >
             <CategoryFieldDropdown
@@ -205,5 +227,40 @@ describe('CategoryFieldDropdown', () => {
         // Then pending workspace creation does not block inline category creation
         expect(mockCreateAndApplyCategory).toHaveBeenCalledWith('Training');
         expect(screen.getByLabelText('addCategory')).toBeTruthy();
+    });
+
+    it.each([
+        {action: CONST.IOU.ACTION.CREATE, form: 'create form', source: 'draft', expectedCategory: 'Meals'},
+        {action: CONST.IOU.ACTION.EDIT, form: 'expense view', source: 'saved expense', expectedCategory: 'Travel'},
+    ])('writes from the $source on the $form', async ({action, expectedCategory}) => {
+        // Given a saved expense in `Travel`, and a draft with its ID in `Meals`, as a Submit flow the user backed out of leaves it
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, {transactionID: TRANSACTION_ID, reportID: REPORT_ID, category: 'Travel'});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {transactionID: TRANSACTION_ID, reportID: REPORT_ID, category: 'Meals'});
+        await waitForBatchedUpdates();
+
+        // When the category dropdown opens
+        renderDropdown(jest.fn(), true, action);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then a pick is written from the expense this form edits: the draft while creating, the saved copy once saved
+        expect(mockUseUpdateTransactionCategory).toHaveBeenLastCalledWith(expect.objectContaining({transaction: expect.objectContaining({category: expectedCategory})}));
+    });
+
+    it.each([
+        {whose: 'their own', submitterAccountID: mockCurrentUserAccountID, expected: {ownerAccountID: mockCurrentUserAccountID, submitterAccountID: undefined}},
+        {whose: "a member's", submitterAccountID: 2, expected: {ownerAccountID: undefined, submitterAccountID: 2}},
+    ])('lists the categories of the submitter when the user edits $whose expense', async ({submitterAccountID, expected}) => {
+        // Given a saved expense on a report submitted by the user or by a member they can edit for, as an admin
+        const expenseReportID = 'expenseReport';
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, {reportID: expenseReportID, type: CONST.REPORT.TYPE.EXPENSE, ownerAccountID: submitterAccountID});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, {transactionID: TRANSACTION_ID, reportID: expenseReportID});
+        await waitForBatchedUpdates();
+
+        // When the category dropdown opens on the expense view
+        renderDropdown(jest.fn(), true, CONST.IOU.ACTION.EDIT);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the list is filtered for the user only on their own expense; on a member's it's the member's, as on the full-page picker
+        expect(mockPickerAccountIDs).toHaveBeenLastCalledWith(expected);
     });
 });

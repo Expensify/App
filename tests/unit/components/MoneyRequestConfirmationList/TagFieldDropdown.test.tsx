@@ -4,8 +4,10 @@ import ConfirmationFieldsProvider from '@components/MoneyRequestConfirmationFiel
 import TagFieldDropdown from '@components/MoneyRequestConfirmationList/sections/TagFieldDropdown';
 
 import {setMoneyRequestTag} from '@libs/actions/IOU/MoneyRequest';
+import {updateMoneyRequestTag} from '@libs/actions/IOU/UpdateMoneyRequest';
 
 import CONST from '@src/CONST';
+import type {IOUAction} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyTagLists} from '@src/types/onyx';
 
@@ -19,6 +21,10 @@ import waitForBatchedUpdates from '../../../utils/waitForBatchedUpdates';
 jest.mock('@libs/actions/IOU/MoneyRequest', () => ({
     ...jest.requireActual<Record<string, unknown>>('@libs/actions/IOU/MoneyRequest'),
     setMoneyRequestTag: jest.fn(),
+}));
+jest.mock('@libs/actions/IOU/UpdateMoneyRequest', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@libs/actions/IOU/UpdateMoneyRequest'),
+    updateMoneyRequestTag: jest.fn(),
 }));
 
 // The list itself is covered by the TagPickerModal tests; here only what the dropdown hands it, and what it does with a pick, matter.
@@ -44,6 +50,30 @@ const policyTags: PolicyTagLists = {
     },
 };
 
+const renderSecondListDropdown = (action: IOUAction) =>
+    render(
+        <ConfirmationFieldsProvider
+            transactionID={TRANSACTION_ID}
+            reportID={REPORT_ID}
+            action={action}
+            iouType={CONST.IOU.TYPE.SUBMIT}
+        >
+            <TagFieldDropdown
+                isVisible
+                onClose={jest.fn()}
+                anchorPosition={{horizontal: 0, vertical: 0}}
+                anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+                shouldMeasureAnchorPositionFromTop
+                shouldSwitchPositionIfOverflow={false}
+                popoverWidth={CONST.POPOVER_DROPDOWN_WIDTH}
+                popoverHeight={CONST.POPOVER_DROPDOWN_MAX_HEIGHT}
+                transactionID={TRANSACTION_ID}
+                policy={policy}
+                tagListIndex={1}
+            />
+        </ConfirmationFieldsProvider>,
+    );
+
 describe('TagFieldDropdown', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
@@ -52,6 +82,7 @@ describe('TagFieldDropdown', () => {
     beforeEach(async () => {
         mockTagPickerModalProps = undefined;
         jest.mocked(setMoneyRequestTag).mockClear();
+        jest.mocked(updateMoneyRequestTag).mockClear();
         await Onyx.clear();
         await waitForBatchedUpdates();
     });
@@ -63,28 +94,7 @@ describe('TagFieldDropdown', () => {
         await waitForBatchedUpdates();
 
         // When the second list's dropdown opens on the create form and the user picks `Beta`
-        render(
-            <ConfirmationFieldsProvider
-                transactionID={TRANSACTION_ID}
-                reportID={REPORT_ID}
-                action={CONST.IOU.ACTION.CREATE}
-                iouType={CONST.IOU.TYPE.SUBMIT}
-            >
-                <TagFieldDropdown
-                    isVisible
-                    onClose={jest.fn()}
-                    anchorPosition={{horizontal: 0, vertical: 0}}
-                    anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
-                    shouldMeasureAnchorPositionFromTop
-                    shouldSwitchPositionIfOverflow={false}
-                    popoverWidth={CONST.POPOVER_DROPDOWN_WIDTH}
-                    popoverHeight={CONST.POPOVER_DROPDOWN_MAX_HEIGHT}
-                    transactionID={TRANSACTION_ID}
-                    policy={policy}
-                    tagListIndex={1}
-                />
-            </ConfirmationFieldsProvider>,
-        );
+        renderSecondListDropdown(CONST.IOU.ACTION.CREATE);
         await waitForBatchedUpdates();
         expect(mockTagPickerModalProps?.tagListIndex).toBe(1);
         expect(mockTagPickerModalProps?.selectedTag).toBe('Alpha');
@@ -94,5 +104,25 @@ describe('TagFieldDropdown', () => {
         // writes over another list's tag
         expect(setMoneyRequestTag).toHaveBeenCalledTimes(1);
         expect(setMoneyRequestTag).toHaveBeenCalledWith(TRANSACTION_ID, 'Engineering:Beta');
+    });
+
+    it("marks and writes the saved expense's tags, not those of a draft left over with its ID", async () => {
+        // Given a saved expense tagged `Engineering` and `Alpha`, and an untagged draft with its ID left over from a
+        // Submit flow the user backed out of
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy.id}`, policyTags);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, {transactionID: TRANSACTION_ID, reportID: REPORT_ID, tag: 'Engineering:Alpha'});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {transactionID: TRANSACTION_ID, reportID: REPORT_ID, tag: ''});
+        await waitForBatchedUpdates();
+
+        // When the second list's dropdown opens on the expense view and the user picks `Beta`
+        renderSecondListDropdown(CONST.IOU.ACTION.EDIT);
+        await waitForBatchedUpdates();
+        expect(mockTagPickerModalProps?.selectedTag).toBe('Alpha');
+        act(() => mockTagPickerModalProps?.onSelected?.('Beta'));
+
+        // Then the saved expense keeps `Engineering` in the first slot, which the leftover draft's empty tags would drop
+        expect(updateMoneyRequestTag).toHaveBeenCalledTimes(1);
+        expect(updateMoneyRequestTag).toHaveBeenCalledWith(expect.objectContaining({transactionID: TRANSACTION_ID, tag: 'Engineering:Beta'}));
+        expect(setMoneyRequestTag).not.toHaveBeenCalled();
     });
 });

@@ -3,26 +3,20 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import TextInput from '@components/TextInput';
 
-import useAllTransactionViolations from '@hooks/useAllTransactionViolations';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
+import useMoneyRequestUpdateParams from '@hooks/useMoneyRequestUpdateParams';
 import useNavigateBackOnSave from '@hooks/useNavigateBackOnSave';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
-import {usePersonalDetail} from '@hooks/usePersonalDetails';
-import usePolicy from '@hooks/usePolicy';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useUpdateTransactionMerchant from '@hooks/useUpdateTransactionMerchant';
 
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
-import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isMerchantRequired} from '@libs/MoneyRequestUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
 import {hasReceipt} from '@libs/TransactionUtils';
@@ -30,7 +24,6 @@ import {getMerchantError, getMerchantErrorMessage, isInvalidMerchantValue} from 
 
 import {clearMoneyRequestMerchant, setMoneyRequestMerchant} from '@userActions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
-import {updateMoneyRequestMerchant} from '@userActions/IOU/UpdateMoneyRequest';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -39,11 +32,8 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestMerchantForm';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import {loginSelector} from '@selectors/PersonalDetails';
 import React, {useState} from 'react';
 import {View} from 'react-native';
-import Onyx from 'react-native-onyx';
 
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -63,11 +53,9 @@ function DynamicIOURequestStepMerchant({
     report,
 }: DynamicIOURequestStepMerchantProps) {
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_MERCHANT.path);
-    const policy = usePolicy(report?.policyID);
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
-    const allTransactionViolations = useAllTransactionViolations(transactionID);
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
-    const [iouReportOwnerLogin] = usePersonalDetail(parentReport?.ownerAccountID, loginSelector);
+    const updateParams = useMoneyRequestUpdateParams(transactionID, report);
+    const {updateMerchant: updateSavedExpenseMerchant} = useUpdateTransactionMerchant({transaction, updateParams});
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
@@ -84,14 +72,6 @@ function DynamicIOURequestStepMerchant({
     const [currentMerchant, setCurrentMerchant] = useState(initialMerchant);
     const [isSaved, setIsSaved] = useState(false);
     const [isDiscardModalVisible, setIsDiscardModalVisible] = useState(false);
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const delegateAccountID = useDelegateAccountID();
-    const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
-    const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
-    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
-    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
-    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const {isOffline} = useNetwork();
 
     const isMerchantFieldRequired = isMerchantRequired(report, transaction);
 
@@ -112,7 +92,7 @@ function DynamicIOURequestStepMerchant({
         setCurrentMerchant(value);
     };
 
-    const updateMerchant = async (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM>) => {
+    const updateMerchant = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM>) => {
         const newMerchant = value.moneyRequestMerchant?.trim();
 
         if (isEditingSplitBill) {
@@ -137,37 +117,7 @@ function DynamicIOURequestStepMerchant({
         // also calling setMoneyRequestMerchant would trigger a redundant Onyx commit and
         // re-render every subscriber of that key for nothing.
         if (isEditing) {
-            const [rules, policyCategories, policyTags, reportPolicyTags, introSelected] = await Onyx.multiGet([
-                ONYXKEYS.COLLECTION.RULE,
-                `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`,
-                `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`,
-                `${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`,
-                ONYXKEYS.NVP_INTRO_SELECTED,
-            ]);
-            updateMoneyRequestMerchant({
-                translate,
-                isVendorMatchingBetaEnabled,
-                transactionID,
-                transaction,
-                transactionThreadReport: report,
-                parentReport,
-                iouReportOwnerLogin,
-                value: newMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
-                policy,
-                policyTagList: policyTags,
-                policyCategories,
-                currentUserAccountIDParam,
-                currentUserEmailParam,
-                isASAPSubmitBetaEnabled,
-                isOffline,
-                delegateAccountID,
-                reportPolicyTags,
-                isTrackIntentUser: isTrackIntentUserSelector(introSelected),
-                violations: allTransactionViolations,
-                getCurrencyDecimals,
-                getCurrencySymbol,
-                rules,
-            });
+            updateSavedExpenseMerchant(newMerchant);
         } else if (!newMerchant) {
             clearMoneyRequestMerchant(transactionID);
         } else {

@@ -120,7 +120,7 @@ function DescriptionField({isDescriptionRequired, policy, descriptionHint = ''}:
         <ExpenseFieldContainer>
             <DropdownFieldRow
                 name={translate('common.description')}
-                valueComponent={descriptionHTML ? <MenuItem.FieldValueHTML isMuted>{descriptionHTML}</MenuItem.FieldValueHTML> : undefined}
+                valueComponent={descriptionHTML ? <MenuItem.FieldValueHTML>{descriptionHTML}</MenuItem.FieldValueHTML> : undefined}
                 hasValueComponent={!!descriptionHTML}
                 accessibilityLabel={descriptionHTML ? `${translate('common.description')}, ${Parser.htmlToText(descriptionHTML, {accountIDToName})}` : undefined}
                 rightLabel={isDescriptionRequired ? translate('common.required') : ''}

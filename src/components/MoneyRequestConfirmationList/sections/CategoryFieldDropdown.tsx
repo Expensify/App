@@ -8,11 +8,14 @@ import useCreateAndApplyCategory from '@hooks/useCreateAndApplyCategory';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import usePolicyData from '@hooks/usePolicyData';
+import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useUpdateTransactionCategory from '@hooks/useUpdateTransactionCategory';
 
+import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
+import {isCurrentUserSubmitter} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -44,21 +47,24 @@ type CategoryFieldDropdownProps = DropdownFieldRenderProps & {
  */
 function CategoryFieldDropdown({transactionID, policy, selectedCategory, canAddCategory, onClose, ...popoverProps}: CategoryFieldDropdownProps) {
     const {reportID, isEditingSplitBill, action, iouType} = useConfirmationFields();
-    // The confirmation form only ever holds the current user's own expense.
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+    const transactionReport = useReportOrReportDraft(transaction?.reportID);
     const policyCategories = usePolicyCategoriesForConfirmation(policy?.id);
+    const isEditing = action === CONST.IOU.ACTION.EDIT;
+    // Like the full-page picker: an admin editing someone else's expense sees the submitter's categories, not their own.
+    const isOwnExpense = !isEditing || !transactionReport || isCurrentUserSubmitter(transactionReport, currentUserAccountID);
 
     const {updateCategory} = useUpdateTransactionCategory({
         transactionID,
-        transaction: draftTransaction ?? transaction,
+        transaction: shouldUseTransactionDraft(action, iouType) ? (draftTransaction ?? transaction) : transaction,
         report,
         policy,
         policyCategories,
-        isEditing: action === CONST.IOU.ACTION.EDIT,
+        isEditing,
         isEditingSplit: isEditingSplitBill,
     });
     // Only the create row's re-enable path reads this, so skip the report scan when the row can't show.
@@ -92,7 +98,8 @@ function CategoryFieldDropdown({transactionID, policy, selectedCategory, canAddC
             onAddCategory={canAddCategory ? openAddCategory : undefined}
             addCategorySentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.ADD_CATEGORY_BUTTON}
             onCreateCategory={canCreateSearchedCategory ? createAndApplyCategory : undefined}
-            ownerAccountID={currentUserAccountID}
+            ownerAccountID={isOwnExpense ? currentUserAccountID : undefined}
+            submitterAccountID={isOwnExpense ? undefined : transactionReport?.ownerAccountID}
         />
     );
 }

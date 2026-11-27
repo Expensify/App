@@ -1363,6 +1363,7 @@ const SENTRY_LABEL = {
         TAX_AMOUNT_FIELD: 'MoneyRequestView-TaxAmountField',
         ATTENDEES_FIELD: 'MoneyRequestView-AttendeesField',
         REPORT_FIELD: 'MoneyRequestView-ReportField',
+        CARD_FIELD: 'MoneyRequestView-CardField',
         TRIP_FIELD: 'MoneyRequestView-TripField',
         VIEW_TRIP_DETAILS_BUTTON: 'MoneyRequestView-ViewTripDetailsButton',
     },

@@ -4,33 +4,26 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useDelegateAccountID from '@hooks/useDelegateAccountID';
-import useDistanceRateOriginalPolicy from '@hooks/useDistanceRateOriginalPolicy';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
+import useMoneyRequestUpdateParams from '@hooks/useMoneyRequestUpdateParams';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
-import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useUpdateTransactionDate from '@hooks/useUpdateTransactionDate';
 
-import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getDistanceRateCustomUnitRate} from '@libs/PolicyUtils';
 import {isPolicyExpenseChat as isPolicyExpenseChatReportUtil} from '@libs/ReportUtils';
-import {getCreated, getFormattedCreated, hasReceipt, isDistanceRequest} from '@libs/TransactionUtils';
+import {getCreated, getFormattedCreated, hasReceipt} from '@libs/TransactionUtils';
 
 import {setMoneyRequestCreated, updateDistanceRateOnExpenseDateChange} from '@userActions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
-import {updateMoneyRequestDate} from '@userActions/IOU/UpdateMoneyRequest';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -41,8 +34,6 @@ import type {Report, Transaction} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import {loginSelector} from '@selectors/PersonalDetails';
 import lodashIsEmpty from 'lodash/isEmpty';
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -77,21 +68,10 @@ function DynamicIOURequestStepDate({
     const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
     const policyForTrackExpense = usePolicy(isTrackExpense ? policyForMovingExpensesID : undefined);
-    const effectivePolicy = isTrackExpense ? policyForTrackExpense : policy;
-    const customUnitRateID = isDistanceRequest(transaction) ? transaction?.comment?.customUnit?.customUnitRateID : undefined;
-    const shouldLookupDistancePolicy = !!customUnitRateID && !getDistanceRateCustomUnitRate(effectivePolicy, customUnitRateID);
-    const distanceOriginalPolicy = useDistanceRateOriginalPolicy(customUnitRateID, shouldLookupDistancePolicy);
-    const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactionID ? [transactionID] : []);
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
-    const [iouReportOwnerLogin] = usePersonalDetail(parentReport?.ownerAccountID, loginSelector);
-
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const delegateAccountID = useDelegateAccountID();
-    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
-    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
-    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const {isOffline} = useNetwork();
+    const updateParams = useMoneyRequestUpdateParams(transactionID, report);
+    const duplicates = useDuplicateTransactionsAndViolations(transactionID ? [transactionID] : []);
+    const {updateDate: updateSavedExpenseDate} = useUpdateTransactionDate({transaction, updateParams, duplicates, isTrackExpense});
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const isSplitExpense = iouType === CONST.IOU.TYPE.SPLIT_EXPENSE;
@@ -128,46 +108,13 @@ function DynamicIOURequestStepDate({
             return;
         }
 
-        const [rules, lastSelectedDistanceRates, policyCategories, policyTags, reportPolicyTags, introSelected] = await Onyx.multiGet([
-            ONYXKEYS.COLLECTION.RULE,
-            ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES,
-            `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`,
-            `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`,
-            `${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`,
-            ONYXKEYS.NVP_INTRO_SELECTED,
-        ]);
         const isTransactionDraft = shouldUseTransactionDraft(action);
 
         if (isEditing) {
-            updateMoneyRequestDate({
-                translate,
-                isVendorMatchingBetaEnabled,
-                transactionID,
-                transaction,
-                transactionThreadReport: report,
-                parentReport,
-                iouReportOwnerLogin,
-                transactions: duplicateTransactions,
-                transactionViolations: duplicateTransactionViolations,
-                value: newCreated,
-                policy: effectivePolicy,
-                policyForTrackExpense,
-                policyTags,
-                policyCategories,
-                reportPolicyTags,
-                currentUserAccountIDParam: currentUserPersonalDetails.accountID,
-                currentUserEmailParam: currentUserPersonalDetails.login ?? '',
-                isASAPSubmitBetaEnabled,
-                isOffline,
-                delegateAccountID,
-                distanceOriginalPolicy,
-                isTrackIntentUser: isTrackIntentUserSelector(introSelected),
-                personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
-                getCurrencyDecimals,
-                getCurrencySymbol,
-                rules,
-            });
+            await updateSavedExpenseDate(newCreated);
         } else {
+            // Only this write reads these, so they are read here rather than subscribed to for the whole page
+            const [rules, lastSelectedDistanceRates] = await Onyx.multiGet([ONYXKEYS.COLLECTION.RULE, ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES]);
             setMoneyRequestCreated(transactionID, newCreated, isTransactionDraft, hasReceipt(transaction));
 
             updateDistanceRateOnExpenseDateChange({
