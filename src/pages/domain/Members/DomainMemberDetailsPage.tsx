@@ -1,4 +1,5 @@
 import Button from '@components/Button';
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
@@ -7,10 +8,12 @@ import VacationDelegateMenuItem from '@components/VacationDelegateMenuItem';
 
 import useCloseDomainAccountModal from '@hooks/useCloseDomainAccountModal';
 import useConfirmModal from '@hooks/useConfirmModal';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
+import useSignOutAllDevicesConfirmation from '@hooks/useSignOutAllDevicesConfirmation';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {
@@ -18,6 +21,7 @@ import {
     clearTwoFactorAuthExemptEmailsErrors,
     clearValidateDomainTwoFactorCodeError,
     closeUserAccount,
+    revokeDomainMemberSessions,
     setTwoFactorAuthExemptEmailForDomain,
 } from '@libs/actions/Domain';
 import {clearDraftValues} from '@libs/actions/FormActions';
@@ -43,7 +47,7 @@ import type {Domain} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {requiresTwoFactorAuthSelector} from '@selectors/Account';
-import {accountLockSelector, domainMemberSettingsSelector, domainNameSelector, selectSecurityGroupForAccount, vacationDelegateSelector} from '@selectors/Domain';
+import {accountLockSelector, domainMemberSettingsSelector, domainNameSelector, isDomainValidatedSelector, selectSecurityGroupForAccount, vacationDelegateSelector} from '@selectors/Domain';
 import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 import {View} from 'react-native';
@@ -55,9 +59,13 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
     const {domainAccountID, accountID} = route.params;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers', 'Flag', 'Unlock', 'CircularArrowBackwards']);
+    const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers', 'Flag', 'Unlock', 'CircularArrowBackwards', 'Exit']);
     const {showConfirmModal} = useConfirmModal();
     const {showCloseAccountModal: showCloseDomainAccountModal} = useCloseDomainAccountModal();
+    const confirmSignOutAllDevices = useSignOutAllDevicesConfirmation();
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const {isActingAsDelegate} = useDelegateNoAccessState();
+    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
 
     const securityGroupSelector = (domain: OnyxEntry<Domain>) => selectSecurityGroupForAccount(accountID)(domain);
     const [userSecurityGroup] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
@@ -67,6 +75,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
     const [personalDetails] = usePersonalDetail(accountID);
 
     const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: domainNameSelector});
+    const [isDomainValidated] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: isDomainValidatedSelector});
 
     const [vacationDelegate] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         selector: vacationDelegateSelector(accountID),
@@ -108,6 +117,21 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
             <Button.Text>{translate('domain.members.closeAccount', {count: 1})}</Button.Text>
         </Button>
     );
+
+    // An admin who picks their own account signs themselves out too, so they see the self-service copy.
+    const isCurrentUser = accountID === currentUserAccountID;
+    const signOutMemberOnAllDevices = () => {
+        // The server only accepts this from the admin's own session, so a copilot would get an error they can't resolve by retrying.
+        if (isActingAsDelegate) {
+            showDelegateNoAccessModal();
+            return;
+        }
+        confirmSignOutAllDevices({
+            prompt: translate(isCurrentUser ? 'deviceManagementPage.signOutAllDevicesConfirmation' : 'domain.members.signOutAllDevicesConfirmation'),
+            errorMessage: translate(isCurrentUser ? 'deviceManagementPage.signOutAllDevicesError' : 'domain.members.signOutAllDevicesError'),
+            signOut: () => revokeDomainMemberSessions(domainAccountID, accountID, translate),
+        });
+    };
 
     const showUnlockAccountModal = () => {
         requestUnlockAccount(accountID);
@@ -175,6 +199,15 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
                 />
             )}
             <View style={styles.mt6} />
+            {/* Auth only signs out members of a verified domain, so the action would always fail on an unverified one. */}
+            {!!isDomainValidated && (
+                <MenuItemAction
+                    sentryLabel={CONST.SENTRY_LABEL.DOMAIN.MEMBERS.SIGN_OUT_ALL_DEVICES}
+                    title={translate('deviceManagementPage.signOutAllDevices')}
+                    icon={icons.Exit}
+                    onPress={signOutMemberOnAllDevices}
+                />
+            )}
             {!!accountRequiresTwoFactorAuth && (
                 <MenuItemAction
                     sentryLabel={CONST.SENTRY_LABEL.DOMAIN.MEMBERS.RESET_TWO_FACTOR_AUTH}

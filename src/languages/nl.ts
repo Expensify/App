@@ -13256,6 +13256,9 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
                 `Je kunt geen vakantiemandataris instellen voor ${email} omdat die persoon momenteel gedelegeerde is voor de volgende leden:`,
             reportSuspiciousActivityPrompt: (email: string) =>
                 `Weet je het zeker? Hiermee wordt het account van <strong>${email}</strong> vergrendeld. <br /><br /> Ons team zal het account vervolgens beoordelen en ongeautoriseerde toegang verwijderen. Om weer toegang te krijgen, moeten ze samenwerken met Concierge.`,
+            signOutAllDevicesConfirmation: 'Dit lid wordt uitgelogd op alle apparaten. Het lid moet opnieuw inloggen om Expensify te gebruiken.',
+            signOutAllDevicesError: 'We konden dit lid niet uitloggen. Probeer het opnieuw.',
+            signOutAllDevicesSuccess: 'Dit lid is uitgelogd op alle apparaten.',
             reportSuspiciousActivityConfirmationPrompt:
                 'We beoordelen de account om te verifiëren dat het veilig is om deze te ontgrendelen en nemen via Concierge contact op als we vragen hebben.',
             emptyMembers: {title: 'Geen leden in deze groep', subtitle: 'Voeg een lid toe of probeer het filter hierboven te wijzigen.'},

@@ -13378,6 +13378,9 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
                 `Vous ne pouvez pas définir un délégué de vacances pour ${email}, car cette personne est actuellement le délégué des membres suivants :`,
             reportSuspiciousActivityPrompt: (email: string) =>
                 `Voulez-vous continuer ? Cela va verrouiller le compte de <strong>${email}</strong>. <br /><br /> Notre équipe examinera ensuite le compte et supprimera tout accès non autorisé. Pour retrouver l’accès, il faudra collaborer avec Concierge.`,
+            signOutAllDevicesConfirmation: 'Ce membre sera déconnecté de tous les appareils. Il devra se reconnecter pour utiliser Expensify.',
+            signOutAllDevicesError: 'Nous n’avons pas pu déconnecter ce membre. Veuillez réessayer.',
+            signOutAllDevicesSuccess: 'Ce membre a été déconnecté de tous les appareils.',
             reportSuspiciousActivityConfirmationPrompt:
                 'Nous examinerons le compte pour vérifier qu’il est sûr de le déverrouiller et nous vous contacterons via Concierge si nous avons des questions.',
             emptyMembers: {title: 'Aucun membre dans ce groupe', subtitle: 'Ajoutez un membre ou essayez de modifier le filtre ci-dessus.'},

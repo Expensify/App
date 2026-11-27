@@ -10792,6 +10792,10 @@ const CONST = {
         /** Onyx prefix for lock account IDs */
         PRIVATE_LOCKED_ACCOUNT_PREFIX: 'private_lockAccountDetails_',
 
+        REVOKE_MEMBER_SESSIONS_STATUS: {
+            COMPLETED: 'completed',
+        },
+
         MEMBERS: {
             SECONDARY_ACTIONS: {
                 SETTINGS: 'settings',

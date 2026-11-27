@@ -13825,6 +13825,9 @@ const translations = {
 
             reportSuspiciousActivityPrompt: (email: string) =>
                 `Are you sure? This will lock <strong>${email}'s</strong> account. <br /><br /> Our team will then review the account and remove any unauthorized access. To regain access, they'll need to work with Concierge.`,
+            signOutAllDevicesConfirmation: 'This will sign out this member on every device. They’ll need to sign in again to use Expensify.',
+            signOutAllDevicesError: 'We couldn’t sign out this member. Please try again.',
+            signOutAllDevicesSuccess: 'This member has been signed out on all devices.',
             reportSuspiciousActivityConfirmationPrompt: 'We’ll review the account to verify it’s safe to unlock and reach out via Concierge with any questions.',
             membersFeatureList: {
                 subtitle: ({domainName}: {domainName: string}) => `<muted-text>Verify your domain for more control over <strong>${domainName}</strong> members in Expensify.</muted-text>`,
