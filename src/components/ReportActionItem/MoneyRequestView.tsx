@@ -1308,7 +1308,8 @@ function MoneyRequestView({
     // the RHP) must keep their inline receipt, so the check is scoped to this view's own route key.
     const isInWideRHP = wideRHPRouteKeys.includes(route.key);
     const configuredReportDetailsColumns = getConfiguredReportDetailsColumns(reportDetailsColumns, hasVendorFeature(policy, isVendorMatchingBetaEnabled ?? false));
-    const shouldApplyReportDetailsColumns = !!parentReport && (isExpenseReport(parentReport) || (isExpenseUnreported && !!policy?.id));
+    // Merge and duplicate confirmations must keep the values the user selected visible until they are saved.
+    const shouldApplyReportDetailsColumns = !!parentReport && (isExpenseReport(parentReport) || (isExpenseUnreported && !!policy?.id)) && !isFromMergeTransaction && !isFromReviewDuplicates;
     const shouldShowReportDetailsColumn = (column: SearchCustomColumnIds) => {
         if (!shouldApplyReportDetailsColumns || !configuredReportDetailsColumns.length) {
             return true;

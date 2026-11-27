@@ -207,7 +207,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
 
     // Custom hooks
     const defaultExpensePolicy = useDefaultExpensePolicy();
-    const {shouldNavigateToUpgradePath} = usePolicyForMovingExpenses(isPerDiemRequest(transaction));
+    const {policyForMovingExpenses, shouldNavigateToUpgradePath} = usePolicyForMovingExpenses(isPerDiemRequest(transaction));
     const {deleteTransactions, shouldOpenSplitExpenseEditFlowOnDelete} = useDeleteTransactions({report: parentReport, reportActions: parentReportAction ? [parentReportAction] : [], policy});
     const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(parentReportAction);
     const [iouPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
@@ -398,6 +398,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             reportAction: parentReportAction,
             originalTransaction,
             policy,
+            reportDetailsPolicy: policyForMovingExpenses,
             transactionThreadReport: report,
             outstandingReportsByPolicyID,
             reportNameValuePairs,

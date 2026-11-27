@@ -153,7 +153,12 @@ function ThemeStylesObserver() {
     return null;
 }
 
-const renderMoneyRequestView = (threadReport: ReturnType<typeof LHNTestUtils.getFakeReport>, policy?: PartialDeep<Policy>, readonly = false) =>
+const renderMoneyRequestView = (
+    threadReport: ReturnType<typeof LHNTestUtils.getFakeReport>,
+    policy?: PartialDeep<Policy>,
+    readonly = false,
+    viewProps: {isFromReviewDuplicates?: boolean; mergeTransactionID?: string; updatedTransaction?: Transaction} = {},
+) =>
     render(
         <ComposeProviders components={[OnyxListItemProvider]}>
             <ScreenWrapperStatusContext.Provider value={SCREEN_WRAPPER_STATUS}>
@@ -172,6 +177,7 @@ const renderMoneyRequestView = (threadReport: ReturnType<typeof LHNTestUtils.get
                     })}
                     shouldShowAnimatedBackground={false}
                     readonly={readonly}
+                    {...viewProps}
                 />
             </ScreenWrapperStatusContext.Provider>
         </ComposeProviders>,
@@ -317,6 +323,32 @@ describe('MoneyRequestView edit fields', () => {
         // Then the amount renders without the configured workspace field.
         expect(screen.getByTestId(/^menu-item-iou\.amount/)).toBeOnTheScreen();
         expect(screen.queryByLabelText(fieldLabel('common.mcc'))).not.toBeOnTheScreen();
+    });
+
+    it.each([
+        ['merge', {mergeTransactionID: 'merge_mrv_test'}],
+        ['duplicate review', {isFromReviewDuplicates: true}],
+    ] as const)('keeps selected description and category visible in the %s confirmation', async (_confirmationType, confirmationProps) => {
+        // Given a confirmation with updated values that the user chose, while saved columns omit those fields.
+        const threadReport = {...LHNTestUtils.getFakeReport(), parentReportID: expenseReportID, parentReportActionID};
+        const updatedTransaction = createMock<Transaction>({
+            transactionID,
+            category: 'Travel',
+            comment: {comment: 'Updated description'},
+        });
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {category: 'Travel', comment: {comment: 'Original description'}});
+            await Onyx.set(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS, [CONST.SEARCH.TABLE_COLUMNS.MCC]);
+        });
+
+        // When the merge or duplicate confirmation is shown with the selected transaction values.
+        renderMoneyRequestView(threadReport, undefined, false, {...confirmationProps, updatedTransaction});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then both values remain visible so the user can verify the final transaction before confirming it.
+        expect(screen.getByTestId('menu-item-common.description')).toBeOnTheScreen();
+        expect(screen.getByLabelText(fieldLabel('common.category'))).toBeOnTheScreen();
     });
 
     it('includes the report owner in the per-attendee total when no attendees are listed', async () => {

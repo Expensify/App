@@ -1294,6 +1294,7 @@ function getSecondaryTransactionThreadActions({
     reportAction,
     originalTransaction,
     policy,
+    reportDetailsPolicy,
     transactionThreadReport,
     outstandingReportsByPolicyID,
     reportNameValuePairs,
@@ -1319,6 +1320,7 @@ function getSecondaryTransactionThreadActions({
     reportAction: ReportAction | undefined;
     originalTransaction: OnyxEntry<Transaction>;
     policy: OnyxEntry<Policy>;
+    reportDetailsPolicy?: OnyxEntry<Policy>;
     transactionThreadReport?: OnyxEntry<Report>;
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue;
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
@@ -1413,7 +1415,7 @@ function getSecondaryTransactionThreadActions({
     }
 
     // Personal-space expenses can still belong to a workspace, so show field preferences for those expenses too.
-    if (isExpenseReportUtils(parentReport) || isExpenseReportUtils(transactionThreadReport) || (isSelfDMReportUtils(parentReport) && !!policy?.id)) {
+    if (isExpenseReportUtils(parentReport) || isExpenseReportUtils(transactionThreadReport) || (isSelfDMReportUtils(parentReport) && !!(policy?.id || reportDetailsPolicy?.id))) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.CUSTOMIZE_FIELDS);
     }
 
