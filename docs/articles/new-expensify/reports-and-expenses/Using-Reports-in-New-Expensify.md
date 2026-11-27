@@ -44,6 +44,7 @@ Filter reports by type, status, category, or date to find specific information.
    - **Date:** This month, last month
    - **Status:** Outstanding, Paid
    - **From:** You, or someone else
+   - **Converted amount**: Filter expenses by their amount in the workspace currency, or choose a currency to compare expenses in that currency.
    - **Paid by:** The member who paid the report. On both the **Expense** and **Expense Report** types, this sits directly below **Paid**.
 6. Click **View Results** to see the filtered results.
 
@@ -75,6 +76,7 @@ You can choose from a wide range of columns, including:
 - **Submitted** – The date the report was submitted for approval
 - **Paid** – The date the report was paid
 - **Total** – The total amount of the report or expense
+- **Converted amount** – In **Spend > Expenses**, shows each expense in its workspace currency, or its original currency if it has no workspace. The table heading is **Converted**; select it to sort by converted amount.
 - **Workspace** – The workspace the report belongs to
 - **Paid status** – The payment stage of a paid report: **Marked as paid**, **Withdrawing**, or **Confirmed**
 - **Paid by** – The member who paid the report. This stays blank until the report is paid, and it updates as soon as you pay the report from **Spend**
