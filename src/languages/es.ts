@@ -11282,6 +11282,11 @@ ${reportName}`,
             }),
             editMultipleDescription: 'Los cambios se aplicarán a todos los gastos seleccionados y sustituirán cualquier valor establecido previamente.',
             approve: 'Aprobar',
+            unapprove: 'Desaprobar',
+            unapproveExportedReportsWarning: ({count}: {count: number}) => ({
+                one: '1 de estos informes ya se ha exportado a una integración contable. Modificarlo puede provocar discrepancias en los datos. ¿Estás seguro de que deseas cancelar su aprobación?',
+                other: `${count} de estos informes ya se han exportado a una integración contable. Modificarlos puede provocar discrepancias en los datos. ¿Estás seguro de que deseas cancelar su aprobación?`,
+            }),
             pay: 'Pagar',
             delete: 'Eliminar',
             hold: 'Retener',
@@ -13778,6 +13783,7 @@ ${reportName}`,
     },
     bulkAction: {
         approvingTitle: 'Aprobando informes...',
+        unapprovingTitle: 'Desaprobando informes...',
         submittingTitle: 'Enviando informes...',
         payingTitle: 'Marcando informes como pagados...',
         holdingTitle: 'Reteniendo gastos...',
@@ -13794,6 +13800,10 @@ ${reportName}`,
         approvedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `Aprobados ${doneCount} de ${count} informe`,
             other: `Aprobados ${doneCount} de ${count} informes`,
+        }),
+        unapprovedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Desaprobados ${doneCount} de ${count} informe`,
+            other: `Desaprobados ${doneCount} de ${count} informes`,
         }),
         submittedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `Enviados ${doneCount} de ${count} informe`,
@@ -13835,6 +13845,10 @@ ${reportName}`,
         notApprovedBody: ({count}: {count: number}) => ({
             one: 'No se pudo aprobar 1 informe.',
             other: `No se pudieron aprobar ${count} informes.`,
+        }),
+        notUnapprovedBody: ({count}: {count: number}) => ({
+            one: 'No se pudo desaprobar 1 informe.',
+            other: `No se pudieron desaprobar ${count} informes.`,
         }),
         notSubmittedBody: ({count}: {count: number}) => ({
             one: 'No se pudo enviar 1 informe.',

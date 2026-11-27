@@ -11112,6 +11112,11 @@ ${reportName}`,
             }),
             editMultipleDescription: '変更は選択されたすべての経費に適用され、以前に設定された値は上書きされます。',
             approve: '承認',
+            unapprove: '承認を取り消す',
+            unapproveExportedReportsWarning: ({count}: {count: number}) => ({
+                one: 'これらのレポートのうち 1 件は、すでに会計連携にエクスポートされています。変更するとデータの不整合が発生する可能性があります。本当に承認を取り消しますか？',
+                other: `これらのレポートのうち ${count} 件は、すでに会計連携にエクスポートされています。変更するとデータの不整合が発生する可能性があります。本当に承認を取り消しますか？`,
+            }),
             pay: '支払う',
             delete: '削除',
             hold: '保留',
@@ -13177,6 +13182,7 @@ ${reportName}`,
     },
     bulkAction: {
         approvingTitle: 'レポートを承認しています…',
+        unapprovingTitle: 'レポートの承認を取り消しています…',
         submittingTitle: 'レポートを送信しています…',
         payingTitle: 'レポートを支払済みにしています…',
         holdingTitle: '経費を保留にしています…',
@@ -13193,6 +13199,10 @@ ${reportName}`,
         approvedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `${count} 件中 ${doneCount} 件のレポートを承認しました`,
             other: `${count} 件中 ${doneCount} 件のレポートを承認しました`,
+        }),
+        unapprovedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `${count} 件中 ${doneCount} 件のレポートの承認を取り消しました`,
+            other: `${count} 件中 ${doneCount} 件のレポートの承認を取り消しました`,
         }),
         submittedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `${count} 件中 ${doneCount} 件のレポートを提出しました`,
@@ -13234,6 +13244,10 @@ ${reportName}`,
         notApprovedBody: ({count}: {count: number}) => ({
             one: '1件のレポートを承認できませんでした。',
             other: `${count} 件のレポートを承認できませんでした。`,
+        }),
+        notUnapprovedBody: ({count}: {count: number}) => ({
+            one: '1件のレポートの承認を取り消せませんでした。',
+            other: `${count}件のレポートの承認を取り消せませんでした。`,
         }),
         notSubmittedBody: ({count}: {count: number}) => ({
             one: '1件のレポートを提出できませんでした。',

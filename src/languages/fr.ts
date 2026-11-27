@@ -11377,6 +11377,11 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             }),
             editMultipleDescription: 'Les modifications seront définies pour toutes les dépenses sélectionnées et remplaceront toutes les valeurs définies précédemment.',
             approve: 'Approuver',
+            unapprove: 'Annuler l’approbation',
+            unapproveExportedReportsWarning: ({count}: {count: number}) => ({
+                one: '1 de ces notes de frais a déjà été exportée vers une intégration comptable. La modifier peut entraîner des incohérences de données. Voulez-vous vraiment annuler son approbation ?',
+                other: `${count} de ces notes de frais ont déjà été exportées vers une intégration comptable. Les modifier peut entraîner des incohérences de données. Voulez-vous vraiment annuler leur approbation ?`,
+            }),
             pay: 'Payer',
             delete: 'Supprimer',
             hold: 'En attente',
@@ -13478,6 +13483,7 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
     },
     bulkAction: {
         approvingTitle: 'Approbation des notes de frais...',
+        unapprovingTitle: 'Annulation de l’approbation des notes de frais...',
         submittingTitle: 'Soumission des notes de frais...',
         payingTitle: 'Marquage des notes de frais comme payées...',
         holdingTitle: 'Mise en attente des dépenses...',
@@ -13494,6 +13500,10 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         approvedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `Approuvé ${doneCount} sur ${count} note de frais`,
             other: `Approuvé ${doneCount} sur ${count} notes de frais`,
+        }),
+        unapprovedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Approbation annulée pour ${doneCount} sur ${count} note de frais`,
+            other: `Approbation annulée pour ${doneCount} sur ${count} notes de frais`,
         }),
         submittedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `Soumis ${doneCount} sur ${count} note de frais`,
@@ -13535,6 +13545,10 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         notApprovedBody: ({count}: {count: number}) => ({
             one: "1 note de frais n'a pas pu être approuvée.",
             other: `${count} notes de frais n'ont pas pu être approuvées.`,
+        }),
+        notUnapprovedBody: ({count}: {count: number}) => ({
+            one: 'L’approbation d’1 note de frais n’a pas pu être annulée.',
+            other: `L’approbation de ${count} notes de frais n’a pas pu être annulée.`,
         }),
         notSubmittedBody: ({count}: {count: number}) => ({
             one: "1 note de frais n'a pas pu être soumise.",

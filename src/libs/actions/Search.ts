@@ -653,6 +653,11 @@ function getSearchApproveOnyxData(hash: number, reportID: string, currentSearchK
     return getSearchActionOnyxData(hash, reportID, currentSearchKey, [CONST.SEARCH.SEARCH_KEYS.APPROVE, CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH, CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD]);
 }
 
+// An unapproved report goes back to submitted, so it no longer belongs in the lists of reports waiting to be paid or exported.
+function getSearchUnapproveOnyxData(hash: number, reportID: string, currentSearchKey?: SearchKey): AdditionalPayOnyxData {
+    return getSearchActionOnyxData(hash, reportID, currentSearchKey, [CONST.SEARCH.SEARCH_KEYS.PAY, CONST.SEARCH.SEARCH_KEYS.EXPORT]);
+}
+
 type GetPayActionCallbackParams = {
     hash: number;
     item: TransactionListItemType | TransactionReportGroupListItemType;
@@ -2596,6 +2601,15 @@ function queueBulkApproveReports(jsonQuery: string) {
 }
 
 /**
+ * Queues a bulk unapprove for every report matching the given search query. The backend pages through all matches itself,
+ * so this covers reports beyond the currently loaded page(s) when "Select all" is checked in Search.
+ */
+function queueBulkUnapproveReports(jsonQuery: string) {
+    const {bulkActionID, onyxData} = buildBulkActionOnyxData(CONST.SEARCH.BULK_ACTION_TYPES.UNAPPROVE);
+    write(WRITE_COMMANDS.QUEUE_BULK_UNAPPROVE_REPORT, {jsonQuery, bulkActionID}, onyxData);
+}
+
+/**
  * Queues a bulk submit for every report matching the given search query. The backend pages through all matches itself,
  * so this covers reports beyond the currently loaded page(s) when "Select all" is checked in Search.
  */
@@ -3062,6 +3076,7 @@ export {
     queueExportSearchWithTemplate,
     queueBulkPayReports,
     queueBulkApproveReports,
+    queueBulkUnapproveReports,
     queueBulkSubmitReports,
     queueBulkChangeReportPolicy,
     queueBulkMarkAsExported,
@@ -3072,6 +3087,7 @@ export {
     getSearchPayOnyxData,
     getChatReportWithFallback,
     getSearchApproveOnyxData,
+    getSearchUnapproveOnyxData,
     handleActionButtonPress,
     doesSearchActionUsePressTimeInputs,
     submitMoneyRequestOnSearch,

@@ -11562,6 +11562,11 @@ ${reportName}`,
             }),
             editMultipleDescription: 'Οι αλλαγές θα εφαρμοστούν σε όλες τις επιλεγμένες δαπάνες και θα αντικαταστήσουν τυχόν προηγουμένως ορισμένες τιμές.',
             approve: 'Έγκριση',
+            unapprove: 'Ανακαλέστε έγκριση',
+            unapproveExportedReportsWarning: ({count}: {count: number}) => ({
+                one: '1 από αυτές τις αναφορές έχει ήδη εξαχθεί σε μια λογιστική ενοποίηση. Η αλλαγή της μπορεί να οδηγήσει σε αναντιστοιχίες δεδομένων. Είστε βέβαιοι ότι θέλετε να άρετε την έγκρισή της;',
+                other: `${count} από αυτές τις αναφορές έχουν ήδη εξαχθεί σε μια λογιστική ενοποίηση. Η αλλαγή τους μπορεί να οδηγήσει σε αναντιστοιχίες δεδομένων. Είστε βέβαιοι ότι θέλετε να άρετε την έγκρισή τους;`,
+            }),
             pay: 'Πληρωμή',
             delete: 'Διαγραφή',
             hold: 'Σε αναμονή',
@@ -13666,6 +13671,7 @@ ${reportName}`,
     },
     bulkAction: {
         approvingTitle: 'Γίνεται έγκριση αναφορών...',
+        unapprovingTitle: 'Γίνεται άρση έγκρισης αναφορών...',
         submittingTitle: 'Υποβολή αναφορών...',
         payingTitle: 'Σημειώνονται οι αναφορές ως πληρωμένες...',
         holdingTitle: 'Τα έξοδα τίθενται σε αναμονή...',
@@ -13682,6 +13688,10 @@ ${reportName}`,
         approvedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `Εγκρίθηκαν ${doneCount} από ${count} αναφορά`,
             other: `Εγκρίθηκαν ${doneCount} από ${count} αναφορές`,
+        }),
+        unapprovedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Άρση έγκρισης για ${doneCount} από ${count} αναφορά`,
+            other: `Άρση έγκρισης για ${doneCount} από ${count} αναφορές`,
         }),
         submittedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `Υποβλήθηκαν ${doneCount} από ${count} αναφορά`,
@@ -13723,6 +13733,10 @@ ${reportName}`,
         notApprovedBody: ({count}: {count: number}) => ({
             one: '1 αναφορά δεν μπόρεσε να εγκριθεί.',
             other: `${count} αναφορές δεν ήταν δυνατό να εγκριθούν.`,
+        }),
+        notUnapprovedBody: ({count}: {count: number}) => ({
+            one: 'Δεν ήταν δυνατή η άρση έγκρισης για 1 αναφορά.',
+            other: `Δεν ήταν δυνατή η άρση έγκρισης για ${count} αναφορές.`,
         }),
         notSubmittedBody: ({count}: {count: number}) => ({
             one: '1 αναφορά δεν μπόρεσε να υποβληθεί.',

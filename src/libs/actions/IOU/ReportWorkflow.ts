@@ -856,18 +856,34 @@ function retractReport(
     });
 }
 
-function unapproveExpenseReport(
-    expenseReport: OnyxEntry<OnyxTypes.Report>,
-    policy: OnyxEntry<OnyxTypes.Policy>,
-    currentUserAccountIDParam: number,
-    currentUserEmailParam: string,
-    hasViolations: boolean,
-    isASAPSubmitBetaEnabled: boolean,
-    delegateEmail: string | undefined,
-    isTrackIntentUser: boolean | undefined,
-    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
-    rules: OnyxCollection<OnyxTypes.Rule>,
-) {
+type UnapproveExpenseReportFunctionParams = {
+    expenseReport: OnyxEntry<OnyxTypes.Report>;
+    policy: OnyxEntry<OnyxTypes.Policy>;
+    currentUserAccountIDParam: number;
+    currentUserEmailParam: string;
+    hasViolations: boolean;
+    isASAPSubmitBetaEnabled: boolean;
+    delegateEmail: string | undefined;
+    isTrackIntentUser: boolean | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    rules: OnyxCollection<OnyxTypes.Rule>;
+    /** Extra Onyx updates sent with the request, such as Search's row loading state */
+    additionalOnyxData?: AdditionalPayOnyxData;
+};
+
+function unapproveExpenseReport({
+    expenseReport,
+    policy,
+    currentUserAccountIDParam,
+    currentUserEmailParam,
+    hasViolations,
+    isASAPSubmitBetaEnabled,
+    delegateEmail,
+    isTrackIntentUser,
+    getCurrencyDecimals,
+    rules,
+    additionalOnyxData,
+}: UnapproveExpenseReportFunctionParams) {
     if (isEmptyObject(expenseReport)) {
         return;
     }
@@ -1001,11 +1017,7 @@ function unapproveExpenseReport(
         reportActionID: optimisticUnapprovedReportAction.reportActionID,
     };
 
-    API.write(WRITE_COMMANDS.UNAPPROVE_EXPENSE_REPORT, parameters, {
-        optimisticData,
-        successData,
-        failureData,
-    });
+    API.write(WRITE_COMMANDS.UNAPPROVE_EXPENSE_REPORT, parameters, mergeAdditionalPayOnyxData({optimisticData, successData, failureData}, additionalOnyxData));
 }
 
 function submitReport({

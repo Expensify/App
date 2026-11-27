@@ -857,6 +857,7 @@ const SENTRY_LABEL = {
         BULK_ACTIONS_MOVE_EXPENSES: 'Search-BulkActionsMoveExpenses',
         BULK_ACTIONS_PAY: 'Search-BulkActionsPay',
         BULK_ACTIONS_APPROVE: 'Search-BulkActionsApprove',
+        BULK_ACTIONS_UNAPPROVE: 'Search-BulkActionsUnapprove',
         BULK_ACTIONS_SUBMIT: 'Search-BulkActionsSubmit',
         BULK_ACTIONS_DOWNLOAD_PDF: 'Search-BulkActionsDownloadPDF',
         BULK_ACTIONS_CHANGE_WORKSPACE: 'Search-BulkActionsChangeWorkspace',

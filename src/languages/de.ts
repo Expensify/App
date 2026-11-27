@@ -11348,6 +11348,11 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             }),
             editMultipleDescription: 'Änderungen werden für alle ausgewählten Ausgaben übernommen und überschreiben alle zuvor festgelegten Werte.',
             approve: 'Genehmigen',
+            unapprove: 'Genehmigung aufheben',
+            unapproveExportedReportsWarning: ({count}: {count: number}) => ({
+                one: '1 dieser Berichte wurde bereits in eine Buchhaltungsintegration exportiert. Änderungen können zu Datenabweichungen führen. Möchtest du die Genehmigung wirklich aufheben?',
+                other: `${count} dieser Berichte wurden bereits in eine Buchhaltungsintegration exportiert. Änderungen können zu Datenabweichungen führen. Möchtest du die Genehmigung wirklich aufheben?`,
+            }),
             pay: 'Bezahlen',
             delete: 'Löschen',
             hold: 'Warteschleife',
@@ -13445,6 +13450,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
     },
     bulkAction: {
         approvingTitle: 'Berichte werden genehmigt …',
+        unapprovingTitle: 'Genehmigungen werden aufgehoben …',
         submittingTitle: 'Berichte werden eingereicht …',
         payingTitle: 'Berichte werden als bezahlt markiert …',
         holdingTitle: 'Ausgaben werden zurückgehalten …',
@@ -13461,6 +13467,10 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         approvedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `${doneCount} von ${count} Bericht genehmigt`,
             other: `${doneCount} von ${count} Berichte genehmigt`,
+        }),
+        unapprovedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Genehmigung für ${doneCount} von ${count} Bericht aufgehoben`,
+            other: `Genehmigung für ${doneCount} von ${count} Berichten aufgehoben`,
         }),
         submittedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `${doneCount} von ${count} Bericht eingereicht`,
@@ -13502,6 +13512,10 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         notApprovedBody: ({count}: {count: number}) => ({
             one: '1 Bericht konnte nicht genehmigt werden.',
             other: `${count} Berichte konnten nicht genehmigt werden.`,
+        }),
+        notUnapprovedBody: ({count}: {count: number}) => ({
+            one: 'Die Genehmigung von 1 Bericht konnte nicht aufgehoben werden.',
+            other: `Die Genehmigung von ${count} Berichten konnte nicht aufgehoben werden.`,
         }),
         notSubmittedBody: ({count}: {count: number}) => ({
             one: '1 Bericht konnte nicht eingereicht werden.',

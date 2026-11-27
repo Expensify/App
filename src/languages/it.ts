@@ -11295,6 +11295,11 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             }),
             editMultipleDescription: 'Le modifiche verranno applicate a tutte le spese selezionate e sovrascriveranno qualsiasi valore impostato in precedenza.',
             approve: 'Approva',
+            unapprove: 'Revoca approvazione',
+            unapproveExportedReportsWarning: ({count}: {count: number}) => ({
+                one: '1 di questi report è già stato esportato in un’integrazione contabile. Modificarlo potrebbe causare discrepanze nei dati. Sei sicuro di volerne revocare l’approvazione?',
+                other: `${count} di questi report sono già stati esportati in un’integrazione contabile. Modificarli potrebbe causare discrepanze nei dati. Sei sicuro di volerne revocare l’approvazione?`,
+            }),
             pay: 'Paga',
             delete: 'Elimina',
             hold: 'Metti in attesa',
@@ -13391,6 +13396,7 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
     },
     bulkAction: {
         approvingTitle: 'Approvazione dei report in corso...',
+        unapprovingTitle: 'Revoca dell’approvazione dei report in corso...',
         submittingTitle: 'Invio dei report in corso...',
         payingTitle: 'Contrassegno dei report come pagati in corso...',
         holdingTitle: 'Messa in attesa delle spese in corso...',
@@ -13407,6 +13413,10 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
         approvedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `Approvati ${doneCount} su ${count} report`,
             other: `Approvati ${doneCount} su ${count} report`,
+        }),
+        unapprovedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Approvazione revocata per ${doneCount} su ${count} report`,
+            other: `Approvazione revocata per ${doneCount} su ${count} report`,
         }),
         submittedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `Inviati ${doneCount} su ${count} report`,
@@ -13448,6 +13458,10 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
         notApprovedBody: ({count}: {count: number}) => ({
             one: '1 report non può essere approvato.',
             other: `${count} report non hanno potuto essere approvati.`,
+        }),
+        notUnapprovedBody: ({count}: {count: number}) => ({
+            one: 'Non è stato possibile revocare l’approvazione di 1 report.',
+            other: `Non è stato possibile revocare l’approvazione di ${count} report.`,
         }),
         notSubmittedBody: ({count}: {count: number}) => ({
             one: '1 report non può essere inviato.',

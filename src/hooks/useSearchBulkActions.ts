@@ -181,6 +181,7 @@ import type {RejectModalAction} from './useHoldRejectEducationalModal';
 
 import useAllTransactions from './useAllTransactions';
 import useBulkPayOptions from './useBulkPayOptions';
+import useBulkUnapproveAction from './useBulkUnapproveAction';
 import useConfirmModal from './useConfirmModal';
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
@@ -730,6 +731,16 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const searchResults = currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResultsRef.current;
 
     const {showConfirmModal} = useConfirmModal();
+    const {canUnapproveSelectedReport, unapproveSelectedReports} = useBulkUnapproveAction({
+        queryJSON,
+        selectedReports,
+        areAllMatchingItemsSelected,
+        excludedTransactions,
+        searchData: currentSearchResults?.data,
+        currentSearchKey,
+        allReports,
+        policies,
+    });
     const {showWiseQuoteCarouselModal} = useWiseQuoteConfirmModal();
     const {showDecisionModal} = useDecisionModal();
 
@@ -793,6 +804,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         'Trashcan',
         'ThumbsUp',
         'ThumbsDown',
+        'CircularArrowBackwards',
         'ArrowRight',
         'ArrowCollapse',
         'Stopwatch',
@@ -2927,6 +2939,17 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             },
         };
 
+        const unapproveButtonOption: DropdownOption<SearchHeaderOptionValue> = {
+            icon: expensifyIcons.CircularArrowBackwards,
+            text: translate('search.bulkActions.unapprove'),
+            value: CONST.SEARCH.BULK_ACTION_TYPES.UNAPPROVE,
+            sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_ACTIONS_UNAPPROVE,
+            shouldCloseModalOnSelect: true,
+            onSelected: () => {
+                unapproveSelectedReports();
+            },
+        };
+
         const submitButtonOption: DropdownOption<SearchHeaderOptionValue> = {
             icon: expensifyIcons.Send,
             text: allReportsShouldMarkAsDone ? translate('common.markAsDone') : translate('common.submit'),
@@ -3327,10 +3350,18 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             // The backend rejects the entire move if any matching expense is invalid
             const isAllMatchingSelectionMovable = isEmptyObject(excludedTransactions) && (!hasUnloadedMatchingExpenses || isUnreportedOnlyQuery);
 
+            // Unapprove is a report action too, so show it when any loaded report qualifies and let the backend skip the rest.
+            const shouldShowUnapproveOptionForAllMatchingItems = !isOffline && isExpenseReportType && selectedReports.some(canUnapproveSelectedReport);
+
             const allMatchingOptions: Array<DropdownOption<SearchHeaderOptionValue>> = [];
             if (shouldShowApproveOptionForAllMatchingItems) {
                 allMatchingOptions.push(approveButtonOption);
             }
+
+            if (shouldShowUnapproveOptionForAllMatchingItems) {
+                allMatchingOptions.push(unapproveButtonOption);
+            }
+
             if (shouldShowSubmitOptionForAllMatchingItems) {
                 allMatchingOptions.push(submitButtonOption);
             }
@@ -3451,6 +3482,13 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
         if (shouldShowApproveOption) {
             options.push(approveButtonOption);
+        }
+
+        // Unapprove only applies to whole reports, so it needs a report selection where every report passes the More menu rule.
+        const shouldShowUnapproveOption = !isOffline && isExpenseReportType && selectedReports.length > 0 && selectedReports.every(canUnapproveSelectedReport);
+
+        if (shouldShowUnapproveOption) {
+            options.push(unapproveButtonOption);
         }
 
         const hasNoRejectedTransaction = selectedTransactionsKeys.every(
@@ -3843,6 +3881,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         handleExportCurrentView,
         beginExportWithTemplate,
         handleApproveWithDEWCheck,
+        canUnapproveSelectedReport,
+        unapproveSelectedReports,
         allTransactionViolations,
         isDelegateAccessRestricted,
         dismissedRejectUseExplanation,
