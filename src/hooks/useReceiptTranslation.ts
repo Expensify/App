@@ -2,7 +2,7 @@ import {showOriginalReceipt, showReceiptTranslation, translateReceipt} from '@li
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Growl from '@libs/Growl';
 // eslint-disable-next-line no-restricted-imports -- Translate receipt is a paid feature.
-import {isPaidGroupPolicy, isPolicyAdmin, isWorkflowApprover} from '@libs/PolicyUtils';
+import {getPolicyRole, isControlPolicy, isControlPolicyOnlyRole, isPaidGroupPolicy, isWorkflowApprover} from '@libs/PolicyUtils';
 import {isOpenExpenseReport, isReportManager} from '@libs/ReportUtils';
 import {hasReceiptSource, isDistanceRequest, isPerDiemRequest, isReceiptScanBlockingEdit} from '@libs/TransactionUtils';
 
@@ -37,17 +37,31 @@ const expenseReportApproverSelector = (report: OnyxEntry<Report>) =>
 
 type ExpenseReportApprover = ReturnType<typeof expenseReportApproverSelector>;
 
+const RECEIPT_REVIEWER_ROLES = new Set<string>([
+    CONST.POLICY.ROLE.ADMIN,
+    CONST.POLICY.ROLE.CARD_ADMIN,
+    CONST.POLICY.ROLE.PAYMENTS_ADMIN,
+    CONST.POLICY.ROLE.PEOPLE_ADMIN,
+    CONST.POLICY.ROLE.AUDITOR,
+]);
+
+// Admin roles and auditors review receipts on the workspace. A Control-only role left from a downgrade doesn't count.
+function hasReceiptReviewerRole(policy: OnyxEntry<Policy>): boolean {
+    const role = getPolicyRole(policy);
+    return !!role && RECEIPT_REVIEWER_ROLES.has(role) && (!isControlPolicyOnlyRole(role) || isControlPolicy(policy));
+}
+
 // A hook of its own so the compiler memoizes the rules selector
 function useIsOpenReportWorkflowApprover(
     expenseReport: ExpenseReportApprover,
     policy: OnyxEntry<Policy>,
     ownerLogin: string | undefined,
     email: string | undefined,
-    isAdminOrReportManager: boolean,
+    isRoleReviewerOrReportApprover: boolean,
 ): boolean {
-    // A draft report's managerID can be stale, so we also check the policy's approver. Admins and the report's approver skip the rules scan.
+    // A draft report's managerID can be stale, so we also check the policy's approver. Admins, auditors and the report's approver skip the rules scan.
     const [isOpenReportWorkflowApprover = false] = useOnyx(ONYXKEYS.COLLECTION.RULE, {
-        selector: (rules) => !isAdminOrReportManager && isOpenExpenseReport(expenseReport) && isWorkflowApprover(policy, ownerLogin, rules, expenseReport?.total ?? 0, email),
+        selector: (rules) => !isRoleReviewerOrReportApprover && isOpenExpenseReport(expenseReport) && isWorkflowApprover(policy, ownerLogin, rules, expenseReport?.total ?? 0, email),
     });
     return isOpenReportWorkflowApprover;
 }
@@ -63,8 +77,8 @@ function useReceiptTranslation(transaction: OnyxEntry<Transaction>) {
     const policy = usePolicy(expenseReport?.policyID);
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: emailAndAccountIDSelector});
     const [ownerLogin] = usePersonalDetail(expenseReport?.ownerAccountID, loginSelector);
-    const isAdminOrReportManager = isPolicyAdmin(policy) || isReportManager(expenseReport, session?.accountID);
-    const isOpenReportWorkflowApprover = useIsOpenReportWorkflowApprover(expenseReport, policy, ownerLogin, session?.email, isAdminOrReportManager);
+    const isRoleReviewerOrReportApprover = hasReceiptReviewerRole(policy) || isReportManager(expenseReport, session?.accountID);
+    const isOpenReportWorkflowApprover = useIsOpenReportWorkflowApprover(expenseReport, policy, ownerLogin, session?.email, isRoleReviewerOrReportApprover);
 
     const locale = preferredLocale ?? CONST.LOCALES.DEFAULT;
     const receiptID = transaction?.receipt?.receiptID;
@@ -110,7 +124,7 @@ function useReceiptTranslation(transaction: OnyxEntry<Transaction>) {
     const isGeneratedReceipt = isDistanceRequest(transaction) || isPerDiemRequest(transaction);
 
     // Employees often open Translate and then do nothing with it
-    const isReceiptReviewer = isAdminOrReportManager || isOpenReportWorkflowApprover;
+    const isReceiptReviewer = isRoleReviewerOrReportApprover || isOpenReportWorkflowApprover;
 
     return {
         canTranslate: isBetaEnabled(CONST.BETAS.RECEIPT_TRANSLATION) && hasReceiptSource(transaction) && !isGeneratedReceipt && isPaidGroupPolicy(policy) && isReceiptReviewer,
