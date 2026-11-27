@@ -713,26 +713,46 @@ describe('Link.getInternalNewExpensifyPath', () => {
     });
 
     it('treats a link to the shared product host as internal when the page is served from it', () => {
+        // Given the page served from the shared product host
         arrangePageOrigin(SHARED_PRODUCT_HOST_ORIGIN, true);
 
-        expect(getInternalNewExpensifyPath(`${SHARED_PRODUCT_HOST_ORIGIN}/r/1234`)).toBe('r/1234');
+        // When reading the path of a link to an App route on that host
+        const path = getInternalNewExpensifyPath(`${SHARED_PRODUCT_HOST_ORIGIN}/r/1234`);
+
+        // Then the link is internal, because the host serves the app on that route
+        expect(path).toBe('r/1234');
     });
 
     it('keeps an Expensify Classic link external on the shared product host', () => {
+        // Given the page served from the shared product host
         arrangePageOrigin(SHARED_PRODUCT_HOST_ORIGIN, true);
 
-        expect(getInternalNewExpensifyPath('https://www.expensify.com.dev/policy')).toBe('');
+        // When reading the path of a link to Classic's own host
+        const path = getInternalNewExpensifyPath('https://www.expensify.com.dev/policy');
+
+        // Then the link is external, because only the page's own origin can serve the app
+        expect(path).toBe('');
     });
 
     it('keeps a path without an App route external on the shared product host', () => {
+        // Given the page served from the shared product host
         arrangePageOrigin(SHARED_PRODUCT_HOST_ORIGIN, true);
 
-        expect(getInternalNewExpensifyPath(`${SHARED_PRODUCT_HOST_ORIGIN}/reports?param=%7B%7D`)).toBe('');
+        // When reading the path of a link to a Classic page on that host
+        const path = getInternalNewExpensifyPath(`${SHARED_PRODUCT_HOST_ORIGIN}/reports?param=%7B%7D`);
+
+        // Then the link is external, because the host serves Classic on paths the app doesn't have
+        expect(path).toBe('');
     });
 
     it('treats a link to the shared product host as external on other hosts', () => {
+        // Given the page served from a host other than the shared product host
         arrangePageOrigin(SHARED_PRODUCT_HOST_ORIGIN, false);
 
-        expect(getInternalNewExpensifyPath(`${SHARED_PRODUCT_HOST_ORIGIN}/r/1234`)).toBe('');
+        // When reading the path of a link to the shared product host
+        const path = getInternalNewExpensifyPath(`${SHARED_PRODUCT_HOST_ORIGIN}/r/1234`);
+
+        // Then the link is external, because the app on other hosts can't open pages of the shared product host in place
+        expect(path).toBe('');
     });
 });

@@ -138,15 +138,25 @@ describe('ExperienceCookie', () => {
         ['www.expensify.com.dev', false],
         ['dev.new.expensify.com', false],
     ])('reports whether %s is the shared product host', (hostname, expected) => {
+        // Given the dev build served from the shared product host, Classic's own host or New Expensify's own host
         arrangeHostname(hostname);
 
-        expect(isSharedProductHost()).toBe(expected);
+        // When the app checks where it is served from
+        const isShared = isSharedProductHost();
+
+        // Then only the host without www serves both products
+        expect(isShared).toBe(expected);
     });
 
     it('never treats the page as the shared product host on native', () => {
+        // Given the native implementation, which has no page host
         arrangeHostname('expensify.com.dev');
 
-        expect(NativeExperienceCookie.isSharedProductHost()).toBe(false);
+        // When the app checks where it is served from
+        const isShared = NativeExperienceCookie.isSharedProductHost();
+
+        // Then it is never the shared product host
+        expect(isShared).toBe(false);
     });
 
     it.each([
