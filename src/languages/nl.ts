@@ -504,6 +504,7 @@ const translations: TranslationDeepObject<typeof en> = {
         corpayPayModalPrompt:
             'Deze indiener heeft een bankrekening die niet in USD is. Schakel wereldwijde terugbetalingen in om het rapport te betalen, of vraag hen een USD-bankrekening toe te voegen.',
         purchaseAmount: 'Aankoopsbedrag',
+        convertedAmount: 'Omgerekend bedrag',
         originalAmount: 'Oorspronkelijk bedrag',
         frequency: 'Frequentie',
         link: 'Link',
@@ -809,6 +810,11 @@ const translations: TranslationDeepObject<typeof en> = {
         setPin: {didNotShipCard: 'We hebben je kaart niet verzonden. Probeer het opnieuw.'},
         revealPin: {couldNotReveal: 'We konden je pincode niet tonen. Probeer het opnieuw.'},
         changePin: {didNotChange: 'We hebben je pincode niet gewijzigd. Probeer het opnieuw.'},
+        addToWallet: {
+            failedHeader: 'Kaart kon niet worden toegevoegd',
+            failedTitle: 'We konden je kaart niet aan je wallet toevoegen',
+            failedSubtitle: 'Er ging iets mis bij het toevoegen van de kaart. Als hij al in je wallet staat, kun je hem daar gebruiken.',
+        },
         revealCardDetail: {couldNotReveal: 'We konden je kaartgegevens niet weergeven. Probeer het opnieuw.'},
     },
     validateCodeModal: {
@@ -1346,7 +1352,10 @@ const translations: TranslationDeepObject<typeof en> = {
             label: 'Overtredingen van',
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Indieners',
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: 'Fiatteurs',
+            chartTitle: (title: string, stage: string) => `${title} (${stage})`,
         },
+        flaggedExpenses: 'Gemarkeerde uitgaven',
+        noFlaggedExpensesInRange: 'Geen gemarkeerde uitgaven in dit bereik',
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -2716,6 +2725,11 @@ const translations: TranslationDeepObject<typeof en> = {
             limitedSupport: 'We ondersteunen het samenvoegen van accounts nog niet in New Expensify. Voer deze actie in plaats daarvan uit in Expensify Classic.',
             reachOutForHelp: '<muted-text><centered-text>Neem gerust <concierge-link>contact op met Concierge</concierge-link> als je vragen hebt!</centered-text></muted-text>',
             goToExpensifyClassic: 'Ga naar Expensify Classic',
+        },
+        mergePendingDomainAdmin: {
+            heading: 'Domeinbeperkte e-mail',
+            description: '<muted-text><centered-text>Een domeinbeheerder is op de hoogte gebracht om het verzoek om accounts samen te voegen goed te keuren.</centered-text></muted-text>',
+            gotIt: 'Begrepen',
         },
         mergeFailureSAMLDomainControlDescription: (email: string) =>
             `<muted-text><centered-text>Je kunt <strong>${email}</strong> niet samenvoegen omdat het wordt beheerd door <strong>${email.split('@').at(1) ?? ''}</strong>. Neem contact op met <concierge-link>Concierge</concierge-link> voor hulp.</centered-text></muted-text>`,
@@ -4671,6 +4685,14 @@ ${amount} voor ${merchant} - ${date}`,
         numberedItem: ({item, number}: {item: string; number: number}) => `${item} ${number}`,
         questionsChanged: 'De vragen op deze pagina zijn gewijzigd',
         onFile: 'In bestand',
+        continueOffline: {
+            title: 'Je kunt offline niet doorgaan',
+            prompt: 'Er is een internetverbinding nodig om dit formulier in te vullen. Maak je geen zorgen, we slaan je voortgang op en je kunt doorgaan zodra je weer online bent.',
+            saveForLater: 'Opslaan en later invullen',
+            progressSaved: 'Je voortgang is opgeslagen',
+            promptWithSensitiveAnswers:
+                'Er is een internetverbinding nodig om dit formulier in te vullen. We slaan je voortgang op zodat je verder kunt gaan zodra je weer online bent. Voor jouw veiligheid worden gevoelige gegevens niet opgeslagen en moet je ze opnieuw invoeren.',
+        },
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'SWIFT/BIC moet 8 of 11 tekens lang zijn, met 6 letters gevolgd door 2 of 5 letters of cijfers.',
@@ -7291,11 +7313,13 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 description: `Minstens één categorie moet ingeschakeld blijven, omdat je werkruimte categorieën vereist.`,
             },
             visibleTo: 'Zichtbaar voor',
+            editVisibility: 'Zichtbaarheid bewerken',
             membersCount: ({count}: {count: number}) => ({
                 one: '1 lid',
                 other: `${count} leden`,
             }),
             visibleToDescription: ({categoryName}: {categoryName: string}) => `Kies welke leden de categorie ${categoryName} kunnen gebruiken bij het indienen van uitgaven.`,
+            bulkVisibleToDescription: 'Kies welke leden deze categorieën kunnen gebruiken bij het indienen van declaraties.',
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `Kan ${categoryName} niet uitschakelen`,
                 bulkTitle: 'Deze categorieën kunnen niet worden uitgeschakeld',

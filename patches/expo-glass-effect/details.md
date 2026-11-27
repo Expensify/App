@@ -1,6 +1,6 @@
 # `expo-glass-effect` patches
 
-### [expo-glass-effect+57.0.4+001+app-switcher-snapshot-tint.patch](expo-glass-effect+57.0.4+001+app-switcher-snapshot-tint.patch)
+### [expo-glass-effect+58.0.5+001+app-switcher-snapshot-tint.patch](expo-glass-effect+58.0.5+001+app-switcher-snapshot-tint.patch)
 
 - Reason:
 

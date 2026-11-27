@@ -10,8 +10,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {InsightsScope} from '@src/types/onyx';
 
-import React from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
+
+import useInsightsExplanation from './useInsightsExplanation';
+
+const REPEAT_PRESS_WINDOW_MS = 500;
 
 type InsightsExplainButtonProps = {
     /** Message sent to Concierge on press */
@@ -30,7 +34,19 @@ function InsightsExplainButton({explainPrompt, insightsScope, children}: Insight
     const theme = useTheme();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Sparkles']);
-    const {askConcierge, shouldShowAskConcierge} = useAskConcierge({forceConcierge: true});
+    const {askConcierge, shouldShowAskConcierge, conciergeTargetReportID} = useAskConcierge({forceConcierge: true});
+    const getPreloadedAnswer = useInsightsExplanation(explainPrompt, insightsScope, conciergeTargetReportID, shouldShowAskConcierge);
+    const lastPressedAt = useRef<number | undefined>(undefined);
+
+    const explainInsight = () => {
+        const now = Date.now();
+        // A double tap should not create two threads while the first is opening.
+        if (lastPressedAt.current !== undefined && now - lastPressedAt.current < REPEAT_PRESS_WINDOW_MS) {
+            return;
+        }
+        lastPressedAt.current = now;
+        askConcierge(explainPrompt, {insightsScope}, getPreloadedAnswer());
+    };
 
     if (!shouldShowAskConcierge) {
         return null;
@@ -44,7 +60,7 @@ function InsightsExplainButton({explainPrompt, insightsScope, children}: Insight
             <View style={styles.alignSelfStart}>
                 <Button
                     size={CONST.BUTTON_SIZE.SMALL}
-                    onPress={() => askConcierge(explainPrompt, {insightsScope})}
+                    onPress={explainInsight}
                     sentryLabel={CONST.SENTRY_LABEL.INSIGHTS.AI_EXPLAIN}
                     accessibilityLabel={translate('insightsPage.explain')}
                     innerStyles={styles.bgTransparent}

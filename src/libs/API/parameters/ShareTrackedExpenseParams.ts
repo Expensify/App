@@ -36,6 +36,8 @@ type ShareTrackedExpenseParams = {
 
     /** Distance in meters of the alternate map route the user picked, so the backend doesn't fall back to the primary route */
     selectedRouteDistance?: number;
+    /** Defers instant auto-submit so earlier items in a batch do not close the report before remaining items arrive. */
+    shouldDeferAutoSubmit?: boolean;
 };
 
 export default ShareTrackedExpenseParams;

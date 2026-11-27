@@ -9311,6 +9311,92 @@ describe('actions/Policy', () => {
     });
 
     describe('createWorkspaceFromIOUPayment', () => {
+        it.each(['previewAction', '', undefined])('should handle the pending preview lifecycle with action ID %s', async (reportActionID) => {
+            // Given a synchronized IOU preview, or missing preview data, before moving it to a new workspace.
+            const iouReport: Report = {
+                ...createRandomReport(1, undefined),
+                reportID: '500',
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: 200,
+                chatReportID: '501',
+                policyID: 'oldPolicyID',
+                currency: CONST.CURRENCY.USD,
+                total: 1000,
+            };
+            const reportPreviewAction: ReportAction | undefined =
+                reportActionID === undefined
+                    ? undefined
+                    : {
+                          reportActionID,
+                          actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                          childReportID: iouReport.reportID,
+                          created: '2024-01-01',
+                          message: [],
+                          pendingAction: null,
+                      };
+            const originalPreviewAction = reportPreviewAction ? {...reportPreviewAction} : undefined;
+            const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
+            const isIOUReportUsingReportSpy = jest.spyOn(ReportUtils, 'isIOUReportUsingReport').mockReturnValue(true);
+
+            // When the payment flow optimistically moves the preview to a newly created workspace chat.
+            const result = Policy.createWorkspaceFromIOUPayment({
+                iouReport,
+                reportPreviewAction,
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
+                currentUserDisplayName: undefined,
+                iouReportOwnerEmail: 'owner@example.com',
+                currentUserLocalCurrency: CONST.CURRENCY.USD,
+                lastWorkspaceNumber: undefined,
+                localeTranslate: TestHelper.translateLocal,
+                reportActionsList: {},
+                doesEmployeePersonalDetailExist: false,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                reportTransactions: [],
+                hasOwnedPaidPolicy: false,
+            });
+            await waitForBatchedUpdates();
+
+            // Then only a valid destination preview is pending, success clears it, and failure restores the original.
+            expect(result).toBeDefined();
+            const writeOptions = requireRecord(requireCallArgument(apiWriteSpy.mock.calls.at(0), 2));
+            const destinationKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${result?.workspaceChatReportID}`;
+            const originalKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.chatReportID}`;
+            if (reportActionID) {
+                expect(writeOptions).toEqual(
+                    expect.objectContaining({
+                        optimisticData: expect.arrayContaining([
+                            expect.objectContaining({key: originalKey, value: {[reportActionID]: null}}),
+                            expect.objectContaining({
+                                key: destinationKey,
+                                value: {[reportActionID]: expect.objectContaining({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD})},
+                            }),
+                        ]),
+                        successData: expect.arrayContaining([expect.objectContaining({key: destinationKey, value: {[reportActionID]: {pendingAction: null}}})]),
+                        failureData: expect.arrayContaining([
+                            expect.objectContaining({key: destinationKey, value: {[reportActionID]: null}}),
+                            expect.objectContaining({key: originalKey, value: {[reportActionID]: originalPreviewAction}}),
+                        ]),
+                    }),
+                );
+                expect(reportPreviewAction).toEqual(originalPreviewAction);
+            } else {
+                for (const phase of ['optimisticData', 'successData', 'failureData']) {
+                    const actionUpdates = requireRecordArrayProperty(writeOptions, phase).filter((update) =>
+                        requireStringProperty(update, 'key').startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS),
+                    );
+                    for (const update of actionUpdates) {
+                        const actionIDs = Object.keys(requireRecord(readProperty(update, 'value')));
+                        expect(actionIDs).not.toContain('undefined');
+                        expect(actionIDs).not.toContain('');
+                    }
+                }
+            }
+
+            apiWriteSpy.mockRestore();
+            isIOUReportUsingReportSpy.mockRestore();
+        });
+
         it('should set ownerAccountID from explicit currentUserAccountID parameter', async () => {
             // Set Onyx session to a DIFFERENT accountID to verify the explicit parameter is used
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});

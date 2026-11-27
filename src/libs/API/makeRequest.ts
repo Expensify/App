@@ -38,7 +38,7 @@ function getLatestWriteRequestIndex(): number {
 }
 
 function buildLogParams(command: string, params: Record<string, unknown>): Record<string, unknown> {
-    return {command, ...Object.fromEntries(Object.entries(sanitizeLogParams(params)))};
+    return sanitizeLogParams({command, ...params});
 }
 
 /**
