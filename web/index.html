@@ -75,6 +75,8 @@
         }
         :focus-visible:not([data-programmatic-focus="true"])[data-inner-box-shadow-element="true"]{
             overflow: hidden;
+            /* Clips the ring like hidden without making the row a scroller, which a sticky pinned cell inside it would stick to */
+            overflow: clip;
         }
         :focus-visible:not([data-programmatic-focus="true"])[data-inner-box-shadow-element="true"]::before {
             content: '';

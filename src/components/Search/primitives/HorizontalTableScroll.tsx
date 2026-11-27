@@ -3,9 +3,12 @@ import usePinnedScrollVariables from '@components/Search/hooks/usePinnedScrollVa
 import useTableScrollOffset from '@components/Search/hooks/useTableScrollOffset';
 import type HorizontalScrollOffsetStore from '@components/Search/hooks/useTableScrollOffset/types';
 import {PINNED_TABLE_SCROLLER_DATA_SET} from '@components/Search/pinnedCellStyles/pinnedScrollVariables';
+import {useLeftPinnedColumns} from '@components/Search/PinnedColumnsContext';
+import {PinnedGutterMask} from '@components/Search/PinnedCovers';
 import type {SearchColumnType, SearchQueryJSON} from '@components/Search/types';
 import {TABLE_COLUMN_SCROLLER_DATA_SET} from '@components/Table/columnResize/columnWidthExpressions';
 
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {ScrollableNodeHolder} from '@hooks/useVerticalScrollbarWidth/types';
@@ -105,6 +108,7 @@ function HorizontalTableScroll({
     measureScrollbarRef,
 }: HorizontalTableScrollProps) {
     const styles = useThemeStyles();
+    const {pageGutter} = useLayoutSpacing().values;
     const StyleUtils = useStyleUtils();
     const {windowWidth} = useWindowDimensions();
     // The row chrome is counted only alongside real column widths, which is the same thing as saying only for a table
@@ -123,6 +127,7 @@ function HorizontalTableScroll({
 
     const horizontalScrollViewRef = useRef<ComponentRef<typeof RNScrollView>>(null);
     const containerRef = useRef<View>(null);
+    const leftPinned = useLeftPinnedColumns();
 
     const handleHorizontalScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
         savedHorizontalScrollOffset = event.nativeEvent.contentOffset.x;
@@ -137,8 +142,9 @@ function HorizontalTableScroll({
         horizontalScrollViewRef.current?.scrollTo({x: savedHorizontalScrollOffset, animated: false});
     }, [dataKey, shouldScrollHorizontally, isListScrollingBothAxes]);
 
+    // The kept offset is restored first, so the pinned variables are first written for it.
     useTableScrollOffset(containerRef, isListScrollingBothAxes, savedHorizontalScrollOffsetStore, dataKey);
-    usePinnedScrollVariables(containerRef, isListScrollingBothAxes);
+    usePinnedScrollVariables(containerRef, isListScrollingBothAxes, leftPinned);
 
     if (!shouldScrollHorizontally) {
         return children;
@@ -152,12 +158,13 @@ function HorizontalTableScroll({
                 <ListScrollerContext.Provider
                     value={{contentWidthStyle, scrollerDataSet: resizableScrollWidth ? RESIZABLE_LIST_SCROLLER_DATA_SET : PINNED_TABLE_SCROLLER_DATA_SET, measureScrollbarRef}}
                 >
-                    {/* Carries the table's variables to the rows. */}
+                    {/* Carries the table's variables to the rows and to the mask beside them. */}
                     <View
                         ref={containerRef}
                         style={styles.flex1}
                     >
                         {children}
+                        <PinnedGutterMask gutterWidth={pageGutter} />
                     </View>
                 </ListScrollerContext.Provider>
             </ListScrollAxesContext.Provider>

@@ -15,7 +15,7 @@ type ListScroller = {
     /** The width of the table the list scrolls across. Its rows are absolutely positioned, so they can't widen its content. */
     contentWidthStyle?: ViewStyle;
 
-    /** Marks the list's scroller for what measures or holds it: the sticky header and a column resize drag. */
+    /** Marks the list's scroller for what measures or holds it: the pinned columns and a column resize drag. */
     scrollerDataSet?: Record<string, boolean>;
 
     measureScrollbarRef?: (instance: ScrollableNodeHolder | null) => void;
