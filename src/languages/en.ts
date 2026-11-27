@@ -13021,11 +13021,8 @@ const translations = {
             creditBalance: 'Credit balance',
             taxExempt: 'Request tax exempt status',
             taxExemptEnabled: 'Tax exempt',
-            taxExemptStatus: 'Tax exempt status',
             payPerUse: 'Pay-per-use',
             subscriptionSize: 'Subscription size',
-            headsUp:
-                "Heads up: If you don’t set your subscription size now, we’ll set it automatically to your first month's active member count. You’ll then be committed to paying for at least this number of members for the next 12 months. You can increase your subscription size at any time, but you can’t decrease it until your subscription is over.",
             zeroCommitment: 'Zero commitment at the discounted annual subscription rate',
         },
         subscriptionSize: {
@@ -13113,16 +13110,12 @@ const translations = {
             expensifyCodeApplied: (code: string) => `${code} applied`,
             secretExpensifyCodeApplied: 'Expensify code applied',
             addExpensifyCode: 'Add Expensify code',
-            editExpensifyCode: 'Edit Expensify code',
             saveWithAnnualSubscription: 'Save with an annual subscription',
             annual: 'Annual',
             autoRenew: 'Auto-renew',
             autoIncrease: 'Auto-increase annual seats',
-            saveUpTo: (amountWithCurrency: string) => `Save up to ${amountWithCurrency}/month per active member`,
             autoIncreaseDescription: (amountWithCurrency: string) =>
                 `Save up to ${amountWithCurrency}/month per active member. Extra seats are added automatically when active users exceed your subscription, extending your annual end date.`,
-            automaticallyIncrease:
-                'Automatically increase your annual seats to accommodate for active members that exceed your subscription size. Note: This will extend your annual subscription end date.',
             disableAutoRenew: 'Disable auto-renew',
             helpUsImprove: 'Help us improve Expensify',
             whatsMainReason: "What's the main reason you're disabling auto-renew?",

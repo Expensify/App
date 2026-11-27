@@ -12667,11 +12667,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             creditBalance: 'Guthaben',
             taxExempt: 'Steuerbefreiungsstatus beantragen',
             taxExemptEnabled: 'Steuerbefreit',
-            taxExemptStatus: 'Steuerbefreiungsstatus',
             payPerUse: 'Nutzungsgbühr',
             subscriptionSize: 'Abonnementgröße',
-            headsUp:
-                'Hinweis: Wenn du deine Abonnementgröße jetzt nicht festlegst, setzen wir sie automatisch auf die Anzahl der aktiven Mitglieder in deinem ersten Monat. Du verpflichtest dich dann, für mindestens diese Anzahl von Mitgliedern in den nächsten 12 Monaten zu zahlen. Du kannst deine Abonnementgröße jederzeit erhöhen, aber du kannst sie erst verringern, wenn dein Abonnement abgelaufen ist.',
             zeroCommitment: 'Keine Verpflichtung zum vergünstigten Jahresabonnementpreis',
         },
         subscriptionSize: {
@@ -12746,9 +12743,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             annual: 'Jährlich',
             autoRenew: 'Automatisch verlängern',
             autoIncrease: 'Jährliche Plätze automatisch erhöhen',
-            saveUpTo: (amountWithCurrency: string) => `Spare bis zu ${amountWithCurrency}/Monat pro aktivem Mitglied`,
-            automaticallyIncrease:
-                'Erhöhe deine jährlichen Plätze automatisch, um aktive Mitglieder zu berücksichtigen, die deine Abonnementgröße überschreiten. Hinweis: Dadurch wird das Enddatum deines Jahresabonnements verlängert.',
             disableAutoRenew: 'Automatische Verlängerung deaktivieren',
             helpUsImprove: 'Hilf uns, Expensify zu verbessern',
             whatsMainReason: 'Was ist der Hauptgrund, warum du die automatische Verlängerung deaktivierst?',
@@ -12768,7 +12762,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             sizeNotSet: `<muted-text-label>Wenn Sie Ihre Abonnementgröße jetzt nicht festlegen, legen wir sie automatisch basierend auf der Anzahl der aktiven Mitglieder in Ihrem ersten Monat fest. <a href="${CONST.PRICING}">Mehr erfahren</a></muted-text-label>`,
             expensifyCodeApplied: (code: string) => `${code} angewendet`,
             addExpensifyCode: 'Expensify-Code hinzufügen',
-            editExpensifyCode: 'Expensify-Code bearbeiten',
             saveWithAnnualSubscription: 'Sparen Sie mit einem Jahresabonnement',
             autoIncreaseDescription: (amountWithCurrency: string) =>
                 `Sparen Sie bis zu ${amountWithCurrency}/Monat pro aktivem Mitglied. Zusätzliche Plätze werden automatisch hinzugefügt, wenn aktive Nutzer:innen Ihr Abonnement überschreiten, wodurch sich Ihr jährliches Enddatum verlängert.`,

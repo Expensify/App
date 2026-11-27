@@ -39,7 +39,6 @@ describe('getSubscriptionPlanCardView', () => {
         expect(view.canToggleAnnualSettings).toBe(true);
         expect(en.subscription.subscriptionSettings.memberCount({count: view.memberCount}).other).toBe('12 members');
         expect(en.subscription.subscriptionSettings).not.toHaveProperty('summary');
-        expect(en.subscription.subscriptionSettings.editExpensifyCode).toBe('Edit Expensify code');
     });
 
     it('pluralizes one member and shows the size helper for a missing or zero size', () => {

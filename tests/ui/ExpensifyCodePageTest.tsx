@@ -178,7 +178,6 @@ describe('ExpensifyCodePage', () => {
         // Then the page is Not Found, because an applied code cannot be replaced from here
         expect(screen.getByTestId('NotFoundPage')).toBeOnTheScreen();
         expect(screen.queryByText('APPLIED_CODE')).not.toBeOnTheScreen();
-        expect(screen.queryByText(TestHelper.translateLocal('subscription.subscriptionSettings.editExpensifyCode'))).not.toBeOnTheScreen();
     });
 
     it('shows NotFoundPage when the applied code is secret', async () => {

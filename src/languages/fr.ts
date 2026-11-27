@@ -12697,11 +12697,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             creditBalance: 'Solde créditeur',
             taxExempt: 'Demander le statut d’exonération fiscale',
             taxExemptEnabled: 'Exonéré d’impôt',
-            taxExemptStatus: 'Statut d’exonération fiscale',
             payPerUse: 'Paiement à l’usage',
             subscriptionSize: 'Taille de l’abonnement',
-            headsUp:
-                'Attention : si vous ne définissez pas maintenant la taille de votre abonnement, nous la définirons automatiquement en fonction du nombre de membres actifs de votre premier mois. Vous serez alors engagé à payer au moins ce nombre de membres pour les 12 prochains mois. Vous pourrez augmenter la taille de votre abonnement à tout moment, mais vous ne pourrez pas la réduire avant la fin de votre abonnement.',
             zeroCommitment: 'Aucun engagement au tarif annuel d’abonnement réduit',
         },
         subscriptionSize: {
@@ -12776,9 +12773,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             annual: 'Annuel',
             autoRenew: 'Renouvellement automatique',
             autoIncrease: 'Augmenter automatiquement les licences annuelles',
-            saveUpTo: (amountWithCurrency: string) => `Économisez jusqu’à ${amountWithCurrency}/mois par membre actif`,
-            automaticallyIncrease:
-                'Augmenter automatiquement vos licences annuelles pour tenir compte des membres actifs dépassant la taille de votre abonnement. Remarque : cela prolongera la date de fin de votre abonnement annuel.',
             disableAutoRenew: 'Désactiver le renouvellement automatique',
             helpUsImprove: 'Aidez-nous à améliorer Expensify',
             whatsMainReason: 'Quelle est la principale raison pour laquelle vous désactivez le renouvellement automatique ?',
@@ -12798,7 +12792,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             sizeNotSet: `<muted-text-label>Si vous ne définissez pas maintenant la taille de votre abonnement, nous la définirons automatiquement en fonction du nombre de membres actifs de votre premier mois. <a href="${CONST.PRICING}">En savoir plus</a></muted-text-label>`,
             expensifyCodeApplied: (code: string) => `${code} appliqué`,
             addExpensifyCode: 'Ajouter le code Expensify',
-            editExpensifyCode: 'Modifier le code Expensify',
             saveWithAnnualSubscription: 'Économisez avec un abonnement annuel',
             autoIncreaseDescription: (amountWithCurrency: string) =>
                 `Économisez jusqu’à ${amountWithCurrency}/mois par membre actif. Des places supplémentaires sont ajoutées automatiquement lorsque le nombre d’utilisateurs actifs dépasse votre abonnement, ce qui prolonge votre date de fin annuelle.`,
