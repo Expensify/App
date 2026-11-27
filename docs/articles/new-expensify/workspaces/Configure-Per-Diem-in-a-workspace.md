@@ -62,7 +62,9 @@ Each rate is listed as a line item. You can:
 - Select one or more rates to edit or delete.
 - Click a rate to adjust its details.
 - On the web, hover over a rate's **Destination**, **Subrate**, or **Amount** and click the pencil icon that appears to edit it inline.
-- Use the **X selected** dropdown to apply bulk actions like delete.
+- Access bulk actions for the selected rates:
+  - On web with a wide screen: Use the selection bar.
+  - On mobile or a narrow screen: Select the button showing the number of rates selected (for example, **2 selected**).
 
 ![Edit rates using the right-hand panel]({{site.url}}/assets/images/perdiem_03.png){:width="100%"}
 

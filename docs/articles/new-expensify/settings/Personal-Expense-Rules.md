@@ -75,8 +75,10 @@ To delete one or more Expense Rules:
 
 1. Go to **Account > Expense Rules**
 2. Select the checkbox next to the rule(s)
-3. Click the **Selected** dropdown
-4. Select **Delete rule(s)**
+3. Access the actions for your selection:
+   - On web with a wide screen: Use the selection bar.
+   - On mobile or a narrow screen: Select the button showing the number of rules selected (for example, **2 selected**).
+4. Select **Delete rule** or **Delete rules**, depending on how many rules you selected.
 5. Confirm deletion
 
 Deleted rules cannot be recovered.
