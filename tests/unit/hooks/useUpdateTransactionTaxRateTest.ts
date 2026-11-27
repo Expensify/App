@@ -2,7 +2,7 @@ import {renderHook} from '@testing-library/react-native';
 
 import useUpdateTransactionTaxRate from '@hooks/useUpdateTransactionTaxRate';
 
-import {setMoneyRequestDraftHasUserEdits, setMoneyRequestTaxRateValues} from '@libs/actions/IOU/MoneyRequest';
+import {setDraftHasUserEdits, setMoneyRequestTaxRateValues} from '@libs/actions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {updateMoneyRequestTaxRate} from '@libs/actions/IOU/UpdateMoneyRequest';
 
@@ -17,7 +17,7 @@ import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 const mockTranslate = jest.fn(() => 'Translated tax rate');
 
 // The three writes are the assertions: each branch must reach exactly one of them.
-jest.mock('@libs/actions/IOU/MoneyRequest', () => ({setMoneyRequestTaxRateValues: jest.fn(), setMoneyRequestDraftHasUserEdits: jest.fn()}));
+jest.mock('@libs/actions/IOU/MoneyRequest', () => ({setMoneyRequestTaxRateValues: jest.fn(), setDraftHasUserEdits: jest.fn()}));
 jest.mock('@libs/actions/IOU/Split', () => ({setDraftSplitTransaction: jest.fn()}));
 jest.mock('@libs/actions/IOU/UpdateMoneyRequest', () => ({updateMoneyRequestTaxRate: jest.fn()}));
 
@@ -98,7 +98,7 @@ describe('useUpdateTransactionTaxRate', () => {
         expect(setDraftSplitTransaction).not.toHaveBeenCalled();
 
         // And the draft is marked as edited by the user, so leaving the create flow asks before discarding the pick
-        expect(setMoneyRequestDraftHasUserEdits).toHaveBeenCalledWith(TRANSACTION_ID);
+        expect(setDraftHasUserEdits).toHaveBeenCalledWith(TRANSACTION_ID);
     });
 
     it('writes a saved expense through the money request update', () => {

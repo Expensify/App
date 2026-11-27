@@ -15,7 +15,7 @@ import {
     getMoneyRequestParticipantsFromReport,
     setMoneyRequestAmount,
     setMoneyRequestCurrency,
-    setMoneyRequestDraftHasUserEdits,
+    setDraftHasUserEdits,
     setMoneyRequestTaxAmount,
     setMoneyRequestTaxRate,
 } from '@libs/actions/IOU/MoneyRequest';
@@ -285,7 +285,7 @@ function AmountField({
 
         // The currency has no flag of its own, and the amount flag goes away if the user clears the amount later, so mark the draft here
         if (!isEditingSplitBill) {
-            setMoneyRequestDraftHasUserEdits(transactionID);
+            setDraftHasUserEdits(transactionID);
         }
 
         if (isMovingTransactionFromTrackExpense(action)) {

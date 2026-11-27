@@ -11,7 +11,7 @@ import {
     setMoneyRequestCreated,
     setMoneyRequestDateAttribute,
     setMoneyRequestDistanceRate,
-    setMoneyRequestDraftHasUserEdits,
+    setDraftHasUserEdits,
     setMoneyRequestMerchant,
     setMoneyRequestParticipantsFromReport,
     setMultipleMoneyRequestParticipantsFromReport,
@@ -935,7 +935,7 @@ describe('actions/IOU', () => {
             expect(draft?.billable).toBe(true);
         });
 
-        it('setMoneyRequestDraftHasUserEdits keeps the draft marked until a re-init switches its request type', async () => {
+        it('setDraftHasUserEdits keeps the draft marked until a re-init switches its request type', async () => {
             const draftKey = `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}` as const;
             const initManualRequest = (currentIouRequestType: Transaction['iouRequestType']) =>
                 initMoneyRequest({
@@ -954,7 +954,7 @@ describe('actions/IOU', () => {
 
             // Given a manual draft whose category the user picked
             initManualRequest(undefined);
-            setMoneyRequestDraftHasUserEdits(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
+            setDraftHasUserEdits(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
             await waitForBatchedUpdates();
             expect((await getOnyxValue(draftKey))?.hasUserEdits).toBe(true);
 

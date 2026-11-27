@@ -4,7 +4,7 @@ import type {AttendeePickerModalProps} from '@components/AttendeePicker/Attendee
 import AttendeeFieldDropdown from '@components/MoneyRequestConfirmationList/sections/AttendeeFieldDropdown';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
-import {setMoneyRequestAttendees, setMoneyRequestDraftHasUserEdits} from '@libs/actions/IOU/MoneyRequest';
+import {setMoneyRequestAttendees, setDraftHasUserEdits} from '@libs/actions/IOU/MoneyRequest';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -19,7 +19,7 @@ import waitForBatchedUpdates from '../../../utils/waitForBatchedUpdates';
 jest.mock('@libs/actions/IOU/MoneyRequest', () => ({
     ...jest.requireActual<Record<string, unknown>>('@libs/actions/IOU/MoneyRequest'),
     setMoneyRequestAttendees: jest.fn(),
-    setMoneyRequestDraftHasUserEdits: jest.fn(),
+    setDraftHasUserEdits: jest.fn(),
 }));
 
 // The list is covered by the AttendeePickerModal tests; here only what the dropdown hands it, and what it does when the selection is applied, matter.
@@ -64,7 +64,7 @@ describe('AttendeeFieldDropdown', () => {
     beforeEach(async () => {
         mockModalProps = undefined;
         jest.mocked(setMoneyRequestAttendees).mockClear();
-        jest.mocked(setMoneyRequestDraftHasUserEdits).mockClear();
+        jest.mocked(setDraftHasUserEdits).mockClear();
         await Onyx.clear();
         // The expense sits on a report the creator owns, which is where the list finds the creator to start from.
         await Onyx.multiSet({
@@ -107,7 +107,7 @@ describe('AttendeeFieldDropdown', () => {
         expect(onClose).toHaveBeenCalledTimes(1);
 
         // And the draft is marked as edited by the user, so leaving the create flow asks before discarding the attendees
-        expect(setMoneyRequestDraftHasUserEdits).toHaveBeenCalledWith(TRANSACTION_ID);
+        expect(setDraftHasUserEdits).toHaveBeenCalledWith(TRANSACTION_ID);
     });
 
     it('closes without writing when the applied selection is unchanged', async () => {
@@ -128,7 +128,7 @@ describe('AttendeeFieldDropdown', () => {
         // Then the list closes and the draft is left alone, as the full page skips the write when nothing changed
         expect(onClose).toHaveBeenCalledTimes(1);
         expect(setMoneyRequestAttendees).not.toHaveBeenCalled();
-        expect(setMoneyRequestDraftHasUserEdits).not.toHaveBeenCalled();
+        expect(setDraftHasUserEdits).not.toHaveBeenCalled();
     });
 
     it('reopens from the draft after being dismissed with an unapplied selection', async () => {

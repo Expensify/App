@@ -12,7 +12,7 @@ import usePrevious from '@hooks/usePrevious';
 import useReportOwnerAsAttendee from '@hooks/useReportOwnerAsAttendee';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 
-import {setMoneyRequestAttendees, setMoneyRequestDraftHasUserEdits} from '@libs/actions/IOU/MoneyRequest';
+import {setMoneyRequestAttendees, setDraftHasUserEdits} from '@libs/actions/IOU/MoneyRequest';
 import {updateMoneyRequestAttendees} from '@libs/actions/IOU/UpdateMoneyRequest';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
@@ -115,7 +115,7 @@ function DynamicIOURequestStepAttendees({
                 });
             } else {
                 setMoneyRequestAttendees(transactionID, attendees, !isEditing);
-                setMoneyRequestDraftHasUserEdits(transactionID);
+                setDraftHasUserEdits(transactionID);
             }
         }
 

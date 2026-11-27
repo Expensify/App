@@ -1,6 +1,6 @@
 import {useSearchQueryContext} from '@components/Search/SearchContext';
 
-import {setMoneyRequestDraftHasUserEdits, setMoneyRequestTag} from '@libs/actions/IOU/MoneyRequest';
+import {setDraftHasUserEdits, setMoneyRequestTag} from '@libs/actions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {updateMoneyRequestTag} from '@libs/actions/IOU/UpdateMoneyRequest';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -148,7 +148,7 @@ function useUpdateTransactionTag({
         }
 
         setMoneyRequestTag(transactionID, updatedTag);
-        setMoneyRequestDraftHasUserEdits(transactionID);
+        setDraftHasUserEdits(transactionID);
     };
 
     return {updateTag};

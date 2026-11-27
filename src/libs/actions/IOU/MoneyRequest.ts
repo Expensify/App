@@ -1155,7 +1155,7 @@ function setMoneyRequestReimbursable(transactionID: string, reimbursable: boolea
  * Call it only when the user picks a value. Code that fills in defaults writes the same fields and must not call it,
  * or closing a draft the user didn't touch would ask to discard changes.
  */
-function setMoneyRequestDraftHasUserEdits(transactionID: string) {
+function setDraftHasUserEdits(transactionID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
         hasUserEdits: true,
     });
@@ -1307,7 +1307,7 @@ export {
     setMoneyRequestTag,
     setMoneyRequestBillable,
     setMoneyRequestReimbursable,
-    setMoneyRequestDraftHasUserEdits,
+    setDraftHasUserEdits,
     setMoneyRequestReportID,
     setLastSelectedDistanceRate,
     copyScanResultsToMovedExpenseDraft,

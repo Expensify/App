@@ -9,7 +9,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 
-import {setCustomUnitID, setCustomUnitRateID, setMoneyRequestDraftHasUserEdits} from '@libs/actions/IOU/MoneyRequest';
+import {setCustomUnitID, setCustomUnitRateID, setDraftHasUserEdits} from '@libs/actions/IOU/MoneyRequest';
 import {clearSubrates} from '@libs/actions/IOU/PerDiem';
 import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -164,7 +164,7 @@ function useReportSelectionActions({
                 true,
             );
         }
-        setMoneyRequestDraftHasUserEdits(transaction.transactionID);
+        setDraftHasUserEdits(transaction.transactionID);
 
         // Clear subrates, and update customUnitID if policy changed for per diem transactions
         if (policyChanged && isPerDiemTransaction) {
@@ -243,7 +243,7 @@ function useReportSelectionActions({
                     });
                     removeTransaction(transaction.transactionID, {isDeleted: false});
                 } else {
-                    setMoneyRequestDraftHasUserEdits(transaction.transactionID);
+                    setDraftHasUserEdits(transaction.transactionID);
                 }
             },
         });

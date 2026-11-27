@@ -11,7 +11,7 @@ import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 
-import {setMoneyRequestCurrency, setMoneyRequestDraftHasUserEdits, setMoneyRequestTaxAmount} from '@libs/actions/IOU/MoneyRequest';
+import {setMoneyRequestCurrency, setDraftHasUserEdits, setMoneyRequestTaxAmount} from '@libs/actions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {updateMoneyRequestTaxAmount} from '@libs/actions/IOU/UpdateMoneyRequest';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
@@ -167,7 +167,7 @@ function DynamicIOURequestStepTaxAmountPage({
         setMoneyRequestTaxAmount(transactionID, taxAmountInSmallestCurrencyUnits);
 
         setMoneyRequestCurrency(transactionID, currency || CONST.CURRENCY.USD);
-        setMoneyRequestDraftHasUserEdits(transactionID);
+        setDraftHasUserEdits(transactionID);
 
         navigateBack();
     };

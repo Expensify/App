@@ -9,7 +9,7 @@ import useOnyx from '@hooks/useOnyx';
 import Navigation from '@libs/Navigation/Navigation';
 import {canSendInvoiceFromWorkspace, getActiveAdminWorkspaces, sortWorkspacesBySelected} from '@libs/PolicyUtils';
 
-import {setMoneyRequestDraftHasUserEdits, setMoneyRequestParticipants} from '@userActions/IOU/MoneyRequest';
+import {setDraftHasUserEdits, setMoneyRequestParticipants} from '@userActions/IOU/MoneyRequest';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -79,7 +79,7 @@ function DynamicIOURequestStepSendFrom({route, transaction}: DynamicIOURequestSt
         });
 
         setMoneyRequestParticipants(transactionID, newParticipants);
-        setMoneyRequestDraftHasUserEdits(transactionID);
+        setDraftHasUserEdits(transactionID);
         navigateBack();
     };
 

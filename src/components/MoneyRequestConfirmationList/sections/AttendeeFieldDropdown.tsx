@@ -8,7 +8,7 @@ import type {DropdownFieldRenderProps} from '@components/DropdownField';
 import useOnyx from '@hooks/useOnyx';
 import useReportOwnerAsAttendee from '@hooks/useReportOwnerAsAttendee';
 
-import {setMoneyRequestAttendees, setMoneyRequestDraftHasUserEdits} from '@libs/actions/IOU/MoneyRequest';
+import {setMoneyRequestAttendees, setDraftHasUserEdits} from '@libs/actions/IOU/MoneyRequest';
 import {getOriginalAttendees} from '@libs/TransactionUtils';
 
 import type {IOUType} from '@src/CONST';
@@ -55,7 +55,7 @@ function AttendeeFieldDropdown({transactionID, iouType, isVisible, onClose, ...p
         }
         if (!deepEqual(originalAttendees, attendees)) {
             setMoneyRequestAttendees(transactionID, attendees, true);
-            setMoneyRequestDraftHasUserEdits(transactionID);
+            setDraftHasUserEdits(transactionID);
         }
         onClose();
     };

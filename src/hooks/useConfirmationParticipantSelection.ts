@@ -7,7 +7,7 @@ import {generateReportID, getReportOrDraftReport} from '@libs/ReportUtils';
 import {
     setCustomUnitRateID,
     setMoneyRequestCategory,
-    setMoneyRequestDraftHasUserEdits,
+    setDraftHasUserEdits,
     setMoneyRequestParticipants,
     setMoneyRequestParticipantsFromReport,
     setMoneyRequestTag,
@@ -89,7 +89,7 @@ function useConfirmationParticipantSelection({
         if (blockDistanceRequestIfNeeded(selectedPolicyID)) {
             return false;
         }
-        setMoneyRequestDraftHasUserEdits(transactionID);
+        setDraftHasUserEdits(transactionID);
         // P2P chats don't support negative amounts, so a negative expense picked for a P2P recipient stays on the
         // self DM instead of failing at submit. An expense already on a workspace chat keeps its workspace.
         const isTransactionOnPolicyExpenseChat = transaction?.participants?.some((participant) => participant?.isPolicyExpenseChat);
