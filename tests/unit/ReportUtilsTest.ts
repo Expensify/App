@@ -11470,6 +11470,7 @@ describe('ReportUtils', () => {
                     pendingAction: null,
                     originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID: 'liveTransaction', amount: 100, currency: CONST.CURRENCY.USD},
                     message: [{type: 'COMMENT', html: '$1.00 expense', text: '$1.00 expense'}],
+                    previousMessage: undefined,
                 };
                 const pendingDeletedExpenseAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
                     ...LHNTestUtils.getFakeReportAction(),
@@ -11477,6 +11478,7 @@ describe('ReportUtils', () => {
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                     originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID: 'deletedTransaction', amount: 200, currency: CONST.CURRENCY.USD},
                     message: [{type: 'COMMENT', html: '', text: '', deleted: readTime}],
+                    previousMessage: undefined,
                 };
                 transactionThread.parentReportActionID = liveExpenseAction.reportActionID;
                 return {expenseReport, transactionThread, liveExpenseAction, pendingDeletedExpenseAction};
