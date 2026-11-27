@@ -102,6 +102,7 @@ function WorkspaceMemberCategoryVisibilityPage({policy, route}: WorkspaceMemberC
                     categoryCount: translate('workspace.people.categoriesCount', {count: categoriesToSave.length}),
                     memberCount: translate('workspace.categories.membersCount', {count: accountIDs.length}),
                 }),
+                duration: CONST.GROWL.DURATION_LONG,
             });
             return;
         }
