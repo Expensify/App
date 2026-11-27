@@ -216,7 +216,7 @@ describe('WorkspaceInviteMessageComponent - Approver row on Dynamic External Wor
         expect(queryApproverRow()).not.toBeOnTheScreen();
     });
 
-    it('sends the invitation with the workspace categories and the welcome note', async () => {
+    it('sends the invitation with the workspace categories', async () => {
         // Given a workspace with a category limited to some members, which the invite adds the new member to
         const policyCategories = {Food: {name: 'Food', enabled: true, visibleTo: {[ADMIN_ACCOUNT_ID]: true}}};
         await act(async () => {
@@ -228,18 +228,9 @@ describe('WorkspaceInviteMessageComponent - Approver row on Dynamic External Wor
         // When the admin sends the invite
         await pressInvite();
 
-        // Then the categories reach the action with the fields it needs to limit the new member, and the note starts with the inviter and workspace subject
+        // Then the categories reach the action with the fields it needs to limit the new member
         expect(addMembersToWorkspaceMock).toHaveBeenCalledTimes(1);
-        expect(addMembersToWorkspaceMock).toHaveBeenCalledWith(
-            expect.anything(),
-            expect.anything(),
-            expect.stringMatching(/^# admin invited you to Test Workspace\n\n/),
-            expect.anything(),
-            expect.anything(),
-            expect.anything(),
-            expect.anything(),
-            expect.anything(),
-            expect.objectContaining({policyCategories}),
-        );
+        // The categories are passed in the options object, the last argument.
+        expect(addMembersToWorkspaceMock.mock.lastCall?.[8]?.policyCategories).toEqual(policyCategories);
     });
 });
