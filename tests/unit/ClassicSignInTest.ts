@@ -477,7 +477,9 @@ describe('ClassicSignIn', () => {
     });
 
     it('does nothing in native apps', () => {
-        // When the native implementation is asked to open the Classic pages
+        // Given the native implementation of the module
+
+        // When it is asked to open the Classic pages
         NativeClassicSignIn.openClassicSignIn();
         NativeClassicSignIn.openClassicSignOutAfter(Promise.resolve());
 

@@ -681,7 +681,10 @@ describe('Session', () => {
             });
 
             test('SignOutAndRedirectToSignIn should redirect to OldDot on other hosts', async () => {
-                // When the user signs out on a host that serves only New Expensify
+                // Given a host that serves only New Expensify
+                jest.mocked(isSharedProductHost).mockReturnValue(false);
+
+                // When the user signs out
                 await signOutAndRedirectToSignIn(await Onyx.get(ONYXKEYS.SESSION));
 
                 // Then the Classic sign-out page opens after the sign in redirect
