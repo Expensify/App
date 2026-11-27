@@ -11,7 +11,7 @@ type LayoutChangeEvent = {
     target: HTMLElement;
 };
 
-function TextWithTooltip({testID, text, shouldShowTooltip, style, numberOfLines = 1, forwardedFSClass, isSelectable = false}: TextWithTooltipProps) {
+function TextWithTooltip({testID, text, shouldShowTooltip, style, variant, numberOfLines = 1, forwardedFSClass, isSelectable = false}: TextWithTooltipProps) {
     const [showTooltip, setShowTooltip] = useState(false);
 
     return (
@@ -22,6 +22,7 @@ function TextWithTooltip({testID, text, shouldShowTooltip, style, numberOfLines 
             <Text
                 testID={testID}
                 style={style}
+                variant={variant}
                 numberOfLines={numberOfLines}
                 selectable={isSelectable}
                 onLayout={(e) => {
