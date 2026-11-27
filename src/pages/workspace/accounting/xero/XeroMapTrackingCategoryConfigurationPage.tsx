@@ -33,7 +33,8 @@ function XeroMapTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
     const params = route.params as RouteParams;
     const styles = useThemeStyles();
     const categoryId = params?.categoryId ?? '';
-    const categoryName = decodeURIComponent(params?.categoryName ?? '');
+    // Navigation already decodes route params, so decoding the name again would crash on names like `100% Billable`
+    const categoryName = params?.categoryName ?? '';
     const decodedCategoryName = getDecodedCategoryName(categoryName);
     const policyID = policy?.id;
     const {config} = policy?.connections?.xero ?? {};

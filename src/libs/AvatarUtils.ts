@@ -7,7 +7,6 @@ import type {AvatarSource} from './UserUtils';
 import {splitExtensionFromFileName, validateImageForCorruption} from './fileDownload/FileUtils';
 import getImageResolution from './fileDownload/getImageResolution';
 import tryResolveUrlFromApiRoot from './tryResolveUrlFromApiRoot';
-import {decodeURIComponentSafely} from './Url';
 
 /**
  * Validation result containing error information if validation fails
@@ -120,10 +119,10 @@ function getValidatedImageSource(source: AvatarSource | undefined, shouldResolve
         return numberSource;
     }
 
+    // The source is not decoded here because navigation already decodes route params once. Decoding it
+    // again would turn a literal `%23` or `%25` in the URL into `#` or `%` and point to a different file.
     if (typeof source === 'string') {
-        const decoded = decodeURIComponentSafely(source);
-
-        return shouldResolveUrlFromApiRoot ? tryResolveUrlFromApiRoot(decoded) : decoded;
+        return shouldResolveUrlFromApiRoot ? tryResolveUrlFromApiRoot(source) : source;
     }
 
     return undefined;

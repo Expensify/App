@@ -344,10 +344,17 @@ describe('AvatarUtils', () => {
             expect(getValidatedImageSource(1)).toBe(1);
         });
 
-        it('should decode string source', () => {
-            const encodedImageFileName = 'avatar.jpg%3Fv%3D123';
-            const decodedImageFileName = decodeURIComponent(encodedImageFileName);
-            expect(getValidatedImageSource(encodedImageFileName)).toBe(decodedImageFileName);
+        it.each([
+            ['an encoded query string', 'avatar.jpg%3Fv%3D123'],
+            ['a literal %23 in the path', 'https://example.com/images/report%23123.png'],
+            ['a literal %25 in the path', 'https://example.com/images/100%25.png'],
+        ])('should keep %s in a string source as is', (_, source) => {
+            // Given a string source that navigation has already decoded from the route
+            // When it is validated
+            const validatedSource = getValidatedImageSource(source, false);
+
+            // Then it is not decoded a second time, so it still points to the same file
+            expect(validatedSource).toBe(source);
         });
 
         it('should validate string source', () => {
@@ -365,7 +372,7 @@ describe('AvatarUtils', () => {
             expect(getValidatedImageSource(absoluteEncodedImageFilePath)).toBe(encodedProdImageFileUrl);
 
             expect(getValidatedImageSource(prodImageFileUrl)).toBe(prodImageFileUrl);
-            expect(getValidatedImageSource(encodedProdImageFileUrl)).toBe(prodImageFileUrl);
+            expect(getValidatedImageSource(encodedProdImageFileUrl)).toBe(encodedProdImageFileUrl);
         });
 
         it.each([
