@@ -56,8 +56,8 @@ jest.mock('@components/Modal/ReanimatedModal', () => {
 const mockNavigateToConciergeChat = jest.fn();
 jest.mock('@userActions/Report', () => ({
     ...jest.requireActual<typeof ReportUserActionsModule>('@userActions/Report'),
-    navigateToConciergeChat: () => {
-        mockNavigateToConciergeChat();
+    navigateToConciergeChat: (...args: unknown[]) => {
+        mockNavigateToConciergeChat(...args);
     },
 }));
 
@@ -75,6 +75,7 @@ const POLICY_ID = 'workflows-locked-bank-account-test';
 const CURRENT_USER_LOGIN = 'test@user.com';
 const OTHER_REIMBURSER_LOGIN = 'reimburser@user.com';
 const BANK_ACCOUNT_ID = 123456;
+const CONCIERGE_REPORT_ID = '987654';
 
 type TestNavigatorParamList = WorkspaceSplitNavigatorParamList;
 
@@ -189,6 +190,11 @@ describe('WorkspaceWorkflowsPageRevamp - bank account row', () => {
 
     it('lets the reimburser request an unlock while offline, because the request is optimistic and queues until reconnect', async () => {
         await setUpLockedBankAccount(CURRENT_USER_LOGIN);
+        // Given a Concierge chat and tour progress that differ from the defaults, so a value that never reaches the chat call fails
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_REPORT_ID);
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {selfTourViewed: true, hasCompletedGuidedSetupFlow: false});
+        });
         setForceOffline(true);
 
         renderPage();
@@ -197,7 +203,10 @@ describe('WorkspaceWorkflowsPageRevamp - bank account row', () => {
         fireEvent.press(screen.getByText(TestHelper.translateLocal('walletPage.bankAccountStatus.unlock')));
         await waitForBatchedUpdatesWithAct();
 
-        expect(mockNavigateToConciergeChat).toHaveBeenCalled();
+        // Then the stored Concierge chat and tour progress still reach navigateToConciergeChat
+        expect(mockNavigateToConciergeChat).toHaveBeenCalledWith(
+            expect.objectContaining({conciergeReportID: CONCIERGE_REPORT_ID, isSelfTourViewed: true, hasCompletedGuidedSetupFlow: false}),
+        );
         await expect(getInitiatingBankAccountUnlock()).resolves.toEqual(expect.objectContaining({bankAccountIDToUnlock: BANK_ACCOUNT_ID}));
     });
 
