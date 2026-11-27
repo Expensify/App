@@ -81,19 +81,23 @@ describe('findColumnName', () => {
             {text: 'Ignore', value: CONST.CSV_IMPORT_COLUMNS.IGNORE},
             ...[1, 2].flatMap((position) => [
                 {text: `Approver ${position}`, value: getApproverColumnRole(position, 'approver')},
-                {text: `Approver ${position} limit`, value: getApproverColumnRole(position, 'approvalLimit')},
-                {text: `Approver ${position} over limit approver`, value: getApproverColumnRole(position, 'overLimitApprover')},
+                {text: `Approver ${position} approval type`, value: getApproverColumnRole(position, 'approvalType')},
+                {text: `Approver ${position} over amount`, value: getApproverColumnRole(position, 'limit')},
             ]),
         ];
 
         // When the headers of an exported workflow are auto-detected
         // Then each one maps to its approver's column, whatever its casing and separators
         expect(findColumnName('Approver 1', columnRoles)).toBe(getApproverColumnRole(1, 'approver'));
-        expect(findColumnName('Approver 2 limit', columnRoles)).toBe(getApproverColumnRole(2, 'approvalLimit'));
-        expect(findColumnName('approver_2_over-limit approver', columnRoles)).toBe(getApproverColumnRole(2, 'overLimitApprover'));
+        expect(findColumnName('approver_2_approval-type', columnRoles)).toBe(getApproverColumnRole(2, 'approvalType'));
+        expect(findColumnName('Approver 2 over amount', columnRoles)).toBe(getApproverColumnRole(2, 'limit'));
 
-        // And an approver whose columns aren't offered stays unmapped
+        // And the over amount header that older exports used still maps to the same column
+        expect(findColumnName('Approver 2 limit', columnRoles)).toBe(getApproverColumnRole(2, 'limit'));
+
+        // And an approver whose columns aren't offered stays unmapped, like a header the import doesn't read
         expect(findColumnName('Approver 3', columnRoles)).toBe('');
+        expect(findColumnName('Approver 2 over limit approver', columnRoles)).toBe('');
     });
 
     it('leaves the headers of approvers past the ones the import reads unmapped', () => {

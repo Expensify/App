@@ -28,7 +28,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {canMemberWrite, goBackFromInvalidPolicy, isPendingDeletePolicy, shouldHideDynamicExternalWorkflowPeople} from '@libs/PolicyUtils';
-import {isApprovalWorkflowLockedByIntegration, isOptionalOverLimitApprover} from '@libs/WorkflowUtils';
+import {isApprovalWorkflowLockedByIntegration, isOptionalOverLimitApprover, isOverLimitAmountBelowPreviousApprover} from '@libs/WorkflowUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -101,7 +101,7 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
     let amountErrorKey: TranslationPaths | undefined;
     if (!hasOverLimitAmount) {
         amountErrorKey = 'workflowsApprovalLimitPage.enterAmountError';
-    } else if (previousOverLimitAmount !== undefined && backendOverLimitAmount < previousOverLimitAmount) {
+    } else if (isOverLimitAmountBelowPreviousApprover(backendOverLimitAmount, previousOverLimitAmount)) {
         amountErrorKey = 'workflowsPage.overLimitAmountBelowPreviousApprover';
     } else if (nextOverLimitAmount !== undefined && backendOverLimitAmount > nextOverLimitAmount) {
         amountErrorKey = 'workflowsPage.overLimitAmountAboveNextApprover';

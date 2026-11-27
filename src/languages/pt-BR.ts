@@ -1397,14 +1397,18 @@ const translations: TranslationDeepObject<typeof en> = {
         fieldNotMapped: (fieldName: string) => `Ops! Um campo obrigatório ("${fieldName}") não foi mapeado. Revise e tente novamente.`,
         singleFieldMultipleColumns: (fieldName: string) => `Ops! Você mapeou um único campo ("${fieldName}") para várias colunas. Revise e tente novamente.`,
         emptyMappedField: (fieldName: string) => `Ops! O campo ("${fieldName}") contém um ou mais valores vazios. Revise e tente novamente.`,
-        invalidApprovalLimit: 'Os limites de aprovação devem ser valores válidos na moeda do espaço de trabalho.',
+        invalidApprovalLimit: 'Os valores excedentes devem ser valores válidos na moeda do espaço de trabalho.',
         approverColumn: (position: number) => `Aprovador(a) ${position}`,
-        approverLimitColumn: (position: number) => `Limite de aprovador ${position}`,
-        approverOverLimitApproverColumn: (position: number) => `Aprovador ${position} acima do limite`,
+        approverApprovalTypeColumn: (position: number) => `Tipo de aprovação do aprovador ${position}`,
+        approverLimitColumn: (position: number) => `Valor excedente do aprovador ${position}`,
         approversOutOfOrder: (rowNumber: number) => `Opa! A linha ${rowNumber} está sem aprovador. Liste os aprovadores em ordem, começando pelo Aprovador 1, e tente novamente.`,
         approverRepeated: (rowNumber: number) => `Ops! A linha ${rowNumber} lista o mesmo aprovador mais de uma vez. Revise e tente novamente.`,
-        approvalLimitIncomplete: (rowNumber: number) =>
-            `Ops! A linha ${rowNumber} tem um limite de aprovação sem um aprovador para excesso de limite, ou um aprovador para excesso de limite sem um limite de aprovação. Revise e tente novamente.`,
+        invalidApprovalType: (rowNumber: number) => `Ops! A linha ${rowNumber} tem um tipo de aprovação que não é "Always" ou "Over limit". Revise e tente novamente.`,
+        firstApproverOverLimit: (rowNumber: number) =>
+            `Ops! A linha ${rowNumber} define o Aprovador 1 como "Over limit", mas todos os relatórios vão para o Aprovador 1. Revise e tente novamente.`,
+        approvalLimitMismatch: `Há uma incompatibilidade entre o tipo de aprovação e o valor excedente para esses aprovadores. Aprovadores "Over limit" precisam de um valor excedente, e aprovadores "Always" não podem ter um. Corrija isso e tente novamente. <a href="${CONST.IMPORT_SPREADSHEET.APPROVAL_WORKFLOWS_ARTICLE_LINK}">Saiba mais</a>.`,
+        decreasingApprovalLimits: (rowNumber: number) =>
+            `Opa! A linha ${rowNumber} tem um aprovador "Over limit" com um valor excedente menor do que o aprovador "Over limit" imediatamente anterior. Revise e tente novamente.`,
         fieldValueTooLong: (fieldName: string, limit: number) => `Ops! O campo ("${fieldName}") contém um ou mais valores com mais de ${limit} caracteres. Revise e tente novamente.`,
         importSuccessfulTitle: 'Importação concluída',
         importCategoriesNoneAddedOrUpdated: 'Nenhuma categoria foi adicionada ou atualizada.',
