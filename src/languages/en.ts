@@ -9582,6 +9582,25 @@ const translations = {
                 },
                 noGovernmentRateForOtherCountry: 'There’s no government rate for this country yet.',
                 noGovernmentRateForCountry: (country: string) => `There’s no government rate for ${country} yet.`,
+                // @context Summary line on the Add distance rate page, for example “Kilometers, paid in EUR”. unit is the distance unit and currency is a currency code. “Paid” describes how the rate is paid out, not a payment that already happened.
+                unitPaidIn: (unit: string, currency: string) => `${unit}, paid in ${currency}`,
+                governmentRateNotes: {
+                    AU: 'Tax-free up to 5,000 km a year. Above that, PAYG is withheld on the excess',
+                    AT: 'Tax-free up to 30,000 km a year. Above that, the allowance is taxable',
+                    NL: 'One rate covers every transport type, including bicycle and walking',
+                    NO: 'Tax-free up to NOK 3.50 per km. The rest is taxable salary',
+                },
+                // @context Note about Belgium’s government mileage rate. date is the date the current rate started. “Rate” means a mileage reimbursement rate, not an interest rate.
+                governmentRateIndexedQuarterly: (date: string) => `Indexed every quarter. This is the rate from ${date}`,
+                governmentRatePerSwedishMil: (amount: string) => `Skatteverket publishes per Swedish mil (10 km): ${amount} per mil for a car`,
+                tax: 'Tax',
+                reclaimVATOnFuel: 'Reclaim VAT on fuel',
+                fuelType: 'Fuel type',
+                taxOnlyReclaimableOnFuel: 'Tax is only reclaimable on fuel',
+                savingTurnsOnTaxes: 'Saving turns on taxes for this workspace and adds a Standard VAT (20%) tax rate.',
+                savingTurnsOffTrackTax: 'Saving turns off Track tax for all distance rates in this workspace.',
+                // @context Note on the Add distance rate page when the workspace imports its tax rates from an accounting integration that has no 20% VAT rate. integrationName is the integration, for example Xero.
+                addTaxRateInIntegration: (integrationName: string) => `Add a 20% tax rate in ${integrationName} to reclaim VAT. We’ll link it to these rates automatically.`,
             },
             errors: {
                 rateNameRequired: 'Rate name is required',
@@ -9589,6 +9608,9 @@ const translations = {
                 nameRequired: 'Name is required.',
                 amountRequired: 'Amount is required.',
                 startDateMustBeBeforeEndDate: 'Start date must be before end date',
+                taxReclaimableRequired: 'Tax reclaimable on is required.',
+                // @context Error on the Add distance rate page. rate is the rate’s amount per mile or kilometer, for example £0.20.
+                taxReclaimableMoreThanRate: (rate: string) => `Tax reclaimable on can’t be more than the rate (${rate}).`,
             },
         },
         editor: {

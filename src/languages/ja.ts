@@ -8577,6 +8577,15 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                 },
                 noGovernmentRateForOtherCountry: 'この国には、まだ公的なレートがありません。',
                 noGovernmentRateForCountry: (country: string) => `${country} の公的レートはまだ登録されていません。`,
+                unitPaidIn: (unit: string, currency: string) => `${currency}建ての${unit}`,
+                governmentRateNotes: {
+                    AU: '年間5,000kmまでは非課税です。それを超えた分については、超過分に対してPAYGが源泉徴収されます',
+                    AT: '年間3万kmまでは非課税です。それを超える分については手当が課税対象になります',
+                    NL: '自転車や徒歩を含むすべての交通手段を、1つの料金でカバーします',
+                    NO: '1kmあたり最大3.50ノルウェークローネまでは非課税です。残りは課税対象の給与になります',
+                },
+                governmentRateIndexedQuarterly: (date: string) => `四半期ごとに連動します。こちらは${date}時点の金利です`,
+                governmentRatePerSwedishMil: (amount: string) => `Skatteverket は、スウェーデン・マイル（10km）ごとに公表しています：車の場合は 1 マイルあたり ${amount} です`,
             },
         },
         editor: {

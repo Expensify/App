@@ -9,6 +9,7 @@ import type {CurrencyList, GovernmentMileageRate, Policy} from '@src/types/onyx'
 import type {CustomUnit, Rate, RateAttributes, Unit} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 
+import type {Locale as DateFnsLocale} from 'date-fns';
 import type {NullishDeep, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
 
@@ -17,6 +18,9 @@ import Onyx from 'react-native-onyx';
 
 import type {Option} from './searchOptions';
 
+import {isSelectableTaxRate} from './CategoryTaxRulesUtils';
+import {convertAmountToDisplayString} from './CurrencyUtils';
+import DateUtils from './DateUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from './ErrorUtils';
 import getPermittedDecimalSeparator from './getPermittedDecimalSeparator';
 import {getGovernmentRateSeries, isFuelBandGovernmentRate} from './GovernmentRateUtils';
@@ -142,6 +146,8 @@ function validateCreateDistanceRateForm(
     toLocaleDigit: (arg: string) => string,
     translate: LocalizedTranslate,
     existingRateNames: string[],
+    currency?: string,
+    shouldValidateTaxClaimableValue = false,
 ): FormInputErrors<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM> {
     const errors: FormInputErrors<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM> = {};
     const nameError = getDistanceRateNameError(existingRateNames, values.name ?? '');
@@ -161,6 +167,19 @@ function validateCreateDistanceRateForm(
 
     if (values.startDate && values.endDate && values.startDate > values.endDate) {
         errors.startDate = translate('workspace.distanceRates.errors.startDateMustBeBeforeEndDate');
+    }
+
+    if (shouldValidateTaxClaimableValue) {
+        const taxClaimableValue = parseFloat(values.taxClaimableValue ?? '');
+        const rate = parseFloat(values.rate ?? '');
+        if (!taxClaimableValue) {
+            errors.taxClaimableValue = translate('workspace.distanceRates.errors.taxReclaimableRequired');
+        } else if (!errors.rate && taxClaimableValue > rate) {
+            errors.taxClaimableValue = translate(
+                'workspace.distanceRates.errors.taxReclaimableMoreThanRate',
+                convertAmountToDisplayString(rate * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET, currency),
+            );
+        }
     }
 
     return errors;
@@ -521,6 +540,32 @@ function getCurrentGovernmentMileageRate(
     return currentRate;
 }
 
+/** The UK fuel-band rates in effect today, one per band, in the order the government data lists the bands. */
+function getCurrentFuelBandGovernmentRates(
+    governmentMileageRates: OnyxEntry<GovernmentMileageRate[]>,
+    currency: string | undefined,
+    today = format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+): GovernmentMileageRate[] {
+    const currentRates = new Map<string, GovernmentMileageRate>();
+    for (const governmentMileageRate of governmentMileageRates ?? []) {
+        const {sourceRateID, startDate} = governmentMileageRate;
+        if (governmentMileageRate.currency !== currency || !isFuelBandGovernmentRate(sourceRateID) || startDate > today) {
+            continue;
+        }
+        const series = getGovernmentRateSeries(sourceRateID);
+        const currentRate = currentRates.get(series);
+        if (!currentRate || startDate > currentRate.startDate) {
+            currentRates.set(series, governmentMileageRate);
+        }
+    }
+    return [...currentRates.values()];
+}
+
+/** The tax rate VAT on fuel is linked to by default, which is the first enabled 20% rate whatever its name. */
+function getUKFuelVATTaxRateCode(policy: OnyxEntry<Policy>): string | undefined {
+    return Object.entries(policy?.taxRates?.taxes ?? {}).find(([, taxRate]) => isSelectableTaxRate(taxRate) && parseFloat(taxRate.value) === CONST.CUSTOM_UNITS.UK_FUEL_VAT_PERCENTAGE)?.[0];
+}
+
 /** Explains why the Add rate page offers no government rate for this country. An undefined country means "Other country". */
 function getNoGovernmentRateNote(translate: LocalizedTranslate, country: Country | undefined): string {
     if (!country) {
@@ -532,6 +577,52 @@ function getNoGovernmentRateNote(translate: LocalizedTranslate, country: Country
     }
 
     return translate('workspace.distanceRates.addRatePage.noGovernmentRateForCountry', translate(`allCountries.${country}`));
+}
+
+function isCountryWithGovernmentRateNote(country: string): country is TupleToUnion<typeof CONST.CUSTOM_UNITS.DISTANCE_RATE_COUNTRIES_WITH_GOVERNMENT_RATE_NOTE> {
+    const countriesWithNote: readonly string[] = CONST.CUSTOM_UNITS.DISTANCE_RATE_COUNTRIES_WITH_GOVERNMENT_RATE_NOTE;
+    return countriesWithNote.includes(country);
+}
+
+/** Whether the Add rate summary shows a note for this country's government rate. Belgium and Sweden build theirs from the rate. */
+function hasGovernmentRateNote(country: GovernmentRateCountry): boolean {
+    return isCountryWithGovernmentRateNote(country) || country === CONST.COUNTRY.BE || country === CONST.COUNTRY.SE;
+}
+
+/**
+ * Explains how the authority's rules apply to the country's government rate, for the Add rate summary. Returns undefined
+ * when the country has no note, or when its note needs the rate and the rate hasn't loaded yet.
+ */
+function getGovernmentRateNote(
+    translate: LocalizedTranslate,
+    country: GovernmentRateCountry,
+    governmentRate: GovernmentMileageRate | undefined,
+    dateFnsLocale: DateFnsLocale | undefined,
+): string | undefined {
+    if (isCountryWithGovernmentRateNote(country)) {
+        return translate(`workspace.distanceRates.addRatePage.governmentRateNotes.${country}`);
+    }
+
+    if (!governmentRate) {
+        return undefined;
+    }
+
+    if (country === CONST.COUNTRY.BE) {
+        return translate(
+            'workspace.distanceRates.addRatePage.governmentRateIndexedQuarterly',
+            DateUtils.formatWithUTCTimeZone(governmentRate.startDate, CONST.DATE.MONTH_DAY_YEAR_FORMAT, dateFnsLocale),
+        );
+    }
+
+    if (country === CONST.COUNTRY.SE) {
+        const amountPerKilometer = getGovernmentRateAmountForUnit(governmentRate.rate, governmentRate.sourceRateID, CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
+        return translate(
+            'workspace.distanceRates.addRatePage.governmentRatePerSwedishMil',
+            convertAmountToDisplayString(amountPerKilometer * CONST.CUSTOM_UNITS.KILOMETERS_PER_SWEDISH_MIL, governmentRate.currency),
+        );
+    }
+
+    return undefined;
 }
 
 /**
@@ -828,7 +919,11 @@ export {
     getDefaultEuroDistanceRateCountry,
     getEuroDistanceRateCountryOptions,
     getCurrentGovernmentMileageRate,
+    getCurrentFuelBandGovernmentRates,
+    getUKFuelVATTaxRateCode,
     getNoGovernmentRateNote,
+    hasGovernmentRateNote,
+    getGovernmentRateNote,
     getGovernmentRateAmountForUnit,
     isEuroDistanceRateCountry,
 };

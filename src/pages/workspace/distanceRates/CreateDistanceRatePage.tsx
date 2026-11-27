@@ -23,15 +23,19 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyData from '@hooks/usePolicyData';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setMoneyRequestDistanceRate} from '@libs/actions/IOU/MoneyRequest';
+import {createPolicyTax, getNextTaxCode} from '@libs/actions/TaxRate';
+import {isSelectableTaxRate} from '@libs/CategoryTaxRulesUtils';
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {
+    getCurrentFuelBandGovernmentRates,
     getCurrentGovernmentMileageRate,
     getDefaultEuroDistanceRateCountry,
     getDistanceRateCountryForCurrency,
@@ -39,13 +43,14 @@ import {
     getExpectedUnitForCountry,
     getGovernmentRateAmountForUnit,
     getNoGovernmentRateNote,
+    getUKFuelVATTaxRateCode,
     hasGovernmentRateForCurrency,
     isEuroDistanceRateCountry,
     isGovernmentRateCountry,
     isSharedGovernmentRateCurrency,
     validateCreateDistanceRateForm,
 } from '@libs/PolicyDistanceRatesUtils';
-import {getDistanceRateCustomUnit, isControlPolicy} from '@libs/PolicyUtils';
+import {formatTaxRateName, getCurrentConnectionName, getDistanceRateCustomUnit, isControlPolicy, isPolicyTaxEnabled, isPolicyTaxImported, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -56,7 +61,7 @@ import {lineHeightScale} from '@styles/typography';
 import variables from '@styles/variables';
 
 import {createPolicyDistanceRate, openPolicyDistanceRatesPage, setWorkspaceDistanceAutoUpdate} from '@userActions/Policy/DistanceRate';
-import {generateCustomUnitID} from '@userActions/Policy/Policy';
+import {enableDistanceRequestTax, enablePolicyTaxes, generateCustomUnitID} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
@@ -64,6 +69,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PolicyCreateDistanceRateForm';
+import type {Policy} from '@src/types/onyx';
 import type {Rate} from '@src/types/onyx/Policy';
 
 import type {ValueOf} from 'type-fest';
@@ -71,6 +77,9 @@ import type {ValueOf} from 'type-fest';
 import React, {useEffect, useRef, useState} from 'react';
 import {Keyboard, View} from 'react-native';
 
+import DistanceRateCalculationSummary, {SummaryLine} from './DistanceRateCalculationSummary';
+import DistanceRateTaxRateDropdown from './DistanceRateTaxRateDropdown';
+import DistanceRateTaxSection, {DistanceRateTaxNote, FuelBandTaxTable} from './DistanceRateTaxSection';
 import EuroCountryDropdown from './EuroCountryDropdown';
 
 type CreateDistanceRatePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CREATE_DISTANCE_RATE>;
@@ -96,12 +105,13 @@ function CreateDistanceRatePage({
     const customUnitRateID = generateCustomUnitID();
     const {inputCallbackRef} = useAutoFocusInput();
     const isDistanceRateUpgrade = transactionID && reportID;
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
     const shouldShowCountryAndKind = !isDistanceRateUpgrade && isBetaEnabled(CONST.BETAS.MILEAGE_UI);
     const [transactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(transactionID)}`);
     const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST);
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
     const [governmentMileageRates] = useOnyx(ONYXKEYS.GOVERNMENT_MILEAGE_RATES);
+    const policyData = usePolicyData(policyID);
     const formRef = useRef<FormRef>(null);
 
     // A workspace has at most one government rate. The server turns auto-update off on some currency changes but keeps the copied rates.
@@ -121,6 +131,43 @@ function CreateDistanceRatePage({
     const isGovernmentKind = kind === CONST.CUSTOM_UNITS.DISTANCE_RATE_KIND.GOVERNMENT;
     const isGovernmentRateTaken = isGovernmentKind && hasGovernmentRate;
     const currentGovernmentRate = isGovernmentKind && governmentRateCountry ? getCurrentGovernmentMileageRate(governmentMileageRates, currency, governmentRateCountry) : undefined;
+
+    const shouldShowTaxSection = shouldShowCountryAndKind && country === CONST.CUSTOM_UNITS.GOVERNMENT_RATE_FUEL_BAND_COUNTRY && !isGovernmentRateTaken;
+    const isTaxEnabled = isPolicyTaxEnabled(policy);
+    const isDistanceTaxEnabled = isTaxTrackingEnabled(true, policy, true);
+    const isTaxImported = isPolicyTaxImported(policy);
+    const [pickedIsReclaimVATOn, setPickedIsReclaimVATOn] = useState<boolean>();
+
+    // The government rate copies the fuel bands exactly when distance Track tax is on, so its toggle starts from that setting
+    const isReclaimVATOn = shouldShowTaxSection && (pickedIsReclaimVATOn ?? (isGovernmentKind && isDistanceTaxEnabled));
+    const ukFuelVATTaxRateCode = getUKFuelVATTaxRateCode(policy);
+
+    // An integration's next sync deletes tax rates it didn't import, so a workspace that imports them never gets one added
+    const shouldAddUKFuelVATTaxRate = isReclaimVATOn && !isTaxEnabled && !isTaxImported && !ukFuelVATTaxRateCode;
+    const newUKFuelVATTaxRateCode = getNextTaxCode(CONST.CUSTOM_UNITS.UK_FUEL_VAT_TAX_RATE_NAME, policy?.taxRates?.taxes);
+    const taxRateOptions = [
+        ...Object.entries(policy?.taxRates?.taxes ?? {})
+            .filter(([, taxRate]) => isSelectableTaxRate(taxRate))
+            .map(([code, taxRate]) => ({value: code, label: formatTaxRateName(taxRate.name, taxRate.value)})),
+        ...(shouldAddUKFuelVATTaxRate ? [{value: newUKFuelVATTaxRateCode, label: CONST.CUSTOM_UNITS.UK_FUEL_VAT_TAX_RATE_NAME}] : []),
+    ];
+    const [pickedTaxRateCode, setPickedTaxRateCode] = useState<string>();
+    const taxRateCode = pickedTaxRateCode ?? ukFuelVATTaxRateCode ?? (shouldAddUKFuelVATTaxRate ? newUKFuelVATTaxRateCode : undefined);
+
+    // Without a code, distance expenses fall back to the workspace default tax rate, which may not be VAT
+    const isTaxRateMissing = isReclaimVATOn && !isGovernmentKind && !taxRateCode;
+    const [hasTriedSavingWithoutTaxRate, setHasTriedSavingWithoutTaxRate] = useState(false);
+
+    // The backend links the fuel bands to an integration's 20% rate once one is imported, so there's nothing to pick until then
+    const isMissingIntegrationVATTaxRate = isGovernmentKind && isTaxImported && !ukFuelVATTaxRateCode;
+    let taxNote: string | undefined;
+    if (shouldAddUKFuelVATTaxRate) {
+        taxNote = translate('workspace.distanceRates.addRatePage.savingTurnsOnTaxes');
+    } else if (isReclaimVATOn && isMissingIntegrationVATTaxRate) {
+        taxNote = translate('workspace.distanceRates.addRatePage.addTaxRateInIntegration', getCurrentConnectionName(policy) ?? '');
+    } else if (isGovernmentKind && !isReclaimVATOn && isDistanceTaxEnabled) {
+        taxNote = translate('workspace.distanceRates.addRatePage.savingTurnsOffTrackTax');
+    }
 
     const existingRateNames = Object.values(customUnit?.rates ?? {}).map((r) => r.name ?? '');
 
@@ -159,7 +206,14 @@ function CreateDistanceRatePage({
             Keyboard.dismiss();
         }
         setPickedKind(selectedKind);
+        setPickedIsReclaimVATOn(undefined);
+        setHasTriedSavingWithoutTaxRate(false);
         formRef.current?.resetErrors();
+    };
+
+    const toggleReclaimVAT = (isOn: boolean) => {
+        setPickedIsReclaimVATOn(isOn);
+        setHasTriedSavingWithoutTaxRate(false);
     };
 
     const navigateToWorkspaceOverview = () => {
@@ -171,7 +225,46 @@ function CreateDistanceRatePage({
     };
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM>) =>
-        isGovernmentKind ? {} : validateCreateDistanceRateForm(values, toLocaleDigit, translate, existingRateNames);
+        isGovernmentKind ? {} : validateCreateDistanceRateForm(values, toLocaleDigit, translate, existingRateNames, currency, isReclaimVATOn);
+
+    // Saving copies the fuel bands or the single government rate depending on distance Track tax, so the copy reads the policy as it will be once Track tax is set
+    const getPolicyWithDistanceTax = (isDistanceTaxOn: boolean): Policy | undefined => {
+        if (!policy || !customUnit?.attributes || !customUnitID) {
+            return policy;
+        }
+        return {
+            ...policy,
+            tax: {...policy.tax, trackingEnabled: isTaxEnabled || isDistanceTaxOn},
+            customUnits: {...policy.customUnits, [customUnitID]: {...customUnit, attributes: {...customUnit.attributes, taxEnabled: isDistanceTaxOn}}},
+        };
+    };
+
+    const setDistanceTaxEnabled = (isDistanceTaxOn: boolean) => {
+        if (!policy || !customUnit?.attributes || !customUnitID) {
+            return;
+        }
+        if (isDistanceTaxOn && !isTaxEnabled) {
+            enablePolicyTaxes(policyID, true, isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING), {policy, governmentMileageRates, policyData});
+        }
+        if (shouldAddUKFuelVATTaxRate) {
+            createPolicyTax(policyID, {
+                name: CONST.CUSTOM_UNITS.UK_FUEL_VAT_TAX_RATE_NAME,
+                value: `${CONST.CUSTOM_UNITS.UK_FUEL_VAT_PERCENTAGE}%`,
+                code: newUKFuelVATTaxRateCode,
+            });
+        }
+        if (isDistanceTaxOn === isDistanceTaxEnabled) {
+            return;
+        }
+        enableDistanceRequestTax(
+            {...policy, tax: {...policy.tax, trackingEnabled: isTaxEnabled || isDistanceTaxOn}},
+            customUnit.name,
+            customUnitID,
+            {...customUnit.attributes, taxEnabled: isDistanceTaxOn},
+            customUnit.attributes,
+            governmentMileageRates,
+        );
+    };
 
     const saveGovernmentRate = () => {
         if (!policy || !currentGovernmentRate) {
@@ -193,7 +286,13 @@ function CreateDistanceRatePage({
             return;
         }
 
-        setWorkspaceDistanceAutoUpdate(policy, true, governmentMileageRates ?? [], isEuroWorkspace ? governmentRateCountry : undefined);
+        // Distance Track tax decides whether the fuel bands or the single government rate are copied, so it's set first
+        let policyToUpdate: Policy | undefined = policy;
+        if (shouldShowTaxSection && isReclaimVATOn !== isDistanceTaxEnabled) {
+            setDistanceTaxEnabled(isReclaimVATOn);
+            policyToUpdate = getPolicyWithDistanceTax(isReclaimVATOn);
+        }
+        setWorkspaceDistanceAutoUpdate(policyToUpdate ?? policy, true, governmentMileageRates ?? [], isEuroWorkspace ? governmentRateCountry : undefined);
         Navigation.goBack();
     };
 
@@ -203,15 +302,26 @@ function CreateDistanceRatePage({
             return;
         }
 
+        const rateValue = parseFloat(values.rate);
         const newRate: Rate = {
             currency,
             name: values.name.trim(),
-            rate: parseFloat(values.rate) * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET,
+            rate: rateValue * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET,
             customUnitRateID,
             enabled: true,
             ...(values.startDate && {startDate: values.startDate}),
             ...(values.endDate && {endDate: values.endDate}),
+            ...(isReclaimVATOn && {
+                attributes: {
+                    taxRateExternalID: taxRateCode,
+                    taxClaimablePercentage: parseFloat(values.taxClaimableValue) / rateValue,
+                },
+            }),
         };
+
+        if (isReclaimVATOn) {
+            setDistanceTaxEnabled(true);
+        }
 
         createPolicyDistanceRate(policyID, customUnitID, newRate);
         if (isDistanceRateUpgrade) {
@@ -234,6 +344,10 @@ function CreateDistanceRatePage({
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM>) => {
         if (isGovernmentKind) {
             saveGovernmentRate();
+            return;
+        }
+        if (isTaxRateMissing) {
+            setHasTriedSavingWithoutTaxRate(true);
             return;
         }
         saveCustomRate(values);
@@ -266,6 +380,16 @@ function CreateDistanceRatePage({
     const governmentAmount = currentGovernmentRate
         ? convertAmountToDisplayString(getGovernmentRateAmountForUnit(currentGovernmentRate.rate, currentGovernmentRate.sourceRateID, governmentRateUnit), currency)
         : undefined;
+    const fuelBands = isGovernmentKind
+        ? getCurrentFuelBandGovernmentRates(governmentMileageRates, currency).map((fuelBandRate) => ({
+              sourceRateID: fuelBandRate.sourceRateID,
+              name: fuelBandRate.name,
+              amount: convertAmountToDisplayString(
+                  getGovernmentRateAmountForUnit(fuelBandRate.rate, fuelBandRate.sourceRateID, governmentRateUnit) * (fuelBandRate.taxClaimablePercentage ?? 0),
+                  currency,
+              ),
+          }))
+        : [];
 
     return (
         <AccessOrNotFoundWrapper
@@ -294,6 +418,23 @@ function CreateDistanceRatePage({
                         style={[styles.mh5, styles.flex1]}
                         submitButtonStyles={shouldShowCountryAndKind ? undefined : [styles.mt0]}
                         shouldValidateOnBlur={!shouldShowCountryAndKind}
+                        footerContent={
+                            shouldShowCountryAndKind ? (
+                                <DistanceRateCalculationSummary
+                                    unit={isGovernmentKind ? governmentRateUnit : distanceUnit}
+                                    currency={currency}
+                                    governmentRateCountry={isGovernmentKind ? governmentRateCountry : undefined}
+                                    governmentRate={currentGovernmentRate}
+                                >
+                                    {isReclaimVATOn && (
+                                        <SummaryLine icon={icons.Info}>
+                                            <Text style={styles.textLabelSupporting}>{translate('workspace.distanceRates.addRatePage.taxOnlyReclaimableOnFuel')}</Text>
+                                        </SummaryLine>
+                                    )}
+                                </DistanceRateCalculationSummary>
+                            ) : undefined
+                        }
+                        shouldRenderFooterAboveAlert
                         addBottomSafeAreaPadding
                     >
                         {shouldShowCountryAndKind ? (
@@ -441,6 +582,39 @@ function CreateDistanceRatePage({
                                             )}
                                         </View>
                                     </>
+                                )}
+                                {shouldShowTaxSection && (
+                                    <DistanceRateTaxSection
+                                        isReclaimVATOn={isReclaimVATOn}
+                                        onToggleReclaimVAT={toggleReclaimVAT}
+                                    >
+                                        {!!taxNote && <DistanceRateTaxNote>{taxNote}</DistanceRateTaxNote>}
+                                        {isReclaimVATOn && isGovernmentKind && <FuelBandTaxTable fuelBands={fuelBands} />}
+                                        {isReclaimVATOn && !isGovernmentKind && (
+                                            <>
+                                                <View style={[styles.mhn4, styles.mt4]}>
+                                                    <DistanceRateTaxRateDropdown
+                                                        label={translate('workspace.taxes.taxRate')}
+                                                        selectedTaxRateCode={taxRateCode}
+                                                        taxRates={taxRateOptions}
+                                                        onSelectTaxRate={setPickedTaxRateCode}
+                                                        errorText={hasTriedSavingWithoutTaxRate && isTaxRateMissing ? translate('common.error.fieldRequired') : undefined}
+                                                    />
+                                                </View>
+                                                <View style={styles.mt4}>
+                                                    <InputWrapper
+                                                        InputComponent={AmountForm}
+                                                        inputID={INPUT_IDS.TAX_CLAIMABLE_VALUE}
+                                                        decimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES}
+                                                        currency={currency}
+                                                        isCurrencyPressable={false}
+                                                        displayAsTextInput
+                                                        label={translate('workspace.taxes.taxReclaimableOn')}
+                                                    />
+                                                </View>
+                                            </>
+                                        )}
+                                    </DistanceRateTaxSection>
                                 )}
                             </>
                         ) : (

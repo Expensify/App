@@ -8365,6 +8365,15 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 },
                 noGovernmentRateForOtherCountry: '该国家目前还没有政府费率。',
                 noGovernmentRateForCountry: (country: string) => `${country} 目前还没有政府费率。`,
+                unitPaidIn: (unit: string, currency: string) => `${unit}，以${currency}支付`,
+                governmentRateNotes: {
+                    AU: '每年前 5,000 公里免税，超出部分按预扣代缴税款（PAYG）处理',
+                    AT: '每年最高 30,000 公里免税，超出部分的补贴需缴税',
+                    NL: '一个费率涵盖所有交通方式，包括骑行和步行',
+                    NO: '每公里最高 3.50 挪威克朗免税，其余部分计入应税薪资',
+                },
+                governmentRateIndexedQuarterly: (date: string) => `每季度调整一次。这是自 ${date} 起的利率`,
+                governmentRatePerSwedishMil: (amount: string) => `瑞典税务局按瑞典英里（10 公里）公布标准：每辆车每瑞典英里 ${amount}`,
             },
         },
         editor: {

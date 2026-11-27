@@ -19,6 +19,9 @@ type FormAlertWrapperProps = {
     children: (isOffline?: boolean) => ReactNode;
     containerStyles?: StyleProp<ViewStyle>;
 
+    /** Content rendered above the alert */
+    contentAboveAlert?: ReactNode;
+
     /** Style for the error message for submit button */
     errorMessageStyle?: StyleProp<ViewStyle>;
 
@@ -41,6 +44,7 @@ type FormAlertWrapperProps = {
 function FormAlertWrapper({
     children,
     containerStyles,
+    contentAboveAlert,
     errorMessageStyle,
     isAlertVisible = false,
     isMessageHtml = false,
@@ -75,6 +79,7 @@ function FormAlertWrapper({
 
     return (
         <View style={containerStyles}>
+            {contentAboveAlert}
             {isAlertVisible && (
                 <FormHelpMessage
                     message={announcementMessage}

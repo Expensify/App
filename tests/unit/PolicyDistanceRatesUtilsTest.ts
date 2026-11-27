@@ -1,4 +1,5 @@
 import {
+    getCurrentFuelBandGovernmentRates,
     getCurrentGovernmentMileageRate,
     getDefaultEuroDistanceRateCountry,
     getDistanceExpenseTypeForPolicy,
@@ -11,12 +12,16 @@ import {
     getGovernmentRateCountryForCurrency,
     getGovernmentRateCountryPhraseTranslationKey,
     getGovernmentRateSeries,
+    getGovernmentRateNote,
     getNoGovernmentRateNote,
+    getUKFuelVATTaxRateCode,
     hasGovernmentRateForCurrency,
+    hasGovernmentRateNote,
     isCurrencySupportedForAutoUpdate,
     isGovernmentRateCountry,
     isGovernmentRateUnmodified,
     isMapOrGPSRequired,
+    validateCreateDistanceRateForm,
     validateTaxClaimableValue,
 } from '@libs/PolicyDistanceRatesUtils';
 
@@ -625,6 +630,95 @@ describe('PolicyDistanceRatesUtils', () => {
         });
     });
 
+    describe('getCurrentFuelBandGovernmentRates', () => {
+        it('picks the current rate of each fuel band in the order the bands are listed', () => {
+            // Given two quarters of two fuel bands, a future quarter, the standard UK rate and another currency's rate
+            const rates: GovernmentMileageRate[] = [
+                {sourceRateID: 'GB_DIESEL_1600CC_2026-06-01', currency: 'GBP', name: 'Diesel', rate: 45, startDate: '2026-06-01', taxClaimablePercentage: 0.3},
+                {sourceRateID: 'GB_PETROL_1400CC_2026-06-01', currency: 'GBP', name: 'Petrol', rate: 45, startDate: '2026-06-01', taxClaimablePercentage: 0.28},
+                {sourceRateID: 'GB_DIESEL_1600CC_2026-09-01', currency: 'GBP', name: 'Diesel', rate: 45, startDate: '2026-09-01', taxClaimablePercentage: 0.33},
+                {sourceRateID: 'GB_DIESEL_1600CC_2026-12-01', currency: 'GBP', name: 'Diesel', rate: 45, startDate: '2026-12-01', taxClaimablePercentage: 0.35},
+                {sourceRateID: 'GB_2026-04-06', currency: 'GBP', name: '2026 UK', rate: 45, startDate: '2026-04-06'},
+                {sourceRateID: 'DE_2026-01-01', currency: 'EUR', name: '2026 Germany', rate: 30, startDate: '2026-01-01'},
+            ];
+
+            // When we look up the bands in effect on a date in November 2026
+            const currentRates = getCurrentFuelBandGovernmentRates(rates, 'GBP', '2026-11-11');
+
+            // Then each band shows once with its latest started quarter, so the table matches the bands saving adds
+            expect(currentRates.map((rate) => rate.sourceRateID)).toEqual(['GB_DIESEL_1600CC_2026-09-01', 'GB_PETROL_1400CC_2026-06-01']);
+        });
+    });
+
+    describe('getUKFuelVATTaxRateCode', () => {
+        it('picks the first enabled 20% tax rate whatever its name', () => {
+            // Given a disabled 20% rate, a 5% rate and an enabled 20% rate an integration imported
+            const policy = {
+                ...createRandomPolicy(1),
+                taxRates: {
+                    name: 'Tax',
+                    defaultExternalID: 'EXEMPT',
+                    defaultValue: '0%',
+                    foreignTaxDefault: 'EXEMPT',
+                    taxes: {
+                        OLD_VAT: {name: 'Old VAT', value: '20%', isDisabled: true},
+                        REDUCED: {name: 'Reduced', value: '5%'},
+                        XERO_VAT: {name: '20% (VAT on Expenses)', value: '20%'},
+                    },
+                },
+            } satisfies Policy;
+
+            // When we look for the rate VAT on fuel links to
+            // Then the enabled 20% rate is used, because a disabled rate can't be picked on an expense
+            expect(getUKFuelVATTaxRateCode(policy)).toBe('XERO_VAT');
+        });
+
+        it('returns undefined when the workspace has no enabled 20% rate', () => {
+            // Given a workspace with only a 5% rate
+            const policy = {
+                ...createRandomPolicy(1),
+                taxRates: {name: 'Tax', defaultExternalID: 'REDUCED', defaultValue: '5%', foreignTaxDefault: 'REDUCED', taxes: {REDUCED: {name: 'Reduced', value: '5%'}}},
+            } satisfies Policy;
+
+            // When we look for the rate VAT on fuel links to
+            // Then there is none, so Add rate offers to add Standard VAT (20%) instead
+            expect(getUKFuelVATTaxRateCode(policy)).toBeUndefined();
+        });
+    });
+
+    describe('validateCreateDistanceRateForm with VAT reclaim', () => {
+        const values = {name: 'Field team', rate: '0.20', startDate: '', endDate: ''};
+
+        it('requires a tax reclaimable amount', () => {
+            // Given a UK custom rate reclaiming VAT with a zero tax reclaimable amount
+            // When the form is validated
+            const errors = validateCreateDistanceRateForm({...values, taxClaimableValue: '0'}, (digit) => digit, translateLocal, [], 'GBP', true);
+
+            // Then the amount is required, since a zero amount reclaims nothing
+            expect(errors.taxClaimableValue).toBe(translateLocal('workspace.distanceRates.errors.taxReclaimableRequired'));
+        });
+
+        it('rejects an amount more than the rate and allows one equal to it', () => {
+            // Given a £0.20 rate
+            // When the tax reclaimable amount is above it, then equal to it
+            const aboveErrors = validateCreateDistanceRateForm({...values, taxClaimableValue: '0.21'}, (digit) => digit, translateLocal, [], 'GBP', true);
+            const equalErrors = validateCreateDistanceRateForm({...values, taxClaimableValue: '0.20'}, (digit) => digit, translateLocal, [], 'GBP', true);
+
+            // Then only the amount above the rate is an error, and it names the rate
+            expect(aboveErrors.taxClaimableValue).toBe(translateLocal('workspace.distanceRates.errors.taxReclaimableMoreThanRate', '£0.20'));
+            expect(equalErrors.taxClaimableValue).toBeUndefined();
+        });
+
+        it("skips the amount when the rate doesn't reclaim VAT", () => {
+            // Given a rate with VAT reclaim off and no tax reclaimable amount
+            // When the form is validated
+            const errors = validateCreateDistanceRateForm({...values, taxClaimableValue: ''}, (digit) => digit, translateLocal, [], 'GBP');
+
+            // Then there's no tax error, because the field isn't shown
+            expect(errors.taxClaimableValue).toBeUndefined();
+        });
+    });
+
     describe('getNoGovernmentRateNote', () => {
         it('explains the missing government rate for each kind of country', () => {
             // Given a country with its own note, a country without one, and an unknown country
@@ -633,6 +727,41 @@ describe('PolicyDistanceRatesUtils', () => {
             expect(getNoGovernmentRateNote(translateLocal, 'FR')).toBe(translateLocal('workspace.distanceRates.addRatePage.noGovernmentRateNotes.FR'));
             expect(getNoGovernmentRateNote(translateLocal, 'IE')).toBe(translateLocal('workspace.distanceRates.addRatePage.noGovernmentRateForCountry', translateLocal('allCountries.IE')));
             expect(getNoGovernmentRateNote(translateLocal, undefined)).toBe(translateLocal('workspace.distanceRates.addRatePage.noGovernmentRateForOtherCountry'));
+        });
+    });
+
+    describe('getGovernmentRateNote', () => {
+        const belgiumRate: GovernmentMileageRate = {sourceRateID: 'BE_2026-07-01', currency: 'EUR', name: '2026 Belgium', rate: 43.69, startDate: '2026-07-01'};
+        const swedenRate: GovernmentMileageRate = {sourceRateID: 'SE_2026-01-01', currency: 'SEK', name: '2026 Sweden', rate: 250, startDate: '2026-01-01'};
+
+        it('shows a fixed note for countries whose rules do not depend on the rate', () => {
+            // Given a country with a fixed note, before its rate has loaded
+            // When we build the note
+            // Then the note is shown without waiting for the rate
+            expect(hasGovernmentRateNote('NO')).toBe(true);
+            expect(getGovernmentRateNote(translateLocal, 'NO', undefined, undefined)).toBe(translateLocal('workspace.distanceRates.addRatePage.governmentRateNotes.NO'));
+        });
+
+        it('builds the Belgium and Sweden notes from the rate once it loads', () => {
+            // Given Belgium and Sweden, whose notes quote the published rate
+            // When we build the notes before and after the rate loads
+            // Then they wait for the rate, then show its start date and its amount per Swedish mil
+            expect(hasGovernmentRateNote('BE')).toBe(true);
+            expect(hasGovernmentRateNote('SE')).toBe(true);
+            expect(getGovernmentRateNote(translateLocal, 'BE', undefined, undefined)).toBeUndefined();
+            expect(getGovernmentRateNote(translateLocal, 'SE', undefined, undefined)).toBeUndefined();
+            expect(getGovernmentRateNote(translateLocal, 'BE', belgiumRate, undefined)).toBe(
+                translateLocal('workspace.distanceRates.addRatePage.governmentRateIndexedQuarterly', 'July 1, 2026'),
+            );
+            expect(getGovernmentRateNote(translateLocal, 'SE', swedenRate, undefined)).toBe(translateLocal('workspace.distanceRates.addRatePage.governmentRatePerSwedishMil', 'SEK 25.00'));
+        });
+
+        it('has no note for countries whose rate needs no explanation', () => {
+            // Given a country the summary shows only the unit line for
+            // When we check for a note
+            // Then there is none, so no loading line is shown either
+            expect(hasGovernmentRateNote('US')).toBe(false);
+            expect(getGovernmentRateNote(translateLocal, 'US', undefined, undefined)).toBeUndefined();
         });
     });
 });

@@ -1655,6 +1655,7 @@ const CONST = {
     COUNTRY: {
         AS: 'AS',
         AU: 'AU',
+        BE: 'BE',
         BR: 'BR',
         CA: 'CA',
         FI: 'FI',
@@ -1669,6 +1670,7 @@ const CONST = {
         MP: 'MP',
         MX: 'MX',
         PR: 'PR',
+        SE: 'SE',
         US: 'US',
         VI: 'VI',
     },
@@ -6048,6 +6050,10 @@ const CONST = {
         },
         // The country that publishes fuel-band rates, which replace its standard rate on workspaces tracking distance tax
         GOVERNMENT_RATE_FUEL_BAND_COUNTRY: 'GB',
+        // The VAT rate on fuel, which the fuel-band rates and UK custom rates reclaim tax at
+        UK_FUEL_VAT_PERCENTAGE: 20,
+        // Named the same as the tax rate the backend adds for fuel-band rates, so both flows leave the workspace with one
+        UK_FUEL_VAT_TAX_RATE_NAME: 'Standard VAT (20%)',
         // EUR is shared by several supported countries, so an EUR workspace picks the country itself
         GOVERNMENT_RATE_SUPPORTED_EUR_COUNTRIES: ['AT', 'BE', 'FI', 'DE', 'NL', 'PT', 'ES'] as const,
         // Every country that uses the euro, offered when an EUR workspace picks the country a new distance rate is for
@@ -6055,6 +6061,9 @@ const CONST = {
         DISTANCE_RATE_DEFAULT_EURO_COUNTRY: 'AT',
         // Countries without a government rate whose reason is explained on the Add rate page
         DISTANCE_RATE_COUNTRIES_WITH_NO_GOVERNMENT_RATE_NOTE: ['FR', 'IT', 'GR', 'BG', 'SK', 'CZ', 'HU', 'RO', 'SG', 'HK'] as const,
+        // Countries whose government rate summary on the Add rate page has a fixed note
+        DISTANCE_RATE_COUNTRIES_WITH_GOVERNMENT_RATE_NOTE: ['AU', 'AT', 'NL', 'NO'] as const,
+        KILOMETERS_PER_SWEDISH_MIL: 10,
         DISTANCE_RATE_KIND: {
             GOVERNMENT: 'government',
             CUSTOM: 'custom',
