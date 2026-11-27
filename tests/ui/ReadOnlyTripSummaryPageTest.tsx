@@ -16,8 +16,10 @@ import ReadOnlyTripSummaryPage from '@pages/inbox/ReadOnlyTripSummaryPage';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {SearchResults} from '@src/types/onyx';
+import type {Policy, SearchResults} from '@src/types/onyx';
 import type {TripData} from '@src/types/onyx/TripData';
+
+import type * as ReactNavigation from '@react-navigation/native';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -29,7 +31,12 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 
 type SearchActions = typeof SearchActionsModule;
 
-jest.mock('@react-navigation/native');
+// The page renders outside a navigator, while the screen wrapper and the header's workspace chat link read the screen they're on
+jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual<typeof ReactNavigation>('@react-navigation/native'),
+    useRoute: () => ({key: 'SearchReport-key', name: 'SearchReport', params: {}}),
+    usePreventRemove: jest.fn(),
+}));
 jest.mock('@libs/actions/Search', () => ({
     ...jest.requireActual<SearchActions>('@libs/actions/Search'),
     search: jest.fn(),
@@ -41,6 +48,7 @@ jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
 }));
 
 const TRIP_ROOM_ID = '7001';
+const TRAVELER_ACCOUNT_ID = 42;
 
 const tripPayload = createMock<TripData>({
     pnrs: [{...airReservationPnrData, data: {...airReservationPnrData.data, pnrTravelers: airReservationTravelers}}],
@@ -155,6 +163,40 @@ describe('ReadOnlyTripSummaryPage', () => {
 
         // Then it asks for a wide panel, since the trip room it stands in for opens wide from Spend
         expect(useRHPWidth).toHaveBeenCalledWith('wide');
+    });
+
+    it("shows the trip room's header, with the traveler, the workspace and a link to the traveler's workspace chat", async () => {
+        // Given a trip that a traveler booked in a workspace the admin can see, and the admin isn't in its room
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.TRAVEL_APPROVAL]);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}trip-policy`, createMock<Policy>({id: 'trip-policy', name: 'Travel Policy'}));
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[TRAVELER_ACCOUNT_ID]: {accountID: TRAVELER_ACCOUNT_ID, displayName: 'Ana Traveler'}});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${tripQueryHash}`, {
+                ...tripSearchResults,
+                data: {
+                    ...tripSearchResults.data,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${TRIP_ROOM_ID}`]: {
+                        ...tripSearchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${TRIP_ROOM_ID}`],
+                        policyID: 'trip-policy',
+                        travelerAccountID: TRAVELER_ACCOUNT_ID,
+                        parentReportID: 'workspace-chat',
+                        parentReportActionID: 'trip-preview',
+                    },
+                },
+            });
+        });
+
+        // When the summary opens
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the header reads like the trip room's, with the traveler's workspace chat as a link, the way the room's header links to it
+        expect(screen.getByText('Trip to Denver')).toBeOnTheScreen();
+        expect(screen.getByTestId('parent-navigation-subtitle-link')).toHaveTextContent("Ana Traveler's expenses");
+        expect(screen.getByText(/in Travel Policy/)).toBeOnTheScreen();
+
+        // And the title isn't a button, since the room's details page would open the room the admin isn't in
+        expect(screen.queryByRole('button', {name: 'Trip to Denver'})).not.toBeOnTheScreen();
     });
 
     it('is not found without the travel approval beta', async () => {
