@@ -288,6 +288,9 @@ type InsightsQuery = {
     /** Hashes of the snapshots the graphs are stored under. */
     snapshotHashes: number[];
 
+    /** The dashboard's filters as a query string, which the backend saves and which tells which workspaces a response covers */
+    inputQuery: string;
+
     headlineChart: InsightsChartQuery;
     supportingCharts: InsightsChartQuery[];
 };
@@ -351,6 +354,7 @@ function buildInsightsJsonQuery(
             ...(hasViolationStages && {violationStages: requestedViolationStages}),
         }),
         hash,
+        inputQuery,
         snapshotHashes: graphEntries.flatMap(([, hashes]) => Object.values(hashes).filter((snapshotHash): snapshotHash is number => snapshotHash !== undefined)),
         headlineChart,
         supportingCharts,

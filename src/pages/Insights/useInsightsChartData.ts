@@ -48,7 +48,7 @@ function getMeanDuration(data: GroupedItem[]): number | undefined {
 
 /** Resolves a chart's rows, and what it is compared against when the page compares. */
 function useInsightsChartData(dashboardChart: InsightsDashboardChart, filters: InsightsFilters): InsightsChartData {
-    const {chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageQueryJSON, averageSnapshot, average, isAverageLoaded, stages} = dashboardChart;
+    const {chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageQueryJSON, averageSnapshot, average, isAverageLoaded, stages, isAwaitingData} = dashboardChart;
     const theme = useTheme();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -78,6 +78,9 @@ function useInsightsChartData(dashboardChart: InsightsDashboardChart, filters: I
     const current: InsightsChartData =
         resolvedCurrent.state === INSIGHTS_CHART_STATE.READY && trackedData.length === 0 ? {data: [], state: INSIGHTS_CHART_STATE.EMPTY} : {...resolvedCurrent, data: trackedData};
 
+    if (current.state === INSIGHTS_CHART_STATE.EMPTY && isAwaitingData) {
+        return {data: [], state: INSIGHTS_CHART_STATE.LOADING};
+    }
     if (current.state !== INSIGHTS_CHART_STATE.READY) {
         return current;
     }
