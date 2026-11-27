@@ -237,7 +237,7 @@ function CreateDistanceRatePage({
             saveGovernmentRate();
             return;
         }
-        saveCustomRate(values);
+        return saveCustomRate(values);
     };
 
     const kindTabs: Array<TabSelectorBaseItem<DistanceRateKind>> = [

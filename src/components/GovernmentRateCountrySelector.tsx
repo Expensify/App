@@ -54,7 +54,7 @@ function GovernmentRateCountrySelector({headerTitle, initialSelectedCountry, isB
         if (!selectedCountry) {
             return;
         }
-        onSave(selectedCountry);
+        return onSave(selectedCountry);
     };
 
     const FullPageBlockingView = isBlocked ? FullPageOfflineBlockingView : View;

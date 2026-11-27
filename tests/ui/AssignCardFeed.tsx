@@ -1,6 +1,7 @@
 import {act, fireEvent, render, screen, userEvent, waitFor} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
+import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
@@ -47,6 +48,8 @@ const COMMERCIAL_FEED: CompanyCardFeedWithDomainID = `${CONST.COMPANY_CARD.FEED_
 const DIRECT_FEED = `plaid.ins_123#${WORKSPACE_ACCOUNT_ID}`;
 
 const CARD_ID = '1234';
+
+const SIGNED_IN_ACCOUNT_ID = 7;
 
 // Set up a global fetch mock for API requests in tests.
 TestHelper.setupGlobalFetchMock();
@@ -135,7 +138,7 @@ const renderAssigneeStep = (initialParams: SettingsNavigatorParamList[typeof SCR
 // Renders the ConfirmationStep inside a navigation container with necessary providers.
 const renderConfirmationStep = (initialParams: SettingsNavigatorParamList[typeof SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION]) => {
     return render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider, CurrentUserPersonalDetailsProvider]}>
             <PortalProvider>
                 <NavigationContainer>
                     <Stack.Navigator initialRouteName={SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION}>
@@ -936,7 +939,7 @@ describe('AssignCardFeed', () => {
 
     describe('ConfirmationStep - submit', () => {
         const pressAssignCard = async (options: {isCardAlreadyAssigned: boolean}) => {
-            await TestHelper.signInWithTestUser();
+            await TestHelper.signInWithTestUser(SIGNED_IN_ACCOUNT_ID);
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
                 areCompanyCardsEnabled: true,
@@ -959,18 +962,18 @@ describe('AssignCardFeed', () => {
             await waitForBatchedUpdatesWithAct();
         };
 
-        it('assigns the card with the workspace account ID of the policy', async () => {
+        it('assigns the card with the workspace account ID of the policy and the signed-in account ID', async () => {
             // Given a card that is not assigned yet
             // When the admin taps Assign card
             await pressAssignCard({isCardAlreadyAssigned: false});
 
-            // Then the card is assigned for the policy's workspace account
+            // Then the card is assigned for the policy's workspace account by the signed-in admin
             expect(assignWorkspaceCompanyCard).toHaveBeenCalledWith(
                 expect.objectContaining({policyAccountID: WORKSPACE_ACCOUNT_ID}),
                 WORKSPACE_ACCOUNT_ID,
                 expect.anything(),
                 undefined,
-                expect.any(Number),
+                SIGNED_IN_ACCOUNT_ID,
             );
         });
 

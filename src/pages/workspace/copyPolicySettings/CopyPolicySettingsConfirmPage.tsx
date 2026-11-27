@@ -90,7 +90,8 @@ function CopyPolicySettingsConfirmPage() {
             Navigation.navigate(ROUTES.POLICY_COPY_SETTINGS_UPGRADE.getRoute(sourcePolicyID));
             return;
         }
-        const [allPolicyCategories, allPolicyTags, allRules] = await Onyx.multiGet([ONYXKEYS.COLLECTION.POLICY_CATEGORIES, ONYXKEYS.COLLECTION.POLICY_TAGS, ONYXKEYS.COLLECTION.RULE]);
+        const [allPolicyCategories, allPolicyTags] = await Onyx.multiGet([ONYXKEYS.COLLECTION.POLICY_CATEGORIES, ONYXKEYS.COLLECTION.POLICY_TAGS]);
+        const allRules = parts.includes('codingRules') ? await Onyx.get(ONYXKEYS.COLLECTION.RULE) : undefined;
         copyPolicySettings(sourcePolicy, targetPolicies, parts, allPolicyCategories, allPolicyTags, allRules, isOffline);
         Navigation.dismissModal();
     };
