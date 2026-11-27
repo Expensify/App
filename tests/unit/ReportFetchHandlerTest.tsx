@@ -5,6 +5,8 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {IsHiddenWideTabPreMountContext} from '@hooks/useIsHiddenWideTabPreMount';
 import {IsInPreloadedTabContext} from '@hooks/useIsInPreloadedTab';
 
+import Navigation from '@libs/Navigation/Navigation';
+
 import ReportFetchHandler from '@pages/inbox/ReportFetchHandler';
 
 import type * as UserActionsReport from '@userActions/Report';
@@ -36,6 +38,14 @@ jest.mock('@react-navigation/native', () => ({
     useRoute: () => mockRoute,
     useNavigation: () => ({setParams: mockSetParams, addListener: jest.fn(() => jest.fn())}),
     useIsFocused: () => true,
+}));
+
+// The redirect decision itself is covered by shouldRedirectLinkedActionToParentReportTest; here we only drive its result
+// to test how the handler acts on it over time. Defaults to false, which is what the real helper returns for these reports.
+let mockShouldRedirectToParentReport = false;
+jest.mock('@pages/inbox/shouldRedirectLinkedActionToParentReport', () => ({
+    __esModule: true,
+    default: () => mockShouldRedirectToParentReport,
 }));
 
 let mockIsOffline = false;
@@ -99,6 +109,7 @@ describe('ReportFetchHandler', () => {
         mockReadNewestAction.mockClear();
         mockSetParams.mockClear();
         mockIsOffline = false;
+        mockShouldRedirectToParentReport = false;
         setRouteParams({reportID: REPORT_ID});
         await Onyx.clear();
         await Onyx.multiSet({
@@ -602,5 +613,79 @@ describe('ReportFetchHandler', () => {
         await waitForBatchedUpdates();
 
         expect(mockOpenReport).toHaveBeenCalledWith(expect.objectContaining({reportID: PUBLIC_ROOM_ID}));
+    });
+
+    describe('linked action redirect to the parent report', () => {
+        const PARENT_REPORT_ID = '3';
+        const LINKED_ACTION_ID = '4';
+        const PARENT_ACTION_ID = '5';
+        let navigateSpy: jest.SpyInstance;
+
+        // The parent report and the IOU action that created this thread: the data the redirect decision depends on.
+        async function setParentData() {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, {reportID: PARENT_REPORT_ID});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${PARENT_REPORT_ID}`, {
+                [PARENT_ACTION_ID]: {reportActionID: PARENT_ACTION_ID, actionName: CONST.REPORT.ACTIONS.TYPE.IOU, created: '2026-01-01 00:00:00.000'},
+            });
+        }
+
+        beforeEach(async () => {
+            navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+            setRouteParams({reportID: REPORT_ID, reportActionID: LINKED_ACTION_ID});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID, parentReportID: PARENT_REPORT_ID, parentReportActionID: PARENT_ACTION_ID});
+        });
+
+        afterEach(() => {
+            navigateSpy.mockRestore();
+        });
+
+        it('does not redirect a thread the user already opened when it only becomes eligible after loading', async () => {
+            // Given a linked thread whose parent holds two expenses, so the opening load settles on staying in the thread
+            await setParentData();
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}`, {hasOnceLoadedReportActions: true, isLoadingInitialReportActions: false});
+            renderHandler();
+            await waitForBatchedUpdates();
+
+            // When the other expense is removed later, making the thread eligible for the redirect
+            mockShouldRedirectToParentReport = true;
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {lastVisibleActionCreated: '2026-01-01 00:00:00.000'});
+            await waitForBatchedUpdates();
+
+            // Then the user stays in the thread they opened, because the decision was already made
+            expect(navigateSpy).not.toHaveBeenCalled();
+        });
+
+        it('still redirects when the loaded flag is left over from an earlier visit and the parent data arrives during this one', async () => {
+            // Given a thread loaded on an earlier visit, so its loaded flag is already set, while the parent's data isn't cached
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}`, {hasOnceLoadedReportActions: true, isLoadingInitialReportActions: false});
+            renderHandler();
+            await waitForBatchedUpdates();
+            expect(navigateSpy).not.toHaveBeenCalled();
+
+            // When this visit's fetch restores the parent's data and it shows a single transaction
+            mockShouldRedirectToParentReport = true;
+            await setParentData();
+            await waitForBatchedUpdates();
+
+            // Then the link still opens the parent's combined view, because "stay" was never decided without the parent's data
+            expect(navigateSpy).toHaveBeenCalledTimes(1);
+        });
+
+        it('still redirects when the parent becomes eligible while the opening load is hydrating', async () => {
+            // Given a linked thread whose report actions have not loaded yet, so eligibility cannot be decided
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}`, {hasOnceLoadedReportActions: false, isLoadingInitialReportActions: true});
+            renderHandler();
+            await waitForBatchedUpdates();
+            expect(navigateSpy).not.toHaveBeenCalled();
+
+            // When the parent's data arrives and shows a single transaction
+            mockShouldRedirectToParentReport = true;
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {lastVisibleActionCreated: '2026-01-01 00:00:00.000'});
+            await waitForBatchedUpdates();
+
+            // Then the link opens the parent's combined view, replacing the thread route
+            expect(navigateSpy).toHaveBeenCalledTimes(1);
+            expect(navigateSpy).toHaveBeenCalledWith(expect.stringContaining(`r/${PARENT_REPORT_ID}/${LINKED_ACTION_ID}`), {forceReplace: true});
+        });
     });
 });

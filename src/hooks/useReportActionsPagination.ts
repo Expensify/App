@@ -1,12 +1,19 @@
 import {getReportPreviewReportAction} from '@libs/actions/IOU/MoneyRequestBuilder';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getCombinedReportActions, getFilteredReportActionsForReportView, isCreatedAction} from '@libs/ReportActionsUtils';
-import {isConciergeChatReport, isInvoiceReport, isMoneyRequestReport, isReportTransactionThread as isReportTransactionThreadUtil, shouldReportAlignToTop} from '@libs/ReportUtils';
+import {
+    canUserPerformWriteAction,
+    isConciergeChatReport,
+    isInvoiceReport,
+    isMoneyRequestReport,
+    isReportTransactionThread as isReportTransactionThreadUtil,
+    shouldReportAlignToTop,
+} from '@libs/ReportUtils';
 
 import getReportActionsToDisplay from '@pages/inbox/report/getReportActionsToDisplay';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportAction} from '@src/types/onyx';
+import type {Report, ReportAction, ReportActions} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -14,11 +21,13 @@ import {useState} from 'react';
 
 import {useCurrencyListActions} from './useCurrencyList';
 import useDelegateAccountID from './useDelegateAccountID';
+import useLinkedActionTransactionThread from './useLinkedActionTransactionThread';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePaginatedReportActions from './usePaginatedReportActions';
 import useParentReportAction from './useParentReportAction';
-import useTransactionThread from './useTransactionThread';
+import useReportIsArchived from './useReportIsArchived';
+import useTransactionThread, {selectTransactionThreadReportActions} from './useTransactionThread';
 
 type UseReportActionsPaginationResult = {
     reportActions: ReportAction[];
@@ -65,11 +74,27 @@ function useReportActionsPagination(reportID: string | undefined, reportActionID
     });
     const thread = useTransactionThread({reportID, report, allReportActions: getFilteredReportActionsForReportView(unfilteredReportActions), isOffline});
 
+    const {linkedActionTransactionThreadReportID, isLinkedActionInMergedTransactionThread} = useLinkedActionTransactionThread(report, sortedAllReportActions, reportActionIDFromRoute);
+
     const [chatReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
+
+    // useTransactionThread resolves the thread from the paginated window, so it comes back empty when the IOU action sits in an older page.
+    const isReportArchived = useReportIsArchived(reportID);
+    const canPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
+    const fallbackThreadReportID = !thread.transactionThreadReportID && isLinkedActionInMergedTransactionThread ? linkedActionTransactionThreadReportID : undefined;
+    const [fallbackThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(fallbackThreadReportID)}`);
+    const [fallbackThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(fallbackThreadReportID)}`, {
+        // Mirror useTransactionThread's write permission so a read-only user doesn't see actionable whispers here.
+        selector: (actions: OnyxEntry<ReportActions>) => selectTransactionThreadReportActions(!!canPerformWriteAction, fallbackThreadReportID, actions),
+    });
 
     // React Compiler does not memoize a value created before a hook call and used after it, so these are computed again below the last hook.
     const allReportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
     const isConciergeChat = isConciergeChatReport(report, conciergeReportID);
+
+    const transactionThreadReportID = thread.transactionThreadReportID ?? fallbackThreadReportID;
+    const transactionThreadReport = thread.transactionThreadReport ?? fallbackThreadReport;
+    const transactionThreadReportActions = thread.transactionThreadReportID ? (thread.transactionThreadReportActions ?? []) : (fallbackThreadReportActions ?? []);
 
     const isReportTransactionThread = isReportTransactionThreadUtil(report);
 
@@ -88,15 +113,13 @@ function useReportActionsPagination(reportID: string | undefined, reportActionID
         lastAction,
         report,
         reportPreviewAction,
-        thread.transactionThreadReport,
+        transactionThreadReport,
         shouldAddCreatedAction,
         getCurrencyDecimals,
         delegateAccountID,
     );
 
-    const reportActions = reportActionsToDisplay
-        ? getCombinedReportActions(reportActionsToDisplay, thread.transactionThreadReportID ?? null, thread.transactionThreadReportActions ?? [])
-        : [];
+    const reportActions = reportActionsToDisplay ? getCombinedReportActions(reportActionsToDisplay, transactionThreadReportID ?? null, transactionThreadReportActions) : [];
 
     const allReportActionIDs = allReportActions.map((action) => action.reportActionID);
     // A one-expense report shows the comments of its transaction thread. Onyx stores those comments under the
@@ -112,8 +135,8 @@ function useReportActionsPagination(reportID: string | undefined, reportActionID
         hasNewerActions,
         sortedAllReportActions,
         oldestUnreadReportAction,
-        transactionThreadReportID: thread.transactionThreadReportID,
-        transactionThreadReport: thread.transactionThreadReport,
+        transactionThreadReportID,
+        transactionThreadReport,
         parentReportActionForTransactionThread: thread.parentReportActionForTransactionThread,
         treatAsNoPaginationAnchor,
         setTreatAsNoPaginationAnchor,

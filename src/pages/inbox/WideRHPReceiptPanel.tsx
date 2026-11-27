@@ -3,6 +3,7 @@ import ScrollView from '@components/ScrollView';
 import type {RHPWidth} from '@components/WideRHPContextProvider';
 import useRHPWidth from '@components/WideRHPContextProvider/useRHPWidth';
 
+import useLinkedActionTransactionThread from '@hooks/useLinkedActionTransactionThread';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
@@ -52,14 +53,19 @@ function WideRHPReceiptPanelGate() {
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`);
     const parentReportAction = useParentReportAction(report);
 
-    const {reportActions: unfilteredReportActions} = usePaginatedReportActions(report?.reportID, routeParams?.reportActionID);
+    const {reportActions: unfilteredReportActions, sortedAllReportActions} = usePaginatedReportActions(report?.reportID, routeParams?.reportActionID);
+    const {linkedActionTransactionThreadReportID, isLinkedActionInMergedTransactionThread} = useLinkedActionTransactionThread(report, sortedAllReportActions, routeParams?.reportActionID);
     const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
 
     const allReportTransactions = useReportTransactionsCollection(reportIDFromRoute);
     const reportTransactions = getAllNonDeletedTransactions(allReportTransactions, reportActions, isOffline, true);
     const visibleTransactions = reportTransactions?.filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     const reportTransactionIDs = visibleTransactions?.map((transaction) => transaction.transactionID);
-    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
+    // The paginated window misses the IOU action when it sits on an older page, so a linked action falls back to the thread
+    // resolved from all cached actions, as the timeline does.
+    const transactionThreadReportID =
+        getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs) ??
+        (isLinkedActionInMergedTransactionThread ? linkedActionTransactionThreadReportID : undefined);
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
 
     const isMoneyRequestOrInvoiceReport = isMoneyRequestReport(report) || isInvoiceReport(report);
