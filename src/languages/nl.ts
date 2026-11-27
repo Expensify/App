@@ -9748,6 +9748,13 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 flagType: 'Vlagtype',
                 flagTypeWarning: 'Waarschuwing',
                 flagTypeWarningDescription: 'Indiener krijgt een waarschuwing, maar kan de uitgave nog steeds indienen',
+                dailyBudget: 'Dagbudget',
+                dailyBudgetOver: (amount: string) => `Dagelijkse uitgaven boven ${amount}`,
+                dailyBudgetDescription:
+                    'Telt uitgaven over rapporten heen met dezelfde uitgavedatum. Categorie, tag en indiener verfijnen wat meetelt. Met een categorie of tag is het totaal per indiener.',
+                dailyBudgetSelectorError:
+                    'Een dagelijks budget kan overeenkomen met één indiener en één tag. Als je al een tag hebt gekozen, selecteer die dan opnieuw om de bijbehorende taglijst te kiezen.',
+                reselectTagWithoutBudget: 'Selecteer of wis het label opnieuw nadat je het dagbudget hebt verwijderd.',
             },
             agentRulesEmptyState: {title: 'Geen agentregels toegevoegd', subtitle: 'Maak een regel om je werkruimtebeleid te automatiseren.', cta: 'AI-regel toevoegen'},
             categoriesDisabledEmptyState: {title: 'Categorieën zijn niet ingeschakeld', subtitle: 'Schakel categorieën in om meer controle te krijgen over je uitgaven.'},

@@ -9900,6 +9900,13 @@ ${reportName}`,
                 flagType: 'Tipo de marca',
                 flagTypeWarning: 'Advertencia',
                 flagTypeWarningDescription: 'Se avisará a quien envía, pero aún podrá enviar el gasto',
+                dailyBudget: 'Presupuesto diario',
+                dailyBudgetOver: (amount: string) => `Gasto diario superior a ${amount}`,
+                dailyBudgetDescription:
+                    'Cuenta los gastos en todos los informes para la misma fecha de gasto. La categoría, la etiqueta y la persona que los envía acotan qué se cuenta. Con una categoría o etiqueta, el total es por persona que los envía.',
+                dailyBudgetSelectorError:
+                    'Un presupuesto diario puede coincidir con un remitente y una etiqueta. Si ya elegiste una etiqueta, vuélvela a seleccionar para elegir su lista de etiquetas.',
+                reselectTagWithoutBudget: 'Vuelve a seleccionar o borra la etiqueta después de eliminar el presupuesto diario.',
             },
             agentRulesEmptyState: {
                 title: 'No se han añadido reglas de agente',
