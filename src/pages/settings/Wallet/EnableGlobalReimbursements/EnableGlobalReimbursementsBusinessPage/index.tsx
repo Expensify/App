@@ -21,6 +21,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
+import {bankAccountByIDSelector} from '@selectors/BankAccount';
 import React, {useEffect} from 'react';
 
 import type {BusinessInfoSubPageProps} from './types';
@@ -47,7 +48,7 @@ const pages = [
 function EnableGlobalReimbursementsBusinessPage({route}: EnableGlobalReimbursementsBusinessPageProps) {
     const {translate} = useLocalize();
     const bankAccountID = route.params?.bankAccountID;
-    const [bankAccount] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {selector: (list) => list?.[bankAccountID]});
+    const [bankAccount] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {selector: bankAccountByIDSelector(bankAccountID)});
     const country = (route.params?.bankCountry ?? bankAccount?.bankCountry ?? '') as Country;
     const currency = route.params?.bankCurrency ?? bankAccount?.bankCurrency ?? '';
 

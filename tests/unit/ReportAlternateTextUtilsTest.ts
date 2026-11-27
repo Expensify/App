@@ -941,6 +941,7 @@ describe('ReportAlternateTextUtils', () => {
                         policy: null,
                         isForListPreview: true,
                         originalReportAction: reportPreviewAction,
+                        bankAccountList: undefined,
                     },
                     formatPhoneNumber,
                 );

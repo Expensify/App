@@ -109,7 +109,6 @@ import type {LastVisibleMessage} from './ReportActionsUtils';
 import type {AvatarSource} from './UserAvatarUtils';
 
 import {isIntuitEnterpriseSuiteConnection} from './AccountingUtils';
-import {getBankAccountFromID} from './actions/BankAccounts';
 import hasCreditBankAccount from './actions/ReimbursementAccount/hasCreditBankAccount';
 import {getAnchorHref, isAttachmentAnchorTag, isOwnAttachmentURL} from './AttachmentAnchorUtils';
 import {convertAttendeesToArray, normalizeAttendees} from './AttendeeUtils';
@@ -7045,7 +7044,7 @@ type GetReportPreviewMessageBaseParams = {
     /** This can be either a report preview action or the IOU action. This will be the original report preview action in cases where `iouReportAction` was unwrapped from a report preview action. Otherwise, it will be the same as `iouReportAction`. */
     originalReportAction?: OnyxInputOrEntry<ReportAction>;
     /** The current user's bank accounts, used to name the account a report was paid with. */
-    bankAccountList?: OnyxEntry<BankAccountList>;
+    bankAccountList: OnyxEntry<BankAccountList>;
     personalDetails?: OnyxEntry<PersonalDetailsList>;
     /** The transaction of `iouReportAction`. Pass it from a subscription so a memoized caller doesn't read an outdated module-level copy. Split and track actions rely on it, since their transaction isn't part of `reportOrID`. */
     linkedTransaction?: OnyxEntry<Transaction>;
@@ -7235,7 +7234,7 @@ function getReportPreviewMessage(
 
             if (isFromInvoice) {
                 translatePhraseKey = originalMessage?.payAsBusiness ? 'iou.settleInvoiceBusiness' : 'iou.settleInvoicePersonal';
-                const currentBankAccount = getBankAccountFromID(originalMessage?.bankAccountID);
+                const currentBankAccount = originalMessage?.bankAccountID ? bankAccountList?.[originalMessage.bankAccountID] : undefined;
                 return translate(translatePhraseKey, formattedAmount, currentBankAccount?.accountData?.accountNumber?.slice(-4) ?? '');
             }
         }
@@ -7361,6 +7360,7 @@ function getReportPreviewReportActionMessage(
         | 'isPreviewMessageForParentChatReport'
         | 'isForListPreview'
         | 'linkedTransaction'
+        | 'bankAccountList'
     > & {
         policy?: OnyxInputOrEntry<Policy>;
         iouReportAction?: OnyxInputOrEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>;

@@ -4403,6 +4403,7 @@ describe('SidebarUtils', () => {
                         policy: null,
                         isForListPreview: true,
                         originalReportAction: lastReportPreviewAction,
+                        bankAccountList: undefined,
                     },
                     formatPhoneNumber,
                 );
@@ -4524,6 +4525,7 @@ describe('SidebarUtils', () => {
                         policy: null,
                         isForListPreview: true,
                         originalReportAction: lastReportPreviewAction,
+                        bankAccountList: undefined,
                     },
                     formatPhoneNumber,
                 );

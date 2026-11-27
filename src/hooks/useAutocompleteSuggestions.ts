@@ -303,6 +303,7 @@ function useAutocompleteSuggestions({
                 translate,
                 getReportByID,
                 rules,
+                bankAccountList,
             }).options.personalDetails.filter((participant) => participant.text && !alreadyAutocompletedKeys.has(participant.text.toLowerCase()));
 
             return participants.map((participant) => ({
@@ -359,6 +360,7 @@ function useAutocompleteSuggestions({
                 translate,
                 getReportByID,
                 rules,
+                bankAccountList,
             }).options.recentReports.filter((chat) => {
                 if (!chat.text) {
                     return false;

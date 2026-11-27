@@ -4,12 +4,11 @@
  */
 import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 
-import {getBankAccountFromID} from '@libs/actions/BankAccounts';
 import {getIsOffline} from '@libs/NetworkState';
 import {generateAccountID} from '@libs/UserUtils';
 
 import CONST from '@src/CONST';
-import type {PersonalDetailsList, Policy, PolicyEmployeeList} from '@src/types/onyx';
+import type {BankAccount, PersonalDetailsList, Policy, PolicyEmployeeList} from '@src/types/onyx';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -22,12 +21,11 @@ import {getActivePolicies, shouldShowPolicy} from './policy';
 type MemberEmailsToAccountIDs = Record<string, number>;
 
 /** Return the emails that can receive a shared bank account from the current user. */
-function getEligibleBankAccountShareRecipientEmails(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined, bankAccountID: string | undefined): string[] {
+function getEligibleBankAccountShareRecipientEmails(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined, currentBankAccount: OnyxEntry<BankAccount>): string[] {
     if (!currentUserLogin) {
         return [];
     }
 
-    const currentBankAccount = getBankAccountFromID(Number(bankAccountID));
     const isOffline = getIsOffline();
     const activePolicies = getActivePolicies(policies, currentUserLogin).filter(
         (policy) => shouldShowPolicy(policy, isOffline, currentUserLogin) && canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS),
@@ -57,8 +55,8 @@ function getEligibleBankAccountShareRecipientEmails(policies: OnyxCollection<Pol
 }
 
 /** Return whether the current user has someone they can share a bank account with. */
-function hasEligibleBankAccountShareRecipient(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined, bankAccountID: string | undefined): boolean {
-    return getEligibleBankAccountShareRecipientEmails(policies, currentUserLogin, bankAccountID).length > 0;
+function hasEligibleBankAccountShareRecipient(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined, currentBankAccount: OnyxEntry<BankAccount>): boolean {
+    return getEligibleBankAccountShareRecipientEmails(policies, currentUserLogin, currentBankAccount).length > 0;
 }
 
 /**

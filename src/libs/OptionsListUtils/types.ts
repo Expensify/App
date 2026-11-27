@@ -9,6 +9,7 @@ import type {AvatarSource} from '@libs/UserAvatarUtils';
 
 import type {IOUAction} from '@src/CONST';
 import type {
+    BankAccountList,
     Login,
     PersonalDetails,
     PersonalDetailsList,
@@ -301,6 +302,7 @@ type GetOptionsConfig = {
     localeCompare?: LocaleContextProps['localeCompare'];
     formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
     isTrackIntentUser?: boolean;
+    bankAccountList?: OnyxEntry<BankAccountList>;
     /** The user's default workspace. Its expense chat is ranked first in the separated workspace chats so the result limit can't drop it */
     activePolicyID?: OnyxEntry<string>;
     /** TODO: Should be required field in the future. Refactor issue: https://github.com/Expensify/App/issues/66407 */

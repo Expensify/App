@@ -11,6 +11,7 @@ import {rand} from '@ngneat/falso';
 import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
 
+import createRandomBankAccountList from '../utils/collections/bankAccounts';
 import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
@@ -68,6 +69,7 @@ describe('SidebarUtils', () => {
         const policy = createRandomPolicy(1);
         const parentReportAction = createRandomReportAction(1);
         const reportNameValuePairs = {};
+        const bankAccountList = createRandomBankAccountList(100);
 
         await waitForBatchedUpdates();
 
@@ -76,6 +78,7 @@ describe('SidebarUtils', () => {
                 lastOriginalAction: undefined,
                 dateFnsLocale: undefined,
                 report,
+                bankAccountList,
                 reportAttributes: undefined,
                 reportNameValuePairs,
                 personalDetails,

@@ -13,6 +13,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EnableGlobalReimbursementsForm';
 
+import {bankAccountByIDSelector} from '@selectors/BankAccount';
 import React, {useEffect} from 'react';
 
 type EnableGlobalReimbursementsSignPageProps = PlatformStackScreenProps<
@@ -23,7 +24,7 @@ type EnableGlobalReimbursementsSignPageProps = PlatformStackScreenProps<
 function EnableGlobalReimbursementsSignPage({route}: EnableGlobalReimbursementsSignPageProps) {
     const {getAgreementsRoute, isDynamic} = useEnableGlobalReimbursementsNavigation();
     const bankAccountID = route.params?.bankAccountID;
-    const [bankAccount] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {selector: (list) => list?.[bankAccountID]});
+    const [bankAccount] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {selector: bankAccountByIDSelector(bankAccountID)});
     const currency = route.params?.bankCurrency ?? bankAccount?.bankCurrency ?? '';
     const country = route.params?.bankCountry ?? bankAccount?.bankCountry;
     const [enableGlobalReimbursements] = useOnyx(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS);

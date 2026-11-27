@@ -1963,16 +1963,6 @@ function shareBankAccountAndSetPayer(bankAccountID: number, shareeAccountID: num
     API.write(WRITE_COMMANDS.SHARE_BANK_ACCOUNT_AND_UPDATE_POLICY_REIMBURSER, parameters, onyxData);
 }
 
-/**
- * Get bank account from bankAccountID
- */
-function getBankAccountFromID(bankAccountID: number | undefined) {
-    if (!bankAccountID) {
-        return undefined;
-    }
-    return bankAccountList?.[bankAccountID];
-}
-
 function openBankAccountSharePage() {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_SHARE_BANK_ACCOUNTS>> = [
         {
@@ -2198,7 +2188,6 @@ export {
     sendReminderForCorpaySignerInformation,
     clearPersonalBankAccountErrors,
     clearReimbursementAccountSendReminderForCorpaySignerInformation,
-    getBankAccountFromID,
     openBankAccountSharePage,
     clearShareBankAccountErrors,
     updatePersonalBankAccountInfo,

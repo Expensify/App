@@ -326,6 +326,7 @@ function SearchAutocompleteList({
                   translate,
                   getReportByID,
                   rules,
+                  bankAccountList,
               },
     );
 
@@ -375,6 +376,7 @@ function SearchAutocompleteList({
             getReportByID,
             rules,
             formatPhoneNumber,
+            bankAccountList,
         }).options;
         const optionsByReportID = new Map(options.recentReports.map((option) => [option.reportID, option]));
         serverReportsOptions = orderedReportIDs.map((reportID) => optionsByReportID.get(reportID)).filter((option): option is OptionData => !!option && !option.isSelfDM);

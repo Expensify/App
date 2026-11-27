@@ -24728,7 +24728,7 @@ describe('ReportUtils', () => {
             };
 
             // When we call getReportPreviewMessage passing the policy explicitly
-            const result = getReportPreviewMessage(translateLocal, convertToDisplayString, {reportOrID: expenseReport, policy: groupPolicy}, formatPhoneNumber);
+            const result = getReportPreviewMessage(translateLocal, convertToDisplayString, {reportOrID: expenseReport, policy: groupPolicy, bankAccountList: undefined}, formatPhoneNumber);
 
             // Then the group-policy "approved" branch is taken based on the passed policy alone
             expect(result).toContain('approved');
@@ -24759,7 +24759,7 @@ describe('ReportUtils', () => {
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, staleTransaction);
             await waitForBatchedUpdates();
-            const params = {reportOrID: iouReport, iouReportAction: iouAction, shouldConsiderScanningReceiptOrPendingRoute: true, policy: undefined};
+            const params = {reportOrID: iouReport, iouReportAction: iouAction, shouldConsiderScanningReceiptOrPendingRoute: true, policy: undefined, bankAccountList: undefined};
 
             // When we pass a fresher transaction for the action
             const result = getReportPreviewMessage(
@@ -24852,6 +24852,7 @@ describe('ReportUtils', () => {
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                 statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
             };
+            const settledInvoiceReport: Report = {...settledReport, reportID: '445002', type: CONST.REPORT.TYPE.INVOICE};
             const payOriginalMessage = {
                 IOUReportID: settledReport.reportID,
                 type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
@@ -24876,6 +24877,7 @@ describe('ReportUtils', () => {
 
             afterEach(async () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[reimburserAccountID]: null});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${settledInvoiceReport.reportID}`, null);
             });
 
             it('shows the bank account from the action accountNumber instead of the policy default', () => {
@@ -24895,6 +24897,7 @@ describe('ReportUtils', () => {
                         iouReportAction: actionWithAccountNumber,
                         originalReportAction: actionWithAccountNumber,
                         policy: settledPolicy,
+                        bankAccountList: undefined,
                     },
                     formatPhoneNumber,
                 );
@@ -24916,6 +24919,7 @@ describe('ReportUtils', () => {
                         iouReportAction: payReportAction,
                         originalReportAction: payReportAction,
                         policy: settledPolicy,
+                        bankAccountList: undefined,
                     },
                     formatPhoneNumber,
                 );
@@ -24948,6 +24952,7 @@ describe('ReportUtils', () => {
                             iouReportAction: actionNamingAccount,
                             originalReportAction: actionNamingAccount,
                             policy: settledPolicy,
+                            bankAccountList: undefined,
                         },
                         formatPhoneNumber,
                     );
@@ -24969,6 +24974,28 @@ describe('ReportUtils', () => {
                 });
             });
 
+            it('names the invoice payment account from the passed bankAccountList', async () => {
+                // Given a settled invoice paid from a personal account that the action records only by ID
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${settledInvoiceReport.reportID}`, settledInvoiceReport);
+                const invoicePayAction: ReportAction = {
+                    ...payReportAction,
+                    originalMessage: {...payOriginalMessage, IOUReportID: settledInvoiceReport.reportID, paymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY, bankAccountID: 7890001},
+                };
+                const bankAccountList = createMock<BankAccountList>({7890001: {accountData: {accountNumber: 'XXXXXX7890'}}});
+                const englishTranslate: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
+
+                // When the preview is built with the caller's bankAccountList
+                const result = getReportPreviewMessage(
+                    englishTranslate,
+                    convertToDisplayString,
+                    {bankAccountList, reportOrID: settledInvoiceReport, iouReportAction: invoicePayAction, originalReportAction: invoicePayAction, policy: settledPolicy},
+                    formatPhoneNumber,
+                );
+
+                // Then the invoice wording shows the last 4 digits of that account
+                expect(result).toMatch(/with personal account 7890$/);
+            });
+
             it('matches the localized getReportPreviewMessage output when translated to English for a report preview action', () => {
                 // Given a settled report whose preview action message says it was paid with Expensify
                 const englishTranslate: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
@@ -24978,7 +25005,13 @@ describe('ReportUtils', () => {
                     originalMessage: {linkedReportID: settledReport.reportID},
                     message: [{html: 'paid with Expensify', text: 'paid with Expensify', type: CONST.REPORT.MESSAGE.TYPE.COMMENT}],
                 });
-                const params = {reportOrID: settledReport, iouReportAction: reportPreviewAction, originalReportAction: reportPreviewAction, policy: settledPolicy};
+                const params = {
+                    reportOrID: settledReport,
+                    iouReportAction: reportPreviewAction,
+                    originalReportAction: reportPreviewAction,
+                    policy: settledPolicy,
+                    bankAccountList: undefined,
+                };
 
                 // When both variants build the message
                 const storedMessage = getReportPreviewReportActionMessage(params, getCurrencyDecimalsLocal);
@@ -24997,7 +25030,13 @@ describe('ReportUtils', () => {
                     originalMessage: {linkedReportID: settledReport.reportID},
                     message: [{html: '', text: '', type: CONST.REPORT.MESSAGE.TYPE.COMMENT}],
                 });
-                const params = {reportOrID: settledReport, iouReportAction: reportPreviewAction, originalReportAction: reportPreviewAction, policy: settledPolicy};
+                const params = {
+                    reportOrID: settledReport,
+                    iouReportAction: reportPreviewAction,
+                    originalReportAction: reportPreviewAction,
+                    policy: settledPolicy,
+                    bankAccountList: undefined,
+                };
 
                 // When both variants build the message
                 const storedMessage = getReportPreviewReportActionMessage(params, getCurrencyDecimalsLocal);
@@ -25013,7 +25052,13 @@ describe('ReportUtils', () => {
                     ...payReportAction,
                     originalMessage: {...payOriginalMessage, creditedAmount: 1340, creditedCurrency: 'GBP', creditBankAccountLast4: '3335'},
                 };
-                const crossBorderParams = {reportOrID: settledReport, iouReportAction: crossBorderAction, originalReportAction: crossBorderAction, policy: settledPolicy};
+                const crossBorderParams = {
+                    reportOrID: settledReport,
+                    iouReportAction: crossBorderAction,
+                    originalReportAction: crossBorderAction,
+                    policy: settledPolicy,
+                    bankAccountList: undefined,
+                };
 
                 it('names the credited amount, falling back to the policy default for the debited account', () => {
                     // Given a converted payment that recorded the employee's account but not the account it was paid from
@@ -25041,6 +25086,7 @@ describe('ReportUtils', () => {
                             originalReportAction: payReportAction,
                             policy: settledPolicy,
                             isPreviewMessageForParentChatReport: true,
+                            bankAccountList: undefined,
                         },
                         formatPhoneNumber,
                     );
@@ -25066,7 +25112,7 @@ describe('ReportUtils', () => {
             });
 
             it('uses the injected translate function (not translateLocal) so output follows the passed locale, while getReportPreviewReportActionMessage stays English', async () => {
-                const params = {reportOrID: expenseReport, policy: undefined};
+                const params = {reportOrID: expenseReport, policy: undefined, bankAccountList: undefined};
                 const englishTranslate: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
                 const spanishTranslate: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.ES, path, ...parameters);
 
@@ -25103,7 +25149,12 @@ describe('ReportUtils', () => {
                 const translateWithMarker: LocalizedTranslate = (path, ...parameters) =>
                     path === 'common.hidden' ? 'HiddenParticipantMarker' : translate(CONST.LOCALES.EN, path, ...parameters);
 
-                const result = getReportPreviewMessage(translateWithMarker, convertToDisplayString, {reportOrID: iouReport, policy: undefined}, formatPhoneNumber);
+                const result = getReportPreviewMessage(
+                    translateWithMarker,
+                    convertToDisplayString,
+                    {reportOrID: iouReport, policy: undefined, bankAccountList: undefined},
+                    formatPhoneNumber,
+                );
 
                 // The manager's name resolves to the marker, proving getDisplayNameForParticipant received the injected translate
                 expect(result).toContain('HiddenParticipantMarker');
@@ -25163,6 +25214,7 @@ describe('ReportUtils', () => {
                         iouReportAction: splitAction,
                         policy: undefined,
                         linkedTransaction: splitTransaction,
+                        bankAccountList: undefined,
                     },
                     formatPhoneNumber,
                 );
@@ -25186,6 +25238,7 @@ describe('ReportUtils', () => {
                         reportOrID: groupChat,
                         iouReportAction: splitAction,
                         policy: undefined,
+                        bankAccountList: undefined,
                     },
                     formatPhoneNumber,
                 );
@@ -25216,6 +25269,7 @@ describe('ReportUtils', () => {
                         iouReportAction: trackAction,
                         policy: undefined,
                         linkedTransaction: trackTransaction,
+                        bankAccountList: undefined,
                     },
                     formatPhoneNumber,
                 );
@@ -25252,6 +25306,7 @@ describe('ReportUtils', () => {
                         iouReportAction: iouAction,
                         shouldConsiderScanningReceiptOrPendingRoute: true,
                         policy: undefined,
+                        bankAccountList: undefined,
                     },
                     formatPhoneNumber,
                 );
@@ -25277,7 +25332,9 @@ describe('ReportUtils', () => {
                 const result = getReportPreviewReportActionMessage({reportOrID: report}, getCurrencyDecimalsLocal);
 
                 // The hardcoded English string must match the en.ts translation produced by the localized function
-                expect(result).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, {reportOrID: report, policy: undefined}, formatPhoneNumber));
+                expect(result).toBe(
+                    getReportPreviewMessage(englishTranslate, convertToDisplayString, {reportOrID: report, policy: undefined, bankAccountList: undefined}, formatPhoneNumber),
+                );
                 expect(result).toContain('owes');
             });
 
@@ -25327,7 +25384,9 @@ describe('ReportUtils', () => {
                 const result = getReportPreviewReportActionMessage({reportOrID: report}, getCurrencyDecimalsLocal);
 
                 // The hardcoded English string must match the en.ts translation produced by the localized function
-                expect(result).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, {reportOrID: report, policy: undefined}, formatPhoneNumber));
+                expect(result).toBe(
+                    getReportPreviewMessage(englishTranslate, convertToDisplayString, {reportOrID: report, policy: undefined, bankAccountList: undefined}, formatPhoneNumber),
+                );
                 expect(result).toContain('spent');
             });
         });
