@@ -27,7 +27,7 @@ import type {OriginalMessageIOU, Policy, PolicyTagLists, RecentWaypoint, Report,
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
 import type Transaction from '@src/types/onyx/Transaction';
-import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
+import type {TransactionCollectionDataSet, TransactionCustomUnit} from '@src/types/onyx/Transaction';
 
 import type {OnyxCollection, OnyxEntry, OnyxInputValue} from 'react-native-onyx';
 
@@ -2990,6 +2990,99 @@ describe('actions/Duplicate', () => {
             expect(Navigation.dismissModal).not.toHaveBeenCalled();
         });
 
+        it('per diem expense created in Expensify Classic before its workspace price and currency changed', async () => {
+            // Given a workspace whose per diem sub-rate now costs 60.00 EUR
+            const targetPolicy: Policy = {
+                ...mockPolicy,
+                customUnits: {
+                    perDiemUnit: {
+                        customUnitID: 'perDiemUnit',
+                        name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                        rates: {
+                            polandRate: {
+                                customUnitRateID: 'polandRate',
+                                name: 'Poland',
+                                currency: 'EUR',
+                                subRates: [{id: 'subrate-1', name: 'Full Day', rate: 6000}],
+                            },
+                        },
+                    },
+                },
+            };
+
+            // And a 12 x 50.00 PLN per diem expense saved by Expensify Classic, which stores dates with a time zone offset, and sub-rates without a price and with the quantity as a string
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- The sub-rate type requires a numeric quantity and a price, but Expensify Classic data has neither
+            const classicSubRates = [{key: '0', id: 'subrate-1', name: 'Full Day', quantity: '12'}] as unknown as TransactionCustomUnit['subRates'];
+            const classicPerDiemTransaction = {
+                ...mockTransaction,
+                amount: -60000,
+                currency: 'PLN',
+                iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
+                comment: {
+                    type: 'customUnit' as const,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                        customUnitID: 'perDiemUnit',
+                        customUnitRateID: 'polandRate',
+                        subRates: classicSubRates,
+                        attributes: {
+                            dates: {
+                                start: '2026-07-31T05:30:00.000+02:00',
+                                end: '2026-07-31T20:00:00.000+02:00',
+                            },
+                        },
+                    },
+                },
+            };
+
+            // When the expense is duplicated in New Expensify
+            duplicateExpenseTransaction({
+                isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
+                conciergeChat: undefined,
+                transaction: classicPerDiemTransaction,
+                optimisticChatReportID: mockOptimisticChatReportID,
+                optimisticIOUReportID: mockOptimisticIOUReportID,
+                isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
+                introSelected: undefined,
+                quickAction: undefined,
+                policyRecentlyUsedCurrencies: [],
+                isSelfTourViewed: false,
+                customUnitPolicyID: '',
+                targetPolicy,
+                targetPolicyCategories: fakePolicyCategories,
+                targetReport: policyExpenseChat,
+                existingTransactionDraft: undefined,
+                personalDetails: {},
+                recentWaypoints: [],
+                targetPolicyTags,
+                policyTagList: targetPolicyTags ?? {},
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
+                rules: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the server gets the dates in the format it accepts, keeping the time the user entered, so it doesn't reject the request
+            const writeCall = writeSpy.mock.calls.find(isWriteMockCallForCommand(WRITE_COMMANDS.CREATE_PER_DIEM_REQUEST));
+            expect(writeCall?.[1]).toEqual(expect.objectContaining({startDateTime: '2026-07-31 05:30:00', endDateTime: '2026-07-31 20:00:00'}));
+
+            // And the sub-rate carries a numeric quantity, because the server rejects a string, and the workspace's current price and
+            // currency, which the server prices the copy with, so the receipt it draws from the request matches the copy
+            expect(JSON.parse(String(writeCall?.[1]?.subRates))).toEqual([expect.objectContaining({id: 'subrate-1', quantity: 12, rate: 6000})]);
+            expect(writeCall?.[1]).toEqual(expect.objectContaining({currency: 'EUR'}));
+
+            // And the copy shows that price and currency while it's being created, so it doesn't change when the server responds
+            const copiedPerDiem = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${String(writeCall?.[1]?.transactionID)}`);
+            expect(copiedPerDiem?.amount).toBe(-72000);
+            expect(copiedPerDiem?.currency).toBe('EUR');
+        });
+
         it('should not pass linkedTrackedExpenseReportAction.childReportID as transactionThreadReportID to the API', async () => {
             // Given a transaction with linkedTrackedExpenseReportAction set
             // This simulates a split expense that was removed from a report, where the
@@ -3866,10 +3959,11 @@ describe('actions/Duplicate', () => {
          */
         const duplicateCrossCurrencyReport = async (
             transactions: Array<Partial<Transaction>>,
-            {sourceCurrency = 'INR', outputCurrency = sourceCurrency}: {sourceCurrency?: string; outputCurrency?: string} = {},
+            {sourceCurrency = 'INR', outputCurrency = sourceCurrency, customUnits}: {sourceCurrency?: string; outputCurrency?: string; customUnits?: Policy['customUnits']} = {},
         ) => {
             const targetPolicy: Policy = {
                 ...mockPolicy,
+                customUnits,
                 type: CONST.POLICY.TYPE.TEAM,
                 outputCurrency,
                 autoReporting: false,
@@ -3998,6 +4092,98 @@ describe('actions/Duplicate', () => {
 
             expect(copy?.total).toBe(-46000);
             expect(copy?.reimbursableTotal).toBe(-46000);
+        });
+
+        it('should total a per diem expense at the workspace price and currency its copy is created with', async () => {
+            // Given a workspace whose per diem sub-rate now costs 60.00
+            const customUnits: Policy['customUnits'] = {
+                perDiemUnit: {
+                    customUnitID: 'perDiemUnit',
+                    name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                    rates: {polandRate: {customUnitRateID: 'polandRate', name: 'Poland', currency: 'INR', subRates: [{id: 'subrate-1', name: 'Full Day', rate: 6000}]}},
+                },
+            };
+
+            // And a 50.00 per diem expense saved by Expensify Classic, which doesn't save a sub-rate's price, so its copy takes the workspace's current price
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- The sub-rate type requires a numeric quantity and a price, but Expensify Classic data has neither
+            const classicSubRates = [{key: '0', id: 'subrate-1', name: 'Full Day', quantity: '1'}] as unknown as TransactionCustomUnit['subRates'];
+            const classicPerDiem: Partial<Transaction> = {
+                currency: 'INR',
+                amount: -5000,
+                reimbursable: true,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                        customUnitID: 'perDiemUnit',
+                        customUnitRateID: 'polandRate',
+                        subRates: classicSubRates,
+                        attributes: {dates: {start: '2026-07-31T05:30:00.000+02:00', end: '2026-07-31T20:00:00.000+02:00'}},
+                    },
+                },
+            };
+
+            // When its report is duplicated
+            const copy = await duplicateCrossCurrencyReport([classicPerDiem], {customUnits});
+
+            // Then the copy's total matches the 60.00 expense it holds, so the report and its expense agree while offline
+            const allTransactions = await getOnyxValue(ONYXKEYS.COLLECTION.TRANSACTION);
+            const copiedPerDiem = Object.values(allTransactions ?? {}).find((transaction) => transaction?.reportID === copy?.reportID);
+            expect(copiedPerDiem?.amount).toBe(-6000);
+            expect(copy?.total).toBe(-6000);
+            expect(copy?.reimbursableTotal).toBe(-6000);
+            expect(copy?.unheldReimbursableTotal).toBe(-6000);
+
+            // When a per diem created in New Expensify at 50.00 AUD, before the workspace changed the rate to 60.00 INR, is duplicated
+            await Onyx.clear();
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${POLICY_EXPENSE_CHAT_REPORT_ID}`, {reportID: POLICY_EXPENSE_CHAT_REPORT_ID, type: CONST.REPORT.TYPE.CHAT});
+            const newDotPerDiem: Partial<Transaction> = {
+                ...classicPerDiem,
+                currency: 'AUD',
+                convertedAmount: -46000,
+                comment: {
+                    ...classicPerDiem.comment,
+                    customUnit: {...classicPerDiem.comment?.customUnit, subRates: [{id: 'subrate-1', name: 'Full Day', quantity: 1, rate: 5000}]},
+                },
+            };
+            const repricedCopy = await duplicateCrossCurrencyReport([newDotPerDiem], {customUnits});
+
+            // Then the copy is totalled at the 60.00 INR the server creates its expense with, not from the source's out-of-date conversion
+            expect(repricedCopy?.total).toBe(-6000);
+            expect(repricedCopy?.reimbursableTotal).toBe(-6000);
+
+            // When the workspace's rate is now in a currency other than the report's
+            await Onyx.clear();
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${POLICY_EXPENSE_CHAT_REPORT_ID}`, {reportID: POLICY_EXPENSE_CHAT_REPORT_ID, type: CONST.REPORT.TYPE.CHAT});
+            const audCustomUnits: Policy['customUnits'] = {
+                perDiemUnit: {
+                    customUnitID: 'perDiemUnit',
+                    name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                    rates: {polandRate: {customUnitRateID: 'polandRate', name: 'Poland', currency: 'AUD', subRates: [{id: 'subrate-1', name: 'Full Day', rate: 6000}]}},
+                },
+            };
+            const crossCurrencyCopy = await duplicateCrossCurrencyReport([classicPerDiem], {customUnits: audCustomUnits});
+
+            // Then the copy doesn't guess a conversion, and leaves the total to the server
+            expect(crossCurrencyCopy?.total).toBe(0);
+            expect(crossCurrencyCopy?.reimbursableTotal).toBe(0);
+
+            // When the workspace deleted the sub-rate, so neither it nor the Expensify Classic expense has a price for it
+            await Onyx.clear();
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${POLICY_EXPENSE_CHAT_REPORT_ID}`, {reportID: POLICY_EXPENSE_CHAT_REPORT_ID, type: CONST.REPORT.TYPE.CHAT});
+            const deletedSubRateCustomUnits: Policy['customUnits'] = {
+                perDiemUnit: {
+                    customUnitID: 'perDiemUnit',
+                    name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                    rates: {polandRate: {customUnitRateID: 'polandRate', name: 'Poland', currency: 'INR', subRates: []}},
+                },
+            };
+            const unpricedCopy = await duplicateCrossCurrencyReport([classicPerDiem], {customUnits: deletedSubRateCustomUnits});
+
+            // Then that sub-rate is priced at 0, so the copy's total is a number rather than NaN
+            expect(unpricedCopy?.total).toBe(0);
+            expect(unpricedCopy?.reimbursableTotal).toBe(0);
         });
 
         it('should not fabricate a total from a conversion that predates an unsynced amount edit', async () => {
