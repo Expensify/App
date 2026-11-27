@@ -45,7 +45,7 @@ function InsightsDetailsSectionHeader({title, viewAll}: InsightsDetailsSectionHe
                 <PressableWithoutFeedback
                     onPress={() => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: viewAll.query}))}
                     accessibilityRole={CONST.ROLE.LINK}
-                    accessibilityLabel={translate('insightsPage.viewAll')}
+                    accessibilityLabel={`${translate('insightsPage.viewAll')}, ${title}`}
                     sentryLabel={viewAll.sentryLabel}
                     style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}
                 >
