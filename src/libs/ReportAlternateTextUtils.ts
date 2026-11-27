@@ -978,7 +978,7 @@ function getLastMessageTextForReport({
 
     // we do not want to show report closed in LHN for non archived report so use getReportLastMessage as fallback instead of lastMessageText from report
     if (reportID && !isReportArchived && report.lastActionType === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
-        return lastMessageTextFromReport || (getReportLastMessage(reportID, isReportArchived, undefined, reportIDToName).lastMessageText ?? '');
+        return lastMessageTextFromReport || (getReportLastMessage(reportID, isReportArchived, undefined, currentUserAccountID, reportIDToName).lastMessageText ?? '');
     }
 
     // If the last report action is a pending moderation action, get the last message text from the last visible report action

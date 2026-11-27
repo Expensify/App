@@ -75,6 +75,7 @@ function MentionWhisperContent({action, actionOwnerReportStable, parentReport, o
                                 action,
                                 CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSE,
                                 isOriginalReportArchived,
+                                currentUserAccountID,
                                 parentReport,
                             )
                         }
@@ -86,7 +87,14 @@ function MentionWhisperContent({action, actionOwnerReportStable, parentReport, o
                     <Button
                         sentryLabel={CONST.SENTRY_LABEL.REPORT.MENTION_WHISPER_INVITE_TO_CHAT_BUTTON}
                         onPress={() =>
-                            resolveActionableMentionWhisper(actionOwnerReport, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE, isOriginalReportArchived, parentReport)
+                            resolveActionableMentionWhisper(
+                                actionOwnerReport,
+                                action,
+                                CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE,
+                                isOriginalReportArchived,
+                                currentUserAccountID,
+                                parentReport,
+                            )
                         }
                     >
                         <Button.Text>{translate('actionableMentionWhisperOptions.inviteToChat')}</Button.Text>
@@ -95,7 +103,14 @@ function MentionWhisperContent({action, actionOwnerReportStable, parentReport, o
                 <Button
                     sentryLabel={CONST.SENTRY_LABEL.REPORT.MENTION_WHISPER_NOTHING_BUTTON}
                     onPress={() =>
-                        resolveActionableMentionWhisper(actionOwnerReport, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING, isOriginalReportArchived, parentReport)
+                        resolveActionableMentionWhisper(
+                            actionOwnerReport,
+                            action,
+                            CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING,
+                            isOriginalReportArchived,
+                            currentUserAccountID,
+                            parentReport,
+                        )
                     }
                 >
                     <Button.Text>{translate('actionableMentionWhisperOptions.nothing')}</Button.Text>
