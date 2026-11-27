@@ -27,11 +27,11 @@ import {View} from 'react-native';
 type FlightTripDetailsProps = {
     reservation: Reservation;
     /** Previous flight in the same leg, used to show the layover before this flight */
-    prevConnectingFlight: Reservation | undefined;
+    previousConnectingFlight: Reservation | undefined;
     personalDetails: OnyxEntry<PersonalDetails>;
 };
 
-function FlightTripDetails({reservation, prevConnectingFlight, personalDetails}: FlightTripDetailsProps) {
+function FlightTripDetails({reservation, previousConnectingFlight, personalDetails}: FlightTripDetailsProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate, dateFnsLocale} = useLocalize();
@@ -50,8 +50,8 @@ function FlightTripDetails({reservation, prevConnectingFlight, personalDetails}:
     const takeOffLocation = `${reservation.start.longName} (${reservation.start.shortName})${reservation.arrivalGate?.terminal ? `, ${reservation.arrivalGate?.terminal}` : ''}`;
     const landingLocation = `${reservation.end.longName} (${reservation.end.shortName})`;
 
-    const prevFlightEndDate = prevConnectingFlight?.end.date;
-    const layover = prevFlightEndDate && DateUtils.getFormattedDurationBetweenDates(translate, new Date(prevFlightEndDate), new Date(reservation.start.date));
+    const previousFlightEndDate = previousConnectingFlight?.end.date;
+    const layover = previousFlightEndDate && DateUtils.getFormattedDurationBetweenDates(translate, new Date(previousFlightEndDate), new Date(reservation.start.date));
     const flightDuration = reservation.duration ? DateUtils.getFormattedDuration(translate, reservation.duration) : '';
     const flightRouteDescription = `${reservation.start.cityName} (${reservation.start.shortName}) ${translate('common.conjunctionTo')} ${reservation.end.cityName} (${
         reservation.end.shortName

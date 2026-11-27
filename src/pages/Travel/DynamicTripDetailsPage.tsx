@@ -86,7 +86,7 @@ function DynamicTripDetailsPage({route}: DynamicTripDetailsPageProps) {
     // If pnr is not passed and transaction is present, we want to use transaction to get the trip reservations as the provided sequenceIndex now refers to the position of trip reservation in transaction's reservation list
     const tripReservations = getReservationsFromTripReport(!Number(pnr) && transaction ? undefined : parentReport, parentReportNameValuePairs, transaction ? [transaction] : []);
 
-    const {reservation, prevConnectingFlight, reservationType, reservationIcon, isCancelled} = getReservationDetailsFromSequence(icons, tripReservations, Number(sequenceIndex));
+    const {reservation, previousConnectingFlight, reservationType, reservationIcon, isCancelled} = getReservationDetailsFromSequence(icons, tripReservations, Number(sequenceIndex));
     const travelerEmail = reservation?.travelerPersonalInfo?.email;
     const [travelerPersonalDetails] = useAllPersonalDetails((personalDetails: OnyxEntry<PersonalDetailsList>) => pickTravelerPersonalDetails(personalDetails, travelerEmail));
 
@@ -125,7 +125,7 @@ function DynamicTripDetailsPage({route}: DynamicTripDetailsPageProps) {
                 <ScrollView>
                     {!!reservation && reservationType === CONST.RESERVATION_TYPE.FLIGHT && (
                         <FlightTripDetails
-                            prevConnectingFlight={prevConnectingFlight}
+                            previousConnectingFlight={previousConnectingFlight}
                             reservation={reservation}
                             personalDetails={travelerPersonalDetails}
                         />

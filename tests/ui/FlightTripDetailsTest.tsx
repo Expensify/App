@@ -81,7 +81,7 @@ describe('FlightTripDetailsTest', () => {
         render(
             <FlightTripDetails
                 reservation={reservation}
-                prevConnectingFlight={undefined}
+                previousConnectingFlight={undefined}
                 personalDetails={undefined}
             />,
         );
@@ -95,7 +95,7 @@ describe('FlightTripDetailsTest', () => {
         render(
             <FlightTripDetails
                 reservation={mockFlightReservation}
-                prevConnectingFlight={undefined}
+                previousConnectingFlight={undefined}
                 personalDetails={undefined}
             />,
         );
@@ -114,7 +114,7 @@ describe('FlightTripDetailsTest', () => {
         render(
             <FlightTripDetails
                 reservation={reservationWithoutSeat}
-                prevConnectingFlight={undefined}
+                previousConnectingFlight={undefined}
                 personalDetails={undefined}
             />,
         );
@@ -132,7 +132,7 @@ describe('FlightTripDetailsTest', () => {
         render(
             <FlightTripDetails
                 reservation={reservationWithoutSeat}
-                prevConnectingFlight={undefined}
+                previousConnectingFlight={undefined}
                 personalDetails={undefined}
             />,
         );
@@ -142,7 +142,7 @@ describe('FlightTripDetailsTest', () => {
 
     it('should display the layover since the previous connecting flight landed', async () => {
         // Given a previous connecting flight that landed 1h 30m before this flight departs
-        const prevConnectingFlight: Reservation = {
+        const previousConnectingFlight: Reservation = {
             ...mockFlightReservation,
             start: {...mockFlightReservation.start, date: '2026-01-25T06:00:00Z'},
             end: {...mockFlightReservation.end, date: '2026-01-25T08:38:00Z'},
@@ -153,7 +153,7 @@ describe('FlightTripDetailsTest', () => {
             <LocaleContextProvider>
                 <FlightTripDetails
                     reservation={mockFlightReservation}
-                    prevConnectingFlight={prevConnectingFlight}
+                    previousConnectingFlight={previousConnectingFlight}
                     personalDetails={undefined}
                 />
             </LocaleContextProvider>,

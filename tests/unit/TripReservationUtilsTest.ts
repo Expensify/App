@@ -3371,11 +3371,11 @@ describe('TripReservationUtils', () => {
             const tripReservations = toReservationData([outboundFlight, hotel, returnFlight]);
 
             // When the details of the return flight are computed
-            const {reservation, prevConnectingFlight} = getReservationDetailsFromSequence(icons, tripReservations, 2);
+            const {reservation, previousConnectingFlight} = getReservationDetailsFromSequence(icons, tripReservations, 2);
 
             // Then no layover is shown, because a hotel stay is not a connecting flight
             expect(reservation).toBe(returnFlight);
-            expect(prevConnectingFlight).toBeUndefined();
+            expect(previousConnectingFlight).toBeUndefined();
         });
 
         it('does not treat the flight from a previous leg as a layover', () => {
@@ -3383,10 +3383,10 @@ describe('TripReservationUtils', () => {
             const tripReservations = toReservationData([outboundFlight, returnFlight]);
 
             // When the details of the return flight are computed
-            const {prevConnectingFlight} = getReservationDetailsFromSequence(icons, tripReservations, 1);
+            const {previousConnectingFlight} = getReservationDetailsFromSequence(icons, tripReservations, 1);
 
             // Then no layover is shown, because the time between two legs is a stay at the destination, not a connection
-            expect(prevConnectingFlight).toBeUndefined();
+            expect(previousConnectingFlight).toBeUndefined();
         });
 
         it('does not treat a flight from a different PNR with the same leg index as a layover', () => {
@@ -3395,10 +3395,10 @@ describe('TripReservationUtils', () => {
             const tripReservations = toReservationData([otherBookingFlight, outboundFlight]);
 
             // When the details of the outbound flight are computed
-            const {prevConnectingFlight} = getReservationDetailsFromSequence(icons, tripReservations, 1);
+            const {previousConnectingFlight} = getReservationDetailsFromSequence(icons, tripReservations, 1);
 
             // Then no layover is shown, because flights from separate bookings are not connections of the same leg
-            expect(prevConnectingFlight).toBeUndefined();
+            expect(previousConnectingFlight).toBeUndefined();
         });
 
         it('returns the previous flight when it is a connection in the same leg', () => {
@@ -3408,10 +3408,10 @@ describe('TripReservationUtils', () => {
             const tripReservations = toReservationData([firstSegment, connectingSegment]);
 
             // When the details of the second segment are computed
-            const {prevConnectingFlight} = getReservationDetailsFromSequence(icons, tripReservations, 1);
+            const {previousConnectingFlight} = getReservationDetailsFromSequence(icons, tripReservations, 1);
 
             // Then the first segment is returned so the layover between them can be shown
-            expect(prevConnectingFlight).toBe(firstSegment);
+            expect(previousConnectingFlight).toBe(firstSegment);
         });
 
         it('returns the closest earlier flight of the same leg when other reservations sit in between', () => {
@@ -3428,10 +3428,10 @@ describe('TripReservationUtils', () => {
             const tripReservations = toReservationData([firstSegment, secondSegment, overnightHotel, thirdSegment]);
 
             // When the details of the third segment are computed
-            const {prevConnectingFlight} = getReservationDetailsFromSequence(icons, tripReservations, 3);
+            const {previousConnectingFlight} = getReservationDetailsFromSequence(icons, tripReservations, 3);
 
             // Then the second segment is returned, because it is the closest earlier flight in the same leg, even with the hotel in between
-            expect(prevConnectingFlight).toBe(secondSegment);
+            expect(previousConnectingFlight).toBe(secondSegment);
         });
     });
 });
