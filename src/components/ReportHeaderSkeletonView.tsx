@@ -3,6 +3,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useVerticalBarBackButton from '@hooks/useVerticalBarBackButton';
 
 import CONST from '@src/CONST';
 
@@ -16,18 +17,17 @@ import ReportHeaderTitleSkeleton from './ReportHeaderTitleSkeleton';
 type ReportHeaderSkeletonViewProps = {
     shouldAnimate?: boolean;
     onBackButtonPress?: () => void;
-
-    /** Whether a narrow layout shows the back button. A header that has one elsewhere, as in the vertical bar of a foldable iPhone, leaves it out. */
-    shouldShowBackButton?: boolean;
 };
 
-function ReportHeaderSkeletonView({shouldAnimate = true, onBackButtonPress = () => {}, shouldShowBackButton = true}: ReportHeaderSkeletonViewProps) {
+function ReportHeaderSkeletonView({shouldAnimate = true, onBackButtonPress = () => {}}: ReportHeaderSkeletonViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['BackArrow']);
-    const hasBackButton = shouldUseNarrowLayout && shouldShowBackButton;
+    // The vertical bar of a foldable iPhone has the back button instead, as it does for the header this one stands in for.
+    const isBackButtonInVerticalBar = useVerticalBarBackButton(onBackButtonPress, shouldUseNarrowLayout);
+    const hasBackButton = shouldUseNarrowLayout && !isBackButtonInVerticalBar;
 
     return (
         <View style={[styles.appContentHeader, hasBackButton && styles.pl2, styles.h100]}>

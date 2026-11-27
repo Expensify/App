@@ -2,6 +2,7 @@ import {render} from '@testing-library/react-native';
 
 import ModalContext from '@components/Modal/ModalContext';
 
+import {IsInSidePanelContext} from '@hooks/useIsInSidePanel';
 import useVerticalBarBackButton from '@hooks/useVerticalBarBackButton/index.ios';
 
 import type {NavigationProp, ParamListBase} from '@react-navigation/native';
@@ -67,6 +68,7 @@ function moveFocus(from: Screen, to?: Screen) {
 type HeaderProps = {
     screenNavigation: NavigationProp<ParamListBase>;
     isInModal?: boolean;
+    isInSidePanel?: boolean;
     goBack?: () => void;
     /** Gets what the hook returns: whether the header leaves its own back button out. */
     onRender?: (isBackButtonInVerticalBar: boolean) => void;
@@ -78,15 +80,17 @@ function BackButtonOwner({goBack, onRender}: Required<Pick<HeaderProps, 'goBack'
     return null;
 }
 
-function Header({screenNavigation, isInModal = false, goBack = () => {}, onRender = () => {}}: HeaderProps) {
+function Header({screenNavigation, isInModal = false, isInSidePanel = false, goBack = () => {}, onRender = () => {}}: HeaderProps) {
     return (
         <ModalContext.Provider value={isInModal ? INSIDE_MODAL : OUTSIDE_MODAL}>
-            <NavigationContext.Provider value={screenNavigation}>
-                <BackButtonOwner
-                    goBack={goBack}
-                    onRender={onRender}
-                />
-            </NavigationContext.Provider>
+            <IsInSidePanelContext.Provider value={isInSidePanel}>
+                <NavigationContext.Provider value={screenNavigation}>
+                    <BackButtonOwner
+                        goBack={goBack}
+                        onRender={onRender}
+                    />
+                </NavigationContext.Provider>
+            </IsInSidePanelContext.Provider>
         </ModalContext.Provider>
     );
 }
@@ -234,6 +238,26 @@ describe('useVerticalBarBackButton', () => {
 
         // Then the screen gets no bar, because a button in the bar under the modal could not be reached, and the header
         // keeps its own button
+        expect(screen.setOptions).not.toHaveBeenCalled();
+        expect(onRender).toHaveBeenLastCalledWith(false);
+    });
+
+    it('adds no back button for a header inside the side panel, which keeps its own', () => {
+        // Given a header rendered in the side panel, which sits beside the screen and is not a screen with a bar itself
+        const screen = createNavigation();
+        const onRender = jest.fn<void, [boolean]>();
+
+        // When the header is rendered
+        render(
+            <Header
+                screenNavigation={screen.navigation}
+                isInSidePanel
+                onRender={onRender}
+            />,
+        );
+
+        // Then the screen gets no bar, because its back button would go back on the screen and not in the side panel,
+        // and the header keeps its own button
         expect(screen.setOptions).not.toHaveBeenCalled();
         expect(onRender).toHaveBeenLastCalledWith(false);
     });

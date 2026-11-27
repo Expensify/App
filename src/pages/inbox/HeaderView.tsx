@@ -404,9 +404,8 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     // shouldUseNarrowLayout true for any RHP regardless of actual screen width.
     const shouldShowCloseButton = (!!isInSidePanel && !shouldUseNarrowLayout) || isAgentReportInRHP;
     const shouldShowBackButton = (shouldUseNarrowLayout || !!isInSidePanel) && !shouldShowCloseButton;
-    // The vertical bar of a foldable iPhone has the back button instead. The side panel is not a screen with a bar of
-    // its own, so a header in it keeps its button.
-    const isBackButtonInVerticalBar = useVerticalBarBackButton(onNavigationMenuButtonClicked, shouldShowBackButton && !isInSidePanel);
+    // The vertical bar of a foldable iPhone has the back button instead.
+    const isBackButtonInVerticalBar = useVerticalBarBackButton(onNavigationMenuButtonClicked, shouldShowBackButton);
     const shouldShowHeaderBackButton = shouldShowBackButton && !isBackButtonInVerticalBar;
 
     const onboardingHelpDropdownButton = (
@@ -436,10 +435,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
             >
                 <View style={[titleRowStyle, topInsetHeaderStyle]}>
                     {isLoading ? (
-                        <ReportHeaderSkeletonView
-                            onBackButtonPress={onNavigationMenuButtonClicked}
-                            shouldShowBackButton={!isBackButtonInVerticalBar}
-                        />
+                        <ReportHeaderSkeletonView onBackButtonPress={onNavigationMenuButtonClicked} />
                     ) : (
                         <View style={[styles.appContentHeaderTitle, (!shouldUseNarrowLayout || isAgentReportInRHP || isBackButtonInVerticalBar) && !isLoading && styles.pl5]}>
                             {shouldShowHeaderBackButton && (

@@ -4,6 +4,8 @@
  */
 import ModalContext from '@components/Modal/ModalContext';
 
+import useIsInSidePanel from '@hooks/useIsInSidePanel';
+
 import useIsTabBarVertical from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/useIsTabBarVertical';
 import {addVerticalBarBackButton} from '@libs/Navigation/verticalBarHost';
 
@@ -18,7 +20,9 @@ const useVerticalBarBackButton: UseVerticalBarBackButton = (goBack, shouldShowBa
     const hasVerticalBar = useIsTabBarVertical();
     // A modal covers the screen and its bars, so a button there could not be reached.
     const isInModal = !useContext(ModalContext).default;
-    const isInVerticalBar = shouldShowBackButton && hasVerticalBar && !isInModal && !!screenNavigation;
+    // The side panel is not a screen with a bar of its own, so a header in it keeps its button.
+    const isInSidePanel = useIsInSidePanel();
+    const isInVerticalBar = shouldShowBackButton && hasVerticalBar && !isInModal && !isInSidePanel && !!screenNavigation;
     // The handler gets a new identity on most renders. Read through an effect event, a press runs the latest one
     // without the button being handed over again each time.
     const pressBackButton = useEffectEvent(goBack);
