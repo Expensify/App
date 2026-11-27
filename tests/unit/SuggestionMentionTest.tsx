@@ -1,3 +1,4 @@
+// cspell:ignore Yara émile Zack -- fake names in the mention list tests
 import {act, render, waitFor} from '@testing-library/react-native';
 
 import type {TextSelection} from '@components/Composer/types';
@@ -19,14 +20,14 @@ import SuggestionMention from '@pages/inbox/report/ReportActionCompose/Suggestio
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, PolicyEmployeeList, Report} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList, PolicyEmployeeList, Report} from '@src/types/onyx';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
 import createMock from '../utils/createMock';
-import {formatPhoneNumber} from '../utils/TestHelper';
+import {formatPhoneNumber, localeCompare} from '../utils/TestHelper';
 
 type MentionSuggestionsProps = {
     mentions: Mention[];
@@ -533,6 +534,266 @@ describe('SuggestionMention', () => {
             const {mentions} = getLastMentionSuggestionsProps();
 
             expect(mentions.map((mention) => mention.handle)).toEqual(['ua@example.com', 'ub@example.com', 'uc@example.com']);
+        });
+    });
+
+    describe('order and size of the suggestion list', () => {
+        const MAX_SUGGESTIONS = CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS;
+        const CURRENT_USER_ACCOUNT_ID = 1;
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        const employeeList: PolicyEmployeeList = {'employee1@example.com': {}, 'employee2@example.com': {}};
+        const policyWithEmployees = {...createRandomPolicy(1), employeeList};
+
+        beforeEach(() => {
+            // Compare names with the same collator settings the app uses
+            mockUseLocalize.mockImplementation(() => createMock<ReturnType<typeof useLocalize>>({...mockLocalize, localeCompare}));
+        });
+
+        /** The composer gets the personal details from usePersonalDetails, and the sort reads display names from the Onyx store, so both get them */
+        async function setPersonalDetails(people: PersonalDetails[]) {
+            const personalDetails: PersonalDetailsList = {};
+            for (const person of people) {
+                personalDetails[person.accountID] = person;
+            }
+            mockPersonalDetails = personalDetails;
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+            });
+        }
+
+        async function openReport(report: Report) {
+            mockUseCurrentReportIDState.mockReturnValue({currentReportID: report.reportID});
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            });
+        }
+
+        async function openRoomWithParticipants(participantAccountIDs: number[]) {
+            mockUsePolicy.mockReturnValue(policyWithEmployees);
+            const participants: Report['participants'] = {};
+            for (const accountID of participantAccountIDs) {
+                participants[accountID] = {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS};
+            }
+            await openReport(createMock<Report>({reportID: 'room', chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM, policyID: 'policyID', participants}));
+        }
+
+        async function openDirectMessage() {
+            await openReport(createMock<Report>({reportID: 'dm', participants: {[CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}}}));
+        }
+
+        /** Renders the composer with the given text and returns the suggestions it shows */
+        async function getMentions(value: string) {
+            renderSuggestionMention(value);
+            await waitFor(() => expect(mockMentionSuggestionsSpy).toHaveBeenCalled());
+            return getLastMentionSuggestionsProps().mentions;
+        }
+
+        /** The suggested handles, or the text for the @here suggestion */
+        async function getSuggestions(value: string) {
+            const mentions = await getMentions(value);
+            return mentions.map((mention) => mention.handle ?? mention.text);
+        }
+
+        /** `count` people named "Person <n>", added in an order unrelated to their names, so the list order comes from sorting */
+        function buildNumberedPeople(count: number): PersonalDetails[] {
+            return Array.from({length: count}, (_, index) => {
+                const nameNumber = (index * 11) % count;
+                return {accountID: 100 + index, login: `person${nameNumber}@example.com`, displayName: `Person ${nameNumber}`};
+            });
+        }
+
+        it('orders a room by weight, then by display name with the locale collator, then by account ID', async () => {
+            // Given a room with two participants, two workspace employees and everyone else, with names that only a numeric,
+            // accent and case aware comparison orders correctly, and two people with the same name
+            await setPersonalDetails([
+                {accountID: 10, login: 'participant1@example.com', displayName: 'Zed'},
+                {accountID: 11, login: 'participant2@example.com', displayName: 'Amy'},
+                {accountID: 12, login: 'employee1@example.com', displayName: 'Yara'},
+                {accountID: 13, login: 'employee2@example.com', displayName: 'Bea'},
+                {accountID: 14, login: 'kim10@example.com', displayName: 'Kim 10'},
+                {accountID: 15, login: 'kim9@example.com', displayName: 'Kim 9'},
+                {accountID: 16, login: 'emile-accent@example.com', displayName: 'émile'},
+                {accountID: 17, login: 'emile-upper@example.com', displayName: 'Emile'},
+                {accountID: 18, login: 'emile-lower@example.com', displayName: 'emile'},
+                {accountID: 19, login: 'same2@example.com', displayName: 'Same Name'},
+                {accountID: 20, login: 'same1@example.com', displayName: 'Same Name'},
+            ]);
+            await openRoomWithParticipants([10, 11]);
+
+            // When the mention list for "@e" is shown
+            const suggestions = await getSuggestions('@e');
+
+            // Then participants come first, then employees, then everyone else, each group by name and then by account ID.
+            // "@here" matches "e" too and comes first.
+            expect(suggestions).toEqual([
+                CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT,
+                'participant2@example.com',
+                'participant1@example.com',
+                'employee2@example.com',
+                'employee1@example.com',
+                'emile-upper@example.com',
+                'emile-lower@example.com',
+                'emile-accent@example.com',
+                'kim9@example.com',
+                'kim10@example.com',
+                'same2@example.com',
+                'same1@example.com',
+            ]);
+        });
+
+        it('orders a direct message by display name, then by account ID, without weights', async () => {
+            // Given the same people in a direct message
+            await setPersonalDetails([
+                {accountID: 10, login: 'participant1@example.com', displayName: 'Zed'},
+                {accountID: 12, login: 'employee1@example.com', displayName: 'Yara'},
+                {accountID: 14, login: 'kim10@example.com', displayName: 'Kim 10'},
+                {accountID: 15, login: 'kim9@example.com', displayName: 'Kim 9'},
+                {accountID: 19, login: 'same2@example.com', displayName: 'Same Name'},
+                {accountID: 20, login: 'same1@example.com', displayName: 'Same Name'},
+            ]);
+            await openDirectMessage();
+
+            // When the mention list for a bare "@" is shown
+            const suggestions = await getSuggestions('@');
+
+            // Then @here comes first, then everyone ordered by name, and people with the same name by account ID
+            expect(suggestions).toEqual([
+                CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT,
+                'kim9@example.com',
+                'kim10@example.com',
+                'same2@example.com',
+                'same1@example.com',
+                'employee1@example.com',
+                'participant1@example.com',
+            ]);
+        });
+
+        it('sorts a person by login when they have no display name', async () => {
+            // Given one person without a display name, whose login sorts between the other two names
+            await setPersonalDetails([
+                {accountID: 10, login: 'zack@example.com', displayName: 'Zack'},
+                {accountID: 11, login: 'nobody@example.com'},
+                {accountID: 12, login: 'adam@example.com', displayName: 'Adam'},
+            ]);
+            await openDirectMessage();
+
+            // When the mention list for "@example" is shown
+            const suggestions = await getSuggestions('@example');
+
+            // Then the person without a name is placed by their login
+            expect(suggestions).toEqual(['adam@example.com', 'nobody@example.com', 'zack@example.com']);
+        });
+
+        it('matches the search text in the display name or the login, ignoring case', async () => {
+            // Given people whose name, login, or neither contains "ali"
+            await setPersonalDetails([
+                {accountID: 10, login: 'first@example.com', displayName: 'Alice Smith'},
+                {accountID: 11, login: 'kalinda@example.com', displayName: 'Kay Linda'},
+                {accountID: 12, login: 'bob@example.com', displayName: 'Bob'},
+                {accountID: 13, login: 'natali@example.com'},
+            ]);
+            await openDirectMessage();
+
+            // When the mention list for "@ALI" is shown
+            const suggestions = await getSuggestions('@ALI');
+
+            // Then only the people with "ali" in their name or login are suggested
+            expect(suggestions).toEqual(['first@example.com', 'kalinda@example.com', 'natali@example.com']);
+        });
+
+        it('leaves out people without a login, optimistic people, system accounts and repeated logins', async () => {
+            // Given one person of each kind that cannot be mentioned, and two people with the same login
+            await setPersonalDetails([
+                {accountID: 10, displayName: 'Uma No Login'},
+                {accountID: 11, login: 'optimistic@example.com', displayName: 'Uma Optimistic', isOptimisticPersonalDetail: true},
+                {accountID: 12, login: CONST.EMAIL.NOTIFICATIONS, displayName: 'Uma Notifications'},
+                {accountID: CONST.ACCOUNT_ID.NOTIFICATIONS, login: 'system@example.com', displayName: 'Uma System'},
+                {accountID: 14, login: 'repeated@example.com', displayName: 'Uma Zulu'},
+                {accountID: 15, login: 'repeated@example.com', displayName: 'Uma Alpha'},
+                {accountID: 16, login: 'kept@example.com', displayName: 'Uma Kept'},
+            ]);
+            await openDirectMessage();
+
+            // When the mention list for "@uma" is shown
+            const mentions = await getMentions('@uma');
+
+            // Then only the first person with the repeated login and the ordinary person are suggested
+            expect(mentions.map((mention) => [mention.handle, mention.text])).toEqual([
+                ['kept@example.com', 'Uma Kept'],
+                ['repeated@example.com', 'Uma Zulu'],
+            ]);
+        });
+
+        it.each([
+            {count: 7, expectedCount: 7},
+            {count: MAX_SUGGESTIONS, expectedCount: MAX_SUGGESTIONS},
+            {count: MAX_SUGGESTIONS + 1, expectedCount: MAX_SUGGESTIONS},
+            {count: 45, expectedCount: MAX_SUGGESTIONS},
+        ])('shows the first $expectedCount of $count matching people in order', async ({count, expectedCount}) => {
+            // Given `count` people whose names are numbered in an order unrelated to how they were added
+            await setPersonalDetails(buildNumberedPeople(count));
+            await openDirectMessage();
+
+            // When the mention list for "@person" is shown
+            const suggestions = await getSuggestions('@person');
+
+            // Then the people with the lowest numbers are shown, in number order, up to the maximum
+            expect(suggestions).toEqual(Array.from({length: expectedCount}, (_, nameNumber) => `person${nameNumber}@example.com`));
+        });
+
+        it('gives one of the places to @here when it matches', async () => {
+            // Given more matching people than fit in the list
+            await setPersonalDetails(buildNumberedPeople(45));
+            await openDirectMessage();
+
+            // When the mention list for a bare "@" is shown, which also matches @here
+            const suggestions = await getSuggestions('@');
+
+            // Then @here comes first and the people fill the remaining places
+            expect(suggestions).toEqual([CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT, ...Array.from({length: MAX_SUGGESTIONS - 1}, (_, nameNumber) => `person${nameNumber}@example.com`)]);
+        });
+
+        it.each(['', 'a', 'jo', 'bob 1'])('shows the same people as sorting every match for "@%s" in a room with many repeated names', async (searchText) => {
+            // Given 300 people with few distinct names, some names equal to the login, and participants and employees spread through them
+            const names = ['Ann', 'ann', 'Ánn', 'Bob', 'Bob 2', 'Bob 10', 'Joan', 'Jo', 'Zoë', 'Zoe'];
+            const people: PersonalDetails[] = [];
+            const participantAccountIDs: number[] = [];
+            const employees: PolicyEmployeeList = {};
+            for (let index = 0; index < 300; index++) {
+                const accountID = 1000 + index;
+                const login = `user${(index * 37) % 300}@example.com`;
+                const displayName = index % 9 === 0 ? login : (names.at((index * 13) % names.length) ?? '');
+                people.push({accountID, login, displayName});
+                if (index % 23 === 0) {
+                    participantAccountIDs.push(accountID);
+                } else if (index % 5 === 0) {
+                    employees[login] = {};
+                }
+            }
+            await setPersonalDetails(people);
+            await openRoomWithParticipants(participantAccountIDs);
+            mockUsePolicy.mockReturnValue({...policyWithEmployees, employeeList: employees});
+
+            // When the mention list for the search text is shown
+            const suggestions = await getSuggestions(`@${searchText}`);
+
+            // Then it equals the first of every matching person sorted by weight, then name, then account ID
+            const getWeight = (accountID: number, login: string) => {
+                if (participantAccountIDs.includes(accountID)) {
+                    return 0;
+                }
+                return employees[login] ? 1 : 2;
+            };
+            const expectedPeople = people
+                .map((person) => ({accountID: person.accountID, login: person.login ?? '', name: person.displayName ?? ''}))
+                .filter((person) => (person.name === person.login ? person.login : `${person.name} ${person.login}`).toLowerCase().includes(searchText))
+                .sort(
+                    (first, second) =>
+                        getWeight(first.accountID, first.login) - getWeight(second.accountID, second.login) || localeCompare(first.name, second.name) || first.accountID - second.accountID,
+                )
+                .map((person) => person.login);
+            const hereSuggestion = CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT.includes(searchText) ? [CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT] : [];
+            expect(suggestions).toEqual([...hereSuggestion, ...expectedPeople].slice(0, MAX_SUGGESTIONS));
         });
     });
 

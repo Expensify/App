@@ -31,7 +31,7 @@ describe('SuggestionUtils - getSortedPersonalDetails translate threading', () =>
         const first = {login: 'first@test.com', weight: 2, accountID: 801} as PersonalDetails & {weight: number};
         const second = {login: 'second@test.com', weight: 2, accountID: 802} as PersonalDetails & {weight: number};
 
-        getSortedPersonalDetails([second, first], localeCompare, formatPhoneNumber, translateLocal);
+        getSortedPersonalDetails([second, first], localeCompare, formatPhoneNumber, translateLocal, 20);
 
         // The sort comparator resolves each display name via getDisplayNameForParticipant, which must receive the resolved "Hidden" string.
         expect(mockGetDisplayNameForParticipant).toHaveBeenCalledWith(expect.objectContaining({hiddenTranslation: translateLocal('common.hidden')}));
@@ -45,9 +45,21 @@ describe('SuggestionUtils - getSortedPersonalDetails translate threading', () =>
         const translateWithNames: LocalizedTranslate = translateLocal;
         mockGetDisplayNameForParticipant.mockImplementation(({accountID}) => (accountID === 811 ? 'Aaa' : 'Zzz'));
 
-        const sorted = getSortedPersonalDetails([beta, alpha], localeCompare, formatPhoneNumber, translateWithNames);
+        const sorted = getSortedPersonalDetails([beta, alpha], localeCompare, formatPhoneNumber, translateWithNames, 20);
 
         // Despite beta being passed first, account 811 ('Aaa') sorts ahead of account 812 ('Zzz').
         expect(sorted.map((detail) => detail.accountID)).toEqual([811, 812]);
+    });
+
+    it('resolves each display name once, not on every comparison', () => {
+        // Many users with the same weight, so every comparison needs the display names
+        const users = Array.from({length: 50}, (_, index) => ({login: `user${index}@test.com`, weight: 2, accountID: 900 + ((index * 7) % 50)}));
+        mockGetDisplayNameForParticipant.mockImplementation(({accountID}) => `Name ${accountID}`);
+
+        const sorted = getSortedPersonalDetails(users, localeCompare, formatPhoneNumber, translateLocal, 20);
+
+        // The first 20 by name come back, and each user's name was looked up once
+        expect(sorted.map((detail) => detail.accountID)).toEqual(Array.from({length: 20}, (_, index) => 900 + index));
+        expect(mockGetDisplayNameForParticipant).toHaveBeenCalledTimes(users.length);
     });
 });

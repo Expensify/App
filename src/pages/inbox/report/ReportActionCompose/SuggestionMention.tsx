@@ -404,6 +404,9 @@ function SuggestionMention({
                 });
             }
 
+            // Resolve the translation once per lookup, not once per personal detail
+            const hiddenTranslation = translate('common.hidden');
+
             // Create a set to track logins that have already been seen
             const seenLogins = new Set<string>();
             const filteredPersonalDetails = Object.values(personalDetailsParam ?? {}).filter((detail) => {
@@ -415,7 +418,7 @@ function SuggestionMention({
                 if (CONST.RESTRICTED_EMAILS.includes(detail.login) || CONST.RESTRICTED_ACCOUNT_IDS.includes(detail.accountID)) {
                     return false;
                 }
-                const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: detail, translate, formatPhoneNumber});
+                const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: detail, hiddenAfterTranslation: hiddenTranslation, formatPhoneNumber});
                 // The display name of a phone contact is the formatted number, so the raw login has to stay in the search text
                 // for unformatted digits to match. Only skip appending it when it is already identical to the display name.
                 const displayText = displayName === detail.login ? displayName : `${displayName} ${detail.login}`;
@@ -439,12 +442,19 @@ function SuggestionMention({
                 return true;
             }) as Array<PersonalDetails & {weight: number}>;
 
-            // At this point we are sure that the details are not null, since empty user details have been filtered in the previous step
-            const sortedPersonalDetails = getSortedPersonalDetails(filteredPersonalDetails, localeCompare, formatPhoneNumber, translate);
+            // At this point we are sure that the details are not null, since empty user details have been filtered in the previous step.
+            // Only the suggestions that fit in the list are put in order, not every match.
+            const sortedPersonalDetails = getSortedPersonalDetails(
+                filteredPersonalDetails,
+                localeCompare,
+                formatPhoneNumber,
+                translate,
+                CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS - suggestions.length,
+            );
 
-            for (const detail of sortedPersonalDetails.slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS - suggestions.length)) {
+            for (const detail of sortedPersonalDetails) {
                 suggestions.push({
-                    text: `${formatLoginPrivateDomain(temporaryGetDisplayNameOrDefault({passedPersonalDetails: detail, translate, formatPhoneNumber}), detail?.login)}`,
+                    text: `${formatLoginPrivateDomain(temporaryGetDisplayNameOrDefault({passedPersonalDetails: detail, hiddenAfterTranslation: hiddenTranslation, formatPhoneNumber}), detail?.login)}`,
                     alternateText: `@${formatLoginPrivateDomain(detail?.login, detail?.login)}`,
                     handle: detail?.login,
                     icons: [
