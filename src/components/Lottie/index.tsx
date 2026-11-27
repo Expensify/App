@@ -12,7 +12,7 @@ import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import CONST from '@src/CONST';
 import {useSplashScreenState} from '@src/SplashScreenStateContext';
 
-import type {AnimationObject, LottieViewProps} from 'lottie-react-native';
+import type {LottieViewProps} from 'lottie-react-native';
 import type {ComponentRef, ForwardedRef} from 'react';
 
 import {NavigationContainerRefContext, NavigationContext} from '@react-navigation/native';
@@ -36,7 +36,7 @@ function Lottie({ref, source, webStyle, shouldLoadAfterInteractions, ...props}: 
 
     useNetwork({onReconnect: () => setIsError(false)});
 
-    const [animationFile, setAnimationFile] = useState<string | AnimationObject | {uri: string}>();
+    const [animationFile, setAnimationFile] = useState<LottieViewProps['source']>();
     const [isInteractionComplete, setIsInteractionComplete] = useState(false);
 
     useEffect(() => {
