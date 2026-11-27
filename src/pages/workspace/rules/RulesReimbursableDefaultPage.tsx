@@ -6,6 +6,7 @@ import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getCashExpenseReimbursableMode, setPolicyReimbursableMode} from '@libs/actions/Policy/Policy';
@@ -30,6 +31,7 @@ function RulesReimbursableDefaultPage({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
 
     const reimbursableMode = getCashExpenseReimbursableMode(policy);
 
@@ -50,7 +52,7 @@ function RulesReimbursableDefaultPage({
         if (!selectedMode) {
             return;
         }
-        setPolicyReimbursableMode(policyID, selectedMode, policy?.defaultReimbursable, policy?.disabledFields?.reimbursable);
+        setPolicyReimbursableMode(policyID, selectedMode, policy?.defaultReimbursable, policy?.disabledFields?.reimbursable, getReviewWorkspaceSettingsTaskCompletion());
         Navigation.goBack();
     };
 
