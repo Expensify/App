@@ -3999,6 +3999,10 @@ ${amount} für ${merchant} – ${date}`,
             incorrectSecurityCode: 'Falscher oder ungültiger Sicherheitscode. Bitte versuchen Sie es erneut oder fordern Sie einen neuen Code an.',
             pleaseFillTwoFactorAuth: 'Bitte gib deinen Zwei-Faktor-Authentifizierungscode ein',
         },
+        requestNewCodeAccessibilityLabel: ({count}: {count: number}) => ({
+            one: 'Fordern Sie in 1 Sekunde einen neuen Code an',
+            other: `Fordern Sie in ${count} Sekunden einen neuen Code an`,
+        }),
     },
     passwordForm: {
         pleaseFillOutAllFields: 'Bitte füllen Sie alle Felder aus',

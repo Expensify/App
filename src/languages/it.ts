@@ -3984,6 +3984,10 @@ ${amount} per ${merchant} - ${date}`,
             incorrectSecurityCode: 'Codice di sicurezza errato o non valido. Riprova oppure richiedi un nuovo codice.',
             pleaseFillTwoFactorAuth: 'Inserisci il tuo codice di autenticazione a due fattori',
         },
+        requestNewCodeAccessibilityLabel: ({count}: {count: number}) => ({
+            one: 'Richiedi un nuovo codice tra 1 secondo',
+            other: `Richiedi un nuovo codice tra ${count} secondi`,
+        }),
     },
     passwordForm: {
         pleaseFillOutAllFields: 'Compila tutti i campi',

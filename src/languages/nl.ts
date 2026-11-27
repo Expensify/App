@@ -3983,6 +3983,10 @@ ${amount} voor ${merchant} - ${date}`,
             incorrectSecurityCode: 'Onjuiste of ongeldige beveiligingscode. Probeer het opnieuw of vraag een nieuwe code aan.',
             pleaseFillTwoFactorAuth: 'Voer je twee-factor-authenticatiecode in',
         },
+        requestNewCodeAccessibilityLabel: ({count}: {count: number}) => ({
+            one: 'Vraag een nieuwe code aan over 1 seconde',
+            other: `Vraag een nieuwe code aan over ${count} seconden`,
+        }),
     },
     passwordForm: {
         pleaseFillOutAllFields: 'Vul alle velden in',

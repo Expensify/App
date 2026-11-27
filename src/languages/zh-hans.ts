@@ -3849,6 +3849,10 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             incorrectSecurityCode: '安全码不正确或无效。请重试或请求新代码。',
             pleaseFillTwoFactorAuth: '请输入您的双重身份验证代码',
         },
+        requestNewCodeAccessibilityLabel: ({count}: {count: number}) => ({
+            one: '1 秒后可重新获取验证码',
+            other: `${count} 秒后可再次请求验证码`,
+        }),
     },
     passwordForm: {
         pleaseFillOutAllFields: '请填写所有字段',

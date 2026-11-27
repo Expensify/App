@@ -3985,6 +3985,10 @@ ${amount} para ${merchant} - ${date}`,
             incorrectSecurityCode: 'Código de segurança incorreto ou inválido. Tente novamente ou solicite um novo código.',
             pleaseFillTwoFactorAuth: 'Insira seu código de autenticação de dois fatores',
         },
+        requestNewCodeAccessibilityLabel: ({count}: {count: number}) => ({
+            one: 'Solicitar um novo código em 1 segundo',
+            other: `Solicitar um novo código em ${count} segundos`,
+        }),
     },
     passwordForm: {
         pleaseFillOutAllFields: 'Por favor, preencha todos os campos',
