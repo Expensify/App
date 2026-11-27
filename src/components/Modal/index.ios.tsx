@@ -1,3 +1,5 @@
+import {WindowSafeAreaInsets} from '@components/ScreenSafeAreaInsets';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import CONST from '@src/CONST';
@@ -14,13 +16,15 @@ function Modal({children, ...rest}: BaseModalProps) {
     const animationOutTiming = rest.animationOutTiming ?? (isInNarrowPaneModal ? CONST.MODAL.ANIMATION_TIMING.DEFAULT_RIGHT_DOCKED_IOS_OUT : undefined);
 
     return (
-        <BaseModal
-            {...rest}
-            animationInTiming={animationInTiming}
-            animationOutTiming={animationOutTiming}
-        >
-            {children}
-        </BaseModal>
+        <WindowSafeAreaInsets>
+            <BaseModal
+                {...rest}
+                animationInTiming={animationInTiming}
+                animationOutTiming={animationOutTiming}
+            >
+                {children}
+            </BaseModal>
+        </WindowSafeAreaInsets>
     );
 }
 
