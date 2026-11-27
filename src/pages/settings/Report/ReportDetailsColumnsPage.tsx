@@ -108,21 +108,45 @@ function ReportDetailsColumnsPage() {
         : getRequiredReportDetailsColumns();
 
     const handleSave = (selectedColumnIds: SearchCustomColumnIds[]) => {
+        const normalizedSelectedColumnIds = isCustomizeFields ? selectedColumnIds.filter((column) => !requiredColumns.has(column) || currentColumns.includes(column)) : selectedColumnIds;
         // Skip saving if columns haven't changed from the effective state, to avoid
         // switching from the default path to the custom path in getColumnsToShow unnecessarily.
-        if (!arraysEqual(selectedColumnIds, currentColumns)) {
+        if (!arraysEqual(normalizedSelectedColumnIds, currentColumns)) {
             // Receipt is hidden in this picker, but its saved selection and position still control the report table.
             const hasSavedColumns = savedColumns.length > 0;
             const shouldShowReceiptColumn = hasSavedColumns
                 ? reportDetailsColumns?.includes(CONST.SEARCH.TABLE_COLUMNS.RECEIPT)
                 : REPORT_DETAILS_DEFAULT_COLUMNS.includes(CONST.SEARCH.TABLE_COLUMNS.RECEIPT);
-            const receiptColumnIndex = hasSavedColumns
-                ? (reportDetailsColumns ?? []).indexOf(CONST.SEARCH.TABLE_COLUMNS.RECEIPT)
-                : REPORT_DETAILS_DEFAULT_COLUMNS.indexOf(CONST.SEARCH.TABLE_COLUMNS.RECEIPT);
             // Required fields stay visible in expense details, but they must not be added to the shared table preference unless they were already selected there.
-            const columnsToSave = isCustomizeFields ? selectedColumnIds.filter((column) => !requiredColumns.has(column) || currentColumns.includes(column)) : selectedColumnIds;
-            if (isCustomizeFields && shouldShowReceiptColumn) {
-                columnsToSave.splice(Math.max(receiptColumnIndex, 0), 0, CONST.SEARCH.TABLE_COLUMNS.RECEIPT);
+            const columnsToSave = [...normalizedSelectedColumnIds];
+            // Keep columns hidden from this picker in their saved relative order, including Receipt and fields unavailable in this workspace.
+            if (isCustomizeFields) {
+                let columnsToPreserve: SearchCustomColumnIds[];
+                if (hasSavedColumns) {
+                    columnsToPreserve = (reportDetailsColumns ?? []).filter(
+                        (column): column is SearchCustomColumnIds => isReportDetailsCustomColumn(column) || (!!shouldShowReceiptColumn && column === CONST.SEARCH.TABLE_COLUMNS.RECEIPT),
+                    );
+                } else {
+                    columnsToPreserve = shouldShowReceiptColumn ? REPORT_DETAILS_DEFAULT_COLUMNS : [];
+                }
+                for (const [index, column] of columnsToPreserve.entries()) {
+                    if (column !== CONST.SEARCH.TABLE_COLUMNS.RECEIPT && allColumns.includes(column)) {
+                        continue;
+                    }
+
+                    const previousSavedColumn = columnsToPreserve
+                        .slice(0, index)
+                        .reverse()
+                        .find((savedColumn) => columnsToSave.includes(savedColumn));
+                    if (previousSavedColumn) {
+                        columnsToSave.splice(columnsToSave.indexOf(previousSavedColumn) + 1, 0, column);
+                        continue;
+                    }
+
+                    const nextSavedColumn = columnsToPreserve.slice(index + 1).find((savedColumn) => columnsToSave.includes(savedColumn));
+                    const insertionIndex = nextSavedColumn ? columnsToSave.indexOf(nextSavedColumn) : columnsToSave.length;
+                    columnsToSave.splice(insertionIndex, 0, column);
+                }
             }
             setReportDetailsColumns(columnsToSave, reportDetailsColumns);
         }
