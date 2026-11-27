@@ -18,6 +18,7 @@ import {hasPartiallySetupBankAccount, hasPersonalBankAccountMissingInfo} from '@
 import {hasCardPendingDigitalWalletApproval, hasPendingExpensifyCardAction, hasVirtualExpensifyCardMissingPersonalDetails} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import {hasGmailConnectionErrorSelector} from '@libs/OAuthConnectionUtils';
 import {getFreeTrialText, hasSubscriptionRedDotError, shouldShowSubscriptionExpiringSoonUI} from '@libs/SubscriptionUtils';
 import {isTryNewDotLoading, shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
 import {expensifyLoginsSelector, getProfilePageBrickRoadIndicator, hasDeviceManagementError, hasIntegrationServerLoginError} from '@libs/UserUtils';
@@ -94,6 +95,7 @@ function useInitialSettingsPageMenuData(currentUserPersonalDetails: CurrentUserP
     const [stashedCredentials] = useOnyx(ONYXKEYS.STASHED_CREDENTIALS);
     const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION);
     const [hasAgentError] = useOnyx(ONYXKEYS.COLLECTION.AGENT, {selector: hasAgentErrorsSelector});
+    const [hasGmailConnectionError] = useOnyx(ONYXKEYS.NVP_PRIVATE_OAUTH_CONNECTIONS, {selector: hasGmailConnectionErrorSelector});
     const privateSubscription = usePrivateSubscription();
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
@@ -190,6 +192,9 @@ function useInitialSettingsPageMenuData(currentUserPersonalDetails: CurrentUserP
                 badgeText: translate('common.beta'),
                 brickRoadIndicator: hasAgentError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             };
+        }
+        if (item.screenName === SCREENS.SETTINGS.CONNECTIONS.ROOT) {
+            return {...item, brickRoadIndicator: hasGmailConnectionError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined};
         }
         if (item.screenName === SCREENS.SETTINGS.SUBSCRIPTION.ROOT) {
             return {

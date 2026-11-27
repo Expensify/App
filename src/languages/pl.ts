@@ -5759,6 +5759,20 @@ ${amount} dla ${merchant} - ${date}`,
             noResultsPrompt: '<muted-text><centered-text>Dostosuj wyszukiwanie lub <a href="#">zaproponuj integrację</a>.</centered-text></muted-text>',
             allConnectedTitle: 'Wszystko połączone',
             allConnectedPrompt: '<muted-text><centered-text>Wszystko tutaj jest już połączone. Możesz też <a href="#">zaproponować integrację</a>.</centered-text></muted-text>',
+            gmail: {
+                title: 'Gmail',
+                inactive: 'Nieaktywne',
+                synced: (relativeTime: string) => `Zsynchronizowano ${relativeTime}`,
+                notSyncedYet: 'Nigdy nie zsynchronizowano',
+                notSynced: 'Nie zsynchronizowano',
+                removeConnection: 'Usuń połączenie',
+                removeConnectionTitle: 'Usuń połączenie z Gmailem',
+                removeConnectionPrompt: (email: string) => `Czy na pewno chcesz zatrzymać importowanie paragonów dla ${email}? Tej akcji nie można cofnąć.`,
+                error: {
+                    [CONST.OAUTH_CONNECTIONS.ERROR.INVALID_GRANT]: 'Nie udało się połączyć z Gmailem z powodu nieprawidłowych danych logowania.',
+                    [CONST.OAUTH_CONNECTIONS.ERROR.ADMIN_RESTRICTED]: 'Twój administrator Google Workspace musi zatwierdzić Expensify.',
+                },
+            },
         },
         receiptPartners: {
             uber: {

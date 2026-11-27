@@ -321,6 +321,9 @@ const ONYXKEYS = {
     /** Store the state of the subscription */
     NVP_PRIVATE_SUBSCRIPTION: 'nvp_private_subscription',
 
+    /** Third party accounts the user connected, such as Gmail for receipt sync, keyed by connection ID */
+    NVP_PRIVATE_OAUTH_CONNECTIONS: 'nvp_private_oauthConnections',
+
     /** Store the state of Personal Karma donations */
     NVP_PERSONAL_OFFSETS: 'nvp_expensify_enablePersonalOffsets',
 
@@ -1955,6 +1958,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_DISMISSED_REFERRAL_BANNERS]: OnyxTypes.DismissedReferralBanners;
     [ONYXKEYS.NVP_HAS_SEEN_TRACK_TRAINING]: boolean;
     [ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION]: OnyxTypes.PrivateSubscription;
+    [ONYXKEYS.NVP_PRIVATE_OAUTH_CONNECTIONS]: OnyxTypes.OAuthConnections;
     [ONYXKEYS.NVP_PERSONAL_OFFSETS]: boolean;
     [ONYXKEYS.NVP_PRIVATE_PROMO_CODE]: string | null;
     [ONYXKEYS.NVP_PRIVATE_PROMO_DISCOUNT]: OnyxTypes.PrivatePromoDiscount | null;

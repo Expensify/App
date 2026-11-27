@@ -5748,6 +5748,21 @@ ${amount} für ${merchant} – ${date}`,
             noResultsPrompt: '<muted-text><centered-text>Bitte passen Sie Ihre Suche an oder <a href="#">schlagen Sie eine Integration vor</a>.</centered-text></muted-text>',
             allConnectedTitle: 'Sie sind vollständig verbunden',
             allConnectedPrompt: '<muted-text><centered-text>Hier ist bereits alles verbunden. Sie können auch <a href="#">eine Integration vorschlagen</a>.</centered-text></muted-text>',
+            gmail: {
+                title: 'Gmail',
+                inactive: 'Inaktiv',
+                synced: (relativeTime: string) => `Synchronisiert vor ${relativeTime}`,
+                notSyncedYet: 'Nie synchronisiert',
+                notSynced: 'Nicht synchronisiert',
+                removeConnection: 'Verbindung entfernen',
+                removeConnectionTitle: 'Gmail-Verbindung entfernen',
+                removeConnectionPrompt: (email: string) =>
+                    `Sind Sie sicher, dass Sie das Importieren von Belegen für ${email} beenden möchten? Diese Aktion kann nicht rückgängig gemacht werden.`,
+                error: {
+                    [CONST.OAUTH_CONNECTIONS.ERROR.INVALID_GRANT]: 'Verbindung mit Gmail aufgrund falscher Anmeldedaten nicht möglich.',
+                    [CONST.OAUTH_CONNECTIONS.ERROR.ADMIN_RESTRICTED]: 'Ihre Google Workspace-Administratorin bzw. Ihr -Administrator muss Expensify genehmigen.',
+                },
+            },
         },
         receiptPartners: {
             uber: {

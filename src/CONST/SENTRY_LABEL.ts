@@ -1440,6 +1440,7 @@ const SENTRY_LABEL = {
         PROFILE: 'Account-Profile',
         WALLET: 'Account-Wallet',
         AGENTS: 'Account-Agents',
+        CONNECTIONS: 'Account-Connections',
         RULES: 'Account-Rules',
         PREFERENCES: 'Account-Preferences',
         COPILOT: 'Account-Copilot',
@@ -3515,6 +3516,10 @@ const SENTRY_LABEL = {
         NEW_RULE: 'SettingsRules-NewRule',
         CREATE_REPORT_SWITCH: 'SettingsRules-CreateReportSwitch',
         APPLY_TO_EXISTING_EXPENSES_SWITCH: 'SettingsRules-ApplyToExistingExpensesSwitch',
+    },
+    SETTINGS_CONNECTIONS: {
+        GMAIL_MENU: 'SettingsConnections-GmailMenu',
+        GMAIL_MENU_REMOVE: 'SettingsConnections-GmailMenuRemove',
     },
     SETTINGS_TEACHERS_UNITE: {
         I_KNOW_A_TEACHER: 'SettingsTeachersUnite-IKnowATeacher',

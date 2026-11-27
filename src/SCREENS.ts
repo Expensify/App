@@ -156,6 +156,10 @@ const SCREENS = {
             DYNAMIC_EDIT_AVATAR: 'Dynamic_Settings_Agents_Edit_Avatar',
         },
 
+        CONNECTIONS: {
+            ROOT: 'Settings_Connections',
+        },
+
         RULES: {
             ROOT: 'Settings_Rules',
             ADD: 'Settings_Rules_Add',

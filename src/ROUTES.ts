@@ -2902,6 +2902,7 @@ const ROUTES = {
         route: 'settings/agents/r/:reportID',
         getRoute: (reportID: string) => `settings/agents/r/${reportID}` as const,
     },
+    SETTINGS_CONNECTIONS: 'settings/connections',
     SETTINGS_RULES: 'settings/rules',
     SETTINGS_RULES_ADD: {
         route: 'settings/rules/new/:field?/:index?',

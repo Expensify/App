@@ -5666,6 +5666,20 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             noResultsPrompt: '<muted-text><centered-text>検索条件を調整するか、<a href="#">連携を提案</a>してください。</centered-text></muted-text>',
             allConnectedTitle: 'すべて接続されました',
             allConnectedPrompt: '<muted-text><centered-text>ここにあるものはすべてすでに連携されています。<a href="#">連携を提案</a>することもできます。</centered-text></muted-text>',
+            gmail: {
+                title: 'Gmail',
+                inactive: '非アクティブ',
+                synced: (relativeTime: string) => `${relativeTime}前に同期しました`,
+                notSyncedYet: '未同期',
+                notSynced: '未同期',
+                removeConnection: '接続を削除',
+                removeConnectionTitle: 'Gmail 連携を削除',
+                removeConnectionPrompt: (email: string) => `${email} の領収書のインポートを停止してもよろしいですか？この操作は元に戻せません。`,
+                error: {
+                    [CONST.OAUTH_CONNECTIONS.ERROR.INVALID_GRANT]: '認証情報が正しくないため、Gmail に接続できませんでした。',
+                    [CONST.OAUTH_CONNECTIONS.ERROR.ADMIN_RESTRICTED]: 'お使いの Google Workspace 管理者が Expensify を承認する必要があります。',
+                },
+            },
         },
         receiptPartners: {
             uber: {

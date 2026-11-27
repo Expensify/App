@@ -1636,6 +1636,19 @@ const CONST = {
         MILEAGE_UI: 'mileageUI',
         MERGE_DOMAIN_ACCOUNTS: 'mergeDomainAccounts',
         EXPENSE_DEFAULT_CONDITIONS: 'expenseDefaultConditions',
+        RECEIPT_SYNC: 'receiptSync',
+    },
+    OAUTH_CONNECTIONS: {
+        PROVIDER: {
+            GMAIL: 'gmail',
+        },
+        ERROR: {
+            /** Google revoked the token, so the user can fix it by reconnecting */
+            INVALID_GRANT: 'invalid_grant',
+
+            /** The user's Google Workspace admin blocks the app, so reconnecting won't help */
+            ADMIN_RESTRICTED: 'admin_restricted',
+        },
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -10261,6 +10274,7 @@ const CONST = {
         HAS_HR_CONNECTION_ERROR: 'hasHRConnectionError',
         HAS_APPROVAL_WORKFLOW_NON_MEMBER_APPROVER: 'hasApprovalWorkflowNonMemberApprover',
         HAS_AGENT_ERRORS: 'hasAgentErrors',
+        HAS_GMAIL_CONNECTION_ERRORS: 'hasGmailConnectionErrors',
     },
 
     DEBUG: {

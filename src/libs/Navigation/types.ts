@@ -1048,6 +1048,7 @@ type SettingsSplitNavigatorParamList = {
     };
     [SCREENS.SETTINGS.WALLET.ROOT]: undefined;
     [SCREENS.SETTINGS.AGENTS.ROOT]: undefined;
+    [SCREENS.SETTINGS.CONNECTIONS.ROOT]: undefined;
     [SCREENS.SETTINGS.RULES.ROOT]: undefined;
     [SCREENS.SETTINGS.ABOUT]: undefined;
     [SCREENS.SETTINGS.HELP]: undefined;
