@@ -1,7 +1,6 @@
 import playSound, {SOUNDS} from '@libs/Sound/index.native';
 
-import {AppState} from 'react-native';
-
+import {emitAppState} from '../utils/ReactNativeMockUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const mockPlay = jest.fn();
@@ -19,12 +18,10 @@ jest.mock('expo-audio', () => ({
     setAudioModeAsync: () => Promise.resolve(),
 }));
 
-const mockAppState = AppState as typeof AppState & {emitCurrentTestState: (state: string) => void};
-
 describe('Sound/index.native', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        mockAppState.emitCurrentTestState('active');
+        emitAppState('active');
     });
 
     it('releases the player when iOS refuses to activate the audio session', async () => {
@@ -45,7 +42,7 @@ describe('Sound/index.native', () => {
 
     it('does not start playback while the app is in the background', async () => {
         // Given the app went to the background after the sound was queued, where iOS will not activate a session
-        mockAppState.emitCurrentTestState('background');
+        emitAppState('background');
 
         // When a sound is played
         await playSound(SOUNDS.ATTENTION);
