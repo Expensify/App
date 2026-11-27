@@ -23,6 +23,7 @@ import {rand64} from '@libs/NumberUtils';
 import {getIOUActionForReportID, getIOUActionForTransactionID, getOriginalMessage, isActionOfType, isAddCommentAction, isDeletedAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReportAction, getAncestors, getParsedComment, getReportOrDraftReport} from '@libs/ReportUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import * as TransactionUtils from '@libs/TransactionUtils/getUpdatedTransaction';
 
 import updateSplitTransactionsFromSplitExpensesFlow from '@pages/iou/updateSplitTransactionsFromSplitExpensesFlow';
 
@@ -1472,6 +1473,7 @@ describe('split expense', () => {
 
         // When splitting the expense
         updateSplitTransactionsFromSplitExpensesFlow({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -2217,6 +2219,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         const reports = getTransactionAndExpenseReports(reportID);
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -2342,6 +2345,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         const reports = getTransactionAndExpenseReports(reportID);
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -2479,6 +2483,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         const reports = getTransactionAndExpenseReports(reportID);
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -2580,6 +2585,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         // When splitting the expense while the current search is the parent grouped search
         updateSplitTransactionsFromSplitExpensesFlow({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -2720,6 +2726,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         // When splitting the expense while the current search is the parent grouped search
         updateSplitTransactionsFromSplitExpensesFlow({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -2892,6 +2899,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         let reports = getTransactionAndExpenseReports(reportID);
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -2960,6 +2968,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         reports = getTransactionAndExpenseReports(reportID);
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -3124,6 +3133,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             const {transactionReport} = getTransactionAndExpenseReports(splitExpenses.at(0)?.reportID ?? String(CONST.DEFAULT_NUMBER_ID));
 
             updateSplitTransactionsFromSplitExpensesFlow({
+                translate: translateLocal,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
                 isVendorMatchingBetaEnabled: false,
@@ -3326,6 +3336,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             const {transactionReport} = getTransactionAndExpenseReports(splitExpenses.at(0)?.reportID ?? String(CONST.DEFAULT_NUMBER_ID));
 
             updateSplitTransactionsFromSplitExpensesFlow({
+                translate: translateLocal,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
                 isVendorMatchingBetaEnabled: false,
@@ -3528,6 +3539,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         const {transactionReport} = getTransactionAndExpenseReports(splitExpenses.at(0)?.reportID ?? String(CONST.DEFAULT_NUMBER_ID));
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            translate: translateLocal,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
             isVendorMatchingBetaEnabled: false,
@@ -3696,6 +3708,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         const {transactionReport} = getTransactionAndExpenseReports(splitExpenses.at(0)?.reportID ?? String(CONST.DEFAULT_NUMBER_ID));
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            translate: translateLocal,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
             isVendorMatchingBetaEnabled: false,
@@ -3893,6 +3906,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         let firstIOU = getIOUActionForReportID(reports.expenseReport?.reportID, originalTransactionID);
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -3961,6 +3975,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         reports = getTransactionAndExpenseReports(reportID);
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -4027,6 +4042,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         const splitTransactionID4 = rand64();
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -4110,6 +4126,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         reports = getTransactionAndExpenseReports(reportID);
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -4265,6 +4282,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         // leaving the workspace split as the sole remaining split — this triggers a reverse split that merges
         // the workspace split's data back into the original transaction.
         updateSplitTransactionsFromSplitExpensesFlow({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -4375,6 +4393,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         // reverse-split (1 split + existing children) - but the Approved status should be picked up from
         // the search snapshot and block treating it as a reverse split.
         updateSplitTransactionsFromSplitExpensesFlow({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -4473,6 +4492,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         // at a stale, never-submitted report (e.g. because the split moved reports while the editor was open).
         // The live transaction's Approved report must be used instead of that stale cached field.
         updateSplitTransactionsFromSplitExpensesFlow({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -4583,6 +4603,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         // at a stale, never-submitted report, and the child transaction itself is only known via the search
         // snapshot (not yet in Onyx). The snapshot transaction's live reportID must still be used.
         updateSplitTransactionsFromSplitExpensesFlow({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -4731,6 +4752,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         // leaving the other as the sole remaining split — this triggers a reverse split that merges it back
         // into the original transaction.
         updateSplitTransactionsFromSplitExpensesFlow({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -4844,6 +4866,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         // When the expense is split in half
         updateSplitTransactionsFromSplitExpensesFlow({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -4986,6 +5009,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         // When one of the two splits is removed, reverting the split back into a single expense
         updateSplitTransactionsFromSplitExpensesFlow({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -5121,6 +5145,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         // When the amounts of both splits are edited
         updateSplitTransactionsFromSplitExpensesFlow({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -5250,6 +5275,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         await getOnyxData({key: ONYXKEYS.COLLECTION.SNAPSHOT, callback: (value) => (allSnapshots = value)});
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -5493,6 +5519,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         let reports = getTransactionAndExpenseReports(reportID);
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -5612,6 +5639,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         reports = getTransactionAndExpenseReports(reportID);
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -5791,6 +5819,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         // When the user reduces splits to 1 (triggering a reverse-split that will delete the expense report)
         updateSplitTransactionsFromSplitExpensesFlow({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -5930,6 +5959,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         // When the user reduces splits to 1 (triggering a reverse-split, but the expense report still has another transaction)
         updateSplitTransactionsFromSplitExpensesFlow({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -6125,6 +6155,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         const reports = getTransactionAndExpenseReports(reportID);
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -6313,6 +6344,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         const reports = getTransactionAndExpenseReports(reportID);
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -6515,6 +6547,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         // it should use splitExpensesTotal in its calculation
         updateSplitTransactionsFromSplitExpensesFlow({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -6765,6 +6798,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         // When splitting the held expense
         updateSplitTransactionsFromSplitExpensesFlow({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -6960,6 +6994,7 @@ describe('updateSplitTransactions', () => {
         const reports = getTransactionAndExpenseReports(reportID);
 
         updateSplitTransactions({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             shouldFlagNewSplitsForReportTable: true,
             rules: undefined,
@@ -7118,6 +7153,7 @@ describe('updateSplitTransactions', () => {
             await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, callback: (value) => (allReportNameValuePairs = value)});
             const reports = getTransactionAndExpenseReports(reportID);
             updateSplitTransactions({
+                translate: translateLocal,
                 isVendorMatchingBetaEnabled: false,
                 shouldFlagNewSplitsForReportTable: true,
                 rules: undefined,
@@ -7267,6 +7303,7 @@ describe('updateSplitTransactions', () => {
         const reports = getTransactionAndExpenseReports(reportID);
 
         updateSplitTransactions({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             shouldFlagNewSplitsForReportTable: true,
             rules: undefined,
@@ -7412,6 +7449,7 @@ describe('updateSplitTransactions', () => {
         const reports = getTransactionAndExpenseReports(reportID);
 
         updateSplitTransactions({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             shouldFlagNewSplitsForReportTable: true,
             rules: undefined,
@@ -7602,6 +7640,7 @@ describe('updateSplitTransactions', () => {
         const reports = getTransactionAndExpenseReports(reportID);
 
         updateSplitTransactions({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             shouldFlagNewSplitsForReportTable: true,
             rules: undefined,
@@ -7734,8 +7773,12 @@ describe('updateSplitTransactions', () => {
         const reports = getTransactionAndExpenseReports(expenseReport.reportID);
 
         const writeSpy = jest.spyOn(APIlib, 'write');
+        // Given an injected translator after the initial split has already been created
+        const translate = jest.fn(() => 'Existing split translation');
+        const updateTransactionSpy = jest.spyOn(TransactionUtils, 'getUpdatedTransaction');
 
         updateSplitTransactions({
+            translate,
             isVendorMatchingBetaEnabled: false,
             shouldFlagNewSplitsForReportTable: true,
             rules: undefined,
@@ -7777,6 +7820,9 @@ describe('updateSplitTransactions', () => {
         });
 
         const updateSplitTransactionCall = writeSpy.mock.calls.find(([command]) => command === WRITE_COMMANDS.UPDATE_SPLIT_TRANSACTION);
+        // Then existing-split optimistic updates preserve that translator through the money-request builder
+        expect(updateTransactionSpy).toHaveBeenCalledWith(expect.objectContaining({translate}));
+        updateTransactionSpy.mockRestore();
         if (!updateSplitTransactionCall) {
             try {
                 expect(updateSplitTransactionCall).toBeDefined();
@@ -7918,6 +7964,7 @@ describe('updateSplitTransactions', () => {
         // selfDM's preview at the new split
         mockFetch?.pause?.();
         updateSplitTransactions({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             shouldFlagNewSplitsForReportTable: true,
             rules: undefined,
@@ -8223,6 +8270,7 @@ describe('updateSplitTransactions', () => {
         const splitExpenses: SplitExpense[] = [{transactionID: splitTransactionID1, reportID: remainingSplitTransaction?.reportID, amount, created: DateUtils.getDBTime()}];
 
         updateSplitTransactions({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             shouldFlagNewSplitsForReportTable: true,
             rules: undefined,
@@ -8349,6 +8397,7 @@ describe('updateSplitTransactions', () => {
         const splitExpenses: SplitExpense[] = [{transactionID: splitTransactionID1, reportID: remainingSplitTransaction?.reportID, amount, created: DateUtils.getDBTime()}];
 
         updateSplitTransactions({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             shouldFlagNewSplitsForReportTable: true,
             rules: undefined,
@@ -8429,6 +8478,7 @@ describe('updateSplitTransactions', () => {
         const reports = getTransactionAndExpenseReports(expenseReport.reportID);
 
         updateSplitTransactions({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             shouldFlagNewSplitsForReportTable: true,
             rules: undefined,
@@ -8505,6 +8555,7 @@ describe('updateSplitTransactions', () => {
 
         // The preview action lives in the chat report's actions, supplied via the new allReportActionsList param.
         updateSplitTransactions({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             shouldFlagNewSplitsForReportTable: true,
             rules: undefined,
@@ -8586,6 +8637,7 @@ describe('updateSplitTransactions', () => {
         const emptyChatReportActions = {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.chatReportID}`]: {}};
 
         updateSplitTransactions({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             shouldFlagNewSplitsForReportTable: true,
             rules: undefined,
@@ -8661,6 +8713,7 @@ describe('updateSplitTransactions', () => {
         const splitExpensesTotal = splitAmount * 3;
 
         updateSplitTransactions({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             shouldFlagNewSplitsForReportTable: true,
             rules: undefined,
@@ -8780,6 +8833,7 @@ describe('updateSplitTransactions', () => {
         // just the first stale action (matching `iouActions.at(0)` in SplitExpensePage.tsx) and the rest via
         // `extraIOUActions` (matching `iouActions.slice(1)`).
         updateSplitTransactions({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             shouldFlagNewSplitsForReportTable: true,
             rules: undefined,
@@ -13121,6 +13175,7 @@ const buildSplitFlowParams = async ({withExistingSplitChildren = false, asSelfDM
 
     const reports = getTransactionAndExpenseReports(asSelfDMThread ? transactionThread.reportID : expenseReport.reportID);
     const params: UpdateSplitTransactionsData = {
+        translate: translateLocal,
         allTransactionsList: allTransactions,
         allReportsList: allReports,
         reportDrafts: {},
@@ -13527,6 +13582,7 @@ describe('updateSplitTransactions - emptied expense report', () => {
 
         // When the draft split is removed offline and only the frozen approved split is saved
         updateSplitTransactions({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             shouldFlagNewSplitsForReportTable: true,
             rules: undefined,
@@ -13749,6 +13805,7 @@ describe('updateSplitTransactions - emptied expense reports', () => {
 
     const saveSplits = async (openedFromReport: Report, splitExpenses: SplitExpense[]) => {
         updateSplitTransactions({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             shouldFlagNewSplitsForReportTable: true,
             rules: undefined,

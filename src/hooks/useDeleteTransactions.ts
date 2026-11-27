@@ -114,7 +114,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const personalPolicy = usePersonalPolicy();
     const restrictedActionPolicyID = useRestrictedActionPolicyID(policy);
     const {isOffline} = useNetwork();
-    const {formatPhoneNumber} = useLocalize();
+    const {formatPhoneNumber, translate} = useLocalize();
 
     const getSplitExpenseEditTransactionOnDelete = (transactionIDs: string[]): Transaction | undefined => {
         if (transactionIDs.length !== 1) {
@@ -293,6 +293,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             const activeGroupSearchHashes = currentSearchHash !== undefined && currentSearchHash >= 0 ? getActiveGroupSearchHashes(currentSearchResults?.data, currentSearchQueryJSON) : [];
 
             updateSplitTransactions({
+                translate,
                 isVendorMatchingBetaEnabled,
                 getCurrencyDecimals,
                 getCurrencySymbol,

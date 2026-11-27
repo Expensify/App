@@ -21,7 +21,7 @@ import createPersonalDetails from '../../utils/collections/personalDetails';
 import {createSelfDM} from '../../utils/collections/reports';
 import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
-import {formatPhoneNumber, getCurrencyDecimalsLocal, getCurrencySymbolLocal, getGlobalFetchMock, getOnyxData} from '../../utils/TestHelper';
+import {formatPhoneNumber, getCurrencyDecimalsLocal, getCurrencySymbolLocal, getGlobalFetchMock, getOnyxData, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../../utils/waitForNetworkPromises';
 
@@ -162,6 +162,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
         });
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -257,6 +258,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
         });
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -372,6 +374,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
         });
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -470,6 +473,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
 
         // Step 1: Create the splits
         updateSplitTransactionsFromSplitExpensesFlow({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -535,6 +539,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
 
         // Step 3: Edit the splits (change amounts)
         updateSplitTransactionsFromSplitExpensesFlow({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -629,6 +634,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
         });
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -771,6 +777,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - report drafts', () => {
         });
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,

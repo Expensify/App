@@ -402,6 +402,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
             ONYXKEYS.NVP_INTRO_SELECTED,
         ]);
         updateSplitTransactionsFromSplitExpensesFlow({
+            translate,
             isVendorMatchingBetaEnabled,
             getCurrencyDecimals,
             getCurrencySymbol,
