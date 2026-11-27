@@ -597,7 +597,7 @@ describe('SearchSelectionFooter', () => {
             expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({total: 18000, currency: CONST.CURRENCY.EUR}));
         });
 
-        it('keeps an excluded group under a breakdown in the default currency rather than converting its plain total', async () => {
+        it('keeps an excluded group in the default currency when the conversion carries no figure for the breakdown', async () => {
             // Given a select-all on the reimbursable breakdown in EUR, with the search's own converted total fresh
             setSearchQuery(`type:expense group-by:category footerTotal:${CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE} footerCurrency:${CONST.CURRENCY.EUR}`);
             mockSelectedTransactions.current = {};
@@ -622,6 +622,31 @@ describe('SearchSelectionFooter', () => {
             // Then the footer stays on the default currency and takes the group's reimbursable share off there, instead
             // of taking its whole converted amount off a total that only covers the breakdown
             expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({total: 60000, currency: CONST.CURRENCY.USD}));
+        });
+
+        it("shows a selected group's converted figure for the breakdown on display", async () => {
+            // Given a group selected on the reimbursable breakdown in EUR, with the command's converted figure for each
+            // breakdown cached against the group's own source
+            setSearchQuery(`type:expense group-by:category footerTotal:${CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE} footerCurrency:${CONST.CURRENCY.EUR}`);
+            mockExcludedTransactions.current = {};
+            mockAreAllMatchingItemsSelected.current = false;
+            mockSelectedTransactions.current = {
+                [GROUP_KEY]: buildSelectedGroup(-14000, {[CONST.SEARCH.FOOTER_TOTAL.TOTAL]: 14000, [CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE]: 10000}),
+            };
+            await Onyx.merge(ONYXKEYS.SEARCH_FOOTER_CONVERSION, {
+                groups: {[GROUP_KEY]: {[CONST.CURRENCY.EUR]: -12762}},
+                groupTotals: {[GROUP_KEY]: {[CONST.CURRENCY.EUR]: {total: -12762, reimbursableTotal: -9116}}},
+                sources: {groups: {[GROUP_KEY]: {[CONST.CURRENCY.EUR]: -14000}}},
+            });
+            const searchResults = buildSearchResults(CONST.CURRENCY.USD, 0, 0, CONST.SEARCH.DATA_TYPES.EXPENSE);
+            mockCurrentSearchResults.current = {...searchResults, data: {[GROUP_KEY]: makeSettlementGroup({count: 2, total: 14000})}};
+
+            // When the footer renders
+            render(<SearchSelectionFooter searchResults={searchResults} />);
+            await waitForBatchedUpdates();
+
+            // Then it shows the group's reimbursable figure in EUR, instead of dropping back to the default currency
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({total: 9116, currency: CONST.CURRENCY.EUR}));
         });
 
         it('keeps the total selector under a breakdown, so the plain total can still be picked', async () => {
