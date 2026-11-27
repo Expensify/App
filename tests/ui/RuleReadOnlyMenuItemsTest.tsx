@@ -19,7 +19,6 @@ import {getIsOffline} from '@libs/NetworkState';
 import AddFlagForReviewRulePage from '@pages/workspace/rules/FlagForReviewRules/AddFlagForReviewRulePage';
 import EditMerchantTypeRulePage from '@pages/workspace/rules/MerchantTypeRules/EditMerchantTypeRulePage';
 
-import {fontScale, lineHeightScale} from '@styles/typography';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -51,13 +50,11 @@ const PRESS_EVENT = {nativeEvent: {}};
 const FLAG_COPY = [
     {
         locale: CONST.LOCALES.EN,
-        name: 'Flag type',
         value: 'Warning',
         details: 'Submitter will be warned, but can still submit expense',
     },
     {
         locale: CONST.LOCALES.DE,
-        name: de.workspace.rules.flagForReviewRule.flagType,
         value: de.workspace.rules.flagForReviewRule.flagTypeWarning,
         details: de.workspace.rules.flagForReviewRule.flagTypeWarningDescription,
     },
@@ -89,6 +86,7 @@ async function seedWorkspace(locale: Locale = CONST.LOCALES.EN, policyOverrides:
         await Onyx.set(ONYXKEYS.PREFERRED_THEME, CONST.THEME.LIGHT);
         await Onyx.set(ONYXKEYS.NETWORK, {shouldForceOffline: false});
         await Onyx.set(ONYXKEYS.BETAS, []);
+        await Onyx.set(ONYXKEYS.RAM_ONLY_HAS_RULES_DATA_BEEN_FETCHED, true);
         await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
         await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}`, {
             Meals: {name: 'Meals', enabled: true},
@@ -148,31 +146,15 @@ describe('Read-only facts in the rule editors', () => {
         jest.restoreAllMocks();
     });
 
-    it.each(FLAG_COPY)('keeps the warning hierarchy and name/value announcement in $locale', async ({locale, name, value, details}) => {
-        // Given an admin can create a flag rule, but its warning type is fixed in every locale.
+    it.each(FLAG_COPY)('starts new flags with the localized warning option in $locale', async ({locale, value, details}) => {
+        // Given an admin opens a flag rule without choosing enforcement.
         await seedWorkspace(locale);
 
         // When the actual create page renders the warning alongside the editable conditions.
         renderEditor(FLAG_SCREEN);
-        const row = await screen.findByLabelText(`${name}, ${value}`);
-
-        // Then the explanation stays visible without becoming part of the row's name or an action.
-        const content = within(row);
-        const nameText = content.getByText(name);
-        const valueText = content.getByText(value);
-        const detailsText = content.getByText(details);
-        expect(content.getAllByText(/.+/)).toEqual([nameText, valueText, detailsText]);
-        expect(row).toHaveAccessibleName(`${name}, ${value}`);
-        expect(nameText).toHaveProp('numberOfLines', 2);
-        expect(valueText).toHaveProp('numberOfLines', 1);
-        expect(detailsText).toHaveProp('numberOfLines', 2);
-        expect(nameText).toHaveStyle({fontSize: fontScale.label, lineHeight: lineHeightScale.label});
-        expect(valueText).toHaveStyle({fontSize: fontScale.text, lineHeight: lineHeightScale.text});
-        expect(detailsText).toHaveStyle({fontSize: fontScale.label, lineHeight: lineHeightScale.label});
-        expect(row).not.toHaveProp('role', CONST.ROLE.BUTTON);
-        expect(row).toHaveProp('tabIndex', -1);
-        expect(row).toBeEnabled();
-        expect(content.UNSAFE_queryAllByType(Icon)).toHaveLength(0);
+        // Then a new rule defaults to warning and explains what that means.
+        expect(await screen.findByRole(CONST.ROLE.BUTTON, {name: new RegExp(value)})).toBeOnTheScreen();
+        expect(screen.getByText(details)).toBeOnTheScreen();
     });
 
     it.each([
@@ -204,26 +186,23 @@ describe('Read-only facts in the rule editors', () => {
         });
     });
 
-    it('does not navigate or replace a seeded flag draft when the warning is pressed', async () => {
+    it('keeps the seeded flag draft while opening the category picker', async () => {
         // Given the describe flow has already populated a draft that opening the page must preserve.
         await seedWorkspace();
-        const draft = {category: 'Meals', maxExpenseAmount: '50'};
+        const draft = {category: 'Meals', maxExpenseAmount: '50', draftKey: `${POLICY_ID}/new`};
         await act(async () => {
             await Onyx.set(ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_FORM, draft);
         });
         renderEditor(FLAG_SCREEN);
-        const row = await screen.findByLabelText('Flag type, Warning');
-        await waitForBatchedUpdatesWithAct();
+        const categoryRow = await screen.findByRole(CONST.ROLE.BUTTON, {name: 'Category, Meals'});
 
-        // When a user presses the warning instead of one of the condition fields.
-        fireEvent.press(row, PRESS_EVENT);
+        // When the admin opens the category picker.
+        fireEvent.press(categoryRow, PRESS_EVENT);
 
-        // Then neither navigation nor a save happens, and the distinct category control still works.
+        // Then opening the picker neither replaces the draft nor writes a rule.
         expect(await getOnyxValue(ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_FORM)).toEqual(draft);
-        expect(navigateSpy).not.toHaveBeenCalled();
         expect(goBackSpy).not.toHaveBeenCalled();
         expect(writeSpy).not.toHaveBeenCalled();
-        fireEvent.press(screen.getByRole(CONST.ROLE.BUTTON, {name: 'Category, Meals'}), PRESS_EVENT);
         expect(navigateSpy).toHaveBeenCalledWith(getFlagForReviewRuleCategoryRoute(POLICY_ID));
     });
 
@@ -246,34 +225,34 @@ describe('Read-only facts in the rule editors', () => {
         expect(navigateSpy).toHaveBeenCalledWith(ROUTES.RULES_MERCHANT_TYPE_CATEGORY.getRoute(POLICY_ID, GROUP_ID));
     });
 
-    it.each([
-        {editor: FLAG_SCREEN, label: 'Flag type, Warning', formKey: ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_FORM},
-        {editor: MERCHANT_SCREEN, label: 'Merchant type, Airlines', formKey: ONYXKEYS.FORMS.MERCHANT_TYPE_RULE_FORM},
-    ])('keeps $label readable and inert after the loaded editor goes offline', async ({editor, label, formKey}) => {
-        // Given the editor has loaded its workspace and initialized its draft before losing connectivity.
-        await seedWorkspace();
-        renderEditor(editor);
-        await screen.findByLabelText(label);
-        await waitForBatchedUpdatesWithAct();
-        const draft = await getOnyxValue(formKey);
+    it.each([{editor: MERCHANT_SCREEN, label: 'Merchant type, Airlines', formKey: ONYXKEYS.FORMS.MERCHANT_TYPE_RULE_FORM}])(
+        'keeps $label readable and inert after the loaded editor goes offline',
+        async ({editor, label, formKey}) => {
+            // Given the editor has loaded its workspace and initialized its draft before losing connectivity.
+            await seedWorkspace();
+            renderEditor(editor);
+            await screen.findByLabelText(label);
+            await waitForBatchedUpdatesWithAct();
+            const draft = await getOnyxValue(formKey);
 
-        // When the connection goes offline and the user presses the informational row.
-        await act(async () => {
-            await Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: true});
-        });
-        await waitFor(() => expect(getIsOffline()).toBe(true));
-        fireEvent.press(screen.getByLabelText(label), PRESS_EVENT);
+            // When the connection goes offline and the user presses the informational row.
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: true});
+            });
+            await waitFor(() => expect(getIsOffline()).toBe(true));
+            fireEvent.press(screen.getByLabelText(label), PRESS_EVENT);
 
-        // Then cached facts remain available without starting navigation, writes, or a new draft.
-        expect(screen.getByLabelText(label)).toBeOnTheScreen();
-        expect(await getOnyxValue(formKey)).toEqual(draft);
-        expect(navigateSpy).not.toHaveBeenCalled();
-        expect(goBackSpy).not.toHaveBeenCalled();
-        expect(writeSpy).not.toHaveBeenCalled();
-        await act(async () => {
-            await Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: false});
-        });
-        await waitFor(() => expect(getIsOffline()).toBe(false));
-        expect(screen.getByLabelText(label)).toBeOnTheScreen();
-    });
+            // Then cached facts remain available without starting navigation, writes, or a new draft.
+            expect(screen.getByLabelText(label)).toBeOnTheScreen();
+            expect(await getOnyxValue(formKey)).toEqual(draft);
+            expect(navigateSpy).not.toHaveBeenCalled();
+            expect(goBackSpy).not.toHaveBeenCalled();
+            expect(writeSpy).not.toHaveBeenCalled();
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: false});
+            });
+            await waitFor(() => expect(getIsOffline()).toBe(false));
+            expect(screen.getByLabelText(label)).toBeOnTheScreen();
+        },
+    );
 });

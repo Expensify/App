@@ -1351,6 +1351,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/workspace/rules/RequireFieldsRules/EditRequireFieldsRuleCategoryPage').default,
     [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_NEW]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/FlagForReviewRules/AddFlagForReviewRulePage').default,
     [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_EDIT]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/FlagForReviewRules/EditFlagForReviewRulePage').default,
+    [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_MERCHANT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/rules/FlagForReviewRules/FlagForReviewRuleMerchantPage').default,
     [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_CATEGORY]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/rules/FlagForReviewRules/FlagForReviewRuleCategoryPage').default,
     [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_CATEGORY_EDIT]: () =>

@@ -150,16 +150,18 @@ describe('useRulesPrefetch', () => {
         expect(resetRulesFetchState).toHaveBeenCalled();
     });
 
-    it('does not ask once the collection has arrived', () => {
+    it('does not replace an already loaded collection on reconnect', () => {
         // Given a session whose fetch already succeeded
         mockHasBeenFetched = true;
 
-        // When a screen that needs the collection renders
+        // When a screen that needs the collection reconnects.
         const {result} = renderHook(() => useRulesPrefetch(true));
+        mockOnReconnect?.();
 
         // Then nothing is sent and nothing is waited on, because the response SET the whole collection
         expect(mockGetRules).not.toHaveBeenCalled();
         expect(result.current.areRulesLoading).toBe(false);
+        expect(resetRulesFetchState).not.toHaveBeenCalled();
     });
 
     it('stays inert for a policy with no rules to fetch', () => {

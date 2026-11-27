@@ -31,11 +31,10 @@ import useRulesPrefetch from '@hooks/useRulesPrefetch';
 import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getRules} from '@libs/actions/Policy/Rules';
+import {clearRuleErrors, getRules} from '@libs/actions/Policy/Rules';
 import getCategoryContextualRules from '@libs/CategoryContextualRulesUtils';
 import {getCategoryApproverRule, getDecodedCategoryName, getMembersWithoutVisibleCategories, isCategoryVisibleToMember} from '@libs/CategoryUtils';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
-import {hasExplicitFlagAmount} from '@libs/FlagForReviewRulesUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -110,11 +109,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
               conditionNames,
           });
     const shouldRetryFlagRules =
-        !isOffline &&
-        !areRulesLoading &&
-        !haveRulesLoaded &&
-        hasExplicitFlagAmount(policyCategory?.maxExpenseAmount) &&
-        !contextualRules.some((rule) => rule.dynamicRoutePath === DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_FLAG_FOR_REVIEW_EDIT.path);
+        !isOffline && !areRulesLoading && !haveRulesLoaded && !contextualRules.some((rule) => rule.dynamicRoutePath === DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_FLAG_FOR_REVIEW_EDIT.path);
 
     const shouldPreventDisableOrDelete = isDisablingOrDeletingLastEnabledCategory(policy, policyData.categories, [policyCategory]);
     const isQuickSettingsFlow = name === SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_SETTINGS;
@@ -446,6 +441,13 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                 <OfflineWithFeedback
                                     key={rule.key}
                                     pendingAction={rule.pendingAction}
+                                    errors={rule.flagRuleID ? rules?.[`${ONYXKEYS.COLLECTION.RULE}${rule.flagRuleID}`]?.errors : undefined}
+                                    onClose={() => {
+                                        if (!rule.flagRuleID) {
+                                            return;
+                                        }
+                                        clearRuleErrors(rule.flagRuleID, rules?.[`${ONYXKEYS.COLLECTION.RULE}${rule.flagRuleID}`]);
+                                    }}
                                 >
                                     <MenuItem.Root
                                         sentryLabel={rule.sentryLabel}

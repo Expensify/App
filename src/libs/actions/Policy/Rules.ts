@@ -199,7 +199,8 @@ function setRule(policyID: string, ruleBody: RuleBody | undefined, priority: num
         return;
     }
 
-    const isEditing = !!ruleID;
+    const isRetryingCreate = existingRule?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !!existingRule.errors;
+    const isEditing = !!ruleID && !isRetryingCreate;
     const targetRuleID = ruleID ?? rand64();
     const ruleKey = `${ONYXKEYS.COLLECTION.RULE}${targetRuleID}` as const;
     const created = existingRule?.created ?? new Date().toISOString();
@@ -332,6 +333,11 @@ function getTransactionsMatchingRule(policyID: string, filters: string) {
 function deleteRule(ruleID: string, rule: Rule | undefined) {
     if (!ruleID) {
         Log.warn('Invalid params for deleteRule', {ruleID});
+        return;
+    }
+
+    if (rule?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && rule.errors) {
+        clearRuleErrors(ruleID, rule);
         return;
     }
 
@@ -688,7 +694,7 @@ function deletePolicyAgentRule(policy: Policy, agentRuleID: string) {
     API.write(WRITE_COMMANDS.DELETE_POLICY_AGENT_RULE, parameters, onyxData);
 }
 
-function clearMerchantRuleErrors(ruleID: string, rule: Rule | undefined) {
+function clearRuleErrors(ruleID: string, rule: Pick<Rule, 'pendingAction'> | undefined) {
     if (!rule) {
         return;
     }
@@ -754,7 +760,7 @@ export {
     stopAgentRuleCheckLoading,
     updatePolicyAgentRule,
     deletePolicyAgentRule,
-    clearMerchantRuleErrors,
+    clearRuleErrors,
     clearPolicyAgentRuleErrors,
 };
 export type {AgentRuleFormID, ImportedMerchantRule};

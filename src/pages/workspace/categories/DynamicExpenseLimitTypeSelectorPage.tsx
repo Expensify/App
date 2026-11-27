@@ -7,7 +7,6 @@ import useCategoryFlagLimits from '@hooks/useCategoryFlagLimits';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setDraftValues} from '@libs/actions/FormActions';
@@ -42,9 +41,7 @@ function DynamicExpenseLimitTypeSelectorPage({
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const category = policyCategories?.[categoryName];
     const {categoryFlagLimits} = useCategoryFlagLimits(policyID, category);
-    const policy = usePolicy(policyID);
-
-    const limit = getCategoryFlagLimit(category, categoryFlagLimits, policy?.outputCurrency ?? CONST.CURRENCY.USD);
+    const limit = getCategoryFlagLimit(category, categoryFlagLimits);
     const currentExpenseLimitType = formDraft?.expenseLimitType ?? limit?.expenseLimitType ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE;
 
     const expenseLimitTypes = Object.values(CONST.POLICY.EXPENSE_LIMIT_TYPES).map((value) => ({

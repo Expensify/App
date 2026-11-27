@@ -32,6 +32,7 @@ import {
 
 type CategoryContextualRule = {
     key: string;
+    flagRuleID?: string;
     summary: string;
     /** What the rule matches on, shown under the summary so two rules with the same action can be told apart. */
     conditionSummary?: string;
@@ -79,16 +80,17 @@ function getCategoryContextualRules({
     const policyCurrency = policy.outputCurrency ?? CONST.CURRENCY.USD;
     const rules: CategoryContextualRule[] = [];
 
-    const flagPendingAction = category.pendingFields?.maxExpenseAmount;
+    const flagLimit = getCategoryFlagLimit(category, getCategoryFlagLimitsForPolicy(policyRules, policy.id, category));
+    const flagPendingAction = flagLimit?.pendingAction;
     const isFlagPendingDelete = flagPendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-    const flagLimit = isOffline || !isFlagPendingDelete ? getCategoryFlagLimit(category, getCategoryFlagLimitsForPolicy(policyRules, policy.id, category), policyCurrency) : undefined;
-    if (flagLimit) {
+    if (flagLimit && (isOffline || !isFlagPendingDelete)) {
         const summaryKey =
             flagLimit.expenseLimitType === CONST.POLICY.EXPENSE_LIMIT_TYPES.DAILY
                 ? 'workspace.rules.categoryRules.contextualFlagForReviewDaily'
                 : 'workspace.rules.categoryRules.contextualFlagForReview';
         rules.push({
-            key: `flag-for-review-${categoryName}`,
+            key: `flag-for-review-${flagLimit.ruleID}`,
+            flagRuleID: flagLimit.ruleID,
             sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.SETTINGS_RULE_ROW.FLAG_FOR_REVIEW,
             summary: translate(summaryKey, convertToDisplayString(flagLimit.amount, flagLimit.currency)),
             dynamicRoutePath: DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_FLAG_FOR_REVIEW_EDIT.path,

@@ -4555,35 +4555,39 @@ const ROUTES = {
         getRoute: (policyID: string, categoryName?: string) => `workspaces/${policyID}/rules/flag-for-review-rules/new${getOptionalCategoryNameQuery(categoryName)}` as const,
     },
     RULES_FLAG_FOR_REVIEW_RULE_EDIT: {
-        route: 'workspaces/:policyID/rules/flag-for-review-rules/edit/:categoryName',
-        getRoute: (policyID: string, categoryName: string, isCategoryLocked?: boolean) =>
-            `workspaces/${policyID}/rules/flag-for-review-rules/${getRulesRevampRuleEditSegment(categoryName)}${getOptionalIsCategoryLockedQuery(isCategoryLocked)}` as const,
+        route: 'workspaces/:policyID/rules/flag-for-review-rules/edit/:ruleID',
+        getRoute: (policyID: string, ruleID: string, isCategoryLocked?: boolean) =>
+            `workspaces/${policyID}/rules/flag-for-review-rules/${getRulesRevampRuleEditSegment(ruleID)}${getOptionalIsCategoryLockedQuery(isCategoryLocked)}` as const,
+    },
+    RULES_FLAG_FOR_REVIEW_RULE_MERCHANT: {
+        route: 'workspaces/:policyID/rules/flag-for-review-rules/merchant/:ruleID',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/flag-for-review-rules/merchant/${ruleID ?? ROUTES.NEW}` as const,
     },
     RULES_FLAG_FOR_REVIEW_RULE_CATEGORY: {
         route: 'workspaces/:policyID/rules/flag-for-review-rules/new/category',
         getRoute: (policyID: string) => `workspaces/${policyID}/rules/flag-for-review-rules/new/category` as const,
     },
     RULES_FLAG_FOR_REVIEW_RULE_CATEGORY_EDIT: {
-        route: 'workspaces/:policyID/rules/flag-for-review-rules/edit/:categoryName/category',
-        getRoute: (policyID: string, categoryName: string) => `workspaces/${policyID}/rules/flag-for-review-rules/${getRulesRevampRuleEditSegment(categoryName)}/category` as const,
+        route: 'workspaces/:policyID/rules/flag-for-review-rules/edit/:ruleID/category',
+        getRoute: (policyID: string, ruleID: string) => `workspaces/${policyID}/rules/flag-for-review-rules/${getRulesRevampRuleEditSegment(ruleID)}/category` as const,
     },
     RULES_FLAG_FOR_REVIEW_RULE_AMOUNT: {
         route: 'workspaces/:policyID/rules/flag-for-review-rules/new/amount',
-        getRoute: (policyID: string, isCategoryLocked?: boolean) =>
-            `workspaces/${policyID}/rules/flag-for-review-rules/new/amount${getOptionalIsCategoryLockedQuery(isCategoryLocked)}` as const,
+        getRoute: (policyID: string, isCategoryLocked?: boolean, categoryName?: string) =>
+            `workspaces/${policyID}/rules/flag-for-review-rules/new/amount${getOptionalIsCategoryLockedQuery(isCategoryLocked)}${isCategoryLocked && categoryName ? `&categoryName=${encodeURIComponent(categoryName)}` : ''}` as const,
     },
     RULES_FLAG_FOR_REVIEW_RULE_AMOUNT_EDIT: {
-        route: 'workspaces/:policyID/rules/flag-for-review-rules/edit/:categoryName/amount',
-        getRoute: (policyID: string, categoryName: string, isCategoryLocked?: boolean) =>
-            `workspaces/${policyID}/rules/flag-for-review-rules/${getRulesRevampRuleEditSegment(categoryName)}/amount${getOptionalIsCategoryLockedQuery(isCategoryLocked)}` as const,
+        route: 'workspaces/:policyID/rules/flag-for-review-rules/edit/:ruleID/amount',
+        getRoute: (policyID: string, ruleID: string, isCategoryLocked?: boolean) =>
+            `workspaces/${policyID}/rules/flag-for-review-rules/${getRulesRevampRuleEditSegment(ruleID)}/amount${getOptionalIsCategoryLockedQuery(isCategoryLocked)}` as const,
     },
     RULES_FLAG_FOR_REVIEW_RULE_EXPENSE_LIMIT_TYPE: {
         route: 'workspaces/:policyID/rules/flag-for-review-rules/new/expense-limit-type',
         getRoute: (policyID: string) => `workspaces/${policyID}/rules/flag-for-review-rules/new/expense-limit-type` as const,
     },
     RULES_FLAG_FOR_REVIEW_RULE_EXPENSE_LIMIT_TYPE_EDIT: {
-        route: 'workspaces/:policyID/rules/flag-for-review-rules/edit/:categoryName/expense-limit-type',
-        getRoute: (policyID: string, categoryName: string) => `workspaces/${policyID}/rules/flag-for-review-rules/${getRulesRevampRuleEditSegment(categoryName)}/expense-limit-type` as const,
+        route: 'workspaces/:policyID/rules/flag-for-review-rules/edit/:ruleID/expense-limit-type',
+        getRoute: (policyID: string, ruleID: string) => `workspaces/${policyID}/rules/flag-for-review-rules/${getRulesRevampRuleEditSegment(ruleID)}/expense-limit-type` as const,
     },
     RULES_MERCHANT_TYPE_EDIT: {
         route: 'workspaces/:policyID/rules/merchant-type-rules/:groupID',
@@ -6180,20 +6184,20 @@ function getRequireFieldsRuleCategoryRoute(policyID: string, categoryName?: stri
     return ROUTES.RULES_REQUIRE_FIELDS_RULE_CATEGORY.getRoute(policyID);
 }
 
-function getFlagForReviewRuleCategoryRoute(policyID: string, categoryName?: string) {
-    if (categoryName) {
-        return ROUTES.RULES_FLAG_FOR_REVIEW_RULE_CATEGORY_EDIT.getRoute(policyID, categoryName);
+function getFlagForReviewRuleCategoryRoute(policyID: string, ruleID?: string) {
+    if (ruleID) {
+        return ROUTES.RULES_FLAG_FOR_REVIEW_RULE_CATEGORY_EDIT.getRoute(policyID, ruleID);
     }
 
     return ROUTES.RULES_FLAG_FOR_REVIEW_RULE_CATEGORY.getRoute(policyID);
 }
 
-function getFlagForReviewRuleAmountRoute(policyID: string, categoryName?: string, isCategoryLocked?: boolean) {
-    if (categoryName) {
-        return ROUTES.RULES_FLAG_FOR_REVIEW_RULE_AMOUNT_EDIT.getRoute(policyID, categoryName, isCategoryLocked);
+function getFlagForReviewRuleAmountRoute(policyID: string, ruleID?: string, isCategoryLocked?: boolean, categoryName?: string) {
+    if (ruleID) {
+        return ROUTES.RULES_FLAG_FOR_REVIEW_RULE_AMOUNT_EDIT.getRoute(policyID, ruleID, isCategoryLocked);
     }
 
-    return ROUTES.RULES_FLAG_FOR_REVIEW_RULE_AMOUNT.getRoute(policyID, isCategoryLocked);
+    return ROUTES.RULES_FLAG_FOR_REVIEW_RULE_AMOUNT.getRoute(policyID, isCategoryLocked, categoryName);
 }
 
 /**

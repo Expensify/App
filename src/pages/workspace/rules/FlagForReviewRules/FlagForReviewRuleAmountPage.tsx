@@ -17,6 +17,7 @@ function FlagForReviewRuleAmountPage({route}: FlagForReviewRuleAmountPageProps) 
     return (
         <FlagForReviewRuleAmountPageBase
             policyID={route.params.policyID}
+            categoryName={'categoryName' in route.params ? route.params.categoryName : undefined}
             isCategoryLocked={isCategoryScopedFlow || ('isCategoryLocked' in route.params && route.params.isCategoryLocked === 'true')}
             isCategoryScopedFlow={isCategoryScopedFlow}
         />

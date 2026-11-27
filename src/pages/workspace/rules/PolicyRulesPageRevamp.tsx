@@ -116,12 +116,10 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     // again and the list stays empty. The hook's flags are cleared along with the collection, so it refills it.
     useRulesPrefetch();
 
-    // A read issued while offline is discarded rather than queued, so the mount fetch can leave this page with
-    // nothing to list. Pending writes flush before the read, so this cannot overwrite a rule saved offline.
+    // useRulesPrefetch retries a skipped GetRules read on reconnect without clearing failed rule writes.
     useNetwork({
         onReconnect: () => {
             openPolicyRulesPage(policyID);
-            getRules();
         },
     });
 

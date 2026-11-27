@@ -1502,6 +1502,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_EDIT]: {
                             path: ROUTES.RULES_FLAG_FOR_REVIEW_RULE_EDIT.route,
                         },
+                        [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_MERCHANT]: {
+                            path: ROUTES.RULES_FLAG_FOR_REVIEW_RULE_MERCHANT.route,
+                        },
                         [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_CATEGORY]: {
                             path: ROUTES.RULES_FLAG_FOR_REVIEW_RULE_CATEGORY.route,
                         },

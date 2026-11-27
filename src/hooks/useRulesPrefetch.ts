@@ -34,14 +34,18 @@ function useRulesPrefetch(enabled = true): {areRulesLoading: boolean; haveRulesL
     // Whether this mount has asked for the collection. A failed fetch leaves the fetched flag false, so without
     // this the hook would see a fetch as needed again the moment the in-flight flag cleared, on every render.
     const [hasAsked, setHasAsked] = useState(false);
+    const [hasBeenFetched, hasBeenFetchedResult] = useOnyx(ONYXKEYS.RAM_ONLY_HAS_RULES_DATA_BEEN_FETCHED);
     // Reconnecting is the only signal that a fetch which never settled is not still on its way.
     const {isOffline} = useNetwork({
         onReconnect: () => {
+            // ReconnectApp catches up server updates without replacing local write errors with a snapshot.
+            if (hasBeenFetched) {
+                return;
+            }
             setHasAsked(false);
             resetRulesFetchState();
         },
     });
-    const [hasBeenFetched, hasBeenFetchedResult] = useOnyx(ONYXKEYS.RAM_ONLY_HAS_RULES_DATA_BEEN_FETCHED);
     const [isLoadingRules] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_RULES);
     const [hasFetchFailed] = useOnyx(ONYXKEYS.RAM_ONLY_HAS_RULES_FETCH_FAILED);
     const isFlagLoading = isLoadingOnyxValue(hasBeenFetchedResult);

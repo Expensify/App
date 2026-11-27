@@ -10,12 +10,12 @@ import FlagForReviewRuleCategoryPageBase from './FlagForReviewRuleCategoryPageBa
 type EditFlagForReviewRuleCategoryPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_CATEGORY_EDIT>;
 
 function EditFlagForReviewRuleCategoryPage({route}: EditFlagForReviewRuleCategoryPageProps) {
-    const {policyID, categoryName} = route.params;
+    const {policyID, ruleID} = route.params;
 
     return (
         <FlagForReviewRuleCategoryPageBase
             policyID={policyID}
-            categoryName={categoryName}
+            ruleID={ruleID}
         />
     );
 }

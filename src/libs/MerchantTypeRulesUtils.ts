@@ -17,7 +17,7 @@ import type {ExpenseDefaultRuleSummaryField, OtherCondition} from './ExpenseDefa
 
 import {DEFAULT_MCC_GROUP, isDefaultMccGroupID} from './actions/Policy/OptimisticPolicyCategoriesAndMccGroups';
 import {setWorkspaceDefaultSpendCategory} from './actions/Policy/Policy';
-import {clearMerchantRuleErrors} from './actions/Policy/Rules';
+import {clearRuleErrors} from './actions/Policy/Rules';
 import {getTaxRateDisplayName} from './CategoryTaxRulesUtils';
 import {getDecodedCategoryName} from './CategoryUtils';
 import {
@@ -265,7 +265,7 @@ function getMerchantRulesTableData({
                     searchTokens: [merchantNames, categoryNames, tagNames, conditionText, ruleDescription].filter(Boolean),
                     pendingAction,
                     errors: rule.errors,
-                    onCloseError: () => clearMerchantRuleErrors(ruleID, rule),
+                    onCloseError: () => clearRuleErrors(ruleID, rule),
                     disabled: rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                     action: openEditor,
                 };

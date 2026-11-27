@@ -10105,6 +10105,14 @@ const CONST = {
             TRIGGER_VIOLATION: 'TriggerViolation',
         },
         DAILY_BUDGET_FILTER: 'dailyBudget',
+        FLAG_FOR_REVIEW: {
+            PRIORITY: 10000,
+            MIGRATED_CATEGORY_PRIORITY: 70000,
+            ENFORCEMENT: {
+                WARNING: 'warning',
+                BLOCK: 'block',
+            },
+        },
         APPROVAL_WORKFLOW: {
             /** A rule firing only on these is an approval workflow rather than an expense default. */
             TRIGGERS: [RULE_TRIGGERS.REPORT_SUBMIT, RULE_TRIGGERS.REPORT_APPROVE],

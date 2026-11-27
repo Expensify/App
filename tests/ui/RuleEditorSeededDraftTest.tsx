@@ -60,6 +60,9 @@ jest.mock('@hooks/usePolicyData', () => jest.fn());
 jest.mock('@hooks/usePolicyFeatureWriteAccess', () => jest.fn(() => ({canWrite: true, showReadOnlyModal: jest.fn()})));
 jest.mock('@hooks/usePermissions', () => jest.fn(() => ({isBetaEnabled: () => false, isBetaEnabledOrUnknown: () => false})));
 jest.mock('@hooks/useCategoryRuleCreateBackPath', () => jest.fn(() => undefined));
+jest.mock('@hooks/useCurrentUserPersonalDetails', () => jest.fn(() => ({accountID: 1})));
+jest.mock('@hooks/useOnboardingTaskInformation', () => jest.fn(() => ({})));
+jest.mock('@hooks/useRulesPrefetch', () => jest.fn(() => ({areRulesLoading: false, haveRulesLoaded: true})));
 jest.mock('@hooks/useCurrencyList', () => ({
     useCurrencyListActions: () => ({convertToDisplayString: (amount: number) => String(amount), getCurrencyDecimals: () => 2}),
 }));
@@ -90,6 +93,7 @@ jest.mock(
 );
 jest.mock('@components/Header/composed/HeaderWithBackButtonAndTitle', () => () => null);
 jest.mock('@components/FormAlertWithSubmitButton', () => () => null);
+jest.mock('@components/Picker', () => () => null);
 jest.mock('@components/Text', () => () => null);
 jest.mock('@components/MenuItemWithTopDescription', () => {
     const ReactModule = jest.requireActual<typeof React>('react');
@@ -140,7 +144,7 @@ describe('Rule editors opened with a draft from the describe flow', () => {
 
     it('keeps the seeded flag for review draft when the editor opens for a new rule', async () => {
         // Given the describe flow seeded a flag for review draft
-        const draft = {category: 'Meals', maxExpenseAmount: '50'};
+        const draft = {category: 'Meals', maxExpenseAmount: '50', draftKey: `${POLICY_ID}/new`};
         await seedDraft(ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_FORM, draft);
 
         // When the editor opens for a new rule
@@ -155,6 +159,24 @@ describe('Rule editors opened with a draft from the describe flow', () => {
         // Then the editor shows the seeded values, because it must not reset a draft that already exists
         expect(await getOnyxValue(ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_FORM)).toEqual(draft);
         expect(screen.getByLabelText('common.category, Meals')).toBeOnTheScreen();
+    });
+
+    it('does not seed a new flag with a cached edit for another rule', async () => {
+        // Given a previous edit persisted its cap before a browser reload.
+        await seedDraft(ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_FORM, {category: 'Travel', maxExpenseAmount: '200', draftKey: `${POLICY_ID}/102`});
+
+        // When the new-rule page opens directly.
+        render(
+            <FlagForReviewRulePageBase
+                policyID={POLICY_ID}
+                testID={TEST_ID}
+            />,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the previous category and amount are not copied into this draft.
+        expect(await getOnyxValue(ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_FORM)).toEqual({draftKey: `${POLICY_ID}/new`});
+        expect(screen.queryByLabelText('common.category, Travel')).not.toBeOnTheScreen();
     });
 
     it('keeps the seeded require fields draft and marks its settings as touched when the editor opens for a new rule', async () => {

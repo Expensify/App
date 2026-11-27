@@ -5,80 +5,43 @@
  * on any rule write anywhere. A consumer that only needs a count or a flag reduces the collection to that
  * value here, which keeps `useOnyx` from deep-comparing a filtered copy of it on each of those writes.
  */
-import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import {getExpenseDefaultRuleCount, hasExpenseDefaultRuleErrors} from '@libs/ExpenseDefaultRuleUtils';
-import {filterRulesForPolicy, fromIndexMap, isApprovalWorkflowRule, isRuleFilterComparison, isRuleFilterNode} from '@libs/RuleUtils';
-import {parseAmountFilterValue} from '@libs/SearchAmountFilterUtils';
+import type {CategoryFlagLimits, FlagForReviewConditions} from '@libs/FlagForReviewRulesUtils';
+import {getFlagForReviewConditions} from '@libs/FlagForReviewRulesUtils';
+import {filterRulesForPolicy, isApprovalWorkflowRule} from '@libs/RuleUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyCategory, Rule} from '@src/types/onyx';
-import type {PolicyCategoryExpenseLimitType} from '@src/types/onyx/PolicyCategory';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
-type CategoryFlagLimit = {
-    /** Amount in backend hundredths, including for zero-decimal currencies. */
-    amount: number;
-    currency: string;
-    expenseLimitType: PolicyCategoryExpenseLimitType;
-};
+type FlagForReviewRules = Record<string, FlagForReviewConditions & {pendingAction?: PendingAction; hasErrors: boolean}>;
 
-type CategoryFlagLimits = Partial<Record<string, CategoryFlagLimit & {ruleKey: string}>>;
-
-const {ACTIONS, TRIGGERS, DAILY_BUDGET_FILTER} = CONST.RULES;
-const {AND, EQUAL_TO, GREATER_THAN} = CONST.SEARCH.SYNTAX_OPERATORS;
-const {CATEGORY, AMOUNT} = CONST.SEARCH.SYNTAX_FILTER_KEYS;
-const {DAILY, EXPENSE} = CONST.POLICY.EXPENSE_LIMIT_TYPES;
-
-function getCategoryFlagLimitsForPolicy(rules: OnyxCollection<Rule>, policyID: string | undefined, policyCategory?: PolicyCategory): CategoryFlagLimits {
-    const limits: Array<[string, CategoryFlagLimit & {ruleKey: string}]> = [];
-    const migrationRuleKey = policyCategory?.maxExpenseAmountMigrationID ? `${ONYXKEYS.COLLECTION.RULE}${policyCategory.maxExpenseAmountMigrationID}` : undefined;
+function getFlagForReviewRulesForPolicy(rules: OnyxCollection<Rule>, policyID: string): FlagForReviewRules {
+    const flags: FlagForReviewRules = {};
     for (const [ruleKey, rule] of Object.entries(filterRulesForPolicy(rules, policyID))) {
-        if (!rule) {
-            continue;
+        const conditions = getFlagForReviewConditions(rule ?? undefined);
+        if (conditions) {
+            flags[ruleKey.slice(ONYXKEYS.COLLECTION.RULE.length)] = {...conditions, pendingAction: rule?.pendingAction, hasErrors: !!rule?.errors};
         }
+    }
+    return flags;
+}
 
-        const actions = fromIndexMap<{name: string}>(rule.actions);
-        const triggers = fromIndexMap<string>(rule.triggers);
-        const {filters} = rule;
-        // The legacy editor cannot round-trip additional triggers, actions, or conditions.
-        if (
-            actions.length !== 1 ||
-            actions.at(0)?.name !== ACTIONS.TRIGGER_VIOLATION ||
-            triggers.length !== 2 ||
-            !triggers.includes(TRIGGERS.CREATE_TRANSACTION) ||
-            !triggers.includes(TRIGGERS.UPDATE_TRANSACTION) ||
-            !isRuleFilterNode(filters) ||
-            isRuleFilterComparison(filters) ||
-            filters.operator !== AND
-        ) {
-            continue;
-        }
+const createFlagForReviewRulesSelector = (policyID: string) => (rules: OnyxCollection<Rule>) => getFlagForReviewRulesForPolicy(rules, policyID);
 
-        const {left, right} = filters;
-        if (!isRuleFilterComparison(left) || !isRuleFilterComparison(right)) {
+function getCategoryFlagLimitsForPolicy(rules: OnyxCollection<Rule>, policyID: string, policyCategory?: PolicyCategory): CategoryFlagLimits {
+    const limits: Array<[string, NonNullable<CategoryFlagLimits[string]>]> = [];
+    for (const [ruleID, {categoryName, merchant, limit, pendingAction}] of Object.entries(getFlagForReviewRulesForPolicy(rules, policyID))) {
+        if (!categoryName || merchant || !limit) {
             continue;
         }
-
-        const [category, threshold] = left.left === CATEGORY ? [left, right] : [right, left];
-        if (category.left !== CATEGORY || category.operator !== EQUAL_TO || typeof category.right !== 'string' || !category.right) {
+        if (policyCategory && categoryName !== policyCategory.name && ruleID !== String(policyCategory.maxExpenseAmountMigrationID)) {
             continue;
         }
-        if (policyCategory && category.right !== policyCategory.name && ruleKey !== migrationRuleKey) {
-            continue;
-        }
-        if ((threshold.left !== AMOUNT && threshold.left !== DAILY_BUDGET_FILTER) || threshold.operator !== GREATER_THAN || typeof threshold.right !== 'string') {
-            continue;
-        }
-
-        const {amount, currency} = parseAmountFilterValue(threshold.right.trim());
-        const amountInHundredths = convertToBackendAmount(Number(amount));
-        if (!currency || !Number.isSafeInteger(amountInHundredths) || amountInHundredths < 0) {
-            continue;
-        }
-
-        limits.push([category.right, {amount: amountInHundredths, currency, expenseLimitType: threshold.left === DAILY_BUDGET_FILTER ? DAILY : EXPENSE, ruleKey}]);
+        limits.push([categoryName, {...limit, ruleID, pendingAction}]);
     }
     return Object.fromEntries(limits);
 }
@@ -114,6 +77,8 @@ export {
     createExpenseDefaultRuleCountSelector,
     createHasExpenseDefaultRuleErrorsSelector,
     createHasExpenseDefaultRulesSelector,
+    createFlagForReviewRulesSelector,
     getCategoryFlagLimitsForPolicy,
+    getFlagForReviewRulesForPolicy,
 };
-export type {CategoryFlagLimit, CategoryFlagLimits};
+export type {FlagForReviewRules};

@@ -4,25 +4,40 @@ import type {TableData} from '@components/Table';
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
-import type {FlagForReviewRuleForm} from '@src/types/form/FlagForReviewRuleForm';
-import INPUT_IDS from '@src/types/form/FlagForReviewRuleForm';
-import type {Policy, PolicyCategories, PolicyCategory} from '@src/types/onyx';
+import type {FlagForReviewRuleForm, FlagMerchantMatchType} from '@src/types/form/FlagForReviewRuleForm';
+import type {PolicyCategories, PolicyCategory, Rule} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {PolicyCategoryExpenseLimitType} from '@src/types/onyx/PolicyCategory';
+import type {FlagForReviewRule, FlagRuleEnforcement} from '@src/types/onyx/Rule';
+import type {RuleFilterComparison, RuleFilterNode} from '@src/types/onyx/RuleFilters';
 
-import type {CategoryFlagLimit, CategoryFlagLimits} from '@selectors/Rule';
+import type {FlagForReviewRules} from '@selectors/Rule';
 
-import type {OnboardingTaskCompletionOnyxData} from './actions/Task';
-
-import {setPolicyCategoryMaxAmount} from './actions/Policy/Category';
 import {getDecodedCategoryName} from './CategoryUtils';
-import {convertToFrontendAmountAsString} from './CurrencyUtils';
+import {convertToBackendAmount, convertToFrontendAmountAsString} from './CurrencyUtils';
+import {fromIndexMap, isRuleFilterComparison, isRuleFilterNode, toIndexMap} from './RuleUtils';
+import {formatAmountFilterValue, parseAmountFilterValue} from './SearchAmountFilterUtils';
+
+type FlagAmountLimit = {
+    /** Amount in backend hundredths, including for zero-decimal currencies. */
+    amount: number;
+    currency: string;
+    expenseLimitType: PolicyCategoryExpenseLimitType;
+};
+
+type FlagForReviewConditions = {
+    categoryName?: string;
+    merchant?: {name: string; matchType: FlagMerchantMatchType};
+    limit?: FlagAmountLimit;
+    enforcement?: FlagRuleEnforcement;
+};
+
+type CategoryFlagLimits = Partial<Record<string, FlagAmountLimit & {ruleID: string; pendingAction?: PendingAction}>>;
 
 type FlagForReviewTableItem = TableData & {
     ruleID: string;
-    categoryName: string;
     typeLabel: string;
     conditionText: string;
     ruleDescription: string;
@@ -31,28 +46,34 @@ type FlagForReviewTableItem = TableData & {
     action: () => void;
 };
 
+const {ACTIONS, TRIGGERS, DAILY_BUDGET_FILTER} = CONST.RULES;
+const {WARNING, BLOCK} = CONST.RULES.FLAG_FOR_REVIEW.ENFORCEMENT;
+const {AND, CONTAINS, EQUAL_TO, GREATER_THAN} = CONST.SEARCH.SYNTAX_OPERATORS;
+const {CATEGORY, AMOUNT, MERCHANT} = CONST.SEARCH.SYNTAX_FILTER_KEYS;
+const {DAILY, EXPENSE} = CONST.POLICY.EXPENSE_LIMIT_TYPES;
+
 function hasExplicitFlagAmount(maxExpenseAmount: number | null | undefined): maxExpenseAmount is number {
     return maxExpenseAmount !== null && maxExpenseAmount !== undefined && maxExpenseAmount !== CONST.DISABLED_MAX_EXPENSE_VALUE;
 }
 
-function getFlagForReviewRuleAmountError(maxExpenseAmount: string | undefined, translate: LocaleContextProps['translate']): string | undefined {
-    const trimmedAmount = maxExpenseAmount?.trim() ?? '';
-
-    if (!trimmedAmount) {
-        return translate('workspace.rules.flagForReviewRule.confirmErrorAmount');
-    }
-
-    const parsedAmount = Number.parseFloat(trimmedAmount);
-
-    if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
-        return translate('workspace.rules.flagForReviewRule.confirmErrorAmount');
-    }
-
-    return undefined;
+function isFlagMerchantMatchType(operator: string): operator is FlagMerchantMatchType {
+    return operator === CONTAINS || operator === EQUAL_TO;
 }
 
-function getFlagForReviewRuleNavigationRoute(policyID: string, categoryName: string): Route {
-    return ROUTES.RULES_FLAG_FOR_REVIEW_RULE_EDIT.getRoute(policyID, categoryName);
+function getFlagForReviewRuleAmountError(
+    maxExpenseAmount: string | undefined,
+    translate: LocaleContextProps['translate'],
+    expenseLimitType?: PolicyCategoryExpenseLimitType,
+): string | undefined {
+    const enteredAmount = Number(maxExpenseAmount);
+    const amount = convertToBackendAmount(enteredAmount);
+    const isValidAmount = maxExpenseAmount?.trim() && Number.isSafeInteger(amount) && enteredAmount >= 0 && (expenseLimitType !== DAILY || amount > 0);
+    return isValidAmount ? undefined : translate('workspace.rules.flagForReviewRule.confirmErrorAmount');
+}
+
+function canMatchFlagRuleCategory(category: PolicyCategory | undefined): boolean {
+    const {ADD, DELETE} = CONST.RED_BRICK_ROAD_PENDING_ACTION;
+    return !!category && category.pendingAction !== ADD && category.pendingAction !== DELETE && (!category.pendingFields?.name || !!category.maxExpenseAmountMigrationID);
 }
 
 /** A cold category link can expose only its RHP suffix until the underlay mounts. */
@@ -67,174 +88,245 @@ function qualifyCategoryFlagRulePath(policyID: string, path: string): string {
     return path;
 }
 
-function getMirroredCategoryFlagLimit(category: PolicyCategory, limits: CategoryFlagLimits | undefined): CategoryFlagLimit | undefined {
-    if (!limits || category.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+function getCategoryFlagLimit(category: PolicyCategory | undefined, limits: CategoryFlagLimits | undefined) {
+    if (!category || !limits || category.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
         return undefined;
     }
-    const migrationID = category.maxExpenseAmountMigrationID;
-    // A queued rename changes the category name before Auth can send the updated rule.
+
+    // A queued rename changes the category name before the server can update the filter.
     if (category.pendingFields?.name) {
-        if (!migrationID) {
+        if (!category.maxExpenseAmountMigrationID) {
             return undefined;
         }
-        const ruleKey = `${ONYXKEYS.COLLECTION.RULE}${migrationID}`;
-        return Object.values(limits).find((limit) => limit?.ruleKey === ruleKey);
+        return Object.values(limits).find((limit) => limit?.ruleID === String(category.maxExpenseAmountMigrationID));
     }
+
     return Object.hasOwn(limits, category.name) ? limits[category.name] : undefined;
 }
 
-function getCategoryFlagLimit(category: PolicyCategory | undefined, limits: CategoryFlagLimits | undefined, policyCurrency: string): CategoryFlagLimit | undefined {
-    if (!category) {
+function getFlagComparisons(filters: RuleFilterNode | undefined): RuleFilterComparison[] | undefined {
+    if (!isRuleFilterNode(filters)) {
+        return undefined;
+    }
+    if (isRuleFilterComparison(filters)) {
+        return [filters];
+    }
+    if (filters.operator !== AND) {
+        return undefined;
+    }
+    const left = getFlagComparisons(filters.left);
+    const right = getFlagComparisons(filters.right);
+    return left && right ? [...left, ...right] : undefined;
+}
+
+function getFlagForReviewConditions(rule: Rule | undefined): FlagForReviewConditions | undefined {
+    if (!rule) {
+        return undefined;
+    }
+    const actions = fromIndexMap<{name: string; enforcement?: FlagRuleEnforcement}>(rule.actions);
+    const action = actions.at(0);
+    const triggers = fromIndexMap<string>(rule.triggers);
+    // Don't open rules that this editor can't save without dropping behavior.
+    if (
+        actions.length !== 1 ||
+        action?.name !== ACTIONS.TRIGGER_VIOLATION ||
+        Object.keys(action).some((key) => key !== 'name' && key !== 'enforcement') ||
+        triggers.length !== 2 ||
+        !triggers.includes(TRIGGERS.CREATE_TRANSACTION) ||
+        !triggers.includes(TRIGGERS.UPDATE_TRANSACTION)
+    ) {
+        return undefined;
+    }
+    const {enforcement} = action;
+    if (enforcement !== undefined && enforcement !== WARNING && enforcement !== BLOCK) {
         return undefined;
     }
 
-    const limit = getMirroredCategoryFlagLimit(category, limits);
-    const pendingAction = category.pendingFields?.maxExpenseAmount;
-    const {UPDATE, DELETE} = CONST.RED_BRICK_ROAD_PENDING_ACTION;
-    // Legacy writes only update the category until Auth mirrors the change into the rules collection.
-    if ((pendingAction === UPDATE || (pendingAction === DELETE && !limit)) && hasExplicitFlagAmount(category.maxExpenseAmount)) {
-        return {
-            amount: category.maxExpenseAmount,
-            currency: policyCurrency,
-            expenseLimitType: category.expenseLimitType ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE,
-        };
+    const comparisons = getFlagComparisons(rule.filters);
+    if (!comparisons) {
+        return undefined;
     }
-
-    return limit;
+    let categoryName: string | undefined;
+    let merchant: FlagForReviewConditions['merchant'];
+    let limit: FlagAmountLimit | undefined;
+    for (const {left, right, operator} of comparisons) {
+        if (typeof right !== 'string' || !right.trim()) {
+            return undefined;
+        }
+        if (left === CATEGORY && operator === EQUAL_TO && !categoryName) {
+            categoryName = right;
+        } else if (left === MERCHANT && isFlagMerchantMatchType(operator) && !merchant) {
+            merchant = {name: right, matchType: operator};
+        } else if ((left === AMOUNT || left === DAILY_BUDGET_FILTER) && operator === GREATER_THAN && !limit) {
+            const {amount, currency} = parseAmountFilterValue(right.trim());
+            const amountInHundredths = convertToBackendAmount(Number(amount));
+            if (!currency || !Number.isSafeInteger(amountInHundredths) || amountInHundredths < 0) {
+                return undefined;
+            }
+            limit = {amount: amountInHundredths, currency, expenseLimitType: left === DAILY_BUDGET_FILTER ? DAILY : EXPENSE};
+        } else {
+            return undefined;
+        }
+    }
+    if (limit?.expenseLimitType === DAILY ? !categoryName || !!merchant || limit.amount === 0 : !merchant && !(categoryName && limit)) {
+        return undefined;
+    }
+    return {categoryName, merchant, limit, enforcement};
 }
 
-function hasFlagForReviewRuleForLegacyWrite(category: PolicyCategory | undefined, limits: CategoryFlagLimits | undefined): boolean {
-    // The legacy write can overwrite a limit even when the rules collection has not synced yet.
-    return !!category && (hasExplicitFlagAmount(category.maxExpenseAmount) || !!getMirroredCategoryFlagLimit(category, limits));
-}
-
-function getFlagForReviewFormFromLimit(categoryName: string, limit: CategoryFlagLimit, getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals']): FlagForReviewRuleForm {
+function getFlagForReviewDraft(conditions: FlagForReviewConditions, getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals']): Partial<FlagForReviewRuleForm> {
+    const {categoryName, merchant, limit, enforcement} = conditions;
     return {
-        [INPUT_IDS.CATEGORY]: categoryName,
-        [INPUT_IDS.MAX_EXPENSE_AMOUNT]: convertToFrontendAmountAsString(limit.amount, getCurrencyDecimals(limit.currency)),
-        [INPUT_IDS.EXPENSE_LIMIT_TYPE]: limit.expenseLimitType,
+        category: categoryName,
+        merchantToMatch: merchant?.name,
+        matchType: merchant?.matchType,
+        maxExpenseAmount: limit ? convertToFrontendAmountAsString(limit.amount, getCurrencyDecimals(limit.currency)) : undefined,
+        expenseLimitType: limit?.expenseLimitType,
+        currency: limit?.currency,
+        enforcement,
     };
 }
 
-function saveFlagForReviewRule(
-    policyID: string,
-    policyCategories: PolicyCategories | undefined,
-    form: FlagForReviewRuleForm,
-    originalCategoryName?: string,
-    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
-) {
-    const categoryName = form[INPUT_IDS.CATEGORY];
-    if (!categoryName) {
-        return;
-    }
-
-    // Drained to {} after the first write so this save's optimistic task tick fires exactly once, even though it can trigger two API.write calls below.
-    let remainingTaskData = reviewWorkspaceSettingsTaskData;
-
-    if (originalCategoryName && originalCategoryName !== categoryName) {
-        deleteFlagForReviewRule(policyID, originalCategoryName, policyCategories, remainingTaskData);
-        remainingTaskData = {};
-    }
-
-    setPolicyCategoryMaxAmount(
-        policyID,
-        categoryName,
-        form[INPUT_IDS.MAX_EXPENSE_AMOUNT] ?? '',
-        form[INPUT_IDS.EXPENSE_LIMIT_TYPE] ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE,
-        policyCategories,
-        remainingTaskData,
-    );
+function getFlagForReviewDraftKey(policyID: string, ruleID?: string, categoryName?: string): string {
+    const createKey = categoryName ? `${ROUTES.NEW}/${encodeURIComponent(categoryName)}` : ROUTES.NEW;
+    return `${policyID}/${ruleID ?? createKey}`;
 }
 
-function deleteFlagForReviewRule(
-    policyID: string,
-    categoryName: string,
-    policyCategories: PolicyCategories | undefined,
-    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
-) {
-    const category = policyCategories?.[categoryName];
-    const expenseLimitType = category?.expenseLimitType ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE;
+function getDescribedFlagForReviewDraft(policyID: string, {category, maxExpenseAmount, expenseLimitType}: Partial<FlagForReviewRuleForm>): Partial<FlagForReviewRuleForm> {
+    return {category, maxExpenseAmount, expenseLimitType, draftKey: getFlagForReviewDraftKey(policyID)};
+}
 
-    setPolicyCategoryMaxAmount(policyID, categoryName, '', expenseLimitType, policyCategories, reviewWorkspaceSettingsTaskData);
+function buildFlagForReviewRule(form: Partial<FlagForReviewRuleForm>, currency: string, enforcement: FlagRuleEnforcement | undefined): FlagForReviewRule | undefined {
+    const {category, merchantToMatch, matchType, maxExpenseAmount, expenseLimitType} = form;
+    const merchant = merchantToMatch?.trim();
+    const threshold = formatAmountFilterValue(maxExpenseAmount ?? '', currency);
+    const isDaily = expenseLimitType === DAILY;
+    const amount = convertToBackendAmount(Number(maxExpenseAmount));
+    if ((maxExpenseAmount?.trim() && (!Number.isSafeInteger(amount) || Number(maxExpenseAmount) < 0)) || (isDaily && (!category || !!merchant || !(amount > 0)))) {
+        return undefined;
+    }
+
+    const comparisons: RuleFilterComparison[] = [];
+    if (category) {
+        comparisons.push({left: CATEGORY, operator: EQUAL_TO, right: category});
+    }
+    if (merchant) {
+        comparisons.push({left: MERCHANT, operator: matchType ?? CONTAINS, right: merchant});
+    }
+    if (threshold) {
+        comparisons.push({left: isDaily ? DAILY_BUDGET_FILTER : AMOUNT, operator: GREATER_THAN, right: threshold});
+    }
+    const [first, ...remaining] = comparisons;
+    if (!first || (!merchant && !(category && threshold))) {
+        return undefined;
+    }
+
+    return {
+        triggers: toIndexMap([TRIGGERS.CREATE_TRANSACTION, TRIGGERS.UPDATE_TRANSACTION]),
+        filters: remaining.reduce<RuleFilterNode>((left, right) => ({left, operator: AND, right}), first),
+        actions: toIndexMap([{name: ACTIONS.TRIGGER_VIOLATION, ...(enforcement ? {enforcement} : {})}]),
+    };
+}
+
+function getFlagForReviewRulePriority(ruleID: string | undefined, categories: PolicyCategories | undefined): number {
+    // GetRules doesn't include priority, but Auth identifies category mirrors by their migration ID.
+    if (ruleID && Object.values(categories ?? {}).some((category) => String(category.maxExpenseAmountMigrationID) === ruleID)) {
+        return CONST.RULES.FLAG_FOR_REVIEW.MIGRATED_CATEGORY_PRIORITY;
+    }
+    return CONST.RULES.FLAG_FOR_REVIEW.PRIORITY;
+}
+
+function getFlagRuleCategory(policyCategories: PolicyCategories | undefined, categoryName: string | undefined, ruleID: string) {
+    if (!categoryName || !policyCategories) {
+        return undefined;
+    }
+
+    // Migration IDs point at the rule even when two offline renames have changed its category name.
+    const category = Object.hasOwn(policyCategories, categoryName) ? policyCategories[categoryName] : undefined;
+    if (category && !category.pendingFields?.name && category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+        return category;
+    }
+    return Object.values(policyCategories).find((entry) => entry.pendingFields?.name && String(entry.maxExpenseAmountMigrationID) === ruleID) ?? category;
 }
 
 function getFlagForReviewTableData({
-    policy,
+    policyID,
     policyCategories,
-    categoryFlagLimits,
+    flagRules,
     translate,
     convertToDisplayString,
     isOffline,
     onNavigate,
 }: {
-    policy: Policy | undefined;
+    policyID: string;
     policyCategories: PolicyCategories | undefined;
-    categoryFlagLimits: CategoryFlagLimits | undefined;
+    flagRules: FlagForReviewRules | undefined;
     translate: LocaleContextProps['translate'];
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     isOffline: boolean;
     onNavigate: (route: Route) => void;
 }): FlagForReviewTableItem[] {
-    if (!policy?.id || !policyCategories) {
-        return [];
-    }
-
-    const policyID = policy.id;
-    const policyCurrency = policy.outputCurrency ?? CONST.CURRENCY.USD;
     const typeLabel = translate('workspace.rules.flagForReviewTable.typeLabel');
-    const ruleDescription = translate('workspace.rules.flagForReviewTable.flagForReview');
     const rules: FlagForReviewTableItem[] = [];
-
-    for (const [categoryName, category] of Object.entries(policyCategories)) {
-        if (!category?.enabled) {
-            continue;
-        }
-
-        const pendingAction = category.pendingFields?.maxExpenseAmount;
+    for (const [ruleID, {categoryName, merchant, limit, enforcement, pendingAction, hasErrors}] of Object.entries(flagRules ?? {})) {
+        const category = getFlagRuleCategory(policyCategories, categoryName, ruleID);
         const isPendingDelete = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-
-        if (!isOffline && isPendingDelete) {
+        if (category?.enabled === false || (!isOffline && isPendingDelete)) {
             continue;
         }
 
-        const limit = getCategoryFlagLimit(category, categoryFlagLimits, policyCurrency);
-        if (!limit) {
-            continue;
-        }
-
-        const decodedCategoryName = getDecodedCategoryName(categoryName);
-        const amountDisplay = convertToDisplayString(limit.amount, limit.currency);
-        const conditionText =
-            limit.expenseLimitType === CONST.POLICY.EXPENSE_LIMIT_TYPES.DAILY
+        const decodedCategoryName = getDecodedCategoryName(category?.name ?? categoryName ?? '');
+        const amountDisplay = limit ? convertToDisplayString(limit.amount, limit.currency) : '';
+        const categoryAndAmount =
+            limit?.expenseLimitType === DAILY
                 ? translate('workspace.rules.flagForReviewTable.conditionCategoryAndDailyAmount', decodedCategoryName, amountDisplay)
                 : translate('workspace.rules.flagForReviewTable.conditionCategoryAndAmount', decodedCategoryName, amountDisplay);
+        const merchantCondition = merchant
+            ? translate(
+                  merchant.matchType === EQUAL_TO ? 'workspace.rules.expenseDefaultsTable.merchantExactlyMatches' : 'workspace.rules.expenseDefaultsTable.merchantContains',
+                  merchant.name,
+              )
+            : '';
+        const conditionText = [
+            merchantCondition,
+            decodedCategoryName && amountDisplay ? categoryAndAmount : '',
+            decodedCategoryName && !amountDisplay ? translate('workspace.rules.expenseDefaultsTable.categoryIs', decodedCategoryName) : '',
+            !decodedCategoryName && amountDisplay ? translate('workspace.rules.spendRules.maxAmountAbove', {amount: amountDisplay}) : '',
+        ]
+            .filter(Boolean)
+            .join(` ${translate('common.and')} `);
+        const ruleDescription = translate(enforcement === BLOCK ? 'workspace.rules.spendRules.block' : 'workspace.rules.flagForReviewTable.flagForReview');
 
         rules.push({
-            keyForList: categoryName,
-            ruleID: categoryName,
-            categoryName,
+            keyForList: ruleID,
+            ruleID,
             typeLabel,
             conditionText,
             ruleDescription,
-            searchTokens: [decodedCategoryName, conditionText, ruleDescription, typeLabel],
+            searchTokens: [conditionText, ruleDescription, typeLabel],
             pendingAction,
             disabled: isPendingDelete,
-            action: () => onNavigate(getFlagForReviewRuleNavigationRoute(policyID, categoryName)),
+            isSelectionDisabled: !!pendingAction && !hasErrors,
+            action: () => onNavigate(ROUTES.RULES_FLAG_FOR_REVIEW_RULE_EDIT.getRoute(policyID, ruleID)),
         });
     }
-
     return rules;
 }
 
 export {
-    deleteFlagForReviewRule,
+    buildFlagForReviewRule,
+    canMatchFlagRuleCategory,
     getCategoryFlagLimit,
-    getFlagForReviewFormFromLimit,
+    getDescribedFlagForReviewDraft,
+    getFlagForReviewConditions,
+    getFlagForReviewDraft,
+    getFlagForReviewDraftKey,
     getFlagForReviewRuleAmountError,
+    getFlagForReviewRulePriority,
     getFlagForReviewTableData,
+    getFlagRuleCategory,
     hasExplicitFlagAmount,
-    hasFlagForReviewRuleForLegacyWrite,
+    isFlagMerchantMatchType,
     qualifyCategoryFlagRulePath,
-    saveFlagForReviewRule,
 };
-export type {FlagForReviewTableItem};
+export type {CategoryFlagLimits, FlagForReviewConditions, FlagForReviewTableItem};
