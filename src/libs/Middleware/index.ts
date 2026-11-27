@@ -18,6 +18,7 @@ import RecordFullReconnectTime from './RecordFullReconnectTime';
 import ReplaceOptimisticAgentAccountID from './ReplaceOptimisticAgentAccountID';
 import SaveResponseInOnyx from './SaveResponseInOnyx';
 import SentryServerTiming from './SentryServerTiming';
+import StampInsightsResponse from './StampInsightsResponse';
 import SupportalPermission from './SupportalPermission';
 
 export {
@@ -33,6 +34,7 @@ export {
     ReconcileBulkEditReportAction,
     FailureTracking,
     FlagSearchTransactionWrites,
+    StampInsightsResponse,
     SaveResponseInOnyx,
     Pagination,
     handleDeletedAccount,

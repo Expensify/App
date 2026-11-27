@@ -21,6 +21,7 @@ import {
     ReplaceOptimisticAgentAccountID,
     SaveResponseInOnyx,
     SentryServerTiming,
+    StampInsightsResponse,
     SupportalPermission,
 } from './index';
 
@@ -96,6 +97,9 @@ function registerMiddlewares() {
 
     // FlagSearchTransactionWrites - Tells Search which transactions a successful user write changed, so it can fetch server-computed values again.
     addMiddleware(FlagSearchTransactionWrites);
+
+    // StampInsightsResponse - Pairs headline summaries with their snapshots before SaveResponseInOnyx.
+    addMiddleware(StampInsightsResponse);
 
     // SaveResponseInOnyx - Merges either the successData or failureData (or finallyData, if included in place of the former two values) into Onyx depending on if the call was successful or not. This must be the last middleware that applies Onyx data
     // (middlewares after it, like FraudMonitoring, must not write Onyx), because the SequentialQueue depends on the result of this middleware to pause the queue (if needed) to bring the app to an up-to-date state.

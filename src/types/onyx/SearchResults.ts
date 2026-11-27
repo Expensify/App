@@ -401,6 +401,9 @@ type SearchResultDataType = PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTIO
 
 /** Model of search results */
 type SearchResults = {
+    /** Identifies the GetInsights response that filled this snapshot, if any. */
+    insightsResponseID?: string;
+
     search: SearchResultsInfo;
     data: SearchResultDataType;
 

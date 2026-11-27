@@ -10,7 +10,6 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {sanitizeCurrencyCode} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 
 import type {InsightsChartStage} from '@pages/Insights/dashboardSpecs';
@@ -44,7 +43,7 @@ type InsightsChartSummaryProps = {
 
 function InsightsChartSummary({summary, stages, currency, shouldShowChange}: InsightsChartSummaryProps) {
     const {translate, numberFormat} = useLocalize();
-    const {convertToDisplayString, getCurrencyDecimals} = useCurrencyListActions();
+    const {convertToDisplayString} = useCurrencyListActions();
     const styles = useThemeStyles();
     const theme = useTheme();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowUpLong', 'ArrowDownLong']);
@@ -67,14 +66,7 @@ function InsightsChartSummary({summary, stages, currency, shouldShowChange}: Ins
             }),
         ];
         if (current.expenseCount > 0) {
-            const currencyCode = sanitizeCurrencyCode(currency);
-            const decimals = getCurrencyDecimals(currencyCode);
-            const averageExpense = numberFormat(current.total / current.expenseCount / 100, {
-                style: 'currency',
-                currency: currencyCode,
-                minimumFractionDigits: decimals,
-                maximumFractionDigits: decimals,
-            });
+            const averageExpense = convertToDisplayString(current.total / current.expenseCount, currency);
             breakdown.push(translate('insightsPage.headline.averageExpense', averageExpense));
         }
     } else if ('violations' in current) {
@@ -156,7 +148,7 @@ function InsightsChartSummary({summary, stages, currency, shouldShowChange}: Ins
                 variant="label"
                 style={styles.textSupporting}
             >
-                {breakdown.join(' • ')}
+                {breakdown.join(` ${CONST.DOT_SEPARATOR} `)}
             </Text>
         </View>
     );

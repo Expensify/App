@@ -35,6 +35,7 @@ type InsightsHeadlineSummary = {
 
 /** Reference to graph data stored in a search snapshot */
 type InsightsGraph = {
+    /** Range totals returned only for a headline graph. */
     headlineSummary?: InsightsHeadlineSummary;
 
     /** Hash of the graph's search snapshot */
@@ -150,6 +151,9 @@ type InsightsFutureExpenses = {
 
 /** What the backend returns for one dashboard and set of filters */
 type InsightsDashboard = {
+    /** Identifies the GetInsights response that also filled the chart snapshots. */
+    insightsResponseID?: string;
+
     /** Snapshots the response filled, keyed by the graph slot each chart's spec declares */
     graphs?: Partial<Record<InsightsGraphKey, InsightsGraph>>;
 

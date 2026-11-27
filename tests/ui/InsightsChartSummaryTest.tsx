@@ -53,14 +53,14 @@ describe('Insights chart summary', () => {
     });
 
     it('shows a localized average and labels the comparison with its direction', async () => {
-        // Given spending fell from $200 to $100 across two expenses
-        const summary = {current: {total: 10000, expenseCount: 2}, previous: {total: 20000, expenseCount: 4}};
+        // Given spending fell from $200 to $100.01, averaging half a cent over $50
+        const summary = {current: {total: 10001, expenseCount: 2}, previous: {total: 20000, expenseCount: 4}};
 
         // When the user compares against the previous period
         renderSummary(summary, true);
         await waitForBatchedUpdatesWithAct();
 
-        // Then the breakdown uses a bullet and the comparison exposes its direction in the accessible label
+        // Then the average follows the app's currency formatting and the comparison exposes its direction
         expect(screen.getByText('2 expenses • $50.00 average')).toBeOnTheScreen();
         expect(screen.getByText('50% vs previous period', {includeHiddenElements: true})).toBeOnTheScreen();
         expect(screen.getByRole('group', {name: 'Down 50% vs previous period'})).toBeOnTheScreen();
