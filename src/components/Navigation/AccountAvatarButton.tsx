@@ -24,6 +24,8 @@ import SCREENS from '@src/SCREENS';
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import React from 'react';
 
+import getTabAccessibilityLabel from './NavigationTabBar/getTabAccessibilityLabel';
+
 /**
  * Avatar of the signed-in user that navigates to the Account tab. Rendered only in the narrow layout, where
  * the Account tab is not part of the navigation tab bar.
@@ -82,7 +84,7 @@ function AccountAvatarButtonContent() {
             <PressableWithoutFeedback
                 onPress={navigateToAccount}
                 role={CONST.ROLE.BUTTON}
-                accessibilityLabel={`${translate('initialSettingsPage.account')}. ${status ? `${translate('common.yourReviewIsRequired')}.` : ''}`}
+                accessibilityLabel={getTabAccessibilityLabel(translate('initialSettingsPage.account'), !!status, translate)}
                 style={[styles.flexRow, styles.touchableButtonImage, styles.ml1]}
                 sentryLabel={CONST.SENTRY_LABEL.TOP_BAR.ACCOUNT_BUTTON}
             >

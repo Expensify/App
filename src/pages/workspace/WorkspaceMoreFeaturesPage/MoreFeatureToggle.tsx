@@ -20,7 +20,7 @@ type MoreFeatureToggleProps = {
     /** Title of the feature (e.g. "Workflows", "Categories"). */
     title: string;
 
-    /** Description rendered below the title; also used as the switch's accessibility label. */
+    /** Description rendered below the title. */
     subtitle: string;
 
     /** Whether the feature is currently enabled. */
@@ -78,7 +78,7 @@ function MoreFeatureToggle({icon, title, subtitle, isActive, pendingAction, onTo
                         title={title}
                         titleStyle={styles.textStrong}
                         subtitle={subtitle}
-                        switchAccessibilityLabel={subtitle}
+                        switchAccessibilityLabel={title}
                         isActive={isActive}
                         pendingAction={pendingAction}
                         onToggle={onToggle}

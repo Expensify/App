@@ -11892,6 +11892,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         selectAllMembers: 'Alle leden selecteren',
         selectAllValues: 'Selecteer alle waarden',
         selectAllRules: 'Selecteer alle regels',
+        chatDetails: (chatName: string) => `Details van ${chatName}`,
     },
     parentReportAction: {
         deletedReport: 'Verwijderd rapport',

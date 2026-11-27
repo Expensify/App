@@ -11901,6 +11901,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         selectAllMembers: 'Selecionar todos os membros',
         selectAllValues: 'Selecionar todos os valores',
         selectAllRules: 'Selecionar todas as regras',
+        chatDetails: (chatName: string) => `Detalhes de ${chatName}`,
     },
     parentReportAction: {
         deletedReport: 'Relatório excluído',
