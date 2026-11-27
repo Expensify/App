@@ -1,6 +1,7 @@
 import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTopInsetHeaderStyle from '@hooks/useTopInsetHeaderStyle';
 
 import type {ReactNode} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -25,10 +26,12 @@ function Header({children, shouldSkipFocusAfterTransition = false, style}: Heade
     const isInLandscapeMode = useIsInLandscapeMode();
     const {contentHeaderHeightStyle} = useContentHeaderHeight();
     const styles = useThemeStyles();
+    const headerStyle = [styles.headerBar, contentHeaderHeightStyle, style];
+    const topInsetHeaderStyle = useTopInsetHeaderStyle(headerStyle);
 
     return (
         <View
-            style={[styles.headerBar, contentHeaderHeightStyle, style]}
+            style={[headerStyle, topInsetHeaderStyle]}
             onTouchStart={isInLandscapeMode ? () => Keyboard.dismiss() : undefined}
         >
             {/* No overflowHidden: it would clip children that render outside the bar, e.g. focus outlines and tooltips */}

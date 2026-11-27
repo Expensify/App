@@ -276,6 +276,7 @@ import type WiseBankAccountFields from './WiseBankAccountFields';
 import type {WiseKYCReviewEmbeddedLink} from './WiseKYCReview';
 import type WiseOnboardingUnsavedPages from './WiseOnboardingUnsavedPages';
 import type WiseQuote from './WiseQuote';
+import type WorkspaceCategoriesSelectedForBulkEdit from './WorkspaceCategoriesSelectedForBulkEdit';
 import type WorkspaceMembersSelectedForBulkEdit from './WorkspaceMembersSelectedForBulkEdit';
 import type WorkspaceMembersSelectedForRoleChange from './WorkspaceMembersSelectedForRoleChange';
 
@@ -315,6 +316,7 @@ export type {
     UnshareBankAccount,
     DismissedReferralBanners,
     Domain,
+    DomainAccountMergeRequest,
     Download,
     ExportDownload,
     BulkAction,
@@ -449,6 +451,7 @@ export type {
     TravelSettings,
     WorkspaceTravelSettings,
     WorkspaceMembersSelectedForBulkEdit,
+    WorkspaceCategoriesSelectedForBulkEdit,
     UserLocation,
     UserMetadata,
     UserWallet,
@@ -569,7 +572,6 @@ export type {
     AppReview,
     AppReviewLastPrompt,
     SamlMetadata,
-    DomainAccountMergeRequest,
     DomainErrors,
     DomainHighlightItems,
     DomainPendingActions,

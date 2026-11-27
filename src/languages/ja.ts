@@ -2710,6 +2710,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 '<muted-text><centered-text>ご不明な点がありましたら、お気軽に<concierge-link>Concierge までお問い合わせください</concierge-link>！</centered-text></muted-text>',
             goToExpensifyClassic: 'Expensify Classic に移動',
         },
+        mergePendingDomainAdmin: {
+            heading: 'ドメイン制限付きメール',
+            description: '<muted-text><centered-text>ドメイン管理者に、アカウント統合リクエストの承認依頼を通知しました。</centered-text></muted-text>',
+            gotIt: '了解しました',
+        },
         mergeFailureSAMLDomainControlDescription: (email: string) =>
             `<muted-text><centered-text><strong>${email.split('@').at(1) ?? ''}</strong> によって管理されているため、<strong>${email}</strong> はマージできません。サポートが必要な場合は、<concierge-link>Concierge までお問い合わせください</concierge-link>。</centered-text></muted-text>`,
         mergeFailureSAMLAccountDescription: (email: string) =>
@@ -7219,11 +7224,13 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 description: `ワークスペースでカテゴリが必須のため、少なくとも1つのカテゴリは有効のままにする必要があります。`,
             },
             visibleTo: '表示対象',
+            editVisibility: '表示設定を編集',
             membersCount: ({count}: {count: number}) => ({
                 one: 'メンバー 1 人',
                 other: `${count}名のメンバー`,
             }),
             visibleToDescription: ({categoryName}: {categoryName: string}) => `経費を申請する際に、どのメンバーが「${categoryName}」カテゴリを使用できるかを選択します。`,
+            bulkVisibleToDescription: '経費を提出するときに、どのメンバーがこれらのカテゴリを使用できるかを選択します。',
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `${categoryName}を無効にできません`,
                 bulkTitle: 'これらのカテゴリーは無効にできません',
