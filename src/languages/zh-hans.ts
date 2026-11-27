@@ -1900,6 +1900,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 one: '1 份报告',
                 other: `${count} 份报告`,
             }),
+            downloadReceipt: '下载收据',
         },
         confirmPayAmount: '支付未冻结的部分，或支付整份报告。',
         confirmPayAllHoldAmount: () => ({

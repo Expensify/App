@@ -2010,6 +2010,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 many: `${count} raportów`,
                 other: `${count} raportu`,
             }),
+            downloadReceipt: 'Pobierz paragon',
         },
         confirmPayAmount: 'Zapłać to, co nie jest wstrzymane, lub zapłać cały raport.',
         confirmPayAllHoldAmount: () => ({

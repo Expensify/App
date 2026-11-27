@@ -1969,6 +1969,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 one: '1 resoconto',
                 other: `${count} resoconti`,
             }),
+            downloadReceipt: 'Scarica ricevuta',
         },
         confirmPayAmount: 'Paga le voci non in sospeso oppure paga l’intero resoconto.',
         confirmPayAllHoldAmount: () => ({

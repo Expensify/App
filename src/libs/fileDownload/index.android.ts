@@ -12,7 +12,16 @@ import RNFS from 'react-native-fs';
 
 import type {FileDownload} from './types';
 
-import {appendTimeToFileName, getFileName, isErrorResponseForFileDownload, rejectWithFileDownloadError, showGeneralErrorAlert, showPermissionErrorAlert, showSuccessAlert} from './FileUtils';
+import {
+    appendTimeToFileName,
+    getFileName,
+    isErrorResponseForFileDownload,
+    readBlobAsBase64,
+    rejectWithFileDownloadError,
+    showGeneralErrorAlert,
+    showPermissionErrorAlert,
+    showSuccessAlert,
+} from './FileUtils';
 import hasGalleryWritePermission from './hasGalleryWritePermission';
 import saveLocalFileToGallery from './saveLocalFileToGallery';
 
@@ -96,13 +105,13 @@ const postDownloadFile = (
             if (isErrorResponseForFileDownload(contentType, fileName)) {
                 return rejectWithFileDownloadError(response);
             }
-            return response.text();
+            return response.blob().then(readBlobAsBase64);
         })
         .then((fileData) => {
             const resolvedFileName = fileName ?? 'Expensify';
             const finalFileName = appendTimestamp ? appendTimeToFileName(resolvedFileName) : resolvedFileName;
             const downloadPath = `${RNFS.DownloadDirectoryPath}/${finalFileName}`;
-            return RNFS.writeFile(downloadPath, fileData, 'utf8').then(() => downloadPath);
+            return RNFS.writeFile(downloadPath, fileData, 'base64').then(() => downloadPath);
         })
         .then((downloadPath) => saveLocalFileToGallery(downloadPath, getFileName(downloadPath)).then(() => downloadPath))
         .then((downloadPath) => {

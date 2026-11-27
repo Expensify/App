@@ -1980,6 +1980,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 one: '1 note de frais',
                 other: `${count} notes de frais`,
             }),
+            downloadReceipt: 'Télécharger le reçu',
         },
         confirmPayAmount: 'Payez ce qui n’est pas en attente, ou payez l’intégralité de la note de frais.',
         confirmPayAllHoldAmount: () => ({

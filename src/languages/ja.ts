@@ -1949,6 +1949,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 one: '1 件のレポート',
                 other: `${count} 件のレポート`,
             }),
+            downloadReceipt: '領収書をダウンロード',
         },
         confirmPayAmount: '保留されていない金額のみ支払うか、レポート全額を支払ってください。',
         confirmPayAllHoldAmount: () => ({

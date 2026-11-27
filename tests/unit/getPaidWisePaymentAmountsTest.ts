@@ -1,4 +1,4 @@
-import getPaidWisePaymentAmounts, {getLatestPaidWisePaymentAmounts} from '@components/WisePaymentSummary/utils/getPaidWisePaymentAmounts';
+import getPaidWisePaymentAmounts, {getLatestPaidWisePaymentAmounts, isLatestWiseReceiptAvailable} from '@components/WisePaymentSummary/utils/getPaidWisePaymentAmounts';
 
 import CONST from '@src/CONST';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
@@ -79,6 +79,28 @@ describe('getPaidWisePaymentAmounts', () => {
 
             // Then they show the later payment
             expect(amounts?.rate).toBe(0.75);
+        });
+    });
+
+    describe('isLatestWiseReceiptAvailable', () => {
+        it('follows the flag on the payment that stands', () => {
+            // Given a cancelled payment whose receipt was available and a later payment Wise has not sent yet
+            const cancelledPayment = buildPayAction('1', '2026-11-05 10:00:00.000', {...wisePayment, isWiseReceiptAvailable: true});
+            const laterPayment = buildPayAction('2', '2026-11-06 10:00:00.000', wisePayment);
+            const reportActions: ReportActions = {[cancelledPayment.reportActionID]: cancelledPayment, [laterPayment.reportActionID]: laterPayment};
+
+            // When the payment details check for a receipt
+            // Then there is none, because the cancelled transfer's receipt is not for the payment that stands
+            expect(isLatestWiseReceiptAvailable(reportActions)).toBe(false);
+        });
+
+        it('is available once the backend flags the latest payment', () => {
+            // Given a Wise payment whose transfer has left Wise
+            const payment = buildPayAction('1', '2026-11-05 10:00:00.000', {...wisePayment, isWiseReceiptAvailable: true});
+
+            // When the payment details check for a receipt
+            // Then Download receipt can show
+            expect(isLatestWiseReceiptAvailable({[payment.reportActionID]: payment})).toBe(true);
         });
     });
 });

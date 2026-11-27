@@ -170,11 +170,11 @@ function getDownloadFileName(displayName: string, source: string): string {
 }
 
 /**
- * Whether the response to a file download is an API error instead of the file. The commands that return CSV and ABA
- * files only respond with JSON when they fail.
+ * Whether the response to a file download is an API error instead of the file. The commands that return CSV, ABA and
+ * PDF files only respond with JSON when they fail.
  */
 function isErrorResponseForFileDownload(contentType: string | null, fileName?: string): boolean {
-    return contentType === 'application/json' && ['.csv', '.aba'].some((extension) => fileName?.includes(extension));
+    return contentType === 'application/json' && ['.csv', '.aba', '.pdf'].some((extension) => fileName?.includes(extension));
 }
 
 /**
@@ -183,6 +183,22 @@ function isErrorResponseForFileDownload(contentType: string | null, fileName?: s
 function rejectWithFileDownloadError(response: Response): Promise<never> {
     return response.json().then((error: {jsonCode?: number; message?: string}) => {
         throw new HttpsError({message: error.message ?? '', status: String(error.jsonCode ?? '')});
+    });
+}
+
+/**
+ * Reads a downloaded file as base64, so native code can write it to disk byte for byte. Reading it as text would
+ * corrupt binary files such as PDFs.
+ */
+function readBlobAsBase64(blob: Blob): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+            const dataURL = typeof reader.result === 'string' ? reader.result : '';
+            resolve(dataURL.slice(dataURL.indexOf(',') + 1));
+        };
+        reader.onerror = () => reject(new Error('Failed to read the downloaded file'));
+        reader.readAsDataURL(blob);
     });
 }
 
@@ -1028,6 +1044,7 @@ export {
     showGeneralErrorAlert,
     isErrorResponseForFileDownload,
     rejectWithFileDownloadError,
+    readBlobAsBase64,
     showSuccessAlert,
     showPermissionErrorAlert,
     showCameraPermissionsAlert,

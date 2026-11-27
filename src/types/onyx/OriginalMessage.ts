@@ -116,6 +116,9 @@ type OriginalMessageIOU = {
     /** Wise payment: tax Wise charges on the transfer in some corridors, in cents of `currency` */
     tax?: number;
 
+    /** Wise payment: true once the transfer is `outgoing_payment_sent`, which is when Wise starts to provide its receipt */
+    isWiseReceiptAvailable?: boolean;
+
     /** Only exists when we are sending money */
     IOUDetails?: IOUDetails;
 };

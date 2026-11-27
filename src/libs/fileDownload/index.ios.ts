@@ -18,6 +18,7 @@ import {
     getFileName,
     getFileType,
     isErrorResponseForFileDownload,
+    readBlobAsBase64,
     rejectWithFileDownloadError,
     showGeneralErrorAlert,
     showPermissionErrorAlert,
@@ -69,7 +70,7 @@ const postDownloadFile = (translate: LocalizedTranslate, url: string, fileName?:
             if (isErrorResponseForFileDownload(contentType, fileName)) {
                 return rejectWithFileDownloadError(response);
             }
-            return response.text();
+            return response.blob().then(readBlobAsBase64);
         })
         .then((fileData) => {
             const resolvedFileName = fileName ?? 'Expensify';
@@ -80,7 +81,7 @@ const postDownloadFile = (translate: LocalizedTranslate, url: string, fileName?:
             const localPath = `${expensifyDir}/${finalFileName}`;
             return RNFS.mkdir(expensifyDir).then(() => {
                 return (
-                    RNFS.writeFile(localPath, fileData, 'utf8')
+                    RNFS.writeFile(localPath, fileData, 'base64')
                         // The share sheet lets the user save the file to the Files app. The staged copy is removed afterwards.
                         .then(() => Share.open({url: localPath, failOnCancel: false, saveToFiles: true}))
                         .then(() => RNFS.unlink(localPath))

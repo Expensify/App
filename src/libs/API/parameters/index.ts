@@ -664,6 +664,7 @@ export type {default as QueueExpensifyCardForBillingParams} from './QueueExpensi
 export type {default as GetCorpayOnboardingFieldsParams} from './GetCorpayOnboardingFieldsParams';
 export type {default as GetWiseKYCReviewEmbeddedLinkParams} from './GetWiseKYCReviewEmbeddedLinkParams';
 export type {default as GetWiseQuoteParams} from './GetWiseQuoteParams';
+export type {default as GetWiseTransferReceiptParams} from './GetWiseTransferReceiptParams';
 export type {SaveCorpayOnboardingCompanyDetailsParams} from './SaveCorpayOnboardingCompanyDetailsParams';
 export type {default as AcceptSpotnanaTermsParams} from './AcceptSpotnanaTermsParams';
 export type {default as SaveCorpayOnboardingBeneficialOwnerParams} from './SaveCorpayOnboardingBeneficialOwnerParams';

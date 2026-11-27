@@ -1972,6 +1972,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 one: '1 Bericht',
                 other: `${count} Berichte`,
             }),
+            downloadReceipt: 'Beleg herunterladen',
         },
         confirmPayAmount: 'Bezahle, was nicht zurückgestellt ist, oder bezahle den gesamten Bericht.',
         confirmPayAllHoldAmount: () => ({
