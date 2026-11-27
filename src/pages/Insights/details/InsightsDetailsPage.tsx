@@ -17,6 +17,7 @@ import {setInsightsBiggestChangesGroupBy} from '@libs/actions/Insights';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {InsightsDetailsParamList} from '@libs/Navigation/types';
 import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
+import {isValidDate} from '@libs/ValidationUtils';
 
 import type {InsightsDetailsSection} from '@pages/Insights/dashboardSpecs';
 import INSIGHTS_DASHBOARD_SPECS, {getChartSpec, getPoliciesInScope} from '@pages/Insights/dashboardSpecs';
@@ -44,6 +45,7 @@ import {View} from 'react-native';
 import buildInsightsDetailsQuery from './buildInsightsDetailsQuery';
 import getBiggestChangesGroupByOptions from './getBiggestChangesGroupByOptions';
 import getInsightsAverageComparison, {INSIGHTS_AVERAGE_COMPARISON} from './getInsightsAverageComparison';
+import getInsightsDetailsPeriod from './getInsightsDetailsPeriod';
 import getInsightsItemColor from './getInsightsItemColor';
 import InsightsBiggestChanges from './InsightsBiggestChanges';
 import {resolveInsightsDetailsItem} from './insightsDetailsItem';
@@ -60,7 +62,7 @@ type InsightsDetailsPageProps = PlatformStackScreenProps<InsightsDetailsParamLis
 function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
     const styles = useThemeStyles();
     const {translate, dateFnsLocale} = useLocalize();
-    const {graphKey, item: itemKey, end: periodEnd, level, parent: parentTagPath, asOf, stage} = route.params;
+    const {graphKey, item: itemKey, start: periodStart, end: periodEnd, level, parent: parentTagPath, asOf, stage} = route.params;
     const tagLevel = level ? Number(level) : undefined;
     const dashboardID = Object.values(CONST.INSIGHTS.DASHBOARD).find((id) => id === route.params.dashboardID && INSIGHTS_DASHBOARD_SPECS[id].hasDetailsPanel);
     const isCompliance = dashboardID === CONST.INSIGHTS.DASHBOARD.COMPLIANCE;
@@ -82,6 +84,9 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
     const [itemColor = VictoryTheme.colors.default] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${chartQueryJSON?.hash}`, {
         selector: (snapshot) => getInsightsItemColor(snapshot?.data, chartSpec?.groupBy, shownView, chartSpec?.limit, itemKey),
     });
+    // An item opened from Biggest changes covers the clicked Spend over time period instead of the whole Date range.
+    const isNarrowedToPeriod = graphKey !== CONST.INSIGHTS.GRAPH.SPEND_OVER_TIME && !!periodStart && !!periodEnd && isValidDate(periodStart) && isValidDate(periodEnd);
+    const requestFilters = isNarrowedToPeriod ? {...filters, date: {from: periodStart, to: periodEnd}} : filters;
     // A period's title depends on the saved Group by, so nothing resolves until the saved filters load
     const item =
         chartSpec && isResolved
@@ -97,7 +102,7 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
                   translate,
               })
             : undefined;
-    const queryJSONThroughToday = chartSpec && isResolved ? buildSearchQueryJSON(applyInsightsFilters(chartSpec, filters, undefined, getInsightsLastDay(asOf))) : undefined;
+    const queryJSONThroughToday = chartSpec && isResolved ? buildSearchQueryJSON(applyInsightsFilters(chartSpec, requestFilters, undefined, getInsightsLastDay(asOf))) : undefined;
     const drillDownQuery = queryJSONThroughToday && item ? buildChartDrillDownQuery(queryJSONThroughToday, item.filterQuery) : undefined;
     const topExpensesQueryJSON = chartSpec && drillDownQuery ? withInsightsSnapshotHash(buildTopExpensesQueryJSON(drillDownQuery), chartSpec.graphKey) : undefined;
     const topExpensesSnapshotHash = topExpensesQueryJSON?.hash;
@@ -113,7 +118,9 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
                   graphKey: chartSpec.graphKey,
                   sections,
                   biggestChangesGroupBy: groupBy,
-                  filters,
+                  filters: requestFilters,
+                  // Keeps the grouping of the Spend over time panel the item came from, which its period doesn't offer on its own
+                  periodGroupBy: isNarrowedToPeriod ? getInsightsDetailsPeriod(filters, CONST.INSIGHTS.GRAPH.SPEND_OVER_TIME) : undefined,
                   itemGroupBy: chartSpec.groupBy,
                   itemKey,
                   periodEnd,
@@ -137,7 +144,7 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
     const recentHistoryQueryJSON =
         chartSpec && detailsQuery && item
             ? scopeInsightsDrillDownQuery(
-                  buildSearchQueryJSON(buildRecentHistoryQueryString(filters, detailsQuery.periodGroupBy, detailsQuery.period.end, item.filterQuery)),
+                  buildSearchQueryJSON(buildRecentHistoryQueryString(requestFilters, detailsQuery.periodGroupBy, detailsQuery.period.end, item.filterQuery)),
                   chartSpec.graphKey,
                   details?.eligiblePolicyIDs,
               )
@@ -230,6 +237,7 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
                                     state={sectionStates.biggestChanges}
                                     currency={filters.groupCurrency}
                                     asOfDate={asOf}
+                                    period={detailsQuery.period}
                                 />
                             )}
                             {!!topExpensesQueryJSON && (!isTopSpenders || !!detailsQuery) && (

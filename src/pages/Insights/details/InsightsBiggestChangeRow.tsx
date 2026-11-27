@@ -2,6 +2,7 @@
 import UserAvatar from '@components/Avatar/UserAvatar';
 import Icon from '@components/Icon';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import type {ChartPeriod} from '@components/Search/comparisonBuckets';
 import Text from '@components/Text';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -38,9 +39,10 @@ type InsightsBiggestChangeRowProps = {
     groupBy: InsightsBiggestChangesGroupBy;
     currency: string;
     asOfDate: string | undefined;
+    period: ChartPeriod;
 };
 
-function InsightsBiggestChangeRow({change, groupBy, currency, asOfDate}: InsightsBiggestChangeRowProps) {
+function InsightsBiggestChangeRow({change, groupBy, currency, asOfDate, period}: InsightsBiggestChangeRowProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -66,7 +68,16 @@ function InsightsBiggestChangeRow({change, groupBy, currency, asOfDate}: Insight
         if (itemKey === undefined) {
             return;
         }
-        Navigation.navigate(ROUTES.INSIGHTS_DETAILS.getRoute({dashboardID: CONST.INSIGHTS.DASHBOARD.SPEND, graphKey: ITEM_GRAPH_KEYS[groupBy], itemKey, asOfDate}));
+        Navigation.navigate(
+            ROUTES.INSIGHTS_DETAILS.getRoute({
+                dashboardID: CONST.INSIGHTS.DASHBOARD.SPEND,
+                graphKey: ITEM_GRAPH_KEYS[groupBy],
+                itemKey,
+                periodStart: period.start,
+                periodEnd: period.end,
+                asOfDate,
+            }),
+        );
     };
 
     return (

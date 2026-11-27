@@ -100,6 +100,28 @@ describe('buildInsightsDetailsQuery', () => {
         expect(JSON.parse(query?.jsonQuery ?? '{}')).not.toHaveProperty('biggestChangesGroupBy');
     });
 
+    it('keeps the period length it is given, for an item opened from another panel', () => {
+        // Given a category opened from Biggest changes for November, whose one-month range would otherwise be split into days
+        const filters = {...FILTERS, date: {from: '2026-11-01', to: '2026-11-30'}};
+
+        // When its request is built with the month grouping of the Spend over time panel it came from
+        const query = buildInsightsDetailsQuery({
+            graphKey: CONST.INSIGHTS.GRAPH.TOP_CATEGORIES,
+            sections: RANKING_SECTIONS,
+            filters,
+            periodGroupBy: CONST.SEARCH.GROUP_BY.MONTH,
+            itemGroupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
+            itemKey: 'Travel',
+            periodEnd: undefined,
+            topExpensesSnapshotHash: TOP_EXPENSES_SNAPSHOT_HASH,
+            lastDay: LAST_DAY,
+        });
+
+        // Then the whole of November is summarized as one month, like the point it was opened from
+        expect(query?.periodGroupBy).toBe(CONST.SEARCH.GROUP_BY.MONTH);
+        expect(query?.period).toEqual({start: '2026-11-01', end: '2026-11-19'});
+    });
+
     it('requests nothing for a graph GetInsightsDetails does not support', () => {
         // Given a Top tags point, whose chart declares no Details sections
         // When the Details panel opens

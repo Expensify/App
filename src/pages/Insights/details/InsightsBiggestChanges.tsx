@@ -1,5 +1,6 @@
 /** Biggest changes section of the Details panel, listing the items whose spend in the period moved furthest from their own average. */
 import ChartOfflineState from '@components/Search/ChartOfflineState';
+import type {ChartPeriod} from '@components/Search/comparisonBuckets';
 
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -34,9 +35,12 @@ type InsightsBiggestChangesProps = {
 
     /** Last day the dashboard counted expenses through, passed on to the panels the rows open */
     asOfDate: string | undefined;
+
+    /** The Spend over time period the panel summarizes, which the panels the rows open cover too */
+    period: ChartPeriod;
 };
 
-function InsightsBiggestChanges({changes, groupBy, groupByOptions, onGroupByChange, state, currency, asOfDate}: InsightsBiggestChangesProps) {
+function InsightsBiggestChanges({changes, groupBy, groupByOptions, onGroupByChange, state, currency, asOfDate, period}: InsightsBiggestChangesProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const rows = changes?.slice(0, CONST.INSIGHTS.BIGGEST_CHANGES_LIMIT) ?? [];
@@ -67,6 +71,7 @@ function InsightsBiggestChanges({changes, groupBy, groupByOptions, onGroupByChan
                             groupBy={groupBy}
                             currency={currency}
                             asOfDate={asOfDate}
+                            period={period}
                         />
                     </View>
                 ))}

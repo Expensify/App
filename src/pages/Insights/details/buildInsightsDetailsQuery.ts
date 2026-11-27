@@ -47,6 +47,9 @@ type BuildInsightsDetailsQueryParams = {
 
     filters: InsightsFilters;
 
+    /** Length of the summarized period, when it comes from another panel instead of the filters */
+    periodGroupBy?: InsightsTimeGroupBy;
+
     /** What the ranking graph groups by, undefined for Spend over time */
     itemGroupBy: SearchGroupBy | undefined;
 
@@ -95,6 +98,7 @@ function buildInsightsDetailsQuery({
     sections,
     biggestChangesGroupBy,
     filters,
+    periodGroupBy,
     itemGroupBy,
     itemKey,
     periodEnd,
@@ -104,8 +108,8 @@ function buildInsightsDetailsQuery({
     if (!sections?.length) {
         return undefined;
     }
-    const periodGroupBy = getInsightsDetailsPeriod(filters, graphKey);
-    const period = getSummarizedPeriod({graphKey, filters, itemKey, periodEnd, lastDay, periodGroupBy});
+    const summarizedPeriodGroupBy = periodGroupBy ?? getInsightsDetailsPeriod(filters, graphKey);
+    const period = getSummarizedPeriod({graphKey, filters, itemKey, periodEnd, lastDay, periodGroupBy: summarizedPeriodGroupBy});
     // Sent as dates rather than the preset, which the server would count from its own today and could reject the period for falling outside it
     const {start, end} = getInsightsDateRange(filters.date, lastDay);
     const datedFilters = 'preset' in filters.date && start && end ? {...filters, date: {from: start, to: end}} : filters;
@@ -116,7 +120,7 @@ function buildInsightsDetailsQuery({
 
     const item = itemGroupBy ? {groupBy: itemGroupBy, value: itemGroupBy === CONST.SEARCH.GROUP_BY.FROM ? Number(itemKey) : itemKey} : undefined;
     // The sections and the Biggest changes grouping stay out of the hash, so a response for one of them merges into the same panel
-    const hashedFields = {graphKey, filters: filtersQueryJSON.filters, targetCurrency: filters.groupCurrency, groupBy: periodGroupBy, period, item};
+    const hashedFields = {graphKey, filters: filtersQueryJSON.filters, targetCurrency: filters.groupCurrency, groupBy: summarizedPeriodGroupBy, period, item};
     const hash = hashText(JSON.stringify(hashedFields), 2 ** 32);
 
     return {
@@ -130,7 +134,7 @@ function buildInsightsDetailsQuery({
         hash,
         topExpensesSnapshotHash,
         period,
-        periodGroupBy,
+        periodGroupBy: summarizedPeriodGroupBy,
         isPeriodInProgress: period.end >= lastDay,
     };
 }
