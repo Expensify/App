@@ -564,8 +564,16 @@ function compareByRBR(
     return aHasRBR ? -1 : 1;
 }
 
+function getTransactionPreviewParticipantIDs(report: OnyxEntry<OnyxTypes.Report>, reportPreviewAction: OnyxEntry<OnyxTypes.ReportAction>) {
+    return {
+        managerID: report?.managerID ?? reportPreviewAction?.childManagerAccountID ?? CONST.DEFAULT_NUMBER_ID,
+        ownerAccountID: report?.ownerAccountID ?? reportPreviewAction?.childOwnerAccountID ?? CONST.DEFAULT_NUMBER_ID,
+    };
+}
+
 export {
     getReviewNavigationRoute,
+    getTransactionPreviewParticipantIDs,
     getTransactionPreviewTextAndTranslationPaths,
     createTransactionPreviewConditionals,
     getViolationTranslatePath,

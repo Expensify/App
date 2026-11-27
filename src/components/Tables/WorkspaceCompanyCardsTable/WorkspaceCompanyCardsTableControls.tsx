@@ -60,7 +60,11 @@ function WorkspaceCompanyCardsTableControls({bulkActionOptions, isSelectionModeE
             )}
             {/* The filter bar stays mounted while rows are selected. Unmounting it resets the search string
                 (TableSearchBar clears it on unmount), which would immediately clear the selection that was just made. */}
-            <Table.FilterBar label={translate('workspace.companyCards.findCompanyCard')} />
+            {/* The search takes full card numbers, so it's masked in FullStory. */}
+            <Table.FilterBar
+                label={translate('workspace.companyCards.findCompanyCard')}
+                forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
+            />
         </>
     );
 }
