@@ -7,6 +7,7 @@ import {
     PINNED_LEFT_EDGE_VARIABLE,
     PINNED_LEFT_LEAD_VARIABLE,
     PINNED_LINE_WIDTH_VARIABLE,
+    PINNED_LINE_WRAP_VARIABLE,
     PINNED_SCROLLBAR_HEIGHT_VARIABLE,
     PINNED_START_EDGE_OPACITY_VARIABLE,
     PINNED_START_WIDTH_VARIABLE,
@@ -181,7 +182,9 @@ describe('usePinnedScrollVariables', () => {
         // fits, and both tell the page margin's mask to leave the scrollbar visible
         const regionEnd = HEADINGS_START + DATE_WIDTH + COLUMN_GAP + MERCHANT_WIDTH + COLUMN_GAP;
         expect(readVariable(overflowing.container, PINNED_LINE_WIDTH_VARIABLE)).toBe(`${regionEnd - ROW_EDGE}px`);
+        expect(readVariable(overflowing.container, PINNED_LINE_WRAP_VARIABLE)).toBe('nowrap');
         expect(readVariable(fitting.container, PINNED_LINE_WIDTH_VARIABLE)).toBe('');
+        expect(readVariable(fitting.container, PINNED_LINE_WRAP_VARIABLE)).toBe('');
         expect(readVariable(overflowing.container, PINNED_SCROLLBAR_HEIGHT_VARIABLE)).toBe('12px');
         expect(readVariable(fitting.container, PINNED_SCROLLBAR_HEIGHT_VARIABLE)).toBe('12px');
     });

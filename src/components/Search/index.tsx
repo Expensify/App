@@ -1030,9 +1030,7 @@ function Search({
     const shouldPinColumns = shouldShowColumnMenu && canEditColumns && pinSearchColumn.canPinColumns;
     // Pinning only moves columns the table already shows, so it reorders them at once instead of fading them like a column change.
     const orderedColumns = useStableArrayReference(getPinnedColumnOrder(columnsToShow, shouldPinColumns ? pinSearchColumn.pinnedColumns : NO_PINNED_COLUMNS));
-    // Report rows don't hold pinned cells in place, so on Reports a pinned column only moves to the table's start.
-    const canHoldPinnedColumns = shouldPinColumns && !isExpenseReportType;
-    const leftPinnedColumns = useStableArrayReference(canHoldPinnedColumns ? pinSearchColumn.pinnedColumns.left.filter((column) => columnsToShow.includes(column)) : NO_PINNED_COLUMNS.left);
+    const leftPinnedColumns = useStableArrayReference(shouldPinColumns ? pinSearchColumn.pinnedColumns.left.filter((column) => columnsToShow.includes(column)) : NO_PINNED_COLUMNS.left);
 
     // If columns have changed, trigger an animation before settings columnsToShow to prevent
     // new columns appearing before the fade out animation happens

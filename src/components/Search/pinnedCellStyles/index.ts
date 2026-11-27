@@ -3,9 +3,9 @@ import {toDimensionValue, toViewStyle} from '@libs/WebOnlyStyleUtils';
 
 import variables from '@styles/variables';
 
-import type {ViewStyle} from 'react-native';
+import type {TextStyle, ViewStyle} from 'react-native';
 
-import {getPinnedLeftVariable, PINNED_LEFT_LEAD_VARIABLE, PINNED_LINE_WIDTH_VARIABLE} from './pinnedScrollVariables';
+import {getPinnedLeftVariable, PINNED_LEFT_LEAD_VARIABLE, PINNED_LINE_WIDTH_VARIABLE, PINNED_LINE_WRAP_VARIABLE} from './pinnedScrollVariables';
 
 /** Above the row's cover, which sits above the cells scrolling beneath it. */
 const PINNED_CELL_Z_INDEX = 2;
@@ -42,8 +42,17 @@ function getPinnedStartLineStyle(rowPaddingHorizontal: number): ViewStyle {
     };
 }
 
+/** Keeps the line's text on one line only while it's cut at the divider. */
+const PINNED_START_LINE_TEXT_STYLE: TextStyle = {
+    // Falls back to react-native-web's own `pre-wrap`, so a table that fits wraps the text as before.
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- a `var()` resolves to a white-space keyword the native types can't see
+    whiteSpace: `var(${PINNED_LINE_WRAP_VARIABLE}, pre-wrap)` as TextStyle['whiteSpace'],
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+};
+
 // RN-web gives every View `z-index: 0`, a stacking context that would trap the pinned cells below their row's cover.
 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- `auto` is a valid CSS z-index the native types don't model.
 const PINNED_CELL_CONTAINER_STYLE = {zIndex: 'auto'} as unknown as ViewStyle;
 
-export {PINNED_LEAD_STYLE, PINNED_CELL_CONTAINER_STYLE, getPinnedColumnStyle, getPinnedInset, getPinnedStartLineStyle};
+export {PINNED_LEAD_STYLE, PINNED_START_LINE_TEXT_STYLE, PINNED_CELL_CONTAINER_STYLE, getPinnedColumnStyle, getPinnedInset, getPinnedStartLineStyle};

@@ -17,6 +17,9 @@ const PINNED_START_WIDTH_VARIABLE = '--table-pinned-start-width';
 /** The pinned region's width, written only while the table overflows. A row's error line is cut to it. */
 const PINNED_LINE_WIDTH_VARIABLE = '--table-pinned-line-width';
 
+/** `nowrap` alongside the line width, so the text truncates instead of wrapping under the pins. */
+const PINNED_LINE_WRAP_VARIABLE = '--table-pinned-line-wrap';
+
 /** Height of the horizontal scrollbar, in px, which the mask leaves uncovered. */
 const PINNED_SCROLLBAR_HEIGHT_VARIABLE = '--table-scrollbar-height';
 
@@ -45,6 +48,7 @@ export {
     getPinnedLeftVariable,
     PINNED_START_WIDTH_VARIABLE,
     PINNED_LINE_WIDTH_VARIABLE,
+    PINNED_LINE_WRAP_VARIABLE,
     PINNED_SCROLLBAR_HEIGHT_VARIABLE,
     PINNED_START_EDGE_OPACITY_VARIABLE,
     PINNED_GUTTER_MASK_VISIBILITY_VARIABLE,

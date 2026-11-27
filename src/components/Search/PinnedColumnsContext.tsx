@@ -1,14 +1,14 @@
 /** Which Spend columns are pinned left, and the sticky styles their cells get. */
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 
 import React, {createContext, useContext} from 'react';
 import {View} from 'react-native';
 
 import type {SearchColumnType} from './types';
 
-import {getPinnedColumnStyle, getPinnedStartLineStyle, PINNED_CELL_CONTAINER_STYLE, PINNED_LEAD_STYLE} from './pinnedCellStyles';
+import {getPinnedColumnStyle, getPinnedStartLineStyle, PINNED_CELL_CONTAINER_STYLE, PINNED_LEAD_STYLE, PINNED_START_LINE_TEXT_STYLE} from './pinnedCellStyles';
 import {PINNED_HEADING_DATA_SET} from './pinnedCellStyles/pinnedScrollVariables';
 import {useIsListScrollingBothAxes} from './primitives/ListScrollAxesContext';
 
@@ -45,6 +45,8 @@ type PinnedColumnStyles = {
 
     leadingLineStyle: ViewStyle | undefined;
 
+    leadingLineTextStyle: TextStyle | undefined;
+
     /** For every view between a row and its cells, so pinned cells can stack above the row's cover. */
     cellContainerStyle: ViewStyle | undefined;
 };
@@ -67,6 +69,7 @@ function usePinnedColumnStyles(): PinnedColumnStyles {
         leadingStyle: shouldHoldPins ? PINNED_LEAD_STYLE : undefined,
         // Spend rows are padded by `ph3`, which the covers reach across.
         leadingLineStyle: shouldHoldPins ? getPinnedStartLineStyle(styles.ph3.paddingHorizontal) : undefined,
+        leadingLineTextStyle: shouldHoldPins ? PINNED_START_LINE_TEXT_STYLE : undefined,
         cellContainerStyle: shouldHoldPins ? PINNED_CELL_CONTAINER_STYLE : undefined,
     };
 }
