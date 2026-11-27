@@ -2083,7 +2083,6 @@
 "../../tests/unit/hooks/useFeedKeysWithAssignedCards.test.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	5
 "../../tests/unit/hooks/useFilesValidation.test.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	4
 "../../tests/unit/hooks/useFilterPendingDeleteReports.test.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	9
-"../../tests/unit/hooks/useFormErrorManagement.test.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/unit/hooks/useHoldRejectActionsTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/unit/hooks/useHydrateReportsFromSnapshot.test.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	6
 "../../tests/unit/hooks/useInsightsFilters.test.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
