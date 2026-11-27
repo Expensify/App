@@ -17,6 +17,7 @@ import type * as PlaybackContextModule from '@components/VideoPlayerContexts/Pla
 import type * as WideRHPContextProviderModule from '@components/WideRHPContextProvider';
 
 import {IsInPreloadedTabContext} from '@hooks/useIsInPreloadedTab';
+import {PreloadedTabContentReadyContext} from '@hooks/useMarkPreloadedTabContentReady';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
@@ -202,11 +203,17 @@ function renderedRowKeys() {
 }
 
 const mockIsFocused = jest.fn(() => true);
-jest.mock('@react-navigation/native', () => ({
-    ...jest.requireActual<typeof reactNavigationNativeImport>('@react-navigation/native'),
-    useNavigationState: () => {},
-    useIsFocused: () => mockIsFocused(),
-}));
+// The test navigator always focuses its screen, so tests of a hidden page turn focus effects off here.
+const mockShouldRunFocusEffects = jest.fn(() => true);
+jest.mock('@react-navigation/native', () => {
+    const actualNavigation = jest.requireActual<typeof reactNavigationNativeImport>('@react-navigation/native');
+    return {
+        ...actualNavigation,
+        useNavigationState: () => {},
+        useIsFocused: () => mockIsFocused(),
+        useFocusEffect: (effect: Parameters<typeof actualNavigation.useFocusEffect>[0]) => actualNavigation.useFocusEffect(mockShouldRunFocusEffects() ? effect : () => {}),
+    };
+});
 
 type TestNavigationContainerProps = {initialState: reactNavigationNativeImport.InitialState};
 
@@ -317,31 +324,33 @@ function TestNavigationContainer({initialState}: TestNavigationContainerProps) {
     );
 }
 
-function getSearchPage(query = SearchQueryUtils.buildSearchQueryString(failedQueryJSON), isInPreloadedTab = false) {
+function getSearchPage(query = SearchQueryUtils.buildSearchQueryString(failedQueryJSON), isInPreloadedTab = false, markPreloadedContentReady = () => {}) {
     return (
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, PlaybackContextProvider, FullScreenBlockingViewContextProvider]}>
             <PortalProvider>
                 <SearchContextProvider>
                     <IsInPreloadedTabContext.Provider value={isInPreloadedTab}>
-                        <TestNavigationContainer
-                            initialState={{
-                                index: 0,
-                                routes: [
-                                    {
-                                        name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
-                                        state: {
-                                            index: 0,
-                                            routes: [
-                                                {
-                                                    name: SCREENS.SEARCH.ROOT,
-                                                    params: {q: query},
-                                                },
-                                            ],
+                        <PreloadedTabContentReadyContext.Provider value={markPreloadedContentReady}>
+                            <TestNavigationContainer
+                                initialState={{
+                                    index: 0,
+                                    routes: [
+                                        {
+                                            name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
+                                            state: {
+                                                index: 0,
+                                                routes: [
+                                                    {
+                                                        name: SCREENS.SEARCH.ROOT,
+                                                        params: {q: query},
+                                                    },
+                                                ],
+                                            },
                                         },
-                                    },
-                                ],
-                            }}
-                        />
+                                    ],
+                                }}
+                            />
+                        </PreloadedTabContentReadyContext.Provider>
                     </IsInPreloadedTabContext.Provider>
                 </SearchContextProvider>
             </PortalProvider>
@@ -349,7 +358,8 @@ function getSearchPage(query = SearchQueryUtils.buildSearchQueryString(failedQue
     );
 }
 
-const renderPage = (query = SearchQueryUtils.buildSearchQueryString(failedQueryJSON), isInPreloadedTab = false) => render(getSearchPage(query, isInPreloadedTab));
+const renderPage = (query = SearchQueryUtils.buildSearchQueryString(failedQueryJSON), isInPreloadedTab = false, markPreloadedContentReady = () => {}) =>
+    render(getSearchPage(query, isInPreloadedTab, markPreloadedContentReady));
 
 describe('SearchPageNarrow', () => {
     beforeAll(() => {
@@ -378,6 +388,7 @@ describe('SearchPageNarrow', () => {
         mockSearchQueryParam.mockReturnValue(FAILED_QUERY);
         mockIsFocused.mockReturnValue(true);
         mockIsNavigationFocused.mockReturnValue(true);
+        mockShouldRunFocusEffects.mockReturnValue(true);
         listProps.onEndReached = undefined;
         listProps.onViewableItemsChanged = undefined;
         listProps.onSelectRow = undefined;
@@ -706,6 +717,84 @@ describe('SearchPageNarrow', () => {
 
         // Then the page keeps its loading skeleton instead of mounting Search with no results to show
         expect(renderedPage.UNSAFE_getByType(SearchLoadingSkeleton)).toBeTruthy();
+    });
+
+    it.each([
+        ['builds the list while hidden when the idle preload marked its tab', true, true, true],
+        ['keeps the placeholder list while hidden when its tab was not preloaded', false, true, false],
+        ['keeps the still placeholder while hidden when a preloaded tab has no cached results', true, false, false],
+    ])('%s', async (_description, isInPreloadedTab, hasCachedResults, shouldMountList) => {
+        // Given a page mounted unfocused, as the native tab bar mounts Spend at startup, with or without cached Spend results
+        mockSearchQueryParam.mockReturnValue(EXPENSE_QUERY);
+        mockIsFocused.mockReturnValue(false);
+        mockIsNavigationFocused.mockReturnValue(false);
+        mockShouldRunFocusEffects.mockReturnValue(false);
+        if (hasCachedResults) {
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${expenseQueryJSON?.hash}`, getExpenseSnapshot(false));
+            });
+        }
+
+        // When the page renders while its tab stays hidden
+        const renderedPage = renderPage(EXPENSE_QUERY, isInPreloadedTab);
+        const renderedPageHasLoadingSkeleton = () => renderedPage.UNSAFE_queryAllByType(SearchLoadingSkeleton).length > 0;
+        await act(async () => {
+            jest.runAllTimers();
+        });
+
+        // Then only a preloaded tab with cached rows mounts the full list, so its first tap reveals rows instead of building them
+        expect(!!listProps.onEndReached).toBe(shouldMountList);
+
+        // And a hidden page never swaps its still placeholder for the animated loading skeleton
+        expect(renderedPageHasLoadingSkeleton()).toBe(false);
+
+        // And the hidden page sends no request, as the preloaded tab requests fresh results when it is first opened
+        expect(mockSearch).not.toHaveBeenCalled();
+    });
+
+    it('counts the still placeholder as the first content of a preloaded tab with no cached results', async () => {
+        // Given a page mounted unfocused in a tab the idle preload marked, with no cached Spend results to build a list from
+        mockSearchQueryParam.mockReturnValue(EXPENSE_QUERY);
+        mockIsFocused.mockReturnValue(false);
+        mockIsNavigationFocused.mockReturnValue(false);
+        mockShouldRunFocusEffects.mockReturnValue(false);
+        const markPreloadedContentReady = jest.fn();
+
+        // When the page renders while its tab stays hidden
+        renderPage(EXPENSE_QUERY, true, markPreloadedContentReady);
+        await act(async () => {
+            jest.runAllTimers();
+        });
+
+        // Then the tab is told its first content is on screen, so it can start holding the hidden page
+        expect(markPreloadedContentReady).toHaveBeenCalled();
+    });
+
+    it.each([
+        ['does not build the list of the previous query while the saved query is on its way', true],
+        ['does not count the placeholder of the previous query as first content while the saved query is on its way', false],
+    ])('%s', async (_description, hasCachedPreviousResults) => {
+        // Given the saved Spend query on the hidden page's route, while the search contexts still have the previous one
+        mockSearchQueryParam.mockReturnValue(EXPENSE_QUERY);
+        mockIsFocused.mockReturnValue(false);
+        mockIsNavigationFocused.mockReturnValue(false);
+        mockShouldRunFocusEffects.mockReturnValue(false);
+        if (hasCachedPreviousResults) {
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${expenseQueryJSON?.hash}`, getExpenseSnapshot(false));
+            });
+        }
+        const markPreloadedContentReady = jest.fn();
+
+        // When the page renders before the search contexts catch up
+        renderPage('type:expense status:drafts', true, markPreloadedContentReady);
+        await act(async () => {
+            jest.runAllTimers();
+        });
+
+        // Then it waits for the saved query instead of building or reporting content for the previous one
+        expect(!!listProps.onEndReached).toBe(false);
+        expect(markPreloadedContentReady).not.toHaveBeenCalled();
     });
 
     it('does not repeat the first page the page-level setup already requested', async () => {

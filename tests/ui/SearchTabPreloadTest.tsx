@@ -3,6 +3,7 @@ import {render} from '@testing-library/react-native';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import getPlatform from '@libs/getPlatform';
 import SearchTabPreload from '@libs/Navigation/AppNavigator/SearchTabPreload';
+import type * as GetSearchTabPreloadTargetModule from '@libs/Navigation/helpers/getSearchTabPreloadTarget';
 import {clearIdlePreloadedSearchTabRouteKey, isIdlePreloadedSearchTabRoute} from '@libs/Navigation/helpers/searchTabPreloadStore';
 import {Scheduler} from '@libs/Scheduler';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
@@ -43,6 +44,17 @@ jest.mock('@libs/getPlatform', () => ({
     __esModule: true,
     default: jest.fn(() => 'web'),
 }));
+
+// Jest resolves the native file first, so each test picks the desktop browser or the native preload target here.
+let mockIsNativePreloadTarget = false;
+jest.mock('@libs/Navigation/helpers/getSearchTabPreloadTarget', () => {
+    const getWebTarget = jest.requireActual<typeof GetSearchTabPreloadTargetModule>('@libs/Navigation/helpers/getSearchTabPreloadTarget/index.ts').default;
+    const getNativeTarget = jest.requireActual<typeof GetSearchTabPreloadTargetModule>('@libs/Navigation/helpers/getSearchTabPreloadTarget/index.native.ts').default;
+    return {
+        __esModule: true,
+        default: (...args: Parameters<typeof getWebTarget>) => (mockIsNativePreloadTarget ? getNativeTarget(...args) : getWebTarget(...args)),
+    };
+});
 
 jest.mock('@libs/telemetry/activeSpans', () => ({
     startSpan: jest.fn(),
@@ -178,14 +190,38 @@ describe('SearchTabPreload', () => {
         expectNoSpendPreload();
     });
 
-    it.each([CONST.PLATFORM.IOS, CONST.PLATFORM.ANDROID, CONST.PLATFORM.MOBILE_WEB])('does not preload the Spend tab on %s', async (platform) => {
-        // Given the app runs outside a desktop browser, where the native tab bar already mounts every tab and the cost on a phone CPU is unmeasured
-        jest.mocked(getPlatform).mockReturnValue(platform);
+    it('does not preload the Spend tab in a mobile browser', async () => {
+        // Given the app runs in a mobile browser, where the cost of building the tab on a phone CPU is unmeasured
+        jest.mocked(getPlatform).mockReturnValue(CONST.PLATFORM.MOBILE_WEB);
 
         // When the app goes idle on Home
         await renderAtIdle();
 
         // Then the Spend tab is not preloaded
         expectNoSpendPreload();
+    });
+
+    describe('on native', () => {
+        beforeEach(() => {
+            mockIsNativePreloadTarget = true;
+            jest.mocked(getIsNarrowLayout).mockReturnValue(true);
+        });
+
+        afterEach(() => {
+            mockIsNativePreloadTarget = false;
+        });
+
+        it.each([
+            ['preloads a Spend tab that the native tab bar mounted but never showed', [], true],
+            ['does not preload the Spend tab again while the first preload still marks it', ['search-1'], false],
+        ])('%s', async (_description, preloadedRouteKeys, shouldPreload) => {
+            // Given the app finished loading on Home in a narrow layout, with the Spend tab marked or not by an earlier preload
+            // When the app goes idle
+            await renderAtIdle(undefined, preloadedRouteKeys);
+
+            // Then only a Spend tab without a mark gets the preload and its span
+            expect(mockNavigationDispatch.mock.calls.length > 0).toBe(shouldPreload);
+            expect(jest.mocked(startSpan).mock.calls.length > 0).toBe(shouldPreload);
+        });
     });
 });

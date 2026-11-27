@@ -5,7 +5,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import type {NavigationState, PartialState, TabNavigationState} from '@react-navigation/native';
 
 // Partial because a linking-derived root state can still hold a tab route without a key, index or preload list.
-type RootTabState = Partial<Pick<TabNavigationState<TabNavigatorParamList>, 'key' | 'index' | 'preloadedRouteKeys'>> & {
+type RootTabState = Partial<Pick<TabNavigationState<TabNavigatorParamList>, 'key' | 'index' | 'preloadedRouteKeys' | 'history'>> & {
     routes: Array<{name: string; key?: string; state?: NavigationState}>;
 };
 
@@ -96,3 +96,4 @@ export {
     isTabPreloaded,
     isTabRoutePreloaded,
 };
+export type {RootNavigationState};

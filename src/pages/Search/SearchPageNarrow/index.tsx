@@ -22,9 +22,11 @@ import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useEndSubmitNavigationSpans from '@hooks/useEndSubmitNavigationSpans';
 import {useLoadingBarVisibility} from '@hooks/useInFlightRequests';
+import useIsInPreloadedTab from '@hooks/useIsInPreloadedTab';
 import useIsMobileWebLandscape from '@hooks/useIsMobileWebLandscape';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useLocalize from '@hooks/useLocalize';
+import useMarkPreloadedTabContentReady from '@hooks/useMarkPreloadedTabContentReady';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
@@ -37,6 +39,8 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {isSearchDataLoaded, isSearchPending} from '@libs/SearchUIUtils';
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
@@ -48,6 +52,7 @@ import {search} from '@userActions/Search';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import type {SearchResults} from '@src/types/onyx';
 
 import type {ComponentRef} from 'react';
@@ -127,7 +132,7 @@ function SearchPageNarrow({
     // Controls the visibility of the educational tooltip based on user scrolling.
     // Hides the tooltip when the user is scrolling and displays it once scrolling stops.
     const triggerScrollEvent = useScrollEventEmitter();
-    const route = useRoute();
+    const route = useRoute<PlatformStackRouteProp<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.ROOT>>();
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
     const receiptDropTargetRef = useRef<ComponentRef<typeof View>>(null);
 
@@ -251,6 +256,25 @@ function SearchPageNarrow({
             });
         }, [isHeaderInteractive, isInteractive, startTransition]),
     );
+
+    // A preloaded Spend tab builds its list from cached results while hidden; without them the placeholder counts as the
+    // tab's first content. The search contexts get the saved query a render after the route, so it waits for them to match.
+    const isInPreloadedTab = useIsInPreloadedTab();
+    const markPreloadedTabContentReady = useMarkPreloadedTabContentReady();
+    const hasRouteQuery = queryJSON?.inputQuery === route.params.q;
+    useEffect(() => {
+        if (!isInPreloadedTab || isInteractive || !hasRouteQuery) {
+            return;
+        }
+        if (shouldShowLoadingSkeleton) {
+            markPreloadedTabContentReady();
+            return;
+        }
+        startTransition(() => {
+            setIsHeaderInteractive(true);
+            setIsInteractive(true);
+        });
+    }, [isInPreloadedTab, isInteractive, hasRouteQuery, shouldShowLoadingSkeleton, markPreloadedTabContentReady, startTransition]);
 
     // contentQueryJSON falls back to queryJSON upstream, so the two are always absent together.
     if (!queryJSON || !contentQueryJSON) {
