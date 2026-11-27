@@ -34,6 +34,7 @@ import {
 import {setWorkspaceInviteMessageDraft} from '@libs/actions/Policy/Policy';
 import {callIfAuthenticated} from '@libs/actions/Session';
 import {saveFastEditApprovalWorkflow} from '@libs/actions/Workflow';
+import {getEnabledCategoriesCount} from '@libs/CategoryUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAssignableOfficeLocations, getMemberOfficeLocation} from '@libs/OfficeLocationUtils';
@@ -138,11 +139,20 @@ function WorkspaceInviteMessageComponent({
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const [categoryVisibilityDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_CATEGORY_VISIBILITY_DRAFT}${policyID}`);
     const shouldShowCategoryVisibilityRow = canSetInvitedMembersCategoryVisibility(policy);
+    // With no enabled category there's nothing to limit the new members to, so the row stays empty like on a member's
+    // details page, and the invite ignores an earlier choice instead of waiting for a category the admin can't pick.
+    const hasEnabledCategories = getEnabledCategoriesCount(policyCategories) > 0;
     // Another admin can disable, rename or delete a chosen category while this page is open, and the invite can only
     // limit the new members to enabled categories, so the row and the invite count only those.
-    const categoryVisibilityDraftNames = categoryVisibilityDraft?.filter((categoryName) => !!policyCategories?.[categoryName]?.enabled);
+    const categoryVisibilityDraftNames = hasEnabledCategories ? categoryVisibilityDraft?.filter((categoryName) => !!policyCategories?.[categoryName]?.enabled) : undefined;
     // A member needs at least one category, so once every chosen category is gone the row asks the admin to pick again
     const hasNoChosenCategoryLeft = categoryVisibilityDraftNames?.length === 0;
+    let categoryVisibilityValue = '';
+    if (categoryVisibilityDraftNames) {
+        categoryVisibilityValue = translate('workspace.people.categoriesCount', {count: categoryVisibilityDraftNames.length});
+    } else if (hasEnabledCategories) {
+        categoryVisibilityValue = translate('workspace.people.allCategories');
+    }
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const workspaceInviteApproverDraft = approverDraft ?? defaultApprover;
     const approverDetails = usePersonalDetailByLogin(workspaceInviteApproverDraft);
@@ -453,11 +463,7 @@ function WorkspaceInviteMessageComponent({
                                 >
                                     <MenuItemField.Row
                                         name={translate('workspace.people.categoryVisibility')}
-                                        value={
-                                            categoryVisibilityDraftNames
-                                                ? translate('workspace.people.categoriesCount', {count: categoryVisibilityDraftNames.length})
-                                                : translate('workspace.people.allCategories')
-                                        }
+                                        value={categoryVisibilityValue}
                                     >
                                         {hasNoChosenCategoryLeft && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
                                         <MenuItem.Chevron />
