@@ -4333,8 +4333,7 @@ const translations = {
         mergeBlockScreen: {
             title: 'Couldn’t add work email',
             subtitle: (workEmail: string | undefined) => `We couldn’t add ${workEmail}. Please try again later in Settings or chat with Concierge for guidance.`,
-            validatedPublicDomainSubtitle: (workEmail: string | undefined) =>
-                `We couldn’t add ${workEmail}. To merge these accounts, please log in as ${workEmail} and go to Account > Security > Merge Accounts to complete the process.`,
+            validatedPublicDomainSubtitle: (workEmail: string | undefined) => `Sign in with ${workEmail} and merge this account from Account > Security > Merge accounts.`,
             workAccountClosedSubtitle: 'The work account associated with this email is closed. Please contact your company admin to reactivate it, or sign up with a different email.',
             domainControlledSubtitle: (workEmail: string | undefined) => `${workEmail} is a domain controlled login for an existing Expensify account.`,
         },

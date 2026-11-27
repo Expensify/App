@@ -1,6 +1,6 @@
 import {act} from '@testing-library/react-native';
 
-import {addWorkEmail} from '@libs/actions/Session';
+import {addWorkEmail, MergeIntoAccountAndLogin} from '@libs/actions/Session';
 import HttpUtils from '@libs/HttpUtils';
 
 import CONST from '@src/CONST';
@@ -51,11 +51,27 @@ describe('AddWorkEmail', () => {
     });
 
     describe('when onboarding submits the form', () => {
-        it('blocks the merge on a generic failure', async () => {
+        it('shows merge guidance for an existing account without a Concierge task', async () => {
+            // Given regular onboarding with no task report
+            // When the work email belongs to an existing account
             await mockAddWorkEmailResponse(forbiddenResponse);
 
+            // Then the blocked screen explains how to merge and stops loading
+            expect(await getOnyxValue(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY)).toBe('onboarding.mergeBlockScreen.validatedPublicDomainSubtitle');
             expect((await getOnyxValue(ONYXKEYS.NVP_ONBOARDING))?.isMergingAccountBlocked).toBe(true);
             expect((await getOnyxValue(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM))?.isLoading).toBe(false);
+        });
+
+        it('keeps the generic fallback for an unknown error', async () => {
+            // Given a previous specific error that must not survive a retry
+            await Onyx.set(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, 'onboarding.workEmail2FAError');
+
+            // When the server rejects the addition for an unknown reason
+            await mockAddWorkEmailResponse({jsonCode: CONST.JSON_CODE.EXP_ERROR, message: 'Unknown error'});
+
+            // Then the blocked screen uses the generic fallback rather than merge instructions
+            expect(await getOnyxValue(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY)).toBeFalsy();
+            expect((await getOnyxValue(ONYXKEYS.NVP_ONBOARDING))?.isMergingAccountBlocked).toBe(true);
         });
 
         it('surfaces the specific reason on the onboarding error key', async () => {
@@ -90,5 +106,27 @@ describe('AddWorkEmail', () => {
 
             HttpUtils.xhr = originalXhr;
         });
+    });
+
+    it.each([
+        {message: 'Merge blocked', expectedKey: 'onboarding.mergeBlockScreen.validatedPublicDomainSubtitle', isBlocked: true},
+        {message: CONST.MERGE_ACCOUNT_2FA_ERROR, expectedKey: 'onboarding.workEmail2FAError', isBlocked: true},
+        {message: CONST.MERGE_ACCOUNT_SINGLE_SIGN_ON_ERROR, expectedKey: 'onboarding.singleSignOnError', isBlocked: true},
+        {message: CONST.MERGE_ACCOUNT_INVALID_CODE_ERROR, expectedKey: 'contacts.genericFailureMessages.validateSecondaryLogin', isBlocked: false},
+    ])('handles merge rejection: $message', async ({message, expectedKey, isBlocked}) => {
+        // Given an existing work account and an error response without any onboarding updates
+        const xhrSpy = jest.spyOn(HttpUtils, 'xhr').mockResolvedValue({jsonCode: CONST.JSON_CODE.EXP_ERROR, message});
+        try {
+            // When validation fails or the existing account cannot be merged
+            const result = await MergeIntoAccountAndLogin(workEmail, '123456', 1);
+            await waitForBatchedUpdates();
+
+            // Then security errors stay specific and an invalid code does not block the merge
+            expect(await getOnyxValue(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY)).toBe(expectedKey);
+            expect(!!(await getOnyxValue(ONYXKEYS.NVP_ONBOARDING))?.isMergingAccountBlocked).toBe(isBlocked);
+            expect(result.didMerge).toBe(false);
+        } finally {
+            xhrSpy.mockRestore();
+        }
     });
 });

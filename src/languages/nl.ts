@@ -4122,8 +4122,7 @@ ${amount} voor ${merchant} - ${date}`,
         mergeBlockScreen: {
             title: 'Werkmail kon niet worden toegevoegd',
             subtitle: (workEmail: string | undefined) => `We konden ${workEmail} niet toevoegen. Probeer het later opnieuw in Instellingen of chat met Concierge voor hulp.`,
-            validatedPublicDomainSubtitle: (workEmail: string | undefined) =>
-                `We konden ${workEmail} niet toevoegen. Om deze accounts samen te voegen, log je in als ${workEmail} en ga je naar Account > Beveiliging > Accounts samenvoegen om het proces te voltooien.`,
+            validatedPublicDomainSubtitle: (workEmail: string | undefined) => `Log in met ${workEmail} en voeg dit account samen via Account > Beveiliging > Accounts samenvoegen.`,
             workAccountClosedSubtitle:
                 'De zakelijke account die aan dit e-mailadres is gekoppeld, is gesloten. Neem contact op met de beheerder van je bedrijf om het opnieuw te activeren, of meld je aan met een ander e-mailadres.',
             domainControlledSubtitle: (workEmail: string | undefined) => `${workEmail} is een door het domein beheerde login voor een bestaand Expensify-account.`,

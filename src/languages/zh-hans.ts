@@ -3980,8 +3980,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         mergeBlockScreen: {
             title: '无法添加工作邮箱',
             subtitle: (workEmail: string | undefined) => `我们无法添加 ${workEmail}。请稍后在设置中重试，或与 Concierge 聊天以获取指导。`,
-            validatedPublicDomainSubtitle: (workEmail: string | undefined) =>
-                `我们无法添加 ${workEmail}。若要合并这些账户，请以 ${workEmail} 身份登录，并前往“账户 > 安全 > 合并账户”以完成此流程。`,
+            validatedPublicDomainSubtitle: (workEmail: string | undefined) => `请使用 ${workEmail} 登录，并从“账户 > 安全 > 合并账户”合并此账户。`,
             workAccountClosedSubtitle: '与此邮箱关联的工作账户已被关闭。请联系您公司的管理员以重新激活该账户，或使用其他邮箱注册。',
             domainControlledSubtitle: (workEmail: string | undefined) => `${workEmail} 是现有 Expensify 账户的域控制登录。`,
         },

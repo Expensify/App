@@ -147,11 +147,11 @@ const renderOnboardingPrivateDomainPage = (
 const navigate = jest.spyOn(Navigation, 'navigate');
 const mockCompleteOnboarding = jest.mocked(completeOnboarding);
 
-function MergeIntoAccountAndLoginBlockMerge() {
+function MergeIntoAccountAndLoginBlockMerge(jsonCode = 501) {
     const originalXhr = HttpUtils.xhr;
     HttpUtils.xhr = jest.fn().mockImplementation(() => {
         const mockedResponse: OnyxResponse<typeof ONYXKEYS.NVP_ONBOARDING> = {
-            jsonCode: 501,
+            jsonCode,
             onyxData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
@@ -866,6 +866,28 @@ describe('OnboardingWorkEmail Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
+    it('should show merge guidance when a validated public-domain user submits regular onboarding', async () => {
+        // Given regular onboarding with no Concierge task report
+        await TestHelper.signInWithTestUser(1, 'test@gmail.com');
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: true, isFromPublicDomain: true});
+            await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM, {onboardingWorkEmail: workEmail});
+        });
+        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, undefined);
+        await waitForBatchedUpdatesWithAct();
+
+        // When the work email belongs to an existing account
+        await AddWorkEmailWithValidatedAccountError();
+
+        // Then the blocked screen explains how to merge with the entered email
+        await waitFor(() => {
+            expect(screen.getByText(TestHelper.translateLocal('onboarding.mergeBlockScreen.validatedPublicDomainSubtitle', workEmail))).toBeOnTheScreen();
+        });
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
     it('should show merge guidance when a validated public-domain user submits the Concierge task', async () => {
         const taskReportID = '123';
         const getTopmostReportId = jest.spyOn(Navigation, 'getTopmostReportId').mockReturnValue(taskReportID);
@@ -1284,7 +1306,8 @@ describe('OnboardingWorkEmailValidation Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should display onboarding merge block screen content correctly', async () => {
+    it.each([501, CONST.JSON_CODE.EXP_ERROR])('should display merge guidance for a blocked merge with jsonCode %s', async (jsonCode) => {
+        // Given a user validating an existing work account during onboarding
         await TestHelper.signInWithTestUser();
 
         await act(async () => {
@@ -1301,13 +1324,16 @@ describe('OnboardingWorkEmailValidation Page', () => {
 
         await waitForBatchedUpdatesWithAct();
 
-        await MergeIntoAccountAndLoginBlockMerge();
+        // When the backend blocks merging through either response format
+        await MergeIntoAccountAndLoginBlockMerge(jsonCode);
 
         await waitForBatchedUpdatesWithAct();
 
+        // Then the guidance includes the work email and the merge navigation path
         await waitFor(() => {
-            expect(screen.getByText(TestHelper.translateLocal('onboarding.mergeBlockScreen.subtitle', workEmail))).toBeOnTheScreen();
+            expect(screen.getByText(TestHelper.translateLocal('onboarding.mergeBlockScreen.validatedPublicDomainSubtitle', workEmail))).toBeOnTheScreen();
         });
+        expect(navigate).not.toHaveBeenCalled();
 
         unmount();
         await waitForBatchedUpdatesWithAct();

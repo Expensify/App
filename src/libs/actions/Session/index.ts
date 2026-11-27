@@ -1845,11 +1845,22 @@ function addWorkEmail(workEmail: string, addWorkEmailTaskReport?: OnyxEntry<Repo
         if (response?.message === CONST.WORK_DOMAIN_CONTROLLED_ERROR || response?.title === CONST.WORK_DOMAIN_CONTROLLED_ERROR) {
             Onyx.merge(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, 'onboarding.mergeBlockScreen.domainControlledSubtitle');
         }
-        if (addWorkEmailTaskReport && response?.message === CONST.WORK_EMAIL_VALIDATED_PUBLIC_DOMAIN_ERROR) {
+        if (response?.message === CONST.WORK_EMAIL_VALIDATED_PUBLIC_DOMAIN_ERROR) {
             Onyx.merge(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, 'onboarding.mergeBlockScreen.validatedPublicDomainSubtitle');
         }
         Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {isMergingAccountBlocked: true});
     });
+}
+
+/** Preserves security-specific errors when an existing work account cannot be merged. */
+function getBlockedMergeErrorTranslationKey(message: string | undefined): TranslationPaths {
+    if (message?.includes(CONST.MERGE_ACCOUNT_2FA_ERROR)) {
+        return 'onboarding.workEmail2FAError';
+    }
+    if (message?.includes(CONST.MERGE_ACCOUNT_SINGLE_SIGN_ON_ERROR)) {
+        return 'onboarding.singleSignOnError';
+    }
+    return 'onboarding.mergeBlockScreen.validatedPublicDomainSubtitle';
 }
 
 function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: string, accountID: number | undefined, completedTaskReportActionID?: string) {
@@ -1918,6 +1929,7 @@ function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: s
             if (response?.message === CONST.MERGE_ACCOUNT_INVALID_CODE_ERROR || response?.title === CONST.MERGE_ACCOUNT_INVALID_CODE_ERROR) {
                 Onyx.merge(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, 'contacts.genericFailureMessages.validateSecondaryLogin');
             } else {
+                Onyx.merge(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, getBlockedMergeErrorTranslationKey(response?.message));
                 Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {isMergingAccountBlocked: true});
             }
             return {didMerge: false, shouldRedirectToClassicAfterMerge: false, conciergeReportID: undefined};
@@ -1925,6 +1937,16 @@ function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: s
 
         const responseOnyxData = response?.onyxData as Array<{key: string; value?: unknown}> | undefined;
         const onboardingUpdate = responseOnyxData?.find((update) => update.key === ONYXKEYS.NVP_ONBOARDING);
+        // The backend can block a merge through onyxData without returning EXP_ERROR.
+        if (
+            onboardingUpdate?.value &&
+            typeof onboardingUpdate.value === 'object' &&
+            'isMergingAccountBlocked' in onboardingUpdate.value &&
+            onboardingUpdate.value.isMergingAccountBlocked === true
+        ) {
+            Onyx.merge(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, getBlockedMergeErrorTranslationKey(response?.message));
+            return {didMerge: false, shouldRedirectToClassicAfterMerge: false, conciergeReportID: undefined};
+        }
         const shouldRedirectToClassicAfterMerge =
             !!onboardingUpdate?.value && typeof onboardingUpdate.value === 'object' && 'shouldRedirectToClassicAfterMerge' in onboardingUpdate.value
                 ? onboardingUpdate.value.shouldRedirectToClassicAfterMerge === true
