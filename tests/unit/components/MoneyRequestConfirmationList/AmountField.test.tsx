@@ -23,6 +23,7 @@ let mockCanUseTouchScreen = true;
 let mockCurrentRouteName: string | undefined;
 let mockOnScreenBlur: (() => void) | undefined;
 let mockCurrencyButtonRef: NumberWithSymbolFormProps['currencyButtonRef'];
+let mockIsAmountInputReadOnly: boolean | undefined;
 let mockLauncherRef: React.ComponentProps<typeof IOURequestStepCurrencyModal>['launcherRef'];
 let mockOnyxValues: Record<string, unknown> = {};
 jest.mock('@components/NumberWithSymbolForm', () => {
@@ -33,15 +34,18 @@ jest.mock('@components/NumberWithSymbolForm', () => {
         onInputChange,
         errorText,
         currencyButtonRef,
+        readOnly,
         ref,
     }: {
         onInputChange: (amount: string) => void;
         errorText?: string;
         currencyButtonRef?: NumberWithSymbolFormProps['currencyButtonRef'];
+        readOnly?: boolean;
         ref?: React.Ref<{focus: () => void}>;
     }) => {
         useImperativeHandle(ref, () => ({focus: mockFocusAmountInput}));
         mockCurrencyButtonRef = currencyButtonRef;
+        mockIsAmountInputReadOnly = readOnly;
         return (
             <>
                 {!!errorText && <Text>{errorText}</Text>}
@@ -608,5 +612,35 @@ describe('AmountField unsaved input reporting', () => {
 
         // Then nothing is left to discard
         expect(onUnsavedAmountInputChange).toHaveBeenLastCalledWith(false);
+    });
+});
+
+describe('AmountField while the discard prompt shows', () => {
+    beforeEach(() => {
+        mockOnyxValues = {};
+        mockIsAmountInputReadOnly = undefined;
+        mockTransactionSlice = {transactionID: '1', amount: 500, currency: 'USD', isAmountMissing: false, isAmountSet: true, iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL};
+    });
+
+    it.each([true, false])('makes the amount input read-only only while the discard prompt shows: %s', (isDiscardModalVisible) => {
+        // Given a new manual expense with an amount entered
+        // When the amount input renders with or without the discard prompt covering the form
+        render(
+            <ConfirmationFieldsProvider
+                transactionID="1"
+                reportID="2"
+                action={CONST.IOU.ACTION.CREATE}
+                iouType={CONST.IOU.TYPE.SUBMIT}
+                isDiscardModalVisible={isDiscardModalVisible}
+            >
+                <AmountField
+                    {...amountFieldProps}
+                    amount={500}
+                />
+            </ConfirmationFieldsProvider>,
+        );
+
+        // Then the prompt keeps the input from taking the focus iOS restores after a cancelled back swipe
+        expect(mockIsAmountInputReadOnly).toBe(isDiscardModalVisible);
     });
 });

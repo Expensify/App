@@ -725,6 +725,7 @@ function SubmitDetailsPage({
                         // offered behind "Show more" here, exactly as they are on the in-app Scan confirmation.
                         shouldShowSmartScanFields
                         canEnterScanFieldsManually
+                        isDiscardModalVisible={false}
                         action={CONST.IOU.ACTION.CREATE}
                         receiptOptions={{
                             receiptPath: currentReceiptSource,

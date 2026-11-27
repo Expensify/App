@@ -44,6 +44,9 @@ type ProviderProps = {
     /** Whether the surface is in a policy-expense chat */
     isPolicyExpenseChat?: boolean;
 
+    /** Whether the discard prompt covers the form, which keeps the inline inputs read-only */
+    isDiscardModalVisible?: boolean;
+
     /** Whether the active transaction is a scan request */
     isScanRequest?: boolean;
 
@@ -99,6 +102,7 @@ function Provider({
     isEditingSplitBill = false,
     canEnterScanFieldsManually = false,
     isPolicyExpenseChat = false,
+    isDiscardModalVisible = false,
     isScanRequest = false,
     isDistanceRequest = false,
     isPerDiemRequest = false,
@@ -126,6 +130,7 @@ function Provider({
         isEditingSplitBill,
         canEnterScanFieldsManually,
         isPolicyExpenseChat,
+        isDiscardModalVisible,
         isScanRequest,
         isDistanceRequest,
         isPerDiemRequest,

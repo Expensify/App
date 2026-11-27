@@ -27,6 +27,8 @@ type ConfirmationFieldsContextValue = {
     /** Whether this surface offers manual entry of the amount / merchant / date. False for splits, test receipts and moved tracked expenses. */
     canEnterScanFieldsManually: boolean;
     isPolicyExpenseChat: boolean;
+    /** Whether the discard prompt covers the form, so the inline inputs go read-only and iOS can't raise a keyboard over it */
+    isDiscardModalVisible: boolean;
 
     // Mode — *what kind* of expense is being confirmed
     isScanRequest: boolean;

@@ -88,8 +88,20 @@ function AmountField({
 }: AmountFieldProps) {
     const isScreenFocused = useIsFocused();
     const navigation = useNavigation();
-    const {isEditingSplitBill, canEnterScanFieldsManually, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID, fieldViewRefs, onUnsavedAmountInputChange} =
-        useConfirmationFields();
+    const {
+        isEditingSplitBill,
+        canEnterScanFieldsManually,
+        isReadOnly,
+        didConfirm,
+        isDiscardModalVisible,
+        transactionID,
+        action,
+        iouType,
+        reportID,
+        reportActionID,
+        fieldViewRefs,
+        onUnsavedAmountInputChange,
+    } = useConfirmationFields();
     // Filled by the forms that offer a receipt from beside the amount field rather than from a full-width empty
     // state, with their compact add-receipt button.
     const {amountTrailingAction, shouldUseDropdownRows} = useExpenseFormLayout();
@@ -403,6 +415,7 @@ function AmountField({
                             leadingRightHandSideComponent={shouldShowAutomaticHint ? <AutomaticFieldHint /> : undefined}
                             shouldUseBorderlessButtons
                             disabled={isAmountFieldDisabled}
+                            readOnly={isAmountFieldDisabled || isDiscardModalVisible}
                         />
                     </View>
                     {amountTrailingAction}

@@ -46,7 +46,8 @@ type DescriptionFieldProps = {
 };
 
 function DescriptionField({isDescriptionRequired, policy, descriptionHint = ''}: DescriptionFieldProps) {
-    const {isEditingSplitBill, scrollFocusedInputIntoView, onSubmitForm, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID} = useConfirmationFields();
+    const {isEditingSplitBill, scrollFocusedInputIntoView, onSubmitForm, isReadOnly, didConfirm, isDiscardModalVisible, transactionID, action, iouType, reportID, reportActionID} =
+        useConfirmationFields();
     const {shouldUseDropdownRows} = useExpenseFormLayout();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -153,7 +154,8 @@ function DescriptionField({isDescriptionRequired, policy, descriptionHint = ''}:
                             >
                                 <TextInput
                                     value={iouComment ?? ''}
-                                    readOnly={didConfirm}
+                                    readOnly={didConfirm || isDiscardModalVisible}
+                                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DESCRIPTION_FIELD}
                                     onChangeText={handleDescriptionInputChange}
                                     onFocus={() => scrollFocusedInputIntoView?.(fieldContainerRef.current)}
                                     submitBehavior={canUseHardwareKeyboard ? 'blurAndSubmit' : 'newline'}

@@ -73,6 +73,7 @@ function useConfirmationListDataWithPolicy({
     distanceState,
     onUnsavedAmountInputChange,
     onSubmitWillStart,
+    isDiscardModalVisible,
 }: UseConfirmationListDataParams): ConfirmationListData {
     // Every distance branch below goes inert for the variants that pass no distance state.
     const {
@@ -208,6 +209,7 @@ function useConfirmationListDataWithPolicy({
         isTimeRequest,
         shouldHideToSection,
         shouldShowReadOnlySplits,
+        isDiscardModalVisible,
         selectedParticipantsProp,
         payeePersonalDetailsProp,
         formError,
@@ -340,6 +342,7 @@ function useConfirmationListDataWithPolicy({
                 didConfirm: !!didConfirm,
                 canEnterScanFieldsManually,
                 isPolicyExpenseChat,
+                isDiscardModalVisible,
                 isScanRequest,
                 isEditingSplitBill,
                 scrollFocusedInputIntoView,

@@ -36,7 +36,7 @@ type MerchantFieldProps = {
 };
 
 function MerchantField({isMerchantRequired, shouldDisplayFieldError, fieldError}: MerchantFieldProps) {
-    const {transactionID, isReadOnly, didConfirm, isEditingSplitBill, canEnterScanFieldsManually, fieldViewRefs} = useConfirmationFields();
+    const {transactionID, isReadOnly, didConfirm, isDiscardModalVisible, isEditingSplitBill, canEnterScanFieldsManually, fieldViewRefs} = useConfirmationFields();
     const {shouldUseDropdownRows} = useExpenseFormLayout();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -128,7 +128,7 @@ function MerchantField({isMerchantRequired, shouldDisplayFieldError, fieldError}
             >
                 <TextInput
                     value={merchantInput}
-                    readOnly={didConfirm}
+                    readOnly={didConfirm || isDiscardModalVisible}
                     onChangeText={handleMerchantInputChange}
                     onFocus={() => {
                         setIsMerchantInputFocused(true);

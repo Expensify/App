@@ -218,6 +218,7 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
                                     setDraftSplitTransaction(translate, transaction?.transactionID, draftTransaction ?? transaction, {billable}, getCurrencyDecimals, getCurrencySymbol);
                                 }}
                                 isConfirmed={isConfirmed}
+                                isDiscardModalVisible={false}
                             />
                         )}
                     </ImageBehaviorContextProvider>

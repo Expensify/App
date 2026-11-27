@@ -575,6 +575,7 @@ function NumberWithSymbolForm({
                     textInput.current = newRef;
                 }}
                 disabled={disabled}
+                readOnly={props.readOnly}
                 prefixCharacter={hideSymbol ? '' : symbol}
                 prefixStyle={styles.colorMuted}
                 keyboardType={props.keyboardType ?? CONST.KEYBOARD_TYPE.DECIMAL_PAD}
@@ -612,6 +613,7 @@ function NumberWithSymbolForm({
                 textInput.current = newRef;
             }}
             disabled={disabled}
+            readOnly={props.readOnly}
             symbol={symbol}
             hideSymbol={hideSymbol}
             symbolPosition={symbolPosition}

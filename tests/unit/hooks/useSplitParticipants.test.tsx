@@ -57,6 +57,7 @@ function makeBase(overrides: Partial<Params> = {}): Params {
     return {
         isTypeSplit: false,
         shouldShowReadOnlySplits: false,
+        isDiscardModalVisible: false,
         payeePersonalDetails: payee as OnyxTypes.PersonalDetails,
         selectedParticipants: [otherParticipant],
         transaction: createMock<OnyxTypes.Transaction>({transactionID: 'txn1', amount: 1000, comment: {}}),
@@ -193,5 +194,18 @@ describe('useSplitParticipants', () => {
         }
         // Editable rows should be tab-skipped (tabIndex: -1) and non-interactive
         expect(rows.at(0)).toHaveProperty('tabIndex', -1);
+    });
+
+    it.each([true, false])('makes the editable split amounts read-only only while the discard prompt shows: %s', (isDiscardModalVisible) => {
+        // Given a split whose amounts the user can edit
+        // When the rows render with or without the discard prompt covering the form
+        const {result} = renderHook(() => useSplitParticipants(makeBase({isTypeSplit: true, isDiscardModalVisible})), {wrapper: Wrapper});
+
+        // Then the prompt keeps every amount input from taking the focus iOS restores after a cancelled back swipe
+        expect(result.current.splitParticipants).toHaveLength(2);
+        for (const row of result.current.splitParticipants) {
+            const rightElement = (row as {rightElement?: React.ReactElement<{readOnly?: boolean}>}).rightElement;
+            expect(rightElement?.props.readOnly).toBe(isDiscardModalVisible);
+        }
     });
 });

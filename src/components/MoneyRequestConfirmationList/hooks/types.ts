@@ -112,6 +112,9 @@ type UseParticipantSectionParams = {
     /** Whether the split rows render without editable amount inputs */
     shouldShowReadOnlySplits: boolean;
 
+    /** Whether the discard prompt covers the form, which keeps the editable split amounts read-only */
+    isDiscardModalVisible: boolean;
+
     /** Selected participants from MoneyRequestModal with login / accountID */
     selectedParticipantsProp: Participant[];
 

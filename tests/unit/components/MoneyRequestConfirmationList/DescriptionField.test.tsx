@@ -78,4 +78,30 @@ describe('DescriptionField', () => {
         // And the markdown is rendered rather than shown as raw markup
         expect(screen.queryAllByText(/[*_]/)).toHaveLength(0);
     });
+
+    it('keeps the description input from taking focus while the discard prompt shows, so iOS cannot raise its keyboard over the prompt', () => {
+        // Given the editable description input of a new expense, while the discard prompt covers the form
+        render(
+            <HTMLEngineProvider>
+                <ConfirmationFieldsProvider
+                    transactionID={TRANSACTION_ID}
+                    reportID={REPORT_ID}
+                    action={CONST.IOU.ACTION.CREATE}
+                    iouType={CONST.IOU.TYPE.SUBMIT}
+                    isDiscardModalVisible
+                >
+                    <DescriptionField
+                        isDescriptionRequired={false}
+                        policy={undefined}
+                    />
+                </ConfirmationFieldsProvider>
+            </HTMLEngineProvider>,
+        );
+
+        // When the input renders
+        const descriptionInput = screen.getByLabelText('common.description');
+
+        // Then it is read-only, so the refocus iOS does after a cancelled back swipe cannot bring the keyboard back
+        expect(descriptionInput).toHaveProp('readOnly', true);
+    });
 });

@@ -112,6 +112,9 @@ type MoneyRequestConfirmationListProps = {
 
     /** Called when the user confirms a valid expense, right before `onConfirm` or `onSendMoney` runs */
     onSubmitWillStart?: () => void;
+
+    /** Whether the discard prompt covers the form, which keeps the inline inputs read-only */
+    isDiscardModalVisible: boolean;
 };
 
 export type {MoneyRequestConfirmationListItem, MoneyRequestConfirmationListProps};

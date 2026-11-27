@@ -124,3 +124,30 @@ describe('MerchantField on an edited split', () => {
         expect(setDraftSplitTransaction).toHaveBeenCalledWith(expect.any(Function), '1', undefined, {merchant: 'Hilton', isMerchantSet: true}, expect.any(Function), expect.any(Function));
     });
 });
+
+describe('MerchantField while the discard prompt shows', () => {
+    it('keeps the merchant input from taking focus, so iOS cannot raise its keyboard over the prompt', () => {
+        // Given the editable merchant input of a new expense, while the discard prompt covers the form
+        render(
+            <ConfirmationFieldsProvider
+                transactionID="1"
+                reportID="2"
+                action={CONST.IOU.ACTION.CREATE}
+                iouType={CONST.IOU.TYPE.SUBMIT}
+                isDiscardModalVisible
+            >
+                <MerchantField
+                    isMerchantRequired
+                    shouldDisplayFieldError={false}
+                    fieldError={undefined}
+                />
+            </ConfirmationFieldsProvider>,
+        );
+
+        // When the input renders
+        const merchantInput = screen.getByLabelText('common.merchant');
+
+        // Then it is read-only, so the refocus iOS does after a cancelled back swipe cannot bring the keyboard back
+        expect(merchantInput).toHaveProp('readOnly', true);
+    });
+});

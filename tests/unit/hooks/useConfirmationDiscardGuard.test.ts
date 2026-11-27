@@ -8,12 +8,14 @@ import type {UseConfirmationDiscardGuardParams} from '@pages/iou/request/step/IO
 import CONST from '@src/CONST';
 
 let mockGetHasUnsavedChanges: () => boolean = () => false;
+let mockOnVisibilityChange: UseDiscardChangesConfirmationOptions['onVisibilityChange'];
 const mockSuppressDiscardPrompt = jest.fn();
 
 jest.mock('@hooks/useDiscardChangesConfirmation', () => ({
     __esModule: true,
-    default: ({getHasUnsavedChanges}: UseDiscardChangesConfirmationOptions) => {
+    default: ({getHasUnsavedChanges, onVisibilityChange}: UseDiscardChangesConfirmationOptions) => {
         mockGetHasUnsavedChanges = getHasUnsavedChanges;
+        mockOnVisibilityChange = onVisibilityChange;
         return {suppressDiscardPrompt: mockSuppressDiscardPrompt};
     },
 }));
@@ -76,6 +78,24 @@ describe('useConfirmationDiscardGuard', () => {
 
         // Then the form leaves without asking, since the entered amount is being saved
         expect(hasUnsavedChanges).toBe(false);
+    });
+
+    it('reports whether the discard prompt covers the form', () => {
+        // Given the form that opens the flow, where the user typed an amount
+        const {result} = renderHook(() => useConfirmationDiscardGuard({...untouchedFlowStart, isAmountSet: true}));
+        expect(result.current.isDiscardModalVisible).toBe(false);
+
+        // When the user swipes back and the discard prompt opens
+        act(() => mockOnVisibilityChange?.(true));
+
+        // Then the form knows to keep its inputs from taking focus while the prompt shows
+        expect(result.current.isDiscardModalVisible).toBe(true);
+
+        // When the user cancels the prompt
+        act(() => mockOnVisibilityChange?.(false));
+
+        // Then the inputs can take focus again
+        expect(result.current.isDiscardModalVisible).toBe(false);
     });
 
     it('does not ask on a form that a later step shows', () => {
