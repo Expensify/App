@@ -1,5 +1,10 @@
+/* eslint-disable @typescript-eslint/naming-convention -- Route paths are literal URL keys. */
+const INSIGHTS_ROOT_REDIRECTS: Partial<Record<string, string>> = {
+    '/insights': '/insights/spend',
+    '/insights/': '/insights/spend',
+};
+
 const oldRoutes: Record<string, string> = {
-    /* eslint-disable @typescript-eslint/naming-convention */
     '/*/*/destination/*/*/edit': '/$1/$2/confirmation/$3/$4/per-diem-destination-edit',
     '/*/*/destination/*/*': '/$1/$2/start/$3/$4/per-diem-destination',
     '/*/*/time/*/*/edit': '/$1/$2/confirmation/$3/$4/per-diem-time-edit',
@@ -138,8 +143,7 @@ const oldRoutes: Record<string, string> = {
     '/settings/profile/contact-methods/verify': '/settings/profile/contact-methods/verify-account',
     '/settings/profile/contact-methods/new': '/settings/profile/contact-methods/new-contact-method',
     '/home-page': '/home',
-    '/insights': '/insights/spend',
-    '/insights/': '/insights/spend',
+    ...INSIGHTS_ROOT_REDIRECTS,
     '/new/task/details': '/task-details',
     '/new/task/title': '/task-details/task-confirm/task-title',
     '/new/task/description': '/task-details/task-confirm/task-description',
@@ -233,7 +237,8 @@ const oldRoutes: Record<string, string> = {
     '/*/*/participants/*/*': '/r/$4/expense-participants?action=$1&iouType=$2&transactionID=$3&reportID=$4',
     '/*/*/scan/*/*': '/r/$4/expense-scan?action=$1&iouType=$2&transactionID=$3&reportID=$4',
     '/*/*/waypoint/*/*/*': '/r/$4/expense-distance/expense-waypoint?action=$1&iouType=$2&transactionID=$3&reportID=$4&pageIndex=$5',
-    /* eslint-enable @typescript-eslint/naming-convention */
 };
+/* eslint-enable @typescript-eslint/naming-convention */
 
 export default oldRoutes;
+export {INSIGHTS_ROOT_REDIRECTS};

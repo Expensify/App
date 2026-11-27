@@ -4,6 +4,8 @@ import checkForUpdates from '@libs/checkForUpdates';
 import DateUtils from '@libs/DateUtils';
 import Visibility from '@libs/Visibility';
 
+import {INSIGHTS_ROOT_REDIRECTS} from '@navigation/linkingConfig/OldRoutes';
+
 import Config from '@src/CONFIG';
 
 import type {AppRegistry as WebAppRegistry} from 'react-native-web';
@@ -62,10 +64,19 @@ const webUpdater = (): PlatformSpecificUpdater => ({
 });
 
 export default function () {
-    // The worker has already handled this navigation. Later navigations should open the saved app instead of waiting for the network.
-    const url = new URL(window.location.href);
+    const initialURL = window.location.href;
+    const url = new URL(initialURL);
+    const insightsRedirect = INSIGHTS_ROOT_REDIRECTS[url.pathname];
+    if (insightsRedirect) {
+        // Start navigation on the Spend URL so startup doesn't depend on a history update after mount.
+        url.pathname = insightsRedirect;
+    }
+
     if (url.searchParams.has(APP_UPDATE_QUERY_PARAM)) {
+        // The worker already handled the update. Later navigations should use the saved app if offline.
         url.searchParams.delete(APP_UPDATE_QUERY_PARAM);
+    }
+    if (url.href !== initialURL) {
         window.history.replaceState(window.history.state, '', url.href);
     }
 
