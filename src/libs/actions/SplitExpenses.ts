@@ -174,7 +174,7 @@ function initSplitExpense(
         const mileageRate = resolveSplitMileageRate({transaction, policy: effectivePolicy ?? undefined, isSelfDMSplit: isSelfDMReport, personalPolicyOutputCurrency});
         const {rate, unit, currency} = mileageRate;
 
-        if (shouldSplitByDistance(rate, transactionDetailsAmount) && transaction?.comment?.customUnit) {
+        if (shouldSplitByDistance(rate) && transaction?.comment?.customUnit) {
             for (let i = 0; i < splitAmounts.length; i++) {
                 const {customUnit: updatedCustomUnit, merchant} = getEvenDistanceSplit({
                     transaction,

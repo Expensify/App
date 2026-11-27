@@ -38,12 +38,10 @@ import {
     addSplitExpenseField,
     clearSplitTransactionDraftErrors,
     evenlyDistributeSplitExpenseAmounts,
-    getSplitDistanceInTransactionUnit,
     initDraftSplitExpenseDataForEdit,
     initSplitExpenseItemData,
     resolveSplitItemReportID,
     updateSplitExpenseAmountField,
-    updateSplitExpenseDistanceFromPercentage,
 } from '@libs/actions/IOU/SplitExpenseItems';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
@@ -51,7 +49,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {calculateSplitAmountFromPercentage, calculateSplitPercentages} from '@libs/IOUUtils';
+import {calculateSplitAmountFromPercentage, calculateSplitPercentagesFromAmounts} from '@libs/IOUUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
@@ -64,15 +62,7 @@ import type {TransactionDetails} from '@libs/ReportUtils';
 import {getActiveGroupSearchHashes} from '@libs/SearchUIUtils';
 import {computeSplitSaveErrorMessage, computeSplitWarningMessage} from '@libs/SplitExpenseUtils';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
-import {
-    getBilledDistance,
-    getChildTransactions,
-    getExpenseTypeTranslationKey,
-    getTransactionType,
-    isDistanceRequest,
-    isManagedCardTransaction,
-    isPerDiemRequest,
-} from '@libs/TransactionUtils';
+import {getChildTransactions, getExpenseTypeTranslationKey, getTransactionType, isDistanceRequest, isManagedCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
 
@@ -457,22 +447,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
     };
 
     const onSplitExpenseValueChange = (id: string, value: number, mode: ValueOf<typeof CONST.TAB.SPLIT>) => {
-        // A $0 distance expense's percentages are shares of its distance, so typing one sets the split's distance
-        if (mode === CONST.TAB.SPLIT.PERCENTAGE && isDistance && transactionDetailsAmount === 0) {
-            updateSplitExpenseDistanceFromPercentage({
-                draftTransaction,
-                currentItemTransactionID: id,
-                percentage: value,
-                originalTransaction: transaction,
-                policy: effectivePolicy,
-                isSelfDMSplit: isDraftSelfDMContext,
-                personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
-                getCurrencySymbol,
-                getCurrencyDecimals,
-                policies: allPolicies,
-                frozenSplitsContext,
-            });
-        } else if (mode === CONST.TAB.SPLIT.AMOUNT || mode === CONST.TAB.SPLIT.DATE) {
+        if (mode === CONST.TAB.SPLIT.AMOUNT || mode === CONST.TAB.SPLIT.DATE) {
             const amountInCents = convertToBackendAmount(value);
             updateSplitExpenseAmountField(
                 draftTransaction,
@@ -510,19 +485,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
     const splitExpensesArray = draftTransaction?.comment?.splitExpenses ?? [];
 
     const splitAmounts = splitExpensesArray.map((item) => Number(item.amount ?? 0));
-
-    // A $0 distance expense is split by its distance, so its splits stay $0 and only their distance can change
-    const isZeroTotalDistanceSplit = isDistance && transactionDetailsAmount === 0;
-
-    // A $0 total has no amount to take a share of, so its splits' percentages are their share of the distance
-    // Distances are converted to whole hundredths so splits that add up to the total get exactly 100%
-    const toDistanceUnits = (distance: number) => Math.round(distance * 10 ** CONST.DISTANCE_DECIMAL_PLACES);
-    const adjustedPercentages = isZeroTotalDistanceSplit
-        ? calculateSplitPercentages(
-              splitExpensesArray.map((item) => toDistanceUnits(getSplitDistanceInTransactionUnit(transaction, item.customUnit))),
-              toDistanceUnits(getBilledDistance(transaction) ?? 0),
-          )
-        : calculateSplitPercentages(splitAmounts, transactionDetailsAmount);
+    const adjustedPercentages = calculateSplitPercentagesFromAmounts(splitAmounts, transactionDetailsAmount);
 
     const options: SplitListItemType[] = splitExpensesArray.map((item, index): SplitListItemType => {
         const previewHeaderText: TranslationPathOrText[] = [transactionTypeTranslationPath];
@@ -560,8 +523,6 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
             isSelected: splitExpenseTransactionID === item.transactionID,
             keyForList: item?.transactionID,
             isEditable: !frozenSplitTransactionIDs.has(item.transactionID),
-            isAmountEditable: !isZeroTotalDistanceSplit,
-            isPercentageEditable: isZeroTotalDistanceSplit ? true : undefined,
         };
     });
 
@@ -573,19 +534,14 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
         convertToDisplayString,
     });
 
-    const infoMessage = isZeroTotalDistanceSplit
-        ? translate('iou.splitExpenseZeroTotalAmountNotEditable', convertToDisplayString(0, transactionDetails?.currency ?? CONST.CURRENCY.USD))
-        : '';
-    const helpMessage = errorMessage || warningMessage || infoMessage;
-
     const footerContent = (
         <View style={[styles.ph5, styles.pb5]}>
-            {!!helpMessage && (
+            {(!!errorMessage || !!warningMessage) && (
                 <FormHelpMessage
                     style={[styles.ph1, styles.mb2]}
                     isError={!!errorMessage}
-                    isInfo={!errorMessage}
-                    message={helpMessage}
+                    isInfo={!errorMessage && !!warningMessage}
+                    message={errorMessage || warningMessage}
                 />
             )}
             <Button

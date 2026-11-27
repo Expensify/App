@@ -61,7 +61,6 @@ import {getParsedComment, getReportOrDraftReport, getTransactionDetails, isSelfD
 import {getTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import startOpenCategoryPickerSpan from '@libs/telemetry/startOpenCategoryPickerSpan';
 import {
-    getAmount,
     getDistanceInMeters,
     getRateID,
     getTag,
@@ -297,14 +296,8 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
         personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
     });
     const distance = getDistanceInMeters(splitExpenseDraftTransaction, unit);
-    const isZeroTotalDistanceSplit = isDistance && getAmount(originalTransactionDraft, undefined, undefined, true, true) === 0;
-    // A $0 expense's split isn't distance * rate, so it shows its own amount until its distance or rate is edited, as saving keeps it
-    const isUneditedZeroTotalDistanceSplit =
-        isZeroTotalDistanceSplit &&
-        getRateID(splitExpenseDraftTransaction) === splitExpenseItem?.customUnit?.customUnitRateID &&
-        splitExpenseDraftTransaction?.comment?.customUnit?.quantity === splitExpenseItem?.customUnit?.quantity;
     const currentAmount =
-        isDistance && distance && !isUneditedZeroTotalDistanceSplit && (rate || (isZeroTotalDistanceSplit && rate === 0))
+        isDistance && distance && rate !== undefined
             ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate) * originalSign
             : Math.abs(Number(splitExpenseDraftTransaction?.amount)) * originalSign;
     const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(true, distance, unit, translate, false, isManualDistance);

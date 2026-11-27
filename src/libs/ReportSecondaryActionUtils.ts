@@ -19,7 +19,6 @@ import type {
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import DistanceRequestUtils from './DistanceRequestUtils';
 import {areTransactionsEligibleForMerge} from './MergeTransactionUtils';
 import {getLoginByAccountID} from './PersonalDetailsUtils';
 import {
@@ -100,14 +99,12 @@ import {
 } from './ReportUtils';
 import {
     allHavePendingRTERViolation,
-    getBilledDistance,
     getOriginalTransactionWithSplitInfo,
     hasOnlyPendingCardTransactions,
     hasOnlyUnsettledExpenses,
     hasReceipt as hasReceiptTransactionUtils,
     hasSmartScanFailedWithMissingFields,
     hasSubmissionBlockingViolations,
-    isDistanceRequest as isDistanceRequestTransactionUtils,
     isDuplicate,
     isManagedCardTransaction as isManagedCardTransactionTransactionUtils,
     isOnHold as isOnHoldTransactionUtils,
@@ -160,22 +157,7 @@ function isSplitAction(
 
     const {isBillSplit, isExpenseSplit} = getOriginalTransactionWithSplitInfo(reportTransaction, originalTransaction);
 
-    // A $0 distance expense can still be split by its billed distance, whether its rate is $0 or its amount was edited to $0
-    const hasDistanceToSplit = isDistanceRequestTransactionUtils(reportTransaction) && !!getBilledDistance(reportTransaction);
-
-    if (!amount && !isExpenseSplit && !hasDistanceToSplit) {
-        return false;
-    }
-
-    // A $0 rate splits the billed distance, so a commuter exclusion covering the whole trip would leave every split at 0 distance
-    const customUnitRateID = reportTransaction?.comment?.customUnit?.customUnitRateID;
-    const isZeroRateWithZeroBilledDistance =
-        isDistanceRequestTransactionUtils(reportTransaction) &&
-        !getBilledDistance(reportTransaction) &&
-        !!customUnitRateID &&
-        DistanceRequestUtils.getRateByCustomUnitRateID({customUnitRateID, policy})?.rate === 0;
-
-    if (isZeroRateWithZeroBilledDistance) {
+    if (!amount && !isExpenseSplit) {
         return false;
     }
 

@@ -147,20 +147,20 @@ function calculateSplitAmountFromPercentage(totalInCents: number, percentage: nu
 }
 
 /**
- * Given a list of split values and the original total, calculate display percentages for each split so that:
- * - Values can be in any whole-number unit, like amounts in backend cents or distances in hundredths of a unit
+ * Given a list of split amounts (in backend cents) and the original total amount, calculate display percentages
+ * for each split so that:
  * - Each row is a percentage of the original total with one decimal place (0.1 precision)
- * - Equal values ALWAYS have equal percentages
+ * - Equal amounts ALWAYS have equal percentages
  * - The remainder needed to reach 100% goes to the last item (which should be the largest)
- * - When the sum of split values does not match the original total (over/under splits), percentages still reflect
- *   each value as a percentage of the original total and may sum to something other than 100
- * - Preserves the sign of values (negative values result in negative percentages)
+ * - When the sum of split amounts does not match the original total (over/under splits), percentages still reflect
+ *   each amount as a percentage of the original total and may sum to something other than 100
+ * - Preserves the sign of amounts (negative amounts result in negative percentages)
  */
-function calculateSplitPercentages(values: number[], total: number): number[] {
-    const totalAbs = Math.abs(total);
+function calculateSplitPercentagesFromAmounts(amountsInCents: number[], totalInCents: number): number[] {
+    const totalAbs = Math.abs(totalInCents);
 
-    if (totalAbs <= 0 || values.length === 0) {
-        return values.map(() => 0);
+    if (totalAbs <= 0 || amountsInCents.length === 0) {
+        return amountsInCents.map(() => 0);
     }
 
     // Helper functions for decimal precision
@@ -170,14 +170,14 @@ function calculateSplitPercentages(values: number[], total: number): number[] {
     // Calculate percentages based on the relationship between amount sign and total sign
     // When they match (both positive or both negative), show positive percentage
     // When they differ, show negative percentage
-    const percentages = values.map((amount) => {
+    const percentages = amountsInCents.map((amount) => {
         if (totalAbs === 0) {
             return 0;
         }
         let percentage = (amount / totalAbs) * 100;
         // Flip sign if original total is negative (so user sees intuitive percentages)
 
-        if (total < 0) {
+        if (totalInCents < 0) {
             percentage = -percentage;
         }
 
@@ -186,12 +186,12 @@ function calculateSplitPercentages(values: number[], total: number): number[] {
     });
 
     // For remainder calculation, we need to work with absolute values to ensure equal amounts get equal percentages
-    const valuesAbs = values.map((amount) => Math.abs(amount ?? 0));
-    const valuesTotal = valuesAbs.reduce((sum, curr) => sum + curr, 0);
+    const amountsAbs = amountsInCents.map((amount) => Math.abs(amount ?? 0));
+    const amountsTotal = amountsAbs.reduce((sum, curr) => sum + curr, 0);
 
     // If the split amounts don't add up to the original total, return percentages as-is
     // (the sum may not be 100, but that's expected when there's a validation error)
-    if (valuesTotal !== totalAbs) {
+    if (amountsTotal !== totalAbs) {
         return percentages;
     }
 
@@ -205,10 +205,10 @@ function calculateSplitPercentages(values: number[], total: number): number[] {
 
     // Add remainder to the last item with the MAXIMUM absolute amount
     // This ensures 0-amount splits stay at 0%
-    const maxValue = Math.max(...valuesAbs);
-    let lastMaxIndex = valuesAbs.length - 1; // fallback to last
-    for (let i = 0; i < valuesAbs.length; i += 1) {
-        if (valuesAbs.at(i) === maxValue) {
+    const maxAmount = Math.max(...amountsAbs);
+    let lastMaxIndex = amountsAbs.length - 1; // fallback to last
+    for (let i = 0; i < amountsAbs.length; i += 1) {
+        if (amountsAbs.at(i) === maxAmount) {
             lastMaxIndex = i;
         }
     }
@@ -676,7 +676,7 @@ function resolveEarlyReportID(isFromGlobalCreate: boolean, participants: Partici
 export {
     calculateAmount,
     calculateSplitAmountFromPercentage,
-    calculateSplitPercentages,
+    calculateSplitPercentagesFromAmounts,
     getExistingTransactionID,
     getNonDeprecatedIOUType,
     insertTagIntoTransactionTagsString,

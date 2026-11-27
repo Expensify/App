@@ -71,9 +71,8 @@ function SplitListItem<TItem extends SplitListItemType>({item, isFocused, showTo
     // Only connect the auto-focus ref to the selected item so useAutoFocusInput's useFocusEffect
     // cleanup can cancel any pending focus task when the screen starts closing, preventing
     // the focused input from interfering with the close animation.
-    const isInputEditable = item.mode === CONST.TAB.SPLIT.PERCENTAGE ? (item.isPercentageEditable ?? item.isAmountEditable !== false) : item.isAmountEditable !== false;
     const inputCallbackRef: (ref: BaseTextInputRef | null) => void = (ref) => {
-        if (!item.isSelected || !item.isEditable || !isInputEditable) {
+        if (!item.isSelected || !item.isEditable) {
             return;
         }
         (autoFocusCallbackRef as unknown as (ref: BaseTextInputRef | null) => void)(ref);
