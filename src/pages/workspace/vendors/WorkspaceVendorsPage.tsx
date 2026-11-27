@@ -2,7 +2,7 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import FocusTrapExtraContainersContext from '@components/FocusTrap/FocusTrapExtraContainersContext';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderCentralPane from '@components/Header/composed/HeaderCentralPane';
 import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {WorkspaceVendorTableRowData} from '@components/Tables/WorkspaceVendorsTable';
@@ -130,7 +130,7 @@ function VendorBulkActions({options, selectedVendorsCount}: VendorBulkActionsBut
             customText={translate('workspace.common.selected', {count: selectedVendorsCount})}
             options={options}
             isSplitButton={false}
-            style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
+            style={shouldDisplayButtonsInSeparateLine && [styles.flexGrow1, styles.mb3]}
             isDisabled={selectedVendorsCount === 0 || options.length === 0}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.VENDORS.BULK_ACTIONS_DROPDOWN}
             testID="WorkspaceVendorsPage-header-dropdown-menu-button"
@@ -275,10 +275,8 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
                     shouldShowOfflineIndicatorInWideScreen
                     offlineIndicatorStyle={styles.mtAuto}
                 >
-                    <HeaderWithBackButton
-                        shouldUseHeadlineHeader={!selectionModeHeader}
-                        shouldShowBackButton={shouldUseNarrowLayout}
-                        shouldDisplayHelpButton
+                    <HeaderCentralPane
+                        isHeadline={!selectionModeHeader}
                         title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.vendors')}
                         onBackButtonPress={() => {
                             if (isMobileSelectionModeEnabled) {
@@ -295,7 +293,7 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
                                 selectedVendorsCount={selectedVendorKeys.length}
                             />
                         )}
-                    </HeaderWithBackButton>
+                    </HeaderCentralPane>
                     {shouldDisplayButtonsInSeparateLine && canShowBulkActions && (
                         <View style={[styles.pl5, styles.pr5]}>
                             <VendorBulkActions

@@ -17,10 +17,10 @@
 
 #include "JHybridAppStartTimeModuleSpec.hpp"
 #include "JHybridContactsModuleSpec.hpp"
+#include "JHybridDocumentDetectorModuleSpec.hpp"
 #include "JHybridShareActionHandlerSpec.hpp"
-#include "JHybridVerticalBarModuleSpec.hpp"
+#include "JHybridWindowBarsModuleSpec.hpp"
 #include "JFunc_void.hpp"
-#include "JFunc_void_VerticalBarEdge.hpp"
 #include <NitroModules/DefaultConstructableObject.hpp>
 
 namespace margelo::nitro::utils {
@@ -47,12 +47,20 @@ struct JHybridAppStartTimeModuleSpecImpl: public jni::JavaClass<JHybridAppStartT
     return javaPart->getJHybridAppStartTimeModuleSpec();
   }
 };
-struct JHybridVerticalBarModuleSpecImpl: public jni::JavaClass<JHybridVerticalBarModuleSpecImpl, JHybridVerticalBarModuleSpec::JavaPart> {
-  static constexpr auto kJavaDescriptor = "Lcom/margelo/nitro/utils/HybridVerticalBarModule;";
-  static std::shared_ptr<JHybridVerticalBarModuleSpec> create() {
-    static const auto constructorFn = javaClassStatic()->getConstructor<JHybridVerticalBarModuleSpecImpl::javaobject()>();
-    jni::local_ref<JHybridVerticalBarModuleSpec::JavaPart> javaPart = javaClassStatic()->newObject(constructorFn);
-    return javaPart->getJHybridVerticalBarModuleSpec();
+struct JHybridDocumentDetectorModuleSpecImpl: public jni::JavaClass<JHybridDocumentDetectorModuleSpecImpl, JHybridDocumentDetectorModuleSpec::JavaPart> {
+  static constexpr auto kJavaDescriptor = "Lcom/margelo/nitro/utils/HybridDocumentDetectorModule;";
+  static std::shared_ptr<JHybridDocumentDetectorModuleSpec> create() {
+    static const auto constructorFn = javaClassStatic()->getConstructor<JHybridDocumentDetectorModuleSpecImpl::javaobject()>();
+    jni::local_ref<JHybridDocumentDetectorModuleSpec::JavaPart> javaPart = javaClassStatic()->newObject(constructorFn);
+    return javaPart->getJHybridDocumentDetectorModuleSpec();
+  }
+};
+struct JHybridWindowBarsModuleSpecImpl: public jni::JavaClass<JHybridWindowBarsModuleSpecImpl, JHybridWindowBarsModuleSpec::JavaPart> {
+  static constexpr auto kJavaDescriptor = "Lcom/margelo/nitro/utils/HybridWindowBarsModule;";
+  static std::shared_ptr<JHybridWindowBarsModuleSpec> create() {
+    static const auto constructorFn = javaClassStatic()->getConstructor<JHybridWindowBarsModuleSpecImpl::javaobject()>();
+    jni::local_ref<JHybridWindowBarsModuleSpec::JavaPart> javaPart = javaClassStatic()->newObject(constructorFn);
+    return javaPart->getJHybridWindowBarsModuleSpec();
   }
 };
 struct JHybridShareActionHandlerSpecImpl: public jni::JavaClass<JHybridShareActionHandlerSpecImpl, JHybridShareActionHandlerSpec::JavaPart> {
@@ -71,10 +79,10 @@ void registerAllNatives() {
   // Register native JNI methods
   margelo::nitro::utils::JHybridAppStartTimeModuleSpec::CxxPart::registerNatives();
   margelo::nitro::utils::JHybridContactsModuleSpec::CxxPart::registerNatives();
+  margelo::nitro::utils::JHybridDocumentDetectorModuleSpec::CxxPart::registerNatives();
   margelo::nitro::utils::JHybridShareActionHandlerSpec::CxxPart::registerNatives();
-  margelo::nitro::utils::JHybridVerticalBarModuleSpec::CxxPart::registerNatives();
+  margelo::nitro::utils::JHybridWindowBarsModuleSpec::CxxPart::registerNatives();
   margelo::nitro::utils::JFunc_void_cxx::registerNatives();
-  margelo::nitro::utils::JFunc_void_VerticalBarEdge_cxx::registerNatives();
 
   // Register Nitro Hybrid Objects
   HybridObjectRegistry::registerHybridObjectConstructor(
@@ -90,9 +98,15 @@ void registerAllNatives() {
     }
   );
   HybridObjectRegistry::registerHybridObjectConstructor(
-    "VerticalBarModule",
+    "DocumentDetectorModule",
     []() -> std::shared_ptr<HybridObject> {
-      return JHybridVerticalBarModuleSpecImpl::create();
+      return JHybridDocumentDetectorModuleSpecImpl::create();
+    }
+  );
+  HybridObjectRegistry::registerHybridObjectConstructor(
+    "WindowBarsModule",
+    []() -> std::shared_ptr<HybridObject> {
+      return JHybridWindowBarsModuleSpecImpl::create();
     }
   );
   HybridObjectRegistry::registerHybridObjectConstructor(

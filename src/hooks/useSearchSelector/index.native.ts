@@ -22,7 +22,7 @@ function useSearchSelector<TSelected extends Option = OptionData>(config: UseSea
     const {enablePhoneContacts = false} = config;
 
     // Phone contacts logic
-    const {contacts, contactPermissionState, importAndSaveContacts, pickContact, setContactPermissionState} = useContactImport();
+    const {contacts, contactPermissionState, importAndSaveContacts, pickContact, setContactPermissionState} = useContactImport({shouldImportContacts: enablePhoneContacts});
     const memoizedContacts = contacts.length ? contacts : [];
     const showImportContacts = enablePhoneContacts && !(contactPermissionState === RESULTS.GRANTED || contactPermissionState === RESULTS.LIMITED);
 

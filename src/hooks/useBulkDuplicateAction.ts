@@ -29,7 +29,7 @@ import useOnyx from './useOnyx';
 import useParticipantsPolicyTags from './useParticipantsPolicyTags';
 import usePermissions from './usePermissions';
 import {useGetPersonalDetailsByLogin} from './usePersonalDetailByLogin';
-import {useAllPersonalDetails} from './usePersonalDetails';
+import {usePersonalDetailsByIDs} from './usePersonalDetails';
 import useReportIsArchived from './useReportIsArchived';
 import useRestrictedActionPolicyID from './useRestrictedActionPolicyID';
 
@@ -61,7 +61,8 @@ function useBulkDuplicateAction({
     sourceChatReport,
     sourcePolicy,
 }: UseBulkDuplicateActionParams) {
-    const {accountID, login: currentUserLogin, localCurrencyCode} = useCurrentUserPersonalDetails();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const {accountID, login: currentUserLogin, localCurrencyCode} = currentUserPersonalDetails;
     const delegateAccountID = useDelegateAccountID();
     const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const {formatPhoneNumber} = useLocalize();
@@ -79,7 +80,6 @@ function useBulkDuplicateAction({
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [transactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
-    const [personalDetails] = useAllPersonalDetails();
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
@@ -124,6 +124,7 @@ function useBulkDuplicateAction({
     const policyTagList = useMoneyRequestPolicyTagsForReport({report: duplicateTargetReport, currentUserAccountID: accountID});
     const participants = getMoneyRequestParticipantsFromReport(duplicateTargetReport, accountID);
     const participantsPolicyTags = useParticipantsPolicyTags(participants);
+    const [personalDetails] = usePersonalDetailsByIDs([participants.at(0)?.accountID]);
 
     const handleDuplicate = () => {
         if (restrictedActionPolicyID) {
@@ -151,6 +152,7 @@ function useBulkDuplicateAction({
             transactionDrafts,
             recentWaypoints,
             currentUser: {accountID, email: currentUserLogin ?? ''},
+            currentUserPersonalDetails,
             currentUserLocalCurrency: localCurrencyCode ?? CONST.CURRENCY.USD,
             isTrackIntentUser,
             delegateAccountID,

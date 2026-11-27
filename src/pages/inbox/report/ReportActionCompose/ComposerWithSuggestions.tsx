@@ -2,6 +2,7 @@ import type {Emoji} from '@assets/emojis/types';
 
 import Composer from '@components/Composer';
 import type {ComposerRef, CustomSelectionChangeEvent, TextSelection} from '@components/Composer/types';
+import FSClassContext from '@components/FSClassView/FSClassContext';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
 
 import {useMentionedAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
@@ -12,7 +13,6 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
-import {buildReportIDToNameMap, getMentionedReportIDs} from '@hooks/useReportIDToNameMap';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelState from '@hooks/useSidePanelState';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -33,6 +33,7 @@ import {detectAndRewritePaste} from '@libs/MarkdownLinkHelpers';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import Parser from '@libs/Parser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
+import {buildReportIDToNameMap, getMentionedReportIDs} from '@libs/ReportIDToNameMapUtils';
 import {isValidReportIDFromPath, shouldAutoFocusOnKeyPress} from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
@@ -1018,19 +1019,22 @@ function ComposerWithSuggestions({
                 />
             </View>
 
-            <Suggestions
-                ref={suggestionsRef}
-                isComposerFocused={isComposerFocused}
-                updateComment={updateComment}
-                measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
-                isGroupPolicyReport={isGroupPolicyReport}
-                policyID={policyID}
-                // Input
-                value={text}
-                selection={selection}
-                setSelection={onSuggestionSelected}
-                resetKeyboardInput={resetKeyboardInput}
-            />
+            {/* The suggestions render in a portal, outside the chat's masked views, so they take the chat's FullStory class from this context */}
+            <FSClassContext.Provider value={forwardedFSClass}>
+                <Suggestions
+                    ref={suggestionsRef}
+                    isComposerFocused={isComposerFocused}
+                    updateComment={updateComment}
+                    measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
+                    isGroupPolicyReport={isGroupPolicyReport}
+                    policyID={policyID}
+                    // Input
+                    value={text}
+                    selection={selection}
+                    setSelection={onSuggestionSelected}
+                    resetKeyboardInput={resetKeyboardInput}
+                />
+            </FSClassContext.Provider>
 
             {isValidReportIDFromPath(reportID) && (
                 <SilentCommentUpdater

@@ -1,0 +1,100 @@
+diff --git a/node_modules/react-native/Libraries/Renderer/implementations/ReactFabric-dev.js b/node_modules/react-native/Libraries/Renderer/implementations/ReactFabric-dev.js
+--- a/node_modules/react-native/Libraries/Renderer/implementations/ReactFabric-dev.js
++++ b/node_modules/react-native/Libraries/Renderer/implementations/ReactFabric-dev.js
+@@ -1307,12 +1307,11 @@ __DEV__ &&
+           (_enableNativeEventTargetEventDispatching =
+             "function" === typeof event && event()));
+         if (_enableNativeEventTargetEventDispatching)
+-          null != eventTarget &&
+-            reactPrivateInterface.dispatchNativeEvent(
+-              eventTarget,
+-              topLevelType,
+-              nativeEvent
+-            );
++          reactPrivateInterface.dispatchNativeEvent(
++            eventTarget,
++            topLevelType,
++            nativeEvent
++          );
+         else {
+           event = eventTarget;
+           for (
+diff --git a/node_modules/react-native/Libraries/Renderer/implementations/ReactFabric-prod.js b/node_modules/react-native/Libraries/Renderer/implementations/ReactFabric-prod.js
+--- a/node_modules/react-native/Libraries/Renderer/implementations/ReactFabric-prod.js
++++ b/node_modules/react-native/Libraries/Renderer/implementations/ReactFabric-prod.js
+@@ -1338,12 +1338,11 @@ function dispatchEvent(target, topLevelType, nativeEventParam) {
+       (_enableNativeEventTargetEventDispatching =
+         "function" === typeof event && event()));
+     if (_enableNativeEventTargetEventDispatching)
+-      null != eventTarget &&
+-        reactPrivateInterface.dispatchNativeEvent(
+-          eventTarget,
+-          topLevelType,
+-          nativeEvent
+-        );
++      reactPrivateInterface.dispatchNativeEvent(
++        eventTarget,
++        topLevelType,
++        nativeEvent
++      );
+     else {
+       event = eventTarget;
+       for (
+diff --git a/node_modules/react-native/Libraries/Renderer/implementations/ReactFabric-profiling.js b/node_modules/react-native/Libraries/Renderer/implementations/ReactFabric-profiling.js
+--- a/node_modules/react-native/Libraries/Renderer/implementations/ReactFabric-profiling.js
++++ b/node_modules/react-native/Libraries/Renderer/implementations/ReactFabric-profiling.js
+@@ -1405,12 +1405,11 @@ function dispatchEvent(target, topLevelType, nativeEventParam) {
+       (_enableNativeEventTargetEventDispatching =
+         "function" === typeof event && event()));
+     if (_enableNativeEventTargetEventDispatching)
+-      null != eventTarget &&
+-        reactPrivateInterface.dispatchNativeEvent(
+-          eventTarget,
+-          topLevelType,
+-          nativeEvent
+-        );
++      reactPrivateInterface.dispatchNativeEvent(
++        eventTarget,
++        topLevelType,
++        nativeEvent
++      );
+     else {
+       event = eventTarget;
+       for (
+diff --git a/node_modules/react-native/src/private/renderer/events/ReactNativeResponder.js b/node_modules/react-native/src/private/renderer/events/ReactNativeResponder.js
+--- a/node_modules/react-native/src/private/renderer/events/ReactNativeResponder.js
++++ b/node_modules/react-native/src/private/renderer/events/ReactNativeResponder.js
+@@ -591,7 +591,7 @@ function isResponderRelevantTopLevelType(topLevelType: string): boolean {
+  */
+ export function processResponderEvent(
+   topLevelType: string,
+-  eventTarget: EventTarget | null,
++  eventTarget: ?EventTarget,
+   nativeEvent: {[string]: unknown},
+ ): void {
+   // Fast path: if this event isn't one the responder system cares about and
+diff --git a/node_modules/react-native/src/private/renderer/events/dispatchNativeEvent.js b/node_modules/react-native/src/private/renderer/events/dispatchNativeEvent.js
+--- a/node_modules/react-native/src/private/renderer/events/dispatchNativeEvent.js
++++ b/node_modules/react-native/src/private/renderer/events/dispatchNativeEvent.js
+@@ -37,7 +37,7 @@ import {
+  * enableNativeEventTargetEventDispatching is enabled.
+  */
+ export default function dispatchNativeEvent(
+-  target: EventTarget,
++  target: ?EventTarget,
+   type: string,
+   payload: {[string]: unknown},
+ ): void {
+@@ -45,6 +45,12 @@ export default function dispatchNativeEvent(
+   processResponderEvent(type, target, payload);
+ 
+   try {
++    // The target is missing when its view unmounted during the touch, so only
++    // the responder step above applies.
++    if (target == null) {
++      return;
++    }
++
+     // Normal EventTarget dispatch
+     const bubbleConfig = customBubblingEventTypes[type];
+     const directConfig = customDirectEventTypes[type];

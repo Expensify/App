@@ -78,20 +78,21 @@ describe('localize', () => {
     // Localized fixtures intentionally contain words outside the English spelling dictionary.
     // cspell:disable
     describe.each([
-        [CONST.LOCALES.EN, 'in two weeks', 'in one week', 'soon'],
-        [CONST.LOCALES.DE, 'in zwei Wochen', 'in einer Woche', 'bald'],
-        [CONST.LOCALES.EL, 'σε δύο εβδομάδες', 'σε μία εβδομάδα', 'σύντομα'],
-        [CONST.LOCALES.ES, 'en dos semanas', 'en una semana', 'pronto'],
-        [CONST.LOCALES.FR, 'dans deux semaines', 'dans une semaine', 'bientôt'],
-        [CONST.LOCALES.IT, 'tra due settimane', 'tra una settimana', 'presto'],
-        [CONST.LOCALES.JA, '2週間後', '1週間後', 'まもなく'],
-        [CONST.LOCALES.NL, 'over twee weken', 'over een week', 'binnenkort'],
-        [CONST.LOCALES.PL, 'za dwa tygodnie', 'za tydzień', 'wkrótce'],
-        [CONST.LOCALES.PT_BR, 'em duas semanas', 'em uma semana', 'em breve'],
-        [CONST.LOCALES.ZH_HANS, '两周后', '一周后', '即将'],
-    ] as const)('company card consent warning in %s', (locale, twoWeeks, oneWeek, soon) => {
+        [CONST.LOCALES.EN, 'in one month', 'in two weeks', 'in one week', 'soon'],
+        [CONST.LOCALES.DE, 'in einem Monat', 'in zwei Wochen', 'in einer Woche', 'bald'],
+        [CONST.LOCALES.EL, 'σε έναν μήνα', 'σε δύο εβδομάδες', 'σε μία εβδομάδα', 'σύντομα'],
+        [CONST.LOCALES.ES, 'en un mes', 'en dos semanas', 'en una semana', 'pronto'],
+        [CONST.LOCALES.FR, 'dans un mois', 'dans deux semaines', 'dans une semaine', 'bientôt'],
+        [CONST.LOCALES.IT, 'tra un mese', 'tra due settimane', 'tra una settimana', 'presto'],
+        [CONST.LOCALES.JA, '1か月後', '2週間後', '1週間後', 'まもなく'],
+        [CONST.LOCALES.NL, 'over een maand', 'over twee weken', 'over een week', 'binnenkort'],
+        [CONST.LOCALES.PL, 'za miesiąc', 'za dwa tygodnie', 'za tydzień', 'wkrótce'],
+        [CONST.LOCALES.PT_BR, 'em um mês', 'em duas semanas', 'em uma semana', 'em breve'],
+        [CONST.LOCALES.ZH_HANS, '一个月后', '两周后', '一周后', '即将'],
+    ] as const)('company card consent warning in %s', (locale, oneMonth, twoWeeks, oneWeek, soon) => {
         // cspell:enable
         it.each([
+            [30, oneMonth],
             [14, twoWeeks],
             [7, oneWeek],
             [1, soon],

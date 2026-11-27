@@ -12,9 +12,12 @@ jest.mock('@components/Form/FormProvider', () => jest.fn(() => null));
 jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: (key: string) => key})));
 jest.mock('@hooks/useThemeStyles', () => jest.fn(() => new Proxy({}, {get: () => ({})})));
 
+const mockShowContinueOfflineModal = jest.fn();
+jest.mock('@components/DynamicForm/hooks/useContinueOfflineModal', () => jest.fn(() => ({showContinueOfflineModal: mockShowContinueOfflineModal})));
+
 const page: DynamicFormPage = {key: 'identity', title: 'Identity', content: [{key: 'ssn', type: 'text', required: true, sensitive: true}]};
 
-function renderPage(isLastPage: boolean, shouldDisableNextWhenOffline?: boolean, validatePage?: (page: DynamicFormPage) => Record<string, string>) {
+function renderPage(isLastPage: boolean, shouldDisableNextWhenOffline?: boolean, validatePage?: (page: DynamicFormPage) => Record<string, string>, onSaveForLater?: () => void) {
     render(
         <DynamicFormFieldsPage
             isEditing={false}
@@ -33,6 +36,8 @@ function renderPage(isLastPage: boolean, shouldDisableNextWhenOffline?: boolean,
             confirmationTitle="Confirm"
             shouldDisableNextWhenOffline={shouldDisableNextWhenOffline}
             validatePage={validatePage}
+            markUnfinishedForm={jest.fn(() => false)}
+            onSaveForLater={onSaveForLater}
         />,
     );
     return jest.mocked(FormProvider).mock.lastCall?.[0];
@@ -77,5 +82,27 @@ describe('DynamicFormFieldsPage', () => {
         // Then the screen's error blocks Next, and the missing SSN keeps its own error
         expect(validatePage).toHaveBeenCalledWith(page, expect.anything());
         expect(errors).toEqual({ssn: 'common.error.fieldRequired', other: 'Too many files'});
+    });
+
+    it('warns that a typed sensitive answer is dropped when the user leaves offline', () => {
+        // Given a page with an SSN field in a flow that saves each page, so leaving offline drops an SSN only kept in memory
+        const formProps = renderPage(false, true, undefined, jest.fn());
+
+        // When the user presses Next offline with an SSN typed
+        formProps?.onSubmitWhenOffline?.(jest.fn(), {ssn: '123456789'});
+
+        // Then the modal says the sensitive details will need to be entered again
+        expect(mockShowContinueOfflineModal).toHaveBeenLastCalledWith(expect.objectContaining({hasGivenSensitiveAnswer: true}));
+    });
+
+    it('keeps the plain offline copy when no sensitive answer was typed', () => {
+        // Given a page with an SSN field in a flow that saves each page
+        const formProps = renderPage(false, true, undefined, jest.fn());
+
+        // When the user presses Next offline with the SSN left empty, such as when the server already holds it
+        formProps?.onSubmitWhenOffline?.(jest.fn(), {ssn: ''});
+
+        // Then the modal keeps the plain copy, since leaving loses nothing
+        expect(mockShowContinueOfflineModal).toHaveBeenLastCalledWith(expect.objectContaining({hasGivenSensitiveAnswer: false}));
     });
 });

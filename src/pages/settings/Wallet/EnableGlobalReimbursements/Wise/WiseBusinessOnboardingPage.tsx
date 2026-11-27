@@ -29,14 +29,13 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {hideBankAccountErrors, openReimbursementAccountPage} from '@userActions/BankAccounts';
 import {clearSensitiveAnswers, saveDraftAnswers} from '@userActions/DynamicForm';
 import {clearDraftValues} from '@userActions/FormActions';
-import saveWiseOnboardingPage, {clearWiseOnboardingUnsavedPages} from '@userActions/WiseOnboarding';
+import saveWiseOnboardingPage, {clearWiseOnboardingUnsavedPages, markWiseOnboardingPageLeftOffline} from '@userActions/WiseOnboarding';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {DynamicFormPage, ReimbursementAccount} from '@src/types/onyx';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -63,12 +62,12 @@ const SAVED_DOCUMENTS_DRAFT_KEY = 'savedDocuments';
 function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
     const bankAccountID = Number(route.params.bankAccountID);
     const introPath = useDynamicBackPath(DYNAMIC_ROUTES.WISE_BUSINESS_ONBOARDING.path);
-    const [bankAccountList, bankAccountListMetadata] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [isLoadingPaymentMethods = true] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS);
-    const [privatePersonalDetails, privatePersonalDetailsMetadata] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
-    const [draft, draftMetadata] = useOnyx(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT);
-    const [businessAccount, businessAccountMetadata] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: businessAccountSelector});
-    const {isSaving, saveError, unsavedPageKeys} = useWiseOnboardingSaveStatus();
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+    const [draft] = useOnyx(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT);
+    const [businessAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: businessAccountSelector});
+    const {isSaving, serverError, unsavedPageKeys} = useWiseOnboardingSaveStatus();
     const bankAccount = bankAccountList?.[bankAccountID];
     // A selector, so the check is cached now that only the early return below reads it
     const [isEligible = false] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {
@@ -142,12 +141,7 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
     // Next and Back mount the page again mid-visit, after the prefill, so they are left to the flow.
     const hasBusinessAccountOnDevice = !!bankAccount && businessAccount?.data?.bankAccountID === bankAccountID;
     const isWaitingForConnection = isOffline && isNewVisit && !isPrefillDone && !hasBusinessAccountOnDevice;
-    const isLoading =
-        isLoadingOnyxValue(bankAccountListMetadata, privatePersonalDetailsMetadata, draftMetadata, businessAccountMetadata) ||
-        isWaitingForBankAccount ||
-        isWaitingForBusinessAccount ||
-        isWaitingForConnection ||
-        isOnboardingSubmitted;
+    const isLoading = isWaitingForBankAccount || isWaitingForBusinessAccount || isWaitingForConnection || isOnboardingSubmitted;
 
     // The draft holds the answers for one bank account, so a visit for another account starts it over
     const draftBankAccountID = String(bankAccountID);
@@ -285,8 +279,15 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
     const isWaitingForRequirements =
         isAfterBusinessPage && ((isSaving && unsavedPageKeys.includes(CONST.WISE.ONBOARDING_STEP.BUSINESS)) || !!unansweredRequirementPageKey || isConfirmationPageReadingRequirements);
 
+    // A step whose pages left the form, such as a requirement a new industry drops, is never saved again, so only the steps the form still asks for count.
+    // Until this bank account's requirements are on the device the form lacks their pages, so every unsaved step counts.
+    const formSteps = new Set(getPages(form).map((page) => getOnboardingStep(form, page.key)));
+    const formUnsavedSteps = isBusinessAccountForThisBank ? unsavedPageKeys.filter((step) => formSteps.has(step)) : unsavedPageKeys;
+    // A later page's save clears the shared error, so a page that is still unsaved shows the generic one
+    const saveError = serverError || (formUnsavedSteps.length > 0 && !isSaving ? translate('common.genericErrorMessage') : undefined);
+
     // A save records its step, and the flow names its pages by their URL-safe key
-    const unsavedRoutePageKeys = unsavedPageKeys.map((step) => getRoutePageKey(form, step) ?? step);
+    const unsavedRoutePageKeys = formUnsavedSteps.map((step) => getRoutePageKey(form, step) ?? step);
 
     if (isWaitingForConnection) {
         return (
@@ -323,8 +324,15 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
             // Each page is saved to Wise as the user leaves it, so a later visit resumes from what the server holds
             onPageSubmit={savePage}
             validatePage={validatePage}
-            // No page saves offline, so a typed SSN never waits for a connection and a later visit never resumes from a save the server has not seen
-            shouldDisableNextWhenOffline
+            // No page saves offline, so a typed SSN never waits for a connection and a later visit never resumes from a save the server has not seen.
+            // Next offline explains that instead and offers to leave, since the pages saved so far and the draft are kept. The page left was never saved to Wise,
+            // so it is marked unsaved and the next visit opens on it.
+            onSaveForLater={(page) => {
+                if (!page) {
+                    return;
+                }
+                markWiseOnboardingPageLeftOffline(getOnboardingStep(form, page.key));
+            }}
             submitError={saveError}
             // Confirm waits while a page is saving, and a visit after a page did not save opens on that page
             isSavingPages={isSaving}

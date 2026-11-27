@@ -110,9 +110,6 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
     /** The order `initialSortColumn` is initially sorted in, used as the reset target for sort controls. */
     initialSortOrder: SortOrder;
 
-    /** The column sorting is locked to on narrow layouts, where user sorting is ignored. */
-    narrowLayoutSortColumn: ColumnKey | undefined;
-
     activeSearchString: string;
 
     /** Methods exposed by the Table component for programmatic control. */
@@ -166,7 +163,6 @@ const defaultTableContextValue: TableContextValue<TableData, string> = {
     },
     initialSortColumn: undefined,
     initialSortOrder: CONST.SEARCH.SORT_ORDER.ASC,
-    narrowLayoutSortColumn: undefined,
     activeSearchString: '',
     tableMethods: {} as TableMethods<string, string>,
     filterConfig: undefined,

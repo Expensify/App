@@ -3,6 +3,7 @@ import type {RenderAPI} from '@testing-library/react-native';
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
+import {buildPersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 import type {SearchGroupBy} from '@components/Search/types';
 
 import {putOnHold} from '@libs/actions/IOU/Hold';
@@ -86,6 +87,7 @@ import {
     formatPhoneNumber,
     getCurrencyDecimalsLocal,
     getCurrencySymbolLocal,
+    getFetchMockCalls,
     getOnyxData,
     getRequiredOnyxUpdates,
     getRequiredWriteCall,
@@ -212,6 +214,7 @@ const mockPersonalDetails: PersonalDetailsList = {
         displayName: VIT_EMAIL,
     },
 };
+const mockPersonalDetailsByLogins = buildPersonalDetailsByLogin(mockPersonalDetails);
 
 const getAllPolicyTags = async (): Promise<OnyxCollection<PolicyTagLists>> => {
     let allPolicyTags: OnyxCollection<PolicyTagLists>;
@@ -412,6 +415,7 @@ describe('split expense', () => {
                 splitBill(
                     // TODO: Migrate after the backend accepts accountIDs
                     {
+                        personalDetailsByLogins: mockPersonalDetailsByLogins,
                         isVendorMatchingBetaEnabled: false,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
                         participants: [
@@ -751,6 +755,7 @@ describe('split expense', () => {
 
         // When the user split bill on the workspace
         splitBill({
+            personalDetailsByLogins: mockPersonalDetailsByLogins,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants: [{reportID: workspaceReportID}],
@@ -806,6 +811,7 @@ describe('split expense', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${workspaceReportID}`, {reportID: workspaceReportID, isOwnPolicyExpenseChat: true});
 
         splitBill({
+            personalDetailsByLogins: mockPersonalDetailsByLogins,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants: [{reportID: workspaceReportID}],
@@ -835,6 +841,7 @@ describe('split expense', () => {
         expect(await getOnyxValue(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE)).toHaveProperty('isFirstQuickAction', true);
 
         splitBill({
+            personalDetailsByLogins: mockPersonalDetailsByLogins,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants: [{reportID: workspaceReportID}],
@@ -871,6 +878,7 @@ describe('split expense', () => {
         await Onyx.set(ONYXKEYS.RECENTLY_USED_CURRENCIES, initialCurrencies);
 
         splitBill({
+            personalDetailsByLogins: mockPersonalDetailsByLogins,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
@@ -912,6 +920,7 @@ describe('split expense', () => {
 
         // When the user split bill twice on the DM
         splitBill({
+            personalDetailsByLogins: mockPersonalDetailsByLogins,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
@@ -939,6 +948,7 @@ describe('split expense', () => {
         await waitForBatchedUpdates();
 
         splitBill({
+            personalDetailsByLogins: mockPersonalDetailsByLogins,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
@@ -1013,6 +1023,7 @@ describe('split expense', () => {
 
         // When doing a distance split expense
         splitBill({
+            personalDetailsByLogins: mockPersonalDetailsByLogins,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants: [{reportID: workspaceReportID}],
@@ -1065,6 +1076,7 @@ describe('split expense', () => {
 
         // When the user split bill on the group chat
         splitBill({
+            personalDetailsByLogins: mockPersonalDetailsByLogins,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
@@ -1128,6 +1140,7 @@ describe('split expense', () => {
 
         // When doing a split bill
         splitBill({
+            personalDetailsByLogins: mockPersonalDetailsByLogins,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants: [{isPolicyExpenseChat: true, policyID}],
@@ -1241,6 +1254,7 @@ describe('split expense', () => {
 
         // Complete this split bill without changing the description
         completeSplitBill({
+            personalDetailsByLogins: mockPersonalDetailsByLogins,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             chatReportID: reportID,
@@ -1318,6 +1332,7 @@ describe('split expense', () => {
 
         // When the user fills the fields in by hand and completes the split while still offline
         completeSplitBill({
+            personalDetailsByLogins: mockPersonalDetailsByLogins,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             chatReportID: reportID,
@@ -1540,9 +1555,11 @@ describe('split expense', () => {
                 displayName: 'Carlos Test',
             },
         };
+        const testPersonalDetailsByLogins = buildPersonalDetailsByLogin(testPersonalDetails);
 
         // When splitting a bill with explicit personalDetails
         splitBill({
+            personalDetailsByLogins: testPersonalDetailsByLogins,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
@@ -1603,9 +1620,11 @@ describe('split expense', () => {
                 displayName: 'Jules',
             },
         };
+        const participantPersonalDetailsByLogins = buildPersonalDetailsByLogin(participantPersonalDetails);
 
         // When splitting a bill among multiple participants with explicit personalDetails
         splitBill({
+            personalDetailsByLogins: participantPersonalDetailsByLogins,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants: [
@@ -1757,8 +1776,10 @@ describe('split expense', () => {
                 displayName: 'Carlos Complete',
             },
         };
+        const completeSplitPersonalDetailsByLogins = buildPersonalDetailsByLogin(completeSplitPersonalDetails);
 
         completeSplitBill({
+            personalDetailsByLogins: completeSplitPersonalDetailsByLogins,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             chatReportID: reportID,
@@ -6940,6 +6961,7 @@ describe('updateSplitTransactions', () => {
 
         updateSplitTransactions({
             isVendorMatchingBetaEnabled: false,
+            shouldFlagNewSplitsForReportTable: true,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -6986,6 +7008,166 @@ describe('updateSplitTransactions', () => {
         const split2 = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}split-2`);
         expect(split1).toBeDefined();
         expect(split2).toBeDefined();
+    });
+
+    it('flags new splits for the report table, but not the original expense that a reverse split brings back', async () => {
+        // Given a workspace expense report that holds one expense
+        const amount = 10000;
+        let expenseReport: OnyxEntry<Report>;
+        let chatReport: OnyxEntry<Report>;
+        let originalTransactionID: string | undefined;
+        let firstIOU: ReportAction | undefined;
+
+        const policyID = generatePolicyID();
+        createWorkspace({
+            conciergeChat: undefined,
+            policyOwner: {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
+            makeMeAdmin: true,
+            policyName: "Carlos's Workspace",
+            policyID,
+            introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+            currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
+            currentUserEmailParam: CARLOS_EMAIL,
+            currency: undefined,
+            isSelfTourViewed: false,
+            hasActiveAdminPolicies: false,
+            hasOwnedPaidPolicy: false,
+            activePolicy: undefined,
+            delegateAccountID: undefined,
+        });
+        const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+        setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false, undefined);
+        await waitForBatchedUpdates();
+
+        await getOnyxData({
+            key: ONYXKEYS.COLLECTION.REPORT,
+            callback: (allReports) => {
+                chatReport = Object.values(allReports ?? {}).find((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+            },
+        });
+
+        requestMoney({
+            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
+            isVendorMatchingBetaEnabled: false,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            conciergeChat: undefined,
+            report: chatReport,
+            participantParams: {
+                payeeEmail: RORY_EMAIL,
+                payeeAccountID: RORY_ACCOUNT_ID,
+                participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID, isPolicyExpenseChat: true, reportID: chatReport?.reportID},
+            },
+            transactionParams: {amount, attendees: [], currency: CONST.CURRENCY.USD, created: '', merchant: 'Test'},
+            shouldGenerateTransactionThreadReport: true,
+            isASAPSubmitBetaEnabled: false,
+            currentUserAccountIDParam: RORY_ACCOUNT_ID,
+            currentUserEmailParam: RORY_EMAIL,
+            transactionViolations: {},
+            policyRecentlyUsedCurrencies: [],
+            quickAction: undefined,
+            isSelfTourViewed: false,
+            personalDetails: {},
+            existingTransactionDraft: undefined,
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
+            formatPhoneNumber,
+            rules: undefined,
+        });
+        await waitForBatchedUpdates();
+
+        await getOnyxData({
+            key: ONYXKEYS.COLLECTION.REPORT,
+            callback: (allReports) => {
+                expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.EXPENSE);
+            },
+        });
+        await getOnyxData({
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.reportID}`,
+            callback: (allReportsAction) => {
+                const iouActions = Object.values(allReportsAction ?? {}).filter((reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
+                    isMoneyRequestAction(reportAction),
+                );
+                firstIOU = iouActions?.at(0);
+                originalTransactionID = isMoneyRequestAction(firstIOU) ? getOriginalMessage(firstIOU)?.IOUTransactionID : undefined;
+            },
+        });
+
+        const reportID = expenseReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
+        const originalTransactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}` as const;
+        const getFlaggedIDs = async () => getFlaggedTransactionIDs((await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`))?.pendingNewTransactionIDs);
+        const getActiveReportTransactionIDs = async () => {
+            let activeTransactionIDs: string[] = [];
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                callback: (allTransactions) => {
+                    activeTransactionIDs = Object.values(allTransactions ?? {}).flatMap((transaction) =>
+                        transaction?.reportID === reportID && transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? [transaction.transactionID] : [],
+                    );
+                },
+            });
+            return activeTransactionIDs;
+        };
+        const saveSplits = async (splitExpenses: Parameters<typeof updateSplitTransactions>[0]['transactionData']['splitExpenses']) => {
+            let allTransactions: OnyxCollection<Transaction>;
+            let allReports: OnyxCollection<Report>;
+            let allReportActions: OnyxCollection<ReportActions>;
+            let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+            await getOnyxData({key: ONYXKEYS.COLLECTION.TRANSACTION, callback: (value) => (allTransactions = value)});
+            await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT, callback: (value) => (allReports = value)});
+            await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT_ACTIONS, callback: (value) => (allReportActions = value)});
+            await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, callback: (value) => (allReportNameValuePairs = value)});
+            const reports = getTransactionAndExpenseReports(reportID);
+            updateSplitTransactions({
+                isVendorMatchingBetaEnabled: false,
+                shouldFlagNewSplitsForReportTable: true,
+                rules: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+                allTransactionsList: allTransactions,
+                allReportsList: allReports,
+                reportDrafts: {},
+                allReportActionsList: allReportActions,
+                allReportNameValuePairsList: allReportNameValuePairs,
+                transactionData: {reportID, originalTransactionID: originalTransactionID ?? String(CONST.DEFAULT_NUMBER_ID), splitExpenses, splitExpensesTotal: undefined},
+                searchContext: {currentSearchHash: -2},
+                policyCategories: undefined,
+                policy: undefined,
+                policyRecentlyUsedCategories: [],
+                iouReport: await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`),
+                firstIOU,
+                isASAPSubmitBetaEnabled: false,
+                currentUserPersonalDetails,
+                transactionViolations: {},
+                policyRecentlyUsedCurrencies: [],
+                quickAction: undefined,
+                allPolicyTags: await getAllPolicyTags(),
+                personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+                transactionReport: reports.transactionReport,
+                expenseReport: reports.expenseReport,
+                isOffline: false,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                formatPhoneNumber,
+            });
+            await waitForBatchedUpdates();
+        };
+
+        // When the expense is split in two
+        await saveSplits([
+            {transactionID: 'split-1', amount: amount / 2, description: 'Split 1', created: DateUtils.getDBTime()},
+            {transactionID: 'split-2', amount: amount / 2, description: 'Split 2', created: DateUtils.getDBTime()},
+        ]);
+
+        // Then both splits are flagged, since they are new rows in a report that already showed one
+        expect(await getFlaggedIDs()).toEqual(expect.arrayContaining(['split-1', 'split-2']));
+
+        // When one split is removed, so the other is merged back into the original expense, from a flow that flags new splits
+        await saveSplits([{transactionID: 'split-2', amount, description: 'Split 2', created: DateUtils.getDBTime()}]);
+
+        // Then the original expense is the report's only active expense again and isn't flagged, since the report held it before it was split and nothing was added
+        expect((await getOnyxValue(originalTransactionKey))?.reportID).toBe(reportID);
+        expect(await getActiveReportTransactionIDs()).toEqual([originalTransactionID]);
+        expect(await getFlaggedIDs()).not.toContain(originalTransactionID);
     });
 
     it('should create split transactions when called with isOffline=true', async () => {
@@ -7086,6 +7268,7 @@ describe('updateSplitTransactions', () => {
 
         updateSplitTransactions({
             isVendorMatchingBetaEnabled: false,
+            shouldFlagNewSplitsForReportTable: true,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -7230,6 +7413,7 @@ describe('updateSplitTransactions', () => {
 
         updateSplitTransactions({
             isVendorMatchingBetaEnabled: false,
+            shouldFlagNewSplitsForReportTable: true,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -7419,6 +7603,7 @@ describe('updateSplitTransactions', () => {
 
         updateSplitTransactions({
             isVendorMatchingBetaEnabled: false,
+            shouldFlagNewSplitsForReportTable: true,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -7552,6 +7737,7 @@ describe('updateSplitTransactions', () => {
 
         updateSplitTransactions({
             isVendorMatchingBetaEnabled: false,
+            shouldFlagNewSplitsForReportTable: true,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -7733,6 +7919,7 @@ describe('updateSplitTransactions', () => {
         mockFetch?.pause?.();
         updateSplitTransactions({
             isVendorMatchingBetaEnabled: false,
+            shouldFlagNewSplitsForReportTable: true,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -8037,6 +8224,7 @@ describe('updateSplitTransactions', () => {
 
         updateSplitTransactions({
             isVendorMatchingBetaEnabled: false,
+            shouldFlagNewSplitsForReportTable: true,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -8162,6 +8350,7 @@ describe('updateSplitTransactions', () => {
 
         updateSplitTransactions({
             isVendorMatchingBetaEnabled: false,
+            shouldFlagNewSplitsForReportTable: true,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -8241,6 +8430,7 @@ describe('updateSplitTransactions', () => {
 
         updateSplitTransactions({
             isVendorMatchingBetaEnabled: false,
+            shouldFlagNewSplitsForReportTable: true,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -8316,6 +8506,7 @@ describe('updateSplitTransactions', () => {
         // The preview action lives in the chat report's actions, supplied via the new allReportActionsList param.
         updateSplitTransactions({
             isVendorMatchingBetaEnabled: false,
+            shouldFlagNewSplitsForReportTable: true,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -8396,6 +8587,7 @@ describe('updateSplitTransactions', () => {
 
         updateSplitTransactions({
             isVendorMatchingBetaEnabled: false,
+            shouldFlagNewSplitsForReportTable: true,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -8470,6 +8662,7 @@ describe('updateSplitTransactions', () => {
 
         updateSplitTransactions({
             isVendorMatchingBetaEnabled: false,
+            shouldFlagNewSplitsForReportTable: true,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -8588,6 +8781,7 @@ describe('updateSplitTransactions', () => {
         // `extraIOUActions` (matching `iouActions.slice(1)`).
         updateSplitTransactions({
             isVendorMatchingBetaEnabled: false,
+            shouldFlagNewSplitsForReportTable: true,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -11986,6 +12180,7 @@ describe('planDistanceRequest and commitDistanceRequest', () => {
             displayName: 'Carlos',
         },
     };
+    const distanceMockPersonalDetailsByLogins = buildPersonalDetailsByLogin(distanceMockPersonalDetails);
 
     function getDefaultDistanceRequestParams(
         report: Report | undefined,
@@ -11993,6 +12188,7 @@ describe('planDistanceRequest and commitDistanceRequest', () => {
         recentWaypoints: Awaited<ReturnType<typeof getOnyxValue<typeof ONYXKEYS.NVP_RECENT_WAYPOINTS>>> = [],
     ): CreateDistanceRequestInformation {
         return {
+            personalDetailsByLogins: distanceMockPersonalDetailsByLogins,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             report,
@@ -12516,6 +12712,32 @@ describe('planDistanceRequest and commitDistanceRequest', () => {
         expect(createdTransaction?.comment?.odometerEnd).toBe(10050);
     });
 
+    it('sends the unit the odometer readings were entered in with the distance request', async () => {
+        // Given readings entered in km on an expense whose distance was converted to miles
+        const testReport = createRandomReport(1, undefined);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${testReport.reportID}`, testReport);
+        const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+
+        // When the distance request is created
+        const {transactionID} = planAndCommitDistanceRequest(
+            getDefaultDistanceRequestParams(
+                testReport,
+                {amount: 500, distance: 2.49, odometerStart: 2, odometerEnd: 6, odometerUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS},
+                recentWaypoints,
+            ),
+        );
+        await waitForBatchedUpdates();
+
+        // Then the backend gets the readings' unit so it can convert end - start into the rate's unit
+        const requestBody = getFetchMockCalls(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST).at(0)?.[1]?.body;
+        const requestParams = requestBody instanceof FormData ? Object.fromEntries(requestBody) : {};
+        expect(requestParams).toEqual(expect.objectContaining({odometerStart: '2', odometerEnd: '6', odometerUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS}));
+
+        // And the optimistic transaction keeps the unit, so a later edit can send it too
+        const createdTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+        expect(createdTransaction?.comment?.odometerUnit).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
+    });
+
     it('creates distance request with category in policy expense chat', async () => {
         const policyID = 'testPolicy123';
         const testCategory = 'Travel';
@@ -13035,7 +13257,7 @@ describe('split save deferred write', () => {
 
         try {
             // When the action runs
-            updateSplitTransactions(params);
+            updateSplitTransactions({...params, shouldFlagNewSplitsForReportTable: false});
             await waitForBatchedUpdates();
 
             // Then it writes straight away instead of waiting on a transition
@@ -13076,6 +13298,7 @@ describe('resolveOptimisticSplitChatReportID', () => {
         expect(chatReportID).toBe(optimisticSplitChatReportID);
 
         splitBillAndOpenReport({
+            personalDetailsByLogins: mockPersonalDetailsByLogins,
             isVendorMatchingBetaEnabled: false,
             participants,
             currentUserLogin: RORY_EMAIL,
@@ -13305,6 +13528,7 @@ describe('updateSplitTransactions - emptied expense report', () => {
         // When the draft split is removed offline and only the frozen approved split is saved
         updateSplitTransactions({
             isVendorMatchingBetaEnabled: false,
+            shouldFlagNewSplitsForReportTable: true,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -13526,6 +13750,7 @@ describe('updateSplitTransactions - emptied expense reports', () => {
     const saveSplits = async (openedFromReport: Report, splitExpenses: SplitExpense[]) => {
         updateSplitTransactions({
             isVendorMatchingBetaEnabled: false,
+            shouldFlagNewSplitsForReportTable: true,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -13675,9 +13900,24 @@ describe('setDraftSplitTransaction', () => {
     const category = 'Advertising';
     const ruleTaxCode = 'id_TAX_RATE_1';
 
-    const buildSplitPolicy = (): Policy => ({...createRandomPolicy(Number(splitPolicyID)), taxRates: CONST.DEFAULT_TAX});
+    const buildSplitPolicy = (): Policy => ({...createRandomPolicy(Number(splitPolicyID)), taxRates: CONST.DEFAULT_TAX, tax: {trackingEnabled: true}});
 
     const buildSplitDraft = (): Transaction => ({...createRandomTransaction(1), taxCode: 'id_TAX_EXEMPT', taxAmount: 0, amount: 100});
+
+    it('uses the caller translator for pending route edits in a split draft', async () => {
+        // Given a draft and a translator whose output differs from the global locale
+        const translate = jest.fn(() => 'Split pending label');
+        const draftTransaction = {...buildSplitDraft(), comment: {waypoints: {}}};
+
+        // When an edited waypoint has no resolved route
+        setDraftSplitTransaction(translate, splitTransactionID, draftTransaction, {waypoints: {waypoint0: {address: 'New destination'}}}, getCurrencyDecimalsLocal, getCurrencySymbolLocal);
+        await waitForBatchedUpdates();
+
+        // Then the stored draft uses the caller's pending label
+        const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitTransactionID}`);
+        expect(translate).toHaveBeenCalledWith('iou.fieldPending');
+        expect(updatedTransaction?.modifiedMerchant).toBe('Split pending label');
+    });
 
     it('writes the tax the category rule asks for', async () => {
         // Given a split draft on a policy whose expense default puts a tax rate on the category
@@ -13687,7 +13927,7 @@ describe('setDraftSplitTransaction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitTransactionID}`, draftTransaction);
 
         // When that category is written to the split
-        setDraftSplitTransaction(splitTransactionID, draftTransaction, {category}, getCurrencyDecimalsLocal, getCurrencySymbolLocal, policy, undefined, undefined, rules);
+        setDraftSplitTransaction(translateLocal, splitTransactionID, draftTransaction, {category}, getCurrencyDecimalsLocal, getCurrencySymbolLocal, policy, undefined, undefined, rules);
         await waitForBatchedUpdates();
 
         // Then the rule's rate is on the draft, because a split is sent with whatever tax it holds
@@ -13704,7 +13944,18 @@ describe('setDraftSplitTransaction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitTransactionID}`, draftTransaction);
 
         // When the other category is written to the split
-        setDraftSplitTransaction(splitTransactionID, draftTransaction, {category: 'Benefits'}, getCurrencyDecimalsLocal, getCurrencySymbolLocal, policy, undefined, undefined, rules);
+        setDraftSplitTransaction(
+            translateLocal,
+            splitTransactionID,
+            draftTransaction,
+            {category: 'Benefits'},
+            getCurrencyDecimalsLocal,
+            getCurrencySymbolLocal,
+            policy,
+            undefined,
+            undefined,
+            rules,
+        );
         await waitForBatchedUpdates();
 
         // Then the workspace default replaces it, so the split does not keep the rate the previous category asked for
@@ -13721,7 +13972,18 @@ describe('setDraftSplitTransaction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitTransactionID}`, draftTransaction);
 
         // When another category is written to the split
-        setDraftSplitTransaction(splitTransactionID, draftTransaction, {category: 'Benefits'}, getCurrencyDecimalsLocal, getCurrencySymbolLocal, policy, undefined, undefined, rules);
+        setDraftSplitTransaction(
+            translateLocal,
+            splitTransactionID,
+            draftTransaction,
+            {category: 'Benefits'},
+            getCurrencyDecimalsLocal,
+            getCurrencySymbolLocal,
+            policy,
+            undefined,
+            undefined,
+            rules,
+        );
         await waitForBatchedUpdates();
 
         // Then the rate is kept, because a category change says nothing about a rule the category does not own
@@ -13737,7 +13999,7 @@ describe('setDraftSplitTransaction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitTransactionID}`, draftTransaction);
 
         // When a category is written to the split
-        setDraftSplitTransaction(splitTransactionID, draftTransaction, {category}, getCurrencyDecimalsLocal, getCurrencySymbolLocal, policy, undefined, undefined, {});
+        setDraftSplitTransaction(translateLocal, splitTransactionID, draftTransaction, {category}, getCurrencyDecimalsLocal, getCurrencySymbolLocal, policy, undefined, undefined, {});
         await waitForBatchedUpdates();
 
         // Then the tax it already carried is kept, since no rule asked for a different one
@@ -13754,7 +14016,18 @@ describe('setDraftSplitTransaction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitTransactionID}`, draftTransaction);
 
         // When a field other than the category is written
-        setDraftSplitTransaction(splitTransactionID, draftTransaction, {comment: 'Updated'}, getCurrencyDecimalsLocal, getCurrencySymbolLocal, policy, undefined, undefined, rules);
+        setDraftSplitTransaction(
+            translateLocal,
+            splitTransactionID,
+            draftTransaction,
+            {comment: 'Updated'},
+            getCurrencyDecimalsLocal,
+            getCurrencySymbolLocal,
+            policy,
+            undefined,
+            undefined,
+            rules,
+        );
         await waitForBatchedUpdates();
 
         // Then the rate is left as it was, because no category change can have brought a different rule into play
@@ -13770,7 +14043,7 @@ describe('setDraftSplitTransaction', () => {
         await waitForBatchedUpdates();
 
         // When a caller passes no transaction to start from
-        setDraftSplitTransaction(transactionID, undefined, {category: 'Advertising'}, getCurrencyDecimalsLocal, getCurrencySymbolLocal);
+        setDraftSplitTransaction(translateLocal, transactionID, undefined, {category: 'Advertising'}, getCurrencyDecimalsLocal, getCurrencySymbolLocal);
 
         await waitForBatchedUpdates();
 
@@ -13786,10 +14059,10 @@ describe('setDraftSplitTransaction', () => {
         await waitForBatchedUpdates();
 
         // When the user types a merchant, and later clears it again
-        setDraftSplitTransaction(transactionID, draftTransaction, {merchant: '(none)', isMerchantSet: true}, getCurrencyDecimalsLocal, getCurrencySymbolLocal);
+        setDraftSplitTransaction(translateLocal, transactionID, draftTransaction, {merchant: '(none)', isMerchantSet: true}, getCurrencyDecimalsLocal, getCurrencySymbolLocal);
         await waitForBatchedUpdates();
         const typedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
-        setDraftSplitTransaction(transactionID, typedDraft, {merchant: '', isMerchantSet: false}, getCurrencyDecimalsLocal, getCurrencySymbolLocal);
+        setDraftSplitTransaction(translateLocal, transactionID, typedDraft, {merchant: '', isMerchantSet: false}, getCurrencyDecimalsLocal, getCurrencySymbolLocal);
         await waitForBatchedUpdates();
         const clearedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
 

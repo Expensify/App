@@ -18,6 +18,7 @@ import useMoneyRequestPolicyTagsForReport from '@hooks/useMoneyRequestPolicyTags
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
@@ -116,6 +117,7 @@ function DynamicIOURequestStepDistanceManual({
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [iouReportOwnerLogin] = useAllPersonalDetails(personalDetailsLoginSelector(parentReport?.ownerAccountID));
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const reportIDToCheck = isMoneyRequestReportReportUtils(report) ? report?.chatReportID : report?.reportID;
     const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDToCheck}`);
     const textInput = useRef<BaseTextInputRef | null>(null);
@@ -237,6 +239,7 @@ function DynamicIOURequestStepDistanceManual({
             if (isEditingSplit && transaction) {
                 const splitDraftTransaction = await Onyx.get(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
                 setDraftSplitTransaction(
+                    translate,
                     transaction.transactionID,
                     splitDraftTransaction ?? transaction,
                     {distance: distanceAsFloat},
@@ -264,6 +267,7 @@ function DynamicIOURequestStepDistanceManual({
                     ONYXKEYS.NVP_RECENT_WAYPOINTS,
                 ]);
                 updateMoneyRequestDistance({
+                    translate,
                     isVendorMatchingBetaEnabled,
                     transaction,
                     transactionThreadReport: report,
@@ -328,6 +332,7 @@ function DynamicIOURequestStepDistanceManual({
             manualDistance: distanceAsFloat,
             currentUserLogin: currentUserEmailParam,
             currentUserAccountID: currentUserAccountIDParam,
+            currentUserPersonalDetails,
             currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
             backTo,
             backToReport,
@@ -364,6 +369,7 @@ function DynamicIOURequestStepDistanceManual({
             participants,
             participantsPolicyTags,
             rules,
+            personalDetailsByLogins: getPersonalDetailsByLogin(),
         });
     };
 

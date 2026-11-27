@@ -9,6 +9,7 @@ import {requestMoney} from '@userActions/IOU/TrackExpense';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Transaction} from '@src/types/onyx';
+import type Beta from '@src/types/onyx/Beta';
 import type {Receipt} from '@src/types/onyx/Transaction';
 
 import Onyx from 'react-native-onyx';
@@ -69,8 +70,8 @@ function buildParams(overrides: Partial<UseRequestMoneySubmissionParams> = {}): 
     };
 }
 
-function submit(params: UseRequestMoneySubmissionParams, shouldHandleNavigation: boolean) {
-    return renderAndSubmit(() => useRequestMoneySubmission(params), shouldHandleNavigation);
+function submit(params: UseRequestMoneySubmissionParams, shouldHandleNavigation: boolean, betas?: Beta[]) {
+    return renderAndSubmit(() => useRequestMoneySubmission(params), shouldHandleNavigation, betas);
 }
 
 describe('useRequestMoneySubmission', () => {
@@ -271,6 +272,46 @@ describe('useRequestMoneySubmission', () => {
             expect(mockRequestMoneyAction).toHaveBeenCalledTimes(2);
             expect(mockCleanupAfterExpenseCreate).not.toHaveBeenCalled();
             expect(mockCleanupAndNavigateAfterExpenseCreate).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('batch auto-submit deferral', () => {
+        it('defers auto-submit for all but the last expense in a multi-expense batch', async () => {
+            // Given a multi-expense batch targeting the same report
+            const transaction1 = buildTransaction({transactionID: 'batch-1'});
+            const transaction2 = buildTransaction({transactionID: 'batch-2'});
+            const transaction3 = buildTransaction({transactionID: 'batch-3'});
+
+            // When the batch is submitted
+            await submit(buildParams({transaction: transaction1, transactions: [transaction1, transaction2, transaction3]}), false);
+
+            // Then only the final expense triggers instant auto-submit so earlier ones do not close the report early
+            expect(mockRequestMoneyAction.mock.calls.map(([callParams]) => callParams.shouldDeferAutoSubmit)).toEqual([true, true, false]);
+        });
+
+        it('does not defer auto-submit for scan expenses on a chat report when ASAP Submit beta is enabled', async () => {
+            // Given a multi-scan batch on a workspace chat under ASAP Submit beta, where each scan creates its own report
+            const scan1 = buildTransaction({transactionID: 'scan-1', iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN});
+            const scan2 = buildTransaction({transactionID: 'scan-2', iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN});
+
+            // When the batch is submitted
+            await submit(buildParams({transaction: scan1, transactions: [scan1, scan2]}), false, [CONST.BETAS.ASAP_SUBMIT]);
+
+            // Then neither scan defers auto-submit because the second scan will not land on the first scan's report
+            expect(mockRequestMoneyAction.mock.calls.map(([callParams]) => callParams.shouldDeferAutoSubmit)).toEqual([false, false]);
+        });
+
+        it('defers auto-submit for scan expenses on an existing expense report even when ASAP Submit beta is enabled', async () => {
+            // Given a multi-scan batch added directly to an existing expense report under ASAP Submit beta
+            const expenseReport = buildChatReport({reportID: 'expense-report-1', type: CONST.REPORT.TYPE.EXPENSE});
+            const scan1 = buildTransaction({transactionID: 'scan-existing-1', iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN});
+            const scan2 = buildTransaction({transactionID: 'scan-existing-2', iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN});
+
+            // When the batch is submitted
+            await submit(buildParams({report: expenseReport, transaction: scan1, transactions: [scan1, scan2]}), false, [CONST.BETAS.ASAP_SUBMIT]);
+
+            // Then the first scan defers auto-submit because both scans land on the existing report
+            expect(mockRequestMoneyAction.mock.calls.map(([callParams]) => callParams.shouldDeferAutoSubmit)).toEqual([true, false]);
         });
     });
 });
