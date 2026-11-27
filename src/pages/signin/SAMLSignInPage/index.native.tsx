@@ -73,6 +73,7 @@ function SAMLSignInPage() {
     const foregroundedAt = useRef<number | null>(null);
     const backgroundCount = useRef(0);
     const totalBackgroundMs = useRef(0);
+    const wasAuthSessionOpenWhenBackgrounded = useRef(false);
 
     // The person is signed out while the sheet is open, so the login is what matches these logs to the server's SAML logs
     const getAuthSessionLogParams = () => ({
@@ -93,27 +94,31 @@ function SAMLSignInPage() {
 
     useAppState({
         onAppStateChange: (nextAppState: AppStateStatus) => {
-            if (nextAppState === CONST.APP_STATE.ACTIVE && shortLivedAuthTokenWaitingForActiveApp.current) {
+            if (nextAppState === 'background') {
+                backgroundedAt.current = Date.now();
+                // The token can come back from an authenticator app before the app is active, which closes the sheet first
+                wasAuthSessionOpenWhenBackgrounded.current = isAuthSessionOpen.current;
+                addBreadcrumb('background', {authSessionOpen: isAuthSessionOpen.current});
+                return;
+            }
+            if (nextAppState !== CONST.APP_STATE.ACTIVE) {
+                return;
+            }
+            if (backgroundedAt.current !== null) {
+                lastBackgroundMs.current = Date.now() - backgroundedAt.current;
+                backgroundedAt.current = null;
+                foregroundedAt.current = Date.now();
+                if (wasAuthSessionOpenWhenBackgrounded.current) {
+                    backgroundCount.current += 1;
+                    totalBackgroundMs.current += lastBackgroundMs.current;
+                }
+                addBreadcrumb('foreground', {elapsedMs: lastBackgroundMs.current, authSessionOpen: isAuthSessionOpen.current});
+            }
+            if (shortLivedAuthTokenWaitingForActiveApp.current) {
                 const shortLivedAuthToken = shortLivedAuthTokenWaitingForActiveApp.current;
                 shortLivedAuthTokenWaitingForActiveApp.current = null;
                 signInWithToken(shortLivedAuthToken);
             }
-            if (nextAppState === 'background') {
-                backgroundedAt.current = Date.now();
-                addBreadcrumb('background', {authSessionOpen: isAuthSessionOpen.current});
-                return;
-            }
-            if (nextAppState !== 'active' || backgroundedAt.current === null) {
-                return;
-            }
-            lastBackgroundMs.current = Date.now() - backgroundedAt.current;
-            backgroundedAt.current = null;
-            foregroundedAt.current = Date.now();
-            if (isAuthSessionOpen.current) {
-                backgroundCount.current += 1;
-                totalBackgroundMs.current += lastBackgroundMs.current;
-            }
-            addBreadcrumb('foreground', {elapsedMs: lastBackgroundMs.current, authSessionOpen: isAuthSessionOpen.current});
         },
     });
 
