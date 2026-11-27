@@ -1,3 +1,5 @@
+import SkeletonLoader from '@components/SkeletonLoader';
+import type {SkeletonAnimation} from '@components/SkeletonLoader/types';
 import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
 
 import useTheme from '@hooks/useTheme';
@@ -12,7 +14,6 @@ import {StyleSheet, View} from 'react-native';
 
 type ListItemSkeletonProps = {
     shouldAnimate?: boolean;
-    renderSkeletonItem: (args: {itemIndex: number}) => React.ReactNode;
     fixedNumItems?: number;
     gradientOpacityEnabled?: boolean;
     itemViewStyle?: StyleProp<ViewStyle>;
@@ -21,7 +22,10 @@ type ListItemSkeletonProps = {
     speed?: number;
     style?: StyleProp<ViewStyle>;
     onLayout?: (event: LayoutChangeEvent) => void;
-};
+} & (
+    | {renderSkeletonItem: (args: {itemIndex: number}) => React.ReactNode; renderViewSkeletonItem?: never; animation?: never}
+    | {renderSkeletonItem?: never; renderViewSkeletonItem: (args: {itemIndex: number}) => React.ReactNode; animation?: SkeletonAnimation}
+);
 
 const getVerticalMargin = (style: StyleProp<ViewStyle>): number => {
     if (!style) {
@@ -39,6 +43,8 @@ const getVerticalMargin = (style: StyleProp<ViewStyle>): number => {
 function ItemListSkeletonView({
     shouldAnimate = true,
     renderSkeletonItem,
+    renderViewSkeletonItem,
+    animation,
     fixedNumItems,
     gradientOpacityEnabled = false,
     itemViewStyle = {},
@@ -71,15 +77,18 @@ function ItemListSkeletonView({
 
     const items = [];
     for (let i = 0; i < numItems; i++) {
-        const opacity = gradientOpacityEnabled ? 1 - i / (numItems - 1) : 1;
+        const opacity = gradientOpacityEnabled && numItems > 1 ? 1 - i / (numItems - 1) : 1;
+        // Existing callbacks contain raw SVG children, so View rendering requires an explicit opt-in.
+        const Loader = renderViewSkeletonItem ? SkeletonLoader : SkeletonViewContentLoader;
         const loader = (
-            <SkeletonViewContentLoader
+            <Loader
                 speed={speed}
                 key={`skeletonContainer${i}`}
                 animate={shouldAnimate}
                 height={itemViewHeight}
                 backgroundColor={theme.skeletonLHNIn}
                 foregroundColor={theme.skeletonLHNOut}
+                {...(renderViewSkeletonItem ? {animation} : {})}
                 style={[
                     themeStyles.mr5,
                     itemViewStyle,
@@ -91,10 +100,10 @@ function ItemListSkeletonView({
                     },
                 ]}
             >
-                {renderSkeletonItem({
+                {(renderViewSkeletonItem ?? renderSkeletonItem)?.({
                     itemIndex: i,
                 })}
-            </SkeletonViewContentLoader>
+            </Loader>
         );
         if (itemContainerStyle) {
             const isLastItem = i === numItems - 1;
