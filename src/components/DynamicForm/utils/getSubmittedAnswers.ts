@@ -2,6 +2,7 @@ import type {DynamicFormValues} from '@components/DynamicForm/types';
 
 import type {DynamicFormField} from '@src/types/onyx';
 
+import {getHiddenAddressPartKeys} from './getAddressInputKeys';
 import getAnswerKeys from './getAnswerKeys';
 import getVisibleFields from './getVisibleFields';
 import {getListItems, getListItemSensitiveAnswers} from './listItems';
@@ -10,8 +11,9 @@ import {getListItems, getListItemSensitiveAnswers} from './listItems';
 function getSubmittedAnswers(fields: DynamicFormField[], values: DynamicFormValues, allFields = fields): DynamicFormValues {
     const answers: DynamicFormValues = {};
     for (const field of getVisibleFields(fields, values, allFields)) {
+        const hiddenPartKeys = field.type === 'address' ? getHiddenAddressPartKeys(field, values) : [];
         for (const key of getAnswerKeys(field)) {
-            if (values[key] !== undefined) {
+            if (values[key] !== undefined && !hiddenPartKeys.includes(key)) {
                 answers[key] = values[key];
             }
         }

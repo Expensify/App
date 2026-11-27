@@ -10,6 +10,7 @@ import {
     isSearchDatePreset,
     normalizeDatePreset,
 } from '@libs/SearchQueryUtils';
+import {isValidDate} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
 
@@ -26,7 +27,10 @@ function parseDate(queryJSON: SearchQueryJSON): Pick<InsightsFilters, 'date'> | 
     const onValue = dateFilters.find(({operator}) => operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO)?.value.toString();
     if (onValue) {
         const on = normalizeDatePreset(onValue);
-        return {date: isSearchDatePreset(on) ? {preset: on} : {on}};
+        if (isSearchDatePreset(on)) {
+            return {date: {preset: on}};
+        }
+        return isValidDate(on) ? {date: {on}} : undefined;
     }
 
     const from = dateFilters.find(({operator}) => operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO)?.value.toString();
@@ -74,6 +78,7 @@ function parseInsightsFilters(query: string | undefined): Partial<InsightsFilter
         ...parseGroupCurrency(queryJSON),
         ...parseGroupBy(queryJSON, query),
         ...parseCompare(queryJSON),
+        ...(queryJSON.tagLevel !== undefined && {tagLevel: queryJSON.tagLevel}),
     };
 }
 
@@ -99,7 +104,10 @@ function fromSearchDateValues(values: SearchDateValues): InsightsFilters['date']
         return undefined;
     }
 
-    return isSearchDatePreset(on) ? {preset: on} : {on};
+    if (isSearchDatePreset(on)) {
+        return {preset: on};
+    }
+    return isValidDate(on) ? {on} : undefined;
 }
 
 export {fromSearchDateValues, parseInsightsFilters, toSearchDateValues};

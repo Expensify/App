@@ -1,3 +1,5 @@
+import CONST from '@src/CONST';
+
 import type {ReactNode} from 'react';
 
 import {useEffect, useRef} from 'react';
@@ -54,6 +56,9 @@ function getWrapper(politeness: AriaLivePoliteness): HTMLDivElement {
     const wrapper = document.createElement('div');
     wrapper.setAttribute('aria-live', politeness);
     wrapper.setAttribute('aria-atomic', 'true');
+    // Announcements can repeat what the user typed (e.g. "No results found matching <query>"), and this wrapper sits
+    // outside the app's FullStory classes, so mask it. It's visually hidden, so replays lose nothing.
+    wrapper.classList.add(CONST.FULLSTORY.CLASS.MASK);
     Object.assign(wrapper.style, VISUALLY_HIDDEN_STYLE);
     root.appendChild(wrapper);
     wrappers[politeness] = wrapper;

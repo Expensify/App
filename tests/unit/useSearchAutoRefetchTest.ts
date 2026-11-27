@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {renderHook} from '@testing-library/react-native';
+import {act, renderHook} from '@testing-library/react-native';
 
 import useSearchAutoRefetch from '@hooks/useSearchAutoRefetch';
 import type {UseSearchAutoRefetch} from '@hooks/useSearchAutoRefetch';
@@ -11,10 +11,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {MemberCustomFieldsByPolicyID} from '@src/selectors/Policy';
 import type {Transaction} from '@src/types/onyx';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
+import type {SearchTransaction} from '@src/types/onyx/SearchResults';
 
 import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const mockUseIsFocused = jest.fn((): boolean => true);
 
@@ -23,7 +25,8 @@ jest.mock('@react-navigation/native', () => ({
     useIsFocused: () => mockUseIsFocused(),
     createNavigationContainerRef: () => ({}),
 }));
-jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn(() => false));
+let mockIsSearchTopmostFullScreenRoute = false;
+jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn(() => mockIsSearchTopmostFullScreenRoute));
 jest.mock('@rnmapbox/maps', () => ({
     __esModule: true,
     default: {},
@@ -37,12 +40,48 @@ jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: mockIsOffline}))
 let mockIsInPreloadedTab = false;
 jest.mock('@hooks/useIsInPreloadedTab', () => jest.fn(() => mockIsInPreloadedTab));
 
-afterEach(() => {
+let mockIsClientTheLeader = true;
+jest.mock('@libs/ActiveClientManager', () => ({...jest.requireActual<Record<string, unknown>>('@libs/ActiveClientManager'), isClientTheLeader: jest.fn(() => mockIsClientTheLeader)}));
+
+let lastWriteID = 0;
+
+/** Raises the signal FlagSearchTransactionWrites sends once a user write to these transactions succeeds. */
+async function signalTransactionWrite(transactionIDs: string[], reportIDs: string[] = []) {
+    lastWriteID += 1;
+    const writeID = lastWriteID;
+    // The merge re-renders the mounted hook, so it runs inside act.
+    await act(() =>
+        Onyx.merge(ONYXKEYS.RAM_ONLY_SEARCH_TRANSACTION_WRITES, {
+            writeID,
+            oldestWriteID: 1,
+            transactionIDs: Object.fromEntries(transactionIDs.map((id) => [id, writeID])),
+            reportIDs: Object.fromEntries(reportIDs.map((id) => [id, writeID])),
+        }),
+    );
+    await waitForBatchedUpdatesWithAct();
+}
+
+afterEach(async () => {
+    await Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_TRANSACTION_WRITES, null);
     jest.clearAllMocks();
     mockIsOffline = false;
     mockUseIsFocused.mockReturnValue(true);
     mockIsInPreloadedTab = false;
+    mockIsSearchTopmostFullScreenRoute = false;
+    mockIsClientTheLeader = true;
 });
+
+/** Counts reads of the transaction's fields */
+function trackReads(transaction: Transaction) {
+    const reads = {count: 0};
+    const trackedTransaction = new Proxy(transaction, {
+        get: (target, property, receiver) => {
+            reads.count++;
+            return Reflect.get(target, property, receiver) as unknown;
+        },
+    });
+    return {trackedTransaction, reads};
+}
 
 describe('useSearchAutoRefetch', () => {
     beforeAll(async () => {
@@ -90,6 +129,26 @@ describe('useSearchAutoRefetch', () => {
         offset: 0,
     };
 
+    /** A Search result row for a transaction. */
+    const row = (transactionID: string) => createMock<SearchTransaction>({transactionID});
+
+    /** Renders the hook with `data` as the results and `transactions` as both the current and previous collection. */
+    function renderWithResults(
+        data: NonNullable<UseSearchAutoRefetch['searchResults']>['data'],
+        transactions: UseSearchAutoRefetch['transactions'],
+        overrides: Partial<UseSearchAutoRefetch> = {},
+    ) {
+        const initialProps = createMock<UseSearchAutoRefetch>({
+            ...baseProps,
+            searchResults: {...baseProps.searchResults, data},
+            transactions,
+            previousTransactions: transactions,
+            ...overrides,
+        });
+        const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {initialProps});
+        return {initialProps, rerender: (props: Partial<UseSearchAutoRefetch>) => rerender(createMock<UseSearchAutoRefetch>({...initialProps, ...props}))};
+    }
+
     it('should not trigger search when collections are empty', () => {
         renderHook(() => useSearchAutoRefetch(baseProps));
         expect(search).not.toHaveBeenCalled();
@@ -98,8 +157,8 @@ describe('useSearchAutoRefetch', () => {
     it('should trigger search when new transaction added and focused', () => {
         const initialProps = createMock<UseSearchAutoRefetch>({
             ...baseProps,
-            transactions: {transactions_1: {transactionID: '1'}},
-            previousTransactions: {transactions_1: {transactionID: '1'}},
+            transactions: {transactions_1: row('1')},
+            previousTransactions: {transactions_1: row('1')},
         });
 
         const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
@@ -109,10 +168,10 @@ describe('useSearchAutoRefetch', () => {
         const updatedProps = createMock<UseSearchAutoRefetch>({
             ...baseProps,
             transactions: {
-                transactions_1: {transactionID: '1'},
-                transactions_2: {transactionID: '2'},
+                transactions_1: row('1'),
+                transactions_2: row('2'),
             },
-            previousTransactions: {transactions_1: {transactionID: '1'}},
+            previousTransactions: {transactions_1: row('1')},
         });
 
         rerender(updatedProps);
@@ -128,7 +187,7 @@ describe('useSearchAutoRefetch', () => {
 
         const updatedProps = createMock<UseSearchAutoRefetch>({
             ...baseProps,
-            transactions: {transactions_1: {transactionID: '1'}},
+            transactions: {transactions_1: row('1')},
         });
 
         rerender(updatedProps);
@@ -175,12 +234,12 @@ describe('useSearchAutoRefetch', () => {
         const initialProps = createMock<UseSearchAutoRefetch>({
             ...baseProps,
             transactions: {
-                transactions_1: {transactionID: '1'},
-                transactions_2: {transactionID: '2'},
+                transactions_1: row('1'),
+                transactions_2: row('2'),
             },
             previousTransactions: {
-                transactions_1: {transactionID: '1'},
-                transactions_2: {transactionID: '2'},
+                transactions_1: row('1'),
+                transactions_2: row('2'),
             },
         });
 
@@ -191,7 +250,7 @@ describe('useSearchAutoRefetch', () => {
         const updatedProps = createMock<UseSearchAutoRefetch>({
             ...baseProps,
             transactions: {
-                transactions_1: {transactionID: '1'},
+                transactions_1: row('1'),
             },
         });
 
@@ -205,14 +264,14 @@ describe('useSearchAutoRefetch', () => {
             searchResults: {
                 ...baseProps.searchResults,
                 data: {
-                    transactions_1: {transactionID: '1'},
+                    transactions_1: row('1'),
                 },
             },
             transactions: {
-                transactions_1: {transactionID: '1'},
+                transactions_1: row('1'),
             },
             previousTransactions: {
-                transactions_1: {transactionID: '1'},
+                transactions_1: row('1'),
             },
         });
 
@@ -223,8 +282,8 @@ describe('useSearchAutoRefetch', () => {
         const updatedProps = createMock<UseSearchAutoRefetch>({
             ...initialProps,
             transactions: {
-                transactions_1: {transactionID: '1'},
-                transactions_2: {transactionID: '2'},
+                transactions_1: row('1'),
+                transactions_2: row('2'),
             },
         });
 
@@ -241,8 +300,8 @@ describe('useSearchAutoRefetch', () => {
             searchResults: {
                 ...baseProps.searchResults,
                 data: {
-                    transactions_1: {transactionID: '1'},
-                    transactions_2: {transactionID: '2'},
+                    transactions_1: row('1'),
+                    transactions_2: row('2'),
                 },
             },
             transactions: {
@@ -261,7 +320,7 @@ describe('useSearchAutoRefetch', () => {
             ...initialProps,
             transactions: {
                 transactions_1: transaction1,
-                transactions_2: {transactionID: '2'},
+                transactions_2: row('2'),
             },
         });
 
@@ -269,172 +328,190 @@ describe('useSearchAutoRefetch', () => {
         expect(search).not.toHaveBeenCalled();
     });
 
-    it('should trigger search when a transaction that is already in the results is edited', () => {
-        const transaction = createMock<Transaction>({transactionID: '1', amount: 100});
-        const initialProps = createMock<UseSearchAutoRefetch>({
-            ...baseProps,
-            searchResults: {
-                ...baseProps.searchResults,
-                data: {
-                    transactions_1: {transactionID: '1'},
-                },
-            },
-            transactions: {transactions_1: transaction},
-            previousTransactions: {transactions_1: transaction},
-        });
+    it('should trigger search when a user write changes a transaction that is already in the results', async () => {
+        // Given Search showing an expense
+        const {rerender} = renderWithResults({transactions_1: row('1')}, {transactions_1: createMock<Transaction>({transactionID: '1', amount: 100})});
 
-        const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
-            initialProps,
-        });
+        // When the user edits it and the write succeeds
+        rerender({transactions: {transactions_1: createMock<Transaction>({transactionID: '1', amount: 250})}});
+        await signalTransactionWrite(['1']);
 
-        const updatedProps = createMock<UseSearchAutoRefetch>({
-            ...initialProps,
-            transactions: {transactions_1: {transactionID: '1', amount: 250}},
-        });
-
-        rerender(updatedProps);
+        // Then Search requests the results again, because the footer total and row actions are computed by the server
+        expect(search).toHaveBeenCalledTimes(1);
         expect(search).toHaveBeenCalledWith({queryJSON: baseProps.queryJSON, searchKey: undefined, offset: 0, shouldCalculateTotals: false, isLoading: false});
     });
 
     it.each([
         ['edited', {amount: 250}],
         ['removed from its report', {reportID: CONST.REPORT.UNREPORTED_REPORT_ID}],
-    ])('should trigger search on a grouped search when a transaction is %s', (_, transactionChange) => {
+    ])('should trigger search on a grouped search when a written transaction is %s', async (_, transactionChange) => {
         // Given a search grouped by approver, whose snapshot only holds the groups and not their transactions or reports
         const transaction = createMock<Transaction>({transactionID: '1', amount: 100, reportID: '10'});
-        const initialProps = createMock<UseSearchAutoRefetch>({
-            ...baseProps,
-            queryJSON: {...baseProps.queryJSON, groupBy: CONST.SEARCH.GROUP_BY.APPROVER},
-            transactions: {transactions_1: transaction},
-            previousTransactions: {transactions_1: transaction},
-        });
-        const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
-            initialProps,
-        });
+        const {rerender} = renderWithResults({}, {transactions_1: transaction}, {queryJSON: {...baseProps.queryJSON, groupBy: CONST.SEARCH.GROUP_BY.APPROVER}});
 
-        // When the transaction changes
-        rerender(createMock<UseSearchAutoRefetch>({...initialProps, transactions: {transactions_1: {...transaction, ...transactionChange}}}));
+        // When the transaction changes and the write succeeds
+        rerender({transactions: {transactions_1: {...transaction, ...transactionChange}}});
+        await signalTransactionWrite(['1']);
 
         // Then the search runs again, because the snapshot can't show whether the change touches one of its groups
         expect(search).toHaveBeenCalledTimes(1);
     });
 
-    it('should not trigger search when the edited transaction is absent from the results', () => {
-        const visibleTransaction = createMock<Transaction>({transactionID: '1', amount: 100});
-        const filteredOutTransaction = createMock<Transaction>({transactionID: '99', amount: 100});
-        const initialProps = createMock<UseSearchAutoRefetch>({
-            ...baseProps,
-            searchResults: {
-                ...baseProps.searchResults,
-                data: {
-                    transactions_1: {transactionID: '1'},
-                },
-            },
-            transactions: {transactions_1: visibleTransaction, transactions_99: filteredOutTransaction},
-            previousTransactions: {transactions_1: visibleTransaction, transactions_99: filteredOutTransaction},
-        });
+    it('should handle a write that succeeds while an earlier refetch is still running', async () => {
+        // Given Search showing an expense whose first edit started a refetch that has not answered yet
+        const loading = {...baseProps.searchResults, isLoading: true, search: {...baseProps.searchResults?.search, isLoading: true}};
+        const {initialProps, rerender} = renderWithResults({transactions_1: row('1')}, {transactions_1: createMock<Transaction>({transactionID: '1', amount: 100})});
+        await signalTransactionWrite(['1']);
+        rerender({searchResults: createMock<UseSearchAutoRefetch['searchResults']>({...loading, data: initialProps.searchResults?.data})});
 
-        const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
-            initialProps,
-        });
+        // When a second edit succeeds during that request, and the request then answers
+        await signalTransactionWrite(['1']);
+        rerender({searchResults: initialProps.searchResults});
 
-        const updatedProps = createMock<UseSearchAutoRefetch>({
-            ...initialProps,
-            transactions: {transactions_1: visibleTransaction, transactions_99: {transactionID: '99', amount: 250}},
-        });
+        // Then Search requests the results again for the second edit instead of staying one edit behind
+        expect(search).toHaveBeenCalledTimes(2);
+    });
 
-        rerender(updatedProps);
+    it('should not trigger search when a read rewrites a transaction that is in the results', () => {
+        // Given Search showing an expense seeded from its Search row
+        const {rerender} = renderWithResults({transactions_1: row('1')}, {transactions_1: createMock<Transaction>({transactionID: '1', posted: '2026-11-13'})});
+
+        // When OpenReport replaces it with the server's shape of the same expense, which no user write signals
+        rerender({transactions: {transactions_1: createMock<Transaction>({transactionID: '1', posted: '20261113000000'})}});
+
+        // Then Search does not refetch, because nothing the results show has changed
         expect(search).not.toHaveBeenCalled();
     });
 
-    it('should trigger search when a transaction moves into a report the results display', () => {
-        const movedTransaction = createMock<Transaction>({transactionID: '99', reportID: '5'});
-        const initialProps = createMock<UseSearchAutoRefetch>({
-            ...baseProps,
-            searchResults: {
-                ...baseProps.searchResults,
-                data: {
-                    report_2: {reportID: '2'},
-                },
-            },
-            transactions: {transactions_99: movedTransaction},
-            previousTransactions: {transactions_99: movedTransaction},
-        });
+    it('should not trigger search when the written transaction is absent from the results', async () => {
+        // Given Search showing one expense while Onyx also holds one the query filters out
+        renderWithResults({transactions_1: row('1')}, {transactions_1: createMock<Transaction>({transactionID: '1'}), transactions_99: createMock<Transaction>({transactionID: '99'})});
 
-        const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
-            initialProps,
-        });
+        // When a write to the filtered-out expense succeeds
+        await signalTransactionWrite(['99']);
 
-        const updatedProps = createMock<UseSearchAutoRefetch>({
-            ...initialProps,
-            transactions: {transactions_99: {transactionID: '99', reportID: '2'}},
-        });
-
-        rerender(updatedProps);
-        expect(search).toHaveBeenCalledWith({queryJSON: baseProps.queryJSON, searchKey: undefined, offset: 0, shouldCalculateTotals: false, isLoading: false});
-    });
-
-    it('should not trigger search when a transaction moves between reports the results do not display', () => {
-        const movedTransaction = createMock<Transaction>({transactionID: '99', reportID: '5'});
-        const initialProps = createMock<UseSearchAutoRefetch>({
-            ...baseProps,
-            searchResults: {
-                ...baseProps.searchResults,
-                data: {
-                    report_2: {reportID: '2'},
-                },
-            },
-            transactions: {transactions_99: movedTransaction},
-            previousTransactions: {transactions_99: movedTransaction},
-        });
-
-        const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
-            initialProps,
-        });
-
-        const updatedProps = createMock<UseSearchAutoRefetch>({
-            ...initialProps,
-            transactions: {transactions_99: {transactionID: '99', reportID: '7'}},
-        });
-
-        rerender(updatedProps);
+        // Then Search does not refetch, because the results do not depend on it
         expect(search).not.toHaveBeenCalled();
     });
 
-    it('should trigger the deferred search once Search is active again, after previousTransactions caught up', () => {
+    it('should trigger search when a written transaction moves into a report the results display', async () => {
+        // Given Search showing a report, and an expense outside it
+        const {rerender} = renderWithResults({report_2: {reportID: '2'}}, {transactions_99: createMock<Transaction>({transactionID: '99', reportID: '5'})});
+
+        // When the user moves the expense into that report and the write succeeds
+        rerender({transactions: {transactions_99: createMock<Transaction>({transactionID: '99', reportID: '2'})}});
+        await signalTransactionWrite(['99']);
+
+        // Then Search requests the results again, because the report row owes its count and total to the server
+        expect(search).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not trigger search when a written transaction moves between reports the results do not display', async () => {
+        // Given Search showing a report, and an expense outside it
+        const {rerender} = renderWithResults({report_2: {reportID: '2'}}, {transactions_99: createMock<Transaction>({transactionID: '99', reportID: '5'})});
+
+        // When the user moves it to another report the results do not show
+        rerender({transactions: {transactions_99: createMock<Transaction>({transactionID: '99', reportID: '7'})}});
+        await signalTransactionWrite(['99']);
+
+        // Then Search does not refetch
+        expect(search).not.toHaveBeenCalled();
+    });
+
+    it('should trigger search when a written transaction leaves a report the results display', async () => {
+        // Given Search showing report 2, but not its expense 99, which the query filters out
+        const {rerender} = renderWithResults({report_2: {reportID: '2'}}, {transactions_99: createMock<Transaction>({transactionID: '99', reportID: '2'})});
+
+        // When the user moves the expense to a report the results do not show, and the write succeeds
+        rerender({transactions: {transactions_99: createMock<Transaction>({transactionID: '99', reportID: '7'})}});
+        await signalTransactionWrite(['99'], ['2']);
+
+        // Then Search requests the results again, because report 2 lost an expense from its count and total
+        expect(search).toHaveBeenCalledTimes(1);
+    });
+
+    it('should trigger search for an earlier write when a later one lands before the hook handles it', async () => {
+        // Given Search showing expense 1 while Onyx also holds expense 99, which the query filters out, and the hook skipping its checks for now, as a frozen tab does
+        mockIsInPreloadedTab = true;
+        const {rerender} = renderWithResults(
+            {transactions_1: row('1')},
+            {transactions_1: createMock<Transaction>({transactionID: '1'}), transactions_99: createMock<Transaction>({transactionID: '99'})},
+        );
+
+        // When writes to expense 1 and then expense 99 both succeed before the hook checks the signal
+        await signalTransactionWrite(['1']);
+        await signalTransactionWrite(['99']);
+        mockIsInPreloadedTab = false;
+        rerender({});
+
+        // Then Search still requests the results again, because the edit to expense 1 was not lost behind the later one
+        expect(search).toHaveBeenCalledTimes(1);
+    });
+
+    it('should trigger search when it missed writes that were already dropped from the signal', async () => {
+        // Given Search showing expense 1, skipping its checks for now as a frozen tab does
+        mockIsInPreloadedTab = true;
+        const {rerender} = renderWithResults({transactions_1: row('1')}, {transactions_1: createMock<Transaction>({transactionID: '1'})});
+
+        // When so many writes succeed meanwhile that the ones it missed are dropped, and the kept one changes an expense the results do not show
+        lastWriteID += 200;
+        await act(() =>
+            Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_TRANSACTION_WRITES, {
+                writeID: lastWriteID,
+                oldestWriteID: lastWriteID,
+                transactionIDs: Object.fromEntries([['99', lastWriteID]]),
+                reportIDs: {},
+            }),
+        );
+        mockIsInPreloadedTab = false;
+        rerender({});
+
+        // Then Search requests the results again, because it cannot tell whether a dropped write changed one of its rows
+        expect(search).toHaveBeenCalledTimes(1);
+    });
+
+    it('should trigger search in a background tab when another tab changes a transaction in the results', () => {
+        // Given Search in a tab that is not the leader, which never receives the write signal because it is RAM-only
+        mockIsClientTheLeader = false;
+        const {rerender} = renderWithResults({transactions_1: row('1')}, {transactions_1: createMock<Transaction>({transactionID: '1', amount: 100})});
+
+        // When the leader tab edits the expense and the new transaction syncs over
+        rerender({transactions: {transactions_1: createMock<Transaction>({transactionID: '1', amount: 250})}});
+
+        // Then Search requests the results again, falling back to comparing the synced transactions
+        expect(search).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not trigger search in a background tab when another tab writes a transaction in the results with the same values', () => {
+        // Given Search in a tab that is not the leader
+        mockIsClientTheLeader = false;
         const transaction = createMock<Transaction>({transactionID: '1', amount: 100});
-        const editedTransaction = createMock<Transaction>({transactionID: '1', amount: 250});
-        const initialProps = createMock<UseSearchAutoRefetch>({
-            ...baseProps,
-            searchResults: {
-                ...baseProps.searchResults,
-                data: {
-                    transactions_1: {transactionID: '1'},
-                },
-            },
-            transactions: {transactions_1: transaction},
-            previousTransactions: {transactions_1: transaction},
-        });
+        const {rerender} = renderWithResults({transactions_1: row('1')}, {transactions_1: transaction});
 
+        // When another tab's Search response writes the same transaction, so this tab reads it back from storage as a new object with unchanged values
+        rerender({transactions: {transactions_1: {...transaction}}});
+
+        // Then Search does not request the results again. Otherwise two background tabs on the same to-do search refetch each other's responses forever.
+        expect(search).not.toHaveBeenCalled();
+    });
+
+    it('should trigger the deferred search once Search is active again, after previousTransactions caught up', async () => {
+        // Given Search showing an expense while it is offline
         mockIsOffline = true;
-        const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
-            initialProps,
-        });
+        const edited = {transactions_1: createMock<Transaction>({transactionID: '1', amount: 250})};
+        const {rerender} = renderWithResults({transactions_1: row('1')}, {transactions_1: createMock<Transaction>({transactionID: '1', amount: 100})});
 
-        const editedProps = createMock<UseSearchAutoRefetch>({...initialProps, transactions: {transactions_1: editedTransaction}});
+        // When a write to it succeeds before the network flag catches up, which defers the search
+        rerender({transactions: edited});
+        await signalTransactionWrite(['1']);
 
-        rerender(editedProps);
+        // And `usePrevious` catches up while Search is inactive, so the edit is no longer visible to the comparisons
+        rerender({transactions: edited, previousTransactions: {...edited}});
         expect(search).not.toHaveBeenCalled();
 
-        // `usePrevious` catches up while Search is inactive, so the edit is no longer visible to the comparisons.
-        const settledProps = createMock<UseSearchAutoRefetch>({...editedProps, previousTransactions: {transactions_1: editedTransaction}});
-
-        rerender(settledProps);
-        expect(search).not.toHaveBeenCalled();
-
+        // Then the deferred search runs once the network comes back
         mockIsOffline = false;
-
-        rerender({...settledProps});
+        rerender({transactions: edited, previousTransactions: {...edited}});
         expect(search).toHaveBeenCalledTimes(1);
     });
 
@@ -447,7 +524,7 @@ describe('useSearchAutoRefetch', () => {
             searchResults: {
                 ...baseProps.searchResults,
                 data: {
-                    transactions_1: {transactionID: '1'},
+                    transactions_1: row('1'),
                 },
             },
             transactions: {transactions_1: transaction},
@@ -480,7 +557,7 @@ describe('useSearchAutoRefetch', () => {
             searchResults: {
                 ...baseProps.searchResults,
                 data: {
-                    transactions_1: {transactionID: '1'},
+                    transactions_1: row('1'),
                 },
             },
             transactions,
@@ -500,8 +577,8 @@ describe('useSearchAutoRefetch', () => {
                 searchResults: {
                     ...baseProps.searchResults,
                     data: {
-                        transactions_1: {transactionID: '1'},
-                        transactions_2: {transactionID: '2'},
+                        transactions_1: row('1'),
+                        transactions_2: row('2'),
                     },
                 },
             }),
@@ -511,45 +588,26 @@ describe('useSearchAutoRefetch', () => {
         expect(search).not.toHaveBeenCalled();
     });
 
-    it('should trigger the deferred search when the collections are the same object once Search is active again', () => {
+    it('should trigger the deferred search when the collections are the same object once Search is active again', async () => {
         // Given Search rendered offline with a transaction the results show and no report action changes
-        const reportActions = {};
-        const transaction = createMock<Transaction>({transactionID: '1', amount: 100});
-        const editedTransaction = createMock<Transaction>({transactionID: '1', amount: 250});
-        const initialProps = createMock<UseSearchAutoRefetch>({
-            ...baseProps,
-            searchResults: {
-                ...baseProps.searchResults,
-                data: {
-                    transactions_1: {transactionID: '1'},
-                },
-            },
-            transactions: {transactions_1: transaction},
-            previousTransactions: {transactions_1: transaction},
-            reportActions,
-            previousReportActions: reportActions,
-        });
-
         mockIsOffline = true;
-        const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
-            initialProps,
-        });
+        const reportActions = {};
+        const edited = {transactions_1: createMock<Transaction>({transactionID: '1', amount: 250})};
+        const {rerender} = renderWithResults(
+            {transactions_1: row('1')},
+            {transactions_1: createMock<Transaction>({transactionID: '1', amount: 100})},
+            {reportActions, previousReportActions: reportActions},
+        );
 
-        // When the transaction is edited while offline, which defers the search
-        const editedTransactions = {transactions_1: editedTransaction};
-        rerender(createMock<UseSearchAutoRefetch>({...initialProps, transactions: editedTransactions}));
+        // When a write to the transaction succeeds while Search still reads offline, and `usePrevious` catches up so both collections are the same object
+        rerender({transactions: edited});
+        await signalTransactionWrite(['1']);
+        rerender({transactions: edited, previousTransactions: edited});
         expect(search).not.toHaveBeenCalled();
 
-        // And `usePrevious` catches up, so both collections are the same object like they are in Search
-        const settledProps = createMock<UseSearchAutoRefetch>({...initialProps, transactions: editedTransactions, previousTransactions: editedTransactions});
-        rerender(settledProps);
-        expect(search).not.toHaveBeenCalled();
-
-        // And the network comes back
+        // Then the deferred search still runs when the network comes back, because unchanged collections must not swallow a pending refetch
         mockIsOffline = false;
-        rerender({...settledProps});
-
-        // Then the deferred search still runs, because unchanged collections must not swallow a pending refetch
+        rerender({transactions: edited, previousTransactions: edited});
         expect(search).toHaveBeenCalledTimes(1);
     });
 
@@ -611,8 +669,8 @@ describe('useSearchAutoRefetch', () => {
             searchResults: {
                 ...baseProps.searchResults,
                 data: {
-                    transactions_1: {transactionID: '1'},
-                    transactions_2: {transactionID: '2'},
+                    transactions_1: row('1'),
+                    transactions_2: row('2'),
                 },
             },
             transactions: {
@@ -634,7 +692,7 @@ describe('useSearchAutoRefetch', () => {
             transactions: {
                 transactions_1: transaction1,
                 transactions_99: transaction99,
-                transactions_2: {transactionID: '2'},
+                transactions_2: row('2'),
             },
         });
 
@@ -677,6 +735,33 @@ describe('useSearchAutoRefetch', () => {
 
         rerender(updatedProps);
         expect(search).not.toHaveBeenCalled();
+    });
+
+    it('should not trigger search when a report opens and the results show rows that were never loaded into Onyx', () => {
+        // Given Search showing three expenses, only one of which was ever loaded into Onyx
+        const loaded = createMock<Transaction>({transactionID: '1'});
+        const {rerender} = renderWithResults({transactions_1: row('1'), transactions_2: row('2'), transactions_3: row('3')}, {transactions_1: loaded});
+
+        // When opening a report loads another expense the results already show
+        rerender({transactions: {transactions_1: loaded, transactions_2: createMock<Transaction>({transactionID: '2'})}});
+
+        // Then Search does not refetch, because a row missing from Onyx was never loaded rather than deleted
+        expect(search).not.toHaveBeenCalled();
+    });
+
+    it('should trigger search when a transaction the results show is deleted', () => {
+        // Given Search showing two loaded expenses and one that was never loaded
+        const transaction1 = createMock<Transaction>({transactionID: '1'});
+        const {rerender} = renderWithResults(
+            {transactions_1: row('1'), transactions_2: row('2'), transactions_3: row('3')},
+            {transactions_1: transaction1, transactions_2: createMock<Transaction>({transactionID: '2'})},
+        );
+
+        // When one of them is deleted while the unloaded one gets loaded
+        rerender({transactions: {transactions_1: transaction1, transactions_3: createMock<Transaction>({transactionID: '3'})}});
+
+        // Then Search requests the results again, because a row on screen no longer exists
+        expect(search).toHaveBeenCalledTimes(1);
     });
 
     describe('workflow report actions', () => {
@@ -855,6 +940,51 @@ describe('useSearchAutoRefetch', () => {
             expect(search).toHaveBeenCalledTimes(1);
         });
 
+        it('should refetch on refocus for a member custom field change on a policy that first showed up in the results while Search was hidden', () => {
+            // Given a hidden Search whose results haven't loaded any policy yet
+            const oldFields = memberWithUserID('OLD');
+            const newFields = memberWithUserID('NEW');
+            mockUseIsFocused.mockReturnValue(false);
+            const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
+                initialProps: buildProps({}, {}),
+            });
+
+            // When the response brings in the policy while hidden, and its member's custom field then changes
+            rerender(buildProps(oldFields, {}));
+            rerender(buildProps(oldFields, oldFields));
+            rerender(buildProps(newFields, oldFields));
+            rerender(buildProps(newFields, newFields));
+            expect(search).not.toHaveBeenCalled();
+
+            // Then the search fires once Search regains focus, since the policy's fields from before the edit became its baseline
+            mockUseIsFocused.mockReturnValue(true);
+            rerender(buildProps(newFields, newFields));
+            expect(search).toHaveBeenCalledTimes(1);
+        });
+
+        it('should refetch on refocus for a custom field change on a member that first showed up in a known policy while Search was hidden', () => {
+            // Given a hidden Search whose results show a policy with one member
+            const oneMember = memberWithUserID('A');
+            const joinedFields: MemberCustomFieldsByPolicyID = {'1': {'a@b.com': {employeeUserID: 'A'}, 'new@b.com': {employeeUserID: 'OLD'}}};
+            const editedFields: MemberCustomFieldsByPolicyID = {'1': {'a@b.com': {employeeUserID: 'A'}, 'new@b.com': {employeeUserID: 'NEW'}}};
+            mockUseIsFocused.mockReturnValue(false);
+            const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
+                initialProps: buildProps(oneMember, oneMember),
+            });
+
+            // When a member joins that policy while hidden, and their custom field then changes
+            rerender(buildProps(joinedFields, oneMember));
+            rerender(buildProps(joinedFields, joinedFields));
+            rerender(buildProps(editedFields, joinedFields));
+            rerender(buildProps(editedFields, editedFields));
+            expect(search).not.toHaveBeenCalled();
+
+            // Then the search fires once Search regains focus, since the member's fields from before the edit became their baseline
+            mockUseIsFocused.mockReturnValue(true);
+            rerender(buildProps(editedFields, editedFields));
+            expect(search).toHaveBeenCalledTimes(1);
+        });
+
         it('should not trigger search when the custom fields are rewritten with the same values', () => {
             // Given a member whose custom fields have loaded
             const oldFields = memberWithUserID('OLD');
@@ -880,6 +1010,217 @@ describe('useSearchAutoRefetch', () => {
 
             // Then no search is sent, since nothing the results already show has changed
             expect(search).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('while Search is inactive', () => {
+        // Unedited transactions keep their reference across renders, like in Onyx.
+        const transaction1 = createMock<Transaction>({transactionID: '1', amount: 100});
+        const transaction2 = createMock<Transaction>({transactionID: '2', amount: 100});
+        const resultsWithTransaction1 = createMock<UseSearchAutoRefetch['searchResults']>({
+            ...baseProps.searchResults,
+            data: {
+                transactions_1: {transactionID: '1'},
+            },
+        });
+        const buildProps = (transactions: UseSearchAutoRefetch['transactions'], previousTransactions: UseSearchAutoRefetch['previousTransactions']) =>
+            createMock<UseSearchAutoRefetch>({
+                ...baseProps,
+                searchResults: resultsWithTransaction1,
+                transactions,
+                previousTransactions,
+            });
+
+        it('should not read transaction fields on a write while hidden, nor refetch on refocus when the write does not touch the results', () => {
+            // Given a hidden Spend tab with one expense in the results and one outside them
+            mockUseIsFocused.mockReturnValue(false);
+            const initialTransactions = {transactions_1: transaction1, transactions_2: transaction2};
+            const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
+                initialProps: buildProps(initialTransactions, initialTransactions),
+            });
+
+            // When the expense outside the results is edited while hidden
+            const {trackedTransaction, reads} = trackReads(createMock<Transaction>({transactionID: '2', amount: 250}));
+            const editedTransactions = {transactions_1: transaction1, transactions_2: trackedTransaction};
+            rerender(buildProps(editedTransactions, initialTransactions));
+            rerender(buildProps(editedTransactions, editedTransactions));
+
+            // Then the hook doesn't diff the transactions while hidden
+            expect(reads.count).toBe(0);
+
+            // When the tab is opened again
+            mockUseIsFocused.mockReturnValue(true);
+            rerender(buildProps(editedTransactions, editedTransactions));
+
+            // Then no refetch goes out, since the results didn't change
+            expect(search).not.toHaveBeenCalled();
+        });
+
+        it.each([
+            ['hidden', () => mockUseIsFocused.mockReturnValue(false), () => mockUseIsFocused.mockReturnValue(true)],
+            [
+                'offline',
+                () => {
+                    mockIsOffline = true;
+                },
+                () => {
+                    mockIsOffline = false;
+                },
+            ],
+        ])('should refetch once Search is active again for a user write made while Search is %s', async (_, deactivate, activate) => {
+            // Given the leader tab showing an expense while Search can't refetch
+            deactivate();
+            const initialTransactions = {transactions_1: transaction1};
+            const {rerender} = renderWithResults({transactions_1: row('1')}, initialTransactions);
+
+            // When the user edits that expense and the write succeeds
+            const editedTransactions = {transactions_1: createMock<Transaction>({transactionID: '1', amount: 250})};
+            rerender({transactions: editedTransactions, previousTransactions: initialTransactions});
+            await signalTransactionWrite(['1']);
+            rerender({transactions: editedTransactions, previousTransactions: editedTransactions});
+
+            // Then nothing is sent yet
+            expect(search).not.toHaveBeenCalled();
+
+            // When Search can refetch again
+            activate();
+            rerender({transactions: editedTransactions, previousTransactions: editedTransactions});
+
+            // Then one refetch goes out, since the write was kept unhandled until Search became active
+            expect(search).toHaveBeenCalledTimes(1);
+        });
+
+        it('should refetch once the in-flight search responds when the user returns before it does', () => {
+            // Given a background tab, which only sees another tab's edits as replaced transactions
+            mockIsClientTheLeader = false;
+            // And a search is in flight when Spend is left
+            const loadingResults = createMock<UseSearchAutoRefetch['searchResults']>({
+                ...resultsWithTransaction1,
+                search: {...resultsWithTransaction1?.search, isLoading: true},
+            });
+            const initialTransactions = {transactions_1: transaction1, transactions_2: transaction2};
+            const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
+                initialProps: buildProps(initialTransactions, initialTransactions),
+            });
+            // That search was started by adding an expense
+            const addedTransactions = {...initialTransactions, transactions_3: createMock<Transaction>({transactionID: '3'})};
+            rerender(buildProps(addedTransactions, initialTransactions));
+            expect(search).toHaveBeenCalledTimes(1);
+            const settledProps = createMock<UseSearchAutoRefetch>({...buildProps(addedTransactions, addedTransactions), searchResults: loadingResults});
+            mockUseIsFocused.mockReturnValue(false);
+            rerender(settledProps);
+
+            // When an expense in the results is edited while hidden and the user returns before the response
+            const editedTransactions = {...addedTransactions, transactions_1: createMock<Transaction>({transactionID: '1', amount: 250})};
+            rerender(createMock<UseSearchAutoRefetch>({...settledProps, transactions: editedTransactions}));
+            rerender(createMock<UseSearchAutoRefetch>({...settledProps, transactions: editedTransactions, previousTransactions: editedTransactions}));
+            mockUseIsFocused.mockReturnValue(true);
+            rerender(createMock<UseSearchAutoRefetch>({...settledProps, transactions: editedTransactions, previousTransactions: editedTransactions}));
+            expect(search).toHaveBeenCalledTimes(1);
+
+            // And the in-flight search responds
+            rerender(
+                createMock<UseSearchAutoRefetch>({
+                    ...buildProps(editedTransactions, editedTransactions),
+                    searchResults: {...resultsWithTransaction1, data: {transactions_1: {transactionID: '1'}}},
+                }),
+            );
+
+            // Then a second refetch goes out, since the edit came after the first search
+            expect(search).toHaveBeenCalledTimes(2);
+        });
+
+        it('should refetch on refocus when an expense created while hidden is then updated by the server', () => {
+            // Given a hidden Spend tab with one expense in the results
+            mockUseIsFocused.mockReturnValue(false);
+            const initialTransactions = {transactions_1: transaction1};
+            const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
+                initialProps: buildProps(initialTransactions, initialTransactions),
+            });
+
+            // When an expense is created elsewhere and optimistically added to the snapshot
+            const resultsWithNewExpense = createMock<UseSearchAutoRefetch['searchResults']>({
+                ...resultsWithTransaction1,
+                data: {transactions_1: {transactionID: '1'}, transactions_2: {transactionID: '2'}},
+            });
+            const buildCreatedProps = (transactions: UseSearchAutoRefetch['transactions'], previousTransactions: UseSearchAutoRefetch['previousTransactions']) =>
+                createMock<UseSearchAutoRefetch>({...buildProps(transactions, previousTransactions), searchResults: resultsWithNewExpense});
+            const createdTransactions = {transactions_1: transaction1, transactions_2: transaction2};
+            rerender(buildCreatedProps(createdTransactions, initialTransactions));
+            rerender(buildCreatedProps(createdTransactions, createdTransactions));
+
+            // And the server then updates it before the tab is opened
+            const updatedTransactions = {transactions_1: transaction1, transactions_2: createMock<Transaction>({transactionID: '2', amount: 150})};
+            rerender(buildCreatedProps(updatedTransactions, createdTransactions));
+            rerender(buildCreatedProps(updatedTransactions, updatedTransactions));
+            mockUseIsFocused.mockReturnValue(true);
+            rerender(buildCreatedProps(updatedTransactions, updatedTransactions));
+
+            // Then a refetch goes out, since the update can't be told apart from the add
+            expect(search).toHaveBeenCalledTimes(1);
+        });
+
+        it('should refetch on refocus for a change made while hidden after the collections loaded while hidden', () => {
+            // Given a hidden Spend tab mounted before the collections loaded
+            mockUseIsFocused.mockReturnValue(false);
+            const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
+                initialProps: buildProps({}, {}),
+            });
+
+            // When the collections load while hidden
+            const loadedTransactions = {transactions_1: transaction1};
+            rerender(buildProps(loadedTransactions, {}));
+            rerender(buildProps(loadedTransactions, loadedTransactions));
+
+            // And an expense outside the results is added, then the tab is opened
+            const addedTransactions = {transactions_1: transaction1, transactions_2: transaction2};
+            rerender(buildProps(addedTransactions, loadedTransactions));
+            rerender(buildProps(addedTransactions, addedTransactions));
+            mockUseIsFocused.mockReturnValue(true);
+            rerender(buildProps(addedTransactions, addedTransactions));
+
+            // Then a refetch goes out, since the empty pre-load collections aren't the baseline
+            expect(search).toHaveBeenCalledTimes(1);
+        });
+
+        it('should not refetch on refocus when an expense was added and removed again while hidden', () => {
+            // Given a hidden Spend tab with one expense in the results
+            mockUseIsFocused.mockReturnValue(false);
+            const initialTransactions = {transactions_1: transaction1};
+            const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
+                initialProps: buildProps(initialTransactions, initialTransactions),
+            });
+
+            // When an expense is added and removed while hidden
+            const addedTransactions = {transactions_1: transaction1, transactions_2: transaction2};
+            rerender(buildProps(addedTransactions, initialTransactions));
+            rerender(buildProps(addedTransactions, addedTransactions));
+            const removedTransactions = {transactions_1: transaction1};
+            rerender(buildProps(removedTransactions, addedTransactions));
+            rerender(buildProps(removedTransactions, removedTransactions));
+
+            // And the tab is opened again
+            mockUseIsFocused.mockReturnValue(true);
+            rerender(buildProps(removedTransactions, removedTransactions));
+
+            // Then no refetch goes out, since the collections are back to what the results were fetched against
+            expect(search).not.toHaveBeenCalled();
+        });
+
+        it('should refetch right away when an RHP is open on top of Search', () => {
+            // Given an RHP over Search, so Search is blurred but still the topmost fullscreen route
+            mockUseIsFocused.mockReturnValue(false);
+            mockIsSearchTopmostFullScreenRoute = true;
+            const initialTransactions = {transactions_1: transaction1};
+            const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
+                initialProps: buildProps(initialTransactions, initialTransactions),
+            });
+
+            // When an expense is created from the RHP
+            rerender(buildProps({transactions_1: transaction1, transactions_2: transaction2}, initialTransactions));
+
+            // Then the refetch goes out right away
+            expect(search).toHaveBeenCalledTimes(1);
         });
     });
 });

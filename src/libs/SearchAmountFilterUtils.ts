@@ -30,7 +30,11 @@ function getAmountFilterFormValues(filterKey: SearchAmountFilterKeys, values: Se
 
 /** Whether this amount filter supports FX comparisons. */
 function supportsAmountFilterCurrency(filterKey: string): boolean {
-    return filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT;
+    return (
+        filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT ||
+        filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CONVERTED_AMOUNT ||
+        filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT
+    );
 }
 
 /** Reads "12.50 USD" as amount "12.50" and currency "USD". Bare values such as "1250" keep their stored units. */

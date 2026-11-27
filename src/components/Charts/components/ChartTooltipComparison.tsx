@@ -12,6 +12,8 @@ import variables from '@styles/variables';
 import React from 'react';
 import {View} from 'react-native';
 
+import ChartTooltipRow from './ChartTooltipRow';
+
 type ChartTooltipComparisonProps = {
     /** One row per compared series */
     rows: TooltipRow[];
@@ -25,31 +27,25 @@ function ChartTooltipComparison({rows, change}: ChartTooltipComparisonProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowUpLong', 'ArrowDownLong']);
-    const changeColor = StyleUtils.getSpendChangeColor(!!change?.isIncrease);
+    const isIncrease = !!change?.isIncrease;
 
     return (
         <>
-            {rows.map((row) => {
-                const content = formatTooltipValue(row);
-                return (
-                    <View
-                        key={row.key}
-                        style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}
-                    >
-                        <View style={row.isAverage ? styles.chartTooltipAverageDash : [styles.chartTooltipDot, StyleUtils.getBackgroundColorStyle(row.color)]} />
-                        <Text style={styles.chartTooltipText}>{row.label ? `${row.label}: ${content}` : content}</Text>
-                    </View>
-                );
-            })}
+            {rows.map((row) => (
+                <ChartTooltipRow
+                    key={row.key}
+                    row={row}
+                />
+            ))}
             {!!change && (
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
                     <Icon
-                        src={change.isIncrease ? icons.ArrowUpLong : icons.ArrowDownLong}
-                        fill={changeColor}
+                        src={isIncrease ? icons.ArrowUpLong : icons.ArrowDownLong}
+                        fill={StyleUtils.getSpendChangeIconColor(isIncrease)}
                         width={variables.iconSizeXXSmall}
                         height={variables.iconSizeXXSmall}
                     />
-                    <Text style={[styles.chartTooltipText, StyleUtils.getColorStyle(changeColor)]}>{formatTooltipValue(change)}</Text>
+                    <Text style={[styles.chartTooltipText, StyleUtils.getColorStyle(StyleUtils.getSpendChangeTextColor(isIncrease))]}>{formatTooltipValue(change)}</Text>
                 </View>
             )}
         </>

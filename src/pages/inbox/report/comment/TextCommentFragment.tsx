@@ -14,6 +14,7 @@ import {containsOnlyCustomEmoji as containsOnlyCustomEmojiUtil, containsOnlyEmoj
 import hydrateEmojiHtml from '@libs/hydrateEmojiHtml';
 import Parser from '@libs/Parser';
 import {getHtmlWithAttachmentID, getTextFromHtml} from '@libs/ReportActionsUtils';
+import {buildMentionedRoomPlaceholderMap} from '@libs/ReportIDToNameMapUtils';
 import useSendMessageSpanMarks from '@libs/telemetry/useSendMessageSpanMarks';
 
 import {fontScale} from '@styles/typography';
@@ -59,7 +60,9 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
     const theme = useTheme();
     const styles = useThemeStyles();
     const {html = ''} = fragment ?? {};
-    const text = getTextFromHtml(html);
+    // `text` only feeds the emoji checks and the plain-text branch, which is never taken when the HTML has a room mention,
+    // so a placeholder name keeps the emoji checks right without subscribing every comment to the report collection.
+    const text = getTextFromHtml(html, undefined, buildMentionedRoomPlaceholderMap(html));
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {adjustExpensifyLinksForEnv} = useEnvironmentActions();
@@ -75,7 +78,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
     // on other device, only render it as text if the only difference is <br /> tag
     const containsOnlyEmojis = containsOnlyEmojisUtil(text ?? '');
     const containsOnlyCustomEmoji = containsOnlyCustomEmojiUtil(text);
-    const containsEmojis = CONST.REGEX.ALL_EMOJIS.test(text ?? '');
+    const containsEmojis = CONST.REGEX.EMOJIS.test(text ?? '');
     if (!shouldRenderAsText(html, text ?? '') && !(containsOnlyEmojis && styleAsDeleted)) {
         const editedTag = fragment?.isEdited ? `<edited ${styleAsDeleted ? 'deleted' : ''}></edited>` : '';
         // We need to replace the space at the beginning of each line with &nbsp;

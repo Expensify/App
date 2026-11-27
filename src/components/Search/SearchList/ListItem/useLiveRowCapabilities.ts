@@ -49,12 +49,11 @@ type UseLiveRowCapabilitiesParams<T> = {
 function useLiveRowCapabilities<T extends LiveRowItem>(params: UseLiveRowCapabilitiesParams<T>): T {
     const {item, reportID, itemKey, snapshotData, snapshotActions, enabled} = params;
     const {currentSearchKey} = useSearchQueryContext();
-    const {currentSearchTransactionsByReportID, currentSearchViolations} = useSearchResultsContext();
+    const {currentSearchTransactionsByReportID, currentSearchViolations, approvalWorkflowRules} = useSearchResultsContext();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const [liveReportActions] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportID)}`);
     const [liveReportMetadata] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${getNonEmptyStringOnyxID(reportID)}`);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     if (!enabled || !snapshotData) {
         return item;
@@ -71,7 +70,7 @@ function useLiveRowCapabilities<T extends LiveRowItem>(params: UseLiveRowCapabil
         currentUserDetails.accountID ?? CONST.DEFAULT_NUMBER_ID,
         bankAccountList,
         liveReportMetadata,
-        rules,
+        approvalWorkflowRules,
         liveActionsArray,
         transactionsForReport,
     );

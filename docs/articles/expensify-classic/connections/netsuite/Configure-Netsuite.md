@@ -1,14 +1,17 @@
 ---
-title: Configure Netsuite
+title: Configure NetSuite
 description: Configure NetSuite's export, coding, and advanced settings. 
-keywords: [Expensify Classic, NetSuite settings, configure NetSuite]
+keywords: [Expensify Classic, NetSuite settings, configure NetSuite, Accounting Method, Accrual, Cash, export after approval without payment]
+internalScope: Audience is workspace admins. Covers configuring an existing NetSuite connection, including automatic export timing. Does not cover connecting NetSuite or resolving specific export errors.
 ---
+
+# Configure NetSuite
 
 Correctly configuring NetSuite settings in Expensify ensures seamless integration between your expense management and accounting processes, saving time and reducing manual errors. Aligning your workspace settings with NetSuite’s financial structure can automate data syncs, simplify reporting, and improve overall financial accuracy.
 
 ---
 
-# Best Practices for using NetSuite with Expensify
+## How to maintain your NetSuite connection
 
 When you connect Expensify to NetSuite, you unlock a powerful combination of expense management and accounting automation. Follow these best practices to keep your data flowing smoothly and reduce manual effort.
 
@@ -17,9 +20,9 @@ When you connect Expensify to NetSuite, you unlock a powerful combination of exp
 - Make sure each setting reflects your accounting structure in NetSuite.
 
 ## Keep Auto Sync enabled
-Auto Sync ensures your data stays up to date without manual intervention:
+**Auto Sync** ensures your data stays up to date without manual intervention:
 - Expensify will sync daily with NetSuite to pull updates to your **chart of accounts**, **customers/projects**, and **bank accounts**.
-- When reports are marked as **finalized** in Expensify, they will automatically export to NetSuite—saving your admin team time.
+- Reimbursable expenses export automatically after final approval with **Accrual**, or after the report is paid or marked as paid with **Cash**. Learn [how to choose the NetSuite Accounting Method](#how-to-choose-the-netsuite-accounting-method).
 
 ## Choose the right exporter
 - Set the **preferred exporter** as someone who is both a **workspace admin** and a **domain admin**.
@@ -32,32 +35,46 @@ Auto Sync ensures your data stays up to date without manual intervention:
 
 ---
 
-# Configure Export Settings
+## How to configure NetSuite export settings
 
 There are numerous options for exporting Expensify reports to NetSuite. To access these settings, go to **Settings > Workspace > Group > Accounting** and select the **Configure** button. 
 
-## Subsidiary
+## How to select a NetSuite subsidiary
 
 The subsidiary selection will only appear if you use NetSuite OneWorld and have multiple subsidiaries active. If you add a new subsidiary to NetSuite, sync the workspace connection, and the new subsidiary should appear in the dropdown list under **Settings > Workspaces > [Workspace Name] > Accounting**.
 
-## Preferred Exporter
+## How to choose the preferred NetSuite exporter
 
 This option allows any admin to export, but the preferred exporter will receive notifications in Expensify regarding the status of exports.
 
-## Date
+## How to choose the NetSuite export date
 
 The three options for the date your report will export with are:
 - Date of last expense: This will use the date of the previous expense on the report
 - Submitted date: The date the employee submitted the report
 - Exported date: The date you export the report to NetSuite
 
-## Accounting Method
+<a id="accounting-method"></a>
 
-This dictates when reimbursable expenses will be exported, according to your preferred accounting method:
-- Accrual: Out-of-pocket expenses will be exported immediately when the report is final approved
-- Cash: Out-of-pocket expenses will be exported when paid via Expensify or marked as paid
+## How to choose the NetSuite Accounting Method
 
-## Export Settings for Reimbursable Expenses 
+**Accounting Method** controls when reimbursable (out-of-pocket) expenses export automatically to NetSuite:
+
+- **Accrual** – Expenses export after the report receives final approval. You don't need to pay the report in Expensify or mark it as paid before export.
+- **Cash** – Expenses export after the report is paid in Expensify or marked as paid.
+
+To choose the accounting method:
+
+1. Select **Settings > Workspaces**.
+2. If the **Group** tab appears, select **Group**.
+3. Select **[workspace name] > Accounting**.
+4. Select **Configure** next to **NetSuite**.
+5. Select **Export**.
+6. Under **Accounting Method**, choose **Accrual** or **Cash**.
+
+Enable **Auto Sync** on the **Advanced** tab to export reports automatically. Learn [how to enable NetSuite Auto Sync](#how-to-enable-netsuite-auto-sync).
+
+## How to export reimbursable expenses to NetSuite
 
 **Expense Reports:** Expensify transactions will export reimbursable expenses as expense reports by default, which will be posted to the accounts payable designated in NetSuite. 
 
@@ -68,7 +85,7 @@ This dictates when reimbursable expenses will be exported, according to your pre
 - Journal entry forms by default do not contain a customer column, so it is not possible to export customers or projects with this export option
 - The credit line and header level classifications are pulled from the employee record
 
-## Export Settings for Non-Reimbursable Expenses
+## How to export non-reimbursable expenses to NetSuite
 
 **Vendor Bills:** Non-reimbursable expenses will be posted as a vendor bill payable to the default vendor specified in your workspace's connection settings. If you centrally manage your company cards through Domains, you can export expenses from each card to a specific vendor in NetSuite. You can also set an approval level in NetSuite for the bills. 
 
@@ -92,23 +109,25 @@ Add the corporate card option and corporate card main field to your expense repo
 You can select the default account on your employee record to use individual corporate cards for each employee. Make sure you add this field to your employee entity form in NetSuite.
 If you have multiple cards assigned to a single employee, you cannot export to each account. You can only have a single default per employee record. 
 
-## Export Invoices
+<a id="export-invoices"></a>
+
+## How to select a NetSuite account for invoices
 
 Select the Accounts Receivable account you want your Invoice Reports to export. In NetSuite, the Invoices are linked to the customer, corresponding to the email address where the Invoice was sent.
 
-## Default Vendor Bills
+## How to select a default NetSuite vendor
 
 When selecting the option to export non-reimbursable expenses as vendor bills, the list of vendors will be available in the dropdown menu.
 
 ---
 
-# Configure Coding Settings
+## How to configure NetSuite coding settings
 
 The Coding tab is where NetSuite information is configured in Expensify, which allows employees to code expenses and reports accurately. There are several coding options in NetSuite. Let’s go over each of those below. 
 
 ![Insert alt text for accessibility here]({{site.url}}/assets/images/NetSuite_Configure_08.png){:width="100%"}
 
-## Expense Categories
+## How to import NetSuite expense categories
 
 Expensify's integration with NetSuite automatically imports NetSuite Expense Categories as Categories in Expensify.
 
@@ -117,7 +136,7 @@ Please note that each expense must have a Category selected to export to NetSuit
 If you want to delete Categories, you must do this in NetSuite. Categories are added and modified on the integration’s side and then synced with Expensify.
 Once imported, you can turn specific Categories on or off under **Settings > Workspaces > [Workspace Name] > Categories**. 
 
-## Tags
+## How to import NetSuite tags
 
 The NetSuite integration allows you to configure Customers, Projects, Departments, Classes, and Locations as line-item expense classifications. These are called Tags in Expensify.
 
@@ -127,11 +146,11 @@ If you want to delete Tags, you must do this in NetSuite. Tags are added and mod
 
 Once imported, you can turn specific Tags on or off under **Settings > Workspaces > [Workspace Name] > Tags**. 
 
-## Report Fields
+## How to import NetSuite report fields
 
 The NetSuite integration allows you to configure Customers, Projects, Departments, Classes, and Locations as report-level classifications. These are called Report Fields in Expensify.
 
-## NetSuite Employee Default
+## How to use NetSuite employee defaults
 
 The NetSuite integration allows you to set Departments, Classes, and Locations according to the NetSuite Employee Default for expenses exported as both Expense Reports and Journal Entries. 
 
@@ -139,7 +158,7 @@ These fields must be set in NetSuite's employee(s) record(s) to be successfully 
 
 You cannot use the employee default setting with a vendor bill export if you have both a vendor and an employee set up for the user under the same email address and subsidiary.
 
-## Tax
+## How to import NetSuite tax rates
 
 The NetSuite integration allows users to apply a tax rate and amount to each expense. To do this, import Tax Groups from NetSuite: 
 1. In NetSuite, head to **_Setup > Accounting > Tax Groups_**
@@ -156,25 +175,25 @@ The NetSuite integration allows users to apply a tax rate and amount to each exp
 
 You can import **Custom Segments**, **Custom Records**, and **Custom Lists** from NetSuite to use as Tags or Report Fields in Expensify. Here's how to locate the required fields in NetSuite and complete the setup in Expensify.
 
-# Custom Segments
+## How to import NetSuite custom segments
 
 To add a **Custom Segment** to your workspace, you’ll need:
 - Segment name  
 - Internal ID  
 - Script/Field ID  
 
-## Find the Segment name
+## Find the NetSuite segment name
 1. Log in as an Administrator in NetSuite.
 2. Go to **Customization > Lists, Records, & Fields > Custom Segments**.
 3. Locate the **Segment Name** on the Custom Segments page.
 
-## Find the Internal ID
+## Find the NetSuite segment internal ID
 1. Make sure Internal IDs are enabled in NetSuite: Go to **Home > Set Preferences** and check **Show Internal IDs**.
 2. Return to the **Custom Segments** page.
 3. Click the **Custom Record Type** link next to the segment.
 4. The **Internal ID** is listed on the Custom Record Type page.
 
-## Find the Script/Field ID
+## Find the NetSuite script or field ID
 
 **Note:** As of NetSuite 2019.1, new segments use a unified ID. Older segments may show the “Use as Field ID” checkbox.
 
@@ -182,7 +201,7 @@ To add a **Custom Segment** to your workspace, you’ll need:
 - If configuring as a **Tag**, use the **Field ID** from the **Transaction Columns** tab under **Custom Segments > Transaction Columns**.  
 - If no Field ID is shown, use the **unified ID** (labeled just “ID”).
 
-## Set up in Expensify
+## Configure NetSuite custom segments in Expensify
 1. Go to **Settings > Workspaces > Group > [Workspace Name] > Accounting > Configure > Coding** tab.
 2. Choose to import the segment as a **Report Field** or **Tag**.
 3. Enter the:
@@ -198,7 +217,7 @@ Avoid using the “Filtered by” feature in NetSuite. Expensify does not suppor
 
 ---
 
-# Custom Records
+## How to import NetSuite custom records
 
 Custom Records are tied to Custom Segments and are imported similarly. 
 
@@ -207,17 +226,17 @@ You’ll need:
 - Internal ID
 - Transaction Column ID
 
-## Find the Internal ID
+## Find the NetSuite record internal ID
 1. Enable Internal IDs in NetSuite: Go to **Home > Set Preferences** and enable **Show Internal IDs**.
 2. Return to the **Custom Segments** page.
 3. Click the **Custom Record Type** link.
 4. Locate the **Internal ID** on that page.
 
-## Find the Transaction Column ID
+## Find the NetSuite transaction column ID
 - If importing as a **Report Field**, check the **Transactions** tab.
 - If importing as a **Tag**, check the **Transaction Columns** tab.
 
-## Set up in Expensify
+## Configure NetSuite custom records in Expensify
 1. Go to **Settings > Workspaces > [Workspace Name] > Accounting > Configure > Coding** tab.
 2. Choose to import as a **Report Field** or **Tag**.
 3. Enter the:
@@ -230,24 +249,24 @@ Once complete, the record values appear under Tags or Report Fields.
 
 ---
 
-# Custom Lists
+## How to import NetSuite custom lists
 
 For Custom Lists, you’ll need:
 - Record name
 - Transaction Line Field ID
 
-## Find the Record name
+## Find the NetSuite record name
 1. Log into Expensify.
 2. Navigate to **Settings > Workspaces > [Workspace Name] > Accounting > Configure > Coding** tab.
 3. The record name appears in the dropdown.  
    If not listed, click **Refresh Custom List Options**.
 
-## Find the Transaction Line Field ID
+## Find the NetSuite transaction line field ID
 1. Log into NetSuite.
 2. Use the global search to find “Transaction Line Fields.”
 3. Select the record holding the list to see its **ID**.
 
-## Set up in Expensify
+## Configure NetSuite custom lists in Expensify
 1. Go to **Settings > Workspaces > [Workspace Name] > Accounting > Configure > Coding** tab.
 2. Choose to import as a **Report Field** or **Tag**.
 3. Enter the Transaction Line Field ID.
@@ -257,19 +276,25 @@ Values from your Custom Lists should now appear in Expensify.
 
 ---
 
-# Configure Advanced Settings
+<a id="configure-advanced-settings"></a>
+<a id="step-3-configure-advanced-settings"></a>
+
+## How to configure NetSuite advanced settings
 
 The NetSuite integration’s advanced configuration settings are accessed under **Settings > Workspaces > [Workspace Name] > Accounting > NetSuite > Configure > Advanced tab**.
 
 ![Insert alt text for accessibility here]({{site.url}}/assets/images/NetSuite_Configure_09.png){:width="100%"}
 
-## Auto Sync
+<a id="auto-sync"></a>
 
-Enabling Auto Sync ensures that the information in NetSuite and Expensify is always in sync through automating exports, tracking direct deposits, and communicating export errors.
+## How to enable NetSuite Auto Sync
 
-**Automatic Export:**
-- When you turn on the Auto Sync feature in Expensify, any final report you approve will automatically be sent to NetSuite.
-- This happens every day at approximately the same time.
+Enable **Auto Sync** on the **Advanced** tab to sync NetSuite data daily and export reports automatically. Reimbursable expenses follow the [NetSuite Accounting Method](#how-to-choose-the-netsuite-accounting-method) selected on the **Export** tab:
+
+- **Accrual** – Expenses export after final approval, without requiring payment first.
+- **Cash** – Expenses export after the report is paid in Expensify or marked as paid.
+
+The daily data sync is separate from the report status that makes expenses eligible for automatic export.
 
 **Direct Deposit Alert:**
 - If you use Expensify's Direct Deposit ACH and have Auto Sync, getting reimbursed for an Expensify report will automatically create a Bill Payment in NetSuite.
@@ -278,11 +303,11 @@ Enabling Auto Sync ensures that the information in NetSuite and Expensify is alw
 - In the comments section of an Expensify report, you can find extra details about the report.
 - The comments section will tell you when the report was sent to NetSuite, and if there were any problems during the export, it will show the error.
 
-## Newly Imported Categories
+## How to enable newly imported NetSuite categories
 
 With this enabled, all submitters can add any newly imported Categories to an Expense. 
 
-## Invite Employees & Set Approval Workflow
+## How to import NetSuite employees and approval workflows
 
 **Invite Employees:** Use this option in Expensify to bring your employees from a specific NetSuite subsidiary into Expensify. Once imported, Expensify will send them an email letting them know they've been added to a workspace.
 
@@ -293,21 +318,21 @@ The available options are:
 - **Manager Approval (default):** Two levels of approval route reports first to an employee's NetSuite expense approver or supervisor, and second to a workspace-wide Final Approver. By NetSuite convention, Expensify will map to the supervisor if no expense approver exists. The Final Approver defaults to the workspace owner but can be edited on the people page. 
 - **Configure Manually:** Employees will be imported, but all levels of approval must be manually configured on the workspace's People settings page. If you enable this setting, it’s recommended you review the newly imported employees and managers on the **Settings > Workspaces > [Workspace Name] > People page**. You can set a user role for each new employee and enforce an approval workflow.
 
-## Automatically Create Employees/Vendors
+## How to create NetSuite employees or vendors automatically
 
 With this feature enabled, Expensify will automatically create a new employee or vendor (if one doesn’t already exist) from the report submitter's email in NetSuite. 
 
-## Export Foreign Currency Amount
+## How to export foreign currency amounts to NetSuite
 
 Using this feature allows you to send the original amount of the expense rather than the converted total when exporting to NetSuite. This option is available if you are exporting reimbursable expenses as Expense Reports.
 
-## Cross-Subsidiary Customers/Projects 
+## How to import NetSuite customers and projects across subsidiaries
 
 This allows you to import Customers and Projects across all subsidiaries to a single group workspace. To enable this functionality in NetSuite, you must enable **Intercompany Time and Expense.** 
 
 That feature is found in NetSuite under **_Setup > Company > Setup Tasks: Enable Features > Advanced Features_**.
 
-## Sync Reimbursed Reports
+## How to sync reimbursed reports with NetSuite
 
 If you're using Expensify's Direct Deposit ACH feature and you want to export reimbursable expenses as either Expense Reports or Vendor Bills in NetSuite, here's what to do:
 1. In Expensify, go to the Advanced Settings tab
@@ -320,7 +345,7 @@ That's it! When Expensify reimburses an expense report, it will automatically cr
 
 Alternatively, if reimbursing outside of Expensify, this feature will automatically update the expense report status in Expensify from Approved to Reimbursed when the respective report is paid in NetSuite and the corresponding workspace syncs via Auto-Sync or when the integration connection is manually synced.
 
-## Setting Approval Levels
+## How to set NetSuite approval levels
 
 With this setting enabled, you can set approval levels based on your export type. 
 
@@ -331,14 +356,13 @@ If you have Approval Routing selected in your accounting preference, this will o
 
 If you do not wish to use Approval Routing in NetSuite, go to **_Setup > Accounting > Accounting Preferences > Approval Routing_** and ensure Vendor Bills and Journal Entries are not selected. 
 
-## Collection Account
+## How to select a NetSuite collection account
 
 When exporting invoices, once marked as Paid, the payment is marked against the account selected after enabling the Collection Account setting.
 
 ---
 
-# Additional Settings
-## Categories
+## How to manage NetSuite categories
 
 You can use the Auto-Categorization feature so that expenses are automatically categorized. 
 
@@ -346,7 +370,7 @@ To set Category Rules (e.g., receipt requirements or comments), go to the catego
 
 With this setting enabled, when an Expense Category updates in NetSuite, it will update in Expensify automatically. 
 
-## Company Cards
+## How to use company cards with NetSuite
 
 NetSuite's company card feature simplifies exporting reimbursable and non-reimbursable transactions to your General Ledger (GL). This approach is recommended for several reasons:
 
@@ -373,7 +397,7 @@ Add the corporate card option and the corporate card main field to configure you
 
 If you prefer individual corporate cards for each employee, you can select the default account on the employee record. Add this field to your employee entity form in NetSuite (under **_Customize > Customize Form_** from any employee record). Note that each employee can have only one corporate card account default.
 
-## Exporting Company Cards to GL Accounts in NetSuite
+## How to export company card transactions to NetSuite GL accounts
 
 If you need to export company card transactions to individual GL accounts, you can set that up at the domain level. 
 
@@ -383,7 +407,7 @@ Let’s go over how to do that:
 
 After setting the account, exported expenses will be mapped to that designated account.
 
-## Tax 
+## How to configure NetSuite tax groups
 
 You’ll want to set up Tax Groups in Expensify if you're keeping track of taxes.
 
@@ -416,7 +440,7 @@ Additionally, some tax nexuses in NetSuite have specific settings that need to b
 
 If your tax groups are importing into Expensify but not exporting to NetSuite, could you check that each tax group has the right subsidiaries enabled? That is crucial for proper data exchange.
 
-## Multi-Currency
+## How to export multiple currencies to NetSuite
 
 When using multi-currency features with NetSuite, remember these points:
 
@@ -426,7 +450,7 @@ When using multi-currency features with NetSuite, remember these points:
 
 **Bank Account Currency:** When synchronizing bill payments, ensure your bank account's currency matches the subsidiary's. Failure to do so will result in an **Invalid Account** error. This alignment is necessary to prevent issues during payment processing.
 
-## Exporting Invoices
+## How to configure NetSuite invoice exports
 
 When you mark an invoice as paid in Expensify, the paid status syncs with NetSuite and vice versa.
 
@@ -434,7 +458,7 @@ To access this setting:
 1. Access Configuration Settings: Go to **Settings > Workspace > [Workspace Name] > Accounting > Configuration**
 2. Choose Your Accounts Receivable Account: Scroll down to **Export Expenses to** and select the appropriate Accounts Receivable account from the dropdown list. If you don't see any options, try syncing your NetSuite connection by returning to the Accounting page and clicking **Sync Now**
 
-## Exporting an Invoice to NetSuite
+## How to export an invoice to NetSuite
 
 Invoices will be automatically sent to NetSuite when they are in the **Outstanding** or **Paid** status. This ensures you always have an up-to-date record of unpaid and paid invoices.
 
@@ -447,11 +471,11 @@ When exporting to NetSuite, we match the recipient's email address on the invoic
 
 Once exported, the invoice will appear in the Accounts Receivable account you selected during your NetSuite Export configuration.
 
-## Updating the status of an invoice to "Paid"
+## How to sync invoice payment status with NetSuite
 
 When you mark an invoice as **Paid** in Expensify, this status will automatically update in NetSuite. Similarly, if the invoice is marked as **Paid** in NetSuite, it will sync with Expensify. The payment will be reflected in the Collection account specified in your Advanced Settings Configuration.
 
-## Download NetSuite Logs
+## How to download NetSuite logs
 
 Sometimes, we might need more details from you to troubleshoot issues with your NetSuite connection. Providing the NetSuite web services usage logs is incredibly useful. 
 
@@ -463,6 +487,12 @@ Here's how you can send them to us:
 ---
 
 # FAQ
+
+## Can I export reports automatically after approval without paying them in Expensify?
+
+Yes. Enable **Auto Sync** on the **Advanced** tab and set **Accounting Method** to **Accrual** on the **Export** tab. Reimbursable expenses export after final approval, so you can process payment outside Expensify afterward without first paying the report in Expensify or marking it as paid.
+
+Follow the steps to [choose the NetSuite Accounting Method](#how-to-choose-the-netsuite-accounting-method).
 
 ## How does Auto Sync work with reimbursed reports? 
 
@@ -497,4 +527,3 @@ If you have confirmed that your categories are set as Expense Categories in NetS
 - **Custom Record**: This is an entirely customizable record type used to store detailed, structured information not covered by standard NetSuite records (e.g., customers, vendors, and transactions). Unlike Segments, Custom Records are designed to manage standalone data, like tracking projects, assets, or other entities.
 - **Custom Segment**: A custom classification field similar to standard NetSuite segments like Department, Class, or Location. Typically used when you need to categorize transactions, records, or GL entries for reporting purposes or to separate financial. (NetSuite automatically creates a Custom Record behind the scenes to power the segment.)
 - **Custom List**: A static dropdown of predefined values used for simple selections, like **Preferred Contact Method.** Custom Lists are lightweight and don't support complex relationships or GL impacts.
-

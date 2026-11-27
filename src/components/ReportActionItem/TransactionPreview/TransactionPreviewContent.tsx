@@ -7,6 +7,7 @@ import UserInfoCellsWithArrow from '@components/Search/SearchList/ListItem/UserI
 import Text from '@components/Text';
 import TransactionPreviewSkeletonView from '@components/TransactionPreviewSkeletonView';
 
+import {useMentionedAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -15,6 +16,7 @@ import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
 import useTheme from '@hooks/useTheme';
@@ -35,7 +37,7 @@ import {canEditMoneyRequest, getTransactionDetails, isPolicyExpenseChat, isRepor
 import StringUtils from '@libs/StringUtils';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
 import {createTransactionPreviewConditionals, getTransactionPreviewTextAndTranslationPaths} from '@libs/TransactionPreviewUtils';
-import {isManagedCardTransaction as isCardTransactionUtils, isGPSDistanceRequest, isMapDistanceRequest, isScanning} from '@libs/TransactionUtils';
+import {getDescription, isManagedCardTransaction as isCardTransactionUtils, isGPSDistanceRequest, isMapDistanceRequest, isScanning} from '@libs/TransactionUtils';
 import ViolationsUtils, {filterReceiptViolations} from '@libs/Violations/ViolationsUtils';
 
 import {fontScale} from '@styles/typography';
@@ -65,7 +67,6 @@ function TransactionPreviewContent({
     isWhisper,
     isHovered,
     chatReport,
-    personalDetails,
     report,
     policy,
     transaction,
@@ -78,7 +79,8 @@ function TransactionPreviewContent({
     areThereDuplicates,
     sessionAccountID,
     walletTermsErrors,
-    reportPreviewAction,
+    managerID,
+    ownerAccountID,
     shouldHideOnDelete = true,
     shouldShowPayerAndReceiver,
     navigateToReviewFields,
@@ -102,10 +104,13 @@ function TransactionPreviewContent({
     const {personalCardsWithBrokenConnection} = useCardFeedErrors();
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         shouldHighlight,
+        highlightKey: transaction?.transactionID,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.cardBG,
         shouldApplyOtherStyles: false,
     });
+    const [personalDetails] = usePersonalDetailsByIDs([ownerAccountID, managerID]);
+    const accountIDToName = useMentionedAccountIDToNameMap(getDescription(transaction));
     const cardID = getViolationToDescribe(violations, transaction)?.data?.cardID;
     // Keep this the last hook and derive the violation again below it. React Compiler cannot cache values that alias
     // an array built before a hook call, and the whole preview derivation depends on this violation.
@@ -115,8 +120,6 @@ function TransactionPreviewContent({
     const isParentPolicyExpenseChat = isPolicyExpenseChat(chatReport);
     const transactionDetails: Partial<TransactionDetails> = getTransactionDetails(transaction, policy, isParentPolicyExpenseChat) ?? {};
     const {amount, comment: requestComment, merchant, category, currency: requestCurrency} = transactionDetails;
-    const managerID = report?.managerID ?? reportPreviewAction?.childManagerAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const ownerAccountID = report?.ownerAccountID ?? reportPreviewAction?.childOwnerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const ownerLogin = getLoginByAccountID(ownerAccountID, personalDetails);
     const currentUserEmail = currentUserDetails.email ?? '';
     const currentUserLogin = currentUserDetails.login;
@@ -187,7 +190,7 @@ function TransactionPreviewContent({
     const isDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const shouldShowMerchantOrDescription = shouldShowDescription || shouldShowMerchant;
 
-    const description = truncate(StringUtils.lineBreaksToSpaces(Parser.htmlToText(requestComment ?? '')), {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
+    const description = truncate(StringUtils.lineBreaksToSpaces(Parser.htmlToText(requestComment ?? '', {accountIDToName})), {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const isApproved = isReportApproved({report});
     const pendingAction = action?.pendingAction;

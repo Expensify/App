@@ -21,6 +21,7 @@ Before committing, stage everything with `git add -A`. Then start a general-purp
 | Consistency | `CONSISTENCY-*` | Platform checks, magic values, unused props, lint discipline, localization, file naming, JSDoc |
 | Clean React Patterns | `CLEAN-REACT-PATTERNS-*` | Composition, component ownership, state structure, prop typing, function components |
 | UI | `UI-*` | Loading indicators, scrollable pages, styling conventions |
+| Privacy | `PRIVACY-*` | FullStory masking of sensitive data |
 
 ## Quick Reference
 
@@ -68,6 +69,7 @@ Before committing, stage everything with `git add -A`. Then start a general-purp
 - [CONSISTENCY-18](rules/consistency-18-comment-non-obvious-code.md) — Comment code that is not self-explanatory
 - [CONSISTENCY-19](rules/consistency-19-copy-grammar-and-case.md) — User-facing copy is grammatical and sentence case
 - [CONSISTENCY-20](rules/consistency-20-function-names.md) — Name functions with a verb that says what they do
+- [CONSISTENCY-21](rules/consistency-21-sentry-label-type.md) — Type a forwarded sentryLabel with the SentryLabel helpers
 
 ### Clean React Patterns
 - [CLEAN-REACT-PATTERNS-1](rules/clean-react-1-composition-over-config.md) — Composition over configuration
@@ -86,6 +88,9 @@ Before committing, stage everything with `git add -A`. Then start a general-purp
 - [UI-3](rules/ui-3-no-inline-styles.md) — Do not use inline style objects
 - [UI-4](rules/ui-4-layout-spacing-tokens.md) — Type and responsive insets come from tokens
 - [UI-5](rules/ui-5-reuse-existing-styles.md) — Reuse an existing style or StyleUtils helper instead of adding a new one
+
+### Privacy
+- [PRIVACY-1](rules/privacy-1-mask-sensitive-data.md) — Mask sensitive data in FullStory
 
 ### Onyx
 - [ONYX-1](rules/onyx-1-no-render-reachable-onyx-read.md) — Keep Onyx reads off the render path and out of a written tick

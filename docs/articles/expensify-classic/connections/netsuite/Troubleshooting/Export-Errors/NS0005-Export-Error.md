@@ -1,8 +1,8 @@
 ---
 title: NS0005 Export Error in NetSuite Integration
-description: Learn how to fix the NS0005 export error in NetSuite when required classification fields like Department, Location, or Class are missing.
-keywords: NS0005, NetSuite required department location class, vendor bill classification error, journal entry classification error, default department NetSuite employee, Expensify NetSuite export error, Workspace Admin
-internalScope: Audience is Workspace Admins using the NetSuite integration. Covers fixing the NS0005 export error caused by missing required classification fields. Does not cover other NetSuite error codes.
+description: Learn how to fix NS0005 classification errors and related required-field errors, including missing Line of Business values on NetSuite vendor bills.
+keywords: NS0005, NetSuite missing Department Location Class, Line of Business, Please enter values for, required custom field, vendor bill header, expense lines, Expensify NetSuite integration, Workspace Admin
+internalScope: Audience is workspace admins using the NetSuite integration. Covers NS0005 classification errors and related required custom-field errors on vendor bills. Does not cover role permission or token issues.
 ---
 
 # NS0005 Export Error in NetSuite Integration
@@ -63,6 +63,30 @@ If you are exporting as a **Vendor Bill**:
 5. Click **Sync**.
 
 Retry exporting the report.
+
+---
+
+## How to fix a required Line of Business field on a NetSuite vendor bill
+
+You may also see this related NetSuite error without an NS0005 code:
+
+> Error while accessing a resource. Please enter value(s) for: Line of Business.
+
+NetSuite requires a value for the named field. The requirement may apply to the bill header, expense lines, or both. Ask your NetSuite administrator to confirm where the field is required before changing the form.
+
+- If the field must remain required, confirm its mapping and selected values in Expensify. For custom segments, report-level coding uses a **Report Field** and expense-line coding uses a **Tag**. Check both levels if NetSuite requires both.
+- If the administrator confirms the field does not need to appear on the export form, follow the form steps below. Do not remove a business-required field just to bypass the error.
+
+Learn how to [configure NetSuite custom segments and records](/articles/expensify-classic/connections/netsuite/Configure-Netsuite).
+
+1. In NetSuite, go to **Customization > Forms > Transaction Forms**.
+2. Select **Edit** next to the preferred vendor bill form.
+3. Find the field named in the error under **Screen Fields > Main** for the header and **Screen Fields > Expenses** for expense lines. Check both if the field is required at both levels.
+4. Clear **Show** for the field. If **Mandatory** is selected, clear it only if your administrator confirms the requirement can be removed.
+5. Select **Save**.
+6. Sync the workspace using the steps above, then retry the export.
+
+If the next export returns a billable-expense error, troubleshoot it separately. Learn how to [correct NetSuite billable expense coding](/articles/expensify-classic/connections/netsuite/Troubleshooting/Export-Errors/NS0046-Export-Error).
 
 ---
 

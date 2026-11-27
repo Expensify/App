@@ -6,11 +6,11 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {SearchQueryJSON} from '@components/Search/types';
 
-import {search} from '@libs/actions/Search';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
-import useInsightsTopExpenses, {TOP_EXPENSES_STATE} from '@pages/Insights/details/useInsightsTopExpenses';
-import {buildTopExpensesQueryJSON} from '@pages/Insights/insightsQueries';
+import {INSIGHTS_DETAILS_SECTION_STATE} from '@pages/Insights/details/insightsDetailsSectionState';
+import useInsightsTopExpenses from '@pages/Insights/details/useInsightsTopExpenses';
+import {buildTopExpensesQueryJSON, withInsightsSnapshotHash} from '@pages/Insights/insightsQueries';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -24,17 +24,13 @@ import currencyList from './currencyList.json';
 
 let mockIsOffline = false;
 jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: mockIsOffline})));
-let mockIsFocused = true;
-jest.mock('@react-navigation/native', () => ({...jest.requireActual<Record<string, unknown>>('@react-navigation/native'), useIsFocused: () => mockIsFocused}));
 let mockCurrentSearchQueryJSON: SearchQueryJSON | undefined;
 jest.mock('@libs/SearchQueryUtils', () => ({
     ...jest.requireActual<Record<string, unknown>>('@libs/SearchQueryUtils'),
     getCurrentSearchQueryJSON: jest.fn(() => mockCurrentSearchQueryJSON),
 }));
-jest.mock('@libs/actions/Search', () => ({...jest.requireActual<Record<string, unknown>>('@libs/actions/Search'), search: jest.fn()}));
 
 const QUERY = 'type:expense view:table date>=2026-01-01 date<=2026-03-31';
-const OTHER_QUERY = 'type:expense view:table date>=2026-04-01 date<=2026-06-30';
 const TOP_EXPENSES_QUERY_JSON = buildTopExpensesQueryJSON(QUERY);
 const SNAPSHOT_KEY = `${ONYXKEYS.COLLECTION.SNAPSHOT}${TOP_EXPENSES_QUERY_JSON?.hash}` as const;
 const ACCOUNT_ID = 1;
@@ -79,8 +75,23 @@ function buildSnapshotData(expenseCount: number, pendingDeleteID?: number): Sear
     return data as SearchResults['data'];
 }
 
+/** Returns a report's submit action, which recorded the expense's violations at submission. */
+function buildSubmittedViolations(reportID: string, transactionID: string, violationNames: string[]) {
+    return {
+        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {
+            submitted: {
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                reportActionID: `submitted_${transactionID}`,
+                created: '2026-02-02 10:00:00',
+                message: [],
+                originalMessage: {amount: 100, currency: 'USD', violations: {transactions: {[transactionID]: violationNames.map((name) => ({name}))}}},
+            },
+        },
+    };
+}
+
 /** Returns the `search` metadata a response for the Top expenses query stores. */
-function buildSearchMetadata(responseJsonCode?: number) {
+function buildSearchMetadata() {
     return {
         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
         offset: 0,
@@ -90,13 +101,14 @@ function buildSearchMetadata(responseJsonCode?: number) {
         state: CONST.SEARCH.SNAPSHOT_STATE.LOADED,
         isLoading: false,
         hasMoreResults: false,
-        responseJsonCode,
     };
 }
 
-function renderTopExpenses(query: string | undefined) {
-    return renderHook((props: {query: string | undefined}) => useInsightsTopExpenses(props.query), {
-        initialProps: {query},
+function renderTopExpenses(query = TOP_EXPENSES_QUERY_JSON) {
+    if (!query) {
+        throw new Error('Expected a valid Top expenses query');
+    }
+    return renderHook(() => useInsightsTopExpenses(query), {
         wrapper: ({children}) => <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider]}>{children}</ComposeProviders>,
     });
 }
@@ -106,9 +118,7 @@ describe('useInsightsTopExpenses', () => {
 
     beforeEach(async () => {
         mockIsOffline = false;
-        mockIsFocused = true;
         mockCurrentSearchQueryJSON = undefined;
-        jest.clearAllMocks();
         await Onyx.set(ONYXKEYS.SESSION, {accountID: ACCOUNT_ID, email: 'submitter@expensify.com'});
         await Onyx.set(ONYXKEYS.CURRENCY_LIST, currencyList);
         await waitForBatchedUpdatesWithAct();
@@ -119,113 +129,15 @@ describe('useInsightsTopExpenses', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    describe('fetching', () => {
-        it('requests the largest expenses of the query when it mounts', async () => {
-            // Given the Spend query of a clicked chart item
-            // When the panel mounts
-            renderTopExpenses(QUERY);
-            await waitForBatchedUpdatesWithAct();
-
-            // Then it searches once, sorted by amount with a limit of 10, so its snapshot holds only the top expenses
-            expect(search).toHaveBeenCalledTimes(1);
-            expect(jest.mocked(search).mock.calls.at(0)?.[0].queryJSON.hash).toBe(TOP_EXPENSES_QUERY_JSON?.hash);
-        });
-
-        it('requests again when the query changes', async () => {
-            // Given a panel that already requested its query
-            const {rerender} = renderTopExpenses(QUERY);
-            await waitForBatchedUpdatesWithAct();
-
-            // When the item or date range changes the query
-            rerender({query: OTHER_QUERY});
-            await waitForBatchedUpdatesWithAct();
-
-            // Then it requests the new query, so the list follows what the panel shows
-            expect(search).toHaveBeenCalledTimes(2);
-            expect(jest.mocked(search).mock.calls.at(1)?.[0].queryJSON.hash).toBe(buildTopExpensesQueryJSON(OTHER_QUERY)?.hash);
-        });
-
-        it('waits for the network while offline and requests once back online', async () => {
-            // Given a panel opened offline
-            mockIsOffline = true;
-            const {rerender} = renderTopExpenses(QUERY);
-            await waitForBatchedUpdatesWithAct();
-
-            // Then it sends nothing, since the request would only fail
-            expect(search).not.toHaveBeenCalled();
-
-            // When the device comes back online
-            mockIsOffline = false;
-            rerender({query: QUERY});
-            await waitForBatchedUpdatesWithAct();
-
-            // Then it requests the expenses without the user having to retry
-            expect(search).toHaveBeenCalledTimes(1);
-        });
-
-        it('requests nothing when the panel regains focus without an expense change', async () => {
-            // Given a panel that requested its query and lost focus to an expense opened from it
-            const {rerender} = renderTopExpenses(QUERY);
-            await waitForBatchedUpdatesWithAct();
-            mockIsFocused = false;
-            rerender({query: QUERY});
-            await waitForBatchedUpdatesWithAct();
-
-            // When the user goes back without changing anything
-            mockIsFocused = true;
-            rerender({query: QUERY});
-            await waitForBatchedUpdatesWithAct();
-
-            // Then it doesn't request again, since the stored expenses are still current
-            expect(search).toHaveBeenCalledTimes(1);
-        });
-
-        it('requests again once visible after an expense changed behind it', async () => {
-            // Given a panel that requested its query and lost focus to an expense opened from it
-            const {rerender} = renderTopExpenses(QUERY);
-            await waitForBatchedUpdatesWithAct();
-            mockIsFocused = false;
-            rerender({query: QUERY});
-            await waitForBatchedUpdatesWithAct();
-
-            // When the expense is edited while the panel is hidden
-            await Onyx.set(ONYXKEYS.DERIVED.SPEND_DATA_SIGNATURE, {expenses: 1, cardExpenses: 0});
-            await waitForBatchedUpdatesWithAct();
-
-            // Then it waits, since nobody sees the list
-            expect(search).toHaveBeenCalledTimes(1);
-
-            // When the user goes back
-            mockIsFocused = true;
-            rerender({query: QUERY});
-            await waitForBatchedUpdatesWithAct();
-
-            // Then it requests again, so an edit that moved the expense out of the query drops it from the list
-            expect(search).toHaveBeenCalledTimes(2);
-        });
-
-        it('requests nothing without a query', async () => {
-            // Given a panel whose item has not resolved yet
-            const {result} = renderTopExpenses(undefined);
-            await waitForBatchedUpdatesWithAct();
-
-            // When the user retries
-            result.current.retry();
-
-            // Then nothing is sent, since there is nothing to ask for
-            expect(search).not.toHaveBeenCalled();
-        });
-    });
-
     describe('state', () => {
         it('is loading until the response arrives', async () => {
             // Given no stored response for the query
             // When the panel renders
-            const {result} = renderTopExpenses(QUERY);
+            const {result} = renderTopExpenses();
             await waitForBatchedUpdatesWithAct();
 
             // Then it shows the skeleton with no rows
-            expect(result.current.state).toBe(TOP_EXPENSES_STATE.LOADING);
+            expect(result.current.state).toBe(INSIGHTS_DETAILS_SECTION_STATE.LOADING);
             expect(result.current.expenses).toEqual([]);
         });
 
@@ -234,11 +146,11 @@ describe('useInsightsTopExpenses', () => {
             await Onyx.set(SNAPSHOT_KEY, {data: buildSnapshotData(12, 11), search: buildSearchMetadata()});
 
             // When the panel renders
-            const {result} = renderTopExpenses(QUERY);
+            const {result} = renderTopExpenses();
             await waitForBatchedUpdatesWithAct();
 
             // Then it lists the 10 largest remaining expenses in order, since optimistic writes can add rows beyond the limit
-            expect(result.current.state).toBe(TOP_EXPENSES_STATE.READY);
+            expect(result.current.state).toBe(INSIGHTS_DETAILS_SECTION_STATE.READY);
             expect(result.current.expenses.map((expense) => expense.transactionID)).toEqual(['12', '10', '9', '8', '7', '6', '5', '4', '3', '2']);
         });
 
@@ -248,35 +160,71 @@ describe('useInsightsTopExpenses', () => {
             await Onyx.set(SNAPSHOT_KEY, {data: buildSnapshotData(2), search: buildSearchMetadata()});
 
             // When the panel renders
-            const {result} = renderTopExpenses(QUERY);
+            const {result} = renderTopExpenses();
             await waitForBatchedUpdatesWithAct();
 
             // Then it still lists them, since the Spend tab's filters don't apply to this query
             expect(result.current.expenses.map((expense) => expense.transactionID)).toEqual(['2', '1']);
         });
 
-        it('is stale when the request got no response', async () => {
-            // Given a request that failed without reaching the server
-            await Onyx.set(SNAPSHOT_KEY, {errors: {error: 'No response'}, search: buildSearchMetadata(CONST.JSON_CODE.NO_RESPONSE)});
+        it('returns no violations when the query is not narrowed to expenses with violations', async () => {
+            // Given a Spend query, which lists expenses whether or not they have violations
+            await Onyx.set(SNAPSHOT_KEY, {data: buildSnapshotData(2), search: buildSearchMetadata()});
 
             // When the panel renders
-            const {result} = renderTopExpenses(QUERY);
+            const {result} = renderTopExpenses(buildTopExpensesQueryJSON(QUERY));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the expenses come without violations, so their rows keep the expense's details
+            expect(result.current.expenses).toHaveLength(2);
+            expect(result.current.violationsByTransactionID).toBeUndefined();
+        });
+
+        it("lists each expense's submitted violations, the panel's violation first", async () => {
+            // Given a Receipt required panel, and expenses whose reports were submitted with violations
+            const violationQuery = `${QUERY} has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION} ${CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION}:${CONST.VIOLATIONS.RECEIPT_REQUIRED}`;
+            const violationQueryJSON = buildTopExpensesQueryJSON(violationQuery);
+            const data = {
+                ...buildSnapshotData(2),
+                ...buildSubmittedViolations('1', '1', [CONST.VIOLATIONS.OVER_LIMIT]),
+                ...buildSubmittedViolations('2', '2', [CONST.VIOLATIONS.OVER_LIMIT, CONST.VIOLATIONS.RECEIPT_REQUIRED, CONST.VIOLATIONS.MISSING_CATEGORY]),
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${violationQueryJSON?.hash}`, {
+                data,
+                search: {...buildSearchMetadata(), hash: violationQueryJSON?.hash},
+            });
+
+            // When the panel renders
+            const {result} = renderTopExpenses(buildTopExpensesQueryJSON(violationQuery));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then Receipt required leads the expense that has it, followed by the rest alphabetically, and the other expense lists only its own
+            expect(result.current.violationsByTransactionID?.['1']).toEqual(['Over limit']);
+            expect(result.current.violationsByTransactionID?.['2']).toEqual(['Receipt required', 'Missing category', 'Over limit']);
+        });
+
+        it('is stale when the Search got no response', async () => {
+            // Given a graph GetInsightsDetails doesn't support, whose Top expenses Search failed without reaching the server
+            await Onyx.set(SNAPSHOT_KEY, {errors: {error: 'No response'}, search: {...buildSearchMetadata(), responseJsonCode: CONST.JSON_CODE.NO_RESPONSE}});
+
+            // When the panel renders
+            const {result} = renderTopExpenses();
             await waitForBatchedUpdatesWithAct();
 
             // Then it asks the user to refresh rather than reporting an error
-            expect(result.current.state).toBe(TOP_EXPENSES_STATE.STALE);
+            expect(result.current.state).toBe(INSIGHTS_DETAILS_SECTION_STATE.STALE);
         });
 
-        it('is an error when the server rejected the request', async () => {
-            // Given a request the server answered with an error
+        it('is an error when the server rejected the Search', async () => {
+            // Given a Top expenses Search the server answered with an error
             await Onyx.set(SNAPSHOT_KEY, {errors: {error: 'Server error'}, search: buildSearchMetadata()});
 
             // When the panel renders
-            const {result} = renderTopExpenses(QUERY);
+            const {result} = renderTopExpenses();
             await waitForBatchedUpdatesWithAct();
 
             // Then it shows the error state
-            expect(result.current.state).toBe(TOP_EXPENSES_STATE.ERROR);
+            expect(result.current.state).toBe(INSIGHTS_DETAILS_SECTION_STATE.ERROR);
         });
 
         it('is offline when offline and nothing is stored for the query', async () => {
@@ -284,11 +232,11 @@ describe('useInsightsTopExpenses', () => {
             mockIsOffline = true;
 
             // When the panel renders
-            const {result} = renderTopExpenses(QUERY);
+            const {result} = renderTopExpenses();
             await waitForBatchedUpdatesWithAct();
 
             // Then it shows the offline state instead of a skeleton that would never resolve
-            expect(result.current.state).toBe(TOP_EXPENSES_STATE.OFFLINE);
+            expect(result.current.state).toBe(INSIGHTS_DETAILS_SECTION_STATE.OFFLINE);
         });
 
         it('keeps showing stored expenses while offline', async () => {
@@ -297,12 +245,29 @@ describe('useInsightsTopExpenses', () => {
             await Onyx.set(SNAPSHOT_KEY, {data: buildSnapshotData(2), search: buildSearchMetadata()});
 
             // When the panel renders
-            const {result} = renderTopExpenses(QUERY);
+            const {result} = renderTopExpenses();
             await waitForBatchedUpdatesWithAct();
 
             // Then the stored expenses stay visible, since they are still accurate as of the last load
-            expect(result.current.state).toBe(TOP_EXPENSES_STATE.READY);
+            expect(result.current.state).toBe(INSIGHTS_DETAILS_SECTION_STATE.READY);
             expect(result.current.expenses.map((expense) => expense.transactionID)).toEqual(['2', '1']);
         });
+    });
+
+    it('waits for scoped Details even when Search already loaded the same expense query', async () => {
+        // Given an ordinary Search snapshot with results from more than one workspace
+        await Onyx.set(SNAPSHOT_KEY, {
+            data: buildSnapshotData(2),
+            search: buildSearchMetadata(),
+        });
+        const query = withInsightsSnapshotHash(TOP_EXPENSES_QUERY_JSON, CONST.INSIGHTS.GRAPH.TOP_SPENDERS);
+
+        // When Top spenders Details opens before its response is ready
+        const {result} = renderTopExpenses(query);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then it does not display the unscoped Search rows
+        expect(result.current.state).toBe(INSIGHTS_DETAILS_SECTION_STATE.LOADING);
+        expect(result.current.expenses).toEqual([]);
     });
 });

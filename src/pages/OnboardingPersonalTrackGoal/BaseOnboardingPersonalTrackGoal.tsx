@@ -56,7 +56,7 @@ function BaseOnboardingPersonalTrackGoal({shouldUseNativeStyles, route}: BaseOnb
     const [inputError, setInputError] = useState('');
     const [shouldScrollToSomethingElseInput, setShouldScrollToSomethingElseInput] = useState(false);
     const scrollViewRef = useRef<ComponentRef<typeof ScrollView>>(null);
-    const scrollContentRef = useRef<View>(null);
+    const scrollContentRef = useRef<ComponentRef<typeof View>>(null);
     const inputRef = useRef<AnimatedTextInputRef>(null);
     const illustrations = useMemoizedLazyIllustrations(['RealEstate', 'HouseMoney', 'TargetWithArrow', 'Binoculars']);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Checkmark']);

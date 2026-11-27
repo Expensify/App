@@ -24,6 +24,7 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
+import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useIsSupportalSession from '@hooks/useIsSupportalSession';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLoadPolicyCategories from '@hooks/useLoadPolicyCategories';
@@ -31,6 +32,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalDetailByLogin, {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import usePrevious from '@hooks/usePrevious';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
@@ -69,7 +71,7 @@ import {getChatByParticipants, isApproverOfOutstandingPolicyReports} from '@libs
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
-import {getEffectiveWorkArrangement, getMemberLoginByAccountID, getWorkArrangementLabel} from '@libs/WorkArrangementUtils';
+import {getEffectiveWorkArrangement, getMemberLoginByAccountID, getWorkArrangementLabel, isAccountIDGeneratedFromLogin} from '@libs/WorkArrangementUtils';
 import {getFirstApproverLabel, INITIAL_APPROVAL_WORKFLOW, isApprovalWorkflowLockedByIntegration, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
 
 import Navigation from '@navigation/Navigation';
@@ -85,16 +87,16 @@ import variables from '@styles/variables';
 import {openPublicProfilePage} from '@userActions/PersonalDetails';
 import {clearPolicyMemberCategoryVisibilityError} from '@userActions/Policy/Category';
 import {clearWorkspaceOwnerChangeFlow, openPolicyMemberProfilePage, removeMembers} from '@userActions/Policy/Member';
-import {callIfAuthenticated, isAnonymousUser as isAnonymousUserSession} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {authTokenTypeSelector} from '@src/selectors/Session';
-import type {CompanyCardFeed, CompanyCardFeedWithDomainID, Card as MemberCard, PersonalDetails, PersonalDetailsList, Report} from '@src/types/onyx';
+import type {CompanyCardFeed, CompanyCardFeedWithDomainID, Card as MemberCard, PersonalDetails, Report} from '@src/types/onyx';
 
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
@@ -104,13 +106,7 @@ import {Str} from 'expensify-common';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
-type WorkspacePolicyOnyxProps = {
-    personalDetails: OnyxEntry<PersonalDetailsList>;
-};
-
-type WorkspaceMemberDetailsPageProps = Omit<WithPolicyAndFullscreenLoadingProps, 'route'> &
-    WorkspacePolicyOnyxProps &
-    PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBER_DETAILS>;
+type WorkspaceMemberDetailsPageProps = Omit<WithPolicyAndFullscreenLoadingProps, 'route'> & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBER_DETAILS>;
 
 function isNameValuePairsObject(value: unknown): value is Record<string, unknown> {
     return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -119,7 +115,8 @@ function isNameValuePairsObject(value: unknown): value is Record<string, unknown
 const createMemberChatReportIDSelector = (memberAccountID: number, currentUserAccountID: number) => (reports: OnyxCollection<Report>) =>
     getChatByParticipants([memberAccountID, currentUserAccountID], reports)?.reportID;
 
-function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceMemberDetailsPageProps) {
+function WorkspaceMemberDetailsPage({policy, route}: WorkspaceMemberDetailsPageProps) {
+    const [personalDetails] = useAllPersonalDetails();
     const policyID = route.params.policyID;
     const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
@@ -148,6 +145,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const isSupportalSession = useIsSupportalSession();
+    const isAnonymousUser = useIsAnonymousUser();
 
     const routeAccountID = Number(route.params.accountID);
     const memberLogin = personalDetails?.[routeAccountID]?.login ?? getMemberLoginByAccountID(policy, routeAccountID);
@@ -194,12 +192,11 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
 
     const {isLoadingCompletePolicyCategories} = useLoadPolicyCategories(shouldShowCategoryVisibility ? policyID : undefined);
     let categoryVisibilityTitle = '';
-    if (!isLoadingCompletePolicyCategories && policyCategoriesVisibility) {
+    const enabledCategoriesCount = getEnabledCategoriesCount(policyCategoriesVisibility);
+    if (!isLoadingCompletePolicyCategories && policyCategoriesVisibility && enabledCategoriesCount) {
         const visibleCategoriesCount = getMemberVisibleCategoryNames(policyCategoriesVisibility, accountID).length;
         categoryVisibilityTitle =
-            visibleCategoriesCount === getEnabledCategoriesCount(policyCategoriesVisibility)
-                ? translate('workspace.people.allCategories')
-                : translate('workspace.people.categoriesCount', {count: visibleCategoriesCount});
+            visibleCategoriesCount === enabledCategoriesCount ? translate('workspace.people.allCategories') : translate('workspace.people.categoriesCount', {count: visibleCategoriesCount});
     }
     const canEditCategoryVisibility = canWriteMembers && canWriteCategories && !!memberPersonalDetails?.accountID;
     const {isAccountLocked} = useLockedAccountState();
@@ -210,7 +207,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const shouldShowLocalTime = shouldShowLocalTimeUtil({accountID, timezone: details.timezone, isCustomAgent, isValidated: !!details.validated});
 
     // Like ProfilePage, your own row only offers Message when your self DM already exists, so we never optimistically create one
-    const shouldShowMessageButton = (!isSelectedMemberCurrentUser || !!hasSelfDMReport) && !isAnonymousUserSession();
+    const shouldShowMessageButton = (!isSelectedMemberCurrentUser || !!hasSelfDMReport) && !isAnonymousUser;
     const messageAction = PromotedActions.message({
         reportID: isSelectedMemberCurrentUser ? selfDMReportID : memberChatReportID,
         accountID,
@@ -280,14 +277,30 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         Navigation.navigate(backTo);
     };
 
+    // The server doesn't know an accountID the app generated from the member's login, so both profile requests below
+    // wait until the real accountID arrives, which runs them again. That ID is in use while an invite is in flight,
+    // while the cached personal details are a placeholder under it (not every flow flags those as optimistic), or when
+    // the route holds it and no personal details are cached, which also covers one generated from a secondary login.
+    // A route accountID that matches no member's email may be a real one whose personal details aren't cached yet, so
+    // it's still requested, and the public profile loads them.
+    const isGeneratedAccountID =
+        member?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD ||
+        (!!memberLogin && isAccountIDGeneratedFromLogin(accountID, memberLogin)) ||
+        (!memberPersonalDetails && !!memberLogin);
     useEffect(() => {
+        if (isGeneratedAccountID) {
+            return;
+        }
         openPolicyMemberProfilePage(policyID, accountID);
-    }, [policyID, accountID]);
+    }, [policyID, accountID, isGeneratedAccountID]);
 
     // OpenPolicyMemberProfilePage doesn't return the member's timezone or validated status, which Local time needs
     useEffect(() => {
+        if (isGeneratedAccountID) {
+            return;
+        }
         openPublicProfilePage(accountID);
-    }, [accountID]);
+    }, [accountID, isGeneratedAccountID]);
 
     // Filter out travel cards — they should not appear on the member profile page
     // as they expose card-level controls and data not intended for workspace admin view.
@@ -666,7 +679,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                     </OfflineWithFeedback>
                                 </>
                             )}
-                            {!isAnonymousUserSession() && (
+                            {!isAnonymousUser && (
                                 <View style={styles.mb5}>
                                     <MenuItemNavigation
                                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.DETAILS_CHAT_HISTORY}

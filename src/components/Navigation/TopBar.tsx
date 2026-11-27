@@ -11,6 +11,7 @@ import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTopInsetHeaderStyle from '@hooks/useTopInsetHeaderStyle';
 
 import SignInButton from '@pages/inbox/sidebar/SignInButton';
 
@@ -52,6 +53,8 @@ function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpB
 
     const isInLandscapeMode = useIsInLandscapeMode();
     const {contentHeaderHeightStyle} = useContentHeaderHeight();
+    const headerStyle = [styles.w100, styles.zIndex10];
+    const topInsetHeaderStyle = useTopInsetHeaderStyle(headerStyle);
     const {wideRHPRouteKeys} = useWideRHPState();
     const isWideRHPVisible = !!wideRHPRouteKeys.length;
 
@@ -59,7 +62,7 @@ function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpB
     const displaySearch = !isAnonymousUser && shouldDisplaySearch;
 
     return (
-        <View style={[styles.w100, styles.zIndex10]}>
+        <View style={[headerStyle, topInsetHeaderStyle]}>
             <View
                 style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.ml5, styles.mr3, contentHeaderHeightStyle]}
                 dataSet={{dragArea: true}}

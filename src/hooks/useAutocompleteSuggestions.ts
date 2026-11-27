@@ -19,8 +19,8 @@ import {
     getAutocompleteTaxList,
     parseForAutocomplete,
 } from '@libs/SearchAutocompleteUtils';
-import {getUserFriendlyKey, getUserFriendlyValue, isFilterSupported, isGroupBySupportedBySearch} from '@libs/SearchQueryUtils';
-import {getDatePresets, getHasOptions} from '@libs/SearchUIUtils';
+import {getUserFriendlyKey, getUserFriendlyValue, getViolationDisplayName, isFilterSupported, VIOLATION_FILTER_VALUES, isGroupBySupportedBySearch} from '@libs/SearchQueryUtils';
+import {getDatePresets, getHasOptionAvailability, getHasOptions} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -79,7 +79,7 @@ type UseAutocompleteSuggestionsParams = {
 
 // Static autocomplete lists derived from CONST values, computed once at module load
 const DATA_TYPE_VALUES = Object.values(CONST.SEARCH.DATA_TYPES);
-// Insights-only group-bys aren't suggested because Search can't group by them (see https://github.com/Expensify/App/issues/105303)
+// Insights-only group-bys aren't suggested because Search can't group by them
 const GROUP_BY_FRIENDLY_VALUES = Object.values(CONST.SEARCH.GROUP_BY)
     .filter(isGroupBySupportedBySearch)
     .map((value) => getUserFriendlyValue(value));
@@ -397,8 +397,13 @@ function useAutocompleteSuggestions({
                         return [];
                 }
             })();
+            const shouldShowViolationGroupBy = getHasOptionAvailability(policies).shouldShowSubmittedViolation;
+            const violationGroupByValue = getUserFriendlyValue(CONST.SEARCH.GROUP_BY.VIOLATION);
             const filteredGroupBy = groupByAutocompleteList.filter(
-                (groupByValue) => groupByValue.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(groupByValue.toLowerCase()),
+                (groupByValue) =>
+                    (groupByValue !== violationGroupByValue || shouldShowViolationGroupBy) &&
+                    groupByValue.toLowerCase().includes(autocompleteValue.toLowerCase()) &&
+                    !alreadyAutocompletedKeys.has(groupByValue.toLowerCase()),
             );
             return filteredGroupBy.map((groupByValue) => ({filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.GROUP_BY, text: groupByValue}));
         }
@@ -457,6 +462,28 @@ function useAutocompleteSuggestions({
             return filteredReceiptTypes.map((receiptType) => ({
                 filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.RECEIPT_TYPE,
                 text: receiptType,
+            }));
+        }
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION: {
+            if (!getHasOptionAvailability(policies).shouldShowSubmittedViolation) {
+                return getEmptyArray<AutocompleteItemData>();
+            }
+
+            const searchValue = autocompleteValue.toLowerCase();
+            const filteredViolations = VIOLATION_FILTER_VALUES.map((violationName) => ({violationName, displayName: getViolationDisplayName(violationName, translate)}))
+                .filter(
+                    ({violationName, displayName}) =>
+                        (displayName.toLowerCase().includes(searchValue) || violationName.toLowerCase().includes(searchValue)) &&
+                        !alreadyAutocompletedKeys.has(displayName.toLowerCase()) &&
+                        !alreadyAutocompletedKeys.has(violationName.toLowerCase()),
+                )
+                .sort((first, second) => localeCompare(first.displayName, second.displayName));
+
+            return filteredViolations.map(({violationName, displayName}) => ({
+                filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.VIOLATION,
+                text: displayName,
+                autocompleteID: violationName,
+                mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION,
             }));
         }
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS: {
@@ -616,7 +643,6 @@ function useAutocompleteSuggestions({
             // Use {} while policies load so every has: option does not flash before the collection arrives.
             const hasAutocompleteList = getHasOptions(translate, currentType, {
                 policies: policies ?? {},
-                policyCategories: allPolicyCategories,
             });
             const filteredHasValues = hasAutocompleteList.filter((hasValue) => {
                 return hasValue.value.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(hasValue.value.toLowerCase());
@@ -659,6 +685,7 @@ function useAutocompleteSuggestions({
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_SUBMISSION:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED:

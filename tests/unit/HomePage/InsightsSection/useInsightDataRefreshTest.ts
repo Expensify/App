@@ -6,20 +6,26 @@
  *   - returning to Home, changing charts, and reconnecting still refetch it
  *   - joining a workspace fetches it again
  */
-import {renderHook} from '@testing-library/react-native';
+import {act, renderHook} from '@testing-library/react-native';
 
 import type {SearchQueryJSON} from '@components/Search/types';
 
 import useIsTabFocused from '@hooks/useIsTabFocused';
 import useNetwork from '@hooks/useNetwork';
+import useRootNavigationState from '@hooks/useRootNavigationState';
 
 import {search} from '@libs/actions/Search';
+import {getPreInsertedOriginalTabRoute} from '@libs/Navigation/AppNavigator/createRootStackNavigator/GetStateForActionHandlers';
 import type {SearchTypeMenuItem} from '@libs/SearchUIUtils';
 
 import useInsightData from '@pages/home/InsightsSection/useInsightData';
 
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
+
+import type {NavigationState} from '@react-navigation/native';
 
 import {useIsFocused} from '@react-navigation/native';
 
@@ -53,6 +59,24 @@ const config: SearchTypeMenuItem = {
 
 // Module mocks
 
+let mockRootState: NavigationState | undefined;
+const mockStateListeners = new Set<() => void>();
+jest.mock('@libs/Navigation/navigationRef', () => ({
+    __esModule: true,
+    default: {
+        isReady: () => true,
+        getRootState: () => mockRootState,
+        addListener: (_event: string, listener: () => void) => {
+            mockStateListeners.add(listener);
+            return () => mockStateListeners.delete(listener);
+        },
+    },
+}));
+
+jest.mock('@libs/Navigation/AppNavigator/createRootStackNavigator/GetStateForActionHandlers', () => ({
+    getPreInsertedOriginalTabRoute: jest.fn(),
+}));
+
 jest.mock('@react-navigation/native', () => ({
     useIsFocused: jest.fn(() => true),
     createNavigationContainerRef: () => ({}),
@@ -63,6 +87,12 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('@hooks/useIsTabFocused', () => ({
     __esModule: true,
     default: jest.fn(() => true),
+}));
+
+// The real hook needs a ready navigation ref. Jest treats every layout as narrow, where tab visibility ignores the root state.
+jest.mock('@hooks/useRootNavigationState', () => ({
+    __esModule: true,
+    default: jest.fn(() => false),
 }));
 
 jest.mock('@libs/actions/Search', () => ({
@@ -99,6 +129,51 @@ const mockedSearch = jest.mocked(search);
 const mockedUseIsFocused = jest.mocked(useIsFocused);
 const mockedUseIsTabFocused = jest.mocked(useIsTabFocused);
 const mockedUseNetwork = jest.mocked(useNetwork);
+const mockedUseRootNavigationState = jest.mocked(useRootNavigationState);
+const mockedGetPreInsertedOriginalTabRoute = jest.mocked(getPreInsertedOriginalTabRoute);
+
+function buildHomeNavigationState(isSearchSelected = false, hasRHP = false): NavigationState {
+    return {
+        key: 'root',
+        type: 'stack',
+        stale: false,
+        index: hasRHP ? 1 : 0,
+        routeNames: [NAVIGATORS.TAB_NAVIGATOR, NAVIGATORS.RIGHT_MODAL_NAVIGATOR],
+        routes: [
+            {
+                key: 'tabs',
+                name: NAVIGATORS.TAB_NAVIGATOR,
+                state: {
+                    key: 'tab-state',
+                    type: 'tab',
+                    stale: false,
+                    index: isSearchSelected ? 1 : 0,
+                    routeNames: [SCREENS.HOME, NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR],
+                    routes: [
+                        {key: 'home', name: SCREENS.HOME},
+                        {key: 'search', name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                    ],
+                },
+            },
+            ...(hasRHP ? [{key: 'rhp', name: NAVIGATORS.RIGHT_MODAL_NAVIGATOR}] : []),
+        ],
+    };
+}
+
+function publishNavigationState(state: NavigationState) {
+    act(() => {
+        mockRootState = state;
+        for (const listener of mockStateListeners) {
+            listener();
+        }
+    });
+}
+
+function enableRealTabFocus() {
+    mockedUseIsTabFocused.mockImplementation(jest.requireActual<{default: typeof useIsTabFocused}>('@hooks/useIsTabFocused').default);
+    mockedUseRootNavigationState.mockImplementation(jest.requireActual<{default: typeof useRootNavigationState}>('@hooks/useRootNavigationState').default);
+    mockRootState = buildHomeNavigationState();
+}
 
 beforeEach(() => {
     for (const key of Object.keys(onyxData)) {
@@ -106,7 +181,10 @@ beforeEach(() => {
     }
     mockedSearch.mockClear();
     mockedUseIsFocused.mockReturnValue(true);
-    mockedUseIsTabFocused.mockReturnValue(true);
+    mockedUseIsTabFocused.mockReset().mockReturnValue(true);
+    mockedUseRootNavigationState.mockReset().mockReturnValue(false);
+    mockedGetPreInsertedOriginalTabRoute.mockReturnValue(undefined);
+    mockStateListeners.clear();
     mockedUseNetwork.mockReturnValue({isOffline: false});
 });
 
@@ -134,6 +212,54 @@ describe('useInsightData — refresh gating', () => {
 
         // Then nothing is refetched, since nothing changed
         expect(mockedSearch).toHaveBeenCalledTimes(1);
+    });
+
+    it.each([false, true])('does not refetch after cancelling a speculative tab switch (expense update: %s)', (hasExpenseUpdate) => {
+        // Given a loaded chart using the real focus hook and navigation-state subscription
+        enableRealTabFocus();
+        const originalTabRoute = mockRootState?.routes.at(0);
+        const {rerender} = renderHook(() => useInsightData(config));
+        mockedUseIsFocused.mockReturnValue(false);
+        rerender(undefined);
+        publishNavigationState(buildHomeNavigationState(false, true));
+        mockedGetPreInsertedOriginalTabRoute.mockReturnValue(originalTabRoute);
+        publishNavigationState(buildHomeNavigationState(true, true));
+
+        // When an optional expense update arrives, then cancellation restores Home before closing the RHP
+        if (hasExpenseUpdate) {
+            onyxData[ONYXKEYS.DERIVED.SPEND_DATA_SIGNATURE] = {expenses: 1, cardExpenses: 0};
+            rerender(undefined);
+        }
+        mockedGetPreInsertedOriginalTabRoute.mockReturnValue(undefined);
+        publishNavigationState(buildHomeNavigationState(false, true));
+        mockedUseIsFocused.mockReturnValue(true);
+        publishNavigationState(buildHomeNavigationState());
+        rerender(undefined);
+
+        // Then neither the pre-insertion nor cancellation is treated as a tab arrival
+        expect(mockedSearch).toHaveBeenCalledTimes(1);
+    });
+
+    it('refreshes on returning Home after a speculative destination is committed', () => {
+        // Given Search is pre-inserted under an RHP while Home remains logically focused
+        enableRealTabFocus();
+        const originalTabRoute = mockRootState?.routes.at(0);
+        const {rerender} = renderHook(() => useInsightData(config));
+        mockedUseIsFocused.mockReturnValue(false);
+        rerender(undefined);
+        publishNavigationState(buildHomeNavigationState(false, true));
+        mockedGetPreInsertedOriginalTabRoute.mockReturnValue(originalTabRoute);
+        publishNavigationState(buildHomeNavigationState(true, true));
+
+        // When submission commits Search and the user later switches back to Home
+        mockedGetPreInsertedOriginalTabRoute.mockReturnValue(undefined);
+        publishNavigationState(buildHomeNavigationState(true));
+        expect(mockedSearch).toHaveBeenCalledTimes(1);
+        mockedUseIsFocused.mockReturnValue(true);
+        publishNavigationState(buildHomeNavigationState());
+
+        // Then the genuine tab return still fetches fresh chart data
+        expect(mockedSearch).toHaveBeenCalledTimes(2);
     });
 
     it('does not refetch when expenses are added, edited, or deleted', () => {

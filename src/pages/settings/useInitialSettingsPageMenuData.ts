@@ -19,8 +19,8 @@ import {hasCardPendingDigitalWalletApproval, hasPendingExpensifyCardAction, hasV
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getFreeTrialText, hasSubscriptionRedDotError, shouldShowSubscriptionExpiringSoonUI} from '@libs/SubscriptionUtils';
-import {shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
-import {expensifyLoginsSelector, getProfilePageBrickRoadIndicator, hasDeviceManagementError} from '@libs/UserUtils';
+import {isTryNewDotLoading, shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
+import {expensifyLoginsSelector, getProfilePageBrickRoadIndicator, hasDeviceManagementError, hasIntegrationServerLoginError} from '@libs/UserUtils';
 
 import useTimeSensitiveHomeAddress from '@pages/home/TimeSensitiveSection/hooks/useTimeSensitiveHomeAddress';
 import useTimeSensitiveWiseMoreInfoNeeded from '@pages/home/TimeSensitiveSection/hooks/useTimeSensitiveWiseMoreInfoNeeded';
@@ -38,7 +38,6 @@ import {isActingAsDelegateSelector} from '@src/selectors/Account';
 import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {ValueOf} from 'type-fest';
 
@@ -62,6 +61,9 @@ function useInitialSettingsPageMenuData(currentUserPersonalDetails: CurrentUserP
     });
     const [hasDeviceManagementErrorValue] = useOnyx(ONYXKEYS.LOGINS, {
         selector: hasDeviceManagementError,
+    });
+    const [hasIntegrationServerError] = useOnyx(ONYXKEYS.LOGINS, {
+        selector: hasIntegrationServerLoginError,
     });
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
@@ -93,8 +95,9 @@ function useInitialSettingsPageMenuData(currentUserPersonalDetails: CurrentUserP
     const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION);
     const [hasAgentError] = useOnyx(ONYXKEYS.COLLECTION.AGENT, {selector: hasAgentErrorsSelector});
     const privateSubscription = usePrivateSubscription();
-    const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
-    const isLoadingTryNewDot = isLoadingOnyxValue(tryNewDotMetadata);
+    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const isLoadingTryNewDot = isTryNewDotLoading(tryNewDot, false, isLoadingApp);
 
     const freeTrialText = getFreeTrialText(currentUserPersonalDetails.accountID, translate, policies, introSelected, firstDayFreeTrial, lastDayFreeTrial, privateSubscription);
 
@@ -142,7 +145,9 @@ function useInitialSettingsPageMenuData(currentUserPersonalDetails: CurrentUserP
         surveyCompletedWithinLastMonth = daysSinceLastSurvey < surveyThresholdInDays;
     }
 
-    const profileBrickRoadIndicator = getProfilePageBrickRoadIndicator(loginList, privatePersonalDetails, vacationDelegate, session?.email, shouldShowAddHomeAddress);
+    const profileBrickRoadIndicator = hasIntegrationServerError
+        ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+        : getProfilePageBrickRoadIndicator(loginList, privatePersonalDetails, vacationDelegate, session?.email, shouldShowAddHomeAddress);
     const securityBrickRoadIndicator = hasDeviceManagementErrorValue ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
 
     let subscriptionBrickRoadIndicator: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;

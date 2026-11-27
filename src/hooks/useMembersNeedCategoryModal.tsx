@@ -5,6 +5,7 @@
  */
 import Icon from '@components/Icon';
 import Text from '@components/Text';
+import TextWithTooltip from '@components/TextWithTooltip';
 
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
@@ -38,9 +39,11 @@ function useMembersNeedCategoryModal(policyID: string | undefined) {
     const employeePersonalDetails = usePersonalDetailsByLogins(employeeLogins);
 
     // Members being removed are left out, since they'll lose access to every category anyway.
-    const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails, true, false));
+    const policyMemberAccountIDsByLogin = getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails, true, false);
+    const policyMemberAccountIDs = Object.values(policyMemberAccountIDsByLogin);
 
-    const showMembersNeedCategoryModal = (accountIDs: number[], categoryNames: string[]) => {
+    // isRemovingAccess is for a category's "Visible to" page, where the category stays enabled and only these members lose it.
+    const showMembersNeedCategoryModal = (accountIDs: number[], categoryNames: string[], isRemovingAccess = false) => {
         const memberLogins = accountIDs
             .map((accountID) => employeeLogins.find((login) => employeePersonalDetails[login]?.accountID === accountID))
             .filter((login): login is string => !!login)
@@ -52,11 +55,20 @@ function useMembersNeedCategoryModal(policyID: string | undefined) {
             listItems.push(translate('workspace.categories.cannotDisableCategoryForMembers.andMore', {count: unlistedMemberCount}));
         }
 
+        const categoryName = categoryNames.length === 1 ? getDecodedCategoryName(categoryNames.at(0) ?? '') : undefined;
+        let title: string;
+        if (isRemovingAccess) {
+            title = categoryName
+                ? translate('workspace.categories.cannotDisableCategoryForMembers.removeAccessTitle', {categoryName})
+                : translate('workspace.categories.cannotDisableCategoryForMembers.bulkRemoveAccessTitle');
+        } else {
+            title = categoryName
+                ? translate('workspace.categories.cannotDisableCategoryForMembers.title', {categoryName})
+                : translate('workspace.categories.cannotDisableCategoryForMembers.bulkTitle');
+        }
+
         showConfirmModal({
-            title:
-                categoryNames.length === 1
-                    ? translate('workspace.categories.cannotDisableCategoryForMembers.title', {categoryName: getDecodedCategoryName(categoryNames.at(0) ?? '')})
-                    : translate('workspace.categories.cannotDisableCategoryForMembers.bulkTitle'),
+            title,
             prompt: (
                 <View>
                     <Text>{translate('workspace.categories.cannotDisableCategoryForMembers.description', {count: accountIDs.length})}</Text>
@@ -74,7 +86,12 @@ function useMembersNeedCategoryModal(policyID: string | undefined) {
                                         fill={theme.text}
                                     />
                                 </View>
-                                <Text style={styles.flex1}>{item}</Text>
+                                <TextWithTooltip
+                                    shouldShowTooltip
+                                    style={styles.flex1}
+                                    text={item}
+                                    numberOfLines={1}
+                                />
                             </View>
                         ))}
                     </View>
@@ -85,7 +102,7 @@ function useMembersNeedCategoryModal(policyID: string | undefined) {
         });
     };
 
-    return {policyMemberAccountIDs, showMembersNeedCategoryModal};
+    return {policyMemberAccountIDs, policyMemberAccountIDsByLogin, showMembersNeedCategoryModal};
 }
 
 export default useMembersNeedCategoryModal;

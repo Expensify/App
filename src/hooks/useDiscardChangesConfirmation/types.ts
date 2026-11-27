@@ -6,8 +6,8 @@ type UseDiscardChangesConfirmationOptions = {
     onConfirm?: () => void | Promise<void>;
     onTabSwitchDiscard?: () => void | Promise<void>;
     /**
-     * When the user clicks outside the RHP and picks Discard, close the whole RHP, as that click does when there's nothing to discard,
-     * instead of only this page. Going back still closes only this page. The create expense steps set it, so discarding closes the whole flow.
+     * When the user clicks outside the RHP and picks Discard, close the whole RHP instead of only the focused page.
+     * Going back still closes only this page.
      */
     shouldCloseRHPOnDiscard?: boolean;
 

@@ -4,8 +4,10 @@ import type {ModifiedMouseEvent} from './types';
 
 const isModifiedMousePress: (event?: ModifiedMouseEvent) => boolean = () => false;
 
+const isNewTabOrWindowMousePress: (event?: ModifiedMouseEvent) => boolean = () => false;
+
 const openInternalRouteInNewTab: (route: Route, event?: ModifiedMouseEvent) => boolean = () => false;
 
-export {isModifiedMousePress};
+export {isModifiedMousePress, isNewTabOrWindowMousePress};
 export type {ModifiedMouseEvent};
 export default openInternalRouteInNewTab;

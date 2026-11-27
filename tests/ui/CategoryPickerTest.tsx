@@ -5,6 +5,8 @@ import SelectionListWithSections from '@components/SelectionList/SelectionListWi
 
 import useOnyx from '@hooks/useOnyx';
 
+import * as CategoryOptionListUtils from '@libs/CategoryOptionListUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyCategories} from '@src/types/onyx';
@@ -21,19 +23,24 @@ import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
 // react-native-onyx `useOnyx` (mocked here as `useOnyxWithoutSnapshots`) and the categories via the
 // snapshot-aware `@hooks/useOnyx`, so we can drive the two independently.
 jest.mock('@components/SelectionList/SelectionListWithSections', () => jest.fn(() => null));
+jest.mock('@libs/CategoryOptionListUtils', () => {
+    const actual = jest.requireActual<typeof CategoryOptionListUtils>('@libs/CategoryOptionListUtils');
+    return {...actual, getCategoryListSections: jest.fn(actual.getCategoryListSections)};
+});
 jest.mock('@hooks/useOnyx', () => jest.fn());
 jest.mock('@hooks/useAutoFocusInput', () => jest.fn(() => ({inputCallbackRef: jest.fn()})));
 jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: false})));
 // The hook sends GetPolicyCategories on mount. Under Jest, a real request reaches Expo's fetch polyfill, which throws "Request is not defined" and crashes the worker.
 jest.mock('@hooks/useLoadPolicyCategories', () => jest.fn(() => ({isLoadingPolicyCategories: false})));
 jest.mock('@hooks/useThemeStyles', () => jest.fn(() => ({})));
-// Returns [searchValue, debouncedSearchValue, setter]. Lets a test stand the picker up mid-search.
+// Lets the create-row tests start with a search already applied.
 let mockDebouncedSearchValue = '';
 jest.mock('@hooks/useDebouncedState', () => jest.fn(() => [mockDebouncedSearchValue, mockDebouncedSearchValue, jest.fn()]));
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
         translate: (key: string) => key,
         localeCompare: (first: string, second: string) => first.localeCompare(second),
+        formatPhoneNumber: (phoneNumber: string) => phoneNumber,
     })),
 );
 jest.mock('react-native-onyx', () => {
@@ -65,6 +72,37 @@ const findRow = (searchText: string) =>
 describe('CategoryPicker', () => {
     const mockedUseOnyx = jest.mocked(useOnyx);
     const mockedUseOnyxWithoutSnapshots = jest.mocked(useOnyxWithoutSnapshots);
+
+    it('builds only matching sections when the query changes in a large workspace', () => {
+        // Given a standalone picker with 1,500 nested categories whose cached data can update while it is open
+        mockedUseOnyxWithoutSnapshots.mockReturnValue([false, {status: 'loaded'}]);
+        let categories = Object.fromEntries(
+            Array.from({length: 1500}, (_, index) => {
+                const name = `Travel: Group ${Math.floor(index / 50)}: Category ${index}`;
+                return [name, makeCategory(name, '')];
+            }),
+        );
+        mockedUseOnyx.mockImplementation((key) => [key === `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}` ? categories : undefined, {status: 'loaded'}]);
+        const renderPicker = () => (
+            <CategoryPicker
+                policyID={POLICY_ID}
+                onSubmit={jest.fn()}
+            />
+        );
+        const {rerender} = render(renderPicker());
+        expect(findRow('Travel: Group 0: Category 0')).toBeDefined();
+        const buildSections = jest.mocked(CategoryOptionListUtils.getCategoryListSections);
+        buildSections.mockClear();
+
+        // When an unmatched query takes effect as the workspace categories are refreshed
+        mockDebouncedSearchValue = 'No matching category';
+        categories = {...categories};
+        rerender(renderPicker());
+
+        // Then the picker shows no matches without also building the full unfiltered hierarchy
+        expect(findRow('Travel: Group 0: Category 0')).toBeUndefined();
+        expect(buildSections.mock.calls.map(([options]) => options.searchValue)).toEqual([mockDebouncedSearchValue]);
+    });
 
     beforeEach(() => {
         mockDebouncedSearchValue = '';
@@ -126,87 +164,6 @@ describe('CategoryPicker', () => {
         // Then each category still shows its GL code underneath
         expect(findRow('Advertising')?.alternateText).toBe('12');
         expect(findRow('Benefits')?.alternateText).toBe('13');
-    });
-
-    describe('reported rendered row count', () => {
-        it('counts one row per category when none of them are nested', () => {
-            // Given three flat categories
-            mockedUseOnyxWithoutSnapshots.mockReturnValue([false, {status: 'loaded'}]);
-            mockedUseOnyx.mockImplementation((key) => {
-                if (key === `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}`) {
-                    return [{Flights: makeCategory('Flights', ''), Hotels: makeCategory('Hotels', ''), Meals: makeCategory('Meals', '')}, {status: 'loaded'}];
-                }
-                return [undefined, {status: 'loaded'}];
-            });
-            const onRenderedRowCountChange = jest.fn();
-
-            // When the picker renders
-            render(
-                <CategoryPicker
-                    policyID={POLICY_ID}
-                    onSubmit={jest.fn()}
-                    onRenderedRowCountChange={onRenderedRowCountChange}
-                />,
-            );
-
-            // Then it reports the three rows it drew
-            expect(onRenderedRowCountChange).toHaveBeenLastCalledWith(3);
-        });
-
-        it('counts the parent rows a nested category hangs off', () => {
-            // Given the same three categories, two of them under one parent
-            mockedUseOnyxWithoutSnapshots.mockReturnValue([false, {status: 'loaded'}]);
-            mockedUseOnyx.mockImplementation((key) => {
-                if (key === `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}`) {
-                    const nestedCategories: PolicyCategories = {};
-                    for (const name of ['Meals', 'Travel: Flights', 'Travel: Hotels']) {
-                        nestedCategories[name] = makeCategory(name, '');
-                    }
-                    return [nestedCategories, {status: 'loaded'}];
-                }
-                return [undefined, {status: 'loaded'}];
-            });
-            const onRenderedRowCountChange = jest.fn();
-
-            // When the picker renders
-            render(
-                <CategoryPicker
-                    policyID={POLICY_ID}
-                    onSubmit={jest.fn()}
-                    onRenderedRowCountChange={onRenderedRowCountChange}
-                />,
-            );
-
-            // Then it reports four rows, not three: the `Travel` parent takes one. Sizing from the category
-            // count left the pop-over a row short and hid an option behind a scroll.
-            expect(onRenderedRowCountChange).toHaveBeenLastCalledWith(4);
-        });
-
-        it('does not report a filtered count while the user is searching', () => {
-            // Given a search that narrows three categories down to one
-            mockedUseOnyxWithoutSnapshots.mockReturnValue([false, {status: 'loaded'}]);
-            mockedUseOnyx.mockImplementation((key) => {
-                if (key === `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}`) {
-                    return [{Flights: makeCategory('Flights', ''), Hotels: makeCategory('Hotels', ''), Meals: makeCategory('Meals', '')}, {status: 'loaded'}];
-                }
-                return [undefined, {status: 'loaded'}];
-            });
-            mockDebouncedSearchValue = 'Fli';
-            const onRenderedRowCountChange = jest.fn();
-
-            // When the picker renders mid-search
-            render(
-                <CategoryPicker
-                    policyID={POLICY_ID}
-                    onSubmit={jest.fn()}
-                    onRenderedRowCountChange={onRenderedRowCountChange}
-                />,
-            );
-
-            // Then nothing is reported: resizing as results narrow slides the search input out from under the
-            // cursor, since a container opened above its row is pinned by its bottom edge.
-            expect(onRenderedRowCountChange).not.toHaveBeenCalled();
-        });
     });
 
     it('never reads a bare collection key when the policy ID is an empty string', () => {
@@ -396,6 +353,139 @@ describe('CategoryPicker', () => {
 
             // Then the search input is shown
             expect(jest.mocked(SelectionListWithSections).mock.lastCall?.[0].shouldShowTextInput).toBe(true);
+        });
+    });
+
+    describe('when an admin recodes a restricted member’s expense', () => {
+        const SUBMITTER_ACCOUNT_ID = 2;
+        const OTHER_ACCOUNT_ID = 3;
+
+        // The submitter can use Meals and Travel, while Fuel is limited to another member
+        const RESTRICTED_CATEGORIES: PolicyCategories = {
+            Meals: {...makeCategory('Meals', ''), visibleTo: {[SUBMITTER_ACCOUNT_ID]: true}},
+            Fuel: {...makeCategory('Fuel', ''), visibleTo: {[OTHER_ACCOUNT_ID]: true}},
+            Travel: {...makeCategory('Travel', ''), visibleTo: null},
+        };
+
+        // Each rendered group is the titled section plus the untitled ones that follow it
+        const getGroups = () => {
+            const groups: Array<{title: string; rows: string[]}> = [];
+            for (const section of jest.mocked(SelectionListWithSections).mock.lastCall?.[0].sections ?? []) {
+                if (section.data.length === 0) {
+                    continue;
+                }
+                if (section.title || groups.length === 0) {
+                    groups.push({title: section.title ?? '', rows: []});
+                }
+                groups.at(-1)?.rows.push(...section.data.map((row) => row.searchText ?? ''));
+            }
+            return groups;
+        };
+
+        const renderForSubmitter = (selectedCategory?: string) =>
+            render(
+                <CategoryPicker
+                    policyID={POLICY_ID}
+                    onSubmit={jest.fn()}
+                    selectedCategory={selectedCategory}
+                    submitterAccountID={SUBMITTER_ACCOUNT_ID}
+                />,
+            );
+
+        beforeEach(() => {
+            mockedUseOnyxWithoutSnapshots.mockReturnValue([false, {status: 'loaded'}]);
+            mockedUseOnyx.mockImplementation((key) => {
+                if (key === `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}`) {
+                    return [RESTRICTED_CATEGORIES, {status: 'loaded'}];
+                }
+                return [undefined, {status: 'loaded'}];
+            });
+        });
+
+        it('groups the categories into the ones available to the member and the ones that are not', () => {
+            // Given the submitter can't use Fuel
+            // When the admin opens the picker for their expense
+            renderForSubmitter();
+
+            // Then the admin sees which categories the member can use, and can still pick Fuel knowing it's an override
+            expect(getGroups()).toEqual([
+                {title: 'workspace.categories.availableToMember', rows: ['Meals', 'Travel']},
+                {title: 'workspace.categories.notAvailableToMember', rows: ['Fuel']},
+            ]);
+        });
+
+        it('lists the current category first, without a heading, as in the regular list', () => {
+            // Given an expense already coded to Meals, which the member can use
+            // When the admin opens the picker
+            renderForSubmitter('Meals');
+
+            // Then Meals is selected at the top, and the groups list the other categories
+            expect(getGroups()).toEqual([
+                {title: '', rows: ['Meals']},
+                {title: 'workspace.categories.availableToMember', rows: ['Travel']},
+                {title: 'workspace.categories.notAvailableToMember', rows: ['Fuel']},
+            ]);
+            expect(findRow('Meals')?.isSelected).toBe(true);
+        });
+
+        it('lists a current category the member can’t use first too', () => {
+            // Given an expense already coded to Fuel, which the member can't use
+            // When the admin opens the picker
+            renderForSubmitter('Fuel');
+
+            // Then Fuel is selected at the top rather than under a group, and isn't repeated in "Not available"
+            expect(getGroups()).toEqual([
+                {title: '', rows: ['Fuel']},
+                {title: 'workspace.categories.availableToMember', rows: ['Meals', 'Travel']},
+            ]);
+            expect(findRow('Fuel')?.isSelected).toBe(true);
+        });
+
+        it('lists a disabled current category first', () => {
+            // Given an expense coded to Lodging, which is disabled and limited to another member
+            mockedUseOnyx.mockImplementation((key) => {
+                if (key === `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}`) {
+                    return [{...RESTRICTED_CATEGORIES, Lodging: {...makeCategory('Lodging', ''), enabled: false, visibleTo: {[OTHER_ACCOUNT_ID]: true}}}, {status: 'loaded'}];
+                }
+                return [undefined, {status: 'loaded'}];
+            });
+
+            // When the admin opens the picker
+            renderForSubmitter('Lodging');
+
+            // Then Lodging is at the top, as the regular list shows a disabled current category, and the groups are unchanged
+            expect(getGroups()).toEqual([
+                {title: '', rows: ['Lodging']},
+                {title: 'workspace.categories.availableToMember', rows: ['Meals', 'Travel']},
+                {title: 'workspace.categories.notAvailableToMember', rows: ['Fuel']},
+            ]);
+        });
+
+        it('filters both groups while searching', () => {
+            // Given the admin searched for "fu"
+            mockDebouncedSearchValue = 'fu';
+
+            // When the picker renders the results
+            renderForSubmitter();
+
+            // Then only the matching category shows, under its group, and the empty group has no heading
+            expect(getGroups()).toEqual([{title: 'workspace.categories.notAvailableToMember', rows: ['Fuel']}]);
+        });
+
+        it('shows one list when the member can use every category', () => {
+            // Given a member who isn't restricted from any category
+            mockedUseOnyx.mockImplementation((key) => {
+                if (key === `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}`) {
+                    return [{Meals: makeCategory('Meals', ''), Travel: makeCategory('Travel', '')}, {status: 'loaded'}];
+                }
+                return [undefined, {status: 'loaded'}];
+            });
+
+            // When the admin opens the picker for their expense
+            renderForSubmitter();
+
+            // Then the list isn't split, as before category visibility
+            expect(getGroups()).toEqual([{title: '', rows: ['Meals', 'Travel']}]);
         });
     });
 });
