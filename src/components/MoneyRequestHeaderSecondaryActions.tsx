@@ -194,6 +194,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const splitEffectivePolicy = useSplitEffectivePolicy(report, undefined, transaction);
     const [perDiemPolicyID] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (policies) => (isPerDiemRequest(transaction) ? getPolicyByCustomUnitID(transaction, policies)?.id : undefined)});
+    const [perDiemPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(perDiemPolicyID)}`);
     const personalPolicy = usePersonalPolicy();
     const restrictedActionPolicyID = useRestrictedActionPolicyID(policy);
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
@@ -400,7 +401,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             reportAction: parentReportAction,
             originalTransaction,
             policy,
-            reportDetailsPolicy: policyForMovingExpenses,
+            reportDetailsPolicy: isPerDiemRequest(transaction) ? perDiemPolicy : policyForMovingExpenses,
             transactionThreadReport: report,
             outstandingReportsByPolicyID,
             reportNameValuePairs,
