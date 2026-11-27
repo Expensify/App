@@ -45,7 +45,7 @@ When Concierge isn't confident it can solve your problem, it says so and offers 
 
 The Support Desk is our team of human support representatives. You reach them by selecting **Talk to a human** from the Help menu, or by selecting this option from within your Concierge chat. You never have to convince Concierge to hand you over.
 
-When you Talk to a human, we open a **support ticket** — a conversation in your Concierge chat that belongs to you and a dedicated support rep.
+When you select **Talk to a human**, we open a support ticket with you and a dedicated support rep. While the ticket is open, you or your rep can invite other people to join it. Invited participants can read the conversation history, reply, and leave, but can't invite others.
 
 Here's what that means for you:
 
