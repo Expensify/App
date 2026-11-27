@@ -655,6 +655,20 @@ const tests = [
         },
     },
     {
+        query: 'type:expense transaction-id:4611686018427387905',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            view: 'table',
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_ID,
+                right: '4611686018427387905',
+            },
+        },
+    },
+    {
         query: 'type:expense withdrawal-status:pending',
         expected: {
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -1589,6 +1603,17 @@ const keywordTests = [
                 CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL,
                 CONST.SEARCH.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL,
             ],
+            filters: null,
+        },
+    },
+    {
+        query: 'columns:report-id,transaction-id',
+        expected: {
+            type: 'expense',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            view: 'table',
+            columns: [CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID, CONST.SEARCH.TABLE_COLUMNS.TRANSACTION_ID],
             filters: null,
         },
     },

@@ -120,6 +120,22 @@ function filterRulesForPolicy(rulesCollection: OnyxCollection<Rule>, policyID: s
 }
 
 /**
+ * Split the rules collection into one collection per workspace in a single pass, so callers that need the
+ * rules of many workspaces don't scan the whole collection again for each one.
+ */
+function groupRulesByPolicyID(rulesCollection: OnyxCollection<Rule> | undefined): Record<string, NonNullable<OnyxCollection<Rule>>> {
+    const result: Record<string, NonNullable<OnyxCollection<Rule>>> = {};
+    for (const [onyxKey, rule] of Object.entries(rulesCollection ?? {})) {
+        if (rule?.scope !== CONST.RULES.SCOPE.POLICY || !rule.scopeID) {
+            continue;
+        }
+        result[rule.scopeID] ??= {};
+        result[rule.scopeID][onyxKey] = rule;
+    }
+    return result;
+}
+
+/**
  * Convert the `ONYXKEYS.COLLECTION.RULE` collection into the `ruleID -> rule body` map used by the
  * builder, reconcilers and converters, keeping only non-deleted rules scoped to `policyID`.
  */
@@ -147,6 +163,7 @@ export {
     fromIndexMap,
     getApprovalWorkflowRulesForPolicy,
     getRuleFilterLeaves,
+    groupRulesByPolicyID,
     isApprovalWorkflowRule,
     isExpenseDefaultRule,
     isRuleFilterComparison,

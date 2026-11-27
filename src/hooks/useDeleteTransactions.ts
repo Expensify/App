@@ -385,6 +385,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     isSingleTransactionView,
                     isChatReportArchived: isArchivedReport(allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${candidateIOUReport?.reportID}`]),
                     isChatIOUReportArchived: false,
+                    isArchivedIOUReport: false,
                     allTransactionViolationsParam: transactionViolations,
                     currentUserAccountID: currentUserPersonalDetails.accountID,
                     currentUserEmail: currentUserPersonalDetails.email ?? '',
@@ -400,6 +401,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
 
             const chatIOUReportID = chatReport?.reportID;
             const isChatIOUReportArchived = isArchivedReport(allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatIOUReportID}`]);
+            const isArchivedIOUReport = isArchivedReport(allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport?.reportID}`]);
             const iouPolicy = iouReport?.policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${iouReport.policyID}`] : undefined;
             deleteMoneyRequest({
                 transactionID,
@@ -413,6 +415,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                 iouReportTransactions: Object.values((iouReport?.reportID ? allReportsTransactionsAndViolations?.[iouReport.reportID]?.transactions : undefined) ?? {}),
                 chatReport,
                 isChatIOUReportArchived,
+                isArchivedIOUReport,
                 isSingleTransactionView,
                 transactionIDsPendingDeletion: deletedTransactionIDs,
                 selectedTransactionIDs: transactionIDs,

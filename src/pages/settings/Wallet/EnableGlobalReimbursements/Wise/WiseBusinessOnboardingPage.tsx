@@ -36,7 +36,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {DynamicFormPage, ReimbursementAccount} from '@src/types/onyx';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -63,11 +62,11 @@ const SAVED_DOCUMENTS_DRAFT_KEY = 'savedDocuments';
 function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
     const bankAccountID = Number(route.params.bankAccountID);
     const introPath = useDynamicBackPath(DYNAMIC_ROUTES.WISE_BUSINESS_ONBOARDING.path);
-    const [bankAccountList, bankAccountListMetadata] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [isLoadingPaymentMethods = true] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS);
-    const [privatePersonalDetails, privatePersonalDetailsMetadata] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
-    const [draft, draftMetadata] = useOnyx(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT);
-    const [businessAccount, businessAccountMetadata] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: businessAccountSelector});
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+    const [draft] = useOnyx(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT);
+    const [businessAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: businessAccountSelector});
     const {isSaving, saveError, unsavedPageKeys} = useWiseOnboardingSaveStatus();
     const bankAccount = bankAccountList?.[bankAccountID];
     // A selector, so the check is cached now that only the early return below reads it
@@ -142,12 +141,7 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
     // Next and Back mount the page again mid-visit, after the prefill, so they are left to the flow.
     const hasBusinessAccountOnDevice = !!bankAccount && businessAccount?.data?.bankAccountID === bankAccountID;
     const isWaitingForConnection = isOffline && isNewVisit && !isPrefillDone && !hasBusinessAccountOnDevice;
-    const isLoading =
-        isLoadingOnyxValue(bankAccountListMetadata, privatePersonalDetailsMetadata, draftMetadata, businessAccountMetadata) ||
-        isWaitingForBankAccount ||
-        isWaitingForBusinessAccount ||
-        isWaitingForConnection ||
-        isOnboardingSubmitted;
+    const isLoading = isWaitingForBankAccount || isWaitingForBusinessAccount || isWaitingForConnection || isOnboardingSubmitted;
 
     // The draft holds the answers for one bank account, so a visit for another account starts it over
     const draftBankAccountID = String(bankAccountID);
