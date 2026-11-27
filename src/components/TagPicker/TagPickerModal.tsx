@@ -1,17 +1,16 @@
 import AnchoredSelectionListPopover from '@components/AnchoredSelectionListPopover';
 import type {AnchoredSelectionListPopoverProps} from '@components/AnchoredSelectionListPopover';
 
-import useOnyx from '@hooks/useOnyx';
+import usePickerPopoverRowCount from '@hooks/usePickerPopoverRowCount';
+import usePickerPopoverSession from '@hooks/usePickerPopoverSession';
 
-import {getCountOfEnabledTagsOfList, getTagList} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 
 import React, {useState} from 'react';
 
-import TagPicker from '.';
+import {getTagPickerOptions, TagPickerList, useTagPickerData} from '.';
 
 type TagPickerModalProps = {
     /** The policy whose tags should be shown */
@@ -47,13 +46,22 @@ function TagPickerModal({
     onSelected,
     tagListIndex = 0,
     searchInputThreshold = CONST.STANDARD_LIST_ITEM_LIMIT,
+    isVisible,
     onClose,
+    onModalHide,
     ...popoverProps
 }: TagPickerModalProps) {
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
-    const [renderedRowCount, setRenderedRowCount] = useState<number>();
-    const policyTagList = getTagList(policyTags, tagListIndex);
-    const tagsCount = getCountOfEnabledTagsOfList(policyTagList.tags);
+    const {searchKey, shouldPrepareOptions, finishClosing} = usePickerPopoverSession(isVisible, onModalHide);
+    const data = useTagPickerData({policyID, tagListIndex});
+    const options = shouldPrepareOptions ? getTagPickerOptions(data, {selectedTag, transactionTag, hasDependentTags, shouldShowGLCode, tagListIndex, searchInputThreshold}) : undefined;
+    const {rowCount, setRowCountFrozen, unfilteredSections} = usePickerPopoverRowCount(options ? () => options.getSections('') : undefined, searchKey);
+    const [search, setSearch] = useState({searchKey, value: ''});
+    const searchValue = search.searchKey === searchKey ? search.value : '';
+    const sections = searchValue ? options?.getSections(searchValue) : unfilteredSections;
+    const setSearchValue = (value: string) => {
+        setSearch({searchKey, value});
+        setRowCountFrozen(!!value);
+    };
 
     const handleTagSelected = (item: Partial<OptionData>) => {
         // If clicking the same tag that's already selected, treat it as deselection
@@ -68,25 +76,26 @@ function TagPickerModal({
     return (
         <AnchoredSelectionListPopover
             {...popoverProps}
+            isVisible={isVisible}
             onClose={onClose}
-            optionCount={renderedRowCount ?? tagsCount}
-            isSearchable={tagsCount >= searchInputThreshold}
-            title={policyTagList.name}
+            onModalHide={finishClosing}
+            optionCount={rowCount}
+            isSearchable={options?.hasSearchablePolicyTags ?? false}
+            title={data.policyTagList.name}
             backButtonSentryLabel={CONST.SENTRY_LABEL.TAG_PICKER_MODAL.BACK_BUTTON}
         >
-            <TagPicker
-                onRenderedRowCountChange={setRenderedRowCount}
-                policyID={policyID}
-                tagListName={policyTagList.name}
-                tagListIndex={tagListIndex}
-                selectedTag={selectedTag}
-                transactionTag={transactionTag}
-                hasDependentTags={hasDependentTags}
-                shouldShowGLCode={shouldShowGLCode}
-                onSubmit={handleTagSelected}
-                shouldAutoFocusSearchInput
-                searchInputThreshold={searchInputThreshold}
-            />
+            {options && sections && (
+                <TagPickerList
+                    options={options}
+                    sections={sections}
+                    searchValue={searchValue}
+                    setSearchValue={setSearchValue}
+                    policyID={policyID}
+                    selectedTag={selectedTag}
+                    onSubmit={handleTagSelected}
+                    shouldAutoFocusSearchInput
+                />
+            )}
         </AnchoredSelectionListPopover>
     );
 }

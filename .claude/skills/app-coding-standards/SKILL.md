@@ -21,6 +21,7 @@ Before committing, stage everything with `git add -A`. Then start a general-purp
 | Consistency | `CONSISTENCY-*` | Platform checks, magic values, unused props, lint discipline, localization, file naming, JSDoc |
 | Clean React Patterns | `CLEAN-REACT-PATTERNS-*` | Composition, component ownership, state structure, prop typing, function components |
 | UI | `UI-*` | Loading indicators, scrollable pages, styling conventions |
+| Privacy | `PRIVACY-*` | FullStory masking of sensitive data |
 
 ## Quick Reference
 
@@ -87,6 +88,9 @@ Before committing, stage everything with `git add -A`. Then start a general-purp
 - [UI-3](rules/ui-3-no-inline-styles.md) — Do not use inline style objects
 - [UI-4](rules/ui-4-layout-spacing-tokens.md) — Type and responsive insets come from tokens
 - [UI-5](rules/ui-5-reuse-existing-styles.md) — Reuse an existing style or StyleUtils helper instead of adding a new one
+
+### Privacy
+- [PRIVACY-1](rules/privacy-1-mask-sensitive-data.md) — Mask sensitive data in FullStory
 
 ### Onyx
 - [ONYX-1](rules/onyx-1-no-render-reachable-onyx-read.md) — Keep Onyx reads off the render path and out of a written tick

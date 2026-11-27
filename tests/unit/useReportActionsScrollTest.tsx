@@ -306,13 +306,18 @@ describe('useReportActionsScroll', () => {
             expect(result.current.shouldBeAlignedToTop).toBe(true);
         });
 
-        it('uses the linked report action as the initial scroll key', async () => {
+        it('positions a linked newest answer at its beginning, including index zero', async () => {
+            // Given a preloaded reply is the newest action in its thread.
             mockRouteParams = {reportActionID: LINKED_ACTION_ID};
+            const reply = makeAction(LINKED_ACTION_ID);
 
-            const {result} = await renderScroll({sortedVisibleReportActions: [makeAction(LINKED_ACTION_ID)]});
+            // When Explain opens that action, then explicitly position its top rather than defaulting to the chat bottom.
+            const {result} = await renderScroll({sortedVisibleReportActions: [reply], renderedVisibleReportActions: [reply]});
 
             expect(result.current.initialScrollKey).toBe(LINKED_ACTION_ID);
             expect(result.current.shouldFocusToTopOnMount).toBe(false);
+            expect(result.current.initialScrollIndex).toBe(0);
+            expect(result.current.initialScrollIndexParams).toEqual({viewPosition: 1, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET});
         });
 
         it('falls back to the unread marker action as the initial scroll key', async () => {

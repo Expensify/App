@@ -44,6 +44,7 @@ import useStackedHeaderRowPadding from '@hooks/useStackedHeaderRowPadding';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTopInsetHeaderStyle from '@hooks/useTopInsetHeaderStyle';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getReportRouteForCurrentContext from '@libs/Navigation/helpers/getReportRouteForCurrentContext';
@@ -170,6 +171,9 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const stackedRowBottomPadding = useStackedHeaderRowPadding();
     const avatarSize = useHeaderAvatarSize();
     const {contentHeaderHeightStyle} = useContentHeaderHeight();
+    // The first row is the one beside the status ring. The rows stacked under it and the loading bar stay below the ring.
+    const titleRowStyle = [styles.appContentHeader, contentHeaderHeightStyle, styles.pr3];
+    const topInsetHeaderStyle = useTopInsetHeaderStyle(titleRowStyle);
     const setBackButtonRef = useInitialFocusRef({shouldClaimOnlyForScreenReader: true});
     const isSelfDM = isSelfDMReportUtils(report);
     const isGroupChat = isGroupChatReportUtils(report) || isDeprecatedGroupDM(report, isReportArchived);
@@ -421,11 +425,11 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     return (
         <>
             <View
-                style={[styles.borderBottom]}
+                style={styles.borderBottom}
                 dataSet={{dragArea: true}}
                 onTouchStart={isInLandscapeMode ? () => Keyboard.dismiss() : undefined}
             >
-                <View style={[styles.appContentHeader, contentHeaderHeightStyle, styles.pr3]}>
+                <View style={[titleRowStyle, topInsetHeaderStyle]}>
                     {isLoading ? (
                         <ReportHeaderSkeletonView onBackButtonPress={onNavigationMenuButtonClicked} />
                     ) : (

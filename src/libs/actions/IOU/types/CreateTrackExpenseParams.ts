@@ -8,6 +8,7 @@ import type {WriteReadyBarrier} from '@libs/API';
 import type {CurrentUser} from '@userActions/Policy/Policy';
 
 import type {IOUAction} from '@src/CONST';
+import type CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Accountant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
@@ -27,6 +28,9 @@ type TrackExpenseAccountantParams = {
 
 type CreateTrackExpenseParams = {
     report: OnyxEntry<OnyxTypes.Report>;
+    existingIOUReport?: OnyxEntry<OnyxTypes.Report>;
+    /** Carried from an earlier batch iteration so later items update the same preview before Onyx flushes. */
+    existingReportPreviewAction?: OnyxEntry<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>;
     isDraftPolicy: boolean;
     action?: IOUAction;
     participantParams: RequestMoneyParticipantParams;
@@ -46,7 +50,7 @@ type CreateTrackExpenseParams = {
     existingActionableWhisperReportActionID?: string;
     isASAPSubmitBetaEnabled: boolean;
     currentUser: CurrentUser;
-    currentUserPersonalDetails?: CurrentUserPersonalDetails;
+    currentUserPersonalDetails: CurrentUserPersonalDetails;
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
     activePolicy?: OnyxEntry<OnyxTypes.Policy>;
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
@@ -67,6 +71,8 @@ type CreateTrackExpenseParams = {
 
     /** Current "Reuse route" list value, so the just used route can be saved locally */
     reusableDistanceRoutes?: OnyxTypes.ReusableDistanceRoute[];
+    /** Defers instant auto-submit so earlier items in a batch do not close the report before remaining items arrive. */
+    shouldDeferAutoSubmit?: boolean;
 };
 
 /** Saved with a failed track's receipt error, because the failure deletes the whisper and a retry needs its ID to rebuild it. */

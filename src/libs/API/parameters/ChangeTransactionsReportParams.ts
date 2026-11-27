@@ -7,6 +7,8 @@
  */
 type TransactionThreadInfo = {
     movedReportActionID?: string;
+    /** Shared with Auth so its Concierge rate adjustment replaces the optimistic action. */
+    modifiedExpenseReportActionID?: string;
     moneyRequestPreviewReportActionID: string;
     transactionThreadReportID?: string;
     transactionThreadCreatedReportActionID?: string;
