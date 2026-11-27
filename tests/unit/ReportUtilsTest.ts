@@ -24728,7 +24728,7 @@ describe('ReportUtils', () => {
             };
 
             // When we call getReportPreviewMessage passing the policy explicitly
-            const result = getReportPreviewMessage(translateLocal, convertToDisplayString, {bankAccountList: undefined, reportOrID: expenseReport, policy: groupPolicy}, formatPhoneNumber);
+            const result = getReportPreviewMessage(translateLocal, convertToDisplayString, {reportOrID: expenseReport, policy: groupPolicy, bankAccountList: undefined}, formatPhoneNumber);
 
             // Then the group-policy "approved" branch is taken based on the passed policy alone
             expect(result).toContain('approved');
@@ -24852,6 +24852,7 @@ describe('ReportUtils', () => {
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                 statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
             };
+            const settledInvoiceReport: Report = {...settledReport, reportID: '445002', type: CONST.REPORT.TYPE.INVOICE};
             const payOriginalMessage = {
                 IOUReportID: settledReport.reportID,
                 type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
@@ -24876,6 +24877,7 @@ describe('ReportUtils', () => {
 
             afterEach(async () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[reimburserAccountID]: null});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${settledInvoiceReport.reportID}`, null);
             });
 
             it('shows the bank account from the action accountNumber instead of the policy default', () => {
@@ -24891,11 +24893,11 @@ describe('ReportUtils', () => {
                     englishTranslate,
                     convertToDisplayString,
                     {
-                        bankAccountList: undefined,
                         reportOrID: settledReport,
                         iouReportAction: actionWithAccountNumber,
                         originalReportAction: actionWithAccountNumber,
                         policy: settledPolicy,
+                        bankAccountList: undefined,
                     },
                     formatPhoneNumber,
                 );
@@ -24913,11 +24915,11 @@ describe('ReportUtils', () => {
                     englishTranslate,
                     convertToDisplayString,
                     {
-                        bankAccountList: undefined,
                         reportOrID: settledReport,
                         iouReportAction: payReportAction,
                         originalReportAction: payReportAction,
                         policy: settledPolicy,
+                        bankAccountList: undefined,
                     },
                     formatPhoneNumber,
                 );
@@ -24946,11 +24948,11 @@ describe('ReportUtils', () => {
                         englishTranslate,
                         convertToDisplayString,
                         {
-                            bankAccountList: undefined,
                             reportOrID: settledReport,
                             iouReportAction: actionNamingAccount,
                             originalReportAction: actionNamingAccount,
                             policy: settledPolicy,
+                            bankAccountList: undefined,
                         },
                         formatPhoneNumber,
                     );
@@ -24974,7 +24976,6 @@ describe('ReportUtils', () => {
 
             it('names the invoice payment account from the passed bankAccountList', async () => {
                 // Given a settled invoice paid from a personal account that the action records only by ID
-                const settledInvoiceReport: Report = {...settledReport, reportID: '445002', type: CONST.REPORT.TYPE.INVOICE};
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${settledInvoiceReport.reportID}`, settledInvoiceReport);
                 const invoicePayAction: ReportAction = {
                     ...payReportAction,
@@ -25080,12 +25081,12 @@ describe('ReportUtils', () => {
                         englishTranslate,
                         convertToDisplayString,
                         {
-                            bankAccountList: undefined,
                             reportOrID: settledReport,
                             iouReportAction: payReportAction,
                             originalReportAction: payReportAction,
                             policy: settledPolicy,
                             isPreviewMessageForParentChatReport: true,
+                            bankAccountList: undefined,
                         },
                         formatPhoneNumber,
                     );
@@ -25151,7 +25152,7 @@ describe('ReportUtils', () => {
                 const result = getReportPreviewMessage(
                     translateWithMarker,
                     convertToDisplayString,
-                    {bankAccountList: undefined, reportOrID: iouReport, policy: undefined},
+                    {reportOrID: iouReport, policy: undefined, bankAccountList: undefined},
                     formatPhoneNumber,
                 );
 
@@ -25209,11 +25210,11 @@ describe('ReportUtils', () => {
                     englishTranslate,
                     convertToDisplayString,
                     {
-                        bankAccountList: undefined,
                         reportOrID: groupChat,
                         iouReportAction: splitAction,
                         policy: undefined,
                         linkedTransaction: splitTransaction,
+                        bankAccountList: undefined,
                     },
                     formatPhoneNumber,
                 );
@@ -25234,10 +25235,10 @@ describe('ReportUtils', () => {
                     englishTranslate,
                     convertToDisplayString,
                     {
-                        bankAccountList: undefined,
                         reportOrID: groupChat,
                         iouReportAction: splitAction,
                         policy: undefined,
+                        bankAccountList: undefined,
                     },
                     formatPhoneNumber,
                 );
@@ -25264,11 +25265,11 @@ describe('ReportUtils', () => {
                     englishTranslate,
                     convertToDisplayString,
                     {
-                        bankAccountList: undefined,
                         reportOrID: selfDM,
                         iouReportAction: trackAction,
                         policy: undefined,
                         linkedTransaction: trackTransaction,
+                        bankAccountList: undefined,
                     },
                     formatPhoneNumber,
                 );
@@ -25301,11 +25302,11 @@ describe('ReportUtils', () => {
                     englishTranslate,
                     convertToDisplayString,
                     {
-                        bankAccountList: undefined,
                         reportOrID: iouReport,
                         iouReportAction: iouAction,
                         shouldConsiderScanningReceiptOrPendingRoute: true,
                         policy: undefined,
+                        bankAccountList: undefined,
                     },
                     formatPhoneNumber,
                 );
@@ -25332,7 +25333,7 @@ describe('ReportUtils', () => {
 
                 // The hardcoded English string must match the en.ts translation produced by the localized function
                 expect(result).toBe(
-                    getReportPreviewMessage(englishTranslate, convertToDisplayString, {bankAccountList: undefined, reportOrID: report, policy: undefined}, formatPhoneNumber),
+                    getReportPreviewMessage(englishTranslate, convertToDisplayString, {reportOrID: report, policy: undefined, bankAccountList: undefined}, formatPhoneNumber),
                 );
                 expect(result).toContain('owes');
             });
@@ -25384,7 +25385,7 @@ describe('ReportUtils', () => {
 
                 // The hardcoded English string must match the en.ts translation produced by the localized function
                 expect(result).toBe(
-                    getReportPreviewMessage(englishTranslate, convertToDisplayString, {bankAccountList: undefined, reportOrID: report, policy: undefined}, formatPhoneNumber),
+                    getReportPreviewMessage(englishTranslate, convertToDisplayString, {reportOrID: report, policy: undefined, bankAccountList: undefined}, formatPhoneNumber),
                 );
                 expect(result).toContain('spent');
             });

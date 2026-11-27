@@ -4396,7 +4396,6 @@ describe('SidebarUtils', () => {
                     translateLocal,
                     convertToDisplayString,
                     {
-                        bankAccountList: undefined,
                         reportOrID: iouReport,
                         iouReportAction: iouAction,
                         shouldConsiderScanningReceiptOrPendingRoute: true,
@@ -4404,6 +4403,7 @@ describe('SidebarUtils', () => {
                         policy: null,
                         isForListPreview: true,
                         originalReportAction: lastReportPreviewAction,
+                        bankAccountList: undefined,
                     },
                     formatPhoneNumber,
                 );
@@ -4518,7 +4518,6 @@ describe('SidebarUtils', () => {
                     translateLocal,
                     convertToDisplayString,
                     {
-                        bankAccountList: undefined,
                         reportOrID: iouReport,
                         iouReportAction: iouAction,
                         shouldConsiderScanningReceiptOrPendingRoute: true,
@@ -4526,6 +4525,7 @@ describe('SidebarUtils', () => {
                         policy: null,
                         isForListPreview: true,
                         originalReportAction: lastReportPreviewAction,
+                        bankAccountList: undefined,
                     },
                     formatPhoneNumber,
                 );
