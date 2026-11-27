@@ -237,6 +237,8 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
 
     const allApprovers: SelectionListApprover[] = [...selectedMembers];
     const approversEmail = workflowApprovers?.map((member) => member?.email);
+    // Normalize each login once, so the list build stays linear when many members are selected.
+    const normalizedSelectedLogins = new Set(selectedMembers.map((member) => normalizeLogin(member.login)));
     const availableMembers = liveAvailableMembers
         .map((member) => {
             const accountID = Number(policyMemberEmailsToAccountIDs[member.email] ?? '');
@@ -265,11 +267,7 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
                 ),
             };
         })
-        .filter(
-            (member) =>
-                (!policy?.preventSelfApproval || !approversEmail?.includes(member.login)) &&
-                !selectedMembers.some((selectedOption) => normalizeLogin(selectedOption.login) === normalizeLogin(member.login)),
-        );
+        .filter((member) => (!policy?.preventSelfApproval || !approversEmail?.includes(member.login)) && !normalizedSelectedLogins.has(normalizeLogin(member.login)));
     allApprovers.push(...availableMembers);
 
     // Add search results for non-workspace members
@@ -292,7 +290,8 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
         }
 
         // Add search results that aren't already in the list (selected approvers or userToInvite)
-        const searchResults = availableOptions.personalDetails.filter((option) => !allApprovers.some((m) => normalizeLogin(m.login) === normalizeLogin(option.login)));
+        const normalizedListedLogins = new Set(allApprovers.map((member) => normalizeLogin(member.login)));
+        const searchResults = availableOptions.personalDetails.filter((option) => !normalizedListedLogins.has(normalizeLogin(option.login)));
         for (const option of searchResults) {
             allApprovers.push({
                 text: option.text ?? option.login ?? '',
