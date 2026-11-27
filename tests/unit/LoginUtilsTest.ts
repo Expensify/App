@@ -1,6 +1,7 @@
 import {
     appendCountryCode,
     formatE164PhoneNumber,
+    getCountryCodeForAddressCountry,
     getEmailDomain,
     getPhoneLogin,
     getPhoneNumberWithoutSpecialChars,
@@ -73,6 +74,36 @@ describe('LoginUtils', () => {
         });
         it('Should return undefined for a value that is not a phone number', () => {
             expect(formatE164PhoneNumber('abcdefg', CONST.DEFAULT_COUNTRY_CODE)).toBeUndefined();
+        });
+    });
+    describe('getCountryCodeForAddressCountry', () => {
+        it('Should use the calling code of an ISO address country instead of the fallback', () => {
+            // Given a user outside the US (UK IP) with a US address
+            // When we get the calling code for the address country
+            // Then the US calling code is used so a bare US number is read as a US number
+            expect(getCountryCodeForAddressCountry('US', 44)).toBe(1);
+        });
+        it('Should use the calling code of a legacy country name', () => {
+            // Given an older address stored with the full country name
+            // When we get the calling code for the address country
+            // Then the name is resolved to its ISO code first
+            expect(getCountryCodeForAddressCountry('United States', 44)).toBe(1);
+        });
+        it('Should fall back when the address country is missing or unknown', () => {
+            // Given no usable address country
+            // When we get the calling code for the address country
+            // Then the fallback (IP-based) country code is used
+            expect(getCountryCodeForAddressCountry(undefined, 44)).toBe(44);
+            expect(getCountryCodeForAddressCountry('', 44)).toBe(44);
+            expect(getCountryCodeForAddressCountry('Atlantis', 44)).toBe(44);
+        });
+        it('Should format a bare US number with the US calling code for a US address on a non-US IP', () => {
+            // Given the number from the bug report, a US address and a UK IP
+            const countryCode = getCountryCodeForAddressCountry('US', 44);
+
+            // When we format it for saving
+            // Then it is saved as a US number instead of failing validation
+            expect(formatE164PhoneNumber('9833330123', countryCode)).toBe('+19833330123');
         });
     });
     describe('isEmailPublicDomain', () => {

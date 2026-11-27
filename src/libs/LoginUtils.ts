@@ -3,7 +3,8 @@ import CONST from '@src/CONST';
 
 import {PUBLIC_DOMAINS_SET, Str} from 'expensify-common';
 
-import {parsePhoneNumber} from './PhoneNumber';
+import {getCountryCode} from './CountryUtils';
+import {getCountryCodeForRegionCode, parsePhoneNumber} from './PhoneNumber';
 
 /**
  * Remove the special chars from the phone number
@@ -28,6 +29,21 @@ function appendCountryCode(phone: string, countryCode: number): string {
         return phoneWithCountryCode;
     }
     return `+${phone}`;
+}
+
+/**
+ * Get the calling code of an address country so a phone number entered next to that address is read with it
+ *
+ * @param country - Address country, either an ISO code (e.g., "US") or a legacy country name (e.g., "United States")
+ * @param fallbackCountryCode - Country code to use when the address country is missing or unknown (usually the IP-based one)
+ * @returns Calling code (e.g., 1 for US, 44 for UK)
+ */
+function getCountryCodeForAddressCountry(country: string | undefined, fallbackCountryCode: number): number {
+    const regionCode = getCountryCode(country);
+    if (!regionCode) {
+        return fallbackCountryCode;
+    }
+    return getCountryCodeForRegionCode(regionCode) || fallbackCountryCode;
 }
 
 /**
@@ -124,6 +140,7 @@ function sanitizePhoneOrEmail(phoneOrEmail: string) {
 export {
     getPhoneNumberWithoutSpecialChars,
     appendCountryCode,
+    getCountryCodeForAddressCountry,
     isEmailPublicDomain,
     validateNumber,
     getPhoneLogin,

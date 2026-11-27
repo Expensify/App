@@ -3,7 +3,7 @@ import CONST from '@src/CONST';
 import type {ParsedPhoneNumber, PhoneNumberParseOptions} from 'awesome-phonenumber';
 
 // eslint-disable-next-line no-restricted-imports
-import {parsePhoneNumber as originalParsePhoneNumber} from 'awesome-phonenumber';
+import {getCountryCodeForRegionCode, parsePhoneNumber as originalParsePhoneNumber} from 'awesome-phonenumber';
 import {Str} from 'expensify-common';
 
 // Enough for about 7,500 device contacts, which need about two entries each
@@ -116,4 +116,4 @@ function addSMSDomainIfPhoneNumber(login = ''): string {
     return login;
 }
 
-export {parsePhoneNumber, addSMSDomainIfPhoneNumber};
+export {parsePhoneNumber, addSMSDomainIfPhoneNumber, getCountryCodeForRegionCode};
