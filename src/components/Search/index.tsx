@@ -546,7 +546,6 @@ function Search({
             searchKey: currentSearchKey,
             offset: searchRequestOffset,
             shouldCalculateTotals,
-            prevReportsLength: filteredDataLength,
             isLoading: !!searchResults?.search?.isLoading,
             shouldSaveRecentSearch: searchRequestOffset === 0 && !shouldUseLiveData,
         });
@@ -574,7 +573,6 @@ function Search({
             searchKey: currentSearchKey,
             offset: searchRequestOffset,
             shouldCalculateTotals: true,
-            prevReportsLength: filteredDataLength,
             isLoading: false,
         });
     }, [
@@ -849,10 +847,7 @@ function Search({
                 // in the report RHP can reference the correct result set.
                 saveLastSearchParams({
                     queryJSON,
-                    offset,
                     searchKey: currentSearchKey,
-                    hasMoreResults: !!searchResults?.search?.hasMoreResults,
-                    allowPostSearchRecount: true,
                 });
 
                 const route = ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({
@@ -926,8 +921,6 @@ function Search({
             email,
             accountID,
             queryJSON,
-            offset,
-            searchResults?.search?.hasMoreResults,
             currentSearchKey,
             seedCarouselForOpenedExpense,
             getCurrencyDecimals,
@@ -1126,7 +1119,6 @@ function Search({
                     searchKey: currentSearchKey,
                     offset: nextOffset,
                     shouldCalculateTotals: shouldCalculateNextPageTotals,
-                    prevReportsLength: filteredDataLength,
                     isLoading: false,
                 });
             }
@@ -1152,7 +1144,6 @@ function Search({
             searchKey: currentSearchKey,
             offset: nextOffset,
             shouldCalculateTotals: shouldCalculateNextPageTotals,
-            prevReportsLength: filteredDataLength,
             isLoading: false,
         });
         // offline path returned above, so we never arm with no request running
@@ -1179,7 +1170,6 @@ function Search({
         queryJSON,
         currentSearchKey,
         shouldCalculateNextPageTotals,
-        filteredDataLength,
     ]);
 
     // Ask again for a page that never arrived, either because a search was still running when the list hit
@@ -1486,7 +1476,6 @@ function Search({
                 searchKey: currentSearchKey,
                 offset: 0,
                 shouldCalculateTotals: shouldCalculateTotalsOnRetry,
-                prevReportsLength: filteredDataLength,
                 isLoading: !!searchResults?.search?.isLoading,
                 // Must match the page-level request this retry triggers, or search() re-sends the query as an upgrade.
                 shouldSaveRecentSearch: true,

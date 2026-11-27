@@ -1,5 +1,6 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
+import {MoneyRequestReportNavigationSessionProvider} from '@components/MoneyRequestReportView/MoneyRequestReportNavigationSessionContext';
 import MoneyRequestReportView from '@components/MoneyRequestReportView/MoneyRequestReportView';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -417,15 +418,17 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                                 onBackButtonPress={Navigation.goBack}
                             >
                                 <DragAndDropProvider isDisabled={isEditingDisabled}>
-                                    <MoneyRequestReportView
-                                        report={report}
-                                        reportIDFromRoute={reportIDFromRoute}
-                                        reportLoadingState={reportLoadingState}
-                                        shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
-                                        key={report?.reportID}
-                                        onLayout={handleSubmitToDestinationVisibleLayout}
-                                        backToRoute={route.params.backTo}
-                                    />
+                                    <MoneyRequestReportNavigationSessionProvider>
+                                        <MoneyRequestReportView
+                                            report={report}
+                                            reportIDFromRoute={reportIDFromRoute}
+                                            reportLoadingState={reportLoadingState}
+                                            shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
+                                            key={report?.reportID}
+                                            onLayout={handleSubmitToDestinationVisibleLayout}
+                                            backToRoute={route.params.backTo}
+                                        />
+                                    </MoneyRequestReportNavigationSessionProvider>
                                     <PortalHost name="suggestions" />
                                 </DragAndDropProvider>
                             </FullPageNotFoundView>

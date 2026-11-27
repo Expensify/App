@@ -1,6 +1,7 @@
 import {act, render, renderHook, screen} from '@testing-library/react-native';
 
 import MoneyRequestReportNavigation, {isNavigableReportID} from '@components/MoneyRequestReportView/MoneyRequestReportNavigation';
+import {MoneyRequestReportNavigationSessionProvider} from '@components/MoneyRequestReportView/MoneyRequestReportNavigationSessionContext';
 import {useSearchResultsContext} from '@components/Search/SearchContext';
 
 import useFilterPendingDeleteReports from '@hooks/useFilterPendingDeleteReports';
@@ -260,7 +261,6 @@ describe('MoneyRequestReportNavigation', () => {
 
             // Then the request leaves search.isLoading unset, because a refetch for an expense created meanwhile returns early while it is set and is never retried
             expect(search).toHaveBeenCalledWith(expect.objectContaining({offset: CONST.SEARCH.RESULTS_PAGE_SIZE, shouldShowLoading: false}));
-            expect(search).not.toHaveBeenCalledWith(expect.objectContaining({shouldUpdateLastSearchParams: true}));
         });
 
         it('requests the page after the one the snapshot holds, not the one the saved params point at', () => {
@@ -414,7 +414,209 @@ describe('MoneyRequestReportNavigation', () => {
             expect(mockIsNextButtonDisabled).toBe(true);
         });
     });
+
+    describe('report page remounts', () => {
+        beforeEach(() => {
+            mockIsOffline = false;
+            mockShouldUseLiveData = false;
+            jest.mocked(search).mockClear();
+            jest.mocked(Navigation.setParams).mockClear();
+        });
+
+        it('still knows the page request it made after Next remounts it', () => {
+            // Given report 40 of the first page is open and more results exist
+            const {followNavigation, setSnapshot} = renderNavigationInReportPage('40', {offset: 0, hasMoreResults: true});
+
+            // When Next requests page 2 and the user keeps pressing Next up to the last loaded report while that page is loading
+            pressNext();
+            setSnapshot({offset: CONST.SEARCH.RESULTS_PAGE_SIZE, hasMoreResults: true, state: CONST.SEARCH.SNAPSHOT_STATE.LOADING});
+            followNavigation();
+            for (let reportNumber = 41; reportNumber < CONST.SEARCH.RESULTS_PAGE_SIZE; reportNumber++) {
+                pressNext();
+                followNavigation();
+            }
+
+            // Then page 2 is requested once and Next is disabled on report 50, because every press remounts the report view and the request is still on its way
+            expect(screen.getByTestId('PrevNextButtons')).toBeOnTheScreen();
+            expect(search).toHaveBeenCalledTimes(1);
+            expect(mockIsNextButtonDisabled).toBe(true);
+        });
+
+        it('keeps paging from the loaded pages when a first page refetch failed before Next remounted it', () => {
+            // Given two pages are loaded and report 37 is open
+            const {followNavigation, setSnapshot} = renderNavigationInReportPage('37', {offset: CONST.SEARCH.RESULTS_PAGE_SIZE, hasMoreResults: true});
+
+            // When Next opens report 38, a refetch of the first page fails, and Next is pressed on the remounted report 38
+            pressNext();
+            setSnapshot({offset: 0, hasMoreResults: true, responseJsonCode: CONST.JSON_CODE.EXP_ERROR});
+            followNavigation();
+            pressNext();
+
+            // Then page 3 is requested, because page 2 is still loaded and asking for it again would add no reports
+            expect(search).toHaveBeenCalledWith(expect.objectContaining({offset: CONST.SEARCH.RESULTS_PAGE_SIZE * 2}));
+        });
+
+        it('pages a to-do search from the pages that answered after a refetch rewound the offset and Next remounted it', () => {
+            // Given a to-do search whose live rows came from three answered pages, and report 37 is open
+            mockShouldUseLiveData = true;
+            const {followNavigation, setSnapshot} = renderNavigationInReportPage('37', {offset: CONST.SEARCH.RESULTS_PAGE_SIZE * 2, hasMoreResults: true});
+
+            // When Next opens report 38, a refetch rewinds the snapshot offset to the first page, and Next is pressed on the remounted report 38
+            pressNext();
+            setSnapshot({offset: 0, hasMoreResults: true});
+            followNavigation();
+            pressNext();
+
+            // Then page 4 is requested, because the rows of pages 2 and 3 are still in Onyx
+            expect(search).toHaveBeenCalledWith(expect.objectContaining({offset: CONST.SEARCH.RESULTS_PAGE_SIZE * 3}));
+        });
+
+        it('keeps the arrows on the first render after a remount while its own page is loading', () => {
+            // Given Next requested page 2 from report 40
+            const {followNavigation, setSnapshot} = renderNavigationInReportPage('40', {offset: 0, hasMoreResults: true});
+            pressNext();
+
+            // When that page is loading, so the remounted report 41 starts on a standalone list that isn't computed yet
+            mockUseSearchSections.mockReturnValue({allReports: [], isSearchLoading: true, lastSearchQuery: undefined});
+            setSnapshot({offset: CONST.SEARCH.RESULTS_PAGE_SIZE, hasMoreResults: true, state: CONST.SEARCH.SNAPSHOT_STATE.LOADING});
+            followNavigation();
+
+            // Then the arrows stay visible and Next opens report 42 from the list the user was paging through
+            expect(screen.getByTestId('PrevNextButtons')).toBeOnTheScreen();
+            jest.mocked(Navigation.setParams).mockClear();
+            pressNext();
+            expect(Navigation.setParams).toHaveBeenCalledWith(expect.objectContaining({reportID: '42'}));
+        });
+    });
+
+    describe('Next on the last loaded report', () => {
+        beforeEach(() => {
+            mockIsOffline = false;
+            mockShouldUseLiveData = false;
+            jest.mocked(search).mockClear();
+            jest.mocked(Navigation.setParams).mockClear();
+        });
+
+        it('opens the next report once the page it requested lands', () => {
+            // Given the last loaded report is open and more results exist
+            const {setSnapshot} = renderNavigationInReportPage(`${CONST.SEARCH.RESULTS_PAGE_SIZE}`, {offset: 0, hasMoreResults: true});
+
+            // When the user presses Next, and page 2 loads and then lands
+            pressNext();
+            setSnapshot({offset: CONST.SEARCH.RESULTS_PAGE_SIZE, hasMoreResults: true, state: CONST.SEARCH.SNAPSHOT_STATE.LOADING});
+            expect(Navigation.setParams).not.toHaveBeenCalled();
+            setSnapshot({offset: CONST.SEARCH.RESULTS_PAGE_SIZE, hasMoreResults: false}, getReportIDs(CONST.SEARCH.RESULTS_PAGE_SIZE * 2));
+
+            // Then report 51 opens without a second press, because the first press asked for it
+            expect(Navigation.setParams).toHaveBeenCalledTimes(1);
+            expect(Navigation.setParams).toHaveBeenCalledWith(expect.objectContaining({reportID: `${CONST.SEARCH.RESULTS_PAGE_SIZE + 1}`}));
+        });
+
+        it('does not open the next report later when the page it requested failed', () => {
+            // Given the user pressed Next on the last loaded report and page 2 started loading
+            const {setSnapshot} = renderNavigationInReportPage(`${CONST.SEARCH.RESULTS_PAGE_SIZE}`, {offset: 0, hasMoreResults: true});
+            pressNext();
+            setSnapshot({offset: CONST.SEARCH.RESULTS_PAGE_SIZE, hasMoreResults: true, state: CONST.SEARCH.SNAPSHOT_STATE.LOADING});
+
+            // When that page fails, and a later search brings in more reports
+            setSnapshot({offset: CONST.SEARCH.RESULTS_PAGE_SIZE, hasMoreResults: true, responseJsonCode: CONST.JSON_CODE.EXP_ERROR});
+            setSnapshot({offset: CONST.SEARCH.RESULTS_PAGE_SIZE, hasMoreResults: false}, getReportIDs(CONST.SEARCH.RESULTS_PAGE_SIZE * 2));
+
+            // Then the user stays on the report, because the press they made is over and moving now would be unexpected
+            expect(Navigation.setParams).not.toHaveBeenCalled();
+            expect(mockIsNextButtonDisabled).toBe(false);
+        });
+    });
+
+    describe('to-do list', () => {
+        it('shows the arrows for a report the live list holds but the snapshot does not', () => {
+            // Given a to-do list like Drafts, which lists every live report while the snapshot holds only the first page from the server
+            mockOnNext = undefined;
+            const liveReportIDs = getReportIDs(83);
+            const lastSearchQuery = {queryJSON: {type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, hash: 1}};
+            const snapshot = {
+                data: Object.fromEntries(liveReportIDs.slice(0, CONST.SEARCH.RESULTS_PAGE_SIZE).map((id) => [`${ONYXKEYS.COLLECTION.REPORT}${id}`, {reportID: id}])),
+                search: {isLoading: false, offset: 0, hasMoreResults: true},
+            };
+            mockSortedReportIDs = liveReportIDs;
+            mockUseOnyx.mockImplementation((key: string, options?: {selector?: (value: unknown) => unknown}) => {
+                const value = key === ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY ? lastSearchQuery : snapshot;
+                return [options?.selector ? options.selector(value) : value];
+            });
+
+            // When report 52 opens, which mounts the navigation on a report outside the snapshot
+            render(
+                <MoneyRequestReportNavigation
+                    reportID="52"
+                    shouldDisplayNarrowVersion
+                />,
+            );
+
+            // Then the arrows still render, because they page through the live list rather than the snapshot
+            expect(mockOnNext).toBeDefined();
+        });
+    });
 });
+
+function getReportIDs(count: number) {
+    return Array.from({length: count}, (_, index) => `${index + 1}`);
+}
+
+/**
+ * Renders the navigation the way the report page does: under the session provider and keyed by the open report, so
+ * `followNavigation` remounts it on the report the last Next or Previous press opened. `setSnapshot` replaces the
+ * snapshot's search state, and optionally the loaded reports, and re-renders without a remount.
+ */
+function renderNavigationInReportPage(reportID: string, snapshotSearch: SnapshotSearch, reportIDs = getReportIDs(CONST.SEARCH.RESULTS_PAGE_SIZE)) {
+    const lastSearchQuery = {queryJSON: {type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, hash: 1}};
+    const buildSnapshotData = (ids: string[]) => Object.fromEntries(ids.map((id) => [`${ONYXKEYS.COLLECTION.REPORT}${id}`, {reportID: id}]));
+    const snapshot = {data: buildSnapshotData(reportIDs), search: {isLoading: false, ...snapshotSearch}};
+    mockSortedReportIDs = reportIDs;
+    mockUseSearchSections.mockReturnValue({allReports: reportIDs, isSearchLoading: false, lastSearchQuery: undefined});
+    mockUseOnyx.mockImplementation((key: string, options?: {selector?: (value: unknown) => unknown}) => {
+        const value = key === ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY ? lastSearchQuery : snapshot;
+        return [options?.selector ? options.selector(value) : value];
+    });
+    jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => {
+        callback(0);
+        return 0;
+    });
+
+    let openReportID = reportID;
+    const renderReportPage = () => (
+        <MoneyRequestReportNavigationSessionProvider>
+            <MoneyRequestReportNavigation
+                key={openReportID}
+                reportID={openReportID}
+                shouldDisplayNarrowVersion
+            />
+        </MoneyRequestReportNavigationSessionProvider>
+    );
+    const {rerender} = render(renderReportPage());
+
+    const followNavigation = () => {
+        const [params] = jest.mocked(Navigation.setParams).mock.lastCall ?? [];
+        const nextReportID = (params as {reportID?: string} | undefined)?.reportID;
+        if (nextReportID) {
+            openReportID = nextReportID;
+        }
+        rerender(renderReportPage());
+    };
+
+    const setSnapshot = (nextSnapshotSearch: SnapshotSearch, nextReportIDs?: string[]) => {
+        snapshot.search = {isLoading: false, ...nextSnapshotSearch};
+        if (nextReportIDs) {
+            snapshot.data = buildSnapshotData(nextReportIDs);
+            mockSortedReportIDs = nextReportIDs;
+            mockUseSearchSections.mockReturnValue({allReports: nextReportIDs, isSearchLoading: false, lastSearchQuery: undefined});
+        } else {
+            mockSortedReportIDs = [...mockSortedReportIDs];
+        }
+        rerender(renderReportPage());
+    };
+
+    return {followNavigation, setSnapshot};
+}
 
 /** Renders the navigation for `reportID` over `reportIDs`. `rerenderWithReports` replaces the context list and the snapshot's search state and re-renders. */
 function renderNavigationWithReports(reportID: string, reportIDs: string[]) {

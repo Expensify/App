@@ -149,7 +149,6 @@ import {prepareRejectMoneyRequestData, rejectMoneyRequest} from './IOU/RejectMon
 import {approveMoneyRequest} from './IOU/ReportWorkflow';
 import {isCurrencySupportedForGlobalReimbursement} from './Policy/Policy';
 import {setOptimisticTransactionThread} from './Report';
-import {saveLastSearchParams} from './ReportNavigation';
 
 type OnyxSearchResponse = {
     data: SearchResults['data'];
@@ -1475,9 +1474,7 @@ function search({
     searchKey,
     offset,
     shouldCalculateTotals = false,
-    prevReportsLength,
     isLoading,
-    shouldUpdateLastSearchParams = false,
     skipWaitForWrites = false,
     shouldSaveRecentSearch = false,
     shouldShowLoading = true,
@@ -1487,9 +1484,7 @@ function search({
     searchKey: SearchKey | undefined;
     offset?: number;
     shouldCalculateTotals?: boolean;
-    prevReportsLength?: number;
     isLoading: boolean;
-    shouldUpdateLastSearchParams?: boolean;
     /**
      * Tells the backend whether this query was submitted by the user, so it may be saved to the recent searches NVP.
      * Only the Search page call site should pass true. Programmatic searches (home sections, post-action
@@ -1569,9 +1564,7 @@ function search({
                     searchKey,
                     offset,
                     shouldCalculateTotals: inFlightRequest.pendingShouldCalculateTotals,
-                    prevReportsLength,
                     isLoading: false,
-                    shouldUpdateLastSearchParams,
                     // A replacement for a stale snapshot must include the edit, even if the joining call skipped writes.
                     skipWaitForWrites: skipWaitForWrites && !inFlightRequest.wasSnapshotDropped,
                     shouldSaveRecentSearch: inFlightRequest.pendingShouldSaveRecentSearch,
@@ -1594,9 +1587,7 @@ function search({
                 searchKey,
                 offset,
                 shouldCalculateTotals,
-                prevReportsLength,
                 isLoading: false,
-                shouldUpdateLastSearchParams,
                 shouldSaveRecentSearch,
                 shouldShowLoading: false,
                 skipWaitForWrites: true,
@@ -1628,15 +1619,6 @@ function search({
         isSent: false,
     };
     inFlightSearchRequests.set(dedupeKey, inFlightRequestState);
-
-    if (shouldUpdateLastSearchParams) {
-        saveLastSearchParams({
-            queryJSON,
-            offset,
-            allowPostSearchRecount: false,
-            searchKey,
-        });
-    }
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT | typeof ONYXKEYS.SEARCH_FILTERS>> = [...(onyxLoadingData.optimisticData ?? [])];
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT | typeof ONYXKEYS.SEARCH_FILTERS>> = [...(onyxLoadingData.failureData ?? [])];
@@ -1699,36 +1681,6 @@ function search({
                     clearRecord
                         .then(() => Onyx.merge(snapshotKey, {search: {countedReportIDs}}))
                         .catch((error: unknown) => Log.hmmm('[Search] failed to record the counted reports', {error: String(error)}));
-                }
-
-                if (shouldUpdateLastSearchParams) {
-                    const reports = Object.keys(response?.data ?? {})
-                        .filter((key) => key.startsWith(ONYXKEYS.COLLECTION.REPORT))
-                        .map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT, ''));
-                    if (response?.search?.offset) {
-                        // Indicates that search results are extended from the Report view (with navigation between reports),
-                        // using previous results to enable correct counter behavior.
-                        if (prevReportsLength) {
-                            saveLastSearchParams({
-                                queryJSON,
-                                offset,
-                                hasMoreResults: !!response?.search?.hasMoreResults,
-                                previousLengthOfResults: prevReportsLength,
-                                allowPostSearchRecount: false,
-                                searchKey,
-                            });
-                        }
-                    } else {
-                        // Applies to all searches from the Search View
-                        saveLastSearchParams({
-                            queryJSON,
-                            offset,
-                            hasMoreResults: !!response?.search?.hasMoreResults,
-                            previousLengthOfResults: reports.length,
-                            allowPostSearchRecount: true,
-                            searchKey,
-                        });
-                    }
                 }
 
                 return result?.jsonCode;

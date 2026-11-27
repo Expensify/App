@@ -16,12 +16,12 @@ type LiveRowLimit = {
 };
 
 /** Row cap for a live (to-do) search. Reset rides on `<Search key={queryJSON.hash}>` remounting, so there is no reset here. */
-function useLiveRowLimit(offset = 0, hasUnconfirmedPage = false): LiveRowLimit {
+function useLiveRowLimit(offset = 0, hasUnconfirmedPage = false, initialAnsweredOffset = 0): LiveRowLimit {
     // offset is written when the request fires, so a page still running or failed there only confirms the one before it
     const confirmedOffset = Math.max(0, hasUnconfirmedPage ? offset - CONST.SEARCH.RESULTS_PAGE_SIZE : offset);
 
     // a refresh rewinds offset to 0, but the pages past it already answered and their rows are still in Onyx
-    const [answeredOffset, setAnsweredOffset] = useState(confirmedOffset);
+    const [answeredOffset, setAnsweredOffset] = useState(() => Math.max(initialAnsweredOffset, confirmedOffset));
     if (answeredOffset < confirmedOffset) {
         setAnsweredOffset(confirmedOffset);
     }

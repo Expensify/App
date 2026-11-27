@@ -561,13 +561,12 @@ describe('useYourSpendData — query builder integration', () => {
 // search dispatch
 
 describe('useYourSpendData — search dispatch', () => {
-    it('dispatches search() with shouldCalculateTotals:true and shouldUpdateLastSearchParams:false when focused and online', () => {
+    it('dispatches search() with shouldCalculateTotals:true when focused and online', () => {
         mockedIsPaidGroupPolicy.mockReturnValue(true);
         renderHook(() => useYourSpendData());
         expect(search).toHaveBeenCalledWith(
             expect.objectContaining({
                 shouldCalculateTotals: true,
-                shouldUpdateLastSearchParams: false,
             }),
         );
     });

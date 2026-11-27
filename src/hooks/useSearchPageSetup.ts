@@ -21,8 +21,7 @@ import usePrevious from './usePrevious';
 import useSearchShouldCalculateTotals from './useSearchShouldCalculateTotals';
 import useShouldReturnTripRooms from './useShouldReturnTripRooms';
 
-// Gates the save below to real hash changes so snapshot-loading re-fires don't wipe fields
-// (hasMoreResults, previousLengthOfResults) maintained by report-browsing callers.
+// Gates the save below to real hash changes so snapshot-loading re-fires don't save the same query again.
 let lastSavedSearchHash: number | undefined;
 
 // A response that lands while the user is away can be old by the time they return, so the mount must refresh then.
@@ -121,7 +120,7 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
         // Must run even on cached snapshots, else SearchTabButton's Onyx fallback restores
         // a stale query after a tab switch (e.g. filter reappears after Reset).
         if (lastSavedSearchHash !== hash) {
-            saveLastSearchParams({queryJSON, offset: 0, searchKey: currentSearchKey, hasMoreResults: false, allowPostSearchRecount: false});
+            saveLastSearchParams({queryJSON, searchKey: currentSearchKey});
             lastSavedSearchHash = hash;
         }
 
