@@ -60,6 +60,8 @@ function ReportPreviewActionButton() {
 
     const viewButton = (
         <Button
+            // View sits alone or after the primary action, so the key keeps it mounted when the primary action appears. Otherwise React remounts it by position and a focused View loses keyboard focus.
+            key="view"
             variant={shouldPrioritizeView ? CONST.BUTTON_VARIANT.SUCCESS : undefined}
             // Only flex View when it shares the row with a primary action. A lone View sits in a column with no fixed height, where flex: 1 collapses it on iOS Safari and cuts off the button.
             style={primaryButton ? styles.flex1 : undefined}
