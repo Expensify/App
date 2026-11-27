@@ -57,7 +57,6 @@ type PersonalCardDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorPa
 function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
     const {cardID} = route.params;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.PERSONAL_CARD_DETAILS.path);
-    const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const [activeServer = getActiveServer()] = useOnyx(ONYXKEYS.ACTIVE_SERVER);
     const {translate, formatPhoneNumber, getLocalDateFromDatetime} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
@@ -284,7 +283,6 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
                             card={card}
                             cardID={cardID}
                             cardholder={cardholder}
-                            customCardNames={customCardNames}
                             expensifyIcons={expensifyIcons}
                             isCSVImportedPersonalCard={isCSVImportedPersonalCard}
                             reimbursableSetting={reimbursableSetting}

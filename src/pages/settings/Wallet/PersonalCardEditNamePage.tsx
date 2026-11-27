@@ -39,13 +39,10 @@ type PersonalCardEditNamePageProps = PlatformStackScreenProps<SettingsNavigatorP
 function PersonalCardEditNamePage({route}: PersonalCardEditNamePageProps) {
     const {cardID} = route.params;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.PERSONAL_CARD_EDIT_NAME.path);
-    const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const cardSelector = (cardList: OnyxEntry<CardList>) => cardByIdSelector(cardID)(cardList);
     const [card] = useOnyx(ONYXKEYS.CARD_LIST, {selector: cardSelector});
     const [cardholder] = usePersonalDetail(card?.accountID);
-    const isCSVImportedPersonalCard = !!card && (card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD || card.bank.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV));
-    const defaultValue =
-        customCardNames?.[cardID] ?? (isCSVImportedPersonalCard ? card?.nameValuePairs?.cardTitle : undefined) ?? card?.cardName ?? getDefaultCardName(cardholder?.firstName);
+    const defaultValue = card?.nameValuePairs?.cardTitle ?? card?.cardName ?? getDefaultCardName(cardholder?.firstName);
 
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();

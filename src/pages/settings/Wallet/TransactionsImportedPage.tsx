@@ -40,7 +40,6 @@ function TransactionsImportedPage({route}: TransactionsImportedPageProps) {
     const [accountID = CONST.DEFAULT_NUMBER_ID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const cardSelector = (cardList: OnyxEntry<CardList>) => (existingCardID ? cardByIdSelector(String(existingCardID))(cardList) : undefined);
     const [existingCard] = useOnyx(ONYXKEYS.CARD_LIST, {selector: cardSelector});
-    const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const [isImporting, setIsImporting] = useState(false);
     const [isValidationEnabled, setIsValidationEnabled] = useState(false);
     const hasAppliedSavedMappings = useRef(false);
@@ -130,7 +129,7 @@ function TransactionsImportedPage({route}: TransactionsImportedPageProps) {
         const cardIDNumber = existingCardID ? Number(existingCardID) : undefined;
         const previouslySavedLayout = cardIDNumber && savedColumnLayouts ? savedColumnLayouts[String(cardIDNumber)] : undefined;
         // Re-uploading a file to an existing card skips the settings step, so keep the configuration the card was imported with
-        const existingCardSettings = cardIDNumber ? getExistingCardImportSettings(existingCard, previouslySavedLayout, customCardNames?.[String(cardIDNumber)]) : undefined;
+        const existingCardSettings = cardIDNumber ? getExistingCardImportSettings(existingCard, previouslySavedLayout) : undefined;
         const importFinalModal = await importTransactionsFromCSV(spreadsheet, accountID, cardIDNumber, previouslySavedLayout, existingCardSettings);
         const didShowImportFinalModal = await showImportSpreadsheetConfirmModal(importFinalModal, {shouldHandleNavigationBack: false});
         if (!didShowImportFinalModal) {

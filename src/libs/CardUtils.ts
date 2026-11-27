@@ -487,6 +487,20 @@ function lastFourNumbersFromCardName(cardName: string | undefined): string {
 }
 
 /**
+ * Returns the user-defined cardTitle if set, otherwise a masked card number.
+ * CSV import cards and fundID=0 personal cards store human-readable display names, so they are returned as-is.
+ */
+function getAssignedCardTitle(card: Card): string | undefined {
+    if (card.nameValuePairs?.cardTitle) {
+        return card.nameValuePairs.cardTitle;
+    }
+    if (card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD || card.fundID === '0') {
+        return card.cardName;
+    }
+    return maskCardNumber(card.cardName, card.bank);
+}
+
+/**
  * Checks if a card matches a given card identifier (encrypted card number or card name).
  * Uses exact match for encrypted card numbers, and normalized string comparison
  * for card names to handle special character differences from OAuth providers (e.g., ® vs no ®).
@@ -2829,6 +2843,7 @@ export {
     getSelectedCardsSharedCurrency,
     getCardHintText,
     resolveTransactionCardFields,
+    getAssignedCardTitle,
 };
 
 export type {CompanyCardFeedIcons, CompanyCardBankIcons, CardProgramKey};

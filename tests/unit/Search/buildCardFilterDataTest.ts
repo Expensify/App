@@ -405,24 +405,104 @@ describe('buildCardsData with empty argument objects', () => {
     });
 });
 
-describe('buildCardsData isPersonal with customCardNames', () => {
-    it('Uses customCardNames for personal cards when provided', () => {
-        // Card 11111111 has no fundID, so it is treated as personal (isPersonalCard returns true)
-        const customCardNames: Record<string, string> = {
-            '11111111': 'My Custom Card Label',
+describe('buildCardsData cardTitle prioritization', () => {
+    it('uses cardTitle as both the row title and subtitle when nameValuePairs.cardTitle is set', () => {
+        // Given a card with nameValuePairs.cardTitle set
+        const renamedCardList: CardList = {
+            '11111111': createMock<Card>({
+                accountID: 1,
+                bank: 'Expensify Card',
+                cardID: 11111111,
+                cardName: '455594XXXXXX1138',
+                domainName: 'testDomain',
+                lastFourPAN: '1138',
+                nameValuePairs: {cardTitle: 'My Travel Card', isVirtual: false},
+            }),
         };
-        const result = buildCardsData(workspaceCardFeeds, cardList, {}, [], illustrationsMock, companyCardIconsMock, false, customCardNames);
+        const personalDetailsList = {
+            1: {displayName: 'Alice Smith', login: 'alice@test.com', accountID: 1},
+        };
 
-        const personalCard = result.find((card) => card.keyForList === '11111111');
-        expect(personalCard).toBeDefined();
-        expect(personalCard?.cardName).toBe('My Custom Card Label');
+        // When building the card filter items
+        const result = buildCardsData({}, renamedCardList, personalDetailsList, [], illustrationsMock, companyCardIconsMock);
+
+        // Then cardTitle drives both text (row title) and cardName (subtitle prefix)
+        const item = result.find((card) => card.keyForList === '11111111');
+        expect(item).toBeDefined();
+        expect(item?.text).toBe('My Travel Card');
+        expect(item?.cardName).toBe('My Travel Card');
     });
 
-    it('Falls back to cardName for personal cards when customCardNames is not provided', () => {
-        const result = buildCardsData(workspaceCardFeeds, cardList, {}, [], illustrationsMock, companyCardIconsMock);
+    it('uses cardTitle as the row title even when the owner has a display name', () => {
+        // Given a card with cardTitle and an owner with a display name loaded
+        const renamedCardList: CardList = {
+            '11111111': createMock<Card>({
+                accountID: 1,
+                bank: 'Expensify Card',
+                cardID: 11111111,
+                cardName: '455594XXXXXX1138',
+                domainName: 'testDomain',
+                lastFourPAN: '1138',
+                nameValuePairs: {cardTitle: 'Renamed Card', isVirtual: false},
+            }),
+        };
+        const personalDetailsList = {
+            1: {displayName: 'Alice Smith', login: 'alice@test.com', accountID: 1},
+        };
 
-        const personalCard = result.find((card) => card.keyForList === '11111111');
-        expect(personalCard).toBeDefined();
-        expect(personalCard?.cardName).toBe('455594XXXXXX1138');
+        // When building the card filter items
+        const result = buildCardsData({}, renamedCardList, personalDetailsList, [], illustrationsMock, companyCardIconsMock);
+
+        // Then cardTitle wins over the owner's display name
+        const item = result.find((card) => card.keyForList === '11111111');
+        expect(item?.text).toBe('Renamed Card');
+    });
+
+    it('falls back to the owner display name as text when cardTitle is absent', () => {
+        // Given a card without cardTitle and an owner whose display name is loaded
+        const unnamedCardList: CardList = {
+            '11111111': createMock<Card>({
+                accountID: 1,
+                bank: 'Expensify Card',
+                cardID: 11111111,
+                cardName: '455594XXXXXX1138',
+                domainName: 'testDomain',
+                lastFourPAN: '1138',
+            }),
+        };
+        const personalDetailsList = {
+            1: {displayName: 'Alice Smith', login: 'alice@test.com', accountID: 1},
+        };
+
+        // When building the card filter items
+        const result = buildCardsData({}, unnamedCardList, personalDetailsList, [], illustrationsMock, companyCardIconsMock);
+
+        // Then the owner's display name is used as the row title
+        const item = result.find((card) => card.keyForList === '11111111');
+        expect(item?.text).toBe('Alice Smith');
+        // And the raw cardName drives the subtitle prefix since there is no cardTitle
+        expect(item?.cardName).toBe('455594XXXXXX1138');
+    });
+
+    it('falls back to raw cardName for text when both cardTitle and display name are absent', () => {
+        // Given a card without cardTitle and no personal details loaded yet
+        const unnamedCardList: CardList = {
+            '11111111': createMock<Card>({
+                accountID: 1,
+                bank: 'Expensify Card',
+                cardID: 11111111,
+                cardName: '455594XXXXXX1138',
+                domainName: 'testDomain',
+                lastFourPAN: '1138',
+            }),
+        };
+
+        // When building the card filter items with an empty personal details list
+        const result = buildCardsData({}, unnamedCardList, {}, [], illustrationsMock, companyCardIconsMock);
+
+        // Then the raw cardName is used as the last-resort row title
+        const item = result.find((card) => card.keyForList === '11111111');
+        expect(item?.text).toBe('455594XXXXXX1138');
+        expect(item?.cardName).toBe('455594XXXXXX1138');
     });
 });

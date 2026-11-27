@@ -95,6 +95,7 @@ import {
     isExpensifyCardPending,
     isExpiredCard,
     isMatchingCard,
+    getAssignedCardTitle,
     isPersonalCard,
     isTravelCardTransaction,
     isUkEuExpensifyCard,
@@ -5884,5 +5885,68 @@ describe('canResolveTransactionCard', () => {
 
         // Then it cannot, since a move the backend refuses costs the whole batch
         expect(canResolve).toBe(false);
+    });
+});
+
+describe('getAssignedCardTitle', () => {
+    it('returns the user-defined cardTitle when set, regardless of card type', () => {
+        // Given a company card with a custom cardTitle set by the user
+        const card = createMock<Card>({
+            cardID: 1,
+            bank: CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD,
+            fundID: '9001',
+            cardName: '480801XXXXXX2554',
+            nameValuePairs: createMock({cardTitle: 'My Travel Card'}),
+        });
+
+        // When resolving the display title
+        const title = getAssignedCardTitle(card);
+
+        // Then the user-defined title takes priority over any masking or fallback
+        expect(title).toBe('My Travel Card');
+    });
+
+    it('returns cardName unmasked for a personal card when cardTitle is not set', () => {
+        // Given a personal card (no fundID) with a human-readable bank name
+        const card = createMock<Card>({cardID: 2, bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE, fundID: '0', cardName: 'Chase Sapphire - 1234', nameValuePairs: undefined});
+
+        // When resolving the display title
+        const title = getAssignedCardTitle(card);
+
+        // Then the raw cardName is returned without masking, matching the card details page
+        expect(title).toBe('Chase Sapphire - 1234');
+    });
+
+    it('returns cardName unmasked for a CSV import company card when cardTitle is not set', () => {
+        // Given a CSV-imported card whose cardName is a user-provided display name
+        const card = createMock<Card>({cardID: 3, bank: CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD, fundID: '9001', cardName: 'Checking Account', nameValuePairs: undefined});
+
+        // When resolving the display title
+        const title = getAssignedCardTitle(card);
+
+        // Then the display name is returned as-is
+        expect(title).toBe('Checking Account');
+    });
+
+    it('applies maskCardNumber to the cardName for a regular company card feed when cardTitle is not set', () => {
+        // Given a company card with a masked card number as its cardName
+        const card = createMock<Card>({cardID: 4, bank: CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, fundID: '9001', cardName: '480801XXXXXX2554', nameValuePairs: undefined});
+
+        // When resolving the display title
+        const title = getAssignedCardTitle(card);
+
+        // Then the card number is formatted with bullets and spaces
+        expect(title).toBe('4808 01•• •••• 2554');
+    });
+
+    it('returns an empty string when neither cardTitle nor cardName is set', () => {
+        // Given a company card with no title information
+        const card = createMock<Card>({cardID: 5, bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, fundID: '9001', cardName: undefined, nameValuePairs: undefined});
+
+        // When resolving the display title
+        const title = getAssignedCardTitle(card);
+
+        // Then maskCardNumber returns an empty string for an undefined cardName
+        expect(title).toBe('');
     });
 });
