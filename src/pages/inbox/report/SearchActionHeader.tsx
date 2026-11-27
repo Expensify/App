@@ -21,7 +21,6 @@ import type {Report, ReportAction, Transaction} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {isLinkedToBillSelector} from '@selectors/ReportNameValuePairs';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -51,7 +50,6 @@ function SearchActionHeaderContent({action, report, isWhisper, onPress, children
     } else if (isInvoiceReport(report)) {
         reportForHeaderReportID = report?.reportID;
     }
-    const [isInvoiceLinkedToBill = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(reportForHeaderReportID)}`, {selector: isLinkedToBillSelector});
     const reportTransactionsCollection = useReportTransactionsCollection(reportForHeaderReportID);
     const linkedTransactions = Object.values(reportTransactionsCollection ?? {}).filter((transaction): transaction is Transaction => !!transaction);
 
@@ -66,7 +64,6 @@ function SearchActionHeaderContent({action, report, isWhisper, onPress, children
         convertToDisplayString,
         personalDetailsList,
         derivedReportName,
-        isInvoiceLinkedToBill,
     );
 
     return (

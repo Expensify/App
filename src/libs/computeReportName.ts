@@ -14,7 +14,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
-import {isLinkedToBillSelector} from '@selectors/ReportNameValuePairs';
 import {format} from 'date-fns';
 import {Str} from 'expensify-common';
 
@@ -1096,7 +1095,6 @@ function computeReportName({
             personalDetailsList,
             policy,
             invoiceReceiverPolicy,
-            isLinkedToBillSelector(allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]),
         );
     }
 

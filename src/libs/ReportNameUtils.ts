@@ -24,7 +24,6 @@ import {
     getReportOrDraftReport,
     isExpenseReport,
     isInvoiceReport,
-    isNewDotInvoice,
     isOpenExpenseReport,
     isOpenInvoiceReport,
     isProcessingReport,
@@ -222,14 +221,13 @@ function getInvoiceReportName(
     personalDetailsList: OnyxEntry<PersonalDetailsList>,
     policy?: OnyxEntry<Policy>,
     invoiceReceiverPolicy?: OnyxEntry<Policy>,
-    isLinkedToBill = false,
 ): string {
-    // Users can rename an invoice linked to a bill, so it shows its stored name even when it has an invoice room.
-    if (isLinkedToBill && report?.reportName) {
+    // Auth names every new invoice, so the payer and amount name is only for an invoice whose stored name is empty.
+    if (report?.reportName) {
         return report.reportName;
     }
 
-    const moneyRequestReportName = getMoneyRequestReportName({
+    return getMoneyRequestReportName({
         report,
         policy,
         invoiceReceiverPolicy,
@@ -239,8 +237,6 @@ function getInvoiceReportName(
         formatPhoneNumber,
         convertToDisplayString,
     });
-    const oldDotInvoiceName = report?.reportName ?? moneyRequestReportName;
-    return isNewDotInvoice(report?.chatReportID) ? moneyRequestReportName : oldDotInvoiceName;
 }
 
 /**

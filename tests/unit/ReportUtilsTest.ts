@@ -24299,22 +24299,23 @@ describe('ReportUtils', () => {
         const mockChatReportID = 'chat-report-123';
         const mockPolicyID = 'policy-456';
         const mockReceiverAccountID = 789;
-        const mockReceiverName = 'John Doe';
         const mockTotal = 100;
         const mockCurrency = 'USD';
-        const optimisticInvoiceReport = buildOptimisticInvoiceReport(
-            mockChatReportID,
-            mockPolicyID,
-            mockReceiverAccountID,
-            mockReceiverName,
-            mockTotal,
-            mockCurrency,
-            getCurrencyDecimalsLocal,
-        );
+        const optimisticInvoiceReport = buildOptimisticInvoiceReport(mockChatReportID, mockPolicyID, mockReceiverAccountID, mockTotal, mockCurrency);
 
         expect(optimisticInvoiceReport.statusNum).toBe(CONST.REPORT.STATUS_NUM.SUBMITTED);
         expect(optimisticInvoiceReport.stateNum).toBe(CONST.REPORT.STATE_NUM.SUBMITTED);
         expect(optimisticInvoiceReport.transactionCount).toBe(1);
+    });
+
+    it('should name an optimistic invoice report with its short reportID', () => {
+        // Given a new invoice sent from a policy
+        // When App builds the optimistic invoice report
+        const optimisticInvoiceReport = buildOptimisticInvoiceReport('chat-report-123', 'policy-456', 789, 100, 'USD');
+
+        // Then it gets the name Auth gives a new invoice, so the name doesn't change when the server responds
+        expect(optimisticInvoiceReport.reportName).toBe(`Invoice #${getBase62ReportID(Number(optimisticInvoiceReport.reportID))}`);
+        expect(optimisticInvoiceReport.reportName).toMatch(/^Invoice #R[0-9A-Za-z]{11}$/);
     });
 
     it('should surface a GBR when copiloted into an approver account with a report with outstanding child request', async () => {
@@ -30310,8 +30311,8 @@ describe('ReportUtils', () => {
             expect(result).toBe('Invoice #42');
         });
 
-        it('should return the stored reportName for an invoice linked to a bill that has an invoice room', async () => {
-            // Given an invoice with a renamed stored name whose invoice room is loaded, so NewDot would compute its name
+        it('should return the stored reportName for an invoice that has an invoice room', async () => {
+            // Given an invoice with a renamed stored name whose invoice room is loaded
             const invoiceRoom: Report = {
                 reportID: 'invoice-chat-125',
                 type: CONST.REPORT.TYPE.CHAT,
@@ -30326,25 +30327,21 @@ describe('ReportUtils', () => {
                 reportName: 'Office chairs for March',
                 currency: 'USD',
             };
-            const translateWithMarker: LocalizedTranslate = (path, ...parameters) => (path === 'iou.payerOwesAmount' ? 'PayerOwesMarker' : translateLocal(path, ...parameters));
-            const getName = (isInvoiceLinkedToBill: boolean) =>
-                getChatListItemReportName(
-                    {...createRandomReportAction(8)},
-                    invoiceReport,
-                    invoiceRoom,
-                    undefined,
-                    [],
-                    {translate: translateWithMarker, formatPhoneNumber},
-                    convertToDisplayString,
-                    undefined,
-                    undefined,
-                    isInvoiceLinkedToBill,
-                );
+            const name = getChatListItemReportName(
+                {...createRandomReportAction(8)},
+                invoiceReport,
+                invoiceRoom,
+                undefined,
+                [],
+                {translate: translateLocal, formatPhoneNumber},
+                convertToDisplayString,
+                undefined,
+                undefined,
+            );
 
-            // When Search names the invoice with and without a link to a bill
-            // Then only the linked invoice shows its stored name, and other invoices keep the computed name
-            expect(getName(true)).toBe('Office chairs for March');
-            expect(getName(false)).toBe('PayerOwesMarker');
+            // When Search names the invoice
+            // Then it shows the stored name, because Auth names every invoice
+            expect(name).toBe('Office chairs for March');
         });
 
         it('should pass derivedReportName to getReportName when falling through to default path', async () => {
@@ -30408,17 +30405,46 @@ describe('ReportUtils', () => {
                 reportID: invoiceRoomID,
                 type: CONST.REPORT.TYPE.CHAT,
                 chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+                invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, accountID: 1},
             };
-            // An invoice report without transactions has a total of zero, so its name resolves to the
-            // "payer owes" message, which must come from the translate function passed by the caller.
-            const translateWithMarker: LocalizedTranslate = (path, ...parameters) => (path === 'iou.payerOwesAmount' ? 'PayerOwesMarker' : translateLocal(path, ...parameters));
 
             beforeEach(async () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${invoiceRoomID}`, invoiceRoom);
                 await waitForBatchedUpdates();
             });
 
-            it('should use chatReportID when it is set, instead of falling back to parentReportID', () => {
+            it('should return the stored reportName for an invoice report with an invoice room', () => {
+                // Given an invoice report sent from NewDot, whose invoice room is in Onyx, with the name Auth stored
+                const invoiceReport: Report = {
+                    reportID: 'invoice-report-790',
+                    type: CONST.REPORT.TYPE.INVOICE,
+                    chatReportID: invoiceRoomID,
+                    parentReportID: invoiceRoomID,
+                    reportName: 'Invoice #R00SK9Qpc9BY',
+                    total: -100,
+                    currency: 'USD',
+                };
+
+                // When Search names the invoice
+                const action = {...createRandomReportAction(6)};
+                const result = getChatListItemReportName(
+                    action,
+                    invoiceReport,
+                    invoiceRoom,
+                    undefined,
+                    [],
+                    {translate: translateLocal, formatPhoneNumber},
+                    convertToDisplayString,
+                    participantsPersonalDetails,
+                    undefined,
+                );
+
+                // Then it shows the stored name instead of the payer and amount, so it matches the name in the LHN and the report header
+                expect(result).toBe('Invoice #R00SK9Qpc9BY');
+            });
+
+            it('should find the payer through chatReportID when it is set, instead of falling back to parentReportID', () => {
+                // Given an invoice report with no stored name, whose parentReportID is not the invoice room
                 const nonInvoiceParent: Report = {
                     reportID: 'not-an-invoice-room-501',
                     type: CONST.REPORT.TYPE.CHAT,
@@ -30427,13 +30453,11 @@ describe('ReportUtils', () => {
                     reportID: 'invoice-report-791',
                     type: CONST.REPORT.TYPE.INVOICE,
                     chatReportID: invoiceRoomID,
-                    // A parentReportID that is not the invoice room must not override the valid chatReportID,
-                    // otherwise the report is no longer detected as a NewDot invoice.
                     parentReportID: 'not-an-invoice-room-501',
-                    reportName: 'Invoice #43',
                     currency: 'USD',
                 };
 
+                // When Search names the invoice
                 const action = {...createRandomReportAction(7)};
                 const result = getChatListItemReportName(
                     action,
@@ -30441,24 +30465,26 @@ describe('ReportUtils', () => {
                     nonInvoiceParent,
                     undefined,
                     [],
-                    {translate: translateWithMarker, formatPhoneNumber},
+                    {translate: translateLocal, formatPhoneNumber},
                     convertToDisplayString,
-                    undefined,
+                    participantsPersonalDetails,
                     undefined,
                 );
 
-                expect(result).toBe('PayerOwesMarker');
+                // Then the computed name has the payer from the invoice room, because a parentReportID must not override a valid chatReportID
+                expect(result.replaceAll(/\s+/g, ' ')).toContain('Ragnar Lothbrok owes');
             });
 
             it('should fall back to parentReportID when chatReportID is missing', () => {
+                // Given an invoice report from a Search snapshot with no stored name and only parentReportID pointing at the invoice room
                 const invoiceReport: Report = {
                     reportID: 'invoice-report-792',
                     type: CONST.REPORT.TYPE.INVOICE,
                     parentReportID: invoiceRoomID,
-                    reportName: 'Invoice #44',
                     currency: 'USD',
                 };
 
+                // When Search names the invoice
                 const action = {...createRandomReportAction(8)};
                 const result = getChatListItemReportName(
                     action,
@@ -30466,13 +30492,14 @@ describe('ReportUtils', () => {
                     invoiceRoom,
                     undefined,
                     [],
-                    {translate: translateWithMarker, formatPhoneNumber},
+                    {translate: translateLocal, formatPhoneNumber},
                     convertToDisplayString,
-                    undefined,
+                    participantsPersonalDetails,
                     undefined,
                 );
 
-                expect(result).toBe('PayerOwesMarker');
+                // Then the computed name still has the payer, because the invoice room is found through parentReportID
+                expect(result.replaceAll(/\s+/g, ' ')).toContain('Ragnar Lothbrok owes');
             });
 
             it('should not mutate the passed invoice report when falling back to parentReportID', () => {
@@ -30484,22 +30511,13 @@ describe('ReportUtils', () => {
                 };
 
                 const action = {...createRandomReportAction(9)};
-                getChatListItemReportName(
-                    action,
-                    invoiceReport,
-                    invoiceRoom,
-                    undefined,
-                    [],
-                    {translate: translateWithMarker, formatPhoneNumber},
-                    convertToDisplayString,
-                    undefined,
-                    undefined,
-                );
+                getChatListItemReportName(action, invoiceReport, invoiceRoom, undefined, [], {translate: translateLocal, formatPhoneNumber}, convertToDisplayString, undefined, undefined);
 
                 expect(invoiceReport.chatReportID).toBeUndefined();
             });
 
             it('should use the parent invoice report name for a chat thread inside an invoice report', async () => {
+                // Given a chat thread inside an invoice report that has an invoice room and a stored name
                 const invoiceReportID = 'invoice-report-794';
                 const parentInvoiceReport: Report = {
                     reportID: invoiceReportID,
@@ -30519,6 +30537,7 @@ describe('ReportUtils', () => {
                     reportName: 'Thread name',
                 };
 
+                // When Search names the thread
                 const action = {...createRandomReportAction(10)};
                 const result = getChatListItemReportName(
                     action,
@@ -30526,13 +30545,14 @@ describe('ReportUtils', () => {
                     parentInvoiceReport,
                     undefined,
                     [],
-                    {translate: translateWithMarker, formatPhoneNumber},
+                    {translate: translateLocal, formatPhoneNumber},
                     convertToDisplayString,
                     undefined,
                     undefined,
                 );
 
-                expect(result).toBe('PayerOwesMarker');
+                // Then it shows the stored name of the parent invoice, like the invoice itself
+                expect(result).toBe('Invoice #45');
             });
         });
     });

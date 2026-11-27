@@ -125,13 +125,11 @@ describe('ReportNameUtils', () => {
         reports: OnyxCollection<Report>;
         policies: OnyxCollection<Policy>;
         transactions: OnyxCollection<Transaction>;
-        reportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
         reportActions: OnyxCollection<ReportActions>;
     } = {
         reports: {},
         policies: {},
         transactions: {},
-        reportNameValuePairs: {},
         reportActions: {},
     };
 
@@ -1873,24 +1871,21 @@ describe('ReportNameUtils', () => {
         });
     });
 
-    describe('computeReportName - invoice linked to a bill', () => {
-        const invoiceRoomID = '990101';
-        const invoiceReportID = '990102';
-        const billLinkNVPs = {[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${invoiceReportID}`]: {billID: '990103'}} satisfies Record<string, ReportNameValuePairs>;
+    describe('computeReportName - invoices', () => {
+        const invoiceRoomID = '990201';
         const createInvoice = (reportName: string): Report => ({
-            reportID: invoiceReportID,
+            reportID: '990202',
             type: CONST.REPORT.TYPE.INVOICE,
             chatReportID: invoiceRoomID,
             ownerAccountID: currentUserAccountID,
             reportName,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             total: 100,
             currency: 'USD',
         });
-        const computeInvoiceName = (invoice: Report, reportNameValuePairs: OnyxCollection<ReportNameValuePairs>) =>
-            computeReportName(invoice, emptyCollections.reports, emptyCollections.policies, undefined, reportNameValuePairs, participantsPersonalDetails, emptyCollections.reportActions);
 
         beforeAll(async () => {
-            // An invoice room makes NewDot compute the invoice name from its payer and total.
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${invoiceRoomID}`, {
                 reportID: invoiceRoomID,
                 type: CONST.REPORT.TYPE.CHAT,
@@ -1900,38 +1895,46 @@ describe('ReportNameUtils', () => {
             await waitForBatchedUpdates();
         });
 
-        it('shows the stored name of an invoice linked to a bill that has an invoice room', () => {
-            // Given an invoice with an invoice room and a link to a bill, with a name the user chose
-            const invoice = createInvoice('Office chairs for March');
+        it('shows the stored name of an invoice sent from NewDot', () => {
+            // Given an invoice with an invoice room and the name Auth stored when it was sent
+            const invoice = createInvoice('Invoice #R00SK9Qpc9BY');
 
             // When its name is computed
-            const name = computeInvoiceName(invoice, billLinkNVPs);
+            const name = computeReportName(invoice, emptyCollections.reports, emptyCollections.policies, undefined, undefined, participantsPersonalDetails, emptyCollections.reportActions);
 
-            // Then it shows the stored name, because Bill Pay invoices keep the name Auth or the user saved
+            // Then it shows the stored name, so the sender and the receiver see the same name as Auth
+            expect(name).toBe('Invoice #R00SK9Qpc9BY');
+        });
+
+        it('shows the stored name of an invoice linked to a bill', () => {
+            // Given an invoice with an invoice room and a link to a bill, with a name the user chose
+            const invoice = createInvoice('Office chairs for March');
+            const billLinkNVPs = {[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${invoice.reportID}`]: {billID: '990203'}} satisfies Record<string, ReportNameValuePairs>;
+
+            // When its name is computed
+            const name = computeReportName(
+                invoice,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                billLinkNVPs,
+                participantsPersonalDetails,
+                emptyCollections.reportActions,
+            );
+
+            // Then it shows the stored name, because a bill link doesn't change how an invoice is named
             expect(name).toBe('Office chairs for March');
         });
 
-        it('keeps the computed name for an invoice with an invoice room and no bill link', () => {
-            // Given an invoice with an invoice room and no link to a bill
-            const invoice = createInvoice('Invoice #R00AbCdEfGh');
-
-            // When its name is computed
-            const name = computeInvoiceName(invoice, emptyCollections.reportNameValuePairs);
-
-            // Then it keeps the name built from the payer, like other NewDot invoices
-            expect(name).not.toBe('Invoice #R00AbCdEfGh');
-            expect(name.replaceAll(/\s+/g, ' ')).toContain('Ragnar Lothbrok');
-        });
-
-        it('falls back to the computed name for an invoice linked to a bill with an empty name', () => {
-            // Given an invoice linked to a bill whose stored name is empty
+        it('shows the payer and amount for an invoice sent from NewDot with an empty stored name', () => {
+            // Given an invoice with an invoice room and an empty stored name
             const invoice = createInvoice('');
 
             // When its name is computed
-            const name = computeInvoiceName(invoice, billLinkNVPs);
+            const name = computeReportName(invoice, emptyCollections.reports, emptyCollections.policies, undefined, undefined, participantsPersonalDetails, emptyCollections.reportActions);
 
-            // Then it uses the name built from the payer, because there is no stored name to show
-            expect(name.replaceAll(/\s+/g, ' ')).toContain('Ragnar Lothbrok');
+            // Then it falls back to the name built from the payer, because there is no stored name to show
+            expect(name.replaceAll(/\s+/g, ' ')).toContain('Ragnar Lothbrok owes');
         });
     });
 
