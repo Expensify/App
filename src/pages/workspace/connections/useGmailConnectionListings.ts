@@ -23,7 +23,7 @@ function useGmailConnectionListings(policy: OnyxEntry<Policy>): ConnectionListin
     const policyID = policy?.id;
     const {translate, datetimeToRelative} = useLocalize();
     const {isBetaEnabled} = usePermissions();
-    const icons = useMemoizedLazyExpensifyIcons(['GmailSquare']);
+    const icons = useMemoizedLazyExpensifyIcons(['Mail']);
     const [oauthConnections] = useOnyx(ONYXKEYS.NVP_PRIVATE_OAUTH_CONNECTIONS);
 
     if (!policyID || !isBetaEnabled(CONST.BETAS.RECEIPT_SYNC)) {
@@ -47,7 +47,7 @@ function useGmailConnectionListings(policy: OnyxEntry<Policy>): ConnectionListin
             key: CONST.OAUTH_CONNECTIONS.PROVIDER.GMAIL,
             category: CONST.TAB.CONNECTIONS.RECEIPTS,
             title: translate('workspace.connections.gmail.title'),
-            icon: icons.GmailSquare,
+            icon: icons.Mail,
             status: connections.length ? {isBroken, message: statusMessage} : undefined,
             onConfigure: () => Navigation.navigate(ROUTES.WORKSPACE_CONNECTIONS_GMAIL.getRoute(policyID)),
         },

@@ -154,7 +154,6 @@ import NetSuiteExport from '@assets/images/integrationicons/export/netsuite-icon
 import QBOExport from '@assets/images/integrationicons/export/qbo-icon.svg';
 import SageIntacctExport from '@assets/images/integrationicons/export/sage-intacct-icon.svg';
 import XeroExport from '@assets/images/integrationicons/export/xero-icon.svg';
-import GmailSquare from '@assets/images/integrationicons/gmail-icon-square.svg';
 import GrokSquare from '@assets/images/integrationicons/grok-icon-square.svg';
 import GustoSquare from '@assets/images/integrationicons/gusto-icon-square.svg';
 import IntuitSquare from '@assets/images/integrationicons/intuit-icon-square.svg';
@@ -560,7 +559,6 @@ const Expensicons = {
     ChatGPTSquare,
     ClaudeSquare,
     CursorSquare,
-    GmailSquare,
     GrokSquare,
     MCPSquare,
     IntacctSquare: SageIntacctSquare,

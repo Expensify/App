@@ -46,7 +46,7 @@ function ConnectionsGmailPage({route}: ConnectionsGmailPageProps) {
     const {translate, datetimeToRelative} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const {showConfirmModal} = useConfirmModal();
-    const icons = useMemoizedLazyExpensifyIcons(['GmailSquare', 'Trashcan']);
+    const icons = useMemoizedLazyExpensifyIcons(['Mail', 'Trashcan']);
     const [oauthConnections] = useOnyx(ONYXKEYS.NVP_PRIVATE_OAUTH_CONNECTIONS);
     const connections = getGmailConnections(oauthConnections);
 
@@ -94,10 +94,8 @@ function ConnectionsGmailPage({route}: ConnectionsGmailPageProps) {
                     <MenuItem.Row>
                         <MenuItem.Leading>
                             <UserAvatar
-                                source={icons.GmailSquare}
+                                source={icons.Mail}
                                 accountID={CONST.DEFAULT_NUMBER_ID}
-                                // The Gmail logo is transparent, so it needs a white backdrop in both themes
-                                imageStyles={styles.backgroundWhite}
                             />
                         </MenuItem.Leading>
                         <MenuItem.Content>
