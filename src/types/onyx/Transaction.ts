@@ -583,6 +583,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
          */
         isAmountSet?: boolean;
 
+        /** Prevents recipient defaults from overriding an explicit currency choice, even after the amount is cleared */
+        isCurrencySet?: boolean;
+
         /** Whether the merchant has been explicitly set by the user */
         isMerchantSet?: boolean;
 

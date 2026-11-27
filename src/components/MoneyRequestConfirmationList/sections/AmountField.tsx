@@ -275,10 +275,13 @@ function AmountField({
 
         buildAndSaveSplitShares(updatedAmount, value);
 
-        // Only save the currency while the amount is empty, since setMoneyRequestAmount sets isAmountSet and blocks Scan submission.
-        if (parsedAmount === null && shouldShowEmptyAmount && !isEditingSplitBill) {
-            setMoneyRequestCurrency(transactionID, value);
-        } else {
+        // Preserve the explicit currency choice even if the user later clears the amount.
+        if (!isEditingSplitBill) {
+            setMoneyRequestCurrency(transactionID, value, false, true);
+        }
+
+        // An empty amount must stay unset so currency selection does not block Scan submission.
+        if (parsedAmount !== null || !shouldShowEmptyAmount) {
             persistMainDraftTotal(updatedAmount, value);
         }
 

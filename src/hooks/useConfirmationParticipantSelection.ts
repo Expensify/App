@@ -4,7 +4,14 @@ import {isParticipantP2P} from '@libs/IOUUtils';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
 import {generateReportID, getReportOrDraftReport} from '@libs/ReportUtils';
 
-import {setCustomUnitRateID, setMoneyRequestCategory, setMoneyRequestParticipants, setMoneyRequestParticipantsFromReport, setMoneyRequestTag} from '@userActions/IOU/MoneyRequest';
+import {
+    setCustomUnitRateID,
+    setMoneyRequestCategory,
+    setMoneyRequestCurrency,
+    setMoneyRequestParticipants,
+    setMoneyRequestParticipantsFromReport,
+    setMoneyRequestTag,
+} from '@userActions/IOU/MoneyRequest';
 
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
@@ -176,6 +183,16 @@ function useConfirmationParticipantSelection({
                         setMoneyRequestTag(transactionIDToUpdate, '');
                     }
                 }
+            }
+        }
+        if (selectedParticipant && iouType !== CONST.IOU.TYPE.SPLIT && iouType !== CONST.IOU.TYPE.INVOICE) {
+            const currency = !shouldKeepOnSelfDM && selectedParticipant.isPolicyExpenseChat ? selectedPolicy?.outputCurrency : (personalPolicy?.outputCurrency ?? CONST.CURRENCY.USD);
+            for (const transactionToUpdate of transactions) {
+                // An entered amount includes its currency, so only untouched Manual defaults follow the recipient.
+                if (transactionToUpdate.iouRequestType !== CONST.IOU.REQUEST_TYPE.MANUAL || transactionToUpdate.isAmountSet || transactionToUpdate.isCurrencySet || !currency) {
+                    continue;
+                }
+                setMoneyRequestCurrency(transactionToUpdate.transactionID, currency);
             }
         }
         return participantsList.length > 0;
