@@ -1,7 +1,6 @@
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/useTabRootScrollProps';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 
@@ -16,6 +15,7 @@ import useMarkPreloadedTabContentReady from '@hooks/useMarkPreloadedTabContentRe
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -99,7 +99,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {hasCompletedGuidedSetupFlowSelector, hasSeenTourSelector} from '@src/selectors/Onboarding';
 import {createMemberCustomFieldsSelector, fullPolicySnapshotLastModifiedByPolicyIDSelector} from '@src/selectors/Policy';
-import type {SaveSearch} from '@src/types/onyx';
+import type {PersonalDetailsList, SaveSearch} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
@@ -133,6 +133,7 @@ import SearchChartWrapper from './SearchChartWrapper';
 import SearchColumnPinItems from './SearchColumnPinItems';
 import {useSearchQueryActions, useSearchQueryContext, useSearchResultsActions, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
 import {useRegisterSearchScrollView, useSearchListScrollLockStyle} from './SearchListScrollLockContext';
+import {useMarkSearchResultsReady} from './SearchResultsSwap';
 import {SearchScopeProvider} from './SearchScopeProvider';
 import SearchTableHeader from './SearchTableHeader';
 import SearchWriteActionsProvider from './SearchWriteActionsProvider';
@@ -214,7 +215,6 @@ function Search({
     const previousTransactions = usePrevious(transactions);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const {accountID, email} = useCurrentUserPersonalDetails();
-    const personalDetails = usePersonalDetails();
     const isActionLoadingSet = useActionLoadingReportIDs();
     const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
 
@@ -641,6 +641,13 @@ function Search({
     );
 
     const areItemsGrouped = !!validGroupBy || isExpenseReportType;
+    const [personalDetails] = usePersonalDetailsByIDs([
+        accountID,
+        ...(filteredData as SearchListItem[]).flatMap((item) => {
+            const transaction = isTransactionGroupListItemType(item) ? item.transactions.at(0) : item;
+            return transaction && isTransactionListItemType(transaction) ? [transaction.reportAction?.actorAccountID, transaction.report?.ownerAccountID] : [];
+        }),
+    ]);
     const totalSelectableItemsCount = useMemo(() => {
         if (!areItemsGrouped) {
             return filteredData.length;
@@ -703,7 +710,7 @@ function Search({
     }, [carouselSource, hash]);
 
     const selectRow = useCallback(
-        async (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => {
+        async (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent, rowPersonalDetails?: PersonalDetailsList) => {
             const readConciergeChat = async () => {
                 const conciergeReportID = await Onyx.get(ONYXKEYS.CONCIERGE_REPORT_ID);
                 return Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
@@ -744,7 +751,7 @@ function Search({
                     backTo,
                     currentUserLogin: email ?? '',
                     currentUserAccountID: accountID,
-                    personalDetails,
+                    personalDetails: rowPersonalDetails ?? personalDetails,
                     isSelfTourViewed,
                     hasCompletedGuidedSetupFlow,
                     delegateAccountID,
@@ -931,8 +938,8 @@ function Search({
     );
 
     const onSelectRow = useCallback(
-        (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => {
-            selectRow(item, transactionPreviewData, event);
+        (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent, rowPersonalDetails?: PersonalDetailsList) => {
+            selectRow(item, transactionPreviewData, event, rowPersonalDetails);
         },
         [selectRow],
     );
@@ -1221,10 +1228,23 @@ function Search({
     // Deferred layout only needs the base work (no scroll handling, no content-ready signal).
     const onDeferredLayout = onLayoutBase;
 
+    const markSearchResultsReady = useMarkSearchResultsReady();
+
     const onLayout = useCallback(() => {
         onLayoutBase();
         onContentReady?.();
-    }, [onLayoutBase, onContentReady]);
+        markSearchResultsReady(hash);
+    }, [onLayoutBase, onContentReady, markSearchResultsReady, hash]);
+
+    // Results that still wait for their first data have nothing in common with the previous search, so the skeleton
+    // replaces the previous results instead of leaving them on screen for the whole request.
+    const isShowingLoadingSkeleton = (isWaitingForInitialData && shouldShowRowSkeleton) || hasUnresolvedErrors;
+    useEffect(() => {
+        if (!isShowingLoadingSkeleton) {
+            return;
+        }
+        markSearchResultsReady(hash);
+    }, [isShowingLoadingSkeleton, markSearchResultsReady, hash]);
 
     // Must be a ref, not state: cancelNavigationSpans is called during render
     // (inside conditional returns), so using setState would trigger infinite re-renders.
@@ -1255,6 +1275,7 @@ function Search({
         // different component" warning. setIsSearchReady is idempotent, so
         // firing this on every bail-out render is safe.
         onContentReady?.();
+        markSearchResultsReady(hash);
         if (!hasPendingSearchWrite()) {
             return;
         }
@@ -1266,6 +1287,7 @@ function Search({
         hasHadFirstLayout.current = true;
         // The chart has no onContentReady (that would also dismiss the submit overlay), so it tells a preloaded tab directly.
         markPreloadedTabContentReady();
+        markSearchResultsReady(hash);
         if (isInPreloadedTab) {
             return;
         }
@@ -1274,7 +1296,7 @@ function Search({
         });
         endNavigateToReportsFirstPaint(CONST.TELEMETRY.NAVIGATE_TO_REPORTS_START_TYPE.WARM_FIRST);
         endNavigateToReportsContentLoad();
-    }, [isInPreloadedTab, markPreloadedTabContentReady]);
+    }, [isInPreloadedTab, markPreloadedTabContentReady, markSearchResultsReady, hash]);
 
     // Tracks whether the pending-expense tracking was re-armed on re-focus
     // (subsequent expense creation while Search stays mounted). Used by the

@@ -20,7 +20,6 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import usePolicy from '@hooks/usePolicy';
@@ -82,8 +81,6 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
     const {showConfirmModal} = useConfirmModal();
     const {isOffline} = useNetwork();
     const canConfigureCurrencyConversionFees = useCanConfigureCurrencyConversionFees(policy);
-    const {isBetaEnabled} = usePermissions();
-    const isCollectDepositAccountsBetaEnabled = isBetaEnabled(CONST.BETAS.COLLECT_DEPOSIT_ACCOUNTS);
 
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
@@ -470,77 +467,73 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                         </OfflineWithFeedback>
                     )}
                     <WorkspaceWiseGlobalReimbursementsBanner policyID={policyID} />
-                    {isCollectDepositAccountsBetaEnabled && (
-                        <ToggleSettingOptionRow
-                            title={translate('workflowsPage.collectEmployeeBankDetails')}
-                            subtitle={translate('workflowsPage.collectEmployeeBankDetailsDescription')}
-                            switchAccessibilityLabel={translate('workflowsPage.collectEmployeeBankDetails')}
-                            switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.COLLECT_EMPLOYEE_BANK_DETAILS_SWITCH}
-                            wrapperStyle={[styles.mt6, styles.pt6, styles.borderTop]}
-                            shouldPlaceSubtitleBelowSwitch
-                            titleStyle={styles.pv2}
-                            isActive={!!policy?.isCollectDepositAccountsEnabled}
-                            onToggle={(isEnabled: boolean) => toggleCollectDepositAccounts(policyID, isEnabled, policy?.isCollectDepositAccountsEnabled)}
-                            pendingAction={policy?.pendingFields?.isCollectDepositAccountsEnabled}
-                            // The section card already dims this row via reimbursementChoice, so skip its own dim to avoid stacking opacity
-                            shouldDisableOpacity={!!policy?.pendingFields?.reimbursementChoice}
-                            errors={getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.IS_COLLECT_DEPOSIT_ACCOUNTS_ENABLED)}
-                            onCloseError={() => clearPolicyErrorField(policyID, CONST.POLICY.COLLECTION_KEYS.IS_COLLECT_DEPOSIT_ACCOUNTS_ENABLED)}
-                            disabled={!canWritePayments}
-                            disabledAction={withPaymentsReadOnlyFallback()}
-                            showLockIcon={!canWritePayments}
-                            subMenuItems={
-                                <OfflineWithFeedback
-                                    errors={reimbursementCountriesErrors}
-                                    onClose={() => clearPolicyErrorField(policyID, CONST.POLICY.COLLECTION_KEYS.REIMBURSEMENT_COUNTRIES)}
+                    <ToggleSettingOptionRow
+                        title={translate('workflowsPage.collectEmployeeBankDetails')}
+                        subtitle={translate('workflowsPage.collectEmployeeBankDetailsDescription')}
+                        switchAccessibilityLabel={translate('workflowsPage.collectEmployeeBankDetails')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.COLLECT_EMPLOYEE_BANK_DETAILS_SWITCH}
+                        wrapperStyle={[styles.mt6, styles.pt6, styles.borderTop]}
+                        shouldPlaceSubtitleBelowSwitch
+                        titleStyle={styles.pv2}
+                        isActive={!!policy?.isCollectDepositAccountsEnabled}
+                        onToggle={(isEnabled: boolean) => toggleCollectDepositAccounts(policyID, isEnabled, policy?.isCollectDepositAccountsEnabled)}
+                        pendingAction={policy?.pendingFields?.isCollectDepositAccountsEnabled}
+                        // The section card already dims this row via reimbursementChoice, so skip its own dim to avoid stacking opacity
+                        shouldDisableOpacity={!!policy?.pendingFields?.reimbursementChoice}
+                        errors={getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.IS_COLLECT_DEPOSIT_ACCOUNTS_ENABLED)}
+                        onCloseError={() => clearPolicyErrorField(policyID, CONST.POLICY.COLLECTION_KEYS.IS_COLLECT_DEPOSIT_ACCOUNTS_ENABLED)}
+                        disabled={!canWritePayments}
+                        disabledAction={withPaymentsReadOnlyFallback()}
+                        showLockIcon={!canWritePayments}
+                        subMenuItems={
+                            <OfflineWithFeedback
+                                errors={reimbursementCountriesErrors}
+                                onClose={() => clearPolicyErrorField(policyID, CONST.POLICY.COLLECTION_KEYS.REIMBURSEMENT_COUNTRIES)}
+                            >
+                                <MenuItemSectionRoot
+                                    onPress={
+                                        canWritePayments
+                                            ? callIfAuthenticated(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_REIMBURSEMENT_COUNTRIES.getRoute(policyID)), session)
+                                            : undefined
+                                    }
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.BUSINESS_BANK_ACCOUNT_COUNTRIES}
+                                    style={styles.mt3}
                                 >
-                                    <MenuItemSectionRoot
-                                        onPress={
-                                            canWritePayments
-                                                ? callIfAuthenticated(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_REIMBURSEMENT_COUNTRIES.getRoute(policyID)), session)
-                                                : undefined
-                                        }
-                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.BUSINESS_BANK_ACCOUNT_COUNTRIES}
-                                        style={styles.mt3}
-                                    >
-                                        <MenuItem.Row>
-                                            <MenuItemField.Content name={translate('workflowsPage.businessBankAccountCountries')}>
-                                                {!!reimbursementCountryNames && (
-                                                    <MenuItem.FieldValue
-                                                        numberOfLines={0}
-                                                        accessibilityLabel={reimbursementCountryNames}
-                                                    >
-                                                        <Text>
-                                                            {reimbursementCountries.map((country, index) => (
-                                                                <Text key={country.countryISO}>
-                                                                    {index > 0 ? ', ' : ''}
-                                                                    <Text
-                                                                        style={[
-                                                                            isOffline && !!country.pendingAction && styles.colorMuted,
-                                                                            isOffline &&
-                                                                                country.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
-                                                                                styles.offlineFeedbackDeleted,
-                                                                        ]}
-                                                                    >
-                                                                        {country.name}
-                                                                    </Text>
+                                    <MenuItem.Row>
+                                        <MenuItemField.Content name={translate('workflowsPage.businessBankAccountCountries')}>
+                                            {!!reimbursementCountryNames && (
+                                                <MenuItem.FieldValue
+                                                    numberOfLines={0}
+                                                    accessibilityLabel={reimbursementCountryNames}
+                                                >
+                                                    <Text>
+                                                        {reimbursementCountries.map((country, index) => (
+                                                            <Text key={country.countryISO}>
+                                                                {index > 0 ? ', ' : ''}
+                                                                <Text
+                                                                    style={[
+                                                                        isOffline && !!country.pendingAction && styles.colorMuted,
+                                                                        isOffline && country.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && styles.offlineFeedbackDeleted,
+                                                                    ]}
+                                                                >
+                                                                    {country.name}
                                                                 </Text>
-                                                            ))}
-                                                        </Text>
-                                                    </MenuItem.FieldValue>
-                                                )}
-                                            </MenuItemField.Content>
-                                            <MenuItem.Trailing>
-                                                {!isEmptyObject(reimbursementCountriesErrors) && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
-                                                {canWritePayments && <MenuItem.Chevron />}
-                                            </MenuItem.Trailing>
-                                        </MenuItem.Row>
-                                        <MenuItem.HelpText message={translate('workflowsPage.businessBankAccountCountriesDescription')} />
-                                    </MenuItemSectionRoot>
-                                </OfflineWithFeedback>
-                            }
-                        />
-                    )}
+                                                            </Text>
+                                                        ))}
+                                                    </Text>
+                                                </MenuItem.FieldValue>
+                                            )}
+                                        </MenuItemField.Content>
+                                        <MenuItem.Trailing>
+                                            {!isEmptyObject(reimbursementCountriesErrors) && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                                            {canWritePayments && <MenuItem.Chevron />}
+                                        </MenuItem.Trailing>
+                                    </MenuItem.Row>
+                                    <MenuItem.HelpText message={translate('workflowsPage.businessBankAccountCountriesDescription')} />
+                                </MenuItemSectionRoot>
+                            </OfflineWithFeedback>
+                        }
+                    />
                 </>
             }
             isActive={getReimbursementChoice(policy) !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO}

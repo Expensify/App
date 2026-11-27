@@ -67,10 +67,13 @@ function FlatNavTabPressListeners({state, descriptors}: Pick<NativeTabLayoutProp
         const searchNavigatorState = searchTabRoute?.state;
         const isSearchPageOnTop = searchNavigatorState?.routes.at(searchNavigatorState.index ?? -1)?.name === SCREENS.SEARCH.ROOT;
         const mountedSearchNavigatorState = isSearchPageOnTop && searchNavigatorState?.stale === false ? searchNavigatorState : undefined;
+        // On Search the new search is pushed as params, so Back returns to the previous one. From another tab the search
+        // replaces the one Search had, and the tab navigator jumps to Search.
+        const tabNavigatorStateKeyToFocusSearchIn = isSearchFocused ? undefined : state.key;
         openSearchFromTabBar(
             () =>
                 mountedSearchNavigatorState
-                    ? showSpendTabSearchOnMountedSearchPage(searchKey, lastSearchQuery, clearSelectedTransactions, mountedSearchNavigatorState, isSearchFocused ? undefined : state.key)
+                    ? showSpendTabSearchOnMountedSearchPage(searchKey, lastSearchQuery, clearSelectedTransactions, mountedSearchNavigatorState, tabNavigatorStateKeyToFocusSearchIn)
                     : navigateToSpendTab(searchKey, lastSearchQuery, clearSelectedTransactions),
             isSearchFocused,
             session,

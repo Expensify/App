@@ -6,6 +6,7 @@ import useOnyx from '@hooks/useOnyx';
 import useSubPage from '@hooks/useSubPage';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import Growl from '@libs/Growl';
 import Navigation from '@libs/Navigation/Navigation';
 import {findLastPageIndex} from '@libs/SubPageUtils';
 
@@ -32,6 +33,7 @@ import getContentFields from './utils/getContentFields';
 import getPageTitle, {isPageShown} from './utils/getPageTitle';
 import getShownPageErrors from './utils/getShownPageErrors';
 import getSubmittedAnswers from './utils/getSubmittedAnswers';
+import hasDraftAnswer from './utils/hasDraftAnswer';
 import {getHiddenProvidedKeys} from './utils/hasProvidedAnswer';
 import hasSensitiveAnswer from './utils/hasSensitiveAnswer';
 import isSensitiveField from './utils/isSensitiveField';
@@ -40,10 +42,8 @@ import {getListItemPageName, getListItems, getListItemSensitiveKey, getRemovedLi
 import {getAllFields, getPages} from './utils/paginate';
 import toDynamicFormValues from './utils/toDynamicFormValues';
 
-/** An answer the user gave, including `false`, which counts as progress when deciding where a visit resumes */
-function hasDraftAnswer(answer: DynamicFormValues[string]): boolean {
-    return answer !== undefined && answer !== null && answer !== '' && !(Array.isArray(answer) && answer.length === 0);
-}
+/** Whether leaving the flow from the offline modal confirms with a toast that the answers are kept. Design has not decided yet, so it is one switch to remove. */
+const SHOULD_SHOW_PROGRESS_SAVED_TOAST = true;
 
 /** A whole dynamic form: one page per schema page, skipping pages with nothing to ask, then a confirmation page */
 function DynamicFormFlow({
@@ -72,6 +72,7 @@ function DynamicFormFlow({
     layout = 'auto',
     hasConfirmation = true,
     shouldDisableNextWhenOffline,
+    onSaveForLater,
     children,
 }: DynamicFormFlowProps) {
     const styles = useThemeStyles();
@@ -141,23 +142,35 @@ function DynamicFormFlow({
         Navigation.goBack(buildRoute(pageName));
     };
 
+    /** The answers a submit sends: the kept ones, with the last page's own on top when it sends the form */
+    const getAnswers = (lastPageValues?: unknown): DynamicFormValues => ({...values, ...toDynamicFormValues(lastPageValues)});
+
     /**
-     * The confirmation page can be reached before every field is answered, such as by URL or after a new form from the server adds a required field. It then stays
-     * open and marks the rows to fix, since a page that jumps away does not say why. Without a confirmation page the last page's answers arrive here, before their draft
-     * is saved, and an incomplete form goes back to its first gap.
+     * Shows what is missing and says whether anything is, so a submit of an unfinished form stops. The confirmation page can be reached before every field is
+     * answered, such as by URL or after a new form from the server adds a required field. It then stays open and marks the rows to fix, since a page that jumps
+     * away does not say why. Without a confirmation page the last page's answers arrive here, before their draft is saved, and an incomplete form goes back to
+     * its first gap. The check needs no connection, so the last step runs it offline too, before asking about the connection.
      */
-    function submitIfComplete(lastPageValues?: unknown) {
-        const answers = {...values, ...toDynamicFormValues(lastPageValues)};
+    const markUnfinishedForm = (lastPageValues?: unknown): boolean => {
+        const answers = getAnswers(lastPageValues);
         const firstIncompleteIndex = getFirstIncompletePageIndex(answers);
         const incompletePage = firstIncompleteIndex === -1 ? undefined : pages.at(firstIncompleteIndex);
         if (incompletePage && hasConfirmationPage) {
             setShouldShowFieldErrors(true);
-            return;
+            return true;
         }
         if (incompletePage) {
             returnTo(incompletePage.key);
+            return true;
+        }
+        return false;
+    };
+
+    function submitIfComplete(lastPageValues?: unknown) {
+        if (markUnfinishedForm(lastPageValues)) {
             return;
         }
+        const answers = getAnswers(lastPageValues);
         // Fields of a page the answers skip are not submitted
         const shownFields = getAllFields(pages.filter((page) => isPageShown(page, answers, allFields)));
         const submittedAnswers = getSubmittedAnswers(shownFields, answers, allFields);
@@ -313,6 +326,11 @@ function DynamicFormFlow({
         }
     };
 
+    const leaveFlow = () => {
+        clearSensitiveAnswers(formID);
+        onBack();
+    };
+
     const goBack = () => {
         if (listItemPage) {
             closeListItemEditor(listItemPage.listKey);
@@ -323,11 +341,21 @@ function DynamicFormFlow({
             return;
         }
         if (pageIndex <= firstShownPageIndex) {
-            clearSensitiveAnswers(formID);
-            onBack();
+            leaveFlow();
             return;
         }
         prevPage();
+    };
+
+    /** Leaves the flow from any page. The draft and the pages saved so far already hold the answers, so nothing more is saved. The page left was not saved, so the screen gets it to mark. */
+    const saveForLater = () => {
+        onSaveForLater?.(pages.find((page) => page.key === currentPageName));
+        leaveFlow();
+        if (!SHOULD_SHOW_PROGRESS_SAVED_TOAST) {
+            return;
+        }
+        // At the bottom, as in the save and return design
+        Growl.success({bodyText: translate('dynamicForm.continueOffline.progressSaved'), position: CONST.GROWL.POSITION.BOTTOM_RIGHT});
     };
 
     // A flow on replaced routes has no page stack for Android's back to pop, so it takes the header's steps
@@ -359,7 +387,7 @@ function DynamicFormFlow({
             stepIndex={stepIndex}
             stepTitle={stepTitle || undefined}
             shouldShowStepIndicator={isStepIndicatorAsked && stepNames.length > 1}
-            shouldShowOfflineIndicatorInWideScreen={shouldDisableNextWhenOffline}
+            shouldShowOfflineIndicatorInWideScreen={shouldDisableNextWhenOffline || !!onSaveForLater}
         >
             {isLoading || isDraftLoading || isRedirecting || isClearingEarlierVisit || isOnUnavailablePage || (!hasPageToShow && pages.length > 0) ? (
                 <View style={[styles.flex1, styles.fullScreenLoading]}>
@@ -393,6 +421,8 @@ function DynamicFormFlow({
                     refreshError={refreshError}
                     shouldShowFieldErrors={shouldShowFieldErrors}
                     shouldDisableNextWhenOffline={shouldDisableNextWhenOffline}
+                    onSaveForLater={onSaveForLater ? saveForLater : undefined}
+                    markUnfinishedForm={markUnfinishedForm}
                     validatePage={validatePage}
                 >
                     {children}
