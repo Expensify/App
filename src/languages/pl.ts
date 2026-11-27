@@ -11904,6 +11904,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         selectAllMembers: 'Zaznacz wszystkich członków',
         selectAllValues: 'Zaznacz wszystkie wartości',
         selectAllRules: 'Zaznacz wszystkie reguły',
+        chatDetails: (chatName: string) => `Szczegóły: ${chatName}`,
     },
     parentReportAction: {
         deletedReport: 'Usunięty raport',

@@ -11970,6 +11970,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         selectAllMembers: 'Sélectionner tous les membres',
         selectAllValues: 'Sélectionner toutes les valeurs',
         selectAllRules: 'Sélectionner toutes les règles',
+        chatDetails: (chatName: string) => `Détails de ${chatName}`,
     },
     parentReportAction: {
         deletedReport: 'Note de frais supprimée',

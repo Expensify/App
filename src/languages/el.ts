@@ -12135,6 +12135,7 @@ ${reportName}`,
         selectAllMembers: 'Επιλέξτε όλα τα μέλη',
         selectAllValues: 'Επιλέξτε όλες τις τιμές',
         selectAllRules: 'Επιλέξτε όλους τους κανόνες',
+        chatDetails: (chatName: string) => `Λεπτομέρειες ${chatName}`,
     },
     parentReportAction: {
         deletedReport: 'Διαγραμμένη αναφορά',

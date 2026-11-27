@@ -11692,6 +11692,7 @@ ${reportName}`,
         selectAllMembers: 'すべてのメンバーを選択',
         selectAllValues: 'すべての値を選択',
         selectAllRules: 'すべてのルールを選択',
+        chatDetails: (chatName: string) => `${chatName}の詳細`,
     },
     parentReportAction: {
         deletedReport: '削除されたレポート',

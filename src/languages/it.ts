@@ -11886,6 +11886,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         selectAllMembers: 'Seleziona tutti i membri',
         selectAllValues: 'Seleziona tutti i valori',
         selectAllRules: 'Seleziona tutte le regole',
+        chatDetails: (chatName: string) => `Dettagli ${chatName}`,
     },
     parentReportAction: {
         deletedReport: 'Report eliminato',

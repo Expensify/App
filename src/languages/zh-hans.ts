@@ -11393,6 +11393,7 @@ ${reportName}`,
         selectAllMembers: '全选所有成员',
         selectAllValues: '选择所有值',
         selectAllRules: '选择所有规则',
+        chatDetails: (chatName: string) => `${chatName} 详情`,
     },
     parentReportAction: {
         deletedReport: '已删除的报告',
