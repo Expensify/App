@@ -13,7 +13,7 @@ import {getInitialPerDiemTargetReport} from '@libs/IOUUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getActivePoliciesWithExpenseChatAndPerDiemEnabled, getPerDiemCustomUnit} from '@libs/PolicyUtils';
-import {findSelfDMReportID} from '@libs/ReportUtils';
+import {findSelfDMReportID, getPolicyExpenseChat} from '@libs/ReportUtils';
 
 import {setCustomUnitID, setMoneyRequestCategory, setMoneyRequestParticipants, setMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
 import {setTransactionReport} from '@userActions/Transaction';
@@ -22,13 +22,13 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {policyExpenseChatsSelector} from '@src/selectors/Report';
-import type {Policy} from '@src/types/onyx';
+import type {Policy, Report} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 
@@ -44,17 +44,17 @@ function IOURequestStepPerDiemWorkspace({route, navigation, transaction}: IOUReq
     } = route;
     const {accountID} = useCurrentUserPersonalDetails();
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`);
-    const selector = policyExpenseChatsSelector(accountID);
-    const [policyExpenseChats] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector});
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const personalPolicy = usePersonalPolicy();
     const {isOffline} = useNetwork();
     const [pendingPolicyID, setPendingPolicyID] = useState<string>();
     const [pendingPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${pendingPolicyID}`);
+    // Workspace chat read on selection, reused when the pending policy's per diem rates arrive
+    const pendingPolicyExpenseChat = useRef<OnyxEntry<Report>>(undefined);
 
-    const selectWorkspace = (policy: OnyxEntry<Policy>) => {
+    const applyWorkspace = (policy: OnyxEntry<Policy>, policyExpenseChat: OnyxEntry<Report>) => {
         const {targetReport, targetIouType, transactionReportID} = getInitialPerDiemTargetReport(
-            policy?.id ? policyExpenseChats?.[policy.id] : undefined,
+            policyExpenseChat,
             selfDMReport,
             iouType,
             defaultExpensePolicy,
@@ -100,11 +100,20 @@ function IOURequestStepPerDiemWorkspace({route, navigation, transaction}: IOUReq
         );
     };
 
+    const selectWorkspace = async (policy: OnyxEntry<Policy>) => {
+        // The workspace chat is only needed on selection, so read it once here instead of subscribing to every report
+        // eslint-disable-next-line rulesdir/no-onyx-get-snapshot-key -- replaces getPolicyExpenseChat's module-level Onyx.connect fallback, which never read a Search snapshot
+        const reports = await Onyx.get(ONYXKEYS.COLLECTION.REPORT);
+        const policyExpenseChat = getPolicyExpenseChat(accountID, policy?.id, reports);
+        pendingPolicyExpenseChat.current = policyExpenseChat;
+        applyWorkspace(policy, policyExpenseChat);
+    };
+
     useEffect(() => {
         if (!pendingPolicyID || !getPerDiemCustomUnit(pendingPolicy)) {
             return;
         }
-        const frame = requestAnimationFrame(() => selectWorkspace(pendingPolicy));
+        const frame = requestAnimationFrame(() => applyWorkspace(pendingPolicy, pendingPolicyExpenseChat.current));
         return () => cancelAnimationFrame(frame);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [pendingPolicy, pendingPolicyID]);
@@ -125,7 +134,9 @@ function IOURequestStepPerDiemWorkspace({route, navigation, transaction}: IOUReq
             route={route}
             navigation={navigation}
             getPolicies={getActivePoliciesWithExpenseChatAndPerDiemEnabled}
-            onSelectWorkspace={selectWorkspace}
+            onSelectWorkspace={(policy) => {
+                selectWorkspace(policy);
+            }}
         />
     );
 }
