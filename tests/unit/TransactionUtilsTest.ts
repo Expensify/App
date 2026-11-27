@@ -15,6 +15,7 @@ import {
     shouldShowBrokenConnectionViolation,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
 } from '@libs/TransactionUtils';
+import {removeSettledAndApprovedTransactions} from '@libs/TransactionUtils/duplicates';
 import hasDistanceRouteErrors from '@libs/TransactionUtils/hasDistanceRouteErrors';
 
 import CONST from '@src/CONST';
@@ -7370,5 +7371,36 @@ describe('buildOptimisticTransaction distance customUnit', () => {
         expect(optimisticTransaction.comment?.customUnit?.customUnitRateID).toBe('newRateID');
         expect(existingTransaction.comment?.customUnit?.customUnitRateID).toBe(existingRateID);
         expect(existingTransaction.comment?.customUnit?.quantity).toBe(10);
+    });
+});
+
+describe('removeSettledAndApprovedTransactions', () => {
+    const DRAFT_ONLY_REPORT_ID = '700';
+
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+        return waitForBatchedUpdates();
+    });
+
+    afterAll(() => Onyx.clear());
+
+    it('ignores the REPORT_DRAFT collection when deciding whether an expense is still mergeable', async () => {
+        // Given an open report that exists only in REPORT_DRAFT, and an expense pointing at it. Expense reports are
+        // never drafts, so reading one here would mean the resolution went to the collection behind the caller's back.
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${DRAFT_ONLY_REPORT_ID}`, {
+            reportID: DRAFT_ONLY_REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        });
+        await waitForBatchedUpdates();
+
+        // When filtering that expense down to the ones Auth's MergeTransactions command would accept
+        const transaction = {...createRandomTransaction(1), transactionID: 'tx1', reportID: DRAFT_ONLY_REPORT_ID};
+        const mergeable = removeSettledAndApprovedTransactions([transaction]);
+
+        // Then the draft's open status does not make the expense mergeable: the report counts as not loaded, which Auth
+        // would reject anyway, so REPORT_DRAFT can no longer let a merge through (https://github.com/Expensify/App/issues/66414)
+        expect(mergeable).toEqual([]);
     });
 });

@@ -211,10 +211,16 @@ function TransactionGroupListExpandedImpl({
     ) => void;
     const getTransactionPreviewData = (transactionItem: TransactionListItemType): TransactionPreviewData => {
         const parentReportAction = getReportAction(transactionItem?.reportID, transactionItem?.reportAction?.reportActionID);
-        const parentReport = getReportOrDraftReport({reportID: transactionItem?.reportID, report: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem?.reportID}`]});
+        // Both of these are the expense report and the transaction thread behind the row, neither of which is ever a draft.
+        const parentReport = getReportOrDraftReport({
+            reportID: transactionItem?.reportID,
+            report: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem?.reportID}`],
+            reportDraft: {},
+        });
         const transactionThreadReport = getReportOrDraftReport({
             reportID: transactionItem?.reportAction?.childReportID,
             report: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem?.reportAction?.childReportID}`],
+            reportDraft: {},
         });
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionItem?.transactionID)}`];
 

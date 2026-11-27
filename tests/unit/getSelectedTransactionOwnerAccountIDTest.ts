@@ -4,8 +4,11 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardList, Report, Transaction} from '@src/types/onyx';
 
+import Onyx from 'react-native-onyx';
+
 import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const CARDHOLDER_ACCOUNT_ID = 10;
 const OTHER_CARDHOLDER_ACCOUNT_ID = 20;
@@ -14,6 +17,8 @@ const OWN_CARD_ID = 101;
 const FEED_CARD_ID = 202;
 const UNKNOWN_CARD_ID = 999;
 const REPORT_ID = '500';
+const DRAFT_ONLY_REPORT_ID = '600';
+const DRAFT_OWNER_ACCOUNT_ID = 40;
 
 function makeTransaction(transactionID: string, overrides: Partial<Transaction>): Transaction {
     return {...createRandomTransaction(1), transactionID, ...overrides};
@@ -89,5 +94,28 @@ describe('getSelectedTransactionOwnerAccountID', () => {
 
         // Then no owner is returned, so callers treat it as unknown rather than guessing and moving the expense to the wrong submitter
         expect(ownerAccountID).toBeUndefined();
+    });
+
+    describe('with a report that only exists in REPORT_DRAFT', () => {
+        beforeAll(() => {
+            Onyx.init({keys: ONYXKEYS});
+            return waitForBatchedUpdates();
+        });
+
+        afterAll(() => Onyx.clear());
+
+        it('does not fall back to the REPORT_DRAFT collection to find an owner', async () => {
+            // Given a report that is only in REPORT_DRAFT. Expense reports are never drafts, so reaching one here
+            // would mean the resolution ignored the caller and read the collection on its own.
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${DRAFT_ONLY_REPORT_ID}`, {reportID: DRAFT_ONLY_REPORT_ID, ownerAccountID: DRAFT_OWNER_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            // When resolving the owner of an expense selected against that report
+            const ownerAccountID = getSelectedTransactionOwnerAccountID('tx1', {reportID: DRAFT_ONLY_REPORT_ID}, lookupData);
+
+            // Then the draft owner is not used, so Search can no longer attribute an expense from REPORT_DRAFT
+            // (https://github.com/Expensify/App/issues/66414)
+            expect(ownerAccountID).toBeUndefined();
+        });
     });
 });

@@ -487,7 +487,8 @@ function redistributeExcludingFrozenSplits(
             return original;
         }
         const liveReport =
-            getReportOrDraftReport({reportID: liveTransaction.reportID}) ?? frozenSplitsContext?.searchResultsData?.[`${ONYXKEYS.COLLECTION.REPORT}${liveTransaction.reportID}`];
+            getReportOrDraftReport({reportID: liveTransaction.reportID, reportDraft: {}}) ??
+            frozenSplitsContext?.searchResultsData?.[`${ONYXKEYS.COLLECTION.REPORT}${liveTransaction.reportID}`];
         const isLiveTransactionFromExpenseReport = isExpenseReport(liveReport);
         const rawLiveAmount = hasValidModifiedAmount(liveTransaction) ? Number(liveTransaction.modifiedAmount) : (liveTransaction.amount ?? 0);
         const liveAmount = isLiveTransactionFromExpenseReport && rawLiveAmount ? -rawLiveAmount : rawLiveAmount;
