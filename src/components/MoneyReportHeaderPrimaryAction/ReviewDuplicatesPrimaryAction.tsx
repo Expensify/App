@@ -1,10 +1,9 @@
 import Button from '@components/Button';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {usePersonalDetail} from '@hooks/usePersonalDetails';
+import {usePersonalDetail, usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -30,7 +29,6 @@ import useTransactionThreadData from './useTransactionThreadData';
 function ReviewDuplicatesPrimaryAction({reportID, chatReportID, isDisabled}: SimpleActionProps) {
     const {translate} = useLocalize();
     const {accountID, email} = useCurrentUserPersonalDetails();
-    const personalDetails = usePersonalDetails();
 
     const {moneyRequestReport, transactionThreadReportID} = useTransactionThreadData(reportID, chatReportID);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
@@ -60,7 +58,9 @@ function ReviewDuplicatesPrimaryAction({reportID, chatReportID, isDisabled}: Sim
     );
     const duplicateIOUAction = getIOUActionForReportID(moneyRequestReport?.reportID, duplicateTransaction?.transactionID);
     const duplicateThreadReportID = duplicateIOUAction?.childReportID;
+    const duplicateActorAccountID = duplicateIOUAction?.actorAccountID;
     const [duplicateThreadReportExists] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(duplicateThreadReportID)}`, {selector: (report) => !!report?.reportID});
+    const [personalDetails] = usePersonalDetailsByIDs([accountID, moneyRequestReport?.ownerAccountID, moneyRequestReport?.managerID, duplicateActorAccountID]);
 
     return (
         <Button

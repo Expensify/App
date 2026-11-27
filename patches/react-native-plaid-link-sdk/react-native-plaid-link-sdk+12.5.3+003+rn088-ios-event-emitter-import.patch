@@ -1,0 +1,12 @@
+diff --git a/node_modules/react-native-plaid-link-sdk/ios/RNLinksdk.h b/node_modules/react-native-plaid-link-sdk/ios/RNLinksdk.h
+--- a/node_modules/react-native-plaid-link-sdk/ios/RNLinksdk.h
++++ b/node_modules/react-native-plaid-link-sdk/ios/RNLinksdk.h
+@@ -2,7 +2,7 @@
+ #import <rnplaidlink/rnplaidlink.h>
+ #endif
+ #import <React/RCTBridge.h>
+-#import "RCTEventEmitter.h"
++#import <React/RCTEventEmitter.h>
+ 
+ #import <LinkKit/LinkKit.h>
+ 

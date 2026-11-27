@@ -25,7 +25,7 @@ import type {ApiCommand, ApiRequestCommandParameters, ApiRequestType} from './ty
 let requestIndex = Date.now();
 
 function buildLogParams(command: string, params: Record<string, unknown>): Record<string, unknown> {
-    return {command, ...Object.fromEntries(Object.entries(sanitizeLogParams(params)))};
+    return sanitizeLogParams({command, ...params});
 }
 
 /**

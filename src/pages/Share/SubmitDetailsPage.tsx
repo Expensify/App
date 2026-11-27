@@ -272,7 +272,7 @@ function SubmitDetailsPage({
 
     // Prefer the draft receipt (reflects Replace/Crop) for both display and upload — keeps them in sync.
     const currentReceiptSource = typeof transaction?.receipt?.source === 'string' ? transaction.receipt.source : sharedFileSource;
-    // Avoid getFileName(): its decodeURIComponent throws on raw '%' in filenames (e.g., "Receipt 100%.jpg").
+    // Avoid getFileName(): it percent-decodes its input, which would change a filename that contains '%' (e.g., "Receipt 100%25.jpg").
     const currentReceiptName = (transaction?.receipt?.filename?.split('/').pop() ?? '') || sharedFileName;
     const currentReceiptType = transaction?.receipt?.type ?? sharedFileType;
 

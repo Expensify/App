@@ -1,5 +1,6 @@
 import {act, renderHook} from '@testing-library/react-native';
 
+import {BetasContext} from '@components/OnyxListItemProvider';
 import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 import {PersonalDetailsByLoginContext} from '@components/PersonalDetailsByLoginProvider';
 
@@ -9,6 +10,7 @@ import type {SubmissionHandle} from '@pages/iou/request/step/confirmation/submis
 
 import CONST from '@src/CONST';
 import type {Report, Transaction} from '@src/types/onyx';
+import type Beta from '@src/types/onyx/Beta';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 
@@ -116,8 +118,9 @@ function PersonalDetailsByLoginWrapper({children}: {children: ReactNode}) {
 }
 
 /** Renders a submission hook and presses confirm once, the way the orchestrator would. */
-async function renderAndSubmit(useSubmission: () => SubmissionHandle, shouldHandleNavigation: boolean) {
-    const {result} = renderHook(useSubmission, {wrapper: PersonalDetailsByLoginWrapper});
+async function renderAndSubmit(useSubmission: () => SubmissionHandle, shouldHandleNavigation: boolean, betas?: Beta[]) {
+    const wrapper = ({children}: {children: ReactNode}) => React.createElement(BetasContext.Provider, {value: betas}, React.createElement(PersonalDetailsByLoginWrapper, null, children));
+    const {result} = renderHook(useSubmission, {wrapper});
     await waitForBatchedUpdatesWithAct();
 
     await act(async () => {
