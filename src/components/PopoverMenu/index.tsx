@@ -16,11 +16,11 @@ import useActiveElementRole from '@hooks/useActiveElementRole';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
-import useKeyboardState from '@hooks/useKeyboardState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useShouldAddBottomSafeAreaPadding from '@hooks/useShouldAddBottomSafeAreaPadding';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -273,12 +273,11 @@ function PopoverMenuContent({
     onLayout,
     onScroll,
 }: PopoverMenuContentProps): React.JSX.Element {
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- must match Popover's own dock decision (bottom-docked only when isSmallScreenWidth)
-    const {isSmallScreenWidth} = useResponsiveLayout();
-    const {isKeyboardActive} = useKeyboardState();
-    const shouldAddBottomSafeAreaPadding = addBottomSafeAreaPadding && isSmallScreenWidth && !isKeyboardActive;
+    const shouldAddBottomSafeAreaPaddingForLayout = useShouldAddBottomSafeAreaPadding();
+    const shouldAddBottomSafeAreaPadding = addBottomSafeAreaPadding && shouldAddBottomSafeAreaPaddingForLayout;
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding: shouldAddBottomSafeAreaPadding,
+        addOfflineIndicatorBottomSafeAreaPadding: false,
         style: contentContainerStyle,
     });
 
@@ -288,6 +287,7 @@ function PopoverMenuContent({
                 ref={scrollViewRef}
                 contentContainerStyle={contentContainerStyle}
                 addBottomSafeAreaPadding={shouldAddBottomSafeAreaPadding}
+                addOfflineIndicatorBottomSafeAreaPadding={false}
                 keyboardShouldPersistTaps={keyboardShouldPersistTaps}
                 onLayout={onLayout}
                 onScroll={onScroll}
@@ -865,10 +865,11 @@ function BasePopoverMenu({
         ...restContainerStyles
     } = StyleSheet.flatten(containerStyles) ?? {};
 
+    // Resolve the vertical padding into explicit top/bottom values, so the bottom safe area padding is added on top of the base bottom padding instead of replacing it.
+    const resolvedPaddingVertical = paddingVertical ?? containerPaddingVertical ?? menuContainerPaddingVertical ?? 0;
     const scrollViewPaddingStyles = {
-        paddingTop: paddingTop ?? containerPaddingTop ?? menuContainerPaddingTop,
-        paddingBottom: paddingBottom ?? containerPaddingBottom ?? menuContainerPaddingBottom,
-        paddingVertical: paddingVertical ?? containerPaddingVertical ?? menuContainerPaddingVertical ?? 0,
+        paddingTop: paddingTop ?? containerPaddingTop ?? menuContainerPaddingTop ?? resolvedPaddingVertical,
+        paddingBottom: paddingBottom ?? containerPaddingBottom ?? menuContainerPaddingBottom ?? resolvedPaddingVertical,
     };
 
     return (

@@ -8,9 +8,17 @@ import type {FeatureTrainingProps} from './types';
 import {FeatureTrainingActionsContext, FeatureTrainingStateContext} from './context';
 import useScrollableWrapper from './hooks/useScrollableWrapper';
 
-function FeatureTraining({onConfirm, onClose, onWillShowAgainChange, shouldUseScrollView = false, width = variables.featureTrainingModalWidth, children}: FeatureTrainingProps) {
+function FeatureTraining({
+    onConfirm,
+    onClose,
+    onWillShowAgainChange,
+    shouldUseScrollView = false,
+    width = variables.featureTrainingModalWidth,
+    enableEdgeToEdgeBottomSafeAreaPadding = false,
+    children,
+}: FeatureTrainingProps) {
     const [willShowAgain, setWillShowAgain] = useState(true);
-    const {Wrapper, wrapperProps} = useScrollableWrapper({shouldUseScrollView, width});
+    const {Wrapper, wrapperProps} = useScrollableWrapper({shouldUseScrollView, width, enableEdgeToEdgeBottomSafeAreaPadding});
 
     const toggleWillShowAgain = () => {
         onWillShowAgainChange?.(!willShowAgain);

@@ -114,8 +114,9 @@ function FeatureTrainingModal({
                 ...modalInnerContainerStyle,
             }}
             onModalHide={handleModalHide}
-            shouldDisableBottomSafeAreaPadding={shouldUseScrollView}
             shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={!shouldUseScrollView}
+            // The bottom safe area padding is applied to the content by `useScrollableWrapper` instead.
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <FeatureTraining
                 shouldUseScrollView={shouldUseScrollViewProp}
@@ -128,6 +129,7 @@ function FeatureTrainingModal({
                 }}
                 onClose={closeModal}
                 width={width}
+                enableEdgeToEdgeBottomSafeAreaPadding
             >
                 {children}
             </FeatureTraining>

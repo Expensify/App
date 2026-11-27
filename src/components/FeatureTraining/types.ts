@@ -16,6 +16,9 @@ type FeatureTrainingProps = {
     /** Modal content width on medium-or-larger screens */
     width?: number;
 
+    /** Whether the parent modal runs in edge-to-edge mode and leaves the bottom safe area inset to the content. Leave it off when the parent already applies the inset (e.g. `CenteredModalLayout`). */
+    enableEdgeToEdgeBottomSafeAreaPadding?: boolean;
+
     /** Composed content — Illustration, Body, DismissOption, HelpButton, ConfirmButton, etc. */
     children?: ReactNode;
 };

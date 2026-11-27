@@ -3,14 +3,18 @@ import Button from '@components/Button';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import TextInput from '@components/TextInput';
 
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useShouldAddBottomSafeAreaPadding from '@hooks/useShouldAddBottomSafeAreaPadding';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {openExternalLink} from '@libs/actions/Link';
 import {getSupportalReason} from '@libs/actions/Session';
 import {getOldDotEnvironmentURL} from '@libs/Environment/Environment';
 import addTrailingForwardSlash from '@libs/UrlUtils';
+
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
@@ -41,6 +45,13 @@ function SupportalSwitcherPopover({isVisible, anchorRef, anchorPosition, onClose
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const shouldAddBottomSafeAreaPadding = useShouldAddBottomSafeAreaPadding();
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({
+        addBottomSafeAreaPadding: shouldAddBottomSafeAreaPadding,
+        addOfflineIndicatorBottomSafeAreaPadding: false,
+        style: [styles.createMenuContainer, styles.ph5],
+        additionalPaddingBottom: variables.componentBorderRadiusLarge,
+    });
 
     const [email, setEmail] = useState('');
     const [reason, setReason] = useState('');
@@ -98,8 +109,9 @@ function SupportalSwitcherPopover({isVisible, anchorRef, anchorPosition, onClose
             anchorRef={anchorRef}
             anchorPosition={anchorPosition}
             anchorAlignment={SUPPORTAL_SWITCHER_ANCHOR_ALIGNMENT}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
-            <View style={[styles.createMenuContainer, styles.ph5]}>
+            <View style={bottomSafeAreaPaddingStyle}>
                 <TextInput
                     label={translate('supportalSwitcher.title')}
                     accessibilityLabel={translate('supportalSwitcher.emailLabel')}
