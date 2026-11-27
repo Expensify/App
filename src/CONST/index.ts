@@ -8191,6 +8191,7 @@ const CONST = {
         NONDEFAULT_REIMBURSABLE: 'nonDefaultReimbursable',
         NONDEFAULT_TAG: 'nonDefaultTag',
         NONDEFAULT_TAX: 'nonDefaultTax',
+        NONDEFAULT_VENDOR: 'nonDefaultVendor',
         MODIFIED_AMOUNT: 'modifiedAmount',
         MODIFIED_DATE: 'modifiedDate',
         INCREASED_DISTANCE: 'increasedDistance',

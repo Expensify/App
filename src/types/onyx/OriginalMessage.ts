@@ -1164,6 +1164,18 @@ type PolicyRulesModifiedFields = {
         // eslint-disable-next-line @typescript-eslint/naming-convention
         field_id_TAX: PolicyRuleTaxRate;
     };
+
+    /** The vendor the rule set */
+    vendor?: RulesModifiedVendor;
+};
+
+/** A vendor written by a rule */
+type RulesModifiedVendor = {
+    /** The ID of the vendor in the accounting integration */
+    externalID: string;
+
+    /** The display name of the vendor, empty when it is no longer in the integration's vendor list */
+    name?: string;
 };
 
 /** Personal rules modified fields. Each member holds the new value the rule wrote, not the current one */
@@ -1188,6 +1200,9 @@ type PersonalRulesModifiedFields = {
         // eslint-disable-next-line @typescript-eslint/naming-convention
         field_id_TAX: PolicyRuleTaxRate;
     };
+
+    /** The vendor the rule set */
+    vendor?: RulesModifiedVendor;
 
     reportName?: string;
 };
@@ -1996,6 +2011,7 @@ type OriginalMessage<T extends ReportActionName> = T extends keyof OriginalMessa
 
 export default OriginalMessage;
 export type {
+    RulesModifiedVendor,
     DecisionName,
     OriginalMessageIOU,
     OriginalMessageReportPreview,

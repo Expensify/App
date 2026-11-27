@@ -12533,6 +12533,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             nonDefaultReimbursable: 'Paramètre de remboursement non par défaut',
             nonDefaultTag: 'Tag non par défaut',
             nonDefaultTax: 'Taxe non par défaut',
+            nonDefaultVendor: 'Fournisseur non par défaut',
         },
         ruleViolation: {
             fallback: 'Viole la politique de dépenses',
@@ -12576,6 +12577,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         nonDefaultReimbursable: 'Différente du paramètre par défaut de l’espace de travail pour les remboursements',
         nonDefaultTag: 'Le tag diffère du paramètre par défaut de l’espace de travail',
         nonDefaultTax: 'Taxe différente de celle de l’espace de travail par défaut',
+        nonDefaultVendor: 'Le fournisseur diffère de celui de l’espace de travail par défaut',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} est obligatoire`,
