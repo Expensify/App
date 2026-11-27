@@ -6,8 +6,10 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 
@@ -38,14 +40,42 @@ function WiseQuotePaymentSummary({reportID, searchReport, isPayingUnheldOnly, is
     const {translate} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const [onyxReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
-    // The quote is read from Onyx only, since a refetch clears it there and the copy from Search would show the old quote under the loader
-    const report = searchReport ? {...searchReport, ...onyxReport, wiseQuote: onyxReport?.wiseQuote, errorFields: onyxReport?.errorFields} : onyxReport;
+    // The quote and its errors are read from Onyx only, since a refetch clears them there and the copy from Search would show the old ones under the loader
+    const report = searchReport
+        ? {...searchReport, ...onyxReport, wiseQuote: onyxReport?.wiseQuote, wiseQuoteError: onyxReport?.wiseQuoteError, errorFields: onyxReport?.errorFields}
+        : onyxReport;
 
     if (!report) {
         return null;
     }
 
-    const quoteErrors = isQuoteRequired ? (report.errorFields?.wiseQuote ?? undefined) : undefined;
+    const wiseQuoteError = isQuoteRequired ? report.wiseQuoteError : undefined;
+    let wiseQuoteErrorMessage: string | undefined;
+    if (wiseQuoteError) {
+        const {code, limit, limitCurrency, paymentCurrency} = wiseQuoteError;
+        let formattedLimit = '';
+        if (limit !== undefined) {
+            // A whole limit drops its decimals, like £1,000,000, while a limit like £0.01 keeps them so it doesn't read as £0
+            formattedLimit = limit % 100 === 0 ? convertToShortDisplayString(limit, limitCurrency) : convertToDisplayString(limit, limitCurrency);
+        }
+        switch (code) {
+            case CONST.WISE.QUOTE_ERROR_CODE.MAX_AMOUNT:
+                wiseQuoteErrorMessage = translate('iou.wisePaymentSummary.amountAboveWiseMaximum', {limit: formattedLimit});
+                break;
+            case CONST.WISE.QUOTE_ERROR_CODE.MIN_AMOUNT:
+                wiseQuoteErrorMessage =
+                    limit === undefined ? translate('iou.wisePaymentSummary.amountTooSmallForWise') : translate('iou.wisePaymentSummary.amountBelowWiseMinimum', {limit: formattedLimit});
+                break;
+            case CONST.WISE.QUOTE_ERROR_CODE.UNAVAILABLE:
+                wiseQuoteErrorMessage = translate('iou.wisePaymentSummary.paymentUnavailable', {currency: paymentCurrency});
+                break;
+            default:
+                // A code added on the server after this version of the app keeps the generic error from errorFields
+                break;
+        }
+    }
+    const genericQuoteErrors = isQuoteRequired ? (report.errorFields?.wiseQuote ?? undefined) : undefined;
+    const quoteErrors = wiseQuoteErrorMessage ? {wiseQuoteError: wiseQuoteErrorMessage} : genericQuoteErrors;
     const amounts = isQuoteRequired ? report.wiseQuote : getAmountsWithoutQuote({report, isPayingUnheldOnly});
 
     if (amounts || quoteErrors) {
