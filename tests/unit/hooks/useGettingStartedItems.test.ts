@@ -399,6 +399,38 @@ describe('useGettingStartedItems', () => {
             expect(connectItem?.route).toBe(ROUTES.WORKSPACE_CONNECTIONS.getRoute(POLICY_ID, undefined, undefined, undefined, undefined, CONST.TAB.CONNECTIONS.ACCOUNTING));
         });
 
+        it('should show "Connect to Intuit Enterprise Suite" from the server copy when the local onboarding key was cleared', async () => {
+            // Given a user who picked Intuit Enterprise Suite in onboarding, after "Clear cache and restart" wiped the local
+            // onboarding key and only the server's nvp_introSelected still holds the choice
+            await setupManageTeamScenario({policy: {areConnectionsEnabled: true}});
+            await Onyx.merge(ONYXKEYS.NVP_INTRO_SELECTED, {userReportedIntegration: CONST.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE});
+            await waitForBatchedUpdates();
+
+            // When the checklist is built
+            const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
+
+            // Then it still offers to connect the chosen software instead of falling back to customizing categories
+            const connectItem = result.current.items.find((item) => item.key === 'connectAccounting');
+            expect(connectItem?.label).toContain('Intuit Enterprise Suite');
+            expect(result.current.items.find((item) => item.key === 'customizeCategories')).toBeUndefined();
+        });
+
+        it('should prefer the server copy over the local onboarding key', async () => {
+            // Given a stale local onboarding key that disagrees with the server's nvp_introSelected
+            await setupManageTeamScenario({accounting: CONST.POLICY.CONNECTIONS.NAME.XERO, policy: {areConnectionsEnabled: true}});
+            await Onyx.merge(ONYXKEYS.NVP_INTRO_SELECTED, {userReportedIntegration: CONST.POLICY.CONNECTIONS.NAME.QBO});
+            await waitForBatchedUpdates();
+
+            // When the checklist is built
+            const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
+
+            // Then the server value wins, because it is the one that survives sign out and other devices
+            const connectItem = result.current.items.find((item) => item.key === 'connectAccounting');
+            expect(connectItem?.label).toContain('QuickBooks Online');
+        });
+
         it('should be not completed when workspace has no accounting connection', async () => {
             await setupManageTeamScenario({
                 accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
