@@ -12,14 +12,33 @@ import RNFS from 'react-native-fs';
 
 import type {FileDownload} from './types';
 
-import {appendTimeToFileName, getFileName, isErrorResponseForFileDownload, rejectWithFileDownloadError, showGeneralErrorAlert, showPermissionErrorAlert, showSuccessAlert} from './FileUtils';
+import {
+    appendTimeToFileName,
+    getFileName,
+    getMimeType,
+    getMimeTypeFromUri,
+    isErrorResponseForFileDownload,
+    rejectWithFileDownloadError,
+    showGeneralErrorAlert,
+    showPermissionErrorAlert,
+    showSuccessAlert,
+    splitExtensionFromFileName,
+} from './FileUtils';
 import hasGalleryWritePermission from './hasGalleryWritePermission';
 import saveLocalFileToGallery from './saveLocalFileToGallery';
 
 /**
  * Handling the download
  */
-function handleDownload(translate: LocalizedTranslate, url: string, fileName?: string, successMessage?: string, shouldUnlink = true, appendTimestamp = true): Promise<void> {
+function handleDownload(
+    translate: LocalizedTranslate,
+    url: string,
+    fileName?: string,
+    successMessage?: string,
+    shouldUnlink = true,
+    appendTimestamp = true,
+    shouldShowOpenButton = false,
+): Promise<void> {
     return new Promise((resolve) => {
         const dirs = RNFetchBlob.fs.dirs;
 
@@ -29,6 +48,7 @@ function handleDownload(translate: LocalizedTranslate, url: string, fileName?: s
         const resolvedFileName = fileName || getFileName(url);
         const attachmentName = appendTimestamp ? appendTimeToFileName(resolvedFileName) : resolvedFileName;
 
+        const mimeType = getMimeTypeFromUri(attachmentName) ?? getMimeType(splitExtensionFromFileName(attachmentName).fileExtension);
         const isLocalFile = url.startsWith('file://');
 
         // copyToMediaStore and fs.unlink take a bare POSIX path, not a file:// URI.
@@ -59,13 +79,20 @@ function handleDownload(translate: LocalizedTranslate, url: string, fileName?: s
                     attachmentPath = (attachment as FetchBlobResponse).path();
                 }
 
-                return saveLocalFileToGallery(isLocalFile ? url : (attachmentPath ?? ''), attachmentName);
+                return saveLocalFileToGallery(isLocalFile ? url : (attachmentPath ?? ''), attachmentName, mimeType);
             })
-            .then(() => {
+            .then((savedFileURI) => {
                 if (attachmentPath && shouldUnlink) {
                     RNFetchBlob.fs.unlink(attachmentPath);
                 }
-                showSuccessAlert(translate, successMessage);
+                // Nothing to do when no installed app can open this type: the file is saved either way.
+                const openSavedFile =
+                    shouldShowOpenButton && savedFileURI
+                        ? () => {
+                              RNFetchBlob.android.actionViewIntent(savedFileURI, mimeType).catch(() => {});
+                          }
+                        : undefined;
+                showSuccessAlert(translate, successMessage, openSavedFile);
             })
             .catch(() => {
                 showGeneralErrorAlert(translate);
@@ -118,17 +145,14 @@ const postDownloadFile = (
 };
 
 /**
- * Checks permission and downloads the file for Android
+ * Runs the download only when the app may write to the Downloads directory
  */
-const fileDownload: FileDownload = (translate, url, fileName, successMessage, _, formData, requestType, onDownloadFailed, shouldUnlink, appendTimestamp = true) =>
+const downloadWithGalleryWritePermission = (translate: LocalizedTranslate, download: () => Promise<void>): Promise<void> =>
     new Promise((resolve) => {
         hasGalleryWritePermission()
             .then((hasPermission) => {
                 if (hasPermission) {
-                    if (requestType === CONST.NETWORK.METHOD.POST) {
-                        return postDownloadFile(translate, url, fileName, formData, onDownloadFailed, appendTimestamp);
-                    }
-                    return handleDownload(translate, url, fileName, successMessage, shouldUnlink, appendTimestamp);
+                    return download();
                 }
                 showPermissionErrorAlert(translate);
             })
@@ -138,4 +162,22 @@ const fileDownload: FileDownload = (translate, url, fileName, successMessage, _,
             .finally(() => resolve());
     });
 
+/**
+ * Checks permission and downloads the file for Android
+ */
+const fileDownload: FileDownload = (translate, url, fileName, successMessage, _, formData, requestType, onDownloadFailed, shouldUnlink, appendTimestamp = true) =>
+    downloadWithGalleryWritePermission(translate, () => {
+        if (requestType === CONST.NETWORK.METHOD.POST) {
+            return postDownloadFile(translate, url, fileName, formData, onDownloadFailed, appendTimestamp);
+        }
+        return handleDownload(translate, url, fileName, successMessage, shouldUnlink, appendTimestamp);
+    });
+
+/**
+ * Downloads an attachment and offers to open the saved file
+ */
+const downloadAndOfferToOpen = (translate: LocalizedTranslate, url: string, fileName: string, shouldUnlink?: boolean): Promise<void> =>
+    downloadWithGalleryWritePermission(translate, () => handleDownload(translate, url, fileName, undefined, shouldUnlink, true, true));
+
 export default fileDownload;
+export {downloadAndOfferToOpen};

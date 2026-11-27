@@ -16,9 +16,18 @@ type GrowlContent = {
     /** Position where the growl is anchored */
     position?: GrowlPosition;
 
-    /** Bumped on every show() call so identical-args re-shows still remount and re-trigger the growl. */
+    /** Different for every show() call so identical-args re-shows still remount and re-trigger the growl. */
     nonce: number;
+
+    /** Set by hide() to make the growl slide out */
+    shouldDismiss?: boolean;
+
+    /** Whether a loading spinner replaces the icon of the growl */
+    shouldShowSpinner?: boolean;
 };
+
+// Module level, so the count survives a remount: a nonce handed out earlier must never identify a later growl
+let lastNonce = 0;
 
 type GrowlNotificationProps = {
     ref?: ForwardedRef<GrowlRef>;
@@ -32,11 +41,26 @@ type GrowlNotificationProps = {
 function GrowlNotification({ref}: GrowlNotificationProps) {
     const [content, setContent] = useState<GrowlContent | null>(null);
 
-    const show: NonNullable<GrowlRef['show']> = ({bodyText, type, duration, action, position}) => {
-        setContent((prev) => ({bodyText, type, duration, action, position, nonce: (prev?.nonce ?? 0) + 1}));
+    const show: NonNullable<GrowlRef['show']> = ({bodyText, type, duration, action, position, shouldShowSpinner}) => {
+        lastNonce += 1;
+        setContent({
+            bodyText,
+            type,
+            duration,
+            action,
+            position,
+            shouldShowSpinner,
+            nonce: lastNonce,
+        });
+        return lastNonce;
     };
 
-    useImperativeHandle(ref, () => ({show}), [show]);
+    const hide: NonNullable<GrowlRef['hide']> = (nonce) => {
+        // Only the growl with this nonce is hidden, a newer one stays
+        setContent((prev) => (prev?.nonce === nonce ? {...prev, shouldDismiss: true} : prev));
+    };
+
+    useImperativeHandle(ref, () => ({show, hide}), [show, hide]);
 
     useEffect(() => {
         setIsReady();
@@ -61,6 +85,8 @@ function GrowlNotification({ref}: GrowlNotificationProps) {
             action={content.action}
             position={content.position}
             nonce={content.nonce}
+            shouldDismiss={content.shouldDismiss}
+            shouldShowSpinner={content.shouldShowSpinner}
             onDismissed={handleDismissed}
         />
     );

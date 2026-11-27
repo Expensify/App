@@ -141,7 +141,7 @@ describe('saveReceiptsToGallery', () => {
         mockedHasPermission.mockReset();
         mockedHasPermission.mockResolvedValue(true);
         mockedWrite.mockReset();
-        mockedWrite.mockResolvedValue();
+        mockedWrite.mockResolvedValue(undefined);
     });
 
     it('writes once per receipt and reports the saved count', async () => {
@@ -153,7 +153,7 @@ describe('saveReceiptsToGallery', () => {
     });
 
     it('lets the batch survive a single rejection and counts it as failed', async () => {
-        mockedWrite.mockResolvedValueOnce().mockRejectedValueOnce(new Error('write failed')).mockResolvedValueOnce();
+        mockedWrite.mockResolvedValueOnce(undefined).mockRejectedValueOnce(new Error('write failed')).mockResolvedValueOnce(undefined);
 
         const result = await saveReceiptsToGallery(receipts);
 
@@ -177,7 +177,7 @@ describe('saveReceiptsToGallery', () => {
     });
 
     it('flags permissionDenied when an iOS write rejects with the photo-library access error', async () => {
-        mockedWrite.mockResolvedValueOnce().mockRejectedValueOnce(new Error(CONST.IOS_CAMERA_ROLL_ACCESS_ERROR)).mockResolvedValueOnce();
+        mockedWrite.mockResolvedValueOnce(undefined).mockRejectedValueOnce(new Error(CONST.IOS_CAMERA_ROLL_ACCESS_ERROR)).mockResolvedValueOnce(undefined);
 
         const result = await saveReceiptsToGallery(receipts);
 

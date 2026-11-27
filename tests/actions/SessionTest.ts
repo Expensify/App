@@ -116,7 +116,7 @@ describe('Session', () => {
 
         beforeEach(() => {
             jest.spyOn(NetworkState, 'getIsOffline').mockReturnValue(false);
-            jest.spyOn(Growl, 'success').mockImplementation(() => {});
+            jest.spyOn(Growl, 'success').mockResolvedValue(undefined);
             jest.spyOn(API, 'makeRequestWithSideEffects').mockResolvedValue(undefined);
             jest.spyOn(API, 'write').mockResolvedValue(undefined);
             jest.spyOn(SignInRedirect, 'default').mockResolvedValue(undefined);

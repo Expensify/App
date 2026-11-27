@@ -1,3 +1,4 @@
+import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Pressables from '@components/Pressable';
@@ -41,6 +42,12 @@ type GrowlNotificationContentProps = {
 
     /** Identifies this growl instance; passed back through onDismissed so the parent can ignore stale dismissals. */
     nonce: number;
+
+    /** Slides the growl out. Set when `Growl.hide` is called for this growl. */
+    shouldDismiss?: boolean;
+
+    /** Shows a loading spinner instead of the icon of the growl type */
+    shouldShowSpinner?: boolean;
     onDismissed: (dismissedNonce: number) => void;
 };
 
@@ -53,7 +60,7 @@ type GrowlIconTypes = Record<
     }
 >;
 
-function GrowlNotificationContent({bodyText, type, duration, action, position, nonce, onDismissed}: GrowlNotificationContentProps) {
+function GrowlNotificationContent({bodyText, type, duration, action, position, nonce, shouldDismiss, shouldShowSpinner, onDismissed}: GrowlNotificationContentProps) {
     // Normalized: 0 = fully offscreen for the current anchor, 1 = fully visible. The container
     // multiplies this against the live `inactiveY`, so the offscreen position stays correct
     // even when the responsive layout flips after the growl is dismissed.
@@ -115,17 +122,26 @@ function GrowlNotificationContent({bodyText, type, duration, action, position, n
         fling(0, () => onDismissed(nonce));
     };
 
+    // The parent remounts this component for every new growl (key=nonce), so the slide-in runs once per growl
     useEffect(() => {
         fling(1);
+    }, [fling]);
 
+    // No timer for an infinite duration (setTimeout would fire right away): the growl stays until the user or shouldDismiss dismisses it
+    useEffect(() => {
+        if (!Number.isFinite(duration)) {
+            return;
+        }
         const autoDismissTimeoutId = setTimeout(triggerDismiss, duration);
         return () => clearTimeout(autoDismissTimeoutId);
-        // Mount-only: the parent remounts this component (key=nonce) for every new growl, so the
-        // slide-in + auto-dismiss timer must arm exactly once per growl. Re-running on dep identity
-        // changes (e.g. theme/layout re-renders recreating `fling`/`triggerDismiss`) would replay
-        // the slide-in and reset the timer.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [duration, triggerDismiss]);
+
+    useEffect(() => {
+        if (!shouldDismiss) {
+            return;
+        }
+        triggerDismiss();
+    }, [shouldDismiss, triggerDismiss]);
 
     // GestureDetector by default runs callbacks on UI thread using Reanimated. In this
     // case we want to trigger an RN's Animated animation, which needs to be done on JS thread.
@@ -157,10 +173,17 @@ function GrowlNotificationContent({bodyText, type, duration, action, position, n
                                 onPress={triggerDismiss}
                                 style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}
                             >
-                                <Icon
-                                    src={types[type].icon}
-                                    fill={types[type].iconColor}
-                                />
+                                {shouldShowSpinner ? (
+                                    <ActivityIndicator
+                                        size="small"
+                                        color={types[type].iconColor}
+                                    />
+                                ) : (
+                                    <Icon
+                                        src={types[type].icon}
+                                        fill={types[type].iconColor}
+                                    />
+                                )}
                                 <Text style={styles.growlNotificationText}>{bodyText}</Text>
                             </PressableWithoutFeedback>
                             {!!action && (

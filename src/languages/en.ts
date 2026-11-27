@@ -11980,9 +11980,11 @@ const translations = {
         refresh: 'Refresh',
     },
     fileDownload: {
+        inProgress: 'Download in progress...',
         success: {
             title: 'Downloaded!',
             message: 'Attachment successfully downloaded!',
+            open: 'Open',
             qrMessage: 'Check your photos or downloads folder for a copy of your QR code. Protip: Add it to a presentation for your audience to scan and connect with you directly.',
         },
         generalError: {
