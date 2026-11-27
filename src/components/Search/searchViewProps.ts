@@ -1,4 +1,3 @@
-import type {TransactionPreviewData} from '@libs/actions/Search';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 
 import type {GetReportTableColumnStylesParams} from '@styles/utils';
@@ -54,7 +53,7 @@ type CommonSearchViewProps = {
     newTransactions: Transaction[];
 
     /** The navigation handler for a row tap (owned by the router). */
-    onSelectRow: (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent, rowPersonalDetails?: PersonalDetailsList) => void;
+    onSelectRow: (item: SearchListItem, shouldSetOptimisticPreviewData?: boolean, event?: ModifiedMouseEvent, rowPersonalDetails?: PersonalDetailsList) => void;
 
     /** The list footer (pagination / pending skeleton). */
     ListFooterComponent?: React.JSX.Element;

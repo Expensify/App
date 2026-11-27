@@ -44,7 +44,6 @@ function TransactionListItemWide<TItem extends ListItem>({
     transactionViolations,
     handleActionButtonPress,
     shouldDisableActionPointerEvents,
-    transactionPreviewData,
     reportActions,
     policyCategories,
     policyTagLists,
@@ -121,7 +120,7 @@ function TransactionListItemWide<TItem extends ListItem>({
             }
             return;
         }
-        onSelectRow(item, transactionPreviewData, event);
+        onSelectRow(item, true, event);
     };
 
     const handleOnMouseDown = (e?: React.MouseEvent) => {
@@ -233,7 +232,7 @@ function TransactionListItemWide<TItem extends ListItem>({
                         checkboxSentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_LIST_ITEM_CHECKBOX}
                         style={[styles.ph3, isLastItem ? styles.tableBottomRadius : styles.noBorderRadius]}
                         violations={transactionViolations}
-                        onArrowRightPress={isDeletedTransaction ? undefined : (event) => onSelectRow(item, transactionPreviewData, event)}
+                        onArrowRightPress={isDeletedTransaction ? undefined : (event) => onSelectRow(item, true, event)}
                         isHover={hovered}
                         nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                         reportActions={reportActions}

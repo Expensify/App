@@ -3,7 +3,6 @@ import type {SearchColumnType} from '@components/Search/types';
 import type {ListItemFocusEventHandler} from '@components/SelectionList/ListItem/types';
 import type {ListItem} from '@components/SelectionList/types';
 
-import type {TransactionPreviewData} from '@libs/actions/Search';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 
 import type {CardList, Policy, PolicyCategories, PolicyTagLists, Report, ReportAction, TransactionViolation} from '@src/types/onyx';
@@ -15,7 +14,7 @@ type TransactionListItemSharedProps<TItem extends ListItem> = {
     showTooltip: boolean;
     isDisabled?: boolean | null;
     canSelectMultiple?: boolean;
-    onSelectRow: (item: TItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => void;
+    onSelectRow: (item: TItem, shouldSetOptimisticPreviewData?: boolean, event?: ModifiedMouseEvent) => void;
     onCheckboxPress?: (item: TItem, itemTransactions?: TransactionListItemType[], shiftKey?: boolean) => void;
     onFocus?: ListItemFocusEventHandler;
     onLongPressRow?: (item: TItem) => void;
@@ -27,7 +26,6 @@ type TransactionListItemSharedProps<TItem extends ListItem> = {
     transactionViolations: TransactionViolation[];
     handleActionButtonPress: (event?: ModifiedMouseEvent) => void | Promise<void>;
     shouldDisableActionPointerEvents?: boolean;
-    transactionPreviewData: TransactionPreviewData;
     reportActions: ReportAction[];
     policyCategories?: PolicyCategories;
     policyTagLists?: PolicyTagLists;

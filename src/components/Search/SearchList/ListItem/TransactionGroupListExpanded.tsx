@@ -7,7 +7,6 @@ import {useSyncedHorizontalScroll} from '@components/Search/hooks/useSyncedHoriz
 import SearchTableHeader from '@components/Search/SearchTableHeader';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
-import TransactionItemRow from '@components/TransactionItemRow';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 
 import useCopyableTextRowPress, {isPressStartOnCopyableText} from '@hooks/useCopyableTextRowPress';
@@ -25,19 +24,15 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
-import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getReportIDForTransaction} from '@libs/MoneyRequestReportUtils';
 import openInternalRouteInNewTab, {isModifiedMousePress} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import Navigation from '@libs/Navigation/Navigation';
-import {getReportAction} from '@libs/ReportActionsUtils';
-import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {queryHasViolationFilter} from '@libs/SearchQueryUtils';
 import {createAndOpenSearchTransactionThread, getColumnsToShow, getGroupColumnWidthFlags, getGroupTableScrollLayout} from '@libs/SearchUIUtils';
 import {COPYABLE_ROW_DATA_SET} from '@libs/SelectionScraper';
 import {isDeletedTransaction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
-import type {TransactionPreviewData} from '@userActions/Search';
 import {CAROUSEL_SOURCE, setActiveTransactionIDs} from '@userActions/TransactionThreadNavigation';
 
 import CONST from '@src/CONST';
@@ -49,12 +44,12 @@ import {personalDetailsListSelector} from '@src/selectors/PersonalDetails';
 import {fullPolicySnapshotLastModifiedByPolicyIDSelector} from '@src/selectors/Policy';
 import type * as OnyxTypes from '@src/types/onyx';
 
-import type {OnyxCollection} from 'react-native-onyx';
-
 import React from 'react';
 import {View} from 'react-native';
 
 import type {TransactionGroupListExpandedProps, TransactionListItemType} from './types';
+
+import ExpandedTransactionItemRow from './ExpandedTransactionItemRow';
 
 /**
  * Non-generic implementation so OXC's React Compiler can memoize the component.
@@ -105,36 +100,11 @@ function TransactionGroupListExpandedImpl({
     const delegateAccountID = useDelegateAccountID();
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
     const isVendorColumnAvailable = useIsVendorColumnAvailable();
-    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
-    const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
-    const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
 
     const transactionsSnapshotMetadata = transactionsSnapshot?.search;
 
     const visibleTransactions = isExpenseReportType ? transactions.slice(0, transactionsVisibleLimit) : transactions;
-
-    const ids = new Set<string>();
-    for (const transaction of visibleTransactions) {
-        if (transaction.reportID) {
-            ids.add(`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`);
-        }
-        if (transaction.reportAction?.childReportID) {
-            ids.add(`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportAction.childReportID}`);
-        }
-    }
-    const neededReportIDs = ids;
-
-    const reportsSelector = (reports: OnyxCollection<OnyxTypes.Report>) => {
-        const result: OnyxCollection<OnyxTypes.Report> = {};
-        for (const key of Object.keys(reports ?? {})) {
-            if (neededReportIDs.has(key)) {
-                result[key] = reports?.[key];
-            }
-        }
-        return result;
-    };
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: reportsSelector});
 
     const isLastTransaction = (index: number) => {
         return index === visibleTransactions.length - 1;
@@ -159,12 +129,6 @@ function TransactionGroupListExpandedImpl({
 
     const getTransactionPolicyID = (transaction: TransactionListItemType) =>
         [transaction.report?.policyID, transaction.policy?.id].find(Boolean) ?? (transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? policyForMovingExpensesID : undefined);
-
-    const getPolicyCategoriesForTransaction = (transaction: TransactionListItemType) =>
-        policyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(getTransactionPolicyID(transaction))}`];
-
-    const getPolicyTagListsForTransaction = (transaction: TransactionListItemType) =>
-        policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(getTransactionPolicyID(transaction))}`];
 
     // Currently only the transaction report groups have transactions where the empty view makes sense
     const shouldDisplayShowMoreButton = isExpenseReportType ? transactions.length > transactionsVisibleLimit : !!transactionsSnapshotMetadata?.hasMoreResults && !isOffline;
@@ -203,29 +167,7 @@ function TransactionGroupListExpandedImpl({
     const {scrollViewRef: horizontalScrollViewRef, syncProps: horizontalSyncProps} = useSyncedHorizontalScroll(syncScrollKey, shouldScrollHorizontally);
 
     const {markReportRHPWidth} = useWideRHPActions();
-    const selectRow = onSelectRow as (
-        item: ListItem,
-        transactionPreviewData?: TransactionPreviewData,
-        event?: ModifiedMouseEvent,
-        rowPersonalDetails?: OnyxTypes.PersonalDetailsList,
-    ) => void;
-    const getTransactionPreviewData = (transactionItem: TransactionListItemType): TransactionPreviewData => {
-        const parentReportAction = getReportAction(transactionItem?.reportID, transactionItem?.reportAction?.reportActionID);
-        const parentReport = getReportOrDraftReport({reportID: transactionItem?.reportID, report: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem?.reportID}`]});
-        const transactionThreadReport = getReportOrDraftReport({
-            reportID: transactionItem?.reportAction?.childReportID,
-            report: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem?.reportAction?.childReportID}`],
-        });
-        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionItem?.transactionID)}`];
-
-        return {
-            hasParentReport: !!parentReport,
-            hasTransaction: !!transaction,
-            hasParentReportAction: !!parentReportAction,
-            hasTransactionThreadReport: !!transactionThreadReport,
-        };
-    };
-
+    const selectRow = onSelectRow as (item: ListItem, shouldSetOptimisticPreviewData?: boolean, event?: ModifiedMouseEvent, rowPersonalDetails?: OnyxTypes.PersonalDetailsList) => void;
     const openReportInRHP = (transactionItem: TransactionListItemType, event?: ModifiedMouseEvent) => {
         const backTo = Navigation.getActiveRoute();
         const reportID = getReportIDForTransaction(transactionItem, transactionItem?.reportAction?.childReportID);
@@ -282,7 +224,7 @@ function TransactionGroupListExpandedImpl({
 
         // The arrow navigation in RHP is only allowed for group-by:reports
         if (!isExpenseReportType) {
-            selectRow(transactionItem as ListItem, getTransactionPreviewData(transactionItem), event, personalDetails);
+            selectRow(transactionItem as ListItem, true, event, personalDetails);
             return;
         }
 
@@ -413,11 +355,10 @@ function TransactionGroupListExpandedImpl({
                             sentryLabel={CONST.SENTRY_LABEL.SEARCH.EXPANDED_TRANSACTION_ROW}
                         >
                             {({hovered}) => (
-                                <TransactionItemRow
+                                <ExpandedTransactionItemRow
                                     report={transaction.report}
                                     policy={transaction.policy}
-                                    policyCategories={getPolicyCategoriesForTransaction(transaction)}
-                                    policyTagLists={getPolicyTagListsForTransaction(transaction)}
+                                    policyID={getTransactionPolicyID(transaction)}
                                     transactionItem={transaction}
                                     violations={violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]}
                                     isSelected={!!transaction.isSelected}

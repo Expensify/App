@@ -51,7 +51,6 @@ function renderRow(item: TransactionListItemType, isDeletedTransaction: boolean)
                 onSelectRow={jest.fn()}
                 transactionViolations={[]}
                 handleActionButtonPress={jest.fn()}
-                transactionPreviewData={{hasParentReport: false, hasParentReportAction: false, hasTransaction: false, hasTransactionThreadReport: false}}
                 reportActions={[]}
             />
         </ComposeProviders>,

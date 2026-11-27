@@ -2,7 +2,6 @@ import type {SearchColumnType, SearchGroupBy, SearchQueryJSON} from '@components
 import type {ListItemProps} from '@components/SelectionList/ListItem/types';
 import type {ListItem} from '@components/SelectionList/types';
 
-import type {TransactionPreviewData} from '@libs/actions/Search';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 
@@ -670,7 +669,7 @@ type GroupChildrenContentProps = {
     searchType?: SearchDataTypes;
     columns?: SearchColumnType[];
     canSelectMultiple: boolean;
-    onSelectRow: (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => void;
+    onSelectRow: (item: SearchListItem, shouldSetOptimisticPreviewData?: boolean, event?: ModifiedMouseEvent) => void;
     onCheckboxPress: (item: SearchListItem, itemTransactions?: TransactionListItemType[], shiftKey?: boolean) => void;
     onLongPressRow?: (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => void;
     nonPersonalAndWorkspaceCards?: CardList;

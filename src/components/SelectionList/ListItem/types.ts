@@ -1,6 +1,5 @@
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 
-import type {TransactionPreviewData} from '@libs/actions/Search';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import type {SpendRuleSummaryPart} from '@libs/SpendRulesUtils';
@@ -134,7 +133,7 @@ type ListItemProps<TItem extends ListItem> = {
     /** Whether to use the Checkbox (multiple selection) instead of the Checkmark (single selection) */
     canSelectMultiple?: boolean;
 
-    onSelectRow: (item: TItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => void;
+    onSelectRow: (item: TItem, shouldSetOptimisticPreviewData?: boolean, event?: ModifiedMouseEvent) => void;
     onSelectionButtonPress?: (item: TItem, itemTransactions?: TransactionListItemType[], shiftKey?: boolean) => void;
     onDismissError?: (item: TItem) => void;
     onFocus?: ListItemFocusEventHandler;
@@ -172,7 +171,7 @@ type ListItemComponent<TItem extends ListItem> = ComponentType<ListItemProps<TIt
 /** Props of the ListItem pressable root. Row content comes as children and reads hover/focus/tooltip state from ListItemContext */
 type ListItemPressableProps<TItem extends ListItem> = PropsWithChildren<{
     item: TItem;
-    onSelectRow: (item: TItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => void;
+    onSelectRow: (item: TItem, shouldSetOptimisticPreviewData?: boolean, event?: ModifiedMouseEvent) => void;
     onDismissError?: (item: TItem) => void;
     onLongPressRow?: (item: TItem, itemTransactions?: TransactionListItemType[]) => void;
     onFocus?: ListItemFocusEventHandler;
@@ -224,7 +223,7 @@ type ListItemPressableProps<TItem extends ListItem> = PropsWithChildren<{
 /** Props for SelectableListItem, which extends the composed ListItem pressable with selection button support. */
 type SelectableListItemProps<TItem extends ListItem> = PropsWithChildren<{
     item: TItem;
-    onSelectRow: (item: TItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => void;
+    onSelectRow: (item: TItem, shouldSetOptimisticPreviewData?: boolean, event?: ModifiedMouseEvent) => void;
 
     /** Callback to fire when the selection button is pressed */
     onSelectionButtonPress?: (item: TItem, itemTransactions?: TransactionListItemType[], shiftKey?: boolean) => void;
