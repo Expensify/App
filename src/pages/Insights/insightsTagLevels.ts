@@ -3,6 +3,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {InsightsDashboard} from '@src/types/onyx';
 import type {InsightsTagLevel} from '@src/types/onyx/InsightsDashboard';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
@@ -31,6 +32,17 @@ function getInsightsTagLevelOptions(tagLevels: InsightsTagLevel[] | undefined, s
 /** Keeps a level that GetInsights listed for a workspace in scope, and falls back to the default level otherwise. */
 function getFittingTagLevel(level: number, tagLevels: InsightsTagLevel[]): number {
     return level === CONST.INSIGHTS.DEFAULT_TAG_LEVEL || tagLevels.some((tagLevel) => tagLevel.level === level) ? level : CONST.INSIGHTS.DEFAULT_TAG_LEVEL;
+}
+
+/**
+ * Checks whether the response stored for the current filters already shows that no workspace in scope has the selected level, so the level is about to fall back and be fetched again.
+ * Offline nothing is fetched again, so the chart keeps showing what the stored response holds.
+ */
+function isTagLevelFallbackPending(dashboard: InsightsDashboard | undefined, selectedTagLevel: number | undefined, isOffline: boolean): boolean {
+    if (isOffline || !dashboard?.tagLevels || selectedTagLevel === undefined || !isEmptyObject(dashboard.errors)) {
+        return false;
+    }
+    return getFittingTagLevel(selectedTagLevel, dashboard.tagLevels) !== selectedTagLevel;
 }
 
 // The selector reading stored levels runs on every Insights update, so each stored query is parsed only once.
@@ -66,5 +78,5 @@ function getStoredTagLevels(dashboards: OnyxCollection<InsightsDashboard>, polic
     return newestDashboard?.tagLevels;
 }
 
-export {getFittingTagLevel, getInsightsTagLevelOptions, getStoredTagLevels};
+export {getFittingTagLevel, getInsightsTagLevelOptions, getStoredTagLevels, isTagLevelFallbackPending};
 export type {InsightsTagLevelOption};

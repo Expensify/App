@@ -1,6 +1,6 @@
 import formatTagParentPath from '@libs/formatTagParentPath';
 
-import {getFittingTagLevel, getInsightsTagLevelOptions, getStoredTagLevels} from '@pages/Insights/insightsTagLevels';
+import {getFittingTagLevel, getInsightsTagLevelOptions, getStoredTagLevels, isTagLevelFallbackPending} from '@pages/Insights/insightsTagLevels';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -78,6 +78,40 @@ describe('Insights tag levels', () => {
             {value: 1, label: 'Region'},
             {value: 3, label: 'Tag level 3'},
         ]);
+    });
+
+    describe('isTagLevelFallbackPending', () => {
+        const oneLevel = {tagLevels: [{level: 1, names: ['Region']}]};
+
+        it('waits for the fallback when the response leaves out the selected level', () => {
+            // Given a response for level two from workspaces that only have level one
+            // When the dashboard checks it online
+            // Then the level is about to fall back, so Top tags waits instead of showing an empty chart
+            expect(isTagLevelFallbackPending(oneLevel, 2, false)).toBe(true);
+        });
+
+        it.each([
+            [
+                'the response lists the selected level',
+                {
+                    tagLevels: [
+                        {level: 1, names: []},
+                        {level: 2, names: []},
+                    ],
+                },
+                2,
+                false,
+            ],
+            ['the default level is selected', oneLevel, 1, false],
+            ['no response has arrived', undefined, 2, false],
+            ['the request failed', {...oneLevel, errors: {error: 'failed'}}, 2, false],
+            ['the dashboard is offline, so nothing is fetched again', oneLevel, 2, true],
+        ])('does not wait when %s', (_, dashboard, selectedTagLevel, isOffline) => {
+            // Given a response and a selected level
+            // When the dashboard checks them
+            // Then Top tags shows what it has, since no fallback is coming
+            expect(isTagLevelFallbackPending(dashboard, selectedTagLevel, isOffline)).toBe(false);
+        });
     });
 
     describe('getStoredTagLevels', () => {

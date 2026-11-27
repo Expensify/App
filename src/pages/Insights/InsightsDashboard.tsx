@@ -65,6 +65,7 @@ import INSIGHTS_DASHBOARD_SPECS, {
 import {getQueryGroupBy} from './insightsGroupByUtils';
 import buildInsightsJsonQuery from './insightsQueries';
 import InsightsTabSelector from './InsightsTabSelector';
+import {isTagLevelFallbackPending} from './insightsTagLevels';
 import {getDashboardState, hasDashboardResponse, INSIGHTS_DASHBOARD_STATE} from './resolveDashboardState';
 import InsightsEmptyState from './states/InsightsEmptyState';
 import InsightsNoExpensesState from './states/InsightsNoExpensesState';
@@ -472,11 +473,14 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
             [queryJSON, previousPeriodQueryJSON, averageQueryJSON].flatMap((chartQueryJSON) => (chartQueryJSON ? [String(chartQueryJSON.hash)] : [])),
         ),
     );
+    // The response for a level no workspace in scope has holds no tagged expenses, so Top tags shows its loading state instead of an empty chart until the level falls back and its data arrives
+    const isTopTagsWaitingForLevel = isTagLevelFallbackPending(dashboard, filters.tagLevel, isOffline);
     const charts = visibleChartQueries.map((chartQuery): InsightsDashboardChart => {
         const graph = dashboard?.graphs?.[chartQuery.chart.graphKey];
+        const isWaitingForData = isTopTagsWaitingForLevel && chartQuery.chart.graphKey === CONST.INSIGHTS.GRAPH.TOP_TAGS;
         return {
             ...chartQuery,
-            snapshot: chartQuery.queryJSON ? snapshots[chartQuery.queryJSON.hash] : undefined,
+            snapshot: chartQuery.queryJSON && !isWaitingForData ? snapshots[chartQuery.queryJSON.hash] : undefined,
             previousPeriodSnapshot: chartQuery.previousPeriodQueryJSON ? snapshots[chartQuery.previousPeriodQueryJSON.hash] : undefined,
             averageSnapshot: chartQuery.averageQueryJSON ? snapshots[chartQuery.averageQueryJSON.hash] : undefined,
             average: {
