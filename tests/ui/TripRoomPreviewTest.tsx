@@ -1,4 +1,4 @@
-import {act, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
@@ -6,6 +6,8 @@ import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersona
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import TripRoomPreview from '@components/ReportActionItem/TripRoomPreview';
+
+import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -144,5 +146,26 @@ describe('TripRoomPreview', () => {
         expect(screen.getByText('Outstanding')).toBeOnTheScreen();
         expect(screen.getByText('View')).toBeOnTheScreen();
         expect(screen.queryByText('Review')).not.toBeOnTheScreen();
+    });
+
+    it('shows a failed decision on its booking until the user dismisses it', async () => {
+        // Given an approval that failed, which puts the booking back to outstanding with an error
+        const failedBooking: BookingApproval = {...outstandingBooking, errors: getMicroSecondOnyxErrorWithTranslationKey('travel.approval.genericError')};
+        await setUpTrip({accountID: APPROVER_ACCOUNT_ID, betas: [CONST.BETAS.TRAVEL_APPROVAL], bookingApprovalState: {[OUTBOUND_PNR_ID]: failedBooking}});
+
+        // When the workspace chat shows its preview
+        renderPreview();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the booking shows the error so the approver knows the decision didn't go through
+        expect(screen.getByText("Couldn't update this booking. Please try again.")).toBeOnTheScreen();
+
+        // When they dismiss it
+        fireEvent.press(screen.getByLabelText('Dismiss'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the error is gone and the booking keeps its status
+        expect(screen.queryByText("Couldn't update this booking. Please try again.")).not.toBeOnTheScreen();
+        expect(screen.getByText('Outstanding')).toBeOnTheScreen();
     });
 });

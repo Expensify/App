@@ -5502,6 +5502,7 @@ ${amount} für ${merchant} – ${date}`,
                 softApproval: (time: string) => `Wird in ${time} automatisch genehmigt. Kostenlose Stornierung bis dahin.`,
                 hardApproval: (time: string) => `Wird automatisch in ${time} storniert, wenn nicht genehmigt.`,
             },
+            genericError: 'Diese Buchung konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut.',
         },
         bookingCount: ({count}: {count: number}) => ({
             one: '1 Buchung',
