@@ -12,6 +12,7 @@ import useSearchTabNavigation from '@components/Navigation/NavigationTabBar/useS
 import useSignedInLinkRoute from '@components/Navigation/NavigationTabBar/useSignedInLinkRoute';
 import useStoredSearchTabRoute from '@components/Navigation/NavigationTabBar/useStoredSearchTabRoute';
 import useWideInboxNavigation from '@components/Navigation/NavigationTabBar/useWideInboxNavigation';
+import PeekSurfaceContext from '@components/Navigation/PeekSurfaceContext';
 import {
     COLLAPSE_SURFACE,
     getCollapseFadeStyle,
@@ -57,23 +58,14 @@ import FlatNavCreateButton from './FlatNavCreateButton';
 import FlatNavDivider from './FlatNavDivider';
 import FlatNavItem from './FlatNavItem';
 import FlatNavLogo from './FlatNavLogo';
+import FlatNavSpendSubnav from './FlatNavSpendSubnav';
 import FlatNavSupportalItem from './FlatNavSupportalItem';
+import hasKeyboardFocusIn from './hasKeyboardFocusIn';
+import isFocusMovingWithin from './isFocusMovingWithin';
 
 type FlatNavigationBarProps = {
     selectedTab: ValueOf<typeof NAVIGATION_TABS>;
 };
-
-// Only keyboard focus counts: an item clicked with the mouse keeps focus too, and must not hold anything open after the pointer leaves.
-function hasKeyboardFocusIn(element: unknown) {
-    return isHTMLElement(element) && !!element.querySelector(':focus-visible');
-}
-
-// On web the native event is a DOM FocusEvent, whose relatedTarget is the element receiving focus.
-function isFocusMovingWithin(event: NativeSyntheticEvent<TargetedEvent>) {
-    const currentTarget = event.currentTarget;
-    const relatedTarget = 'relatedTarget' in event.nativeEvent ? event.nativeEvent.relatedTarget : null;
-    return isHTMLElement(currentTarget) && isHTMLElement(relatedTarget) && currentTarget.contains(relatedTarget);
-}
 
 /** Wide-layout left navigation that lists every top-level destination as a full-width row, with Account at the bottom. */
 function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
@@ -112,6 +104,10 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
     // A popover the bar opened holds the peek: its overlay ends the hover without the pointer ever leaving the bar.
     const isBarPopoverVisible = isCreateMenuVisible || isSupportalSwitcherVisible;
     const barContainerRef = useRef<ComponentRef<typeof View>>(null);
+    // A saved search's menu in the Spend subnav renders its backdrop outside the bar, which reads as the pointer leaving. The menu reports
+    // its visibility through PeekSurfaceContext so the bar keeps its peek until the menu is gone. Its modal layer allows only one menu at a time, so one flag is enough.
+    const isSubnavMenuOpenRef = useRef(false);
+    const getIsAnyPopoverVisible = () => isBarPopoverVisible || isSubnavMenuOpenRef.current;
 
     const hasKeyboardFocusInside = () => hasKeyboardFocusIn(barContainerRef.current);
 
@@ -128,21 +124,21 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
     const endPeekIfPointerAndFocusLeft = () => {
         const element = barContainerRef.current;
         const isHovered = isHTMLElement(element) && element.matches(':hover');
-        if (isBarPopoverVisible || isHovered || hasKeyboardFocusInside()) {
+        if (getIsAnyPopoverVisible() || isHovered || hasKeyboardFocusInside()) {
             return;
         }
         endPeek();
     };
 
     const endPeekIfIdle = () => {
-        if (isBarPopoverVisible || hasKeyboardFocusInside()) {
+        if (getIsAnyPopoverVisible() || hasKeyboardFocusInside()) {
             return;
         }
         endPeek();
     };
 
     const endPeekUnlessStaying = (event: NativeSyntheticEvent<TargetedEvent>) => {
-        if (isBarPopoverVisible) {
+        if (getIsAnyPopoverVisible()) {
             return;
         }
         // Tabbing between items inside the bar keeps the peek open.
@@ -170,10 +166,19 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
         setHasKeyboardFocusOnAccountArea(false);
     };
 
+    const holdPeekUntilMenuCloses = () => {
+        isSubnavMenuOpenRef.current = true;
+    };
+
+    const endPeekIfPointerLeft = () => {
+        isSubnavMenuOpenRef.current = false;
+        endPeekIfPointerAndFocusLeft();
+    };
+
     const accountLabel = currentUserPersonalDetails.displayName ? currentUserPersonalDetails.displayName : translate('initialSettingsPage.account');
 
     return (
-        <>
+        <PeekSurfaceContext.Provider value={{holdPeekUntilMenuCloses, endPeekIfPointerLeft}}>
             {!!isDebugModeEnabled && <DebugTabView selectedTab={selectedTab} />}
             {/* The layout box reserves the room the content is offset by. Peeking only widens the bar drawn over it. */}
             <Animated.View style={[styles.h100, getFlatNavigationBarLayoutWidthStyle(isCollapsed)]}>
@@ -262,6 +267,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                             onHoverIn={() => setIsSearchTabHovered(true)}
                                             onHoverOut={() => setIsSearchTabHovered(false)}
                                         />
+                                        {selectedTab === NAVIGATION_TABS.SEARCH && <FlatNavSpendSubnav isVisuallyCollapsed={isVisuallyCollapsed} />}
                                         <FlatNavItem
                                             isCollapsed={isVisuallyCollapsed}
                                             label={translate('common.insights')}
@@ -339,7 +345,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                     </Animated.View>
                 </Hoverable>
             </Animated.View>
-        </>
+        </PeekSurfaceContext.Provider>
     );
 }
 

@@ -1,21 +1,15 @@
 /** A saved search of the subnav, with the three-dot menu to rename, share or delete it. */
-import {COLLAPSE_SURFACE} from '@components/Navigation/SearchSidebarCollapseStore';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
-import useDeleteSavedSearch from '@hooks/useDeleteSavedSearch';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
-import useShareSavedSearch from '@hooks/useShareSavedSearch';
-
 import type {FlatNavSavedSearchItem} from '@libs/Navigation/FlatNav/types';
-import {getOverflowMenu} from '@libs/SearchUIUtils';
 
-import SavedSearchItemThreeDotMenu from '@pages/Search/SavedSearchItemThreeDotMenu';
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
 import React from 'react';
 
+import FlatNavSavedSearchMenu from './FlatNavSavedSearchMenu';
 import FlatNavSubnavItem from './FlatNavSubnavItem';
 
 type FlatNavSavedSearchSubnavItemProps = {
@@ -25,12 +19,6 @@ type FlatNavSavedSearchSubnavItemProps = {
 };
 
 function FlatNavSavedSearchSubnavItem({item, isSelected, onPress}: FlatNavSavedSearchSubnavItemProps) {
-    const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Pencil', 'Trashcan', 'LinkCopy', 'Checkmark']);
-    const {showDeleteModal} = useDeleteSavedSearch();
-    const {copiedID, handleShare} = useShareSavedSearch();
-    const isCopied = copiedID === item.savedSearchID;
-
     const openSavedSearch = () => {
         // The row is disabled, but a press can still arrive from an assistive technology or a stale event.
         if (item.isDisabled) {
@@ -48,16 +36,10 @@ function FlatNavSavedSearchSubnavItem({item, isSelected, onPress}: FlatNavSavedS
                     isDisabled={item.isDisabled}
                     sentryLabel={CONST.SENTRY_LABEL.SEARCH.SAVED_SEARCH_MENU_ITEM}
                     onPress={openSavedSearch}
+                    // The menu is drawn over the row's end, so the label scrolls clear of it.
+                    endInset={variables.flatNavigationBarSubnavItemAccessoryWidth}
                 />
-                <SavedSearchItemThreeDotMenu
-                    menuItems={getOverflowMenu(icons, item.savedSearchID, translate, showDeleteModal, false, undefined, {
-                        onShare: () => handleShare(item.savedSearchID, item.query),
-                        isCopied,
-                    })}
-                    isDisabledItem={item.isDisabled}
-                    isCopied={isCopied}
-                    collapseSurface={COLLAPSE_SURFACE.NAVIGATION_BAR}
-                />
+                <FlatNavSavedSearchMenu item={item} />
             </FlatNavSubnavItem>
         </OfflineWithFeedback>
     );
