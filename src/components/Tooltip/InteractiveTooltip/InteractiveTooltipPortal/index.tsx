@@ -91,6 +91,7 @@ function InteractiveTooltipPortal({
     return ReactDOM.createPortal(
         // React portals bubble synthetic events through the component tree, so stop them here before they reach a pressable ancestor such as a table row.
         <View
+            style={styles.interactiveTooltipPortal}
             onClick={stopEventPropagation}
             onMouseDown={stopEventPropagation}
             onPointerDown={stopEventPropagation}
