@@ -741,5 +741,66 @@ describe('WorkspaceMoreFeaturesPage', () => {
             // Then the Vendors row is hidden because legacy QBD connections lack the Codat apiProvider
             expect(vendorsSwitchQuery()).toBeNull();
         });
+
+        it('shows the Vendors row for a NetSuite REST + CREDIT_CARD_CHARGE connection when the beta is enabled', async () => {
+            // Given a NetSuite REST connection with CREDIT_CARD_CHARGE export and the vendorMatching beta enabled
+            const connections = {
+                [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
+                    options: {
+                        config: {
+                            authType: CONST.NETSUITE_CONFIG.AUTH_TYPE.OAUTH2,
+                            nonreimbursableExpensesExportDestination: CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE,
+                        },
+                    },
+                },
+            };
+
+            // When the More features page renders with the beta enabled
+            await renderWithVendorMatching(connections, true);
+
+            // Then the Vendors row is visible and active
+            const vendorsSwitch = await findLockedSwitch('workspace.moreFeatures.vendors.subtitle');
+            expect(vendorsSwitch).toBeChecked();
+        });
+
+        it('hides the Vendors row for a NetSuite REST + CREDIT_CARD_CHARGE connection when the beta is disabled', async () => {
+            // Given a NetSuite REST + CREDIT_CARD_CHARGE connection without the vendorMatching beta
+            const connections = {
+                [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
+                    options: {
+                        config: {
+                            authType: CONST.NETSUITE_CONFIG.AUTH_TYPE.OAUTH2,
+                            nonreimbursableExpensesExportDestination: CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE,
+                        },
+                    },
+                },
+            };
+
+            // When the More features page renders without the beta
+            await renderWithVendorMatching(connections, false);
+
+            // Then the Vendors row is hidden because NetSuite has no discovery state
+            expect(vendorsSwitchQuery()).toBeNull();
+        });
+
+        it('hides the Vendors row for a NetSuite SOAP or VENDOR_BILL connection even when the beta is enabled', async () => {
+            // Given a NetSuite SOAP connection with CREDIT_CARD_CHARGE and a REST connection with VENDOR_BILL
+            const soapConnections = {
+                [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
+                    options: {
+                        config: {
+                            authType: CONST.NETSUITE_CONFIG.TOKEN_INPUT.AUTH_TYPE.TBA,
+                            nonreimbursableExpensesExportDestination: CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE,
+                        },
+                    },
+                },
+            };
+
+            // When the More features page renders for the SOAP connection
+            await renderWithVendorMatching(soapConnections, true);
+
+            // Then the Vendors row is hidden
+            expect(vendorsSwitchQuery()).toBeNull();
+        });
     });
 });
