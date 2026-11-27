@@ -7,6 +7,7 @@ import ROUTES from '@src/ROUTES';
 import type {Timezone} from '@src/types/onyx/PersonalDetails';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import getIsNarrowLayout from './getIsNarrowLayout';
 import Navigation from './Navigation/Navigation';
 import {hasAutomatedExpensifyAccountIDs} from './ReportUtils';
 import {buildQueryStringFromFilterFormValues} from './SearchQueryUtils';
@@ -35,7 +36,14 @@ function navigateToChatHistory(accountID: number) {
         type: CONST.SEARCH.DATA_TYPES.CHAT,
         from: [String(accountID)],
     });
-    Navigation.revealRouteBeforeDismissingModal(ROUTES.SEARCH_ROOT.getRoute({query, rawQuery: query}));
+    const route = ROUTES.SEARCH_ROOT.getRoute({query, rawQuery: query});
+    // On narrow layouts the reveal keeps browser Back in sync and shows Search under the closing panel, instead of the page below it
+    if (getIsNarrowLayout()) {
+        Navigation.revealRouteBeforeDismissingModal(route);
+        return;
+    }
+    // On wide layouts the reveal pads the root history, so browser Back changes the URL but not the screen. Close the panel first, then open Search as a normal tab switch.
+    Navigation.dismissModal({afterTransition: () => Navigation.navigate(route)});
 }
 
 export {shouldShowLocalTime, getChatHistoryTranslationKey, navigateToChatHistory};

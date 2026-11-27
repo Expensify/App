@@ -10,6 +10,7 @@ import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import type * as SingleExecution from '@hooks/useSingleExecution';
 
 import * as AgentActions from '@libs/actions/Agent';
+import * as GetIsNarrowLayoutModule from '@libs/getIsNarrowLayout';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {ProfileNavigatorParamList, SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -45,6 +46,8 @@ jest.mock('@hooks/useSingleExecution', () => jest.requireActual<typeof SingleExe
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     revealRouteBeforeDismissingModal: jest.fn(),
+    // Runs the callback straight away, as if the panel had finished closing
+    dismissModal: jest.fn((options?: {afterTransition?: () => void}) => options?.afterTransition?.()),
     goBack: jest.fn(),
     getActiveRoute: jest.fn(() => ''),
     getActiveRouteWithoutParams: jest.fn(() => ''),
@@ -638,6 +641,7 @@ describe('ProfilePage - See chat history', () => {
     });
 
     afterEach(async () => {
+        jest.spyOn(GetIsNarrowLayoutModule, 'default').mockRestore();
         jest.clearAllMocks();
         await Onyx.clear();
         await waitForBatchedUpdatesWithAct();
@@ -705,22 +709,50 @@ describe('ProfilePage - See chat history', () => {
         expect(screen.queryByText('See chat history')).not.toBeOnTheScreen();
     });
 
-    it('navigates to a chat search filtered by the profile account when pressed', async () => {
+    it('closes the panel before opening a chat search filtered by the profile account on a wide layout, so browser Back returns to the page under it', async () => {
+        // Given a public profile opened in the panel on a wide layout
+        jest.spyOn(GetIsNarrowLayoutModule, 'default').mockReturnValue(false);
         await setUpPublicProfile('user@expensify.com');
 
         renderPublicProfilePage();
         await waitForBatchedUpdatesWithAct();
 
-        // MenuItem only forwards the press to onPress when it receives an event, so pass a minimal one.
+        // When See chat history is pressed (MenuItem only forwards the press to onPress when it receives an event, so pass a minimal one)
         fireEvent.press(screen.getByText('See chat history'), {nativeEvent: {}});
         await waitForBatchedUpdatesWithAct();
 
+        // Then the panel is closed first and Search opens once it has closed. Revealing Search under the open panel pads
+        // the root history, which makes browser Back change the URL while the screen stays on Search.
+        expect(typeof jest.mocked(Navigation.dismissModal).mock.calls.at(0)?.at(0)?.afterTransition).toBe('function');
+        expect(Navigation.navigate).toHaveBeenCalledWith(
+            ROUTES.SEARCH_ROOT.getRoute({
+                query: `type:${CONST.SEARCH.DATA_TYPES.CHAT} from:${PUBLIC_PROFILE_ACCOUNT_ID}`,
+                rawQuery: `type:${CONST.SEARCH.DATA_TYPES.CHAT} from:${PUBLIC_PROFILE_ACCOUNT_ID}`,
+            }),
+        );
+        expect(Navigation.revealRouteBeforeDismissingModal).not.toHaveBeenCalled();
+    });
+
+    it('reveals the chat search under the closing panel on a narrow layout', async () => {
+        // Given a public profile opened on a narrow layout (mobile web and native), where browser history stays in sync
+        jest.spyOn(GetIsNarrowLayoutModule, 'default').mockReturnValue(true);
+        await setUpPublicProfile('user@expensify.com');
+
+        renderPublicProfilePage();
+        await waitForBatchedUpdatesWithAct();
+
+        // When See chat history is pressed
+        fireEvent.press(screen.getByText('See chat history'), {nativeEvent: {}});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then Search is revealed under the closing panel, so the page below never flashes between them
         expect(Navigation.revealRouteBeforeDismissingModal).toHaveBeenCalledWith(
             ROUTES.SEARCH_ROOT.getRoute({
                 query: `type:${CONST.SEARCH.DATA_TYPES.CHAT} from:${PUBLIC_PROFILE_ACCOUNT_ID}`,
                 rawQuery: `type:${CONST.SEARCH.DATA_TYPES.CHAT} from:${PUBLIC_PROFILE_ACCOUNT_ID}`,
             }),
         );
+        expect(Navigation.dismissModal).not.toHaveBeenCalled();
     });
 
     it('hides the search entry for an anonymous session', async () => {
