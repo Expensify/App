@@ -24,6 +24,7 @@ const mockPay = jest.fn();
 const mockExport = jest.fn();
 const mockAddExpense = jest.fn();
 const mockView = jest.fn();
+const mockViewMount = jest.fn();
 const mockOpenReport = jest.fn();
 
 jest.mock('@components/ReportActionItem/MoneyRequestReportPreview/MoneyRequestReportPreviewContext', () => ({
@@ -72,6 +73,9 @@ jest.mock('@components/ReportActionItem/MoneyRequestReportPreview/AddExpenseActi
 jest.mock('@components/Button', () => {
     function MockButton(props: unknown) {
         mockView(props);
+        jest.requireActual<typeof React>('react').useEffect(() => {
+            mockViewMount();
+        }, []);
         return <MockView testID="view-button" />;
     }
 
@@ -224,6 +228,24 @@ describe('ReportPreviewActionButton', () => {
         expect(primaryWrapperStyle).toEqual(expect.arrayContaining([mockStyles.flex1]));
         expect(mockView).toHaveBeenCalledWith(expect.objectContaining({style: mockStyles.flex1}));
     });
+
+    it.each([CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE_WITH_VIOLATIONS, CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE])(
+        'keeps the same View button mounted when %s appears beside it',
+        (action) => {
+            // Given a report whose preview shows only View, for example before it is reassigned to the current user
+            mockActionState.reportPreviewAction = CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
+            const rendered = render(<ReportPreviewActionButton />);
+            expect(mockViewMount).toHaveBeenCalledTimes(1);
+
+            // When the report becomes approvable and Approve appears before View
+            mockActionState.reportPreviewAction = action;
+            rendered.rerender(<ReportPreviewActionButton />);
+
+            // Then View is not mounted again, because a remounted View drops keyboard focus and Enter stops opening the report
+            expect(mockViewMount).toHaveBeenCalledTimes(1);
+            expect(getButtonOrder()).toEqual(['approve-button', 'view-button']);
+        },
+    );
 
     it('does not flex a lone View button', () => {
         // Given a report whose preview shows only View
