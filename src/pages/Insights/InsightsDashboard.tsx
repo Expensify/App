@@ -460,7 +460,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
     });
     const isCurrentDashboardLoaded = hasDashboardResponse(dashboard);
     const getReusableAverageGraph = useReusableAverageGraph({dashboardID, hash, isCurrentDashboardLoaded, filters, violationStages});
-    const shownAIInsights = useShownAIInsights(dashboardID, filters, hash, dashboard?.aiInsights);
+    const shownAIInsights = useShownAIInsights(dashboardID, filters, dashboard?.aiInsights);
     // Until the filters and workspaces load, the charts have no query to read data for, so they show their loading state
     const visibleChartQueries = query
         ? [query.headlineChart, ...query.supportingCharts]

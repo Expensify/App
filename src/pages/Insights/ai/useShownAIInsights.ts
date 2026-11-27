@@ -20,7 +20,7 @@ function buildInsightsScope(dashboardID: InsightsDashboardID, filters: InsightsF
     };
 }
 
-/** Shown AI insights, with the scope, date grouping and dashboard entry they were written for */
+/** Shown AI insights, with the scope and date grouping they were written for */
 type ShownAIInsights = {
     /** Filters the cards were written for, sent to Concierge when the user asks to explain */
     scope: InsightsScope;
@@ -30,28 +30,24 @@ type ShownAIInsights = {
 
     /** Date grouping the cards were written for, since a new one brings new cards */
     groupBy: InsightsTimeGroupBy;
-
-    /** Dashboard entry the cards come from, since another entry of the same scope differs only by the violation stage */
-    hash: number | undefined;
 };
 
-function useShownAIInsights(dashboardID: InsightsDashboardID, filters: InsightsFilters, hash: number | undefined, currentEntryInsights: AIInsight[] | undefined): ShownAIInsights {
+function useShownAIInsights(dashboardID: InsightsDashboardID, filters: InsightsFilters, currentEntryInsights: AIInsight[] | undefined): ShownAIInsights {
     const scope = buildInsightsScope(dashboardID, filters);
     const groupBy = getQueryGroupBy(filters);
     const [shownInsights, setShownInsights] = useState<ShownAIInsights>();
-    // The cards are written for the date grouping too, but not for the violation stage, which only changes the hash
+    // The cards are not written for the violation stage
     const isSameScope = !!shownInsights && shownInsights.groupBy === groupBy && deepEqual(shownInsights.scope, scope);
 
     if (currentEntryInsights === undefined) {
-        return isSameScope ? shownInsights : {scope, insights: undefined, groupBy, hash};
+        return isSameScope ? shownInsights : {scope, insights: undefined, groupBy};
     }
 
-    // Another entry of the same scope differs only by the violation stage, so its cards would only reword the shown ones
-    if (isSameScope && (shownInsights.hash !== hash || deepEqual(shownInsights.insights, currentEntryInsights))) {
+    if (isSameScope && deepEqual(shownInsights.insights, currentEntryInsights)) {
         return shownInsights;
     }
 
-    const currentInsights = {scope: isSameScope ? shownInsights.scope : scope, insights: currentEntryInsights, groupBy, hash};
+    const currentInsights = {scope: isSameScope ? shownInsights.scope : scope, insights: currentEntryInsights, groupBy};
     setShownInsights(currentInsights);
     return currentInsights;
 }
