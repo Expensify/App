@@ -1,4 +1,4 @@
-/** Verify upgrade navigation markers are removed before app routing starts. */
+/** Verify the URL passed to the app at web startup. */
 import {APP_UPDATE_QUERY_PARAM} from '@libs/AppUpdateURL';
 
 import {AppRegistry} from 'react-native';
@@ -13,7 +13,7 @@ jest.mock('@src/CONFIG', () => ({__esModule: true, default: {IS_IN_PRODUCTION: f
 
 const {default: platformSetup} = jest.requireActual<{default: typeof platformSetupImpl}>('../../src/setup/platformSetup/index.ts');
 
-describe('web upgrade marker cleanup', () => {
+describe('web startup URL', () => {
     const originalURL = window.location.href;
     const originalState: unknown = window.history.state;
 
@@ -46,9 +46,30 @@ describe('web upgrade marker cleanup', () => {
         expect(new URL(window.location.href).searchParams.has(APP_UPDATE_QUERY_PARAM)).toBe(false);
     });
 
-    it('leaves ordinary navigation history untouched', () => {
-        // Given an ordinary app navigation with no upgrade marker
-        window.history.replaceState({route: 'report'}, '', '/r/123?existing=keep#details');
+    it.each([
+        ['/insights', '/insights/spend'],
+        [`/insights/?backTo=${encodeURIComponent('/home')}#details`, `/insights/spend?backTo=${encodeURIComponent('/home')}#details`],
+        [`/insights?${APP_UPDATE_QUERY_PARAM}=true&backTo=${encodeURIComponent('/home')}`, `/insights/spend?backTo=${encodeURIComponent('/home')}`],
+    ])('starts on Spend when opening %s', (path, expectedPath) => {
+        // Given a direct visit to the Insights root
+        const state = {route: 'insights'};
+        window.history.replaceState(state, '', path);
+        const runApplication = jest.mocked(AppRegistry.runApplication);
+        runApplication.mockImplementationOnce(() => {
+            expect(window.location.href).toBe(new URL(expectedPath, originalURL).href);
+            expect(window.history.state).toEqual(state);
+        });
+
+        // When web setup starts the app
+        platformSetup();
+
+        // Then the app starts with the Spend URL already in the address bar
+        expect(runApplication).toHaveBeenCalledTimes(1);
+    });
+
+    it.each(['/r/123?existing=keep#details', '/insights/compliance', '/insights/spend/details/topMerchants'])('leaves %s untouched', (path) => {
+        // Given a navigation that already points to a specific page
+        window.history.replaceState({route: 'app'}, '', path);
         const replaceState = jest.spyOn(window.history, 'replaceState');
 
         // When web setup starts the app

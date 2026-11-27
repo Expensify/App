@@ -21,4 +21,21 @@ describe('linking configuration on a cold start', () => {
         expect(findFocusedRoute(backgroundState)).toMatchObject({name: SCREENS.WORKSPACE.PROFILE, params: {policyID: '123'}});
         expect(findFocusedRoute(state)?.name).toBe(SCREENS.WORKSPACE.NAME);
     });
+
+    it.each([
+        ['/insights', '/insights/spend'],
+        ['/insights/?dashboardID=compliance&backTo=/home', `/insights/spend?backTo=${encodeURIComponent('/home')}`],
+        ['/insights/compliance', '/insights/compliance'],
+    ])('opens %s as %s', (path, expectedPath) => {
+        // Given a direct link to Insights
+        // When the browser builds navigation state before the tab mounts
+        const state = linkingConfig.getStateFromPath?.(path, linkingConfig.config);
+        if (!state) {
+            throw new Error('The Insights link must resolve to navigation state');
+        }
+
+        // Then only the dashboard in the path can override Spend, and the back link survives
+        expect(findFocusedRoute(state)?.name).toBe(SCREENS.INSIGHTS);
+        expect(linkingConfig.getPathFromState?.(state, linkingConfig.config)).toBe(expectedPath);
+    });
 });
