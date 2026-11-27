@@ -331,6 +331,7 @@ import {
     isTransactionSubmittable,
     isUnreportedTransactionOwnedByCurrentUser,
 } from './TransactionUtils';
+import hasCreateFailed from './TransactionUtils/hasCreateFailed';
 import addTrailingForwardSlash from './UrlUtils';
 import {getDefaultAvatarURL} from './UserAvatarUtils';
 import {generateAccountID} from './UserUtils';
@@ -6533,6 +6534,11 @@ function resolveCanEditFieldOfMoneyRequest({
         CONST.EDIT_REQUEST_FIELD.REIMBURSABLE,
         CONST.EDIT_REQUEST_FIELD.REPORT,
     ];
+
+    // Until its create goes through, the server has no such expense, so a move would only fail
+    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.REPORT && hasCreateFailed(transaction)) {
+        return false;
+    }
 
     // Legacy/imported unreported transactions may not have an IOU report action, so bypass the action guard and allow moving them to a report.
     const isUnreportedLegacyTransaction = !reportAction && (!transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID);
