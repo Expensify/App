@@ -51,6 +51,7 @@ beforeAll(async () => {
 
 beforeEach(async () => {
     mockConfig.EXPENSIFY.QA_API_ROOT = 'https://qa.exops.io/';
+    mockConfig.EXPENSIFY.QA_SECURE_API_ROOT = 'https://qa-secure.exops.io/';
     await Onyx.clear();
     await waitForBatchedUpdates();
 });
@@ -69,5 +70,17 @@ describe('a QA build', () => {
 
         expect(ApiUtils.isQAServerActive()).toBe(false);
         expect(ApiUtils.getApiRoot()).toBe('https://staging.expensify.com/');
+    });
+
+    it('refuses a secure command when QA has no secure host, rather than sending it to the insecure one', async () => {
+        // Given the QA server is active but QA_SECURE_EXPENSIFY_URL is unset
+        mockConfig.EXPENSIFY.QA_SECURE_API_ROOT = '';
+        await setActiveServer(CONST.SERVER.QA);
+
+        // When a secure command asks for its API root
+        const getSecureApiRoot = () => ApiUtils.getApiRoot({shouldUseSecure: true, command: 'Authenticate'});
+
+        // Then it throws and names the command, because no host can serve it
+        expect(getSecureApiRoot).toThrow('The QA server has no secure host, so it cannot serve Authenticate. Set QA_SECURE_EXPENSIFY_URL to reach one.');
     });
 });

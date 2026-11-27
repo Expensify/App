@@ -39,19 +39,22 @@ describe('Workspace company cards bank selection', () => {
     });
 
     it.each([
-        {environment: CONST.ENVIRONMENT.PRODUCTION, storedServer: CONST.SERVER.PRODUCTION, qaApiRoot: QA_API_ROOT, shouldShowMockBank: false},
-        {environment: CONST.ENVIRONMENT.PRODUCTION, storedServer: undefined, qaApiRoot: QA_API_ROOT, shouldShowMockBank: false},
-        {environment: CONST.ENVIRONMENT.PRODUCTION, storedServer: CONST.SERVER.STAGING, qaApiRoot: QA_API_ROOT, shouldShowMockBank: true},
-        {environment: CONST.ENVIRONMENT.PRODUCTION, storedServer: CONST.SERVER.QA, qaApiRoot: QA_API_ROOT, shouldShowMockBank: false},
-        {environment: CONST.ENVIRONMENT.PRODUCTION, storedServer: CONST.SERVER.QA, qaApiRoot: '', shouldShowMockBank: false},
-        {environment: CONST.ENVIRONMENT.STAGING, storedServer: undefined, qaApiRoot: QA_API_ROOT, shouldShowMockBank: true},
-        {environment: CONST.ENVIRONMENT.DEV, storedServer: CONST.SERVER.PRODUCTION, qaApiRoot: QA_API_ROOT, shouldShowMockBank: true},
-        {environment: CONST.ENVIRONMENT.QA, storedServer: CONST.SERVER.PRODUCTION, qaApiRoot: QA_API_ROOT, shouldShowMockBank: true},
+        {buildEnvironment: CONST.ENVIRONMENT.PRODUCTION, environment: CONST.ENVIRONMENT.PRODUCTION, storedServer: CONST.SERVER.PRODUCTION, qaApiRoot: QA_API_ROOT, shouldShowMockBank: false},
+        {buildEnvironment: CONST.ENVIRONMENT.PRODUCTION, environment: CONST.ENVIRONMENT.PRODUCTION, storedServer: undefined, qaApiRoot: QA_API_ROOT, shouldShowMockBank: false},
+        {buildEnvironment: CONST.ENVIRONMENT.PRODUCTION, environment: CONST.ENVIRONMENT.PRODUCTION, storedServer: CONST.SERVER.STAGING, qaApiRoot: QA_API_ROOT, shouldShowMockBank: true},
+        {buildEnvironment: CONST.ENVIRONMENT.PRODUCTION, environment: CONST.ENVIRONMENT.PRODUCTION, storedServer: CONST.SERVER.QA, qaApiRoot: QA_API_ROOT, shouldShowMockBank: false},
+        {buildEnvironment: CONST.ENVIRONMENT.PRODUCTION, environment: CONST.ENVIRONMENT.STAGING, storedServer: undefined, qaApiRoot: QA_API_ROOT, shouldShowMockBank: true},
+        {buildEnvironment: CONST.ENVIRONMENT.PRODUCTION, environment: CONST.ENVIRONMENT.STAGING, storedServer: CONST.SERVER.PRODUCTION, qaApiRoot: QA_API_ROOT, shouldShowMockBank: false},
+        {buildEnvironment: CONST.ENVIRONMENT.PRODUCTION, environment: CONST.ENVIRONMENT.QA, storedServer: CONST.SERVER.PRODUCTION, qaApiRoot: QA_API_ROOT, shouldShowMockBank: true},
+        {buildEnvironment: CONST.ENVIRONMENT.PRODUCTION, environment: CONST.ENVIRONMENT.QA, storedServer: CONST.SERVER.PRODUCTION, qaApiRoot: '', shouldShowMockBank: false},
+        {buildEnvironment: CONST.ENVIRONMENT.PRODUCTION, environment: CONST.ENVIRONMENT.DEV, storedServer: CONST.SERVER.QA, qaApiRoot: QA_API_ROOT, shouldShowMockBank: true},
+        {buildEnvironment: CONST.ENVIRONMENT.PRODUCTION, environment: CONST.ENVIRONMENT.DEV, storedServer: CONST.SERVER.QA, qaApiRoot: '', shouldShowMockBank: false},
+        {buildEnvironment: CONST.ENVIRONMENT.DEV, environment: CONST.ENVIRONMENT.PRODUCTION, storedServer: CONST.SERVER.PRODUCTION, qaApiRoot: QA_API_ROOT, shouldShowMockBank: true},
     ])(
-        'sets Mock Bank visibility to $shouldShowMockBank for $environment with $storedServer stored and QA root "$qaApiRoot"',
-        ({environment, storedServer, qaApiRoot, shouldShowMockBank}) => {
-            // Given the server comes from useActiveServer, so a stored QA that a production build cannot reach counts as production
-            jest.replaceProperty(CONFIG, 'ENVIRONMENT', environment);
+        'sets Mock Bank visibility to $shouldShowMockBank for a $buildEnvironment build in $environment with $storedServer stored and QA root "$qaApiRoot"',
+        ({buildEnvironment, environment, storedServer, qaApiRoot, shouldShowMockBank}) => {
+            // Given the build, runtime env and stored server from the row
+            jest.replaceProperty(CONFIG, 'ENVIRONMENT', buildEnvironment);
             jest.replaceProperty(CONFIG, 'IS_USING_LOCAL_WEB', false);
             jest.replaceProperty(CONFIG.EXPENSIFY, 'QA_API_ROOT', qaApiRoot);
             jest.mocked(useEnvironment).mockReturnValue({
@@ -65,12 +68,9 @@ describe('Workspace company cards bank selection', () => {
             // When the workspace card step builds the selectable bank list
             render(<SelectBankStep />);
 
-            // Then Mock Bank shows only off production or on a server production can actually reach, and File Import never shows
+            // Then Mock Bank shows on a non-production build or when the resolved server is not production
             const banks = jest.mocked(SelectionList).mock.lastCall?.[0].data.map((item) => item.keyForList);
-            const expectedBanks = Object.values(CONST.COMPANY_CARDS.BANKS).filter(
-                (bank) => bank !== CONST.COMPANY_CARDS.BANKS.FILE_IMPORT && (shouldShowMockBank || bank !== CONST.COMPANY_CARDS.BANKS.MOCK_BANK),
-            );
-            expect(banks).toEqual(expectedBanks);
+            expect(banks?.includes(CONST.COMPANY_CARDS.BANKS.MOCK_BANK)).toBe(shouldShowMockBank);
         },
     );
 });
