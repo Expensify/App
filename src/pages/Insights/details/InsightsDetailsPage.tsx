@@ -89,6 +89,7 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
                   periodEnd,
                   topExpensesSnapshotHash,
                   lastDay: getInsightsLastDay(asOf),
+                  violationStage: chartSpec.violationStage ?? (chartSpec.hasViolationStageControl ? (pickedViolationStage ?? CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED) : undefined),
               })
             : undefined;
     const requestDetails = useRequestInsightsDetails(detailsQuery, isTopSpenders ? undefined : topExpensesQueryJSON, isCompliance);
