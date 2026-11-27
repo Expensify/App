@@ -48,7 +48,7 @@ function SplitCategoryTaxController({transactionID, transaction, policy, policyC
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const {translate} = useLocalize();
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
-    const {areRulesLoading, haveRulesLoaded} = useRulesPrefetch(isEditingSplitBill && arePolicyRulesEnabled(policy, policyCategories));
+    const {areRulesLoading, haveRulesLoaded} = useRulesPrefetch(policy?.id, isEditingSplitBill && arePolicyRulesEnabled(policy, policyCategories));
     // Wrapped, so that the category this opened on is told apart from not having recorded one yet. `pendingReplay`
     // marks a resolution that had no rules to read, and holds the tax it left behind.
     const [resolvedCategory, setResolvedCategory] = useState<{value: string | undefined; pendingReplay: {taxCode: string | undefined} | undefined}>();

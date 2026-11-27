@@ -547,21 +547,6 @@ const ONYXKEYS = {
     /** Set whether the search filters category data has loaded */
     IS_SEARCH_FILTERS_CATEGORY_DATA_LOADED: 'isSearchFiltersCategoryDataLoaded',
 
-    /**
-     * Set once `GetRules` has answered, so screens that only consume the rules collection fetch it once.
-     * RAM only, so a new session fetches again rather than trusting a collection another device has since changed.
-     */
-    RAM_ONLY_HAS_RULES_DATA_BEEN_FETCHED: 'hasRulesDataBeenFetched',
-
-    /** Set while a `GetRules` request is in flight, so screens can wait for it instead of reading an empty collection */
-    RAM_ONLY_IS_LOADING_RULES: 'isLoadingRules',
-
-    /**
-     * Set when a `GetRules` request fails, which tells a failed fetch apart from one still to send.
-     * Readers stop waiting on it, while the next screen that needs the collection asks for it again.
-     */
-    RAM_ONLY_HAS_RULES_FETCH_FAILED: 'hasRulesFetchFailed',
-
     /** Set while search filter card data is loading, so callers can wait instead of reading a partial list */
     RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CARD_DATA: 'isLoadingSearchFiltersCardData',
 
@@ -1086,6 +1071,8 @@ const ONYXKEYS = {
         /** Session-scoped loading/error flags for a report's action list.
          *  Registered as RAM-only in `setup/index.ts`. */
         RAM_ONLY_REPORT_LOADING_STATE: 'reportLoadingState_',
+        /** Status of a workspace's GetRules fetch in this session, keyed by policyID. */
+        RAM_ONLY_POLICY_RULES_FETCH_STATUS: 'policyRulesFetchStatus_',
         /** Set while `GetDuplicateTransactionDetails` is in flight, keyed by transactionID.
          *  Registered as RAM-only in `setup/index.ts`. */
         RAM_ONLY_IS_LOADING_DUPLICATE_TRANSACTION_DETAILS: 'isLoadingDuplicateTransactionDetails_',
@@ -1760,6 +1747,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.REPORT_METADATA]: OnyxTypes.ReportMetadata;
     [ONYXKEYS.COLLECTION.REPORT_UPCOMING_STEPS]: OnyxTypes.ReportUpcomingSteps;
     [ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE]: OnyxTypes.ReportLoadingState;
+    [ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_RULES_FETCH_STATUS]: ValueOf<typeof CONST.RULES.FETCH_STATUS>;
     [ONYXKEYS.COLLECTION.RAM_ONLY_IS_LOADING_DUPLICATE_TRANSACTION_DETAILS]: boolean;
     [ONYXKEYS.COLLECTION.RAM_ONLY_IS_LOADING_RECEIPT_PARTNERS]: boolean;
     [ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE]: OnyxTypes.CompanyCardsLoadingState;
@@ -1996,9 +1984,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_LOADING_REPORT_DATA]: boolean;
     [ONYXKEYS.IS_SEARCH_FILTERS_CARD_DATA_LOADED]: boolean;
     [ONYXKEYS.IS_SEARCH_FILTERS_CATEGORY_DATA_LOADED]: boolean;
-    [ONYXKEYS.RAM_ONLY_HAS_RULES_DATA_BEEN_FETCHED]: boolean;
-    [ONYXKEYS.RAM_ONLY_IS_LOADING_RULES]: boolean;
-    [ONYXKEYS.RAM_ONLY_HAS_RULES_FETCH_FAILED]: boolean;
     [ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CARD_DATA]: boolean;
     [ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CATEGORY_DATA]: boolean;
     [ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA]: boolean;

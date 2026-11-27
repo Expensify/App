@@ -97,7 +97,7 @@ function createSourcePolicy(hasWorkspaceRules: boolean, areRulesEnabled: boolean
 async function renderForm(hasWorkspaceRules: boolean, areRulesEnabled = true) {
     await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, createSourcePolicy(hasWorkspaceRules, areRulesEnabled));
     await Onyx.set(`${ONYXKEYS.COLLECTION.RULE}merchantRule`, MERCHANT_RULE);
-    await Onyx.set(ONYXKEYS.RAM_ONLY_HAS_RULES_DATA_BEEN_FETCHED, true);
+    await Onyx.set(`${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_RULES_FETCH_STATUS}${POLICY_ID}`, CONST.RULES.FETCH_STATUS.LOADED);
     await Onyx.set(ONYXKEYS.DUPLICATE_WORKSPACE, {name: 'Duplicate', policyID: TARGET_POLICY_ID});
     await waitForBatchedUpdates();
 

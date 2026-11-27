@@ -2,6 +2,7 @@ import type {MultifactorAuthenticationChallengeObject} from '@libs/MultifactorAu
 
 import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
 
+import type Rule from './Rule';
 import type TransactionsPending3DSReview from './TransactionsPending3DSReview';
 import type TransactionsPendingFraudReview from './TransactionsPendingFraudReview';
 import type {VacationDelegatePolicyDiff} from './VacationDelegate';
@@ -31,6 +32,9 @@ type Response<TKey extends OnyxKey> = {
 
     /** Collection of onyx updates (SET/MERGE/...) */
     onyxData?: Array<OnyxUpdate<TKey>>;
+
+    /** Scoped GetRules snapshot, keyed by `rules_<ruleID>`. */
+    rules?: Record<string, Rule>;
 
     /** Pagination pages for the items in onyxData. They are applied after onyxData, and skipped whenever onyxData is skipped. */
     paginationOnyxData?: Array<OnyxUpdate<TKey>>;

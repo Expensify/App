@@ -1,8 +1,7 @@
 /**
  * Selectors for the `rules_` collection.
  *
- * `GetRules` SETs every rule the user can see across every workspace, so the collection reference changes
- * on any rule write anywhere. A consumer that only needs a count or a flag reduces the collection to that
+ * The collection reference changes on any rule write. A consumer that only needs a count or a flag reduces the collection to that
  * value here, which keeps `useOnyx` from deep-comparing a filtered copy of it on each of those writes.
  */
 import {getExpenseDefaultRuleCount, hasExpenseDefaultRuleErrors} from '@libs/ExpenseDefaultRuleUtils';

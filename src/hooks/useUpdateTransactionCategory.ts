@@ -93,7 +93,7 @@ function useUpdateTransactionCategory({
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     // A split's category tax is resolved when the category is written, so the rules have to be on their way before
     // the user picks one. Nothing recomputes it afterwards, because a split draft gets no server response.
-    useRulesPrefetch(arePolicyRulesEnabled(policy, policyCategories));
+    useRulesPrefetch(policyID, arePolicyRulesEnabled(policy, policyCategories));
     const allTransactionViolations = useAllTransactionViolations(transactionID);
 
     const isSplitUpdate = isEditingSplit && !!transaction;

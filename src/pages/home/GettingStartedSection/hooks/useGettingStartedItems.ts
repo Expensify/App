@@ -97,7 +97,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${activePolicyID}`);
 
     // The checklist reads the rules collection, and nothing on Home opens a workspace to populate it.
-    useRulesPrefetch(arePolicyRulesEnabled(policy, policyCategories));
+    useRulesPrefetch(activePolicyID, arePolicyRulesEnabled(policy, policyCategories));
     const [allCardFeeds] = useCardFeeds(activePolicyID);
     const workspaceAccountID = useWorkspaceAccountID(activePolicyID);
 

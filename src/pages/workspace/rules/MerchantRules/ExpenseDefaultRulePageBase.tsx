@@ -215,7 +215,7 @@ function ExpenseDefaultRulePageBase({
 
     // This route is deep linkable, so it can be the first screen mounted. Nothing else on the way in fetches the
     // rules collection, which would leave the not-found guard below reading an empty collection for a valid rule.
-    const {areRulesLoading} = useRulesPrefetch();
+    const {areRulesLoading} = useRulesPrefetch(policyID);
 
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     // Get the existing rule from the rules collection (for edit mode)

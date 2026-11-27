@@ -24,7 +24,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {getRules, openPolicyRulesPage} from '@libs/actions/Policy/Rules';
+import {getPolicyRules, openPolicyRulesPage} from '@libs/actions/Policy/Rules';
 import Tab from '@libs/actions/Tab';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -109,19 +109,17 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         openPolicyRulesPage(policyID);
         // The mount fetch is this page's own, rather than the shared hook's once per session, because this page
         // lists the rules themselves and a stale collection here is visible to the admin.
-        getRules();
+        getPolicyRules(policyID);
     }, [policyID]);
 
-    // Clearing the cache empties the collection without remounting anything, so the mount fetch above never runs
-    // again and the list stays empty. The hook's flags are cleared along with the collection, so it refills it.
-    useRulesPrefetch();
+    // Refill the workspace rules on cache clear or reconnect without remounting the page.
+    useRulesPrefetch(policyID);
 
     // A read issued while offline is discarded rather than queued, so the mount fetch can leave this page with
     // nothing to list. Pending writes flush before the read, so this cannot overwrite a rule saved offline.
     useNetwork({
         onReconnect: () => {
             openPolicyRulesPage(policyID);
-            getRules();
         },
     });
 
