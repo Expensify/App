@@ -509,6 +509,7 @@ const translations: TranslationDeepObject<typeof en> = {
         corpayPayModalTitle: 'Zapłać raport',
         corpayPayModalPrompt: 'Ta osoba zgłaszająca ma konto bankowe inne niż USD. Włącz globalne zwroty, aby zapłacić raport, lub poproś o dodanie konta bankowego w USD.',
         purchaseAmount: 'Kwota zakupu',
+        convertedAmount: 'Kwota przeliczona',
         originalAmount: 'Kwota pierwotna',
         frequency: 'Częstotliwość',
         link: 'Link',
@@ -822,6 +823,11 @@ const translations: TranslationDeepObject<typeof en> = {
         setPin: {didNotShipCard: 'Nie wysłaliśmy twojej karty. Spróbuj ponownie.'},
         revealPin: {couldNotReveal: 'Nie udało się wyświetlić twojego PIN-u. Spróbuj ponownie.'},
         changePin: {didNotChange: 'Nie zmieniliśmy twojego PIN-u. Spróbuj ponownie.'},
+        addToWallet: {
+            failedHeader: 'Nie udało się dodać karty',
+            failedTitle: 'Nie udało się dodać Twojej karty do portfela',
+            failedSubtitle: 'Podczas dodawania karty coś poszło nie tak. Jeśli karta jest już w Twoim portfelu, możesz z niej tam korzystać.',
+        },
         revealCardDetail: {couldNotReveal: 'Nie udało się wyświetlić szczegółów Twojej karty. Spróbuj ponownie.'},
     },
     validateCodeModal: {
@@ -1378,7 +1384,10 @@ const translations: TranslationDeepObject<typeof en> = {
             label: 'Naruszenia',
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Wysyłający',
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: 'Zatwierdzający',
+            chartTitle: (title: string, stage: string) => `${title} (${stage})`,
         },
+        flaggedExpenses: 'Oznaczone wydatki',
+        noFlaggedExpensesInRange: 'Brak oznaczonych wydatków w tym zakresie',
     },
     allSettingsScreen: {
         subscription: 'Subskrypcja',
@@ -2768,6 +2777,11 @@ const translations: TranslationDeepObject<typeof en> = {
             limitedSupport: 'Nie obsługujemy jeszcze łączenia kont w Nowym Expensify. Wykonaj tę akcję w Expensify Classic.',
             reachOutForHelp: '<muted-text><centered-text>Jeśli masz jakieś pytania, śmiało <concierge-link>skontaktuj się z Concierge</concierge-link>!</centered-text></muted-text>',
             goToExpensifyClassic: 'Przejdź do Expensify Classic',
+        },
+        mergePendingDomainAdmin: {
+            heading: 'E-mail z ograniczeniem domeny',
+            description: '<muted-text><centered-text>Administrator domeny został powiadomiony o zatwierdzeniu prośby o połączenie kont.</centered-text></muted-text>',
+            gotIt: 'Rozumiem',
         },
         mergeFailureSAMLDomainControlDescription: (email: string) =>
             `<muted-text><centered-text>Nie możesz połączyć <strong>${email}</strong>, ponieważ jest kontrolowany przez <strong>${email.split('@').at(1) ?? ''}</strong>. Prosimy <concierge-link>skontaktować się z Concierge</concierge-link> po pomoc.</centered-text></muted-text>`,
@@ -4717,6 +4731,14 @@ ${amount} dla ${merchant} - ${date}`,
         numberedItem: ({item, number}: {item: string; number: number}) => `${item} ${number}`,
         questionsChanged: 'Pytania na tej stronie się zmieniły',
         onFile: 'W systemie',
+        continueOffline: {
+            title: 'Nie możesz kontynuować w trybie offline',
+            prompt: 'Do wypełnienia tego formularza potrzebne jest połączenie z internetem. Spokojnie, zapiszemy twój postęp i będziesz mógł/mogła kontynuować, gdy znów będziesz online.',
+            saveForLater: 'Zapisz i wypełnij później',
+            progressSaved: 'Twój postęp został zapisany',
+            promptWithSensitiveAnswers:
+                'Do wypełnienia tego formularza potrzebne jest połączenie z internetem. Zapiszemy postęp, żebyś mógł/mogła kontynuować, gdy znów będziesz online. Ze względów bezpieczeństwa wrażliwe dane nie są zapisywane i trzeba je będzie wprowadzić ponownie.',
+        },
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'Kod SWIFT/BIC musi mieć długość 8 lub 11 znaków, z 6 literami, po których następują 2 lub 5 liter lub cyfr.',
@@ -7329,6 +7351,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 description: `Co najmniej jedna kategoria musi pozostać włączona, ponieważ w Twoim workspace wymagane są kategorie.`,
             },
             visibleTo: 'Widoczne dla',
+            editVisibility: 'Edytuj widoczność',
             membersCount: ({count}: {count: number}) => ({
                 one: '1 członek',
                 few: `${count} członkowie`,
@@ -7336,6 +7359,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 other: `${count} członka`,
             }),
             visibleToDescription: ({categoryName}: {categoryName: string}) => `Wybierz, którzy członkowie mogą używać kategorii ${categoryName} podczas przesyłania wydatków.`,
+            bulkVisibleToDescription: 'Wybierz, którzy członkowie mogą używać tych kategorii podczas wysyłania wydatków.',
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `Nie można wyłączyć ${categoryName}`,
                 bulkTitle: 'Nie można wyłączyć tych kategorii',

@@ -109,6 +109,7 @@ type RenderFlowOptions = {
     maxFileSize?: number;
     onRefreshRequirements?: (inputID: string, value: FormValue) => void;
     shouldDisableNextWhenOffline?: boolean;
+    onSaveForLater?: (page: DynamicFormPage | undefined) => void;
     unsavedPageKeys?: string[];
     isLoading?: boolean;
 };
@@ -142,6 +143,7 @@ async function renderFlow({
     maxFileSize,
     onRefreshRequirements,
     shouldDisableNextWhenOffline,
+    onSaveForLater,
     unsavedPageKeys,
     isLoading,
 }: RenderFlowOptions = {}) {
@@ -169,6 +171,7 @@ async function renderFlow({
             onRefreshRequirements={onRefreshRequirements}
             isSubmitting={submitting}
             shouldDisableNextWhenOffline={shouldDisableNextWhenOffline}
+            onSaveForLater={onSaveForLater}
             unsavedPageKeys={unsavedPageKeys}
             isLoading={isLoading}
         />
@@ -461,6 +464,42 @@ describe('DynamicFormFlow', () => {
         expect(onlineOnlyStepper?.shouldShowOfflineIndicatorInWideScreen).toBe(true);
     });
 
+    it('hands its pages a way to leave for later offline only when the screen asks, and it leaves as Back from the first page does', async () => {
+        // Given one flow that leaves the option out and one whose screen offers to continue later offline, on its second page with an answer in memory
+        const defaultFlow = await renderFlow();
+        const offeringFlow = await renderFlow({onSaveForLater: jest.fn(), pageIndex: 1, currentPageName: 'recipient', sensitiveAnswers: {ssn: '123456789'}});
+
+        // When the second flow's page leaves for later
+        offeringFlow.pageProps?.onSaveForLater?.();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then only the second flow's pages can leave for later, and leaving runs the screen's Back from a page past the first and drops the answers held in memory, as leaving the flow does
+        expect(defaultFlow.pageProps?.onSaveForLater).toBeUndefined();
+        expect(offeringFlow.onBack).toHaveBeenCalledTimes(1);
+        expect(clearSensitiveAnswers).toHaveBeenCalledWith(FORM_ID);
+    });
+
+    it('tells the screen which page was left for later, and passes no page from the confirmation page', async () => {
+        // Given one flow on its second page and one on its confirmation page, both offering to continue later offline
+        const onSaveForLater = jest.fn();
+        const pageFlow = await renderFlow({onSaveForLater, pageIndex: 1, currentPageName: 'recipient'});
+        const confirmationFlow = await renderFlow({
+            onSaveForLater,
+            hasConfirmation: true,
+            pageIndex: 2,
+            currentPageName: CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY,
+        });
+
+        // When each flow's page leaves for later
+        pageFlow.pageProps?.onSaveForLater?.();
+        confirmationFlow.pageProps?.onSaveForLater?.();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the screen gets the second page, whose answers are drafted but were not saved, and no page from the confirmation page, which has no answers of its own
+        expect(onSaveForLater).toHaveBeenNthCalledWith(1, expect.objectContaining({key: 'recipient'}));
+        expect(onSaveForLater).toHaveBeenNthCalledWith(2, undefined);
+    });
+
     it('drafts the page answers, keeps sensitive ones in memory, and hands the screen the sensitive ones apart', async () => {
         // Given the first page
         const {pageProps, onPageSubmit} = await renderFlow();
@@ -617,6 +656,56 @@ describe('DynamicFormFlow', () => {
         expect(onSubmit).not.toHaveBeenCalled();
         const pageProps = mockCurrentPage.mock.lastCall?.[0];
         expect(hasDynamicFormProps(pageProps) && pageProps.shouldShowFieldErrors).toBe(true);
+    });
+
+    it('marks the rows to fix and sends nothing when the confirmation page checks an unfinished form offline', async () => {
+        // Given a flow with a confirmation page that offers to continue later offline, whose SSN was lost when the app restarted
+        const {pageProps, onSubmit, rerenderFlow} = await renderFlow({
+            draft: {firstName: 'Jane', legalType: 'PRIVATE'},
+            hasConfirmation: true,
+            currentPageName: CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY,
+            pageIndex: 3,
+            onSaveForLater: jest.fn(),
+        });
+
+        // When Confirm is pressed offline and the page asks the flow whether the form is unfinished before asking about the connection
+        let isUnfinished: boolean | undefined;
+        act(() => {
+            isUnfinished = pageProps?.markUnfinishedForm();
+        });
+        await rerenderFlow();
+
+        // Then the flow says it is, so no modal opens, the rows say what is missing as they do online, and nothing is submitted or saved to disk
+        expect(isUnfinished).toBe(true);
+        expect(onSubmit).not.toHaveBeenCalled();
+        const lastPageProps = mockCurrentPage.mock.lastCall?.[0];
+        expect(hasDynamicFormProps(lastPageProps) && lastPageProps.shouldShowFieldErrors).toBe(true);
+    });
+
+    it('opens the first gap from the last page offline when no confirmation page follows', async () => {
+        // Given the last page of a flow without a confirmation page, offering to continue later offline, whose first page has no SSN
+        const {pageProps, onSubmit} = await renderFlow({draft: {firstName: 'Jane'}, pageIndex: 1, currentPageName: 'recipient', onSaveForLater: jest.fn()});
+
+        // When the last page passes its own checks offline and asks the flow about the whole form, with its own answers
+        const isUnfinished = pageProps?.markUnfinishedForm({legalType: 'PRIVATE'});
+
+        // Then the flow goes back to the page with the gap, as Confirm does online, instead of letting the modal promise a submit that cannot go through
+        expect(isUnfinished).toBe(true);
+        expect(Navigation.goBack).toHaveBeenCalledWith(buildRoute('personal-details'));
+        expect(onSubmit).not.toHaveBeenCalled();
+    });
+
+    it('reports a complete form as finished, so only the connection stops the submit', async () => {
+        // Given the last page of a complete form without a confirmation page
+        const {pageProps, onSubmit} = await renderFlow({draft: {firstName: 'Jane'}, sensitiveAnswers: {ssn: '123456789'}, pageIndex: 1, currentPageName: 'recipient'});
+
+        // When the page asks the flow about the whole form with its own answers
+        const isUnfinished = pageProps?.markUnfinishedForm({legalType: 'PRIVATE'});
+
+        // Then nothing is missing, so the page may ask about the connection, and the check itself neither navigates nor submits
+        expect(isUnfinished).toBe(false);
+        expect(Navigation.goBack).not.toHaveBeenCalled();
+        expect(onSubmit).not.toHaveBeenCalled();
     });
 
     it('resets to the incomplete page when routes are replaced, since there is no stack to go back in', async () => {

@@ -116,6 +116,7 @@ action = "action"i { return "action"; }
 total = "total"i {return "total"; }
 has = "has"i {return "has"; }
 is = "is"i {return "is"; }
+convertedAmount = ("convertedAmount"i / "converted-amount"i) {return "convertedAmount"}
 purchaseAmount = "purchaseAmount"i / "purchase-amount"i {return "purchaseAmount"}
 purchaseCurrency = "purchaseCurrency"i / "purchase-currency"i {return "purchaseCurrency"}
 amountDebited = "amountDebited"i / "amount-debited"i {return "amountDebited"}
@@ -135,6 +136,7 @@ values
 
 columnsValues
   = originalAmount
+  / convertedAmountColumn
   / taxRateValue
   / taxAmount
   / policyName
@@ -173,6 +175,7 @@ columnsValues
 perDiem                 = "per-diem"i &wordBoundary                 { return "perDiem"; }
 draft                  = ("drafts"i / "draft"i) &wordBoundary       { return "drafts"; }
 originalAmount          = "purchase-amount"i &wordBoundary          { return "originalamount"; }
+convertedAmountColumn   = "converted-amount"i &wordBoundary         { return "convertedAmount"; }
 taxAmount               = "tax"i &wordBoundary                      { return "taxAmount"; }
 taxRateValue            = "tax-rate"i &wordBoundary                 { return "taxrate"; }
 policyName              = "policy-name"i &wordBoundary              { return "policyname"; }

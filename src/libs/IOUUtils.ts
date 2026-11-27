@@ -14,9 +14,9 @@ import Navigation from './Navigation/Navigation';
 import {isGroupPolicy} from './PolicyUtils';
 import {getOriginalMessage} from './ReportActionMessageUtils';
 import {isMoneyRequestAction} from './ReportActionTypeGuards';
-import {canAddTransaction, generateReportID, getChatByParticipants, isArchivedReport, isSelfDM} from './ReportUtils';
+import {canAddTransaction, generateReportID, getChatByParticipants, isArchivedReport, isSelfDM, willScanRequestCreateNewReport} from './ReportUtils';
 import {endSpan, getSpan, startSpan} from './telemetry/activeSpans';
-import {getTagArrayFromName, hasRoute, isDistanceRequest} from './TransactionUtils';
+import {getTagArrayFromName, hasRoute, isDistanceRequest, isScanRequest} from './TransactionUtils';
 
 function navigateToStartMoneyRequestStep(requestType: IOURequestType, iouType: IOUType, transactionID: string, reportID: string, iouAction?: IOUAction, backToReport?: string): void {
     if (iouAction === CONST.IOU.ACTION.CATEGORIZE || iouAction === CONST.IOU.ACTION.SUBMIT || iouAction === CONST.IOU.ACTION.SHARE) {
@@ -673,6 +673,32 @@ function resolveEarlyReportID(isFromGlobalCreate: boolean, participants: Partici
     return firstParticipant?.reportID;
 }
 
+/** Parameters used to decide if a batch item should defer instant auto-submit. */
+type ShouldDeferAutoSubmitForBatchItemParams = {
+    /** Next transaction in the batch, or undefined when the next receipt has no draft transaction. */
+    nextTransaction: OnyxEntry<Transaction>;
+    hasNextItem: boolean;
+    /** True when the batch targets an existing expense report rather than a chat report. */
+    isFromExistingReport: boolean;
+    isASAPSubmitBetaEnabled: boolean;
+    /** IOU action for the batch, used to keep tracked-expense submissions on the same report. */
+    action?: IOUAction;
+};
+
+/**
+ * Whether an item in a multi-expense batch should defer instant auto-submit.
+ * Defers only when another item follows and will land on the same report, so earlier items do not close
+ * the report before the rest arrive and no report stays open when the next item starts a new report.
+ */
+function shouldDeferAutoSubmitForBatchItem({nextTransaction, hasNextItem, isFromExistingReport, isASAPSubmitBetaEnabled, action}: ShouldDeferAutoSubmitForBatchItemParams): boolean {
+    if (!hasNextItem) {
+        return false;
+    }
+
+    // Under ASAP Submit, a SmartScan next item starts a new report unless it targets an existing report or submits a tracked expense.
+    return !willScanRequestCreateNewReport(isScanRequest(nextTransaction), isASAPSubmitBetaEnabled, action, isFromExistingReport);
+}
+
 export {
     calculateAmount,
     calculateSplitAmountFromPercentage,
@@ -704,4 +730,5 @@ export {
     reportHasRealPolicy,
     pickReportForPolicy,
     getSelectedWorkspacePolicyID,
+    shouldDeferAutoSubmitForBatchItem,
 };
