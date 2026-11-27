@@ -878,6 +878,9 @@ const ONYXKEYS = {
     /** Signals the UI to show the Enable Global Reimbursements modal when a pay attempt fails because the workspace USD VBBA is not set up on Corpay */
     RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL: 'enableGlobalReimbursementsModal',
 
+    /** Signals the UI to show the Wise quote and pay again when a pay attempt without a quote fails because the payment converts currency */
+    RAM_ONLY_WISE_QUOTE_REQUIRED: 'wiseQuoteRequired',
+
     /** Signals the UI to show the "Cannot disable category" modal when the backend rejects disabling categories some members can't do without */
     RAM_ONLY_MEMBERS_NEED_CATEGORY_MODAL: 'membersNeedCategoryModal',
 
@@ -2115,6 +2118,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.LAST_FULL_RECONNECT_TIME]: string;
     [ONYXKEYS.TRAVEL_PROVISIONING]: OnyxTypes.TravelProvisioning;
     [ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL]: OnyxTypes.EnableGlobalReimbursementsModal;
+    [ONYXKEYS.RAM_ONLY_WISE_QUOTE_REQUIRED]: OnyxTypes.WiseQuoteRequired;
     [ONYXKEYS.RAM_ONLY_MEMBERS_NEED_CATEGORY_MODAL]: OnyxTypes.MembersNeedCategoryModal;
     [ONYXKEYS.RAM_ONLY_DYNAMIC_FORM_SENSITIVE_ANSWERS]: OnyxTypes.DynamicFormSensitiveAnswers;
     [ONYXKEYS.IS_LOADING_BILL_WHEN_DOWNGRADE]: boolean | undefined;

@@ -96,4 +96,32 @@ describe('usePayWithWiseQuote', () => {
         expect(onPaymentSent).toHaveBeenCalledTimes(1);
         expect(mockPayMoneyRequest.mock.invocationCallOrder.at(0)).toBeLessThan(onPaymentSent.mock.invocationCallOrder.at(0) ?? 0);
     });
+
+    it('pays without a quote when the server answers that the payment needs none', () => {
+        // Given a payment whose quote modal is open
+        mockShouldConfirmWiseQuoteBeforePaying.mockReturnValue(true);
+        const {result} = renderHook(() => usePayWithWiseQuote());
+        result.current.payWithWiseQuote(buildParams(jest.fn()));
+
+        // When the server answers with no quote and the admin pays
+        mockShowWiseQuoteConfirmModal.mock.calls.at(0)?.at(0)?.onConfirm(undefined);
+
+        // Then the report is paid without a quote, which the backend accepts for a payment that doesn't go through Wise
+        expect(mockPayMoneyRequest).toHaveBeenCalledWith(expect.objectContaining({wiseQuoteID: undefined}));
+    });
+
+    it('shows the quote before paying again when the backend asked for one, whatever App decided before', () => {
+        // Given a payment App sent without a quote, which the backend rejected because the payment converts currency
+        mockShouldConfirmWiseQuoteBeforePaying.mockReturnValue(false);
+        const {result} = renderHook(() => usePayWithWiseQuote());
+
+        // When it is paid again
+        result.current.confirmWiseQuoteAndPay(buildParams(jest.fn()));
+
+        // Then the quote is priced for the same account and shown, and the report is paid only with the confirmed quote
+        expect(getWiseQuote).toHaveBeenCalledWith(expect.objectContaining({reportID: '1'}), true, PAYING_BANK_ACCOUNT_ID, undefined);
+        expect(mockPayMoneyRequest).not.toHaveBeenCalled();
+        mockShowWiseQuoteConfirmModal.mock.calls.at(0)?.at(0)?.onConfirm(WISE_QUOTE_ID);
+        expect(mockPayMoneyRequest).toHaveBeenCalledWith(expect.objectContaining({wiseQuoteID: WISE_QUOTE_ID}));
+    });
 });

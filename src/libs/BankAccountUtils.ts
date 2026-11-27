@@ -589,6 +589,7 @@ function showUnlockAlreadyRequestedModal(showConfirmModal: ReturnType<typeof use
 
 export {
     getBankAccountIDForPayment,
+    getWiseBankAccountForPayment,
     getBusinessBankAccountForPayment,
     getBankAccountSearchLabel,
     isFilterableBankAccount,

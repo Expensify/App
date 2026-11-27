@@ -22,6 +22,7 @@ import {PlaybackContextProvider} from '@components/VideoPlayerContexts/PlaybackC
 import {VideoPopoverMenuContextProvider} from '@components/VideoPlayerContexts/VideoPopoverMenuContext';
 import {VolumeContextProvider} from '@components/VideoPlayerContexts/VolumeContext';
 import WideRHPContextProvider from '@components/WideRHPContextProvider';
+import WiseQuoteRequiredPayModal from '@components/WiseQuoteRequiredPayModal';
 
 import useGPSInProgressModal from '@hooks/useGPSInProgressModal';
 import useGPSTripStateChecker from '@hooks/useGPSTripStateChecker';
@@ -438,6 +439,7 @@ function AuthScreens() {
                     <SearchRouterModal />
                     <OpenAppFailureModal />
                     <EnableGlobalReimbursementsPayModal />
+                    <WiseQuoteRequiredPayModal />
                     <MembersNeedCategoryModal />
                     <PriorityModeController />
                 </ComposeProviders>

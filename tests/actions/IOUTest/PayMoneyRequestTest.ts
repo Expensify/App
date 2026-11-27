@@ -3,8 +3,10 @@ import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginPro
 
 import {putOnHold} from '@libs/actions/IOU/Hold';
 import {cancelPayment, completePaymentOnboarding, markReportPaymentReceived, payMoneyRequest, payViaABA} from '@libs/actions/IOU/PayMoneyRequest';
+import type {PayMoneyRequestFunctionParams} from '@libs/actions/IOU/PayMoneyRequest';
 import {requestMoney} from '@libs/actions/IOU/TrackExpense';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
+import {takePaymentWithoutWiseQuote} from '@libs/actions/PaymentsWithoutWiseQuote';
 import {createWorkspace, generatePolicyID} from '@libs/actions/Policy/Policy';
 import {notifyNewAction} from '@libs/actions/Report/reportActionSubscribers';
 import * as APIActions from '@libs/API';
@@ -992,6 +994,55 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
                 mockFetch?.resume?.();
             });
+        });
+
+        it('keeps a payment sent from a Wise account without a quote, so it can be paid again with one', async () => {
+            // Given a Wise account set up for global reimbursements
+            const bankAccountID = 999;
+            const chatReport = {...createRandomReport(0, undefined), lastReadTime: DateUtils.getDBTime(), lastVisibleActionCreated: DateUtils.getDBTime()};
+            const iouReport = {...createRandomReport(1, undefined), chatType: undefined, type: CONST.REPORT.TYPE.EXPENSE, total: 10};
+            const payment: PayMoneyRequestFunctionParams = {
+                bankAccountList: {
+                    [bankAccountID]: {
+                        bankCurrency: CONST.CURRENCY.USD,
+                        bankCountry: CONST.COUNTRY.US,
+                        accountData: {additionalData: {isGlobalReimbursementEnabled: true, globalReimbursementProvider: CONST.GLOBAL_REIMBURSEMENT_PROVIDER.WISE}},
+                    },
+                },
+                isWiseReimbursementsBetaEnabled: true,
+                methodID: bankAccountID,
+                isASAPSubmitBetaEnabled: false,
+                conciergeChat: undefined,
+                paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+                chatReport,
+                iouReport,
+                iouReportTransactions: [],
+                introSelected: undefined,
+                currentUserAccountID: CARLOS_ACCOUNT_ID,
+                currentUserLogin: CARLOS_EMAIL,
+                isSelfTourViewed: false,
+                userBillingGracePeriodEnds: undefined,
+                amountOwed: 0,
+                chatReportPolicy: chatReportPolicyFromChat(chatReport),
+                chatReportActions: undefined,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                rules: undefined,
+            };
+            mockFetch?.pause?.();
+
+            // When the admin pays from it without a quote, and then with a confirmed quote
+            payMoneyRequest(payment);
+            const keptPayment = takePaymentWithoutWiseQuote(iouReport.reportID);
+            payMoneyRequest({...payment, wiseQuoteID: 'quote'});
+            await waitForBatchedUpdates();
+
+            // Then only the payment without a quote is kept, since the backend can ask a quote only for that one
+            expect(keptPayment).toBe(payment);
+            expect(takePaymentWithoutWiseQuote(iouReport.reportID)).toBeUndefined();
+
+            mockFetch?.resume?.();
         });
 
         it('calls notifyNewAction for the top most report', () => {

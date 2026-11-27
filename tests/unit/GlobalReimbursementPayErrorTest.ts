@@ -1,9 +1,12 @@
 import {followGlobalReimbursementsBulkPay} from '@libs/actions/GlobalReimbursementsBulkPay';
+import type {PayMoneyRequestFunctionParams} from '@libs/actions/IOU/PayMoneyRequest';
+import {followPaymentWithoutWiseQuote, takePaymentWithoutWiseQuote} from '@libs/actions/PaymentsWithoutWiseQuote';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import globalReimbursementPayError from '@libs/Middleware/GlobalReimbursementPayError';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Report} from '@src/types/onyx';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 import type Request from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
@@ -12,6 +15,7 @@ import type {OnyxKey} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
+import createMock from '../utils/createMock';
 import getOnyxValue from '../utils/getOnyxValue';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -70,6 +74,17 @@ function buildEnableGlobalReimbursementsModalResponse(jsonCode: number | string 
             },
         ],
     } as Response<OnyxKey>;
+}
+
+function buildWiseQuoteRequiredResponse(): Response<OnyxKey> {
+    return {
+        jsonCode: CONST.JSON_CODE.EXP_ERROR,
+        onyxData: [{onyxMethod: 'set', key: ONYXKEYS.RAM_ONLY_WISE_QUOTE_REQUIRED, value: {reportID: IOU_REPORT_ID}}],
+    };
+}
+
+function hasWiseQuoteRequiredSignal(response: Response<OnyxKey>): boolean {
+    return !!response.onyxData?.some((update) => update.key === ONYXKEYS.RAM_ONLY_WISE_QUOTE_REQUIRED);
 }
 
 function findFailureUpdate(request: Request<OnyxKey>, key: string) {
@@ -138,6 +153,88 @@ describe('GlobalReimbursementPayError middleware', () => {
 
             // Then the rejected report is listed next to the paid one
             expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL)).toEqual({...BANK_ACCOUNT, unpaidReportNames: ['Rejected report']});
+        });
+    });
+
+    describe('Wise quote required', () => {
+        const payment = createMock<PayMoneyRequestFunctionParams>({iouReport: createMock<Report>({reportID: IOU_REPORT_ID})});
+
+        afterEach(() => {
+            takePaymentWithoutWiseQuote(IOU_REPORT_ID);
+        });
+
+        it('keeps the signal and the payment, and drops the PAY action and the report error, when this tab sent the payment without a quote', async () => {
+            // Given a payment this tab sent from a Wise account without a quote, from Search, whose failureData puts a generic error on the report
+            followPaymentWithoutWiseQuote(IOU_REPORT_ID, payment);
+            const request = buildPayRequest();
+            const reportUpdate = findFailureUpdate(request, `${ONYXKEYS.COLLECTION.REPORT}${IOU_REPORT_ID}`);
+            if (reportUpdate) {
+                reportUpdate.value = {statusNum: CONST.REPORT.STATUS_NUM.OPEN, errors: {error: 'Generic error'}};
+            }
+            const response = buildWiseQuoteRequiredResponse();
+
+            // When the backend rejects it because the payment converts currency
+            await globalReimbursementPayError(Promise.resolve(response), request, false);
+
+            // Then the quote opens instead of an error, and the payment waits to be paid again with the confirmed quote
+            expect(hasWiseQuoteRequiredSignal(response)).toBe(true);
+            expect(findFailureUpdate(request, `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${IOU_REPORT_ID}`)?.value).toEqual({
+                [REPORT_ACTION_ID]: null,
+                [OTHER_REPORT_ACTION_ID]: {errors: {error: 'Other error'}},
+            });
+            expect(findFailureUpdate(request, `${ONYXKEYS.COLLECTION.REPORT}${IOU_REPORT_ID}`)?.value).toEqual({statusNum: CONST.REPORT.STATUS_NUM.OPEN});
+            expect(takePaymentWithoutWiseQuote(IOU_REPORT_ID)).toBe(payment);
+        });
+
+        it('drops the signal and keeps the error when this tab did not send the payment', async () => {
+            // Given a payment this tab has nothing to pay again with, such as one sent from another tab
+            const request = buildPayRequest();
+            const response = buildWiseQuoteRequiredResponse();
+
+            // When the backend asks for a quote
+            await globalReimbursementPayError(Promise.resolve(response), request, false);
+
+            // Then the admin sees the failed payment instead of nothing
+            expect(hasWiseQuoteRequiredSignal(response)).toBe(false);
+            expect(findFailureUpdate(request, `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${IOU_REPORT_ID}`)?.value).toEqual({
+                [REPORT_ACTION_ID]: {errors: {error: 'Failed to pay'}},
+                [OTHER_REPORT_ACTION_ID]: {errors: {error: 'Other error'}},
+            });
+        });
+
+        it('drops the signal and keeps the error for a bulk payment, so bulk pay does not open one quote per report', async () => {
+            // Given a bulk pay click that pays the report from a Wise account without a quote
+            followGlobalReimbursementsBulkPay({
+                bankAccount: {bankAccountID: 100, bankCountry: CONST.COUNTRY.US, bankCurrency: CONST.CURRENCY.USD},
+                pendingReportNames: new Map([[IOU_REPORT_ID, 'Report']]),
+                skippedReportNames: [],
+                hasPaidReports: false,
+            });
+            followPaymentWithoutWiseQuote(IOU_REPORT_ID, payment);
+            const request = buildPayRequest();
+            const response = buildWiseQuoteRequiredResponse();
+
+            // When the backend asks for a quote
+            await globalReimbursementPayError(Promise.resolve(response), request, false);
+
+            // Then the report keeps its failed payment and the payment is forgotten
+            expect(hasWiseQuoteRequiredSignal(response)).toBe(false);
+            expect(findFailureUpdate(request, `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${IOU_REPORT_ID}`)?.value).toEqual({
+                [REPORT_ACTION_ID]: {errors: {error: 'Failed to pay'}},
+                [OTHER_REPORT_ACTION_ID]: {errors: {error: 'Other error'}},
+            });
+            expect(takePaymentWithoutWiseQuote(IOU_REPORT_ID)).toBeUndefined();
+        });
+
+        it('forgets the payment once it goes through', async () => {
+            // Given a payment this tab sent from a Wise account without a quote
+            followPaymentWithoutWiseQuote(IOU_REPORT_ID, payment);
+
+            // When the backend pays it
+            await globalReimbursementPayError(Promise.resolve({jsonCode: CONST.JSON_CODE.SUCCESS, onyxData: []}), buildPayRequest(), false);
+
+            // Then nothing is kept to pay it again
+            expect(takePaymentWithoutWiseQuote(IOU_REPORT_ID)).toBeUndefined();
         });
     });
 

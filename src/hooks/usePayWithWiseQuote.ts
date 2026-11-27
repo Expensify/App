@@ -14,13 +14,19 @@ type PayWithWiseQuoteParams = PayMoneyRequestFunctionParams & {
 function usePayWithWiseQuote() {
     const {showWiseQuoteConfirmModal} = useWiseQuoteConfirmModal();
 
-    const payWithWiseQuote = ({onPaymentSent, ...params}: PayWithWiseQuoteParams) => {
+    const payWithoutQuote = ({onPaymentSent, ...params}: PayWithWiseQuoteParams) => {
+        payMoneyRequest(params);
+        onPaymentSent?.();
+    };
+
+    /** Shows the Wise quote for the admin to confirm and pays once they do, also when the backend asked for a quote App didn't expect */
+    const confirmWiseQuoteAndPay = (paymentParams: PayWithWiseQuoteParams) => {
+        const {onPaymentSent, ...params} = paymentParams;
         const iouReport = params.iouReport;
         const reportID = iouReport?.reportID;
         const bankAccountID = getBankAccountIDForPayment(params);
-        if (!iouReport || !reportID || !bankAccountID || !shouldConfirmWiseQuoteBeforePaying(params)) {
-            payMoneyRequest(params);
-            onPaymentSent?.();
+        if (!iouReport || !reportID || !bankAccountID) {
+            payWithoutQuote(paymentParams);
             return;
         }
 
@@ -38,7 +44,15 @@ function usePayWithWiseQuote() {
         });
     };
 
-    return {payWithWiseQuote};
+    const payWithWiseQuote = (paymentParams: PayWithWiseQuoteParams) => {
+        if (shouldConfirmWiseQuoteBeforePaying(paymentParams)) {
+            confirmWiseQuoteAndPay(paymentParams);
+            return;
+        }
+        payWithoutQuote(paymentParams);
+    };
+
+    return {payWithWiseQuote, confirmWiseQuoteAndPay};
 }
 
 export default usePayWithWiseQuote;

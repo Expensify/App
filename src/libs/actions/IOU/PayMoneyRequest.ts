@@ -7,7 +7,7 @@ import * as API from '@libs/API';
 import type {MarkReportPaymentReceivedParams, PayInvoiceParams, PayMoneyRequestParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
-import {getBusinessBankAccountForPayment, shouldSetUpGlobalReimbursementsBeforePaying} from '@libs/BankAccountUtils';
+import {getBusinessBankAccountForPayment, getWiseBankAccountForPayment, shouldSetUpGlobalReimbursementsBeforePaying} from '@libs/BankAccountUtils';
 import DateUtils from '@libs/DateUtils';
 import type HttpsError from '@libs/Errors/HttpsError';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
@@ -37,6 +37,7 @@ import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {shouldSplitScanFailedTransactions} from '@libs/TransactionUtils';
 
 import {showEnableGlobalReimbursementsModal} from '@userActions/App';
+import {followPaymentWithoutWiseQuote} from '@userActions/PaymentsWithoutWiseQuote';
 import {buildPolicyData, generatePolicyID} from '@userActions/Policy/Policy';
 import type {BuildPolicyDataKeys} from '@userActions/Policy/Policy';
 import {completeOnboarding} from '@userActions/Report';
@@ -1078,6 +1079,11 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         if (shouldPlaySuccessSound) {
             playSound(SOUNDS.SUCCESS);
         }
+    }
+
+    // App can't always tell a Wise payment converts currency, so the payment is kept to pay again with a quote if the backend asks for one
+    if (!wiseQuoteID && iouReport?.reportID && getWiseBankAccountForPayment(params)) {
+        followPaymentWithoutWiseQuote(iouReport.reportID, params);
     }
     API.write(apiCommand, {...payMoneyRequestParams, wiseQuoteID}, mergeAdditionalPayOnyxData(requestOnyxData, additionalOnyxData));
     notifyNewAction(!full ? (Navigation.getTopmostReportId() ?? iouReport?.reportID) : iouReport?.reportID, undefined, true);
