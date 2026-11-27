@@ -19,10 +19,12 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import React from 'react';
 import {View} from 'react-native';
 
-import type {RecentlyAddedExpense} from './useRecentlyAddedData';
+import type {RecentlyAddedItem} from './useRecentlyAddedData';
+
+import {useRecentlyAddedExpense} from './useRecentlyAddedData';
 
 type RecentlyAddedRowProps = {
-    expense: RecentlyAddedExpense;
+    item: RecentlyAddedItem;
 
     /** Called when the row is pressed */
     onPress: () => void;
@@ -37,10 +39,15 @@ type RecentlyAddedRowProps = {
     rowStyle: StyleProp<ViewStyle>;
 };
 
-function RecentlyAddedRow({expense, onPress, shouldShowSeparator, shouldShowReceiptPreview, rowStyle}: RecentlyAddedRowProps) {
+function RecentlyAddedRow({item, onPress, shouldShowSeparator, shouldShowReceiptPreview, rowStyle}: RecentlyAddedRowProps) {
     const styles = useThemeStyles();
     const {convertToDisplayString} = useCurrencyListActions();
     const {dateFnsLocale, translate} = useLocalize();
+    const expense = useRecentlyAddedExpense(item);
+
+    if (!expense) {
+        return null;
+    }
 
     const formattedDate = DateUtils.formatToMonthDayWithOptionalYearInUTC(expense.created, dateFnsLocale);
 

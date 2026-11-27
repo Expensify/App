@@ -5,7 +5,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {CAROUSEL_SOURCE, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
-import {getSubmitterUnfixableViolationNames, isOneTransactionReport, isReportEligibleForViolationFix} from '@libs/ReportUtils';
+import {getSubmitterUnfixableViolationNames, isOneTransactionReport, isOpenOrProcessingReport, isReportEligibleForViolationFix} from '@libs/ReportUtils';
 import {getVisibleTransactionViolations} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -91,6 +91,39 @@ function hasReviewableViolation(violations: TransactionViolations | null | undef
     });
 }
 
+/** The current user's open or processing expense reports, a superset of the reports `getFlaggedExpenses` accepts. */
+function pickOwnExpenseReports(allReports: OnyxCollection<Report>, currentUserAccountID: number): OnyxCollection<Report> {
+    const ownExpenseReports: OnyxCollection<Report> = {};
+    for (const [key, report] of Object.entries(allReports ?? {})) {
+        if (report?.type === CONST.REPORT.TYPE.EXPENSE && report.ownerAccountID === currentUserAccountID && isOpenOrProcessingReport(report)) {
+            ownExpenseReports[key] = report;
+        }
+    }
+    return ownExpenseReports;
+}
+
+function pickTransactionsOnReports(allTransactions: OnyxCollection<Transaction>, reports: OnyxCollection<Report>): OnyxCollection<Transaction> {
+    const transactions: OnyxCollection<Transaction> = {};
+    for (const [key, transaction] of Object.entries(allTransactions ?? {})) {
+        if (transaction?.reportID && reports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`]) {
+            transactions[key] = transaction;
+        }
+    }
+    return transactions;
+}
+
+function pickViolationsForTransactions(allTransactionViolations: OnyxCollection<TransactionViolations>, transactions: OnyxCollection<Transaction>): OnyxCollection<TransactionViolations> {
+    const violations: OnyxCollection<TransactionViolations> = {};
+    for (const transaction of Object.values(transactions ?? {})) {
+        const key = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}` as const;
+        const transactionViolations = allTransactionViolations?.[key];
+        if (transactionViolations) {
+            violations[key] = transactionViolations;
+        }
+    }
+    return violations;
+}
+
 // Scans the current user's still-fixable expense reports for transactions with a reviewable violation.
 function getFlaggedExpenses(
     allReports: OnyxCollection<Report>,
@@ -142,16 +175,23 @@ function getFlaggedExpenses(
  * Powers the "Review X expenses" row: scans the current user's OPEN expense reports for flagged transactions
  * and exposes a handler that opens the first one's transaction thread (single-expense RHP + review carousel).
  *
- * `useIsFocused()` gates the O(n) scan — while the screen is blurred it is skipped and the row keeps its last
- * count. The Onyx subscriptions stay live (they cannot be paused) but only trigger a cheap re-render.
+ * The selectors narrow the collections on every write, so writes to other reports and expenses don't re-render.
+ * `useIsFocused()` gates only the flagged-expense scan: while the screen is blurred it is skipped and the row keeps
+ * its last count.
  */
 function useReviewFlaggedExpenses(): ReviewFlaggedExpenses {
     const isFocused = useIsFocused();
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
-    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [session] = useOnyx(ONYXKEYS.SESSION);
+    const currentUserAccountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+    // Narrowed to what the scan can accept, so writes to other reports and expenses don't re-render Home.
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (reports: OnyxCollection<Report>) => pickOwnExpenseReports(reports, currentUserAccountID)});
+    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+        selector: (transactions: OnyxCollection<Transaction>) => pickTransactionsOnReports(transactions, allReports),
+    });
+    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {
+        selector: (violations: OnyxCollection<TransactionViolations>) => pickViolationsForTransactions(violations, allTransactions),
+    });
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     // Catches a forward that lands via REPORT_ACTIONS alone, with no report write to trigger a re-render.
     const [forwardedSinceLastSubmitReportIDs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {selector: forwardedSinceLastSubmitReportIDsSelector});
 

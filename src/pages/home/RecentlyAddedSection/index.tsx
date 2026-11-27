@@ -26,12 +26,13 @@ import {useIsFocused} from '@react-navigation/native';
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {fullPolicySnapshotLastModifiedByPolicyIDSelector} from '@selectors/Policy';
 import React from 'react';
+import Onyx from 'react-native-onyx';
 
-import type {RecentlyAddedExpense} from './useRecentlyAddedData';
+import type {RecentlyAddedItem} from './useRecentlyAddedData';
 
 import RecentlyAddedPlaceholder from './RecentlyAddedPlaceholder';
 import RecentlyAddedRow from './RecentlyAddedRow';
-import {useRecentlyAddedData} from './useRecentlyAddedData';
+import {buildRecentlyAddedExpense, useRecentlyAddedData} from './useRecentlyAddedData';
 
 function RecentlyAddedSection() {
     const {transactions, isAwaitingFirstResult} = useRecentlyAddedData();
@@ -47,7 +48,7 @@ function RecentlyAddedSection() {
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [personalDetails] = usePersonalDetailsByIDs([
         currentUserAccountID,
-        ...transactions.flatMap((transaction) => [transaction.reportAction?.actorAccountID, transaction.report?.ownerAccountID]),
+        ...transactions.flatMap((transaction) => [transaction.reportAction?.actorAccountID, transaction.snapshotReport?.ownerAccountID]),
     ]);
     const isAnonymousUser = useIsAnonymousUser();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -59,7 +60,24 @@ function RecentlyAddedSection() {
     const hasExpenses = transactions.length > 0;
     const listBottomPadding = shouldUseNarrowLayout ? styles.pb2 : styles.pb5;
 
-    const openExpense = (expense: RecentlyAddedExpense) => {
+    const openExpense = async (item: RecentlyAddedItem) => {
+        // Rows read their own live data, so the full siblings are read only now, on press.
+        const siblings = await Promise.all(
+            transactions.map(async (sibling) => {
+                // eslint-disable-next-line rulesdir/no-onyx-get-snapshot-key -- Home is never inside a Search scope, so the rows read live data too
+                const [localTransaction, localReport] = await Onyx.multiGet([
+                    `${ONYXKEYS.COLLECTION.TRANSACTION}${sibling.transactionID}`,
+                    `${ONYXKEYS.COLLECTION.REPORT}${sibling.reportID}`,
+                ] as const);
+                return buildRecentlyAddedExpense(sibling, localTransaction, localReport, translate);
+            }),
+        );
+        const resolvedSiblings = siblings.filter((sibling) => !!sibling);
+        const expense = resolvedSiblings.find((sibling) => sibling.transactionID === item.transactionID);
+        if (!expense) {
+            return;
+        }
+
         // Resolve only the tapped expense now. getReportIDToOpenForExpense may create a transaction thread, so
         // resolving every sibling up front would create a thread for each multi-expense sibling on a single tap.
         // Instead, seed the cheap snapshot-derived descriptors and let the carousel resolve each sibling lazily,
@@ -80,7 +98,7 @@ function RecentlyAddedSection() {
         // pending and re-adds it if the delete rolls back, both from its live transaction. A descriptor would keep
         // it in the arrows after the delete syncs and its live copy is gone, landing the arrow on "not here".
         const siblingTransactionIDs = transactions.map((sibling) => sibling.transactionID);
-        const navigableSiblings = transactions.filter((sibling) => sibling.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        const navigableSiblings = resolvedSiblings.filter((sibling) => sibling.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
         const siblingDescriptorsByTransactionID = navigableSiblings.reduce<Record<string, TransactionThreadNavigationDescriptor>>((map, sibling) => {
             // eslint-disable-next-line no-param-reassign
             map[sibling.transactionID] = {
@@ -144,11 +162,13 @@ function RecentlyAddedSection() {
             containerStyles={hasExpenses || isAwaitingFirstResult ? listBottomPadding : undefined}
         >
             {hasExpenses ? (
-                transactions.map((expense, index) => (
+                transactions.map((item, index) => (
                     <RecentlyAddedRow
-                        key={expense.transactionID}
-                        expense={expense}
-                        onPress={() => openExpense(expense)}
+                        key={item.transactionID}
+                        item={item}
+                        onPress={() => {
+                            openExpense(item);
+                        }}
                         shouldShowSeparator={index < transactions.length - 1}
                         shouldShowReceiptPreview={isFocused}
                         rowStyle={cardPaddingHorizontal}

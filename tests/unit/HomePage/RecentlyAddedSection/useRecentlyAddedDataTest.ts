@@ -24,8 +24,8 @@ import useNetwork from '@hooks/useNetwork';
 import {search} from '@libs/actions/Search';
 import {buildQueryStringFromFilterFormValues, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
-import type {RecentlyAddedExpense} from '@pages/home/RecentlyAddedSection/useRecentlyAddedData';
-import {useRecentlyAddedData} from '@pages/home/RecentlyAddedSection/useRecentlyAddedData';
+import type {RecentlyAddedItem} from '@pages/home/RecentlyAddedSection/useRecentlyAddedData';
+import {buildRecentlyAddedExpense, useRecentlyAddedData} from '@pages/home/RecentlyAddedSection/useRecentlyAddedData';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -174,9 +174,14 @@ function failSearch() {
     onyxData[`${ONYXKEYS.COLLECTION.SNAPSHOT}${SNAPSHOT_HASH}`] = previous ? failed : {search: failed.search, errors: failed.errors};
 }
 
+/** The typed copies of the seeded local collections, read back when resolving a row. */
+let localTransactionCollection: Record<string, Transaction> = {};
+let localReportCollection: Record<string, Report> = {};
+
 /** Seeds the local `transactions_` collection (mirrors what optimistic expense creation writes to Onyx). */
 function setupLocalTransactions(transactions: Transaction[]) {
     const collection: Record<string, Transaction> = {};
+    localTransactionCollection = collection;
     for (const transaction of transactions) {
         collection[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = transaction;
     }
@@ -186,20 +191,37 @@ function setupLocalTransactions(transactions: Transaction[]) {
 /** Seeds the local `report_` collection (mirrors the optimistic parent reports written alongside new expenses). */
 function setupLocalReports(reports: Report[]) {
     const collection: Record<string, Report> = {};
+    localReportCollection = collection;
     for (const report of reports) {
         collection[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = report;
     }
     onyxData[ONYXKEYS.COLLECTION.REPORT] = collection;
 }
 
-function resultTransactionIDs(transactions: RecentlyAddedExpense[]): string[] {
+function resultTransactionIDs(transactions: RecentlyAddedItem[]): string[] {
     return transactions.map((t) => t.transactionID);
+}
+
+/** Resolves the first row the way the row itself does, from its live transaction and report. */
+function firstExpense({transactions}: {transactions: RecentlyAddedItem[]}) {
+    const item = transactions.at(0);
+    if (!item) {
+        return undefined;
+    }
+    return buildRecentlyAddedExpense(
+        item,
+        localTransactionCollection[`${ONYXKEYS.COLLECTION.TRANSACTION}${item.transactionID}`],
+        localReportCollection[`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`],
+        (key) => key,
+    );
 }
 
 beforeEach(() => {
     for (const k of Object.keys(onyxData)) {
         delete onyxData[k];
     }
+    localTransactionCollection = {};
+    localReportCollection = {};
     mockUseOnyx.mockClear();
     mockedSearch.mockClear();
     mockedUseIsTabFocused.mockReturnValue(true);
@@ -308,7 +330,7 @@ describe('useRecentlyAddedData — live report updates', () => {
         rerender({});
 
         // Then the row receives the current settled status instead of the stale snapshot status
-        expect(result.current.transactions.at(0)?.report?.statusNum).toBe(CONST.REPORT.STATUS_NUM.REIMBURSED);
+        expect(firstExpense(result.current)?.report?.statusNum).toBe(CONST.REPORT.STATUS_NUM.REIMBURSED);
     });
 
     it('uses the current report after a failed scan is moved during an offline payment', () => {
@@ -345,7 +367,7 @@ describe('useRecentlyAddedData — live report updates', () => {
 
         // Then the row stays associated with the new unpaid report instead of inheriting the settled status of the original report
         expect(result.current.transactions.at(0)?.reportID).toBe('report_unpaid');
-        expect(result.current.transactions.at(0)?.report?.statusNum).toBe(CONST.REPORT.STATUS_NUM.OPEN);
+        expect(firstExpense(result.current)?.report?.statusNum).toBe(CONST.REPORT.STATUS_NUM.OPEN);
     });
 });
 
@@ -382,7 +404,7 @@ describe('useRecentlyAddedData — locally pending (offline-created) expenses', 
 
         const {result} = renderHook(() => useRecentlyAddedData());
 
-        expect(result.current.transactions.at(0)?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+        expect(firstExpense(result.current)?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
     });
 
     it('excludes a locally-pending expense whose local parent report is owned by another account (e.g. sent money)', () => {
@@ -489,9 +511,9 @@ describe('useRecentlyAddedData — offline-edited expenses', () => {
 
         // A single row (no duplicate), reflecting the optimistic edit and flagged as a pending UPDATE.
         expect(resultTransactionIDs(result.current.transactions)).toEqual(['edited']);
-        expect(result.current.transactions.at(0)?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
-        expect(result.current.transactions.at(0)?.amount).toBe(2500);
-        expect(result.current.transactions.at(0)?.merchant).toBe('New Merchant');
+        expect(firstExpense(result.current)?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+        expect(firstExpense(result.current)?.amount).toBe(2500);
+        expect(firstExpense(result.current)?.merchant).toBe('New Merchant');
     });
 
     it('leaves a fully-synced expense without a pending action', () => {
@@ -499,7 +521,7 @@ describe('useRecentlyAddedData — offline-edited expenses', () => {
 
         const {result} = renderHook(() => useRecentlyAddedData());
 
-        expect(result.current.transactions.at(0)?.pendingAction).toBeNull();
+        expect(firstExpense(result.current)?.pendingAction).toBeNull();
     });
 });
 
@@ -511,7 +533,7 @@ describe('useRecentlyAddedData — deleted expenses', () => {
         const {result} = renderHook(() => useRecentlyAddedData());
 
         expect(resultTransactionIDs(result.current.transactions)).toEqual(['doomed']);
-        expect(result.current.transactions.at(0)?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        expect(firstExpense(result.current)?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     });
 
     it('hides the row once the delete succeeds, even though the stale snapshot still lists the expense', () => {
@@ -549,7 +571,7 @@ describe('useRecentlyAddedData — deleted expenses', () => {
         rerender({});
 
         expect(resultTransactionIDs(result.current.transactions)).toEqual(['doomed']);
-        expect(result.current.transactions.at(0)?.pendingAction).toBeNull();
+        expect(firstExpense(result.current)?.pendingAction).toBeNull();
     });
 });
 
@@ -562,7 +584,7 @@ describe('useRecentlyAddedData — amount sign', () => {
 
         const {result} = renderHook(() => useRecentlyAddedData());
 
-        expect(result.current.transactions.at(0)?.amount).toBe(-1000);
+        expect(firstExpense(result.current)?.amount).toBe(-1000);
     });
 
     it('preserves the negative sign for unreported (tracked) credits/refunds', () => {
@@ -570,7 +592,7 @@ describe('useRecentlyAddedData — amount sign', () => {
 
         const {result} = renderHook(() => useRecentlyAddedData());
 
-        expect(result.current.transactions.at(0)?.amount).toBe(-1000);
+        expect(firstExpense(result.current)?.amount).toBe(-1000);
     });
 
     it('negates the inverted sign of expense-report transactions', () => {
@@ -581,7 +603,7 @@ describe('useRecentlyAddedData — amount sign', () => {
 
         const {result} = renderHook(() => useRecentlyAddedData());
 
-        expect(result.current.transactions.at(0)?.amount).toBe(-1000);
+        expect(firstExpense(result.current)?.amount).toBe(-1000);
     });
 
     it('returns the absolute amount for non self-DM, non expense-report transactions', () => {
@@ -592,7 +614,7 @@ describe('useRecentlyAddedData — amount sign', () => {
 
         const {result} = renderHook(() => useRecentlyAddedData());
 
-        expect(result.current.transactions.at(0)?.amount).toBe(1000);
+        expect(firstExpense(result.current)?.amount).toBe(1000);
     });
 });
 
