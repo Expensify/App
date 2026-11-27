@@ -22,8 +22,11 @@ import {
     getOriginalCurrencyForDisplay,
     getTag,
     getTotalForDisplay,
+    isFromCreditCardImport,
     isOnHold,
+    isPerDiemRequest,
     isScanning,
+    isTimeRequest,
 } from './TransactionUtils';
 import getFormattedPostedDate from './TransactionUtils/getFormattedPostedDate';
 import {getTaxCodeForDisplay} from './TransactionUtils/tax';
@@ -80,6 +83,10 @@ function getMoneyRequestAdditionalFields({
                 break;
             }
             case CONST.SEARCH.TABLE_COLUMNS.POSTED: {
+                // The Posted column applies to card transactions, so it should be omitted from cash expenses.
+                if (!isFromCreditCardImport(transaction)) {
+                    break;
+                }
                 const date = getFormattedPostedDate(transaction.posted);
                 const value = date ? DateUtils.formatToLongDateInUTC(date, dateFnsLocale) : '';
                 fields.push({column, value});
@@ -89,6 +96,10 @@ function getMoneyRequestAdditionalFields({
                 fields.push({column, value: getMCCForDisplay(transaction.mcc)});
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.TAX_CODE:
+                // Existing tax rules exclude per diem and time expenses, so the Tax code field does not apply to them.
+                if (isPerDiemRequest(transaction) || isTimeRequest(transaction)) {
+                    break;
+                }
                 fields.push({column, value: getTaxCodeForDisplay(transaction, policy)});
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.HELD:

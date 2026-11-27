@@ -1,4 +1,4 @@
-import {act, render, screen, waitFor} from '@testing-library/react-native';
+import {act, fireEvent, render, screen, waitFor, within} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
@@ -6,6 +6,9 @@ import MoneyRequestView from '@components/ReportActionItem/MoneyRequestView';
 import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperStatusContext';
 
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import Clipboard from '@libs/Clipboard';
+import type * as DeviceCapabilities from '@libs/DeviceCapabilities';
 
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 
@@ -28,6 +31,20 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 // The component renders outside a NavigationContainer here, so the screen-bound hook cannot read focus.
 jest.mock('@hooks/useScreenBoundDynamicRoute', () => () => (suffix: string) => suffix);
+
+let mockIsHovered = false;
+
+jest.mock('@components/Hoverable', () => ({
+    __esModule: true,
+    default: ({children}: {children: ((isHovered: boolean) => React.ReactNode) | React.ReactNode}) => (typeof children === 'function' ? children(mockIsHovered) : children),
+}));
+
+jest.mock('@libs/DeviceCapabilities', () => ({
+    ...jest.requireActual<typeof DeviceCapabilities>('@libs/DeviceCapabilities'),
+    hasHoverSupport: jest.fn(() => true),
+}));
+
+jest.mock('@libs/Clipboard', () => ({setString: jest.fn()}));
 
 type MockMenuItemWithTopDescriptionProps = {
     description?: string;
@@ -191,6 +208,8 @@ describe('MoneyRequestView edit fields', () => {
             await Onyx.clear();
         });
         mockMenuItemWithTopDescription.mockClear();
+        mockIsHovered = false;
+        jest.mocked(Clipboard.setString).mockClear();
     });
 
     const setupTestData = async (isSettledReport = false) => {
@@ -298,6 +317,111 @@ describe('MoneyRequestView edit fields', () => {
         // Then Exchange rate disappears even though the transaction still has conversion data.
         expect(screen.queryByLabelText(fieldLabel('common.exchangeRate'))).not.toBeOnTheScreen();
         expect(screen.getByLabelText('common.mcc, 0012')).toBeOnTheScreen();
+    });
+
+    it('copies populated additional fields without making empty fields copyable', async () => {
+        // Given selected additional fields with a populated MCC and an empty withdrawal ID.
+        const threadReport = {...LHNTestUtils.getFakeReport(), parentReportID: expenseReportID, parentReportActionID};
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {mcc: '0012'});
+            await Onyx.set(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS, [CONST.SEARCH.TABLE_COLUMNS.MCC, CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID]);
+        });
+        mockIsHovered = true;
+
+        // When the user copies the displayed MCC from the expense details.
+        renderMoneyRequestView(threadReport);
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(within(screen.getByLabelText('common.mcc, 0012')).getByLabelText('common.copyToClipboard'), {nativeEvent: {}});
+
+        // Then the displayed value reaches the clipboard, while the empty field keeps its placeholder without a copy action.
+        expect(Clipboard.setString).toHaveBeenCalledWith('0012');
+        expect(screen.getByLabelText('common.withdrawalID')).toBeOnTheScreen();
+        expect(within(screen.getByLabelText('common.withdrawalID')).queryByLabelText('common.copyToClipboard')).not.toBeOnTheScreen();
+    });
+
+    it.each([
+        {name: 'cash', cardData: {cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME}, posted: '20261117', shouldShowPosted: false},
+        {name: 'company card', cardData: {cardID: 123, managedCard: true}, posted: '20261117', shouldShowPosted: true},
+        {name: 'personal card', cardData: {cardNumber: '1234'}, posted: '20261117', shouldShowPosted: true},
+        {name: 'card with no posted date yet', cardData: {cardID: 123, managedCard: true}, posted: undefined, shouldShowPosted: true},
+    ])('only shows the selected Posted field when applicable to a $name expense', async ({cardData, posted, shouldShowPosted}) => {
+        // Given a selected Posted column, whose date only applies to imported card expenses.
+        const threadReport = {...LHNTestUtils.getFakeReport(), parentReportID: expenseReportID, parentReportActionID};
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {...cardData, posted, mcc: '0012'});
+            await Onyx.set(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS, [CONST.SEARCH.TABLE_COLUMNS.POSTED, CONST.SEARCH.TABLE_COLUMNS.MCC]);
+        });
+
+        // When the expense details resolve the saved columns for this expense type.
+        renderMoneyRequestView(threadReport);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then card expenses retain Posted even before the date arrives, and other selected fields stay visible.
+        expect(!!screen.queryByLabelText(fieldLabel('search.filters.posted'))).toBe(shouldShowPosted);
+        expect(screen.getByLabelText('common.mcc, 0012')).toBeOnTheScreen();
+    });
+
+    it.each([
+        {name: 'per diem', transactionData: {iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM}},
+        {name: 'legacy per diem', transactionData: {comment: {customUnit: {name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL}}}},
+        {name: 'time', transactionData: {iouRequestType: CONST.IOU.REQUEST_TYPE.TIME}},
+    ])('hides the selected Tax code field for a $name expense', async ({transactionData}) => {
+        // Given a selected Tax code column and tax data on an expense type that never supports taxes.
+        const threadReport = {...LHNTestUtils.getFakeReport(), parentReportID: expenseReportID, parentReportActionID};
+        const taxPolicy = {tax: {trackingEnabled: true}, taxRates: {taxes: {TAX_10: {name: 'GST', value: '10%', previousTaxCode: 'old-tax-code'}}}};
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {...transactionData, taxCode: 'TAX_10', taxAmount: 500, mcc: '0012'});
+            await Onyx.set(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS, [CONST.SEARCH.TABLE_COLUMNS.TAX_CODE, CONST.SEARCH.TABLE_COLUMNS.MCC]);
+        });
+
+        // When this expense is opened in a workspace with tax tracking enabled.
+        renderMoneyRequestView(threadReport, taxPolicy);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then selecting a tax column does not introduce an inapplicable field or hide other selected fields.
+        expect(screen.queryByLabelText(fieldLabel('workspace.taxes.taxCode'))).not.toBeOnTheScreen();
+        expect(screen.getByLabelText('common.mcc, 0012')).toBeOnTheScreen();
+    });
+
+    it('keeps the selected Tax code field for an ordinary expense', async () => {
+        // Given an ordinary expense with a customized tax code, which remains applicable to this expense type.
+        const threadReport = {...LHNTestUtils.getFakeReport(), parentReportID: expenseReportID, parentReportActionID};
+        const taxPolicy = {tax: {trackingEnabled: true}, taxRates: {taxes: {TAX_10: {name: 'GST', value: '10%', previousTaxCode: 'old-tax-code'}}}};
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {taxCode: 'TAX_10', taxAmount: 500});
+            await Onyx.set(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS, [CONST.SEARCH.TABLE_COLUMNS.TAX_CODE]);
+        });
+
+        // When the user opens the expense with Tax code selected.
+        renderMoneyRequestView(threadReport, taxPolicy);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the visibility exclusions leave the ordinary expense's tax code available.
+        expect(screen.getByLabelText('workspace.taxes.taxCode, TAX_10')).toBeOnTheScreen();
+    });
+
+    it('keeps the selected Tax code field visible when an ordinary expense has no tax code', async () => {
+        // Given an ordinary expense without a tax code while the workspace has tax tracking enabled.
+        const threadReport = {...LHNTestUtils.getFakeReport(), parentReportID: expenseReportID, parentReportActionID};
+        const taxPolicy = {tax: {trackingEnabled: true}, taxRates: {taxes: {TAX_10: {name: 'GST', value: '10%', previousTaxCode: 'old-tax-code'}}}};
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {taxCode: '', taxAmount: 0});
+            await Onyx.set(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS, [CONST.SEARCH.TABLE_COLUMNS.TAX_CODE]);
+        });
+
+        // When the user opens the expense with Tax code selected.
+        renderMoneyRequestView(threadReport, taxPolicy);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the applicable row stays visible without a value or a copy action.
+        const taxCodeField = screen.getByLabelText('workspace.taxes.taxCode');
+        expect(taxCodeField).toBeOnTheScreen();
+        expect(within(taxCodeField).queryByLabelText('common.copyToClipboard')).not.toBeOnTheScreen();
     });
 
     it('keeps workspace column preferences out of personal IOUs', async () => {

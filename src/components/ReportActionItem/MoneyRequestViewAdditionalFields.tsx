@@ -1,4 +1,5 @@
 /** Shows the report's configured extra columns in both expense detail views. */
+import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {getMoneyRequestReportTransactions} from '@components/MoneyRequestReportView/useMoneyRequestReportData';
 
@@ -90,7 +91,9 @@ function MoneyRequestViewAdditionalFields({
             numberOfLinesValue={0}
             isValueSelectable
             sentryLabel={sentryLabelByColumn[column]}
-        />
+        >
+            {!!value && <MenuItem.Copy value={value} />}
+        </MenuItemField>
     ));
 }
 
