@@ -94,6 +94,7 @@ function IOURequestStepHours({
     }, [selectedTab, committedCount]);
 
     const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
+        shouldCloseRHPOnDiscard: action === CONST.IOU.ACTION.CREATE,
         getHasUnsavedChanges: () => getStringFieldHasUnsavedChanges(typedCount, committedCount, isEmbeddedInStartPage),
         onCancel: () => {
             focusTimeoutRef.current = setTimeout(() => textInputRef.current?.focus(), CONST.ANIMATED_TRANSITION);
@@ -112,7 +113,7 @@ function IOURequestStepHours({
 
     const navigateBack = () => Navigation.goBack(isEditingConfirmation ? ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, reportID) : undefined);
 
-    const saveTime = () => {
+    const saveTime = async () => {
         if (rate === undefined) {
             return;
         }
@@ -137,7 +138,10 @@ function IOURequestStepHours({
 
         if (isEmbeddedInStartPage) {
             if (explicitPolicyID) {
-                const policyExpenseChat = getPolicyExpenseChat(accountID, policyID);
+                // The workspace chat is only needed on submit, so read it once here instead of subscribing to every report
+                // eslint-disable-next-line rulesdir/no-onyx-get-snapshot-key -- replaces getPolicyExpenseChat's module-level Onyx.connect fallback, which never read a Search snapshot
+                const reports = await Onyx.get(ONYXKEYS.COLLECTION.REPORT);
+                const policyExpenseChat = getPolicyExpenseChat(accountID, policyID, reports);
                 if (!policyExpenseChat) {
                     console.error(`Couldn't find policy expense chat for policyID: ${policyID}`);
                     return;

@@ -57,6 +57,7 @@ import type {CommuterExclusions, CustomUnit} from '@src/types/onyx/Policy';
 import {Str} from 'expensify-common';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 type PolicyDistanceRatesSettingsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATES_SETTINGS>;
 
@@ -104,7 +105,6 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
     const policyID = route.params.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
-    const [governmentMileageRates] = useOnyx(ONYXKEYS.GOVERNMENT_MILEAGE_RATES);
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -153,7 +153,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const toggleAutoUpdateGovernmentRate = (isOn: boolean) => {
+    const toggleAutoUpdateGovernmentRate = async (isOn: boolean) => {
         if (!policy || !customUnit) {
             return;
         }
@@ -169,6 +169,8 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
             Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES_GOVERNMENT_RATE_COUNTRY.getRoute(policyID));
             return;
         }
+
+        const governmentMileageRates = await Onyx.get(ONYXKEYS.GOVERNMENT_MILEAGE_RATES);
 
         // The stored country tells the optimistic copy which rates to use, since the mileage rate key is shared by every policy.
         // The server ignores the country on disable, so it is only sent when turning on.
@@ -190,10 +192,11 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
         });
     };
 
-    const onToggleTrackTax = (isOn: boolean) => {
+    const toggleTrackTax = async (isOn: boolean) => {
         if (!policy || !customUnit?.attributes) {
             return;
         }
+        const governmentMileageRates = await Onyx.get(ONYXKEYS.GOVERNMENT_MILEAGE_RATES);
         const attributes = {...customUnit?.attributes, taxEnabled: isOn};
         enableDistanceRequestTax(policy, customUnit.name, customUnit.customUnitID, attributes, customUnit.attributes, governmentMileageRates);
     };
@@ -351,7 +354,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                                     isOn={isDistanceTrackTaxEnabled && isPolicyTrackTaxEnabled}
                                     accessibilityLabel={translate('workspace.distanceRates.trackTax')}
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.TRACK_TAX_SWITCH}
-                                    onToggle={onToggleTrackTax}
+                                    onToggle={toggleTrackTax}
                                     disabled={!canWriteDistanceRates || !isPolicyTrackTaxEnabled}
                                     disabledAction={withReadOnlyFallback()}
                                     showLockIcon={!canWriteDistanceRates}

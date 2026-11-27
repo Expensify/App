@@ -71,6 +71,7 @@ function renderWidget({
     supportsDrillIn,
     queryJSON = QUERY,
     asOfDate,
+    tagLevelName,
     controls,
     children,
 }: React.PropsWithChildren<{
@@ -79,6 +80,7 @@ function renderWidget({
     supportsDrillIn?: boolean;
     queryJSON?: typeof QUERY;
     asOfDate?: string;
+    tagLevelName?: string;
     controls?: React.ReactNode;
 }> = {}) {
     return render(
@@ -91,12 +93,13 @@ function renderWidget({
                 previousPeriodQueryJSON={undefined}
                 previousPeriodSnapshot={undefined}
                 average={undefined}
-                isDashboardLoaded={undefined}
+                isAverageLoaded={undefined}
                 filters={FILTERS}
                 insightsScope={{searchKey: INSIGHTS_DASHBOARD_SPECS[CONST.INSIGHTS.DASHBOARD.SPEND].searchKey, policyIDs: [], date: FILTERS.date, groupCurrency: FILTERS.groupCurrency}}
                 supportsDrillIn={supportsDrillIn}
                 onRetry={jest.fn()}
                 asOfDate={asOfDate}
+                tagLevelName={tagLevelName}
             >
                 {!!controls && <InsightsChartWidget.Controls>{controls}</InsightsChartWidget.Controls>}
                 {children}
@@ -194,6 +197,23 @@ describe('Insights chart view and press', () => {
         expect(content.queryByText('Future expenses') !== null).toBe(state !== INSIGHTS_CHART_STATE.LOADING);
     });
 
+    it('names the selected tag level when Top tags has no data', async () => {
+        // Given an empty ranking for the Location tag level
+        const chart = INSIGHTS_DASHBOARD_SPECS[CONST.INSIGHTS.DASHBOARD.SPEND].supportingCharts.find(({graphKey}) => graphKey === CONST.INSIGHTS.GRAPH.TOP_TAGS);
+        if (!chart) {
+            throw new Error('Missing Top tags chart');
+        }
+        jest.mocked(useInsightsChartData).mockReturnValue({data: [], state: INSIGHTS_CHART_STATE.EMPTY, comparison: undefined});
+
+        // When the widget renders
+        renderWidget({chart, tagLevelName: 'Location'});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the empty chart explains that there are no tagged expenses for that level
+        expect(screen.getByText('No tagged expenses')).toBeOnTheScreen();
+        expect(screen.getByText('No expenses for Location in this date range.')).toBeOnTheScreen();
+    });
+
     it.each([
         {hasComparison: false, expectedView: CONST.SEARCH.VIEW.PIE},
         {hasComparison: true, expectedView: CONST.SEARCH.VIEW.BAR},
@@ -222,9 +242,9 @@ describe('Insights chart view and press', () => {
         expect(jest.mocked(SearchChartView).mock.lastCall?.[0]).toMatchObject({view: expectedView, shouldShowSinglePointAsBar: true});
     });
 
-    it('opens the Details panel for the pressed period on the Spend dashboard', async () => {
-        // Given a Spend chart plotting February, for a user on the beta the panel ships behind
-        await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.INSIGHTS_AI]);
+    it('opens the Details panel for the pressed period on the Spend dashboard without betas', async () => {
+        // Given a Spend chart plotting February for a user without betas
+        await Onyx.set(ONYXKEYS.BETAS, []);
         renderWidget();
         await waitForBatchedUpdatesWithAct();
 
@@ -239,7 +259,6 @@ describe('Insights chart view and press', () => {
 
     it('keeps the tag level, parent and as-of date when opening Details', async () => {
         // Given a dependent tag chart whose data stops before today
-        await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.INSIGHTS_AI]);
         const chart = INSIGHTS_DASHBOARD_SPECS[CONST.INSIGHTS.DASHBOARD.SPEND].supportingCharts.find(({graphKey}) => graphKey === CONST.INSIGHTS.GRAPH.TOP_TAGS);
         if (!chart) {
             throw new Error('Missing Top tags chart');
@@ -266,20 +285,11 @@ describe('Insights chart view and press', () => {
         expect(Navigation.navigate).toHaveBeenCalledWith('insights/spend/details/topTags?item=Marketing&level=2&parent=North%20America&asOf=2026-10-08');
     });
 
-    it('keeps the default press without the Insights AI beta', async () => {
-        // Given a Spend chart for a user without the beta the panel ships behind
-        await Onyx.set(ONYXKEYS.BETAS, []);
-        renderWidget();
-        await waitForBatchedUpdatesWithAct();
-
-        // Then the chart gets no press override, so a press still opens Search filtered to the point
-        expect(jest.mocked(SearchChartView).mock.lastCall?.[0].onGroupPress).toBeUndefined();
-    });
-
     it('keeps the default press on dashboards without a Details panel', async () => {
-        // Given a chart on the Compliance dashboard, which has no Details panel
-        await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.INSIGHTS_AI]);
-        renderWidget({dashboardID: CONST.INSIGHTS.DASHBOARD.COMPLIANCE});
+        // Given a chart on the Efficiency dashboard, which has no Details panel
+
+        // When the widget chooses a point-press action for Efficiency
+        renderWidget({dashboardID: CONST.INSIGHTS.DASHBOARD.EFFICIENCY});
         await waitForBatchedUpdatesWithAct();
 
         // Then the chart gets no press override, so a press still opens Search filtered to the point

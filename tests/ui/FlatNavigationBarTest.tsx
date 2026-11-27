@@ -5,6 +5,7 @@ import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersona
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import FlatNavigationBar from '@components/Navigation/FlatNavigationBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
+import type {PeekSurfaceContextValue} from '@components/Navigation/PeekSurfaceContext';
 import {FLAT_NAVIGATION_BAR_COLLAPSED_WIDTH} from '@components/Navigation/SearchSidebarCollapseStore';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
@@ -38,6 +39,12 @@ const mockNavigateToInsights = jest.fn();
 const mockNavigateToWorkspaces = jest.fn();
 let mockInboxIndicator = NO_INDICATOR;
 let mockWorkspacesIndicator = NO_INDICATOR;
+let mockSearchKey: string | undefined;
+
+jest.mock('@components/Search/SearchContext', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@components/Search/SearchContext'),
+    useSearchQueryContext: () => ({currentSearchKey: mockSearchKey}),
+}));
 
 jest.mock('@components/Navigation/NavigationTabBar/useWideInboxNavigation', () => () => mockNavigateToInbox);
 jest.mock('@components/Navigation/NavigationTabBar/useSearchTabNavigation', () => () => mockNavigateToSearch);
@@ -63,6 +70,18 @@ jest.mock('@components/Navigation/FlatNavigationBar/FlatNavCreateButton', () => 
     mockCreateButtonProps = props;
     return null;
 });
+let mockPeekSurface: PeekSurfaceContextValue | undefined;
+// Reads the peek hold from the same context a saved search's menu does, and still draws the real subnav.
+jest.mock('@components/Navigation/FlatNavigationBar/FlatNavSpendSubnav', () => (props: Record<string, unknown>) => {
+    // The factory is hoisted above the imports, so it loads what it needs itself.
+    /* eslint-disable @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return */
+    const {useContext, createElement} = require('react');
+    const PeekSurfaceContext = require('@components/Navigation/PeekSurfaceContext').default;
+    const RealSpendSubnav = jest.requireActual('@components/Navigation/FlatNavigationBar/FlatNavSpendSubnav').default;
+    mockPeekSurface = useContext(PeekSurfaceContext);
+    return createElement(RealSpendSubnav, props);
+    /* eslint-enable */
+});
 let mockIsElementHovered = false;
 let mockIsFocusMovingInside = false;
 let mockHasKeyboardFocusInside = false;
@@ -80,7 +99,20 @@ jest.mock('@libs/isHTMLElement', () => ({
         return true;
     },
 }));
-jest.mock('@pages/inbox/sidebar/SupportalSwitcherButton', () => () => null);
+type MockSupportalItemProps = {
+    isCollapsed?: boolean;
+    isSupportAgent?: boolean;
+    isRowVisible?: boolean;
+    isSwitcherVisible?: boolean;
+    showSwitcher?: () => void;
+    hideSwitcher?: () => void;
+    onSwitcherHidden?: () => void;
+};
+let mockSupportalItemProps: MockSupportalItemProps | undefined;
+jest.mock('@components/Navigation/FlatNavigationBar/FlatNavSupportalItem', () => (props: MockSupportalItemProps) => {
+    mockSupportalItemProps = props;
+    return null;
+});
 jest.mock('@components/Avatar/AccountNavigationAvatar', () => () => null);
 jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
@@ -88,19 +120,28 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 let mockOuterHoverOut: (() => void) | undefined;
 let mockInnerHoverIn: (() => void) | undefined;
-jest.mock(
-    '@components/Hoverable',
-    () =>
-        ({children, onHoverIn, onHoverOut}: {children: React.ReactNode | ((isHovered: boolean) => React.ReactNode); onHoverIn?: () => void; onHoverOut?: () => void}) => {
-            if (onHoverOut) {
-                mockOuterHoverOut = onHoverOut;
-            }
-            if (onHoverIn) {
-                mockInnerHoverIn = onHoverIn;
-            }
-            return typeof children === 'function' ? children(false) : children;
-        },
-);
+// Only the Account area reads its hover through a render function, so this flag drives just that area.
+let mockIsAccountAreaHovered = false;
+let mockIsAccountAreaHoverNative: boolean | undefined;
+type MockHoverableProps = {
+    children: React.ReactNode | ((isHovered: boolean) => React.ReactNode);
+    onHoverIn?: () => void;
+    onHoverOut?: () => void;
+    shouldUseNativeHoverEvents?: boolean;
+};
+jest.mock('@components/Hoverable', () => ({children, onHoverIn, onHoverOut, shouldUseNativeHoverEvents}: MockHoverableProps) => {
+    if (onHoverOut) {
+        mockOuterHoverOut = onHoverOut;
+    }
+    if (onHoverIn) {
+        mockInnerHoverIn = onHoverIn;
+    }
+    if (typeof children !== 'function') {
+        return children;
+    }
+    mockIsAccountAreaHoverNative = shouldUseNativeHoverEvents;
+    return children(mockIsAccountAreaHovered);
+});
 jest.mock('@libs/actions/Session', () => ({
     ...jest.requireActual<Record<string, unknown>>('@libs/actions/Session'),
     signOutAndRedirectToSignIn: jest.fn(),
@@ -129,6 +170,11 @@ function getRow(name: string | RegExp) {
     return screen.getByRole(CONST.ROLE.TAB, {name});
 }
 
+function getBarWidth() {
+    const style: unknown = screen.getByTestId('FlatNavigationBar').props.style;
+    return isStyleProp(style) ? StyleSheet.flatten(style)?.width : undefined;
+}
+
 describe('FlatNavigationBar', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
@@ -137,13 +183,18 @@ describe('FlatNavigationBar', () => {
     beforeEach(async () => {
         jest.clearAllMocks();
         mockCreateButtonProps = undefined;
+        mockSupportalItemProps = undefined;
+        mockPeekSurface = undefined;
         mockIsElementHovered = false;
         mockIsFocusMovingInside = false;
         mockHasKeyboardFocusInside = false;
         mockOuterHoverOut = undefined;
         mockInnerHoverIn = undefined;
+        mockIsAccountAreaHovered = false;
+        mockIsAccountAreaHoverNative = undefined;
         mockInboxIndicator = NO_INDICATOR;
         mockWorkspacesIndicator = NO_INDICATOR;
+        mockSearchKey = undefined;
         setIsSearchTabHovered(false);
         await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
         await Onyx.set(ONYXKEYS.SESSION, {accountID: ACCOUNT_ID, email: 'user@example.com'});
@@ -324,11 +375,6 @@ describe('FlatNavigationBar', () => {
     });
 
     describe('collapsing', () => {
-        function getBarWidth() {
-            const style: unknown = screen.getByTestId('FlatNavigationBar').props.style;
-            return isStyleProp(style) ? StyleSheet.flatten(style)?.width : undefined;
-        }
-
         it('collapses into a rail when the toggle is pressed and saves the state', async () => {
             // Given the expanded bar
             renderBar(NAVIGATION_TABS.HOME);
@@ -429,6 +475,156 @@ describe('FlatNavigationBar', () => {
 
             // Then the peek ends and the bar collapses back to a rail
             expect(getBarWidth()).toBe(FLAT_NAVIGATION_BAR_COLLAPSED_WIDTH);
+        });
+
+        it('hides the supportal row until the Account area is hovered', async () => {
+            // Given a support agent whose pointer is away from the Account row
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {canSupportLogin: true});
+
+            // When the bar renders
+            renderBar(NAVIGATION_TABS.HOME);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the supportal row stays hidden, because the design only reveals it from the Account row
+            expect(mockSupportalItemProps?.isRowVisible).toBe(false);
+        });
+
+        it('shows the supportal row while the Account area is hovered', async () => {
+            // Given a support agent whose pointer is over the Account row
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {canSupportLogin: true});
+            mockIsAccountAreaHovered = true;
+
+            // When the bar renders
+            renderBar(NAVIGATION_TABS.HOME);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the supportal row shows, so the agent can move up from Account onto it
+            expect(mockSupportalItemProps?.isRowVisible).toBe(true);
+        });
+
+        it('tracks the Account area hover with native events', async () => {
+            // Given a support agent
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {canSupportLogin: true});
+
+            // When the bar renders
+            renderBar(NAVIGATION_TABS.HOME);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the area listens on its own element, because the switcher's portal sits inside it in the React tree
+            // and synthetic events would leave the hover on, and Supportal showing, after the switcher closes
+            expect(mockIsAccountAreaHoverNative).toBe(true);
+        });
+
+        it('shows the supportal row while keyboard focus is on the Account area', async () => {
+            // Given a support agent using the keyboard
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {canSupportLogin: true});
+            renderBar(NAVIGATION_TABS.HOME);
+            await waitForBatchedUpdatesWithAct();
+
+            // When keyboard focus lands on the Account row
+            mockHasKeyboardFocusInside = true;
+            fireEvent(screen.getByTestId('FlatNavAccountArea'), 'focus');
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the supportal row shows, so it stays reachable without a pointer
+            expect(mockSupportalItemProps?.isRowVisible).toBe(true);
+
+            // When focus leaves the Account area
+            mockHasKeyboardFocusInside = false;
+            fireEvent(screen.getByTestId('FlatNavAccountArea'), 'blur', {nativeEvent: {relatedTarget: null}});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the supportal row hides again
+            expect(mockSupportalItemProps?.isRowVisible).toBe(false);
+        });
+
+        it('keeps the supportal row while keyboard focus moves between Account and Supportal', async () => {
+            // Given a support agent whose keyboard focus is on the Account row, so the supportal row shows
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {canSupportLogin: true});
+            renderBar(NAVIGATION_TABS.HOME);
+            await waitForBatchedUpdatesWithAct();
+            mockHasKeyboardFocusInside = true;
+            fireEvent(screen.getByTestId('FlatNavAccountArea'), 'focus');
+            await waitForBatchedUpdatesWithAct();
+            expect(mockSupportalItemProps?.isRowVisible).toBe(true);
+
+            // When Shift+Tab moves focus from Account up onto Supportal, which stays inside the area
+            mockIsFocusMovingInside = true;
+            fireEvent(screen.getByTestId('FlatNavAccountArea'), 'blur', {
+                currentTarget: {},
+                nativeEvent: {relatedTarget: {}},
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the supportal row stays, so the row the focus is moving onto does not disappear under it
+            expect(mockSupportalItemProps?.isRowVisible).toBe(true);
+        });
+
+        it('keeps the bar peeking when hovering out while the supportal switcher is open', async () => {
+            // Given a support agent and a collapsed bar that is peeking
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {canSupportLogin: true});
+            await Onyx.set(ONYXKEYS.NVP_SEARCH_SIDEBAR, {isCollapsed: true});
+            renderBar(NAVIGATION_TABS.HOME);
+            await waitForBatchedUpdatesWithAct();
+            act(() => {
+                mockInnerHoverIn?.();
+            });
+            await waitForBatchedUpdatesWithAct();
+            expect(getBarWidth()).toBe(variables.flatNavigationBarWidth);
+
+            // When the switcher opens and its overlay takes the hover away from the bar
+            act(() => {
+                mockSupportalItemProps?.showSwitcher?.();
+            });
+            await waitForBatchedUpdatesWithAct();
+            expect(mockSupportalItemProps?.isSwitcherVisible).toBe(true);
+            act(() => {
+                mockOuterHoverOut?.();
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the bar stays peeking so it does not narrow under the open switcher
+            expect(getBarWidth()).toBe(variables.flatNavigationBarWidth);
+
+            // When the switcher closes and its modal is gone with the pointer and focus outside the bar
+            act(() => {
+                mockSupportalItemProps?.hideSwitcher?.();
+            });
+            act(() => {
+                mockSupportalItemProps?.onSwitcherHidden?.();
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the peek ends and the bar collapses back to a rail
+            expect(getBarWidth()).toBe(FLAT_NAVIGATION_BAR_COLLAPSED_WIDTH);
+        });
+
+        it('keeps the bar peeking after the supportal switcher closes if the pointer is still hovering the bar', async () => {
+            // Given a peeking bar with the supportal switcher open
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {canSupportLogin: true});
+            await Onyx.set(ONYXKEYS.NVP_SEARCH_SIDEBAR, {isCollapsed: true});
+            renderBar(NAVIGATION_TABS.HOME);
+            await waitForBatchedUpdatesWithAct();
+            act(() => {
+                mockInnerHoverIn?.();
+            });
+            act(() => {
+                mockSupportalItemProps?.showSwitcher?.();
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // When the switcher closes with the pointer still over the bar
+            mockIsElementHovered = true;
+            act(() => {
+                mockSupportalItemProps?.hideSwitcher?.();
+            });
+            act(() => {
+                mockSupportalItemProps?.onSwitcherHidden?.();
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the bar stays peeking, so it does not flicker narrow and wide again
+            expect(getBarWidth()).toBe(variables.flatNavigationBarWidth);
         });
 
         it('keeps the bar peeking after the create menu closes if the pointer is still hovering the bar', async () => {
@@ -674,6 +870,182 @@ describe('FlatNavigationBar', () => {
 
             // Then the bar stays collapsed, because only keyboard focus may start a peek
             expect(getBarWidth()).toBe(FLAT_NAVIGATION_BAR_COLLAPSED_WIDTH);
+        });
+    });
+
+    describe('menus inside the bar', () => {
+        async function renderPeekingBarOnSpend() {
+            await Onyx.set(ONYXKEYS.NVP_SEARCH_SIDEBAR, {isCollapsed: true});
+            renderBar(NAVIGATION_TABS.SEARCH);
+            await waitForBatchedUpdatesWithAct();
+            act(() => {
+                mockInnerHoverIn?.();
+            });
+            await waitForBatchedUpdatesWithAct();
+            expect(getBarWidth()).toBe(variables.flatNavigationBarWidth);
+        }
+
+        it('keeps the bar peeking when the pointer leaves it while a menu holds the peek', async () => {
+            // Given a peeking bar with a menu holding the peek through PeekSurfaceContext, as a saved search's menu does while it opens partly outside the bar
+            await renderPeekingBarOnSpend();
+            act(() => {
+                mockPeekSurface?.holdPeekUntilMenuCloses();
+            });
+
+            // When the pointer leaves the bar, for example by moving onto the menu or just past its edge
+            act(() => {
+                mockOuterHoverOut?.();
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the bar stays peeking, so the menu is not collapsed out from under the pointer
+            expect(getBarWidth()).toBe(variables.flatNavigationBarWidth);
+        });
+
+        it('collapses the bar once the menu is gone if the pointer is outside, as after Share closes the menu by itself', async () => {
+            // Given a peeking bar with a menu open and the pointer already off the bar
+            await renderPeekingBarOnSpend();
+            act(() => {
+                mockPeekSurface?.holdPeekUntilMenuCloses();
+            });
+            act(() => {
+                mockOuterHoverOut?.();
+            });
+
+            // When the menu's modal is gone without the pointer moving
+            act(() => {
+                mockPeekSurface?.endPeekIfPointerLeft();
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the bar collapses without waiting for the pointer to enter and leave it again
+            expect(getBarWidth()).toBe(FLAT_NAVIGATION_BAR_COLLAPSED_WIDTH);
+        });
+
+        it('keeps the bar peeking once the menu is gone if the pointer is still over the bar', async () => {
+            // Given a peeking bar with a menu open
+            await renderPeekingBarOnSpend();
+            act(() => {
+                mockPeekSurface?.holdPeekUntilMenuCloses();
+            });
+
+            // When the menu's modal is gone with the pointer still over the bar
+            mockIsElementHovered = true;
+            act(() => {
+                mockPeekSurface?.endPeekIfPointerLeft();
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the bar stays peeking, because the pointer is genuinely inside it
+            expect(getBarWidth()).toBe(variables.flatNavigationBarWidth);
+        });
+
+        it('keeps the bar peeking when focus moves from the bar into an open menu', async () => {
+            // Given a peeking bar whose menu holds the peek before its button gives up focus
+            await renderPeekingBarOnSpend();
+            act(() => {
+                mockPeekSurface?.holdPeekUntilMenuCloses();
+            });
+
+            // When focus leaves the bar's items for the menu, which sits outside the bar
+            fireEvent(screen.getByTestId('FlatNavPeekBody'), 'blur', {nativeEvent: {relatedTarget: null}});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the bar stays peeking, since the focus went to the menu it opened
+            expect(getBarWidth()).toBe(variables.flatNavigationBarWidth);
+        });
+    });
+
+    describe('Spend subnav', () => {
+        function getSubnav() {
+            return screen.getByTestId('FlatNavSubnav', {
+                includeHiddenElements: true,
+            });
+        }
+
+        it.each([NAVIGATION_TABS.HOME, NAVIGATION_TABS.INBOX, NAVIGATION_TABS.INSIGHTS])('has no subnav on the %s tab', async (selectedTab) => {
+            // Given the bar on a tab other than Spend
+            // When the bar renders
+            renderBar(selectedTab);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the Spend searches are not there, so other tabs stay short and none of their data is read
+            expect(screen.queryByTestId('FlatNavSubnav', {includeHiddenElements: true})).toBeNull();
+        });
+
+        it('shows the subnav on the Spend tab', async () => {
+            // Given the bar on the Spend tab
+            // When the bar renders
+            renderBar(NAVIGATION_TABS.SEARCH);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the Spend searches are listed under the Spend row and can be reached
+            expect(getSubnav().props.accessibilityElementsHidden).toBe(false);
+            expect(getSubnav().props.pointerEvents).toBe('auto');
+        });
+
+        it('hides the subnav while the bar is a rail', async () => {
+            // Given a collapsed bar on the Spend tab
+            await Onyx.set(ONYXKEYS.NVP_SEARCH_SIDEBAR, {isCollapsed: true});
+
+            // When the bar renders
+            renderBar(NAVIGATION_TABS.SEARCH);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the rail has no room for the subnav, so it is closed
+            expect(getSubnav().props.accessibilityElementsHidden).toBe(true);
+        });
+
+        it('shows the subnav while a collapsed bar peeks and hides it again after the peek', async () => {
+            // Given a collapsed bar on the Spend tab
+            await Onyx.set(ONYXKEYS.NVP_SEARCH_SIDEBAR, {isCollapsed: true});
+            renderBar(NAVIGATION_TABS.SEARCH);
+            await waitForBatchedUpdatesWithAct();
+
+            // When the pointer moves onto the rows
+            act(() => {
+                mockInnerHoverIn?.();
+            });
+
+            // Then the bar widens over the page and the subnav shows with the labels, so every search is one click away
+            expect(getSubnav().props.accessibilityElementsHidden).toBe(false);
+
+            // When the pointer leaves the bar
+            act(() => {
+                mockOuterHoverOut?.();
+            });
+
+            // Then the subnav closes with the rest of the labels
+            expect(getSubnav().props.accessibilityElementsHidden).toBe(true);
+        });
+
+        it('navigates to the search when a subnav row is pressed', async () => {
+            // Given the bar on the Spend tab
+            renderBar(NAVIGATION_TABS.SEARCH);
+            await waitForBatchedUpdatesWithAct();
+
+            // When a subnav row is pressed
+            fireEvent.press(within(getSubnav()).getByText('Expenses'));
+
+            // Then it delegates navigation to open the corresponding search
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense sortBy:date sortOrder:desc', searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}));
+        });
+
+        it('highlights the active search item in the subnav', async () => {
+            // Given the Spend tab on screen with the Expenses search active
+            mockSearchKey = CONST.SEARCH.SEARCH_KEYS.EXPENSES;
+
+            // When the bar renders
+            renderBar(NAVIGATION_TABS.SEARCH);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the Expenses row is marked as selected
+            const expensesRow = within(getSubnav()).getByRole(CONST.ROLE.TAB, {name: 'Expenses'});
+            expect(expensesRow.props.accessibilityState.selected).toBe(true);
+
+            // And other rows are not selected
+            const reportsRow = within(getSubnav()).getByRole(CONST.ROLE.TAB, {name: 'Reports'});
+            expect(reportsRow.props.accessibilityState.selected).toBe(false);
         });
     });
 

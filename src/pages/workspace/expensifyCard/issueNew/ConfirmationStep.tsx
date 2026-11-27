@@ -32,6 +32,7 @@ import type {ComponentRef} from 'react';
 
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 type ConfirmationStepProps = {
     /** ID of the policy that the card will be issued under */
@@ -46,7 +47,6 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
     const buildDynamicRoute = useScreenBoundDynamicRoute();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
@@ -99,11 +99,12 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
         }
     }, [issueNewCard, isSuccessful, policyID, buildDynamicRoute]);
 
-    const handleIssueCard = () => {
+    const issueCard = async () => {
         if (!policyID) {
             return;
         }
 
+        const account = await Onyx.get(ONYXKEYS.ACCOUNT);
         if (AccountUtils.hasValidateCodeExtendedAccess(account)) {
             // Attempt to issue directly without validateCode when user has extended access
             // If this fails, the effect above will redirect to the validateCode page
@@ -241,7 +242,7 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
                         isDisabled={isOffline || shouldDisableSubmitButton}
                         isMessageHtml={shouldDisableSubmitButton}
                         isLoading={issueNewCard?.isLoading}
-                        onSubmit={handleIssueCard}
+                        onSubmit={issueCard}
                         buttonText={translate('workspace.card.issueCard')}
                     />
                 </View>

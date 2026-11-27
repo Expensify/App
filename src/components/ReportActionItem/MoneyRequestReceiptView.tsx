@@ -26,6 +26,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useOriginalReportID from '@hooks/useOriginalReportID';
 import usePermissions from '@hooks/usePermissions';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import usePrevious from '@hooks/usePrevious';
 import useReceiptTranslation from '@hooks/useReceiptTranslation';
@@ -248,6 +249,7 @@ function MoneyRequestReceiptView({
     const isReportArchived = useReportIsArchived(report?.reportID);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const {personalCardsWithBrokenConnection} = useCardFeedErrors();
     const {showConfirmModal} = useConfirmModal();
 
@@ -465,7 +467,7 @@ function MoneyRequestReceiptView({
             return;
         }
 
-        retryReceiptUpload(receiptRetryContext, () =>
+        retryReceiptUpload({...receiptRetryContext, personalDetailsByLogins: getPersonalDetailsByLogin()}, () =>
             clearReceiptUploadError({
                 transactionID: transaction?.transactionID,
                 reportID: parentReportAction?.reportID ?? report?.reportID,
@@ -876,33 +878,34 @@ function MoneyRequestReceiptView({
                                             )}
                                         </AttachmentPicker>
                                     )}
-                                    {canTranslate && deviceHasHoverSupport && (
-                                        // TODO: The spec switches this tooltip to `View original` once translated. Add it when design confirms what the thumbnail shows then.
-                                        <Tooltip text={translate('receipt.translate')}>
-                                            <PressableWithoutFocus
-                                                onPress={() => {
-                                                    startTranslation();
-                                                    Navigation.navigate(
-                                                        ROUTES.TRANSACTION_RECEIPT.getRoute(report?.reportID, displayedTransaction?.transactionID, readonly || !canEditReceipt),
-                                                    );
-                                                }}
-                                                disabled={isTranslateDisabled}
-                                                style={styles.receiptActionButton}
-                                                disabledStyle={styles.buttonOpacityDisabled}
-                                                hoverStyle={styles.buttonDefaultHovered}
-                                                accessibilityLabel={translate('receipt.translate')}
-                                                role={CONST.ROLE.BUTTON}
-                                                sentryLabel={CONST.SENTRY_LABEL.RECEIPT.TRANSLATE_BUTTON}
-                                            >
-                                                <Icon
-                                                    src={lazyIcons.Translate}
-                                                    height={variables.iconSizeSmall}
-                                                    width={variables.iconSizeSmall}
-                                                    fill={theme.icon}
-                                                />
-                                            </PressableWithoutFocus>
-                                        </Tooltip>
-                                    )}
+                                    {canTranslate &&
+                                        deviceHasHoverSupport && (
+                                            // TODO: The spec switches this tooltip to `View original` once translated. Add it when design confirms what the thumbnail shows then.
+                                            <Tooltip text={translate('receipt.translate')}>
+                                                <PressableWithoutFocus
+                                                    onPress={() => {
+                                                        startTranslation();
+                                                        Navigation.navigate(
+                                                            ROUTES.TRANSACTION_RECEIPT.getRoute(report?.reportID, displayedTransaction?.transactionID, readonly || !canEditReceipt),
+                                                        );
+                                                    }}
+                                                    disabled={isTranslateDisabled}
+                                                    style={styles.receiptActionButton}
+                                                    disabledStyle={styles.buttonOpacityDisabled}
+                                                    hoverStyle={styles.buttonDefaultHovered}
+                                                    accessibilityLabel={translate('receipt.translate')}
+                                                    role={CONST.ROLE.BUTTON}
+                                                    sentryLabel={CONST.SENTRY_LABEL.RECEIPT.TRANSLATE_BUTTON}
+                                                >
+                                                    <Icon
+                                                        src={lazyIcons.Translate}
+                                                        height={variables.iconSizeSmall}
+                                                        width={variables.iconSizeSmall}
+                                                        fill={theme.icon}
+                                                    />
+                                                </PressableWithoutFocus>
+                                            </Tooltip>
+                                        )}
                                     <Tooltip text={translate('reportActionCompose.expand')}>
                                         <PressableWithoutFocus
                                             onPress={() =>

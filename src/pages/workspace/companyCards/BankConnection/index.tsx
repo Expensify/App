@@ -35,7 +35,7 @@ import ROUTES from '@src/ROUTES';
 import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 
 import openBankConnection from './openBankConnection';
 
@@ -70,6 +70,10 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
 
     const url = getCompanyCardBankConnection(policyID, bankName, feed);
     const isFeedExpired = feed ? isSelectedFeedExpired(cardFeeds?.[feed]) : false;
+    const feedExpiration = feed ? cardFeeds?.[feed]?.expiration : undefined;
+    const isFeedLoading = !!feed && !!cardFeeds?.[feed]?.status?.isLoading;
+    // null until the popup auto-opens, since the expiration itself can be undefined
+    const expirationAtAutoOpenRef = useRef<number | undefined | null>(null);
     const headerTitleAddCards = translate('workspace.companyCards.addCards');
     const headerTitle = feed ? translate('workspace.companyCards.assignCard') : headerTitleAddCards;
     const {errorMessage, hasError: isNewFeedHasError} = useCompanyCardConnectionError({cardFeeds, addNewCard, newFeed, isAddingNewCard: !feed});
@@ -135,8 +139,8 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
         // Handle assign card flow
         if (feed) {
             if (!isFeedExpired) {
-                customWindow?.close();
                 if (isFeedConnectionBroken) {
+                    customWindow?.close();
                     updateBrokenConnection();
                     Navigation.closeRHPFlow();
                     return;
@@ -145,15 +149,25 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
                 // The panel closes and the admin assigns the card again on the reconnected feed. During a refresh the
                 // panel stays open because RefreshCardFeedConnectionPage closes it once the reconnect completes.
                 if (!assignCard?.isRefreshing) {
+                    customWindow?.close();
                     Navigation.closeRHPFlow();
                     return;
                 }
             }
-            if (isPlaid) {
+            // A feed load can change the expiration too, so the popup waits for fresh data before recording it.
+            if (isPlaid || isFeedLoading) {
+                return;
+            }
+            // Auto-open once per mount so reruns don't reload a login in progress. A new expiration means the login finished.
+            if (expirationAtAutoOpenRef.current !== null) {
+                if (expirationAtAutoOpenRef.current !== feedExpiration) {
+                    customWindow?.close();
+                }
                 return;
             }
             if (url) {
                 customWindow = openBankConnection(url);
+                expirationAtAutoOpenRef.current = feedExpiration;
                 return;
             }
         }
@@ -194,6 +208,8 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
         url,
         feed,
         isFeedExpired,
+        feedExpiration,
+        isFeedLoading,
         isOffline,
         assignCard?.isRefreshing,
         isPlaid,

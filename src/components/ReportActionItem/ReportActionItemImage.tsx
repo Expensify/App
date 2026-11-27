@@ -1,5 +1,6 @@
 import ConfirmedRoute from '@components/ConfirmedRoute';
 import type {IconSize} from '@components/EReceiptThumbnail';
+import ImageLoadEventContext from '@components/ImageLoadEventContext';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import type {ReceiptImageProps} from '@components/ReceiptImage';
 import ReceiptImage from '@components/ReceiptImage';
@@ -14,6 +15,8 @@ import {getReportIDForExpense} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import ReceiptStorage from '@libs/ReceiptStorage';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
+import {createReceiptImageLoadReporter} from '@libs/telemetry/ReceiptImageLoadLog';
+import {logReceiptShown} from '@libs/telemetry/ReceiptObservability';
 import {
     canOverlayReceiptPDF,
     hasEReceipt,
@@ -227,6 +230,12 @@ function ReportActionItemImage({
 
     propsObj.isPerDiemRequest = isPerDiemRequest(transaction);
 
+    const logShownAndForwardLoad = (event?: {nativeEvent: {width: number; height: number}}) => {
+        // The retained local file wins over the server URL above, so report the source that is actually on screen
+        logReceiptShown({receiptTraceId: transaction?.receipt?.receiptTraceId, transactionID: transaction?.transactionID, source: localSource ?? transaction?.receipt?.source});
+        onLoad?.(event);
+    };
+
     // A remote PDF is shown as the server's low-resolution JPG thumbnail, which blurs when hover-zoomed.
     // Where zooming is available (web only), render the actual PDF on top of the thumbnail so the magnified
     // view stays sharp. The thumbnail stays underneath as an instant preview and as a fallback if the PDF fails.
@@ -235,29 +244,34 @@ function ReportActionItemImage({
     const canOverlayPDF = !!isPDF && canOverlayReceiptPDF(transaction) && !!pdfSourceURL;
     const shouldOverlayHighResPDF = canZoomReceipt && canOverlayPDF && hasHoverSupport() && (!effectiveIsLocalFile || pdfPage !== undefined);
 
-    const renderReceiptContent = (receiptImage: React.ReactNode) =>
-        shouldOverlayHighResPDF ? (
-            <View style={[styles.w100, styles.h100]}>
-                {receiptImage}
-                <View
-                    style={StyleSheet.absoluteFill}
-                    pointerEvents="none"
-                >
-                    <ReceiptPDFOverlay
-                        sourceURL={pdfSourceURL}
-                        isAuthTokenRequired={!effectiveIsLocalFile}
-                        onLoadFailure={() => {
-                            onLoadFailure?.();
-                            onPDFLoadFailure?.();
-                        }}
-                        page={pdfPage}
-                        onLoadSuccess={onPDFLoadSuccess}
-                    />
+    const reportImageLoadEvent = createReceiptImageLoadReporter(transaction, 'expense');
+
+    const renderReceiptContent = (receiptImage: React.ReactNode) => (
+        <ImageLoadEventContext.Provider value={reportImageLoadEvent}>
+            {shouldOverlayHighResPDF ? (
+                <View style={[styles.w100, styles.h100]}>
+                    {receiptImage}
+                    <View
+                        style={StyleSheet.absoluteFill}
+                        pointerEvents="none"
+                    >
+                        <ReceiptPDFOverlay
+                            sourceURL={pdfSourceURL}
+                            isAuthTokenRequired={!effectiveIsLocalFile}
+                            onLoadFailure={() => {
+                                onLoadFailure?.();
+                                onPDFLoadFailure?.();
+                            }}
+                            page={pdfPage}
+                            onLoadSuccess={onPDFLoadSuccess}
+                        />
+                    </View>
                 </View>
-            </View>
-        ) : (
-            receiptImage
-        );
+            ) : (
+                receiptImage
+            )}
+        </ImageLoadEventContext.Provider>
+    );
 
     if (enablePreviewModal) {
         return (
@@ -271,7 +285,7 @@ function ReportActionItemImage({
                 {renderReceiptContent(
                     <ReceiptImage
                         {...propsObj}
-                        onLoad={onLoad}
+                        onLoad={logShownAndForwardLoad}
                         shouldUseFullHeight={shouldUseFullHeight}
                         onLoadFailure={onLoadFailure}
                         previewUri={previewUriSource}
@@ -286,7 +300,7 @@ function ReportActionItemImage({
             {...propsObj}
             shouldUseFullHeight={shouldUseFullHeight}
             thumbnailContainerStyles={styles.thumbnailImageContainerHover}
-            onLoad={onLoad}
+            onLoad={logShownAndForwardLoad}
             onLoadFailure={onLoadFailure}
             previewUri={previewUriSource}
         />,

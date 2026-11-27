@@ -4,6 +4,7 @@ import useDeferUntilScreenRevealed from '@hooks/useDeferUntilScreenRevealed';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import useRunWhenOnline from '@hooks/useRunWhenOnline';
 import useShouldSuppressPromotionalUI from '@hooks/useShouldSuppressPromotionalUI';
 
 import {dismissProductTraining} from '@libs/actions/Welcome';
@@ -28,6 +29,7 @@ function WalletWiseGlobalReimbursementsBanner() {
     const {pageGutterMargin, cardGapBottom} = useLayoutSpacing();
     const {isBetaEnabled} = usePermissions();
     const shouldSuppressPromotionalUI = useShouldSuppressPromotionalUI();
+    const runWhenOnline = useRunWhenOnline();
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [isDismissed = true] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {selector: isBannerDismissedSelector});
 
@@ -41,7 +43,7 @@ function WalletWiseGlobalReimbursementsBanner() {
     return (
         <View style={[pageGutterMargin, cardGapBottom]}>
             <WiseGlobalReimbursementsBanner
-                onGetStartedPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.getRoute(bankAccountID)))}
+                onGetStartedPress={() => runWhenOnline(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.getRoute(bankAccountID))))}
                 onDismissPress={() => dismissProductTraining(CONST.WISE_GLOBAL_REIMBURSEMENTS_WALLET_BANNER, true)}
                 sentryLabels={CONST.SENTRY_LABEL.WISE_GLOBAL_REIMBURSEMENTS_WALLET_BANNER}
             />

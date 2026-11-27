@@ -140,6 +140,31 @@ describe('useAccountingConnectionListings', () => {
         expect(sageAccounting?.onConnect).toBeUndefined();
     });
 
+    it('should offer the Acumatica waitlist right after Certinia', () => {
+        // Given a workspace with no accounting integration
+        const {result} = renderHook(() => useAccountingConnectionListings(policy));
+
+        // When the accounting listings are built
+        const keys = result.current.map((listing) => listing.key);
+
+        // Then Acumatica follows Certinia, as in the design, and offers its waitlist instead of a connect flow because its connector isn't released yet
+        expect(keys.indexOf(CONST.POLICY.CONNECTIONS.NAME.ACUMATICA)).toBe(keys.indexOf(CONST.POLICY.CONNECTIONS.NAME.CERTINIA) + 1);
+        expect(findListing(CONST.POLICY.CONNECTIONS.NAME.ACUMATICA)?.onConnect).toBeUndefined();
+    });
+
+    it('should keep offering the Acumatica waitlist when the workspace is connected to another integration', () => {
+        // Given a workspace already connected to NetSuite, since joining a waitlist doesn't replace the connected integration
+        mockConnectedIntegration = CONST.POLICY.CONNECTIONS.NAME.NETSUITE;
+
+        // When the accounting listings are built
+        const acumatica = findListing(CONST.POLICY.CONNECTIONS.NAME.ACUMATICA);
+
+        // Then Acumatica is still listed with no connection status, so the grid shows its waitlist card
+        expect(acumatica).toBeDefined();
+        expect(acumatica?.status).toBeUndefined();
+        expect(acumatica?.onConnect).toBeUndefined();
+    });
+
     it('should offer Business Central alongside Campfire to a workspace in the Business Central beta', () => {
         // Given a workspace enrolled in the Business Central beta
         mockEnabledBetas = [CONST.BETAS.BUSINESS_CENTRAL];
@@ -161,6 +186,17 @@ describe('useAccountingConnectionListings', () => {
 
         // Then Zoho Books is offered, because it no longer needs a beta
         expect(zohoBooks).toBeDefined();
+    });
+
+    it('should offer Digits to a workspace without any beta', () => {
+        // Given a workspace with no accounting connection and no betas
+        mockEnabledBetas = [];
+
+        // When the accounting listings are built
+        const digits = findListing(CONST.POLICY.CONNECTIONS.NAME.DIGITS);
+
+        // Then Digits is offered, because it no longer needs a beta
+        expect(digits).toBeDefined();
     });
 
     it('should pass a failed Zoho Books connect error to the Zoho Books card', () => {

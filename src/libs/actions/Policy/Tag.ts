@@ -763,7 +763,7 @@ function buildPolicyTagsEnabledData(policyTags: PolicyTagLists, enabled: boolean
     return Object.fromEntries(
         Object.entries(policyTags).map(([listName, tagList]): [string, Partial<PolicyTagList>] => [
             listName,
-            {tags: Object.fromEntries(Object.entries(tagList.tags).map(([tagName, tag]): [string, PolicyTag] => [tagName, {...tag, enabled}]))},
+            {tags: Object.fromEntries(Object.entries(tagList.tags ?? {}).map(([tagName, tag]): [string, PolicyTag] => [tagName, {...tag, enabled}]))},
         ]),
     );
 }
@@ -866,7 +866,7 @@ function enablePolicyTags(policyData: PolicyData, enabled: boolean, isVendorMatc
         const autoSelections = pushTransactionAutoSelectionsOnyxData(onyxData, policyData, {...policyOptimisticData, requiresTag: false}, {}, policyTagsOptimisticData);
 
         pushTransactionViolationsOnyxData(onyxData, policyData, isVendorMatchingBetaEnabled, {...policyOptimisticData, requiresTag: false}, {}, policyTagsOptimisticData, autoSelections);
-    } else if (firstTagList && Object.keys(firstTagList.tags).length > 0) {
+    } else if (firstTagList && Object.keys(firstTagList.tags ?? {}).length > 0) {
         const policyTagsOptimisticData = buildPolicyTagsEnabledData(firstTagListData, true);
 
         onyxData.optimisticData?.push({

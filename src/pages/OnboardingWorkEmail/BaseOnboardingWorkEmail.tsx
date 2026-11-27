@@ -31,7 +31,7 @@ import getOperatingSystem from '@libs/getOperatingSystem';
 import Navigation from '@libs/Navigation/Navigation';
 import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
 
-import {AddWorkEmail} from '@userActions/Session';
+import {addWorkEmail} from '@userActions/Session';
 import {
     addWorkEmailFormError,
     clearOnboardingMergeAccountBlocked,
@@ -269,7 +269,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
         // The form's onSubmit must stay synchronous, so chain off the Onyx write instead of awaiting it.
         resetOnboardingWorkEmailValidation(onboardingValues).then(() => {
             setHasSubmittedWorkEmail(true);
-            AddWorkEmail(submittedWorkEmail, addWorkEmailTaskReport);
+            addWorkEmail(submittedWorkEmail, addWorkEmailTaskReport);
         });
     };
 

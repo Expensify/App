@@ -222,6 +222,17 @@ describe('SearchAutocompleteUtils', () => {
             ]);
         });
 
+        it('should highlight CONVERTED_AMOUNT filter with valid amount', () => {
+            // Given a converted amount filter with a valid amount
+            const input = 'convertedAmount:100.50';
+
+            // When the input is parsed for highlighting
+            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockKnownValues);
+
+            // Then the amount is highlighted like the other amount filters
+            expect(result).toEqual([{start: 16, type: 'mention-user', length: 6}]);
+        });
+
         it('should not highlight PURCHASE_AMOUNT filter with invalid amount', () => {
             const input = 'purchaseAmount:invalid';
 
@@ -809,6 +820,8 @@ describe('ordinary autocomplete parser boundaries', () => {
     test.each([
         ['columns:date', [{start: 8, type: 'mention-user', length: 4}]],
         ['columns:unknown-column', []],
+        ['left-pinned-columns:date', [{start: 20, type: 'mention-user', length: 4}]],
+        ['right-pinned-columns:unknown-column', []],
         ['report-field-Custom:value', [{start: 20, type: 'mention-user', length: 5}]],
         ['createdBy:alice ReportID:123 TAXRATE:20', [{start: 25, type: 'mention-user', length: 3}]],
         ['merchant:""', []],

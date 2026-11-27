@@ -259,10 +259,16 @@ type OriginalMessageReimbursementRefunded = {
     originalMessage: Record<string, unknown> & ReimbursementRefundedOriginalMessage;
 };
 
+/** Fields Auth sends when Wise releases a held reimbursement */
+type ReimbursementReleasedOriginalMessage = {
+    /** Delivery estimate Wise gave once the hold cleared. Absent when Auth has no estimate, so the message leaves the date out. */
+    expectedDate?: string;
+};
+
 /** Wise released a held reimbursement and resumed the payment */
 type OriginalMessageReimbursementReleased = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_RELEASED;
-    originalMessage: Record<string, unknown>;
+    originalMessage: Record<string, unknown> & ReimbursementReleasedOriginalMessage;
 };
 
 /**

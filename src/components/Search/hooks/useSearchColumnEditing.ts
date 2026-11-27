@@ -3,8 +3,10 @@ import type {ColumnEditing} from '@components/Search/SortableColumnMenu';
 import type {SearchColumnType, SearchCustomColumnIds, SearchQueryJSON} from '@components/Search/types';
 
 import Navigation from '@libs/Navigation/Navigation';
+import {getCustomColumns, getRequiredSearchColumns} from '@libs/SearchColumnsUtils';
+import {getPinnedColumns, getQueryWithPinnedColumns} from '@libs/SearchPinnedColumnsUtils';
 import {buildSearchQueryString, queryHasViolationFilter} from '@libs/SearchQueryUtils';
-import {getColumnHiding, getCustomColumnDefault, getCustomColumns, getRequiredSearchColumns, getValidGroupBy, navigateToSearchWithColumns} from '@libs/SearchUIUtils';
+import {getColumnHiding, getCustomColumnDefault, getValidGroupBy, navigateToSearchWithColumns} from '@libs/SearchUIUtils';
 
 import ROUTES from '@src/ROUTES';
 
@@ -33,7 +35,8 @@ function useSearchColumnEditing(queryJSON: SearchQueryJSON, columns: SearchColum
     });
 
     const hideColumn = (column: SearchColumnType) => {
-        const query = buildSearchQueryString({...queryJSON, columns: getColumnsWithout(column)});
+        const queryWithoutColumn = {...queryJSON, columns: getColumnsWithout(column)};
+        const query = buildSearchQueryString(getQueryWithPinnedColumns(queryWithoutColumn, getPinnedColumns(queryJSON), queryHasViolationFilter(queryJSON)));
         navigateToSearchWithColumns(query, currentSearchKey);
     };
 

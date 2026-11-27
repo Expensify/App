@@ -8,12 +8,17 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 import type {InsightsDashboard, InsightsDashboardID, InsightsGraphKey} from '@src/types/onyx';
 
-import {addDays, format, parseISO} from 'date-fns';
+import type {Duration} from 'date-fns';
+
+import {addDays, format, min, parseISO, sub, subMonths} from 'date-fns';
 
 import type {InsightsChartSpec, InsightsDateFilterKey, InsightsViolationStages} from './dashboardSpecs';
 import type {InsightsFilters} from './insightsFilters';
+import type {InsightsTimeGroupBy} from './insightsGroupByUtils';
 
 import INSIGHTS_DASHBOARD_SPECS, {applyViolationStage, getViolationStage, VIOLATION_HAS_VALUES} from './dashboardSpecs';
+import {RECENT_HISTORY_PERIOD_COUNT} from './details/buildRecentHistoryRows';
+import getCalendarPeriod from './details/getCalendarPeriod';
 import getInsightsDateRange from './getInsightsDateRange';
 import getInsightsLastDay from './getInsightsLastDay';
 import {getQueryGroupBy} from './insightsGroupByUtils';
@@ -23,6 +28,9 @@ const COMPARE_AVERAGE_PERIOD_COUNT = 1;
 
 /** How many expenses the Details panel lists under Top expenses */
 const TOP_EXPENSES_LIMIT = 10;
+
+/** How many months Recent history's View all goes back from the summarized period's end, the most the average can cover. Rounded back to the start of the panel's period. */
+const RECENT_HISTORY_MONTHS_BACK = 12;
 
 /** Range of the numbers Search hashes its queries into, which the dashboard's hash shares */
 const INSIGHTS_HASH_RANGE = 2 ** 32;
@@ -105,6 +113,11 @@ function buildDashboardQuery(query: SearchQueryString, dashboard: InsightsDashbo
     return buildSearchQueryJSON(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${INSIGHTS_DASHBOARD_SPECS[dashboard].queryType} ${query}`);
 }
 
+/** Builds the query used to request and read a chart snapshot. */
+function buildChartSnapshotQueryJSON(dashboard: InsightsDashboardID, chart: InsightsChartSpec, filters: InsightsFilters, compare?: SearchCompareMode): Readonly<SearchQueryJSON> | undefined {
+    return withInsightsSnapshotHash(buildDashboardQuery(applyInsightsFilters(chart, filters, compare), dashboard), chart.graphKey);
+}
+
 /** Builds the dashboard-wide query the whole page is narrowed by. Keeps the grouping the user picked, Running total included, so reopening the dashboard restores it. `getQueryGroupBy` resolves it to a real bucket for the backend request. */
 function buildInsightsQueryString(filters: InsightsFilters): SearchQueryString {
     // Running total is a display grouping outside the Search grammar, so it isn't a SearchGroupBy. The serializer writes it verbatim and the Insights parser reads it back.
@@ -142,6 +155,37 @@ function applyInsightsFilters(
     return chart.workflowStage ? `${query} ${CONST.SEARCH.SYNTAX_FILTER_KEYS.WORKFLOW_STAGE}:${chart.workflowStage}` : query;
 }
 
+/** Keeps Top spenders snapshots separate from ordinary Search, whose hashes are nonnegative. */
+function withInsightsSnapshotHash(query: Readonly<SearchQueryJSON> | undefined, graphKey: InsightsGraphKey): Readonly<SearchQueryJSON> | undefined {
+    return query && graphKey === CONST.INSIGHTS.GRAPH.TOP_SPENDERS ? {...query, hash: -1 - query.hash} : query;
+}
+
+/** Uses the workspace scope returned by Auth, without falling back to all workspaces when scope is missing. */
+function scopeInsightsDrillDownQuery(
+    query: Readonly<SearchQueryJSON> | undefined,
+    graphKey: InsightsGraphKey,
+    eligiblePolicyIDs: string[] | undefined,
+): Readonly<SearchQueryJSON> | undefined {
+    if (!query || graphKey !== CONST.INSIGHTS.GRAPH.TOP_SPENDERS) {
+        return query;
+    }
+    if (!eligiblePolicyIDs?.length) {
+        return undefined;
+    }
+    const policyFilterKey = CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID;
+    const flatFilters = [
+        ...query.flatFilters.filter(({key}) => key !== policyFilterKey),
+        {
+            key: policyFilterKey,
+            filters: eligiblePolicyIDs.map((value) => ({
+                value,
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+            })),
+        },
+    ];
+    return buildSearchQueryJSON(buildSearchQueryString({...query, flatFilters}));
+}
+
 /** Builds the Spend page query for the expenses the dashboard leaves out: those dated after `asOfDate` through the end of the date range, in the dashboard's workspaces, grouped by the time bucket Spend over time plots. */
 function buildFutureExpensesQueryString(filters: InsightsFilters, asOfDate: string): SearchQueryString {
     const {end} = getInsightsDateRange(filters.date);
@@ -155,6 +199,50 @@ function buildFutureExpensesQueryString(filters: InsightsFilters, asOfDate: stri
         },
         {sortOrder: CONST.SEARCH.SORT_ORDER.ASC},
     );
+}
+
+/** Returns how far back the given number of periods reaches, for subtracting from a date. */
+function getPeriodsDuration(periodGroupBy: InsightsTimeGroupBy, count: number): Duration {
+    switch (periodGroupBy) {
+        case CONST.SEARCH.GROUP_BY.DAY:
+            return {days: count};
+        case CONST.SEARCH.GROUP_BY.WEEK:
+            return {weeks: count};
+        case CONST.SEARCH.GROUP_BY.MONTH:
+            return {months: count};
+        case CONST.SEARCH.GROUP_BY.QUARTER:
+            return {months: count * 3};
+        default:
+            return {years: count};
+    }
+}
+
+/** Builds the Spend page query behind Recent history's View all: the item's expenses from the oldest period the average or the list covers through the summarized one, grouped by the panel's period. */
+function buildRecentHistoryQueryString(filters: InsightsFilters, periodGroupBy: InsightsTimeGroupBy, periodEnd: string, itemFilterQuery: string): SearchQueryString {
+    const end = parseISO(periodEnd);
+    const oldestDay = format(min([subMonths(end, RECENT_HISTORY_MONTHS_BACK), sub(end, getPeriodsDuration(periodGroupBy, RECENT_HISTORY_PERIOD_COUNT - 1))]), CONST.DATE.FNS_FORMAT_STRING);
+    const start = getCalendarPeriod(periodGroupBy, oldestDay)?.start ?? oldestDay;
+    const query = buildQueryStringFromFilterFormValues(
+        {
+            ...buildFilterFormValues(filters, false),
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            [FILTER_KEYS.DATE_RANGE]: getRangeQueryValue(start, periodEnd),
+            groupBy: periodGroupBy,
+            view: CONST.SEARCH.VIEW.TABLE,
+        },
+        {sortOrder: CONST.SEARCH.SORT_ORDER.DESC},
+    );
+    return `${query} ${itemFilterQuery}`;
+}
+
+/** Builds the dashboard-wide query at the bucket the charts are drawn with, without a comparison. */
+function buildDashboardQueryJSON(dashboard: InsightsDashboardID, filters: InsightsFilters): Readonly<SearchQueryJSON> | undefined {
+    return buildDashboardQuery(buildInsightsQueryString({...filters, groupBy: getQueryGroupBy(filters), compare: undefined}), dashboard);
+}
+
+/** Builds the Details panel's filters, leaving the group currency out since GetInsightsDetails takes it separately as `targetCurrency`. */
+function buildDetailsFiltersQueryJSON(filters: InsightsFilters): Readonly<SearchQueryJSON> | undefined {
+    return buildDashboardQuery(buildQueryStringFromFilterFormValues({...buildFilterFormValues(filters), groupCurrency: undefined}), CONST.INSIGHTS.DASHBOARD.SPEND);
 }
 
 type InsightsChartQuery = {
@@ -182,7 +270,7 @@ function buildSnapshotHashEntry(
         return undefined;
     }
     const previousPeriodSnapshotHash = previousPeriodQueryJSON?.hash;
-    const averageSnapshotHash = (averageQueryJSON ?? buildDashboardQuery(applyInsightsFilters(chart, filters, CONST.SEARCH.COMPARE.AVERAGE), dashboard))?.hash;
+    const averageSnapshotHash = (averageQueryJSON ?? buildChartSnapshotQueryJSON(dashboard, chart, filters, CONST.SEARCH.COMPARE.AVERAGE))?.hash;
     if (!previousPeriodSnapshotHash || !averageSnapshotHash) {
         return undefined;
     }
@@ -214,7 +302,7 @@ function buildInsightsJsonQuery(
     const dashboardFilters = {...filters, tagLevel: dashboard === CONST.INSIGHTS.DASHBOARD.SPEND ? (filters.tagLevel ?? CONST.INSIGHTS.DEFAULT_TAG_LEVEL) : undefined};
     // The backend saves inputQuery as the dashboard's filters, so it keeps the Group by the user picked, not the one fitted to the date range
     const inputQuery = buildInsightsQueryString(dashboardFilters);
-    const queryJSON = buildDashboardQuery(buildInsightsQueryString({...dashboardFilters, groupBy: getQueryGroupBy(filters), compare: undefined}), dashboard);
+    const queryJSON = buildDashboardQueryJSON(dashboard, dashboardFilters);
     if (!queryJSON) {
         return undefined;
     }
@@ -224,9 +312,11 @@ function buildInsightsJsonQuery(
         const chart = applyViolationStage(declaredChart, violationStages[declaredChart.graphKey]);
         return {
             chart,
-            queryJSON: buildDashboardQuery(applyInsightsFilters(chart, filters), dashboard),
-            previousPeriodQueryJSON: buildDashboardQuery(applyInsightsFilters(chart, filters, CONST.SEARCH.COMPARE.PREVIOUS_PERIOD), dashboard),
-            ...(chart.graphKey === CONST.INSIGHTS.GRAPH.TOP_TAGS && {averageQueryJSON: buildDashboardQuery(applyInsightsFilters(chart, filters, CONST.SEARCH.COMPARE.AVERAGE), dashboard)}),
+            queryJSON: buildChartSnapshotQueryJSON(dashboard, chart, filters),
+            previousPeriodQueryJSON: buildChartSnapshotQueryJSON(dashboard, chart, filters, CONST.SEARCH.COMPARE.PREVIOUS_PERIOD),
+            ...(chart.graphKey === CONST.INSIGHTS.GRAPH.TOP_TAGS && {
+                averageQueryJSON: buildChartSnapshotQueryJSON(dashboard, chart, filters, CONST.SEARCH.COMPARE.AVERAGE),
+            }),
         };
     };
     const headlineChart = buildChartQuery(spec.headlineChart);
@@ -257,6 +347,7 @@ function buildInsightsJsonQuery(
             searchKey: spec.searchKey,
             insightsHashes,
             numberOfPeriods: COMPARE_AVERAGE_PERIOD_COUNT,
+            ...(dashboard === CONST.INSIGHTS.DASHBOARD.SPEND && {includeExplanationContext: true}),
             ...(hasViolationStages && {violationStages: requestedViolationStages}),
         }),
         hash,
@@ -276,6 +367,18 @@ function buildTopExpensesQueryJSON(query: SearchQueryString): Readonly<SearchQue
     return buildSearchQueryJSON(buildSearchQueryString({...queryJSON, sortBy: CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, sortOrder: CONST.SEARCH.SORT_ORDER.DESC, limit: TOP_EXPENSES_LIMIT}));
 }
 
-export {applyInsightsFilters, buildDateFormValues, buildFutureExpensesQueryString, buildInsightsQueryString, buildTopExpensesQueryJSON, TOP_EXPENSES_LIMIT};
+export {
+    applyInsightsFilters,
+    buildChartSnapshotQueryJSON,
+    buildDateFormValues,
+    buildDetailsFiltersQueryJSON,
+    buildFutureExpensesQueryString,
+    buildInsightsQueryString,
+    buildRecentHistoryQueryString,
+    buildTopExpensesQueryJSON,
+    scopeInsightsDrillDownQuery,
+    TOP_EXPENSES_LIMIT,
+    withInsightsSnapshotHash,
+};
 export type {InsightsChartQuery, InsightsQuery};
 export default buildInsightsJsonQuery;

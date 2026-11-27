@@ -1,7 +1,10 @@
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import type {WithSentryLabelWhenPressable} from '@src/types/utils/SentryLabel';
@@ -18,9 +21,10 @@ import RenderHTML from './RenderHTML';
 type ConnectionStatusMessageProps = WithSentryLabelWhenPressable<'onActionPress', 'actionSentryLabel'> & {
     message?: string;
     actionText?: string;
-    onActionPress?: () => void;
+    onActionPress?: () => void | Promise<void>;
     isActionDisabled?: boolean;
-    statusTone?: 'default' | 'success' | 'danger';
+    /** `pending` marks something still in progress, with an hourglass and a regular action button */
+    statusTone?: 'default' | 'success' | 'danger' | 'pending';
     onLinkPress?: ComponentProps<typeof RenderHTML>['onLinkPress'];
     shouldIncludeHorizontalPadding?: boolean;
 
@@ -41,9 +45,10 @@ function ConnectionStatusMessage({
     actionAccessibilityLabel,
     actionSentryLabel,
 }: ConnectionStatusMessageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
+    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Hourglass']);
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {cardPaddingHorizontal} = useLayoutSpacing();
 
     if (!message && !actionText) {
@@ -57,6 +62,7 @@ function ConnectionStatusMessage({
     const shouldShowActionButton = !!actionText && !!onActionPress;
     const isDangerStatus = statusTone === 'danger';
     const isSuccessStatus = statusTone === 'success';
+    const isPendingStatus = statusTone === 'pending';
     let messageTag;
     if (isDangerStatus) {
         messageTag = 'rbr';
@@ -66,13 +72,22 @@ function ConnectionStatusMessage({
         messageTag = 'muted-text-label';
     }
     const messageHTML = `<${messageTag}>${message ?? ''}</${messageTag}>`;
+    let statusIcon;
+    if (isPendingStatus) {
+        statusIcon = {src: icons.Hourglass, fill: theme.textSupporting, size: variables.iconSizeSmall};
+    } else if (isDangerStatus || isSuccessStatus) {
+        statusIcon = {src: icons.DotIndicator, fill: isDangerStatus ? theme.danger : theme.iconSuccessFill, size: variables.iconSizeNormal};
+    }
     const messageContent = (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
-            {(isDangerStatus || isSuccessStatus) && (
-                <View style={[styles.offlineFeedbackErrorDot, styles.mr2]}>
+            {!!statusIcon && (
+                // The slot is as wide as the largest icon, so the text starts at the same place whichever icon a status shows
+                <View style={[styles.offlineFeedbackErrorDot, styles.mr2, styles.alignItemsCenter, StyleUtils.getWidthStyle(variables.iconSizeNormal)]}>
                     <Icon
-                        src={icons.DotIndicator}
-                        fill={isDangerStatus ? theme.danger : theme.iconSuccessFill}
+                        src={statusIcon.src}
+                        fill={statusIcon.fill}
+                        width={statusIcon.size}
+                        height={statusIcon.size}
                     />
                 </View>
             )}
@@ -85,9 +100,15 @@ function ConnectionStatusMessage({
         </View>
     );
 
+    let actionButtonVariant;
+    if (isSuccessStatus) {
+        actionButtonVariant = CONST.BUTTON_VARIANT.SUCCESS;
+    } else if (!isPendingStatus) {
+        actionButtonVariant = CONST.BUTTON_VARIANT.DANGER;
+    }
     const actionButton = shouldShowActionButton ? (
         <Button
-            variant={isSuccessStatus ? CONST.BUTTON_VARIANT.SUCCESS : CONST.BUTTON_VARIANT.DANGER}
+            variant={actionButtonVariant}
             size={CONST.BUTTON_SIZE.SMALL}
             style={styles.alignSelfStart}
             onPress={onActionPress}

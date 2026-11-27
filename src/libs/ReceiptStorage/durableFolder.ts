@@ -33,4 +33,40 @@ function isInDurableFolder(storedPath: unknown): boolean {
     }
 }
 
-export {toDurableName, isInDurableFolder};
+/** Where a receipt source lives, safe to send to Sentry instead of the path. */
+type ReceiptSourceKind = 'receiptsFolder' | 'imageManipulatorCache' | 'otherTemp' | 'remote';
+
+// expo-image-manipulator writes its results here, inside the app cache the OS can clear.
+const IMAGE_MANIPULATOR_CACHE_FOLDER = '/ImageManipulator/';
+
+/** Undefined for an empty source and on platforms without a receipts folder. */
+function getReceiptSourceKind(source: unknown): ReceiptSourceKind | undefined {
+    if (typeof source !== 'string' || !source) {
+        return undefined;
+    }
+
+    let receiptsFolderPath: string;
+    try {
+        receiptsFolderPath = getReceiptsUploadFolderPath();
+    } catch {
+        // getReceiptsUploadFolderPath reaches the native filesystem module, which is not always available.
+        return undefined;
+    }
+
+    // Web has no receipts folder.
+    if (!receiptsFolderPath) {
+        return undefined;
+    }
+    if (source.startsWith('http:') || source.startsWith('https:')) {
+        return 'remote';
+    }
+    if (isInDurableFolder(source)) {
+        return 'receiptsFolder';
+    }
+    if (source.includes(IMAGE_MANIPULATOR_CACHE_FOLDER)) {
+        return 'imageManipulatorCache';
+    }
+    return 'otherTemp';
+}
+
+export {toDurableName, isInDurableFolder, getReceiptSourceKind};

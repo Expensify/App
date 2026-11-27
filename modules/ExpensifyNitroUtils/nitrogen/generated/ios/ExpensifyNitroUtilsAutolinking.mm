@@ -12,7 +12,8 @@
 
 #include "HybridContactsModuleSpecSwift.hpp"
 #include "HybridAppStartTimeModuleSpecSwift.hpp"
-#include "HybridVerticalBarModuleSpecSwift.hpp"
+#include "HybridDocumentDetectorModuleSpecSwift.hpp"
+#include "HybridWindowBarsModuleSpecSwift.hpp"
 #include "HybridShareActionHandlerSpecSwift.hpp"
 
 @interface ExpensifyNitroUtilsAutolinking : NSObject
@@ -39,9 +40,16 @@
     }
   );
   HybridObjectRegistry::registerHybridObjectConstructor(
-    "VerticalBarModule",
+    "DocumentDetectorModule",
     []() -> std::shared_ptr<HybridObject> {
-      std::shared_ptr<HybridVerticalBarModuleSpec> hybridObject = ExpensifyNitroUtils::ExpensifyNitroUtilsAutolinking::createVerticalBarModule();
+      std::shared_ptr<HybridDocumentDetectorModuleSpec> hybridObject = ExpensifyNitroUtils::ExpensifyNitroUtilsAutolinking::createDocumentDetectorModule();
+      return hybridObject;
+    }
+  );
+  HybridObjectRegistry::registerHybridObjectConstructor(
+    "WindowBarsModule",
+    []() -> std::shared_ptr<HybridObject> {
+      std::shared_ptr<HybridWindowBarsModuleSpec> hybridObject = ExpensifyNitroUtils::ExpensifyNitroUtilsAutolinking::createWindowBarsModule();
       return hybridObject;
     }
   );

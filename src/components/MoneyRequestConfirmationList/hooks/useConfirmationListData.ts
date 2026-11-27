@@ -1,21 +1,29 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import buildConfirmAction from '@components/MoneyRequestConfirmationList/confirmAction';
+import {isMissingRequiredAttendees} from '@components/MoneyRequestConfirmationList/getConfirmationFieldErrors';
 import type {MoneyRequestConfirmationListProps} from '@components/MoneyRequestConfirmationList/types';
 import type {MeasurableInput, SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 
-import useAttendees from '@hooks/useAttendees';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import usePrevious from '@hooks/usePrevious';
+import useReportOwnerAsAttendee from '@hooks/useReportOwnerAsAttendee';
 
 import {getCategoryDescriptionHint, isCategoryDescriptionRequired} from '@libs/CategoryUtils';
 import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseUtil} from '@libs/IOUUtils';
-import {shouldShowConfirmationDate} from '@libs/MoneyRequestUtils';
+import {getConfirmationAmount, isConfirmationMerchantRequired, shouldShowConfirmationDate} from '@libs/MoneyRequestUtils';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {arePolicyRulesEnabled, isTaxTrackingEnabled} from '@libs/PolicyUtils';
-import {getCategory, getCurrency, getMerchant, getRateID, hasValidModifiedAmount, isScanRequest as isScanRequestUtil} from '@libs/TransactionUtils';
+import {
+    getAttendees,
+    getCategory,
+    getCurrency,
+    getMerchant,
+    getRateID,
+    isScanRequest as isScanRequestUtil,
+    shouldShowAttendees as shouldShowAttendeesTransactionUtils,
+} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 
 import {useIsFocused} from '@react-navigation/native';
 import {useEffect, useRef, useState} from 'react';
@@ -23,18 +31,13 @@ import {useEffect, useRef, useState} from 'react';
 import type {ConfirmationDistanceState, ConfirmationListData, UseConfirmationListDataParams} from './types';
 
 import useConfirmationAmount from './useConfirmationAmount';
+import useConfirmationFieldErrors from './useConfirmationFieldErrors';
 import useConfirmationPolicyData from './useConfirmationPolicyData';
 import useConfirmationValidation from './useConfirmationValidation';
 import useFormErrorManagement from './useFormErrorManagement';
 import useParticipantSection from './useParticipantSection';
+import useScrollToFlaggedField from './useScrollToFlaggedField';
 import useTransactionReportForConfirmation from './useTransactionReportForConfirmation';
-
-/**
- * The errors the amount / merchant / date fields render inline rather than in the footer. Raising one of these is
- * only visible if those fields are on screen, so every reveal site reads this same set: the shared confirmation
- * switches to the transaction whose fields need fixing, and the scan variant expands "Show more".
- */
-const INLINE_FIELD_ERROR_KEYS = new Set<TranslationPaths | ''>(['common.error.fieldRequired', 'common.error.invalidAmount', 'iou.error.invalidMerchant']);
 
 /**
  * Everything the confirmation surface needs regardless of which expense type is being confirmed: the participant
@@ -64,7 +67,7 @@ function useConfirmationListDataWithPolicy({
     isConfirming,
     shouldShowSmartScanFields = true,
     canEnterScanFieldsManually = false,
-    partiallyManuallyFilledScanID,
+    siblingTransactions,
     hasSmartScanFailed,
     shouldHideToSection = false,
     onConfirm,
@@ -77,6 +80,8 @@ function useConfirmationListDataWithPolicy({
     isDistanceRequest = false,
     isScanRequest: isScanRequestProp = false,
     distanceState,
+    onUnsavedAmountInputChange,
+    onSubmitWillStart,
 }: UseConfirmationListDataParams): ConfirmationListData {
     // Every distance branch below goes inert for the variants that pass no distance state.
     const {
@@ -103,12 +108,14 @@ function useConfirmationListDataWithPolicy({
     const scrollFocusedInputIntoView = (input: MeasurableInput) => {
         listRef.current?.scrollInputIntoView(input);
     };
+    const {fieldViewRefs, scrollToField} = useScrollToFlaggedField(listRef, transaction?.transactionID);
 
-    const iouAmount = hasValidModifiedAmount(transaction) ? Number(transaction?.modifiedAmount) : (transaction?.amount ?? 0);
+    const iouAmount = getConfirmationAmount(transaction);
     const iouCurrencyCode = getCurrency(transaction);
     const iouMerchant = getMerchant(transaction);
     const iouCategory = getCategory(transaction);
-    const iouAttendees = useAttendees(transaction);
+    const reportOwnerAsAttendee = useReportOwnerAsAttendee(transaction);
+    const iouAttendees = getAttendees(transaction, reportOwnerAsAttendee);
 
     const isTypeSend = iouType === CONST.IOU.TYPE.PAY;
     const isTypeInvoice = iouType === CONST.IOU.TYPE.INVOICE;
@@ -127,8 +134,11 @@ function useConfirmationListDataWithPolicy({
 
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat || isTrackExpense, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest);
 
+    const shouldShowAttendees = shouldShowAttendeesTransactionUtils(iouType, policy);
+
     // In the share flow, the caller knows it is a scan before the draft is initialized.
     const isScanRequest = isScanRequestProp || isScanRequestUtil(transaction);
+    const isMerchantRequired = isConfirmationMerchantRequired({isPolicyExpenseChat, isScanRequest, isEditingSplitBill, shouldShowMerchant});
 
     const {amountToBeUsed, formattedAmount, formattedAmountPerAttendee} = useConfirmationAmount({
         transaction,
@@ -149,45 +159,39 @@ function useConfirmationListDataWithPolicy({
 
     const [didConfirm, setDidConfirm] = useState(isConfirmed);
     const [didConfirmSplit, setDidConfirmSplit] = useState(false);
-    const [isTaxAmountEmpty, setIsTaxAmountEmpty] = useState(false);
-
-    useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- reset the tax-empty flag whenever the transaction changes
-        setIsTaxAmountEmpty(false);
-    }, [transactionID]);
+    // A multi-scan swaps the receipt on the same list, so the flag holds the receipt whose tax amount was emptied. It is dropped once another receipt is on screen, because coming back shows that receipt's stored 0, which is a valid tax amount.
+    const [emptyTaxAmountTransactionID, setEmptyTaxAmountTransactionID] = useState<string | undefined>();
+    if (emptyTaxAmountTransactionID && emptyTaxAmountTransactionID !== transactionID) {
+        setEmptyTaxAmountTransactionID(undefined);
+    }
+    const isTaxAmountEmpty = !!transactionID && emptyTaxAmountTransactionID === transactionID;
 
     const routeError = Object.values(transaction?.errorFields?.route ?? {}).at(0);
     const isTypeSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const shouldShowReadOnlySplits = isPolicyExpenseChat || isReadOnly || isScanRequest;
 
-    // Both the validation gate and the clear gate below key off this, so it is computed once here rather than
-    // being re-derived per hook, where the two could be updated independently.
+    // The date field is rendered under the same condition, so a hidden date is never reported missing.
     const shouldShowDate = shouldShowConfirmationDate(shouldShowSmartScanFields, isDistanceRequest);
 
-    const {formError, setFormError, clearFormErrors, shouldDisplayFieldError, isMerchantEmpty, isMerchantFieldValid, isMerchantRequired, errorMessage} = useFormErrorManagement({
+    const currentUserLogin = currentUserPersonalDetails.email ?? currentUserPersonalDetails.login;
+
+    // `validate` raises the footer's missing-attendees error with this same rule, so the error clears as soon as the rule passes.
+    const isMissingAttendees = isMissingRequiredAttendees(transaction, {iouType, policy, policyCategories, reportOwnerAsAttendee, currentUserLogin});
+
+    const {formError, setFormError, clearFormErrors, setConfirmError, clearConfirmError, shouldDisplayFieldError, errorMessage} = useFormErrorManagement({
         transaction,
         transactionReport,
-        iouMerchant,
         iouCategory,
-        iouAttendees,
         policy,
         policyTags,
         policyCategories,
-        currentUserPersonalDetails,
         isEditingSplitBill,
-        isPolicyExpenseChat,
-        isScanRequest,
-        canEnterScanFieldsManually,
-        partiallyManuallyFilledScanID,
-        shouldShowMerchant,
         hasSmartScanFailed,
         didConfirmSplit,
         routeError,
         isTypeSplit,
         shouldShowReadOnlySplits,
-        isDistanceRequest,
-        isReadOnly,
-        shouldShowDate,
+        isMissingAttendees,
     });
 
     const isCategoryRequired = !!policy?.requiresCategory && !isTypeInvoice;
@@ -228,7 +232,7 @@ function useConfirmationListDataWithPolicy({
         onOpenParticipantPicker,
     });
 
-    const {validate} = useConfirmationValidation({
+    const {validate, fieldErrors, siblingFieldErrors} = useConfirmationValidation({
         transaction,
         transactionReport,
         transactionID,
@@ -237,18 +241,16 @@ function useConfirmationListDataWithPolicy({
         iouMerchant,
         iouCategory,
         iouCurrencyCode,
-        iouAttendees,
+        reportOwnerAsAttendee,
         policy,
         policyTags,
         policyTagLists,
         policyCategories,
         selectedParticipants,
         currentUserPersonalDetails,
+        currentUserLogin,
         isEditingSplitBill,
         isMerchantRequired,
-        isMerchantFieldValid,
-        isMerchantEmpty,
-        shouldDisplayFieldError,
         shouldShowTax,
         isDistanceRequest,
         isDistanceRequestWithPendingRoute,
@@ -258,20 +260,20 @@ function useConfirmationListDataWithPolicy({
         routeError,
         canEnterScanFieldsManually,
         isPolicyExpenseChat,
-        partiallyManuallyFilledScanID,
+        siblingTransactions,
         isReadOnly,
         shouldShowDate,
         isTaxAmountEmpty,
+        shouldShowAttendees,
     });
 
-    // The partially filled receipt may not be the one on screen, so bring it into view to show its inline errors.
-    const validateAndRevealFields: typeof validate = (paymentType) => {
-        const result = validate(paymentType);
-        if (result?.errorKey && INLINE_FIELD_ERROR_KEYS.has(result.errorKey) && partiallyManuallyFilledScanID && partiallyManuallyFilledScanID !== transactionID) {
-            onSwitchToTransaction?.(partiallyManuallyFilledScanID);
-        }
-        return result;
-    };
+    const {visibleFieldErrors, revealFieldErrors} = useConfirmationFieldErrors({
+        transactionID,
+        fieldErrors,
+        siblingFieldErrors,
+        onSwitchToTransaction,
+        onRevealField: scrollToField,
+    });
 
     const confirm = buildConfirmAction({
         iouType,
@@ -280,12 +282,24 @@ function useConfirmationListDataWithPolicy({
         routeError,
         formError,
         isDelegateAccessRestricted,
-        validate: validateAndRevealFields,
-        setFormError,
+        validate,
+        setConfirmError,
+        clearConfirmError,
+        revealFieldErrors,
         setDidConfirmSplit,
         showDelegateNoAccessModal,
-        onConfirm,
-        onSendMoney,
+        onConfirm:
+            onConfirm &&
+            (() => {
+                onSubmitWillStart?.();
+                return onConfirm();
+            }),
+        onSendMoney:
+            onSendMoney &&
+            ((paymentMethod) => {
+                onSubmitWillStart?.();
+                return onSendMoney(paymentMethod);
+            }),
     });
 
     const amountDisplay = {amount: amountToBeUsed, formattedAmount, formattedAmountPerAttendee};
@@ -296,9 +310,10 @@ function useConfirmationListDataWithPolicy({
         shouldShowMerchant,
         shouldShowCategories,
         shouldShowTax,
+        shouldShowAttendees,
         hasParticipantSection: sections.length > 0,
     };
-    const errorState = {shouldDisplayFieldError, formError, clearFormErrors, setFormError};
+    const errorState = {shouldDisplayFieldError, formError, fieldErrors: visibleFieldErrors};
 
     return {
         /** Handed straight to `ConfirmationListLayout`. The variant adds its `listFooterContent`, its `fieldFlags`, and its controllers as children. */
@@ -346,8 +361,10 @@ function useConfirmationListDataWithPolicy({
                 isScanRequest,
                 isEditingSplitBill,
                 scrollFocusedInputIntoView,
+                fieldViewRefs,
                 onSubmitForm: confirm,
-                onTaxAmountEmptyChange: setIsTaxAmountEmpty,
+                setEmptyTaxAmountTransactionID,
+                onUnsavedAmountInputChange,
             },
         },
 
@@ -436,4 +453,4 @@ function useConfirmationListData(props: MoneyRequestConfirmationListProps & Pick
 }
 
 export default useConfirmationListData;
-export {INLINE_FIELD_ERROR_KEYS, useConfirmationListDataWithPolicy};
+export {useConfirmationListDataWithPolicy};

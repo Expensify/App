@@ -1,3 +1,4 @@
+import DropdownField from '@components/DropdownField';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
@@ -27,9 +28,10 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
+import {View} from 'react-native';
 
 import AttendeeFieldDropdown from './AttendeeFieldDropdown';
-import ExpenseFieldDropdown from './ExpenseFieldDropdown';
+import ExpenseFieldContainer from './ExpenseFieldContainer';
 import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
 import {attendeeSliceSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
@@ -41,17 +43,19 @@ type AttendeeFieldProps = {
     action: IOUAction;
     iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
     reportID: string;
-    formError: string;
+
+    /** The attendees entry of the errors a blocked confirm revealed, from `getConfirmationFieldErrors` */
+    fieldError: TranslationPaths | undefined;
 };
 
-function AttendeeField({formattedAmountPerAttendee, isReadOnly, transactionID, action, iouType, reportID, formError}: AttendeeFieldProps) {
+function AttendeeField({formattedAmountPerAttendee, isReadOnly, transactionID, action, iouType, reportID, fieldError}: AttendeeFieldProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {shouldUseDropdownRows} = useExpenseFormLayout();
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const personalDetailsList = usePersonalDetails();
     const [loginToAccountIDMap] = useOnyx(ONYXKEYS.DERIVED.LOGIN_TO_ACCOUNT_ID_MAP);
-    const {didConfirm} = useConfirmationFields();
-    const shouldDisplayAttendeesError = formError === 'violations.missingAttendees';
+    const {didConfirm, fieldViewRefs} = useConfirmationFields();
+    const errorText = fieldError ? translate(fieldError) : '';
 
     const attendeeSlice = useTransactionSelector(transactionID, attendeeSliceSelector);
 
@@ -89,55 +93,57 @@ function AttendeeField({formattedAmountPerAttendee, isReadOnly, transactionID, a
     // which saves once through the API with the expense's report and policy in hand.
     const shouldOpenInDropdown = !!transactionID && !isReadOnly && !didConfirm && action !== CONST.IOU.ACTION.EDIT;
 
-    if (shouldUseDropdownRows) {
-        return (
-            <ExpenseFieldDropdown
-                name={attendeesDescription}
-                valueComponent={attendeePills}
-                // The creator is always an attendee, so the row reads as filled in from the start.
-                hasValueComponent
-                accessibilityLabel={attendeesAccessibilityLabel}
-                errorText={shouldDisplayAttendeesError ? translate(formError as TranslationPaths) : ''}
-                onPress={openAttendeePage}
-                shouldOpenInDropdown={shouldOpenInDropdown}
-                listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
-                renderDropdown={(dropdownProps) =>
-                    !!transactionID && (
-                        <AttendeeFieldDropdown
-                            {...dropdownProps}
-                            transactionID={transactionID}
-                            iouType={iouType}
-                        />
-                    )
-                }
-                isInteractive={!isReadOnly}
-                sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.ATTENDEES_FIELD}
-            />
-        );
-    }
-
     return (
-        <MenuItem.Root
-            onPress={isReadOnly ? undefined : callIfAuthenticated(openAttendeePage, session)}
-            accessibilityLabel={attendeesAccessibilityLabel}
-            sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.ATTENDEES_FIELD}
-        >
-            <MenuItem.Row>
-                <MenuItemField.Content name={attendeesDescription}>{attendeePills}</MenuItemField.Content>
-                {(shouldDisplayAttendeesError || !isReadOnly) && (
-                    <MenuItem.Trailing>
-                        {shouldDisplayAttendeesError && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
-                        {!isReadOnly && <MenuItem.Chevron />}
-                    </MenuItem.Trailing>
-                )}
-            </MenuItem.Row>
-            {shouldDisplayAttendeesError && (
-                <MenuItem.HelpText
-                    isError
-                    message={translate(formError as TranslationPaths)}
-                />
+        <View ref={fieldViewRefs?.attendees}>
+            {shouldUseDropdownRows ? (
+                <ExpenseFieldContainer>
+                    <DropdownField
+                        name={attendeesDescription}
+                        valueComponent={attendeePills}
+                        // The creator is always an attendee, so the row reads as filled in from the start.
+                        hasValueComponent
+                        accessibilityLabel={attendeesAccessibilityLabel}
+                        errorText={errorText}
+                        onPress={openAttendeePage}
+                        shouldOpenInDropdown={shouldOpenInDropdown}
+                        listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
+                        renderDropdown={(dropdownProps) =>
+                            !!transactionID && (
+                                <AttendeeFieldDropdown
+                                    {...dropdownProps}
+                                    transactionID={transactionID}
+                                    iouType={iouType}
+                                />
+                            )
+                        }
+                        isInteractive={!isReadOnly}
+                        sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.ATTENDEES_FIELD}
+                    />
+                </ExpenseFieldContainer>
+            ) : (
+                <MenuItem.Root
+                    onPress={isReadOnly ? undefined : callIfAuthenticated(openAttendeePage, session)}
+                    accessibilityLabel={attendeesAccessibilityLabel}
+                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.ATTENDEES_FIELD}
+                >
+                    <MenuItem.Row>
+                        <MenuItemField.Content name={attendeesDescription}>{attendeePills}</MenuItemField.Content>
+                        {(!!errorText || !isReadOnly) && (
+                            <MenuItem.Trailing>
+                                {!!errorText && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                                {!isReadOnly && <MenuItem.Chevron />}
+                            </MenuItem.Trailing>
+                        )}
+                    </MenuItem.Row>
+                    {!!errorText && (
+                        <MenuItem.HelpText
+                            isError
+                            message={errorText}
+                        />
+                    )}
+                </MenuItem.Root>
             )}
-        </MenuItem.Root>
+        </View>
     );
 }
 

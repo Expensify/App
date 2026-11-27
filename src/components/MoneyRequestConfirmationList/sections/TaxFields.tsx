@@ -1,3 +1,5 @@
+import DropdownField from '@components/DropdownField';
+import DropdownFieldRow from '@components/DropdownFieldRow';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
@@ -33,8 +35,7 @@ import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
-import ExpenseFieldDropdown from './ExpenseFieldDropdown';
-import ExpenseFieldRow from './ExpenseFieldRow';
+import ExpenseFieldContainer from './ExpenseFieldContainer';
 import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
 import {taxSliceSelector} from './selectors';
 import TaxFieldDropdown from './TaxFieldDropdown';
@@ -52,16 +53,18 @@ type TaxFieldsProps = {
     iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
     reportID: string;
     formError: string;
-    clearFormErrors: (errors: string[]) => void;
+
+    /** The tax amount entry of the errors a blocked confirm revealed, from `getConfirmationFieldErrors` */
+    taxAmountError: TranslationPaths | undefined;
 };
 
-function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyTaxFields, didConfirm, transactionID, action, iouType, reportID, formError, clearFormErrors}: TaxFieldsProps) {
+function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyTaxFields, didConfirm, transactionID, action, iouType, reportID, formError, taxAmountError}: TaxFieldsProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {shouldUseDropdownRows} = useExpenseFormLayout();
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
     const {convertToDisplayString, getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
-    const {isEditingSplitBill, onTaxAmountEmptyChange} = useConfirmationFields();
+    const {isEditingSplitBill, setEmptyTaxAmountTransactionID, fieldViewRefs} = useConfirmationFields();
     const numberFormRef = useRef<NumberWithSymbolFormRef | null>(null);
 
     const taxSlice = useTransactionSelector(transactionID, taxSliceSelector);
@@ -82,11 +85,14 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
 
     const taxAmountInputKey = `${taxSlice?.taxCode}-${taxSlice?.taxValue}-${taxSlice?.amount}-${effectiveCurrency}`;
 
-    // The tax amount is only validated on submit (see useConfirmationValidation), matching how the other fields behave.
-    // Here we just surface the resulting form error; `formattedMaxTaxAmount` is the limit shown in that error message.
+    // The field errors carry only a translation key, so the limit the over-the-limit message names is formatted here.
     const maxTaxAmount = getCalculatedTaxAmount(policy, transactionForHelpers, effectiveCurrency, decimals);
-    const formattedMaxTaxAmount = convertToDisplayString(maxTaxAmount, effectiveCurrency);
-    const shouldDisplayTaxAmountError = formError === 'iou.error.invalidTaxAmount';
+    let taxAmountErrorText = '';
+    if (taxAmountError === 'iou.error.invalidTaxAmount') {
+        taxAmountErrorText = translate(taxAmountError, convertToDisplayString(maxTaxAmount, effectiveCurrency));
+    } else if (taxAmountError) {
+        taxAmountErrorText = translate(taxAmountError);
+    }
 
     // Converts the raw text from the tax amount input into a backend (smallest-currency-unit) amount,
     // treating an empty field as 0. Kept in one place so the parsing rules can't drift between call sites.
@@ -99,14 +105,12 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
 
         const taxAmountInSmallestCurrencyUnits = toBackendTaxAmount(newAmount);
 
-        onTaxAmountEmptyChange?.(newAmount.trim() === '');
-
-        clearFormErrors(['iou.error.invalidTaxAmount', 'iou.error.invalidAmount']);
+        setEmptyTaxAmountTransactionID?.(newAmount.trim() === '' ? transactionID : undefined);
 
         // When editing a split expense, persist directly to the split draft so that
         // SplitBillDetailsPage and completeSplitBill read the latest value.
         if (isEditingSplitBill) {
-            setDraftSplitTransaction(transactionID, baseTransaction, {taxAmount: taxAmountInSmallestCurrencyUnits}, getCurrencyDecimals, getCurrencySymbol);
+            setDraftSplitTransaction(translate, transactionID, baseTransaction, {taxAmount: taxAmountInSmallestCurrencyUnits}, getCurrencyDecimals, getCurrencySymbol);
             return;
         }
 
@@ -126,22 +130,15 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
             }
         }
         numberFormRef.current?.updateNumber(taxAmountInput);
-        onTaxAmountEmptyChange?.(false);
-    }, [taxAmount, taxAmountInput, onTaxAmountEmptyChange]);
+        setEmptyTaxAmountTransactionID?.(undefined);
+    }, [taxAmount, taxAmountInput, setEmptyTaxAmountTransactionID]);
 
     useEffect(() => {
         if (canModifyTaxFields) {
-            return () => onTaxAmountEmptyChange?.(false);
+            return () => setEmptyTaxAmountTransactionID?.(undefined);
         }
-        onTaxAmountEmptyChange?.(false);
-    }, [canModifyTaxFields, onTaxAmountEmptyChange]);
-
-    useEffect(() => {
-        if (formError !== 'iou.error.invalidTaxAmount' || taxAmount > maxTaxAmount) {
-            return;
-        }
-        clearFormErrors(['iou.error.invalidTaxAmount']);
-    }, [formError, taxAmount, maxTaxAmount, clearFormErrors]);
+        setEmptyTaxAmountTransactionID?.(undefined);
+    }, [canModifyTaxFields, setEmptyTaxAmountTransactionID]);
 
     const canSaveFromThisForm = action !== CONST.IOU.ACTION.EDIT || isEditingSplitBill;
     const hasEnabledTaxRates = getEnabledTaxRateCount(taxRates?.taxes ?? {}) > 0;
@@ -167,15 +164,17 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
     // the tax-amount page: it reads the amount out for a user who cannot change it. Being non-interactive, the
     // dropdown-row form renders it as a disabled field rather than as one waiting to be filled in.
     const readOnlyTaxAmountRow = shouldUseDropdownRows ? (
-        <ExpenseFieldRow
-            name={translate('iou.taxAmount')}
-            value={formattedTaxAmount}
-            onPress={openTaxAmountPage}
-            isDisabled={didConfirm}
-            isInteractive={false}
-            testID={`${taxRates?.name}_amount`}
-            sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.TAX_AMOUNT_FIELD}
-        />
+        <ExpenseFieldContainer>
+            <DropdownFieldRow
+                name={translate('iou.taxAmount')}
+                value={formattedTaxAmount}
+                onPress={openTaxAmountPage}
+                isDisabled={didConfirm}
+                isInteractive={false}
+                testID={`${taxRates?.name}_amount`}
+                sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.TAX_AMOUNT_FIELD}
+            />
+        </ExpenseFieldContainer>
     ) : (
         <MenuItemField
             key={`${taxRates?.name}_amount`}
@@ -191,28 +190,30 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
     return (
         <>
             {shouldUseDropdownRows ? (
-                <ExpenseFieldDropdown
-                    name={taxRates?.name ?? translate('iou.taxRate')}
-                    value={taxRateTitle}
-                    errorText={shouldDisplayTaxRateError ? translate(formError as TranslationPaths) : ''}
-                    onPress={openTaxRatePage}
-                    shouldOpenInDropdown={shouldOpenInDropdown && canModifyTaxFields && !didConfirm}
-                    listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
-                    renderDropdown={(dropdownProps) =>
-                        !!transactionID && (
-                            <TaxFieldDropdown
-                                {...dropdownProps}
-                                transactionID={transactionID}
-                                policy={taxRatesPolicy}
-                                selectedTaxRate={taxRateTitle}
-                            />
-                        )
-                    }
-                    isDisabled={didConfirm}
-                    isInteractive={canModifyTaxFields}
-                    testID={`${taxRates?.name}_rate`}
-                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.TAX_RATE_FIELD}
-                />
+                <ExpenseFieldContainer>
+                    <DropdownField
+                        name={taxRates?.name ?? translate('iou.taxRate')}
+                        value={taxRateTitle}
+                        errorText={shouldDisplayTaxRateError ? translate(formError as TranslationPaths) : ''}
+                        onPress={openTaxRatePage}
+                        shouldOpenInDropdown={shouldOpenInDropdown && canModifyTaxFields && !didConfirm}
+                        listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
+                        renderDropdown={(dropdownProps) =>
+                            !!transactionID && (
+                                <TaxFieldDropdown
+                                    {...dropdownProps}
+                                    transactionID={transactionID}
+                                    policy={taxRatesPolicy}
+                                    selectedTaxRate={taxRateTitle}
+                                />
+                            )
+                        }
+                        isDisabled={didConfirm}
+                        isInteractive={canModifyTaxFields}
+                        testID={`${taxRates?.name}_rate`}
+                        sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.TAX_RATE_FIELD}
+                    />
+                </ExpenseFieldContainer>
             ) : (
                 <MenuItem.Root
                     key={`${taxRates?.name}_rate`}
@@ -237,7 +238,10 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
                 </MenuItem.Root>
             )}
             {canModifyTaxFields ? (
-                <View style={[styles.mh4, styles.mv2]}>
+                <View
+                    ref={fieldViewRefs?.taxAmount}
+                    style={[styles.mh4, styles.mv2]}
+                >
                     <NumberWithSymbolForm
                         numberFormRef={numberFormRef}
                         key={taxAmountInputKey}
@@ -248,7 +252,7 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
                         currency={effectiveCurrency}
                         symbol={getLocalizedCurrencySymbol(preferredLocale, effectiveCurrency) ?? ''}
                         label={translate('iou.taxAmount')}
-                        errorText={shouldDisplayTaxAmountError ? translate('iou.error.invalidTaxAmount', formattedMaxTaxAmount) : ''}
+                        errorText={taxAmountErrorText}
                         onInputChange={handleTaxAmountChange}
                         shouldShowBigNumberPad={false}
                         disabled={didConfirm}

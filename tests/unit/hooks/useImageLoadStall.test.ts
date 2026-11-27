@@ -31,8 +31,9 @@ describe('useImageLoadStall', () => {
             jest.advanceTimersByTime(IMAGE_LOAD_CEILING_TIMEOUT);
         });
 
-        // Then the load is reported as stalled exactly once
+        // Then the load is reported as stalled exactly once, as a load that never started sending bytes
         expect(onStalled).toHaveBeenCalledTimes(1);
+        expect(onStalled).toHaveBeenCalledWith('ceiling');
         act(() => {
             jest.advanceTimersByTime(IMAGE_LOAD_CEILING_TIMEOUT);
         });
@@ -77,8 +78,9 @@ describe('useImageLoadStall', () => {
             jest.advanceTimersByTime(IMAGE_LOAD_STALL_TIMEOUT - IMAGE_LOAD_CEILING_TIMEOUT - 1000);
         });
 
-        // Then the stall is reported
+        // Then the stall is reported as bytes that stopped arriving
         expect(onStalled).toHaveBeenCalledTimes(1);
+        expect(onStalled).toHaveBeenCalledWith('stall');
     });
 
     it('keeps one reporter identity across renders', () => {

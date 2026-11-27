@@ -147,7 +147,7 @@ function ClassificationFields({
                     shouldDisplayFieldError={errorState.shouldDisplayFieldError}
                     didConfirm={didConfirm}
                     isReadOnly={isReadOnly}
-                    formError={errorState.formError}
+                    fieldError={errorState.fieldErrors.date}
                     transactionID={transactionID}
                     action={action}
                     iouType={iouType}
@@ -193,7 +193,7 @@ function ClassificationFields({
                     iouType={iouType}
                     reportID={reportID}
                     formError={errorState.formError}
-                    clearFormErrors={errorState.clearFormErrors}
+                    taxAmountError={errorState.fieldErrors.taxAmount}
                 />
             )}
 
@@ -205,7 +205,7 @@ function ClassificationFields({
                     action={action}
                     iouType={iouType}
                     reportID={reportID}
-                    formError={errorState.formError}
+                    fieldError={errorState.fieldErrors.attendees}
                 />
             )}
         </>

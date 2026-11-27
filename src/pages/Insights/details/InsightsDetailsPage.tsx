@@ -1,35 +1,52 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import VictoryTheme from '@components/Charts/VictoryTheme';
 import Header from '@components/Header';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import {buildChartDrillDownQuery} from '@components/Search/chartDrillDown';
+import {buildChartDrillDownQuery, buildViewOnSpendQuery} from '@components/Search/chartDrillDown';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {InsightsDetailsParamList} from '@libs/Navigation/types';
-import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 
-import INSIGHTS_DASHBOARD_SPECS from '@pages/Insights/dashboardSpecs';
+import INSIGHTS_DASHBOARD_SPECS, {getChartSpec} from '@pages/Insights/dashboardSpecs';
 import getInsightsLastDay from '@pages/Insights/getInsightsLastDay';
 import {getQueryGroupBy} from '@pages/Insights/insightsGroupByUtils';
-import {applyInsightsFilters} from '@pages/Insights/insightsQueries';
+import {
+    applyInsightsFilters,
+    buildChartSnapshotQueryJSON,
+    buildRecentHistoryQueryString,
+    buildTopExpensesQueryJSON,
+    scopeInsightsDrillDownQuery,
+    withInsightsSnapshotHash,
+} from '@pages/Insights/insightsQueries';
 import useInsightsFilters from '@pages/Insights/useInsightsFilters';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import {getYear, parseISO} from 'date-fns';
 import React from 'react';
 import {View} from 'react-native';
 
+import buildInsightsDetailsQuery from './buildInsightsDetailsQuery';
+import getInsightsItemColor from './getInsightsItemColor';
 import {resolveInsightsDetailsItem} from './insightsDetailsItem';
+import InsightsDetailsSectionError from './InsightsDetailsSectionError';
+import {getInsightsDetailsSectionState} from './insightsDetailsSectionState';
+import InsightsRecentHistory from './InsightsRecentHistory';
+import InsightsSummary from './InsightsSummary';
 import InsightsTopExpenses from './InsightsTopExpenses';
+import useRequestInsightsDetails from './useRequestInsightsDetails';
 
 type InsightsDetailsPageProps = PlatformStackScreenProps<InsightsDetailsParamList, typeof SCREENS.INSIGHTS_DETAILS>;
 
@@ -37,20 +54,28 @@ type InsightsDetailsPageProps = PlatformStackScreenProps<InsightsDetailsParamLis
 function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
     const styles = useThemeStyles();
     const {translate, dateFnsLocale} = useLocalize();
-    const {isBetaEnabled} = usePermissions();
-    const {graphKey, item: itemKey, end: periodEnd, level, parent: parentTagPath, asOf} = route.params;
+    const {graphKey, item: itemKey, end: periodEnd, level, parent: parentTagPath, asOf, stage} = route.params;
     const tagLevel = level ? Number(level) : undefined;
-    const {filters, isResolved} = useInsightsFilters(CONST.INSIGHTS.DASHBOARD.SPEND);
-    const memberAccountID = graphKey === CONST.INSIGHTS.GRAPH.TOP_SPENDERS ? Number(itemKey) : undefined;
-    const [storedMember] = usePersonalDetail(memberAccountID);
+    const dashboardID = Object.values(CONST.INSIGHTS.DASHBOARD).find((id) => id === route.params.dashboardID && INSIGHTS_DASHBOARD_SPECS[id].hasDetailsPanel);
+    const isCompliance = dashboardID === CONST.INSIGHTS.DASHBOARD.COMPLIANCE;
+    const {filters, isResolved} = useInsightsFilters(dashboardID ?? CONST.INSIGHTS.DASHBOARD.SPEND);
 
-    const {headlineChart, supportingCharts} = INSIGHTS_DASHBOARD_SPECS[CONST.INSIGHTS.DASHBOARD.SPEND];
-    const chartSpec = route.params.dashboardID === CONST.INSIGHTS.DASHBOARD.SPEND ? [headlineChart, ...supportingCharts].find((spec) => spec.graphKey === graphKey) : undefined;
-    const chartQueryJSON = chartSpec && isResolved ? buildSearchQueryJSON(applyInsightsFilters(chartSpec, filters)) : undefined;
+    const pickedViolationStage = Object.values(CONST.INSIGHTS.VIOLATION_STAGE).find((value) => value === stage);
+    const chartSpec = dashboardID ? getChartSpec(dashboardID, graphKey, pickedViolationStage) : undefined;
+    const isMemberItem = chartSpec?.groupBy === CONST.SEARCH.GROUP_BY.FROM || chartSpec?.groupBy === CONST.SEARCH.GROUP_BY.APPROVER;
+    const memberAccountID = isMemberItem ? Number(itemKey) : undefined;
+    const [storedMember] = usePersonalDetail(memberAccountID);
+    const isTopSpenders = graphKey === CONST.INSIGHTS.GRAPH.TOP_SPENDERS;
+    const chartQueryJSON = dashboardID && chartSpec && isResolved ? buildChartSnapshotQueryJSON(dashboardID, chartSpec, filters) : undefined;
     const [chartMember] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${chartQueryJSON?.hash}`, {
         selector: (snapshot) => (memberAccountID === undefined ? undefined : snapshot?.data?.personalDetailsList?.[memberAccountID]),
     });
     const member = chartMember ?? storedMember;
+    // A comparison draws the donut as bars, which are colored by a different ranking
+    const shownView = filters.compare && chartSpec?.view === CONST.SEARCH.VIEW.PIE ? CONST.SEARCH.VIEW.BAR : chartSpec?.view;
+    const [itemColor = VictoryTheme.colors.default] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${chartQueryJSON?.hash}`, {
+        selector: (snapshot) => getInsightsItemColor(snapshot?.data, chartSpec?.groupBy, shownView, chartSpec?.limit, itemKey),
+    });
     // A period's title depends on the saved Group by, so nothing resolves until the saved filters load
     const item =
         chartSpec && isResolved
@@ -60,6 +85,7 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
                   periodEnd,
                   parentTagPath,
                   tagLevel,
+                  dateFilterKey: chartSpec.dateFilterKey,
                   member,
                   dateFnsLocale,
                   translate,
@@ -67,8 +93,57 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
             : undefined;
     const queryJSONThroughToday = chartSpec && isResolved ? buildSearchQueryJSON(applyInsightsFilters(chartSpec, filters, undefined, getInsightsLastDay(asOf))) : undefined;
     const drillDownQuery = queryJSONThroughToday && item ? buildChartDrillDownQuery(queryJSONThroughToday, item.filterQuery) : undefined;
+    const topExpensesQueryJSON = chartSpec && drillDownQuery ? withInsightsSnapshotHash(buildTopExpensesQueryJSON(drillDownQuery), chartSpec.graphKey) : undefined;
+    const topExpensesSnapshotHash = topExpensesQueryJSON?.hash;
+    const detailsQuery =
+        chartSpec && topExpensesSnapshotHash !== undefined
+            ? buildInsightsDetailsQuery({
+                  graphKey: chartSpec.graphKey,
+                  sections: chartSpec.detailsSections,
+                  filters,
+                  itemGroupBy: chartSpec.groupBy,
+                  itemKey,
+                  periodEnd,
+                  topExpensesSnapshotHash,
+                  lastDay: getInsightsLastDay(asOf),
+              })
+            : undefined;
+    const requestDetails = useRequestInsightsDetails(detailsQuery, isTopSpenders ? undefined : topExpensesQueryJSON, isCompliance);
+    const {isOffline} = useNetwork();
+    const [details] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS_DETAILS}${detailsQuery?.hash}`);
+    const viewAllQueryJSON = chartSpec ? scopeInsightsDrillDownQuery(topExpensesQueryJSON, chartSpec.graphKey, details?.eligiblePolicyIDs) : undefined;
+    const recentHistoryQueryJSON =
+        chartSpec && detailsQuery && item
+            ? scopeInsightsDrillDownQuery(
+                  buildSearchQueryJSON(buildRecentHistoryQueryString(filters, detailsQuery.periodGroupBy, detailsQuery.period.end, item.filterQuery)),
+                  chartSpec.graphKey,
+                  details?.eligiblePolicyIDs,
+              )
+            : undefined;
+    const hasDetailsErrors = !isEmptyObject(details?.errors);
+    const summaryState = getInsightsDetailsSectionState({
+        isOffline,
+        isLoaded: !!details?.summary,
+        hasErrors: hasDetailsErrors,
+        responseJsonCode: details?.responseJsonCode,
+    });
+    const recentHistoryState = getInsightsDetailsSectionState({
+        isOffline,
+        isLoaded: details?.recentHistory !== undefined,
+        hasErrors: hasDetailsErrors,
+        responseJsonCode: details?.responseJsonCode,
+    });
+    const hasDetailsFailed = !!detailsQuery && !isOffline && hasDetailsErrors;
 
-    if (!isBetaEnabled(CONST.BETAS.INSIGHTS_AI) || !chartSpec || (isResolved && !item)) {
+    const chartTitle = chartSpec?.hasViolationStageControl
+        ? translate(
+              'insightsPage.violationStage.chartTitle',
+              translate(chartSpec.titleKey),
+              translate(`insightsPage.violationStage.${pickedViolationStage ?? CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED}`),
+          )
+        : chartSpec && translate(chartSpec.titleKey);
+
+    if (!chartSpec || (isResolved && !item)) {
         return (
             <ScreenWrapper testID="InsightsDetailsPage">
                 <FullPageNotFoundView shouldShow />
@@ -96,11 +171,50 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
                             variant="label"
                             style={styles.textSupporting}
                         >
-                            {translate(chartSpec.titleKey)}
+                            {chartTitle}
                         </Text>
                         <Text variant="h1">{item.title}</Text>
                     </View>
-                    <InsightsTopExpenses query={drillDownQuery} />
+                    {hasDetailsFailed ? (
+                        <InsightsDetailsSectionError
+                            isStale={details?.responseJsonCode === CONST.JSON_CODE.NO_RESPONSE}
+                            onRetry={requestDetails}
+                        />
+                    ) : (
+                        <>
+                            {!!detailsQuery && (
+                                <InsightsSummary
+                                    query={detailsQuery}
+                                    graphKey={chartSpec.graphKey}
+                                    currency={filters.groupCurrency}
+                                    summary={details?.summary}
+                                    state={summaryState}
+                                />
+                            )}
+                            {!!detailsQuery && !!chartSpec.detailsSections?.includes(CONST.INSIGHTS.DETAILS_SECTION.RECENT_HISTORY) && (
+                                <InsightsRecentHistory
+                                    query={detailsQuery}
+                                    history={details?.recentHistory}
+                                    summary={details?.summary}
+                                    state={recentHistoryState}
+                                    currency={filters.groupCurrency}
+                                    color={itemColor}
+                                    itemTitle={item.title}
+                                    viewAllQuery={recentHistoryQueryJSON && buildSearchQueryString(recentHistoryQueryJSON)}
+                                    currentYear={getYear(parseISO(getInsightsLastDay(asOf)))}
+                                />
+                            )}
+                            {!!topExpensesQueryJSON && (!isTopSpenders || !!detailsQuery) && (
+                                <InsightsTopExpenses
+                                    queryJSON={topExpensesQueryJSON}
+                                    title={translate(isCompliance ? 'insightsPage.flaggedExpenses' : 'insightsPage.topExpenses')}
+                                    emptyText={isCompliance ? translate('insightsPage.noFlaggedExpensesInRange') : undefined}
+                                    viewAllQuery={viewAllQueryJSON && buildViewOnSpendQuery(viewAllQueryJSON)}
+                                    onRetry={requestDetails}
+                                />
+                            )}
+                        </>
+                    )}
                 </ScrollView>
             )}
         </ScreenWrapper>

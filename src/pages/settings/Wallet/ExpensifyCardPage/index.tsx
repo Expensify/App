@@ -84,7 +84,6 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 import type {Policy} from '@src/types/onyx';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {ViewStyle} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
@@ -93,6 +92,7 @@ import type {ValueOf} from 'type-fest';
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 type ExpensifyCardPageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD>
@@ -125,7 +125,6 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const cardList = useNonPersonalCardList();
-    const [, cardListResult] = useOnyx(ONYXKEYS.CARD_LIST);
     const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${cardList?.[cardID]?.fundID}`);
@@ -284,8 +283,11 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
         });
     };
 
-    const handleAskToUnfreezePress = () => {
-        const cardHolderWorkspaceChatReportID = getPolicyExpenseChat(currentCard?.accountID, policyIDForCurrentCard)?.reportID;
+    const handleAskToUnfreezePress = async () => {
+        // The workspace chat is only needed on press, so read it once here instead of subscribing to every report
+        // eslint-disable-next-line rulesdir/no-onyx-get-snapshot-key -- replaces getPolicyExpenseChat's module-level Onyx.connect fallback, which never read a Search snapshot
+        const reports = await Onyx.get(ONYXKEYS.COLLECTION.REPORT);
+        const cardHolderWorkspaceChatReportID = getPolicyExpenseChat(currentCard?.accountID, policyIDForCurrentCard, reports)?.reportID;
         if (!cardHolderWorkspaceChatReportID) {
             return;
         }
@@ -295,8 +297,8 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     const navigateToTransactions = () => navigateToCardTransactions(cardID);
 
     // Show the loading indicator instead of the NotFoundPage while the card could still arrive: Before the app has loaded for the first time (hasLoadedApp),
-    // while an OpenApp/reconnect is in flight (isLoadingApp), or while CARD_LIST is still hydrating.
-    const isLoadingCardData = !currentCard && (!hasLoadedApp || !!isLoadingApp || isLoadingOnyxValue(cardListResult));
+    // or while an OpenApp/reconnect is in flight (isLoadingApp).
+    const isLoadingCardData = !currentCard && (!hasLoadedApp || !!isLoadingApp);
 
     if (isLoadingCardData) {
         return (
@@ -330,7 +332,9 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                         frozenDate={currentCard?.nameValuePairs?.frozen?.date}
                         style={styles.mt8}
                         canUnfreezeCard={canUnfreezeCard}
-                        onAskToUnfreezePress={handleAskToUnfreezePress}
+                        onAskToUnfreezePress={() => {
+                            handleAskToUnfreezePress();
+                        }}
                         onUnfreezePress={handleUnfreezePress}
                         cardPreview={
                             <CardPreview
