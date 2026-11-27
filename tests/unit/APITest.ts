@@ -522,7 +522,7 @@ describe('APITests', () => {
         // Given offline state where all requests will eventually succeed without issue and assumed to be valid credentials
         const xhr = jest
             .spyOn(HttpUtils, 'xhr')
-            .mockResolvedValueOnce({jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED})
+            .mockRejectedValueOnce(new Error(CONST.ERROR.FAILED_TO_FETCH))
             .mockResolvedValueOnce({jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED})
             .mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS, authToken: 'newToken'});
 
@@ -578,11 +578,11 @@ describe('APITests', () => {
                 // We are not offline anymore
                 expect(getIsOffline()).toBe(false);
 
-                // First call to xhr is the AuthenticatePusher request that could not call Authenticate because we went offline
+                // First call to xhr is the AuthenticatePusher request that failed because we went offline
                 const [firstCommand] = xhr.mock.calls.at(0) ?? [];
                 expect(firstCommand).toBe('AuthenticatePusher');
 
-                // Second call to xhr is the MockCommand that also failed with a 407
+                // Second call to xhr is the MockCommand that failed with a 407
                 const [secondCommand] = xhr.mock.calls.at(1) ?? [];
                 expect(secondCommand).toBe(MOCK_COMMAND);
 

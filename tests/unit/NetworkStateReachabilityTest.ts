@@ -334,6 +334,27 @@ describe('NetworkState — a successful request clears the INTERNET_UNREACHABLE 
         expect(reconnectListener).toHaveBeenCalledTimes(1);
     });
 
+    test('success while NO_RADIO is set clears it, re-reads NetInfo and fires reconnect once', async () => {
+        jest.useFakeTimers();
+        const reconnectListener = jest.fn();
+        onReachabilityConfirmed(reconnectListener);
+        const {refresh} = jest.requireMock<{refresh: jest.Mock}>('@react-native-community/netinfo');
+        refresh.mockClear();
+
+        // Given NetInfo missed the reconnect and still reports no connection
+        fireNetInfoState({isConnected: false, isInternetReachable: false});
+        expect(getIsOffline()).toBe(true);
+
+        // When a request succeeds
+        await FailureTracking(Promise.resolve({jsonCode: 200}), mockRequest, false);
+
+        // Then the app is back online, NetInfo re-reads the connection and one reconnect fires
+        expect(getIsOffline()).toBe(false);
+        expect(refresh).toHaveBeenCalledTimes(1);
+        jest.runAllTimers();
+        expect(reconnectListener).toHaveBeenCalledTimes(1);
+    });
+
     test('success while the app was never offline is a complete no-op', async () => {
         jest.useFakeTimers();
         const reconnectListener = jest.fn();

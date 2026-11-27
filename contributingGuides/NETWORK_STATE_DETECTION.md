@@ -122,7 +122,7 @@ Counts consecutive failures and applies a dual threshold:
 
 Both thresholds must be met simultaneously to trigger a sustained failure hard stop. This prevents brief transient errors from being misidentified as connectivity loss.
 
-One successful request resets everything — it proves the server is reachable and clears the `sustainedFailuresActive` flag.
+One successful request resets everything — it proves the server is reachable and clears the `sustainedFailuresActive`, `internetUnreachable` and `hasRadio` hard stops.
 
 ## Central State Machine
 
