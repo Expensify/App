@@ -5,13 +5,14 @@ import type {IconSize} from '@components/EReceiptThumbnail';
 import EReceiptWithSizeCalculation from '@components/EReceiptWithSizeCalculation';
 import type {FullScreenLoadingIndicatorIconSize} from '@components/FullscreenLoadingIndicator';
 import type {ExpoImageStyle} from '@components/Image/types';
-import {getImageLoadSource} from '@components/ImageLoadEventContext';
 import ReceiptEmptyState from '@components/ReceiptEmptyState';
 import LocalPDFReceiptPreview from '@components/ReportActionItem/LocalPDFReceiptPreview';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import ThumbnailImage from '@components/ThumbnailImage';
 
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import getImageRecyclingKey from '@libs/getImageRecyclingKey';
 
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
@@ -235,7 +236,7 @@ function ReceiptImage({
     return (
         <DeferredImageWithLoading
             // Remount on a new source so the next receipt in the same pane doesn't inherit the old load state
-            key={getImageLoadSource(imageSource)}
+            key={getImageRecyclingKey(imageSource)}
             onLayout={(e) => {
                 if (e.nativeEvent.layout.width !== receiptImageWidth && e.timeStamp - lastUpdateWidthTimestampRef.current > MIN_UPDATE_WIDTH_DIFF) {
                     setReceiptImageWidth(e.nativeEvent.layout.width);

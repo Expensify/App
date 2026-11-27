@@ -25,10 +25,18 @@ jest.mock('@hooks/useNetwork', () => () => ({isOffline: mockIsOffline}));
 jest.mock('@hooks/useThemeStyles', () => () => new Proxy({}, {get: () => ({})}));
 
 // The real ImageWithLoading runs the timeout; only its leaf components are stubbed.
+let mockImageMountCount = 0;
+
 jest.mock('@components/Image', () => {
     const MockReact = jest.requireActual<typeof React>('react');
     const {View} = jest.requireActual<typeof ReactNative>('react-native');
-    return {__esModule: true, default: (props: Record<string, unknown>) => MockReact.createElement(View, {testID: 'image', ...props})};
+    function MockImage(props: Record<string, unknown>) {
+        MockReact.useEffect(() => {
+            mockImageMountCount++;
+        }, []);
+        return MockReact.createElement(View, {testID: 'image', ...props});
+    }
+    return {__esModule: true, default: MockImage};
 });
 
 jest.mock('@components/LoadingIndicator', () => {
@@ -71,6 +79,7 @@ describe('ImageWithSizeCalculation', () => {
         jest.useFakeTimers();
         jest.clearAllMocks();
         mockIsOffline = false;
+        mockImageMountCount = 0;
     });
 
     afterEach(() => {
@@ -139,5 +148,42 @@ describe('ImageWithSizeCalculation', () => {
 
         // Then the second stall is reported against the new source instead of being hidden by the first one
         expect(reportImageLoadEvent).toHaveBeenLastCalledWith({type: 'stall', reason: 'ceiling', component: 'ImageWithLoading', source: otherUri});
+    });
+
+    it('keeps the native image view when an uploaded chat image moves to a new URI', () => {
+        // Given a chat attachment thumbnail, which keeps one attachmentID while its URI goes from the picker path to the remote URL
+        const renderWithUrl = (url: string) => (
+            <ImageWithSizeCalculation
+                url={url}
+                recyclingKey="attachment-1"
+                isAuthTokenRequired={false}
+                onMeasure={jest.fn()}
+            />
+        );
+        const {rerender} = render(renderWithUrl('file:///tmp/picked.jpg'));
+
+        // When the upload finishes and the URI changes
+        rerender(renderWithUrl(IMAGE_URI));
+
+        // Then the image is not remounted, because a remount blanks the native view until the new URI loads
+        expect(mockImageMountCount).toBe(1);
+    });
+
+    it('keeps the native image view when the scan upgrade lands on the same file', () => {
+        // Given the scan confirm preview of a captured photo
+        const renderWithUrl = (url: string) => (
+            <ImageWithSizeCalculation
+                url={url}
+                isAuthTokenRequired={false}
+                onMeasure={jest.fn()}
+            />
+        );
+        const {rerender} = render(renderWithUrl('file:///tmp/receipt.jpg'));
+
+        // When the full quality photo replaces it and only a fragment is added to force a reload
+        rerender(renderWithUrl('file:///tmp/receipt.jpg#upgraded1'));
+
+        // Then the image is not remounted, so the preview does not flash
+        expect(mockImageMountCount).toBe(1);
     });
 });

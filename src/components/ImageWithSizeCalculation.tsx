@@ -1,5 +1,6 @@
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import getImageRecyclingKey from '@libs/getImageRecyclingKey';
 import Log from '@libs/Log';
 
 import CONST from '@src/CONST';
@@ -13,7 +14,6 @@ import type {FullScreenLoadingIndicatorIconSize} from './FullscreenLoadingIndica
 import type {ImageObjectPosition} from './Image/types';
 
 import RESIZE_MODES from './Image/resizeModes';
-import {getImageLoadSource} from './ImageLoadEventContext';
 import ImageWithLoading from './ImageWithLoading';
 
 type OnMeasure = (args: {width: number; height: number}) => void;
@@ -87,8 +87,9 @@ function ImageWithSizeCalculation({
     return (
         // Thumbnails are sized for the image alone, so the Retry notice would be clipped inside them.
         <ImageWithLoading
-            // Remount on a new source so a recycled row doesn't inherit the old stall state
-            key={getImageLoadSource(source)}
+            // Remount on a new picture so a recycled row doesn't inherit the old stall state. Native blanks the view on a
+            // remount, so a new URI for the same picture (chat upload, upgraded scan) keeps the same key
+            key={recyclingKey ?? getImageRecyclingKey(source)}
             containerStyles={[styles.w100, styles.h100, style]}
             style={[styles.w100, styles.h100]}
             source={source}
