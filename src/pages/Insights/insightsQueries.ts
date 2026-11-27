@@ -160,13 +160,13 @@ function withInsightsSnapshotHash(query: Readonly<SearchQueryJSON> | undefined, 
     return query && graphKey === CONST.INSIGHTS.GRAPH.TOP_SPENDERS ? {...query, hash: -1 - query.hash} : query;
 }
 
-/** Uses the workspace scope returned by Auth, without falling back to all workspaces when scope is missing. */
+/** Restricts Search to the workspaces counted by the chart. An empty scope has no drill-down. */
 function scopeInsightsDrillDownQuery(
     query: Readonly<SearchQueryJSON> | undefined,
-    graphKey: InsightsGraphKey,
+    shouldScopeByWorkspace: boolean,
     eligiblePolicyIDs: string[] | undefined,
 ): Readonly<SearchQueryJSON> | undefined {
-    if (!query || graphKey !== CONST.INSIGHTS.GRAPH.TOP_SPENDERS) {
+    if (!query || !shouldScopeByWorkspace) {
         return query;
     }
     if (!eligiblePolicyIDs?.length) {

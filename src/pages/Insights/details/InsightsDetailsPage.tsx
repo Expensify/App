@@ -6,6 +6,7 @@ import ScrollView from '@components/ScrollView';
 import {buildChartDrillDownQuery, buildViewOnSpendQuery} from '@components/Search/chartDrillDown';
 import Text from '@components/Text';
 
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -16,8 +17,9 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {InsightsDetailsParamList} from '@libs/Navigation/types';
 import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 
-import INSIGHTS_DASHBOARD_SPECS, {getChartSpec} from '@pages/Insights/dashboardSpecs';
+import INSIGHTS_DASHBOARD_SPECS, {getChartSpec, getPoliciesInScope} from '@pages/Insights/dashboardSpecs';
 import getInsightsLastDay from '@pages/Insights/getInsightsLastDay';
+import {getCompliancePolicyIDs} from '@pages/Insights/insightsAccess';
 import {getQueryGroupBy} from '@pages/Insights/insightsGroupByUtils';
 import {
     applyInsightsFilters,
@@ -60,6 +62,11 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
     const isCompliance = dashboardID === CONST.INSIGHTS.DASHBOARD.COMPLIANCE;
     const {filters, isResolved} = useInsightsFilters(dashboardID ?? CONST.INSIGHTS.DASHBOARD.SPEND);
 
+    const {login} = useCurrentUserPersonalDetails();
+    const [compliancePolicyIDs] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        selector: (policies) => (isCompliance ? getCompliancePolicyIDs(getPoliciesInScope(policies, filters.policyIDs), login) : undefined),
+    });
+
     const pickedViolationStage = Object.values(CONST.INSIGHTS.VIOLATION_STAGE).find((value) => value === stage);
     const chartSpec = dashboardID ? getChartSpec(dashboardID, graphKey, pickedViolationStage) : undefined;
     const isMemberItem = chartSpec?.groupBy === CONST.SEARCH.GROUP_BY.FROM || chartSpec?.groupBy === CONST.SEARCH.GROUP_BY.APPROVER;
@@ -91,7 +98,11 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
                   translate,
               })
             : undefined;
-    const queryJSONThroughToday = chartSpec && isResolved ? buildSearchQueryJSON(applyInsightsFilters(chartSpec, filters, undefined, getInsightsLastDay(asOf))) : undefined;
+    const canSearchExpenses = !isCompliance || !!compliancePolicyIDs?.length;
+    const queryJSONThroughToday =
+        chartSpec && isResolved && canSearchExpenses
+            ? buildSearchQueryJSON(applyInsightsFilters(chartSpec, {...filters, policyIDs: compliancePolicyIDs ?? filters.policyIDs}, undefined, getInsightsLastDay(asOf)))
+            : undefined;
     const drillDownQuery = queryJSONThroughToday && item ? buildChartDrillDownQuery(queryJSONThroughToday, item.filterQuery) : undefined;
     const topExpensesQueryJSON = chartSpec && drillDownQuery ? withInsightsSnapshotHash(buildTopExpensesQueryJSON(drillDownQuery), chartSpec.graphKey) : undefined;
     const topExpensesSnapshotHash = topExpensesQueryJSON?.hash;
@@ -111,12 +122,12 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
     const requestDetails = useRequestInsightsDetails(detailsQuery, isTopSpenders ? undefined : topExpensesQueryJSON, isCompliance);
     const {isOffline} = useNetwork();
     const [details] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS_DETAILS}${detailsQuery?.hash}`);
-    const viewAllQueryJSON = chartSpec ? scopeInsightsDrillDownQuery(topExpensesQueryJSON, chartSpec.graphKey, details?.eligiblePolicyIDs) : undefined;
+    const viewAllQueryJSON = scopeInsightsDrillDownQuery(topExpensesQueryJSON, isTopSpenders, details?.eligiblePolicyIDs);
     const recentHistoryQueryJSON =
         chartSpec && detailsQuery && item
             ? scopeInsightsDrillDownQuery(
                   buildSearchQueryJSON(buildRecentHistoryQueryString(filters, detailsQuery.periodGroupBy, detailsQuery.period.end, item.filterQuery)),
-                  chartSpec.graphKey,
+                  isTopSpenders,
                   details?.eligiblePolicyIDs,
               )
             : undefined;
@@ -143,7 +154,7 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
           )
         : chartSpec && translate(chartSpec.titleKey);
 
-    if (!chartSpec || (isResolved && !item)) {
+    if (!chartSpec || (isResolved && (!item || compliancePolicyIDs?.length === 0))) {
         return (
             <ScreenWrapper testID="InsightsDetailsPage">
                 <FullPageNotFoundView shouldShow />
