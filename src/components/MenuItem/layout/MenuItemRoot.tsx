@@ -1,6 +1,7 @@
 import Hoverable from '@components/Hoverable';
 import useIsCompactPopover from '@components/MenuItem/hooks/useIsCompactPopover';
 import useRemoveNonInteractiveClickHandler from '@components/MenuItem/hooks/useRemoveNonInteractiveClickHandler';
+import isKeyboardActivatedClick from '@components/MenuItem/isKeyboardActivatedClick';
 import MenuItemAccessibilityContext, {useMenuItemAccessibility} from '@components/MenuItem/MenuItemAccessibilityContext';
 import {MenuItemConfigContext, MenuItemInteractionContext} from '@components/MenuItem/MenuItemContext';
 import MenuItemSecondaryInteractionContext, {useMenuItemSecondaryInteractionRegistry} from '@components/MenuItem/MenuItemSecondaryInteractionContext';
@@ -130,8 +131,8 @@ function MenuItemRoot({
         }
 
         // Prevent clicked menu items from retaining an unwanted focus outline on web, especially in Safari.
-        // Enter on a linked row fires a click with detail 0, and keyboard users need the focus to stay on the row.
-        if (event?.type === 'click' && !('detail' in event && event.detail === 0) && typeof HTMLElement !== 'undefined' && event.currentTarget instanceof HTMLElement) {
+        // Keyboard users need the focus to stay on a linked row they activate with Enter.
+        if (event?.type === 'click' && !isKeyboardActivatedClick(event) && typeof HTMLElement !== 'undefined' && event.currentTarget instanceof HTMLElement) {
             event.currentTarget.blur();
         }
 

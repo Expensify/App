@@ -71,6 +71,7 @@ import React, {useRef} from 'react';
 import {View} from 'react-native';
 
 import useRemoveNonInteractiveClickHandler from './hooks/useRemoveNonInteractiveClickHandler';
+import isKeyboardActivatedClick from './isKeyboardActivatedClick';
 
 type IconProps = {
     /** Flag to choose between avatar image or an icon */
@@ -674,8 +675,8 @@ function MenuItem({
             return;
         }
 
-        // Enter on a linked row fires a click with detail 0, and keyboard users need the focus to stay on the row
-        if (event?.type === 'click' && !('detail' in event && event.detail === 0)) {
+        // Keyboard users need the focus to stay on a linked row they activate with Enter
+        if (event?.type === 'click' && !isKeyboardActivatedClick(event)) {
             const target = event.currentTarget;
             // On web the target is a DOM element that can lose focus; native targets have no blur method
             if (target && typeof target === 'object' && 'blur' in target && typeof target.blur === 'function') {
