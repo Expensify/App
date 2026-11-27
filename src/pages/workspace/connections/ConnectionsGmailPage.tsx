@@ -56,7 +56,7 @@ function ConnectionsGmailPage({route}: ConnectionsGmailPageProps) {
         showConfirmModal({
             title: translate('workspace.connections.gmail.removeConnectionTitle'),
             prompt: translate('workspace.connections.gmail.removeConnectionPrompt', connection.id),
-            confirmText: translate('common.remove'),
+            confirmText: translate('workspace.connections.gmail.removeConnection'),
             cancelText: translate('common.cancel'),
             buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         }).then(({action}) => {
@@ -78,7 +78,7 @@ function ConnectionsGmailPage({route}: ConnectionsGmailPageProps) {
         if (connection.error) {
             statusMessage = translate('workspace.connections.gmail.notSynced');
         } else if (lastSearchedDatetime) {
-            statusMessage = translate('workspace.connections.gmail.synced', datetimeToRelative(lastSearchedDatetime));
+            statusMessage = datetimeToRelative(lastSearchedDatetime);
         }
 
         return (
