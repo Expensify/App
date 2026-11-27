@@ -1,6 +1,15 @@
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
-import {isCreatedAction, isCurrentUserPendingAddAction, isDeletedParentAction, isIOUActionMatchingTransactionList, isReportActionVisible} from '@libs/ReportActionsUtils';
+import {
+    isCreatedAction,
+    isCurrentUserPendingAddAction,
+    isDeletedParentAction,
+    isIOUActionMatchingTransactionList,
+    isReportActionVisible,
+    shouldHidePayAction,
+} from '@libs/ReportActionsUtils';
 import {isConciergeChatReport} from '@libs/ReportUtils';
+
+import filterHiddenSupportTicketSurveys from '@pages/inbox/report/ReportActionsList/filterHiddenSupportTicketSurveys';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -21,6 +30,7 @@ type UseReportActionsVisibilityParams = {
     reportID: string | undefined;
     reportActions: ReportAction[];
     allReportActions: ReportAction[];
+    sortedAllReportActions: ReportAction[] | undefined;
     canPerformWriteAction: boolean;
     hasOlderActions: boolean;
     loadOlderChats: (force?: boolean) => void;
@@ -30,6 +40,7 @@ type UseReportActionsVisibilityParams = {
 type UseReportActionsVisibilityResult = {
     sortedReportActions: ReportAction[];
     sortedVisibleReportActions: ReportAction[];
+    visibleActionsWithHiddenSurveys: ReportAction[];
     isConciergeSidePanel: boolean;
     isConciergeHiddenHistory: boolean;
     showConciergeSidePanelWelcome: boolean;
@@ -42,6 +53,7 @@ function useReportActionsVisibility({
     reportID,
     reportActions,
     allReportActions,
+    sortedAllReportActions,
     canPerformWriteAction,
     hasOlderActions,
     loadOlderChats,
@@ -52,6 +64,9 @@ function useReportActionsVisibility({
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {
+        selector: (value) => ({reopenedAsReportID: value?.reopenedAsReportID}),
+    });
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {
         selector: reportVisibleActionsSelector(reportID),
@@ -116,14 +131,20 @@ function useReportActionsVisibility({
             loadOlderChats,
         });
 
+    const removeHiddenPayActions = (actions: ReportAction[]) => (report?.isWaitingOnBankAccount ? actions.filter((action) => !shouldHidePayAction(action, true)) : actions);
+    const removeHiddenSurveys = (actions: ReportAction[]) => filterHiddenSupportTicketSurveys({reportActions: actions, sortedAllReportActions, report, reportNameValuePairs});
+    // The server includes hidden surveys in its newest-action timestamp. Scroll freshness still needs them.
+    const visibleActionsWithHiddenSurveys = removeHiddenPayActions(filteredVisibleActions);
+
     const showConciergeMainDMHistory = () => {
         setConciergeShowFullHistory?.(true);
         loadOlderChats(true);
     };
 
     return {
-        sortedReportActions: filteredReportActions,
-        sortedVisibleReportActions: filteredVisibleActions,
+        sortedReportActions: removeHiddenSurveys(removeHiddenPayActions(filteredReportActions)),
+        sortedVisibleReportActions: removeHiddenSurveys(visibleActionsWithHiddenSurveys),
+        visibleActionsWithHiddenSurveys,
         isConciergeSidePanel,
         isConciergeHiddenHistory,
         showConciergeSidePanelWelcome,

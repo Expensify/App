@@ -60,6 +60,7 @@ function buildHookProps(reportID: string, actions: ReportActions): HookProps {
         reportID,
         reportActions: actionsArray,
         allReportActions: actionsArray,
+        sortedAllReportActions: actionsArray,
         canPerformWriteAction: true,
         hasOlderActions: false,
         loadOlderChats: jest.fn(),
@@ -78,6 +79,26 @@ describe('useReportActionsVisibility scopes VISIBLE_REPORT_ACTIONS per report', 
         await Onyx.clear();
         TestHelper.signInWithTestUser(1, 'test@test.com');
         await waitForBatchedUpdates();
+    });
+
+    it('hides reopened support surveys from rows while retaining page freshness', async () => {
+        // Given the newest loaded action is a survey on an unresolved support ticket.
+        const survey = getFakeReportAction(1, {reportActionID: 'survey', actionName: CONST.REPORT.ACTIONS.TYPE.SUPPORT_SURVEY});
+        const reply = buildVisibleComment('reply');
+        const actions = {survey, reply};
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_A}`, {reportID: REPORT_A, type: CONST.REPORT.TYPE.SUPPORT_TICKET});
+        await setReportActions(REPORT_A, actions);
+        await waitForBatchedUpdates();
+
+        // When visibility is calculated before the list and skeleton render.
+        const {result, unmount} = renderHook(() => useReportActionsVisibility(buildHookProps(REPORT_A, actions)), {wrapper});
+        await waitForBatchedUpdates();
+
+        // Then unread targets and row counts omit the survey, but newest-page detection keeps it.
+        expect(result.current.sortedReportActions).toEqual([reply]);
+        expect(result.current.sortedVisibleReportActions).not.toContainEqual(survey);
+        expect(result.current.visibleActionsWithHiddenSurveys).toContainEqual(survey);
+        unmount();
     });
 
     it("does not re-render the open report when another report's existing transaction changes", async () => {

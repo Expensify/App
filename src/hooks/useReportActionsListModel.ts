@@ -92,16 +92,25 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
         newestFetchedReportActionID: reportPaginationState?.newestFetchedReportActionID,
     });
 
-    const {sortedReportActions, sortedVisibleReportActions, isConciergeHiddenHistory, showConciergeSidePanelWelcome, showFullHistory, hasPreviousMessages, handleShowPreviousMessages} =
-        useReportActionsVisibility({
-            reportID,
-            reportActions,
-            allReportActions,
-            canPerformWriteAction,
-            hasOlderActions,
-            loadOlderChats,
-            setConciergeShowFullHistory,
-        });
+    const {
+        sortedReportActions,
+        sortedVisibleReportActions,
+        visibleActionsWithHiddenSurveys,
+        isConciergeHiddenHistory,
+        showConciergeSidePanelWelcome,
+        showFullHistory,
+        hasPreviousMessages,
+        handleShowPreviousMessages,
+    } = useReportActionsVisibility({
+        reportID,
+        reportActions,
+        allReportActions,
+        sortedAllReportActions,
+        canPerformWriteAction,
+        hasOlderActions,
+        loadOlderChats,
+        setConciergeShowFullHistory,
+    });
 
     const isMissingReportActions = sortedVisibleReportActions.length === 0;
     const isSingleExpenseReport = reportPreviewAction?.childMoneyRequestCount === 1;
@@ -123,7 +132,7 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
         hasOnceLoadedReportActions,
         isLoadingInitialReportActions,
         isLoadingApp: isAppLoadPending,
-        reportActionsLength: reportActions.length,
+        reportActionsLength: sortedVisibleReportActions.length,
         oldestReportActionID: currentReportOldestActionID,
         hasOlderActions,
         hasNewerActions,
@@ -153,6 +162,7 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
         parentReportAction,
         sortedReportActions,
         sortedVisibleReportActions,
+        visibleActionsWithHiddenSurveys,
         isConciergeHiddenHistory,
         showFullHistory,
         hasPreviousMessages,
