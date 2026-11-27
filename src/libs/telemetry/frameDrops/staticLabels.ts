@@ -2,8 +2,7 @@ import CONST from '@src/CONST';
 
 /**
  * Labels become metric attributes, so only values that are defined statically in CONST are ever reported. Anything
- * built at runtime could carry user data (e.g. Switch reuses its accessibility label, which can contain tag or category
- * names) and must never leave the device.
+ * built at runtime could carry user data (e.g. a label built from a tag or category name) and must never leave the device.
  */
 
 let pressLabels: Set<string> | undefined;

@@ -25,7 +25,7 @@ import getDeviceTier from './getDeviceTier';
  * - Few native queries, never while the user scrolls or presses: one per flush when nothing dropped (the common case),
  *   and a binary search over the segments when something did, so a single drop among N segments costs about log2(N).
  * - JS thread blocking comes from React Native's `longtask` entries, which the runtime scheduler reports anyway.
- * - On-device aggregation: a handful of metrics every few minutes, not one event per frame.
+ * - Metrics are aggregated on the device and sent in one batch every few minutes, not one event per frame.
  */
 
 type Aggregate = FrameDropContext & {
