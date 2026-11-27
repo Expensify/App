@@ -18,7 +18,6 @@ import type {
     SetPolicyCategoryAttendeesRequiredParams,
     SetPolicyCategoryDescriptionRequiredParams,
     SetPolicyCategoryItemizedReceiptsRequiredParams,
-    SetPolicyCategoryMaxAmountParams,
     SetPolicyCategoryReceiptsAndItemizedReceiptRequiredParams,
     SetPolicyCategoryReceiptsRequiredParams,
     SetPolicyCategoryMemberVisibilityParams,
@@ -33,7 +32,6 @@ import type {
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ApiUtils from '@libs/ApiUtils';
 import * as CategoryUtils from '@libs/CategoryUtils';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
@@ -51,7 +49,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyCategory, PolicyEmployee, PolicyEmployeeList, Report, ReportAction} from '@src/types/onyx';
 import type {ImportFinalModal} from '@src/types/onyx/ImportedSpreadsheet';
 import type {ApprovalRule, CustomUnit, MccGroup} from '@src/types/onyx/Policy';
-import type {PolicyCategoryExpenseLimitType} from '@src/types/onyx/PolicyCategory';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 import type {NullishDeep, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
@@ -1701,97 +1698,6 @@ function setWorkspaceCategoryDescriptionHint(
     API.write(WRITE_COMMANDS.SET_WORKSPACE_CATEGORY_DESCRIPTION_HINT, parameters, withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
 }
 
-function setPolicyCategoryMaxAmount(
-    policyID: string,
-    categoryName: string,
-    maxExpenseAmount: string,
-    expenseLimitType: PolicyCategoryExpenseLimitType,
-    policyCategories: PolicyCategories = {},
-    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
-) {
-    const policyCategoryToUpdate = policyCategories?.[categoryName];
-    const originalMaxExpenseAmount = policyCategoryToUpdate?.maxExpenseAmount;
-    const originalExpenseLimitType = policyCategoryToUpdate?.expenseLimitType;
-    const parsedMaxExpenseAmount = maxExpenseAmount === '' ? null : CurrencyUtils.convertToBackendAmount(parseFloat(maxExpenseAmount));
-    const isRemoving = maxExpenseAmount === '';
-    const optimisticCategoryData = isRemoving
-        ? {
-              pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-              pendingFields: {
-                  maxExpenseAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                  expenseLimitType: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-              },
-              maxExpenseAmount: originalMaxExpenseAmount,
-              expenseLimitType: originalExpenseLimitType,
-          }
-        : {
-              pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-              pendingFields: {
-                  maxExpenseAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                  expenseLimitType: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-              },
-              maxExpenseAmount: parsedMaxExpenseAmount,
-              expenseLimitType,
-          };
-
-    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES> = {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
-                value: {
-                    [categoryName]: optimisticCategoryData,
-                },
-            },
-        ],
-        successData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
-                value: {
-                    [categoryName]: {
-                        pendingAction: null,
-                        pendingFields: {
-                            maxExpenseAmount: null,
-                            expenseLimitType: null,
-                        },
-                        maxExpenseAmount: parsedMaxExpenseAmount,
-                        expenseLimitType,
-                    },
-                },
-            },
-        ],
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
-                value: {
-                    [categoryName]: {
-                        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
-                        pendingAction: null,
-                        pendingFields: {
-                            maxExpenseAmount: null,
-                            expenseLimitType: null,
-                        },
-                        maxExpenseAmount: originalMaxExpenseAmount,
-                        expenseLimitType: originalExpenseLimitType,
-                    },
-                },
-            },
-        ],
-    };
-
-    const parameters: SetPolicyCategoryMaxAmountParams = {
-        policyID,
-        categoryName,
-        maxExpenseAmount: parsedMaxExpenseAmount,
-        expenseLimitType,
-        completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
-    };
-
-    API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_MAX_AMOUNT, parameters, withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
-}
-
 function setPolicyCategoryApprover(policyID: string, categoryName: string, approver: string, approvalRules: ApprovalRule[]) {
     let updatedApprovalRules: ApprovalRule[] = lodashCloneDeep(approvalRules);
     const existingCategoryApproverRule = CategoryUtils.getCategoryApproverRule(updatedApprovalRules, categoryName);
@@ -2216,7 +2122,6 @@ export {
     setPolicyCategoryAttendeesRequired,
     setPolicyCategoryDescriptionRequired,
     setPolicyCategoryGLCode,
-    setPolicyCategoryMaxAmount,
     setPolicyCategoryPayrollCode,
     setPolicyCategoryReceiptsAndItemizedReceiptRequired,
     setPolicyCategoryReceiptsRequired,

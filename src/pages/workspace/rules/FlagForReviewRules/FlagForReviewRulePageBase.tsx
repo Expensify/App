@@ -2,6 +2,7 @@ import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Header from '@components/Header';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import Picker from '@components/Picker';
@@ -30,6 +31,7 @@ import {completeReviewWorkspaceSettingsTask} from '@libs/actions/Task';
 import {clearDraftFlagForReviewRule, setDraftFlagForReviewRule, updateDraftFlagForReviewRule} from '@libs/actions/User';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
+import type {CategoryFlagLimits} from '@libs/FlagForReviewRulesUtils';
 import {
     buildFlagForReviewRule,
     canMatchFlagRuleCategory,
@@ -57,6 +59,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES, getFlagForReviewRuleAmountRoute, getFlagForReviewRuleCategoryRoute, getWorkspaceCategorySettingsRoute} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/FlagForReviewRuleForm';
+import type {PolicyCategory} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 import {authTokenTypeSelector} from '@selectors/Session';
@@ -109,6 +112,37 @@ function FlagCategoryField({categoryName, icon, onPress}: FlagCategoryFieldProps
     );
 }
 
+function useFlagRuleCategoryLimits(policyID: string, category: PolicyCategory | undefined, editRuleID: string | undefined) {
+    const {categoryFlagLimits, areCategoryFlagLimitsLoading, haveCategoryFlagLimitsLoaded} = useCategoryFlagLimits(policyID);
+    // Cache the fallback lookup before the editor subscribes to the rule by ID.
+    const ruleID = editRuleID ?? getCategoryFlagLimit(category, categoryFlagLimits)?.ruleID;
+    return {categoryFlagLimits, areCategoryFlagLimitsLoading, haveCategoryFlagLimitsLoaded, ruleID};
+}
+
+type CategoryValidationParams = {
+    categoryName: string | undefined;
+    category: PolicyCategory | undefined;
+    categoryFlagLimits: CategoryFlagLimits | undefined;
+    ruleID: string | undefined;
+    hasMerchant: boolean;
+    shouldWaitForCategoryLimits: boolean;
+    translate: LocalizedTranslate;
+};
+
+function getCategoryValidationError({categoryName, category, categoryFlagLimits, ruleID, hasMerchant, shouldWaitForCategoryLimits, translate}: CategoryValidationParams) {
+    if (!hasMerchant && !categoryName) {
+        return translate('workspace.rules.flagForReviewRule.confirmErrorCategory');
+    }
+    if ((categoryName && !canMatchFlagRuleCategory(category)) || (!hasMerchant && shouldWaitForCategoryLimits)) {
+        return translate('common.genericErrorMessage');
+    }
+    if (hasMerchant) {
+        return undefined;
+    }
+    const otherCategoryLimit = getCategoryFlagLimit(category, categoryFlagLimits);
+    return otherCategoryLimit && otherCategoryLimit.ruleID !== ruleID ? translate('workspace.rules.newRule.promptErrors.categoryHasRule') : undefined;
+}
+
 function FlagForReviewRulePageBase({
     policyID,
     ruleID: editRuleID,
@@ -140,9 +174,7 @@ function FlagForReviewRulePageBase({
     const shouldLoadPolicyCategories = !!policy?.areCategoriesEnabled && (!policyCategories || (!!scopedCategoryName && !category));
     // A category read can fail without clearing its loading flag, so only wait on GetRules here.
     useLoadPolicyCategories(shouldLoadPolicyCategories ? policyID : undefined);
-    const {categoryFlagLimits, areCategoryFlagLimitsLoading, haveCategoryFlagLimitsLoaded} = useCategoryFlagLimits(policyID);
-    const scopedLimit = getCategoryFlagLimit(category, categoryFlagLimits);
-    const ruleID = editRuleID ?? scopedLimit?.ruleID;
+    const {categoryFlagLimits, areCategoryFlagLimitsLoading, haveCategoryFlagLimitsLoaded, ruleID} = useFlagRuleCategoryLimits(policyID, category, editRuleID);
     const draftKey = getFlagForReviewDraftKey(policyID, ruleID, initialCategoryName);
     const form = storedDraft?.draftKey === draftKey ? storedDraft : undefined;
     const [rule] = useOnyx(`${ONYXKEYS.COLLECTION.RULE}${ruleID}`);
@@ -186,20 +218,18 @@ function FlagForReviewRulePageBase({
     }, [areCategoryFlagLimitsLoading, category, conditions, draftKey, form, getCurrencyDecimals, isEditing, originalCategoryName, ruleID, scopedCategoryName]);
 
     const selectedCategory = selectedCategoryName ? policyCategories?.[selectedCategoryName] : undefined;
-    const otherCategoryLimit = getCategoryFlagLimit(selectedCategory, categoryFlagLimits);
+    const categoryError = getCategoryValidationError({
+        categoryName: selectedCategoryName,
+        category: selectedCategory,
+        categoryFlagLimits,
+        ruleID,
+        hasMerchant: !!merchant,
+        // An existing category-only rule can keep its category even if the list could not load.
+        shouldWaitForCategoryLimits: !haveCategoryFlagLimitsLoaded && (!existingRule || !!conditions?.merchant || selectedCategoryName !== originalCategoryName),
+        translate,
+    });
     const amountError = !merchant || draftMaxExpenseAmount ? getFlagForReviewRuleAmountError(draftMaxExpenseAmount, translate, expenseLimitType) : undefined;
-    let errorMessage: string | undefined;
-    if (!merchant && !selectedCategoryName) {
-        errorMessage = translate('workspace.rules.flagForReviewRule.confirmErrorCategory');
-    } else if (selectedCategoryName && !canMatchFlagRuleCategory(selectedCategory)) {
-        errorMessage = translate('common.genericErrorMessage');
-    } else if (!merchant && !haveCategoryFlagLimitsLoaded && (!existingRule || !!conditions?.merchant || selectedCategoryName !== originalCategoryName)) {
-        errorMessage = translate('common.genericErrorMessage');
-    } else if (!merchant && otherCategoryLimit && otherCategoryLimit.ruleID !== ruleID) {
-        errorMessage = translate('workspace.rules.newRule.promptErrors.categoryHasRule');
-    } else {
-        errorMessage = amountError;
-    }
+    const errorMessage = categoryError ?? amountError;
 
     const saveRule = () => {
         if (!canSaveRule || !form) {
