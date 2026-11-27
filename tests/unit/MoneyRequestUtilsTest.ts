@@ -663,6 +663,12 @@ describe('hasDraftUserEdits', () => {
         // When the user changed a reading after it was saved
         // Then it's dirty again
         expect(hasDraftUserEdits(draft, {savedOdometerDraft: {odometerStartReading: 10, odometerEndReading: 25}})).toBe(true);
+
+        // When the user replaced a photo of the saved trip without changing the readings, which marks the draft
+        const draftWithNewPhoto = buildDraft({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER, hasUserEdits: true, comment: {odometerStart: 10, odometerEnd: 20}});
+
+        // Then it's dirty, since the new photo would be lost
+        expect(hasDraftUserEdits(draftWithNewPhoto, {savedOdometerDraft: {odometerStartReading: 10, odometerEndReading: 20}})).toBe(true);
     });
 });
 

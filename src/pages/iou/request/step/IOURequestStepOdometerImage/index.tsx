@@ -18,6 +18,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWebCamera from '@hooks/useWebCamera';
 
+import {setDraftHasUserEdits} from '@libs/actions/IOU/MoneyRequest';
 import {setMoneyRequestOdometerImage} from '@libs/actions/OdometerTransactionUtils';
 import {isMobile} from '@libs/Browser';
 import {base64ToFile} from '@libs/fileDownload/FileUtils';
@@ -102,6 +103,9 @@ function IOURequestStepOdometerImage({
 
     const handleImageSelected = (file: FileObject) => {
         setMoneyRequestOdometerImage(transaction, imageType, file as File, isTransactionDraft, isEditingConfirmation !== 'true');
+        if (isTransactionDraft) {
+            setDraftHasUserEdits(transactionID);
+        }
         shouldRevokeOnUnmountRef.current = false;
         navigateBack();
     };
@@ -150,6 +154,9 @@ function IOURequestStepOdometerImage({
                     URL.revokeObjectURL(imageObject.source);
                 }
                 setMoneyRequestOdometerImage(transaction, imageType, file ?? source, isTransactionDraft, isEditingConfirmation !== 'true');
+                if (isTransactionDraft) {
+                    setDraftHasUserEdits(transactionID);
+                }
                 endSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_CAPTURE);
                 navigateBack();
             })

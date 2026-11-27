@@ -260,7 +260,9 @@ type DraftUserEditsOptions = {
 function hasOdometerDraftUserEdits(comment: Comment | undefined, savedOdometerDraft: OnyxEntry<OdometerDraft>): boolean {
     const hasReadings = (comment?.odometerStart ?? null) !== null || (comment?.odometerEnd ?? null) !== null;
     if (savedOdometerDraft) {
-        // Saved photos get new URIs each time the draft is loaded, so compare only the readings with the saved ones.
+        // Saved photos get new URIs each time the draft is loaded, so they can't be compared here: the photo handlers set
+        // `hasUserEdits` instead. The odometer step only saves both readings at once, so a draft without readings is one the
+        // saved trip hasn't been restored into yet.
         return (
             hasReadings &&
             ((savedOdometerDraft.odometerStartReading ?? null) !== (comment?.odometerStart ?? null) || (savedOdometerDraft.odometerEndReading ?? null) !== (comment?.odometerEnd ?? null))

@@ -22,6 +22,7 @@ import useReceiptTranslation from '@hooks/useReceiptTranslation';
 import useRestartOnOdometerImagesFailure from '@hooks/useRestartOnOdometerImagesFailure';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {setDraftHasUserEdits} from '@libs/actions/IOU/MoneyRequest';
 import {detachReceipt, navigateToStartStepIfScanFileCannotBeRead, replaceReceipt, setMoneyRequestReceipt} from '@libs/actions/IOU/Receipt';
 import {removeMoneyRequestOdometerImage, setMoneyRequestOdometerImage} from '@libs/actions/OdometerTransactionUtils';
 import {showOriginalReceipt} from '@libs/actions/ReceiptTranslation';
@@ -31,6 +32,7 @@ import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types
 import fetchImage from '@libs/fetchImage';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
+import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import ReceiptStorage from '@libs/ReceiptStorage';
@@ -360,6 +362,9 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             return;
         }
         removeMoneyRequestOdometerImage(transaction, imageType, isDraftTransaction, !isEditingConfirmation);
+        if (shouldUseTransactionDraft(action)) {
+            setDraftHasUserEdits(transaction.transactionID);
+        }
         const odometerGoBackRoute =
             isOdometerImage &&
             (isEditingConfirmation === true
@@ -393,6 +398,9 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                         : {...file, uri: durableUri, source: durableUri};
                 if (isOdometerImage) {
                     setMoneyRequestOdometerImage(transaction, imageType, durableFile, isDraftTransaction, !isEditingConfirmation);
+                    if (shouldUseTransactionDraft(action)) {
+                        setDraftHasUserEdits(transaction.transactionID);
+                    }
                 } else if (isDraftTransaction) {
                     setMoneyRequestReceipt(transaction.transactionID, durableUri, filename, isDraftTransaction, fileType);
                 } else {
