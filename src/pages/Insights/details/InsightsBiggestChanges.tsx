@@ -26,7 +26,7 @@ type InsightsBiggestChangesProps = {
 
     groupBy: InsightsBiggestChangesGroupBy;
 
-    /** Groupings the user can pick, without Members for people who can't see Top spenders */
+    /** Groupings the user can pick, without Spenders for people who can't see Top spenders */
     groupByOptions: InsightsBiggestChangesGroupBy[];
 
     onGroupByChange: (groupBy: InsightsBiggestChangesGroupBy) => void;

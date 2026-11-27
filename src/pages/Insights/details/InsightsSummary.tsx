@@ -122,7 +122,7 @@ function SummaryAverageComparison({comparison, graphKey, periodGroupBy, currency
             case CONST.INSIGHTS.GRAPH.TOP_MERCHANTS:
                 return translate('insightsPage.summary.versusMerchantAverage', amount);
             case CONST.INSIGHTS.GRAPH.TOP_SPENDERS:
-                return translate('insightsPage.summary.versusMemberAverage', amount);
+                return translate('insightsPage.summary.versusSpenderAverage', amount);
             case CONST.INSIGHTS.GRAPH.TOP_CATEGORIES:
                 return translate('insightsPage.summary.versusCategoryAverage', amount);
             default:

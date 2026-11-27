@@ -1,4 +1,4 @@
-/** Dropdown picking whether Biggest changes lists categories, merchants or members. */
+/** Dropdown picking whether Biggest changes lists categories, merchants or spenders. */
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
 
@@ -19,7 +19,7 @@ import React from 'react';
 const GROUP_BY_LABEL_KEYS = {
     [CONST.SEARCH.GROUP_BY.CATEGORY]: 'workspace.common.categories',
     [CONST.SEARCH.GROUP_BY.MERCHANT]: 'common.merchants',
-    [CONST.SEARCH.GROUP_BY.FROM]: 'common.members',
+    [CONST.SEARCH.GROUP_BY.FROM]: 'common.spenders',
 } as const satisfies Record<InsightsBiggestChangesGroupBy, TranslationPaths>;
 
 type InsightsBiggestChangesControlProps = {

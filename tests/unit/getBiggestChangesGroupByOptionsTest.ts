@@ -17,18 +17,18 @@ function buildPolicy(memberLogins: string[]): Policy {
 }
 
 describe('getBiggestChangesGroupByOptions', () => {
-    it('offers Members to someone who can see Top spenders', () => {
+    it('offers Spenders to someone who can see Top spenders', () => {
         // Given an admin of a workspace with two members, who sees Top spenders
         const policies = [buildPolicy([ADMIN_LOGIN, 'member@example.com'])];
 
         // When the Biggest changes options are built
         const options = getBiggestChangesGroupByOptions(policies, ADMIN_LOGIN);
 
-        // Then Members is offered after Categories and Merchants
+        // Then Spenders is offered after Categories and Merchants
         expect(options).toEqual([CONST.SEARCH.GROUP_BY.CATEGORY, CONST.SEARCH.GROUP_BY.MERCHANT, CONST.SEARCH.GROUP_BY.FROM]);
     });
 
-    it('leaves Members out on a workspace with a single member', () => {
+    it('leaves Spenders out on a workspace with a single member', () => {
         // Given a workspace with only the admin, where Top spenders isn't shown
         const policies = [buildPolicy([ADMIN_LOGIN])];
 
