@@ -1,5 +1,6 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import InlineIcon from '@components/Icon/InlineIcon';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -19,7 +20,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {canFlagReportAction, getOriginalReportID, isChatThread, shouldShowFlagComment} from '@libs/ReportUtils';
 
 import {flagComment as flagCommentUtil} from '@userActions/Report';
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -145,17 +146,34 @@ function DynamicFlagCommentPage({parentReportAction, report, parentReport, repor
     };
 
     const severityMenuItems = severities.map((item) => (
-        <MenuItem
+        <MenuItem.Root
             sentryLabel={item.sentryLabel}
             key={`${item.severity}`}
-            shouldShowRightIcon
-            title={item.name}
-            description={item.description}
-            onPress={callFunctionIfActionIsAllowed(() => flagComment(item.severity), false, session)}
+            onPress={callIfAuthenticated(() => flagComment(item.severity), session)}
             style={[styles.pt2, styles.pb4, styles.ph5, styles.flexRow]}
-            furtherDetails={item.furtherDetails}
-            furtherDetailsIcon={item.furtherDetailsIcon}
-        />
+        >
+            <MenuItem.Row>
+                <MenuItem.Content>
+                    <MenuItem.Title>{item.name}</MenuItem.Title>
+                    <MenuItem.Description>{item.description}</MenuItem.Description>
+                    <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                        <InlineIcon
+                            src={item.furtherDetailsIcon}
+                            size={CONST.ICON_SIZE.MEDIUM}
+                        />
+                        <Text
+                            style={[styles.furtherDetailsText, styles.pl2, styles.pt1]}
+                            numberOfLines={2}
+                        >
+                            {item.furtherDetails}
+                        </Text>
+                    </View>
+                </MenuItem.Content>
+                <MenuItem.Trailing>
+                    <MenuItem.Chevron />
+                </MenuItem.Trailing>
+            </MenuItem.Row>
+        </MenuItem.Root>
     ));
 
     return (

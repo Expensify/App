@@ -1,4 +1,3 @@
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 import WidgetContainer from '@components/WidgetContainer';
 import WidgetHeaderMenu from '@components/WidgetHeaderMenu';
@@ -9,6 +8,7 @@ import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -45,7 +45,10 @@ function RecentlyAddedSection() {
     const icons = useMemoizedLazyExpensifyIcons(['Receipt']);
     const {markReportRHPWidth} = useWideRHPActions();
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-    const personalDetails = usePersonalDetails();
+    const [personalDetails] = usePersonalDetailsByIDs([
+        currentUserAccountID,
+        ...transactions.flatMap((transaction) => [transaction.reportAction?.actorAccountID, transaction.report?.ownerAccountID]),
+    ]);
     const isAnonymousUser = useIsAnonymousUser();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
@@ -123,6 +126,7 @@ function RecentlyAddedSection() {
             menuItems={[
                 {
                     text: translate('homePage.recentlyAddedSection.viewAll'),
+                    sentryLabel: CONST.SENTRY_LABEL.HOME_PAGE.RECENTLY_ADDED_OVERFLOW_MENU_VIEW_ALL,
                     icon: icons.Receipt,
                     onSelected: navigateToExpensesPage,
                     shouldCallAfterModalHide: true,

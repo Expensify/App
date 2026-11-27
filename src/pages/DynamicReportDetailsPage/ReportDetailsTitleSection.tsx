@@ -1,6 +1,5 @@
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
 
@@ -61,9 +60,9 @@ function ReportDetailsTitleSectionContent({report}: ReportDetailsTitleSectionCon
     const currentUserAccountID = currentUserPersonalDetails?.accountID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [reportOwnerLogin] = usePersonalDetail(report?.ownerAccountID, loginSelector);
+    const [reportManagerLogin] = usePersonalDetail(report?.managerID, loginSelector);
     const parentReportAction = useParentReportAction(report);
     const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
     const {reportName, derivedParentReportName} = useReportDetailsReportName(report, parentReport, parentReportAction);
@@ -79,25 +78,25 @@ function ReportDetailsTitleSectionContent({report}: ReportDetailsTitleSectionCon
         isTrackExpenseReport: isTrackExpenseReportUtil(report, parentReport, parentReportAction),
     });
     const invoiceReceiverPolicy = usePolicy(getInvoiceReceiverPolicyID(parentReport));
-    const parentNavigationSubtitleData = getParentNavigationSubtitle(
+    const parentNavigationSubtitleData = getParentNavigationSubtitle({
         report,
         policy,
         invoiceReceiverPolicy,
-        conciergeReportID,
         translate,
         formatPhoneNumber,
-        derivedParentReportName,
+        parentReportName: derivedParentReportName,
         isParentReportArchived,
-    );
+        currentUserAccountID,
+    });
 
     const titleField: OnyxTypes.PolicyReportField | undefined = (() => {
         const fields = getAvailableReportFields(report, Object.values(policy?.fieldList ?? {}));
         return fields.find((reportField) => isReportFieldOfTypeTitle(reportField));
     })();
     const fieldKey = getReportFieldKey(titleField?.fieldID);
-    const isFieldDisabled = isReportFieldDisabled(report, titleField, policy, rules, reportOwnerLogin);
+    const isFieldDisabled = isReportFieldDisabled(report, titleField, policy, rules, reportOwnerLogin, reportManagerLogin);
 
-    const shouldShowEditableTitleField = caseID !== CASES.MONEY_REQUEST && canEditReportTitle(report, policy, currentUserAccountID, rules, reportOwnerLogin);
+    const shouldShowEditableTitleField = caseID !== CASES.MONEY_REQUEST && canEditReportTitle(report, policy, currentUserAccountID, rules, reportOwnerLogin, reportManagerLogin);
 
     const shouldShowFurtherDetailsContent =
         !isEmptyObject(parentNavigationSubtitleData) && (shouldShowEditableTitleField || isMoneyRequestReport || isInvoiceReport || isMoneyRequest || isTaskReport);
@@ -112,16 +111,11 @@ function ReportDetailsTitleSectionContent({report}: ReportDetailsTitleSectionCon
                 onClose={() => clearPolicyRoomNameErrors(report.reportID)}
             >
                 <View style={[styles.flex1]}>
-                    <MenuItemWithTopDescription
+                    <MenuItem.Root
                         sentryLabel={CONST.SENTRY_LABEL.REPORT_DETAILS.TITLE}
-                        shouldShowRightIcon={shouldShowEditableTitleField && !isFieldDisabled}
-                        interactive={shouldShowEditableTitleField && !isFieldDisabled}
-                        title={reportName}
-                        titleStyle={styles.newKansasLarge}
-                        shouldCheckActionAllowedOnPress={false}
-                        description={translate('task.title')}
+                        accessibilityLabel={[translate('task.title'), reportName].filter(Boolean).join(', ')}
                         onPress={
-                            shouldShowEditableTitleField && report.policyID
+                            shouldShowEditableTitleField && !isFieldDisabled && report.policyID
                                 ? () => {
                                       if (!report.policyID) {
                                           return;
@@ -131,7 +125,18 @@ function ReportDetailsTitleSectionContent({report}: ReportDetailsTitleSectionCon
                                   }
                                 : undefined
                         }
-                    />
+                    >
+                        <MenuItem.Row>
+                            <MenuItemField.Content name={translate('task.title')}>
+                                {!!reportName && <MenuItem.FieldValue style={styles.newKansasLarge}>{reportName}</MenuItem.FieldValue>}
+                            </MenuItemField.Content>
+                            {shouldShowEditableTitleField && !isFieldDisabled && (
+                                <MenuItem.Trailing>
+                                    <MenuItem.Chevron />
+                                </MenuItem.Trailing>
+                            )}
+                        </MenuItem.Row>
+                    </MenuItem.Root>
                 </View>
             </OfflineWithFeedback>
             {shouldShowFurtherDetailsContent && (

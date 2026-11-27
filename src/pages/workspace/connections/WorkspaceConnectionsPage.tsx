@@ -5,13 +5,12 @@
 import ConnectToMergeFlow from '@components/ConnectToMergeFlow';
 import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import ErrorMessageRow from '@components/ErrorMessageRow';
-import Header from '@components/Header';
+import HeaderCentralPane from '@components/Header/composed/HeaderCentralPane';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import TabSelectorBase from '@components/TabSelector/TabSelectorBase';
 import TabSelectorContextProvider from '@components/TabSelector/TabSelectorContext';
 import type {TabSelectorBaseItem} from '@components/TabSelector/types';
@@ -33,7 +32,6 @@ import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
 import {openPolicyAccountingPage, openPolicyHRPage, openPolicyRecruitingPage} from '@libs/actions/PolicyConnections';
 import {getLatestErrorField} from '@libs/ErrorUtils';
-import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {isControlPolicy} from '@libs/PolicyUtils';
@@ -54,6 +52,7 @@ import {clearPolicyErrorField, openPolicyReceiptPartnersPage} from '@userActions
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 import type {ConnectionName} from '@src/types/onyx/Policy';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
 import React, {useEffect, useRef, useState} from 'react';
@@ -74,6 +73,15 @@ type RouteParams = {
     shouldDisconnectIntegrationBeforeConnecting?: boolean;
     isIntuitEnterpriseSuite?: string;
     tab?: ConnectionsTab;
+};
+
+const TAB_SENTRY_LABELS: Record<ConnectionsTab, SentryLabel> = {
+    [CONST.TAB.CONNECTIONS.ALL]: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.TAB.ALL,
+    [CONST.TAB.CONNECTIONS.ACCOUNTING]: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.TAB.ACCOUNTING,
+    [CONST.TAB.CONNECTIONS.PEOPLE]: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.TAB.PEOPLE,
+    [CONST.TAB.CONNECTIONS.RECRUITING]: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.TAB.RECRUITING,
+    [CONST.TAB.CONNECTIONS.RECEIPTS]: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.TAB.RECEIPTS,
+    [CONST.TAB.CONNECTIONS.AI]: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.TAB.AI,
 };
 
 type MergeSetupFlow = {
@@ -218,6 +226,7 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
     const tabs: Array<TabSelectorBaseItem<ConnectionsTab>> = visibleTabs.map((tab) => ({
         key: tab,
         title: translate(`workspace.connections.tabs.${tab}`),
+        sentryLabel: TAB_SENTRY_LABELS[tab],
     }));
 
     const searchLabel = translate('workspace.connections.findConnections');
@@ -286,16 +295,7 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
                     onDone={() => setMergeSetupFlow(undefined)}
                 />
             )}
-            <Header>
-                {shouldUseNarrowLayout && <Header.BackButton onPress={() => Navigation.goBack()} />}
-                <Header.Title
-                    title={translate('workspace.common.connections')}
-                    titleStyles={styles.textHeadlineH2}
-                />
-                <Header.Right>
-                    <SidePanelButton />
-                </Header.Right>
-            </Header>
+            <HeaderCentralPane title={translate('workspace.common.connections')} />
             <ScrollView
                 contentContainerStyle={[styles.flexGrow1, styles.pb5, styles.ph5]}
                 addBottomSafeAreaPadding

@@ -17,6 +17,8 @@ const flatNavigationBarLogoWidth = 92;
 /** expensify-wordmark.svg has a 78x19 viewBox, so deriving the height keeps the wordmark's proportions. */
 const flatNavigationBarLogoHeight = (flatNavigationBarLogoWidth * 19) / 78;
 
+const spacing2 = 8;
+
 const avatarSizes = {
     avatarSizeXxxxSmall: 12,
     avatarSizeXxxSmall: 16,
@@ -38,6 +40,10 @@ const avatarSizes = {
 export default {
     bottomTabHeight: 72,
     floatingTabBarHeight: 60,
+    // How strongly a floating button's color tints its liquid glass, leaving the rest to show what is behind it.
+    floatingButtonGlassTintOpacity: 0.8,
+    // Stronger than the other floating buttons, so the camera button's glass renders close to the solid green buttons in both themes.
+    floatingCameraButtonGlassTintOpacity: 0.9,
     /** A phone in landscape has little height to spare, so the bar lays each tab's label beside its icon and is shorter. */
     floatingTabBarLandscapeHeight: 44,
     floatingTabBarHorizontalInset: 16,
@@ -52,6 +58,7 @@ export default {
     debugTabViewHeight: 64,
     contentHeaderHeight: getValueUsingPixelRatio(72, 100),
     contentHeaderNarrowHeight: getValueUsingPixelRatio(64, 100),
+    contentHeaderCompactHeight: getValueUsingPixelRatio(48, 66),
     contentHeaderDesktopHeight: getValueUsingPixelRatio(80, 100),
     componentSizeSmall: getValueUsingPixelRatio(28, 32),
     componentSizeXSmall: getValueUsingPixelRatio(20, 24),
@@ -59,7 +66,7 @@ export default {
     componentSizeMedium: 48,
     inputComponentSizeNormal: 40,
     componentSizeLarge: 52,
-    spacing2: 8,
+    spacing2,
     rulesDocumentThumbnailMaxWidth: 368,
     rulesDocumentThumbnailHeight: 200,
     hairlineBorderWidth: 0.5,
@@ -79,6 +86,7 @@ export default {
     ...avatarSizes,
     avatarPreview: 360,
     avatarPreviewLarge: 720,
+    floatingActionButtonRightOffset: 16,
     fabBottom: 25,
     fontSizeXXSmall: 7,
     fontSizeSmall: getValueUsingPixelRatio(11, 17),
@@ -136,6 +144,8 @@ export default {
     nativeTabIconDotCutout: 2,
     /** Gap between the glyph and the label drawn under it, or beside it in landscape, in an iOS native tab bar icon. */
     nativeTabIconLabelGap: 6,
+    /** UIKit puts this much more space before a landscape tab's icon than after it, so the icon adds it after its label to even out the selected pill. */
+    nativeTabIconTrailingInsetIOSLandscape: 8,
     /** Space between the screen edge and the first tab of the iOS 26 floating tab bar. */
     iosNativeTabBarHorizontalInset: 25,
     // UITabBar sizes its items to their icons and gives the selected pill a minimum width, so a label as wide as an even
@@ -161,11 +171,16 @@ export default {
     androidSafeAreaInsetsPercentage: 1,
     sideBarWidth: 375,
     sidePanelWidth: 375,
+    // A resizable side panel opens wider than sidePanelWidth and can still be dragged down to it.
+    resizableSidePanelDefaultWidth: 400,
+    // A docked side panel never grows past the point where it would squeeze the central pane beside it below this.
+    centralPaneMinWidth: 400,
     rhpFloatingCardMargin: 12,
     // The frame width compensates for this border.
     rhpFloatingCardBorderWidth: 1,
     // Screen inset shared by the top- and bottom-anchored growl containers so both stay in sync.
     growlNotificationInset: 20,
+    growlNotificationMaxWidth: 400,
     receiptPaneRHPMaxWidth: 465,
     receiptPreviewMaxWidth: 440,
     receiptPreviewMaxHeight: 440,
@@ -175,7 +190,16 @@ export default {
     conciergeAskColumnMaxWidth: 720,
     centeredContentMaxWidth: 1200,
     insightsEmptyStateIllustrationSize: 136,
-    insightsAICardTextWidth: 250,
+    insightsSummaryHistoryIllustrationWidth: 36,
+    insightsSummaryHistoryIllustrationHeight: 48,
+    insightsAICardWidth: 250,
+    insightsAILoadingAnimationSize: 40,
+    insightsAIReservedTextLines: 2,
+    insightsRankingTableBarHeight: 8,
+    insightsRankingTableBarMinWidth: 4,
+    insightsRankingTableShareLabelSpace: 56,
+    insightsRankingTableAverageMarkerWidth: 2,
+    insightsRankingTableAverageMarkerOverhang: 6,
     minScanTooltipWidth: 320,
     chartTooltipMinWidth: 200,
     uploadViewMargin: 20,
@@ -191,18 +215,33 @@ export default {
     searchSidebarCollapsedWidth: 76,
     navigationTabBarSize: 72,
     flatNavigationBarWidth: 232,
+    // Expanded, the collapse toggle sits this far from the bar's right edge. Collapsed, the bar narrows until the toggle lands on the icon column.
+    flatNavigationBarHeaderPaddingRight: 20,
     flatNavigationBarItemHeight: 40,
     flatNavigationBarAccountItemHeight: 56,
     // Horizontal inset every row's background sits at, inside the bar's own width.
     flatNavigationBarRowInset: 8,
     // Space between a row's background edge and its icon. The header and dividers line up with the icon, at the inset plus this.
     flatNavigationBarRowPadding: 12,
+    // Space between a row's icon and its label. Subnav labels are indented by it to line up with the label above.
+    flatNavigationBarItemGap: 12,
     flatNavigationBarHeaderHeight: 72,
+    // Subnav rows are shorter than the destination rows above them, so a group of searches reads as one block.
+    flatNavigationBarSubnavItemHeight: 36,
+    // The header row includes the gap above its label, so a new group reads as a new block.
+    flatNavigationBarSubnavHeaderHeight: 32,
+    // The marker beside the active subnav row is shorter than the row, so it reads as a pill and not as a border.
+    flatNavigationBarSubnavMarkerHeight: 16,
+    flatNavigationBarSubnavMarkerWidth: 3,
     flatNavigationBarCreateButtonHeight: 32,
     // Centers the design's 204px wide Create button in the bar.
     flatNavigationBarCreateButtonInset: 14,
     // Space between the Create button and the first row below it.
     flatNavigationBarCreateButtonGap: 16,
+    // Colored square behind each create menu icon, so every action reads as its own color.
+    flatNavigationBarCreateMenuIconTileSize: 32,
+    flatNavigationBarCreateMenuWidth: 300,
+    flatNavigationBarCreateMenuPaddingVertical: 12,
     flatNavigationBarLogoWidth,
     flatNavigationBarLogoHeight,
     popoverMargin: 18,
@@ -234,6 +273,10 @@ export default {
     tableSwitchColumnWidth: 58,
     tableCaretColumnWidth: 20,
     tableMemberCellAvatarWidth: avatarSizes.avatarSizeSmall + 12,
+    // A member cell stacks a name over an email, so it keeps enough of both readable however far it is squeezed or dragged.
+    tableMemberColumnMinWidth: 180,
+    // An approver or owner cell's avatar and the gap2 the cell lays it out with, which the name starts after.
+    tableInlineAvatarCellWidth: avatarSizes.avatarSizeXxxSmall + spacing2,
     workspaceTagsTableCountColumnWidth: 100,
     domainTableActionColumnWidth: 64,
     domainAdminsTableActionColumnWidth: 220,
@@ -647,7 +690,8 @@ export default {
     editableCellPadding: 4,
     // Border kept on each side so the focus ring does not shift the value.
     editableCellBorderWidth: 1,
-    // What an editable cell spends around its value, from its padding and the border it reserves for the focus ring.
+    // What an editable cell spends around its value, from its padding and the border it reserves for the focus ring. They
+    // sit inside the column's track, so a column sized from its content adds them, or the value clips.
     editableCellChromeWidth: 4 * 2 + 1 * 2,
     // What the edit button covers at the trailing edge of an editable cell, from its size and the inset it sits at.
     editableCellEditButtonSize: 28,

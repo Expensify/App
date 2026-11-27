@@ -1,3 +1,4 @@
+import EnvironmentBadge from '@components/EnvironmentBadge';
 import LoadingBar from '@components/LoadingBar';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
@@ -10,6 +11,7 @@ import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTopInsetHeaderStyle from '@hooks/useTopInsetHeaderStyle';
 
 import SignInButton from '@pages/inbox/sidebar/SignInButton';
 
@@ -28,6 +30,7 @@ import {Keyboard, View} from 'react-native';
 import Animated from 'react-native-reanimated';
 
 import AccountAvatarButton from './AccountAvatarButton';
+import useShouldUseFlatNavigationBar from './FlatNavigationBar/useShouldUseFlatNavigationBar';
 
 type TopBarProps = {
     breadcrumbLabel: string;
@@ -46,9 +49,12 @@ function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpB
     const {translate} = useLocalize();
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const isAnonymousUser = isAnonymousUserUtil(session);
+    const shouldUseFlatNavigationBar = useShouldUseFlatNavigationBar();
 
     const isInLandscapeMode = useIsInLandscapeMode();
     const {contentHeaderHeightStyle} = useContentHeaderHeight();
+    const headerStyle = [styles.w100, styles.zIndex10];
+    const topInsetHeaderStyle = useTopInsetHeaderStyle(headerStyle);
     const {wideRHPRouteKeys} = useWideRHPState();
     const isWideRHPVisible = !!wideRHPRouteKeys.length;
 
@@ -56,7 +62,7 @@ function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpB
     const displaySearch = !isAnonymousUser && shouldDisplaySearch;
 
     return (
-        <View style={[styles.w100, styles.zIndex10]}>
+        <View style={[headerStyle, topInsetHeaderStyle]}>
             <View
                 style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.ml5, styles.mr3, contentHeaderHeightStyle]}
                 dataSet={{dragArea: true}}
@@ -71,6 +77,7 @@ function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpB
                         >
                             {breadcrumbLabel}
                         </Text>
+                        {!shouldUseFlatNavigationBar && <EnvironmentBadge />}
                     </Animated.View>
                 </View>
                 {children}

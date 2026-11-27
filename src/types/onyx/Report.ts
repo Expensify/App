@@ -97,6 +97,11 @@ type ReportNextStep = {
 
     /** The fill color of the icon */
     iconFill?: string;
+
+    /** Only set while the report waits for final approval or payment on a workspace that auto-exports */
+    autoExport?: {
+        messageKey: ValueOf<typeof CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY>;
+    } | null;
 };
 
 /** Model of report data */
@@ -206,6 +211,12 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Invoice room receiver data */
         invoiceReceiver?: InvoiceReceiver;
+
+        /** Whether the receiver must not see this invoice, because they pay it through its linked bill */
+        isHiddenForBillReceiver?: boolean;
+
+        /** Whether the current user must act on this report, like an invoice sender who must add a bank account before a payment can finish */
+        isAwaitingActionFromCurrentUser?: boolean;
 
         /** Number of transactions in the report */
         transactionCount?: number;

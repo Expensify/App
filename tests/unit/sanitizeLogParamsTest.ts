@@ -29,6 +29,18 @@ describe('sanitizeLogParams', () => {
         expect(result).toEqual({authToken: '<redacted>', password: '<redacted>', token: '<redacted>'});
     });
 
+    it('redacts the explanation query from both API and network logs', () => {
+        // Given an Insights explanation query with card evidence.
+        const command = 'GetInsightsExplanation';
+        const data = {jsonQuery: JSON.stringify({evidence: {total: 4623}}), hash: 123};
+
+        // When the request parameters are logged, then the evidence is redacted without changing the request.
+        expect(sanitizeLogParams({command, ...data})).toEqual({command, jsonQuery: '<redacted>', hash: 123});
+        expect(sanitizeLogParams({command, data})).toEqual({command, data: {jsonQuery: '<redacted>', hash: 123}});
+        expect(sanitizeLogParams({command: 'GetInsights', data}).data).toEqual(data);
+        expect(data.jsonQuery).toContain('4623');
+    });
+
     it('redacts card number and CVV so payment card details never reach the logs', () => {
         const result = sanitizeLogParams({
             command: 'AddPaymentCard',
@@ -53,6 +65,31 @@ describe('sanitizeLogParams', () => {
         });
     });
 
+    it('redacts the Expensify Card PIN that card PIN commands send', () => {
+        // Given the parameters of a PIN change, which the API logs before sending and again if the request fails
+        const params = {command: 'ChangeCardPIN', cardID: 123, pin: '1234', signedChallenge: '{"signature":"secret"}', authenticationMethod: 'BIOMETRICS'};
+
+        // When they are sanitized for the logs
+        const result = sanitizeLogParams(params);
+
+        // Then the PIN is redacted, so it never reaches the server logs, and the card and authentication method stay readable
+        expect(result).toEqual({command: 'ChangeCardPIN', cardID: 123, pin: '<redacted>', signedChallenge: '<redacted>', authenticationMethod: 'BIOMETRICS'});
+    });
+
+    it('redacts the PIN and card details that card reveal commands return', () => {
+        // Given the responses of the PIN and card reveal commands, which the Logging middleware logs
+        const revealPINResponse = {jsonCode: 200, pin: '1234'};
+        const revealCardResponse = {jsonCode: 200, pan: '4111111111111111', expiration: '0430', cvv: '123'};
+
+        // When they are sanitized for the logs
+        const revealPINResult = sanitizeLogParams(revealPINResponse);
+        const revealCardResult = sanitizeLogParams(revealCardResponse);
+
+        // Then the PIN, card number, expiry and CVV are redacted, and the response code stays readable
+        expect(revealPINResult).toEqual({jsonCode: 200, pin: '<redacted>'});
+        expect(revealCardResult).toEqual({jsonCode: 200, pan: '<redacted>', expiration: '<redacted>', cvv: '<redacted>'});
+    });
+
     it('redacts the inputs of a Wise onboarding page, which can hold an SSN', () => {
         // Given the parameters of a page save whose inputs carry an SSN, which the API logs before sending
         const params = {command: 'UpdateWiseOnboardingAdditionalData', step: 'representative', inputs: JSON.stringify({ssn: '123456789'})};
@@ -62,6 +99,77 @@ describe('sanitizeLogParams', () => {
 
         // Then the inputs are redacted, so the SSN never reaches the server logs, and the rest stays readable
         expect(result).toEqual({command: 'UpdateWiseOnboardingAdditionalData', step: 'representative', inputs: '<redacted>'});
+    });
+
+    it('redacts bank account details and Plaid tokens', () => {
+        // Given the parameters of a manual bank account connection, which the API logs before sending
+        const params = {
+            command: 'ConnectBankAccountManually',
+            bankAccountID: 123,
+            accountNumber: '9876543210123',
+            routingNumber: '011000015',
+            plaidAccessToken: 'access-production-token',
+            publicToken: 'public-production-token',
+            ssnLast4: '6789',
+            plaidMask: '0123',
+        };
+
+        // When they are sanitized for the logs
+        const result = sanitizeLogParams(params);
+
+        // Then the bank details, tokens and SSN digits are redacted, and the rest stays readable
+        expect(result).toEqual({
+            command: 'ConnectBankAccountManually',
+            bankAccountID: 123,
+            accountNumber: '<redacted>',
+            routingNumber: '<redacted>',
+            plaidAccessToken: '<redacted>',
+            publicToken: '<redacted>',
+            ssnLast4: '<redacted>',
+            plaidMask: '0123',
+        });
+    });
+
+    it('redacts bank details that are sent as JSON strings', () => {
+        // Given parameters that carry SSN digits and bank fields inside JSON strings, where key matching can't see them
+        const beneficialOwnersParams = {
+            command: 'UpdateBeneficialOwnersForBankAccount',
+            bankAccountID: 123,
+            beneficialOwners: JSON.stringify([{firstName: 'Jane', ssnLast4: '6789'}]),
+        };
+        const depositAccountParams = {
+            command: 'CreateCollectOnlyDepositAccount',
+            accountNumber: '9876543210123',
+            additionalData: JSON.stringify({country: 'GB', iban: 'GB00TEST00000012345678'}),
+        };
+
+        // When they are sanitized for the logs
+        const beneficialOwnersResult = sanitizeLogParams(beneficialOwnersParams);
+        const depositAccountResult = sanitizeLogParams(depositAccountParams);
+
+        // Then the whole JSON strings are redacted, so the values inside them never reach the logs
+        expect(beneficialOwnersResult).toEqual({command: 'UpdateBeneficialOwnersForBankAccount', bankAccountID: 123, beneficialOwners: '<redacted>'});
+        expect(depositAccountResult).toEqual({command: 'CreateCollectOnlyDepositAccount', accountNumber: '<redacted>', additionalData: '<redacted>'});
+    });
+
+    it('redacts accounting integration credentials', () => {
+        // Given the parameters of Sage Intacct and NetSuite connections, which carry the customer's ERP credentials
+        const intacctParams = {command: 'ConnectPolicyToSageIntacct', policyID: '1', intacctUserID: 'user', intacctPassword: 'hunter2'};
+        const netSuiteParams = {command: 'ConnectPolicyToNetSuite', policyID: '1', netSuiteAccountID: 'account', netSuiteTokenID: 'tokenID', netSuiteTokenSecret: 'tokenSecret'};
+
+        // When they are sanitized for the logs
+        const intacctResult = sanitizeLogParams(intacctParams);
+        const netSuiteResult = sanitizeLogParams(netSuiteParams);
+
+        // Then the credentials are redacted, and the account identifiers stay readable
+        expect(intacctResult).toEqual({command: 'ConnectPolicyToSageIntacct', policyID: '1', intacctUserID: 'user', intacctPassword: '<redacted>'});
+        expect(netSuiteResult).toEqual({
+            command: 'ConnectPolicyToNetSuite',
+            policyID: '1',
+            netSuiteAccountID: 'account',
+            netSuiteTokenID: '<redacted>',
+            netSuiteTokenSecret: '<redacted>',
+        });
     });
 
     it('leaves non-sensitive keys untouched', () => {

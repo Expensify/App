@@ -70,6 +70,7 @@ function ExportWithDropdownMenu({
         'RilletSquare',
         'DualEntrySquare',
         'CampfireSquare',
+        'DigitsSquare',
         'ZohoBooksSquare',
         'BusinessCentralSquare',
         'GustoSquare',
@@ -92,6 +93,7 @@ function ExportWithDropdownMenu({
     const dropdownOptions: Array<DropdownOption<ReportExportType>> = [
         {
             value: CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION,
+            sentryLabel: CONST.SENTRY_LABEL.REPORT_PREVIEW.EXPORT_MENU.EXPORT_TO_INTEGRATION,
             text: translate('workspace.common.exportIntegrationSelected', {
                 connectionName,
                 connectionNameFriendly,
@@ -100,6 +102,7 @@ function ExportWithDropdownMenu({
         },
         {
             value: CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED,
+            sentryLabel: CONST.SENTRY_LABEL.REPORT_PREVIEW.EXPORT_MENU.MARK_AS_EXPORTED,
             text: translate('workspace.common.markAsEntered'),
             ...optionTemplate,
         },

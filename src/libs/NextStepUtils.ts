@@ -5,7 +5,7 @@ import type {ThemeColors} from '@styles/theme/types';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, ReportAction, ReportActions, ReportMetadata, Rule, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {PersonalDetails, Policy, Report, ReportAction, ReportActions, ReportMetadata, Rule, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {ReportNextStep} from '@src/types/onyx/Report';
 import type {ReportUpcomingStepAction} from '@src/types/onyx/ReportUpcomingSteps';
 
@@ -79,13 +79,12 @@ type BuildOptimisticNextStepParams = {
     personalDetailsByLogins?: PersonalDetailsByLogin;
 };
 
-/** The backend still sends the legacy ETA key for older clients, so a custom schedule is read from the schedule fields sent with it. */
+/** The backend still sends the legacy ETA key for older clients, so the submission schedule is read from the schedule fields sent with it. */
 function getScheduleETA(eta: ReportNextStep['eta'], translate: LocaleContextProps['translate'], dateFnsLocale: DateFnsLocale | undefined): string | undefined {
     const frequency = eta?.autoReportingFrequency;
     const {offset, secondOffset} = getAutoReportingOffsetsForFrequency(frequency, {offset: eta?.autoReportingOffset, secondOffset: eta?.autoReportingOffsetSecondSemiMonthly});
     const formatDay = (day: number) => format(setDate(new Date(), day), CONST.DATE.ORDINAL_DAY_OF_MONTH, {locale: dateFnsLocale});
 
-    // Default schedules keep their legacy ETA text
     switch (frequency) {
         case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY:
             if (offset === CONST.POLICY.AUTO_REPORTING_WEEKDAYS.SUNDAY) {
@@ -94,9 +93,7 @@ function getScheduleETA(eta: ReportNextStep['eta'], translate: LocaleContextProp
             return translate(`nextStep.scheduleEta.weekly.${getWeekdayKey(Number(offset))}`);
         case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY: {
             const sortedOffsets = sortSemiMonthlyOffsets({offset, secondOffset});
-            const isDefaultSchedule =
-                sortedOffsets.offset === CONST.POLICY.AUTO_REPORTING_DEFAULT_SEMI_MONTHLY_OFFSET && sortedOffsets.secondOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH;
-            if (typeof sortedOffsets.offset !== 'number' || isDefaultSchedule) {
+            if (typeof sortedOffsets.offset !== 'number') {
                 return undefined;
             }
             const firstDay = formatDay(sortedOffsets.offset);
@@ -194,7 +191,8 @@ function buildNextStepMessage(
         return '';
     }
 
-    return `<next-step>${message}</next-step>`;
+    const autoExportMessage = nextStep.autoExport ? ` ${translate(`nextStep.autoExport.${nextStep.autoExport.messageKey}`)}` : '';
+    return `<next-step>${message}${autoExportMessage}</next-step>`;
 }
 
 function doesReportContainTransactions(report: OnyxEntry<Report>): boolean {
@@ -409,7 +407,29 @@ function buildOptimisticNextStep(params: BuildOptimisticNextStepParams): ReportN
             nextStep = null;
     }
 
-    return nextStep;
+    if (!nextStep || !report?.nextStep?.autoExport || shouldKeepAutoExportTiming(report, predictedNextStatus, reimbursableSpend)) {
+        return nextStep;
+    }
+
+    // Clearing the export timing here keeps it changing together with the rest of the next step instead of after the server responds
+    return {...nextStep, autoExport: null};
+}
+
+/**
+ * Whether the export timing the server last sent still applies once the report moves to the predicted status. It survives anything
+ * that leaves the report waiting for approval, like moving it to the next approver, unapproving it, holds and expense edits, and a
+ * final approval that leaves reimbursable spend waiting for payment.
+ */
+function shouldKeepAutoExportTiming(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<typeof CONST.REPORT.STATUS_NUM>, reimbursableSpend: number): boolean {
+    if (predictedNextStatus === CONST.REPORT.STATUS_NUM.SUBMITTED) {
+        return true;
+    }
+
+    if (predictedNextStatus === CONST.REPORT.STATUS_NUM.APPROVED) {
+        return report?.nextStep?.autoExport?.messageKey === CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.REIMBURSABLE_EXPORTS_WHEN_PAID && reimbursableSpend !== 0;
+    }
+
+    return false;
 }
 
 function buildOptimisticNextStepForPreventSelfApprovalsEnabled(): ReportNextStep {
@@ -481,7 +501,7 @@ type GetReportNextStepParams = {
     currentUserEmail: string;
     currentUserAccountID: number;
     report: OnyxEntry<Report>;
-    reportOwnerLogin: string;
+    reportOwnerPersonalDetails: PersonalDetails | undefined;
     reportMetadata: ReportMetadata | undefined;
     reportActions: ReportAction[];
     transactions: Record<string, Transaction>;
@@ -494,12 +514,21 @@ type GetReportNextStepParams = {
     isOffline: boolean;
 };
 
+/**
+ * Returns the next step of an invoice. Invoices only show the next step while a payment waits for the sender's bank
+ * account, because the sender must act before they can be paid. It doesn't check the policy, because the invoice's
+ * policy might not be loaded.
+ */
+function getInvoiceNextStep(report: OnyxEntry<Report>): ReportNextStep | undefined {
+    return report?.nextStep?.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT ? report.nextStep : undefined;
+}
+
 function getReportNextStep({
     currentUserLogin,
     currentUserEmail,
     currentUserAccountID,
     report,
-    reportOwnerLogin,
+    reportOwnerPersonalDetails,
     reportMetadata,
     reportActions,
     transactions,
@@ -511,6 +540,10 @@ function getReportNextStep({
     theme,
     isOffline,
 }: GetReportNextStepParams): ReportNextStep | undefined {
+    if (isInvoiceReport(report)) {
+        return getInvoiceNextStep(report);
+    }
+
     // Reports on an archived workspace can't be acted on until they're moved to another workspace
     if (isArchivedPolicy(policy)) {
         return buildChangeWorkspaceNextStep();
@@ -523,6 +556,8 @@ function getReportNextStep({
         currentUserAccountID,
         currentUserEmail,
         Object.values(transactions),
+        report,
+        policy,
     );
     if (isBlockSubmitDueToStrictPolicyRules && isReportOwner(report) && isOpenExpenseReport(report)) {
         return buildOptimisticNextStepForStrictPolicyRuleViolations();
@@ -575,7 +610,7 @@ function getReportNextStep({
         policy &&
         isOpenExpenseReport(report) &&
         !doesReportContainTransactions(report) &&
-        !canCreateExpensesOnPolicy(policy, reportOwnerLogin)
+        !canCreateExpensesOnPolicy(policy, reportOwnerPersonalDetails?.login)
     ) {
         return buildOptimisticNoFurtherActionNextStep();
     }
@@ -594,7 +629,7 @@ function getReportNextStep({
     // When prevent self-approval is enabled & the current user is submitter AND they're submitting to themselves, we need to show the optimistic next step
     // We should always show this optimistic message for policies with preventSelfApproval
     // to avoid any flicker during transitions between online/offline states
-    if (shouldBlockSubmitDueToPreventSelfApproval(report, policy, rules)) {
+    if (shouldBlockSubmitDueToPreventSelfApproval(report, policy, rules, reportOwnerPersonalDetails)) {
         return buildOptimisticNextStepForPreventSelfApprovalsEnabled();
     }
 
@@ -623,6 +658,7 @@ const UPCOMING_STEP_ACTION_BY_MESSAGE_KEY: Record<ValueOf<typeof CONST.NEXT_STEP
     [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: CONST.REPORT.UPCOMING_STEP_ACTION.PAY,
     [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: undefined,
     [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_CANCELLED_REIMBURSEMENT]: undefined,
+    [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT_REVIEW]: CONST.REPORT.UPCOMING_STEP_ACTION.PAY,
     [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: undefined,
     [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: undefined,
     [CONST.NEXT_STEP.MESSAGE_KEY.CHANGE_WORKSPACE]: undefined,
@@ -661,11 +697,11 @@ function shouldShowDynamicExternalWorkflowApproveErrorNextStep(reportAction: Ony
 }
 
 export {
+    getInvoiceNextStep,
     getReportNextStep,
     buildNextStepMessage,
     getNextStepETA,
     buildOptimisticNextStep,
-    buildOptimisticFixIssueNextStep,
     buildOptimisticNextStepForPreventSelfApprovalsEnabled,
     shouldShowDynamicExternalWorkflowApproveErrorNextStep,
     getUpcomingStepActionForNextStep,

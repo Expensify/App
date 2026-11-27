@@ -189,4 +189,20 @@ describe('useTrackExpenseSubmission', () => {
         expect(mockCleanupAfterExpenseCreate).not.toHaveBeenCalled();
         expect(mockCleanupAndNavigateAfterExpenseCreate).not.toHaveBeenCalled();
     });
+
+    it('defers auto-submit for non-final items and forwards existingIOUReport across a multi-expense batch', async () => {
+        // Given a multi-expense track batch where the first call returns the created optimistic expense report
+        const firstReport = buildChatReport({reportID: 'tracked-iou-1', type: CONST.REPORT.TYPE.EXPENSE});
+        const transaction1 = buildTransaction({transactionID: 'track-batch-1'});
+        const transaction2 = buildTransaction({transactionID: 'track-batch-2'});
+        mockTrackExpenseAction.mockReturnValueOnce({iouReport: firstReport, transactionID: 'optimistic-1'});
+
+        // When the batch is submitted
+        await submit(buildParams({transaction: transaction1, transactions: [transaction1, transaction2]}), false);
+
+        // Then the first item defers auto-submit and passes its report to the second item, which does not defer
+        expect(mockTrackExpenseAction).toHaveBeenCalledTimes(2);
+        expect(mockTrackExpenseAction.mock.calls.map(([callParams]) => callParams.shouldDeferAutoSubmit)).toEqual([true, false]);
+        expect(mockTrackExpenseAction.mock.calls.at(1)?.at(0)?.existingIOUReport).toBe(firstReport);
+    });
 });

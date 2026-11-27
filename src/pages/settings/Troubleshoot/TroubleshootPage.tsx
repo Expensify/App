@@ -1,5 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderCentralPane from '@components/Header/composed/HeaderCentralPane';
 import ImportOnyxState from '@components/ImportOnyxState';
 import MenuItemList from '@components/MenuItemList';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -18,13 +18,14 @@ import useDocumentTitle from '@hooks/useDocumentTitle';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSwitchToClassic from '@hooks/useSwitchToClassic';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {resetExitSurveyForm, switchToOldDot} from '@libs/actions/ExitSurvey';
+import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
 import {closeReactNativeApp} from '@libs/actions/HybridApp';
-import {openOldDotLink} from '@libs/actions/Link';
 import {setShouldMaskOnyxState} from '@libs/actions/MaskOnyx';
 import {openTroubleshootSettingsPage} from '@libs/actions/User';
 import {getErrorMessage} from '@libs/ErrorUtils';
@@ -32,7 +33,7 @@ import {maskOnyxState, readOnyxState, saveOnyxStateFile} from '@libs/ExportOnyxS
 import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
+import {isTryNewDotLoading, shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
 
 import colors from '@styles/theme/colors';
 
@@ -46,8 +47,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
 import type IconAsset from '@src/types/utils/IconAsset';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import {differenceInDays} from 'date-fns';
 import React, {useEffect, useState} from 'react';
@@ -55,10 +55,11 @@ import {StyleSheet, View} from 'react-native';
 
 import useTroubleshootSectionIllustration from './useTroubleshootSectionIllustration';
 
-type BaseMenuItem = WithSentryLabel & {
+type BaseMenuItem = WithRequiredSentryLabel & {
     translationKey: TranslationPaths;
     icon: IconAsset;
     action: () => void | Promise<void>;
+    disabled?: boolean;
 };
 
 function TroubleshootPage() {
@@ -72,11 +73,14 @@ function TroubleshootPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [isTrackingGPS = false] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {selector: isTrackingSelector});
     const [shouldMaskOnyxState = true] = useOnyx(ONYXKEYS.SHOULD_MASK_ONYX_STATE);
-    const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
+    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const {showConfirmModal} = useConfirmModal();
-    const isLoadingTryNewDot = isLoadingOnyxValue(tryNewDotMetadata);
+    const isLoadingTryNewDot = isTryNewDotLoading(tryNewDot, false, isLoadingApp);
     const shouldOpenSurveyReasonPage = tryNewDot?.classicRedirect?.dismissed === false;
     const {setShouldResetSearchQuery} = useSearchQueryActions();
+    const {isOffline} = useNetwork();
+    const {switchToClassic, isSwitchingToClassic} = useSwitchToClassic();
     const showResetAndRefreshModal = async () => {
         const result = await showConfirmModal({
             title: translate('common.areYouSure'),
@@ -149,10 +153,11 @@ function TroubleshootPage() {
                       action: () => closeReactNativeApp({shouldSetNVP: true, isTrackingGPS}),
                   }
                 : {
+                      // If the exit survey was completed recently, Classic opens only after the server saves the switch, which can't happen offline
+                      disabled: isSwitchingToClassic || (isOffline && surveyCompletedWithinLastMonth),
                       action() {
                           if (surveyCompletedWithinLastMonth) {
-                              switchToOldDot('');
-                              openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
+                              switchToClassic('');
                               return;
                           }
 
@@ -195,6 +200,7 @@ function TroubleshootPage() {
                 onPress: item.action,
                 wrapperStyle: [styles.sectionMenuItemTopDescription],
                 sentryLabel: item.sentryLabel,
+                disabled: item.disabled,
             }))
             .reverse();
     };
@@ -210,13 +216,9 @@ function TroubleshootPage() {
             shouldShowOfflineIndicatorInWideScreen
             testID="TroubleshootPage"
         >
-            <HeaderWithBackButton
+            <HeaderCentralPane
                 title={translate('initialSettingsPage.aboutPage.troubleshoot')}
-                shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
-                shouldDisplayHelpButton
-                onBackButtonPress={Navigation.goBack}
-                shouldUseHeadlineHeader
             />
             <View style={styles.flex1}>
                 <ScrollView contentContainerStyle={styles.pt3}>

@@ -1,3 +1,4 @@
+import FocusTrapExtraContainersContext from '@components/FocusTrap/FocusTrapExtraContainersContext';
 import {DefaultCancelConfirmModal} from '@components/MultifactorAuthentication/components/Modals';
 import {useMultifactorAuthentication, useMultifactorAuthenticationActions, useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context';
 import type {MultifactorAuthenticationModalNavigatorInternalParamList} from '@components/MultifactorAuthentication/mfaNavigation';
@@ -6,7 +7,7 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import RHPResizeHandle from '@components/RHPResizeHandle';
 
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
+import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelActions from '@hooks/useSidePanelActions';
 import useSidePanelState from '@hooks/useSidePanelState';
@@ -88,7 +89,7 @@ function useAwaitSidePanelClose(shouldMount: boolean): boolean {
 }
 
 function MultifactorAuthenticationModalNavigator() {
-    const {isCancelConfirmVisible, isModalOpen, scenario} = useMultifactorAuthenticationState();
+    const {isAuthorizationComplete, isCancelConfirmVisible, isModalOpen, scenario} = useMultifactorAuthenticationState();
     const {requestCancel, hideCancelConfirm, confirmCancel} = useMultifactorAuthentication();
     const {dispatch} = useMultifactorAuthenticationActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -99,6 +100,10 @@ function MultifactorAuthenticationModalNavigator() {
     const [phase, setPhase] = useState<Phase>(isModalOpen ? 'open' : 'closed');
     const backdropProgress = useSharedValue(0);
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
+    const {isOffline} = useNetwork();
+
+    // Offline, the flow can't finish and close itself, so keep the modal visible to leave a way out
+    const isModalHidden = !!scenario?.shouldHideModalOnSuccess && isAuthorizationComplete && !isOffline;
     const CancelConfirmModal = scenario?.modals.cancelConfirmation ?? DefaultCancelConfirmModal;
 
     const isStackReadyToMount = useAwaitSidePanelClose(phase !== 'closed');
@@ -143,13 +148,11 @@ function MultifactorAuthenticationModalNavigator() {
         opacity: backdropProgress.get() * variables.rhpOverlayOpacity,
     }));
 
+    const [resizeHandleElement, setResizeHandleElement] = useState<HTMLDivElement | null>(null);
     const {width: singleRHPWidth} = useSingleRHPWidth();
     const frameStyle = getRHPFrameStyle({styles, animatedWidth: variables.rhpWidth, singleRHPWidth, shouldUseNarrowLayout, shouldUseCenteredFrame: false});
     const slideFromWidthInterpolator = (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, enter: {kind: 'slide-from-width'}});
-    const {isBetaEnabled} = usePermissions();
-    const isResizable = isBetaEnabled(CONST.BETAS.RESIZABLE_RHP) && !shouldUseNarrowLayout;
-
-    const stackContentStyle = styles.singleRHPStackBox(isResizable);
+    const stackContentStyle = styles.singleRHPStackBox(!shouldUseNarrowLayout);
 
     if (phase === 'closed') {
         return null;
@@ -182,7 +185,7 @@ function MultifactorAuthenticationModalNavigator() {
                              * via opacity only. modalCardStyleInterpolator uses a constant variables.sideBarWidth
                              * on wide layout, so the slide range is stable regardless of layout timing.
                              */
-                            cardStyleInterpolator: isResizable
+                            cardStyleInterpolator: !shouldUseNarrowLayout
                                 ? enhanceCardStyleInterpolator(slideFromWidthInterpolator, {cardStyle: styles.singleRHPCardInterpolatorStyles})
                                 : slideFromWidthInterpolator,
                             transitionSpec: shouldUseNarrowLayout ? undefined : RHP_WEB_TRANSITION_SPEC,
@@ -221,8 +224,9 @@ function MultifactorAuthenticationModalNavigator() {
 
     return (
         <View
-            style={[StyleSheet.absoluteFill, styles.mfaModalNavigatorRoot]}
-            pointerEvents="box-none"
+            style={[StyleSheet.absoluteFill, styles.mfaModalNavigatorRoot, isModalHidden && styles.opacity0]}
+            pointerEvents={isModalHidden ? 'none' : 'box-none'}
+            aria-hidden={isModalHidden}
         >
             {!shouldUseNarrowLayout && (
                 <Animated.View style={[StyleSheet.absoluteFill, styles.overlayBackground, backdropAnimatedStyle]}>
@@ -236,10 +240,12 @@ function MultifactorAuthenticationModalNavigator() {
                     />
                 </Animated.View>
             )}
-            <View style={frameStyle}>
-                <View style={stackContentStyle}>{stack}</View>
-            </View>
-            {isResizable && <RHPResizeHandle />}
+            <FocusTrapExtraContainersContext.Provider value={resizeHandleElement?.parentElement ? [resizeHandleElement.parentElement] : []}>
+                <View style={frameStyle}>
+                    <View style={stackContentStyle}>{stack}</View>
+                </View>
+            </FocusTrapExtraContainersContext.Provider>
+            {!shouldUseNarrowLayout && <RHPResizeHandle ref={setResizeHandleElement} />}
             <CancelConfirmModal
                 isVisible={isCancelConfirmVisible}
                 onConfirm={confirmCancel}

@@ -51,9 +51,11 @@ Note: if you are hired for an Upwork job and have any job-specific questions, pl
 If you've found a vulnerability, please email security@expensify.com with the subject `Vulnerability Report` instead of creating an issue.
 
 ## Payment for Contributions
-We hire and pay external contributors via [Upwork.com](https://www.upwork.com). If you'd like to be paid for contributing, please create an Upwork account, apply for an available job in [GitHub](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3A%22Help+Wanted%22), and finally apply for the job in Upwork once your proposal gets selected in GitHub. Please make sure your Upwork profile is **fully verified** before applying, otherwise you run the risk of not being paid. If you think your compensation should be increased for a specific job, comment on the GitHub issue and tag the assigned C+, asking them to request an increase.
+We hire and pay external contributors via [Upwork.com](https://www.upwork.com). **Upwork is the only way we pay for contributions.** The one exception is an issue you were assigned to on or after your [payment via Expensify](https://github.com/Expensify/App/blob/main/contributingGuides/PAYMENT_VIA_EXPENSIFY.md) eligibility date. If you'd like to be paid for contributing, please create an Upwork account, apply for an available job in [GitHub](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3A%22Help+Wanted%22), and finally apply for the job in Upwork once your proposal gets selected in GitHub. Please make sure your Upwork profile is **fully verified** before applying, otherwise you run the risk of not being paid. If you think your compensation should be increased for a specific job, comment on the GitHub issue and tag the assigned C+, asking them to request an increase.
 
 **The number of PRs does not change the job price**. The job price is the price in the issue title. If the title states no price, the job price is the current standard amount.
+
+**One PR that fixes more than one issue earns one job price.** If the team agreed in the issue, before the PR was created, that the PR fixes the other issues too, the job price can increase.
 
 Please add your Upwork profile link in your GitHub Bio to help ensure prompt payment.  If you're using Slack or Expensify for discussions, please add your Upwork profile link **and** your GitHub username in your Slack Title and Expensify Status.
 
@@ -66,6 +68,9 @@ Please be aware that compensation for any support in solving an issue is provide
 **Important:** Payment amounts are variable, dependent on if there are any [regressions](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#regressions). Your PR will be reviewed by a [Contributor+ (C+)](https://github.com/Expensify/App/blob/main/contributingGuides/HOW_TO_BECOME_A_CONTRIBUTOR_PLUS.md) team member and an internal engineer.  All tests must pass and all code must pass lint checks before a merge.
 
 Contributors are eligible to be paid via Expensify 18 months after they were first assigned to a job. More details at [PAYMENT_VIA_EXPENSIFY.md](https://github.com/Expensify/App/blob/main/contributingGuides/PAYMENT_VIA_EXPENSIFY.md)
+
+### Lost access to your Upwork account
+If you lose access to your Upwork account for any reason, we cannot pay you until Upwork reactivates it. Reasons include a suspended account, a closed account or a failed identity check. We do not pay through any other method while the account is inactive. Contact Upwork Support to restore your account. When your account is active again, comment on the GitHub issue to ask for payment. 
 
 ### Regressions
 
@@ -162,6 +167,7 @@ This helps future investigators understand the history and current status of err
 
 ### Propose a solution for the job
 4. Proposals must only be posted after the `Help Wanted` label is added. Any proposals submitted beforehand will be ignored and not reviewed. Do not post proposals in Slack. MelvinBot is an exception: it may post a proposal before `Help Wanted` is applied.
+    - Until you have a merged PR in Expensify/App, [ProposalPolice](./PROPOSAL_POLICE.md#before-help-wanted) hides any comment you post on an issue without `Help Wanted`.
     - On issues where [MelvinBot](./HOW_TO_WORK_WITH_MELVINBOT.md) has posted a proposal, review Melvin's proposal using the same standards as contributor proposals. Melvin's proposal is not guaranteed to be the earliest, but it should always be reviewed first because we are spending the money to run it. Follow first-come-first-serve review order for all other proposals after `Help Wanted`. **Do not open a PR** until a proposal is accepted. See [How to Work with MelvinBot](./HOW_TO_WORK_WITH_MELVINBOT.md) for more details.
 5. Contributors should **not** submit proposals on issues when they have assigned issues or PRs that are awaiting an action from them. If so, they will be in violation of Rule #1 (Get Shit Done) in our [Code of Conduct](https://github.com/Expensify/App/blob/main/CODE_OF_CONDUCT.md) and will receive a warning. Multiple warnings can lead to removal from the program.
 6. After you reproduce the issue, complete the [proposal template here](./PROPOSAL_TEMPLATE.md) and post it as a comment in the corresponding GitHub issue (linked in the Upwork job).

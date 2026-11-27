@@ -8,6 +8,7 @@ import {setHasRadio} from '@libs/NetworkState';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Report, ReportAction} from '@src/types/onyx';
+import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -103,6 +104,46 @@ describe('ReportActionItemSingle', () => {
         });
     });
 
+    describe('when the sender has a status with an invalid clear-after value and timezone', () => {
+        const fakeReport = {...LHNTestUtils.getFakeReportWithPolicy([1, 2]), chatType: undefined};
+        const fakeReportAction = LHNTestUtils.getFakeAdvancedReportAction();
+        const actorAccountID = fakeReportAction.actorAccountID ?? CONST.DEFAULT_NUMBER_ID;
+
+        it('renders the message header', async () => {
+            // Given a sender whose personal details hold a clear-after value the server accepts but which is not a date,
+            // and a timezone `Intl` doesn't know
+            await act(async () => {
+                await Onyx.multiSet({
+                    [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                        [actorAccountID]: {
+                            accountID: actorAccountID,
+                            login: 'email1@test.com',
+                            displayName: 'Email One',
+                            status: {emojiCode: '😀', text: 'Away', clearAfter: 'tomorrow'},
+                            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- other users' personal details can hold a timezone that isn't in the app's list
+                            timezone: {automatic: false, selected: 'Not/AZone' as SelectedTimezone},
+                        },
+                    },
+                    [ONYXKEYS.COLLECTION.REPORT]: {
+                        [`${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`]: fakeReport,
+                    },
+                });
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            // When their message header renders
+            LHNTestUtils.getDefaultRenderedReportActionItemSingle(fakeReport, fakeReportAction);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the header shows the sender instead of the formatting error crashing the report
+            const [expectedPerson] = fakeReportAction.person ?? [];
+            await waitFor(() => {
+                expect(screen.getByText(expectedPerson.text ?? '')).toBeOnTheScreen();
+            });
+        });
+    });
+
     describe('when the action is an IOU report preview', () => {
         const OWNER_ACCOUNT_ID = 11;
         const MANAGER_ACCOUNT_ID = 12;
@@ -149,7 +190,7 @@ describe('ReportActionItemSingle', () => {
             await waitFor(() => {
                 expect(screen.getByText('Manager Person & Owner Person')).toBeOnTheScreen();
             });
-            expect(screen.getByTestId('ReportActionAvatars-MultipleAvatars')).toBeOnTheScreen();
+            expect(screen.getByTestId('Avatar-MultipleAvatars')).toBeOnTheScreen();
         });
     });
 

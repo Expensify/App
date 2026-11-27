@@ -130,22 +130,28 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, isSelectab
     };
 
     if (receiptError) {
+        const serverError = receiptError.message?.trim();
         const isStackedLayout = !(isInNarrowPaneModal && !isSmallScreenWidth);
         const messageRow = (
             <View style={[styles.dotIndicatorMessage, isStackedLayout && styles.alignItemsStart, styles.flex1]}>
-                <Text
-                    style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage), textStyles, styles.flex1, shouldDisableTextSelection && styles.userSelectNone]}
-                    accessibilityRole={isErrorMessage ? CONST.ROLE.ALERT : undefined}
-                    accessibilityLiveRegion={isErrorMessage ? 'assertive' : undefined}
-                >
-                    {translate(onRetryReceiptUpload ? 'iou.error.receiptUploadFailedMessage' : 'iou.error.receiptUploadFailedSaveOnlyMessage')}
-                </Text>
+                {serverError ? (
+                    <View style={styles.flex1}>{renderMessage(serverError, 0)}</View>
+                ) : (
+                    <Text
+                        style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage), textStyles, styles.flex1, shouldDisableTextSelection && styles.userSelectNone]}
+                        accessibilityRole={isErrorMessage ? CONST.ROLE.ALERT : undefined}
+                        accessibilityLiveRegion={isErrorMessage ? 'assertive' : undefined}
+                    >
+                        {translate(onRetryReceiptUpload ? 'iou.error.receiptUploadFailedMessage' : 'iou.error.receiptUploadFailedSaveOnlyMessage')}
+                    </Text>
+                )}
             </View>
         );
         const buttonsRow = (
             <View style={[styles.flexRow, styles.flexWrap, styles.gap2]}>
                 {!!onRetryReceiptUpload && (
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.DOT_INDICATOR_MESSAGE.RETRY_RECEIPT_UPLOAD}
                         size={CONST.BUTTON_SIZE.SMALL}
                         onPress={onRetryReceiptUpload}
                     >
@@ -154,6 +160,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, isSelectab
                     </Button>
                 )}
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.DOT_INDICATOR_MESSAGE.DOWNLOAD_RECEIPT}
                     size={CONST.BUTTON_SIZE.SMALL}
                     onPress={() => {
                         fileDownload(translate, receiptError.source, receiptError.filename);

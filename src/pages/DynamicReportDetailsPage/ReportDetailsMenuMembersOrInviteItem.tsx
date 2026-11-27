@@ -24,7 +24,7 @@ import {
     isUserCreatedPolicyRoom as isUserCreatedPolicyRoomUtil,
 } from '@libs/ReportUtils';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -92,17 +92,13 @@ function ReportDetailsMenuMembersOrInviteItem({reportID}: ReportDetailsMenuMembe
         return (
             <MenuItem.Root
                 sentryLabel={CONST.SENTRY_LABEL.REPORT_DETAILS.MEMBERS}
-                onPress={callFunctionIfActionIsAllowed(
-                    () => {
-                        if (shouldOpenRoomMembersPage) {
-                            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ROOM_MEMBERS.path));
-                        } else {
-                            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_PARTICIPANTS.path));
-                        }
-                    },
-                    false,
-                    session,
-                )}
+                onPress={callIfAuthenticated(() => {
+                    if (shouldOpenRoomMembersPage) {
+                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ROOM_MEMBERS.path));
+                    } else {
+                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_PARTICIPANTS.path));
+                    }
+                }, session)}
                 accessibilityLabel={translate('common.members')}
             >
                 <MenuItem.Row>

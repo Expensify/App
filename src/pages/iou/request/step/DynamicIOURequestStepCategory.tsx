@@ -111,6 +111,7 @@ function DynamicIOURequestStepCategory({
               {
                   icon: expensifyIcons.Plus,
                   text: translate('workspace.categories.addCategory'),
+                  sentryLabel: CONST.SENTRY_LABEL.IOU_REQUEST_STEP.CATEGORY_ADD_CATEGORY,
                   onSelected: () => {
                       const reportID = report?.reportID ?? routeReportID;
                       if (!policyID || !reportID) {
@@ -255,6 +256,7 @@ function DynamicIOURequestStepCategory({
                     onSubmit={updateCategory}
                     onCreateCategory={canCreateSearchedCategory ? createSearchedCategory : undefined}
                     ownerAccountID={isOwnExpense ? currentUserAccountID : undefined}
+                    submitterAccountID={isOwnExpense ? undefined : transactionReport?.ownerAccountID}
                 />
             )}
         </StepScreenWrapper>

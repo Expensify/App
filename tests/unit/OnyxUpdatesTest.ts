@@ -1,4 +1,5 @@
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import Pusher from '@libs/Pusher';
 import PusherUtils from '@libs/PusherUtils';
 
 import CONST from '@src/CONST';
@@ -16,6 +17,11 @@ import Onyx from 'react-native-onyx';
 
 import getOnyxValue from '../utils/getOnyxValue';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+
+/** Transaction IDs the latest signal flagged. Earlier writes stay in the signal, including those from earlier tests. */
+function getIDsOfLatestWrite(signal: {writeID: number; transactionIDs: Record<string, number>} | undefined) {
+    return Object.keys(signal?.transactionIDs ?? {}).filter((id) => signal?.transactionIDs[id] === signal?.writeID);
+}
 
 describe('OnyxUpdatesTest', () => {
     beforeAll(() => {
@@ -116,6 +122,78 @@ describe('OnyxUpdatesTest', () => {
         // Then the response should still be returned to the caller, not undefined
         expect(result).toBeDefined();
         expect(result?.jsonCode).toBe(200);
+    });
+
+    describe('pagination data', () => {
+        const reportID = '1';
+        const actionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}` as const;
+        const pagesKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${reportID}` as const;
+        const loadingKey = `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}` as const;
+        const reportActionID = '2';
+        const reportActions = {[reportActionID]: {reportActionID, created: '2026-11-11 10:00:00.000'}};
+
+        const paginatedReadResponse = (lastUpdateID: number): OnyxUpdatesFromServer<OnyxKey> => ({
+            type: CONST.ONYX_UPDATE_TYPES.HTTPS,
+            previousUpdateID: 0,
+            lastUpdateID,
+            request: {
+                command: 'GetNewerActions',
+                data: {apiRequestType: CONST.API_REQUEST_TYPE.READ},
+                finallyData: [{onyxMethod: 'merge', key: loadingKey, value: {isLoadingNewerReportActions: false}}],
+            },
+            response: {
+                jsonCode: 200,
+                onyxData: [{onyxMethod: 'merge', key: actionsKey, value: reportActions}],
+                paginationOnyxData: [{onyxMethod: 'set', key: pagesKey, value: [[reportActionID, CONST.PAGINATION_END_ID]]}],
+            },
+        });
+
+        it('writes the pages after the items they list', async () => {
+            // Given a subscriber that records which report actions are stored when the pages change
+            let storedActions: unknown;
+            let actionsWhenPagesChanged: unknown;
+            const actionsConnection = Onyx.connectWithoutView({
+                key: actionsKey,
+                callback: (value) => {
+                    storedActions = value;
+                },
+            });
+            const pagesConnection = Onyx.connectWithoutView({
+                key: pagesKey,
+                callback: (pages) => {
+                    if (!pages) {
+                        return;
+                    }
+                    actionsWhenPagesChanged = storedActions;
+                },
+            });
+            await waitForBatchedUpdates();
+
+            // When a paginated read response is applied
+            await OnyxUpdates.apply(paginatedReadResponse(0));
+            await waitForBatchedUpdates();
+            actionsConnection.unsubscribe();
+            pagesConnection.unsubscribe();
+
+            // Then the pages are written after the items, so a list never reads a page whose items aren't stored yet
+            expect(actionsWhenPagesChanged).toStrictEqual(reportActions);
+        });
+
+        it('skips the pages together with the items of an already-applied response', async () => {
+            // Given the client already applied update 100
+            await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 100);
+            await waitForBatchedUpdates();
+
+            // When a paginated read response that is already covered arrives
+            await OnyxUpdates.apply(paginatedReadResponse(100));
+            await waitForBatchedUpdates();
+
+            // Then neither the items nor the pages are written, because pages without their items would hide a gap in the list,
+            // while the request's own finallyData still clears its loading state
+            expect(await getOnyxValue(actionsKey)).toBeUndefined();
+            expect(await getOnyxValue(pagesKey)).toBeUndefined();
+            expect(await getOnyxValue(loadingKey)).toStrictEqual({isLoadingNewerReportActions: false});
+        });
     });
 
     it('advances lastUpdateID only after the updates are successfully applied', async () => {
@@ -501,6 +579,99 @@ describe('OnyxUpdatesTest', () => {
         expect(lastUpdateID).toBe(30);
 
         updateSpy.mockRestore();
+    });
+
+    it('tells Search which transactions a Pusher update changed', async () => {
+        // Given a Pusher update from another device that edits a transaction and a report
+        jest.spyOn(PusherUtils, 'triggerMultiEventHandler').mockResolvedValueOnce(undefined);
+        const pusherUpdates: OnyxUpdatesFromServer<OnyxKey> = {
+            type: CONST.ONYX_UPDATE_TYPES.PUSHER,
+            previousUpdateID: 0,
+            lastUpdateID: 1,
+            updates: [
+                {
+                    eventType: Pusher.TYPE.MULTIPLE_EVENT_TYPE.ONYX_API_UPDATE,
+                    data: [
+                        {onyxMethod: 'merge', key: `${ONYXKEYS.COLLECTION.TRANSACTION}7`, value: {amount: 250}},
+                        {onyxMethod: 'merge', key: `${ONYXKEYS.COLLECTION.REPORT}8`, value: {}},
+                    ],
+                },
+            ],
+        };
+
+        // When the update is applied
+        await OnyxUpdates.apply(pusherUpdates);
+        await waitForBatchedUpdates();
+
+        // Then Search is told that transaction changed, so it can refetch values only the server computes
+        expect(getIDsOfLatestWrite(await getOnyxValue(ONYXKEYS.RAM_ONLY_SEARCH_TRANSACTION_WRITES))).toEqual(['7']);
+    });
+
+    it('tells Search which transactions an Airship push changed', async () => {
+        // Given an Airship push on native that edits a transaction and a report
+        const airshipUpdates: OnyxUpdatesFromServer<OnyxKey> = {
+            type: CONST.ONYX_UPDATE_TYPES.AIRSHIP,
+            previousUpdateID: 0,
+            lastUpdateID: 1,
+            updates: [
+                {
+                    eventType: '',
+                    data: [
+                        {onyxMethod: 'merge', key: `${ONYXKEYS.COLLECTION.TRANSACTION}9`, value: {amount: 250}},
+                        {onyxMethod: 'merge', key: `${ONYXKEYS.COLLECTION.REPORT}8`, value: {}},
+                    ],
+                },
+            ],
+        };
+
+        // When the push is applied
+        await OnyxUpdates.apply(airshipUpdates);
+        await waitForBatchedUpdates();
+
+        // Then Search is told that transaction changed, like it is for the same update over Pusher
+        expect(getIDsOfLatestWrite(await getOnyxValue(ONYXKEYS.RAM_ONLY_SEARCH_TRANSACTION_WRITES))).toEqual(['9']);
+    });
+
+    it.each([
+        ['GetMissingOnyxMessages', SIDE_EFFECT_REQUEST_COMMANDS.GET_MISSING_ONYX_MESSAGES, {}],
+        ['an incremental ReconnectApp', SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, {updateIDFrom: 1}],
+        ['a full ReconnectApp', SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, {}],
+    ])('tells Search which transactions the reconnect response of %s changed', async (_name, command, data) => {
+        // Given a reconnect response carrying a missed edit of a transaction and a report
+        // When it is applied
+        await OnyxUpdates.apply({
+            type: CONST.ONYX_UPDATE_TYPES.HTTPS,
+            previousUpdateID: 1,
+            lastUpdateID: 2,
+            request: {command, data},
+            response: {
+                jsonCode: 200,
+                onyxData: [
+                    {onyxMethod: 'merge', key: `${ONYXKEYS.COLLECTION.TRANSACTION}5`, value: {amount: 250}},
+                    {onyxMethod: 'merge', key: `${ONYXKEYS.COLLECTION.REPORT}8`, value: {}},
+                ],
+            },
+        });
+        await waitForBatchedUpdates();
+
+        // Then Search is told that transaction changed, as it would have been had the Pusher update arrived
+        expect(getIDsOfLatestWrite(await getOnyxValue(ONYXKEYS.RAM_ONLY_SEARCH_TRANSACTION_WRITES))).toEqual(['5']);
+    });
+
+    it('does not tell Search about transactions a read response changed', async () => {
+        // Given an OpenReport response that writes a transaction
+        // When it is applied
+        await OnyxUpdates.apply({
+            type: CONST.ONYX_UPDATE_TYPES.HTTPS,
+            previousUpdateID: 1,
+            lastUpdateID: 2,
+            request: {command: 'OpenReport', data: {}},
+            response: {jsonCode: 200, onyxData: [{onyxMethod: 'merge', key: `${ONYXKEYS.COLLECTION.TRANSACTION}5`, value: {amount: 250}}]},
+        });
+        await waitForBatchedUpdates();
+
+        // Then Search is not told anything changed, because reading a report is not an edit
+        expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_SEARCH_TRANSACTION_WRITES)).toBeUndefined();
     });
 
     it('applies full ReconnectApp Onyx updates even if they appear old', async () => {

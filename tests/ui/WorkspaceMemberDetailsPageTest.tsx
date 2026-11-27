@@ -4,6 +4,7 @@ import ComposeProviders from '@components/ComposeProviders';
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
+import MenuItem from '@components/MenuItem';
 import {ModalActions, ModalProvider} from '@components/Modal/Global/ModalContext';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import PersonalDetailsByLoginProvider from '@components/PersonalDetailsByLoginProvider';
@@ -14,6 +15,7 @@ import useNetwork from '@hooks/useNetwork';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
+import {READ_COMMANDS} from '@libs/API/types';
 import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import {generateAccountID} from '@libs/UserUtils';
@@ -213,6 +215,10 @@ describe('WorkspaceMemberDetailsPage', () => {
 
         // Then the member details include the work arrangement item
         expect(await screen.findByTestId('member-work-arrangement-menu-item')).toBeOnTheScreen();
+        const workArrangementRoot = screen.UNSAFE_getAllByType(MenuItem.Root).find((root) => root.props.testID === 'member-work-arrangement-menu-item');
+        expect(workArrangementRoot?.props.isDisabled).toBeUndefined();
+        expect(workArrangementRoot?.props.onPress).toEqual(expect.any(Function));
+        expect(workArrangementRoot?.findAll((node) => node.type === MenuItem.Chevron)).toHaveLength(1);
         unmount();
         await waitForBatchedUpdatesWithAct();
     });
@@ -1100,17 +1106,162 @@ describe('WorkspaceMemberDetailsPage', () => {
     });
 
     it('should render the read-only role of the owner at full opacity and without a caret', async () => {
+        // Given the workspace owner's role cannot be edited.
         const {unmount} = renderPage({policyID: policy.id, accountID: String(ownerAccountID)});
         await waitForBatchedUpdatesWithAct();
 
+        // When the role row is displayed.
         const roleItem = await screen.findByTestId('member-role-menu-item');
 
-        // The owner's role stays disabled so the edit flow cannot be opened...
-        expect(roleItem).toBeDisabled();
+        // Then omitting the press action prevents editing without disabled-row dimming.
+        const roleRoot = screen.UNSAFE_getAllByType(MenuItem.Root).find((root) => root.props.testID === 'member-role-menu-item');
+        expect(roleRoot).toBeDefined();
+        expect(roleRoot?.props.onPress).toBeUndefined();
+        expect(roleRoot?.props.isDisabled).toBeUndefined();
+        expect(roleRoot?.findAll((node) => node.type === MenuItem.Chevron)).toHaveLength(0);
 
-        // ...but it must not be dimmed or keep the caret, so it matches the other read-only fields.
         expect(roleItem).not.toHaveStyle({opacity: 0.5});
         expect(within(roleItem).queryByTestId('ArrowRight Icon')).not.toBeOnTheScreen();
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('loads the profile of a member with known personal details', async () => {
+        // Given a member whose personal details, and so their real accountID, are loaded
+        // When the admin opens their profile
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(invitedAccountID)});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then both profiles are requested once, with that accountID
+        TestHelper.expectAPICommandToHaveBeenCalled(READ_COMMANDS.OPEN_POLICY_MEMBER_PROFILE_PAGE, 1);
+        TestHelper.expectAPICommandToHaveBeenCalledWith(READ_COMMANDS.OPEN_POLICY_MEMBER_PROFILE_PAGE, 0, {policyID: policy.id, accountID: invitedAccountID});
+        TestHelper.expectAPICommandToHaveBeenCalled(READ_COMMANDS.OPEN_PUBLIC_PROFILE_PAGE, 1);
+        TestHelper.expectAPICommandToHaveBeenCalledWith(READ_COMMANDS.OPEN_PUBLIC_PROFILE_PAGE, 0, {accountID: invitedAccountID});
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('waits for an invite to finish before loading the invited member profile', async () => {
+        // Given a member whose invite is still in flight, so the app only has the accountID it generated from their email
+        const pendingEmail = 'pending@example.com';
+        const pendingOptimisticAccountID = generateAccountID(pendingEmail);
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [pendingOptimisticAccountID]: {...TestHelper.buildPersonalDetails(pendingEmail, pendingOptimisticAccountID, 'Pending'), isOptimisticPersonalDetail: true},
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                employeeList: {[pendingEmail]: {email: pendingEmail, role: CONST.POLICY.ROLE.USER, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}},
+            });
+        });
+
+        // When the admin opens their profile
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(pendingOptimisticAccountID)});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then nothing is requested yet, because the server would reject the generated accountID
+        TestHelper.expectAPICommandToHaveBeenCalled(READ_COMMANDS.OPEN_POLICY_MEMBER_PROFILE_PAGE, 0);
+        TestHelper.expectAPICommandToHaveBeenCalled(READ_COMMANDS.OPEN_PUBLIC_PROFILE_PAGE, 0);
+
+        // When the invite succeeds and the member's real accountID arrives
+        const pendingAccountID = 9999;
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [pendingOptimisticAccountID]: null,
+                [pendingAccountID]: TestHelper.buildPersonalDetails(pendingEmail, pendingAccountID, 'Pending'),
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {employeeList: {[pendingEmail]: {pendingAction: null}}});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then both profiles are requested once, with the real accountID
+        TestHelper.expectAPICommandToHaveBeenCalled(READ_COMMANDS.OPEN_POLICY_MEMBER_PROFILE_PAGE, 1);
+        TestHelper.expectAPICommandToHaveBeenCalledWith(READ_COMMANDS.OPEN_POLICY_MEMBER_PROFILE_PAGE, 0, {policyID: policy.id, accountID: pendingAccountID});
+        TestHelper.expectAPICommandToHaveBeenCalled(READ_COMMANDS.OPEN_PUBLIC_PROFILE_PAGE, 1);
+        TestHelper.expectAPICommandToHaveBeenCalledWith(READ_COMMANDS.OPEN_PUBLIC_PROFILE_PAGE, 0, {accountID: pendingAccountID});
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('does not load the profile when the link holds the accountID generated from the member email', async () => {
+        // Given a member with no personal details, so the page only has the accountID generated from their email
+        const memberWithoutDetails = 'nodetails@example.com';
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                employeeList: {[memberWithoutDetails]: {email: memberWithoutDetails, role: CONST.POLICY.ROLE.USER}},
+            });
+        });
+
+        // When the admin opens their profile
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(generateAccountID(memberWithoutDetails))});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the page still shows, but nothing is requested, because the server would reject the generated accountID
+        expect(screen.getByTestId('WorkspaceMemberDetailsPage')).toBeOnTheScreen();
+        TestHelper.expectAPICommandToHaveBeenCalled(READ_COMMANDS.OPEN_POLICY_MEMBER_PROFILE_PAGE, 0);
+        TestHelper.expectAPICommandToHaveBeenCalled(READ_COMMANDS.OPEN_PUBLIC_PROFILE_PAGE, 0);
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('loads the profiles of a real accountID from a link before its personal details are cached', async () => {
+        // Given a member whose personal details aren't cached, opened from a link that holds their real accountID
+        const uncachedEmail = 'uncached@example.com';
+        const uncachedAccountID = 4242;
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                employeeList: {[uncachedEmail]: {email: uncachedEmail, role: CONST.POLICY.ROLE.USER}},
+            });
+        });
+
+        // When the admin opens the link
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(uncachedAccountID)});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then both profiles are requested with that accountID, since it can't be told apart from a real one and the
+        // public profile is what loads the missing personal details
+        TestHelper.expectAPICommandToHaveBeenCalled(READ_COMMANDS.OPEN_POLICY_MEMBER_PROFILE_PAGE, 1);
+        TestHelper.expectAPICommandToHaveBeenCalledWith(READ_COMMANDS.OPEN_POLICY_MEMBER_PROFILE_PAGE, 0, {policyID: policy.id, accountID: uncachedAccountID});
+        TestHelper.expectAPICommandToHaveBeenCalled(READ_COMMANDS.OPEN_PUBLIC_PROFILE_PAGE, 1);
+        TestHelper.expectAPICommandToHaveBeenCalledWith(READ_COMMANDS.OPEN_PUBLIC_PROFILE_PAGE, 0, {accountID: uncachedAccountID});
+
+        // When the public profile returns the member's personal details
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[uncachedAccountID]: TestHelper.buildPersonalDetails(uncachedEmail, uncachedAccountID, 'Uncached')});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the page shows the member
+        expect(screen.getByTestId('WorkspaceMemberDetailsPage')).toBeOnTheScreen();
+        expect(screen.getAllByText('Uncached User').length).toBeGreaterThan(0);
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('does not load the profile when the cached personal details are a placeholder without the optimistic flag', async () => {
+        // Given a member whose only cached personal details are a placeholder under the accountID generated from their
+        // email, written by a flow that doesn't flag it as optimistic, and no invite in flight
+        const placeholderEmail = 'placeholder@example.com';
+        const placeholderAccountID = generateAccountID(placeholderEmail);
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[placeholderAccountID]: TestHelper.buildPersonalDetails(placeholderEmail, placeholderAccountID, 'Placeholder')});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                employeeList: {[placeholderEmail]: {email: placeholderEmail, role: CONST.POLICY.ROLE.USER}},
+            });
+        });
+
+        // When the admin opens their profile
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(placeholderAccountID)});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the page shows the member but nothing is requested, because the server would reject the generated accountID
+        expect(screen.getByTestId('WorkspaceMemberDetailsPage')).toBeOnTheScreen();
+        TestHelper.expectAPICommandToHaveBeenCalled(READ_COMMANDS.OPEN_POLICY_MEMBER_PROFILE_PAGE, 0);
+        TestHelper.expectAPICommandToHaveBeenCalled(READ_COMMANDS.OPEN_PUBLIC_PROFILE_PAGE, 0);
 
         unmount();
         await waitForBatchedUpdatesWithAct();

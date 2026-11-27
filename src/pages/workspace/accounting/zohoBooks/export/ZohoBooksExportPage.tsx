@@ -78,6 +78,7 @@ function ZohoBooksExportPage({policy}: WithPolicyConnectionsProps) {
             </View>
             <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.ZOHO_BOOKS_CONFIG.EXPORTER], zohoBooksConfig?.pendingFields)}>
                 <MenuItemField
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.ZOHO_BOOKS.PREFERRED_EXPORTER}
                     name={translate('workspace.accounting.preferredExporter')}
                     value={exporter}
                     onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_ZOHO_BOOKS_PREFERRED_EXPORTER.getRoute(policyID)) : undefined)}
@@ -100,6 +101,7 @@ function ZohoBooksExportPage({policy}: WithPolicyConnectionsProps) {
             </OfflineWithFeedback>
             <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.ZOHO_BOOKS_CONFIG.EXPORT_DATE], zohoBooksConfig?.pendingFields)}>
                 <MenuItemField
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.ZOHO_BOOKS.EXPORT_DATE}
                     name={translate('workspace.zohoBooks.exportDate.label')}
                     value={translate(`workspace.zohoBooks.exportDate.values.${exportDate}.label`)}
                     onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_ZOHO_BOOKS_VENDOR_BILL_DATE.getRoute(policyID)) : undefined)}
@@ -122,6 +124,7 @@ function ZohoBooksExportPage({policy}: WithPolicyConnectionsProps) {
             </OfflineWithFeedback>
             <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.ZOHO_BOOKS_CONFIG.DEFAULT_VENDORID], zohoBooksConfig?.pendingFields)}>
                 <MenuItemField
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.ZOHO_BOOKS.DEFAULT_COMPANY_CARD_VENDOR}
                     name={translate('workspace.zohoBooks.defaultCompanyCardVendor.label')}
                     value={defaultCompanyCardVendor?.name}
                     onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_ZOHO_BOOKS_DEFAULT_COMPANY_CARD_VENDOR.getRoute(policyID)) : undefined)}
@@ -133,6 +136,7 @@ function ZohoBooksExportPage({policy}: WithPolicyConnectionsProps) {
             </OfflineWithFeedback>
             <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.ZOHO_BOOKS_CONFIG.CREDIT_CARD_ACCOUNT_ID], zohoBooksConfig?.pendingFields)}>
                 <MenuItemField
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.ZOHO_BOOKS.COMPANY_CARD_ACCOUNT}
                     name={translate('workspace.zohoBooks.companyCardAccount.label')}
                     value={companyCardAccount?.name}
                     onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_ZOHO_BOOKS_COMPANY_CARD_ACCOUNT.getRoute(policyID)) : undefined)}

@@ -1,15 +1,16 @@
 import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
-import type {SearchAutocompleteQueryRange, SearchFilterKey} from '@components/Search/types';
+import {getSubstitutionMapKey, getSubstitutionMapKeyWithIndex} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
+import type {Filter, SearchAutocompleteQueryRange, SearchFilterKey} from '@components/Search/types';
 
 import CONST from '@src/CONST';
-import type {PolicyCategories, PolicyTagLists, RecentlyUsedCategories, RecentlyUsedTags} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyTagLists, RecentlyUsedCategories, RecentlyUsedTags} from '@src/types/onyx';
 
 import type {MarkdownRange} from '@expensify/react-native-live-markdown';
 import type {OnyxCollection} from 'react-native-onyx';
 
 import {getTagNamesFromTagsLists} from './PolicyUtils';
 import {parse} from './SearchParser/autocompleteParser';
-import {getUserFriendlyKey, getUserFriendlyValue, isGroupBySupportedBySearch} from './SearchQueryUtils';
+import {getUserFriendlyKey, getUserFriendlyValue, isGroupBySupportedBySearch, resolvePolicyIDFromName} from './SearchQueryUtils';
 
 const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS: SearchFilterKey[] = [
     CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
@@ -22,7 +23,7 @@ const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS: SearchFilterKey[] = [
     CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE,
 ];
 
-type AutocompleteParserRange = Pick<SearchAutocompleteQueryRange, 'value' | 'start' | 'length'> & {key: string};
+type AutocompleteParserRange = Pick<SearchAutocompleteQueryRange, 'value' | 'start' | 'length' | 'negated'> & {key: string};
 type AutocompleteParserResult = {autocomplete: AutocompleteParserRange | null; ranges: AutocompleteParserRange[]};
 type KnownFilterValues = {
     userLogins: ReadonlySet<string>;
@@ -92,6 +93,47 @@ function getAutocompleteTags(allPoliciesTagsLists: OnyxCollection<PolicyTagLists
         }
     }
     return Array.from(uniqueTagNames);
+}
+
+/** Resolves each typed workspace clause while retaining all selected IDs for autocomplete exclusion. */
+function getAutocompletePolicyData(
+    query: string,
+    ranges: AutocompleteParserRange[],
+    policies: OnyxCollection<Policy>,
+    substitutions?: SubstitutionMap,
+): {policyFilter: Filter; selectedPolicyIDs: string[]} {
+    const policyIdRanges = ranges.filter((range) => range.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID);
+    const keyValueCount = new Map<string, number>();
+    const selectedPolicyIDs: string[] = [];
+    const positiveClauses: string[][] = [];
+    const excludedPolicyIDs = new Set<string>();
+    let previousRange: AutocompleteParserRange | undefined;
+    for (const range of policyIdRanges) {
+        const baseKey = getSubstitutionMapKey(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, range.value);
+        const index = keyValueCount.get(baseKey) ?? 0;
+        keyValueCount.set(baseKey, index + 1);
+        const fullKey = getSubstitutionMapKeyWithIndex(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, range.value, index);
+        const policyID = substitutions?.[fullKey] ?? resolvePolicyIDFromName(range.value, policies);
+        selectedPolicyIDs.push(policyID);
+
+        if (range.negated) {
+            excludedPolicyIDs.add(policyID);
+        } else if (previousRange && !previousRange.negated && query.slice(previousRange.start + previousRange.length, range.start) === ',') {
+            positiveClauses.at(-1)?.push(policyID);
+        } else {
+            positiveClauses.push([policyID]);
+        }
+        previousRange = range;
+    }
+
+    if (positiveClauses.length > 0) {
+        // Comma-separated values are alternatives; separate workspace clauses must all match.
+        const policyIDs = [...new Set(positiveClauses.at(0))].filter((id) => !excludedPolicyIDs.has(id) && positiveClauses.every((clause) => clause.includes(id)));
+        return {policyFilter: {value: policyIDs, isNegated: false}, selectedPolicyIDs};
+    }
+
+    // An explicit unscoped filter prevents falling back to the submitted workspace after it is removed from the input.
+    return {policyFilter: {value: excludedPolicyIDs.size > 0 ? [...excludedPolicyIDs] : undefined, isNegated: excludedPolicyIDs.size > 0}, selectedPolicyIDs};
 }
 
 /**
@@ -230,6 +272,7 @@ function filterOutRangesWithCorrectValue(
     const actionList = Object.values(CONST.SEARCH.ACTION_FILTERS) as string[];
     const datePresetList = Object.values(CONST.SEARCH.DATE_PRESETS) as string[];
     const hasList = Object.values(CONST.SEARCH.HAS_VALUES) as string[];
+    const violationNameList = Object.values(CONST.VIOLATIONS) as string[];
     const isList = Object.values(CONST.SEARCH.IS_VALUES) as string[];
     const footerCountList = Object.values(CONST.SEARCH.FOOTER_COUNT) as string[];
     const footerTotalList = Object.values(CONST.SEARCH.FOOTER_TOTAL) as string[];
@@ -276,6 +319,8 @@ function filterOutRangesWithCorrectValue(
             return expenseTypeList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.RECEIPT_TYPE:
             return receiptTypeList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION:
+            return substitutionMap[`${range.key}:${range.value}`] !== undefined || violationNameList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS:
             return transactionStatusList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE:
@@ -309,6 +354,7 @@ function filterOutRangesWithCorrectValue(
             return booleanList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_SUBMISSION:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID:
@@ -327,8 +373,10 @@ function filterOutRangesWithCorrectValue(
             return knownValues.exportedTo.has(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_ID:
             return !['', 'null', 'undefined', '0', '-1'].includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.CONVERTED_AMOUNT:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_DEBITED:
@@ -336,6 +384,8 @@ function filterOutRangesWithCorrectValue(
             // This uses the same regex as the AmountWithoutCurrencyInput component (allowing for 3 digit decimals as some currencies support that)
             return new RegExp(`^-?(?!.*[.,].*[.,])\\d{0,${CONST.IOU.AMOUNT_MAX_LENGTH}}(?:[.,]\\d{0,2})?$`).test(range.value);
         case CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS:
+        case CONST.SEARCH.SYNTAX_ROOT_KEYS.LEFT_PINNED_COLUMNS:
+        case CONST.SEARCH.SYNTAX_ROOT_KEYS.RIGHT_PINNED_COLUMNS:
             return userFriendlyColumnList.has(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.IS:
             return isList.includes(range.value);
@@ -421,6 +471,7 @@ function getTrimmedUserSearchQueryPreservingComma(textInputValue: string, fieldK
 export {
     CONTINUATION_DETECTION_SEARCH_FILTER_KEYS,
     getAutocompleteCategories,
+    getAutocompletePolicyData,
     getAutocompleteQueryWithComma,
     getAutocompleteRecentCategories,
     getAutocompleteRecentTags,

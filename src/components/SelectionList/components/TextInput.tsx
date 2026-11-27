@@ -89,10 +89,12 @@ function TextInput({
         placeholder,
         maxLength,
         inputMode,
+        shouldIgnorePasswordManager = true,
         ref: optionsRef,
         style,
         disableAutoCorrect,
         shouldInterceptSwipe,
+        forwardedFSClass,
     } = options ?? {};
 
     const isInLandscapeMode = useIsInLandscapeMode();
@@ -168,6 +170,7 @@ function TextInput({
                     maxLength={maxLength}
                     onChangeText={handleTextInputChange}
                     inputMode={inputMode}
+                    shouldIgnorePasswordManager={shouldIgnorePasswordManager}
                     selectTextOnFocus
                     spellCheck={false}
                     onSubmitEditing={onSubmit}
@@ -176,9 +179,11 @@ function TextInput({
                     isLoading={isLoading}
                     shouldHideClearButton={false}
                     testID="selection-list-text-input"
+                    sentryLabel={CONST.SENTRY_LABEL.SELECTION_LIST.SEARCH_INPUT}
                     errorText={errorText}
                     autoCorrect={!disableAutoCorrect}
                     shouldInterceptSwipe={shouldInterceptSwipe ?? false}
+                    forwardedFSClass={forwardedFSClass}
                     // Size is based on device width (isSmallScreenWidth), not shouldUseNarrowLayout, so the input stays
                     // the compact 34px size on web/desktop even inside the RHP/narrow pane, and only grows to 46px on mobile.
                     touchableInputWrapperStyle={isSmallScreenWidth ? styles.listSearchInputNarrowWrapper : styles.listSearchInputWideWrapper}

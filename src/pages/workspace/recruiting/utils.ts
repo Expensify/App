@@ -106,6 +106,7 @@ function getConfigRows(
     const rows: MergeProviderConfigRow[] = [
         {
             field: 'filters',
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.MERGE_CONFIG_ROW.RECRUITING_FILTERS,
             icon: icons.Download,
             title: translate('workspace.recruiting.importSettings'),
             shouldRenderAsMenuItem: true,
@@ -115,6 +116,7 @@ function getConfigRows(
         },
         {
             field: 'approvalMode',
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.MERGE_CONFIG_ROW.RECRUITING_APPROVAL_MODE,
             description: translate('workspace.recruiting.defaultApprover'),
             title: getDefaultApproverLabel(policy, policyEmployeePersonalDetails, translate, formatPhoneNumber),
             numberOfLinesTitle: 2,

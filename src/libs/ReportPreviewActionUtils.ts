@@ -12,7 +12,7 @@ import {
     canAdminPayReport,
     canSubmitOwnReportOnPolicy,
     getIntegrationAccountingMethod,
-    getSubmitToAccountID,
+    isSubmittingToSelf,
     getValidConnectedIntegration,
     hasDynamicExternalWorkflow,
     hasIntegrationAutoSync,
@@ -89,12 +89,10 @@ function canSubmit(
         return false;
     }
 
-    const submitToAccountID = getSubmitToAccountID(policy, report, ownerLogin, rules);
-
     // Mirrors the header's isSubmitAction gate: prevented self-approval hides Submit from everyone EXCEPT the submitter,
     // who still gets the action so SubmitActionButton can mount and render it disabled. Dropping the !isSubmitter
     // qualifier here would hide the preview's Submit entirely while the header shows a disabled one for the same report.
-    if (submitToAccountID === report.ownerAccountID && policy?.preventSelfApproval && !isSubmitter) {
+    if (isSubmittingToSelf(policy, report, ownerLogin, rules) && policy?.preventSelfApproval && !isSubmitter) {
         return false;
     }
 
@@ -215,7 +213,11 @@ function canPay(
     return invoiceReceiverPolicy?.role === CONST.POLICY.ROLE.ADMIN && reimbursableSpend > 0;
 }
 
-function canExport(report: Report, currentUserLogin: string, policy?: Policy, transactions?: Transaction[]) {
+function canExport(report: Report, currentUserLogin: string, policy?: Policy, transactions?: Transaction[], isExportInProgress = false) {
+    if (isExportInProgress) {
+        return false;
+    }
+
     const isExpense = isExpenseReport(report);
     const isExporter = policy ? isPreferredExporter(policy, currentUserLogin) : false;
     const isReimbursed = isSettled(report);
@@ -264,6 +266,7 @@ function getReportPreviewAction({
     isDEWSubmitPending,
     violationsData,
     reportMetadata,
+    isExportInProgress,
     ownerLogin,
     rules,
 }: {
@@ -281,6 +284,7 @@ function getReportPreviewAction({
     isDEWSubmitPending?: boolean;
     violationsData?: OnyxCollection<TransactionViolation[]>;
     reportMetadata: OnyxEntry<ReportMetadata>;
+    isExportInProgress?: boolean;
     ownerLogin: string | undefined;
     rules: OnyxCollection<Rule>;
 }): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> {
@@ -329,7 +333,7 @@ function getReportPreviewAction({
     if (canPay(report, isReportArchived, currentUserAccountID, currentUserLogin, bankAccountList, transactions, policy, invoiceReceiverPolicy)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
     }
-    if (canExport(report, currentUserLogin, policy, transactions)) {
+    if (canExport(report, currentUserLogin, policy, transactions, isExportInProgress)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING;
     }
 

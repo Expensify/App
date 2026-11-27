@@ -35,6 +35,7 @@ const RUNNING_TITLES = {
     [CONST.SEARCH.BULK_ACTION_TYPES.REJECT]: 'bulkAction.rejectingTitle',
     [CONST.SEARCH.BULK_ACTION_TYPES.DELETE]: 'bulkAction.deletingTitle',
     [CONST.BULK_ACTION.DELETE_EXPENSES]: 'bulkAction.deletingExpensesTitle',
+    [CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_WORKSPACE]: 'bulkAction.changingWorkspaceTitle',
 } as const satisfies Record<BulkActionType, TranslationPaths>;
 
 const DONE_TITLES = {
@@ -46,6 +47,7 @@ const DONE_TITLES = {
     [CONST.SEARCH.BULK_ACTION_TYPES.REJECT]: 'bulkAction.rejectedTitle',
     [CONST.SEARCH.BULK_ACTION_TYPES.DELETE]: 'bulkAction.deletedTitle',
     [CONST.BULK_ACTION.DELETE_EXPENSES]: 'bulkAction.deletedExpensesTitle',
+    [CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_WORKSPACE]: 'bulkAction.changedWorkspaceTitle',
 } as const satisfies Record<BulkActionType, TranslationPaths>;
 
 const FAILED_BODIES = {
@@ -56,6 +58,7 @@ const FAILED_BODIES = {
     [CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD]: 'bulkAction.notUnheldBody',
     [CONST.SEARCH.BULK_ACTION_TYPES.REJECT]: 'bulkAction.notRejectedBody',
     [CONST.SEARCH.BULK_ACTION_TYPES.DELETE]: 'bulkAction.notDeletedBody',
+    [CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_WORKSPACE]: 'bulkAction.notMovedBody',
     [CONST.BULK_ACTION.DELETE_EXPENSES]: 'bulkAction.expensesNotDeletedBody',
 } as const satisfies Record<BulkActionType, TranslationPaths>;
 
@@ -79,6 +82,7 @@ function BulkActionRunning({action, onSendFromConcierge}: BulkActionRunningProps
             </View>
             <Text style={styles.mb5}>{translate('bulkAction.runningBody')}</Text>
             <Button
+                sentryLabel={CONST.SENTRY_LABEL.BULK_ACTION_STATUS_MODAL.SEND_FROM_CONCIERGE}
                 onPress={onSendFromConcierge}
                 style={styles.w100}
             >
@@ -103,6 +107,7 @@ function BulkActionConcierge({onClose}: BulkActionConciergeProps) {
             <Text style={[styles.exportDownloadTitle, styles.mb2]}>{translate('bulkAction.conciergeTitle')}</Text>
             <Text style={styles.mb5}>{translate('bulkAction.conciergeBody')}</Text>
             <Button
+                sentryLabel={CONST.SENTRY_LABEL.BULK_ACTION_STATUS_MODAL.GO_TO_CONCIERGE}
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 onPress={() => close(() => openConciergeAnywhere({forceConcierge: true}))}
                 style={styles.w100}
@@ -110,6 +115,7 @@ function BulkActionConcierge({onClose}: BulkActionConciergeProps) {
                 <Button.Text>{translate('bulkAction.goToConcierge')}</Button.Text>
             </Button>
             <Button
+                sentryLabel={CONST.SENTRY_LABEL.BULK_ACTION_STATUS_MODAL.CLOSE}
                 onPress={onClose}
                 style={[styles.w100, styles.mt3]}
             >
@@ -160,6 +166,7 @@ function BulkActionDone({action, total, failedReportIDs, onClose}: BulkActionDon
                 <>
                     <Text style={styles.mb5}>{translate(FAILED_BODIES[action ?? CONST.SEARCH.BULK_ACTION_TYPES.PAY], {count: failedReportIDs.length})}</Text>
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.BULK_ACTION_STATUS_MODAL.VIEW_FAILED_REPORTS}
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         onPress={viewFailedReports}
                         style={[styles.w100, styles.mb3]}
@@ -169,6 +176,7 @@ function BulkActionDone({action, total, failedReportIDs, onClose}: BulkActionDon
                 </>
             )}
             <Button
+                sentryLabel={CONST.SENTRY_LABEL.BULK_ACTION_STATUS_MODAL.CLOSE}
                 onPress={onClose}
                 style={styles.w100}
             >
@@ -192,6 +200,7 @@ function BulkActionFailed({onClose}: BulkActionFailedProps) {
             <Text style={[styles.exportDownloadTitle, styles.mb2]}>{translate('bulkAction.failedTitle')}</Text>
             <Text style={styles.mb5}>{translate('bulkAction.failedBody')}</Text>
             <Button
+                sentryLabel={CONST.SENTRY_LABEL.BULK_ACTION_STATUS_MODAL.CLOSE}
                 onPress={onClose}
                 style={styles.w100}
             >

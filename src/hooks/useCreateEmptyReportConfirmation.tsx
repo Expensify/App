@@ -42,7 +42,13 @@ function ConfirmationPrompt({workspaceName, checkboxRef, onLinkPress}: {workspac
     return (
         <View style={styles.gap4}>
             <Text>
-                {translate('report.newReport.emptyReportConfirmationPrompt', {workspaceName})} <TextLink onPress={onLinkPress}>{translate('search.tabs.reports')}.</TextLink>
+                {translate('report.newReport.emptyReportConfirmationPrompt', {workspaceName})}{' '}
+                <TextLink
+                    onPress={onLinkPress}
+                    sentryLabel={CONST.SENTRY_LABEL.CREATE_EMPTY_REPORT_CONFIRMATION.REPORTS_LINK}
+                >
+                    {translate('search.tabs.reports')}.
+                </TextLink>
             </Text>
             <CheckboxWithLabel
                 accessibilityLabel={translate('report.newReport.emptyReportConfirmationDontShowAgain')}

@@ -1,6 +1,7 @@
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelDisplayStatus from '@hooks/useSidePanelDisplayStatus';
+import useSidePanelWidth from '@hooks/useSidePanelWidth';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import SidePanelActions from '@libs/actions/SidePanel';
@@ -15,6 +16,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {emailSelector} from '@src/selectors/Session';
 import type {SidePanel} from '@src/types/onyx';
+import type PaneWidthBounds from '@src/types/utils/PaneWidthBounds';
 
 import type {PropsWithChildren, RefObject} from 'react';
 
@@ -22,6 +24,8 @@ import React, {createContext, useEffect, useRef, useState} from 'react';
 // Import Animated directly from 'react-native' as animations are used with navigation.
 // eslint-disable-next-line no-restricted-imports
 import {Animated} from 'react-native';
+
+import useSidePanelDockProgress from './useSidePanelDockProgress';
 
 type SidePanelStateContextProps = {
     isSidePanelTransitionEnded: boolean;
@@ -32,12 +36,21 @@ type SidePanelStateContextProps = {
     shouldHideToolTip: boolean;
     sidePanelOffset: RefObject<Animated.Value>;
     sidePanelTranslateX: RefObject<Animated.Value>;
+
+    /** The panel's committed width on a wide layout, whether it's docked or floats over the page. */
+    sidePanelWidth: number;
+
+    /** How far the panel can be dragged in this window, beside whatever RHP is open. */
+    sidePanelWidthBounds: PaneWidthBounds;
+
+    /** Whether the user's beta lets them drag the panel's width. */
+    isSidePanelResizable: boolean;
     sidePanelNVP?: SidePanel;
     sessionStartTime: string | null;
 };
 
 type SidePanelActionsContextProps = {
-    openSidePanel: (options?: {forceConcierge?: boolean; reportID?: string}) => void;
+    openSidePanel: (options?: {forceConcierge?: boolean; reportID?: string; reportActionID?: string}) => void;
     closeSidePanel: (options?: {afterTransition?: () => void}) => void;
 };
 
@@ -50,6 +63,9 @@ const SidePanelStateContext = createContext<SidePanelStateContextProps>({
     shouldHideToolTip: false,
     sidePanelOffset: {current: new Animated.Value(0)},
     sidePanelTranslateX: {current: new Animated.Value(0)},
+    sidePanelWidth: variables.sidePanelWidth,
+    sidePanelWidthBounds: {min: variables.sidePanelWidth, max: variables.sidePanelWidth},
+    isSidePanelResizable: false,
     sessionStartTime: null,
 });
 
@@ -66,14 +82,17 @@ const SidePanelActionsContext = createContext<SidePanelActionsContextProps>({
 function SidePanelContextProvider({children}: PropsWithChildren) {
     const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowWidth} = useWindowDimensions();
-    const sidePanelWidth = shouldUseNarrowLayout ? windowWidth : variables.sidePanelWidth;
+    const {width: dockedSidePanelWidth, bounds: sidePanelWidthBounds, isResizable: isSidePanelResizable} = useSidePanelWidth();
+    const sidePanelWidth = shouldUseNarrowLayout ? windowWidth : dockedSidePanelWidth;
 
     const [isSidePanelTransitionEnded, setIsSidePanelTransitionEnded] = useState(true);
+    const [isSidePanelClosing, setIsSidePanelClosing] = useState(false);
     const {shouldHideSidePanel, shouldHideSidePanelBackdrop, shouldHideHelpButton, isSidePanelHiddenOrLargeScreen, sidePanelNVP} = useSidePanelDisplayStatus();
     const shouldHideToolTip = isExtraLargeScreenWidth ? !isSidePanelTransitionEnded : !shouldHideSidePanel;
 
     const shouldApplySidePanelOffset = isExtraLargeScreenWidth && !shouldHideSidePanel;
-    const sidePanelOffset = useRef(new Animated.Value(shouldApplySidePanelOffset ? variables.sidePanelWidth : 0));
+    const sidePanelOffset = useRef(new Animated.Value(shouldApplySidePanelOffset ? dockedSidePanelWidth : 0));
+    const dockedSidePanelWidthRef = useSidePanelDockProgress(sidePanelOffset, dockedSidePanelWidth, shouldApplySidePanelOffset);
     const sidePanelTranslateX = useRef(new Animated.Value(shouldHideSidePanel ? sidePanelWidth : 0));
     const sidePanelWidthRef = useRef(sidePanelWidth);
 
@@ -101,14 +120,26 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
 
     if (prevShouldHideSidePanel !== shouldHideSidePanel) {
         setPrevShouldHideSidePanel(shouldHideSidePanel);
+        // The closed Onyx value arrives before the slide-out ends, so keep Help hidden until the animation completes.
+        setIsSidePanelClosing(shouldHideSidePanel);
         if (!shouldHideSidePanel && !sessionStartTime) {
             setSessionStartTime(getServerAnchoredDBTime());
         }
     }
 
     useEffect(() => {
+        if (sidePanelWidthRef.current === sidePanelWidth) {
+            return;
+        }
         sidePanelWidthRef.current = sidePanelWidth;
-    }, [sidePanelWidth]);
+
+        // A hidden panel waits off-screen by its own width, so a width that changes meanwhile has to move it, or the next open starts from the wrong spot.
+        // A panel still sliding out is left to the slide, which lands on the new width once it ends.
+        if (!shouldHideSidePanel || !isSidePanelTransitionEnded) {
+            return;
+        }
+        sidePanelTranslateX.current.setValue(sidePanelWidth);
+    }, [sidePanelWidth, shouldHideSidePanel, isSidePanelTransitionEnded]);
 
     // sidePanelWidth dependency in useEffect below caused the help panel content to slide in on window resize
     useEffect(() => {
@@ -118,7 +149,7 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
         setIsSidePanelTransitionEnded(false);
         Animated.parallel([
             Animated.timing(sidePanelOffset.current, {
-                toValue: shouldApplySidePanelOffset ? variables.sidePanelWidth : 0,
+                toValue: shouldApplySidePanelOffset ? dockedSidePanelWidthRef.current : 0,
                 duration: CONST.SIDE_PANEL_ANIMATED_TRANSITION,
                 useNativeDriver: true,
             }),
@@ -129,15 +160,19 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
             }),
         ]).start(({finished}) => {
             setIsSidePanelTransitionEnded(true);
+            if (finished) {
+                setIsSidePanelClosing(false);
+            }
             // Clear the session after the slide-out, not when it starts: the panel stays mounted for the animation and
             // a null session empties its message list. `finished` is false on an interrupted close, sparing the new session.
             if (finished && shouldHideSidePanel) {
                 setSessionStartTime(null);
+                sidePanelTranslateX.current.setValue(sidePanelWidthRef.current);
             }
             onCloseCompleteRef.current?.();
             onCloseCompleteRef.current = undefined;
         });
-    }, [shouldHideSidePanel, shouldApplySidePanelOffset]);
+    }, [shouldHideSidePanel, shouldApplySidePanelOffset, dockedSidePanelWidthRef]);
 
     const closeSidePanel = (options?: {afterTransition?: () => void}) => {
         // User shouldn't be able to close side panel if side panel NVP is undefined
@@ -153,9 +188,9 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
         focusComposerWithDelay(ReportActionComposeFocusManager.composerRef.current, CONST.SIDE_PANEL_ANIMATED_TRANSITION + CONST.COMPOSER_FOCUS_DELAY)(true);
     };
 
-    const openSidePanel = (options?: {forceConcierge?: boolean; reportID?: string}) => {
+    const openSidePanel = (options?: {forceConcierge?: boolean; reportID?: string; reportActionID?: string}) => {
         setSessionStartTime(getServerAnchoredDBTime());
-        SidePanelActions.openSidePanel(!isExtraLargeScreenWidth, options?.forceConcierge, options?.reportID);
+        SidePanelActions.openSidePanel(!isExtraLargeScreenWidth, options?.forceConcierge, options?.reportID, options?.reportActionID);
     };
 
     // Because of the React Compiler we don't need to memoize it manually
@@ -165,10 +200,13 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
         isSidePanelHiddenOrLargeScreen,
         shouldHideSidePanel,
         shouldHideSidePanelBackdrop,
-        shouldHideHelpButton,
+        shouldHideHelpButton: shouldHideHelpButton || isSidePanelClosing,
         shouldHideToolTip,
         sidePanelOffset,
         sidePanelTranslateX,
+        sidePanelWidth: dockedSidePanelWidth,
+        sidePanelWidthBounds,
+        isSidePanelResizable,
         sidePanelNVP,
         sessionStartTime,
     };

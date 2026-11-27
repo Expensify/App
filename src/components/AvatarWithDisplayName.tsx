@@ -255,16 +255,16 @@ function AvatarWithDisplayName({
     const derivedParentReportName = getReportNameFromNames(derivedReportNames, report?.parentReportID);
     const title = getReportName(report, derivedReportName);
     const subtitle = getChatRoomSubtitle(report, policy, conciergeReportID, translate, rules, true, isReportArchived);
-    const parentNavigationSubtitleData = getParentNavigationSubtitle(
+    const parentNavigationSubtitleData = getParentNavigationSubtitle({
         report,
         policy,
         invoiceReceiverPolicy,
-        conciergeReportID,
         translate,
         formatPhoneNumber,
-        derivedParentReportName,
+        parentReportName: derivedParentReportName,
         isParentReportArchived,
-    );
+        currentUserAccountID,
+    });
     const isMoneyRequestOrReport = isMoneyRequestReport(report) || isMoneyRequest(report) || isTrackExpenseReport(report) || isInvoiceReport(report);
     const ownerPersonalDetails = getPersonalDetailsForAccountIDs(report?.ownerAccountID ? [report.ownerAccountID] : [], personalDetails);
     const displayNamesWithTooltips = getDisplayNamesWithTooltips(Object.values(ownerPersonalDetails), false, localeCompare, formatPhoneNumber, translate);
@@ -275,7 +275,14 @@ function AvatarWithDisplayName({
     const shouldShowReportTitleEditButton =
         shouldEnableDetailPageNavigation &&
         !isSmallScreenWidth &&
-        canEditReportTitle(report, policy, currentUserAccountID, rules, getLoginByAccountID(report?.ownerAccountID, personalDetails));
+        canEditReportTitle(
+            report,
+            policy,
+            currentUserAccountID,
+            rules,
+            getLoginByAccountID(report?.ownerAccountID, personalDetails),
+            getLoginByAccountID(report?.managerID, personalDetails),
+        );
     const humanAgentAccountID = getHumanAgentAccountIDFromReportAction(parentReportAction);
     const humanAgentName = getHumanAgentFirstName(parentReportAction, personalDetails);
 

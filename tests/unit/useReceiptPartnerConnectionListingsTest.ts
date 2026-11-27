@@ -5,12 +5,16 @@ import Navigation from '@libs/Navigation/Navigation';
 import useReceiptPartnerConnectionListings from '@pages/workspace/connections/useReceiptPartnerConnectionListings';
 
 import {openExternalLink} from '@userActions/Link';
-import {enablePolicyFeatureForConnection} from '@userActions/Policy/Policy';
+import {enablePolicyFeatureForConnection, openPolicyReceiptPartnersPage} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 
+import Onyx from 'react-native-onyx';
+
 import createRandomPolicy from '../utils/collections/policies';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const mockUberData = {title: 'Uber for Business', description: 'Connected', icon: undefined, errorFields: undefined as Record<string, unknown> | undefined};
 let mockUberState = {isUberConnected: false, shouldShowEnterCredentialsError: false, errorFields: undefined as Record<string, unknown> | undefined};
@@ -28,7 +32,7 @@ jest.mock('@hooks/useNetwork', () => () => ({isOffline: false}));
 jest.mock('@hooks/usePolicyFeatureWriteAccess', () => () => ({canWrite: true, showReadOnlyModal: jest.fn()}));
 jest.mock('@libs/Navigation/Navigation', () => ({__esModule: true, default: {navigate: jest.fn()}}));
 jest.mock('@userActions/Link', () => ({openExternalLink: jest.fn()}));
-jest.mock('@userActions/Policy/Policy', () => ({enablePolicyFeatureForConnection: jest.fn()}));
+jest.mock('@userActions/Policy/Policy', () => ({enablePolicyFeatureForConnection: jest.fn(), openPolicyReceiptPartnersPage: jest.fn()}));
 
 const policy: Policy = {
     ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
@@ -37,6 +41,10 @@ const policy: Policy = {
 };
 
 describe('useReceiptPartnerConnectionListings', () => {
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS, ramOnlyKeys: [ONYXKEYS.COLLECTION.RAM_ONLY_IS_LOADING_RECEIPT_PARTNERS]});
+    });
+
     beforeEach(() => {
         jest.clearAllMocks();
         mockUberState = {isUberConnected: false, shouldShowEnterCredentialsError: false, errorFields: undefined};
@@ -83,5 +91,40 @@ describe('useReceiptPartnerConnectionListings', () => {
 
         // Then the invite flow opens once, so the admin can invite employees to the new connection
         expect(Navigation.navigate).toHaveBeenCalledTimes(1);
+    });
+
+    it('should fetch the Uber data again when Uber disconnects', () => {
+        // Given a connected Uber
+        mockUberState = {...mockUberState, isUberConnected: true};
+        const {rerender} = renderHook(() => useReceiptPartnerConnectionListings(policy));
+        expect(openPolicyReceiptPartnersPage).not.toHaveBeenCalled();
+
+        // When Uber disconnects outside this page, for example from another device or from Uber's REVOKED webhook
+        mockUberState = {...mockUberState, isUberConnected: false};
+        rerender({});
+
+        // Then the Uber data is fetched again, since the disconnect removed the connectFormData that Connect needs
+        expect(openPolicyReceiptPartnersPage).toHaveBeenCalledTimes(1);
+        expect(openPolicyReceiptPartnersPage).toHaveBeenCalledWith('policy-1');
+    });
+
+    it('should show Uber as loading while its data is being fetched', async () => {
+        // Given a workspace whose Uber data hasn't loaded yet
+        const policyWithoutUberData: Policy = {...policy, receiptPartners: {enabled: false}};
+        await Onyx.set(`${ONYXKEYS.COLLECTION.RAM_ONLY_IS_LOADING_RECEIPT_PARTNERS}${policy.id}`, true);
+
+        // When the listing is built while the request for it is in flight
+        const {result} = renderHook(() => useReceiptPartnerConnectionListings(policyWithoutUberData));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the card shows a loader, so the admin knows Uber's status is still coming
+        expect(result.current.at(0)?.isLoading).toBe(true);
+
+        // When the request finishes
+        await act(() => Onyx.set(`${ONYXKEYS.COLLECTION.RAM_ONLY_IS_LOADING_RECEIPT_PARTNERS}${policy.id}`, false));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the loader goes away once the request finishes
+        expect(result.current.at(0)?.isLoading).toBe(false);
     });
 });

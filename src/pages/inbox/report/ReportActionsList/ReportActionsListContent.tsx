@@ -5,6 +5,7 @@ import {ReportActionsAnimatedSkeletonCover} from '@components/ReportActionsSkele
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 
 import useEnvironment from '@hooks/useEnvironment';
+import useInitial from '@hooks/useInitial';
 import useLinkedMessageOfflineLoading from '@hooks/useLinkedMessageOfflineLoading';
 import useLocalize from '@hooks/useLocalize';
 import useMarkAsRead from '@hooks/useMarkAsRead';
@@ -15,6 +16,7 @@ import useSidePanelState from '@hooks/useSidePanelState';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useUnreadMarker from '@hooks/useUnreadMarker';
 
+import {isMobilePhoneWeb} from '@libs/isInLandscapeMode';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {shouldHidePayAction} from '@libs/ReportActionsUtils';
@@ -25,6 +27,7 @@ import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import {useActionListContext} from '@pages/inbox/ActionListContext';
 import {useConciergeChatHistoryActions} from '@pages/inbox/ConciergeChatHistoryContext';
 import AskConciergeWelcome from '@pages/inbox/report/AskConciergeWelcome';
+import CollapsedReportHeaderSpacer from '@pages/inbox/report/CollapsibleReportHeader/CollapsedReportHeaderSpacer';
 import ConciergeChatHistoryToggle from '@pages/inbox/report/ConciergeChatHistoryToggle';
 import {useReportActionsListActions, useReportActionsListState} from '@pages/inbox/report/ReportActionsListContext';
 import ReportActionsListHeader from '@pages/inbox/report/ReportActionsListHeader';
@@ -62,6 +65,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
     const {
         report,
         hasOnceLoadedReportActions,
+        isWaitingForOlderActions,
         hasNewerActions,
         oldestUnreadReportAction,
         transactionThreadReport,
@@ -155,25 +159,35 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
     });
     const {listData, reportActionIDToDisplayIndex, unreadMarkerListIndex, focusRequestedReportActionID, draftAutoScrollKey, isDraftPendingCompletion} = reportActionsListData;
 
-    const {listID, listProps, shouldBeAlignedToTop, isFloatingMessageCounterVisible, isActionBadgeAboveViewport, scrollToBottomAndMarkReportAsRead, scrollToActionBadgeTarget} =
-        useReportActionsListScroll({
-            reportID,
-            // Hidden surveys still prove that the selected page contains the newest action.
-            sortedVisibleReportActions: paymentFilteredVisibleReportActions,
-            renderedVisibleReportActions: listData,
-            reportActionIDToDisplayIndex,
-            hasScrolledOverThreshold,
-            markNewestActionAsRead,
-            completeSkippedMarkAsRead,
-            unreadMarkerReportActionID,
-            unreadMarkerReportActionIndex: unreadMarkerListIndex,
-            draftAutoScrollKey,
-            focusRequestedReportActionID,
-            actionBadgeTargetID: reportAttributes?.actionTargetReportActionID,
-            linkedReportActionID,
-            onScrolledOverThresholdChange: setHasScrolledOverThreshold,
-            onLayout: recordTimeToMeasureItemLayout,
-        });
+    const {
+        listID,
+        listProps,
+        shouldBeAlignedToTop,
+        isFloatingMessageCounterVisible,
+        isActionBadgeAboveViewport,
+        isActionBadgeBelowViewport,
+        scrollToBottomAndMarkReportAsRead,
+        scrollToActionBadgeTarget,
+    } = useReportActionsListScroll({
+        reportID,
+        // Hidden surveys still prove that the selected page contains the newest action.
+        sortedVisibleReportActions: paymentFilteredVisibleReportActions,
+        renderedVisibleReportActions: listData,
+        reportActionIDToDisplayIndex,
+        hasScrolledOverThreshold,
+        markNewestActionAsRead,
+        completeSkippedMarkAsRead,
+        unreadMarkerReportActionID,
+        unreadMarkerReportActionIndex: unreadMarkerListIndex,
+        draftAutoScrollKey,
+        focusRequestedReportActionID,
+        actionBadgeTargetID: reportAttributes?.actionTargetReportActionID,
+        linkedReportActionID,
+        onScrolledOverThresholdChange: setHasScrolledOverThreshold,
+        onLayout: recordTimeToMeasureItemLayout,
+    });
+
+    const shouldShowActionBadgePill = !isProduction && (isActionBadgeAboveViewport || isActionBadgeBelowViewport);
 
     const {renderItem, extraData} = useReportActionsListRenderItem({
         ...reportActionsListData,
@@ -207,9 +221,20 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         </>
     );
 
-    const shouldShowOfflineSkeleton = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
+    const isMissingOldestAction = !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
+    const hasShownOfflineHistorySkeleton = useInitial(isOffline && isMissingOldestAction ? true : undefined);
 
-    const listFooterComponent = shouldShowOfflineSkeleton ? <ReportActionsSkeletonView shouldAnimate={false} /> : undefined;
+    // Once shown offline, the skeleton keeps holding the space of the missing history after reconnecting until older
+    // actions replace it. Removing it on reconnect would shrink the list and move the messages the user is reading.
+    const shouldShowHistorySkeleton = isMissingOldestAction && (isOffline || (!!hasShownOfflineHistorySkeleton && isWaitingForOlderActions));
+
+    const listFooterComponent =
+        isMobilePhoneWeb || shouldShowHistorySkeleton ? (
+            <>
+                <CollapsedReportHeaderSpacer />
+                {shouldShowHistorySkeleton && <ReportActionsSkeletonView shouldAnimate={false} />}
+            </>
+        ) : undefined;
 
     // The guard only mounts this content when the report is loaded, so this is effectively unreachable.
     // It narrows `report` to non-undefined for the render below and stays a safe fallback if the report
@@ -242,8 +267,9 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
                 hasNewMessages={!!unreadMarkerReportActionID}
                 isActive={isFloatingMessageCounterVisible}
                 onClick={scrollToBottomAndMarkReportAsRead}
-                actionBadge={!isProduction && isActionBadgeAboveViewport ? reportAttributes?.actionBadge : undefined}
-                actionBadgeBrickRoadStatus={!isProduction && isActionBadgeAboveViewport ? reportAttributes?.brickRoadStatus : undefined}
+                actionBadge={shouldShowActionBadgePill ? reportAttributes?.actionBadge : undefined}
+                actionBadgeBrickRoadStatus={shouldShowActionBadgePill ? reportAttributes?.brickRoadStatus : undefined}
+                isActionBadgeTargetBelow={isActionBadgeBelowViewport}
                 onActionBadgePress={scrollToActionBadgeTarget}
             />
             <ReportActionsListPaddingView
@@ -253,7 +279,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
                 <InvertedFlashList
                     {...listProps}
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
-                    testID="report-actions-list"
+                    testID={CONST.TEST_ID.REPORT_ACTIONS_LIST}
                     style={styles.overscrollBehaviorContain}
                     data={listData}
                     renderItem={renderItem}

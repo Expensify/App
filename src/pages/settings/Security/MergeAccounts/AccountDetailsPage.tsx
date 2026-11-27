@@ -14,6 +14,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
+import useRedirectToPendingDomainAccountMergeRequest from '@hooks/useRedirectToPendingDomainAccountMergeRequest';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {addErrorMessage, getLatestErrorMessage} from '@libs/ErrorUtils';
@@ -84,6 +85,8 @@ function AccountDetailsPage() {
     const latestError = getLatestErrorMessage(getValidateCodeForAccountMerge);
     const errorKey = getValidateCodeErrorKey(latestError);
     const genericError = !errorKey ? latestError : undefined;
+
+    useRedirectToPendingDomainAccountMergeRequest();
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -218,6 +221,7 @@ function AccountDetailsPage() {
                         />
                     </View>
                     <FormAlertWithSubmitButton
+                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SECURITY.MERGE_ACCOUNTS_NEXT}
                         isAlertVisible={!!genericError}
                         onSubmit={() => {
                             formRef.current?.submit();

@@ -2,14 +2,16 @@ import Button from '@components/Button';
 import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import FormAlertWrapper from '@components/FormAlertWrapper';
+import MenuItem from '@components/MenuItem';
 import MenuItemAvatarNavigation from '@components/MenuItem/presets/MenuItemAvatarNavigation';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import RenderHTML from '@components/RenderHTML';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
 import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -17,10 +19,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 
+import {callIfAuthenticated} from '@userActions/Session';
+
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {ReactNode} from 'react';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
@@ -32,7 +38,7 @@ type SummaryItem = {
     description: string;
 
     /** The answer shown in the row */
-    title: string;
+    title: string | undefined;
 
     /** Whether the chevron is shown on the right of the row */
     shouldShowRightIcon: boolean;
@@ -158,6 +164,9 @@ type ConfirmationStepProps = SubPageProps &
 
         /** Drawn between the rows and Confirm, such as a terms checkbox the user ticks before confirming */
         children?: ReactNode;
+
+        /** Keeps Confirm enabled offline, for a step whose `onNext` explains offline why it cannot go on. Off by default, so Confirm waits for a connection. */
+        isConfirmEnabledWhenOffline?: boolean;
     };
 
 function ConfirmationStep({
@@ -177,9 +186,12 @@ function ConfirmationStep({
     shouldAnnounceSubmitState = false,
     forwardedFSClass = CONST.FULLSTORY.CLASS.MASK,
     children,
+    isConfirmEnabledWhenOffline = false,
 }: ConfirmationStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const ConfirmButton = isConfirmEnabledWhenOffline ? Button : ButtonDisabledWhenOffline;
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
 
     const {paddingBottom: safeAreaInsetPaddingBottom} = useSafeAreaPaddings();
     const [wasLoading, setWasLoading] = useState(!!isLoading);
@@ -229,6 +241,7 @@ function ConfirmationStep({
                     fsClass={forwardedFSClass}
                 >
                     <MenuItemAvatarNavigation
+                        sentryLabel={CONST.SENTRY_LABEL.CONFIRMATION_STEP.EDIT}
                         testID={row.id}
                         title={row.title}
                         description={row.description}
@@ -241,21 +254,29 @@ function ConfirmationStep({
         }
         const {id, description, title, shouldShowRightIcon, onPress, interactive, disabled, brickRoadIndicator, errorText, testID, accessibilityLabel} = row;
         return (
-            <MenuItemWithTopDescription
+            <MenuItem.Root
                 key={id}
-                pressableTestID={testID ?? id}
-                description={description}
-                title={title}
-                shouldShowRightIcon={shouldShowRightIcon}
-                onPress={onPress}
-                interactive={interactive}
-                disabled={disabled}
+                testID={testID ?? id}
+                onPress={interactive !== false ? callIfAuthenticated(onPress, session) : undefined}
+                isDisabled={disabled}
                 sentryLabel={CONST.SENTRY_LABEL.CONFIRMATION_STEP.EDIT}
-                brickRoadIndicator={brickRoadIndicator}
-                errorText={errorText}
                 accessibilityLabel={accessibilityLabel}
-                forwardedFSClass={forwardedFSClass}
-            />
+            >
+                <MenuItemField.Row
+                    name={description}
+                    value={title}
+                    forwardedFSClass={forwardedFSClass}
+                >
+                    {!!brickRoadIndicator && <MenuItem.BrickRoadIndicator status={brickRoadIndicator} />}
+                    {shouldShowRightIcon && <MenuItem.Chevron />}
+                </MenuItemField.Row>
+                {!!errorText && (
+                    <MenuItem.HelpText
+                        message={errorText}
+                        isError
+                    />
+                )}
+            </MenuItem.Root>
         );
     };
 
@@ -311,7 +332,7 @@ function ConfirmationStep({
                     onFixTheErrorsLinkPressed={onFixTheErrorsLinkPressed}
                 >
                     {() => (
-                        <ButtonDisabledWhenOffline
+                        <ConfirmButton
                             variant={CONST.BUTTON_VARIANT.SUCCESS}
                             size={CONST.BUTTON_SIZE.LARGE}
                             isLoading={isLoading}
@@ -321,7 +342,7 @@ function ConfirmationStep({
                             sentryLabel={CONST.SENTRY_LABEL.CONFIRMATION_STEP.CONFIRM}
                         >
                             <Button.Text>{translate('common.confirm')}</Button.Text>
-                        </ButtonDisabledWhenOffline>
+                        </ConfirmButton>
                     )}
                 </FormAlertWrapper>
             </View>

@@ -61,6 +61,7 @@ import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 
 import {updateSelectedFeed} from '@userActions/Card';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -69,7 +70,6 @@ import type {BankAccount, BankAccountList, CardList, Policy} from '@src/types/on
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {ReactElement} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
@@ -79,6 +79,7 @@ import type {ValueOf} from 'type-fest';
 import {isActingAsDelegateSelector, isUserValidatedSelector} from '@selectors/Account';
 import cardOnWaitlistPolicyIDsSelector from '@selectors/CardOnWaitlist';
 import {createPoliciesForAssignedCardsSelector} from '@selectors/Policy';
+import {authTokenTypeSelector} from '@selectors/Session';
 import {FlashList} from '@shopify/flash-list';
 import lodashSortBy from 'lodash/sortBy';
 import React from 'react';
@@ -180,10 +181,9 @@ function getWiseSetupInProgress(paymentMethod: PaymentMethod): PaymentMethodItem
     }
     const bankAccount = paymentMethod as BankAccount;
     const bankAccountID = bankAccount.accountData?.bankAccountID;
-    const canContinue = isWiseOnboardingPendingSubmit(bankAccount) || isWiseOnboardingMoreInfoNeeded(bankAccount);
-    return bankAccountID && (canContinue || isWiseOnboardingAwaitingDecision(bankAccount))
-        ? {bankAccountID, canContinue, isOnboardingSubmitted: isWiseOnboardingSubmitted(bankAccount.accountData)}
-        : undefined;
+    const isInReview = isWiseOnboardingAwaitingDecision(bankAccount);
+    const isSetupInProgress = isWiseOnboardingPendingSubmit(bankAccount) || isWiseOnboardingMoreInfoNeeded(bankAccount) || isInReview;
+    return bankAccountID && isSetupInProgress ? {bankAccountID, isInReview, isOnboardingSubmitted: isWiseOnboardingSubmitted(bankAccount.accountData)} : undefined;
 }
 
 function keyExtractor(item: PaymentMethod | string) {
@@ -235,16 +235,15 @@ function PaymentMethodList({
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {
         selector: isActingAsDelegateSelector,
     });
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
-    const [bankAccountList = getEmptyObject<BankAccountList>(), bankAccountListResult] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [bankAccountList = getEmptyObject<BankAccountList>()] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
-    const isLoadingBankAccountList = isLoadingOnyxValue(bankAccountListResult);
-    const [cardList = getEmptyObject<CardList>(), cardListResult] = useOnyx(ONYXKEYS.CARD_LIST);
-    const isLoadingCardList = isLoadingOnyxValue(cardListResult);
+    const [cardList = getEmptyObject<CardList>()] = useOnyx(ONYXKEYS.CARD_LIST);
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const [allCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
-    const cardsForPolicyLookup = shouldShowAssignedCards ? Object.values(isLoadingCardList ? {} : (cardList ?? {})).filter((card) => !!card.domainName || !!card.fundID) : [];
+    const cardsForPolicyLookup = shouldShowAssignedCards ? Object.values(cardList).filter((card) => !!card.domainName || !!card.fundID) : [];
     const policiesForAssignedCardsSelectorFactory = createPoliciesForAssignedCardsSelector(cardsForPolicyLookup, getPolicyIDsNamedByCardFeeds(cardsForPolicyLookup, allCardFeeds));
     const [policiesForAssignedCards] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         selector: (policies: OnyxCollection<Policy>) => policiesForAssignedCardsSelectorFactory(policies),
@@ -288,7 +287,7 @@ function PaymentMethodList({
 
     const computeFilteredPaymentMethods = (): Array<PaymentMethodItem | string> => {
         if (shouldShowAssignedCards) {
-            const assignedCards = Object.values(isLoadingCardList ? {} : (cardList ?? {}))
+            const assignedCards = Object.values(cardList)
                 // Include active Expensify cards, company cards (domain), and personal cards
                 .filter(
                     (card) =>
@@ -597,7 +596,7 @@ function PaymentMethodList({
         // const paymentCardList = fundList ?? {};
         // const filteredCardList = Object.values(paymentCardList).filter((card) => !!card.accountData?.additionalData?.isP2PDebitCard);
         const filteredCardList = {};
-        let combinedPaymentMethods = formatPaymentMethods(isLoadingBankAccountList ? {} : (bankAccountList ?? {}), filteredCardList, styles, translate);
+        let combinedPaymentMethods = formatPaymentMethods(bankAccountList, filteredCardList, styles, translate);
 
         if (!isOffline) {
             combinedPaymentMethods = combinedPaymentMethods.filter(
@@ -717,13 +716,20 @@ function PaymentMethodList({
     };
 
     const renderListFooterComponent = () => (
-        <MenuItem
-            onPress={onPressItem}
-            title={translate('bankAccount.addBankAccount')}
-            icon={expensifyIcons.Plus}
-            wrapperStyle={[styles.paymentMethod, listItemStyle, addBankAccountItemStyle]}
+        <MenuItem.Root
+            onPress={callIfAuthenticated(onPressItem, session)}
+            style={[styles.paymentMethod, listItemStyle, addBankAccountItemStyle]}
             sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.ADD_BANK_ACCOUNT}
-        />
+        >
+            <MenuItem.Row>
+                <MenuItem.Leading>
+                    <MenuItem.Icon src={expensifyIcons.Plus} />
+                </MenuItem.Leading>
+                <MenuItem.Content>
+                    <MenuItem.Title>{translate('bankAccount.addBankAccount')}</MenuItem.Title>
+                </MenuItem.Content>
+            </MenuItem.Row>
+        </MenuItem.Root>
     );
 
     const hasPersonalBank = filteredPaymentMethods.find((method) => (method as BankAccount).accountData?.type === CONST.BANK_ACCOUNT.TYPE.PERSONAL);

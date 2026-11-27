@@ -700,13 +700,29 @@ function getAccountingIntegrationData(
                         key={key}
                     />
                 ),
-                // Import, export, and advanced screens are added in later releases.
-                onImportPagePress: () => null,
-                subscribedImportSettings: [],
-                onExportPagePress: () => null,
-                subscribedExportSettings: [],
-                onAdvancedPagePress: () => null,
-                subscribedAdvancedSettings: [],
+                onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DIGITS_IMPORT.getRoute(policyID)),
+                subscribedImportSettings: [CONST.DIGITS_CONFIG.ENABLE_NEW_CATEGORIES, `${CONST.DIGITS_CONFIG.FIELD_MAPPING_PREFIX}${CONST.DIGITS_FIELD.DEPARTMENTS}`],
+                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DIGITS_EXPORT.getRoute(policyID)),
+                subscribedExportSettings: [
+                    CONST.DIGITS_CONFIG.EXPORTER,
+                    CONST.DIGITS_CONFIG.EXPORT_DATE,
+                    CONST.DIGITS_CONFIG.REIMBURSABLE,
+                    CONST.DIGITS_CONFIG.NON_REIMBURSABLE,
+                    CONST.DIGITS_CONFIG.DEFAULT_VENDORID,
+                    CONST.DIGITS_CONFIG.CREDIT_CARD_ACCOUNT_ID,
+                ],
+                onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DIGITS_ADVANCED.getRoute(policyID)),
+                subscribedAdvancedSettings: [
+                    CONST.DIGITS_CONFIG.ACCOUNTING_METHOD,
+                    CONST.DIGITS_CONFIG.AUTO_SYNC,
+                    CONST.DIGITS_CONFIG.SYNC_REIMBURSED_REPORTS,
+                    CONST.DIGITS_CONFIG.BILL_PAYMENT_ACCOUNT_ID,
+                    CONST.DIGITS_CONFIG.SYNC_EXPENSIFY_CARD_SETTLEMENTS,
+                    CONST.DIGITS_CONFIG.SETTLEMENTS_BANK_ACCOUNT_ID,
+                    CONST.DIGITS_CONFIG.SYNC_TRAVEL_BILLING_SETTLEMENTS,
+                    CONST.DIGITS_CONFIG.TRAVEL_BILLING_SETTLEMENTS_BANK_ACCOUNT_ID,
+                    CONST.DIGITS_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT_ID,
+                ],
                 workspaceUpgradeNavigationDetails: {
                     integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.digits.alias,
                     backToAfterWorkspaceUpgradeRoute: getBackToAfterWorkspaceUpgradeRouteForDigits(),
@@ -852,6 +868,7 @@ function getSynchronizationErrorMessage(
                 {connectionName in CONST.POLICY.CONNECTIONS.AUTH_HELP_LINKS && (
                     <>
                         <TextLink
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.AUTHENTICATION_ERROR_LEARN_MORE_LINK}
                             style={[styles?.link, styles?.fontSizeLabel]}
                             href={CONST.POLICY.CONNECTIONS.AUTH_HELP_LINKS[connectionName as keyof typeof CONST.POLICY.CONNECTIONS.AUTH_HELP_LINKS]}
                         >

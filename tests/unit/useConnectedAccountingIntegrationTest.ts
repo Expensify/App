@@ -136,6 +136,18 @@ const campfirePolicy: Policy = {
     } as Policy['connections'],
 };
 
+const DIGITS_COMPANY_NAME = 'Acme Inc.';
+
+const digitsPolicy: Policy = {
+    ...policy,
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- The hook only reads the connected company, so the rest of the connection is left out.
+    connections: {
+        [CONST.POLICY.CONNECTIONS.NAME.DIGITS]: {
+            data: {company: {id: 'company-1', name: DIGITS_COMPANY_NAME, currency: CONST.CURRENCY.USD}},
+        },
+    } as Policy['connections'],
+};
+
 function createNetSuitePolicy(netSuiteConnection: Record<string, unknown>): Policy {
     return {
         ...policy,
@@ -157,6 +169,16 @@ function getCredentialsItemText(policyToRender: Policy) {
 function getSettingsMenuItemDescriptions(policyToRender: Policy) {
     const {result} = renderHook(() => useConnectedAccountingIntegration(policyToRender));
     return result.current.connectionDetails?.settingsMenuItems.map((item) => item.description);
+}
+
+function getSettingsMenuItem(policyToRender: Policy, description: string) {
+    const {result} = renderHook(() => useConnectedAccountingIntegration(policyToRender));
+    return result.current.connectionDetails?.settingsMenuItems.find((item) => item.description === description);
+}
+
+function getSettingsMenuItemTitles(policyToRender: Policy) {
+    const {result} = renderHook(() => useConnectedAccountingIntegration(policyToRender));
+    return result.current.connectionDetails?.settingsMenuItems.map((item) => item.title);
 }
 
 function getSyncNowItem() {
@@ -285,6 +307,95 @@ describe('useConnectedAccountingIntegration', () => {
 
             // Then the item keeps the Enter your credentials label, since only OAuth connections say Reconnect
             expect(text).toBe('workspace.accounting.enterCredentials');
+        });
+    });
+
+    describe('Credentials menu item on a working NetSuite connection', () => {
+        beforeEach(() => {
+            mockConnectedIntegration = CONST.POLICY.CONNECTIONS.NAME.NETSUITE;
+        });
+
+        it('should offer Update credentials for an OAuth connection', () => {
+            // Given a NetSuite OAuth connection whose last sync succeeded
+
+            // When the overflow menu is built
+            const text = getCredentialsItemText(netSuiteOAuthPolicy);
+
+            // Then the item says Update credentials, so the admin can move the connection back to TBA during the OAuth rollout
+            expect(text).toBe('workspace.accounting.updateCredentials');
+        });
+
+        it('should offer Update credentials for an OAuth connection whose last sync failed without an auth error', () => {
+            // Given a NetSuite OAuth connection whose last sync failed for a reason other than authentication
+            mockSynchronizationError = 'Sync failed';
+
+            // When the overflow menu is built
+            const text = getCredentialsItemText(netSuiteOAuthPolicy);
+
+            // Then the item still says Update credentials, because only an auth error changes it to Reconnect
+            expect(text).toBe('workspace.accounting.updateCredentials');
+        });
+
+        it('should not offer a credentials item for a Token-Based Authentication connection', () => {
+            // Given a working NetSuite Token-Based Authentication connection
+
+            // When the overflow menu is built
+            const text = getCredentialsItemText(netSuiteTBAPolicy);
+
+            // Then no credentials item is shown, because a TBA submit on a working connection resets its settings
+            expect(text).toBeUndefined();
+        });
+    });
+
+    describe('Configuration rows for Digits', () => {
+        it('should show the Import, Export and Advanced rows', () => {
+            // Given a workspace connected to Digits, which now has all three configuration pages
+            mockConnectedIntegration = CONST.POLICY.CONNECTIONS.NAME.DIGITS;
+
+            // When the connected integration's settings rows are built
+            const titles = getSettingsMenuItemTitles(policy);
+
+            // Then all three rows show, the same as for Campfire, whose pages Digits copies
+            expect(titles).toEqual(expect.arrayContaining(['workspace.accounting.import', 'workspace.accounting.export', 'workspace.accounting.advanced']));
+        });
+    });
+
+    describe('Entity row for Digits', () => {
+        it('should show the connected company in a read-only Entity row', () => {
+            // Given a workspace connected to Digits whose sync saved the company the admin signed in to
+            mockConnectedIntegration = CONST.POLICY.CONNECTIONS.NAME.DIGITS;
+
+            // When the connected integration's settings rows are built
+            const entityRow = getSettingsMenuItem(digitsPolicy, 'workspace.digits.entity');
+
+            // Then the row names the company and can't be pressed, because a Digits sign-in covers exactly one company and there is nothing to switch to
+            expect(entityRow?.title).toBe(DIGITS_COMPANY_NAME);
+            expect(entityRow?.interactive).toBe(false);
+            expect(entityRow?.onPress).toBeUndefined();
+        });
+
+        it('should leave out the Entity row until the first sync saves the company', () => {
+            // Given a workspace connected to Digits whose first sync hasn't saved the company yet
+            mockConnectedIntegration = CONST.POLICY.CONNECTIONS.NAME.DIGITS;
+
+            // When the connected integration's settings rows are built
+            const descriptions = getSettingsMenuItemDescriptions(policy);
+
+            // Then there is no Entity row, so the card never shows a row with an empty company name
+            expect(descriptions).not.toContain('workspace.digits.entity');
+        });
+
+        it('should drop the Entity row when the last sync failed with an authentication error', () => {
+            // Given a workspace connected to Digits whose last sync failed because the Digits access was revoked
+            mockConnectedIntegration = CONST.POLICY.CONNECTIONS.NAME.DIGITS;
+            mockSynchronizationError = 'Authentication failed';
+            mockIsAuthenticationError = true;
+
+            // When the connected integration's settings rows are built
+            const descriptions = getSettingsMenuItemDescriptions(digitsPolicy);
+
+            // Then the Entity row is hidden like other connectors' rows, since the admin has to sign in to Digits again first
+            expect(descriptions).not.toContain('workspace.digits.entity');
         });
     });
 });

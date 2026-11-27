@@ -8,7 +8,7 @@ import type {Policy, Rule} from '@src/types/onyx';
 import type {ExpenseDefaultTaxValue} from '@src/types/onyx/ExpenseDefaultRules';
 
 import createRandomPolicy from '../utils/collections/policies';
-import {translateLocal} from '../utils/TestHelper';
+import {convertToDisplayString, convertToDisplayStringWithoutCurrency, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const {FIELD} = CONST.RULES.EXPENSE_DEFAULT;
@@ -19,6 +19,7 @@ const TAX_KEY = 'id_TAX_RATE_1';
 const buildPolicy = (taxes?: Record<string, {name: string; value: string}>): Policy => ({
     ...createRandomPolicy(0),
     id: 'policy1',
+    tax: {trackingEnabled: true},
     taxRates: {
         name: 'Tax',
         defaultExternalID: TAX_KEY,
@@ -51,17 +52,35 @@ describe('Merchant rule tax summary', () => {
         return waitForBatchedUpdates();
     });
 
-    const describeRule = (policy: Policy, rule: Rule) =>
+    const getRuleRows = (policy: Policy, rule: Rule) =>
         getMerchantRulesTableData({
             policy,
             policyID: policy.id,
             rules: {[`${ONYXKEYS.COLLECTION.RULE}rule1`]: rule},
             translate: translateLocal,
+            convertToDisplayString,
+            convertToDisplayStringWithoutCurrency,
             isOffline: false,
             onNavigate: () => {},
-        }).at(0)?.ruleDescription;
+        });
+
+    const describeRule = (policy: Policy, rule: Rule) => getRuleRows(policy, rule).at(0)?.ruleDescription;
 
     describe('Expense defaults table', () => {
+        it('hides a tax-only rule until workspace taxes are turned back on', () => {
+            // Given a saved tax rule and a workspace that still has its rate
+            const policy = buildPolicy({[TAX_KEY]: {name: 'GST', value: '15%'}});
+            const rule = buildTaxRule();
+
+            // When the table is built with taxes off and then on again
+            const taxesOff = getRuleRows({...policy, tax: {trackingEnabled: false}}, rule);
+            const taxesOn = describeRule(policy, rule);
+
+            // Then the saved rule has no row while taxes are off and returns unchanged when they're back on
+            expect(taxesOff).toEqual([]);
+            expect(taxesOn).toBe('Update tax to "GST (15%)"');
+        });
+
         it('prefers the live rate over the one captured when the rule was saved', () => {
             const policy = buildPolicy({[TAX_KEY]: {name: 'GST', value: '15%'}});
 

@@ -408,6 +408,12 @@ function isViolationDismissed(
         return true;
     }
 
+    // An admin or approver who codes the expense to a category the member can't use overrides it for everyone, so the
+    // member doesn't keep seeing a violation that was intentionally overridden
+    if (violation.name === CONST.VIOLATIONS.CATEGORY_NOT_ALLOWED) {
+        return dismissedByEmails.length > 0;
+    }
+
     // RTER violations on instant submit reports only need to be dismissed by one person to be considered dismissed
     if (violation.name === CONST.VIOLATIONS.RTER && policy && isInstantSubmitEnabled(policy)) {
         return dismissedByEmails.length > 0;
@@ -460,7 +466,9 @@ function hasViolation(
         (violation) =>
             violation.type === CONST.VIOLATION_TYPES.VIOLATION &&
             (showInReview === undefined || showInReview === (violation.showInReview ?? false)) &&
-            (violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION || !isIOUReport(iouReport)) &&
+            // A hidden violation can't block submitting under strict rules because the user has nothing to fix. missingCategory is the exception. It is
+            // hidden while Concierge AI picks a category, and it still blocks so the report can't be submitted until the category is set.
+            (violation.name === CONST.VIOLATIONS.MISSING_CATEGORY || shouldShowViolation(iouReport, policy, violation.name, currentUserEmail, currentUserAccountID, true, transaction)) &&
             !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, iouReportOwnerLogin, policy),
     );
 }

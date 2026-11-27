@@ -2107,6 +2107,7 @@ var require_dispatcher = __commonJS({
 var require_dispatcher_base = __commonJS({
   "node_modules/undici/lib/dispatcher/dispatcher-base.js"(exports, module) {
     "use strict";
+    var buffer = __require("node:buffer");
     var Dispatcher = require_dispatcher();
     var {
       ClientDestroyedError,
@@ -2118,6 +2119,7 @@ var require_dispatcher_base = __commonJS({
     var kOnClosed = /* @__PURE__ */ Symbol("onClosed");
     var kInterceptedDispatch = /* @__PURE__ */ Symbol("Intercepted Dispatch");
     var kWebSocketOptions = /* @__PURE__ */ Symbol("webSocketOptions");
+    var kEventSourceOptions = /* @__PURE__ */ Symbol("eventSourceOptions");
     var DispatcherBase = class extends Dispatcher {
       constructor(opts) {
         super();
@@ -2126,11 +2128,17 @@ var require_dispatcher_base = __commonJS({
         this[kClosed] = false;
         this[kOnClosed] = [];
         this[kWebSocketOptions] = opts?.webSocket ?? {};
+        this[kEventSourceOptions] = opts?.eventSource ?? {};
       }
       get webSocketOptions() {
         return {
           maxFragments: this[kWebSocketOptions].maxFragments ?? 131072,
           maxPayloadSize: this[kWebSocketOptions].maxPayloadSize ?? 128 * 1024 * 1024
+        };
+      }
+      get eventSourceOptions() {
+        return {
+          maxEventSize: this[kEventSourceOptions].maxEventSize ?? buffer.kStringMaxLength
         };
       }
       get destroyed() {
@@ -6280,7 +6288,6 @@ var require_client_h1 = __commonJS({
       socket[kSocketUsed] = false;
       socket[kParser] = new Parser(client, socket, llhttpInstance);
       addListener(socket, "error", function(err) {
-        assert(err.code !== "ERR_TLS_CERT_ALTNAME_INVALID");
         const parser = this[kParser];
         if (err.code === "ECONNRESET" && parser.statusCode && !parser.shouldKeepAlive) {
           const parserErr = parser.finish();
@@ -6964,7 +6971,6 @@ var require_client_h2 = __commonJS({
       client[kHTTP2Session] = session;
       socket[kHTTP2Session] = session;
       util.addListener(socket, "error", function(err) {
-        assert(err.code !== "ERR_TLS_CERT_ALTNAME_INVALID");
         this[kError] = err;
         this[kClient][kOnError](err);
       });
@@ -7023,7 +7029,6 @@ var require_client_h2 = __commonJS({
       }
     }
     function onHttp2SessionError(err) {
-      assert(err.code !== "ERR_TLS_CERT_ALTNAME_INVALID");
       this[kSocket][kError] = err;
       this[kClient][kOnError](err);
     }
@@ -7717,9 +7722,10 @@ var require_client = __commonJS({
         // h2
         maxConcurrentStreams,
         allowH2,
-        webSocket
+        webSocket,
+        eventSource
       } = {}) {
-        super({ webSocket });
+        super({ webSocket, eventSource });
         if (keepAlive !== void 0) {
           throw new InvalidArgumentError("unsupported keepAlive, use pipelining=0 instead");
         }
@@ -8616,7 +8622,7 @@ var require_agent = __commonJS({
       return opts && opts.connections === 1 ? new Client(origin, opts) : new Pool(origin, opts);
     }
     var Agent = class extends DispatcherBase {
-      constructor({ factory = defaultFactory, maxRedirections = 0, connect, ...options } = {}) {
+      constructor({ factory = defaultFactory, maxRedirections = 0, connect, tls, ...options } = {}) {
         if (typeof factory !== "function") {
           throw new InvalidArgumentError("factory must be a function.");
         }
@@ -8630,8 +8636,11 @@ var require_agent = __commonJS({
         if (connect && typeof connect !== "function") {
           connect = { ...connect };
         }
+        if (tls && typeof tls !== "function") {
+          tls = { ...tls };
+        }
         this[kInterceptors] = options.interceptors?.Agent && Array.isArray(options.interceptors.Agent) ? options.interceptors.Agent : [createRedirectInterceptor({ maxRedirections })];
-        this[kOptions] = { ...util.deepClone(options), connect };
+        this[kOptions] = { ...util.deepClone(options), connect, tls };
         this[kOptions].interceptors = options.interceptors ? { ...options.interceptors } : void 0;
         this[kMaxRedirections] = maxRedirections;
         this[kFactory] = factory;
@@ -14359,8 +14368,9 @@ var require_fetch = __commonJS({
         }
       );
       response.body = { stream, source: null, length: null };
-      fetchParams.controller.onAborted = onAborted;
-      fetchParams.controller.on("terminated", onAborted);
+      if (!fetchParams.controller.resume) {
+        fetchParams.controller.on("terminated", onAborted);
+      }
       fetchParams.controller.resume = async () => {
         while (true) {
           let bytes;
@@ -14460,7 +14470,6 @@ var require_fetch = __commonJS({
                 headersList.append(bufferToLowerCasedHeaderName(rawHeaders[i]), rawHeaders[i + 1].toString("latin1"), true);
               }
               location = headersList.get("location", true);
-              this.body = new Readable({ read: resume });
               const decoders = [];
               const willFollow = location && request2.redirect === "follow" && redirectStatusSet.has(status);
               if (request2.method !== "HEAD" && request2.method !== "CONNECT" && !nullBodyStatus.includes(status) && !willFollow) {
@@ -14468,7 +14477,7 @@ var require_fetch = __commonJS({
                 const codings = contentEncoding ? contentEncoding.toLowerCase().split(",") : [];
                 const maxContentEncodings = 5;
                 if (codings.length > maxContentEncodings) {
-                  reject(new Error(`too many content-encodings in response: ${codings.length}, maximum allowed is ${maxContentEncodings}`));
+                  this.abort(new Error(`too many content-encodings in response: ${codings.length}, maximum allowed is ${maxContentEncodings}`));
                   return true;
                 }
                 for (let i = codings.length - 1; i >= 0; --i) {
@@ -14498,6 +14507,7 @@ var require_fetch = __commonJS({
                   }
                 }
               }
+              this.body = new Readable({ read: resume });
               const onError = this.onError.bind(this);
               resolve({
                 status,
@@ -14522,9 +14532,6 @@ var require_fetch = __commonJS({
             onComplete() {
               if (this.abort) {
                 fetchParams.controller.off("terminated", this.abort);
-              }
-              if (fetchParams.controller.onAborted) {
-                fetchParams.controller.off("terminated", fetchParams.controller.onAborted);
               }
               fetchParams.controller.ended = true;
               this.body.push(null);
@@ -17599,6 +17606,16 @@ var require_receiver = __commonJS({
             if (isControlFrame(this.#info.opcode)) {
               this.#loop = this.parseControlFrame(body);
               this.#state = parserStates.INFO;
+              const socket = this.ws[kResponse].socket;
+              if (this.#loop && socket.writableNeedDrain) {
+                this.#loop = false;
+                socket.once("drain", () => {
+                  if (this.destroyed) return;
+                  this.#loop = true;
+                  this.run(callback);
+                });
+                return;
+              }
             } else {
               if (!this.#info.compressed) {
                 if (!this.writeFragments(body)) {
@@ -18292,6 +18309,7 @@ var require_util8 = __commonJS({
 var require_eventsource_stream = __commonJS({
   "node_modules/undici/lib/web/eventsource/eventsource-stream.js"(exports, module) {
     "use strict";
+    var buffer = __require("node:buffer");
     var { Transform } = __require("node:stream");
     var { isASCIINumber, isValidLastEventId } = require_util8();
     var BOM = [239, 187, 191];
@@ -18299,24 +18317,28 @@ var require_eventsource_stream = __commonJS({
     var CR = 13;
     var COLON = 58;
     var SPACE = 32;
+    var defaultMaxEventSize = buffer.kStringMaxLength;
     var DATA = Buffer.from("data");
     var EVENT = Buffer.from("event");
     var ID = Buffer.from("id");
     var RETRY = Buffer.from("retry");
-    function isASCIINumberBytes(buffer, start) {
-      if (start >= buffer.length) {
+    var minParserItems = 1024;
+    var maxParserItems = 131072;
+    var bytesPerParserItem = 128;
+    function isASCIINumberBytes(buffer2, start) {
+      if (start >= buffer2.length) {
         return false;
       }
-      for (let i = start; i < buffer.length; i++) {
-        if (buffer[i] < 48 || buffer[i] > 57) {
+      for (let i = start; i < buffer2.length; i++) {
+        if (buffer2[i] < 48 || buffer2[i] > 57) {
           return false;
         }
       }
       return true;
     }
-    function isValidLastEventIdBytes(buffer, start) {
-      for (let i = start; i < buffer.length; i++) {
-        if (buffer[i] === 0) {
+    function isValidLastEventIdBytes(buffer2, start) {
+      for (let i = start; i < buffer2.length; i++) {
+        if (buffer2[i] === 0) {
           return false;
         }
       }
@@ -18332,6 +18354,11 @@ var require_eventsource_stream = __commonJS({
         }
       }
       return true;
+    }
+    function createMaxEventSizeExceededError() {
+      const error2 = new Error("EventSource message size exceeded");
+      error2.aborted = false;
+      return error2;
     }
     var EventSourceStream = class extends Transform {
       /**
@@ -18359,6 +18386,13 @@ var require_eventsource_stream = __commonJS({
       pos = 0;
       lineChunkIndex = 0;
       linePos = 0;
+      lineLength = 0;
+      eventSize = 0;
+      eventFieldSizes = { data: 0, event: 0, id: 0, retry: 0 };
+      dataLineCount = 0;
+      maxEventSize;
+      maxDataLines;
+      maxBufferedChunks;
       event = {
         data: void 0,
         event: void 0,
@@ -18367,6 +18401,7 @@ var require_eventsource_stream = __commonJS({
       };
       /**
        * @param {object} options
+       * @param {number} [options.maxEventSize]
        * @param {eventSourceSettings} options.eventSourceSettings
        * @param {Function} [options.push]
        */
@@ -18374,6 +18409,10 @@ var require_eventsource_stream = __commonJS({
         options.readableObjectMode = true;
         super(options);
         this.state = options.eventSourceSettings || {};
+        this.maxEventSize = options.maxEventSize ?? defaultMaxEventSize;
+        const parserItemLimit = this.maxEventSize > 0 ? Math.min(maxParserItems, Math.max(minParserItems, Math.floor(this.maxEventSize / bytesPerParserItem))) : 0;
+        this.maxDataLines = parserItemLimit;
+        this.maxBufferedChunks = parserItemLimit;
         if (options.push) {
           this.push = options.push;
         }
@@ -18387,6 +18426,10 @@ var require_eventsource_stream = __commonJS({
       _transform(chunk, _encoding, callback) {
         if (chunk.length === 0) {
           callback();
+          return;
+        }
+        if (this.maxEventSize > 0 && this.chunks.length >= this.maxBufferedChunks && chunk[0] !== LF && chunk[0] !== CR) {
+          callback(createMaxEventSizeExceededError());
           return;
         }
         this.chunks.push(chunk);
@@ -18425,18 +18468,32 @@ var require_eventsource_stream = __commonJS({
             if (byte === CR) {
               this.crlfCheck = true;
             }
-            this.parseLine(this.readLine(), this.event);
+            try {
+              this.parseLine(this.readLine(), this.event);
+            } catch (error2) {
+              callback(error2);
+              return;
+            }
             this.consumeCurrentByte();
             this.eventEndCheck = true;
             continue;
+          }
+          if (this.maxEventSize > 0 && ++this.lineLength > this.maxEventSize + 7) {
+            callback(createMaxEventSizeExceededError());
+            return;
           }
           this.advanceCursor();
         }
         callback();
       }
+      _destroy(error2, callback) {
+        this.chunks.length = 0;
+        this.clearEvent();
+        super._destroy(error2, callback);
+      }
       /**
        * @param {Buffer} line
-       * @param {EventStreamEvent} event
+       * @param {EventSourceStreamEvent} event
        */
       parseLine(line, event) {
         if (line.length === 0) {
@@ -18456,6 +18513,12 @@ var require_eventsource_stream = __commonJS({
           }
         }
         if (isFieldName(line, fieldLength, DATA)) {
+          if (this.maxEventSize > 0 && this.dataLineCount >= this.maxDataLines) {
+            throw createMaxEventSizeExceededError();
+          }
+          const valueBytes = line.length - valueStart;
+          const dataSize = this.eventFieldSizes.data + (event.data === void 0 ? 0 : 1) + valueBytes;
+          this.setEventFieldSize("data", dataSize);
           const value = line.toString("utf8", valueStart);
           if (event.data === void 0) {
             event.data = value;
@@ -18463,26 +18526,37 @@ var require_eventsource_stream = __commonJS({
             event.data += `
 ${value}`;
           }
+          this.dataLineCount++;
           return;
         }
         if (isFieldName(line, fieldLength, RETRY)) {
           if (isASCIINumberBytes(line, valueStart)) {
+            this.setEventFieldSize("retry", line.length - valueStart);
             event.retry = line.toString("utf8", valueStart);
           }
           return;
         }
         if (isFieldName(line, fieldLength, ID)) {
           if (isValidLastEventIdBytes(line, valueStart)) {
+            this.setEventFieldSize("id", line.length - valueStart);
             event.id = line.toString("utf8", valueStart);
           }
           return;
         }
         if (isFieldName(line, fieldLength, EVENT)) {
-          const value = line.toString("utf8", valueStart);
-          if (value.length > 0) {
-            event.event = value;
+          if (valueStart < line.length) {
+            this.setEventFieldSize("event", line.length - valueStart);
+            event.event = line.toString("utf8", valueStart);
           }
         }
+      }
+      setEventFieldSize(field, size) {
+        const eventSize = this.eventSize - this.eventFieldSizes[field] + size;
+        if (this.maxEventSize > 0 && eventSize > this.maxEventSize) {
+          throw createMaxEventSizeExceededError();
+        }
+        this.eventSize = eventSize;
+        this.eventFieldSizes[field] = size;
       }
       /**
        * @param {EventSourceStreamEvent} event
@@ -18510,6 +18584,12 @@ ${value}`;
         this.event.event = void 0;
         this.event.id = void 0;
         this.event.retry = void 0;
+        this.eventSize = 0;
+        this.dataLineCount = 0;
+        this.eventFieldSizes.data = 0;
+        this.eventFieldSizes.event = 0;
+        this.eventFieldSizes.id = 0;
+        this.eventFieldSizes.retry = 0;
       }
       hasPendingEvent() {
         return this.event.data !== void 0 || this.event.event !== void 0 || this.event.id !== void 0 || this.event.retry !== void 0;
@@ -18534,13 +18614,15 @@ ${value}`;
       syncLineStartToCursor() {
         this.lineChunkIndex = this.chunkIndex;
         this.linePos = this.pos;
+        this.lineLength = 0;
         this.dropConsumedChunks();
       }
       dropConsumedChunks() {
-        while (this.lineChunkIndex > 0) {
-          this.chunks.shift();
-          this.lineChunkIndex--;
-          this.chunkIndex--;
+        if (this.lineChunkIndex > 0) {
+          const consumed = this.lineChunkIndex;
+          this.chunks.splice(0, consumed);
+          this.lineChunkIndex = 0;
+          this.chunkIndex -= consumed;
         }
         if (this.chunkIndex === this.chunks.length) {
           this.chunks.length = 0;
@@ -18643,6 +18725,7 @@ var require_eventsource = __commonJS({
     var { delay } = require_util8();
     var { kEnumerableProperty } = require_util();
     var { environmentSettingsObject } = require_util2();
+    var { getGlobalDispatcher } = require_global2();
     var experimentalWarned = false;
     var defaultReconnectionTime = 3e3;
     var CONNECTING = 0;
@@ -18783,6 +18866,7 @@ var require_eventsource = __commonJS({
           this.#state.origin = response.urlList[response.urlList.length - 1].origin;
           const eventSourceStream = new EventSourceStream({
             eventSourceSettings: this.#state,
+            maxEventSize: this.#dispatcher.eventSourceOptions?.maxEventSize,
             push: (event) => {
               this.dispatchEvent(createFastMessageEvent(
                 event.type,
@@ -18915,7 +18999,8 @@ var require_eventsource = __commonJS({
       {
         key: "dispatcher",
         // undici only
-        converter: webidl.converters.any
+        converter: webidl.converters.any,
+        defaultValue: () => getGlobalDispatcher()
       }
     ]);
     module.exports = {
@@ -23144,16 +23229,6 @@ var require_API = __commonJS({
           requireParameters(["email"], parameters, commandName);
           const newParameters = Object.assign(Object.assign({}, parameters), { api_setCookie: false });
           return performPOSTRequest(commandName, newParameters);
-        },
-        /**
-         * @param  {Object} parameters
-         * @param  {String} parameters.email
-         * @returns {ExpensifyAPIDeferred}
-         */
-        Domain_RequestAccess(parameters) {
-          const commandName = "Domain_RequestAccess";
-          requireParameters(["email"], parameters, commandName);
-          return performPOSTRequest(commandName, parameters);
         },
         /**
          * @param {Object} parameters
@@ -42918,26 +42993,21 @@ var require_Network = __commonJS({
     exports.default = Network;
     var jquery_1 = __importDefault(require_jquery());
     var Utils = __importStar(require_utils2());
-    function addCommandToUrl(command, url) {
-      let newUrl = url;
-      if (command) {
-        if (newUrl.indexOf("?") === -1) {
-          newUrl = `${newUrl}?`;
-        }
-        newUrl = `${newUrl}&command=${command}`;
-      }
-      return newUrl;
-    }
     function Network(endpoint2) {
       let isNavigatingAway = false;
-      const isNewURLFormat = endpoint2[endpoint2.length - 1] === "/";
       if (!endpoint2) {
         throw new Error("Cannot instantiate Network without an url endpoint");
       }
+      const baseURL = endpoint2.endsWith("/") ? endpoint2 : `${endpoint2}/`;
       if (Utils.isWindowAvailable()) {
         window.onbeforeunload = () => {
           isNavigatingAway = true;
         };
+      }
+      function getRequestURL(parameters) {
+        const command = parameters.command;
+        delete parameters.command;
+        return command ? `${baseURL}${command}` : baseURL;
       }
       return {
         /**
@@ -42953,20 +43023,13 @@ var require_Network = __commonJS({
          * @returns {$.Deferred}
          */
         post(parameters) {
-          let newURL = endpoint2;
-          if (isNewURLFormat) {
-            const command = parameters.command;
-            delete parameters.command;
-            newURL = `${endpoint2}${command}`;
-          }
           const settings = {
-            url: newURL,
+            url: getRequestURL(parameters),
             type: "POST",
             data: parameters
           };
           const formData = new FormData();
           let shouldUseFormData = false;
-          settings.url = addCommandToUrl(parameters.command, settings.url);
           for (const [key, value] of Object.entries(parameters)) {
             if (value === void 0) {
               continue;
@@ -43000,8 +43063,7 @@ var require_Network = __commonJS({
             keepalive: true,
             credentials: "same-origin"
           };
-          let url = endpoint2;
-          url = addCommandToUrl(parameters.command, url);
+          const url = getRequestURL(parameters);
           const formData = new FormData();
           for (const [key, value] of Object.entries(parameters)) {
             if (value === void 0) {
@@ -43575,8 +43637,10 @@ var require_str = __commonJS({
        * @returns The decoded string.
        */
       htmlDecodeWithJQueryOrNative(s) {
-        if (typeof jquery_1.default !== "undefined") {
-          return (0, jquery_1.default)("<textarea/>").html(s).text();
+        if (typeof globalThis.document !== "undefined") {
+          const textarea = globalThis.document.createElement("textarea");
+          textarea.innerHTML = s;
+          return textarea.value;
         }
         return HtmlEntities.decode(s);
       },
@@ -47730,6 +47794,9 @@ var require_fastMerge = __commonJS({
       const nonNullObject = value != null ? typeof value === "object" : false;
       return nonNullObject && Object.prototype.toString.call(value) !== "[object RegExp]" && Object.prototype.toString.call(value) !== "[object Date]" && !Array.isArray(value);
     }
+    function isUnsafeKey(key) {
+      return key === "__proto__";
+    }
     function fastMerge(target, source, shouldRemoveNullObjectValues = true) {
       if (Array.isArray(source) || source === null || source === void 0) {
         return source;
@@ -47743,7 +47810,7 @@ var require_fastMerge = __commonJS({
           const targetValue = target === null || target === void 0 ? void 0 : target[key];
           const isSourceOrTargetNull = targetValue === null || sourceValue === null;
           const shouldOmitSourceKey = shouldRemoveNullObjectValues && isSourceOrTargetNull;
-          if (!shouldOmitSourceKey) {
+          if (!shouldOmitSourceKey && !isUnsafeKey(key)) {
             destination[key] = targetValue;
           }
         }
@@ -47755,7 +47822,7 @@ var require_fastMerge = __commonJS({
         const targetValue = target === null || target === void 0 ? void 0 : target[key];
         const shouldOmitSourceKey = shouldRemoveNullObjectValues && sourceValue === null;
         const isSourceKeyUndefined = sourceValue === void 0;
-        if (!isSourceKeyUndefined && !shouldOmitSourceKey) {
+        if (!isSourceKeyUndefined && !shouldOmitSourceKey && !isUnsafeKey(key)) {
           const isSourceKeyMergable = isMergeableObject(sourceValue);
           if (isSourceKeyMergable && targetValue) {
             if (!shouldRemoveNullObjectValues || isSourceKeyMergable) {
@@ -53260,14 +53327,12 @@ var GithubUtils = class {
       info(`\u{1F389} Successfully fetched ${allCommits.length} total commits`);
       endGroup();
       console.log("");
-      return allCommits.map(
-        (commit) => ({
-          commit: commit.sha,
-          subject: commit.commit.message,
-          authorName: commit.commit.author?.name ?? "Unknown",
-          date: commit.commit.committer?.date ?? ""
-        })
-      );
+      return allCommits.map((commit) => ({
+        commit: commit.sha,
+        subject: commit.commit.message,
+        authorName: commit.commit.author?.name ?? "Unknown",
+        date: commit.commit.committer?.date ?? ""
+      }));
     } catch (error2) {
       if (error2 instanceof RequestError && error2.status === 404) {
         error(
@@ -53318,6 +53383,25 @@ function isProposal(body) {
   return lowerCaseBody.includes(CONST_default.PROPOSAL_KEYWORD.toLowerCase()) && lowerCaseBody.includes(CONST_default.PROPOSAL_HEADER_A) && lowerCaseBody.includes(CONST_default.PROPOSAL_HEADER_B);
 }
 var isProposal_default = isProposal;
+
+// .github/libs/isTeamMember.ts
+async function getTeamMembership(octokit, org, teamSlug, username) {
+  try {
+    await octokit.teams.getMembershipForUserInOrg({
+      org,
+      team_slug: teamSlug,
+      username
+    });
+    return true;
+  } catch (error2) {
+    if (error2 instanceof RequestError && error2.status === 404) {
+      return false;
+    }
+    const message2 = error2 instanceof Error ? error2.message : String(error2);
+    warning(`Could not verify ${teamSlug} membership for ${username}: ${message2}`);
+    return void 0;
+  }
+}
 
 // prompts/proposalPolice/input.ts
 function escapeForXMLWrapper(text) {
@@ -64916,6 +65000,10 @@ function chunkArray(items, size) {
 
 // node_modules/@actions/github/lib/github.js
 var context2 = new Context();
+function getOctokit(token, options, ...additionalPlugins) {
+  const GitHubWithPlugins = GitHub.plugin(...additionalPlugins);
+  return new GitHubWithPlugins(getOctokitOptions(token, options));
+}
 
 // node_modules/date-fns/constants.js
 var daysInYear = 365.2425;
@@ -66990,6 +67078,73 @@ function toZonedTime(date, timeZone, options) {
 // .github/actions/javascript/proposalPoliceComment/proposalPoliceComment.ts
 var PROPOSAL_POLICE_MODEL = "gpt-5.6-luna";
 var DUPLICATE_SIMILARITY_THRESHOLD = 90;
+var TRUSTED_AUTHOR_ASSOCIATIONS = /* @__PURE__ */ new Set(["OWNER", "MEMBER", "COLLABORATOR"]);
+var TRUSTED_TEAM_SLUGS = ["expensify-expensify", "contributor-plus", "backend-contributors", "external-expert-contributors", "applause"];
+var PARTNER_AGENCY_PATTERN = /(^|\s)from\s+(Callstack|Margelo|Software\s?Mansion)([^A-Za-z0-9_]|$)/i;
+async function getTrustedTeamMembership(login) {
+  const orgToken = getInput("OS_BOTIFY_TOKEN");
+  if (!orgToken) {
+    return void 0;
+  }
+  const orgOctokit = getOctokit(orgToken);
+  let hasFailedCheck = false;
+  for (const teamSlug of TRUSTED_TEAM_SLUGS) {
+    const isMember = await getTeamMembership(orgOctokit.rest, CONST_default.GITHUB_OWNER, teamSlug, login);
+    if (isMember) {
+      return true;
+    }
+    hasFailedCheck ||= isMember === void 0;
+  }
+  return hasFailedCheck ? void 0 : false;
+}
+function hasHelpWantedLabel(labels) {
+  return labels.some((label) => (typeof label === "string" ? label : label.name) === CONST_default.LABELS.HELP_WANTED);
+}
+async function hasMergedAppPullRequest(login) {
+  const { data } = await GithubUtils_default.octokit.search.issuesAndPullRequests({
+    q: `repo:${CONST_default.GITHUB_OWNER}/${CONST_default.APP_REPO} is:pr is:merged author:${login}`,
+    // eslint-disable-next-line @typescript-eslint/naming-convention -- GitHub's REST API parameter name
+    per_page: 1
+  });
+  if (data.incomplete_results && data.total_count === 0) {
+    throw new Error(`The merged PR search for ${login} returned incomplete results`);
+  }
+  return data.total_count > 0;
+}
+async function hideCommentFromNewContributor(payload) {
+  const { comment, issue: issue2 } = payload;
+  const author = comment.user.login;
+  if (isBotUser_default(author, comment.user.type) || author === issue2.user.login || TRUSTED_AUTHOR_ASSOCIATIONS.has(comment.author_association)) {
+    console.log("Comment is from a bot, the issue author, or an org member, leaving it visible.", author);
+    return;
+  }
+  const isTrustedTeamMember = await getTrustedTeamMembership(author);
+  if (isTrustedTeamMember) {
+    console.log("Commenter is on a trusted team, leaving the comment visible.", author);
+    return;
+  }
+  if (isTrustedTeamMember === void 0) {
+    warning(`Could not verify ${author}'s team membership, leaving comment ${comment.id} visible.`);
+    return;
+  }
+  try {
+    const { data: currentIssue } = await GithubUtils_default.octokit.issues.get({ ...context2.repo, issue_number: issue2.number });
+    if (hasHelpWantedLabel(currentIssue.labels) || currentIssue.assignees?.some((assignee) => assignee.login === author)) {
+      console.log('Issue now has "Help Wanted" or the commenter is assigned, leaving the comment visible.', author);
+      return;
+    }
+    if (await hasMergedAppPullRequest(author)) {
+      console.log("Commenter has a merged App PR, leaving the comment visible.", author);
+      return;
+    }
+  } catch (error2) {
+    const message2 = error2 instanceof Error ? error2.message : String(error2);
+    warning(`Could not check whether ${author} can comment before "Help Wanted", leaving comment ${comment.id} visible: ${message2}`);
+    return;
+  }
+  notice(`ProposalPolice hid comment ${comment.id} by ${author}, who has no merged App PR, on an issue without "Help Wanted"`);
+  await GithubUtils_default.minimizeCommentAsSpam(comment.node_id);
+}
 function isCommentCreatedEvent(payload) {
   return payload.action === CONST_default.ACTIONS.CREATED;
 }
@@ -67021,6 +67176,10 @@ async function run() {
     throw new Error("ProposalPolice\u2122 only supports the issue_comment webhook event");
   }
   const payload = context2.payload;
+  if (isCommentCreatedEvent(payload) && payload.issue.state === CONST_default.STATE.OPEN && !payload.issue.pull_request && !hasHelpWantedLabel(payload.issue.labels)) {
+    await hideCommentFromNewContributor(payload);
+    return;
+  }
   if (payload.issue?.state !== CONST_default.STATE.OPEN || !payload.issue?.labels.some((issueLabel) => issueLabel.name === CONST_default.LABELS.HELP_WANTED)) {
     console.log('Issue is not open or does not have the "Help Wanted" label, skipping checks.');
     return;
@@ -67049,7 +67208,6 @@ async function run() {
     return;
   }
   const apiKey = getInput("PROPOSAL_POLICE_API_KEY", { required: true });
-  const isTrustedCommenter = getInput("IS_TRUSTED_COMMENTER") === "true";
   const openAI = new OpenAIUtils_default(apiKey);
   const issueNumber = payload.issue?.number ?? -1;
   const commentID = payload.comment?.id ?? -1;
@@ -67059,6 +67217,7 @@ async function run() {
     const newProposalAuthor = payload.comment.user.login;
     if (!isProposal_default(newProposalBody)) {
       console.log("Comment does not follow the proposal template. Classifying what it is trying to do...");
+      const isTrustedCommenter = PARTNER_AGENCY_PATTERN.test(newProposalBody) || !!await getTrustedTeamMembership(newProposalAuthor);
       const intentResponse = await openAI.promptResponses({
         instructions: buildCommentIntentInstructions(),
         input: buildCommentIntentInput(newProposalBody, isTrustedCommenter),

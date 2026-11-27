@@ -206,11 +206,6 @@ function canMemberAssignRole(policy: OnyxInputOrEntry<Policy>, login: string, ro
         return false;
     }
 
-    // Approve-only role assignment is temporarily disabled.
-    if (role === CONST.POLICY.ROLE.APPROVE_ONLY) {
-        return false;
-    }
-
     const isCorporatePolicy = policy?.type === CONST.POLICY.TYPE.CORPORATE;
     if (isControlPolicyOnlyRole(role) && !isCorporatePolicy) {
         return false;
@@ -233,14 +228,14 @@ function canMemberAssignRole(policy: OnyxInputOrEntry<Policy>, login: string, ro
  * because neither is assignable through the role selector.
  */
 const SELECTABLE_ROLES = [
+    CONST.POLICY.ROLE.CARD_ADMIN,
+    CONST.POLICY.ROLE.PAYMENTS_ADMIN,
+    CONST.POLICY.ROLE.PEOPLE_ADMIN,
     CONST.POLICY.ROLE.ADMIN,
+    CONST.POLICY.ROLE.APPROVE_ONLY,
     CONST.POLICY.ROLE.AUDITOR,
     CONST.POLICY.ROLE.GUEST,
-    CONST.POLICY.ROLE.CARD_ADMIN,
-    CONST.POLICY.ROLE.PEOPLE_ADMIN,
-    CONST.POLICY.ROLE.PAYMENTS_ADMIN,
     CONST.POLICY.ROLE.USER,
-    CONST.POLICY.ROLE.APPROVE_ONLY,
 ] as const;
 
 /**
@@ -332,6 +327,10 @@ function canCreateExpensesOnPolicy(policy: OnyxInputOrEntry<Policy>, login?: str
     return canRoleCreateExpenses(getPolicyRole(policy, login, false) ?? policy?.role);
 }
 
+function canCreateRoomsOnPolicy(policy: OnyxInputOrEntry<Policy>, login: string): boolean {
+    return canMemberWrite(policy, login, CONST.POLICY.POLICY_FEATURE.ROOMS);
+}
+
 /** Whether the submitter's role lets them submit their own report. Non-group policies always allow it. */
 function canSubmitOwnReportOnPolicy(policy: OnyxInputOrEntry<Policy>, submitterLogin?: string): boolean {
     return !isGroupPolicy(policy) || canCreateExpensesOnPolicy(policy, submitterLogin);
@@ -405,6 +404,14 @@ function canEditWorkspaceSettings(policy: OnyxInputOrEntry<Policy>, login?: stri
     return isPolicyAdmin(policy, login) || (isSubmitPolicy(policy) && isPolicyEditor(policy, login));
 }
 
+/**
+ * Whether the current user can choose which categories the members they're inviting can use. Only workspace admins
+ * can, so People Admins don't get the option, and only on Control workspaces with categories enabled.
+ */
+function canSetInvitedMembersCategoryVisibility(policy: OnyxEntry<Policy>): boolean {
+    return isPolicyAdmin(policy) && isControlPolicy(policy) && !!policy?.areCategoriesEnabled;
+}
+
 export {
     isPolicyAdmin,
     isPolicyOwner,
@@ -423,6 +430,7 @@ export {
     canRolePay,
     canRoleCreateExpenses,
     canCreateExpensesOnPolicy,
+    canCreateRoomsOnPolicy,
     canSubmitOwnReportOnPolicy,
     PAYER_ROLES,
     isPolicyApprover,
@@ -433,6 +441,7 @@ export {
     isAdminOfCardEnabledPolicy,
     isPolicyEmployee,
     canEditWorkspaceSettings,
+    canSetInvitedMembersCategoryVisibility,
 };
 
 export type {PolicyFeature, PolicyFeatureAccess};

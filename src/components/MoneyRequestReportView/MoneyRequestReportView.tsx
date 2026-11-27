@@ -15,6 +15,7 @@ import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTopInsetHeaderStyle from '@hooks/useTopInsetHeaderStyle';
 
 import {clearReportErrors, removeFailedReport} from '@libs/actions/Report';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -29,6 +30,7 @@ import {cancelSpan} from '@libs/telemetry/activeSpans';
 import Navigation from '@navigation/Navigation';
 
 import {AgentZeroStatusProvider} from '@pages/inbox/AgentZeroStatusContext';
+import CollapsibleReportHeader from '@pages/inbox/report/CollapsibleReportHeader';
 import ReportActionsList from '@pages/inbox/report/ReportActionsList';
 import ReportFooter from '@pages/inbox/report/ReportFooter';
 import UserTypingEventListener from '@pages/inbox/report/UserTypingEventListener';
@@ -99,13 +101,15 @@ function goBackFromSearchMoneyRequest(options?: {afterTransition?: () => void}) 
 
 function InitialLoadingSkeleton({styles, onLayout}: {styles: ThemeStyles; onLayout?: (event: LayoutChangeEvent) => void}) {
     const {contentHeaderHeightStyle} = useContentHeaderHeight();
+    const headerStyle = [styles.appContentHeader, contentHeaderHeightStyle, styles.borderBottom];
+    const topInsetHeaderStyle = useTopInsetHeaderStyle(headerStyle);
 
     return (
         <View
             style={[styles.flex1]}
             onLayout={onLayout}
         >
-            <View style={[styles.appContentHeader, contentHeaderHeightStyle, styles.borderBottom]}>
+            <View style={[headerStyle, topInsetHeaderStyle]}>
                 <ReportHeaderSkeletonView onBackButtonPress={() => {}} />
             </View>
             <ReportActionsAnimatedSkeletonCover />
@@ -226,14 +230,17 @@ function MoneyRequestReportView({report, reportIDFromRoute, reportLoadingState, 
 
     return (
         <View style={styles.flex1}>
-            <OfflineWithFeedback
-                pendingAction={reportPendingAction ?? report?.pendingFields?.reimbursed}
-                errors={reportErrors}
-                needsOffscreenAlphaCompositing
-                shouldShowErrorMessages={false}
-            >
-                <CollapsibleHeaderOnKeyboard>{reportHeaderView}</CollapsibleHeaderOnKeyboard>
-            </OfflineWithFeedback>
+            {/* Outermost, so its wrapper is a sibling of the list's and the sliding header can stack above the list. */}
+            <CollapsibleReportHeader>
+                <OfflineWithFeedback
+                    pendingAction={reportPendingAction ?? report?.pendingFields?.reimbursed}
+                    errors={reportErrors}
+                    needsOffscreenAlphaCompositing
+                    shouldShowErrorMessages={false}
+                >
+                    <CollapsibleHeaderOnKeyboard>{reportHeaderView}</CollapsibleHeaderOnKeyboard>
+                </OfflineWithFeedback>
+            </CollapsibleReportHeader>
             <OfflineWithFeedback
                 pendingAction={reportPendingAction}
                 errors={reportErrors}

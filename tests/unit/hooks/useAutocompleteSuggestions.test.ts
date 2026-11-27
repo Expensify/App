@@ -1,6 +1,7 @@
 import {renderHook, waitFor} from '@testing-library/react-native';
 
 import useAutocompleteSuggestions from '@hooks/useAutocompleteSuggestions';
+import useExportedToFilterOptions from '@hooks/useExportedToFilterOptions';
 import useNetwork from '@hooks/useNetwork';
 
 import {openSearchCategoryFiltersPage} from '@libs/actions/Search';
@@ -48,6 +49,7 @@ jest.mock('@hooks/useCurrencyList', () => ({
 
 jest.mock('@libs/SearchAutocompleteUtils', () => ({
     parseForAutocomplete: jest.fn(),
+    getAutocompletePolicyData: jest.requireActual<typeof SearchAutocompleteUtils>('@libs/SearchAutocompleteUtils').getAutocompletePolicyData,
     getAutocompleteTags: jest.fn(() => ['Engineering', 'Marketing', 'Sales', 'Design']),
     getAutocompleteRecentTags: jest.fn(() => ['Engineering', 'Marketing']),
     getAutocompleteCategories: jest.fn(() => ['Travel', 'Office Supplies', 'Meals', 'Software']),
@@ -100,25 +102,30 @@ jest.mock('@libs/SearchQueryUtils', () => ({
     getUserFriendlyKey: jest.fn((key: string) => key),
     getUserFriendlyValue: jest.fn((value: string) => value),
     isFilterSupported: jest.requireActual<typeof SearchQueryUtils>('@libs/SearchQueryUtils').isFilterSupported,
+    resolvePolicyIDFromName: jest.requireActual<typeof SearchQueryUtils>('@libs/SearchQueryUtils').resolvePolicyIDFromName,
+    getViolationDisplayName: jest.requireActual<typeof SearchQueryUtils>('@libs/SearchQueryUtils').getViolationDisplayName,
+    VIOLATION_FILTER_VALUES: jest.requireActual<typeof SearchQueryUtils>('@libs/SearchQueryUtils').VIOLATION_FILTER_VALUES,
     isGroupBySupportedBySearch: jest.requireActual<typeof SearchQueryUtils>('@libs/SearchQueryUtils').isGroupBySupportedBySearch,
 }));
 
 jest.mock('@libs/SearchUIUtils', () => ({
     getDatePresets: jest.fn(() => ['today', 'yesterday', 'lastWeek', 'lastMonth']),
     getHasOptions: jest.fn(() => [{value: 'attachment'}, {value: 'note'}]),
+    getHasOptionAvailability: jest.fn(() => ({shouldShowTag: true, shouldShowCategory: true, shouldShowSubmittedViolation: true, shouldShowApprovedViolation: true})),
 }));
 
 jest.mock('@hooks/useExportedToFilterOptions', () => ({
     __esModule: true,
-    default: () => ({
+    default: jest.fn(() => ({
         exportedToFilterOptions: ['QuickBooks Online', 'Xero', 'NetSuite'],
         connectedIntegrationNames: new Set<string>(),
-    }),
+    })),
 }));
 
 const {parseForAutocomplete} = jest.requireMock<{parseForAutocomplete: jest.Mock}>('@libs/SearchAutocompleteUtils');
 const {getUserFriendlyKey} = jest.requireMock<{getUserFriendlyKey: jest.Mock}>('@libs/SearchQueryUtils');
 const {getExpensifyTeamExclusions} = jest.requireMock<{getExpensifyTeamExclusions: jest.Mock}>('@libs/PolicyUtils');
+const {getHasOptionAvailability} = jest.requireMock<{getHasOptionAvailability: jest.Mock}>('@libs/SearchUIUtils');
 const mockedUseNetwork = jest.mocked(useNetwork);
 const mockedOpenSearchCategoryFiltersPage = jest.mocked(openSearchCategoryFiltersPage);
 const mockedGetSearchOptions = jest.mocked(getSearchOptions);
@@ -160,6 +167,41 @@ describe('useAutocompleteSuggestions', () => {
         const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: ''}));
 
         expect(result.current).toEqual([]);
+    });
+
+    it.each([
+        ['workspace:"USD Workspace" exported-to:', undefined, ['usd'], false],
+        ['workspace:"CAD Workspace" exported-to:', undefined, ['cad'], false],
+        ['workspace:usd exported-to:', undefined, ['usd'], false],
+        ['-workspace:"CAD Workspace" exported-to:', undefined, ['cad'], true],
+        ['workspace:"USD Workspace" -workspace:"CAD Workspace" exported-to:', undefined, ['usd'], false],
+        ['-workspace:"CAD Workspace" workspace:"USD Workspace" exported-to:', undefined, ['usd'], false],
+        ['workspace:"CAD Workspace" -workspace:"USD Workspace" exported-to:', undefined, ['cad'], false],
+        ['-workspace:"USD Workspace" workspace:"CAD Workspace" exported-to:', undefined, ['cad'], false],
+        ['workspace:"CAD Workspace" -workspace:"CAD Workspace" exported-to:', undefined, [], false],
+        ['workspace:usd workspace:cad exported-to:', undefined, [], false],
+        ['-workspace:usd -workspace:cad exported-to:', undefined, ['usd', 'cad'], true],
+        ['workspace:"USD Workspace","CAD Workspace" exported-to:', undefined, ['usd', 'cad'], false],
+        [
+            'workspace:"Same name","Same name" exported-to:',
+            {[`${CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID}:Same name`]: 'usd', [`${CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID}:Same name:1`]: 'cad'},
+            ['usd', 'cad'],
+            false,
+        ],
+        ['exported-to:', undefined, undefined, false],
+    ] as const)('scopes exported-to options to the typed query %s', (query, substitutions, expectedPolicyIDs, isNegated) => {
+        // Given both USD and CAD workspaces and the real autocomplete parser
+        parseForAutocomplete.mockImplementation(jest.requireActual<typeof SearchAutocompleteUtils>('@libs/SearchAutocompleteUtils').parseForAutocomplete);
+        const policies = {
+            [`${ONYXKEYS.COLLECTION.POLICY}usd`]: createMock<Policy>({id: 'usd', name: 'USD Workspace', outputCurrency: CONST.CURRENCY.USD}),
+            [`${ONYXKEYS.COLLECTION.POLICY}cad`]: createMock<Policy>({id: 'cad', name: 'CAD Workspace', outputCurrency: CONST.CURRENCY.CAD}),
+        };
+
+        // When a workspace is typed or selected without submitting the search
+        renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: query, policies, autocompleteSubstitutions: substitutions}));
+
+        // Then the export options receive the typed scope, including an explicit all-workspaces override
+        expect(useExportedToFilterOptions).toHaveBeenLastCalledWith({value: expectedPolicyIDs, isNegated});
     });
 
     it('returns empty array when parseForAutocomplete returns undefined', () => {
@@ -455,6 +497,74 @@ describe('useAutocompleteSuggestions', () => {
         expect(withoutBeta.current.length).toBeGreaterThan(0);
     });
 
+    it('leaves workflow stage out of the group-by suggestions', () => {
+        // Given an expense search typing a group-by, since Search can't group expenses by workflow stage
+        parseForAutocomplete.mockReturnValue({
+            autocomplete: {key: CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY, value: ''},
+            ranges: [],
+        });
+
+        // When the suggestions are built
+        const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: 'group-by:'}));
+
+        // Then the Search group-bys are suggested, without workflow stage
+        const suggestions = result.current.map((suggestion) => suggestion.text);
+        expect(suggestions).toContain(CONST.SEARCH.GROUP_BY.FROM);
+        expect(suggestions).not.toContain(CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE);
+    });
+
+    it.each([
+        ['', true],
+        ['', false],
+        ['vio', false],
+    ] as const)('filters group-by suggestions for "%s" when violation search availability is %s', (value, shouldShowSubmittedViolation) => {
+        // Given violation search availability reflects the user's accessible group workspaces, independently of Rules
+        getHasOptionAvailability.mockReturnValueOnce({
+            shouldShowTag: true,
+            shouldShowCategory: true,
+            shouldShowSubmittedViolation,
+            shouldShowApprovedViolation: shouldShowSubmittedViolation,
+        });
+        parseForAutocomplete.mockReturnValue({
+            autocomplete: {key: CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY, value},
+            ranges: [],
+        });
+
+        // When the user types a group-by value in the search input
+        const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: `group-by:${value}`}));
+
+        // Then Violation is only offered with an accessible group workspace, while other matching groupings remain available
+        const suggestions = result.current.map((suggestion) => suggestion.text);
+        expect(suggestions.includes(CONST.SEARCH.GROUP_BY.VIOLATION)).toBe(shouldShowSubmittedViolation);
+        if (!value) {
+            expect(suggestions).toContain(CONST.SEARCH.GROUP_BY.FROM);
+        }
+    });
+
+    it('removes the violation group-by suggestion when the last group workspace is removed', () => {
+        // Given an accessible group workspace with Rules off still supports violation search
+        const policies = {[`${ONYXKEYS.COLLECTION.POLICY}1`]: createMock<Policy>({id: '1', type: CONST.POLICY.TYPE.TEAM, areRulesEnabled: false})};
+        getHasOptionAvailability.mockReturnValueOnce({shouldShowTag: true, shouldShowCategory: true, shouldShowSubmittedViolation: true, shouldShowApprovedViolation: true});
+        parseForAutocomplete.mockReturnValue({
+            autocomplete: {key: CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY, value: ''},
+            ranges: [],
+        });
+        const {result, rerender} = renderHook((props: Pick<Params, 'policies'>) => useAutocompleteSuggestions({...defaultParams, ...props, autocompleteQueryValue: 'group-by:'}), {
+            initialProps: {policies},
+        });
+        expect(getHasOptionAvailability).toHaveBeenLastCalledWith(policies);
+        expect(result.current.map((suggestion) => suggestion.text)).toContain(CONST.SEARCH.GROUP_BY.VIOLATION);
+
+        // When that workspace is removed while the search input stays open
+        getHasOptionAvailability.mockReturnValueOnce({shouldShowTag: false, shouldShowCategory: false, shouldShowSubmittedViolation: false, shouldShowApprovedViolation: false});
+        rerender({policies: {}});
+
+        // Then the suggestions use the updated workspaces and retain other grouping choices
+        expect(getHasOptionAvailability).toHaveBeenLastCalledWith({});
+        expect(result.current.map((suggestion) => suggestion.text)).not.toContain(CONST.SEARCH.GROUP_BY.VIOLATION);
+        expect(result.current.map((suggestion) => suggestion.text)).toContain(CONST.SEARCH.GROUP_BY.FROM);
+    });
+
     it('returns empty array for date key (presets filter)', () => {
         parseForAutocomplete.mockReturnValue({
             autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, value: 'to'},
@@ -637,7 +747,11 @@ describe('useAutocompleteSuggestions', () => {
         expect(parseForAutocomplete).toHaveBeenCalledWith(query);
     });
 
-    it('uses real parser offsets and repeated substitutions for workspaces with the same name', () => {
+    it.each([
+        'workspace:"Test Workspace","Test Workspace",',
+        'workspace:"Test Workspace" -workspace:"Test Workspace" workspace:',
+        'workspace:"Test Workspace" workspace:"Test Workspace" workspace:',
+    ])('excludes every selected duplicate-name workspace in %s', (query) => {
         // Given two selected workspaces whose display names collide but whose IDs differ.
         parseForAutocomplete.mockImplementation(jest.requireActual<typeof SearchAutocompleteUtils>('@libs/SearchAutocompleteUtils').parseForAutocomplete);
         const policies: NonNullable<OnyxCollection<Policy>> = {
@@ -649,7 +763,7 @@ describe('useAutocompleteSuggestions', () => {
         const {result} = renderHook(() =>
             useAutocompleteSuggestions({
                 ...defaultParams,
-                autocompleteQueryValue: 'workspace:"Test Workspace","Test Workspace",',
+                autocompleteQueryValue: query,
                 policies,
                 autocompleteSubstitutions: Object.fromEntries([
                     ['policyID:Test Workspace', 'A'],
@@ -801,6 +915,100 @@ describe('useAutocompleteSuggestions', () => {
 
             const values = result.current.map((item) => item.text).sort();
             expect(values).toEqual(['cleared', 'failed', 'never']);
+        });
+    });
+
+    describe('violation autocomplete', () => {
+        // Stand-in translations whose words never appear in the raw violation names, so a match proves the label was searched
+        const violationLabels = new Map<string, string>([
+            ['violations.shortName.missingCategory', 'Category absent'],
+            ['violations.shortName.missingTag', 'Tag absent'],
+            ['violations.shortName.overLimit', 'Spending ceiling passed'],
+        ]);
+        const translate: Params['translate'] = (key, ...parameters) => violationLabels.get(key) ?? String([key, ...parameters].at(0));
+
+        it('suggests translated names and keeps the raw violation name as the value sent to the backend', () => {
+            // Given the user types a word that only appears in the translated labels, not in the raw violation names
+            parseForAutocomplete.mockReturnValue({
+                autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION, value: 'absent'},
+                ranges: [],
+            });
+
+            // When autocomplete runs
+            const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, translate, autocompleteQueryValue: 'violation:absent'}));
+
+            // Then the suggestions match and show the translated label, while the substitution map gets the raw name Auth matches on
+            expect(result.current).toEqual([
+                {
+                    filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.VIOLATION,
+                    text: 'Category absent',
+                    autocompleteID: CONST.VIOLATIONS.MISSING_CATEGORY,
+                    mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION,
+                },
+                {
+                    filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.VIOLATION,
+                    text: 'Tag absent',
+                    autocompleteID: CONST.VIOLATIONS.MISSING_TAG,
+                    mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION,
+                },
+            ]);
+        });
+
+        it('still matches the raw violation name so people who know the backend names can type them', () => {
+            // Given the user types the start of the raw name rather than the translated label
+            parseForAutocomplete.mockReturnValue({
+                autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION, value: 'missingCat'},
+                ranges: [],
+            });
+
+            // When autocomplete runs
+            const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, translate, autocompleteQueryValue: 'violation:missingCat'}));
+
+            // Then the matching violation is still offered under its translated label
+            expect(result.current.map((item) => item.text)).toEqual(['Category absent']);
+        });
+
+        it('excludes a violation that is already in the query', () => {
+            // Given "Category absent" is already selected and the user starts the next value
+            parseForAutocomplete.mockReturnValue({
+                autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION, value: 'absent'},
+                ranges: [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION, length: 15, start: 10, value: 'Category absent'}],
+            });
+
+            // When autocomplete runs
+            const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, translate, autocompleteQueryValue: 'violation:"Category absent",absent'}));
+
+            // Then only the violation that is not selected yet is offered
+            expect(result.current.map((item) => item.text)).toEqual(['Tag absent']);
+        });
+
+        it('excludes a violation that was typed by its raw name', () => {
+            // Given the user typed the raw name missingCategory instead of picking the translated label, then started the next value
+            parseForAutocomplete.mockReturnValue({
+                autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION, value: 'absent'},
+                ranges: [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION, length: 15, start: 10, value: CONST.VIOLATIONS.MISSING_CATEGORY}],
+            });
+
+            // When autocomplete runs
+            const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, translate, autocompleteQueryValue: 'violation:missingCategory,absent'}));
+
+            // Then the same violation is not offered again under its label, which would put it in the query twice
+            expect(result.current.map((item) => item.text)).toEqual(['Tag absent']);
+        });
+
+        it('suggests nothing when no workspace has Rules enabled', () => {
+            // Given none of the user's workspaces has Rules turned on, so the advanced filters hide the violation row too
+            getHasOptionAvailability.mockReturnValueOnce({shouldShowTag: true, shouldShowCategory: true, shouldShowSubmittedViolation: false, shouldShowApprovedViolation: false});
+            parseForAutocomplete.mockReturnValue({
+                autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION, value: ''},
+                ranges: [],
+            });
+
+            // When autocomplete runs
+            const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, translate, autocompleteQueryValue: 'violation:'}));
+
+            // Then no violation names are suggested
+            expect(result.current).toEqual([]);
         });
     });
 });

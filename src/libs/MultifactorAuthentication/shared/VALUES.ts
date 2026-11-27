@@ -14,7 +14,20 @@ const BACKEND_MESSAGE = {
     TRANSACTION_ALREADY_APPROVED: 'Transaction already approved',
     TRANSACTION_ALREADY_DENIED: 'Transaction already denied',
     TRANSACTION_ALREADY_REVIEWED: 'Transaction already reviewed',
+    AUTHENTICATION_REQUIRED: 'Authentication required',
+    UNAUTHORIZED: 'Unauthorized',
+    INVALID_SIGNED_CHALLENGE: 'Invalid signed challenge',
+    INVALID_AUTHENTICATION_METHOD: 'Invalid authentication method',
 } as const;
+
+/** Returned by every MFA command when the signed challenge is rejected, before the command does its own work */
+const SIGNED_CHALLENGE_FAILURE_MESSAGES = [
+    BACKEND_MESSAGE.REGISTRATION_REQUIRED,
+    BACKEND_MESSAGE.AUTHENTICATION_REQUIRED,
+    BACKEND_MESSAGE.UNAUTHORIZED,
+    BACKEND_MESSAGE.INVALID_SIGNED_CHALLENGE,
+    BACKEND_MESSAGE.INVALID_AUTHENTICATION_METHOD,
+] as const;
 
 const REASON = {
     SERVER_ERRORS: {
@@ -23,6 +36,7 @@ const REASON = {
     },
     FLOW_OUTCOMES: {
         TRANSACTION_DENIED: 'Outcome: Transaction denied successfully',
+        FRAUD_REPORTED: 'Outcome: Transaction reported as fraud successfully',
     },
     /** HTTP 4xx errors from the backend (not front-end errors despite the "Client" prefix). */
     CLIENT_ERRORS: {
@@ -46,6 +60,10 @@ const REASON = {
         UNHANDLED_EXCEPTION: 'Local: An unhandled error occurred',
         UNRECOGNIZED: 'Local: Unrecognized local error',
         CANCELED: 'Local: Flow canceled by user',
+        /** Authentication succeeded but adding the card to the digital wallet failed. */
+        WALLET_PROVISIONING_FAILED: 'Local: Digital wallet provisioning failed',
+        /** The user dismissed the native wallet sheet after authentication succeeded. */
+        WALLET_PROVISIONING_CANCELED: 'Local: Digital wallet provisioning canceled by user',
         /** No HTTP status code present — typically a network failure, JSON parse error, or unhandled exception in an action function. */
         UNHANDLED_API_RESPONSE: 'Local: Missing HTTP status in API response',
         WEBAUTHN: {
@@ -146,6 +164,22 @@ const API_RESPONSE_MAP = {
         },
     },
 
+    /** Fraud review - the cardholder confirms the transaction (MFA-gated) */
+    CONFIRM_RECOGNIZED_TRANSACTION: {
+        [HTTP_STATUS.CLIENT_ERROR]: {
+            [BACKEND_MESSAGE.REGISTRATION_REQUIRED]: REASON.CLIENT_ERRORS.REGISTRATION_REQUIRED,
+            [BACKEND_MESSAGE.TRANSACTION_ALREADY_REVIEWED]: REASON.CLIENT_ERRORS.ALREADY_REVIEWED,
+        },
+    },
+
+    /** Fraud review - reporting fraud skips MFA, so HTTP 200 maps to an outcome that the review screen can show */
+    REPORT_FRAUDULENT_TRANSACTION: {
+        [HTTP_STATUS.SUCCESS]: REASON.FLOW_OUTCOMES.FRAUD_REPORTED,
+        [HTTP_STATUS.CLIENT_ERROR]: {
+            [BACKEND_MESSAGE.TRANSACTION_ALREADY_REVIEWED]: REASON.CLIENT_ERRORS.ALREADY_REVIEWED,
+        },
+    },
+
     /** No custom error handling — all responses rely on category fallback reasons. */
     SET_PERSONAL_DETAILS_AND_SHIP_EXPENSIFY_CARDS_WITH_PIN: {},
 
@@ -166,6 +200,7 @@ type ReasonValue = DeepLeafValues<typeof REASON>;
 /** Known errors the user is likely to encounter (cancellations, expired transactions, unsupported devices, etc.). Logged at 'info' level. */
 const ROUTINE_FAILURES = new Set<ReasonValue>([
     REASON.LOCAL_ERRORS.CANCELED,
+    REASON.LOCAL_ERRORS.WALLET_PROVISIONING_CANCELED,
     REASON.LOCAL_ERRORS.NO_AUTHENTICATION_METHODS_ENROLLED,
     REASON.LOCAL_ERRORS.AUTHENTICATION_TYPE_NOT_SUPPORTED,
     REASON.CLIENT_ERRORS.TRANSACTION_EXPIRED,
@@ -256,6 +291,7 @@ const SHARED_VALUES = {
     },
     API_RESPONSE_MAP,
     BACKEND_MESSAGE,
+    SIGNED_CHALLENGE_FAILURE_MESSAGES,
     REASON,
     HTTP_STATUS,
     ROUTINE_FAILURES,

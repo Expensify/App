@@ -7,7 +7,7 @@ import IntlStore from '@src/languages/IntlStore';
 import type {Policy, TaxRatesWithDefault, Transaction} from '@src/types/onyx';
 
 import createMock from '../utils/createMock';
-import {localeCompare} from '../utils/TestHelper';
+import {localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 describe('TaxOptionsListUtils', () => {
@@ -128,6 +128,7 @@ describe('TaxOptionsListUtils', () => {
             policy,
             searchValue: emptySearch,
             localeCompare,
+            translate: translateLocal,
             transaction,
         });
 
@@ -137,6 +138,7 @@ describe('TaxOptionsListUtils', () => {
             policy,
             searchValue: search,
             localeCompare,
+            translate: translateLocal,
             transaction,
         });
         expect(searchResult).toStrictEqual(searchResultList);
@@ -145,6 +147,7 @@ describe('TaxOptionsListUtils', () => {
             policy,
             searchValue: tokenizeSearch,
             localeCompare,
+            translate: translateLocal,
             transaction,
         });
         expect(tokenizeSearchResult).toStrictEqual(searchResultList);
@@ -153,6 +156,7 @@ describe('TaxOptionsListUtils', () => {
             policy,
             searchValue: wrongSearch,
             localeCompare,
+            translate: translateLocal,
             transaction,
         });
         expect(wrongSearchResult).toStrictEqual(wrongSearchResultList);
@@ -200,9 +204,33 @@ describe('TaxOptionsListUtils', () => {
             policy,
             searchValue: emptySearch,
             localeCompare,
+            translate: translateLocal,
             transaction,
             selectedOptions: [{modifiedName: 'Tax rate 2 (3%)'}],
         });
         expect(selectedDeletedResult).toStrictEqual(selectedDeletedResultList);
+    });
+
+    it('does not repeat the percentage of a rate whose name already ends with it', () => {
+        // Given a default rate named with its percentage, like the one created for UK fuel-band distance rates, next to a plain one
+        const policy = createMock<Policy>({
+            taxRates: {
+                name: 'Tax',
+                defaultExternalID: 'STANDARD_VAT',
+                defaultValue: '20%',
+                foreignTaxDefault: 'STANDARD_VAT',
+                taxes: {
+                    STANDARD_VAT: {name: 'Standard VAT (20%)', value: '20%'},
+                    ZERO_RATED: {name: 'Zero rated', value: '0%'},
+                },
+            },
+        });
+
+        // When the picker builds its options
+        const sections = getTaxRatesSection({policy, searchValue: '', localeCompare, translate: translateLocal});
+
+        // Then the named rate shows its percentage once, and the plain rate still gets its percentage added
+        const optionTexts = sections.flatMap((section) => section.data.map((option) => option.text));
+        expect(optionTexts).toEqual(['Standard VAT (20%) • Default', 'Zero rated (0%)']);
     });
 });

@@ -14,6 +14,7 @@ import type {ReactNode} from 'react';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
+import {makeMutable} from 'react-native-reanimated';
 
 import {createMockReport, getFakeReportAction} from '../utils/ReportTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -47,10 +48,12 @@ jest.mock('@hooks/useReportScrollManager', () => ({
 // --- useReportUnreadMessageScrollTracking ---
 const mockSetIsFloatingMessageCounterVisible = jest.fn();
 const mockSetIsActionBadgeAboveViewport = jest.fn();
+const mockSetIsActionBadgeBelowViewport = jest.fn();
 const mockTrackVerticalScrolling = jest.fn();
 const mockOnViewableItemsChanged = jest.fn();
 let mockIsFloatingMessageCounterVisible = false;
 let mockIsActionBadgeAboveViewport = false;
+let mockIsActionBadgeBelowViewport = false;
 let mockShouldDisablePillTracking: boolean | undefined;
 jest.mock('@pages/inbox/report/useReportUnreadMessageScrollTracking', () => ({
     __esModule: true,
@@ -61,6 +64,8 @@ jest.mock('@pages/inbox/report/useReportUnreadMessageScrollTracking', () => ({
             setIsFloatingMessageCounterVisible: mockSetIsFloatingMessageCounterVisible,
             isActionBadgeAboveViewport: mockIsActionBadgeAboveViewport,
             setIsActionBadgeAboveViewport: mockSetIsActionBadgeAboveViewport,
+            isActionBadgeBelowViewport: mockIsActionBadgeBelowViewport,
+            setIsActionBadgeBelowViewport: mockSetIsActionBadgeBelowViewport,
             trackVerticalScrolling: mockTrackVerticalScrolling,
             onViewableItemsChanged: mockOnViewableItemsChanged,
         };
@@ -201,7 +206,15 @@ function buildParams(overrides: Partial<ScrollParams> = {}): ScrollParams {
 
 // Built via a function so the value isn't an inline literal the context-split lint rule would flag; these are all refs/accessors with no re-render concern.
 function buildActionListContextValue() {
-    return {scrollOffsetRef: mockScrollOffsetRef, getScrollOffset: () => mockScrollOffsetRef.current, registerListRef: () => {}, getListRef: () => null};
+    return {
+        scrollOffsetRef: mockScrollOffsetRef,
+        scrollMetricsSV: makeMutable({offset: 0, distanceToOldestEnd: 0, distanceToNewestEnd: 0, viewportHeight: 0}),
+        syncScrollSharedValues: () => {},
+        collapsedHeaderHeightSV: makeMutable(0),
+        getScrollOffset: () => mockScrollOffsetRef.current,
+        registerListRef: () => {},
+        getListRef: () => null,
+    };
 }
 
 function wrapper({children}: {children: ReactNode}) {
@@ -240,6 +253,7 @@ describe('useReportActionsScroll', () => {
         mockReportRHPActiveRoute = undefined;
         mockIsFloatingMessageCounterVisible = false;
         mockIsActionBadgeAboveViewport = false;
+        mockIsActionBadgeBelowViewport = false;
         mockShouldDisablePillTracking = undefined;
         mockIsScrollToBottomEnabled = false;
         mockIsTransactionThread = false;
@@ -292,13 +306,18 @@ describe('useReportActionsScroll', () => {
             expect(result.current.shouldBeAlignedToTop).toBe(true);
         });
 
-        it('uses the linked report action as the initial scroll key', async () => {
+        it('positions a linked newest answer at its beginning, including index zero', async () => {
+            // Given a preloaded reply is the newest action in its thread.
             mockRouteParams = {reportActionID: LINKED_ACTION_ID};
+            const reply = makeAction(LINKED_ACTION_ID);
 
-            const {result} = await renderScroll({sortedVisibleReportActions: [makeAction(LINKED_ACTION_ID)]});
+            // When Explain opens that action, then explicitly position its top rather than defaulting to the chat bottom.
+            const {result} = await renderScroll({sortedVisibleReportActions: [reply], renderedVisibleReportActions: [reply]});
 
             expect(result.current.initialScrollKey).toBe(LINKED_ACTION_ID);
             expect(result.current.shouldFocusToTopOnMount).toBe(false);
+            expect(result.current.initialScrollIndex).toBe(0);
+            expect(result.current.initialScrollIndexParams).toEqual({viewPosition: 1, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET});
         });
 
         it('falls back to the unread marker action as the initial scroll key', async () => {
@@ -431,6 +450,7 @@ describe('useReportActionsScroll', () => {
 
             // Then the pills are not hidden directly because the target scrolls into view and viewability tracking hides the pill
             expect(mockSetIsActionBadgeAboveViewport).not.toHaveBeenCalled();
+            expect(mockSetIsActionBadgeBelowViewport).not.toHaveBeenCalled();
             expect(mockSetIsFloatingMessageCounterVisible).not.toHaveBeenCalled();
         });
 
@@ -446,6 +466,7 @@ describe('useReportActionsScroll', () => {
 
             // Then both pills are hidden directly because the target can never become viewable to hide them, and the list still scrolls
             expect(mockSetIsActionBadgeAboveViewport).toHaveBeenCalledWith(false);
+            expect(mockSetIsActionBadgeBelowViewport).toHaveBeenCalledWith(false);
             expect(mockSetIsFloatingMessageCounterVisible).toHaveBeenCalledWith(false);
             expect(mockScrollToIndex).toHaveBeenCalledWith(5, {animated: true, viewPosition: 1, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET});
         });
@@ -749,6 +770,18 @@ describe('useReportActionsScroll', () => {
 
             result.current.onViewableItemsChanged({viewableItems: [], changed: []});
             expect(mockOnViewableItemsChanged).toHaveBeenCalled();
+        });
+
+        it('forwards isActionBadgeBelowViewport from the tracking hook', async () => {
+            // Given the tracking hook reports the action badge target below the viewport
+            mockIsActionBadgeBelowViewport = true;
+
+            // When the scroll hook renders
+            const {result} = await renderScroll();
+
+            // Then the below flag reaches the list so the pill can point down
+            expect(result.current.isActionBadgeBelowViewport).toBe(true);
+            expect(result.current.isActionBadgeAboveViewport).toBe(false);
         });
     });
 });

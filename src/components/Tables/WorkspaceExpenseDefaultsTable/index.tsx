@@ -1,15 +1,17 @@
+import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import Table, {composeTableListHeader} from '@components/Table';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
 
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import tokenizedSearch from '@libs/tokenizedSearch';
 
+import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
@@ -22,7 +24,13 @@ import WorkspaceExpenseDefaultsTableRow from './WorkspaceExpenseDefaultsTableRow
 type ExpenseDefaultsTableColumnKey = 'type' | 'condition' | 'rule' | 'actions';
 
 /** The order the `Expense defaults` subsections render in, per the design. */
-const SECTION_ORDER = [CONST.POLICY.EXPENSE_DEFAULTS_SECTION.CATEGORIES, CONST.POLICY.EXPENSE_DEFAULTS_SECTION.MERCHANTS, CONST.POLICY.EXPENSE_DEFAULTS_SECTION.MERCHANT_TYPES] as const;
+const SECTION_ORDER = [
+    CONST.POLICY.EXPENSE_DEFAULTS_SECTION.CATEGORIES,
+    CONST.POLICY.EXPENSE_DEFAULTS_SECTION.TAGS,
+    CONST.POLICY.EXPENSE_DEFAULTS_SECTION.MERCHANTS,
+    CONST.POLICY.EXPENSE_DEFAULTS_SECTION.MULTIPLE_CONDITIONS,
+    CONST.POLICY.EXPENSE_DEFAULTS_SECTION.MERCHANT_TYPES,
+] as const;
 
 type WorkspaceExpenseDefaultsTableProps = {
     rulesData: ExpenseDefaultTableItem[];
@@ -30,31 +38,39 @@ type WorkspaceExpenseDefaultsTableProps = {
     selectedKeys: string[];
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
     headerComponent?: React.ReactElement;
+
+    /** The actions the selected rules support, offered in the floating bar the wide layout shows while rows are selected. */
+    bulkActionOptions?: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>>;
 };
 
-function WorkspaceExpenseDefaultsTable({rulesData, selectionEnabled, selectedKeys, onRowSelectionChange, headerComponent}: WorkspaceExpenseDefaultsTableProps) {
+function WorkspaceExpenseDefaultsTable({rulesData, selectionEnabled, selectedKeys, onRowSelectionChange, headerComponent, bulkActionOptions}: WorkspaceExpenseDefaultsTableProps) {
     const {translate, localeCompare} = useLocalize();
-    const styles = useThemeStyles();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
-    const columns: Array<TableColumn<ExpenseDefaultsTableColumnKey>> = [
+    const columns: Array<TableColumn<ExpenseDefaultsTableColumnKey, ExpenseDefaultTableItem>> = [
         {
             key: 'type',
             label: translate('workspace.rules.expenseDefaultsTable.tableColumnType'),
             sortable: true,
             width: variables.tableTypeColumnWidth,
-            styling: {containerStyles: [styles.justifyContentCenter]},
+            styling: {alignment: CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.CENTER},
         },
         {
             key: 'condition',
             label: translate('workspace.rules.expenseDefaultsTable.tableColumnCondition'),
             sortable: true,
+            dynamicSizing: {
+                getContentToMeasure: (item) => [{text: item.conditionText, fontSize: fontScale.text}],
+            },
         },
         {
             key: 'rule',
             label: translate('workspace.rules.expenseDefaultsTable.tableColumnRule'),
             sortable: true,
+            dynamicSizing: {
+                getContentToMeasure: (item) => [{text: item.ruleDescription, fontSize: fontScale.text}],
+            },
         },
         {
             key: 'actions',
@@ -112,6 +128,8 @@ function WorkspaceExpenseDefaultsTable({rulesData, selectionEnabled, selectedKey
 
     return (
         <Table
+            shouldUseDynamicColumns
+            columnResizingID={CONST.TABLES.COLUMN_RESIZING_IDS.WORKSPACE_EXPENSE_DEFAULTS}
             data={rulesData}
             columns={columns}
             selectionEnabled={selectionEnabled}
@@ -122,13 +140,13 @@ function WorkspaceExpenseDefaultsTable({rulesData, selectionEnabled, selectedKey
             compareItems={compareItems}
             isItemInSearch={isItemInSearch}
             initialSortColumn="condition"
-            narrowLayoutSortColumn="condition"
             title={translate('workspace.rules.tabs.expenseDefaults')}
         >
             <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
             <Table.NoResultsState />
             <Table.Header />
             <Table.Body />
+            {!!bulkActionOptions && <Table.BulkActionBar options={bulkActionOptions} />}
         </Table>
     );
 }

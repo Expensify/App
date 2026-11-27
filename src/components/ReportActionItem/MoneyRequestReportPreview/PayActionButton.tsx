@@ -1,4 +1,5 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
+import type {PaymentMethod} from '@components/KYCWall/types';
 import AnimatedSettlementButton from '@components/SettlementButton/AnimatedSettlementButton';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
 
@@ -12,11 +13,13 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import usePayChatReportActions from '@hooks/usePayChatReportActions';
+import usePayViaABA from '@hooks/usePayViaABA';
 import usePayWithWiseQuote from '@hooks/usePayWithWiseQuote';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getHoldMenuAmounts from '@libs/HoldMenuUtils';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
@@ -31,6 +34,7 @@ import ROUTES from '@src/ROUTES';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {isActionLoadingSelector} from '@selectors/ReportMetaData';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
@@ -59,6 +63,8 @@ function PayActionButton() {
     const {reportPreviewAction, canIOUBePaid, onlyShowPayElsewhere, shouldShowPayButton} = useReportPreviewActionState();
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    // The button keeps loading while an action on the report is in flight, such as a payment held until the backend answers, so it can't be paid twice
+    const [isPaymentInFlight] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${getNonEmptyStringOnyxID(iouReportID)}`, {selector: isActionLoadingSelector});
     const activePolicy = usePolicy(activePolicyID);
     const actionButtonData = useReportPreviewActionButtonData(iouReportID);
     const {iouReport, policy, userBillingGracePeriodEnds, amountOwed, ownerBillingGracePeriodEnd} = actionButtonData;
@@ -66,6 +72,7 @@ function PayActionButton() {
 
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
     const getChatReportActions = usePayChatReportActions(chatReport, existingB2BInvoiceReport);
+    const {payReportsViaABA, isDownloadingABAFile} = usePayViaABA();
     const canAllowSettlement = hasUpdatedTotal(iouReport, policy);
 
     const shouldShowOnlyPayElsewhere = !canIOUBePaid && onlyShowPayElsewhere;
@@ -74,7 +81,7 @@ function PayActionButton() {
     const formattedAmount = getTotalAmountForIOUReportPreviewButton(iouReport, policy, reportPreviewAction, transactions, convertToDisplayString);
 
     // Only the pay flow opens this menu. Approve surfaces its partial/full choice in the approve dropdown instead.
-    const openHoldMenu = (paymentType: PaymentMethodType, methodID?: number) => {
+    const openHoldMenu = (paymentType: PaymentMethodType, methodID?: number, paymentMethod?: PaymentMethod) => {
         if (!iouReport) {
             return;
         }
@@ -84,6 +91,7 @@ function PayActionButton() {
                 reportID: iouReportID,
                 chatReportID,
                 paymentType,
+                paymentMethod,
                 methodID,
                 ...getHoldMenuAmounts(iouReport, shouldShowPayButton, transactions, convertToDisplayString),
                 onConfirm: startAnimation,
@@ -98,7 +106,7 @@ function PayActionButton() {
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
         } else if (hasHeldExpensesReportUtils(transactions)) {
-            openHoldMenu(type, methodID);
+            openHoldMenu(type, methodID, paymentMethod);
         } else if (chatReport && iouReport) {
             const [conciergeReportID, introSelected, onboarding, rules, bankAccountList] = await Onyx.multiGet([
                 ONYXKEYS.CONCIERGE_REPORT_ID,
@@ -138,6 +146,8 @@ function PayActionButton() {
                     isTrackIntentUser,
                     rules,
                 });
+            } else if (paymentMethod === CONST.PAYMENT_METHODS.ABA) {
+                payReportsViaABA([iouReport], policy, {onPaid: startAnimation});
             } else {
                 payWithWiseQuote({
                     bankAccountList,
@@ -199,7 +209,7 @@ function PayActionButton() {
                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
             }}
             isDisabled={isOffline && !canAllowSettlement}
-            isLoading={!isOffline && !canAllowSettlement}
+            isLoading={(!isOffline && (!canAllowSettlement || !!isPaymentInFlight)) || isDownloadingABAFile}
             sentryLabel={CONST.SENTRY_LABEL.REPORT_PREVIEW.PAY_BUTTON}
         />
     );
