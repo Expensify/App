@@ -21,7 +21,7 @@ jobs:
   requestReviewers:
     name: Request reviewers for new Onyx.connectWithoutView calls
     if: ${{ github.event.pull_request.draft == false }}
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2404-arm
     steps:
       - name: Request reviewers and leave a comment
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v7

@@ -195,7 +195,7 @@ jobs:
   assertHasTargets:
     needs: [verifyPatches]
     if: github.event_name == 'workflow_dispatch' && needs.verifyPatches.outputs.build_targets == ''
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2404-arm
     steps:
       - name: Fail when nothing was selected to build
         run: |
