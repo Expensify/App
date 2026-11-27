@@ -8,7 +8,9 @@
     NitroFetch bypasses the app's existing certificate-pinning clients on mobile. This patch applies
     Expensify's public-key pins to both Android Cronet engines, supports monitor-only reporting via
     a separate pinned Cronet probe, enforces pins on real traffic when enabled, validates standard requests, startup prefetches, token
-    refreshes, and streaming requests.
+    refreshes, and streaming requests. In enforce mode it also sends the package-scoped
+    `com.expensify.CERTIFICATE_PINNING_CONNECTION_BLOCKED` broadcast for a pin mismatch, so the app can tell the
+    user the network intercepts TLS (see config/certificatePinning/README.md).
     ```
 
 - Upstream PR/issue: None. The certificate hosts and public-key pins are specific to Expensify's application configuration and are not appropriate defaults for react-native-nitro-fetch.

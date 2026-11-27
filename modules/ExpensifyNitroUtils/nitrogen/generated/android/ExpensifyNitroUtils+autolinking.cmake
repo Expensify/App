@@ -34,12 +34,14 @@ target_sources(
   ../nitrogen/generated/android/ExpensifyNitroUtilsOnLoad.cpp
   # Shared Nitrogen C++ sources
   ../nitrogen/generated/shared/c++/HybridAppStartTimeModuleSpec.cpp
+  ../nitrogen/generated/shared/c++/HybridCertificatePinningModuleSpec.cpp
   ../nitrogen/generated/shared/c++/HybridContactsModuleSpec.cpp
   ../nitrogen/generated/shared/c++/HybridDocumentDetectorModuleSpec.cpp
   ../nitrogen/generated/shared/c++/HybridShareActionHandlerSpec.cpp
   ../nitrogen/generated/shared/c++/HybridVerticalBarModuleSpec.cpp
   # Android-specific Nitrogen C++ sources
   ../nitrogen/generated/android/c++/JHybridAppStartTimeModuleSpec.cpp
+  ../nitrogen/generated/android/c++/JHybridCertificatePinningModuleSpec.cpp
   ../nitrogen/generated/android/c++/JHybridContactsModuleSpec.cpp
   ../nitrogen/generated/android/c++/JHybridDocumentDetectorModuleSpec.cpp
   ../nitrogen/generated/android/c++/JHybridShareActionHandlerSpec.cpp

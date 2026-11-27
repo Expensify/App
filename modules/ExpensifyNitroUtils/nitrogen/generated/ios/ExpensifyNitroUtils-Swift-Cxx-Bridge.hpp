@@ -8,6 +8,8 @@
 #pragma once
 
 // Forward declarations of C++ defined types
+// Forward declaration of `BlockedConnection` to properly resolve imports.
+namespace margelo::nitro::utils { struct BlockedConnection; }
 // Forward declaration of `ContactFields` to properly resolve imports.
 namespace margelo::nitro::utils { enum class ContactFields; }
 // Forward declaration of `Contact` to properly resolve imports.
@@ -18,6 +20,8 @@ namespace margelo::nitro::utils { struct DetectedDocument; }
 namespace margelo::nitro::utils { struct DocumentCorner; }
 // Forward declaration of `HybridAppStartTimeModuleSpec` to properly resolve imports.
 namespace margelo::nitro::utils { class HybridAppStartTimeModuleSpec; }
+// Forward declaration of `HybridCertificatePinningModuleSpec` to properly resolve imports.
+namespace margelo::nitro::utils { class HybridCertificatePinningModuleSpec; }
 // Forward declaration of `HybridContactsModuleSpec` to properly resolve imports.
 namespace margelo::nitro::utils { class HybridContactsModuleSpec; }
 // Forward declaration of `HybridDocumentDetectorModuleSpec` to properly resolve imports.
@@ -36,6 +40,8 @@ namespace margelo::nitro::utils { enum class VerticalBarEdge; }
 // Forward declarations of Swift defined types
 // Forward declaration of `HybridAppStartTimeModuleSpec_cxx` to properly resolve imports.
 namespace ExpensifyNitroUtils { class HybridAppStartTimeModuleSpec_cxx; }
+// Forward declaration of `HybridCertificatePinningModuleSpec_cxx` to properly resolve imports.
+namespace ExpensifyNitroUtils { class HybridCertificatePinningModuleSpec_cxx; }
 // Forward declaration of `HybridContactsModuleSpec_cxx` to properly resolve imports.
 namespace ExpensifyNitroUtils { class HybridContactsModuleSpec_cxx; }
 // Forward declaration of `HybridDocumentDetectorModuleSpec_cxx` to properly resolve imports.
@@ -46,11 +52,13 @@ namespace ExpensifyNitroUtils { class HybridShareActionHandlerSpec_cxx; }
 namespace ExpensifyNitroUtils { class HybridVerticalBarModuleSpec_cxx; }
 
 // Include C++ defined types
+#include "BlockedConnection.hpp"
 #include "Contact.hpp"
 #include "ContactFields.hpp"
 #include "DetectedDocument.hpp"
 #include "DocumentCorner.hpp"
 #include "HybridAppStartTimeModuleSpec.hpp"
+#include "HybridCertificatePinningModuleSpec.hpp"
 #include "HybridContactsModuleSpec.hpp"
 #include "HybridDocumentDetectorModuleSpec.hpp"
 #include "HybridShareActionHandlerSpec.hpp"
@@ -125,6 +133,49 @@ namespace margelo::nitro::utils::bridge::swift {
   }
   inline std::string get_std__optional_std__string_(const std::optional<std::string>& optional) noexcept {
     return optional.value();
+  }
+  
+  // pragma MARK: std::function<void(const BlockedConnection& /* connection */)>
+  /**
+   * Specialized version of `std::function<void(const BlockedConnection&)>`.
+   */
+  using Func_void_BlockedConnection = std::function<void(const BlockedConnection& /* connection */)>;
+  /**
+   * Wrapper class for a `std::function<void(const BlockedConnection& / * connection * /)>`, this can be used from Swift.
+   */
+  class Func_void_BlockedConnection_Wrapper final {
+  public:
+    explicit Func_void_BlockedConnection_Wrapper(std::function<void(const BlockedConnection& /* connection */)>&& func): _function(std::make_unique<std::function<void(const BlockedConnection& /* connection */)>>(std::move(func))) {}
+    inline void call(BlockedConnection connection) const noexcept {
+      _function->operator()(connection);
+    }
+  private:
+    std::unique_ptr<std::function<void(const BlockedConnection& /* connection */)>> _function;
+  } SWIFT_NONCOPYABLE;
+  Func_void_BlockedConnection create_Func_void_BlockedConnection(void* NON_NULL swiftClosureWrapper) noexcept;
+  inline Func_void_BlockedConnection_Wrapper wrap_Func_void_BlockedConnection(Func_void_BlockedConnection value) noexcept {
+    return Func_void_BlockedConnection_Wrapper(std::move(value));
+  }
+  
+  // pragma MARK: std::shared_ptr<HybridCertificatePinningModuleSpec>
+  /**
+   * Specialized version of `std::shared_ptr<HybridCertificatePinningModuleSpec>`.
+   */
+  using std__shared_ptr_HybridCertificatePinningModuleSpec_ = std::shared_ptr<HybridCertificatePinningModuleSpec>;
+  std::shared_ptr<HybridCertificatePinningModuleSpec> create_std__shared_ptr_HybridCertificatePinningModuleSpec_(void* NON_NULL swiftUnsafePointer) noexcept;
+  void* NON_NULL get_std__shared_ptr_HybridCertificatePinningModuleSpec_(std__shared_ptr_HybridCertificatePinningModuleSpec_ cppType);
+  
+  // pragma MARK: std::weak_ptr<HybridCertificatePinningModuleSpec>
+  using std__weak_ptr_HybridCertificatePinningModuleSpec_ = std::weak_ptr<HybridCertificatePinningModuleSpec>;
+  inline std__weak_ptr_HybridCertificatePinningModuleSpec_ weakify_std__shared_ptr_HybridCertificatePinningModuleSpec_(const std::shared_ptr<HybridCertificatePinningModuleSpec>& strong) noexcept { return strong; }
+  
+  // pragma MARK: Result<void>
+  using Result_void_ = Result<void>;
+  inline Result_void_ create_Result_void_() noexcept {
+    return Result<void>::withValue();
+  }
+  inline Result_void_ create_Result_void_(const std::exception_ptr& error) noexcept {
+    return Result<void>::withError(error);
   }
   
   // pragma MARK: std::vector<StringHolder>
@@ -321,15 +372,6 @@ namespace margelo::nitro::utils::bridge::swift {
   }
   inline Result_double_ create_Result_double_(const std::exception_ptr& error) noexcept {
     return Result<double>::withError(error);
-  }
-  
-  // pragma MARK: Result<void>
-  using Result_void_ = Result<void>;
-  inline Result_void_ create_Result_void_() noexcept {
-    return Result<void>::withValue();
-  }
-  inline Result_void_ create_Result_void_(const std::exception_ptr& error) noexcept {
-    return Result<void>::withError(error);
   }
   
   // pragma MARK: std::vector<SharedFile>

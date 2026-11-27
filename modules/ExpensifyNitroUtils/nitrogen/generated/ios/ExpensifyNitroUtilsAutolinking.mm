@@ -15,6 +15,7 @@
 #include "HybridDocumentDetectorModuleSpecSwift.hpp"
 #include "HybridVerticalBarModuleSpecSwift.hpp"
 #include "HybridShareActionHandlerSpecSwift.hpp"
+#include "HybridCertificatePinningModuleSpecSwift.hpp"
 
 @interface ExpensifyNitroUtilsAutolinking : NSObject
 @end
@@ -57,6 +58,13 @@
     "ShareActionHandler",
     []() -> std::shared_ptr<HybridObject> {
       std::shared_ptr<HybridShareActionHandlerSpec> hybridObject = ExpensifyNitroUtils::ExpensifyNitroUtilsAutolinking::createShareActionHandler();
+      return hybridObject;
+    }
+  );
+  HybridObjectRegistry::registerHybridObjectConstructor(
+    "CertificatePinningModule",
+    []() -> std::shared_ptr<HybridObject> {
+      std::shared_ptr<HybridCertificatePinningModuleSpec> hybridObject = ExpensifyNitroUtils::ExpensifyNitroUtilsAutolinking::createCertificatePinningModule();
       return hybridObject;
     }
   );

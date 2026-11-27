@@ -138,6 +138,27 @@ Reporting requires early native Sentry initialization via `SentryNativeSDKManage
 Do not rely on JS fetch error message matching for monitoring; it is incomplete (misses WebView paths)
 and fragile across OS versions.
 
+## Telling the user a connection was blocked
+
+In enforce mode a blocked connection looks like any other network failure, so the app would only say the user
+appears to be offline. Each native sender below announces a blocked connection with an in-process signal instead,
+and `HybridCertificatePinningModule` in `modules/ExpensifyNitroUtils` forwards it to JS. `NetworkState` remembers the
+blocked host, and while the app is offline `OfflineIndicator` says Expensify can't connect securely, with a
+"Learn more" link that explains how to fix it (try another network, or ask IT to exclude expensify.com from TLS
+inspection). The message never offers a way to bypass pinning.
+
+Only a real pin mismatch that blocked the connection is announced. Monitor mode, a chain the device itself rejects,
+and a hostname mismatch send nothing, so an ordinary offline state is never reported as interception. The blocked
+state clears when a request or the Ping to a pinned host succeeds, or when the device switches to another network type.
+
+| Platform | Signal | Payload | Senders |
+|----------|--------|---------|---------|
+| iOS | `NotificationCenter` notification `ExpensifyCertificatePinningConnectionBlocked` | `userInfo["host"]`, optional `userInfo["rootCertificateName"]` (subject of the anchor) | TrustKit callback (`failedNoMatchingPin` + `shouldBlockConnection`) in `ios/CertificatePinning.swift`, and in HybridApp `ExpensifyCertificatePinningAnnounceBlockedConnection` in `Mobile-Expensify/iOS/Expensify/CertificatePinningReporter.m` |
+| Android | Package-scoped broadcast `com.expensify.CERTIFICATE_PINNING_CONNECTION_BLOCKED` | extra `host`, optional extra `rootCertificateName` | OkHttp enforce interceptors in `CertificatePinning.kt` and `Mobile-Expensify/.../ExpensifyCertificatePinner.java`, Cronet in the `react-native-nitro-fetch` patch (both builds) |
+
+Keep the names and keys identical in every sender and in the listener. HttpURLConnection and WebView enforce pinning
+through the platform `<pin-set>`, which gives no callback, so failures there only show the usual offline message.
+
 ## Single source of truth
 
 `config/certificatePinning/pins.json` is the canonical pin list. The native files above mirror it.

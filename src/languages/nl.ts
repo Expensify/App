@@ -290,6 +290,9 @@ const translations: TranslationDeepObject<typeof en> = {
         your: 'jouw',
         conciergeHelp: 'Neem contact op met Concierge voor hulp.',
         youAppearToBeOffline: 'Het lijkt erop dat je offline bent.',
+        cantConnectSecurely: 'Expensify kan geen beveiligde verbinding maken.',
+        cantConnectSecurelyPrompt:
+            'Een beveiligingsproxy, VPN of filter-app verstoort mogelijk je verbinding. Probeer een ander netwerk of vraag je IT-team om expensify.com uit te sluiten van TLS-inspectie.',
         thisFeatureRequiresInternet: 'Voor deze functie is een actieve internetverbinding vereist.',
         attachmentWillBeAvailableOnceBackOnline: 'Bijlage wordt beschikbaar zodra je weer online bent.',
         errorOccurredWhileTryingToPlayVideo: 'Er is een fout opgetreden tijdens het afspelen van deze video.',

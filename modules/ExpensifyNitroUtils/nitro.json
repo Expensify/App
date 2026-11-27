@@ -27,6 +27,10 @@
         "ShareActionHandler": {
             "ios": {"language": "swift", "implementationClassName": "HybridShareActionHandler"},
             "android": {"language": "kotlin", "implementationClassName": "HybridShareActionHandler"}
+        },
+        "CertificatePinningModule": {
+            "ios": {"language": "swift", "implementationClassName": "HybridCertificatePinningModule"},
+            "android": {"language": "kotlin", "implementationClassName": "HybridCertificatePinningModule"}
         }
     },
     "ignorePaths": ["node_modules"]

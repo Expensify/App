@@ -12,13 +12,14 @@ index 45c0f78..2a3d84c 100644
  }
 diff --git a/node_modules/react-native-nitro-fetch/android/src/main/java/com/margelo/nitro/nitrofetch/ExpensifyCertificatePins.kt b/node_modules/react-native-nitro-fetch/android/src/main/java/com/margelo/nitro/nitrofetch/ExpensifyCertificatePins.kt
 new file mode 100644
-index 0000000..a432432
+index 0000000..9fd897c
 --- /dev/null
 +++ b/node_modules/react-native-nitro-fetch/android/src/main/java/com/margelo/nitro/nitrofetch/ExpensifyCertificatePins.kt
-@@ -0,0 +1,213 @@
+@@ -0,0 +1,231 @@
 +package com.margelo.nitro.nitrofetch
 +
 +import android.content.Context
++import android.content.Intent
 +import android.net.Uri
 +import io.sentry.Sentry
 +import io.sentry.SentryLevel
@@ -62,8 +63,16 @@ index 0000000..a432432
 +  }
 +  private val monitoredHosts = ConcurrentHashMap.newKeySet<String>()
 +
++  // Package-scoped broadcast that tells JS a connection was blocked, so the app can explain it instead of only
++  // appearing offline. Keep the action and extra in sync with config/certificatePinning/README.md.
++  private const val ACTION_CONNECTION_BLOCKED = "com.expensify.CERTIFICATE_PINNING_CONNECTION_BLOCKED"
++  private const val EXTRA_HOST = "host"
++
 +  @Volatile
 +  private var monitorEngine: CronetEngine? = null
++
++  @Volatile
++  private var applicationContext: Context? = null
 +
 +  private fun decode(base64Hash: String): ByteArray = android.util.Base64.decode(base64Hash, android.util.Base64.DEFAULT)
 +
@@ -117,6 +126,7 @@ index 0000000..a432432
 +    }
 +
 +    if (ENFORCE_PINNING) {
++      applicationContext = context.applicationContext
 +      applyPins(builder)
 +      return
 +    }
@@ -188,7 +198,15 @@ index 0000000..a432432
 +    val host = Uri.parse(url).host?.lowercase() ?: return
 +    if (pinnedDomains.containsKey(host)) {
 +      reportPinningFailure(host, error)
++      announceBlockedConnection(host)
 +    }
++  }
++
++  // Cronet does not expose the rejected chain, so unlike the OkHttp sender this one cannot name the root certificate.
++  // The broadcast is limited to this package because the receiver cannot be registered as not exported before Android 13.
++  private fun announceBlockedConnection(host: String) {
++    val context = applicationContext ?: return
++    context.sendBroadcast(Intent(ACTION_CONNECTION_BLOCKED).setPackage(context.packageName).putExtra(EXTRA_HOST, host))
 +  }
 +
 +  @Synchronized

@@ -290,6 +290,9 @@ const translations: TranslationDeepObject<typeof en> = {
         your: 'il tuo',
         conciergeHelp: 'Contatta Concierge per assistenza.',
         youAppearToBeOffline: 'Sembra che tu sia offline.',
+        cantConnectSecurely: 'Expensify non riesce a connettersi in modo sicuro.',
+        cantConnectSecurelyPrompt:
+            'Un proxy di sicurezza, una VPN o un’app di filtraggio potrebbe interferire con la tua connessione. Prova un’altra rete o chiedi al tuo team IT di escludere expensify.com dall’ispezione TLS.',
         thisFeatureRequiresInternet: 'Questa funzione richiede una connessione Internet attiva.',
         attachmentWillBeAvailableOnceBackOnline: 'L’allegato sarà disponibile quando tornerai online.',
         errorOccurredWhileTryingToPlayVideo: 'Si è verificato un errore durante il tentativo di riprodurre questo video.',

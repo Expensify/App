@@ -1,5 +1,7 @@
 package com.expensify.chat
 
+import android.content.Context
+import android.content.Intent
 import android.net.http.X509TrustManagerExtensions
 import com.facebook.react.modules.network.OkHttpClientProvider
 import io.sentry.Sentry
@@ -61,7 +63,22 @@ object CertificatePinning {
     private const val OUTCOME_TRUST_EXTENSIONS_UNAVAILABLE = "trust_extensions_unavailable"
     private const val OUTCOME_CHAIN_REBUILD_FAILED = "chain_rebuild_failed"
 
+    /**
+     * Package-scoped broadcast that tells JS a connection was blocked, so the app can explain it instead of only
+     * appearing offline. HybridCertificatePinningModule in modules/ExpensifyNitroUtils receives it. The action and
+     * extras are documented in config/certificatePinning/README.md and must match that receiver and the other
+     * senders (the react-native-nitro-fetch patch and Mobile-Expensify).
+     */
+    private const val ACTION_CONNECTION_BLOCKED = "com.expensify.CERTIFICATE_PINNING_CONNECTION_BLOCKED"
+    private const val EXTRA_HOST = "host"
+    private const val EXTRA_ROOT_CERTIFICATE_NAME = "rootCertificateName"
+
+    /** OkHttp starts the message of a pin mismatch with this. Other peer verification failures, such as a hostname mismatch, do not. */
+    private const val OKHTTP_PIN_MISMATCH_MESSAGE_PREFIX = "Certificate pinning failure!"
+
     private val trustExtensionsFailureReported = AtomicBoolean(false)
+
+    private var applicationContext: Context? = null
 
     /**
      * Canonical pin data: domain → list of "sha256/<base64>" pin strings.
@@ -255,10 +272,11 @@ object CertificatePinning {
      * [MainApplication.onCreate]). Pinning is disabled in debug builds so local dev keeps working.
      */
     @JvmStatic
-    fun install() {
+    fun install(context: Context) {
         if (BuildConfig.DEBUG) {
             return
         }
+        applicationContext = context.applicationContext
 
         val certificatePinner = buildCertificatePinner()
         OkHttpClientProvider.setOkHttpClientFactory {
@@ -343,6 +361,36 @@ object CertificatePinning {
     }
 
     /**
+     * Sends [ACTION_CONNECTION_BLOCKED] for a connection that enforce mode refused. The broadcast is limited to this
+     * package, because on Android 12 and older the receiver cannot be registered as not exported.
+     */
+    private fun announceBlockedConnection(hostname: String, rootCertificateName: String?) {
+        val context = applicationContext ?: return
+        val intent = Intent(ACTION_CONNECTION_BLOCKED)
+            .setPackage(context.packageName)
+            .putExtra(EXTRA_HOST, hostname)
+        if (rootCertificateName != null) {
+            intent.putExtra(EXTRA_ROOT_CERTIFICATE_NAME, rootCertificateName)
+        }
+        context.sendBroadcast(intent)
+    }
+
+    /**
+     * OkHttp lists the validated chain in the pin mismatch message, one `sha256/<pin>: <subject>` line per certificate
+     * from the leaf to the root, before the pinned certificates. Returns the subject of the last one, which names
+     * the proxy or filter that issued the chain, or null when the message has another shape.
+     */
+    private fun extractRootCertificateName(pinMismatchMessage: String): String? {
+        val chainLines = pinMismatchMessage
+            .substringAfter("Peer certificate chain:", "")
+            .substringBefore("Pinned certificates for")
+            .lines()
+            .map { it.trim() }
+            .filter { it.startsWith("sha256/") }
+        return chainLines.lastOrNull()?.substringAfter(": ", "")?.takeIf { it.isNotEmpty() }
+    }
+
+    /**
      * Reports a problem with the monitoring itself (not a pin mismatch), tagged with
      * `certificate_pinning_outcome` so it can be told apart from real pin failures in Sentry.
      * Mirrors [WebViewCertificateMonitor].
@@ -379,12 +427,16 @@ object CertificatePinning {
             try {
                 return chain.proceed(chain.request())
             } catch (error: SSLPeerUnverifiedException) {
+                val message = error.message ?: "Certificate pinning validation failed"
                 reportPinningFailure(
                     hostname = chain.request().url.host,
                     url = chain.request().url,
                     channel = "OkHttp",
-                    message = error.message ?: "Certificate pinning validation failed",
+                    message = message,
                 )
+                if (message.startsWith(OKHTTP_PIN_MISMATCH_MESSAGE_PREFIX)) {
+                    announceBlockedConnection(chain.request().url.host, extractRootCertificateName(message))
+                }
                 throw error
             }
         }

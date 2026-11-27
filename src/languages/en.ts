@@ -369,6 +369,9 @@ const translations = {
         your: 'your',
         conciergeHelp: 'Please reach out to Concierge for help.',
         youAppearToBeOffline: 'You appear to be offline.',
+        cantConnectSecurely: 'Expensify can’t connect securely.',
+        cantConnectSecurelyPrompt:
+            'A security proxy, VPN, or filtering app may be interfering with your connection. Try a different network or ask your IT team to exclude expensify.com from TLS inspection.',
         thisFeatureRequiresInternet: 'This feature requires an active internet connection.',
         attachmentWillBeAvailableOnceBackOnline: 'Attachment will become available once back online.',
         errorOccurredWhileTryingToPlayVideo: 'An error occurred while trying to play this video.',

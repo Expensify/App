@@ -8,6 +8,8 @@ const NitroModules = {
         edge: 'unspecified',
         addEdgeListener: jest.fn(() => () => {}),
         processFiles: jest.fn(() => Promise.resolve([])),
+        setConnectionBlockedListener: jest.fn(),
+        removeConnectionBlockedListener: jest.fn(),
     })),
 };
 

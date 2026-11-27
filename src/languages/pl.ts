@@ -296,6 +296,9 @@ const translations: TranslationDeepObject<typeof en> = {
         your: 'twój',
         conciergeHelp: 'Skontaktuj się z Concierge, aby uzyskać pomoc.',
         youAppearToBeOffline: 'Wygląda na to, że jesteś offline.',
+        cantConnectSecurely: 'Expensify nie może nawiązać bezpiecznego połączenia.',
+        cantConnectSecurelyPrompt:
+            'Serwer proxy zabezpieczeń, VPN lub aplikacja filtrująca może zakłócać Twoje połączenie. Spróbuj innej sieci lub poproś dział IT o wyłączenie expensify.com z inspekcji TLS.',
         thisFeatureRequiresInternet: 'Ta funkcja wymaga aktywnego połączenia z internetem.',
         attachmentWillBeAvailableOnceBackOnline: 'Załącznik będzie dostępny po ponownym połączeniu z internetem.',
         errorOccurredWhileTryingToPlayVideo: 'Wystąpił błąd podczas próby odtworzenia tego wideo.',

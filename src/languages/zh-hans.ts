@@ -290,6 +290,8 @@ const translations: TranslationDeepObject<typeof en> = {
         your: '你的',
         conciergeHelp: '如需帮助，请联系 Concierge。',
         youAppearToBeOffline: '你似乎处于离线状态。',
+        cantConnectSecurely: 'Expensify 无法安全连接。',
+        cantConnectSecurelyPrompt: '安全代理、VPN 或过滤应用可能正在干扰你的连接。请尝试其他网络，或请你的 IT 团队将 expensify.com 排除在 TLS 检查之外。',
         thisFeatureRequiresInternet: '此功能需要有效的互联网连接。',
         attachmentWillBeAvailableOnceBackOnline: '重新联网后即可查看附件。',
         errorOccurredWhileTryingToPlayVideo: '尝试播放此视频时发生错误。',

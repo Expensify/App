@@ -8,6 +8,8 @@
 #pragma once
 
 // Forward declarations of C++ defined types
+// Forward declaration of `BlockedConnection` to properly resolve imports.
+namespace margelo::nitro::utils { struct BlockedConnection; }
 // Forward declaration of `ContactFields` to properly resolve imports.
 namespace margelo::nitro::utils { enum class ContactFields; }
 // Forward declaration of `Contact` to properly resolve imports.
@@ -18,6 +20,8 @@ namespace margelo::nitro::utils { struct DetectedDocument; }
 namespace margelo::nitro::utils { struct DocumentCorner; }
 // Forward declaration of `HybridAppStartTimeModuleSpec` to properly resolve imports.
 namespace margelo::nitro::utils { class HybridAppStartTimeModuleSpec; }
+// Forward declaration of `HybridCertificatePinningModuleSpec` to properly resolve imports.
+namespace margelo::nitro::utils { class HybridCertificatePinningModuleSpec; }
 // Forward declaration of `HybridContactsModuleSpec` to properly resolve imports.
 namespace margelo::nitro::utils { class HybridContactsModuleSpec; }
 // Forward declaration of `HybridDocumentDetectorModuleSpec` to properly resolve imports.
@@ -36,11 +40,13 @@ namespace margelo::nitro::utils { enum class VerticalBarEdge; }
 namespace margelo::nitro::utils { struct YuvFrame; }
 
 // Include C++ defined types
+#include "BlockedConnection.hpp"
 #include "Contact.hpp"
 #include "ContactFields.hpp"
 #include "DetectedDocument.hpp"
 #include "DocumentCorner.hpp"
 #include "HybridAppStartTimeModuleSpec.hpp"
+#include "HybridCertificatePinningModuleSpec.hpp"
 #include "HybridContactsModuleSpec.hpp"
 #include "HybridDocumentDetectorModuleSpec.hpp"
 #include "HybridShareActionHandlerSpec.hpp"
@@ -72,6 +78,8 @@ namespace margelo::nitro::utils { struct YuvFrame; }
 // Forward declarations of Swift defined types
 // Forward declaration of `HybridAppStartTimeModuleSpec_cxx` to properly resolve imports.
 namespace ExpensifyNitroUtils { class HybridAppStartTimeModuleSpec_cxx; }
+// Forward declaration of `HybridCertificatePinningModuleSpec_cxx` to properly resolve imports.
+namespace ExpensifyNitroUtils { class HybridCertificatePinningModuleSpec_cxx; }
 // Forward declaration of `HybridContactsModuleSpec_cxx` to properly resolve imports.
 namespace ExpensifyNitroUtils { class HybridContactsModuleSpec_cxx; }
 // Forward declaration of `HybridDocumentDetectorModuleSpec_cxx` to properly resolve imports.
