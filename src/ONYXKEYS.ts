@@ -247,6 +247,9 @@ const ONYXKEYS = {
     /** Contains the user preference for the active inbox tab filter */
     NVP_INBOX_TAB: 'nvp_inboxTab',
 
+    /** What the Insights Details panel's Biggest changes section groups by */
+    NVP_INSIGHTS_BIGGEST_CHANGES_GROUP_BY: 'nvp_insightsBiggestChangesGroupBy',
+
     /** Contains the users's block expiration (if they have one) */
     NVP_BLOCKED_FROM_CONCIERGE: 'nvp_private_blockedFromConcierge',
 
@@ -1913,6 +1916,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_MUTED_PLATFORMS]: Partial<Record<Platform, true>>;
     [ONYXKEYS.NVP_PRIORITY_MODE]: ValueOf<typeof CONST.PRIORITY_MODE>;
     [ONYXKEYS.NVP_INBOX_TAB]: ValueOf<typeof CONST.INBOX_TAB>;
+    [ONYXKEYS.NVP_INSIGHTS_BIGGEST_CHANGES_GROUP_BY]: OnyxTypes.InsightsBiggestChangesGroupBy;
     [ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE]: OnyxTypes.BlockedFromConcierge;
     [ONYXKEYS.QUEUE_FLUSHED_DATA]: AnyOnyxUpdate[];
     [ONYXKEYS.TRANSACTIONS_PENDING_3DS_REVIEW]: OnyxTypes.TransactionsPending3DSReview;

@@ -1,3 +1,5 @@
+import type CONST from '@src/CONST';
+
 import type {Errors} from './OnyxCommon';
 
 /** Summary of the period and the item's average over the previous periods */
@@ -28,12 +30,26 @@ type InsightsDetailsHistoryPeriod = {
     count: number;
 } & ({year: number; month: number} | {year: number; quarter: number} | {year: number} | {week: string} | {day: string});
 
+/** What the Biggest changes section groups the period's spend by */
+type InsightsBiggestChangesGroupBy = typeof CONST.SEARCH.GROUP_BY.CATEGORY | typeof CONST.SEARCH.GROUP_BY.MERCHANT | typeof CONST.SEARCH.GROUP_BY.FROM;
+
+/** One item of the Biggest changes section, with its spend in the summarized period and its own average */
+type InsightsDetailsBiggestChange = {
+    total: number;
+    count: number;
+    currency: string;
+    average: number;
+} & ({category: string} | {merchant: string} | {accountID: number});
+
 /** Data of one Insights Details panel */
 type InsightsDetails = {
     summary?: InsightsDetailsSummary;
 
     /** The item's spend in the summarized period and the ones before it, newest first */
     recentHistory?: InsightsDetailsHistoryPeriod[];
+
+    /** Items with the largest change from their own average, largest first, by each grouping fetched so far */
+    biggestChanges?: Partial<Record<InsightsBiggestChangesGroupBy, InsightsDetailsBiggestChange[]>>;
 
     errors?: Errors;
 
@@ -44,5 +60,5 @@ type InsightsDetails = {
     responseJsonCode?: number;
 };
 
-export type {InsightsDetailsHistoryPeriod, InsightsDetailsSummary};
+export type {InsightsBiggestChangesGroupBy, InsightsDetailsBiggestChange, InsightsDetailsHistoryPeriod, InsightsDetailsSummary};
 export default InsightsDetails;

@@ -1618,6 +1618,9 @@ type InsightsDetailsParamList = {
         /** The clicked member's account ID, merchant, category, tag, violation, or the first day of the clicked period */
         item: string;
 
+        /** First day of the period an item opened from Biggest changes covers, instead of the whole Date range */
+        start?: string;
+
         /** Last day of the clicked period, trimmed to the date range like the chart's label */
         end?: string;
 
