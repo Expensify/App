@@ -574,11 +574,6 @@ function clearLinkPlaidBankAccountErrors(bankAccountID: number) {
     });
 }
 
-/**
- * Adds a bank account via Plaid
- *
- * TODO: offline pattern for this command will have to be added later once the pattern B design doc is complete
- */
 function addPersonalBankAccount(
     account: Partial<PlaidBankAccount & PersonalBankAccountForm>,
     personalPolicyID: string | undefined,

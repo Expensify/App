@@ -14098,7 +14098,7 @@ describe('setDraftSplitTransaction', () => {
     const category = 'Advertising';
     const ruleTaxCode = 'id_TAX_RATE_1';
 
-    const buildSplitPolicy = (): Policy => ({...createRandomPolicy(Number(splitPolicyID)), taxRates: CONST.DEFAULT_TAX});
+    const buildSplitPolicy = (): Policy => ({...createRandomPolicy(Number(splitPolicyID)), taxRates: CONST.DEFAULT_TAX, tax: {trackingEnabled: true}});
 
     const buildSplitDraft = (): Transaction => ({...createRandomTransaction(1), taxCode: 'id_TAX_EXEMPT', taxAmount: 0, amount: 100});
 

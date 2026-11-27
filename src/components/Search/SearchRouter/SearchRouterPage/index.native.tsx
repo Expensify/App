@@ -50,17 +50,6 @@ function SearchRouterPage() {
     }, []);
 
     const shouldConstrainForOfflineKeyboard = isOffline && isKeyboardActive;
-    // Keep the router between the top safe area and the keyboard; ScreenWrapper and the
-    // list already handle bottom safe-area and offline-indicator spacing.
-    // Clamp to zero so transient dimensions during animation never produce a negative height.
-    const availableHeight = getAvailableHeight({
-        isKeyboardOverlapping: shouldConstrainForOfflineKeyboard,
-        keyboardHeight,
-        keyboardActiveHeight,
-        bottomInset: bottom,
-        windowHeight,
-        paddingTop,
-    });
 
     return (
         <ScreenWrapper
@@ -70,13 +59,31 @@ function SearchRouterPage() {
             includePaddingTop
             includeSafeAreaPaddingBottom
         >
-            <View style={[styles.flex1, availableHeight !== undefined && StyleUtils.getMaximumHeight(availableHeight)]}>
-                <SearchRouter
-                    onRouterClose={closeSearchRouter}
-                    shouldHideInputCaret={false}
-                    isSearchRouterDisplayed={isSearchRouterDisplayed}
-                />
-            </View>
+            {({isHeaderInTopInset}) => {
+                // Keep the router between the top safe area and the keyboard; ScreenWrapper and the
+                // list already handle bottom safe-area and offline-indicator spacing.
+                // Clamp to zero so transient dimensions during animation never produce a negative height.
+                const availableHeight = getAvailableHeight({
+                    isKeyboardOverlapping: shouldConstrainForOfflineKeyboard,
+                    keyboardHeight,
+                    keyboardActiveHeight,
+                    bottomInset: bottom,
+                    windowHeight,
+                    // Where the router's header sits in the top inset, the screen has no top padding and the router starts
+                    // at the top of the window.
+                    paddingTop: isHeaderInTopInset ? 0 : paddingTop,
+                });
+
+                return (
+                    <View style={[styles.flex1, availableHeight !== undefined && StyleUtils.getMaximumHeight(availableHeight)]}>
+                        <SearchRouter
+                            onRouterClose={closeSearchRouter}
+                            shouldHideInputCaret={false}
+                            isSearchRouterDisplayed={isSearchRouterDisplayed}
+                        />
+                    </View>
+                );
+            }}
         </ScreenWrapper>
     );
 }

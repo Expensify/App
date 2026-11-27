@@ -9,10 +9,10 @@ import {RequestError} from '@octokit/request-error';
 type RestEndpointMethods = Api['rest'];
 
 /**
- * Whether a user is a member of the given org team.
+ * Whether a user is a member of the given org team, or undefined when GitHub couldn't tell us.
  * The octokit must be authenticated with a token that has read:org scope, otherwise concealed (private) members are reported as non-members.
  */
-async function isTeamMember(octokit: RestEndpointMethods, org: string, teamSlug: string, username: string): Promise<boolean> {
+async function getTeamMembership(octokit: RestEndpointMethods, org: string, teamSlug: string, username: string): Promise<boolean | undefined> {
     try {
         await octokit.teams.getMembershipForUserInOrg({
             org,
@@ -26,9 +26,17 @@ async function isTeamMember(octokit: RestEndpointMethods, org: string, teamSlug:
         }
 
         const message = error instanceof Error ? error.message : String(error);
-        core.warning(`Could not verify ${teamSlug} membership for ${username}. Assuming they are not a member: ${message}`);
-        return false;
+        core.warning(`Could not verify ${teamSlug} membership for ${username}: ${message}`);
+        return undefined;
     }
 }
 
+/**
+ * Whether a user is a member of the given org team. A failed check counts as not a member.
+ */
+async function isTeamMember(octokit: RestEndpointMethods, org: string, teamSlug: string, username: string): Promise<boolean> {
+    return (await getTeamMembership(octokit, org, teamSlug, username)) ?? false;
+}
+
 export default isTeamMember;
+export {getTeamMembership};

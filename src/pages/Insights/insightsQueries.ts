@@ -305,6 +305,7 @@ function buildInsightsJsonQuery(
             searchKey: spec.searchKey,
             insightsHashes,
             numberOfPeriods: COMPARE_AVERAGE_PERIOD_COUNT,
+            ...(dashboard === CONST.INSIGHTS.DASHBOARD.SPEND && {includeExplanationContext: true}),
             ...(hasViolationStages && {violationStages: requestedViolationStages}),
         }),
         hash,

@@ -91,6 +91,15 @@ function isHttpSuccess(httpStatusCode: number | undefined): boolean {
     return httpStatusCode !== undefined && categorizeHttpStatus(httpStatusCode) === VALUES.HTTP_STATUS.SUCCESS;
 }
 
+/** True when the backend rejected the signed challenge itself, as opposed to the work the MFA command does after it */
+function isSignedChallengeFailure(httpStatusCode: number | undefined, message: string | undefined): boolean {
+    if (!message || categorizeHttpStatus(Number(httpStatusCode ?? 0)) !== VALUES.HTTP_STATUS.CLIENT_ERROR) {
+        return false;
+    }
+    const lowerMessage = message.toLowerCase();
+    return VALUES.SIGNED_CHALLENGE_FAILURE_MESSAGES.some((backendMessage) => lowerMessage.endsWith(backendMessage.toLowerCase()));
+}
+
 function isRegistrationChallenge(challenge: unknown): challenge is RegistrationChallenge {
     return typeof challenge === 'object' && challenge !== null && 'user' in challenge && 'rp' in challenge;
 }
@@ -99,4 +108,4 @@ function isAuthenticationChallenge(challenge: unknown): challenge is Authenticat
     return typeof challenge === 'object' && challenge !== null && 'allowCredentials' in challenge && 'rpId' in challenge;
 }
 
-export {parseHttpResponse, isHttpSuccess, isRegistrationChallenge, isAuthenticationChallenge};
+export {parseHttpResponse, isHttpSuccess, isSignedChallengeFailure, isRegistrationChallenge, isAuthenticationChallenge};

@@ -171,7 +171,9 @@ import {
     getReportSubtitlePrefix,
     getTaskAssigneeChatOnyxData,
     getTitleFieldWithFallback,
+    getTransactionCommentObject,
     getTransactionDetails,
+    getTransactionPolicyConvertedDisplayAmount,
     getTransactionReportName,
     getUploadingAttachmentLabelFromDraft,
     getTransactionSortValue,
@@ -14239,7 +14241,7 @@ describe('ReportUtils', () => {
             const report = buildProcessingReport();
 
             // When a different member's login is passed explicitly, and that member submits to someone else
-            const result = isAwaitingFirstLevelApproval(report, undefined, OTHER_MEMBER_EMAIL);
+            const result = isAwaitingFirstLevelApproval(report, undefined, OTHER_MEMBER_EMAIL, FIRST_APPROVER_EMAIL);
 
             // Then the passed login decides the approver, so the report is not awaiting its first level.
             // Were the parameter ignored in favour of the store, the stored owner would match the manager and this would be true.
@@ -14252,7 +14254,7 @@ describe('ReportUtils', () => {
             const report = buildProcessingReport();
 
             // When the owner login is left unresolved
-            const result = isAwaitingFirstLevelApproval(report, undefined, undefined);
+            const result = isAwaitingFirstLevelApproval(report, undefined, undefined, FIRST_APPROVER_EMAIL);
 
             // Then the store supplies the owner login, which submits to the manager
             expect(result).toBe(true);
@@ -14264,7 +14266,7 @@ describe('ReportUtils', () => {
             const report = buildProcessingReport();
 
             // When that empty login is passed
-            const result = isAwaitingFirstLevelApproval(report, undefined, '');
+            const result = isAwaitingFirstLevelApproval(report, undefined, '', FIRST_APPROVER_EMAIL);
 
             // Then it is discarded in favour of the store, rather than reaching the approval lookup and matching no
             // employee, which would fall through to the policy default approver and wrongly report false
@@ -14288,7 +14290,7 @@ describe('ReportUtils', () => {
                 const report = buildProcessingReport();
 
                 // When the caller passes actions showing the report was forwarded after its last submit
-                const result = isAwaitingFirstLevelApproval(report, undefined, REPORT_OWNER_EMAIL, forwardedActions);
+                const result = isAwaitingFirstLevelApproval(report, undefined, REPORT_OWNER_EMAIL, FIRST_APPROVER_EMAIL, forwardedActions);
 
                 // Then the report is past its first level
                 expect(result).toBe(false);
@@ -14302,7 +14304,7 @@ describe('ReportUtils', () => {
                 await waitForBatchedUpdates();
 
                 // When the caller passes only the submit, as an array
-                const result = isAwaitingFirstLevelApproval(report, undefined, REPORT_OWNER_EMAIL, [submittedAction]);
+                const result = isAwaitingFirstLevelApproval(report, undefined, REPORT_OWNER_EMAIL, FIRST_APPROVER_EMAIL, [submittedAction]);
 
                 // Then the passed actions win, so the report is still awaiting its first level
                 expect(result).toBe(true);
@@ -14316,7 +14318,7 @@ describe('ReportUtils', () => {
                 await waitForBatchedUpdates();
 
                 // When a caller that has not been migrated yet omits reportActions
-                const result = isAwaitingFirstLevelApproval(report, undefined, REPORT_OWNER_EMAIL);
+                const result = isAwaitingFirstLevelApproval(report, undefined, REPORT_OWNER_EMAIL, FIRST_APPROVER_EMAIL);
 
                 // Then the transitional fallback still sees the forward
                 expect(result).toBe(false);
@@ -25786,7 +25788,7 @@ describe('ReportUtils', () => {
             };
 
             mockedPolicyUtils.isPaidGroupPolicy.mockReturnValueOnce(true);
-            expect(canEditReportTitle(report, testPolicy, currentUserAccountID, undefined, undefined)).toBe(true);
+            expect(canEditReportTitle(report, testPolicy, currentUserAccountID, undefined, undefined, undefined)).toBe(true);
         });
 
         it('returns false when title field is disabled', () => {
@@ -25802,7 +25804,7 @@ describe('ReportUtils', () => {
                 managerID: 999,
             };
 
-            expect(canEditReportTitle(report, testPolicy, currentUserAccountID, undefined, undefined)).toBe(false);
+            expect(canEditReportTitle(report, testPolicy, currentUserAccountID, undefined, undefined, undefined)).toBe(false);
         });
 
         it('returns false for non-expense reports', () => {
@@ -25815,7 +25817,7 @@ describe('ReportUtils', () => {
                 managerID: 999,
             };
 
-            expect(canEditReportTitle(report, testPolicy, currentUserAccountID, undefined, undefined)).toBe(false);
+            expect(canEditReportTitle(report, testPolicy, currentUserAccountID, undefined, undefined, undefined)).toBe(false);
         });
 
         it('returns false when policy is not a paid group policy', () => {
@@ -25829,7 +25831,7 @@ describe('ReportUtils', () => {
 
             expect(testPolicy.type).toBe(CONST.POLICY.TYPE.PERSONAL);
             mockedPolicyUtils.isPaidGroupPolicy.mockReturnValueOnce(false);
-            expect(canEditReportTitle(report, testPolicy, currentUserAccountID, undefined, undefined)).toBe(false);
+            expect(canEditReportTitle(report, testPolicy, currentUserAccountID, undefined, undefined, undefined)).toBe(false);
         });
 
         it('returns false when user is not admin, owner, approver, or report owner', () => {
@@ -25841,7 +25843,7 @@ describe('ReportUtils', () => {
                 managerID: 999,
             };
 
-            expect(canEditReportTitle(report, testPolicy, currentUserAccountID, undefined, undefined)).toBe(false);
+            expect(canEditReportTitle(report, testPolicy, currentUserAccountID, undefined, undefined, undefined)).toBe(false);
         });
 
         it('returns true when policy has custom fields but no title field (uses fallback)', () => {
@@ -25872,7 +25874,7 @@ describe('ReportUtils', () => {
             };
 
             mockedPolicyUtils.isPaidGroupPolicy.mockReturnValueOnce(true);
-            expect(canEditReportTitle(report, testPolicy, currentUserAccountID, undefined, undefined)).toBe(true);
+            expect(canEditReportTitle(report, testPolicy, currentUserAccountID, undefined, undefined, undefined)).toBe(true);
         });
 
         it('returns true when policy has empty fieldList (uses fallback)', () => {
@@ -25888,7 +25890,7 @@ describe('ReportUtils', () => {
             };
 
             mockedPolicyUtils.isPaidGroupPolicy.mockReturnValueOnce(true);
-            expect(canEditReportTitle(report, testPolicy, currentUserAccountID, undefined, undefined)).toBe(true);
+            expect(canEditReportTitle(report, testPolicy, currentUserAccountID, undefined, undefined, undefined)).toBe(true);
         });
     });
 
@@ -25898,6 +25900,8 @@ describe('ReportUtils', () => {
         const THREADING_SUBMITTER_ELSEWHERE = 'part6-submitter-b@test.com';
         const THREADING_MANAGER_ACCOUNT_ID = 101;
         const THREADING_OTHER_APPROVER_ACCOUNT_ID = 102;
+        const THREADING_MANAGER_LOGIN = 'part6-approver-a@test.com';
+        const THREADING_OTHER_APPROVER_LOGIN = 'part6-approver-b@test.com';
 
         const threadingPolicy: Policy = {
             ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE, 'Part 6 threading policy'),
@@ -25912,12 +25916,12 @@ describe('ReportUtils', () => {
                 [THREADING_SUBMITTER_TO_MANAGER]: {
                     email: THREADING_SUBMITTER_TO_MANAGER,
                     role: CONST.POLICY.ROLE.USER,
-                    submitsTo: 'part6-approver-a@test.com',
+                    submitsTo: THREADING_MANAGER_LOGIN,
                 },
                 [THREADING_SUBMITTER_ELSEWHERE]: {
                     email: THREADING_SUBMITTER_ELSEWHERE,
                     role: CONST.POLICY.ROLE.USER,
-                    submitsTo: 'part6-approver-b@test.com',
+                    submitsTo: THREADING_OTHER_APPROVER_LOGIN,
                 },
             },
         };
@@ -25951,8 +25955,8 @@ describe('ReportUtils', () => {
             // Earlier describes leave the session on another account, and isReportOwner reads the session rather than a parameter
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-                [THREADING_MANAGER_ACCOUNT_ID]: {accountID: THREADING_MANAGER_ACCOUNT_ID, login: 'part6-approver-a@test.com'},
-                [THREADING_OTHER_APPROVER_ACCOUNT_ID]: {accountID: THREADING_OTHER_APPROVER_ACCOUNT_ID, login: 'part6-approver-b@test.com'},
+                [THREADING_MANAGER_ACCOUNT_ID]: {accountID: THREADING_MANAGER_ACCOUNT_ID, login: THREADING_MANAGER_LOGIN},
+                [THREADING_OTHER_APPROVER_ACCOUNT_ID]: {accountID: THREADING_OTHER_APPROVER_ACCOUNT_ID, login: THREADING_OTHER_APPROVER_LOGIN},
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${THREADING_POLICY_ID}`, threadingPolicy);
             return waitForBatchedUpdates();
@@ -25971,11 +25975,11 @@ describe('ReportUtils', () => {
 
             // When the login that submits to that same approver arrives, the report is still awaiting its first level,
             // so the submitter is not locked out of the field
-            expect(isReportFieldDisabled(report, textField, threadingPolicy, undefined, THREADING_SUBMITTER_TO_MANAGER)).toBe(false);
+            expect(isReportFieldDisabled(report, textField, threadingPolicy, undefined, THREADING_SUBMITTER_TO_MANAGER, THREADING_MANAGER_LOGIN)).toBe(false);
 
             // Then a login that submits somewhere else flips the answer, which proves the login is read
             // rather than resolved from the personal details store inside the call
-            expect(isReportFieldDisabled(report, textField, threadingPolicy, undefined, THREADING_SUBMITTER_ELSEWHERE)).toBe(true);
+            expect(isReportFieldDisabled(report, textField, threadingPolicy, undefined, THREADING_SUBMITTER_ELSEWHERE, THREADING_MANAGER_LOGIN)).toBe(true);
         });
 
         it('should decide canModifyHoldStatus from the reportOwnerLogin the caller passes', () => {
@@ -25999,10 +26003,62 @@ describe('ReportUtils', () => {
             const report = buildSubmittedReport();
 
             // When the owner is the current user, the admin-owner-approver check passes and only the login decides
-            expect(isReportFieldDisabledForUser(report, textField, threadingPolicy, currentUserAccountID, undefined, THREADING_SUBMITTER_TO_MANAGER)).toBe(false);
+            expect(isReportFieldDisabledForUser(report, textField, threadingPolicy, currentUserAccountID, undefined, THREADING_SUBMITTER_TO_MANAGER, THREADING_MANAGER_LOGIN)).toBe(false);
 
             // Then the same call with a login that submits elsewhere is disabled, so the forwarder is not dropping it
-            expect(isReportFieldDisabledForUser(report, textField, threadingPolicy, currentUserAccountID, undefined, THREADING_SUBMITTER_ELSEWHERE)).toBe(true);
+            expect(isReportFieldDisabledForUser(report, textField, threadingPolicy, currentUserAccountID, undefined, THREADING_SUBMITTER_ELSEWHERE, THREADING_MANAGER_LOGIN)).toBe(true);
+        });
+
+        it('should carry the reportManagerLogin through isReportFieldDisabledForUser', () => {
+            // Given the same report, reached through the forwarder the components actually call
+            const report = buildSubmittedReport();
+
+            // When the manager login is the approver the owner submits to, the field is editable
+            expect(isReportFieldDisabledForUser(report, textField, threadingPolicy, currentUserAccountID, undefined, THREADING_SUBMITTER_TO_MANAGER, THREADING_MANAGER_LOGIN)).toBe(false);
+
+            // Then a manager login for another approver disables it, so the forwarder is not dropping the parameter
+            expect(isReportFieldDisabledForUser(report, textField, threadingPolicy, currentUserAccountID, undefined, THREADING_SUBMITTER_TO_MANAGER, THREADING_OTHER_APPROVER_LOGIN)).toBe(
+                true,
+            );
+        });
+
+        it('should carry the reportManagerLogin through canEditReportTitle', () => {
+            // Given the same report, on a policy whose title field is editable, so only the approval level decides
+            const report = buildSubmittedReport();
+            const policyWithEditableTitle: Policy = {
+                ...threadingPolicy,
+                fieldList: {
+                    [CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: {...textField, fieldID: CONST.REPORT_FIELD_TITLE_FIELD_ID},
+                },
+            };
+
+            // When the manager login is the approver the owner submits to, the submitter can still edit the title
+            expect(canEditReportTitle(report, policyWithEditableTitle, currentUserAccountID, undefined, THREADING_SUBMITTER_TO_MANAGER, THREADING_MANAGER_LOGIN)).toBe(true);
+
+            // Then a manager login for another approver means the report was forwarded, so the title is locked
+            expect(canEditReportTitle(report, policyWithEditableTitle, currentUserAccountID, undefined, THREADING_SUBMITTER_TO_MANAGER, THREADING_OTHER_APPROVER_LOGIN)).toBe(false);
+        });
+
+        it('should carry the reportManagerLogin through hasVisibleReportFieldViolations', () => {
+            // Given the same report, on a policy with an empty required field, so the field has a violation
+            const report = buildSubmittedReport();
+            const policyWithEmptyField: Policy = {
+                ...threadingPolicy,
+                areReportFieldsEnabled: true,
+                fieldList: {
+                    [`expensify_${textField.fieldID}`]: textField,
+                },
+            };
+
+            // When the manager login is the approver the owner submits to, the field is editable, so its violation shows
+            expect(hasVisibleReportFieldViolations(report, policyWithEmptyField, currentUserAccountID, undefined, THREADING_SUBMITTER_TO_MANAGER, THREADING_MANAGER_LOGIN, undefined)).toBe(
+                true,
+            );
+
+            // Then a manager login for another approver disables the field, which hides its violation
+            expect(
+                hasVisibleReportFieldViolations(report, policyWithEmptyField, currentUserAccountID, undefined, THREADING_SUBMITTER_TO_MANAGER, THREADING_OTHER_APPROVER_LOGIN, undefined),
+            ).toBe(false);
         });
     });
 
@@ -28905,7 +28961,7 @@ describe('ReportUtils', () => {
         it('should return false when policy does not have areReportFieldsEnabled enabled', () => {
             const policyWithFieldsDisabled = {...basePolicy, areReportFieldsEnabled: false};
 
-            expect(hasVisibleReportFieldViolations(expenseReport, policyWithFieldsDisabled, currentUserAccountID, undefined, undefined, undefined)).toBe(false);
+            expect(hasVisibleReportFieldViolations(expenseReport, policyWithFieldsDisabled, currentUserAccountID, undefined, undefined, undefined, undefined)).toBe(false);
         });
 
         it('should return false when the report is not an expense report or invoice report', () => {
@@ -28915,7 +28971,7 @@ describe('ReportUtils', () => {
                 policyID,
             };
 
-            expect(hasVisibleReportFieldViolations(chatReport, basePolicy, currentUserAccountID, undefined, undefined, undefined)).toBe(false);
+            expect(hasVisibleReportFieldViolations(chatReport, basePolicy, currentUserAccountID, undefined, undefined, undefined, undefined)).toBe(false);
         });
 
         it('should return true when expense report has a required field with no value', async () => {
@@ -28933,7 +28989,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithEmptyField);
             await waitForBatchedUpdates();
 
-            expect(hasVisibleReportFieldViolations(expenseReport, policyWithEmptyField, currentUserAccountID, undefined, undefined, undefined)).toBe(true);
+            expect(hasVisibleReportFieldViolations(expenseReport, policyWithEmptyField, currentUserAccountID, undefined, undefined, undefined, undefined)).toBe(true);
         });
 
         it('should return false when an unpaid invoice report has an empty field', async () => {
@@ -28966,7 +29022,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             // Then no report-field warning is shown for the empty invoice field
-            expect(hasVisibleReportFieldViolations(unpaidInvoiceReport, policyWithEmptyInvoiceField, currentUserAccountID, undefined, undefined, undefined)).toBe(false);
+            expect(hasVisibleReportFieldViolations(unpaidInvoiceReport, policyWithEmptyInvoiceField, currentUserAccountID, undefined, undefined, undefined, undefined)).toBe(false);
         });
 
         it('should return false when a paid invoice report has a required field with no value', async () => {
@@ -28996,7 +29052,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithEmptyInvoiceField);
             await waitForBatchedUpdates();
 
-            expect(hasVisibleReportFieldViolations(paidInvoiceReport, policyWithEmptyInvoiceField, currentUserAccountID, undefined, undefined, undefined)).toBe(false);
+            expect(hasVisibleReportFieldViolations(paidInvoiceReport, policyWithEmptyInvoiceField, currentUserAccountID, undefined, undefined, undefined, undefined)).toBe(false);
         });
 
         it('should return false when an unpaid invoice report required field has value in reportNameValuePairs', () => {
@@ -29030,7 +29086,9 @@ describe('ReportUtils', () => {
                 },
             };
 
-            expect(hasVisibleReportFieldViolations(unpaidInvoiceReport, policyWithEmptyInvoiceField, currentUserAccountID, undefined, undefined, reportNameValuePairs)).toBe(false);
+            expect(hasVisibleReportFieldViolations(unpaidInvoiceReport, policyWithEmptyInvoiceField, currentUserAccountID, undefined, undefined, undefined, reportNameValuePairs)).toBe(
+                false,
+            );
         });
     });
 
@@ -29443,6 +29501,26 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('getTransactionCommentObject', () => {
+        it.each([
+            [12345, '12345'],
+            [0, '0'],
+            [undefined, ''],
+            [null, ''],
+            ['<strong>Lunch</strong>', '*Lunch*'],
+        ])('normalizes description %j before converting it to markdown', (description, expected) => {
+            // Given a description may arrive from the API as a number despite its declared type
+            const transaction = Object.assign(createMock<Transaction>({}), {comment: {comment: description, customUnit: {name: 'Distance'}}});
+
+            // When a comment object is prepared for editing
+            const result = getTransactionCommentObject(transaction);
+
+            // Then markdown conversion receives text and other comment metadata is preserved
+            expect(result.comment).toBe(expected);
+            expect(result.customUnit).toEqual(transaction.comment?.customUnit);
+        });
+    });
+
     describe('getTransactionSortValue', () => {
         const mockReport: Report = createMock<Report>({
             reportID: 'test-report-id',
@@ -29622,6 +29700,23 @@ describe('ReportUtils', () => {
             const transaction = createMockTransaction({comment: {comment: 'Test description'}});
             const result = getTransactionSortValue(translateLocal, transaction, CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION, mockReport, mockPolicy);
             expect(result).toBe('Test description');
+        });
+
+        it.each([
+            [12345, '12345'],
+            [0, '0'],
+            [undefined, ''],
+            [null, ''],
+            ['<strong>Lunch</strong>', 'Lunch'],
+        ])('normalizes description %j before sorting', (description, expected) => {
+            // Given runtime API values may not match the declared description type
+            const transaction = Object.assign(createMockTransaction(), {comment: {comment: description}});
+
+            // When expenses are sorted by description
+            const result = getTransactionSortValue(translateLocal, transaction, CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION, mockReport, mockPolicy);
+
+            // Then the parser returns sortable text without throwing on numeric or empty values
+            expect(result).toBe(expected);
         });
 
         it('should return exchange rate string for EXCHANGE_RATE column', () => {
@@ -29876,6 +29971,84 @@ describe('ReportUtils', () => {
 
                 expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
             });
+        });
+    });
+
+    describe('getTransactionPolicyConvertedDisplayAmount', () => {
+        const expenseReport: Report = {...createRandomReport(1, undefined), type: CONST.REPORT.TYPE.EXPENSE};
+        const iouReport: Report = {...createRandomReport(2, undefined), type: CONST.REPORT.TYPE.IOU};
+
+        it('signs the workspace amount like the displayed amount on an expense report', () => {
+            // Given an expense on an expense report, stored with the opposite sign in both currencies
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                reportID: expenseReport.reportID,
+                amount: -1000,
+                currency: 'EUR',
+                policyConvertedAmount: -1250,
+                policyCurrency: 'USD',
+            };
+
+            // When its workspace amount is read for display
+            const displayAmount = getTransactionPolicyConvertedDisplayAmount(transaction, expenseReport, undefined);
+
+            // Then it is flipped the same way as the Amount column, not shown in the stored sign
+            expect(displayAmount).toBe(1250);
+        });
+
+        it('shows the workspace amount as positive on an IOU', () => {
+            // Given an IOU expense stored as negative
+            const transaction: Transaction = {
+                ...createRandomTransaction(2),
+                reportID: iouReport.reportID,
+                amount: -1000,
+                currency: 'EUR',
+                policyConvertedAmount: -1250,
+                policyCurrency: 'USD',
+            };
+
+            // When its workspace amount is read for display
+            const displayAmount = getTransactionPolicyConvertedDisplayAmount(transaction, iouReport, undefined);
+
+            // Then it is positive, because IOU amounts are never shown as negative
+            expect(displayAmount).toBe(1250);
+        });
+
+        it('flips the sign of an unreported expense', () => {
+            // Given an unreported refund, stored as positive, that the server returned in its own currency
+            const transaction: Transaction = {
+                ...createRandomTransaction(3),
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                amount: 500,
+                currency: 'EUR',
+                policyConvertedAmount: 500,
+                policyCurrency: 'EUR',
+            };
+
+            // When its workspace amount is read for display
+            const displayAmount = getTransactionPolicyConvertedDisplayAmount(transaction, undefined, undefined);
+
+            // Then it shows as negative, matching how the Amount column shows a tracked refund
+            expect(displayAmount).toBe(-500);
+        });
+
+        it('falls back to the displayed amount when the server has not sent a workspace amount yet', () => {
+            // Given an expense created offline on an expense report, which has no workspace amount until the next search
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                reportID: expenseReport.reportID,
+                amount: -1000,
+                modifiedAmount: -1000,
+                currency: 'EUR',
+                policyConvertedAmount: undefined,
+                policyCurrency: undefined,
+            };
+
+            // When its workspace amount is read for display
+            const displayAmount = getTransactionPolicyConvertedDisplayAmount(transaction, expenseReport, undefined);
+
+            // Then it shows its own amount, signed like the Amount column
+            expect(displayAmount).toBe(1000);
         });
     });
 

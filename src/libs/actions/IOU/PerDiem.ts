@@ -17,7 +17,7 @@ import * as NumberUtils from '@libs/NumberUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {getPerDiemCustomUnit, getPerDiemRateCustomUnitRate, getReimbursementChoice} from '@libs/PolicyUtils';
 import {getReportActionHtml, getReportActionText} from '@libs/ReportActionsUtils';
-import type {OptimisticIOUReportAction} from '@libs/ReportUtils';
+import type {OptimisticIOUReportAction, ReportStateAndStatus} from '@libs/ReportUtils';
 import {
     buildOptimisticChatReport,
     buildOptimisticCreatedReportAction,
@@ -29,6 +29,7 @@ import {
     generateReportID,
     getChatByParticipants,
     getChatReportFromMoneyRequestReport,
+    getFinalizedDeferredBatchReportState,
     getNewestOutstandingReportForUser,
     getReimbursableTotal,
     getUnheldReimbursableTotal,
@@ -313,6 +314,8 @@ type PerDiemExpenseInformationParams = {
     rules: OnyxCollection<OnyxTypes.Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
     personalDetailsByLogins: PersonalDetailsByLogin;
+    /** Keeps a newly created optimistic expense report open when auto-submit is deferred for a batch item. */
+    shouldDeferAutoSubmit?: boolean;
 };
 
 type PerDiemExpenseInformationForSelfDM = {
@@ -433,6 +436,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         rules,
         isVendorMatchingBetaEnabled,
         personalDetailsByLogins,
+        shouldDeferAutoSubmit,
     } = perDiemExpenseInformation;
     const {payeeAccountID = currentUserAccountIDParam, payeeEmail = currentUserEmailParam, participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
@@ -496,6 +500,8 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
     const optimisticTransactionID = uiProvidedOptimisticTransactionID ?? NumberUtils.rand64();
     const optimisticReportID = generateReportID();
 
+    let previousIOUReportState: ReportStateAndStatus | undefined;
+
     if (!iouReport || shouldCreateNewMoneyRequestReport) {
         const reportTransactions = buildMinimalTransactionForFormula(optimisticTransactionID, optimisticReportID, created, amount, currency, merchant);
 
@@ -511,6 +517,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
                   isASAPSubmitBetaEnabled,
                   getCurrencyDecimals,
                   rules,
+                  shouldDeferAutoSubmit,
               })
             : buildOptimisticIOUReport(payeeAccountID, payerAccountID, amount, chatReport.reportID, currency, getCurrencyDecimals);
     } else if (isPolicyExpenseChat) {
@@ -558,6 +565,18 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
                     iouReport.unheldReimbursableTotal = previousUnheldReimbursableTotal - amount;
                 }
             }
+        }
+        const finalizedBatchReportState = getFinalizedDeferredBatchReportState({
+            iouReport,
+            hasExistingIOUReport: !!existingIOUReportParam,
+            shouldDeferAutoSubmit,
+            policy,
+            isASAPSubmitBetaEnabled,
+        });
+        if (finalizedBatchReportState) {
+            iouReport.stateNum = finalizedBatchReportState.nextState.stateNum;
+            iouReport.statusNum = finalizedBatchReportState.nextState.statusNum;
+            previousIOUReportState = finalizedBatchReportState.previousState;
         }
     } else {
         iouReport = updateIOUOwnerAndTotal(iouReport, payeeAccountID, amount, currency);
@@ -722,6 +741,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         rules,
         personalDetailsByLogins,
         isVendorMatchingBetaEnabled,
+        previousIOUReportState,
     });
 
     return {
@@ -1149,6 +1169,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         getCurrencyDecimals,
         rules,
         personalDetailsByLogins,
+        shouldDeferAutoSubmit,
     });
 
     const customUnitRate = getPerDiemRateCustomUnitRate(policyParams.policy, customUnit.customUnitRateID);
