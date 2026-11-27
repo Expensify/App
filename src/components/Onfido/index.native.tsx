@@ -4,7 +4,7 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import convertToNativeOnfidoResult from '@libs/convertToNativeOnfidoResult';
+import convertEntrustResultToOnfidoPayload from '@libs/convertEntrustResultToOnfidoPayload';
 import getPlatform from '@libs/getPlatform';
 import goToSettings from '@libs/goToSettings';
 import isNativeOnfidoPermissionError, {getNativeOnfidoErrorType} from '@libs/isNativeOnfidoPermissionError';
@@ -85,7 +85,7 @@ function Onfido({sdkToken, onUserExit, onSuccess, onError}: OnfidoProps) {
                 if (!settle()) {
                     return;
                 }
-                onSuccess(convertToNativeOnfidoResult(result));
+                onSuccess(convertEntrustResultToOnfidoPayload(result));
             },
             onUserExit: (userAction) => {
                 if (!settle()) {

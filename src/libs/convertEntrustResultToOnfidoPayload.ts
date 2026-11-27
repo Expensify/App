@@ -23,7 +23,7 @@ type NativeDocumentSide = {
     id: string;
 };
 
-function convertToNativeOnfidoResult(result: Record<string, CaptureResult>): NativeOnfidoResult {
+function convertEntrustResultToOnfidoPayload(result: Record<string, CaptureResult>): NativeOnfidoResult {
     const nativeResult: NativeOnfidoResult = {};
     for (const captureResult of Object.values(result)) {
         if (captureResult.type === StepNames.Document) {
@@ -56,4 +56,4 @@ function convertToNativeOnfidoResult(result: Record<string, CaptureResult>): Nat
     return nativeResult;
 }
 
-export default convertToNativeOnfidoResult;
+export default convertEntrustResultToOnfidoPayload;

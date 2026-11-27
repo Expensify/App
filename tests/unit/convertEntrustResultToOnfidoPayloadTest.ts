@@ -1,4 +1,4 @@
-import convertToNativeOnfidoResult from '@libs/convertToNativeOnfidoResult';
+import convertEntrustResultToOnfidoPayload from '@libs/convertEntrustResultToOnfidoPayload';
 import Log from '@libs/Log';
 
 import CONST from '@src/CONST';
@@ -14,7 +14,7 @@ function buildResult(result: Record<string, unknown>): Record<string, CaptureRes
 
 const FACE_VIDEO = {type: 'faceVideo', id: 'face-video-id'};
 
-describe('convertToNativeOnfidoResult', () => {
+describe('convertEntrustResultToOnfidoPayload', () => {
     let hmmmSpy: jest.SpyInstance;
 
     beforeEach(() => {
@@ -40,7 +40,7 @@ describe('convertToNativeOnfidoResult', () => {
         });
 
         // When it is mapped to the payload the backend expects
-        const nativeResult = convertToNativeOnfidoResult(result);
+        const nativeResult = convertEntrustResultToOnfidoPayload(result);
 
         // Then both document sides and the video face variant are sent, because the backend needs all of them to verify the user
         expect(nativeResult).toEqual({
@@ -58,7 +58,7 @@ describe('convertToNativeOnfidoResult', () => {
         });
 
         // When it is mapped
-        const nativeResult = convertToNativeOnfidoResult(result);
+        const nativeResult = convertEntrustResultToOnfidoPayload(result);
 
         // Then the document has no back side, since a passport doesn't have one
         expect(nativeResult.document).toEqual({front: {id: 'front-id'}, back: undefined});
@@ -73,7 +73,7 @@ describe('convertToNativeOnfidoResult', () => {
         });
 
         // When it is mapped
-        const nativeResult = convertToNativeOnfidoResult(result);
+        const nativeResult = convertEntrustResultToOnfidoPayload(result);
 
         // Then no face is sent, and the gap is logged because the backend would fall back to the photo report and fail the check
         expect(nativeResult.face).toBeUndefined();
@@ -88,7 +88,7 @@ describe('convertToNativeOnfidoResult', () => {
         });
 
         // When it is mapped
-        const nativeResult = convertToNativeOnfidoResult(result);
+        const nativeResult = convertEntrustResultToOnfidoPayload(result);
 
         // Then no document is sent and the gap is logged, so an unexpected shape shows up in the logs instead of failing silently
         expect(nativeResult.document).toBeUndefined();
