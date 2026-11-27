@@ -42,12 +42,22 @@ function getClientRequestIndex(request: {requestIndex?: number; requestID?: numb
 }
 
 let initializationCallback: () => void;
+let hasLoadedStoredQueue = false;
+let hasLoadedStoredOngoingRequest = false;
 let resolveInitialization: () => void = () => {};
 const initializationPromise = new Promise<void>((resolve) => {
     resolveInitialization = resolve;
 });
 
-/** Resolves once the queue stored on disk has been loaded into memory, so the getters below reflect it */
+/** The queue and the ongoing request are stored under separate keys that load independently, so both have to arrive */
+function resolveInitializationOnceLoaded() {
+    if (!hasLoadedStoredQueue || !hasLoadedStoredOngoingRequest) {
+        return;
+    }
+    resolveInitialization();
+}
+
+/** Resolves once the queue and the ongoing request stored on disk have been loaded into memory, so the getters below reflect them */
 function waitForInitialization(): Promise<void> {
     return initializationPromise;
 }
@@ -200,18 +210,21 @@ Onyx.connectWithoutView({
             triggerInitializationCallback();
         }
         isInitialized = true;
-        resolveInitialization();
+        hasLoadedStoredQueue = true;
+        resolveInitializationOnceLoaded();
     },
 });
 // We have opted for connectWithoutView here as this module is strictly non-UI
 Onyx.connectWithoutView({
     key: ONYXKEYS.PERSISTED_ONGOING_REQUESTS,
     callback: (val) => {
+        hasLoadedStoredOngoingRequest = true;
         const requestIndex = val ? getClientRequestIndex(val) : undefined;
         if (requestIndex != null && knownOngoingRequestIDs.has(requestIndex)) {
             Log.info('[PersistedRequests] Ignoring ongoingRequest that is an own-write', false, {
                 ongoingCommand: val?.command,
             });
+            resolveInitializationOnceLoaded();
             return;
         }
 
@@ -229,6 +242,9 @@ Onyx.connectWithoutView({
             Log.info('[PersistedRequests] Triggering initialization callback from ongoing request', false);
             triggerInitializationCallback();
         }
+
+        // Resolving after the callback above lets the queue start sending the request first, so waiting for it to go idle covers it
+        resolveInitializationOnceLoaded();
     },
 });
 

@@ -204,6 +204,12 @@ const hopToSharedHost: HopToSharedHost = async (session) => {
             return false;
         }
 
+        // Leaving drops requests that haven't reached the server, including any queued while the token was fetched
+        if (getAllPersistedRequests().length > 0) {
+            Log.info('[LegacyHostHop] Staying on this host because requests were queued while the short-lived token was fetched');
+            return false;
+        }
+
         Log.info('[LegacyHostHop] Moving to the shared host with a short-lived token');
         window.location.replace(buildTransitionURL(origin, shortLivedAuthToken, session.email, `${pathname.slice(1)}${search}`));
         return true;

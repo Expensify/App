@@ -215,6 +215,21 @@ describe('LegacyHostHop', () => {
             expect(mockReplace).not.toHaveBeenCalled();
         });
 
+        it('stays when a request is queued while the token is fetched', async () => {
+            // Given a write that enters the queue while the token request is in flight
+            mockGetShortLivedAuthToken.mockImplementation(() => {
+                mockInMemoryRequests = [{command: 'AddComment'}];
+                return Promise.resolve('short+lived/token');
+            });
+
+            // When a signed in page hops
+            const hop = hopToSharedHost(SIGNED_IN_SESSION);
+
+            // Then it stays, because leaving would drop the write
+            await expect(hop).resolves.toBe(false);
+            expect(mockReplace).not.toHaveBeenCalled();
+        });
+
         it('checks the queue only after the stored requests have loaded', async () => {
             let finishLoading: () => void = () => {};
             mockWaitForPersistedRequests.mockReturnValue(
