@@ -7414,6 +7414,9 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 title: 'Organisieren',
                 subtitle: 'Ausgaben gruppieren und analysieren, jede gezahlte Steuer erfassen.',
             },
+            configureSection: {
+                title: 'Konfigurieren',
+            },
             distanceRates: {
                 title: 'Kilometersätze',
                 subtitle: 'Sätze Tarife fest, aktualisiere sie und setze sie durch.',

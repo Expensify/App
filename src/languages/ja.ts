@@ -7264,6 +7264,9 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 title: '整理',
                 subtitle: '支出をグループ化して分析し、支払ったすべての税金を記録します。',
             },
+            configureSection: {
+                title: '設定',
+            },
             distanceRates: {
                 title: '距離単価',
                 subtitle: 'レートを追加、更新し、適用します。',

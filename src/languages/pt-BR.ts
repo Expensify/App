@@ -7363,6 +7363,9 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 title: 'Organizar',
                 subtitle: 'Agrupe e analise os gastos, registre todos os impostos pagos.',
             },
+            configureSection: {
+                title: 'Configurar',
+            },
             distanceRates: {
                 title: 'Taxas de distância',
                 subtitle: 'Adicione, atualize e aplique tarifas.',

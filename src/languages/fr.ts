@@ -7424,6 +7424,9 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 title: 'Organiser',
                 subtitle: 'Regroupez et analysez les dépenses, enregistrez chaque taxe payée.',
             },
+            configureSection: {
+                title: 'Configurer',
+            },
             distanceRates: {
                 title: 'Taux de distance',
                 subtitle: 'Ajoutez, mettez à jour et appliquez les taux.',
