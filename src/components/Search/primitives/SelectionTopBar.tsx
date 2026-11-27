@@ -1,3 +1,4 @@
+import {PINNED_HEADER_ROW_DATA_SET} from '@components/Search/pinnedCellStyles/pinnedScrollVariables';
 import SearchSelectAllMenu from '@components/Search/SearchList/SearchSelectAllMenu';
 import {useColumnResizeController} from '@components/Table/columnResize/ColumnResizeContext';
 import {TABLE_ROW_DATA_SET} from '@components/Table/columnResize/columnWidthExpressions';
@@ -72,8 +73,8 @@ function SelectionTopBar({
                 !!columnResize && !!SearchTableHeader && styles.zIndex1,
                 shouldCheckboxCarryPadding && [styles.pv0, styles.pb0],
             ]}
-            // The resize line starts at the row with this marker.
-            dataSet={columnResize ? TABLE_ROW_DATA_SET : undefined}
+            // The resize line starts at the row with this marker, and the sticky header's height is measured on it.
+            dataSet={{...(columnResize ? TABLE_ROW_DATA_SET : {}), ...(SearchTableHeader ? PINNED_HEADER_ROW_DATA_SET : {})}}
         >
             {canSelectMultiple && (
                 <View style={[styles.flexRow, styles.alignItemsCenter, shouldCheckboxCarryPadding && styles.pv2]}>

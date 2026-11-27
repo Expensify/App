@@ -123,6 +123,11 @@
             transition: transform var(--label-transition-duration);
         }
 
+        /* Keeps focus scrolling clear of the sticky column header. Focusable elements only, not the header's own controls */
+        [data-pinned-table-scroller='true'] :is([tabindex], a[href], button, input, select, textarea):not([data-pinned-header-row='true'], [data-pinned-header-row='true'] *) {
+            scroll-margin-top: var(--table-sticky-header-height, 0px);
+        }
+
         /* Hold a table's columns still while the pointer is on the filter bar pinned inside their scroller */
         [data-table-column-scroller='true']:has([data-table-page-header='true']:hover) {
             overflow-x: hidden !important;
