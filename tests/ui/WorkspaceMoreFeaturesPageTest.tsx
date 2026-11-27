@@ -19,7 +19,6 @@ import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
 import WorkspaceMoreFeaturesPage from '@pages/workspace/WorkspaceMoreFeaturesPage';
 
-import * as PerDiemActions from '@userActions/Policy/PerDiem';
 import * as PolicyActions from '@userActions/Policy/Policy';
 import * as ReportActions from '@userActions/Report';
 
@@ -391,29 +390,31 @@ describe('WorkspaceMoreFeaturesPage', () => {
     });
 
     describe('Per diem toggle', () => {
-        it('passes the stored quick action to enablePerDiem when the switch is toggled', async () => {
-            // Given a Control workspace with per diem off and a stored global create quick action, which enablePerDiem needs to clear a stale per diem quick action
-            const quickAction = {action: CONST.QUICK_ACTIONS.PER_DIEM, chatReportID: '123'};
-            const enablePerDiemSpy = jest.spyOn(PerDiemActions, 'enablePerDiem').mockImplementation(() => undefined);
-            try {
-                await TestHelper.signInWithTestUser();
-                await act(async () => {
-                    await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildPolicy({id: POLICY_ID}));
-                    await Onyx.set(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, quickAction);
+        it('clears the stored per diem quick action when the switch is turned off', async () => {
+            // Given a Control workspace with per diem on and a global create quick action pointing at its workspace chat, which turning per diem off must clear
+            const WORKSPACE_CHAT_REPORT_ID = '123';
+            await TestHelper.signInWithTestUser();
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildPolicy({id: POLICY_ID, arePerDiemRatesEnabled: true}));
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${WORKSPACE_CHAT_REPORT_ID}`, {
+                    reportID: WORKSPACE_CHAT_REPORT_ID,
+                    policyID: POLICY_ID,
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                 });
-                renderPage({policyID: POLICY_ID});
-                await waitForBatchedUpdatesWithAct();
+                await Onyx.set(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {action: CONST.QUICK_ACTIONS.PER_DIEM, chatReportID: WORKSPACE_CHAT_REPORT_ID});
+            });
+            renderPage({policyID: POLICY_ID});
+            await waitForBatchedUpdatesWithAct();
 
-                // When the user turns the per diem switch on
-                fireEvent.press(await findUnlockedSwitch('workspace.moreFeatures.perDiem.subtitle'));
+            // When the user turns the per diem switch off
+            fireEvent.press(await findUnlockedSwitch('workspace.moreFeatures.perDiem.subtitle'));
+            await waitForBatchedUpdatesWithAct();
 
-                // Then the handler reads the quick action at press time and hands it to enablePerDiem
-                await waitFor(() => {
-                    expect(enablePerDiemSpy).toHaveBeenCalledWith(POLICY_ID, true, undefined, true, quickAction);
-                });
-            } finally {
-                enablePerDiemSpy.mockRestore();
-            }
+            // Then the handler reads the quick action at press time, so enablePerDiem can clear it
+            await waitFor(async () => {
+                expect(await Onyx.get(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE)).toBeUndefined();
+            });
         });
     });
 
