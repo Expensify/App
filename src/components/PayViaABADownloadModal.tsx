@@ -33,23 +33,9 @@ function PayViaABADownloadModal({abaFileRequest, getDownloadFailedMessage, close
     const [downloadFailedMessage, setDownloadFailedMessage] = useState<string>();
 
     useEffect(() => {
-        let isUnmounted = false;
         abaFileRequest
-            .then((result) => {
-                if (isUnmounted) {
-                    return;
-                }
-                setPayViaABAResult(result);
-            })
-            .catch((error: unknown) => {
-                if (isUnmounted) {
-                    return;
-                }
-                setDownloadFailedMessage(getDownloadFailedMessage(error instanceof HttpsError ? error : undefined));
-            });
-        return () => {
-            isUnmounted = true;
-        };
+            .then((result) => setPayViaABAResult(result))
+            .catch((error: unknown) => setDownloadFailedMessage(getDownloadFailedMessage(error instanceof HttpsError ? error : undefined)));
     }, [abaFileRequest, getDownloadFailedMessage]);
 
     const status = (() => {
