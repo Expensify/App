@@ -19,7 +19,7 @@ import useTransactionInlineEdit from '@hooks/useTransactionInlineEdit';
 import {getCardDescription} from '@libs/CardUtils';
 import ControlSelection from '@libs/ControlSelection';
 import canUseTouchScreen from '@libs/DeviceCapabilities/canUseTouchScreen';
-import {getLatestErrorMessageField} from '@libs/ErrorUtils';
+import {getLatestErrorMessageField, getLatestMessageErrorKey} from '@libs/ErrorUtils';
 import {
     EMPTY_CARDS,
     getReportRowCards,
@@ -193,6 +193,12 @@ function MoneyRequestReportTransactionItemBody({
     const transactionErrors: Errors | TranslationKeyErrors = rejectErrorKey ? rejectError : getLatestErrorMessageField({errors: messageErrors});
     const hasTransactionErrors = Object.keys(transactionErrors).length > 0;
 
+    // ErrorMessageRow already shows the latest message, so the row's own error line leaves it out
+    const shownMessageErrorKey = rejectErrorKey ? undefined : getLatestMessageErrorKey(transaction.errors);
+    const rowTransaction = shownMessageErrorKey
+        ? {...transaction, errors: Object.fromEntries(Object.entries(transaction.errors ?? {}).filter(([errorKey]) => errorKey !== shownMessageErrorKey))}
+        : transaction;
+
     // The last row keeps its bottom border but hides it, so the row height stays the same when a row is added below it.
     // FlashList ignores size changes of 1px or less, so a border that appears later would be covered by the next row.
     const lastRowBorderStyle = isLastItem && styles.borderTransparent;
@@ -309,7 +315,7 @@ function MoneyRequestReportTransactionItemBody({
                 {({hovered}) => (
                     <>
                         <TransactionItemRow
-                            transactionItem={transaction}
+                            transactionItem={rowTransaction}
                             violations={violations}
                             report={report}
                             policy={policy}
