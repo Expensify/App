@@ -12212,7 +12212,7 @@ describe('SearchUIUtils', () => {
             const isScopedSnapshotLoaded = SearchUIUtils.isSearchDataLoaded(scopedSnapshot, insightsQuery);
             const isUnscopedSnapshotLoaded = SearchUIUtils.isSearchDataLoaded(unscopedSnapshot, insightsQuery);
 
-            // Then Insights shows its own results immediately and never falls back to unscoped Search
+            // Then only the snapshot with the Insights hash counts as loaded
             expect(isScopedSnapshotLoaded).toBe(true);
             expect(isUnscopedSnapshotLoaded).toBe(false);
         });

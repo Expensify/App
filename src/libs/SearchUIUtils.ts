@@ -5796,7 +5796,7 @@ function isSearchPending(searchResults: SearchResults | undefined) {
 }
 
 function isSearchDataLoaded(searchResults: SearchResults | undefined, queryJSON: Readonly<SearchQueryJSON> | undefined) {
-    // Auth echoes the negative hash for scoped Insights snapshots regardless of the response sort.
+    // Auth returns the requested negative hash for scoped Insights snapshots, so match it directly instead of recalculating it from the sort fields.
     const responseAdjustedQueryHash =
         queryJSON && searchResults?.search && queryJSON.hash >= 0
             ? getQueryHashes({
