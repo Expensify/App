@@ -2,11 +2,17 @@
  * Asks before the user leaves the money request confirmation with an amount entered in it, when the confirmation opens
  * the flow. Going back from a confirmation reached from an earlier step keeps the draft, so that one doesn't ask.
  */
+import type {OnInlineInputFocus} from '@components/MoneyRequestConfirmationFields/context';
+import isTextInputRef from '@components/TextInput/BaseTextInput/isTextInputRef';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
+
+import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 
 import type {IOURequestType} from '@src/CONST';
 
-import {useState} from 'react';
+import {useRef, useState} from 'react';
 
 type UseConfirmationDiscardGuardParams = {
     /** Whether this confirmation opens the flow, so leaving it discards the draft */
@@ -31,6 +37,9 @@ type UseConfirmationDiscardGuardResult = {
 
     /** Whether the discard prompt covers the confirmation */
     isDiscardModalVisible: boolean;
+
+    /** Takes the inline input that last took focus, so Cancel can put focus back in it */
+    setLastFocusedInput: OnInlineInputFocus;
 };
 
 function useConfirmationDiscardGuard({shouldConfirmDiscardingChanges, requestType, isAmountSet, isSubmitting}: UseConfirmationDiscardGuardParams): UseConfirmationDiscardGuardResult {
@@ -42,12 +51,27 @@ function useConfirmationDiscardGuard({shouldConfirmDiscardingChanges, requestTyp
     }
 
     const [isDiscardModalVisible, setIsDiscardModalVisible] = useState(false);
+    const getLastFocusedInputRef = useRef<(() => BaseTextInputRef | null) | undefined>(undefined);
+
+    // The inputs stay read-only until the prompt's close commits, so focus has to wait for focusComposerWithDelay's delay.
+    const restoreInputFocus = () => {
+        focusComposerWithDelay(() => {
+            const input = getLastFocusedInputRef.current?.() ?? null;
+            return isTextInputRef(input) ? input : null;
+        })(true);
+    };
+
     const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
         getHasUnsavedChanges: () => shouldConfirmDiscardingChanges && !isSubmitting && (isAmountSet || hasUnsavedAmountInput),
+        onCancel: restoreInputFocus,
         onVisibilityChange: setIsDiscardModalVisible,
     });
 
-    return {setHasUnsavedAmountInput, suppressDiscardPrompt, isDiscardModalVisible};
+    const setLastFocusedInput: OnInlineInputFocus = (getInput) => {
+        getLastFocusedInputRef.current = getInput;
+    };
+
+    return {setHasUnsavedAmountInput, suppressDiscardPrompt, isDiscardModalVisible, setLastFocusedInput};
 }
 
 export default useConfirmationDiscardGuard;

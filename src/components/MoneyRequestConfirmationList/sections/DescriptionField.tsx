@@ -5,6 +5,7 @@ import MenuItemFieldHTML from '@components/MenuItem/presets/MenuItemFieldHTML';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
 import TextInput from '@components/TextInput';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import {useMentionedAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -46,8 +47,20 @@ type DescriptionFieldProps = {
 };
 
 function DescriptionField({isDescriptionRequired, policy, descriptionHint = ''}: DescriptionFieldProps) {
-    const {isEditingSplitBill, scrollFocusedInputIntoView, onSubmitForm, isReadOnly, didConfirm, isDiscardModalVisible, transactionID, action, iouType, reportID, reportActionID} =
-        useConfirmationFields();
+    const {
+        isEditingSplitBill,
+        scrollFocusedInputIntoView,
+        onSubmitForm,
+        isReadOnly,
+        didConfirm,
+        isDiscardModalVisible,
+        transactionID,
+        action,
+        iouType,
+        reportID,
+        reportActionID,
+        onInlineInputFocus,
+    } = useConfirmationFields();
     const {shouldUseDropdownRows} = useExpenseFormLayout();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -55,6 +68,7 @@ function DescriptionField({isDescriptionRequired, policy, descriptionHint = ''}:
     // Ref on the field's outer container (the bordered box), so scrolling brings the whole field — including its
     // top border and label — into view rather than just the inner text area.
     const fieldContainerRef = useRef<ComponentRef<typeof View>>(null);
+    const descriptionInputRef = useRef<BaseTextInputRef | null>(null);
 
     const descriptionState = useTransactionSelector(transactionID, descriptionStateSelector);
     const rawDescription = descriptionState?.description ?? '';
@@ -157,7 +171,11 @@ function DescriptionField({isDescriptionRequired, policy, descriptionHint = ''}:
                                     readOnly={didConfirm || isDiscardModalVisible}
                                     sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DESCRIPTION_FIELD}
                                     onChangeText={handleDescriptionInputChange}
-                                    onFocus={() => scrollFocusedInputIntoView?.(fieldContainerRef.current)}
+                                    ref={descriptionInputRef}
+                                    onFocus={() => {
+                                        scrollFocusedInputIntoView?.(fieldContainerRef.current);
+                                        onInlineInputFocus?.(() => descriptionInputRef.current);
+                                    }}
                                     submitBehavior={canUseHardwareKeyboard ? 'blurAndSubmit' : 'newline'}
                                     onSubmitEditing={canUseHardwareKeyboard ? onSubmitForm : undefined}
                                     label={translate('common.description')}

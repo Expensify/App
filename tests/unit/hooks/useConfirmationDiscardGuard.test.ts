@@ -1,5 +1,7 @@
 import {act, renderHook} from '@testing-library/react-native';
 
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+
 import type UseDiscardChangesConfirmationOptions from '@hooks/useDiscardChangesConfirmation/types';
 
 import useConfirmationDiscardGuard from '@pages/iou/request/step/IOURequestStepConfirmation/useConfirmationDiscardGuard';
@@ -7,22 +9,42 @@ import type {UseConfirmationDiscardGuardParams} from '@pages/iou/request/step/IO
 
 import CONST from '@src/CONST';
 
+import createMock from '../../utils/createMock';
+
 let mockGetHasUnsavedChanges: () => boolean = () => false;
 let mockOnVisibilityChange: UseDiscardChangesConfirmationOptions['onVisibilityChange'];
+let mockOnCancel: UseDiscardChangesConfirmationOptions['onCancel'];
 const mockSuppressDiscardPrompt = jest.fn();
 
 jest.mock('@hooks/useDiscardChangesConfirmation', () => ({
     __esModule: true,
-    default: ({getHasUnsavedChanges, onVisibilityChange}: UseDiscardChangesConfirmationOptions) => {
+    default: ({getHasUnsavedChanges, onVisibilityChange, onCancel}: UseDiscardChangesConfirmationOptions) => {
         mockGetHasUnsavedChanges = getHasUnsavedChanges;
         mockOnVisibilityChange = onVisibilityChange;
+        mockOnCancel = onCancel;
         return {suppressDiscardPrompt: mockSuppressDiscardPrompt};
+    },
+}));
+
+// Records which input the guard asks to focus, and whether it waits for the prompt to close first.
+let mockGetInputToFocus: (() => unknown) | undefined;
+const mockFocusWithDelay = jest.fn<void, [boolean | undefined]>();
+jest.mock('@libs/focusComposerWithDelay', () => ({
+    __esModule: true,
+    default: (getInput: () => unknown) => {
+        mockGetInputToFocus = getInput;
+        return mockFocusWithDelay;
     },
 }));
 
 const untouchedFlowStart: UseConfirmationDiscardGuardParams = {shouldConfirmDiscardingChanges: true, requestType: CONST.IOU.REQUEST_TYPE.MANUAL, isAmountSet: false, isSubmitting: false};
 
 describe('useConfirmationDiscardGuard', () => {
+    beforeEach(() => {
+        mockGetInputToFocus = undefined;
+        mockFocusWithDelay.mockClear();
+    });
+
     it('does not ask before leaving an untouched form', () => {
         // Given the form that opens the flow, before the user entered anything
         renderHook(() => useConfirmationDiscardGuard(untouchedFlowStart));
@@ -96,6 +118,33 @@ describe('useConfirmationDiscardGuard', () => {
 
         // Then the inputs can take focus again
         expect(result.current.isDiscardModalVisible).toBe(false);
+    });
+
+    it('puts focus back in the input the user was typing in when they cancel the prompt', () => {
+        // Given the form that opens the flow, where the user typed an amount into an inline input
+        const {result} = renderHook(() => useConfirmationDiscardGuard({...untouchedFlowStart, isAmountSet: true}));
+        const inputMethods: Pick<BaseTextInputRef, 'focus' | 'blur'> & {isFocused: () => boolean} = {focus: () => {}, blur: () => {}, isFocused: () => false};
+        const input = createMock<BaseTextInputRef>(inputMethods);
+        act(() => result.current.setLastFocusedInput(() => input));
+
+        // When the user swipes back and cancels the discard prompt
+        act(() => mockOnCancel?.());
+
+        // Then that input gets focus back once the prompt has closed and the inputs are editable again
+        expect(mockFocusWithDelay).toHaveBeenLastCalledWith(true);
+        expect(mockGetInputToFocus?.()).toBe(input);
+    });
+
+    it('does not focus an input that unmounted while the prompt was open', () => {
+        // Given an inline input that took focus and then unmounted, so its getter returns null
+        const {result} = renderHook(() => useConfirmationDiscardGuard({...untouchedFlowStart, isAmountSet: true}));
+        act(() => result.current.setLastFocusedInput(() => null));
+
+        // When the user cancels the discard prompt
+        act(() => mockOnCancel?.());
+
+        // Then there is nothing to focus
+        expect(mockGetInputToFocus?.()).toBeNull();
     });
 
     it('does not ask on a form that a later step shows', () => {

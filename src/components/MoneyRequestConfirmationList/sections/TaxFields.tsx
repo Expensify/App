@@ -6,6 +6,7 @@ import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import type {NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
 import {SELECTION_LIST_POPOVER_HEADER_HEIGHT} from '@components/SelectionListPopoverHeader';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
@@ -64,8 +65,9 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
     const {convertToDisplayString, getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
-    const {isEditingSplitBill, isDiscardModalVisible, setEmptyTaxAmountTransactionID, fieldViewRefs} = useConfirmationFields();
+    const {isEditingSplitBill, isDiscardModalVisible, setEmptyTaxAmountTransactionID, fieldViewRefs, onInlineInputFocus} = useConfirmationFields();
     const numberFormRef = useRef<NumberWithSymbolFormRef | null>(null);
+    const taxAmountInputRef = useRef<BaseTextInputRef | null>(null);
 
     const taxSlice = useTransactionSelector(transactionID, taxSliceSelector);
     const {baseTransaction} = useSplitDraftBaseTransaction(transactionID);
@@ -258,6 +260,8 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
                         disabled={didConfirm}
                         // The input reads `readOnly` over `disabled`, so the confirmed lock has to be repeated here.
                         readOnly={didConfirm || isDiscardModalVisible}
+                        ref={taxAmountInputRef}
+                        onFocus={() => onInlineInputFocus?.(() => taxAmountInputRef.current)}
                     />
                 </View>
             ) : (

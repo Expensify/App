@@ -1,9 +1,11 @@
-import {render, waitFor} from '@testing-library/react-native';
+import {act, render, waitFor} from '@testing-library/react-native';
 
 import type {DropdownFieldRenderProps} from '@components/DropdownField';
+import type {OnInlineInputFocus} from '@components/MoneyRequestConfirmationFields/context';
 import ConfirmationFieldsProvider from '@components/MoneyRequestConfirmationFields/Provider';
 import ExpenseFormLayoutContext, {dropdownRowsExpenseFormLayout} from '@components/MoneyRequestConfirmationList/sections/ExpenseFormLayoutContext';
 import TaxFields from '@components/MoneyRequestConfirmationList/sections/TaxFields';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import Navigation from '@libs/Navigation/Navigation';
 import {getCalculatedTaxAmount} from '@libs/TransactionUtils';
@@ -34,12 +36,14 @@ jest.mock('@hooks/useCurrencyList', () => ({
         convertToDisplayString: jest.fn((amount: number) => `display:${amount}`),
     })),
 }));
-// The tax amount input beside the row is its own component with its own tests, so here it only records the error and the read-only state it is given.
+// The tax amount input beside the row is its own component with its own tests, so here it only records the error, the read-only state and the focus handler it is given.
 let mockTaxAmountErrorText: string | undefined;
 let mockIsTaxAmountInputReadOnly: boolean | undefined;
-jest.mock('@components/NumberWithSymbolForm', () => ({errorText, readOnly}: {errorText?: string; readOnly?: boolean}) => {
+let mockFocusTaxAmountInput: (() => void) | undefined;
+jest.mock('@components/NumberWithSymbolForm', () => ({errorText, readOnly, onFocus}: {errorText?: string; readOnly?: boolean; onFocus?: () => void}) => {
     mockTaxAmountErrorText = errorText;
     mockIsTaxAmountInputReadOnly = readOnly;
+    mockFocusTaxAmountInput = onFocus;
     return null;
 });
 
@@ -93,6 +97,7 @@ type RenderParams = {
     movingPolicy?: Policy;
     taxAmountError?: TranslationPaths;
     isDiscardModalVisible?: boolean;
+    onInlineInputFocus?: OnInlineInputFocus;
 };
 
 const renderTaxRateRow = ({
@@ -103,6 +108,7 @@ const renderTaxRateRow = ({
     movingPolicy,
     taxAmountError,
     isDiscardModalVisible = false,
+    onInlineInputFocus,
 }: RenderParams = {}) =>
     render(
         <ConfirmationFieldsProvider
@@ -111,6 +117,7 @@ const renderTaxRateRow = ({
             action={action}
             iouType={CONST.IOU.TYPE.SUBMIT}
             isDiscardModalVisible={isDiscardModalVisible}
+            onInlineInputFocus={onInlineInputFocus}
         >
             <ExpenseFormLayoutContext.Provider value={dropdownRowsExpenseFormLayout}>
                 <TaxFields
@@ -140,6 +147,7 @@ describe('TaxFields', () => {
         mockDropdownPolicyID = undefined;
         mockTaxAmountErrorText = undefined;
         mockIsTaxAmountInputReadOnly = undefined;
+        mockFocusTaxAmountInput = undefined;
         jest.mocked(Navigation.navigate).mockClear();
         await Onyx.clear();
         await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, draftTransaction);
@@ -222,6 +230,21 @@ describe('TaxFields', () => {
         await waitFor(() => {
             expect(mockIsTaxAmountInputReadOnly).toBe(isReadOnly);
         });
+    });
+
+    it('reports the tax amount input when it takes focus, so cancelling the discard prompt can focus it again', async () => {
+        // Given a workspace with a tax rate, on a form where the tax can be changed
+        const onInlineInputFocus = jest.fn<void, [() => BaseTextInputRef | null]>();
+        renderTaxRateRow({onInlineInputFocus});
+        await waitFor(() => {
+            expect(mockFocusTaxAmountInput).toBeDefined();
+        });
+
+        // When the user focuses the tax amount input
+        act(() => mockFocusTaxAmountInput?.());
+
+        // Then the form learns which input to focus after Cancel
+        expect(onInlineInputFocus).toHaveBeenCalledWith(expect.any(Function));
     });
 
     it('keeps the full-page selector when editing a saved expense', async () => {
