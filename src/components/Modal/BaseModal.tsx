@@ -10,6 +10,7 @@ import ScrollView from '@components/ScrollView';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
+import useRecordModalForFrameDrops from '@hooks/useRecordModalForFrameDrops';
 import useResizableSingleRHP from '@hooks/useResizableSingleRHP';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
@@ -25,7 +26,6 @@ import {canUseTouchScreen as canUseTouchScreenCheck} from '@libs/DeviceCapabilit
 import NarrowPaneContext from '@libs/Navigation/AppNavigator/Navigators/NarrowPaneContext';
 import Overlay from '@libs/Navigation/AppNavigator/Navigators/Overlay';
 import Navigation from '@libs/Navigation/Navigation';
-import {endModal, startModal} from '@libs/telemetry/frameDrops/frameDropTimeline';
 
 import variables from '@styles/variables';
 
@@ -201,14 +201,7 @@ function BaseModal({
         isVisibleRef.current = isVisible;
     }, [isVisible]);
 
-    // Frames drawn while the modal is shown are attributed to it as a separate screen (see frameDropMonitor).
-    useEffect(() => {
-        if (!isVisible) {
-            return;
-        }
-        const frameDropModalID = startModal(type);
-        return () => endModal(frameDropModalID);
-    }, [isVisible, type]);
+    useRecordModalForFrameDrops(isVisible, type);
 
     // The covering entry must not outlive the component, whatever path unmounts it.
     useEffect(() => () => setModalCovering(coveringModalID, false), [coveringModalID]);

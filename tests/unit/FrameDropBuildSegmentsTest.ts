@@ -128,6 +128,20 @@ describe('buildSegments', () => {
         ]);
     });
 
+    it('gives the time before the first recorded screen to no screen', () => {
+        // Given a window that starts before the first screen was recorded, e.g. right after resuming before navigation is ready
+        const screens = [{time: 500, screen: 'Report'}];
+
+        // When the window is split into segments
+        const segments = buildSegments(0, 1000, {screens, interactions: [], operations: [], flows: [], modals: []});
+
+        // Then frames before the screen was recorded aren't charged to it
+        expect(segments).toEqual([
+            {start: 0, end: 500, screen: NONE, interaction: NONE, operation: NONE, concurrentOperations: NONE, flow: NONE},
+            {start: 500, end: 1000, screen: 'Report', interaction: NONE, operation: NONE, concurrentOperations: NONE, flow: NONE},
+        ]);
+    });
+
     it('returns nothing for an empty window', () => {
         // Given a window that ends where it starts
         // When the window is split into segments

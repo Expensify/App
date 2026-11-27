@@ -85,7 +85,7 @@ function buildSegments(windowStart: number, windowEnd: number, {screens, interac
             screenIndex++;
             nextScreen = screens.at(screenIndex + 1);
         }
-        const baseScreen = screens.at(screenIndex)?.screen ?? CONST.TELEMETRY.FRAME_DROPS.NONE;
+        const baseScreen = (screenIndex >= 0 ? screens.at(screenIndex)?.screen : undefined) ?? CONST.TELEMETRY.FRAME_DROPS.NONE;
         const modal = findModal(start).at(-1);
         // A shown modal counts as a separate screen, named after the screen it covers so it is still known where it opened.
         const screen = modal ? `${baseScreen}/${modal.name}` : baseScreen;
