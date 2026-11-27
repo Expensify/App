@@ -214,8 +214,9 @@ function TestToolMenu({serverPageRoute}: TestToolMenuProps) {
                     <PressableWithoutFeedback
                         accessibilityLabel={translate('initialSettingsPage.troubleshoot.server')}
                         sentryLabel={CONST.SENTRY_LABEL.TEST_TOOL_MENU.SERVER}
-                        role={CONST.ROLE.BUTTON}
+                        role={CONST.ROLE.LINK}
                         onPress={() => Navigation.navigate(serverPageRoute)}
+                        linkRoute={serverPageRoute}
                     >
                         {serverRow}
                     </PressableWithoutFeedback>

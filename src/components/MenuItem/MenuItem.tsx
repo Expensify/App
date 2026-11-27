@@ -674,7 +674,8 @@ function MenuItem({
             return;
         }
 
-        if (event?.type === 'click') {
+        // Enter on a linked row fires a click with detail 0, and keyboard users need the focus to stay on the row
+        if (event?.type === 'click' && !('detail' in event && event.detail === 0)) {
             const target = event.currentTarget;
             // On web the target is a DOM element that can lose focus; native targets have no blur method
             if (target && typeof target === 'object' && 'blur' in target && typeof target.blur === 'function') {

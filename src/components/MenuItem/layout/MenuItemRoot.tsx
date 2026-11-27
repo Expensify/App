@@ -129,8 +129,9 @@ function MenuItemRoot({
             return;
         }
 
-        // Prevent clicked menu items from retaining an unwanted focus outline on web, especially in Safari
-        if (event?.type === 'click' && typeof HTMLElement !== 'undefined' && event.currentTarget instanceof HTMLElement) {
+        // Prevent clicked menu items from retaining an unwanted focus outline on web, especially in Safari.
+        // Enter on a linked row fires a click with detail 0, and keyboard users need the focus to stay on the row.
+        if (event?.type === 'click' && !('detail' in event && event.detail === 0) && typeof HTMLElement !== 'undefined' && event.currentTarget instanceof HTMLElement) {
             event.currentTarget.blur();
         }
 

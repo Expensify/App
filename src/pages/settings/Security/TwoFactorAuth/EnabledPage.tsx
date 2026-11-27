@@ -17,7 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 
-import {callIfAuthenticated} from '@userActions/Session';
+import {callIfAuthenticated, getLinkRouteIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -82,6 +82,7 @@ function EnabledPage() {
                         }
                         Navigation.navigate(ROUTES.SETTINGS_2FA_DISABLE);
                     }, session)}
+                    linkRoute={hasAdminPolicyWithXeroConnection ? undefined : getLinkRouteIfAuthenticated(ROUTES.SETTINGS_2FA_DISABLE, session)}
                 >
                     <MenuItem.Row>
                         <MenuItem.Leading>

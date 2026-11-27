@@ -92,12 +92,14 @@ function DynamicEditAgentPage({route}: DynamicEditAgentPageProps) {
         // Agents can't open their Agents pages, so land on Home instead of the default Settings tab
         switchToDelegator(agentLogin, ROUTES.HOME);
     };
+    const agentHistoryQuery = buildQueryStringFromFilterFormValues({
+        type: CONST.SEARCH.DATA_TYPES.CHAT,
+        from: [String(accountID)],
+    });
+    const agentHistoryRoute = ROUTES.SEARCH_ROOT.getRoute({query: agentHistoryQuery, rawQuery: agentHistoryQuery});
+
     const handleViewHistoryPress = () => {
-        const query = buildQueryStringFromFilterFormValues({
-            type: CONST.SEARCH.DATA_TYPES.CHAT,
-            from: [String(accountID)],
-        });
-        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query, rawQuery: query}));
+        Navigation.navigate(agentHistoryRoute);
     };
 
     if (shouldShowNotFoundPage) {
@@ -169,6 +171,7 @@ function DynamicEditAgentPage({route}: DynamicEditAgentPageProps) {
                     title={translate('editAgentPage.viewAgentHistory')}
                     icon={icons.MagnifyingGlass}
                     onPress={handleViewHistoryPress}
+                    linkRoute={agentHistoryRoute}
                     isDisabled={areActionsDisabled}
                 />
                 <MenuItemAction

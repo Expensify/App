@@ -19,6 +19,7 @@ import {
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/VacationDelegateForm';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
@@ -54,6 +55,9 @@ type VacationDelegateFormProps = {
     /** Opens the member selection screen. The picked member is stored in the form draft. */
     onChangeDelegate: () => void;
 
+    /** The member selection screen's route, so the delegate row can be opened in a new tab */
+    changeDelegateRoute?: Route;
+
     /**
      * Saves the picked delegate
      * @param delegate - Login of the picked delegate
@@ -82,6 +86,7 @@ function VacationDelegateForm({
     description,
     timezone: timezoneProp,
     onChangeDelegate,
+    changeDelegateRoute,
     onSubmit,
     onRemove,
     errors,
@@ -157,6 +162,7 @@ function VacationDelegateForm({
                 pendingAction={pendingAction}
                 onCloseError={onCloseError}
                 onPress={onChangeDelegate}
+                linkRoute={changeDelegateRoute}
                 sentryLabel={CONST.SENTRY_LABEL.VACATION_DELEGATE.CHOOSE_DELEGATE}
             />
             {/* The clear after date and time belong to the same pending save as the delegate, so they grey out with it */}

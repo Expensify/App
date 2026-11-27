@@ -96,6 +96,7 @@ function DomainMemberVacationDelegateFormPage({route}: DomainMemberVacationDeleg
                         vacationDelegate={vacationDelegate}
                         timezone={personalDetails?.timezone?.selected}
                         onChangeDelegate={() => Navigation.navigate(ROUTES.DOMAIN_VACATION_DELEGATE_SELECT.getRoute(domainAccountID, accountID))}
+                        changeDelegateRoute={ROUTES.DOMAIN_VACATION_DELEGATE_SELECT.getRoute(domainAccountID, accountID)}
                         onSubmit={onSubmit}
                         onRemove={onRemove}
                     />

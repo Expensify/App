@@ -28,6 +28,7 @@ function CancelSubscriptionMenuItem() {
     return (
         <MenuItemSectionRoot
             onPress={handleCancelSubscriptionPress}
+            linkRoute={isActingAsDelegate ? undefined : ROUTES.SETTINGS_SUBSCRIPTION_CANCEL_SUBSCRIPTION}
             sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.CANCEL_SUBSCRIPTION}
         >
             <MenuItem.Row>

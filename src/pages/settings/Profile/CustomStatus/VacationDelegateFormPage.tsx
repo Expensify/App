@@ -144,6 +144,7 @@ function VacationDelegateFormPage() {
                     vacationDelegate={vacationDelegate}
                     description={translate('statusPage.setVacationDelegate')}
                     onChangeDelegate={() => Navigation.navigate(ROUTES.SETTINGS_VACATION_DELEGATE_SELECT)}
+                    changeDelegateRoute={ROUTES.SETTINGS_VACATION_DELEGATE_SELECT}
                     onSubmit={onSubmit}
                     onRemove={onRemove}
                     errors={isSaving ? undefined : getVacationDelegateErrors(vacationDelegate)}
