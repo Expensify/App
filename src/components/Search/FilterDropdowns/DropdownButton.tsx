@@ -22,7 +22,7 @@ import type {FilterPopupButtonProps} from './FilterPopupButton';
 import FilterPopupButton from './FilterPopupButton';
 
 type DropdownButtonProps = WithRequiredSentryLabel &
-    Omit<FilterPopupButtonProps, 'renderButton' | 'viewportOffsetTop'> & {
+    Omit<FilterPopupButtonProps, 'renderButton'> & {
         label: string;
         value: string | string[] | null;
 

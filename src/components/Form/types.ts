@@ -204,6 +204,9 @@ type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = ForwardedFSClassProp
 
         shouldUseScrollView?: boolean;
 
+        /** Bounds web form content to its viewport so an expanding editor cannot enlarge its own height limit. Native keeps intrinsic scrolling for keyboard-reduced layouts. */
+        shouldConstrainWebContentHeight?: boolean;
+
         /** When set, FormWrapper attaches its scroll view to this ref instead of its own, so the caller can scroll it, e.g. with useKeyboardDrivenScroll */
         scrollViewRef?: AnimatedRef<ComponentRef<typeof ScrollView>>;
 

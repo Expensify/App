@@ -1,5 +1,5 @@
 import type {TextInputFilterContentWrapperProps} from '@components/Search/FilterComponents/AdvancedFilters/SearchAdvancedFiltersContent';
-import TextInputFilterContent from '@components/Search/FilterComponents/AdvancedFilters/TextInputFilterContent';
+import TextInputFilterContent, {shouldTextFilterGrow, TextInputFilterContentFillHeight} from '@components/Search/FilterComponents/AdvancedFilters/TextInputFilterContent';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -11,6 +11,21 @@ import React from 'react';
 function TextInputFilterContentPopupWrapper({baseFilterKey, value, isNegated, onChange}: TextInputFilterContentWrapperProps) {
     const styles = useThemeStyles();
     const isFilterKeyNegatable = isFilterNegatable(baseFilterKey);
+    const style = [isFilterKeyNegatable ? styles.pt6 : styles.pt5];
+
+    if (shouldTextFilterGrow(baseFilterKey)) {
+        return (
+            <TextInputFilterContentFillHeight
+                sentryLabel={FILTER_VIEW_MAP[baseFilterKey].applySentryLabel}
+                baseFilterKey={baseFilterKey}
+                value={value}
+                isNegated={isNegated}
+                style={style}
+                shouldUseWebViewportHeightFallback={false}
+                onChange={onChange}
+            />
+        );
+    }
 
     return (
         <TextInputFilterContent
@@ -18,7 +33,7 @@ function TextInputFilterContentPopupWrapper({baseFilterKey, value, isNegated, on
             baseFilterKey={baseFilterKey}
             value={value}
             isNegated={isNegated}
-            style={[isFilterKeyNegatable ? styles.pt6 : styles.pt5]}
+            style={style}
             onChange={onChange}
         />
     );

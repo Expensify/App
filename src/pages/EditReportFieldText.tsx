@@ -1,3 +1,4 @@
+import AutoGrowHeightInputContainer from '@components/AutoGrowHeightInputContainer';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -74,8 +75,26 @@ function EditReportFieldTextPage({fieldName, onSubmit, fieldValue, isRequired, f
         });
     };
 
+    const renderInput = (maxAutoGrowHeight?: number) => (
+        <InputWrapper
+            InputComponent={TextInput}
+            inputID={fieldKey}
+            name={fieldKey}
+            defaultValue={fieldValue}
+            label={reportFieldName}
+            accessibilityLabel={reportFieldName}
+            role={CONST.ROLE.PRESENTATION}
+            autoGrowSingleLine
+            ref={inputCallbackRef}
+            disabled={disabled}
+            maxAutoGrowHeight={maxAutoGrowHeight}
+        />
+    );
+
     return (
         <FormProvider
+            shouldConstrainWebContentHeight={!disabled}
+            submitFlexEnabled={disabled}
             style={[styles.flexGrow1, styles.ph5]}
             formID={ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM}
             onSubmit={handleSubmit}
@@ -85,20 +104,16 @@ function EditReportFieldTextPage({fieldName, onSubmit, fieldValue, isRequired, f
             enabledWhenOffline
             shouldHideFixErrorsAlert
         >
-            <View style={styles.mb4}>
-                <InputWrapper
-                    InputComponent={TextInput}
-                    inputID={fieldKey}
-                    name={fieldKey}
-                    defaultValue={fieldValue}
-                    label={reportFieldName}
-                    accessibilityLabel={reportFieldName}
-                    role={CONST.ROLE.PRESENTATION}
-                    autoGrowSingleLine
-                    ref={inputCallbackRef}
-                    disabled={disabled}
-                />
-            </View>
+            {disabled ? (
+                <View style={styles.mb4}>{renderInput()}</View>
+            ) : (
+                <AutoGrowHeightInputContainer
+                    shouldKeepMinimumHeight
+                    style={styles.mb4}
+                >
+                    {renderInput}
+                </AutoGrowHeightInputContainer>
+            )}
         </FormProvider>
     );
 }
