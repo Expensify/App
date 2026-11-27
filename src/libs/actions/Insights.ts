@@ -79,8 +79,9 @@ function getResponseTagLevels<TKey extends OnyxKey>(response: Response<TKey>, ke
 
 /**
  * @param requestID - Identifies this request, stored with its tag levels once it succeeds so the dashboard can tell its own response from one stored earlier
+ * @param inputQuery - The dashboard's filters as a query string, stored with the tag levels to tell which workspaces they cover
  */
-function getInsights(dashboard: InsightsDashboardID, hash: number, jsonQuery: string, snapshotHashes: number[], queryType: SearchDataTypes, requestID: string) {
+function getInsights(dashboard: InsightsDashboardID, hash: number, jsonQuery: string, snapshotHashes: number[], queryType: SearchDataTypes, requestID: string, inputQuery: string) {
     const key = `${ONYXKEYS.COLLECTION.INSIGHTS}${dashboard}_${hash}` as const;
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.INSIGHTS | typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
@@ -113,12 +114,7 @@ function getInsights(dashboard: InsightsDashboardID, hash: number, jsonQuery: st
         },
     ];
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.INSIGHTS | typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key,
-            value: {requestedAt: Date.now()},
-        },
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
         ...snapshotHashes.map<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>>((snapshotHash) => ({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}`,
@@ -128,7 +124,8 @@ function getInsights(dashboard: InsightsDashboardID, hash: number, jsonQuery: st
         })),
     ];
 
-    const responseTagLevelsKey = `${ONYXKEYS.COLLECTION.RAM_ONLY_INSIGHTS_RESPONSE_TAG_LEVELS}${dashboard}_${hash}` as const;
+    const responseTagLevelsKey = `${ONYXKEYS.COLLECTION.INSIGHTS_TAG_LEVELS}${dashboard}_${hash}` as const;
+    const requestedAt = Date.now();
     latestTagLevelsRequestIDs.set(responseTagLevelsKey, requestID);
     requestInsights(READ_COMMANDS.GET_INSIGHTS, jsonQuery, key, {optimisticData, successData, failureData}).then((response) => {
         if (!response || latestTagLevelsRequestIDs.get(responseTagLevelsKey) !== requestID) {
@@ -136,7 +133,7 @@ function getInsights(dashboard: InsightsDashboardID, hash: number, jsonQuery: st
         }
         latestTagLevelsRequestIDs.delete(responseTagLevelsKey);
         // The request ID and its levels are written together, so the dashboard never pairs this request's ID with levels from another response for the same filters
-        Onyx.set(responseTagLevelsKey, {requestID, tagLevels: getResponseTagLevels(response, key)}).catch((error: unknown) =>
+        Onyx.set(responseTagLevelsKey, {requestID, requestedAt, inputQuery, tagLevels: getResponseTagLevels(response, key)}).catch((error: unknown) =>
             Log.hmmm('[Insights] failed to store the GetInsights tag levels', {error: String(error)}),
         );
     });

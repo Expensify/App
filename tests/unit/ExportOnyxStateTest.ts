@@ -26,6 +26,18 @@ describe('maskOnyxState', () => {
         expect(result).toEqual({[`${ONYXKEYS.COLLECTION.INSIGHTS}${CONST.INSIGHTS.DASHBOARD.SPEND}_1`]: {tagLevels: [{level: 1, names: ['***', '***']}]}});
     });
 
+    it('masks the tag level names stored for an Insights request', () => {
+        // Given the levels stored for a Spend request, named after a client
+        const key = `${ONYXKEYS.COLLECTION.INSIGHTS_TAG_LEVELS}${CONST.INSIGHTS.DASHBOARD.SPEND}_1`;
+        const input = {[key]: {requestID: '1', requestedAt: 1, inputQuery: 'policyID:A', tagLevels: [{level: 1, names: ['Private client']}]}};
+
+        // When the state is exported with masking on
+        const result = maskOnyxState(input, true);
+
+        // Then the names are masked while the level positions stay readable
+        expect(result).toEqual({[key]: expect.objectContaining({tagLevels: [{level: 1, names: ['***']}]})});
+    });
+
     it('preserves recursive categories and redacts private values in mutable and readonly arrays', () => {
         // Given exported state with unknown nested values, both array categories and masked-key arrays
         const readonlyItems: readonly unknown[] = [null, undefined, 7, {merchant: 'Private merchant', nested: ['user@example.com', {authToken: 'Private token'}]}];

@@ -443,7 +443,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
         }
         const requestID = rand64();
         setLastRequest({hash, requestID});
-        getInsights(dashboardID, hash, query.jsonQuery, query.snapshotHashes, queryType, requestID);
+        getInsights(dashboardID, hash, query.jsonQuery, query.snapshotHashes, queryType, requestID, query.inputQuery);
     };
 
     const onRequestConditionsChanged = useEffectEvent(() => {
@@ -462,7 +462,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
     }, [dashboardID, hash, queryGroupBy, snapshotHashes, isDashboardVisible, isFocused, isOffline]);
 
     const [dashboard] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS}${dashboardID}_${hash}`);
-    const [responseTagLevels] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_INSIGHTS_RESPONSE_TAG_LEVELS}${dashboardID}_${hash}`);
+    const [responseTagLevels] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS_TAG_LEVELS}${dashboardID}_${hash}`);
     // A stored response can predate a workspace's new tag levels, so the selected level is only checked against the levels the response to the latest request for these filters listed.
     const hasLatestResponse = !!lastRequest && lastRequest.hash === hash && responseTagLevels?.requestID === lastRequest.requestID;
     const [hasLoadedBefore = false] = useOnyx(ONYXKEYS.COLLECTION.INSIGHTS, {
@@ -477,11 +477,20 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
             [queryJSON, previousPeriodQueryJSON, averageQueryJSON].flatMap((chartQueryJSON) => (chartQueryJSON ? [String(chartQueryJSON.hash)] : [])),
         ),
     );
+    const {options: tagLevelOptions, knownTagLevels} = useInsightsTagLevelOptions({
+        respondedTagLevels: hasLatestResponse ? responseTagLevels.tagLevels : undefined,
+        policyIDs: filters.policyIDs,
+        tagPolicyIDs: dashboardID === CONST.INSIGHTS.DASHBOARD.SPEND ? policiesInScope.filter(isPolicyEligibleForTopTags).map(({id}) => id) : [],
+        selectedTagLevel: filters.tagLevel,
+        canChangeFilters: !isExporting,
+        setFilters,
+    });
     // The response for a level no workspace in scope has holds no tagged expenses, so Top tags shows its loading state instead of an empty chart until the level falls back and its data arrives. A stored response can be older than the chart's cached data, so data the chart already has stays on screen.
+    // Until the response to the latest request arrives, the levels known for these workspaces decide it, since Top tags can show data cached under other filters, such as another headline grouping.
     const isTopTagsWaitingForLevel = isTagLevelFallbackPending(
-        hasLatestResponse ? responseTagLevels.tagLevels : dashboard?.tagLevels,
+        hasLatestResponse ? responseTagLevels.tagLevels : (knownTagLevels ?? dashboard?.tagLevels),
         filters.tagLevel,
-        !isOffline && isEmptyObject(dashboard?.errors),
+        !isOffline && isEmptyObject(dashboard?.errors) && !dashboard?.responseJsonCode,
     );
     const charts = visibleChartQueries.map((chartQuery): InsightsDashboardChart => {
         const graph = dashboard?.graphs?.[chartQuery.chart.graphKey];
@@ -500,14 +509,6 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
             stages: getEnabledStages(chartQuery.chart, policiesInScope, login, isDashboardPolicyEligible),
             isAwaitingData: isTopTagsWaitingForLevel && chartQuery.chart.graphKey === CONST.INSIGHTS.GRAPH.TOP_TAGS,
         };
-    });
-    const tagLevelOptions = useInsightsTagLevelOptions({
-        respondedTagLevels: hasLatestResponse ? responseTagLevels.tagLevels : undefined,
-        policyIDs: filters.policyIDs,
-        tagPolicyIDs: dashboardID === CONST.INSIGHTS.DASHBOARD.SPEND ? policiesInScope.filter(isPolicyEligibleForTopTags).map(({id}) => id) : [],
-        selectedTagLevel: filters.tagLevel,
-        canChangeFilters: !isExporting,
-        setFilters,
     });
     const [headlineChart, ...supportingCharts] = charts;
     const state = getDashboardState(dashboard, isOffline, charts, shouldUpsell, hasLoadedBefore);

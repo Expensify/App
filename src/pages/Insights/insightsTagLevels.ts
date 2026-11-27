@@ -3,8 +3,8 @@ import {getTagLists} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {InsightsDashboard, PolicyTagLists} from '@src/types/onyx';
-import type {InsightsTagLevel} from '@src/types/onyx/InsightsDashboard';
+import type {PolicyTagLists} from '@src/types/onyx';
+import type {InsightsResponseTagLevels, InsightsTagLevel} from '@src/types/onyx/InsightsDashboard';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
@@ -86,20 +86,20 @@ function getQueryPolicyScope(inputQuery: string): string {
     return scope;
 }
 
-/** Finds the tag levels the newest stored Spend response listed for the same workspaces, which can be newer than the response stored for the current filters. */
-function getStoredTagLevels(dashboards: OnyxCollection<InsightsDashboard>, policyIDs: string[]): InsightsTagLevel[] | undefined {
-    const spendKeyPrefix = `${ONYXKEYS.COLLECTION.INSIGHTS}${CONST.INSIGHTS.DASHBOARD.SPEND}_`;
+/** Finds the tag levels the newest successful Spend request listed for the same workspaces, which can be newer than the ones stored for the current filters. */
+function getStoredTagLevels(storedTagLevels: OnyxCollection<InsightsResponseTagLevels>, policyIDs: string[]): InsightsTagLevel[] | undefined {
+    const spendKeyPrefix = `${ONYXKEYS.COLLECTION.INSIGHTS_TAG_LEVELS}${CONST.INSIGHTS.DASHBOARD.SPEND}_`;
     const scope = getPolicyScope(policyIDs);
-    let newestDashboard: InsightsDashboard | undefined;
-    for (const [key, dashboard] of Object.entries(dashboards ?? {})) {
-        if (!key.startsWith(spendKeyPrefix) || !dashboard?.tagLevels || !dashboard.inputQuery || getQueryPolicyScope(dashboard.inputQuery) !== scope) {
+    let newest: InsightsResponseTagLevels | undefined;
+    for (const [key, stored] of Object.entries(storedTagLevels ?? {})) {
+        if (!key.startsWith(spendKeyPrefix) || !stored?.tagLevels || getQueryPolicyScope(stored.inputQuery) !== scope) {
             continue;
         }
-        if (!newestDashboard || (dashboard.requestedAt ?? 0) > (newestDashboard.requestedAt ?? 0)) {
-            newestDashboard = dashboard;
+        if (!newest || stored.requestedAt > newest.requestedAt) {
+            newest = stored;
         }
     }
-    return newestDashboard?.tagLevels;
+    return newest?.tagLevels;
 }
 
 export {getCachedTagLevels, getFittingTagLevel, getInsightsTagLevelOptions, getStoredTagLevels, isTagLevelFallbackPending};

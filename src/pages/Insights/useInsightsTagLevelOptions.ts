@@ -31,6 +31,13 @@ type UseInsightsTagLevelOptionsParams = {
     setFilters: (update: Partial<InsightsFilters>) => void;
 };
 
+type InsightsTagLevelOptionsResult = {
+    options: InsightsTagLevelOption[];
+
+    /** The levels the options were built from, known for the workspaces in scope before the response for the current filters arrives */
+    knownTagLevels: InsightsTagLevel[] | undefined;
+};
+
 function useInsightsTagLevelOptions({
     respondedTagLevels,
     policyIDs,
@@ -38,13 +45,14 @@ function useInsightsTagLevelOptions({
     selectedTagLevel,
     canChangeFilters,
     setFilters,
-}: UseInsightsTagLevelOptionsParams): InsightsTagLevelOption[] {
+}: UseInsightsTagLevelOptionsParams): InsightsTagLevelOptionsResult {
     const {translate, numberFormat} = useLocalize();
     // Each filter change reads a new response, so the newest levels stored for the same workspaces keep the menu up until it arrives, including offline and after a reload.
-    const [storedTagLevels] = useOnyx(ONYXKEYS.COLLECTION.INSIGHTS, {selector: (dashboards) => getStoredTagLevels(dashboards, policyIDs)});
-    // Responses stored before GetInsights listed tag levels have none, so the tag lists on the device stand in until one does
+    const [storedTagLevels] = useOnyx(ONYXKEYS.COLLECTION.INSIGHTS_TAG_LEVELS, {selector: (tagLevelsByRequest) => getStoredTagLevels(tagLevelsByRequest, policyIDs)});
+    // Until a successful request stores levels for these workspaces, such as right after an update, the tag lists on the device stand in
     const [cachedTagLevels] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: (policyTags) => (storedTagLevels ? undefined : getCachedTagLevels(policyTags, tagPolicyIDs))});
-    const options = getInsightsTagLevelOptions(storedTagLevels ?? cachedTagLevels, selectedTagLevel, (level) => translate('insightsPage.tagLevel', numberFormat(level)));
+    const knownTagLevels = storedTagLevels ?? cachedTagLevels;
+    const options = getInsightsTagLevelOptions(knownTagLevels, selectedTagLevel, (level) => translate('insightsPage.tagLevel', numberFormat(level)));
 
     const resetUnavailableTagLevel = useEffectEvent((loadedTagLevels: InsightsTagLevel[]) => {
         const tagLevel = selectedTagLevel ?? CONST.INSIGHTS.DEFAULT_TAG_LEVEL;
@@ -62,7 +70,7 @@ function useInsightsTagLevelOptions({
         resetUnavailableTagLevel(respondedTagLevels);
     }, [respondedTagLevels, canChangeFilters]);
 
-    return options;
+    return {options, knownTagLevels};
 }
 
 export default useInsightsTagLevelOptions;

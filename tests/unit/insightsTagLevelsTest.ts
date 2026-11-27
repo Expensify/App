@@ -5,7 +5,7 @@ import {getCachedTagLevels, getFittingTagLevel, getInsightsTagLevelOptions, getS
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTagLists} from '@src/types/onyx';
-import type {InsightsTagLevel} from '@src/types/onyx/InsightsDashboard';
+import type {InsightsResponseTagLevels, InsightsTagLevel} from '@src/types/onyx/InsightsDashboard';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
@@ -138,51 +138,56 @@ describe('Insights tag levels', () => {
 
     describe('getStoredTagLevels', () => {
         const levels = [{level: 1, names: ['Region']}];
-        const spendKey = (hash: number) => `${ONYXKEYS.COLLECTION.INSIGHTS}${CONST.INSIGHTS.DASHBOARD.SPEND}_${hash}` as const;
+        const spendKey = (hash: number) => `${ONYXKEYS.COLLECTION.INSIGHTS_TAG_LEVELS}${CONST.INSIGHTS.DASHBOARD.SPEND}_${hash}` as const;
+        const stored = (inputQuery: string, requestedAt: number, tagLevels?: InsightsTagLevel[]): InsightsResponseTagLevels => ({
+            requestID: String(requestedAt),
+            requestedAt,
+            inputQuery,
+            tagLevels,
+        });
 
         it('matches the workspaces in any order', () => {
-            // Given a stored response for two workspaces
-            const dashboards = {[spendKey(1)]: {inputQuery: 'groupBy:month policyID:A,B date:this-month', tagLevels: levels}};
+            // Given levels stored for two workspaces
+            const tagLevelsByRequest = {[spendKey(1)]: stored('groupBy:month policyID:A,B date:this-month', 1, levels)};
 
             // When the same workspaces are selected in another order
-            // Then its levels are found
-            expect(getStoredTagLevels(dashboards, ['B', 'A'])).toBe(levels);
+            // Then their levels are found
+            expect(getStoredTagLevels(tagLevelsByRequest, ['B', 'A'])).toBe(levels);
         });
 
         it('tells all workspaces apart from a selection', () => {
-            // Given a stored response for all workspaces
-            const dashboards = {[spendKey(1)]: {inputQuery: 'groupBy:month date:this-month', tagLevels: levels}};
+            // Given levels stored for all workspaces
+            const tagLevelsByRequest = {[spendKey(1)]: stored('groupBy:month date:this-month', 1, levels)};
 
             // When all workspaces or one workspace is selected
-            // Then only the all-workspaces scope finds its levels
-            expect(getStoredTagLevels(dashboards, [])).toBe(levels);
-            expect(getStoredTagLevels(dashboards, ['A'])).toBeUndefined();
+            // Then only the all-workspaces scope finds them
+            expect(getStoredTagLevels(tagLevelsByRequest, [])).toBe(levels);
+            expect(getStoredTagLevels(tagLevelsByRequest, ['A'])).toBeUndefined();
         });
 
-        it('prefers the newest stored response for the workspaces', () => {
-            // Given an older one-level response, a newer two-level response, and a response stored without a request time, for the same workspace
+        it('prefers the levels from the newest request for the workspaces', () => {
+            // Given one-level levels from an older request and two-level levels from a newer one, for the same workspace
             const newerLevels = [...levels, {level: 2, names: ['Office']}];
-            const dashboards = {
-                [spendKey(1)]: {inputQuery: 'policyID:A date:last-month', tagLevels: levels, requestedAt: 10},
-                [spendKey(2)]: {inputQuery: 'policyID:A date:this-month', tagLevels: newerLevels, requestedAt: 20},
-                [spendKey(3)]: {inputQuery: 'policyID:A date:last-12-months', tagLevels: levels},
+            const tagLevelsByRequest = {
+                [spendKey(1)]: stored('policyID:A date:last-month', 10, levels),
+                [spendKey(2)]: stored('policyID:A date:this-month', 20, newerLevels),
             };
 
             // When workspace A is selected
             // Then the newer levels are found
-            expect(getStoredTagLevels(dashboards, ['A'])).toBe(newerLevels);
+            expect(getStoredTagLevels(tagLevelsByRequest, ['A'])).toBe(newerLevels);
         });
 
-        it('skips other dashboards and responses without levels', () => {
-            // Given a Compliance entry and a Spend entry without levels for the same workspace
-            const dashboards = {
-                [`${ONYXKEYS.COLLECTION.INSIGHTS}${CONST.INSIGHTS.DASHBOARD.COMPLIANCE}_1`]: {inputQuery: 'policyID:A date:this-month', tagLevels: levels},
-                [spendKey(2)]: {inputQuery: 'policyID:A date:this-month'},
+        it('skips other dashboards and requests whose response listed no levels', () => {
+            // Given Compliance levels and a Spend request without levels for the same workspace
+            const tagLevelsByRequest = {
+                [`${ONYXKEYS.COLLECTION.INSIGHTS_TAG_LEVELS}${CONST.INSIGHTS.DASHBOARD.COMPLIANCE}_1`]: stored('policyID:A date:this-month', 1, levels),
+                [spendKey(2)]: stored('policyID:A date:this-month', 2),
             };
 
             // When workspace A is selected
-            // Then neither entry provides levels
-            expect(getStoredTagLevels(dashboards, ['A'])).toBeUndefined();
+            // Then neither provides levels
+            expect(getStoredTagLevels(tagLevelsByRequest, ['A'])).toBeUndefined();
         });
     });
 });

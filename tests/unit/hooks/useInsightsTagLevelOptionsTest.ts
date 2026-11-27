@@ -23,13 +23,14 @@ const TWO_LEVELS = [
     {level: 2, names: ['Location']},
 ];
 
-/** Stores a Spend response for workspace A, as GetInsights leaves it in Onyx. */
+/** Stores the levels a successful Spend request for workspace A listed, as getInsights leaves them in Onyx. */
 async function storeSpendResponse(tagLevels: InsightsTagLevel[]) {
     await act(async () => {
-        await Onyx.set(`${ONYXKEYS.COLLECTION.INSIGHTS}${CONST.INSIGHTS.DASHBOARD.SPEND}_1`, {
+        await Onyx.set(`${ONYXKEYS.COLLECTION.INSIGHTS_TAG_LEVELS}${CONST.INSIGHTS.DASHBOARD.SPEND}_1`, {
+            requestID: 'request1',
+            requestedAt: 1,
             inputQuery: 'groupBy:month tagLevel:1 groupCurrency:USD policyID:A date:this-month',
             tagLevels,
-            requestedAt: 1,
         });
         await waitForBatchedUpdates();
     });
@@ -75,7 +76,7 @@ describe('useInsightsTagLevelOptions', () => {
         const {result, setFilters} = renderOptionsHook({policyIDs: ['A'], selectedTagLevel: 2});
 
         // Then the selection is kept, and the menu offers it so the user can switch back to level one
-        await waitFor(() => expect(result.current.map((option) => option.value)).toEqual([1, 2]));
+        await waitFor(() => expect(result.current.options.map((option) => option.value)).toEqual([1, 2]));
         expect(setFilters).not.toHaveBeenCalled();
     });
 
@@ -88,7 +89,7 @@ describe('useInsightsTagLevelOptions', () => {
 
         // Then both levels are offered and nothing is reset
         await waitFor(() =>
-            expect(result.current).toEqual([
+            expect(result.current.options).toEqual([
                 {value: 1, label: 'Department'},
                 {value: 2, label: 'Location'},
             ]),
@@ -104,13 +105,13 @@ describe('useInsightsTagLevelOptions', () => {
         const {result, rerender} = renderOptionsHook({policyIDs: ['A'], selectedTagLevel: 1});
 
         // Then the menu offers the stored levels
-        await waitFor(() => expect(result.current).toHaveLength(2));
+        await waitFor(() => expect(result.current.options).toHaveLength(2));
 
         // When the workspace scope changes to one with nothing stored
         rerender({policyIDs: ['B'], selectedTagLevel: 1});
 
         // Then the levels of the other workspaces are not offered
-        await waitFor(() => expect(result.current).toHaveLength(1));
+        await waitFor(() => expect(result.current.options).toHaveLength(1));
     });
 
     it('uses the tag lists on the device until a stored response lists the levels', async () => {
@@ -124,14 +125,19 @@ describe('useInsightsTagLevelOptions', () => {
         // When the dashboard for workspace A opens
         const {result} = renderOptionsHook({policyIDs: ['A'], selectedTagLevel: 1});
 
-        // Then the menu offers both levels from the tag lists
-        await waitFor(() => expect(result.current).toEqual(expect.arrayContaining([{value: 2, label: 'Project'}])));
+        // Then the menu offers both levels from the tag lists, and reports them as the known levels
+        await waitFor(() => expect(result.current.options).toEqual(expect.arrayContaining([{value: 2, label: 'Project'}])));
+        expect(result.current.knownTagLevels).toEqual([
+            {level: 1, names: ['Department']},
+            {level: 2, names: ['Project']},
+        ]);
 
         // When a response that lists the levels is stored
         await storeSpendResponse([{level: 1, names: ['Department']}]);
 
-        // Then the stored response takes over
-        await waitFor(() => expect(result.current).toHaveLength(1));
+        // Then the stored levels take over, for the menu and as the known levels
+        await waitFor(() => expect(result.current.options).toHaveLength(1));
+        expect(result.current.knownTagLevels).toEqual([{level: 1, names: ['Department']}]);
     });
 
     it('waits until filters can change before resetting', () => {
