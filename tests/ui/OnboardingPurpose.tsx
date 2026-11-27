@@ -485,4 +485,26 @@ describe('OnboardingPurpose Page', () => {
         unmount();
         await waitForBatchedUpdatesWithAct();
     });
+
+    it('gives each purpose option its own Sentry label', async () => {
+        // Given the purpose page with every selectable option
+        await TestHelper.signInWithTestUser();
+        const {unmount} = renderOnboardingPurposePage(SCREENS.ONBOARDING.PURPOSE, {backTo: ''});
+        await waitForBatchedUpdatesWithAct();
+
+        // When reading the Sentry label of each option
+        const labels = Object.values(CONST.SELECTABLE_ONBOARDING_CHOICES).map((choice): unknown => {
+            const option = screen.getByLabelText(translatePurpose(choice));
+            const dataSet: unknown = option.props.dataSet;
+            const dataSetLabel = typeof dataSet === 'object' && dataSet !== null && 'sentryLabel' in dataSet ? dataSet.sentryLabel : undefined;
+            const propLabel: unknown = option.props.sentryLabel;
+            return propLabel ?? dataSetLabel;
+        });
+
+        // Then every option has a distinct label in the Onboarding-PurposeItem group, so analytics can tell them apart without the accessibility label
+        expect(labels).toEqual(Object.values(CONST.SENTRY_LABEL.ONBOARDING.PURPOSE_ITEM));
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
 });
