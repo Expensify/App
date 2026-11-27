@@ -42,7 +42,7 @@ jest.mock('@libs/Clipboard/getClipboardText', () => ({
 
 const mockGetClipboardText = jest.mocked(getClipboardText);
 
-const {default: ContextMenuActions}: typeof ContextMenuActionsModule = jest.requireActual('@pages/inbox/report/ContextMenu/ContextMenuActions');
+const {default: ContextMenuActions} = jest.requireActual<typeof ContextMenuActionsModule>('@pages/inbox/report/ContextMenu/ContextMenuActions');
 
 const copyMessageAction = ContextMenuActions.find((action) => 'sentryLabel' in action && action.sentryLabel === CONST.SENTRY_LABEL.CONTEXT_MENU.COPY_MESSAGE);
 if (!copyMessageAction || !('onPress' in copyMessageAction)) {

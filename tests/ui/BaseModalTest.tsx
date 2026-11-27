@@ -35,7 +35,7 @@ describe('BaseModal', () => {
                 return null;
             },
         })); // Scope the dependency mock to this test.
-        const {default: BaseModal}: {default: typeof BaseModalComponent} = jest.requireActual('@components/Modal/BaseModal');
+        const BaseModal = jest.requireActual<{default: typeof BaseModalComponent}>('@components/Modal/BaseModal').default;
 
         render(
             <BaseModal
@@ -125,7 +125,7 @@ describe('BaseModal', () => {
                 default: ({children}: ReanimatedModalProps) => children,
             }));
             const {default: BaseModal} = jest.requireActual<{default: typeof BaseModalComponent}>('@components/Modal/BaseModal');
-            const {default: ModalContext}: {default: typeof ModalContextType} = jest.requireActual('@components/Modal/ModalContext');
+            const {default: ModalContext} = jest.requireActual<{default: typeof ModalContextType}>('@components/Modal/ModalContext');
             let isContentWrappedInScrollView: boolean | undefined;
             function ContextReader() {
                 isContentWrappedInScrollView = React.useContext(ModalContext).isContentWrappedInScrollView;
@@ -160,7 +160,7 @@ describe('BaseModal', () => {
             // Given a wide window where the modal opens from inside the RHP, so it covers the RHP's card and its handle
             jest.doMock('react', () => React);
             jest.doMock('@hooks/useResponsiveLayout', () => {
-                const {default: useResponsiveLayout}: {default: typeof UseResponsiveLayout} = jest.requireActual('@hooks/useResponsiveLayout');
+                const {default: useResponsiveLayout} = jest.requireActual<{default: typeof UseResponsiveLayout}>('@hooks/useResponsiveLayout');
                 return {
                     __esModule: true,
                     default: function useWideResponsiveLayoutInNarrowPaneModal() {

@@ -8,10 +8,7 @@ import * as FileUtils from '../../src/libs/fileDownload/FileUtils';
 
 // Jest resolves the .native variant of platform-split modules; force the web implementation
 // since the OS-file snapshot behavior under test is web-only.
-jest.mock('@src/libs/snapshotPickedFile', () => {
-    const actual: {default: (file: File, name: string) => Promise<File>} = jest.requireActual('@src/libs/snapshotPickedFile/index.ts');
-    return actual;
-});
+jest.mock('@src/libs/snapshotPickedFile', () => jest.requireActual<{default: (file: File, name: string) => Promise<File>}>('@src/libs/snapshotPickedFile/index.ts'));
 
 // The web snapshot only copies bytes on desktop browsers; make the browser type controllable per test.
 jest.mock('@src/libs/Browser', () => ({
