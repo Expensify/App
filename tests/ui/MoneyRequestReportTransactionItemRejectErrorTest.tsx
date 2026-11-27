@@ -153,6 +153,15 @@ describe('MoneyRequestReportTransactionItem - reject errors', () => {
         expect(screen.getByLabelText('Test Merchant')).toBe(screen.getByHintText('View details'));
     });
 
+    it('should show an edit error once, not again inside the row', async () => {
+        // Given: An expense whose move to another report failed, so it carries a plain message error
+        await renderTransactionItem(buildTransaction({errors: {[ERROR_TIMESTAMP]: translateLocal('iou.error.genericEditFailureMessage')}}));
+
+        // Then: Only the dismissible message is shown, so the row's own red line does not repeat it
+        expect(screen.getAllByText(translateLocal('iou.error.genericEditFailureMessage'))).toHaveLength(1);
+        expect(screen.queryByTestId('TransactionItemRowRBR')).not.toBeOnTheScreen();
+    });
+
     it('should not let the expense be opened while it carries a reject error', async () => {
         // Given: An expense showing a reject error, so the server no longer has it on this report
         await renderTransactionItem(buildTransactionWithRejectError());

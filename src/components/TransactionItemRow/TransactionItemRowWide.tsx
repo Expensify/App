@@ -66,6 +66,7 @@ import type {TransactionItemRowProps, TransactionItemRowRBRDeferControlProps, Tr
 
 import CategoryCell from './DataCells/CategoryCell';
 import CategoryGLCodeCell from './DataCells/CategoryGLCodeCell';
+import ConvertedAmountCell from './DataCells/ConvertedAmountCell';
 import DeferredChatBubbleCell from './DataCells/DeferredChatBubbleCell';
 import MerchantOrDescriptionCell from './DataCells/MerchantCell';
 import ReceiptCell from './DataCells/ReceiptCell';
@@ -586,6 +587,19 @@ function TransactionItemRowWide({
                         <AmountCell
                             total={getOriginalAmountForDisplay(transactionItem, isExpenseReport(transactionItem.report))}
                             currency={getOriginalCurrencyForDisplay(transactionItem)}
+                        />
+                    </View>
+                );
+            case CONST.SEARCH.TABLE_COLUMNS.CONVERTED_AMOUNT:
+                return (
+                    <View
+                        key={column}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CONVERTED_AMOUNT, {isAmountColumnWide, shouldRemoveTotalColumnFlex})]}
+                    >
+                        <ConvertedAmountCell
+                            transactionItem={transactionItem}
+                            report={report}
+                            policy={policy}
                         />
                     </View>
                 );

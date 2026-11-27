@@ -263,7 +263,6 @@ function WorkspaceDistanceRatesTable({
             compareItems={compareItems}
             isItemInSearch={isItemInSearch}
             initialSortColumn="name"
-            narrowLayoutSortColumn="name"
             title={translate('workspace.common.distanceRates')}
         >
             <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>

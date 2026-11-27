@@ -15,6 +15,7 @@ import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTopInsetHeaderStyle from '@hooks/useTopInsetHeaderStyle';
 
 import {clearReportErrors, removeFailedReport} from '@libs/actions/Report';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -100,13 +101,15 @@ function goBackFromSearchMoneyRequest(options?: {afterTransition?: () => void}) 
 
 function InitialLoadingSkeleton({styles, onLayout}: {styles: ThemeStyles; onLayout?: (event: LayoutChangeEvent) => void}) {
     const {contentHeaderHeightStyle} = useContentHeaderHeight();
+    const headerStyle = [styles.appContentHeader, contentHeaderHeightStyle, styles.borderBottom];
+    const topInsetHeaderStyle = useTopInsetHeaderStyle(headerStyle);
 
     return (
         <View
             style={[styles.flex1]}
             onLayout={onLayout}
         >
-            <View style={[styles.appContentHeader, contentHeaderHeightStyle, styles.borderBottom]}>
+            <View style={[headerStyle, topInsetHeaderStyle]}>
                 <ReportHeaderSkeletonView onBackButtonPress={() => {}} />
             </View>
             <ReportActionsAnimatedSkeletonCover />

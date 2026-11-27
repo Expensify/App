@@ -21,11 +21,12 @@ import {View} from 'react-native';
 import type {TransactionItemRowNarrowComputedData, TransactionItemRowProps, TransactionItemRowRBRDeferControlProps} from './types';
 
 import DeferredChatBubbleCell from './DataCells/DeferredChatBubbleCell';
-import MerchantOrDescriptionCell from './DataCells/MerchantCell';
 import ReceiptCell from './DataCells/ReceiptCell';
-import TotalCell from './DataCells/TotalCell';
 import TypeCell from './DataCells/TypeCell';
 import DeferredTransactionItemRowRBR from './DeferredTransactionItemRowRBR';
+import TransactionItemRowNarrowSubtitle from './TransactionItemRowNarrowSubtitle';
+import TransactionItemRowNarrowTextColumn from './TransactionItemRowNarrowTextColumn';
+import TransactionItemRowNarrowTitle from './TransactionItemRowNarrowTitle';
 
 type TransactionItemRowNarrowProps = DistributedPick<
     TransactionItemRowProps,
@@ -93,7 +94,7 @@ function TransactionItemRowNarrow({
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
-    // While scanning the merchant slot already says "Scanning...", so the amount and type on the right would only repeat it.
+    // While scanning the merchant slot already says "Scanning...", so the type on the right would only repeat it.
     const isTransactionScanning = isScanning(transactionItem);
 
     return (
@@ -124,35 +125,23 @@ function TransactionItemRowNarrow({
                         style={styles.mr3}
                         shouldUseNarrowLayout
                     />
-                    <View style={[styles.flex2, styles.flexColumn, styles.gap1]}>
-                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2]}>
-                            {merchantOrDescription ? (
-                                <MerchantOrDescriptionCell
-                                    merchantOrDescription={merchantOrDescription}
-                                    shouldShowTooltip={shouldShowTooltip}
-                                    shouldUseNarrowLayout
-                                    isDescription={!merchant}
+                    <TransactionItemRowNarrowTextColumn>
+                        <TransactionItemRowNarrowTitle
+                            transactionItem={transactionItem}
+                            report={report}
+                            policy={policy}
+                            merchant={merchant}
+                            merchantOrDescription={merchantOrDescription}
+                            shouldShowTooltip={shouldShowTooltip}
+                        >
+                            {shouldRenderChatBubbleCell && (
+                                <DeferredChatBubbleCell
+                                    transaction={transactionItem}
+                                    isInSingleTransactionReport={isInSingleTransactionReport}
                                 />
-                            ) : null}
-                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, !merchantOrDescription && styles.mlAuto]}>
-                                {shouldRenderChatBubbleCell && (
-                                    <DeferredChatBubbleCell
-                                        transaction={transactionItem}
-                                        isInSingleTransactionReport={isInSingleTransactionReport}
-                                    />
-                                )}
-                                {!isTransactionScanning && (
-                                    <TotalCell
-                                        transactionItem={transactionItem}
-                                        shouldShowTooltip={shouldShowTooltip}
-                                        report={report}
-                                        policy={policy}
-                                        shouldUseNarrowLayout
-                                    />
-                                )}
-                            </View>
-                        </View>
-                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2]}>
+                            )}
+                        </TransactionItemRowNarrowTitle>
+                        <TransactionItemRowNarrowSubtitle>
                             <DateCell
                                 date={createdAt}
                                 showTooltip={shouldShowTooltip}
@@ -166,8 +155,8 @@ function TransactionItemRowNarrow({
                                     shouldUseNarrowLayout
                                 />
                             )}
-                        </View>
-                    </View>
+                        </TransactionItemRowNarrowSubtitle>
+                    </TransactionItemRowNarrowTextColumn>
                     {!!shouldShowArrowRightOnNarrowLayout && !!onArrowRightPress && (
                         <View style={[styles.justifyContentEnd, styles.alignItemsEnd, styles.mbHalf, styles.ml3]}>
                             <Icon

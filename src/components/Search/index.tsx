@@ -1,7 +1,6 @@
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/useTabRootScrollProps';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 
@@ -16,6 +15,7 @@ import useMarkPreloadedTabContentReady from '@hooks/useMarkPreloadedTabContentRe
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -99,7 +99,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {hasCompletedGuidedSetupFlowSelector, hasSeenTourSelector} from '@src/selectors/Onboarding';
 import {createMemberCustomFieldsSelector, fullPolicySnapshotLastModifiedByPolicyIDSelector} from '@src/selectors/Policy';
-import type {SaveSearch} from '@src/types/onyx';
+import type {PersonalDetailsList, SaveSearch} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
@@ -214,7 +214,6 @@ function Search({
     const previousTransactions = usePrevious(transactions);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const {accountID, email} = useCurrentUserPersonalDetails();
-    const personalDetails = usePersonalDetails();
     const isActionLoadingSet = useActionLoadingReportIDs();
     const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
 
@@ -641,6 +640,13 @@ function Search({
     );
 
     const areItemsGrouped = !!validGroupBy || isExpenseReportType;
+    const [personalDetails] = usePersonalDetailsByIDs([
+        accountID,
+        ...(filteredData as SearchListItem[]).flatMap((item) => {
+            const transaction = isTransactionGroupListItemType(item) ? item.transactions.at(0) : item;
+            return transaction && isTransactionListItemType(transaction) ? [transaction.reportAction?.actorAccountID, transaction.report?.ownerAccountID] : [];
+        }),
+    ]);
     const totalSelectableItemsCount = useMemo(() => {
         if (!areItemsGrouped) {
             return filteredData.length;
@@ -703,7 +709,7 @@ function Search({
     }, [carouselSource, hash]);
 
     const selectRow = useCallback(
-        async (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => {
+        async (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent, rowPersonalDetails?: PersonalDetailsList) => {
             const readConciergeChat = async () => {
                 const conciergeReportID = await Onyx.get(ONYXKEYS.CONCIERGE_REPORT_ID);
                 return Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
@@ -744,7 +750,7 @@ function Search({
                     backTo,
                     currentUserLogin: email ?? '',
                     currentUserAccountID: accountID,
-                    personalDetails,
+                    personalDetails: rowPersonalDetails ?? personalDetails,
                     isSelfTourViewed,
                     hasCompletedGuidedSetupFlow,
                     delegateAccountID,
@@ -931,8 +937,8 @@ function Search({
     );
 
     const onSelectRow = useCallback(
-        (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => {
-            selectRow(item, transactionPreviewData, event);
+        (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent, rowPersonalDetails?: PersonalDetailsList) => {
+            selectRow(item, transactionPreviewData, event, rowPersonalDetails);
         },
         [selectRow],
     );

@@ -1,5 +1,7 @@
 import {TOOLTIP_BAR_GAP} from '@components/Charts/hooks';
 import {markChartTouch, pinChartTooltip, unpinChartTooltip} from '@components/Charts/utils/pinnedChartTooltip';
+import FSClassView from '@components/FSClassView';
+import FSClassContext from '@components/FSClassView/FSClassContext';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
 
@@ -18,7 +20,7 @@ import type {LayoutChangeEvent} from 'react-native';
 import type {DerivedValue, SharedValue} from 'react-native-reanimated';
 
 import {useIsFocused} from '@react-navigation/native';
-import React, {useEffect, useEffectEvent, useState} from 'react';
+import React, {useContext, useEffect, useEffectEvent, useState} from 'react';
 import {View} from 'react-native';
 import Animated, {useAnimatedReaction, useAnimatedStyle, useDerivedValue, useSharedValue} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
@@ -187,6 +189,10 @@ function ChartTooltip({label, children, chartWidth, initialTooltipPosition, isVi
         </View>
     );
 
+    // The tooltip renders on <body>, outside the app root's FullStory class, so it applies the class of the screen
+    // that shows the chart itself. Without a masked container above, it's unmasked like the rest of the app.
+    const fsClass = useContext(FSClassContext) ?? CONST.FULLSTORY.CLASS.UNMASK;
+
     const pressTooltip = () => {
         onDismiss();
         onPress?.();
@@ -206,18 +212,20 @@ function ChartTooltip({label, children, chartWidth, initialTooltipPosition, isVi
                         // Any touch start hides the pinned tooltip unless it's marked as on its chart, and a tap on the tooltip must keep it shown for the press to fire
                         onTouchStart={onPress ? () => markChartTouch(onDismiss) : undefined}
                     >
-                        {onPress ? (
-                            <PressableWithoutFeedback
-                                onPress={pressTooltip}
-                                accessibilityRole={CONST.ROLE.BUTTON}
-                                accessibilityLabel={label}
-                                sentryLabel={CONST.SENTRY_LABEL.CHART_TOOLTIP.PRESS}
-                            >
-                                {content}
-                            </PressableWithoutFeedback>
-                        ) : (
-                            content
-                        )}
+                        <FSClassView forwardedFSClass={fsClass}>
+                            {onPress ? (
+                                <PressableWithoutFeedback
+                                    onPress={pressTooltip}
+                                    accessibilityRole={CONST.ROLE.BUTTON}
+                                    accessibilityLabel={label}
+                                    sentryLabel={CONST.SENTRY_LABEL.CHART_TOOLTIP.PRESS}
+                                >
+                                    {content}
+                                </PressableWithoutFeedback>
+                            ) : (
+                                content
+                            )}
+                        </FSClassView>
                     </Animated.View>
                 </ChartTooltipPortal>
             )}

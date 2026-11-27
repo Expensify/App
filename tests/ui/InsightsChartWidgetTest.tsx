@@ -297,10 +297,10 @@ describe('Insights chart view and press', () => {
     });
 
     it('keeps the default press on dashboards without a Details panel', async () => {
-        // Given a chart on the Compliance dashboard, which has no Details panel
+        // Given a chart on the Efficiency dashboard, which has no Details panel
 
-        // When the widget chooses a point-press action for Compliance
-        renderWidget({dashboardID: CONST.INSIGHTS.DASHBOARD.COMPLIANCE});
+        // When the widget chooses a point-press action for Efficiency
+        renderWidget({dashboardID: CONST.INSIGHTS.DASHBOARD.EFFICIENCY});
         await waitForBatchedUpdatesWithAct();
 
         // Then the chart gets no press override, so a press still opens Search filtered to the point
