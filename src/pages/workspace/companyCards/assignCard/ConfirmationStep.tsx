@@ -8,7 +8,6 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
 import useCardFeeds from '@hooks/useCardFeeds';
-import {useCurrencyListState} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -17,15 +16,7 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 
-import {
-    getCompanyCardFeed,
-    getDomainOrWorkspaceAccountID,
-    getPlaidCountryForFeed,
-    getPlaidInstitutionId,
-    isCardAlreadyAssigned,
-    isSelectedFeedExpired,
-    maskCardNumber,
-} from '@libs/CardUtils';
+import {getCompanyCardFeed, getDomainOrWorkspaceAccountID, isCardAlreadyAssigned, maskCardNumber} from '@libs/CardUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -36,13 +27,7 @@ import Navigation from '@navigation/Navigation';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
-import {
-    assignWorkspaceCompanyCard,
-    clearAssignCardErrors as clearAssignCardErrorsAction,
-    clearAssignCardStepAndData,
-    setAddNewCompanyCardStepAndData,
-    setAssignCardStepAndData,
-} from '@userActions/CompanyCards';
+import {assignWorkspaceCompanyCard, clearAssignCardErrors as clearAssignCardErrorsAction, clearAssignCardStepAndData, setAssignCardStepAndData} from '@userActions/CompanyCards';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -67,8 +52,6 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const [cardError, setCardError] = useState<Errors>();
     const policy = usePolicy(policyID);
-    const {currencyList} = useCurrencyListState();
-    const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
     const bankName = assignCard?.cardToAssign?.bankName ?? getCompanyCardFeed(feed);
     const [cardFeeds] = useCardFeeds(policyID);
 
@@ -112,27 +95,6 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
 
     const submit = () => {
         if (!policyID) {
-            return;
-        }
-
-        const isFeedExpired = isSelectedFeedExpired(cardFeeds?.[feed]);
-        const institutionId = !!getPlaidInstitutionId(bankName);
-
-        if (isFeedExpired) {
-            if (institutionId) {
-                const country = getPlaidCountryForFeed(companyCardFeedData?.country, policy?.outputCurrency, currencyList, countryByIp);
-                setAddNewCompanyCardStepAndData({
-                    data: {
-                        selectedCountry: country,
-                    },
-                });
-            }
-
-            clearAssignCardErrorsAction();
-            setAssignCardStepAndData({currentStep: institutionId ? CONST.COMPANY_CARD.STEP.PLAID_CONNECTION : CONST.COMPANY_CARD.STEP.BANK_CONNECTION});
-            Navigation.setNavigationActionToMicrotaskQueue(() => {
-                Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION.getRoute(policyID, feed));
-            });
             return;
         }
 

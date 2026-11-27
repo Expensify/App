@@ -1,5 +1,5 @@
 import {importPlaidAccounts} from '@libs/actions/Plaid';
-import {getCompanyCardFeed, getCompanyFeeds, getDefaultCardName, getPlaidCountryForFeed, getPlaidInstitutionId, isCSVUploadFeed, isCustomFeed, isSelectedFeedExpired} from '@libs/CardUtils';
+import {getCompanyCardFeed, getCompanyFeeds, getDefaultCardName, getPlaidCountryForFeed, getPlaidInstitutionId, isCSVUploadFeed, isCustomFeed} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDomainNameForPolicy, isDeletedPolicyEmployee} from '@libs/PolicyUtils';
@@ -128,7 +128,6 @@ function useInitialAssignCardStep({policyID, selectedFeed}: UseInitialAssignCard
     const companyCards = getCompanyFeeds(cardFeeds);
     const feedData = selectedFeed && companyCards[selectedFeed];
     const bankName = selectedFeed ? getCompanyCardFeed(selectedFeed) : undefined;
-    const isFeedExpired = isSelectedFeedExpired(feedData);
     const plaidAccessToken = feedData?.plaidAccessToken;
     const hasImportedPlaidAccounts = useRef(false);
 
@@ -157,13 +156,13 @@ function useInitialAssignCardStep({policyID, selectedFeed}: UseInitialAssignCard
         }
 
         // Refetch plaid card list
-        if (!isFeedExpired && plaidAccessToken && !hasImportedPlaidAccounts.current) {
+        if (plaidAccessToken && !hasImportedPlaidAccounts.current) {
             const country = feedData?.country ?? '';
             importPlaidAccounts('', selectedFeed, '', country, getDomainNameForPolicy(policyID), '', plaidAccessToken);
             hasImportedPlaidAccounts.current = true;
         }
 
-        if (isFeedExpired || !cardID) {
+        if (!cardID) {
             const institutionId = !!getPlaidInstitutionId(selectedFeed);
             if (institutionId) {
                 const country = getPlaidCountryForFeed(feedData?.country, policy?.outputCurrency, currencyList, countryByIp);
