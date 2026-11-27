@@ -200,16 +200,14 @@ function getCategoryPickerOptions(
         const sections = getSectionsForQuery(searchValue);
 
         const noneOption: OptionTree[] = shouldShowNoneOption
-            ? getNoneOption(searchValue, !selectedCategory, translate).map(
-                  (option): OptionTree => ({
-                      text: option.text,
-                      keyForList: option.keyForList,
-                      searchText: '',
-                      tooltipText: option.text,
-                      isDisabled: false,
-                      isSelected: option.isSelected,
-                  }),
-              )
+            ? getNoneOption(searchValue, !selectedCategory, translate).map((option): OptionTree => ({
+                  text: option.text,
+                  keyForList: option.keyForList,
+                  searchText: '',
+                  tooltipText: option.text,
+                  isDisabled: false,
+                  isSelected: option.isSelected,
+              }))
             : [];
         if (noneOption.length === 0) {
             return sections;

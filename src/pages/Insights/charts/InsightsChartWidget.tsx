@@ -180,15 +180,13 @@ function InsightsChartWidget({
     const isTimeGrouped = !!CHART_GROUP_BY_CONFIG[groupBy].getDateRange;
     const shouldShowTable = !isTimeGrouped && (view === CONST.SEARCH.VIEW.BAR || view === CONST.SEARCH.VIEW.PIE);
     const [firstStackStage, ...otherStackStages] = isStackedChart(chart)
-        ? (stages ?? []).map(
-              ({workflowStage, durationField, color, comparisonColor}): ChartStackStage => ({
-                  key: workflowStage,
-                  label: translate(`search.workflowStages.${workflowStage}`),
-                  color,
-                  comparisonColor,
-                  getValue: (item) => getStageDuration(item, durationField),
-              }),
-          )
+        ? (stages ?? []).map(({workflowStage, durationField, color, comparisonColor}): ChartStackStage => ({
+              key: workflowStage,
+              label: translate(`search.workflowStages.${workflowStage}`),
+              color,
+              comparisonColor,
+              getValue: (item) => getStageDuration(item, durationField),
+          }))
         : [];
     const stackStages: NonEmptyTuple<ChartStackStage> | undefined = firstStackStage ? [firstStackStage, ...otherStackStages] : undefined;
 
