@@ -2793,6 +2793,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 '<muted-text><centered-text>Μη διστάσετε να <concierge-link>επικοινωνήσετε με το Concierge</concierge-link> αν έχετε οποιεσδήποτε ερωτήσεις!</centered-text></muted-text>',
             goToExpensifyClassic: 'Μετάβαση στο Expensify Classic',
         },
+        mergePendingDomainAdmin: {
+            heading: 'Ηλεκτρονικό ταχυδρομείο με περιορισμένο τομέα',
+            description: '<muted-text><centered-text>Έχει ειδοποιηθεί ένας διαχειριστής domain για να εγκρίνει το αίτημα συγχώνευσης λογαριασμών.</centered-text></muted-text>',
+            gotIt: 'Το κατάλαβα',
+        },
         mergeFailureSAMLDomainControlDescription: (email: string) =>
             `<muted-text><centered-text>Δεν μπορείτε να συγχωνεύσετε το <strong>${email}</strong> επειδή ελέγχεται από το <strong>${email.split('@').at(1) ?? ''}</strong>. Παρακαλούμε <concierge-link>επικοινωνήστε με το Concierge</concierge-link> για βοήθεια.</centered-text></muted-text>`,
         mergeFailureSAMLAccountDescription: (email: string) =>

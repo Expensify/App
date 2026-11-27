@@ -2726,6 +2726,11 @@ const translations: TranslationDeepObject<typeof en> = {
             reachOutForHelp: '<muted-text><centered-text>Neem gerust <concierge-link>contact op met Concierge</concierge-link> als je vragen hebt!</centered-text></muted-text>',
             goToExpensifyClassic: 'Ga naar Expensify Classic',
         },
+        mergePendingDomainAdmin: {
+            heading: 'Domeinbeperkte e-mail',
+            description: '<muted-text><centered-text>Een domeinbeheerder is op de hoogte gebracht om het verzoek om accounts samen te voegen goed te keuren.</centered-text></muted-text>',
+            gotIt: 'Begrepen',
+        },
         mergeFailureSAMLDomainControlDescription: (email: string) =>
             `<muted-text><centered-text>Je kunt <strong>${email}</strong> niet samenvoegen omdat het wordt beheerd door <strong>${email.split('@').at(1) ?? ''}</strong>. Neem contact op met <concierge-link>Concierge</concierge-link> voor hulp.</centered-text></muted-text>`,
         mergeFailureSAMLAccountDescription: (email: string) =>

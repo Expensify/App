@@ -2778,6 +2778,11 @@ const translations: TranslationDeepObject<typeof en> = {
             reachOutForHelp: '<muted-text><centered-text>Jeśli masz jakieś pytania, śmiało <concierge-link>skontaktuj się z Concierge</concierge-link>!</centered-text></muted-text>',
             goToExpensifyClassic: 'Przejdź do Expensify Classic',
         },
+        mergePendingDomainAdmin: {
+            heading: 'E-mail z ograniczeniem domeny',
+            description: '<muted-text><centered-text>Administrator domeny został powiadomiony o zatwierdzeniu prośby o połączenie kont.</centered-text></muted-text>',
+            gotIt: 'Rozumiem',
+        },
         mergeFailureSAMLDomainControlDescription: (email: string) =>
             `<muted-text><centered-text>Nie możesz połączyć <strong>${email}</strong>, ponieważ jest kontrolowany przez <strong>${email.split('@').at(1) ?? ''}</strong>. Prosimy <concierge-link>skontaktować się z Concierge</concierge-link> po pomoc.</centered-text></muted-text>`,
         mergeFailureSAMLAccountDescription: (email: string) =>

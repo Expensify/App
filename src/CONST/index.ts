@@ -7772,6 +7772,7 @@ const CONST = {
     },
     MERGE_ACCOUNT_RESULTS: {
         SUCCESS: 'success',
+        PENDING_DOMAIN_APPROVAL: 'pending_domain_approval',
         ERR_2FA: 'err_2fa',
         ERR_NO_EXIST: 'err_no_exist',
         ERR_SMART_SCANNER: 'err_smart_scanner',
