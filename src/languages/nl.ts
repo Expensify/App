@@ -1512,7 +1512,6 @@ const translations: TranslationDeepObject<typeof en> = {
         receiptEnhancements: 'Bonverbeteringen',
         receiptEnhancementsEnabled: 'Bonverbeteringen ingeschakeld',
         shutter: 'sluiter',
-        gallery: 'galerij',
         deleteReceipt: 'Bon verwijderen',
         deleteConfirmation: 'Weet je zeker dat je deze bon wilt verwijderen?',
         addReceipt: 'Bon toevoegen',

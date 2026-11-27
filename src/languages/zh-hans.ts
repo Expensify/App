@@ -1459,7 +1459,6 @@ const translations: TranslationDeepObject<typeof en> = {
         receiptEnhancements: '收据增强',
         receiptEnhancementsEnabled: '已开启收据增强',
         shutter: '快门',
-        gallery: '图库',
         deleteReceipt: '删除收据',
         deleteConfirmation: '确定要删除这张收据吗？',
         addReceipt: '添加收据',

@@ -1514,7 +1514,6 @@ const translations: TranslationDeepObject<typeof en> = {
         receiptEnhancements: 'Miglioramenti delle ricevute',
         receiptEnhancementsEnabled: 'Miglioramenti delle ricevute attivati',
         shutter: 'otturatore',
-        gallery: 'galleria',
         deleteReceipt: 'Elimina ricevuta',
         deleteConfirmation: 'Sei sicuro di voler eliminare questa ricevuta?',
         addReceipt: 'Aggiungi ricevuta',

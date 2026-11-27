@@ -1497,7 +1497,6 @@ const translations: TranslationDeepObject<typeof en> = {
         receiptEnhancements: 'レシート補正',
         receiptEnhancementsEnabled: 'レシート補正をオンにしました',
         shutter: 'シャッター',
-        gallery: 'ギャラリー',
         deleteReceipt: '領収書を削除',
         deleteConfirmation: 'この領収書を削除してもよろしいですか？',
         addReceipt: '領収書を追加',

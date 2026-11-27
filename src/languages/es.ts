@@ -1508,7 +1508,6 @@ const translations: TranslationDeepObject<typeof en> = {
         receiptEnhancements: 'Mejoras de recibos',
         receiptEnhancementsEnabled: 'Mejoras de recibos activadas',
         shutter: 'obturador',
-        gallery: 'galería',
         deleteReceipt: 'Eliminar recibo',
         deleteConfirmation: '¿Estás seguro de que quieres borrar este recibo?',
         addReceipt: 'Añadir recibo',

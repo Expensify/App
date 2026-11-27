@@ -1561,7 +1561,6 @@ const translations: TranslationDeepObject<typeof en> = {
         receiptEnhancements: 'Βελτιώσεις αποδείξεων',
         receiptEnhancementsEnabled: 'Οι βελτιώσεις αποδείξεων ενεργοποιήθηκαν',
         shutter: 'κλείστρο',
-        gallery: 'συλλογή',
         deleteReceipt: 'Διαγραφή απόδειξης',
         deleteConfirmation: 'Είστε βέβαιοι ότι θέλετε να διαγράψετε αυτήν την απόδειξη;',
         addReceipt: 'Προσθήκη απόδειξης',

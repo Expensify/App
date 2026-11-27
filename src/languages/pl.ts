@@ -1557,7 +1557,6 @@ const translations: TranslationDeepObject<typeof en> = {
         receiptEnhancements: 'Ulepszenia paragonów',
         receiptEnhancementsEnabled: 'Ulepszenia paragonów włączone',
         shutter: 'migawka',
-        gallery: 'galeria',
         deleteReceipt: 'Usuń paragon',
         deleteConfirmation: 'Czy na pewno chcesz usunąć ten paragon?',
         addReceipt: 'Dodaj paragon',

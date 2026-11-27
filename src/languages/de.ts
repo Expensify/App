@@ -1515,7 +1515,6 @@ const translations: TranslationDeepObject<typeof en> = {
         receiptEnhancements: 'Beleg-Optimierungen',
         receiptEnhancementsEnabled: 'Beleg-Optimierungen aktiviert',
         shutter: 'Verschluss',
-        gallery: 'Galerie',
         deleteReceipt: 'Beleg löschen',
         deleteConfirmation: 'Sind Sie sicher, dass Sie diesen Beleg löschen möchten?',
         addReceipt: 'Beleg hinzufügen',
