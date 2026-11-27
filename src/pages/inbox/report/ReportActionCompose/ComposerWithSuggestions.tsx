@@ -55,6 +55,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {FileObject} from '@src/types/utils/Attachment';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+import type {Dimensions} from '@src/types/utils/Layout';
 
 import type {Ref, RefObject} from 'react';
 import type {BlurEvent, LayoutChangeEvent, MeasureInWindowOnSuccessCallback, TextInputContentSizeChangeEvent, TextInputKeyPressEvent} from 'react-native';
@@ -372,6 +373,7 @@ function ComposerWithSuggestions({
 
     const [composerHeightAfterClear, setComposerHeightAfterClear] = useState<number | null>(null);
     const [isComposerFocused, setIsComposerFocused] = useState(false);
+    const [composerSize, setComposerSize] = useState<Dimensions>();
     const emptyComposerHeightRef = useRef<number | null>(null);
 
     const syncSelectionWithOnChangeTextRef = useRef<SyncSelection | null>(null);
@@ -946,7 +948,23 @@ function ComposerWithSuggestions({
     const handleFocus = () => {
         handleSidePanelFocus();
         setUpComposeFocusManager(!isInSidePanel);
+        // Suggestions are recalculated when the composer regains focus, so a menu that was reset on blur comes back. On Android
+        // a rotation can blur the composer and re-focus it right away without moving the cursor, which would otherwise lose the menu.
+        setIsComposerFocused(true);
         onFocus();
+    };
+
+    const handleBlur = (event: BlurEvent) => {
+        setIsComposerFocused(false);
+        onBlur(event);
+    };
+
+    const handleLayout = (event: LayoutChangeEvent) => {
+        // The suggestion menu is positioned against the composer, which can be resized after the window, e.g. when the
+        // safe area insets are applied after a rotation. Tracking its size lets the menu measure it again once it settles.
+        const {width, height} = event.nativeEvent.layout;
+        setComposerSize({width, height});
+        onLayout?.(event);
     };
 
     // When using the suggestions box (Suggestions) we need to imperatively
@@ -996,7 +1014,7 @@ function ComposerWithSuggestions({
                     ]}
                     maxLines={maxComposerLines}
                     onFocus={handleFocus}
-                    onBlur={onBlur}
+                    onBlur={handleBlur}
                     onClick={setShouldBlockSuggestionCalcToFalse}
                     onPasteFile={(files) => {
                         composerRef.current?.blur();
@@ -1011,7 +1029,7 @@ function ComposerWithSuggestions({
                     value={text}
                     testID={CONST.COMPOSER.NATIVE_ID}
                     shouldCalculateCaretPosition
-                    onLayout={onLayout}
+                    onLayout={handleLayout}
                     onScroll={onSaveScrollAndHideSuggestionMenu}
                     shouldContainScroll={isMobileSafari()}
                     isGroupPolicyReport={isGroupPolicyReport}
@@ -1026,6 +1044,7 @@ function ComposerWithSuggestions({
                     isComposerFocused={isComposerFocused}
                     updateComment={updateComment}
                     measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
+                    parentContainerSize={composerSize}
                     isGroupPolicyReport={isGroupPolicyReport}
                     policyID={policyID}
                     // Input

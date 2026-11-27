@@ -75,6 +75,7 @@ function SuggestionMention({
     updateComment,
     isAutoSuggestionPickerLarge,
     measureParentContainerAndReportCursor,
+    parentContainerSize,
     isComposerFocused,
     isGroupPolicyReport,
     policyID,
@@ -635,6 +636,7 @@ function SuggestionMention({
             onSelect={insertSelectedMention}
             isMentionPickerLarge={!!isAutoSuggestionPickerLarge}
             measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
+            parentContainerSize={parentContainerSize}
             resetSuggestions={resetSuggestions}
         />
     );
