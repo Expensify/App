@@ -7,16 +7,15 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import type {ListItem, SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 
-import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import useHeaderAreaHeight from '@hooks/useHeaderAreaHeight';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
-import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {fetchPerDiemRates} from '@libs/actions/Policy/PerDiem';
@@ -24,6 +23,7 @@ import {setTransactionReport} from '@libs/actions/Transaction';
 import {getInitialPerDiemTargetReport} from '@libs/IOUUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import {getAvailablePerDiemRate} from '@libs/PolicyPerDiemUtils';
 import {getPerDiemCustomUnit, getPolicyByCustomUnitID, isPolicyAdmin} from '@libs/PolicyUtils';
 import {findSelfDMReportID, getPolicyExpenseChat} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -98,8 +98,7 @@ function DynamicIOURequestStepDestination({
     const policyExpenseReport = policy?.id ? getPolicyExpenseChat(accountID, policy.id) : undefined;
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const personalPolicy = usePersonalPolicy();
-    const {top} = useSafeAreaInsets();
-    const {contentHeaderHeight} = useContentHeaderHeight();
+    const headerAreaHeight = useHeaderAreaHeight();
     const customUnit = getPerDiemCustomUnit(policy);
     const selectedDestination = transaction?.comment?.customUnit?.customUnitRateID;
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`);
@@ -118,8 +117,9 @@ function DynamicIOURequestStepDestination({
 
     const {isOffline} = useNetwork();
     const isLoading = !isOffline && (!customUnit?.rates || isLoadingOnyxValue(policyMetadata));
-    const shouldShowEmptyState = isEmptyObject(customUnit?.rates) && !isOffline && !isLoading;
-    const shouldShowOfflineView = isEmptyObject(customUnit?.rates) && isOffline;
+    const hasAvailableRates = Object.values(customUnit?.rates ?? {}).some((rate) => getAvailablePerDiemRate(rate) !== undefined);
+    const shouldShowEmptyState = !hasAvailableRates && !isOffline && !isLoading;
+    const shouldShowOfflineView = !hasAvailableRates && isOffline;
 
     const navigateBack = () => {
         if (isEditPage) {
@@ -227,7 +227,7 @@ function DynamicIOURequestStepDestination({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [transactionID, policy?.customUnits, transaction?.iouRequestType]);
 
-    const keyboardVerticalOffset = openedFromStartPage ? contentHeaderHeight + top + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding : 0;
+    const keyboardVerticalOffset = openedFromStartPage ? headerAreaHeight + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding : 0;
 
     return (
         <ScreenWrapper

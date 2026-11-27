@@ -1,4 +1,5 @@
 import {dynamicTabPatternToTabPaths} from '@libs/Navigation/linkingConfig/config';
+import {decodeURIComponentSafely} from '@libs/Url';
 
 import type {CompiledEntry} from './compileDynamicRoutePattern';
 
@@ -44,11 +45,7 @@ function tryMatchParametric(candidate: string, candidateSegmentCount: number, pa
             if (value === undefined) {
                 continue;
             }
-            try {
-                pathParams[name] = decodeURIComponent(value);
-            } catch {
-                pathParams[name] = value;
-            }
+            pathParams[name] = decodeURIComponentSafely(value);
         }
         return {pattern: compiled.pattern, actualSuffix: candidate, pathParams};
     }

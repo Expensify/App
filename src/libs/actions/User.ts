@@ -1478,6 +1478,10 @@ function setShouldShowBranchNameInTitle(value: boolean) {
     Onyx.set(ONYXKEYS.SHOULD_SHOW_BRANCH_NAME_IN_TITLE, value);
 }
 
+function setShouldHideEnvironmentBadge(value: boolean) {
+    Onyx.set(ONYXKEYS.SHOULD_HIDE_ENVIRONMENT_BADGE, value);
+}
+
 function setBetaOverride(beta: Beta, value: boolean) {
     Onyx.merge(ONYXKEYS.BETA_OVERRIDES, {[beta]: value});
 }
@@ -2143,6 +2147,7 @@ export {
     clearValidateCodeActionError,
     setIsDebugModeEnabled,
     setShouldShowBranchNameInTitle,
+    setShouldHideEnvironmentBadge,
     setBetaOverride,
     clearBetaOverride,
     clearBetaOverrides,
