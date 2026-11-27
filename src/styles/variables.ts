@@ -541,7 +541,6 @@ export default {
     navigationTabBarInboxTooltipShiftHorizontal: 36,
     accountSwitcherTooltipShiftVertical: 7,
     accountSwitcherTooltipShiftHorizontal: 4,
-    accountAvatarTooltipShiftHorizontal: -4,
     expenseReportsTypeTooltipShiftHorizontal: 10,
     hasFilterNegationTooltipShiftHorizontal: -16,
     hasFilterNegationTooltipShiftVertical: 40,

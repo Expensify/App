@@ -165,7 +165,6 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
             isUserPolicyAdmin,
             hasBeenAddedToNudgeMigration,
             isUserInPaidPolicy,
-            personalPolicyCreated: policyFlags?.personalPolicyCreated,
         });
     };
 

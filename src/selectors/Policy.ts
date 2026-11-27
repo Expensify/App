@@ -282,17 +282,13 @@ type ProductTrainingPolicyFlags = {
 
     /** Whether any workspace in the collection is a paid one */
     isUserInPaidPolicy: boolean;
-
-    /** Every account gets its personal policy at signup, so this is the account creation proxy */
-    personalPolicyCreated: string | undefined;
 };
 
-// Only eligibility fields out, so the session-wide product training provider doesn't re-render on every policy_ write
+// Three booleans out, so the session-wide product training provider doesn't re-render on every policy_ write
 const productTrainingPolicyFlagsSelector = (policies: OnyxCollection<Policy>, currentUserLogin: string | undefined): ProductTrainingPolicyFlags => ({
     isUserPolicyEmployee: getActiveEmployeeWorkspaces(policies, currentUserLogin).length > 0,
     isUserPolicyAdmin: getActiveAdminWorkspaces(policies, currentUserLogin).length > 0,
     isUserInPaidPolicy: hasAnyPaidPolicy(policies),
-    personalPolicyCreated: Object.values(policies ?? {}).find((policy) => policy?.type === CONST.POLICY.TYPE.PERSONAL)?.created,
 });
 
 /**

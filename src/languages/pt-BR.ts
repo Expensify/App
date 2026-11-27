@@ -12967,7 +12967,6 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         mileageRateAutoUpdated: '<tooltip>Nós atualizamos a taxa com base na sua data de viagem.</tooltip>',
         markAllAsRead: '<tooltip>Clique com o botão direito para <strong>marcar tudo como lido</strong>.</tooltip>',
         markAllAsReadTouchScreen: '<tooltip>Mantenha pressionado para <strong>marcar tudo como lido</strong>.</tooltip>',
-        accountMovedToTopBar: '<tooltip>Acesse sua conta e configurações pessoais.</tooltip>',
         connectionsMoved: 'Todas as suas conexões em um só lugar',
     },
     discardChangesConfirmation: {

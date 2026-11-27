@@ -13085,7 +13085,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         mileageRateAutoUpdated: '<tooltip>Nous avons mis à jour le taux en fonction de votre date de voyage.</tooltip>',
         markAllAsRead: '<tooltip>Faites un clic droit pour <strong>tout marquer comme lu</strong>.</tooltip>',
         markAllAsReadTouchScreen: '<tooltip>Faites un appui long pour <strong>tout marquer comme lu</strong>.</tooltip>',
-        accountMovedToTopBar: '<tooltip>Accédez à votre compte et à vos paramètres personnels.</tooltip>',
         connectionsMoved: 'Toutes vos connexions au même endroit',
     },
     discardChangesConfirmation: {

@@ -10391,13 +10391,10 @@ const CONST = {
         HAS_FILTER_NEGATION: 'hasFilterNegation',
         MILEAGE_RATE_AUTO_UPDATED: 'mileageRateAutoUpdated',
         MARK_ALL_AS_READ: 'markAllAsRead',
-        ACCOUNT_MOVED_TO_TOP_BAR: 'accountMovedToTopBar',
         CONNECTIONS_MOVED: 'connectionsMoved',
         REQUIRE_FIELDS_RULE_RECEIPT_COUPLING_TOOLTIP: 'requireFieldsRuleReceiptCouplingTooltip',
         REQUIRE_FIELDS_RULE_ITEMIZED_RECEIPT_COUPLING_TOOLTIP: 'requireFieldsRuleItemizedReceiptCouplingTooltip',
     },
-    // Only users who signed up before the Account rollout need the navigation hint (UTC).
-    ACCOUNT_MOVED_TO_TOP_BAR_CUTOFF_DATE: '2026-10-29 15:43:41',
     PRODUCT_TRAINING_TOOLTIP_REAPPEAR_WINDOW: {
         SEVEN_DAYS: 7 * 24 * 60 * 60 * 1000,
     },
