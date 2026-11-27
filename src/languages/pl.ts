@@ -604,6 +604,7 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         amount: 'Kwota',
         submitter: 'Zgłaszający',
+        clearField: (fieldName: string) => `Wyczyść pole ${fieldName}`,
     },
     socials: {
         podcast: 'Śledź nas na Podcast',

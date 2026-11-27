@@ -592,6 +592,7 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         amount: '金額',
         submitter: '申請者',
+        clearField: (fieldName: string) => `${fieldName}を消去`,
     },
     socials: {
         podcast: 'ポッドキャストでフォロー',

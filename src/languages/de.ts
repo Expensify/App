@@ -594,6 +594,7 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         amount: 'Betrag',
         submitter: 'Einreicher',
+        clearField: (fieldName: string) => `${fieldName} löschen`,
     },
     socials: {
         podcast: 'Folgen Sie uns auf Podcast',
