@@ -5,6 +5,9 @@ import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import {useRef} from 'react';
+
+import {useAskConciergeActions} from './useIsInAskConcierge';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import useOpenConciergeAnywhere from './useOpenConciergeAnywhere';
@@ -16,7 +19,9 @@ import useOpenConciergeAnywhere from './useOpenConciergeAnywhere';
 function useOpenSupportTicket() {
     const {translate} = useLocalize();
     const {openConciergeAnywhere} = useOpenConciergeAnywhere();
+    const {openConciergeThread} = useAskConciergeActions();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const isCreatingSupportTicket = useRef(false);
 
     const openConcierge = () => {
         // The customer is already in the Concierge chat, so opening it again would show it twice.
@@ -27,14 +32,23 @@ function useOpenSupportTicket() {
     };
 
     const openSupportTicketOrConcierge = () => {
-        const request = openSupportTicket();
+        // The embedded conversation stays interactive while creation is pending; repeated presses must not create duplicate tickets.
+        if (isCreatingSupportTicket.current) {
+            return;
+        }
+        isCreatingSupportTicket.current = true;
+        const request = openSupportTicket(undefined, openConciergeThread);
 
-        // openSupportTicket opens the pending ticket before it resolves, so this is that screen's own route.
+        // Outside Concierge, openSupportTicket opens the pending ticket before it resolves, so this is that screen's own route.
         const pendingTicketRoute = Navigation.getActiveRoute();
 
         // A ticket that was never created leaves its screen on a missing report. Leaving any other screen would pop
         // the page the customer is on instead.
         const dismissPendingTicket = (afterTransition?: () => void) => {
+            // Concierge keeps the original conversation open until creation succeeds, so there is no pending screen to dismiss.
+            if (openConciergeThread) {
+                return;
+            }
             if (Navigation.getActiveRoute() !== pendingTicketRoute) {
                 afterTransition?.();
                 return;
@@ -54,7 +68,10 @@ function useOpenSupportTicket() {
                     dismissPendingTicket();
                 }
             })
-            .catch(() => dismissPendingTicket());
+            .catch(() => dismissPendingTicket())
+            .finally(() => {
+                isCreatingSupportTicket.current = false;
+            });
     };
 
     return {openSupportTicketOrConcierge};

@@ -167,6 +167,18 @@ type Styles = Record<string, StyleObject | StyleFunction>;
 
 // touchCallout is an iOS safari only property that controls the display of the callout information when you touch and hold a target
 const touchCalloutNone: Pick<ViewStyle, 'WebkitTouchCallout'> = isMobileSafari() ? {WebkitTouchCallout: 'none'} : {};
+
+/**
+ * Horizontal padding inside a navigation row, shared by the global navigation bar and the Account, Workspace and
+ * Domain editor menus so their labels line up. Also used to indent the global bar's nested rows to their parent's label.
+ */
+const navigationRowPaddingHorizontal = 12;
+
+/** How far a sub-row's left rule sits in from the row's own left edge. */
+const flatNavigationBarSubItemRuleInset = 20;
+
+/** Width of a row's hover control, counting the fade that ramps up to the left of the icon. */
+const flatNavigationBarRowActionWidth = 40;
 // to prevent vertical text offset in Safari for badges, new lineHeight values have been added
 const lineHeightBadge: Pick<TextStyle, 'lineHeight'> = isSafari() ? {lineHeight: variables.lineHeightXSmall} : {lineHeight: variables.lineHeightNormal};
 
@@ -670,6 +682,10 @@ const staticStyles = (theme: ThemeColors) =>
             ...fontFamilyScale.strong,
         },
 
+        textRegular: {
+            ...fontFamilyScale.regular,
+        },
+
         fontWeightNormal: {
             fontWeight: FontUtils.fontWeight.normal,
         },
@@ -681,6 +697,14 @@ const staticStyles = (theme: ThemeColors) =>
 
         textHeadlineH2: {
             ...textVariants.h2,
+            color: theme.heading,
+        },
+
+        // A header title too long to sit on one line drops to the page-header size and wraps, rather than truncating.
+        headerTitleWrapped: {
+            ...textVariants.h2,
+            fontSize: fontScale.text,
+            lineHeight: lineHeightScale.text,
             color: theme.heading,
         },
 
@@ -800,6 +824,13 @@ const staticStyles = (theme: ThemeColors) =>
             marginRight: floatingTabBarLandscapeRightMargin,
         },
 
+        // Only the navigator's own tab bar opts into this. Every preloaded screen renders its own bar at the same
+        // spot, so applying it to all of them would stack one shadow per bar. The token's upward offset plus its
+        // negative spread keep the shadow clear of the bar's bottom edge, and so out of the safe area below it.
+        navigationTabBarTopShadow: {
+            boxShadow: theme.shadowTop,
+        },
+
         // A grid item is otherwise never narrower than its label, so the label could not truncate.
         navigationTabBarSlot: {
             minWidth: 0,
@@ -884,6 +915,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         flatNavigationBarContainer: {
             height: '100%',
+            justifyContent: 'space-between',
             borderRightWidth: 1,
             borderRightColor: theme.border,
             backgroundColor: theme.appBG,
@@ -906,15 +938,6 @@ const staticStyles = (theme: ThemeColors) =>
             overflow: 'hidden',
         },
 
-        // Lets the wordmark fade out in place while the toggle is the only thing left in the header.
-        flatNavigationBarLogoContainer: {
-            position: 'absolute',
-            left: variables.flatNavigationBarRowInset + variables.flatNavigationBarRowPadding,
-            top: 0,
-            bottom: 0,
-            justifyContent: 'center',
-        },
-
         // The "y" at the end of the wordmark already leaves empty space on its right, so the badge sits closer than the default badge margin
         flatNavigationBarEnvironmentBadge: {
             marginLeft: 6,
@@ -935,6 +958,38 @@ const staticStyles = (theme: ThemeColors) =>
             paddingHorizontal: 0,
         },
 
+        // Lets the wordmark fade out in place while the toggle is the only thing left in the header.
+        flatNavigationBarLogoContainer: {
+            position: 'absolute',
+            left: variables.flatNavigationBarRowInset + variables.flatNavigationBarRowPadding,
+            top: 0,
+            bottom: 0,
+            justifyContent: 'center',
+        },
+
+        flatNavigationBarLogo: {
+            marginTop: 2,
+            marginBottom: -2,
+        },
+
+        // Collapsed, the toggle is the header's only child: 20 + the 20px icon + 20 fills the 60px rail exactly.
+        flatNavigationBarHeaderCollapsed: {
+            paddingLeft: 20,
+            paddingRight: 20,
+        },
+
+        flatNavigationBarCollapseButton: {
+            width: variables.iconSizeNormal,
+            height: variables.iconSizeNormal,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+
+        flatNavigationBarCreateRow: {
+            marginHorizontal: variables.flatNavigationBarCreateRowMarginHorizontal,
+            marginBottom: 16,
+        },
+
         flatNavigationBarItem: {
             flexDirection: 'row',
             alignItems: 'center',
@@ -949,6 +1004,43 @@ const staticStyles = (theme: ThemeColors) =>
 
         flatNavigationBarAccountItem: {
             height: variables.flatNavigationBarAccountItemHeight,
+        },
+
+        /**
+         * Selected and hover backgrounds shared by every navigation row: the flat navigation bar, the Inbox LHN, and
+         * the Workspace, Domain and Account editor menus. hoverComponentBG and highlightBG are the product-300 and
+         * product-200 ramp steps in both themes.
+         */
+        navigationRowSelected: {
+            backgroundColor: theme.hoverComponentBG,
+        },
+
+        navigationRowHovered: {
+            backgroundColor: theme.highlightBG,
+        },
+
+        // A hovered row reads as active, so its label takes the standard text color instead of the supporting one.
+        navigationRowHoveredText: {
+            color: theme.text,
+        },
+
+        // Nested rows have no icon, so they indent by the row padding plus the icon's width. Their label then starts
+        // at the same x as the labels of the rows above them.
+        flatNavigationBarSubItem: {
+            paddingLeft: navigationRowPaddingHorizontal + variables.iconSizeNormal + variables.flatNavigationBarItemGap,
+            borderRadius: 0,
+        },
+
+        // Drawn rather than bordered: a border would sit on the row's own edge, and the active marker needs to be
+        // inset from the row's top and bottom and to overlay the resting rule. Rows sit flush, so the resting
+        // segments join into one line down the group.
+        flatNavigationBarSubItemRule: {
+            position: 'absolute',
+            left: flatNavigationBarSubItemRuleInset,
+            top: 0,
+            bottom: 0,
+            width: 1,
+            backgroundColor: theme.border,
         },
 
         // The label lines up with the label of the destination row above the subnav.
@@ -984,6 +1076,61 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.border,
         },
 
+        // The line stops short of the rows above and below the group, so it reads as belonging to the sub-rows alone.
+        flatNavigationBarSubItemRuleFirst: {
+            top: 4,
+        },
+
+        flatNavigationBarSubItemRuleLast: {
+            bottom: 4,
+        },
+
+        // A stub of line laid over the resting rule, centred on it so it reads as that line lighting up.
+        flatNavigationBarSubItemMarker: {
+            position: 'absolute',
+            left: variables.flatNavigationBarRowInset + flatNavigationBarSubItemRuleInset - 1,
+            width: 3,
+            height: variables.flatNavigationBarSubItemMarkerHeight,
+            borderRadius: 1.5,
+            backgroundColor: theme.success,
+        },
+
+        // Absolute so the label keeps its full width whether or not the control is showing, rather than
+        // reflowing the moment the row is hovered.
+        flatNavigationBarRowAction: {
+            position: 'absolute',
+            right: navigationRowPaddingHorizontal,
+            top: 0,
+            bottom: 0,
+            // Wider than the icon so the fade behind it has room to ramp up before the icon itself.
+            width: flatNavigationBarRowActionWidth,
+            alignItems: 'flex-end',
+            justifyContent: 'center',
+            ...(Platform.OS === 'web' && {transition: 'opacity 150ms ease, transform 150ms ease'}),
+        },
+
+        // Parked to the right of its resting place, so it slides in from the row's edge rather than appearing.
+        flatNavigationBarRowActionHidden: {
+            opacity: 0,
+            transform: [{translateX: 8}],
+        },
+
+        // Bold is reserved for the active row, so the rest fall back to the regular weight.
+        flatNavigationBarLabelRegular: {
+            ...FontUtils.fontFamily.platform.EXP_NEUE,
+        },
+
+        flatNavigationBarLabel: {
+            flex: 1,
+            fontSize: variables.fontSizeNormal,
+            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+        },
+
+        flatNavigationBarDividerContainer: {
+            paddingHorizontal: 16,
+            paddingVertical: 8,
+        },
+
         flatNavigationBarSubnavMarker: {
             position: 'absolute',
             top: 0,
@@ -999,6 +1146,16 @@ const staticStyles = (theme: ThemeColors) =>
             marginHorizontal: variables.flatNavigationBarRowInset + variables.flatNavigationBarRowPadding,
             marginVertical: 8,
             backgroundColor: theme.border,
+        },
+
+        flatNavigationBarFooter: {
+            paddingBottom: 12,
+        },
+
+        flatNavigationBarAccountAvatar: {
+            width: variables.avatarSizeSmall,
+            alignItems: 'center',
+            justifyContent: 'center',
         },
 
         button: {
@@ -1662,6 +1819,13 @@ const staticStyles = (theme: ThemeColors) =>
             ...FontUtils.fontFamily.platform.EXP_NEW_KANSAS_MEDIUM,
             fontSize: variables.fontSizeXLarge,
             lineHeight: variables.lineHeightXXLarge,
+        },
+
+        // The thread list is a page in its own right, so its title takes the page-header size rather than a breadcrumb's.
+        askConciergeSidebarTitle: {
+            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            fontSize: variables.fontSizeLarge,
+            color: theme.heading,
         },
 
         headerText: {
@@ -3002,13 +3166,13 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         tableTopRadius: {
-            borderTopLeftRadius: variables.componentBorderRadius,
-            borderTopRightRadius: variables.componentBorderRadius,
+            borderTopLeftRadius: variables.componentBorderRadiusCard,
+            borderTopRightRadius: variables.componentBorderRadiusCard,
         },
 
         tableBottomRadius: {
-            borderBottomLeftRadius: variables.componentBorderRadius,
-            borderBottomRightRadius: variables.componentBorderRadius,
+            borderBottomLeftRadius: variables.componentBorderRadiusCard,
+            borderBottomRightRadius: variables.componentBorderRadiusCard,
         },
 
         tableBorder: {
@@ -4532,7 +4696,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         widgetContainer: {
             backgroundColor: theme.cardBG,
-            borderRadius: variables.componentBorderRadiusLarge,
+            borderRadius: variables.componentBorderRadiusCard,
             overflow: 'hidden',
         },
 
@@ -5309,6 +5473,17 @@ const staticStyles = (theme: ThemeColors) =>
             marginBottom: 8,
         },
 
+        // Mirrors rulesNewMenuItem, the workspace "New rule" card, with this page's own corner radius.
+        moreMenuCard: {
+            backgroundColor: theme.cardBG,
+            borderRadius: 12,
+            paddingHorizontal: 12,
+            paddingVertical: 16,
+            alignItems: 'center',
+            marginBottom: 8,
+            minHeight: variables.rulesNewMenuItemMinHeight,
+        },
+
         rulesNewMenuItem: {
             backgroundColor: theme.cardBG,
             borderRadius: 8,
@@ -5934,7 +6109,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         searchActionsBarContainer: {
-            marginTop: 12,
+            marginTop: 4,
             marginBottom: 16,
             paddingHorizontal: 20,
             gap: 8,
@@ -6866,6 +7041,14 @@ const staticStyles = (theme: ThemeColors) =>
             width: 12,
             zIndex: 10,
         },
+        // The dot sits on the icon's top-right corner, inset far enough that its stroke clears the row's edge.
+        flatNavigationBarStatusIndicator: {
+            right: -2,
+            top: -3,
+            height: 10,
+            width: 10,
+        },
+
         modalStackNavigatorContainer: toViewStyle({
             height: '100%',
             right: 0,
@@ -7688,14 +7871,14 @@ const dynamicStyles = (theme: ThemeColors) =>
 
         getEmptyStateCompanyCardsIllustration: (shouldUseNarrowLayout: boolean) => (shouldUseNarrowLayout ? {width: 680, height: 220} : {width: '100%', height: '100%'}),
 
-        searchListContentContainerStyles: (hasFilterBars: boolean) => ({
-            paddingTop: getSearchNarrowHeaderHeight(hasFilterBars),
+        searchListContentContainerStyles: (hasFilterBars: boolean, isTabRowHidden = false) => ({
+            paddingTop: getSearchNarrowHeaderHeight(hasFilterBars) - (isTabRowHidden ? variables.searchHiddenTabRowOffset : 0),
         }),
 
         sectionMenuItem: (shouldUseNarrowLayout: boolean) => ({
             borderRadius: 8,
-            paddingLeft: 16,
-            paddingRight: 16,
+            paddingLeft: navigationRowPaddingHorizontal,
+            paddingRight: navigationRowPaddingHorizontal,
             paddingVertical: shouldUseNarrowLayout ? 8 : 4,
             height: shouldUseNarrowLayout ? variables.sectionMenuItemHeight : variables.sectionMenuItemHeightCompact,
             alignItems: 'center',

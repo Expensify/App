@@ -9,6 +9,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 
+import type {StyleProp, ViewStyle} from 'react-native';
+
 import React, {useContext, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
@@ -19,11 +21,17 @@ type SavedSearchItemThreeDotMenuProps = {
     isDisabledItem: boolean;
     isCopied?: boolean;
 
+    /** Replaces the default 28px box, for callers that size the menu to their own row */
+    containerStyle?: StyleProp<ViewStyle>;
+
+    iconWidth?: number;
+    iconHeight?: number;
+
     /** The collapsible surface whose peek ends when an item is picked. Defaults to the Spend sidebar. */
     collapseSurface?: CollapseSurface;
 };
 
-function SavedSearchItemThreeDotMenu({menuItems, isDisabledItem, isCopied, collapseSurface}: SavedSearchItemThreeDotMenuProps) {
+function SavedSearchItemThreeDotMenu({menuItems, isDisabledItem, isCopied, containerStyle, iconWidth, iconHeight, collapseSurface}: SavedSearchItemThreeDotMenuProps) {
     const styles = useThemeStyles();
     const {endPeek} = useSearchSidebarCollapse(collapseSurface);
     const threeDotsMenuRef = useRef<ThreeDotsMenuHandle | null>(null);
@@ -54,7 +62,7 @@ function SavedSearchItemThreeDotMenu({menuItems, isDisabledItem, isCopied, colla
     }, [isCopied]);
 
     return (
-        <View style={[styles.searchTypeMenuAccessoryBox, isDisabledItem && styles.pointerEventsNone]}>
+        <View style={[styles.searchTypeMenuAccessoryBox, containerStyle, isDisabledItem && styles.pointerEventsNone]}>
             <ThreeDotsMenu
                 shouldSelfPosition
                 menuItems={menuItemsWithPeekCleanup}
@@ -63,6 +71,8 @@ function SavedSearchItemThreeDotMenu({menuItems, isDisabledItem, isCopied, colla
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                 }}
                 iconStyles={styles.wAuto}
+                iconWidth={iconWidth}
+                iconHeight={iconHeight}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.SAVED_SEARCH_THREE_DOT_MENU}
                 threeDotsMenuRef={threeDotsMenuRef}
                 // Like other row menus, a click outside only closes the menu and Tab stays in it.

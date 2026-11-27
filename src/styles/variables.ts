@@ -14,6 +14,18 @@ function getValueUsingPixelRatio(defaultValue: number, maxValue: number): number
 /** Rendered width of the Expensify wordmark in the flat navigation bar's header. */
 const flatNavigationBarLogoWidth = 92;
 
+/**
+ * Height the narrow Spend tab row occupies: its wrapper's 4px top padding, the tab buttons, and tabSelector's 12px
+ * bottom padding. The search list's top offset subtracts this when the row is hidden.
+ */
+const searchTabRowHeight = 4 + 40 + 12;
+
+/**
+ * How much the narrow Spend header shrinks when the tab row is hidden: the row itself, plus the 4px the search input
+ * gains back by sitting 4px below the header instead of 8px.
+ */
+const searchHiddenTabRowOffset = searchTabRowHeight + 4;
+
 /** expensify-wordmark.svg has a 78x19 viewBox, so deriving the height keeps the wordmark's proportions. */
 const flatNavigationBarLogoHeight = (flatNavigationBarLogoWidth * 19) / 78;
 
@@ -52,7 +64,7 @@ export default {
     // Space between a label's truncation edge and its tab's edge, so a neighbor's selected pill never reaches the label.
     floatingTabBarLabelInset: 8,
     floatingTabBarBottomInset: 8,
-    // Home, Inbox, Spend and Workspaces, with Insights or Account as the fifth.
+    // Home, Inbox, Expenses, Reports and More.
     floatingTabBarTabCount: 5,
     // styles.p3 (12) on each side of the DebugTabView row plus the View button (componentSizeNormal).
     debugTabViewHeight: 64,
@@ -76,7 +88,7 @@ export default {
     componentBorderRadiusNormal: 8,
     componentBorderRadiusLarge: 16,
     componentBorderRadiusXLarge: 28,
-    componentBorderRadiusCard: 20,
+    componentBorderRadiusCard: 12,
     componentBorderRadiusRounded: 24,
     componentBorderRadiusCircle: 999,
     componentBorderWidth: 8,
@@ -205,7 +217,7 @@ export default {
     uploadViewMargin: 20,
     chooseFilesViewMargin: 8,
     sideBarWithLHBWidth: 260,
-    inboxSideBarWidth: 360,
+    inboxSideBarWidth: 340,
     superWideRHPLeftMargin: 360,
     // RHP panel width. Kept separate from sideBarWidth (the LHN) so the two can differ.
     rhpWidth: 440,
@@ -218,14 +230,20 @@ export default {
     // Expanded, the collapse toggle sits this far from the bar's right edge. Collapsed, the bar narrows until the toggle lands on the icon column.
     flatNavigationBarHeaderPaddingRight: 20,
     flatNavigationBarItemHeight: 40,
-    flatNavigationBarAccountItemHeight: 56,
+    flatNavigationBarSubItemMarkerHeight: 20,
     // Horizontal inset every row's background sits at, inside the bar's own width.
     flatNavigationBarRowInset: 8,
+    // Fixed so the header keeps its height whether or not the wordmark is showing.
+    flatNavigationBarHeaderHeight: 72,
+    flatNavigationBarHeaderMarginBottom: 4,
+    flatNavigationBarCreateRowMarginHorizontal: 14,
+    // Shorter than a standard medium button; collapsed, the same value makes it a square.
+    flatNavigationBarCreateButtonHeight: 32,
+    flatNavigationBarAccountItemHeight: 56,
     // Space between a row's background edge and its icon. The header and dividers line up with the icon, at the inset plus this.
     flatNavigationBarRowPadding: 12,
     // Space between a row's icon and its label. Subnav labels are indented by it to line up with the label above.
     flatNavigationBarItemGap: 12,
-    flatNavigationBarHeaderHeight: 72,
     // Subnav rows are shorter than the destination rows above them, so a group of searches reads as one block.
     flatNavigationBarSubnavItemHeight: 36,
     // The header row includes the gap above its label, so a new group reads as a new block.
@@ -233,7 +251,6 @@ export default {
     // The marker beside the active subnav row is shorter than the row, so it reads as a pill and not as a border.
     flatNavigationBarSubnavMarkerHeight: 16,
     flatNavigationBarSubnavMarkerWidth: 3,
-    flatNavigationBarCreateButtonHeight: 32,
     // Centers the design's 204px wide Create button in the bar.
     flatNavigationBarCreateButtonInset: 14,
     // Space between the Create button and the first row below it.
@@ -284,7 +301,8 @@ export default {
     workspaceTableActionColumnWidth: 64,
     workspaceMembersRoleColumnWidth: 148,
     sectionMenuItemHeight: 52,
-    sectionMenuItemHeightCompact: 44,
+    // Wide layouts match the global navigation bar's row height; narrow layouts keep the taller touch target.
+    sectionMenuItemHeightCompact: 40,
     optionsListSectionHeaderHeight: getValueUsingPixelRatio(32, 38),
     overlayOpacity: 0.72,
     // Lighter scrim for the floating RHP card. Other modal backdrops keep overlayOpacity.
@@ -361,6 +379,8 @@ export default {
     signInLogoWidthLargeScreen: 144,
     signInLogoHeightLargeScreen: 108,
     signInLogoWidthPill: 132,
+    searchTabRowHeight,
+    searchHiddenTabRowOffset,
     tabSelectorButtonHeight: 40,
     tabSelectorButtonPadding: 12,
     tabSelectorScrollFadeWidth: 32,

@@ -18,6 +18,8 @@ const PROTECTED_SCREENS = {
 const SCREENS = {
     ...PROTECTED_SCREENS,
     INSIGHTS: 'Insights',
+    ASK_CONCIERGE: 'AskConcierge',
+    MORE: 'More',
     INSIGHTS_DETAILS: 'Insights_Details',
     /** Items of the native tab bar of flat navigation that stand in for routes drawn inside them, and are never focused themselves */
     NATIVE_TAB_ITEM: {

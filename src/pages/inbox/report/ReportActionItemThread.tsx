@@ -3,6 +3,7 @@ import PressableWithSecondaryInteraction from '@components/PressableWithSecondar
 import Text from '@components/Text';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsInAskConcierge, {useAskConciergeActions} from '@hooks/useIsInAskConcierge';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {useAllPersonalDetailsWithoutSnapshots} from '@hooks/usePersonalDetails';
@@ -56,6 +57,8 @@ function ReportActionItemThread({report, reportAction, isHovered, onSecondaryInt
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`, {selector: getStableReportSelector});
     const participantAccountIDs = [currentUserAccountID, Number(reportAction.actorAccountID)];
     const [personalDetails] = useAllPersonalDetailsWithoutSnapshots(personalDetailsListSelector(participantAccountIDs));
+    const isInAskConcierge = useIsInAskConcierge();
+    const {openConciergeThread} = useAskConciergeActions();
 
     const isAgentProcessingInThread = !!processingAgentIDs?.length;
 
@@ -81,6 +84,12 @@ function ReportActionItemThread({report, reportAction, isHovered, onSecondaryInt
             <View style={[styles.chatItemMessage]}>
                 <PressableWithSecondaryInteraction
                     onPress={() => {
+                        // The Concierge page shows a thread beside its own list, so it opens there rather than in the Inbox.
+                        if (isInAskConcierge && openConciergeThread && reportAction.childReportID) {
+                            openConciergeThread(reportAction.childReportID);
+                            return;
+                        }
+
                         if (isCreatedSupportTicketReportAction(reportAction)) {
                             navigateToSupportTicket(childReport?.reportID ?? reportAction.childReportID);
                             return;

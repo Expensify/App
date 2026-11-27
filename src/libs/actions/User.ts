@@ -1478,6 +1478,14 @@ function setShouldShowBranchNameInTitle(value: boolean) {
     Onyx.set(ONYXKEYS.SHOULD_SHOW_BRANCH_NAME_IN_TITLE, value);
 }
 
+function setShouldShowExtraNavItems(value: boolean) {
+    Onyx.set(ONYXKEYS.SHOULD_SHOW_EXTRA_NAV_ITEMS, value);
+}
+
+function setShouldShowAskConciergeNavItem(value: boolean) {
+    Onyx.set(ONYXKEYS.SHOULD_SHOW_ASK_CONCIERGE_NAV_ITEM, value);
+}
+
 function setShouldHideEnvironmentBadge(value: boolean) {
     Onyx.set(ONYXKEYS.SHOULD_HIDE_ENVIRONMENT_BADGE, value);
 }
@@ -2147,6 +2155,8 @@ export {
     clearValidateCodeActionError,
     setIsDebugModeEnabled,
     setShouldShowBranchNameInTitle,
+    setShouldShowExtraNavItems,
+    setShouldShowAskConciergeNavItem,
     setShouldHideEnvironmentBadge,
     setBetaOverride,
     clearBetaOverride,

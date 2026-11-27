@@ -4,12 +4,18 @@ import Tooltip from '@components/Tooltip';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelActions from '@hooks/useSidePanelActions';
 import useSidePanelState from '@hooks/useSidePanelState';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 import React from 'react';
 
@@ -22,6 +28,18 @@ function SidePanelButtonBase({style}: SidePanelButtonProps) {
     const {shouldHideHelpButton} = useSidePanelState();
     const {openSidePanel} = useSidePanelActions();
     const {Concierge} = useMemoizedLazyExpensifyIcons(['Concierge']);
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+
+    // A narrow side panel fills the screen anyway, so the button opens the Concierge chat itself rather than a
+    // panel standing in for it.
+    const openConcierge = () => {
+        if (shouldUseNarrowLayout && conciergeReportID) {
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID));
+            return;
+        }
+        openSidePanel();
+    };
 
     if (shouldHideHelpButton) {
         return null;
@@ -34,7 +52,7 @@ function SidePanelButtonBase({style}: SidePanelButtonProps) {
                 accessibilityLabel={translate('common.help')}
                 role={CONST.ROLE.BUTTON}
                 style={[styles.flexRow, styles.touchableButtonImage, style]}
-                onPress={openSidePanel}
+                onPress={openConcierge}
             >
                 <Icon
                     src={Concierge}

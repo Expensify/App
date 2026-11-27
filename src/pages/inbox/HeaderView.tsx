@@ -20,12 +20,14 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 
 import {useMentionedAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
+import useConciergeAskState from '@hooks/useConciergeAskState';
 import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasOwnedPaidPolicy from '@hooks/useHasOwnedPaidPolicy';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useHeaderAvatarSize from '@hooks/useHeaderAvatarSize';
 import useInitialFocusRef from '@hooks/useInitialFocusRef';
+import useIsInAskConcierge from '@hooks/useIsInAskConcierge';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useIsMobileWebLandscape from '@hooks/useIsMobileWebLandscape';
 import useIsPaidPolicyAdmin from '@hooks/useIsPaidPolicyAdmin';
@@ -94,6 +96,7 @@ import {
 import StringUtils from '@libs/StringUtils';
 import {shouldShowDiscountBanner} from '@libs/SubscriptionUtils';
 
+import {openConciergeHistory} from '@pages/AskConcierge/ConciergeHistoryStore';
 import EarlyDiscountBanner from '@pages/settings/Subscription/CardSection/BillingBanner/EarlyDiscountBanner';
 import FreeTrial from '@pages/settings/Subscription/FreeTrial';
 
@@ -129,7 +132,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: getStableReportSelector});
     const parentReportAction = useParentReportAction(report, {shouldIgnoreThreadReplies: true});
 
-    const icons = useMemoizedLazyExpensifyIcons(['BackArrow', 'Close', 'DotIndicator', 'Plus']);
+    const icons = useMemoizedLazyExpensifyIcons(['BackArrow', 'Close', 'DotIndicator', 'History', 'Plus']);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     // The join button row starts from pb2, not the pb3 of useStackedHeaderRowPadding, so it picks its own compact padding.
@@ -178,6 +181,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const isSelfDM = isSelfDMReportUtils(report);
     const isGroupChat = isGroupChatReportUtils(report) || isDeprecatedGroupDM(report, isReportArchived);
     const isConciergeChat = isConciergeChatReport(report, conciergeReportID);
+    const isInAskConcierge = useIsInAskConcierge();
     const {collapseHistory: collapseConciergeHistory} = useConciergeChatHistoryActions();
     const isConciergeThread = !!conciergeReportID && report?.parentReportID === conciergeReportID;
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -342,10 +346,48 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
         </Button>
     );
 
+    // The side panel and a narrow layout both show the Concierge chat on its own, with no list beside it, so the
+    // header opens the list over the chat. Only the wide Concierge page has the list already.
+    const shouldShowConciergeHistoryButton = (isConciergeChat || isConciergeThread) && (isInSidePanel || shouldUseNarrowLayout);
+
+    const conciergeHistoryButton = (
+        <Tooltip text={translate('common.concierge.viewChatHistory')}>
+            <PressableWithoutFeedback
+                onPress={openConciergeHistory}
+                style={[styles.touchableButtonImage]}
+                role={CONST.ROLE.BUTTON}
+                accessibilityLabel={translate('common.concierge.viewChatHistory')}
+                sentryLabel={CONST.SENTRY_LABEL.HEADER_VIEW.CONCIERGE_HISTORY}
+            >
+                <Icon
+                    src={icons.History}
+                    fill={theme.icon}
+                />
+            </PressableWithoutFeedback>
+        </Tooltip>
+    );
+
     const startNewConciergeChat = () => {
         collapseConciergeHistory();
         Navigation.navigate(getReportRouteForCurrentContext({reportID: conciergeReportID}));
     };
+
+    const newConciergeChatIconButton = (
+        <Tooltip text={translate('common.concierge.newChat')}>
+            <PressableWithoutFeedback
+                onPress={startNewConciergeChat}
+                style={[styles.touchableButtonImage]}
+                role={CONST.ROLE.BUTTON}
+                accessibilityLabel={translate('common.concierge.newChat')}
+                sentryLabel={CONST.SENTRY_LABEL.HEADER_VIEW.NEW_CONCIERGE_CHAT_BUTTON}
+            >
+                <Icon
+                    src={icons.Plus}
+                    fill={theme.icon}
+                />
+            </PressableWithoutFeedback>
+        </Tooltip>
+    );
 
     const newConciergeChatButton = (
         <Button
@@ -387,7 +429,12 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     // side-panel chrome: no search button, no help dropdown/banners, close instead of back.
     const isAgentReportInRHP = route.name === SCREENS.RIGHT_MODAL.AGENT_REPORT;
     const shouldMirrorSidePanelHeader = isInSidePanel || isAgentReportInRHP;
-    const shouldDisplaySearchRouter = !shouldMirrorSidePanelHeader && (!isReportInRHP || isSmallScreenWidth);
+    // A Concierge screen on narrow already carries the new chat and history buttons, so search and the side panel
+    // would crowd the header rather than add anything.
+    const isNarrowConciergeScreen = (isConciergeChat || isConciergeThread) && shouldUseNarrowLayout;
+    // A blank Concierge chat is already the new chat the button would open.
+    const {shouldShowWelcome: isOnNewConciergeChat} = useConciergeAskState(report?.reportID);
+    const shouldDisplaySearchRouter = !shouldMirrorSidePanelHeader && !isNarrowConciergeScreen && (!isReportInRHP || isSmallScreenWidth);
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
     const isChatUsedForOnboarding = isChatUsedForOnboardingReportUtils(report, onboarding, conciergeReportID, onboardingPurposeSelected);
     const shouldShowRegisterForWebinar =
@@ -541,6 +588,13 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                                     )}
                                 </PressableWithoutFeedback>
                                 <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
+                                    {shouldShowConciergeHistoryButton && (
+                                        // The pair reads as one control, so they sit flush rather than taking the row's gap.
+                                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                                            {!isOnNewConciergeChat && newConciergeChatIconButton}
+                                            {conciergeHistoryButton}
+                                        </View>
+                                    )}
                                     {!isInSidePanel && isConciergeThread && !shouldUseNarrowLayout && newConciergeChatButton}
                                     {shouldShowCallAction && !shouldStackCallAction && callActionButton}
                                     {shouldShowOnBoardingHelpDropdownButton && !shouldUseNarrowLayout && onboardingHelpDropdownButton}
@@ -572,7 +626,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                                     </Tooltip>
                                 )}
                                 {shouldDisplaySearchRouter && <SearchButton style={styles.ml2} />}
-                                {!shouldMirrorSidePanelHeader && !isConciergeChat && <SidePanelButton />}
+                                {!shouldMirrorSidePanelHeader && !isConciergeChat && !isNarrowConciergeScreen && !isInAskConcierge && <SidePanelButton />}
                             </View>
                         </View>
                     )}
@@ -580,7 +634,6 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                 {!isParentReportLoading && !isLoading && canJoin && shouldUseNarrowLayout && (
                     <View style={[styles.ph5, shouldUseCompactJoinRow ? styles.pb1 : styles.pb2]}>{joinButton}</View>
                 )}
-                {!isLoading && !isInSidePanel && isConciergeThread && shouldUseNarrowLayout && <View style={[styles.ph5, stackedRowBottomPadding]}>{newConciergeChatButton}</View>}
                 {shouldGroupConciergeActions && (
                     <View style={[styles.flexRow, styles.flexWrap, styles.gap2, styles.ph5, stackedRowBottomPadding]}>
                         <View style={[styles.flex1, styles.minWidthAuto, styles.mw100]}>{callActionButton}</View>

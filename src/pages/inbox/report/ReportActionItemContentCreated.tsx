@@ -149,7 +149,6 @@ function ReportActionItemContentCreated({parentReportAction, transactionID, draf
     if (isSupportTicket(report)) {
         return (
             <View style={styles.pRelative}>
-                <AnimatedEmptyStateBackground />
                 <SupportTicketView
                     report={report}
                     action={action}

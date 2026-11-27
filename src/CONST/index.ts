@@ -9583,7 +9583,9 @@ const CONST = {
         SNAPSHOT_ONYX_KEYS: CONST_RUNTIME.SEARCH_SNAPSHOT_ONYX_KEYS,
         SEARCH_KEYS: {
             EXPENSES: 'expenses',
+            MY_EXPENSES: 'myExpenses',
             REPORTS: 'reports',
+            MY_REPORTS: 'myReports',
             SUBMIT: 'submit',
             APPROVE: 'approve',
             PAY: 'pay',

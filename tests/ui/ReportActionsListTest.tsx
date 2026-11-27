@@ -50,6 +50,7 @@ import type * as ReactNavigation from '@react-navigation/native';
 import type ReactNative from 'react-native';
 
 import React from 'react';
+import {StyleSheet} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
@@ -206,6 +207,7 @@ type MockInvertedFlashListProps = {
     extraData?: unknown;
     renderItem?: (info: {item: OnyxTypes.ReportAction; index: number}) => React.ReactElement | null;
     onContentSizeChange?: () => void;
+    contentContainerStyle?: ReactNative.StyleProp<ReactNative.ViewStyle>;
     ListFooterComponent?: React.ReactNode;
 };
 
@@ -382,12 +384,54 @@ describe('ReportActionsList (body)', () => {
         mockUseConciergeChatHistoryState.mockReturnValue({showFullHistory: false, isHistoryCollapsedByUser: false});
         mockUseConciergeChatHistoryActions.mockReturnValue({setShowFullHistory: jest.fn(), collapseHistory: jest.fn()});
 
-        mockUseOnyx.mockImplementation(getMockOnyxValue);
+        mockUseOnyx.mockImplementation((key: string, options) => {
+            // useReportActionsListModel derives app-load state from the request queue via useIsAppLoadPending,
+            // which reads these queue keys through selectors that resolve to a boolean. Returning that boolean
+            // directly mirrors what useOnyx yields once the selector runs. The legacy IS_LOADING_APP flag is kept
+            // in the fixture for any component still reading it directly.
+            if (key === ONYXKEYS.IS_LOADING_APP || key === ONYXKEYS.PERSISTED_REQUESTS || key === ONYXKEYS.PERSISTED_ONGOING_REQUESTS) {
+                return [false, {status: 'loaded'}];
+            }
+            if (key === ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING) {
+                return [false, {status: 'loaded'}];
+            }
+            if (key.includes('reportLoadingState')) {
+                return [getMockReportLoadingState(options?.selector), {status: 'loaded'}];
+            }
+            if (key.includes('reportActions')) {
+                return [[], {status: 'loaded'}];
+            }
+            if (key === `${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`) {
+                return [mockReport, {status: 'loaded'}];
+            }
+            if (key.includes('report')) {
+                return [undefined, {status: 'loaded'}];
+            }
+            return [undefined, {status: 'loaded'}];
+        });
     });
 
     afterEach(async () => {
         await waitForBatchedUpdatesWithAct();
         await Onyx.clear();
+    });
+
+    it.each([CONST.REPORT.TYPE.SUPPORT_TICKET, CONST.REPORT.TYPE.CHAT])('uses compact visual-top padding for %s conversations', (type) => {
+        // Given a loaded support ticket or Concierge-style thread
+        const report: OnyxTypes.Report = {...mockReport, type, parentReportID: '456', parentReportActionID: '789'};
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        mockUseOnyx.mockImplementation((key, options) => {
+            if (key === `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`) {
+                return [report, {status: 'loaded'}];
+            }
+            return getMockOnyxValue(key, options);
+        });
+
+        // When its conversation list is rendered
+        renderReportActionsList();
+
+        // Then both use the same compact spacing above the first message in the inverted list
+        expect(StyleSheet.flatten(getCapturedListProps()?.contentContainerStyle)).toMatchObject({paddingBottom: 8});
     });
 
     it('leaves counter copy subscriptions in the counter wrapper while forwarding report and navigation props', () => {

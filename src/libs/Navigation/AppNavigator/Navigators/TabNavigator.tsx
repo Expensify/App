@@ -34,6 +34,8 @@ const LazyReportsSplitNavigator = lazy(() => import('./ReportsSplitNavigator'));
 const LazySettingsSplitNavigator = lazy(() => import('./SettingsSplitNavigator'));
 const LazyWorkspaceNavigator = lazy(() => import('./WorkspaceNavigator'));
 const LazyInsightsPage = lazy(() => import('@pages/Insights/InsightsPage'));
+const LazyMorePage = lazy(() => import('@pages/More/MorePage'));
+const LazyAskConciergePage = lazy(() => import('@pages/AskConcierge'));
 
 type LazyFallbackProps = {
     /** Sentry span to tag when this fallback renders. */
@@ -83,6 +85,8 @@ const ReportsSplitNavigatorScreen = withSuspense(LazyReportsSplitNavigator, CONS
 const SettingsSplitNavigatorScreen = withSuspense(LazySettingsSplitNavigator);
 const WorkspaceNavigatorScreen = withSuspense(LazyWorkspaceNavigator);
 const InsightsPageScreen = withSuspense(LazyInsightsPage);
+const MorePageScreen = withSuspense(LazyMorePage);
+const AskConciergePageScreen = withSuspense(LazyAskConciergePage);
 
 const renderTabBar = ({state}: BottomTabBarProps) => <TabNavigatorBar state={state} />;
 
@@ -129,6 +133,14 @@ function TabNavigator() {
                 <Tab.Screen
                     name={SCREENS.INSIGHTS}
                     component={InsightsPageScreen}
+                />
+                <Tab.Screen
+                    name={SCREENS.ASK_CONCIERGE}
+                    component={AskConciergePageScreen}
+                />
+                <Tab.Screen
+                    name={SCREENS.MORE}
+                    component={MorePageScreen}
                 />
                 <Tab.Screen
                     name={NAVIGATORS.WORKSPACE_NAVIGATOR}

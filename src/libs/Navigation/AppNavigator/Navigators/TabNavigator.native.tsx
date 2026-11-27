@@ -8,8 +8,10 @@ import {bottomTabScreenLayoutWrapper} from '@libs/Navigation/PlatformStackNaviga
 import type {TabNavigatorParamList} from '@libs/Navigation/types';
 import type {SearchKey} from '@libs/SearchKeyUtils';
 
+import AskConciergePage from '@pages/AskConcierge';
 import HomePage from '@pages/home/HomePage';
 import InsightsPage from '@pages/Insights/InsightsPage';
+import MorePage from '@pages/More/MorePage';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -74,8 +76,10 @@ function NativeTabNavigator({getFlatNavSearchSectionID, isFlatNavTabBarEnabled =
     const getSearchSectionID = (navigation: {getState: () => NavigationState}) => getFlatNavSearchSectionID?.(getSearchTabSearchKey(findSearchTabRoute(navigation.getState())));
     // A tab with no label has no bar item and draws no icon. It is drawn inside the item of its flat nav slot, or, with no
     // slot, inside the first item with no item shown as selected.
-    const getScreenOptions = ({route, navigation}: {route: {name: NativeTabRouteName}; navigation: {getState: () => NavigationState}}) =>
-        route.name in tabLabels
+    // The prototype adds tabs the native bar has no glyph for, so only a tab with a label is one the bar draws.
+    const isNativeTabRouteName = (name: string): name is NativeTabRouteName => name in tabLabels;
+    const getScreenOptions = ({route, navigation}: {route: {name: string}; navigation: {getState: () => NavigationState}}) =>
+        isNativeTabRouteName(route.name)
             ? {
                   ...screenOptions,
                   ...getTabOptions(route.name),
@@ -128,6 +132,14 @@ function NativeTabNavigator({getFlatNavSearchSectionID, isFlatNavTabBarEnabled =
                     component={InsightsPage}
                     // The tab opens on Spend dashboard once, then keeps the last dashboard in navigation state until the app restarts.
                     initialParams={{dashboardID: CONST.INSIGHTS.DASHBOARD.SPEND}}
+                />
+                <Tab.Screen
+                    name={SCREENS.ASK_CONCIERGE}
+                    component={AskConciergePage}
+                />
+                <Tab.Screen
+                    name={SCREENS.MORE}
+                    component={MorePage}
                 />
                 <Tab.Screen
                     name={NAVIGATORS.WORKSPACE_NAVIGATOR}

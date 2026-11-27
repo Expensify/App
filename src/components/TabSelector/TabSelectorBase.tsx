@@ -33,6 +33,7 @@ function TabSelectorBase<K extends string = string>({
     position,
     shouldShowLabelWhenInactive = true,
     equalWidth = false,
+    shouldHugContent = false,
     contentContainerStyles,
     tabButtonStyles,
     shouldShowScrollFade = false,
@@ -166,6 +167,7 @@ function TabSelectorBase<K extends string = string>({
                             shouldShowLabelWhenInactive={shouldShowLabelWhenInactive}
                             equalWidth={equalWidth}
                             tabButtonStyles={tabButtonStyles}
+                            shouldHugContent={shouldHugContent}
                             role={itemRole}
                             groupAccessibilityLabel={itemGroupAccessibilityLabel}
                             badgeText={tab.badgeText}

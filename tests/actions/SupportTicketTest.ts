@@ -105,6 +105,62 @@ describe('actions/Report', () => {
         expect(mockNavigate).toHaveBeenCalledTimes(1);
     });
 
+    it('opens a created support ticket with the supplied opener without navigating to Inbox', async () => {
+        // Given a ticket requested from an embedded Concierge conversation
+        const openCreatedSupportTicket = jest.fn();
+
+        // When creation starts
+        const request = openSupportTicket(undefined, openCreatedSupportTicket);
+
+        // Then the original conversation stays visible until the ticket exists on the server
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(openCreatedSupportTicket).not.toHaveBeenCalled();
+        await request;
+        expect(openCreatedSupportTicket).toHaveBeenCalledWith(newSupportTicketReportID);
+        expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it.each([CONST.JSON_CODE.EXP_ERROR, CONST.JSON_CODE.BAD_REQUEST])('does not open a failed embedded support ticket for jsonCode %s', async (jsonCode) => {
+        // Given a creation request rejected by the server
+        const openCreatedSupportTicket = jest.fn();
+        mockMakeRequestWithSideEffects.mockResolvedValueOnce({jsonCode});
+
+        // When the request completes
+        await openSupportTicket(undefined, openCreatedSupportTicket);
+
+        // Then neither Inbox nor the missing embedded report is opened
+        expect(openCreatedSupportTicket).not.toHaveBeenCalled();
+        expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('does not open an embedded support ticket when the network request fails', async () => {
+        // Given a network failure while creating an embedded ticket
+        const openCreatedSupportTicket = jest.fn();
+        const networkError = new Error('network');
+        mockMakeRequestWithSideEffects.mockRejectedValueOnce(networkError);
+
+        // When the request fails
+        await expect(openSupportTicket(undefined, openCreatedSupportTicket)).rejects.toBe(networkError);
+
+        // Then the original conversation is not replaced with a missing report
+        expect(openCreatedSupportTicket).not.toHaveBeenCalled();
+        expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('opens a reopened support ticket with the supplied opener', async () => {
+        // Given a resolved ticket whose replacement is selected by the server
+        const openCreatedSupportTicket = jest.fn();
+        const reportID = 'serverCreatedSupportTicketReportID';
+        mockMakeRequestWithSideEffects.mockResolvedValueOnce({jsonCode: CONST.JSON_CODE.SUCCESS, reportID});
+
+        // When the ticket is reopened inside Concierge
+        await openSupportTicket('resolvedSupportTicketReportID', openCreatedSupportTicket);
+
+        // Then the server-selected ticket opens inside Concierge rather than Inbox
+        expect(openCreatedSupportTicket).toHaveBeenCalledWith(reportID);
+        expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
     it('marks a new ticket optimistic before publishing its report ID', async () => {
         // Given a screen observing a ticket that has not been created on the server
         let isCreatingSupportTicket = false;

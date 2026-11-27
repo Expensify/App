@@ -1,5 +1,4 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import {useSearchSidebarContentOffsetStyle} from '@components/Navigation/SearchSidebarCollapseStore';
 import ReceiptScanDropZone from '@components/ReceiptScanDropZone';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
@@ -101,13 +100,12 @@ function SearchPageWide({
     const offlineIndicatorStyle = shouldReserveFooterSpace ? [styles.mtAuto, styles.pAbsolute, styles.h10, styles.b0] : [styles.mtAuto];
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery(), searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}));
-    const splitContainerAnimatedStyle = useSearchSidebarContentOffsetStyle();
     const receiptDropTargetRef = useRef<ComponentRef<typeof View>>(null);
 
     return (
-        <Animated.View
+        <View
             ref={receiptDropTargetRef}
-            style={[styles.searchSplitContainer, splitContainerAnimatedStyle]}
+            style={styles.searchSplitContainer}
         >
             <ReceiptScanDropZone
                 dropZoneRef={receiptDropTargetRef}
@@ -165,7 +163,7 @@ function SearchPageWide({
                     </FullPageNotFoundView>
                 </ScreenWrapper>
             </ReceiptScanDropZone>
-        </Animated.View>
+        </View>
     );
 }
 

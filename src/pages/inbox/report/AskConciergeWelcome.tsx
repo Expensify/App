@@ -11,20 +11,15 @@ import {INITIAL_SCROLL_METRICS, useActionListContext} from '@pages/inbox/ActionL
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import React, {useEffect} from 'react';
-import {View} from 'react-native';
 
 import AskConciergeEmptyState from './AskConciergeEmptyState';
-import ConciergeChatHistoryToggle from './ConciergeChatHistoryToggle';
 
 type AskConciergeWelcomeProps = {
     /** The ID of the report being displayed */
     reportID: string;
-
-    /** Called when the user presses `View chat history` */
-    onShowPreviousMessages: () => void;
 };
 
-function AskConciergeWelcome({reportID, onShowPreviousMessages}: AskConciergeWelcomeProps) {
+function AskConciergeWelcome({reportID}: AskConciergeWelcomeProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
@@ -38,19 +33,13 @@ function AskConciergeWelcome({reportID, onShowPreviousMessages}: AskConciergeWel
 
     return (
         <ScrollView
-            style={!shouldUseNarrowLayout && styles.flexGrow0}
-            contentContainerStyle={[styles.flexGrow1, styles.justifyContentCenter]}
+            style={[!shouldUseNarrowLayout && styles.flexGrow0, styles.conciergeAskColumn]}
+            // Keeps the welcome clear of the composer below it.
+            contentContainerStyle={[styles.flexGrow1, styles.justifyContentCenter, styles.pb8]}
             keyboardShouldPersistTaps="handled"
             onLayout={() => markOpenReportEnd(reportID, report, {warm: true})}
         >
-            <View style={styles.conciergeAskColumn}>
-                <AskConciergeEmptyState />
-                <ConciergeChatHistoryToggle
-                    isHistoryShown={false}
-                    onPress={onShowPreviousMessages}
-                    containerStyles={styles.pv5}
-                />
-            </View>
+            <AskConciergeEmptyState />
         </ScrollView>
     );
 }
