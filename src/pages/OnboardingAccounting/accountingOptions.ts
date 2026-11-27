@@ -16,8 +16,6 @@ type AccountingOption = {
     connectionName?: TupleToUnion<typeof connectionNames>;
     aliases?: string;
     isComingSoon?: boolean;
-    /** The standalone Other choice edits a name instead of saving its translated label. */
-    isOther?: boolean;
 };
 
 const waitlistNames = [...CONST.POLICY.CONNECTIONS.WAITLIST_CONNECTION_NAMES, ...getIntegrationWaitlistNames()];

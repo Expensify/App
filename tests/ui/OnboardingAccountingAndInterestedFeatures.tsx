@@ -191,9 +191,9 @@ describe('Onboarding interested features and accounting pages', () => {
         const result = renderAccountingPage();
         // When it renders
         await waitForBatchedUpdatesWithAct();
-        // Then the catalog contains connections, waitlist choices, the IES alias, and Other
+        // Then the catalog contains connections, waitlist choices, and the IES alias without a standalone Other option
         const radios = screen.getAllByRole(CONST.ROLE.RADIO);
-        expect(radios).toHaveLength(18);
+        expect(radios).toHaveLength(17);
         expect(accountingOptions.filter((option) => !option.isComingSoon && option.connectionName).map((option) => option.connectionName)).toEqual(
             CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES,
         );
@@ -206,12 +206,12 @@ describe('Onboarding interested features and accounting pages', () => {
         for (const [index, option] of accountingOptions.entries()) {
             expect(radios.at(index)).toHaveProp('accessibilityLabel', option.name);
         }
-        expect(radios.at(-1)).toHaveProp('accessibilityLabel', TestHelper.translateLocal('workspace.accounting.other'));
+        expect(screen.queryByRole(CONST.ROLE.RADIO, {name: TestHelper.translateLocal('workspace.accounting.other')})).not.toBeOnTheScreen();
         for (const row of result.UNSAFE_getAllByType(AccountingOptionRow)) {
             const {option}: {option?: AccountingOption} = row.props;
             expect(within(row).UNSAFE_queryAllByType(RadioButton)).toHaveLength(option?.isComingSoon ? 0 : 1);
         }
-        expect(result.UNSAFE_getAllByType(Icon).filter((icon) => icon.props.width === 28 && icon.props.height === 28)).toHaveLength(18);
+        expect(result.UNSAFE_getAllByType(Icon).filter((icon) => icon.props.width === 28 && icon.props.height === 28)).toHaveLength(17);
         expect(screen.queryAllByRole(CONST.ROLE.TAB)).toHaveLength(0);
     });
 
@@ -302,7 +302,7 @@ describe('Onboarding interested features and accounting pages', () => {
         expect(screen.getAllByRole(CONST.ROLE.RADIO)).toHaveLength(1);
         expect(screen.getByText('Certinia')).toBeOnTheScreen();
         fireEvent.press(screen.getByLabelText(TestHelper.translateLocal('common.clear')));
-        expect(screen.getAllByRole(CONST.ROLE.RADIO)).toHaveLength(18);
+        expect(screen.getAllByRole(CONST.ROLE.RADIO)).toHaveLength(17);
     });
 
     it('retains a confirmed custom name independently of search and navigation', async () => {
@@ -336,7 +336,7 @@ describe('Onboarding interested features and accounting pages', () => {
         searchFor('   ');
         continueOnboarding();
         // Then validation prevents submission and whitespace does not hide the catalog
-        expect(screen.getAllByRole(CONST.ROLE.RADIO)).toHaveLength(18);
+        expect(screen.getAllByRole(CONST.ROLE.RADIO)).toHaveLength(17);
         expect(screen.getByText(TestHelper.translateLocal('onboarding.errorSelection'))).toBeOnTheScreen();
         expect(mockCompleteOnboardingFlow).not.toHaveBeenCalled();
         searchFor('Unconfirmed Books');
@@ -490,7 +490,7 @@ describe('Onboarding interested features and accounting pages', () => {
         await waitFor(() => expect(mockCompleteOnboardingFlow).toHaveBeenCalledWith(expect.objectContaining({userReportedIntegration: integration, userReportedIntegrationName: undefined})));
     });
 
-    it.each(['DATEV', 'Lensing.ai', 'Workday', 'Sage 50', 'SAP S/4HANA', 'Oracle Fusion Cloud'])('offers %s only through unmatched-search confirmation', async (name) => {
+    it.each(['DATEV', 'Lensing.ai', 'Workday', 'Sage 50', 'SAP S/4HANA', 'Oracle Fusion Cloud', 'Other'])('offers %s only through unmatched-search confirmation', async (name) => {
         // Given a fresh accounting step without a saved legacy answer
         renderAccountingPage();
         await waitForBatchedUpdatesWithAct();
@@ -515,7 +515,7 @@ describe('Onboarding interested features and accounting pages', () => {
         // Then Business Central is hidden, while released Digits and the four waitlist choices remain available
         expect(screen.getByRole(CONST.ROLE.RADIO, {name: 'Digits'})).toBeOnTheScreen();
         expect(screen.queryByRole(CONST.ROLE.RADIO, {name: 'Dynamics 365 Business Central'})).not.toBeOnTheScreen();
-        expect(screen.getAllByRole(CONST.ROLE.RADIO)).toHaveLength(17);
+        expect(screen.getAllByRole(CONST.ROLE.RADIO)).toHaveLength(16);
         expect(screen.getAllByText(TestHelper.translateLocal('workspace.accounting.integrationWaitlist.comingSoon'))).toHaveLength(4);
     });
 
@@ -572,7 +572,7 @@ describe('Onboarding interested features and accounting pages', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then every visible listing, including IES and all waitlist choices, has the same name and badge in onboarding
-        expect(screen.getAllByRole(CONST.ROLE.RADIO)).toHaveLength(expectedChoices.length + 1);
+        expect(screen.getAllByRole(CONST.ROLE.RADIO)).toHaveLength(expectedChoices.length);
         const rows = onboarding.UNSAFE_getAllByType(AccountingOptionRow);
         for (const choice of expectedChoices) {
             expect(screen.getByRole(CONST.ROLE.RADIO, {name: choice.title})).toBeOnTheScreen();
@@ -584,60 +584,8 @@ describe('Onboarding interested features and accounting pages', () => {
         }
     });
 
-    it.each(['', '   ', '  Acme Books  '])('restores standalone Other and submits its optional trimmed name %j', async (name) => {
-        // Given Other is available without an unmatched search
-        const firstVisit = renderAccountingPage();
-        await waitForBatchedUpdatesWithAct();
-        const otherLabel = TestHelper.translateLocal('workspace.accounting.other');
-        const inputLabel = TestHelper.translateLocal('onboarding.accounting.otherAccountingSoftware');
-
-        // When the user selects Other and edits its name, the editor keeps its identity
-        fireEvent.press(screen.getByRole(CONST.ROLE.RADIO, {name: otherLabel}));
-        await waitForBatchedUpdatesWithAct();
-        const input = screen.getByLabelText(inputLabel);
-        expect(input.props.autoFocus).toBe(true);
-        fireEvent.changeText(input, 'A');
-        await waitForBatchedUpdatesWithAct();
-        expect(screen.getByLabelText(inputLabel)).toBe(input);
-        fireEvent.changeText(input, name);
-        await waitForBatchedUpdatesWithAct();
-        fireEvent.press(screen.getByRole(CONST.ROLE.RADIO, {name: otherLabel}));
-        searchFor('Xero');
-        searchFor('');
-        firstVisit.unmount();
-        renderAccountingPage();
-        await waitForBatchedUpdatesWithAct();
-
-        // Then navigation and search preserve Other without submitting its translated label
-        expect(screen.getByRole(CONST.ROLE.RADIO, {name: otherLabel})).toBeChecked();
-        expect(screen.getByLabelText(inputLabel)).toHaveProp('value', name);
-        continueOnboarding();
-        await waitFor(() =>
-            expect(mockCompleteOnboardingFlow).toHaveBeenCalledWith(expect.objectContaining({userReportedIntegration: 'other', userReportedIntegrationName: name.trim() || undefined})),
-        );
-    });
-
-    it('scrolls to the Other editor once without trapping subsequent scrolling', async () => {
-        // Given a scrollable catalog with Other below the viewport
-        const scrollToEnd = jest.spyOn(ScrollView.prototype, 'scrollToEnd');
-        const result = renderAccountingPage();
-        await waitForBatchedUpdatesWithAct();
-
-        // When Other adds its focused editor
-        fireEvent.press(screen.getByRole(CONST.ROLE.RADIO, {name: TestHelper.translateLocal('workspace.accounting.other')}));
-        await waitForBatchedUpdatesWithAct();
-        const scrollView = result.UNSAFE_getByType(ScrollView);
-        fireEvent(scrollView, 'contentSizeChange', 0, 0);
-        fireEvent(scrollView, 'contentSizeChange', 0, 0);
-
-        // Then it is revealed once, allowing the user to scroll back to any earlier option
-        expect(scrollToEnd).toHaveBeenCalledTimes(1);
-        expect(scrollToEnd).toHaveBeenCalledWith({animated: false});
-        scrollToEnd.mockRestore();
-    });
-
-    it('keeps a restored custom name distinct from the translated Other choice', async () => {
-        // Given an earlier custom answer whose name is identical to the standalone label
+    it('restores a confirmed custom name matching the translated Other label without adding an editor', async () => {
+        // Given an earlier custom answer whose name happens to be Other
         const label = TestHelper.translateLocal('workspace.accounting.other');
         await act(async () => Onyx.set(ONYXKEYS.ONBOARDING_ACCOUNTING_DRAFT, {integration: 'other', name: label}));
 
@@ -646,25 +594,17 @@ describe('Onboarding interested features and accounting pages', () => {
         await waitForBatchedUpdatesWithAct();
         const choices = screen.getAllByRole(CONST.ROLE.RADIO, {name: label});
 
-        // Then only the custom answer is selected, and choosing standalone Other opens its editor
-        expect(choices).toHaveLength(2);
-        expect(choices.at(0)).not.toBeChecked();
-        expect(choices.at(1)).toBeChecked();
-        const standaloneOther = choices.at(0);
-        if (!standaloneOther) {
-            throw new Error('Missing standalone Other choice');
-        }
-        fireEvent.press(standaloneOther);
-        await waitForBatchedUpdatesWithAct();
-        expect(screen.getAllByRole(CONST.ROLE.RADIO, {name: label})).toHaveLength(1);
-        expect(screen.getByLabelText(TestHelper.translateLocal('onboarding.accounting.otherAccountingSoftware'))).toHaveProp('value', label);
+        // Then only the restored custom answer appears, without a standalone Other editor
+        expect(choices).toHaveLength(1);
+        expect(choices.at(0)).toBeChecked();
+        expect(screen.queryByLabelText(TestHelper.translateLocal('onboarding.accounting.otherAccountingSoftware'))).not.toBeOnTheScreen();
         continueOnboarding();
         await waitFor(() => expect(mockCompleteOnboardingFlow).toHaveBeenCalledWith(expect.objectContaining({userReportedIntegration: 'other', userReportedIntegrationName: label})));
     });
 
-    it('does not confuse standalone Other with a named interest-only product', async () => {
-        // Given an edited Other answer
-        await act(async () => Onyx.set(ONYXKEYS.ONBOARDING_ACCOUNTING_DRAFT, {integration: 'other', name: 'Private Books', isOther: true}));
+    it('replaces a custom answer with a named interest-only product', async () => {
+        // Given a saved custom answer
+        await act(async () => Onyx.set(ONYXKEYS.ONBOARDING_ACCOUNTING_DRAFT, {integration: 'other', name: 'Private Books'}));
         renderAccountingPage();
         await waitForBatchedUpdatesWithAct();
 
@@ -673,7 +613,7 @@ describe('Onboarding interested features and accounting pages', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then only that product is selected and the previous free-text answer is not submitted
-        expect(screen.getByRole(CONST.ROLE.RADIO, {name: TestHelper.translateLocal('workspace.accounting.other')})).not.toBeChecked();
+        expect(screen.queryByRole(CONST.ROLE.RADIO, {name: 'Private Books'})).not.toBeOnTheScreen();
         expect(screen.queryByLabelText(TestHelper.translateLocal('onboarding.accounting.otherAccountingSoftware'))).not.toBeOnTheScreen();
         continueOnboarding();
         await waitFor(() => expect(mockCompleteOnboardingFlow).toHaveBeenCalledWith(expect.objectContaining({userReportedIntegration: 'other', userReportedIntegrationName: 'Odoo'})));

@@ -67,7 +67,7 @@ function setOnboardingUserReportedIntegration(value: OnboardingAccounting | null
     Onyx.set(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION, value);
 }
 
-function setOnboardingAccountingDraft(value: {integration: OnboardingAccounting; name?: string; isOther?: boolean} | null) {
+function setOnboardingAccountingDraft(value: {integration: OnboardingAccounting; name?: string} | null) {
     Onyx.set(ONYXKEYS.ONBOARDING_ACCOUNTING_DRAFT, value);
 }
 

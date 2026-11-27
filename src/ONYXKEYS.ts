@@ -2170,7 +2170,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_THREAD_REPORT_IDS]: Record<string, TransactionThreadNavigationDescriptor>;
     [ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES]: OnyxTypes.ExportTemplate[];
     [ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION]: OnboardingAccounting;
-    [ONYXKEYS.ONBOARDING_ACCOUNTING_DRAFT]: {integration: OnboardingAccounting; name?: string; isOther?: boolean};
+    [ONYXKEYS.ONBOARDING_ACCOUNTING_DRAFT]: {integration: OnboardingAccounting; name?: string};
     [ONYXKEYS.ONBOARDING_ACCOUNTING_ENABLED]: boolean;
     [ONYXKEYS.ONBOARDING_INTERESTED_FEATURES_MAP]: OnboardingFeatureMapItem[];
     [ONYXKEYS.HYBRID_APP]: OnyxTypes.HybridApp;

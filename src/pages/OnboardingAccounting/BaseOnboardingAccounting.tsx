@@ -4,12 +4,10 @@ import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Icon from '@components/Icon';
 import OnboardingHeader from '@components/OnboardingHeader';
-import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import CompactSearchBar from '@components/SearchBar/CompactSearchBar';
 import Text from '@components/Text';
-import TextInput from '@components/TextInput';
 
 import useCompleteOnboarding from '@hooks/useCompleteOnboarding';
 import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
@@ -34,7 +32,6 @@ import {getDefaultOnboardingFeaturesMap} from '@libs/actions/Welcome/OnboardingF
 import {isMobileSafari} from '@libs/Browser';
 import Navigation from '@libs/Navigation/Navigation';
 import {isGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import scrollFocusedInputToTop from '@libs/scrollFocusedInputToTop';
 
 import variables from '@styles/variables';
 
@@ -43,10 +40,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
-// eslint-disable-next-line no-restricted-imports -- The scroll ref uses the native view type, not another scroll implementation.
-import type {ScrollView as RNScrollView} from 'react-native';
-
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 import type {AccountingOption} from './accountingOptions';
@@ -70,10 +64,6 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
     const [onboardingFeaturesMap] = useOnyx(ONYXKEYS.ONBOARDING_INTERESTED_FEATURES_MAP);
     const [searchQuery, setSearchQuery] = useState('');
     const [error, setError] = useState('');
-    const scrollViewRef = useRef<RNScrollView>(null);
-    const scrollContentRef = useRef<View>(null);
-    const otherInputRef = useRef<AnimatedTextInputRef | null>(null);
-    const shouldScrollToOtherInput = useRef(true);
     const {isBetaEnabled} = usePermissions();
     const groupPolicy = Object.values(allPolicies ?? {}).find((policy) => isGroupPolicy(policy) && isPolicyAdmin(policy, session?.email));
     const {completeOnboardingFlow, isLoading: isCompletingOnboarding} = useCompleteOnboarding();
@@ -88,25 +78,18 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
     }, [groupPolicy, onboardingPolicyID]);
 
     const onboardingPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${onboardingPolicyID}`];
-    const availableOptions: AccountingOption[] = [
-        ...accountingOptions.filter((option) => !option.connectionName || isAccountingConnectionAvailable(option.connectionName, onboardingPolicy, isBetaEnabled)),
-        {name: translate('workspace.accounting.other'), integration: 'other', iconName: 'Building', isOther: true},
-    ];
+    const availableOptions = accountingOptions.filter((option) => !option.connectionName || isAccountingConnectionAvailable(option.connectionName, onboardingPolicy, isBetaEnabled));
 
     const savedIntegration = draft ? draft.integration : onboardingUserReportedIntegration;
     const selectedAnswer: {integration: OnboardingAccountingOption; name?: string} | undefined = savedIntegration
         ? {integration: isOnboardingAccountingOption(savedIntegration) ? savedIntegration : 'other', name: draft?.name}
         : undefined;
     const selectedOption = availableOptions.find((option) => {
-        if (option.isOther) {
-            return selectedAnswer?.integration === 'other' && (!!draft?.isOther || !selectedAnswer.name);
-        }
         if (option.integration === 'other') {
-            return !draft?.isOther && selectedAnswer?.integration === 'other' && selectedAnswer.name === option.name;
+            return selectedAnswer?.integration === 'other' && selectedAnswer.name === option.name;
         }
         return selectedAnswer?.integration === option.integration;
     });
-    const isOtherSelected = !!selectedOption?.isOther;
     // Saved answers may refer to a legacy product or a connection whose beta is no longer enabled.
     const customOption: AccountingOption | undefined =
         selectedAnswer?.integration && !selectedOption && (selectedAnswer.integration !== 'other' || selectedAnswer.name)
@@ -145,22 +128,9 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
     };
 
     const selectIntegration = (option: AccountingOption) => {
-        if (option.isOther && isOtherSelected) {
-            otherInputRef.current?.focus();
-            setError('');
-            return;
-        }
-        shouldScrollToOtherInput.current = !!option.isOther;
-        let name: string | undefined;
-        if (option.isOther) {
-            name = selectedAnswer?.integration === 'other' ? selectedAnswer.name : undefined;
-        } else if (option.integration === 'other') {
-            name = option.name;
-        }
         setOnboardingAccountingDraft({
             integration: option.integration,
-            name,
-            ...(option.isOther ? {isOther: true} : {}),
+            name: option.integration === 'other' ? option.name : undefined,
         });
         setError('');
     };
@@ -197,20 +167,11 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
         >
             <OnboardingHeader onBackButtonPress={() => Navigation.goBack(ROUTES.ONBOARDING_INTERESTED_FEATURES.getRoute())} />
             <ScrollView
-                ref={scrollViewRef}
                 style={styles.flex1}
                 contentContainerStyle={[cardPaddingHorizontal, styles.flexGrow1, styles.pb5]}
                 keyboardShouldPersistTaps="handled"
-                onLayout={() => scrollFocusedInputToTop(scrollViewRef, scrollContentRef, otherInputRef)}
-                onContentSizeChange={() => {
-                    if (!isOtherSelected || !shouldScrollToOtherInput.current) {
-                        return;
-                    }
-                    scrollViewRef.current?.scrollToEnd({animated: false});
-                    shouldScrollToOtherInput.current = false;
-                }}
             >
-                <View ref={scrollContentRef}>
+                <View>
                     <View style={onboardingIsMediumOrLargerScreenWidth && styles.mt5}>
                         <Text
                             style={[styles.textHeadlineH1, styles.mb6]}
@@ -231,7 +192,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                         <View style={[styles.flexRow, styles.flexWrap, styles.gap2]}>
                             {filteredOptions.map((option) => (
                                 <AccountingOptionRow
-                                    key={option.isOther ? option.integration : (option.connectionName ?? `${option.integration}-${option.name}`)}
+                                    key={option.connectionName ?? `${option.integration}-${option.name}`}
                                     option={option}
                                     isSelected={option === selectedOption || option === customOption}
                                     onSelect={selectIntegration}
@@ -253,19 +214,6 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                             >
                                 <Button.Text>{confirmSoftwareLabel}</Button.Text>
                             </Button>
-                        </View>
-                    )}
-                    {isOtherSelected && !isSelectedOptionHidden && (
-                        <View style={styles.mt6}>
-                            <TextInput
-                                ref={otherInputRef}
-                                label={translate('onboarding.accounting.otherAccountingSoftware')}
-                                accessibilityLabel={translate('onboarding.accounting.otherAccountingSoftware')}
-                                value={selectedAnswer?.name ?? ''}
-                                onChangeText={(name) => setOnboardingAccountingDraft({integration: 'other', name, isOther: true})}
-                                autoFocus
-                                sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.ACCOUNTING_OTHER_SOFTWARE}
-                            />
                         </View>
                     )}
                 </View>
