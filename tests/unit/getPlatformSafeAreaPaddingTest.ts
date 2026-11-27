@@ -4,10 +4,7 @@ import {defaultTheme} from '@src/styles/theme';
 import createStyleUtils from '@src/styles/utils';
 import variables from '@src/styles/variables';
 
-const mockHasVerticalBar = jest.fn(() => false);
-
 jest.mock('@libs/getPlatform', () => () => jest.requireActual<{default: typeof CONST}>('@src/CONST').default.PLATFORM.IOS);
-jest.mock('@libs/hasVerticalBar', () => () => mockHasVerticalBar());
 
 const {getPlatformSafeAreaPadding} = createStyleUtils(defaultTheme, createThemeStyles(defaultTheme));
 
@@ -16,16 +13,12 @@ const VERTICAL_BAR_INSET = 84;
 const insets = {top: 0, right: VERTICAL_BAR_INSET, bottom: 34, left: 0};
 
 describe('getPlatformSafeAreaPadding', () => {
-    beforeEach(() => {
-        mockHasVerticalBar.mockReturnValue(false);
-    });
-
     it('trims the side insets on an iPhone without a vertical bar', () => {
         // Given an iPhone whose side inset is its notch, which leaves room for content beside it
-        mockHasVerticalBar.mockReturnValue(false);
+        const hasVerticalBar = false;
 
         // When the padding for its insets is computed
-        const padding = getPlatformSafeAreaPadding(insets);
+        const padding = getPlatformSafeAreaPadding(insets, {hasVerticalBar});
 
         // Then the side inset is trimmed like the bottom one, so the content keeps its usual width
         expect(padding.paddingRight).toBeCloseTo(VERTICAL_BAR_INSET * variables.iosSafeAreaInsetsPercentage);
@@ -34,10 +27,10 @@ describe('getPlatformSafeAreaPadding', () => {
 
     it('keeps the whole side inset on a foldable iPhone with a vertical bar', () => {
         // Given a foldable iPhone whose side inset is the vertical bar, which the status bar and bar items fill
-        mockHasVerticalBar.mockReturnValue(true);
+        const hasVerticalBar = true;
 
         // When the padding for its insets is computed
-        const padding = getPlatformSafeAreaPadding(insets);
+        const padding = getPlatformSafeAreaPadding(insets, {hasVerticalBar});
 
         // Then the side padding covers the whole bar, so content such as a modal's full-width image stays out from under it
         expect(padding.paddingRight).toBe(VERTICAL_BAR_INSET);

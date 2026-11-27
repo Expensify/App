@@ -3,7 +3,6 @@ import type ImageSVGProps from '@components/ImageSVG/types';
 import {LETTER_AVATAR_COLOR_OPTIONS} from '@libs/Avatars/letterAvatarPalette';
 import {isMobile, isMobileChrome} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
-import hasVerticalBar from '@libs/hasVerticalBar';
 import {hashText} from '@libs/UserUtils';
 import {toDimensionValue, toViewStyle} from '@libs/WebOnlyStyleUtils';
 
@@ -432,13 +431,21 @@ type SafeAreaPadding = {
     paddingRight: number;
 };
 
+type PlatformSafeAreaPaddingOptions = {
+    /** The share of the bottom and side insets to keep, from 0 to 1. Defaults to the platform's share. */
+    insetsPercentage?: number;
+
+    /** Whether the side inset is a foldable iPhone's vertical bar, read with useHasVerticalBar. The whole side inset is kept then. */
+    hasVerticalBar?: boolean;
+};
+
 /**
  * Takes safe area insets and returns platform specific padding to use for a View
  */
-function getPlatformSafeAreaPadding(insets?: EdgeInsets, insetsPercentageProp?: number): SafeAreaPadding {
+function getPlatformSafeAreaPadding(insets?: EdgeInsets, {insetsPercentage: insetsPercentageOption, hasVerticalBar = false}: PlatformSafeAreaPaddingOptions = {}): SafeAreaPadding {
     const platform = getPlatform();
 
-    let insetsPercentage = insetsPercentageProp;
+    let insetsPercentage = insetsPercentageOption;
     if (insetsPercentage == null) {
         switch (platform) {
             case CONST.PLATFORM.IOS:
@@ -454,7 +461,7 @@ function getPlatformSafeAreaPadding(insets?: EdgeInsets, insetsPercentageProp?: 
 
     // The trimmed side insets suit an iPhone's notch, which leaves room beside it. On a foldable iPhone the side inset is the
     // vertical bar, which the status bar and bar items fill, so anything less than the whole inset puts content under them.
-    const sideInsetsPercentage = hasVerticalBar() ? 1 : insetsPercentage;
+    const sideInsetsPercentage = hasVerticalBar ? 1 : insetsPercentage;
 
     return {
         paddingTop: insets?.top ?? 0,
@@ -739,6 +746,9 @@ type ModalPaddingStylesParams = {
     shouldAddTopSafeAreaPadding: boolean;
     modalContainerStyle: ViewStyle;
     insets: EdgeInsets;
+
+    /** Whether the side inset is a foldable iPhone's vertical bar, read with useHasVerticalBar. The whole side inset is kept then. */
+    hasVerticalBar?: boolean;
 };
 
 function getModalPaddingStyles({
@@ -748,8 +758,14 @@ function getModalPaddingStyles({
     shouldAddTopSafeAreaPadding,
     modalContainerStyle,
     insets,
+    hasVerticalBar = false,
 }: ModalPaddingStylesParams): ViewStyle {
-    const {paddingTop: safeAreaPaddingTop, paddingBottom: safeAreaPaddingBottom, paddingLeft: safeAreaPaddingLeft, paddingRight: safeAreaPaddingRight} = getPlatformSafeAreaPadding(insets);
+    const {
+        paddingTop: safeAreaPaddingTop,
+        paddingBottom: safeAreaPaddingBottom,
+        paddingLeft: safeAreaPaddingLeft,
+        paddingRight: safeAreaPaddingRight,
+    } = getPlatformSafeAreaPadding(insets, {hasVerticalBar});
 
     // use fallback value for safeAreaPaddingBottom to keep padding bottom consistent with padding top.
     // More info: issue #17376

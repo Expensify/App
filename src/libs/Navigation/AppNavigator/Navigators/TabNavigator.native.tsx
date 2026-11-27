@@ -1,5 +1,6 @@
 import HorizontalSafeArea from '@components/HorizontalSafeArea';
 
+import useHasVerticalBar from '@hooks/useHasVerticalBar';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 
@@ -31,7 +32,6 @@ import isTabHostFullWidth from './NativeTabNavigator/isTabHostFullWidth';
 import {findSearchTabRoute, getFlatNavTabHostRouteName, getSearchTabSearchKey} from './NativeTabNavigator/nativeTabItemUtils';
 import NativeTabLayout from './NativeTabNavigator/NativeTabLayout';
 import tabScreenListeners from './NativeTabNavigator/tabScreenListeners';
-import useIsTabBarVertical from './NativeTabNavigator/useIsTabBarVertical';
 import useNativeFlatNavSearchSection from './NativeTabNavigator/useNativeFlatNavSearchSection';
 import useNativeTabBarOptions from './NativeTabNavigator/useNativeTabBarOptions';
 import useNativeTabNavigator from './NativeTabNavigator/useNativeTabNavigator';
@@ -67,7 +67,7 @@ type NativeTabNavigatorProps = {
 function NativeTabNavigator({getFlatNavSearchSectionID, isFlatNavTabBarEnabled = false}: NativeTabNavigatorProps) {
     const {shouldShowNativeTabBar, dotColors, tabLabels, tabRouterOverride, isTabSelectionEnabled} = useNativeTabNavigator({isFlatNavTabBarEnabled});
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
-    const isTabBarVertical = useIsTabBarVertical();
+    const isTabBarVertical = useHasVerticalBar();
     const {screenOptions, getTabOptions} = useNativeTabBarOptions({shouldShowNativeTabBar, isTabBarVertical, dotColors, tabLabels});
     // The search key is read from the navigator's current state, as the route given here has no nested state, so the bar
     // selects the new item in the same commit as Search moves.

@@ -8,6 +8,7 @@ import ScreenWrapperOfflineIndicatorContext from '@components/ScreenWrapper/Scre
 import ScreenWrapperTopInsetHeaderContext from '@components/ScreenWrapper/ScreenWrapperTopInsetHeaderContext';
 import ScrollView from '@components/ScrollView';
 
+import useHasVerticalBar from '@hooks/useHasVerticalBar';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
@@ -119,6 +120,7 @@ function BaseModal({
     const [modalHeight, setModalHeight] = useState(0);
 
     const insets = useSafeAreaInsets();
+    const hasVerticalBar = useHasVerticalBar();
 
     const shouldCallHideModalOnUnmount = useRef(false);
     const hideModalCallbackRef = useRef<(callHideCallback: boolean) => void>(undefined);
@@ -315,6 +317,7 @@ function BaseModal({
         shouldAddTopSafeAreaPadding,
         modalContainerStyle,
         insets,
+        hasVerticalBar,
     });
     const modalPaddingStyles = shouldUseModalPaddingStyle ? paddings : {paddingLeft: paddings.paddingLeft, paddingRight: paddings.paddingRight};
 

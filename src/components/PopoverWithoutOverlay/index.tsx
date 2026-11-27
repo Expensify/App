@@ -3,6 +3,7 @@ import FSClassView from '@components/FSClassView';
 import {usePopoverActions} from '@components/PopoverProvider';
 import ScreenWrapperOfflineIndicatorContext from '@components/ScreenWrapper/ScreenWrapperOfflineIndicatorContext';
 
+import useHasVerticalBar from '@hooks/useHasVerticalBar';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -40,6 +41,7 @@ function PopoverWithoutOverlay({
     const {onOpen, close} = usePopoverActions();
     const {windowWidth, windowHeight} = useWindowDimensions();
     const insets = useSafeAreaInsets();
+    const hasVerticalBar = useHasVerticalBar();
     const {modalStyle, modalContainerStyle, shouldAddTopSafeAreaMargin, shouldAddBottomSafeAreaMargin, shouldAddTopSafeAreaPadding, shouldAddBottomSafeAreaPadding} =
         StyleUtils.getModalStyles({
             type: CONST.MODAL.MODAL_TYPE.POPOVER,
@@ -90,6 +92,7 @@ function PopoverWithoutOverlay({
         shouldAddTopSafeAreaPadding,
         modalContainerStyle,
         insets,
+        hasVerticalBar,
     });
 
     if (!isVisible) {

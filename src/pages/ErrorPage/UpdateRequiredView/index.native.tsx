@@ -6,6 +6,7 @@ import LottieAnimations from '@components/LottieAnimations';
 import Text from '@components/Text';
 
 import useEnvironment from '@hooks/useEnvironment';
+import useHasVerticalBar from '@hooks/useHasVerticalBar';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -27,6 +28,7 @@ import {View} from 'react-native';
 
 function UpdateRequiredView() {
     const insets = useSafeAreaInsets();
+    const hasVerticalBar = useHasVerticalBar();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -38,7 +40,7 @@ function UpdateRequiredView() {
     const isStandaloneNewAppProduction = isProduction && !CONFIG.IS_HYBRID_APP;
 
     return (
-        <View style={[styles.appBG, styles.h100, StyleUtils.getPlatformSafeAreaPadding(insets)]}>
+        <View style={[styles.appBG, styles.h100, StyleUtils.getPlatformSafeAreaPadding(insets, {hasVerticalBar})]}>
             <View style={[styles.pt5, styles.ph5, styles.updateRequiredViewHeader]}>
                 <HeaderTitle>
                     <HeaderTitle.Text>{translate('updateRequiredView.updateRequired')}</HeaderTitle.Text>
