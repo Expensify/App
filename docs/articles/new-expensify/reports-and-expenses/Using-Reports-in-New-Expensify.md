@@ -44,6 +44,7 @@ Filter reports by type, status, category, or date to find specific information.
    - **Date:** This month, last month
    - **Status:** Outstanding, Paid
    - **From:** You, or someone else
+   - **Transaction ID**: Find a specific expense by its transaction ID. Enter multiple IDs separated by commas to find several expenses.
    - **Paid by:** The member who paid the report. On both the **Expense** and **Expense Report** types, this sits directly below **Paid**.
 6. Click **View Results** to see the filtered results.
 
@@ -72,6 +73,7 @@ You can choose from a wide range of columns, including:
 
 - **Avatar** – The profile image of the report submitter
 - **Date** – When the report or expense was created
+- **Transaction ID** – The unique identifier for each expense, available in **Expenses**. Select it in **Display > Edit columns** to show it, then select the column header to sort by transaction ID.
 - **Submitted** – The date the report was submitted for approval
 - **Paid** – The date the report was paid
 - **Total** – The total amount of the report or expense
