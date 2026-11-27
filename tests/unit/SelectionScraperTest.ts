@@ -192,7 +192,9 @@ describe('SelectionScraper', () => {
 
         selectText(getTextNode('date1'), 'Aug '.length, getTextNode('title2'), 'Expense'.length);
 
-        expect(SelectionScraper.getCurrentSelection()).toBe('26 Paid Expense Report<br>Aug 27 Draft Expense');
+        const selectionHTML = SelectionScraper.getCurrentSelection();
+        expect(selectionHTML).toBe('26 Paid Expense Report<br>Aug 27 Draft Expense');
+        expect(getClipboardText(selectionHTML)).toBe('26 Paid Expense Report\nAug 27 Draft Expense');
     });
 
     it('falls back to regular scraping when selected text extends outside copyable rows', () => {

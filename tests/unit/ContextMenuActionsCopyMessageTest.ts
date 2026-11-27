@@ -1,5 +1,5 @@
 import type Clipboard from '@libs/Clipboard';
-import getClipboardText from '@libs/Clipboard/getClipboardText';
+import type * as ClipboardTextWebModule from '@libs/Clipboard/getClipboardText/index';
 import type {CanSetHtml} from '@libs/Clipboard/types';
 
 import type * as ContextMenuActionsModule from '@pages/inbox/report/ContextMenu/ContextMenuActions';
@@ -22,6 +22,9 @@ jest.mock('expo-web-browser', () => ({
 jest.mock('@components/Reactions/MiniQuickEmojiReactions', () => 'MiniQuickEmojiReactions');
 jest.mock('@components/Reactions/QuickEmojiReactions', () => 'QuickEmojiReactions');
 
+// Copy message HTML is asserted as the web plain-text flavor. Native Markdown is covered by getClipboardTextTest.
+jest.mock('@libs/Clipboard/getClipboardText', () => jest.requireActual<typeof ClipboardTextWebModule>('@libs/Clipboard/getClipboardText/index.ts'));
+
 const mockCanSetHtml = jest.fn<ReturnType<Extract<CanSetHtml, () => boolean>>, Parameters<typeof Clipboard.canSetHtml>>();
 const mockSetString = jest.fn<ReturnType<typeof Clipboard.setString>, Parameters<typeof Clipboard.setString>>();
 const mockSetHtml = jest.fn<ReturnType<typeof Clipboard.setHtml>, Parameters<typeof Clipboard.setHtml>>();
@@ -34,13 +37,6 @@ jest.mock('@libs/Clipboard', () => ({
         setHtml: mockSetHtml,
     },
 }));
-
-jest.mock('@libs/Clipboard/getClipboardText', () => ({
-    __esModule: true,
-    default: jest.fn(),
-}));
-
-const mockGetClipboardText = jest.mocked(getClipboardText);
 
 const {default: ContextMenuActions} = jest.requireActual<typeof ContextMenuActionsModule>('@pages/inbox/report/ContextMenu/ContextMenuActions');
 
@@ -104,7 +100,6 @@ describe('ContextMenuActions copy message', () => {
     it('uses plain text clipboard path when html clipboard is unavailable', () => {
         const selection = '<a href="https://expensify.com">Expensify</a>';
         mockCanSetHtml.mockReturnValue(false);
-        mockGetClipboardText.mockReturnValue('Expensify');
 
         if (!copyMessageAction?.onPress) {
             throw new Error('Copy message context menu action was not found');
@@ -112,7 +107,6 @@ describe('ContextMenuActions copy message', () => {
 
         copyMessageAction.onPress(false, createPayload(selection));
 
-        expect(mockGetClipboardText).toHaveBeenCalledWith(selection, REPORT_ID_TO_NAME, ACCOUNT_ID_TO_NAME);
         expect(mockSetString).toHaveBeenCalledWith('Expensify');
         expect(mockSetHtml).not.toHaveBeenCalled();
     });
@@ -120,7 +114,6 @@ describe('ContextMenuActions copy message', () => {
     it('uses html clipboard path when html clipboard is available', () => {
         const selection = '<a href="https://expensify.com">Expensify</a>';
         mockCanSetHtml.mockReturnValue(true);
-        mockGetClipboardText.mockReturnValue('Expensify');
 
         if (!copyMessageAction?.onPress) {
             throw new Error('Copy message context menu action was not found');
@@ -128,7 +121,6 @@ describe('ContextMenuActions copy message', () => {
 
         copyMessageAction.onPress(false, createPayload(selection));
 
-        expect(mockGetClipboardText).toHaveBeenCalledWith(selection, REPORT_ID_TO_NAME, ACCOUNT_ID_TO_NAME);
         expect(mockSetHtml).toHaveBeenCalledWith(selection, 'Expensify');
         expect(mockSetString).not.toHaveBeenCalled();
     });
@@ -147,7 +139,6 @@ describe('ContextMenuActions copy message', () => {
         [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_AGENT_RULE, {ruleTitle: 'Receipts required'}, 'workspaceActions.agentRule.deleted'],
     ])('copies the localized message for a %s action', (actionName, originalMessage, expectedTranslationKey) => {
         mockCanSetHtml.mockReturnValue(false);
-        mockGetClipboardText.mockReturnValue('mocked clipboard text');
 
         if (!copyMessageAction?.onPress) {
             throw new Error('Copy message context menu action was not found');
@@ -164,8 +155,8 @@ describe('ContextMenuActions copy message', () => {
             ),
         );
 
-        expect(mockGetClipboardText).toHaveBeenCalledWith(expectedTranslationKey, undefined, undefined);
-        expect(mockSetString).toHaveBeenCalledWith('mocked clipboard text');
+        expect(mockSetString).toHaveBeenCalledWith(expectedTranslationKey);
+        expect(mockSetHtml).not.toHaveBeenCalled();
     });
 
     it('copies the localized message for a category update action', () => {
@@ -243,7 +234,6 @@ describe('ContextMenuActions copy message', () => {
 
     it('copies the localized message for a member work arrangement update action', () => {
         mockCanSetHtml.mockReturnValue(false);
-        mockGetClipboardText.mockReturnValue('updated work arrangement');
 
         if (!copyMessageAction?.onPress) {
             throw new Error('Copy message context menu action was not found');
@@ -260,14 +250,13 @@ describe('ContextMenuActions copy message', () => {
             ),
         );
 
-        expect(mockGetClipboardText).toHaveBeenCalledWith('workspaceActions.updatedMemberWorkArrangement', undefined, undefined);
-        expect(mockSetString).toHaveBeenCalledWith('updated work arrangement');
+        expect(mockSetString).toHaveBeenCalledWith('workspaceActions.updatedMemberWorkArrangement');
+        expect(mockSetHtml).not.toHaveBeenCalled();
     });
 
     it('copies the localized message for a default work arrangement update action', () => {
         // Given a default work arrangement change log, whose stored text is Auth's English message
         mockCanSetHtml.mockReturnValue(false);
-        mockGetClipboardText.mockReturnValue('changed the default work arrangement');
 
         if (!copyMessageAction?.onPress) {
             throw new Error('Copy message context menu action was not found');
@@ -286,8 +275,8 @@ describe('ContextMenuActions copy message', () => {
         );
 
         // Then the translated change log text is copied instead of the stored text
-        expect(mockGetClipboardText).toHaveBeenCalledWith('workspaceActions.workArrangement.changed', undefined, undefined);
-        expect(mockSetString).toHaveBeenCalledWith('changed the default work arrangement');
+        expect(mockSetString).toHaveBeenCalledWith('workspaceActions.workArrangement.changed');
+        expect(mockSetHtml).not.toHaveBeenCalled();
     });
 
     it.each([
@@ -310,7 +299,6 @@ describe('ContextMenuActions copy message', () => {
     ] as const)('copies the localized message for a %s action', (actionName, originalMessage, translationKey) => {
         // Given an office location change log, whose stored text is Auth's English message
         mockCanSetHtml.mockReturnValue(false);
-        mockGetClipboardText.mockReturnValue('office change');
 
         if (!copyMessageAction?.onPress) {
             throw new Error('Copy message context menu action was not found');
@@ -329,8 +317,8 @@ describe('ContextMenuActions copy message', () => {
         );
 
         // Then the translated change log text is copied instead of the stored text
-        expect(mockGetClipboardText).toHaveBeenCalledWith(translationKey, undefined, undefined);
-        expect(mockSetString).toHaveBeenCalledWith('office change');
+        expect(mockSetString).toHaveBeenCalledWith(translationKey);
+        expect(mockSetHtml).not.toHaveBeenCalled();
     });
 
     it.each([
@@ -362,15 +350,15 @@ describe('ContextMenuActions copy message', () => {
         expect(recordTranslation).toHaveBeenCalledWith('violations.smartscanFailed', {canEdit: expectedCanEdit, missingFields: undefined});
     });
 
-    it('copies the localized member work arrangement message as html when supported', () => {
-        // Given the clipboard supports HTML, when the member arrangement message is copied, then the shared rich clipboard path is used.
+    it('writes both flavors for an HTML-sourced system message when HTML is supported', () => {
+        // Given the clipboard supports HTML and this action is already an HTML source
         mockCanSetHtml.mockReturnValue(true);
-        mockGetClipboardText.mockReturnValue('updated work arrangement');
 
         if (!copyMessageAction?.onPress) {
             throw new Error('Copy message context menu action was not found');
         }
 
+        // When the message is copied
         copyMessageAction.onPress(
             false,
             createReportActionPayload(
@@ -382,8 +370,82 @@ describe('ContextMenuActions copy message', () => {
             ),
         );
 
-        expect(mockGetClipboardText).toHaveBeenCalledWith('workspaceActions.updatedMemberWorkArrangement', undefined, undefined);
-        expect(mockSetHtml).toHaveBeenCalledWith('workspaceActions.updatedMemberWorkArrangement', 'updated work arrangement');
+        // Then both flavors are written, so a rich paste can keep the source and a plain paste still has text
+        expect(mockSetHtml).toHaveBeenCalledWith('workspaceActions.updatedMemberWorkArrangement', 'workspaceActions.updatedMemberWorkArrangement');
+        expect(mockSetString).not.toHaveBeenCalled();
+    });
+
+    it('writes both clipboard flavors for a modified expense that contains HTML', () => {
+        // Given a modified-expense message whose visible text is HTML with a link
+        const html = '<strong>added a receipt</strong> from <a href="https://expensify.com">Expensify</a>';
+        const payload = createReportActionPayload(
+            createMock<CopyMessagePayload['reportAction']>({
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                message: {receiptAdded: true},
+            }),
+        );
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars -- Translation parameters are required by the production callback signature; this stub returns markup for one key.
+        const translateReceipt = <TPath extends TranslationPaths>(path: TPath, ...parameters: TranslationParameters<TPath>): string => (String(path) === 'iou.addedReceipt' ? html : path);
+        payload.translate = translateReceipt;
+        mockCanSetHtml.mockReturnValue(true);
+
+        // When the message is copied
+        copyMessageAction.onPress(false, payload);
+
+        // Then a rich paste keeps the link and plain text does not keep Markdown syntax
+        expect(mockSetHtml).toHaveBeenCalledWith(html, 'added a receipt from Expensify');
+        expect(mockSetString).not.toHaveBeenCalled();
+    });
+
+    it('copies a workspace name that contains markup characters literally', () => {
+        // Given a renamed workspace whose old name contains characters that look like markup
+        const payload = createReportActionPayload(
+            createMock<CopyMessagePayload['reportAction']>({
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME,
+                message: {oldName: '<Team>', newName: 'Ops & Co'},
+            }),
+        );
+        const translateRenamedWorkspace = <TPath extends TranslationPaths>(path: TPath, ...parameters: TranslationParameters<TPath>): string => {
+            if (String(path) !== 'workspaceActions.renamedWorkspaceNameAction') {
+                return path;
+            }
+            const [oldName, newName] = parameters.map((value) => String(value));
+            return `renamed ${oldName} to ${newName}`;
+        };
+        payload.translate = translateRenamedWorkspace;
+        mockCanSetHtml.mockReturnValue(true);
+
+        // When the message is copied
+        copyMessageAction.onPress(false, payload);
+
+        // Then the name is copied literally, because parsing it as HTML would drop the bracketed word
+        expect(mockSetString).toHaveBeenCalledWith('renamed <Team> to Ops & Co');
+        expect(mockSetHtml).not.toHaveBeenCalled();
+    });
+
+    it('copies a comment the same way a painted selection of that comment is copied', () => {
+        // Given the same comment copied from a painted selection and from Copy message
+        const html = '<div>first message</div><div><strong>second</strong> <a href="https://expensify.com">Expensify</a></div>';
+        const plainText = 'first message\nsecond Expensify';
+        mockCanSetHtml.mockReturnValue(true);
+
+        // When both copy paths run
+        copyMessageAction.onPress(false, createPayload(html));
+        expect(mockSetHtml).toHaveBeenCalledWith(html, plainText);
+
+        mockSetHtml.mockClear();
+        copyMessageAction.onPress(
+            false,
+            createReportActionPayload(
+                createMock<CopyMessagePayload['reportAction']>({
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    message: [{html}],
+                }),
+            ),
+        );
+
+        // Then both paths write the same flavors, so the paste does not depend on which copy path was used
+        expect(mockSetHtml).toHaveBeenCalledWith(html, plainText);
         expect(mockSetString).not.toHaveBeenCalled();
     });
 
