@@ -58,8 +58,14 @@ describe('ModalProvider session changes', () => {
         await renderModalContext();
         const onFirstResolve = jest.fn();
         const onSecondResolve = jest.fn();
+        const onReject = jest.fn();
+        const onFinally = jest.fn();
         await act(async () => {
-            modalContext.showModal({component: TestModal, props: {label: 'First'}, id: 'first', isCloseable: false}).then(onFirstResolve);
+            modalContext
+                .showModal({component: TestModal, props: {label: 'First'}, id: 'first', isCloseable: false})
+                .then(onFirstResolve)
+                .catch(onReject)
+                .finally(onFinally);
             modalContext.showModal({component: TestModal, props: {label: 'Second'}}).then(onSecondResolve);
             await waitForBatchedUpdates();
         });
@@ -70,11 +76,10 @@ describe('ModalProvider session changes', () => {
             await waitForBatchedUpdates();
         });
 
-        // Then no outgoing-account dialog remains and neither caller receives user cancellation.
+        // Then no outgoing-account dialog remains and no continuation can act in the new session.
         expect(screen.queryByTestId('session-modal')).toBeNull();
-        for (const onResolve of [onFirstResolve, onSecondResolve]) {
-            expect(onResolve).toHaveBeenCalledTimes(1);
-            expect(onResolve).toHaveBeenCalledWith({action: ModalActions.DISMISS});
+        for (const onSettlement of [onFirstResolve, onSecondResolve, onReject, onFinally]) {
+            expect(onSettlement).not.toHaveBeenCalled();
         }
 
         // When a destination-account dialog reuses an old ID.
@@ -112,8 +117,7 @@ describe('ModalProvider session changes', () => {
 
             // Then every switch dismisses that account's outstanding interaction.
             expect(screen.queryByTestId('session-modal')).toBeNull();
-            expect(onResolve).toHaveBeenCalledTimes(1);
-            expect(onResolve).toHaveBeenCalledWith({action: ModalActions.DISMISS});
+            expect(onResolve).not.toHaveBeenCalled();
         };
         await switchAccount(2);
         await switchAccount(1);
@@ -186,30 +190,25 @@ describe('ModalProvider session changes', () => {
         expect(onResolve).not.toHaveBeenCalled();
     });
 
-    it('keeps a new dialog opened by a dismissed caller', async () => {
-        // Given a caller which shows a follow-up dialog after its pending interaction settles.
+    it('does not open a follow-up dialog from the outgoing session', async () => {
+        // Given a caller which opens another dialog in finally, like the hold education flow.
         await renderModalContext();
-        const onNewResolve = jest.fn();
+        const onFollowUp = jest.fn(() => {
+            modalContext.showModal({component: TestModal, props: {label: 'Follow-up'}, id: 'reused'});
+        });
         await act(async () => {
-            modalContext.showModal({component: TestModal, props: {label: 'Outgoing'}, id: 'reused'}).then(() => {
-                modalContext.showModal({component: TestModal, props: {label: 'Follow-up'}, id: 'reused'}).then(onNewResolve);
-            });
+            modalContext.showModal({component: TestModal, props: {label: 'Outgoing'}, id: 'reused'}).finally(onFollowUp);
             await waitForBatchedUpdates();
         });
 
-        // When session teardown resolves that interaction.
+        // When the account changes before the user answers.
         await act(async () => {
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: 2});
             await waitForBatchedUpdates();
         });
 
-        // Then clearing the old registry does not discard the newly opened dialog or its resolver.
-        expect(screen.getByLabelText('Follow-up')).toBeTruthy();
-        expect(onNewResolve).not.toHaveBeenCalled();
-        await act(async () => {
-            modalContext.resolveModal();
-            await waitForBatchedUpdates();
-        });
-        expect(onNewResolve).toHaveBeenCalledWith({action: ModalActions.CONFIRM});
+        // Then the outgoing caller cannot open another dialog in the destination session.
+        expect(onFollowUp).not.toHaveBeenCalled();
+        expect(screen.queryByTestId('session-modal')).toBeNull();
     });
 });

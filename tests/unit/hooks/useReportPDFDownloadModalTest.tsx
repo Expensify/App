@@ -280,8 +280,7 @@ describe('useReportPDFDownloadModal', () => {
 
         // Then the modal unmounts and cannot trigger Submit via PDF's CLOSE/retract branch.
         expect(mockOnFileDownloadModalUnmount).toHaveBeenCalledTimes(1);
-        expect(onResolve).toHaveBeenCalledTimes(1);
-        expect(onResolve).toHaveBeenCalledWith({action: ModalActions.DISMISS});
+        expect(onResolve).not.toHaveBeenCalled();
         const renderCountAfterLogout = mockedFileDownloadModal.mock.calls.length;
 
         // When an old PDF response arrives afterward.

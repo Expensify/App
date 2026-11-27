@@ -23,6 +23,7 @@ type ModalProps = {
 };
 
 type ModalContextType = {
+    /** Pending interactions are abandoned without settlement when the session changes, so old account actions cannot continue. */
     showModal<P extends ModalProps>(options: {
         component: React.FunctionComponent<P>;
         props?: Omit<P, 'closeModal' | 'resolveModal'>;
@@ -65,15 +66,10 @@ function ModalProvider({children}: {children: React.ReactNode}) {
     }, [modalStack]);
 
     const dismissModals = () => {
-        const pendingPromises = modalPromisesStack.current;
+        // Do not resolve or reject these promises: even DISMISS or rejection runs callers' finally handlers in the new session.
         modalPromisesStack.current = {};
         modalStackRef.current = {modals: []};
         setModalStack({modals: []});
-
-        // Session teardown must not run the user-cancellation handlers for the previous account.
-        for (const modalPromise of Object.values(pendingPromises)) {
-            modalPromise.resolve({action: ModalActions.DISMISS});
-        }
     };
 
     useDismissModalsOnSessionChange(dismissModals);
