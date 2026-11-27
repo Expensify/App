@@ -1,6 +1,6 @@
 # `lottie-react-native` patches
 
-### [lottie-react-native+7.3.8+001+recycling.patch](lottie-react-native+7.3.8+001+recycling.patch)
+### [lottie-react-native+7.5.1+001+recycling.patch](lottie-react-native+7.5.1+001+recycling.patch)
 
 - Reason:
 

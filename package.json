@@ -168,7 +168,7 @@
     "idb-keyval": "^6.2.1",
     "json5": "2.2.2",
     "lodash-es": "4.18.1",
-    "lottie-react-native": "7.3.8",
+    "lottie-react-native": "7.5.1",
     "mapbox-gl": "^3.24.0",
     "metro-transform-plugins": "0.87.1",
     "mime-db": "1.52.0",
