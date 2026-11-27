@@ -1,8 +1,12 @@
 import {render} from '@testing-library/react-native';
 
 import SearchBulkActionsButton from '@components/Search/SearchBulkActionsButton';
-import type {SelectedTransactions} from '@components/Search/types';
+import SharedGroupSelectionTotalProvider from '@components/Search/SharedGroupSelectionTotalProvider';
+import type {SearchQueryJSON, SelectedTransactions} from '@components/Search/types';
 
+import type * as UseSearchBulkActionsModule from '@hooks/useSearchBulkActions';
+
+import {getFooterConvertedAmounts} from '@libs/actions/Search';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
@@ -23,6 +27,7 @@ const mockBulkActionBar = jest.fn<null, [MockBulkActionBarProps]>(() => null);
 const mockButtonWithDropdownMenu = jest.fn<null, [MockButtonProps]>(() => null);
 let mockExcludedTransactions: SelectedTransactions = {};
 let mockSearchData: Record<string, unknown> = {};
+let mockSearchQueryJSON: SearchQueryJSON | undefined;
 let mockSearchCount: number | undefined;
 let mockSearchReportCount: number | undefined;
 let mockSearchIsLoading = false;
@@ -30,6 +35,9 @@ let mockIsOffline = false;
 let mockSelectedTransactions: SelectedTransactions = {tx1: makeTransaction()};
 let mockAreAllMatchingItemsSelected = true;
 let mockShouldUseNarrowLayout = false;
+// The converted figures the server answered, which the shared groups' union count is read from
+let mockFooterConversion: unknown;
+let mockSearchCurrency: string | undefined = 'USD';
 
 jest.mock('@components/BulkActionBar', () => ({
     __esModule: true,
@@ -63,11 +71,22 @@ jest.mock('@hooks/useResponsiveLayout', () => ({
     default: () => ({shouldUseNarrowLayout: mockShouldUseNarrowLayout, isSmallScreenWidth: mockShouldUseNarrowLayout}),
 }));
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({__esModule: true, default: () => ({accountID: 1})}));
-jest.mock('@hooks/useOnyx', () => ({__esModule: true, default: () => [undefined]}));
+jest.mock('@hooks/useOnyx', () => ({
+    __esModule: true,
+    default: (key: string, options?: {selector?: (value: unknown) => unknown}) =>
+        key === 'searchFooterConversion' && options?.selector ? [options.selector(mockFooterConversion)] : [undefined],
+}));
+jest.mock('@libs/actions/Search', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@libs/actions/Search'),
+    getFooterConvertedAmounts: jest.fn(),
+}));
 jest.mock('@hooks/usePolicy', () => ({__esModule: true, default: () => undefined}));
 jest.mock('@hooks/useSortedActiveAdminPolicies', () => ({__esModule: true, default: () => []}));
 jest.mock('@hooks/useSearchBulkActions', () => ({
     __esModule: true,
+    // The shared groups' union is built from the selection the way an export builds its query, so those stay real
+    getGroupKeysSelectedViaGroup: jest.requireActual<typeof UseSearchBulkActionsModule>('@hooks/useSearchBulkActions').getGroupKeysSelectedViaGroup,
+    getTemplateGroupExportQuery: jest.requireActual<typeof UseSearchBulkActionsModule>('@hooks/useSearchBulkActions').getTemplateGroupExportQuery,
     default: () => ({
         headerButtonsOptions: [],
         dropdownButtonsOptions: [],
@@ -93,8 +112,12 @@ jest.mock('@components/Search/SearchContext', () => ({
         clearSelectedTransactions: jest.fn(),
     }),
     useSearchResultsContext: () => ({
-        currentSearchResults: {search: {count: mockSearchCount, reportCount: mockSearchReportCount, isLoading: mockSearchIsLoading}},
+        currentSearchResults: {
+            search: {count: mockSearchCount, reportCount: mockSearchReportCount, isLoading: mockSearchIsLoading, currency: mockSearchCurrency},
+            data: mockSearchData,
+        },
     }),
+    useSearchQueryContext: () => ({currentSearchKey: undefined, currentSearchQueryJSON: mockSearchQueryJSON}),
 }));
 jest.mock('@libs/ReportUtils', () => {
     const reportUtils: unknown = jest.requireActual('@libs/ReportUtils');
@@ -387,5 +410,155 @@ describe('SearchBulkActionsButton group selection label', () => {
 
         // Then the cash back row adds one to the settlement's expenses
         expect(getBarProps().selectedCount).toBe(13);
+    });
+});
+
+describe('SearchBulkActionsButton with violation groups that share an expense', () => {
+    const missingCategoryKey = `${CONST.SEARCH.GROUP_PREFIX}${CONST.VIOLATIONS.MISSING_CATEGORY}`;
+    const overLimitKey = `${CONST.SEARCH.GROUP_PREFIX}${CONST.VIOLATIONS.OVER_LIMIT}`;
+    const violationQueryJSON = buildSearchQueryJSON(`type:expense group-by:${CONST.SEARCH.GROUP_BY.VIOLATION}`);
+    if (!violationQueryJSON) {
+        throw new Error('Expected the violation query to be valid');
+    }
+
+    /** Renders the bar under the provider that asks for the union of selected groups, as the Search page does. */
+    const renderButton = (buttonQueryJSON: SearchQueryJSON) => render(<SearchBulkActionsButton queryJSON={buttonQueryJSON} />, {wrapper: SharedGroupSelectionTotalProvider});
+
+    /** The union request the provider sent. */
+    const getUnionRequest = () => {
+        const request = jest.mocked(getFooterConvertedAmounts).mock.calls.at(0)?.at(0);
+        if (!request) {
+            throw new Error('Expected a request for the union of the selected groups');
+        }
+        return request;
+    };
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+        mockExcludedTransactions = {};
+        mockSearchCount = 3;
+        mockSearchIsLoading = false;
+        mockIsOffline = false;
+        mockAreAllMatchingItemsSelected = false;
+        mockShouldUseNarrowLayout = false;
+        mockFooterConversion = undefined;
+        mockSearchCurrency = 'USD';
+        mockSearchQueryJSON = violationQueryJSON;
+        // Missing category holds two expenses and Over limit holds one of those two as well
+        mockSearchData = {
+            [missingCategoryKey]: {violation: CONST.VIOLATIONS.MISSING_CATEGORY, count: 2, total: 200, currency: 'USD'},
+            [overLimitKey]: {violation: CONST.VIOLATIONS.OVER_LIMIT, count: 1, total: 100, currency: 'USD'},
+        };
+        mockSelectedTransactions = {[missingCategoryKey]: makeTransaction(), [overLimitKey]: makeTransaction()};
+    });
+
+    afterAll(() => {
+        mockSearchQueryJSON = undefined;
+    });
+
+    it('waits for the union of the groups rather than showing their counts added up', () => {
+        // Given both groups checked while collapsed, and no answer yet for their union
+
+        // When the selection count renders
+        renderButton(violationQueryJSON);
+
+        // Then the union is asked for and the bar loads, instead of showing 3 for the shared expense counted twice
+        expect(getFooterConvertedAmounts).toHaveBeenCalledWith(expect.objectContaining({targetCurrency: 'USD'}));
+        expect(getBarProps().isSelectedCountLoading).toBe(true);
+    });
+
+    it('asks once, in the currency the footer shows, and reads the count from that answer', () => {
+        // Given a footer showing euros, which it writes into the query
+        const euroQueryJSON = buildSearchQueryJSON(`type:expense group-by:${CONST.SEARCH.GROUP_BY.VIOLATION} footerCurrency:${CONST.CURRENCY.EUR}`);
+        if (!euroQueryJSON) {
+            throw new Error('Expected the euro query to be valid');
+        }
+        mockSearchQueryJSON = euroQueryJSON;
+        const {rerender} = renderButton(euroQueryJSON);
+        const request = getUnionRequest();
+        expect(request.targetCurrency).toBe(CONST.CURRENCY.EUR);
+
+        // When the answer arrives and the bar renders again
+        mockFooterConversion = {searchTotals: {[request.queryJSON.hash]: {EUR: {count: 2, total: 180}}}, sources: request.sources};
+        rerender(<SearchBulkActionsButton queryJSON={euroQueryJSON} />);
+
+        // Then the bar counts from the same answer the footer shows, with no request of its own
+        expect(getBarProps()).toEqual({selectedCount: 2, isSelectedCountLoading: false});
+        expect(getFooterConvertedAmounts).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not ask again while its request has not been stamped yet', () => {
+        // Given the union asked for, with its stamp not in Onyx yet
+        const {rerender} = renderButton(violationQueryJSON);
+
+        // When the bar renders again before the stamp lands
+        rerender(<SearchBulkActionsButton queryJSON={violationQueryJSON} />);
+
+        // Then the request in flight is not sent a second time
+        expect(getFooterConvertedAmounts).toHaveBeenCalledTimes(1);
+    });
+
+    it('asks again when a group gains an expense while the groups total stays the same', () => {
+        // Given the union answered for the two groups
+        const {rerender} = renderButton(violationQueryJSON);
+        const request = getUnionRequest();
+        mockFooterConversion = {searchTotals: {[request.queryJSON.hash]: {USD: {count: 2, total: 200}}}, sources: request.sources};
+        rerender(<SearchBulkActionsButton queryJSON={violationQueryJSON} />);
+        expect(getFooterConvertedAmounts).toHaveBeenCalledTimes(1);
+
+        // When the shared expense is split in two, so Over limit holds one more expense for the same total
+        mockSearchData = {...mockSearchData, [overLimitKey]: {violation: CONST.VIOLATIONS.OVER_LIMIT, count: 2, total: 100, currency: 'USD'}};
+        rerender(<SearchBulkActionsButton queryJSON={violationQueryJSON} />);
+
+        // Then the old answer no longer counts, and the union is asked for again against the new counts
+        expect(getBarProps().isSelectedCountLoading).toBe(true);
+        expect(getFooterConvertedAmounts).toHaveBeenCalledTimes(2);
+        expect(jest.mocked(getFooterConvertedAmounts).mock.calls.at(1)?.at(0)?.sources?.searchGroupFigures).toEqual({
+            [request.queryJSON.hash]: {USD: `${missingCategoryKey}:2:200,${overLimitKey}:2:100`},
+        });
+    });
+
+    it('asks in the groups own currency when the search carries none', () => {
+        // Given a search whose results name no currency
+        mockSearchCurrency = undefined;
+
+        // When the selection count renders
+        renderButton(violationQueryJSON);
+
+        // Then the union is still asked for, in the currency the groups are summed in, rather than loading forever
+        expect(getFooterConvertedAmounts).toHaveBeenCalledWith(expect.objectContaining({targetCurrency: 'USD'}));
+    });
+
+    it('asks again when two groups totals change by offsetting amounts', () => {
+        // Given the union answered for the two groups, at $200 and $100
+        const {rerender} = renderButton(violationQueryJSON);
+        const request = getUnionRequest();
+        mockFooterConversion = {searchTotals: {[request.queryJSON.hash]: {USD: {count: 2, total: 200}}}, sources: request.sources};
+        rerender(<SearchBulkActionsButton queryJSON={violationQueryJSON} />);
+        expect(getFooterConvertedAmounts).toHaveBeenCalledTimes(1);
+
+        // When an edit moves the groups to $190 and $110, so their sum and counts stay the same while the union changes
+        mockSearchData = {
+            [missingCategoryKey]: {violation: CONST.VIOLATIONS.MISSING_CATEGORY, count: 2, total: 190, currency: 'USD'},
+            [overLimitKey]: {violation: CONST.VIOLATIONS.OVER_LIMIT, count: 1, total: 110, currency: 'USD'},
+        };
+        rerender(<SearchBulkActionsButton queryJSON={violationQueryJSON} />);
+
+        // Then the old answer no longer counts, and the union is asked for again
+        expect(getBarProps().isSelectedCountLoading).toBe(true);
+        expect(getFooterConvertedAmounts).toHaveBeenCalledTimes(2);
+    });
+
+    it('counts the shared expense once once the union is answered', () => {
+        // Given the server's answer for the union of the two groups, stamped against the groups' totals
+        const {rerender} = renderButton(violationQueryJSON);
+        const request = getUnionRequest();
+        mockFooterConversion = {searchTotals: {[request.queryJSON.hash]: {USD: {count: 2, total: 200}}}, sources: request.sources};
+
+        // When the selection count renders again
+        rerender(<SearchBulkActionsButton queryJSON={violationQueryJSON} />);
+
+        // Then it counts the two expenses the groups hold between them
+        expect(getBarProps()).toEqual({selectedCount: 2, isSelectedCountLoading: false});
     });
 });

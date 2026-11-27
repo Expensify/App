@@ -5824,6 +5824,11 @@ function getValidGroupBy(groupBy: string | undefined): SearchGroupBy | undefined
     return groupBy && isGroupBySupportedBySearch(groupBy) && isSearchGroupBy(groupBy) ? groupBy : undefined;
 }
 
+/** Whether one expense can sit in several groups of this grouping, as an expense with two violations sits in both violation groups. */
+function canGroupsShareExpenses(groupBy: string | undefined): boolean {
+    return groupBy === CONST.SEARCH.GROUP_BY.VIOLATION;
+}
+
 function getStatusOptions(translate: LocalizedTranslate, type: SearchDataTypes, shouldReturnTripRooms = false) {
     switch (type) {
         case CONST.SEARCH.DATA_TYPES.INVOICE:
@@ -8653,6 +8658,7 @@ function isTransactionMatchWithGroupItem(transaction: OnyxTypes.Transaction, gro
 }
 
 export {
+    canGroupsShareExpenses,
     canPolicyAdminChangeApprover,
     getAllMatchingExpenseActionQuery,
     getAllMatchingExportQueryAndExclusions,

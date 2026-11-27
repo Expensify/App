@@ -26,7 +26,8 @@ import type {SearchFooterCount, SearchFooterTotal, SelectedTransactionInfo, Sele
 
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionContext} from './SearchContext';
 import SearchPageFooter from './SearchPageFooter';
-import {getRowsCheckedInExcludedGroups, mergeRowsIntoPartlyLoadedGroups} from './selectionBuilders';
+import {getClaimedGroupKeys, getRowsCheckedInExcludedGroups, mergeRowsIntoPartlyLoadedGroups} from './selectionBuilders';
+import {useSharedGroupSelectionTotal} from './SharedGroupSelectionTotalProvider';
 
 type SearchSelectionFooterProps = {
     /** The (sorting-aware) results the page is displaying; source of the footer's totals metadata. */
@@ -215,6 +216,10 @@ function SearchSelectionFooter({searchResults, style}: SearchSelectionFooterProp
     const isReportsSearch = currentSearchQueryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
     const isGroupedSearch = !isReportsSearch && !!currentSearchQueryJSON?.groupBy;
 
+    // Where one expense can sit in several groups, adding up the selected groups counts a shared expense once per group,
+    // so the footer shows the groups' union, which the provider above asks the server for.
+    const {sharedGroupSelection, total: sharedGroupAnswer, currency: sharedGroupAnswerCurrency, isLoading: isSharedGroupAnswerLoading} = useSharedGroupSelectionTotal();
+
     const metadata = searchResults?.search;
 
     const requestedFooterTotal = footerSelection.footerTotal ?? CONST.SEARCH.FOOTER_TOTAL.TOTAL;
@@ -369,8 +374,10 @@ function SearchSelectionFooter({searchResults, style}: SearchSelectionFooterProp
         Object.entries(currentSearchResults?.data ?? {}).some(
             ([key, group]) => isGroupEntry(key) && !!group && typeof group === 'object' && 'isCashBack' in group && !!group.isCashBack && !selectedTransactions[key],
         );
+    // Groups that share expenses add up to more than they hold, so their sum can't tell whether every expense is selected.
     const areAllSelectedForFooter =
-        areAllMatchingItemsSelected || (selectedTransactionsKeys.length > 0 && metadataCount !== undefined && selectedExpenseCount === metadataCount && !hasUnselectedCashBackGroup);
+        areAllMatchingItemsSelected ||
+        (!sharedGroupSelection && selectedTransactionsKeys.length > 0 && metadataCount !== undefined && selectedExpenseCount === metadataCount && !hasUnselectedCashBackGroup);
     const hasPartialSelection = selectedTransactionsKeys.length > 0 && !areAllSelectedForFooter;
 
     // Both selectors stay available for whatever the footer is describing. A hand-picked selection is counted and summed
@@ -381,7 +388,8 @@ function SearchSelectionFooter({searchResults, style}: SearchSelectionFooterProp
     // A group row selected as a whole is out of scope for now, pending the backend returning breakdowns per group. It
     // reaches the selection one of two ways: as a single group entry when its expenses are not loaded, or as those
     // expenses each flagged `isSelectedViaGroup` when they are. The flag is cleared as soon as one of them is toggled
-    // off, so a part-deselected group counts as an individual selection again and keeps both selectors.
+    // off, so a part-deselected group counts as an individual selection again and keeps both selectors. Where groups share
+    // expenses, a group's header check can be recorded only among the other groups an expense stored elsewhere lists.
     //
     // Only a grouped search is affected. A Reports search carries the same flag, because a report row is a group row
     // there, but a report is that search's natural unit and its expenses are exactly what the selection holds.
@@ -389,8 +397,8 @@ function SearchSelectionFooter({searchResults, style}: SearchSelectionFooterProp
         isGroupedSearch &&
         (selectedTransactionsKeys.some(isGroupEntry) ||
             excludedTransactionsKeys.some(isGroupEntry) ||
-            selectedTransactionsKeys.some((key) => selectedTransactions[key]?.isSelectedViaGroup) ||
-            excludedTransactionsKeys.some((key) => excludedTransactions[key]?.isSelectedViaGroup));
+            selectedTransactionsKeys.some((key) => getClaimedGroupKeys(selectedTransactions[key]).length > 0) ||
+            excludedTransactionsKeys.some((key) => getClaimedGroupKeys(excludedTransactions[key]).length > 0));
 
     // The other case with no answer to give: the whole-search report count comes from the server, and a search that
     // returned none of it (a grouped search, or a to-do search counting live Onyx data) has nothing to switch to.
@@ -422,6 +430,27 @@ function SearchSelectionFooter({searchResults, style}: SearchSelectionFooterProp
     const hasConversionFailed = hasCustomFooterCurrency && !!selectedCurrency && !!failedConversionCurrencies?.[selectedCurrency];
 
     const selectedCurrencyConvertedTotal = hasCustomFooterCurrency && selectedCurrency ? convertedSearchTotal?.[selectedCurrency] : undefined;
+
+    // The shared groups' union is asked for in the currency the footer shows, so one request answers both the default and a picked currency.
+    const sharedGroupCurrency = hasCustomFooterCurrency ? selectedCurrency : effectiveDefaultCurrency;
+    // The union is asked in the currency the query names, which a pick reaches a moment after the footer shows it. Until
+    // then the answer is in another currency, so the selection is summed below instead.
+    const isSharedGroupAnswerInFooterCurrency = !!sharedGroupAnswerCurrency && sharedGroupAnswerCurrency === sharedGroupCurrency;
+    const sharedGroupTotal = isSharedGroupAnswerInFooterCurrency ? sharedGroupAnswer : undefined;
+    const isSharedGroupTotalLoading = isSharedGroupAnswerInFooterCurrency && isSharedGroupAnswerLoading;
+    // The union comes in the picked currency, so the loose rows added to it have to be converted too. Until they are, the
+    // selection is summed below like any other, which keeps every figure in one currency.
+    // A failed request leaves the old conversion behind its new stamp, so after a failure a row's converted amount can't be trusted.
+    const areLooseEntriesInSharedGroupCurrency =
+        !hasCustomFooterCurrency ||
+        (!!selectedCurrency &&
+            !hasConversionFailed &&
+            !!sharedGroupSelection?.looseEntries.every(
+                (transaction) => !!transaction.transaction?.transactionID && isTransactionFresh(transaction.transaction.transactionID, selectedCurrency),
+            ));
+    // Offline, or once the request has failed, no union figure is coming, so the groups are summed here instead. That can
+    // count a shared expense once per group, but it beats a blank footer, and the union replaces it once answered.
+    const shouldUseSharedGroupTotal = (!!sharedGroupTotal || isSharedGroupTotalLoading) && areLooseEntriesInSharedGroupCurrency;
 
     // The whole-search grand total is fresh only while its stamped source still equals the live snapshot total.
     const isSearchTotalFresh = !!selectedCurrencyConvertedTotal && !!selectedCurrency && conversionSources?.searchTotals?.[currentSearchHash]?.[selectedCurrency] === metadataTotal;
@@ -483,7 +512,18 @@ function SearchSelectionFooter({searchResults, style}: SearchSelectionFooterProp
     } else {
         const selectedTransactionItems = Object.values(selectedTransactions);
         const fallbackCurrency = effectiveDefaultCurrency ?? selectedTransactionItems.at(0)?.groupCurrency ?? selectedTransactionItems.at(0)?.currency;
-        if (shouldUseClientTotal) {
+        if (shouldUseClientTotal && sharedGroupSelection && shouldUseSharedGroupTotal) {
+            const looseTotal = sharedGroupSelection.looseEntries.reduce((total, transaction) => {
+                const transactionID = transaction.transaction?.transactionID;
+                const convertedAmount = hasCustomFooterCurrency && selectedCurrency && transactionID ? convertedTransactions?.[transactionID]?.[selectedCurrency] : undefined;
+                return total - (convertedAmount ?? getEntrySource(transaction));
+            }, 0);
+            footerData = {
+                count: sharedGroupTotal ? sharedGroupTotal.count + sharedGroupSelection.looseEntries.length : undefined,
+                total: sharedGroupTotal ? sharedGroupTotal.total + looseTotal : undefined,
+                currency: sharedGroupCurrency,
+            };
+        } else if (shouldUseClientTotal) {
             const shouldUseConvertedSelectedTotal = hasCustomFooterCurrency && areAllSelectedConverted && !hasConversionFailed && !!selectedCurrency;
 
             // Reports sum each selected report's converted total; other searches sum per row — whole groups from the
@@ -804,7 +844,9 @@ function SearchSelectionFooter({searchResults, style}: SearchSelectionFooterProp
 
     // A partial selection shows a client-side subtotal that is ready immediately, so it never waits on a search.
     const isFooterTotalLoading =
-        isFooterTotalConverting || (!hasPartialSelection && (isAwaitingBreakdownTotal || isSnapshotTotalForOtherBreakdown || (!!metadata?.isLoading && metadata?.offset === 0)));
+        isFooterTotalConverting ||
+        isSharedGroupTotalLoading ||
+        (!hasPartialSelection && (isAwaitingBreakdownTotal || isSnapshotTotalForOtherBreakdown || (!!metadata?.isLoading && metadata?.offset === 0)));
 
     // The reports a selection covers. The server's report count describes the whole search, so a selection needs its own:
     // on a Reports search that is the selected reports, elsewhere the distinct reports the selected expenses sit on.

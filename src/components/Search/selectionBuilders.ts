@@ -316,6 +316,78 @@ function getClaimedGroupKey(transaction: SelectedTransactionInfo): SearchGroupKe
     return transaction.isSelectedViaGroup && transaction.groupKey && isGroupEntry(transaction.groupKey) ? transaction.groupKey : undefined;
 }
 
+/** Every group a row's header checks stand for: the group it is stored under, then any other group that shares the expense. */
+function getClaimedGroupKeys(transaction: SelectedTransactionInfo | undefined): SearchGroupKey[] {
+    if (!transaction) {
+        return [];
+    }
+    const claimedGroupKey = getClaimedGroupKey(transaction);
+    const otherGroupKeys = (transaction.otherClaimedGroupKeys ?? []).filter((groupKey): groupKey is SearchGroupKey => isGroupEntry(groupKey) && groupKey !== claimedGroupKey);
+    return claimedGroupKey ? [claimedGroupKey, ...otherGroupKeys] : otherGroupKeys;
+}
+
+/** The other claimed groups as a field of a selected row, left out when there are none, since the selection's equality checks read an empty key as a change. */
+function getOtherClaimedGroupKeysField(otherClaimedGroupKeys: readonly string[] | undefined): {otherClaimedGroupKeys?: string[]} {
+    return otherClaimedGroupKeys?.length ? {otherClaimedGroupKeys: [...otherClaimedGroupKeys]} : {};
+}
+
+/** The row with the given groups taken off its other claimed groups, or the same row when it names none of them. */
+function removeOtherGroupClaims(transaction: SelectedTransactionInfo, groupKeys: ReadonlySet<string>): SelectedTransactionInfo {
+    if (!transaction.otherClaimedGroupKeys?.some((groupKey) => groupKeys.has(groupKey))) {
+        return transaction;
+    }
+    const {otherClaimedGroupKeys, ...rest} = transaction;
+    return {...rest, ...getOtherClaimedGroupKeysField(otherClaimedGroupKeys.filter((groupKey) => !groupKeys.has(groupKey)))};
+}
+
+/**
+ * Unchecks one group's header when groups share expenses. Each of its expenses is one expense however many groups list it, so it is unchecked in
+ * all of them, and any other group whose header check covered one of them becomes a partial selection, as unchecking that expense there would make it.
+ * Keeping the expense selected for the other group would leave this group's checkbox checked, since every row it shows would still be.
+ * Besides the group's loaded rows, every selected row that names the group goes too, since a refresh can leave one off the group's page.
+ * Returns the other groups whose header claims ended, so their coverage can be recounted.
+ */
+function deselectSharedGroup(
+    selectedTransactions: SelectedTransactions,
+    groupKey: string,
+    loadedRowKeys: string[],
+): {selectedTransactions: SelectedTransactions; releasedGroupKeys: Set<string>} {
+    const nextSelectedTransactions = {...selectedTransactions};
+    delete nextSelectedTransactions[groupKey];
+    const rowKeys = new Set(loadedRowKeys);
+    for (const [key, transaction] of Object.entries(selectedTransactions)) {
+        if (!isGroupEntry(key) && (transaction.groupKey === groupKey || getClaimedGroupKeys(transaction).some((claimedGroupKey) => claimedGroupKey === groupKey))) {
+            rowKeys.add(key);
+        }
+    }
+    const releasedGroupKeys = new Set<string>();
+    for (const key of rowKeys) {
+        const transaction = nextSelectedTransactions[key];
+        if (!transaction) {
+            continue;
+        }
+        for (const claimedGroupKey of getClaimedGroupKeys(transaction)) {
+            if (claimedGroupKey !== groupKey) {
+                releasedGroupKeys.add(claimedGroupKey);
+            }
+        }
+        delete nextSelectedTransactions[key];
+    }
+    if (releasedGroupKeys.size === 0) {
+        return {selectedTransactions: nextSelectedTransactions, releasedGroupKeys};
+    }
+    for (const [key, transaction] of Object.entries(nextSelectedTransactions)) {
+        let nextTransaction = removeOtherGroupClaims(transaction, releasedGroupKeys);
+        if (nextTransaction.groupKey && releasedGroupKeys.has(nextTransaction.groupKey) && nextTransaction.isSelectedViaGroup) {
+            nextTransaction = {...nextTransaction, isSelectedViaGroup: false};
+        }
+        if (nextTransaction !== transaction) {
+            nextSelectedTransactions[key] = nextTransaction;
+        }
+    }
+    return {selectedTransactions: nextSelectedTransactions, releasedGroupKeys};
+}
+
 /**
  * Rows checked again inside a group excluded whole from Select all. The group's exclusion still takes them off with the rest of the group,
  * so a count or a total adds them back.
@@ -348,11 +420,19 @@ type GroupClaim = {
     claimedGroupCount: number | undefined;
 };
 
-/** For each group checked through its header, whether any of its rows records the group as wholly selected, and the lowest count they were checked at. */
+/**
+ * For each group checked through its header, whether any of its rows records the group as wholly selected, and the lowest count they were checked at.
+ * A group known only from rows stored under another group still has a claim, with neither recorded, since those rows carry the other group's.
+ */
 function getGroupClaims(selectedTransactions: SelectedTransactions): Map<SearchGroupKey, GroupClaim> {
     const claimByGroupKey = new Map<SearchGroupKey, GroupClaim>();
     for (const transaction of Object.values(selectedTransactions)) {
         const groupKey = getClaimedGroupKey(transaction);
+        for (const claimedGroupKey of getClaimedGroupKeys(transaction)) {
+            if (claimedGroupKey !== groupKey && !claimByGroupKey.has(claimedGroupKey)) {
+                claimByGroupKey.set(claimedGroupKey, {isEntireGroupSelected: false, claimedGroupCount: undefined});
+            }
+        }
         if (!groupKey) {
             continue;
         }
@@ -394,7 +474,8 @@ function mergeRowsIntoPartlyLoadedGroups(
         return selectedTransactions;
     }
     const partlyLoadedGroups = new Map<SearchGroupKey, {group: SearchGroupBase; rowKeys: string[]}>();
-    for (const [groupKey, rowKeys] of getSelectedRowKeysByGroupKey(selectedTransactions)) {
+    const rowKeysByGroupKey = getSelectedRowKeysByGroupKey(selectedTransactions);
+    for (const [groupKey, rowKeys] of rowKeysByGroupKey) {
         if (!isGroupEntry(groupKey)) {
             continue;
         }
@@ -407,6 +488,32 @@ function mergeRowsIntoPartlyLoadedGroups(
         const isClaimStillLoading = !isWhollySelected && rowKeys.some((key) => getClaimedGroupKey(selectedTransactions[key]) === groupKey);
         const hasRowsThatLeft = isWhollySelected && rowKeys.length > groupCount && rowKeys.some((key) => !!selectedTransactions[key].isKeptOffPage);
         if (isClaimStillLoading || hasRowsThatLeft) {
+            partlyLoadedGroups.set(groupKey, {group, rowKeys});
+        }
+    }
+    // Where groups share expenses, checking a second header stores the rows under it, so a group checked earlier can be named only among
+    // the rows' other claims. When fewer rows claim it than it holds, the rest are still loading and its entry has to stand for them too.
+    const otherClaimRowKeysByGroupKey = new Map<SearchGroupKey, string[]>();
+    for (const [key, transaction] of Object.entries(selectedTransactions)) {
+        if (isGroupEntry(key)) {
+            continue;
+        }
+        for (const groupKey of transaction.otherClaimedGroupKeys ?? []) {
+            if (!isGroupEntry(groupKey) || rowKeysByGroupKey.has(groupKey) || Object.hasOwn(selectedTransactions, groupKey)) {
+                continue;
+            }
+            const rowKeys = otherClaimRowKeysByGroupKey.get(groupKey);
+            if (rowKeys) {
+                rowKeys.push(key);
+            } else {
+                otherClaimRowKeysByGroupKey.set(groupKey, [key]);
+            }
+        }
+    }
+    for (const [groupKey, rowKeys] of otherClaimRowKeysByGroupKey) {
+        const group = searchData?.[groupKey];
+        const groupCount = getSearchGroupCount(group);
+        if (group && groupCount !== undefined && rowKeys.length < groupCount) {
             partlyLoadedGroups.set(groupKey, {group, rowKeys});
         }
     }
@@ -425,6 +532,8 @@ function mergeRowsIntoPartlyLoadedGroups(
     for (const [groupKey, {group, rowKeys}] of partlyLoadedGroups) {
         const rows = rowKeys.map((key) => selectedTransactions[key]);
         const firstRowPolicyID = rows.at(0)?.policyID;
+        // Where groups share expenses, the rows can be the only record that another group's header is checked, so the entry keeps those claims.
+        const otherClaimedGroupKeys = new Set(rows.flatMap((row) => getClaimedGroupKeys(row)).filter((claimedGroupKey) => claimedGroupKey !== groupKey));
         // The Export menu reads the workspace, and whether every expense is from a one-expense report, to decide which options apply.
         merged[groupKey] = {
             ...buildGroupSelectedEntry({
@@ -436,6 +545,7 @@ function mergeRowsIntoPartlyLoadedGroups(
                 policyID: rows.every((row) => row.policyID === firstRowPolicyID) ? firstRowPolicyID : undefined,
             }),
             isFromOneTransactionReport: rows.every((row) => row.isFromOneTransactionReport),
+            ...getOtherClaimedGroupKeysField([...otherClaimedGroupKeys]),
         };
     }
     return merged;
@@ -649,7 +759,7 @@ function getGroupCheckboxState({groupKey, children, selectedTransactions, exclud
         !!groupKey &&
         children.some((child) => {
             const entry = selectedTransactions[child.keyForList];
-            return !!entry && (getClaimedGroupKey(entry) === groupKey || (entry.groupKey === groupKey && !!entry.isEntireGroupSelected));
+            return !!entry && (getClaimedGroupKeys(entry).some((claimedGroupKey) => claimedGroupKey === groupKey) || (entry.groupKey === groupKey && !!entry.isEntireGroupSelected));
         });
     // A refresh can leave rows checked or unchecked one by one off the loaded page, and the header still has to show them.
     let loadedRowKeys: Set<string> | undefined;
@@ -758,6 +868,9 @@ type GroupLookups = {
 
     /** How many expenses the group holds, which can be more or fewer than the rows it has loaded */
     getGroupCount: (groupKey: string) => number | undefined;
+
+    /** Whether one expense can sit in several groups, so a row checked through one header keeps the other groups' claims on it */
+    canGroupsShareExpenses?: boolean;
 };
 
 /** Undefined under select-all-matching, where the group is selected without its rows being known. */
@@ -826,8 +939,20 @@ function applyShiftRangeBatchToSelection(
         updated = spellOutGroupSelection(updated, transaction.keyForList, areAllMatchingItemsSelected, lookups);
         const [key, info] = lookups.buildSelectedEntry(transaction);
         const parentGroupKey = blockGroupKey ?? lookups.groupKeyByChildKey.get(transaction.keyForList);
+        // A row stored under another group can already be covered by this group's header, so re-covering it leaves the row and both claims as they are.
+        if (
+            lookups.canGroupsShareExpenses &&
+            !blockGroupKey &&
+            !!parentGroupKey &&
+            updated[key]?.groupKey !== parentGroupKey &&
+            !!updated[key]?.otherClaimedGroupKeys?.includes(parentGroupKey)
+        ) {
+            return;
+        }
         // A row the range only re-covers keeps its group claim. Only a row the range gives back makes the group partial.
         const isAlreadySelectedViaGroup = !!parentGroupKey && updated[key]?.groupKey === parentGroupKey && !!updated[key]?.isSelectedViaGroup;
+        // A row another header already covers stays covered by it when this range checks the row through a group of its own.
+        const otherClaimedGroupKeys = lookups.canGroupsShareExpenses ? getClaimedGroupKeys(updated[key]).filter((groupKey) => groupKey !== parentGroupKey) : undefined;
         if (parentGroupKey) {
             if (blockGroupKey) {
                 wholeGroupKeys.add(parentGroupKey);
@@ -842,6 +967,7 @@ function applyShiftRangeBatchToSelection(
                   groupKey: parentGroupKey,
                   isSelectedViaGroup: !!blockGroupKey || isAlreadySelectedViaGroup,
                   ...getClaimedGroupCountField(isAlreadySelectedViaGroup ? updated[key]?.claimedGroupCount : undefined),
+                  ...getOtherClaimedGroupKeysField(otherClaimedGroupKeys),
               }
             : info;
         // Re-covering a row is not a write, and coverage is recounted after the batch, so it is left out of the comparison.
@@ -859,6 +985,17 @@ function applyShiftRangeBatchToSelection(
                 if (parentGroupKey) {
                     partialGroupKeys.add(parentGroupKey);
                     touchGroup(parentGroupKey, lookups.childrenByGroupKey.get(parentGroupKey) ?? []);
+                }
+                // Every other header that covered the row stops covering its group as well, since the row is now unchecked in it. The row can be
+                // stored under one of those groups rather than the one listed last, so each is recounted, or Delete would still take it whole.
+                for (const claimedGroupKey of getClaimedGroupKeys(updated[row.keyForList])) {
+                    partialGroupKeys.add(claimedGroupKey);
+                    touchGroup(claimedGroupKey, lookups.childrenByGroupKey.get(claimedGroupKey) ?? []);
+                }
+                // A group whose expenses were all checked one by one reads as wholly selected with no header claim, so the group the row is stored under is recounted too.
+                const storedGroupKey = updated[row.keyForList]?.groupKey;
+                if (storedGroupKey && isGroupEntry(storedGroupKey)) {
+                    touchGroup(storedGroupKey, lookups.childrenByGroupKey.get(storedGroupKey) ?? []);
                 }
                 updated = spellOutGroupSelection(updated, row.keyForList, areAllMatchingItemsSelected, lookups);
                 dropKey(row.keyForList);
@@ -917,9 +1054,14 @@ function applyShiftRangeBatchToSelection(
     }
 
     // Rows left behind must stop claiming the group covers them, or an export sends a whole-group filter.
+    const releasedGroupKeys = new Set([...partialGroupKeys].filter((groupKey) => !wholeGroupKeys.has(groupKey)));
     for (const [key, transaction] of Object.entries(updated)) {
-        if (transaction.isSelectedViaGroup && transaction.groupKey && partialGroupKeys.has(transaction.groupKey) && !wholeGroupKeys.has(transaction.groupKey)) {
-            updated[key] = {...transaction, isSelectedViaGroup: false};
+        let nextTransaction = removeOtherGroupClaims(transaction, releasedGroupKeys);
+        if (nextTransaction.isSelectedViaGroup && nextTransaction.groupKey && releasedGroupKeys.has(nextTransaction.groupKey)) {
+            nextTransaction = {...nextTransaction, isSelectedViaGroup: false};
+        }
+        if (nextTransaction !== transaction) {
+            updated[key] = nextTransaction;
             hasWritten = true;
         }
     }
@@ -966,7 +1108,10 @@ export {
     getSearchGroupCountByKey,
     getGroupByCount,
     resolveGroupCount,
-    getClaimedGroupKey,
+    getClaimedGroupKeys,
+    getOtherClaimedGroupKeysField,
+    removeOtherGroupClaims,
+    deselectSharedGroup,
     getGroupClaims,
     getLowerCount,
     getClaimedGroupCountField,

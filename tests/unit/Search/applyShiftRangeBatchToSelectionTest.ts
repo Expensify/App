@@ -97,6 +97,73 @@ describe('applyShiftRangeBatchToSelection', () => {
         expect(updated.c3?.isEntireGroupSelected).toBe(false);
     });
 
+    it('recounts the group a shared row is stored under when a range gives it back through a group listed later', () => {
+        // Given group A wholly selected with a shared row and a row of its own, where the shared row is listed last under group B
+        const groupA = `${CONST.SEARCH.GROUP_PREFIX}A`;
+        const groupB = `${CONST.SEARCH.GROUP_PREFIX}B`;
+        const shared = makeChild(1, 's1');
+        const own = makeChild(2, 'a2');
+        const selection: SelectedTransactions = {
+            s1: {...buildEntry(shared)[1], groupKey: groupA, isSelectedViaGroup: true, isEntireGroupSelected: true, coveredGroupCount: 2, otherClaimedGroupKeys: [groupB]},
+            a2: {...buildEntry(own)[1], groupKey: groupA, isSelectedViaGroup: true, isEntireGroupSelected: true, coveredGroupCount: 2},
+        };
+        const lookups = {
+            ...lookupsFor(
+                new Map([
+                    ['s1', groupB],
+                    ['a2', groupA],
+                ]),
+                new Map([
+                    [groupA, [shared, own]],
+                    [groupB, [shared]],
+                ]),
+            ),
+            getGroupCount: (groupKey: string) => (groupKey === groupA ? 2 : 1),
+            canGroupsShareExpenses: true,
+        };
+
+        // When a range gives back the shared row
+        const updated = applyShiftRangeBatchToSelection(batchOf([], [shared]), selection, false, lookups);
+
+        // Then group A's remaining row no longer stands for the whole group, so a bulk delete leaves the unchecked shared row on screen
+        expect(updated.s1).toBeUndefined();
+        expect(updated.a2?.isSelectedViaGroup).toBe(false);
+        expect(updated.a2?.isEntireGroupSelected).toBe(false);
+    });
+
+    it('recounts the group a shared row is stored under when its rows were checked one by one and a range gives the row back through another group', () => {
+        // Given group A wholly selected through rows checked one by one, so none has a header claim, with its shared row listed last under group B
+        const groupA = `${CONST.SEARCH.GROUP_PREFIX}A`;
+        const groupB = `${CONST.SEARCH.GROUP_PREFIX}B`;
+        const shared = makeChild(1, 's1');
+        const own = makeChild(2, 'a2');
+        const selection: SelectedTransactions = {
+            s1: {...buildEntry(shared)[1], groupKey: groupA, isEntireGroupSelected: true, coveredGroupCount: 2},
+            a2: {...buildEntry(own)[1], groupKey: groupA, isEntireGroupSelected: true, coveredGroupCount: 2},
+        };
+        const lookups = {
+            ...lookupsFor(
+                new Map([
+                    ['s1', groupB],
+                    ['a2', groupA],
+                ]),
+                new Map([
+                    [groupA, [shared, own]],
+                    [groupB, [shared]],
+                ]),
+            ),
+            getGroupCount: (groupKey: string) => (groupKey === groupA ? 2 : 1),
+            canGroupsShareExpenses: true,
+        };
+
+        // When a range gives back the shared row
+        const updated = applyShiftRangeBatchToSelection(batchOf([], [shared]), selection, false, lookups);
+
+        // Then group A's remaining row no longer stands for the whole group, so a bulk delete leaves the unchecked shared row on screen
+        expect(updated.s1).toBeUndefined();
+        expect(updated.a2?.isEntireGroupSelected).toBe(false);
+    });
+
     it('returns the map it was given when the batch writes nothing, so the commit bails on identity', () => {
         // Given a row already selected exactly as the range would write it
         const first = makeChild(1, 't1');
@@ -214,6 +281,34 @@ describe('applyShiftRangeBatchToSelection', () => {
         // Then both still claim the group, so an export keeps sending the group filter that reaches its unloaded rows
         expect(updated.c1?.isSelectedViaGroup).toBe(true);
         expect(updated.c2?.isSelectedViaGroup).toBe(true);
+    });
+
+    it('keeps the claim of a group whose header covers a shared row stored under another group when a range only re-covers it', () => {
+        // Given groups A and B both checked through their headers, with the shared row stored under A and listed last under B
+        const groupA = `${CONST.SEARCH.GROUP_PREFIX}A`;
+        const groupB = `${CONST.SEARCH.GROUP_PREFIX}B`;
+        const shared = makeChild(1, 's1');
+        const own = makeChild(2, 'b2');
+        const selection: SelectedTransactions = {
+            s1: {...buildEntry(shared)[1], groupKey: groupA, isSelectedViaGroup: true, otherClaimedGroupKeys: [groupB]},
+            b2: {...buildEntry(own)[1], groupKey: groupB, isSelectedViaGroup: true},
+        };
+        const lookups = {
+            ...lookupsFor(
+                new Map([
+                    ['s1', groupB],
+                    ['b2', groupB],
+                ]),
+                new Map([[groupB, [shared, own]]]),
+            ),
+            canGroupsShareExpenses: true,
+        };
+
+        // When a range covers the shared row again and gives nothing back
+        const updated = applyShiftRangeBatchToSelection(batchOf([shared]), selection, false, lookups);
+
+        // Then nothing changes, so B's header claim still reaches its unloaded expenses and Hold or Edit can't act on its loaded ones only
+        expect(updated).toBe(selection);
     });
 
     it('keeps the count a header check recorded on rows a range only re-covers', () => {

@@ -57,6 +57,13 @@ type SearchFooterConversion = {
 
         /** Source figure each whole-search grand total was computed from */
         searchTotals?: Record<string, SourceByCurrency>;
+
+        /**
+         * The expense count and total of each selected group each union of groups was computed from, as `groupKey:count:total` entries, keyed by search
+         * hash then by target currency. The groups' summed total can stay the same while the union changes, as when an expense is split or two groups'
+         * totals move by offsetting amounts, so the sum alone can't tell.
+         */
+        searchGroupFigures?: Record<string, Record<string, string>>;
     };
 };
 
