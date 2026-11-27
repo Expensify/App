@@ -199,7 +199,13 @@ async function splitDelay(
 ): Promise<{delays: Array<number | undefined>; queryCount: number}> {
     const delays = new Array<number | undefined>(segments.length).fill(undefined);
     const hasInteraction = (range: DelayRange) => segments.slice(range.from, range.to).some((segment) => segment.interactionID !== undefined);
-    const getPriority = (range: DelayRange) => (hasInteraction(range) ? Number.MAX_SAFE_INTEGER / 2 : 0) + range.delaySeconds;
+    const isHigherPriority = (candidate: DelayRange, best: DelayRange) => {
+        const candidateHasInteraction = hasInteraction(candidate);
+        if (candidateHasInteraction !== hasInteraction(best)) {
+            return candidateHasInteraction;
+        }
+        return candidate.delaySeconds > best.delaySeconds;
+    };
     const pending: DelayRange[] = [{from: 0, to: segments.length, delaySeconds: totalDelaySeconds}];
     let queryCount = 0;
 
@@ -208,7 +214,7 @@ async function splitDelay(
         for (let i = 1; i < pending.length; i++) {
             const candidate = pending.at(i);
             const best = pending.at(bestIndex);
-            if (candidate && best && getPriority(candidate) > getPriority(best)) {
+            if (candidate && best && isHigherPriority(candidate, best)) {
                 bestIndex = i;
             }
         }
@@ -394,7 +400,7 @@ async function flushWindow(start: number, end: number) {
         }
 
         const unattributedDelaySeconds = totalDelaySeconds - attributedDelaySeconds;
-        if (unattributedDelaySeconds > 0.001) {
+        if (unattributedDelaySeconds > CONST.TELEMETRY.FRAME_DROPS.MIN_UNATTRIBUTED_DELAY_SECONDS) {
             getAggregate(UNATTRIBUTED_CONTEXT).frameDelayMs += unattributedDelaySeconds * 1000;
         }
 

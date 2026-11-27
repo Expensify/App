@@ -302,6 +302,33 @@ describe('frameDropMonitor', () => {
         });
     });
 
+    it('splits the press with more delay first when two presses compete for the query budget', async () => {
+        // Given a window of 60 screens with two presses, one with 5 ms of delay spread over it and one with 200 ms in a single screen
+        for (let i = 0; i < 60; i++) {
+            now = i * 50;
+            recordScreen(`Screen${i}`);
+            if (i === 0 || i === 40) {
+                recordPress(PRESS_LABEL);
+            }
+        }
+        const overlapMs = (start: number, end: number, from: number, to: number) => Math.max(0, Math.min(end, to) - Math.max(start, from));
+        mockFetchFramesDelay.mockImplementation((startSeconds, endSeconds) => {
+            const start = toTimelineTime(startSeconds);
+            const end = toTimelineTime(endSeconds);
+            return Promise.resolve((overlapMs(start, end, 0, 1_000) * 0.005) / 1_000 + (overlapMs(start, end, 2_500, 2_550) * 0.2) / 50);
+        });
+
+        // When the window is flushed after both press windows ended
+        now = 3_000;
+        await flush(3_000);
+
+        // Then the budget goes to the press with 200 ms of delay instead of being spent on the one with 5 ms
+        expect(mockDistribution).toHaveBeenCalledWith(FRAME_DROPS.METRIC_INTERACTION_FRAME_DELAY, 200, {
+            unit: 'millisecond',
+            attributes: {[FRAME_DROPS.ATTRIBUTE_PLATFORM]: PLATFORM, [FRAME_DROPS.ATTRIBUTE_DEVICE_TIER]: DEVICE_TIER, screen: 'Screen40', interaction: PRESS_LABEL},
+        });
+    });
+
     it('reports the frame delay of a press that spans two flushes once its window has ended', async () => {
         // Given a press shortly before the first flush, with frames dropping after that flush
         recordScreen('Home');

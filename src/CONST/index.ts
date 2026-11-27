@@ -2947,6 +2947,9 @@ const CONST = {
             MAX_EVENTS: 500,
             // Upper bound of distinct contexts per report. The rest is reported as "overflow".
             MAX_AGGREGATES: 100,
+            // Delay left over after splitting below this is floating point error from deriving halves by subtraction,
+            // not delay that went unresolved, so it doesn't create an "unattributed" entry.
+            MIN_UNATTRIBUTED_DELAY_SECONDS: 0.001,
             // An interval that was never closed (a lost scroll end, a request that never settled) stops owning frames after this long.
             MAX_OPEN_INTERVAL_MS: 60_000,
             // A screen change is backdated to the navigation action that caused it, if the action was at most this long ago.

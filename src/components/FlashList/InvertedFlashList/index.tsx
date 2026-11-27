@@ -21,7 +21,7 @@ type InvertedFlashListProps<T> = FlashListProps<T> & {
 function InvertedFlashList<T>({onScroll, ...props}: InvertedFlashListProps<T>) {
     const recordScrollForFrameDrops = useRecordScrollForFrameDrops();
 
-    const handleScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const forwardScrollAndRecordFrameDrops = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
         onScroll?.(e);
         recordScrollForFrameDrops();
     };
@@ -30,7 +30,7 @@ function InvertedFlashList<T>({onScroll, ...props}: InvertedFlashListProps<T>) {
         <FlashList<T>
             {...props}
             inverted
-            onScroll={handleScroll}
+            onScroll={forwardScrollAndRecordFrameDrops}
             CellRendererComponent={CellRendererComponent}
         />
     );

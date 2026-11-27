@@ -2,6 +2,11 @@ import CONST from '@src/CONST';
 
 import type {Segment, Timeline} from './types';
 
+/**
+ * Splits a flushed window into segments during which the app's context (screen or modal, interaction, operations and
+ * flow) stays the same, so native frame delay and long tasks can be attributed to it (see frameDropMonitor).
+ */
+
 type Interval = {start: number; end?: number};
 
 /**
