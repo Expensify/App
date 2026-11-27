@@ -198,7 +198,7 @@ function MoneyRequestReportTransactionItemBody({
     const receiptErrors: ReceiptErrors = Object.fromEntries(
         Object.entries(transaction.errors ?? {}).filter((entry): entry is [string, ReceiptError] => typeof entry[1] === 'object' && entry[1] !== null),
     );
-    const rowTransaction = hasTransactionErrors && !rejectErrorKey ? {...transaction, errors: receiptErrors} : transaction;
+    const rowTransaction = hasTransactionErrors && !rejectError ? {...transaction, errors: receiptErrors} : transaction;
 
     // The last row keeps its bottom border but hides it, so the row height stays the same when a row is added below it.
     // FlashList ignores size changes of 1px or less, so a border that appears later would be covered by the next row.
