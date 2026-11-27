@@ -77,6 +77,17 @@ const ALREADY_CREATED_MESSAGES = new Set<string>([CONST.ERROR_TITLE.ALREADY_CREA
  */
 const APICommandRegex = /\/api\/([^&?]+)\??.*/;
 
+type AttemptOptions = {
+    method: RequestType;
+    body: FormData | null;
+    abortSignal: AbortSignal | undefined;
+    command: string | undefined;
+
+    /** Resolved once per request, so every attempt of that request sends the same prefetch key */
+    prefetchKey?: string;
+    prefetchHeaders?: Record<string, string>;
+};
+
 type AttemptResult<TKey extends OnyxKey> = {
     response: Response<TKey>;
 
@@ -96,8 +107,9 @@ function processHTTPRequest<TKey extends OnyxKey>(
     shouldSkipPrefetch = false,
 ): Promise<Response<TKey>> {
     const command = url.match(APICommandRegex)?.[1];
+    const {prefetchKey, prefetchHeaders} = shouldSkipPrefetch ? {prefetchKey: undefined, prefetchHeaders: undefined} : preparePrefetchRequest(command);
 
-    return attemptRequest<TKey>(url, method, body, abortSignal, command, shouldSkipPrefetch)
+    return attemptRequest<TKey>(url, {method, body, abortSignal, command, prefetchKey, prefetchHeaders})
         .then(({response, isPrefetchedResponse}) => {
             if (response.jsonCode === CONST.JSON_CODE.UPDATE_REQUIRED) {
                 // A prefetched response can come from a body saved by the previous build, so it carries that build's appversion.
@@ -118,17 +130,9 @@ function processHTTPRequest<TKey extends OnyxKey>(
 /**
  * Send the request once, check its HTTP status and parse the body. The JSON codes are handled separately in processJSONResponse.
  */
-function attemptRequest<TKey extends OnyxKey>(
-    url: string,
-    method: RequestType,
-    body: FormData | null,
-    abortSignal: AbortSignal | undefined,
-    command: string | undefined,
-    shouldSkipPrefetch: boolean,
-): Promise<AttemptResult<TKey>> {
+function attemptRequest<TKey extends OnyxKey>(url: string, {method, body, abortSignal, command, prefetchKey, prefetchHeaders}: AttemptOptions): Promise<AttemptResult<TKey>> {
     const startTime = new Date().valueOf();
 
-    const {prefetchKey, prefetchHeaders} = shouldSkipPrefetch ? {prefetchKey: undefined, prefetchHeaders: undefined} : preparePrefetchRequest(command);
     let isPrefetchedResponse = false;
 
     const fetchParams: NonNullable<Parameters<typeof nitroFetch>[1]> = {
