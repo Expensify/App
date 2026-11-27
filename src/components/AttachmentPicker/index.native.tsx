@@ -1,5 +1,7 @@
+import Icon from '@components/Icon';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import MenuItem from '@components/MenuItem';
+import {useMenuItemInteraction} from '@components/MenuItem/MenuItemContext';
 import Popover from '@components/Popover';
 
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
@@ -7,6 +9,7 @@ import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddi
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -15,11 +18,15 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {cleanFileName, isLabelledDng, showCameraPermissionsAlert} from '@libs/fileDownload/FileUtils';
 import processPickedAssetsSequentially from '@libs/fileDownload/processPickedAssets';
 import fileURIToPath from '@libs/fileURIToPath';
+import getButtonState from '@libs/getButtonState';
 import ReceiptStorage from '@libs/ReceiptStorage';
 import {getPickerCaptureSource, logReceiptAdoptFailed} from '@libs/telemetry/ReceiptObservability';
 
+import {callIfAuthenticated} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {FileObject, ImagePickerResponse as FileResponse} from '@src/types/utils/Attachment';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {SentryLabel} from '@src/types/utils/SentryLabel';
@@ -28,6 +35,7 @@ import type {FileToCopy} from '@react-native-documents/picker';
 import type {Asset, Callback, CameraOptions, ImageLibraryOptions, ImagePickerResponse} from 'react-native-image-picker';
 
 import {keepLocalCopy, pick, types} from '@react-native-documents/picker';
+import {authTokenTypeSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Alert, View} from 'react-native';
@@ -85,6 +93,26 @@ type Item = {
           onPress: () => void;
       }
 );
+
+type AttachmentMenuIconProps = {
+    icon: IconAsset;
+    isFocused: boolean;
+};
+
+function AttachmentMenuIcon({icon, isFocused}: AttachmentMenuIconProps) {
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+    const {isHovered, isPressed} = useMenuItemInteraction();
+    const fill = StyleUtils.getIconFillColor({buttonState: getButtonState({isActive: isFocused || isHovered, isPressed, isInteractive: true}), isMenuIcon: true, isPane: true});
+    return (
+        <View style={styles.popoverMenuIcon}>
+            <Icon
+                src={icon}
+                fill={fill}
+            />
+        </View>
+    );
+}
 /**
  * Return imagePickerOptions based on the type
  */
@@ -211,6 +239,7 @@ function AttachmentPicker({
 }: AttachmentPickerProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Camera', 'Gallery', 'Paperclip']);
     const styles = useThemeStyles();
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const [isVisible, setIsVisible] = useState(false);
     // Mount and visibility are tracked separately so the camera stays mounted through its hide
     // animation. Unmounting on close cuts the animation off midway and the modal vanishes abruptly.
@@ -218,6 +247,7 @@ function AttachmentPicker({
     const [isAttachmentCameraVisible, setIsAttachmentCameraVisible] = useState(false);
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
+    const menuItemTextContainerStyle = StyleUtils.getMenuItemTextContainerStyle(false);
 
     const completeAttachmentSelection = useRef<(data: FileObject[]) => void>(() => {});
     const onModalHide = useRef<(() => void) | undefined>(undefined);
@@ -652,15 +682,26 @@ function AttachmentPicker({
             >
                 <View style={[!shouldUseNarrowLayout && styles.createMenuContainer, bottomSafeAreaPaddingStyle]}>
                     {menuItemData.map((item, menuIndex) => (
-                        <MenuItem
+                        <MenuItem.Root
                             sentryLabel={item.sentryLabel}
                             key={item.textTranslationKey}
-                            icon={item.icon}
-                            title={translate(item.textTranslationKey)}
-                            onPress={() => selectItem(item)}
-                            focused={focusedIndex === menuIndex}
-                            wrapperStyle={StyleUtils.getItemBackgroundColorStyle(false, focusedIndex === menuIndex, false, theme.activeComponentBG, theme.hoverComponentBG)}
-                        />
+                            onPress={() => callIfAuthenticated(() => selectItem(item), session)()}
+                            style={StyleUtils.getItemBackgroundColorStyle(false, focusedIndex === menuIndex, false, theme.activeComponentBG, theme.hoverComponentBG)}
+                        >
+                            <View style={[styles.flexRow, menuItemTextContainerStyle]}>
+                                <MenuItem.Leading>
+                                    <View style={styles.mr3}>
+                                        <AttachmentMenuIcon
+                                            icon={item.icon}
+                                            isFocused={focusedIndex === menuIndex}
+                                        />
+                                    </View>
+                                </MenuItem.Leading>
+                                <MenuItem.Content>
+                                    <MenuItem.Title>{translate(item.textTranslationKey)}</MenuItem.Title>
+                                </MenuItem.Content>
+                            </View>
+                        </MenuItem.Root>
                     ))}
                 </View>
             </Popover>
