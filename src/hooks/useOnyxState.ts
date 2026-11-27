@@ -15,8 +15,6 @@ import {useOnyxState as useOnyxStateWithoutSnapshots} from 'react-native-onyx';
 
 import {getKeyData} from './useOnyx';
 
-type UseOnyxStateWithoutSnapshots = typeof useOnyxStateWithoutSnapshots;
-
 type SnapshotKey = `${typeof ONYXKEYS.COLLECTION.SNAPSHOT}${string}`;
 
 const collectionsBySnapshotData = new WeakMap<NonNullable<SearchResults['data']>, Map<OnyxKey, unknown>>();
@@ -84,7 +82,7 @@ type UseOnyxStateWithSnapshotsOptions<TReturnValue> = UseOnyxStateOptions<TRetur
     shouldUseLiveData?: boolean;
 };
 
-const useOnyxState: UseOnyxStateWithoutSnapshots = <TReturnValue>(selector: UseOnyxStateSelector<TReturnValue>, options?: UseOnyxStateWithSnapshotsOptions<TReturnValue>): TReturnValue => {
+const useOnyxState = <TReturnValue>(selector: UseOnyxStateSelector<TReturnValue>, options?: UseOnyxStateWithSnapshotsOptions<TReturnValue>): TReturnValue => {
     const {shouldUseLiveData = false, ...onyxOptions} = options ?? {};
     const snapshotKey = useSearchSnapshotKey(shouldUseLiveData);
 
