@@ -112,7 +112,7 @@ beforeEach(async () => {
     jest.spyOn(Date, 'now').mockImplementation(() => now + CLOCK_OFFSET_MS);
     jest.spyOn(AppState, 'currentState', 'get').mockReturnValue('active');
     jest.spyOn(AppState, 'addEventListener').mockImplementation((type, listener) => {
-        appStateListener = listener as (state: AppStateStatus) => void;
+        appStateListener = listener;
         return {remove: jest.fn()};
     });
     mockFetchFramesDelay.mockReset();

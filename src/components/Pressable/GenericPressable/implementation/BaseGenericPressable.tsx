@@ -63,6 +63,7 @@ function GenericPressable({
     forwardedFSClass,
     accessibilityState,
     linkRoute,
+    sentryLabel,
     ...rest
 }: BaseGenericPressableProps) {
     const styles = useThemeStyles();
@@ -133,7 +134,7 @@ function GenericPressable({
             Accessibility.moveAccessibilityFocus(nextFocusRef);
         }
         notifyPressedTrigger(internalRef, focusIdentifier);
-        recordPress(rest.sentryLabel);
+        recordPress(sentryLabel);
         onLongPress(event);
     };
 
@@ -152,7 +153,7 @@ function GenericPressable({
             Accessibility.moveAccessibilityFocus(nextFocusRef);
         }
         notifyPressedTrigger(internalRef, focusIdentifier);
-        recordPress(rest.sentryLabel);
+        recordPress(sentryLabel);
         return onPress(event);
     };
 
@@ -253,6 +254,8 @@ function GenericPressable({
             fsClass={forwardedFSClass}
             href={hasHref && linkRoute ? getRoutePath(linkRoute) : undefined}
             {...rest}
+            // Not a typed Pressable prop. Sentry reads it from the props for touch tracking.
+            {...{sentryLabel}}
             onHoverOut={(event) => {
                 if (event?.type === 'pointerenter' || event?.type === 'mouseenter') {
                     return;
