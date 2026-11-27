@@ -132,14 +132,10 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
     const connectionSyncStage = connectionSyncProgress?.stageInProgress;
     const canUseBusinessCentralIntegration = isBetaEnabled(CONST.BETAS.BUSINESS_CENTRAL) || !!policy?.connections?.businessCentral;
-    const canUseDigitsIntegration = isBetaEnabled(CONST.BETAS.DIGITS) || !!policy?.connections?.digits;
     const canUseOdooIntegration = isBetaEnabled(CONST.BETAS.ODOO) || !!policy?.connections?.odoo;
     const accountingIntegrations = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.filter((name) => {
         if (name === CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL) {
             return canUseBusinessCentralIntegration;
-        }
-        if (name === CONST.POLICY.CONNECTIONS.NAME.DIGITS) {
-            return canUseDigitsIntegration;
         }
         if (name === CONST.POLICY.CONNECTIONS.NAME.ODOO) {
             return canUseOdooIntegration;
