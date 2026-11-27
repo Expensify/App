@@ -223,10 +223,10 @@ index 5ff9656..2431939 100644
  }
  
 diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm b/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm
-index e63ef09..3846359 100644
+index fa2afb9..11acfa7 100644
 --- a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm
 +++ b/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm
-@@ -839,6 +839,14 @@ - (void)mountingTransactionWillMount:(const facebook::react::MountingTransaction
+@@ -368,6 +368,14 @@ - (void)mountingTransactionWillMount:(const facebook::react::MountingTransaction
  {
    _hasModifiedTabsScreensInCurrentTransaction = NO;
    _hasModifiedBottomAccessoryInCurrentTransation = NO;

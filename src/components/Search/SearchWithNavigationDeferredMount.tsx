@@ -19,6 +19,7 @@ import {StyleSheet, View} from 'react-native';
 import Animated, {FadeIn} from 'react-native-reanimated';
 
 import Search from './index';
+import {useIsCoveredByPreviousSearchResults} from './SearchResultsSwap';
 
 type SearchWithNavigationDeferredMountProps = ComponentProps<typeof Search> & {
     /** Whether this mount is swapping in over content that is already on screen, rather than filling an empty page. */
@@ -47,35 +48,37 @@ function SearchWithNavigationDeferredMount({isReplacingContent, ...props}: Searc
     // Laid out during the idle preload while nobody sees it, so it must not end the spans of a tap or submit made elsewhere.
     const isInPreloadedTab = useIsInPreloadedTab();
 
-    // Read once at mount: the next render no longer reports a replacement, and switching branches then would remount Search.
+    // Read once at mount: the placeholder only ever covers this mount's deferral window, so a later prop change must
+    // not un-hide it mid-swap.
     const [isReplacingContentAtMount] = useState(isReplacingContent);
-
-    // The previous results are unmounted in the same commit that mounts this layer, so a deferred mount would leave the
-    // list area empty until Search hydrates. Search has to be in that commit for the new results to take over directly.
-    // The layer already fades in, so Search needs no fade of its own here.
-    if (isReplacingContentAtMount) {
-        return <Search {...props} />;
-    }
+    const isCoveredByPreviousResults = useIsCoveredByPreviousSearchResults();
+    const [isCoveredAtMount] = useState(isCoveredByPreviousResults);
 
     return (
         <NavigationDeferredMount
             waitForUpcomingTransition={false}
             placeholder={
-                <View style={[styles.flex1, StyleSheet.absoluteFill]}>
+                <View style={[styles.flex1, StyleSheet.absoluteFill, isReplacingContentAtMount && styles.opacity0]}>
                     <SearchRowSkeleton
                         shouldAnimate
-                        onLayout={isInPreloadedTab ? undefined : handleSkeletonLayout}
+                        // The user still sees the previous results while it is covered, so its layout is not a paint of Search.
+                        onLayout={isInPreloadedTab || isCoveredAtMount ? undefined : handleSkeletonLayout}
                         containerStyle={containerStyle}
                     />
                 </View>
             }
         >
-            <Animated.View
-                entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
-                style={styles.flex1}
-            >
+            {isCoveredAtMount ? (
+                // The previous results stay on screen until these lay out, so a fade would start from an empty list.
                 <Search {...props} />
-            </Animated.View>
+            ) : (
+                <Animated.View
+                    entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
+                    style={styles.flex1}
+                >
+                    <Search {...props} />
+                </Animated.View>
+            )}
         </NavigationDeferredMount>
     );
 }

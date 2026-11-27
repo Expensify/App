@@ -14,6 +14,7 @@ import Search from '@components/Search';
 import {useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
 import SearchLoadingSkeleton from '@components/Search/SearchLoadingSkeleton';
 import SearchPageHeaderNarrow from '@components/Search/SearchPageHeader/SearchPageHeaderNarrow';
+import SearchResultsSwap from '@components/Search/SearchResultsSwap';
 import SearchSelectionFooter from '@components/Search/SearchSelectionFooter';
 import SearchWithNavigationDeferredMount from '@components/Search/SearchWithNavigationDeferredMount';
 import type {SearchParams, SearchQueryJSON} from '@components/Search/types';
@@ -386,23 +387,28 @@ function SearchPageNarrow({
                         >
                             {useStaticRendering && (
                                 <>
-                                    {isInteractive &&
-                                        (shouldShowStaticLoadingSkeleton ? (
-                                            <SearchLoadingSkeleton containerStyle={searchListContentContainerStyle} />
-                                        ) : (
-                                            <Search
-                                                searchResults={contentSearchResults}
-                                                queryJSON={contentQueryJSON}
-                                                key={contentQueryJSON.hash}
-                                                contentContainerStyle={contentContainerStyle}
-                                                handleSearch={handleSearchAction}
-                                                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                                                onSearchListScroll={scrollHandler}
-                                                onDestinationVisible={endSubmitNavigationSpans}
-                                                onContentReady={onSearchContentReady}
-                                                hasFilterBars={hasFilterBars}
-                                            />
-                                        ))}
+                                    <SearchResultsSwap
+                                        hash={contentQueryJSON.hash}
+                                        shouldWaitForResults={isInteractive && !shouldShowStaticLoadingSkeleton}
+                                    >
+                                        {isInteractive &&
+                                            (shouldShowStaticLoadingSkeleton ? (
+                                                <SearchLoadingSkeleton containerStyle={searchListContentContainerStyle} />
+                                            ) : (
+                                                <Search
+                                                    searchResults={contentSearchResults}
+                                                    queryJSON={contentQueryJSON}
+                                                    key={contentQueryJSON.hash}
+                                                    contentContainerStyle={contentContainerStyle}
+                                                    handleSearch={handleSearchAction}
+                                                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                                    onSearchListScroll={scrollHandler}
+                                                    onDestinationVisible={endSubmitNavigationSpans}
+                                                    onContentReady={onSearchContentReady}
+                                                    hasFilterBars={hasFilterBars}
+                                                />
+                                            ))}
+                                    </SearchResultsSwap>
                                     {!isInteractive && !searchOverlayContent && (
                                         <SearchRowSkeleton
                                             shouldAnimate={hasBeenFocused}
@@ -422,28 +428,33 @@ function SearchPageNarrow({
                             )}
                             {!useStaticRendering && (
                                 <>
-                                    <Animated.View
-                                        key={contentQueryJSON.hash}
-                                        entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
-                                        style={StyleSheet.absoluteFill}
+                                    <SearchResultsSwap
+                                        hash={contentQueryJSON.hash}
+                                        shouldWaitForResults={!shouldShowLoadingSkeleton}
                                     >
-                                        {shouldShowLoadingSkeleton ? (
-                                            <SearchLoadingSkeleton containerStyle={searchListContentContainerStyle} />
-                                        ) : (
-                                            <SearchWithNavigationDeferredMount
-                                                isReplacingContent={isReplacingPreviousContent}
-                                                searchResults={contentSearchResults}
-                                                queryJSON={contentQueryJSON}
-                                                onSearchListScroll={scrollHandler}
-                                                contentContainerStyle={contentContainerStyle}
-                                                handleSearch={handleSearchAction}
-                                                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                                                onDestinationVisible={endSubmitNavigationSpans}
-                                                onContentReady={onSearchContentReady}
-                                                hasFilterBars={hasFilterBars}
-                                            />
-                                        )}
-                                    </Animated.View>
+                                        <Animated.View
+                                            key={contentQueryJSON.hash}
+                                            entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
+                                            style={StyleSheet.absoluteFill}
+                                        >
+                                            {shouldShowLoadingSkeleton ? (
+                                                <SearchLoadingSkeleton containerStyle={searchListContentContainerStyle} />
+                                            ) : (
+                                                <SearchWithNavigationDeferredMount
+                                                    isReplacingContent={isReplacingPreviousContent}
+                                                    searchResults={contentSearchResults}
+                                                    queryJSON={contentQueryJSON}
+                                                    onSearchListScroll={scrollHandler}
+                                                    contentContainerStyle={contentContainerStyle}
+                                                    handleSearch={handleSearchAction}
+                                                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                                    onDestinationVisible={endSubmitNavigationSpans}
+                                                    onContentReady={onSearchContentReady}
+                                                    hasFilterBars={hasFilterBars}
+                                                />
+                                            )}
+                                        </Animated.View>
+                                    </SearchResultsSwap>
                                     {shouldRenderLayoutProbe && <View onLayout={onSearchLayout} />}
                                     {!!searchOverlayContent && (
                                         <View

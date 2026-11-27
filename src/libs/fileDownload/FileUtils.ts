@@ -6,6 +6,7 @@ import fileURIToPath from '@libs/fileURIToPath';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import saveLastRoute from '@libs/saveLastRoute';
+import {decodeURIComponentSafely} from '@libs/Url';
 
 import CONST from '@src/CONST';
 import type {FileObject, ImagePickerResponse} from '@src/types/utils/Attachment';
@@ -104,7 +105,8 @@ function showCameraPermissionsAlert(translate: LocalizedTranslate) {
  *
  * This function takes a URL as input and performs the following operations:
  * 1. Extracts the last segment of the URL.
- * 2. Decodes the extracted segment from URL encoding to a plain string for better readability.
+ * 2. Decodes the extracted segment from URL encoding to a plain string for better readability,
+ *    keeping the raw segment when its percent-encoding is malformed.
  * 3. Replaces any characters in the decoded string that are illegal in file names
  *    with underscores.
  */
@@ -115,7 +117,7 @@ function getFileName(url: string): string {
         Log.warn('[FileUtils] Could not get attachment name', {url});
     }
 
-    return decodeURIComponent(fileName).replaceAll(CONST.REGEX.ILLEGAL_FILENAME_CHARACTERS, '_');
+    return decodeURIComponentSafely(fileName).replaceAll(CONST.REGEX.ILLEGAL_FILENAME_CHARACTERS, '_');
 }
 
 function isImage(fileName: string): boolean {
@@ -741,8 +743,8 @@ const createFile = (file: File & Pick<ImagePickerResponse, 'width' | 'height'>):
     return clonedFile;
 };
 
-const resizeImageIfNeeded = (file: FileObject) => {
-    if (!file || !Str.isImage(file.name ?? '') || (file?.size ?? 0) <= CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+const resizeImageIfNeeded = (file: FileObject, maxSize: number = CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) => {
+    if (!file || !Str.isImage(file.name ?? '') || (file?.size ?? 0) <= maxSize) {
         return Promise.resolve(file);
     }
     return getImageDimensionsAfterResize(file)

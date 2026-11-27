@@ -1,5 +1,6 @@
 import {act, render} from '@testing-library/react-native';
 
+import {NO_REACH} from '@components/HorizontalSafeArea/useHorizontalSafeAreaReach';
 import scrollToTab from '@components/TabSelector/scrollToTab';
 import TabSelectorContextProvider, {useTabSelectorActions} from '@components/TabSelector/TabSelectorContext';
 import type {TabSelectorActionsContextType} from '@components/TabSelector/types.context';
@@ -44,7 +45,7 @@ function buildRow(activeTabKey: string) {
 function renderRow(activeTabKey: string) {
     const view = render(buildRow(activeTabKey));
     act(() => {
-        actionsRef.current?.onContainerLayout(buildLayoutEvent(0, CONTAINER_WIDTH));
+        actionsRef.current?.onContainerLayout(buildLayoutEvent(0, CONTAINER_WIDTH), NO_REACH);
         for (const [index, tabKey] of TAB_KEYS.entries()) {
             actionsRef.current?.onTabLayout(tabKey, buildLayoutEvent(index * TAB_WIDTH, TAB_WIDTH));
         }
