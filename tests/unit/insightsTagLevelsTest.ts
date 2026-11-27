@@ -4,6 +4,9 @@ import {getCachedTagLevels, getFittingTagLevel, getInsightsTagLevelOptions, getS
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {PolicyTagLists} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 const fallback = (level: number) => `Tag level ${level}`;
 
@@ -85,7 +88,7 @@ describe('Insights tag levels', () => {
 
         it('builds levels from the tag lists on the device, in list order, across workspaces', () => {
             // Given two workspaces with tag lists on the device, one stored out of order
-            const policyTags = {
+            const policyTags: OnyxCollection<PolicyTagLists> = {
                 [`${ONYXKEYS.COLLECTION.POLICY_TAGS}A`]: {Project: tagList('Project', 1), Department: tagList('Department', 0)},
                 [`${ONYXKEYS.COLLECTION.POLICY_TAGS}B`]: {Region: tagList('Region', 0)},
             };

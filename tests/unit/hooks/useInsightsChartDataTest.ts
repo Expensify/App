@@ -3,6 +3,7 @@ import {renderHook, waitFor} from '@testing-library/react-native';
 import {INSIGHTS_CHART_STATE} from '@libs/resolveInsightsChartData';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
+import INSIGHTS_DASHBOARD_SPECS from '@pages/Insights/dashboardSpecs';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
 import DEFAULT_INSIGHTS_FILTERS from '@pages/Insights/insightsFilters';
 import type {InsightsDashboardChart} from '@pages/Insights/resolveDashboardState';
@@ -11,6 +12,7 @@ import useInsightsChartData from '@pages/Insights/useInsightsChartData';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SearchResults from '@src/types/onyx/SearchResults';
+import type {SearchMonthGroup} from '@src/types/onyx/SearchResults';
 
 import Onyx from 'react-native-onyx';
 
@@ -18,7 +20,7 @@ import createMock from '../../utils/createMock';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const QUERY_JSON = buildSearchQueryJSON('groupBy:month groupCurrency:USD date:year-to-date');
-const FILTERS: InsightsFilters = {...DEFAULT_INSIGHTS_FILTERS[CONST.INSIGHTS.DASHBOARD.SPEND], compare: undefined};
+const FILTERS: InsightsFilters = {...DEFAULT_INSIGHTS_FILTERS[CONST.INSIGHTS.DASHBOARD.SPEND], groupCurrency: CONST.CURRENCY.USD, compare: undefined};
 
 /** Builds a snapshot GetInsights settled for the chart's query, holding the given month groups. */
 function makeSnapshot(data: SearchResults['data']): SearchResults {
@@ -40,7 +42,7 @@ function makeSnapshot(data: SearchResults['data']): SearchResults {
 
 function renderChartData(snapshot: SearchResults, isAwaitingData: boolean) {
     const dashboardChart: InsightsDashboardChart = {
-        chart: {graphKey: CONST.INSIGHTS.GRAPH.SPEND_OVER_TIME, view: CONST.SEARCH.VIEW.BAR},
+        chart: INSIGHTS_DASHBOARD_SPECS[CONST.INSIGHTS.DASHBOARD.SPEND].headlineChart,
         queryJSON: QUERY_JSON,
         snapshot,
         isDashboardLoaded: true,
@@ -73,9 +75,8 @@ describe('useInsightsChartData', () => {
 
     it('keeps the data a chart already has while new data is on its way', async () => {
         // Given a settled snapshot with expenses in one month
-        const snapshot = makeSnapshot(
-            createMock<SearchResults['data']>({[`${CONST.SEARCH.GROUP_PREFIX}2026_1`]: {year: 2026, month: 1, count: 1, total: 100, currency: CONST.CURRENCY.USD}}),
-        );
+        const monthGroup = createMock<SearchMonthGroup>({year: 2026, month: 1, count: 1, total: 100, currency: CONST.CURRENCY.USD});
+        const snapshot = makeSnapshot({[`${CONST.SEARCH.GROUP_PREFIX}2026_1` as const]: monthGroup});
 
         // When the chart is waiting for new data
         const result = renderChartData(snapshot, true);
