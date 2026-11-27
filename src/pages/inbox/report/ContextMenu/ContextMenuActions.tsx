@@ -319,6 +319,7 @@ type ShouldShow = (args: {
     /** Actions of the money request report that `moneyRequestAction` belongs to */
     moneyRequestReportActions: OnyxEntry<ReportActions>;
     isArchivedRoom: boolean;
+    isMoneyRequestReportArchived?: boolean;
     menuTarget: RefObject<ContextMenuAnchor> | undefined;
     isChronosReport: boolean;
     reportID?: string;
@@ -1861,6 +1862,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             rules,
             personalDetails,
             cardList,
+            isMoneyRequestReportArchived,
         }) => {
             // A single-expense report preview also exposes its embedded money request action.
             // Preserve the expense-delete flow for its author. Otherwise, use the preview action so an admin
@@ -1889,7 +1891,18 @@ const ContextMenuActions: ContextMenuAction[] = [
             return (
                 !!reportIDParam &&
                 type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION &&
-                canDeleteReportAction(actionToDelete, reportID, iouTransaction, transactions, childReportActions, currentUserAccountID, rules, personalDetails, cardList) &&
+                canDeleteReportAction(
+                    actionToDelete,
+                    reportID,
+                    iouTransaction,
+                    transactions,
+                    childReportActions,
+                    currentUserAccountID,
+                    rules,
+                    personalDetails,
+                    cardList,
+                    isMoneyRequestReportArchived,
+                ) &&
                 !isArchivedRoom &&
                 !isChronosReport &&
                 !isMessageDeleted(reportAction)

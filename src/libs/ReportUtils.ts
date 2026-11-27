@@ -3990,7 +3990,12 @@ function canDeleteMoneyRequestReport(
     policy: OnyxEntry<Policy>,
     cardList: OnyxEntry<CardList>,
     isReportLevelDelete = false,
+    isReportArchived = false,
 ): boolean {
+    if (isReportArchived || isArchivedReport(allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`])) {
+        return false;
+    }
+
     const isReportPolicyAdmin = isPolicyAdmin(policy);
     const transaction = reportTransactions.at(0);
     const transactionID = transaction?.transactionID;
@@ -4071,6 +4076,7 @@ function canDeleteReportAction(
     // The full list is needed because the report being checked is resolved below, from the narrowed reportID.
     personalDetails: OnyxEntry<PersonalDetailsList>,
     cardList: OnyxEntry<CardList>,
+    isReportArchived = false,
 ): boolean {
     const report = getReportOrDraftReport({reportID});
     const isActionOwner = reportAction?.actorAccountID === currentUserAccountID;
@@ -4093,7 +4099,7 @@ function canDeleteReportAction(
             if (!isEmptyObject(report) && (isMoneyRequestReport(report) || isInvoiceReport(report))) {
                 // TODO: Pass reportOwnerLogin in Part 12, once canDeleteTransaction takes it first.
                 // isAwaitingFirstLevelApproval falls back to the personal details store until then. See https://github.com/Expensify/App/issues/66413.
-                return canDeleteTransaction(report, rules) && canCardTransactionBeDeleted;
+                return canDeleteTransaction(report, rules, isReportArchived) && canCardTransactionBeDeleted;
             }
             if (isTrackExpenseAction(reportAction)) {
                 return canCardTransactionBeDeleted;
@@ -6160,8 +6166,12 @@ function canEditMoneyRequest(
     policy?: OnyxEntry<Policy>,
     reportActions?: OnyxEntry<ReportActions> | ReportAction[],
     isActionlessReportedExpense = false,
+    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
 ): boolean {
-    return applyRules(resolveCanEditMoneyRequest(reportAction, linkedTransaction, isChatReportArchived, report, policy, reportActions, isActionlessReportedExpense), rules);
+    return applyRules(
+        resolveCanEditMoneyRequest(reportAction, linkedTransaction, isChatReportArchived, report, policy, reportActions, isActionlessReportedExpense, reportNameValuePairs),
+        rules,
+    );
 }
 
 /**
@@ -6204,6 +6214,7 @@ function resolveCanEditMoneyRequest(
     policy?: OnyxEntry<Policy>,
     reportActions?: OnyxEntry<ReportActions> | ReportAction[],
     isActionlessReportedExpense = false,
+    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
 ): RuleDependent<boolean> {
     // isDeletedAction treats a missing action as deleted, so it only applies when there is an action to check
     const isDeleted = !isActionlessReportedExpense && isDeletedAction(reportAction);
@@ -6248,6 +6259,10 @@ function resolveCanEditMoneyRequest(
     }
 
     const moneyRequestReport = report ?? getReportOrDraftReport({reportID: String(moneyRequestReportID)});
+    const moneyRequestReportNVPKey = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${moneyRequestReport?.reportID}` as const;
+    if (isArchivedReport(reportNameValuePairs?.[moneyRequestReportNVPKey] ?? allReportNameValuePair?.[moneyRequestReportNVPKey])) {
+        return false;
+    }
     // Without an IOU action, the submitter of an expense report stands in for the requester, because only they can add expenses to it.
     // This function has no current-user parameter, so it passes the same module-level account ID that isActionRequestor uses.
     const isRequestor = isActionlessReportedExpense ? isExpenseReport(moneyRequestReport) && isCurrentUserSubmitter(moneyRequestReport, deprecatedCurrentUserAccountID) : isActionRequestor;
@@ -6406,6 +6421,9 @@ function canEditMultipleTransactions(
         const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}` as const;
         const report = reports?.[reportKey] ?? (searchSnapshotData?.[reportKey] as OnyxEntry<Report>);
         const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
+        const reportNVPKey = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${transaction.reportID}` as const;
+        const snapshotNVP = searchSnapshotData?.[reportNVPKey] as OnyxEntry<ReportNameValuePairs>;
+        const reportNameValuePairs: OnyxCollection<ReportNameValuePairs> = snapshotNVP ? {[reportNVPKey]: snapshotNVP} : undefined;
 
         // Expenses on approved and paid reports are intentionally allowed here. Per-field permission is what decides
         // what can actually change: canEditFieldOfMoneyRequest blocks the restricted fields (amount, merchant, date,
@@ -6434,7 +6452,7 @@ function canEditMultipleTransactions(
                 policy,
                 reportActions: actionsForReport,
                 rules,
-                reportNameValuePairs: undefined,
+                reportNameValuePairs,
             }),
         );
 
@@ -6555,7 +6573,16 @@ function resolveCanEditFieldOfMoneyRequest({
     if (!moneyRequestAction && !isActionlessReportedExpense) {
         return false;
     }
-    const canEditRequest = resolveCanEditMoneyRequest(moneyRequestAction, transaction, isChatReportArchived, report, policy, reportActions, isActionlessReportedExpense);
+    const canEditRequest = resolveCanEditMoneyRequest(
+        moneyRequestAction,
+        transaction,
+        isChatReportArchived,
+        report,
+        policy,
+        reportActions,
+        isActionlessReportedExpense,
+        reportNameValuePairs,
+    );
     // A function still depends on the rules, so only a settled false returns early.
     if (canEditRequest === false) {
         return false;
