@@ -154,6 +154,27 @@ type InsightsDashboardSpec = {
     supportingCharts: InsightsChartSpec[];
 };
 
+/** The workspace IDs that decide whether a dashboard needing Control shows the upsell */
+type InsightsControlPlanCoverage = {
+    /** Every workspace in Onyx. A filter whose workspaces are all missing from it says nothing about the user's plans. */
+    policyIDs: string[];
+
+    /** Control workspaces the dashboard has charts for */
+    eligibleControlPolicyIDs: string[];
+};
+
+/** What the dashboard renders from the workspaces its filter leaves in scope */
+type InsightsScopeEligibility = {
+    /** Supporting charts at least one workspace in scope is eligible for */
+    visibleGraphKeys: InsightsGraphKey[];
+
+    /** Stages at least one workspace in scope is eligible for, for each chart that declares stages */
+    enabledStages: Partial<Record<InsightsGraphKey, Array<InsightsChartStage['workflowStage']>>>;
+
+    /** Workspaces in scope the user could upgrade to Control */
+    upgradeablePolicyIDs: string[];
+};
+
 const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpec> = {
     [CONST.INSIGHTS.DASHBOARD.SPEND]: {
         searchKey: CONST.INSIGHTS.SEARCH_KEY.SPEND,
@@ -343,9 +364,14 @@ function isStackedChart(chart: InsightsChartSpec): boolean {
     return !!chart.stages && chart.groupBy !== CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE;
 }
 
-/** Returns the workspaces the filter leaves in scope. No selected workspaces means every workspace is in scope. */
+/** Whether the workspace filter covers the workspace. No selected workspaces means every workspace is in scope. */
+function isPolicyIDInScope(policyID: string, policyIDs: string[]): boolean {
+    return policyIDs.length === 0 || policyIDs.includes(policyID);
+}
+
+/** Returns the workspaces the filter leaves in scope */
 function getPoliciesInScope(policies: OnyxCollection<Policy>, policyIDs: string[]): Policy[] {
-    return Object.values(policies ?? {}).filter((policy): policy is Policy => !!policy && (policyIDs.length === 0 || policyIDs.includes(policy.id)));
+    return Object.values(policies ?? {}).filter((policy): policy is Policy => !!policy && isPolicyIDInScope(policy.id, policyIDs));
 }
 
 /**
@@ -381,16 +407,39 @@ function getEnabledStages(
 }
 
 /**
- * Whether the dashboard needs Control but no workspace in scope can feed it, so the upsell stands in for the charts.
+ * Returns the workspace IDs `shouldUpsellControlPlan` reads.
  * A Control workspace only counts when it would produce charts, so archived ones and ones the user can see no data for are ignored.
+ * Undefined for a dashboard that doesn't need Control.
+ */
+function getControlPlanCoverage(dashboardID: InsightsDashboardID, policies: OnyxCollection<Policy>, login: string | undefined): InsightsControlPlanCoverage | undefined {
+    const {requiresControlPlan, isPolicyEligible} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
+    if (!requiresControlPlan) {
+        return undefined;
+    }
+    const loadedPolicies = getPoliciesInScope(policies, []);
+    return {
+        policyIDs: loadedPolicies.map((policy) => policy.id),
+        eligibleControlPolicyIDs: loadedPolicies
+            .filter((policy) => isControlPolicy(policy) && !isArchivedOrPendingDeletePolicy(policy) && (!isPolicyEligible || isPolicyEligible(policy, login)))
+            .map((policy) => policy.id),
+    };
+}
+
+/**
+ * Whether the dashboard needs Control but no workspace the filter leaves in scope can feed it, so the upsell stands in for the charts.
  * A stored filter can still hold workspaces that left Onyx. When none of its workspaces are left, it says nothing about the user's plans, so the dashboard keeps its usual states.
  */
-function shouldUpsellControlPlan(dashboardID: InsightsDashboardID, policiesInScope: Policy[], policyIDs: string[], login: string | undefined): boolean {
-    const {requiresControlPlan, isPolicyEligible} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
-    if (!requiresControlPlan || (policyIDs.length > 0 && policiesInScope.length === 0)) {
+function shouldUpsellControlPlan(coverage: InsightsControlPlanCoverage | undefined, policyIDs: string[]): boolean {
+    if (!coverage) {
         return false;
     }
-    return !policiesInScope.some((policy) => isControlPolicy(policy) && !isArchivedOrPendingDeletePolicy(policy) && (!isPolicyEligible || isPolicyEligible(policy, login)));
+    if (policyIDs.length === 0) {
+        return coverage.eligibleControlPolicyIDs.length === 0;
+    }
+    if (!policyIDs.some((policyID) => coverage.policyIDs.includes(policyID))) {
+        return false;
+    }
+    return !policyIDs.some((policyID) => coverage.eligibleControlPolicyIDs.includes(policyID));
 }
 
 /**
@@ -401,6 +450,27 @@ function getUpgradeablePolicyIDsInScope(policiesInScope: Policy[], login: string
     return policiesInScope
         .filter((policy) => isGroupPolicy(policy) && !isControlPolicy(policy) && !isArchivedOrPendingDeletePolicy(policy) && canEditWorkspaceSettings(policy, login))
         .map((policy) => policy.id);
+}
+
+/**
+ * Returns the chart keys, stages and workspace IDs the dashboard renders from the workspaces in scope.
+ * It holds no policies, so a selector returning it only renders the dashboard when one of these changes.
+ */
+function getScopeEligibility(dashboardID: InsightsDashboardID, policies: OnyxCollection<Policy>, policyIDs: string[], login: string | undefined): InsightsScopeEligibility {
+    const {headlineChart, supportingCharts, isPolicyEligible} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
+    const policiesInScope = getPoliciesInScope(policies, policyIDs);
+    const enabledStages: InsightsScopeEligibility['enabledStages'] = {};
+    for (const chart of [headlineChart, ...supportingCharts]) {
+        const stages = getEnabledStages(chart, policiesInScope, login, isPolicyEligible);
+        if (stages) {
+            enabledStages[chart.graphKey] = stages.map(({workflowStage}) => workflowStage);
+        }
+    }
+    return {
+        visibleGraphKeys: getVisibleCharts(supportingCharts, policiesInScope, login, isPolicyEligible).map(({graphKey}) => graphKey),
+        enabledStages,
+        upgradeablePolicyIDs: getUpgradeablePolicyIDsInScope(policiesInScope, login),
+    };
 }
 
 /**
@@ -445,15 +515,18 @@ export {
     applyViolationStage,
     getAccessibleDashboards,
     getChartSpec,
+    getControlPlanCoverage,
     getEnabledStages,
     getPoliciesInScope,
+    getScopeEligibility,
     getUpgradeablePolicyIDsInScope,
     getViolationStage,
     getVisibleCharts,
+    isPolicyIDInScope,
     isStackedChart,
     keepEnabledStageGroups,
     shouldUpsellControlPlan,
     VIOLATION_HAS_VALUES,
 };
-export type {InsightsChartSpec, InsightsChartStage, InsightsDateFilterKey, InsightsViolationStage, InsightsViolationStages};
+export type {InsightsChartSpec, InsightsChartStage, InsightsControlPlanCoverage, InsightsDateFilterKey, InsightsScopeEligibility, InsightsViolationStage, InsightsViolationStages};
 export default INSIGHTS_DASHBOARD_SPECS;

@@ -8,22 +8,20 @@ import {getLastSearchQuery} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {InsightsDashboardID, InsightsSearchKey, Policy} from '@src/types/onyx';
+import type {InsightsDashboardID, InsightsSearchKey} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
-
-import type {OnyxCollection} from 'react-native-onyx';
 
 import {useEffect} from 'react';
 
 import type {InsightsFilters} from './insightsFilters';
 import type {InsightsTagLevelOption} from './insightsTagLevels';
 
-import INSIGHTS_DASHBOARD_SPECS from './dashboardSpecs';
+import INSIGHTS_DASHBOARD_SPECS, {isPolicyIDInScope} from './dashboardSpecs';
 import {parseInsightsFilters} from './insightsFilterParsing';
 import DEFAULT_INSIGHTS_FILTERS from './insightsFilters';
 import {getQueryGroupBy} from './insightsGroupByUtils';
 import {buildInsightsQueryString} from './insightsQueries';
-import {getFittingTagLevel, getInsightsTagLevelNames, getInsightsTagLevelOptions, getInsightsTagPolicyIDs} from './insightsTagLevels';
+import {getFittingTagLevel, getInsightsTagLevelNames, getInsightsTagLevelOptions} from './insightsTagLevels';
 
 type UseInsightsFiltersResult = {
     /** Page-level filters every chart on the dashboard is narrowed by */
@@ -52,24 +50,28 @@ function useStoredInsightsFilters(searchKey: InsightsSearchKey) {
 
 /**
  * @param shouldSkipFetch - Whether the page won't call GetInsights for these filters, so a change to them has to be saved on its own
+ * @param tagEligiblePolicyIDs - Workspaces whose tag lists set the tag levels on offer, undefined until the policies load. A page that offers no tag level leaves it out.
  */
-function useInsightsFilters(dashboard: InsightsDashboardID, shouldSkipFetch?: (next: InsightsFilters) => boolean, policies?: OnyxCollection<Policy>): UseInsightsFiltersResult {
+function useInsightsFilters(dashboard: InsightsDashboardID, shouldSkipFetch?: (next: InsightsFilters) => boolean, tagEligiblePolicyIDs?: string[]): UseInsightsFiltersResult {
     const {translate, numberFormat} = useLocalize();
     const {searchKey} = INSIGHTS_DASHBOARD_SPECS[dashboard];
     const [activePolicyID, activePolicyIDMetadata] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const [activePolicy, activePolicyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getPolicyIDOrDefault(activePolicyID)}`);
+    // Only the currency is read, so other edits to the default workspace don't render the page
+    const [activePolicyCurrency, activePolicyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getPolicyIDOrDefault(activePolicyID)}`, {
+        selector: (policy) => policy?.outputCurrency,
+    });
 
     const {storedQuery, storedQueryMetadata, parsedFilters} = useStoredInsightsFilters(searchKey);
 
     const defaultFilters: InsightsFilters = {
         ...DEFAULT_INSIGHTS_FILTERS[dashboard],
         defaultGroupBy: DEFAULT_INSIGHTS_FILTERS[dashboard].groupBy,
-        groupCurrency: activePolicy?.outputCurrency ?? CONST.CURRENCY.USD,
+        groupCurrency: activePolicyCurrency ?? CONST.CURRENCY.USD,
     };
     // A stored query leaves Compare out when it's off, so the default only applies before filters are stored.
     const storedFilters: InsightsFilters = {...defaultFilters, compare: storedQuery ? undefined : defaultFilters.compare, ...parsedFilters};
     const isSpend = dashboard === CONST.INSIGHTS.DASHBOARD.SPEND;
-    const tagPolicyIDs = isSpend ? getInsightsTagPolicyIDs(policies, storedFilters.policyIDs) : [];
+    const tagPolicyIDs = isSpend ? (tagEligiblePolicyIDs ?? []).filter((policyID) => isPolicyIDInScope(policyID, storedFilters.policyIDs)) : [];
     const [namesByPolicy = getEmptyArray<string[]>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: (tags) => getInsightsTagLevelNames(tags, tagPolicyIDs)});
     const [hasLoadedTagLists = false] = useOnyx(ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_TAGS_LOADING_STATE, {
         selector: (states) => tagPolicyIDs.every((policyID) => states?.[`${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_TAGS_LOADING_STATE}${policyID}`]?.hasOnceLoaded),
@@ -77,7 +79,7 @@ function useInsightsFilters(dashboard: InsightsDashboardID, shouldSkipFetch?: (n
     const tagLevelOptions = getInsightsTagLevelOptions(namesByPolicy, (level) => translate('insightsPage.tagLevel', numberFormat(level)));
     const selectedTagLevel = storedFilters.tagLevel ?? CONST.INSIGHTS.DEFAULT_TAG_LEVEL;
     // Partial lazy-loaded lists cannot prove that a saved level no longer exists.
-    const canFitTagLevel = policies !== undefined && hasLoadedTagLists;
+    const canFitTagLevel = tagEligiblePolicyIDs !== undefined && hasLoadedTagLists;
     const filters: InsightsFilters = {
         ...storedFilters,
         ...(isSpend && {
