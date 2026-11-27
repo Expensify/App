@@ -467,7 +467,7 @@ describe('service worker navigation', () => {
             ['/inbox.php', undefined],
             ['/r/x.php?from=/r/1', undefined],
             ['/r/123/receipt.pdf', undefined],
-            ['/_support/x', undefined],
+            ['/_x/y', undefined],
         ])("routes '%s' to navigation route %s", (url, expectedRoute) => {
             // Given a navigation on the shared host, which must reach at most one navigation route
             // When a navigation is matched against every registered navigation route
@@ -803,7 +803,7 @@ describe('service worker navigation', () => {
             // cspell:disable-next-line
             ['/newcss/x.png', 'image', false],
             ['/help/x.png', 'image', false],
-            ['/_testify/x.png', 'image', false],
+            ['/_x/y.png', 'image', false],
             ['/images-x/logo.png', 'image', true],
             ['/receipts/w_123.jpg', '', true],
             ['/chat-attachments/1/x.png', 'image', true],

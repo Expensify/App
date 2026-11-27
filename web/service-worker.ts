@@ -38,11 +38,12 @@ const NON_PAGE_PATHS = [/^\/_/, /^\/\.well-known/, /^(?!\/index\.html(?:\?|$)).*
 // On the host that serves both products, a file is a path whose last segment has an extension, whatever the query contains
 const SHARED_HOST_NON_PAGE_PATHS = [/^\/_/, /^\/\.well-known/, /^(?!\/index\.html(?:\?|$))[^?]*\/[^/?]+\.[^/?]+(?:\?|$)/];
 
-// Expensify Classic serves its pages' scripts and images under these paths, matched without case like the experience router does.
+// Expensify Classic serves its pages' scripts and images under these paths and under every path that starts with an underscore,
+// matched without case like the experience router does.
 // Receipts and attachments are user media, so their paths are not listed.
 const CLASSIC_ASSET_PATHS =
     // cspell:disable-next-line
-    /^\/(?:api|apiassets|_support|_devportal|_tests|_tools|authentication|partners|mcp|oauth|openid|mobile|concierge|expensiworks|\.well-known|newjs|site|homepage|build|js|font|cdn|errors|m|l|survey|newcss|images|content|help|tools|_testify|_smartreports|styleguide|monitoring|appleauth|notifications)(?:\/|$)/i;
+    /^\/(?:_[^/]*|api|apiassets|authentication|partners|mcp|oauth|openid|mobile|concierge|expensiworks|\.well-known|newjs|site|homepage|build|js|font|cdn|errors|m|l|survey|newcss|images|content|help|tools|styleguide|appleauth|notifications)(?:\/|$)/i;
 
 const isSharedProductHost = self.location.hostname === __SHARED_PRODUCT_HOST__;
 
