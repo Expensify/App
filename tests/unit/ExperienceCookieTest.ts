@@ -155,7 +155,10 @@ describe('ExperienceCookie', () => {
         // Given a build for the environment
         mockEnvironment = environment;
 
+        // When the shared product origin is read
+        const sharedProductOrigin = getSharedProductOrigin();
+
         // Then the shared host is that environment's Expensify Classic host without www
-        expect(getSharedProductOrigin()).toBe(origin);
+        expect(sharedProductOrigin).toBe(origin);
     });
 });

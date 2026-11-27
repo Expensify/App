@@ -1,3 +1,7 @@
+/**
+ * Renders nothing. Moves the page to the shared host once the session has loaded.
+ * Its own component, so its Onyx read exists only while a move is pending.
+ */
 import {useEffect, useRef} from 'react';
 
 import useOnyx from './hooks/useOnyx';
@@ -9,10 +13,6 @@ type SharedHostHopHandlerProps = {
     onStay: () => void;
 };
 
-/**
- * Renders nothing. Moves the page to the shared host once the session has loaded.
- * Its own component, so its Onyx read exists only while a move is pending.
- */
 function SharedHostHopHandler({onStay}: SharedHostHopHandlerProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const hasStarted = useRef(false);

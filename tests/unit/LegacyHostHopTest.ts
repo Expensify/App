@@ -40,6 +40,7 @@ jest.mock('@libs/Log', () => ({__esModule: true, default: {info: jest.fn(), hmmm
 const {shouldHopToSharedHost, hopToSharedHost} = jest.requireActual<typeof WebLegacyHostHop>('@libs/LegacyHostHop/index.ts');
 
 const SIGNED_IN_SESSION: Session = {authToken: 'authToken', email: 'user+beta@example.com', accountID: 1};
+const EXPERIENCE_VALUES = [CONST.EXPERIENCE_COOKIE.VALUES.NEW, CONST.EXPERIENCE_COOKIE.VALUES.CLASSIC];
 
 const mockReplace = jest.fn<void, [string]>();
 let realLocation: Location;
@@ -89,10 +90,15 @@ afterEach(() => {
 
 describe('LegacyHostHop', () => {
     describe('shouldHopToSharedHost', () => {
-        it.each([CONST.EXPERIENCE_COOKIE.VALUES.NEW, CONST.EXPERIENCE_COOKIE.VALUES.CLASSIC])('hops on the legacy host with experience=%s', (value) => {
+        it.each(EXPERIENCE_VALUES)('hops on the legacy host with experience=%s', (value) => {
+            // Given a page on the legacy host in a browser with either experience value
             arrangeCookies(`experience=${value}`);
 
-            expect(shouldHopToSharedHost()).toBe(true);
+            // When startup asks whether to hop
+            const shouldHop = shouldHopToSharedHost();
+
+            // Then it hops, since the cookie marks a browser that uses the shared host whichever product it prefers
+            expect(shouldHop).toBe(true);
         });
 
         it.each([
@@ -100,9 +106,14 @@ describe('LegacyHostHop', () => {
             ['an unknown experience value', 'experience=foo'],
             ['an empty experience value', 'experience='],
         ])('stays with %s', (_, cookies) => {
+            // Given a browser without a valid experience cookie
             arrangeCookies(cookies);
 
-            expect(shouldHopToSharedHost()).toBe(false);
+            // When startup asks whether to hop
+            const shouldHop = shouldHopToSharedHost();
+
+            // Then it stays, because only browsers with the cookie use the shared host
+            expect(shouldHop).toBe(false);
         });
 
         it.each([
@@ -110,15 +121,25 @@ describe('LegacyHostHop', () => {
             ['another port of the legacy host', 'https://dev.new.expensify.com:8083/r/123'],
             ['an unrelated host', 'http://localhost/r/123'],
         ])('stays on %s', (_, href) => {
+            // Given a page on a host other than the legacy one
             arrangeLocation(href);
 
-            expect(shouldHopToSharedHost()).toBe(false);
+            // When startup asks whether to hop
+            const shouldHop = shouldHopToSharedHost();
+
+            // Then it stays, because only the legacy host moves pages
+            expect(shouldHop).toBe(false);
         });
 
         it('stays while the router brake cookie is set', () => {
+            // Given the router asked this browser to stay off the shared host
             arrangeCookies('experience=new; hybridWebClassicHost=www');
 
-            expect(shouldHopToSharedHost()).toBe(false);
+            // When startup asks whether to hop
+            const shouldHop = shouldHopToSharedHost();
+
+            // Then it stays, so the router and the App don't send the browser back and forth
+            expect(shouldHop).toBe(false);
         });
 
         it('stays while the browser is offline', () => {
@@ -133,67 +154,116 @@ describe('LegacyHostHop', () => {
         });
 
         it('stays when this tab hopped within the guard duration', () => {
+            // Given this tab left for the shared host shortly before
             sessionStorage.setItem(CONST.SESSION_STORAGE_KEYS.SHARED_HOST_HOP, String(Date.now() - CONST.LEGACY_HOST_HOP.TAB_GUARD_DURATION_MS + 1000));
 
-            expect(shouldHopToSharedHost()).toBe(false);
+            // When startup asks whether to hop
+            const shouldHop = shouldHopToSharedHost();
+
+            // Then it stays, because the shared host sent the page back and hopping again would loop
+            expect(shouldHop).toBe(false);
         });
 
         it('hops again once the guard duration has passed', () => {
+            // Given this tab left for the shared host long ago
             sessionStorage.setItem(CONST.SESSION_STORAGE_KEYS.SHARED_HOST_HOP, String(Date.now() - CONST.LEGACY_HOST_HOP.TAB_GUARD_DURATION_MS - 1));
 
-            expect(shouldHopToSharedHost()).toBe(true);
+            // When startup asks whether to hop
+            const shouldHop = shouldHopToSharedHost();
+
+            // Then it hops, because an old mark doesn't mean a loop
+            expect(shouldHop).toBe(true);
         });
 
         it.each(['', 'abc', '-5', '1.5'])('stays when the tab mark is %p', (mark) => {
+            // Given a tab mark that isn't a timestamp
             sessionStorage.setItem(CONST.SESSION_STORAGE_KEYS.SHARED_HOST_HOP, mark);
 
-            expect(shouldHopToSharedHost()).toBe(false);
+            // When startup asks whether to hop
+            const shouldHop = shouldHopToSharedHost();
+
+            // Then it stays, treating the mark as recent to be safe from loops
+            expect(shouldHop).toBe(false);
         });
 
         it('stays when sessionStorage throws', () => {
+            // Given sessionStorage can't be read
             jest.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
                 throw new Error('blocked');
             });
 
-            expect(shouldHopToSharedHost()).toBe(false);
+            // When startup asks whether to hop
+            const shouldHop = shouldHopToSharedHost();
+
+            // Then it stays, because without the tab mark a loop can't be ruled out
+            expect(shouldHop).toBe(false);
         });
 
         it('never hops on native', async () => {
-            expect(NativeLegacyHostHop.shouldHopToSharedHost()).toBe(false);
-            await expect(NativeLegacyHostHop.hopToSharedHost(SIGNED_IN_SESSION)).resolves.toBe(false);
+            // Given the native implementation
+
+            // When startup asks whether to hop and tries to hop
+            const shouldHop = NativeLegacyHostHop.shouldHopToSharedHost();
+            const hop = NativeLegacyHostHop.hopToSharedHost(SIGNED_IN_SESSION);
+
+            // Then nothing moves, because native apps don't run on a web host
+            expect(shouldHop).toBe(false);
+            await expect(hop).resolves.toBe(false);
         });
     });
 
     describe('hopToSharedHost', () => {
-        it('moves a signed out page to the same path on the shared host', async () => {
-            await expect(hopToSharedHost(undefined)).resolves.toBe(true);
+        it.each(EXPERIENCE_VALUES)('moves a signed out page to the same path on the shared host with experience=%s', async (value) => {
+            // Given a signed out page in a browser with either experience value
+            arrangeCookies(`experience=${value}`);
 
+            // When the page hops
+            const hop = hopToSharedHost(undefined);
+
+            // Then it moves as it is, because there is no session to carry over
+            await expect(hop).resolves.toBe(true);
             expect(mockReplace).toHaveBeenCalledWith(`${SHARED_ORIGIN}/r/123?foo=bar#hash`);
             expect(mockGetShortLivedAuthToken).not.toHaveBeenCalled();
             expect(sessionStorage.getItem(CONST.SESSION_STORAGE_KEYS.SHARED_HOST_HOP)).not.toBeNull();
         });
 
         it('moves an anonymous session without a token', async () => {
-            await expect(hopToSharedHost({authToken: 'anon', authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS})).resolves.toBe(true);
+            // Given an anonymous session used to view a public room
+            const session: Session = {authToken: 'anon', authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS};
 
+            // When the page hops
+            const hop = hopToSharedHost(session);
+
+            // Then it moves as it is, because an anonymous session has no account to carry over
+            await expect(hop).resolves.toBe(true);
             expect(mockReplace).toHaveBeenCalledWith(`${SHARED_ORIGIN}/r/123?foo=bar#hash`);
             expect(mockGetShortLivedAuthToken).not.toHaveBeenCalled();
         });
 
         it('forwards a /transition link as it is', async () => {
+            // Given a /transition link that already carries its own token
             arrangeLocation(`${LEGACY_ORIGIN}/transition?shortLivedAuthToken=abc&email=a%40b.com&exitTo=r%2F1`);
 
-            await expect(hopToSharedHost(SIGNED_IN_SESSION)).resolves.toBe(true);
+            // When a signed in page hops
+            const hop = hopToSharedHost(SIGNED_IN_SESSION);
 
+            // Then the link moves unchanged and no second token is fetched
+            await expect(hop).resolves.toBe(true);
             expect(mockReplace).toHaveBeenCalledWith(`${SHARED_ORIGIN}/transition?shortLivedAuthToken=abc&email=a%40b.com&exitTo=r%2F1`);
             expect(mockGetShortLivedAuthToken).not.toHaveBeenCalled();
         });
 
-        it('waits for the write queue, then moves a signed in page through /transition', async () => {
-            await expect(hopToSharedHost(SIGNED_IN_SESSION)).resolves.toBe(true);
+        it.each(EXPERIENCE_VALUES)('waits for the write queue, then moves a signed in page through /transition with experience=%s', async (value) => {
+            // Given a signed in page in a browser with either experience value
+            arrangeCookies(`experience=${value}`);
 
+            // When the page hops
+            const hop = hopToSharedHost(SIGNED_IN_SESSION);
+
+            // Then the token is fetched after the queue drains, and the page moves through /transition to the same path
+            await expect(hop).resolves.toBe(true);
             expect(mockWaitForIdle.mock.invocationCallOrder.at(0)).toBeLessThan(mockGetShortLivedAuthToken.mock.invocationCallOrder.at(0) ?? 0);
-            const url = new URL(mockReplace.mock.calls.at(0)?.at(0) ?? '');
+            const url = getNavigatedURL();
             expect(url.origin + url.pathname).toBe(`${SHARED_ORIGIN}/transition`);
             expect(url.searchParams.get('shortLivedAuthToken')).toBe('short+lived/token');
             expect(url.searchParams.get('email')).toBe('user+beta@example.com');
@@ -201,31 +271,41 @@ describe('LegacyHostHop', () => {
         });
 
         it('leaves out exitTo for the root path', async () => {
+            // Given a signed in page at the root path
             arrangeLocation(`${LEGACY_ORIGIN}/`);
 
+            // When the page hops
             await hopToSharedHost(SIGNED_IN_SESSION);
 
-            const url = new URL(mockReplace.mock.calls.at(0)?.at(0) ?? '');
-            expect(url.searchParams.has('exitTo')).toBe(false);
+            // Then the transition URL has no exitTo, so the shared host opens its default page
+            expect(getNavigatedURL().searchParams.has('exitTo')).toBe(false);
         });
 
         it.each([
             ['no token', undefined],
             ['an empty token', ''],
         ])('stays when the token request returns %s and does not retry in this tab', async (_, token) => {
+            // Given the token request returns no usable token
             mockGetShortLivedAuthToken.mockResolvedValue(token);
 
-            await expect(hopToSharedHost(SIGNED_IN_SESSION)).resolves.toBe(false);
+            // When a signed in page hops
+            const hop = hopToSharedHost(SIGNED_IN_SESSION);
 
+            // Then it stays, and the tab mark stops a retry on every reload
+            await expect(hop).resolves.toBe(false);
             expect(mockReplace).not.toHaveBeenCalled();
             expect(shouldHopToSharedHost()).toBe(false);
         });
 
         it('stays when queued requests remain after waiting', async () => {
+            // Given a write that is still queued after the queue went idle
             mockInMemoryRequests = [{command: 'AddComment'}];
 
-            await expect(hopToSharedHost(SIGNED_IN_SESSION)).resolves.toBe(false);
+            // When a signed in page hops
+            const hop = hopToSharedHost(SIGNED_IN_SESSION);
 
+            // Then it stays without a token, because leaving would drop the write
+            await expect(hop).resolves.toBe(false);
             expect(mockGetShortLivedAuthToken).not.toHaveBeenCalled();
             expect(mockReplace).not.toHaveBeenCalled();
         });
@@ -246,6 +326,7 @@ describe('LegacyHostHop', () => {
         });
 
         it('checks the queue only after the stored requests have loaded', async () => {
+            // Given the stored queue is still loading
             let finishLoading: () => void = () => {};
             mockWaitForPersistedRequests.mockReturnValue(
                 new Promise((resolve) => {
@@ -253,22 +334,31 @@ describe('LegacyHostHop', () => {
                 }),
             );
 
-            const result = hopToSharedHost(SIGNED_IN_SESSION);
+            // When a signed in page hops
+            const hop = hopToSharedHost(SIGNED_IN_SESSION);
             await Promise.resolve();
+
+            // Then it doesn't look at the queue yet
             expect(mockWaitForIdle).not.toHaveBeenCalled();
 
+            // When the queue loads with a stored write
             mockInMemoryRequests = [{command: 'AddComment'}];
             finishLoading();
 
-            await expect(result).resolves.toBe(false);
+            // Then it stays, because the stored write hasn't been sent
+            await expect(hop).resolves.toBe(false);
             expect(mockGetShortLivedAuthToken).not.toHaveBeenCalled();
         });
 
         it('stays offline without waiting for the queue', async () => {
+            // Given the App knows it is offline
             mockIsOffline = true;
 
-            await expect(hopToSharedHost(SIGNED_IN_SESSION)).resolves.toBe(false);
+            // When a signed in page hops
+            const hop = hopToSharedHost(SIGNED_IN_SESSION);
 
+            // Then it stays, because the queue can't drain and no token can be fetched
+            await expect(hop).resolves.toBe(false);
             expect(mockWaitForIdle).not.toHaveBeenCalled();
             expect(mockGetShortLivedAuthToken).not.toHaveBeenCalled();
             expect(mockReplace).not.toHaveBeenCalled();
@@ -432,18 +522,22 @@ describe('LegacyHostHop', () => {
         });
 
         it('stays when the queue does not drain before the timeout', async () => {
+            // Given a queue that never goes idle
             jest.useFakeTimers();
             mockWaitForIdle.mockReturnValue(new Promise(() => {}));
 
-            const result = hopToSharedHost(SIGNED_IN_SESSION);
+            // When a signed in page hops and the timeout passes
+            const hop = hopToSharedHost(SIGNED_IN_SESSION);
             jest.advanceTimersByTime(CONST.LEGACY_HOST_HOP.TIMEOUT_MS);
 
-            await expect(result).resolves.toBe(false);
+            // Then it stays, so a slow queue never holds startup
+            await expect(hop).resolves.toBe(false);
             expect(mockGetShortLivedAuthToken).not.toHaveBeenCalled();
             expect(mockReplace).not.toHaveBeenCalled();
         });
 
         it('ignores a token that arrives after the timeout', async () => {
+            // Given a token request that answers only after the timeout
             jest.useFakeTimers();
             let resolveToken: (token: string) => void = () => {};
             mockGetShortLivedAuthToken.mockReturnValue(
@@ -452,15 +546,17 @@ describe('LegacyHostHop', () => {
                 }),
             );
 
-            const result = hopToSharedHost(SIGNED_IN_SESSION);
+            // When a signed in page hops and the timeout passes
+            const hop = hopToSharedHost(SIGNED_IN_SESSION);
             await jest.advanceTimersByTimeAsync(CONST.LEGACY_HOST_HOP.TIMEOUT_MS);
-            await expect(result).resolves.toBe(false);
-
+            await expect(hop).resolves.toBe(false);
             expect(mockGetShortLivedAuthToken).toHaveBeenCalledTimes(1);
 
+            // When the token finally arrives
             resolveToken('late-token');
             await Promise.resolve();
 
+            // Then the page doesn't move, because startup has already continued here
             expect(mockReplace).not.toHaveBeenCalled();
         });
 
@@ -469,8 +565,13 @@ describe('LegacyHostHop', () => {
             ['Supportal with a used support token', {...SIGNED_IN_SESSION, isSupportAuthTokenUsed: true}],
             ['Copilot', {...SIGNED_IN_SESSION, authTokenType: CONST.AUTH_TOKEN_TYPES.DELEGATE}],
         ])('stays in a %s session without marking the tab', async (_, session: Session) => {
-            await expect(hopToSharedHost(session)).resolves.toBe(false);
+            // Given a session whose token request fails or returns a long-lived token
 
+            // When the page hops
+            const hop = hopToSharedHost(session);
+
+            // Then it stays without asking for a token, and leaves the tab free to hop in a later session
+            await expect(hop).resolves.toBe(false);
             expect(mockReplace).not.toHaveBeenCalled();
             expect(mockGetShortLivedAuthToken).not.toHaveBeenCalled();
             expect(sessionStorage.getItem(CONST.SESSION_STORAGE_KEYS.SHARED_HOST_HOP)).toBeNull();
@@ -481,29 +582,42 @@ describe('LegacyHostHop', () => {
             ['while the brake cookie is set', () => arrangeCookies('experience=new; hybridWebClassicHost=www')],
             ['on the shared host', () => arrangeLocation(`${SHARED_ORIGIN}/r/123`)],
         ])('does nothing %s', async (_, arrange) => {
+            // Given a page that shouldn't hop
             arrange();
 
-            await expect(hopToSharedHost(SIGNED_IN_SESSION)).resolves.toBe(false);
+            // When the page hops
+            const hop = hopToSharedHost(SIGNED_IN_SESSION);
 
+            // Then nothing happens and the tab stays unmarked
+            await expect(hop).resolves.toBe(false);
             expect(mockReplace).not.toHaveBeenCalled();
             expect(mockWaitForIdle).not.toHaveBeenCalled();
             expect(sessionStorage.getItem(CONST.SESSION_STORAGE_KEYS.SHARED_HOST_HOP)).toBeNull();
         });
 
         it('hops only once per tab', async () => {
+            // Given a page that has already hopped
             await hopToSharedHost(undefined);
-            await expect(hopToSharedHost(undefined)).resolves.toBe(false);
 
+            // When it tries to hop again
+            const secondHop = hopToSharedHost(undefined);
+
+            // Then the second attempt stays, so a page sent back by the shared host doesn't loop
+            await expect(secondHop).resolves.toBe(false);
             expect(mockReplace).toHaveBeenCalledTimes(1);
         });
 
         it('stays when the tab mark cannot be stored', async () => {
+            // Given sessionStorage can't be written
             jest.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
                 throw new Error('quota');
             });
 
-            await expect(hopToSharedHost(undefined)).resolves.toBe(false);
+            // When the page hops
+            const hop = hopToSharedHost(undefined);
 
+            // Then it stays, because without the mark a page sent back could loop
+            await expect(hop).resolves.toBe(false);
             expect(mockReplace).not.toHaveBeenCalled();
         });
     });

@@ -44,34 +44,43 @@ describe('SharedHostHopHandler', () => {
     });
 
     it('calls onStay when the page stays on this host', async () => {
+        // Given a loaded session and a hop that decides to stay
         mockSession = SESSION;
         const onStay = jest.fn();
 
+        // When the handler mounts
         render(<SharedHostHopHandler onStay={onStay} />);
         await waitForBatchedUpdatesWithAct();
 
+        // Then startup is told to continue on this host
         expect(onStay).toHaveBeenCalledTimes(1);
     });
 
     it('calls onStay when the hop fails', async () => {
+        // Given a loaded session and a hop that throws
         mockSession = SESSION;
         mockHopToSharedHost.mockRejectedValue(new Error('failed'));
         const onStay = jest.fn();
 
+        // When the handler mounts
         render(<SharedHostHopHandler onStay={onStay} />);
         await waitForBatchedUpdatesWithAct();
 
+        // Then startup still continues, so an error never leaves the app without navigation
         expect(onStay).toHaveBeenCalledTimes(1);
     });
 
     it('does not call onStay while the page is leaving', async () => {
+        // Given a loaded session and a hop that is navigating away
         mockSession = SESSION;
         mockHopToSharedHost.mockResolvedValue(true);
         const onStay = jest.fn();
 
+        // When the handler mounts
         render(<SharedHostHopHandler onStay={onStay} />);
         await waitForBatchedUpdatesWithAct();
 
+        // Then startup stays on hold, so the app doesn't show and then leave
         expect(onStay).not.toHaveBeenCalled();
     });
 });
