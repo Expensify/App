@@ -7219,11 +7219,13 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 description: `ワークスペースでカテゴリが必須のため、少なくとも1つのカテゴリは有効のままにする必要があります。`,
             },
             visibleTo: '表示対象',
+            editVisibility: '表示設定を編集',
             membersCount: ({count}: {count: number}) => ({
                 one: 'メンバー 1 人',
                 other: `${count}名のメンバー`,
             }),
             visibleToDescription: ({categoryName}: {categoryName: string}) => `経費を申請する際に、どのメンバーが「${categoryName}」カテゴリを使用できるかを選択します。`,
+            bulkVisibleToDescription: '経費を提出するときに、どのメンバーがこれらのカテゴリを使用できるかを選択します。',
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `${categoryName}を無効にできません`,
                 bulkTitle: 'これらのカテゴリーは無効にできません',

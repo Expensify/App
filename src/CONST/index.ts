@@ -3034,6 +3034,7 @@ const CONST = {
         SPAN_OPEN_CREATE_EXPENSE: 'ManualOpenCreateExpense',
         SPAN_OPEN_MEMBER_CATEGORY_VISIBILITY: 'ManualOpenMemberCategoryVisibility',
         SPAN_OPEN_CATEGORY_VISIBLE_TO: 'ManualOpenCategoryVisibleTo',
+        SPAN_OPEN_INVITE_CATEGORY_VISIBILITY: 'ManualOpenInviteCategoryVisibility',
         SPAN_OPEN_CATEGORY_PICKER: 'ManualOpenCategoryPicker',
         SPAN_SHARE_EXTENSION_OPEN_SUBMIT_FLOW: 'ShareExtensionOpenSubmitFlow',
         SPAN_CAMERA_INIT: 'ManualCameraInit',
@@ -5530,6 +5531,7 @@ const CONST = {
             ENABLE: 'enable',
             REQUIRE: 'require',
             NOT_REQUIRED: 'notRequired',
+            EDIT_VISIBILITY: 'editVisibility',
         },
         MORE_FEATURES: {
             ARE_CATEGORIES_ENABLED: 'areCategoriesEnabled',

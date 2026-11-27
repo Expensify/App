@@ -7052,11 +7052,13 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 description: `由于您的工作区需要类别，必须至少保留一个已启用的类别。`,
             },
             visibleTo: '可见范围',
+            editVisibility: '编辑可见性',
             membersCount: ({count}: {count: number}) => ({
                 one: '1 名成员',
                 other: `${count} 名成员`,
             }),
             visibleToDescription: ({categoryName}: {categoryName: string}) => `选择哪些成员可以在提交报销时使用 ${categoryName} 类别。`,
+            bulkVisibleToDescription: '选择哪些成员可以在提交报销时使用这些类别。',
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `无法禁用 ${categoryName}`,
                 bulkTitle: '无法禁用这些类别',

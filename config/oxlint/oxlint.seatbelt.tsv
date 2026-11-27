@@ -1972,7 +1972,7 @@
 "../../tests/ui/MoneyRequestReportActionsListRejectModalTest.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	11
 "../../tests/ui/MoneyRequestReportActionsListSystemMessagesTest.tsx"	"@typescript-eslint/no-deprecated/originalMessage"	2
 "../../tests/ui/MoneyRequestReportActionsListSystemMessagesTest.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
-"../../tests/ui/MoneyRequestReportPreview.test.tsx"	"@typescript-eslint/no-deprecated/originalMessage"	5
+"../../tests/ui/MoneyRequestReportPreview.test.tsx"	"@typescript-eslint/no-deprecated/originalMessage"	3
 "../../tests/ui/MoneyRequestReportPreview.test.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	4
 "../../tests/ui/MoneyRequestReportPreview.test.tsx"	"no-restricted-imports"	1
 "../../tests/ui/MoneyRequestViewReceiptTest.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	2
