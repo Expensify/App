@@ -1343,6 +1343,13 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: '承認者',
             chartTitle: (title: string, stage: string) => `${title}（${stage}）`,
         },
+        recentHistory: {
+            title: '最近の履歴',
+            dayAverageFor: (count: number, item: string) => `${count} 日間の${item}の平均`,
+            weekAverageFor: (count: number, item: string) => `${count}週間平均 (${item})`,
+            monthAverageFor: (count: number, item: string) => `${item} の${count}か月平均`,
+            quarterAverageFor: (count: number, item: string) => `${item}の${count}四半期平均`,
+        },
         flaggedExpenses: 'フラグ付き経費',
         noFlaggedExpensesInRange: 'この範囲にはフラグ付き経費はありません',
     },
@@ -2709,6 +2716,11 @@ const translations: TranslationDeepObject<typeof en> = {
             reachOutForHelp:
                 '<muted-text><centered-text>ご不明な点がありましたら、お気軽に<concierge-link>Concierge までお問い合わせください</concierge-link>！</centered-text></muted-text>',
             goToExpensifyClassic: 'Expensify Classic に移動',
+        },
+        mergePendingDomainAdmin: {
+            heading: 'ドメイン制限付きメール',
+            description: '<muted-text><centered-text>ドメイン管理者に、アカウント統合リクエストの承認依頼を通知しました。</centered-text></muted-text>',
+            gotIt: '了解しました',
         },
         mergeFailureSAMLDomainControlDescription: (email: string) =>
             `<muted-text><centered-text><strong>${email.split('@').at(1) ?? ''}</strong> によって管理されているため、<strong>${email}</strong> はマージできません。サポートが必要な場合は、<concierge-link>Concierge までお問い合わせください</concierge-link>。</centered-text></muted-text>`,
@@ -4451,9 +4463,10 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
     },
     welcomeSignUpForm: {
         join: '参加',
-        transactionalSMSConsent: '電話番号を提供することにより、Expensifyからアカウントに関する取引通知を受け取ることに同意します。',
-        transactionalSMSConsentFinePrint: '標準のメッセージ料金およびデータ通信料金がかかる場合があります。配信を停止するにはSTOPと返信してください。',
+        smsConsentIntro: '電話番号を提供することにより：',
+        transactionalSMSConsent: 'Expensifyからアカウントに関する取引通知を受け取ることに同意します。',
         marketingSMSConsent: 'Expensifyからのマーケティングテキストの受信に同意します。',
+        termsWithSMSRates: `<muted-text-xs>ログインすると、<a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">利用規約</a>および<a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">プライバシーポリシー</a>に同意したものとみなされます。標準のメッセージ料金およびデータ通信料金がかかる場合があります。メッセージの頻度は異なります。ヘルプが必要な場合はHELPと返信してください。配信を停止するにはSTOPと返信してください。</muted-text-xs>`,
     },
     detailsPage: {
         localTime: '現地時間',
@@ -6750,6 +6763,8 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 description: '海外で行われた支払いについて、会社が為替換算コストを負担する場合、そのコストは仕訳として Rillet のこの勘定科目に計上します。',
             },
             reimbursementAccount: {label: '精算用口座', description: '精算対象経費のエクスポート先を選択してください。', accountRequiredError: 'Rillet の精算用口座を選択してください。'},
+            autoCreateVendor: 'ベンダーを自動作成',
+            autoCreateVendorDescription: 'Expensify は、存在しない場合は Rillet にベンダーを自動的に作成します。',
             achPaymentAccount: {label: 'ACH 支払い口座', description: 'どこからレポートを支払うかを選択すると、Rillet 内に支払いを作成します。'},
         },
         dualEntry: {

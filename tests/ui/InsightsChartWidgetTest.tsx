@@ -95,7 +95,7 @@ function renderWidget({
                 previousPeriodQueryJSON={undefined}
                 previousPeriodSnapshot={undefined}
                 average={undefined}
-                isDashboardLoaded={undefined}
+                isAverageLoaded={undefined}
                 isAwaitingData={isAwaitingData}
                 filters={FILTERS}
                 insightsScope={{searchKey: INSIGHTS_DASHBOARD_SPECS[CONST.INSIGHTS.DASHBOARD.SPEND].searchKey, policyIDs: [], date: FILTERS.date, groupCurrency: FILTERS.groupCurrency}}

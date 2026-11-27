@@ -21,7 +21,9 @@ function useScrollToFlaggedField(listRef: RefObject<SelectionListWithSectionsHan
     const amountViewRef = useRef<ComponentRef<typeof View>>(null);
     const merchantViewRef = useRef<ComponentRef<typeof View>>(null);
     const dateViewRef = useRef<ComponentRef<typeof View>>(null);
-    const fieldViewRefs: ConfirmationFieldViewRefs = {amount: amountViewRef, merchant: merchantViewRef, date: dateViewRef};
+    const taxAmountViewRef = useRef<ComponentRef<typeof View>>(null);
+    const attendeesViewRef = useRef<ComponentRef<typeof View>>(null);
+    const fieldViewRefs: ConfirmationFieldViewRefs = {amount: amountViewRef, merchant: merchantViewRef, date: dateViewRef, taxAmount: taxAmountViewRef, attendees: attendeesViewRef};
 
     // A new object for every blocked confirm, so confirming again scrolls again even when the same field is flagged.
     const [viewToReveal, setViewToReveal] = useState<ViewToReveal | null>(null);

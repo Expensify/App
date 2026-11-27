@@ -13,19 +13,23 @@ import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
-const TRANSACTIONAL_CONSENT_TEXT = 'I agree to receive transactional account alerts from Expensify.';
-const TRANSACTIONAL_CONSENT_FINE_PRINT = 'Standard message and data rates may apply.';
-const TRANSACTIONAL_CONSENT_LABEL = `${TRANSACTIONAL_CONSENT_TEXT} ${TRANSACTIONAL_CONSENT_FINE_PRINT}`;
+const SMS_CONSENT_INTRO = 'By providing my phone number:';
+const TRANSACTIONAL_CONSENT_LABEL = 'I agree to receive transactional account alerts from Expensify.';
+const TERMS_WITH_SMS_RATES =
+    'By logging in, you agree to the Terms of Service and Privacy. Standard message and data rates may apply. Message frequency varies. Reply HELP for help. Reply STOP to opt out.';
 const MARKETING_CONSENT_LABEL = 'I agree to receive marketing texts from Expensify';
 
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
         translate: jest.fn((key: string) => {
-            if (key === 'welcomeSignUpForm.transactionalSMSConsent') {
-                return TRANSACTIONAL_CONSENT_TEXT;
+            if (key === 'welcomeSignUpForm.smsConsentIntro') {
+                return SMS_CONSENT_INTRO;
             }
-            if (key === 'welcomeSignUpForm.transactionalSMSConsentFinePrint') {
-                return TRANSACTIONAL_CONSENT_FINE_PRINT;
+            if (key === 'welcomeSignUpForm.transactionalSMSConsent') {
+                return TRANSACTIONAL_CONSENT_LABEL;
+            }
+            if (key === 'welcomeSignUpForm.termsWithSMSRates') {
+                return TERMS_WITH_SMS_RATES;
             }
             if (key === 'welcomeSignUpForm.marketingSMSConsent') {
                 return MARKETING_CONSENT_LABEL;
@@ -57,6 +61,11 @@ jest.mock('@userActions/HybridApp', () => ({
 }));
 
 jest.mock('@pages/signin/Terms', () => () => null);
+
+jest.mock('@components/RenderHTML', () => {
+    const {Text} = jest.requireActual<{Text: React.ComponentType<React.PropsWithChildren>}>('react-native');
+    return ({html}: {html: string}) => <Text>{html}</Text>;
+});
 
 jest.mock('@pages/signin/ChangeExpensifyLoginLink', () => () => null);
 
@@ -102,9 +111,11 @@ describe('SignUpWelcomeForm', () => {
         await renderForm();
         await waitForBatchedUpdatesWithAct();
 
-        // Then both SMS consent checkboxes are shown
+        // Then both SMS consent checkboxes are shown under the phone number intro, and the terms below Join include the SMS rates and STOP instructions
+        expect(screen.getByText(SMS_CONSENT_INTRO)).toBeOnTheScreen();
         expect(screen.getByLabelText(TRANSACTIONAL_CONSENT_LABEL)).toBeOnTheScreen();
         expect(screen.getByLabelText(MARKETING_CONSENT_LABEL)).toBeOnTheScreen();
+        expect(screen.getByText(TERMS_WITH_SMS_RATES)).toBeOnTheScreen();
     });
 
     it('hides the SMS consent checkboxes when login is an email', async () => {
@@ -115,9 +126,11 @@ describe('SignUpWelcomeForm', () => {
         await renderForm();
         await waitForBatchedUpdatesWithAct();
 
-        // Then no SMS consent checkboxes are shown, because we don't text email sign-ups
+        // Then no SMS consent intro, checkboxes or SMS rates are shown, because we don't text email sign-ups
+        expect(screen.queryByText(SMS_CONSENT_INTRO)).toBeNull();
         expect(screen.queryByLabelText(TRANSACTIONAL_CONSENT_LABEL)).toBeNull();
         expect(screen.queryByLabelText(MARKETING_CONSENT_LABEL)).toBeNull();
+        expect(screen.queryByText(TERMS_WITH_SMS_RATES)).toBeNull();
     });
 
     it('does not sign up with a phone number until the transactional consent is checked', async () => {

@@ -1,4 +1,4 @@
-import AmountForm from '@components/AmountForm';
+import AmountFormInline from '@components/AmountFormAdapters/AmountFormInline';
 import DatePicker from '@components/DatePicker';
 import CurrencyDropdownAdapter from '@components/DynamicForm/adapters/CurrencyDropdownAdapter';
 import DynamicFormOnFileTextInput from '@components/DynamicForm/components/DynamicFormOnFileTextInput';
@@ -106,16 +106,14 @@ const TEXT_RENDERERS: Pick<DynamicFieldRendererMap, 'text' | 'number' | 'date' |
     amount: (field, {values, translate, styles, currency}, inputProps) => {
         const chosenCurrency = field.currencyKey ? values[field.currencyKey] : undefined;
         const amountCurrency = typeof chosenCurrency === 'string' && chosenCurrency !== '' ? chosenCurrency : currency;
-        // AmountForm takes no FullStory class, so the mask goes on an FSClassView around it, which its input follows
+        // AmountFormInline takes no FullStory class, so the mask goes on an FSClassView around it, which its input follows
         const amountInput = (
             <FSClassView forwardedFSClass={inputProps.forwardedFSClass}>
                 <InputWrapper
-                    InputComponent={AmountForm}
+                    InputComponent={AmountFormInline}
                     {...inputProps}
                     label={getInputLabel(field, translate)}
                     currency={amountCurrency}
-                    displayAsTextInput
-                    isCurrencyPressable={false}
                 />
             </FSClassView>
         );

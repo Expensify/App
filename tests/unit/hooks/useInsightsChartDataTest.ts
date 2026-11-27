@@ -45,7 +45,7 @@ function renderChartData(snapshot: SearchResults, isAwaitingData: boolean) {
         chart: INSIGHTS_DASHBOARD_SPECS[CONST.INSIGHTS.DASHBOARD.SPEND].headlineChart,
         queryJSON: QUERY_JSON,
         snapshot,
-        isDashboardLoaded: true,
+        isAverageLoaded: true,
         isAwaitingData,
     };
     return renderHook(() => useInsightsChartData(dashboardChart, FILTERS)).result;

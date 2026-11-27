@@ -47,9 +47,6 @@ function DistanceDetailsFields({policy, amountDisplay, distanceData, isDescripti
                     shouldShowTimeRequestFields={false}
                     policy={policy}
                     shouldDisplayFieldError={errorState.shouldDisplayFieldError}
-                    formError={errorState.formError}
-                    clearFormErrors={errorState.clearFormErrors}
-                    setFormError={errorState.setFormError}
                 />
             )}
 

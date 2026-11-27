@@ -1,5 +1,6 @@
 import {renderHook} from '@testing-library/react-native';
 
+import {NO_FIELD_ERRORS} from '@components/MoneyRequestConfirmationList/getConfirmationFieldErrors';
 import type {UseConfirmationValidationParams} from '@components/MoneyRequestConfirmationList/hooks/useConfirmationValidation';
 import useConfirmationValidation from '@components/MoneyRequestConfirmationList/hooks/useConfirmationValidation';
 
@@ -82,13 +83,14 @@ const baseParams = {
     iouMerchant: 'Coffee Shop',
     iouCategory: '',
     iouCurrencyCode: 'USD',
-    iouAttendees: [],
+    reportOwnerAsAttendee: undefined,
     policy: undefined,
     policyTags: undefined,
     policyTagLists: [],
     policyCategories: undefined,
     selectedParticipants: [P2P_PARTICIPANT],
     currentUserPersonalDetails: {accountID: 1} as CurrentUserPersonalDetails,
+    currentUserLogin: undefined,
     isEditingSplitBill: false,
     isMerchantRequired: false,
     shouldShowTax: false,
@@ -103,6 +105,7 @@ const baseParams = {
     isReadOnly: false,
     shouldShowDate: true,
     isTaxAmountEmpty: false,
+    shouldShowAttendees: true,
 } satisfies UseConfirmationValidationParams;
 
 function createValidationParamsForParticipant(
@@ -225,6 +228,26 @@ describe('useConfirmationValidation', () => {
         expect(result.current.validate()).toEqual({errorKey: 'violations.categoryOutOfPolicy'});
     });
 
+    it('reports a disabled category before the attendees it needs', () => {
+        // Given a workspace expense in a category that needs attendees, which the admin has since disabled
+        const params = createValidationParamsForParticipant(
+            POLICY_EXPENSE_CHAT_PARTICIPANT,
+            {
+                iouCategory: 'Meals',
+                policy: createMock<OnyxTypes.Policy>({type: CONST.POLICY.TYPE.CORPORATE, isAttendeeTrackingEnabled: true}),
+                policyCategories: createMock<OnyxTypes.PolicyCategories>({Meals: {name: 'Meals', enabled: false, areAttendeesRequired: true}}),
+            },
+            {amount: 100, isAmountSet: true, category: 'Meals'},
+        );
+
+        // When the user confirms
+        const {result} = renderHook(() => useConfirmationValidation(params));
+
+        // Then the category is reported, since the user has to change it and its attendee rule then no longer applies
+        expect(result.current.validate()).toEqual({errorKey: 'violations.categoryOutOfPolicy'});
+        expect(result.current.fieldErrors).toEqual({});
+    });
+
     it('returns invalidSubrateLength for per-diem with no sub-rates', () => {
         const {result} = renderHook(() =>
             useConfirmationValidation({
@@ -327,7 +350,8 @@ describe('useConfirmationValidation', () => {
         expect(result.current.validate()).toEqual({errorKey: null});
     });
 
-    it('returns invalidAmount for split with zero amount when fields are filled', () => {
+    it('blocks an edited split with a $0 amount on its amount field', () => {
+        // Given a split being edited whose other fields are filled in while its amount is $0
         const {result} = renderHook(() =>
             useConfirmationValidation({
                 ...baseParams,
@@ -337,7 +361,29 @@ describe('useConfirmationValidation', () => {
                 transactionReport: createMock<OnyxTypes.Report>({type: CONST.REPORT.TYPE.IOU}),
             }),
         );
-        expect(result.current.validate()).toEqual({errorKey: 'iou.error.invalidAmount'});
+
+        // When the user saves the split
+        // Then the amount field blocks it, so the save scrolls to that field instead of only naming the problem in the footer
+        expect(result.current.validate()).toEqual({isFieldError: true});
+        expect(result.current.fieldErrors).toEqual({amount: 'common.error.enterAmount'});
+    });
+
+    it('marks an edited split as confirmed when its amount field blocks while its saved amount is still missing', () => {
+        // Given a split being edited whose receipt left the amount at $0, so its required fields are still empty
+        const {result} = renderHook(() =>
+            useConfirmationValidation({
+                ...baseParams,
+                isEditingSplitBill: true,
+                iouAmount: 0,
+                transaction: createTransactionBase({amount: 0, merchant: 'Coffee'}),
+                transactionReport: createMock<OnyxTypes.Report>({type: CONST.REPORT.TYPE.IOU}),
+            }),
+        );
+
+        // When the user saves the split
+        // Then the amount field blocks it and the split is marked as confirmed, so its missing-fields message shows on this same Save
+        expect(result.current.validate()).toEqual({isFieldError: true, shouldSetDidConfirmSplit: true});
+        expect(result.current.fieldErrors).toEqual({amount: 'common.error.enterAmount'});
     });
 
     it('returns errorKey: null on successful non-PAY validation', () => {
@@ -767,7 +813,7 @@ describe('useConfirmationValidation', () => {
     });
 
     describe('amount validation — split bill editing', () => {
-        it('returns invalidAmount when editing a split bill with zero amount and required fields otherwise filled', () => {
+        it('asks for the amount when editing a split between people down to $0', () => {
             // Given a split between people being edited down to a $0 amount
             const splitParticipants = [P2P_PARTICIPANT, {accountID: 3, isPolicyExpenseChat: false} as Participant];
             const {result} = renderHook(() =>
@@ -786,9 +832,9 @@ describe('useConfirmationValidation', () => {
             );
 
             // When the user saves the split
-            // Then the 1:1 $0 guard on the amount field blocks confirmation, since it runs before the split-specific amount check
+            // Then the edited split's own amount rule flags the field, ahead of the 1:1 $0 guard, so the message matches the one shown before any save
             expect(result.current.validate()).toEqual({isFieldError: true});
-            expect(result.current.fieldErrors).toEqual({amount: 'common.error.invalidAmount'});
+            expect(result.current.fieldErrors).toEqual({amount: 'common.error.enterAmount'});
         });
 
         it('returns fieldRequired for split IOU type with unset manual amount and P2P participants', () => {
@@ -855,7 +901,8 @@ describe('useConfirmationValidation', () => {
             expect(result.current.fieldErrors).toEqual({amount: 'common.error.invalidAmount'});
         });
 
-        it('returns iou.error.invalidAmount when editing split bill with zero amount and isAmountSet true', () => {
+        it('asks for the amount when editing a workspace split whose typed amount is $0', () => {
+            // Given a workspace split being edited after the user typed a $0 amount
             const splitParticipants = [POLICY_EXPENSE_CHAT_PARTICIPANT, {accountID: 3, isPolicyExpenseChat: false} as Participant];
             const {result} = renderHook(() =>
                 useConfirmationValidation({
@@ -872,7 +919,11 @@ describe('useConfirmationValidation', () => {
                     transactionReport: createMock<OnyxTypes.Report>({type: CONST.REPORT.TYPE.IOU}),
                 }),
             );
-            expect(result.current.validate()).toEqual({errorKey: 'iou.error.invalidAmount'});
+
+            // When the user saves the split
+            // Then the amount field blocks it, since a split of $0 has nothing to divide
+            expect(result.current.validate()).toEqual({isFieldError: true});
+            expect(result.current.fieldErrors).toEqual({amount: 'common.error.enterAmount'});
         });
     });
 
@@ -970,9 +1021,14 @@ describe('useConfirmationValidation', () => {
             return createValidationParamsForParticipant(POLICY_EXPENSE_CHAT_PARTICIPANT, {shouldShowTax: true, ...overrides}, {amount: 100, isAmountSet: true});
         }
 
-        it('returns invalidAmount when the inline tax amount is left empty', () => {
+        it('blocks on the tax amount field when the inline tax amount is left empty', () => {
+            // Given a workspace expense with tax whose tax amount input was emptied
             const {result} = renderHook(() => useConfirmationValidation(createTaxValidationParams({isTaxAmountEmpty: true})));
-            expect(result.current.validate()).toEqual({errorKey: 'iou.error.invalidAmount'});
+
+            // When the user confirms
+            // Then the tax amount field itself is flagged, not the footer with wording about the expense amount
+            expect(result.current.validate()).toEqual({isFieldError: true});
+            expect(result.current.fieldErrors).toEqual({taxAmount: 'common.error.fieldRequired'});
         });
 
         it('does not block confirmation when the inline tax amount is populated', () => {
@@ -1003,6 +1059,22 @@ describe('useConfirmationValidation', () => {
         it('does not block when the tax section is hidden for this policy', () => {
             const {result} = renderHook(() => useConfirmationValidation(createTaxValidationParams({shouldShowTax: false, isTaxAmountEmpty: true})));
             expect(result.current.validate()).toEqual({errorKey: null});
+        });
+
+        it('reports a tax rate the workspace no longer has, rather than a limit worked out without it', () => {
+            // Given a workspace expense with a $0.50 tax amount whose tax rate the workspace no longer has
+            const params = createValidationParamsForParticipant(
+                POLICY_EXPENSE_CHAT_PARTICIPANT,
+                {shouldShowTax: true, policy: createMock<OnyxTypes.Policy>({taxRates: {taxes: {TAX_10: {name: 'Tax 10%', value: '10%'}}}})},
+                {amount: 100, isAmountSet: true, taxCode: 'id_REMOVED', taxAmount: 50},
+            );
+
+            // When the user confirms
+            const {result} = renderHook(() => useConfirmationValidation(params));
+
+            // Then the rate is reported, since the tax amount can only be checked against a rate the workspace has
+            expect(result.current.validate()).toEqual({errorKey: 'violations.taxOutOfPolicy'});
+            expect(result.current.fieldErrors).toEqual({});
         });
     });
 
@@ -1175,31 +1247,76 @@ describe('useConfirmationValidation', () => {
         });
 
         it('runs every check on the receipt on screen before another receipt with a field error blocks confirmation', () => {
-            // Given a multi-scan on a Control workspace whose receipt on screen is in a category that requires attendees but has none, while another receipt holds a typed merchant that isn't allowed
-            const controlPolicy: OnyxTypes.Policy = {...createRandomPolicy(1), type: CONST.POLICY.TYPE.CORPORATE, isAttendeeTrackingEnabled: true};
-            const policyCategories = {Meals: createMock<OnyxTypes.PolicyCategory>({name: 'Meals', enabled: true, areAttendeesRequired: true})};
+            // Given a multi-scan whose receipt on screen is in a category the workspace turned off, while another receipt holds a typed merchant that isn't allowed
+            const disabledCategories = {Meals: createMock<OnyxTypes.PolicyCategory>({name: 'Meals', enabled: false})};
             const siblingTransactions = [createSiblingReceipt({...COMPLETE_SCAN_FIELDS, merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT})];
             const params = createScanValidationParams(COMPLETE_SCAN_FIELDS, {
                 iouAmount: 1000,
                 iouMerchant: 'Starbucks',
                 iouCategory: 'Meals',
-                policy: controlPolicy,
-                policyCategories,
-                currentUserPersonalDetails: createMock<CurrentUserPersonalDetails>({accountID: 1, email: 'owner@example.com'}),
+                policyCategories: disabledCategories,
                 siblingTransactions,
             });
             const {result, rerender} = renderHook((props: UseConfirmationValidationParams) => useConfirmationValidation(props), {initialProps: params});
 
             // When the user confirms from the receipt on screen
-            // Then its missing attendees block first, so this receipt is fixed before Create moves on to the other one
-            expect(result.current.validate()).toEqual({errorKey: 'violations.missingAttendees'});
+            // Then its category blocks first, so this receipt is fixed before Create moves on to the other one
+            expect(result.current.validate()).toEqual({errorKey: 'violations.categoryOutOfPolicy'});
 
-            // When an attendee is added and the user confirms again
-            rerender({...params, iouAttendees: [{email: 'guest@example.com', displayName: 'Guest', avatarUrl: ''}]});
+            // When the category is turned back on and the user confirms again
+            rerender({...params, policyCategories: {Meals: createMock<OnyxTypes.PolicyCategory>({name: 'Meals', enabled: true})}});
 
             // Then the other receipt's merchant blocks confirmation, since Create submits both receipts
             expect(result.current.validate()).toEqual({isFieldError: true});
             expect(result.current.siblingFieldErrors).toEqual({transactionID: 'other-txn', fieldErrors: {merchant: 'iou.error.invalidMerchant'}});
+        });
+
+        // A Control workspace whose "Meals" category requires attendees besides the owner
+        const attendeeRuleOverrides: ValidationParamsOverrides = {
+            iouAmount: 1000,
+            iouMerchant: 'Starbucks',
+            iouCategory: 'Meals',
+            policy: {...createRandomPolicy(1), type: CONST.POLICY.TYPE.CORPORATE, isAttendeeTrackingEnabled: true},
+            policyCategories: {Meals: createMock<OnyxTypes.PolicyCategory>({name: 'Meals', enabled: true, areAttendeesRequired: true})},
+            currentUserLogin: 'owner@example.com',
+        };
+        const GUEST_ATTENDEES = [{email: 'guest@example.com', displayName: 'Guest', avatarUrl: ''}];
+
+        it('blocks on the attendees field while a category that needs attendees has none, and passes once one is added', () => {
+            // Given a scan on a Control workspace in a category that requires attendees, with nobody but the owner attending
+            const {result, rerender} = renderHook((props: UseConfirmationValidationParams) => useConfirmationValidation(props), {
+                initialProps: createScanValidationParams({...COMPLETE_SCAN_FIELDS, category: 'Meals'}, attendeeRuleOverrides),
+            });
+
+            // When the user confirms
+            // Then the attendees field is flagged, so the confirm scrolls to it instead of failing with nothing on screen
+            expect(result.current.validate()).toEqual({isFieldError: true});
+            expect(result.current.fieldErrors).toEqual({attendees: 'violations.missingAttendees'});
+
+            // When a guest is added and the user confirms again
+            rerender(createScanValidationParams({...COMPLETE_SCAN_FIELDS, category: 'Meals', comment: {attendees: GUEST_ATTENDEES}}, attendeeRuleOverrides));
+
+            // Then nothing blocks, since the error is worked out from the expense's attendees
+            expect(result.current.validate()).toEqual({errorKey: null});
+        });
+
+        it('blocks a split with the missing-attendees error in the footer, since a split has no attendees field', () => {
+            // Given a split on a Control workspace in a category that requires attendees, with nobody but the owner attending
+            const splitOverrides: ValidationParamsOverrides = {...attendeeRuleOverrides, iouType: CONST.IOU.TYPE.SPLIT, shouldShowAttendees: false};
+            const {result, rerender} = renderHook((props: UseConfirmationValidationParams) => useConfirmationValidation(props), {
+                initialProps: createScanValidationParams({...COMPLETE_SCAN_FIELDS, category: 'Meals'}, splitOverrides),
+            });
+
+            // When the user confirms
+            // Then no field is flagged, so nothing scrolls toward a field that isn't there, and the footer says why the split is blocked
+            expect(result.current.fieldErrors).toBe(NO_FIELD_ERRORS);
+            expect(result.current.validate()).toEqual({errorKey: 'violations.missingAttendees'});
+
+            // When the expense gets a guest and the user confirms again
+            rerender(createScanValidationParams({...COMPLETE_SCAN_FIELDS, category: 'Meals', comment: {attendees: GUEST_ATTENDEES}}, splitOverrides));
+
+            // Then nothing blocks
+            expect(result.current.validate()).toEqual({errorKey: null});
         });
 
         it('requires nothing on surfaces that do not expose the scan fields (splits, test receipts)', () => {

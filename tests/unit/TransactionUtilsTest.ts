@@ -5201,6 +5201,46 @@ describe('TransactionUtils', () => {
         });
 
         describe('description field comparison', () => {
+            it('normalizes and deduplicates description choices before review', () => {
+                // Given API descriptions can contain numbers or missing text despite the declared string type
+                const descriptions = [12345, '12345', 0, '0', undefined, null, '', 'Lunch', 'Lunch'];
+                const [reviewingTransaction, ...duplicates] = descriptions.map((description): Transaction => Object.assign(generateTransaction(), {comment: {comment: description}}));
+                duplicates.push(generateTransaction({comment: {}}), generateTransaction({comment: undefined}));
+
+                // When different descriptions require a review step
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+
+                // Then each normalized value appears once, with zero distinct from an empty description
+                expect(result.change.description).toEqual(['12345', '0', '', 'Lunch']);
+                expect(result.keep.description).toBeUndefined();
+            });
+
+            it.each([12345, 0])('keeps a normalized string when numeric %s matches a string description', (description) => {
+                // Given the first transaction has a numeric API description and its duplicate has equivalent text
+                const reviewingTransaction = Object.assign(generateTransaction(), {comment: {comment: description}});
+                const duplicates = [generateTransaction({comment: {comment: description.toString()}})];
+
+                // When matching descriptions bypass the review screen
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+
+                // Then review state still receives a string rather than the raw number
+                expect(result.keep.description).toBe(description.toString());
+                expect(result.change.description).toBeUndefined();
+            });
+
+            it.each([undefined, {}, {comment: null}, {comment: ''}])('keeps an empty string for empty comment %j', (comment) => {
+                // Given empty API comment variants should all mean no description
+                const reviewingTransaction = Object.assign(generateTransaction(), {comment});
+                const duplicates = [generateTransaction({comment: {comment: ''}})];
+
+                // When the descriptions are compared
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+
+                // Then an empty comment object cannot leak into review state
+                expect(result.keep.description).toBe('');
+                expect(result.change.description).toBeUndefined();
+            });
+
             it('should keep description when all descriptions are the same', () => {
                 const reviewingTransaction = generateTransaction({
                     comment: {comment: 'Business meeting'},
@@ -5934,6 +5974,20 @@ describe('TransactionUtils', () => {
     });
 
     describe('buildNewTransactionAfterReviewingDuplicates', () => {
+        it.each(['0', ''])('preserves selected description %j through confirmation and merge', (description) => {
+            // Given a reviewed description must not fall back to the original text, even when it is empty
+            const transaction = generateTransaction({comment: {comment: 'Original', customUnit: {name: 'Distance'}}});
+            const reviewDuplicates = createMock<ReviewDuplicates>({description, comment: transaction.comment});
+
+            // When confirmation and the merge request are built
+            const updatedTransaction = buildNewTransactionAfterReviewingDuplicates(reviewDuplicates, transaction);
+            const params = buildMergeDuplicatesParams(reviewDuplicates, [], updatedTransaction, transaction);
+
+            // Then both retain the selected string without discarding comment metadata
+            expect(updatedTransaction.comment).toEqual({...transaction.comment, comment: description});
+            expect(params.comment).toBe(description);
+        });
+
         it('preserves the kept transaction tax amount when the selected tax code matches the existing tax code', () => {
             const duplicatedTransaction = generateTransaction({
                 transactionID: 'transaction1',

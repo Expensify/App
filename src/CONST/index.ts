@@ -136,7 +136,6 @@ type UnofferedOnboardingAccountingConnection =
     // Covered by the Microsoft Dynamics option, and still behind the BUSINESS_CENTRAL beta.
     | typeof CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL
     | typeof CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS
-    // Still behind the DIGITS beta.
     | typeof CONST.POLICY.CONNECTIONS.NAME.DIGITS;
 
 type UnhandledAccountingConnection = Exclude<TupleToUnion<typeof CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES>, OnboardingAccountingOption | UnofferedOnboardingAccountingConnection>;
@@ -367,6 +366,15 @@ const CONST = {
         FADE_IN_DURATION: 350,
         PAUSE_DURATION: 250,
         RECOVERY_DURATION: 150,
+    },
+    MARQUEE_ANIMATION: {
+        MS_PER_PIXEL: 25,
+        MIN_DURATION: 600,
+        HOLD_DURATION: 2000,
+    },
+    FLAT_NAV_ROW_ACTION_ANIMATION: {
+        DURATION: 150,
+        HIDDEN_OFFSET: 8,
     },
     ANIMATION_IN_TIMING: 100,
     COMPOSER_FOCUS_DELAY: 150,
@@ -1611,7 +1619,6 @@ const CONST = {
         VENDOR_MATCHING: 'vendorMatching',
         INDIRECT_TAG_UPLOADS: 'indirectTagUploads',
         BUSINESS_CENTRAL: 'businessCentral',
-        DIGITS: 'digits',
         EXACT_ONLINE: 'exactOnline2026',
         ODOO: 'odoo2026',
         SAGE_ACCOUNTING: 'sageAccounting',
@@ -4530,6 +4537,7 @@ const CONST = {
         CREDIT_CARD_ACCOUNTCODE: 'creditCardAccountCode',
         EXPORT_TO_MULTIPLE_ACCOUNTS: 'exportToMultipleAccounts',
         ACCOUNTING_METHOD: 'accountingMethod',
+        AUTO_CREATE_VENDOR: 'autoCreateVendor',
         AUTO_SYNC: 'autoSync',
         SYNC_REIMBURSED_REPORTS: 'syncReimbursedReports',
         BILL_PAYMENT_ACCOUNT_CODE: 'billPaymentAccountCode',
@@ -7772,6 +7780,7 @@ const CONST = {
     },
     MERGE_ACCOUNT_RESULTS: {
         SUCCESS: 'success',
+        PENDING_DOMAIN_APPROVAL: 'pending_domain_approval',
         ERR_2FA: 'err_2fa',
         ERR_NO_EXIST: 'err_no_exist',
         ERR_SMART_SCANNER: 'err_smart_scanner',
@@ -10870,6 +10879,11 @@ const CONST = {
         VIOLATION_STAGE: {
             SUBMITTED: 'submitted',
             APPROVED: 'approved',
+        },
+        DETAILS_SECTION: {
+            SUMMARY: 'summary',
+            RECENT_HISTORY: 'recentHistory',
+            TOP_EXPENSES: 'topExpenses',
         },
     },
 

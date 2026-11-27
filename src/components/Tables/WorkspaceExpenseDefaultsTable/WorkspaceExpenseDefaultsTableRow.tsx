@@ -100,12 +100,10 @@ function WorkspaceExpenseDefaultsTableRow({item, rowIndex, shouldUseNarrowTableL
     return (
         <>
             {!!showSectionHeader && (
-                <View style={[styles.mh5, styles.pv2, styles.ph3, StyleUtils.getBackgroundColorStyle(theme.hoverComponentBG), rowIndex === 0 ? styles.borderBottom : styles.borderTop]}>
-                    <TextWithTooltip
-                        text={translate(SECTION_HEADER_TRANSLATION_KEYS[item.section])}
-                        style={[styles.textMicroBoldSupporting, styles.lh14]}
-                    />
-                </View>
+                <Table.SectionHeader
+                    rowIndex={rowIndex}
+                    text={translate(SECTION_HEADER_TRANSLATION_KEYS[item.section])}
+                />
             )}
             <Table.Row
                 interactive

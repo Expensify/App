@@ -1,0 +1,117 @@
+diff --git a/node_modules/@react-native-community/netinfo/lib/commonjs/internal/nativeModule.web.js b/node_modules/@react-native-community/netinfo/lib/commonjs/internal/nativeModule.web.js
+index 22f56b3..0b8b726 100644
+--- a/node_modules/@react-native-community/netinfo/lib/commonjs/internal/nativeModule.web.js
++++ b/node_modules/@react-native-community/netinfo/lib/commonjs/internal/nativeModule.web.js
+@@ -180,11 +180,12 @@ const RNCNetInfo = {
+ 
+           if (connection) {
+             connection.addEventListener('change', nativeHandler);
+-          } else {
+-            if (isWindowPresent) {
+-              window.addEventListener('online', nativeHandler, false);
+-              window.addEventListener('offline', nativeHandler, false);
+-            }
++          } // Connection changes can arrive before navigator.onLine is updated.
++
++
++          if (isWindowPresent) {
++            window.addEventListener('online', nativeHandler, false);
++            window.addEventListener('offline', nativeHandler, false);
+           } // Remember handlers
+ 
+ 
+@@ -205,11 +206,12 @@ const RNCNetInfo = {
+ 
+           if (connection) {
+             connection.removeEventListener('change', nativeHandler);
+-          } else {
+-            if (isWindowPresent) {
+-              window.removeEventListener('online', nativeHandler);
+-              window.removeEventListener('offline', nativeHandler);
+-            }
++          }
++
++
++          if (isWindowPresent) {
++            window.removeEventListener('online', nativeHandler);
++            window.removeEventListener('offline', nativeHandler);
+           } // Remove handlers
+ 
+ 
+diff --git a/node_modules/@react-native-community/netinfo/lib/module/internal/nativeModule.web.js b/node_modules/@react-native-community/netinfo/lib/module/internal/nativeModule.web.js
+index dd689ef..d5b8ceb 100644
+--- a/node_modules/@react-native-community/netinfo/lib/module/internal/nativeModule.web.js
++++ b/node_modules/@react-native-community/netinfo/lib/module/internal/nativeModule.web.js
+@@ -173,11 +173,12 @@ const RNCNetInfo = {
+ 
+           if (connection) {
+             connection.addEventListener('change', nativeHandler);
+-          } else {
+-            if (isWindowPresent) {
+-              window.addEventListener('online', nativeHandler, false);
+-              window.addEventListener('offline', nativeHandler, false);
+-            }
++          } // Connection changes can arrive before navigator.onLine is updated.
++
++
++          if (isWindowPresent) {
++            window.addEventListener('online', nativeHandler, false);
++            window.addEventListener('offline', nativeHandler, false);
+           } // Remember handlers
+ 
+ 
+@@ -198,11 +199,12 @@ const RNCNetInfo = {
+ 
+           if (connection) {
+             connection.removeEventListener('change', nativeHandler);
+-          } else {
+-            if (isWindowPresent) {
+-              window.removeEventListener('online', nativeHandler);
+-              window.removeEventListener('offline', nativeHandler);
+-            }
++          }
++
++
++          if (isWindowPresent) {
++            window.removeEventListener('online', nativeHandler);
++            window.removeEventListener('offline', nativeHandler);
+           } // Remove handlers
+ 
+ 
+diff --git a/node_modules/@react-native-community/netinfo/src/internal/nativeModule.web.ts b/node_modules/@react-native-community/netinfo/src/internal/nativeModule.web.ts
+index cfbf5a3..12a9e61 100644
+--- a/node_modules/@react-native-community/netinfo/src/internal/nativeModule.web.ts
++++ b/node_modules/@react-native-community/netinfo/src/internal/nativeModule.web.ts
+@@ -253,11 +253,11 @@ const RNCNetInfo: NetInfoNativeModule = {
+ 
+         if (connection) {
+           connection.addEventListener('change', nativeHandler);
+-        } else {
+-          if (isWindowPresent) {
+-            window.addEventListener('online', nativeHandler, false);
+-            window.addEventListener('offline', nativeHandler, false);
+-          }
++        }
++        // Connection changes can arrive before navigator.onLine is updated.
++        if (isWindowPresent) {
++          window.addEventListener('online', nativeHandler, false);
++          window.addEventListener('offline', nativeHandler, false);
+         }
+ 
+         // Remember handlers
+@@ -278,11 +278,10 @@ const RNCNetInfo: NetInfoNativeModule = {
+ 
+         if (connection) {
+           connection.removeEventListener('change', nativeHandler);
+-        } else {
+-          if (isWindowPresent) {
+-            window.removeEventListener('online', nativeHandler);
+-            window.removeEventListener('offline', nativeHandler);
+-          }
++        }
++        if (isWindowPresent) {
++          window.removeEventListener('online', nativeHandler);
++          window.removeEventListener('offline', nativeHandler);
+         }
+ 
+         // Remove handlers

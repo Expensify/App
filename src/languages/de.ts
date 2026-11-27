@@ -1355,6 +1355,13 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: 'Genehmigende',
             chartTitle: (title: string, stage: string) => `${title} (${stage})`,
         },
+        recentHistory: {
+            title: 'Letzte Aktivitäten',
+            dayAverageFor: (count: number, item: string) => `${count}-Tage-Durchschnitt für ${item}`,
+            weekAverageFor: (count: number, item: string) => `${count}-Wochen-Durchschnitt für ${item}`,
+            monthAverageFor: (count: number, item: string) => `${count}-Monatsdurchschnitt für ${item}`,
+            quarterAverageFor: (count: number, item: string) => `${count}-Quartalsdurchschnitt für ${item}`,
+        },
         flaggedExpenses: 'Markierte Ausgaben',
         noFlaggedExpensesInRange: 'Keine markierten Ausgaben in diesem Zeitraum',
     },
@@ -2736,6 +2743,12 @@ const translations: TranslationDeepObject<typeof en> = {
             limitedSupport: 'Wir unterstützen das Zusammenführen von Konten in New Expensify noch nicht. Bitte führe diese Aktion stattdessen in Expensify Classic aus.',
             reachOutForHelp: '<muted-text><centered-text>Wende dich bei Fragen gerne an den <concierge-link>Concierge</concierge-link>!</centered-text></muted-text>',
             goToExpensifyClassic: 'Zu Expensify Classic wechseln',
+        },
+        mergePendingDomainAdmin: {
+            heading: 'Domainbeschränkte E-Mail',
+            description:
+                '<muted-text><centered-text>Ein Domain-Administrator wurde benachrichtigt, um die Anfrage zur Zusammenführung von Konten zu genehmigen.</centered-text></muted-text>',
+            gotIt: 'Verstanden',
         },
         mergeFailureSAMLDomainControlDescription: (email: string) =>
             `<muted-text><centered-text>Du kannst <strong>${email}</strong> nicht zusammenführen, da es von <strong>${email.split('@').at(1) ?? ''}</strong> verwaltet wird. Bitte <concierge-link>wende dich für Unterstützung an Concierge</concierge-link>.</centered-text></muted-text>`,
@@ -4516,9 +4529,10 @@ ${amount} für ${merchant} – ${date}`,
     },
     welcomeSignUpForm: {
         join: 'Beitreten',
-        transactionalSMSConsent: 'Mit der Angabe meiner Telefonnummer stimme ich zu, transaktionsbezogene Kontobenachrichtigungen von Expensify zu erhalten.',
-        transactionalSMSConsentFinePrint: 'Es können die üblichen Gebühren für Nachrichten und Daten anfallen. Antworte STOP, um dich abzumelden.',
+        smsConsentIntro: 'Mit der Angabe meiner Telefonnummer:',
+        transactionalSMSConsent: 'Ich stimme zu, transaktionsbezogene Kontobenachrichtigungen von Expensify zu erhalten.',
         marketingSMSConsent: 'Ich stimme zu, Marketing-SMS von Expensify zu erhalten.',
+        termsWithSMSRates: `<muted-text-xs>Durch das Einloggen stimmst du den <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Nutzungsbedingungen</a> und der <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Datenschutzerklärung</a> zu. Es können die üblichen Gebühren für Nachrichten und Daten anfallen. Die Nachrichtenhäufigkeit variiert. Antworte HELP, um Hilfe zu erhalten. Antworte STOP, um dich abzumelden.</muted-text-xs>`,
     },
     detailsPage: {
         localTime: 'Ortszeit',
@@ -6878,6 +6892,8 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 description: 'Wählen Sie aus, wohin erstattungsfähige Ausgaben exportiert werden sollen.',
                 accountRequiredError: 'Bitte wählen Sie ein Rillet-Erstattungskonto aus.',
             },
+            autoCreateVendor: 'Lieferanten automatisch erstellen',
+            autoCreateVendorDescription: 'Expensify erstellt in Rillet automatisch Lieferanten, wenn sie noch nicht vorhanden sind.',
             achPaymentAccount: {label: 'ACH-Zahlungskonto', description: 'Wählen Sie aus, von wo Berichte bezahlt werden sollen, und wir erstellen die Zahlung in Rillet.'},
         },
         dualEntry: {

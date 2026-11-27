@@ -261,15 +261,15 @@ describe('FlatNavSubnav', () => {
         expect(onItemPress).toHaveBeenCalledWith(savedItem);
     });
 
-    it('should constrain the pressable wrapper so a long label leaves room for the three-dot menu', async () => {
-        // Given a saved search with a very long title
-        const savedItem = createSavedItem('1', {title: 'Very long saved search title that needs to be truncated to leave room for the three-dot menu'});
+    it('should constrain the pressable wrapper so a long label truncates within the row under the three-dot menu', async () => {
+        // Given a saved search with a title too long for its row
+        const savedItem = createSavedItem('1', {title: 'Very long saved search title that needs to be truncated within its row'});
 
         // When the subnav renders
         render(<SubnavUnderTest groups={[createSavedGroup([savedItem])]} />);
         await waitForBatchedUpdatesWithAct();
 
-        // Then the pressable wrapper is constrained to flex1 so the long title truncates without pushing the three-dot menu beyond the row's bounds
+        // Then the pressable wrapper is constrained to flex1 so the long title truncates within the row, and the three-dot menu drawn over the row's end is still rendered
         const row = getRow(savedItem.title);
         expect(StyleSheet.flatten(row.parent?.props.style)).toMatchObject({flex: 1});
         expect(screen.getByText(`menu:${translateLocal('common.rename')}`)).toBeOnTheScreen();

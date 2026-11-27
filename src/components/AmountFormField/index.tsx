@@ -6,7 +6,7 @@ import AmountFormFieldSignFlipButton from './primitives/AmountFormFieldSignFlipB
 
 /**
  * AmountFormField – a composable field for editing amount values.
- * For FormProvider integration, use the `AmountForm` adapter with `displayAsTextInput` instead.
+ * For FormProvider integration, use the `AmountFormInline` adapter instead.
  * See contributingGuides/NUMBER_WITH_SYMBOL_FORM_MIGRATION.md (section 7).
  *
  * The root component owns the canonical value, the selection, validation, and

@@ -80,8 +80,8 @@ type InsightsChartWidgetProps = {
     /** Average the backend returned for the chart's metric, drawn in the Average compare mode */
     average: ChartAverage | undefined;
 
-    /** Whether GetInsights answered the dashboard's query */
-    isDashboardLoaded: boolean | undefined;
+    /** Whether the GetInsights response the chart's average comes from has loaded, from the current GetInsights response or the last loaded one */
+    isAverageLoaded: boolean | undefined;
 
     /** Workspaces the Spend drill-down is limited to so it matches the Top spenders ranking */
     eligiblePolicyIDs?: string[];
@@ -141,7 +141,7 @@ function InsightsChartWidget({
     averageQueryJSON,
     averageSnapshot,
     average,
-    isDashboardLoaded,
+    isAverageLoaded,
     eligiblePolicyIDs,
     stages,
     isAwaitingData,
@@ -174,7 +174,7 @@ function InsightsChartWidget({
     }
 
     const {data, state, comparison} = useInsightsChartData(
-        {chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageQueryJSON, averageSnapshot, average, isDashboardLoaded, stages, isAwaitingData},
+        {chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageQueryJSON, averageSnapshot, average, isAverageLoaded, stages, isAwaitingData},
         filters,
     );
     const groupBy = chart.groupBy ?? getQueryGroupBy(filters);

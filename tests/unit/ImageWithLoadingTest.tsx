@@ -1,5 +1,6 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
+import ImageLoadEventContext from '@components/ImageLoadEventContext';
 import ImageWithLoading from '@components/ImageWithLoading';
 
 import CONST from '@src/CONST';
@@ -288,5 +289,79 @@ describe('ImageWithLoading', () => {
         expect(screen.queryByTestId('loading-indicator')).toBeNull();
         expect(screen.queryByTestId('retry-button')).toBeNull();
         expect(onError).not.toHaveBeenCalled();
+    });
+});
+
+describe('ImageWithLoading load events', () => {
+    beforeEach(() => {
+        jest.useFakeTimers();
+        mockIsOffline = false;
+    });
+
+    afterEach(() => {
+        jest.useRealTimers();
+    });
+
+    function renderWithReporter() {
+        const reportImageLoadEvent = jest.fn();
+        render(
+            <ImageLoadEventContext.Provider value={reportImageLoadEvent}>
+                <ImageWithLoading
+                    source={{uri: FULL_IMAGE_URI}}
+                    isAuthTokenRequired={false}
+                />
+            </ImageLoadEventContext.Provider>,
+        );
+        return reportImageLoadEvent;
+    }
+
+    it('reports a stall, a retry and the recovery that follows', () => {
+        // Given a receipt screen that listens for load events, and an image that never sends a byte
+        const reportImageLoadEvent = renderWithReporter();
+        startLoading();
+        act(() => {
+            jest.advanceTimersByTime(200 + CONST.TIMING.IMAGE_LOAD_CEILING_TIMEOUT);
+        });
+
+        // Then the stall is reported with its reason and source
+        expect(reportImageLoadEvent).toHaveBeenLastCalledWith({type: 'stall', reason: 'ceiling', component: 'ImageWithLoading', source: FULL_IMAGE_URI});
+
+        // When the user retries and the image then loads
+        fireEvent.press(screen.getByTestId('retry-button'));
+        fireEvent(screen.getByTestId('full-image'), 'load', {nativeEvent: {width: 100, height: 100}});
+
+        // Then the retry and the recovery are reported in order
+        expect(reportImageLoadEvent).toHaveBeenNthCalledWith(2, {type: 'retry', component: 'ImageWithLoading', source: FULL_IMAGE_URI});
+        expect(reportImageLoadEvent).toHaveBeenNthCalledWith(3, {type: 'recovered', component: 'ImageWithLoading', source: FULL_IMAGE_URI});
+    });
+
+    it('reports an error, flagging one that comes after the stall', () => {
+        // Given an image that stalls
+        const reportImageLoadEvent = renderWithReporter();
+        startLoading();
+        act(() => {
+            jest.advanceTimersByTime(200 + CONST.TIMING.IMAGE_LOAD_CEILING_TIMEOUT);
+        });
+
+        // When the transport later gives up
+        fireEvent(screen.getByTestId('full-image'), 'error');
+
+        // Then the error is reported as coming after the timeout, so the user is still looking at the notice
+        expect(reportImageLoadEvent).toHaveBeenLastCalledWith({type: 'error', afterTimeout: true, component: 'ImageWithLoading', source: FULL_IMAGE_URI});
+    });
+
+    it('reports nothing for an image that loads in time', () => {
+        // Given an image that loads before the timeout
+        const reportImageLoadEvent = renderWithReporter();
+        startLoading();
+        fireEvent(screen.getByTestId('full-image'), 'load', {nativeEvent: {width: 100, height: 100}});
+
+        // When the timeout would have passed
+        act(() => {
+            jest.advanceTimersByTime(CONST.TIMING.IMAGE_LOAD_CEILING_TIMEOUT);
+        });
+
+        // Then nothing is reported, so normal loads add no log lines
+        expect(reportImageLoadEvent).not.toHaveBeenCalled();
     });
 });

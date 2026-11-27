@@ -51,6 +51,7 @@ import type {InsightsTagLevelOption} from './insightsTagLevels';
 import type {InsightsDashboardChart, InsightsDashboardState} from './resolveDashboardState';
 
 import InsightsAICardRow from './ai/InsightsAICardRow';
+import useShownAIInsights from './ai/useShownAIInsights';
 import InsightsChartWidget from './charts/InsightsChartWidget';
 import InsightsFutureExpensesNote from './charts/InsightsFutureExpensesNote';
 import InsightsPageControls from './controls/InsightsPageControls';
@@ -75,6 +76,7 @@ import InsightsUpsellState from './states/InsightsUpsellState';
 import useInsightsExport from './useInsightsExport';
 import useInsightsFilters from './useInsightsFilters';
 import useInsightsTagLevelOptions from './useInsightsTagLevelOptions';
+import useReusableAverageGraph from './useReusableAverageGraph';
 
 type InsightsDashboardContentProps = {
     dashboardID: InsightsDashboardID;
@@ -282,7 +284,7 @@ function InsightsDashboardContent({
             averageQueryJSON,
             averageSnapshot,
             average,
-            isDashboardLoaded,
+            isAverageLoaded,
             eligiblePolicyIDs,
             stages,
             isAwaitingData,
@@ -300,7 +302,7 @@ function InsightsDashboardContent({
             averageQueryJSON={averageQueryJSON}
             averageSnapshot={averageSnapshot}
             average={average}
-            isDashboardLoaded={isDashboardLoaded}
+            isAverageLoaded={isAverageLoaded}
             eligiblePolicyIDs={eligiblePolicyIDs}
             stages={stages}
             isAwaitingData={isAwaitingData}
@@ -468,6 +470,9 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
     const [hasLoadedBefore = false] = useOnyx(ONYXKEYS.COLLECTION.INSIGHTS, {
         selector: hasStoredDashboardResponse,
     });
+    const isCurrentDashboardLoaded = hasDashboardResponse(dashboard);
+    const {getReusableAverageGraph, reusableAsOfDate} = useReusableAverageGraph({dashboardID, hash, isCurrentDashboardLoaded, filters, violationStages});
+    const shownAIInsights = useShownAIInsights(dashboardID, filters, dashboard?.aiInsights);
     // Until the filters and workspaces load, the charts have no query to read data for, so they show their loading state
     const visibleChartQueries = query
         ? [query.headlineChart, ...query.supportingCharts]
@@ -493,7 +498,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
         !isOffline && isEmptyObject(dashboard?.errors) && !dashboard?.responseJsonCode,
     );
     const charts = visibleChartQueries.map((chartQuery): InsightsDashboardChart => {
-        const graph = dashboard?.graphs?.[chartQuery.chart.graphKey];
+        const graph = isCurrentDashboardLoaded ? dashboard?.graphs?.[chartQuery.chart.graphKey] : getReusableAverageGraph(chartQuery.chart);
         return {
             ...chartQuery,
             snapshot: chartQuery.queryJSON ? snapshots[chartQuery.queryJSON.hash] : undefined,
@@ -504,7 +509,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
                 [CONST.SEARCH.CHART_METRIC.COUNT]: graph?.averageCount,
                 [CONST.SEARCH.CHART_METRIC.DURATION]: graph?.averageDuration,
             },
-            isDashboardLoaded: hasDashboardResponse(dashboard),
+            isAverageLoaded: isCurrentDashboardLoaded || !!graph,
             eligiblePolicyIDs: graph?.eligiblePolicyIDs,
             stages: getEnabledStages(chartQuery.chart, policiesInScope, login, isDashboardPolicyEligible),
             isAwaitingData: isTopTagsWaitingForLevel && chartQuery.chart.graphKey === CONST.INSIGHTS.GRAPH.TOP_TAGS,
@@ -588,17 +593,11 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
                         <InsightsDashboardContent
                             dashboardID={dashboardID}
                             state={state}
-                            aiInsights={dashboard?.aiInsights}
-                            insightsScope={{
-                                searchKey: INSIGHTS_DASHBOARD_SPECS[dashboardID].searchKey,
-                                policyIDs: filters.policyIDs,
-                                date: filters.date,
-                                groupCurrency: filters.groupCurrency,
-                                ...(dashboardID === CONST.INSIGHTS.DASHBOARD.SPEND && {tagLevel: filters.tagLevel}),
-                            }}
+                            aiInsights={shownAIInsights.insights}
+                            insightsScope={shownAIInsights.scope}
                             hasFailedToLoad={!!dashboard?.errors}
                             headlineChart={headlineChart}
-                            asOfDate={dashboard?.asOfDate}
+                            asOfDate={isCurrentDashboardLoaded ? dashboard?.asOfDate : reusableAsOfDate}
                             futureExpenses={dashboard?.futureExpenses}
                             supportingCharts={supportingCharts}
                             filters={filters}

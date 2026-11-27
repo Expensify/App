@@ -200,6 +200,34 @@ describe('Wallet MFA composed providers', () => {
         expect(handleAddCardToWallet).toHaveBeenCalledTimes(1);
     });
 
+    it('does not open the modal when the flow starts offline, so a start after reconnect still works', async () => {
+        // Given the device is offline.
+        mockIsOffline = true;
+        const renderTree = () => (
+            <MultifactorAuthenticationContextProviders>
+                <Probe />
+            </MultifactorAuthenticationContextProviders>
+        );
+        const view = render(renderTree());
+
+        // When the user starts the wallet scenario offline.
+        await act(async () => {
+            await controls.executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.ADD_TO_DIGITAL_WALLET, payload);
+        });
+
+        // Then no empty modal blocks the app.
+        expect(state.isModalOpen).toBe(false);
+        expect(state.scenario).toBeUndefined();
+
+        // When the device reconnects and the user starts the scenario again.
+        mockIsOffline = false;
+        view.rerender(renderTree());
+        await startScenario();
+
+        // Then the flow runs as usual.
+        await waitFor(() => expect(handleAddCardToWallet).toHaveBeenCalledTimes(1));
+    });
+
     it('runs the scenario callback once when the connection flaps while the flow is finalizing', async () => {
         // Given credential checks that hang once the scenario callback has run, holding finalization open.
         let releaseCredentialCheck: ((value: boolean) => void) | undefined;

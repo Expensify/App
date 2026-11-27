@@ -1,4 +1,5 @@
 import useNavigationBarWidth from '@components/Navigation/FlatNavigationBar/useNavigationBarWidth';
+import useShouldUseFlatNavigationBar from '@components/Navigation/FlatNavigationBar/useShouldUseFlatNavigationBar';
 import SkeletonRect from '@components/SkeletonRect';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -28,6 +29,9 @@ type SearchRowSkeletonProps = {
     isLoadMore?: boolean;
     onLayout?: (event: LayoutChangeEvent) => void;
     shouldUseNarrowLayout?: boolean;
+
+    /** Width in px of the column between the navigation bar and the page. Defaults to the Spend column, or 0 when the flat navigation bar replaces it. */
+    sidebarWidth?: number;
 };
 
 const barHeight = 8;
@@ -56,17 +60,20 @@ function SearchRowSkeleton({
     isLoadMore = false,
     onLayout,
     shouldUseNarrowLayout: shouldUseNarrowLayoutProp,
+    sidebarWidth: sidebarWidthProp,
 }: SearchRowSkeletonProps) {
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
     const navigationBarWidth = useNavigationBarWidth();
+    const shouldUseFlatNavigationBar = useShouldUseFlatNavigationBar();
     const {shouldUseNarrowLayout: shouldUseNarrowLayoutResponsive, isLargeScreenWidth} = useResponsiveLayout();
     // The prop lets callers (e.g. SearchStaticList) pin the layout independently of the
     // global responsive breakpoint - useful when the skeleton is rendered in a context
     // whose container width doesn't match the window (e.g. inside a split pane).
     const shouldUseNarrowLayout = shouldUseNarrowLayoutProp ?? shouldUseNarrowLayoutResponsive;
     const {values, pageGutterMargin} = resolveLayoutSpacing(shouldUseNarrowLayout);
-    const leftPaneWidth = variables.sideBarWithLHBWidth + (shouldOffsetByNavigationBar ? navigationBarWidth : 0);
+    const sidebarWidth = sidebarWidthProp ?? (shouldUseFlatNavigationBar ? 0 : variables.sideBarWithLHBWidth);
+    const leftPaneWidth = sidebarWidth + (shouldOffsetByNavigationBar ? navigationBarWidth : 0);
 
     if (shouldUseNarrowLayout) {
         const containerWidth = windowWidth - values.pageGutter * 2;

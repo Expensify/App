@@ -409,4 +409,57 @@ describe('BaseModal', () => {
         // Then the wait is over, so a composer that asks for focus afterwards, like the inline edit composer, still gets it
         expect(isReadyToFocus).toBe(true);
     });
+
+    function loadBaseModalWithStubbedReanimatedModal() {
+        jest.doMock('react', () => React);
+        jest.doMock('@components/Modal/ReanimatedModal', () => ({
+            __esModule: true,
+            default: () => null,
+        }));
+        return jest.requireActual<{default: typeof BaseModalComponent}>('@components/Modal/BaseModal').default;
+    }
+
+    it('calls onModalHide once when it is unmounted while still visible', () => {
+        // Given a visible modal with an onModalHide spy
+        const BaseModal = loadBaseModalWithStubbedReanimatedModal();
+        const onModalHide = jest.fn();
+        const {unmount} = render(
+            <BaseModal
+                isVisible
+                type={CONST.MODAL.MODAL_TYPE.CENTERED}
+                onModalHide={onModalHide}
+            >
+                {null}
+            </BaseModal>,
+        );
+        expect(onModalHide).not.toHaveBeenCalled();
+
+        // When it is unmounted without its isVisible prop turning false, which is how the global modal stack or a removed owner closes a modal
+        unmount();
+
+        // Then onModalHide was called exactly once. Callers that hold state until the modal is gone, such as a menu holding a navigation bar's peek,
+        // need the hide even when the modal's owner is removed, and it must not fire twice
+        expect(onModalHide).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not call onModalHide on unmount when it never became visible', () => {
+        // Given a modal that is not visible from the start, so there is nothing to hide
+        const BaseModal = loadBaseModalWithStubbedReanimatedModal();
+        const onModalHide = jest.fn();
+        const {unmount} = render(
+            <BaseModal
+                isVisible={false}
+                type={CONST.MODAL.MODAL_TYPE.CENTERED}
+                onModalHide={onModalHide}
+            >
+                {null}
+            </BaseModal>,
+        );
+
+        // When it is unmounted
+        unmount();
+
+        // Then onModalHide is not called, otherwise owners would release state they never acquired
+        expect(onModalHide).not.toHaveBeenCalled();
+    });
 });

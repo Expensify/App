@@ -1401,6 +1401,13 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: 'Εγκριτές',
             chartTitle: (title: string, stage: string) => `${title} (${stage})`,
         },
+        recentHistory: {
+            title: 'Πρόσφατο ιστορικό',
+            dayAverageFor: (count: number, item: string) => `${count}ήμερος μέσος όρος για ${item}`,
+            weekAverageFor: (count: number, item: string) => `μέσος όρος ${count} εβδομάδων για ${item}`,
+            monthAverageFor: (count: number, item: string) => `${count}-μηνιαίος μέσος όρος για ${item}`,
+            quarterAverageFor: (count: number, item: string) => `Μέσος όρος ${count} τριμήνων για το στοιχείο ${item}`,
+        },
         flaggedExpenses: 'Επισημασμένες δαπάνες',
         noFlaggedExpensesInRange: 'Δεν υπάρχουν επισημασμένες δαπάνες σε αυτό το εύρος',
     },
@@ -2792,6 +2799,11 @@ const translations: TranslationDeepObject<typeof en> = {
             reachOutForHelp:
                 '<muted-text><centered-text>Μη διστάσετε να <concierge-link>επικοινωνήσετε με το Concierge</concierge-link> αν έχετε οποιεσδήποτε ερωτήσεις!</centered-text></muted-text>',
             goToExpensifyClassic: 'Μετάβαση στο Expensify Classic',
+        },
+        mergePendingDomainAdmin: {
+            heading: 'Ηλεκτρονικό ταχυδρομείο με περιορισμένο τομέα',
+            description: '<muted-text><centered-text>Έχει ειδοποιηθεί ένας διαχειριστής domain για να εγκρίνει το αίτημα συγχώνευσης λογαριασμών.</centered-text></muted-text>',
+            gotIt: 'Το κατάλαβα',
         },
         mergeFailureSAMLDomainControlDescription: (email: string) =>
             `<muted-text><centered-text>Δεν μπορείτε να συγχωνεύσετε το <strong>${email}</strong> επειδή ελέγχεται από το <strong>${email.split('@').at(1) ?? ''}</strong>. Παρακαλούμε <concierge-link>επικοινωνήστε με το Concierge</concierge-link> για βοήθεια.</centered-text></muted-text>`,
@@ -4563,9 +4575,10 @@ ${amount} για ${merchant} - ${date}`,
     },
     welcomeSignUpForm: {
         join: 'Συμμετοχή',
-        transactionalSMSConsent: 'Δίνοντας τον αριθμό τηλεφώνου μου, συμφωνώ να λαμβάνω ειδοποιήσεις συναλλαγών για τον λογαριασμό μου από την Expensify.',
-        transactionalSMSConsentFinePrint: 'Ενδέχεται να ισχύουν οι τυπικές χρεώσεις μηνυμάτων και δεδομένων. Απαντήστε STOP για διακοπή.',
+        smsConsentIntro: 'Δίνοντας τον αριθμό τηλεφώνου μου:',
+        transactionalSMSConsent: 'Συμφωνώ να λαμβάνω ειδοποιήσεις συναλλαγών για τον λογαριασμό μου από την Expensify.',
         marketingSMSConsent: 'Συμφωνώ να λαμβάνω προωθητικά μηνύματα από την Expensify.',
+        termsWithSMSRates: `<muted-text-xs>Κάνοντας σύνδεση, συμφωνείτε με τους <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Όρους Παροχής Υπηρεσιών</a> και την <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Προστασία Προσωπικών Δεδομένων</a>. Ενδέχεται να ισχύουν οι τυπικές χρεώσεις μηνυμάτων και δεδομένων. Η συχνότητα των μηνυμάτων ποικίλλει. Απαντήστε HELP για βοήθεια. Απαντήστε STOP για διακοπή.</muted-text-xs>`,
     },
     detailsPage: {
         localTime: 'Τοπική ώρα',
@@ -6982,6 +6995,8 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 description: 'Επιλέξτε πού θα εξαχθούν οι επιστρεπτέες δαπάνες.',
                 accountRequiredError: 'Παρακαλούμε επιλέξτε έναν λογαριασμό αποζημίωσης Rillet.',
             },
+            autoCreateVendor: 'Αυτόματη δημιουργία προμηθευτών',
+            autoCreateVendorDescription: 'Η Expensify θα δημιουργεί αυτόματα προμηθευτές στο Rillet, αν δεν υπάρχουν ήδη.',
             achPaymentAccount: {label: 'λογαριασμός πληρωμών ACH', description: 'Επιλέξτε από πού θα πληρώνονται οι αναφορές και θα δημιουργήσουμε την πληρωμή στο Rillet.'},
         },
         dualEntry: {

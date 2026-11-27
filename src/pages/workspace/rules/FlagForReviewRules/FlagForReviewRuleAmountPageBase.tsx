@@ -1,4 +1,4 @@
-import AmountForm from '@components/AmountForm';
+import AmountFormInline from '@components/AmountFormAdapters/AmountFormInline';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -129,14 +129,12 @@ function FlagForReviewRuleAmountPageBase({policyID, categoryName, isCategoryLock
                 >
                     <View style={[styles.mb4, styles.ph5]}>
                         <InputWrapper
-                            displayAsTextInput
                             ref={inputCallbackRef}
                             label={translate('iou.amount')}
-                            InputComponent={AmountForm}
+                            InputComponent={AmountFormInline}
                             inputID={INPUT_IDS.MAX_AMOUNT}
                             currency={policyCurrency}
                             defaultValue={defaultValue}
-                            isCurrencyPressable={false}
                         />
                     </View>
                     <Text style={[styles.textLabelSupporting, styles.mb3, styles.ph5]}>{translate('common.type')}</Text>

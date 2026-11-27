@@ -8,8 +8,13 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 
 import WorkspaceCardsListLabel from '@pages/workspace/expensifyCard/WorkspaceCardsListLabel';
 
+import type * as PolicyActions from '@userActions/Policy/Policy';
+import type * as ReportActions from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {OnyxMultiSetInput} from 'react-native-onyx';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -47,6 +52,28 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     },
 }));
 
+const mockOpenReport = jest.fn();
+const mockNavigateToConciergeChat = jest.fn<Promise<void>, unknown[]>(() => Promise.resolve());
+jest.mock('@userActions/Report', () => {
+    return {
+        ...jest.requireActual<typeof ReportActions>('@userActions/Report'),
+        openReport: (...args: unknown[]): void => {
+            mockOpenReport(...args);
+        },
+        navigateToConciergeChat: (...args: unknown[]) => mockNavigateToConciergeChat(...args),
+    };
+});
+
+const mockRequestExpensifyCardLimitIncrease = jest.fn();
+jest.mock('@userActions/Policy/Policy', () => {
+    return {
+        ...jest.requireActual<typeof PolicyActions>('@userActions/Policy/Policy'),
+        requestExpensifyCardLimitIncrease: (...args: unknown[]): void => {
+            mockRequestExpensifyCardLimitIncrease(...args);
+        },
+    };
+});
+
 // The default fund ID falls back to the workspace account ID when there is no last selected feed
 jest.mock('@hooks/useWorkspaceAccountID', () => ({
     __esModule: true,
@@ -57,6 +84,10 @@ jest.mock('@hooks/useConfirmModal', () => jest.requireActual<typeof ConfirmModal
 
 TestHelper.setupGlobalFetchMock();
 
+const conciergeChatKey = `${ONYXKEYS.COLLECTION.REPORT}999` as const;
+const SIGNED_IN_ACCOUNT_ID = 7;
+const INTRO_SELECTED = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
+
 const cardSettingsKey = `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${WORKSPACE_ACCOUNT_ID}` as const;
 
 describe('WorkspaceCardsListLabel', () => {
@@ -66,6 +97,9 @@ describe('WorkspaceCardsListLabel', () => {
 
     afterEach(async () => {
         resetMockConfirmModal();
+        mockOpenReport.mockClear();
+        mockNavigateToConciergeChat.mockClear();
+        mockRequestExpensifyCardLimitIncrease.mockClear();
         await act(async () => {
             await Onyx.clear();
             await waitForBatchedUpdatesWithAct();
@@ -146,5 +180,99 @@ describe('WorkspaceCardsListLabel', () => {
 
         // Then the Request limit increase button is there
         expect(screen.getByText('Request limit increase')).toBeTruthy();
+    });
+
+    const requestLimitIncreaseWithPendingOnboarding = async (onyxData: OnyxMultiSetInput) => {
+        await act(async () => {
+            await Onyx.merge(cardSettingsKey, {US: {paymentBankAccountID: 1234, isPaymentBankAccountConnectedWithPlaid: false}});
+            await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {accountID: SIGNED_IN_ACCOUNT_ID},
+                [ONYXKEYS.NVP_INTRO_SELECTED]: INTRO_SELECTED,
+                [ONYXKEYS.NVP_ONBOARDING]: {hasCompletedGuidedSetupFlow: false, selfTourViewed: true},
+                ...onyxData,
+            });
+            await waitForBatchedUpdatesWithAct();
+        });
+        render(
+            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+                <WorkspaceCardsListLabel
+                    type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.REMAINING_LIMIT}
+                    value={100000}
+                />
+            </ComposeProviders>,
+        );
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByLabelText('Remaining limit'));
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByText('Request limit increase'));
+        await waitForBatchedUpdatesWithAct();
+    };
+
+    it('sends the existing Concierge chat to OpenReport before requesting the limit increase', async () => {
+        // Given pending onboarding and an existing Concierge chat
+        // When the admin requests a limit increase
+        await requestLimitIncreaseWithPendingOnboarding({
+            [ONYXKEYS.CONCIERGE_REPORT_ID]: '999',
+            [conciergeChatKey]: {reportID: '999'},
+        });
+
+        // Then OpenReport gets the stored chat and onboarding data and is enqueued first, so Concierge replies last
+        expect(mockOpenReport).toHaveBeenCalledWith(
+            expect.objectContaining({
+                reportID: '999',
+                conciergeChat: expect.objectContaining({reportID: '999'}),
+                introSelected: INTRO_SELECTED,
+                currentUserAccountID: SIGNED_IN_ACCOUNT_ID,
+                isSelfTourViewed: true,
+                hasCompletedGuidedSetupFlow: false,
+            }),
+        );
+        expect(mockOpenReport.mock.invocationCallOrder.at(0)).toBeLessThan(mockRequestExpensifyCardLimitIncrease.mock.invocationCallOrder.at(0) ?? 0);
+    });
+
+    it('creates the Concierge chat instead of calling OpenReport when none exists yet', async () => {
+        // Given pending onboarding, no Concierge chat, and a chat creation that has not finished yet
+        let finishCreatingChat = () => {};
+        mockNavigateToConciergeChat.mockImplementationOnce(
+            () =>
+                new Promise<void>((resolve) => {
+                    finishCreatingChat = resolve;
+                }),
+        );
+
+        // When the admin requests a limit increase
+        await requestLimitIncreaseWithPendingOnboarding({});
+
+        // Then the chat is created with the onboarding data, and the limit increase waits for it
+        expect(mockNavigateToConciergeChat).toHaveBeenCalledWith(
+            expect.objectContaining({
+                introSelected: INTRO_SELECTED,
+                currentUserAccountID: SIGNED_IN_ACCOUNT_ID,
+                isSelfTourViewed: true,
+                hasCompletedGuidedSetupFlow: false,
+            }),
+        );
+        expect(mockOpenReport).not.toHaveBeenCalled();
+        expect(mockRequestExpensifyCardLimitIncrease).not.toHaveBeenCalled();
+
+        await act(async () => {
+            finishCreatingChat();
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(mockRequestExpensifyCardLimitIncrease).toHaveBeenCalledTimes(1);
+    });
+
+    it('skips OpenReport but still requests the limit increase while the app is loading', async () => {
+        // Given pending onboarding, an existing Concierge chat and an app that is still loading
+        // When the admin requests a limit increase
+        await requestLimitIncreaseWithPendingOnboarding({
+            [ONYXKEYS.CONCIERGE_REPORT_ID]: '999',
+            [conciergeChatKey]: {reportID: '999'},
+            [ONYXKEYS.IS_LOADING_APP]: true,
+        });
+
+        // Then OpenReport is left to ReportFetchHandler, and the limit increase is still requested
+        expect(mockOpenReport).not.toHaveBeenCalled();
+        expect(mockRequestExpensifyCardLimitIncrease).toHaveBeenCalledTimes(1);
     });
 });

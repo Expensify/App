@@ -2,7 +2,7 @@ import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 
 import CONST from '@src/CONST';
-import {updateRilletFxExpenseAccount} from '@src/libs/actions/connections/Rillet';
+import {updateRilletAutoCreateVendor, updateRilletFxExpenseAccount} from '@src/libs/actions/connections/Rillet';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import Onyx from 'react-native-onyx';
@@ -106,6 +106,59 @@ describe('actions/connections/Rillet', () => {
                     {
                         key: POLICY_KEY,
                         value: {connections: {rillet: {config: {sync: {[CONST.RILLET_CONFIG.FX_EXPENSE_ACCOUNT_CODE]: null}}}}},
+                    },
+                ],
+            });
+        });
+    });
+
+    describe('updateRilletAutoCreateVendor', () => {
+        it('writes the command with the selected toggle state', () => {
+            // Given an admin enabling automatic vendor creation in Rillet Advanced settings
+
+            // When the toggle is turned on
+            updateRilletAutoCreateVendor(MOCK_POLICY_ID, true, false);
+
+            // Then the backend receives the enabled flag
+            expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_RILLET_AUTO_CREATE_VENDOR, {policyID: MOCK_POLICY_ID, enabled: true}, expect.anything());
+        });
+
+        it('updates export.autoCreateVendor optimistically and rolls back on failure', () => {
+            // Given Auto-create vendors is currently disabled
+
+            // When the admin enables the toggle
+            updateRilletAutoCreateVendor(MOCK_POLICY_ID, true, false);
+
+            // Then the new value is written optimistically and failure restores false with an error
+            expect(getFirstWriteOnyxData()).toMatchObject({
+                optimisticData: [
+                    {
+                        key: POLICY_KEY,
+                        value: {
+                            connections: {
+                                rillet: {
+                                    config: {
+                                        export: {[CONST.RILLET_CONFIG.AUTO_CREATE_VENDOR]: true},
+                                        pendingFields: {[CONST.RILLET_CONFIG.AUTO_CREATE_VENDOR]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                                    },
+                                },
+                            },
+                        },
+                    },
+                ],
+                failureData: [
+                    {
+                        key: POLICY_KEY,
+                        value: {
+                            connections: {
+                                rillet: {
+                                    config: {
+                                        export: {[CONST.RILLET_CONFIG.AUTO_CREATE_VENDOR]: false},
+                                        errorFields: {[CONST.RILLET_CONFIG.AUTO_CREATE_VENDOR]: ANY_VALUE},
+                                    },
+                                },
+                            },
+                        },
                     },
                 ],
             });

@@ -316,9 +316,10 @@ describe('DynamicCategoryVisibleToPage', () => {
             expect(categories?.Fees?.pendingFields?.visibleTo).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
             expect(categories?.Travel?.visibleTo).toBeUndefined();
 
-            // And the page goes back, clearing the selection once it's gone, and confirms how many categories and members were set
+            // And the page goes back, clearing the selection once it's gone, and confirms how many categories and members were
+            // set, with the toast staying up long enough to read both of its sentences
             expect(goBack.mock.calls.at(0)?.at(1)).toEqual({afterTransition: clearWorkspaceCategoriesSelectedForBulkEdit});
-            expect(growlSuccess).toHaveBeenCalledWith({bodyText: 'Set 2 categories for 1 member. This replaces their current category visibility.'});
+            expect(growlSuccess).toHaveBeenCalledWith({bodyText: 'Set 2 categories for 1 member. This replaces their current category visibility.', duration: CONST.GROWL.DURATION_LONG});
 
             unmount();
             await waitForBatchedUpdatesWithAct();
@@ -346,7 +347,7 @@ describe('DynamicCategoryVisibleToPage', () => {
             const categories = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`);
             expect(categories?.Meals?.visibleTo).toBeUndefined();
             expect(categories?.Meals?.pendingFields?.visibleTo).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
-            expect(growlSuccess).toHaveBeenCalledWith({bodyText: 'Set 2 categories for everyone. This replaces their current category visibility.'});
+            expect(growlSuccess).toHaveBeenCalledWith({bodyText: 'Set 2 categories for everyone. This replaces their current category visibility.', duration: CONST.GROWL.DURATION_LONG});
 
             unmount();
             await waitForBatchedUpdatesWithAct();
@@ -452,7 +453,7 @@ describe('DynamicCategoryVisibleToPage', () => {
             const categories = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`);
             expect(categories?.Fees?.visibleTo).toEqual({[bobAccountID]: true});
             expect(categories?.Meals?.visibleTo).toEqual({[adminAccountID]: true, [carolAccountID]: true});
-            expect(growlSuccess).toHaveBeenCalledWith({bodyText: 'Set 1 category for 1 member. This replaces their current category visibility.'});
+            expect(growlSuccess).toHaveBeenCalledWith({bodyText: 'Set 1 category for 1 member. This replaces their current category visibility.', duration: CONST.GROWL.DURATION_LONG});
 
             unmount();
             await waitForBatchedUpdatesWithAct();

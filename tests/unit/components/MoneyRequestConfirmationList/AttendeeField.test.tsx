@@ -1,13 +1,14 @@
-import {render, waitFor} from '@testing-library/react-native';
+import {render, screen, waitFor} from '@testing-library/react-native';
 
 import type DropdownField from '@components/DropdownField';
 import ConfirmationFieldsProvider from '@components/MoneyRequestConfirmationFields/Provider';
 import AttendeeField from '@components/MoneyRequestConfirmationList/sections/AttendeeField';
-import ExpenseFormLayoutContext, {dropdownRowsExpenseFormLayout} from '@components/MoneyRequestConfirmationList/sections/ExpenseFormLayoutContext';
+import ExpenseFormLayoutContext from '@components/MoneyRequestConfirmationList/sections/ExpenseFormLayoutContext';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import CONST from '@src/CONST';
 import type {IOUAction} from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {ComponentProps} from 'react';
@@ -22,11 +23,13 @@ jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn()}));
 
 // Records what the row decided and renders its list straight away, so each test can read both without pressing anything.
 let mockShouldOpenInDropdown: boolean | undefined;
-type DropdownFieldMockProps = Pick<ComponentProps<typeof DropdownField>, 'shouldOpenInDropdown' | 'renderDropdown'>;
+let mockDropdownErrorText: string | undefined;
+type DropdownFieldMockProps = Pick<ComponentProps<typeof DropdownField>, 'shouldOpenInDropdown' | 'renderDropdown' | 'errorText'>;
 jest.mock('@components/DropdownField', () => {
-    return ({shouldOpenInDropdown, renderDropdown}: DropdownFieldMockProps) => {
+    return ({shouldOpenInDropdown, renderDropdown, errorText}: DropdownFieldMockProps) => {
         const {MODAL} = jest.requireActual<{default: typeof CONST}>('@src/CONST').default;
         mockShouldOpenInDropdown = shouldOpenInDropdown;
+        mockDropdownErrorText = errorText;
         return renderDropdown({
             isVisible: true,
             onClose: () => {},
@@ -54,9 +57,18 @@ type RenderParams = {
     isReadOnly?: boolean;
     transactionID?: string;
     didConfirm?: boolean;
+    fieldError?: TranslationPaths;
+    shouldUseDropdownRows?: boolean;
 };
 
-const renderAttendeesRow = ({action = CONST.IOU.ACTION.CREATE, isReadOnly = false, transactionID = TRANSACTION_ID, didConfirm = false}: RenderParams = {}) =>
+const renderAttendeesRow = ({
+    action = CONST.IOU.ACTION.CREATE,
+    isReadOnly = false,
+    transactionID = TRANSACTION_ID,
+    didConfirm = false,
+    fieldError,
+    shouldUseDropdownRows = true,
+}: RenderParams = {}) =>
     render(
         <OnyxListItemProvider>
             <ConfirmationFieldsProvider
@@ -66,7 +78,7 @@ const renderAttendeesRow = ({action = CONST.IOU.ACTION.CREATE, isReadOnly = fals
                 iouType={CONST.IOU.TYPE.SUBMIT}
                 didConfirm={didConfirm}
             >
-                <ExpenseFormLayoutContext.Provider value={dropdownRowsExpenseFormLayout}>
+                <ExpenseFormLayoutContext.Provider value={{shouldUseDropdownRows}}>
                     <AttendeeField
                         formattedAmountPerAttendee="$10.00"
                         isReadOnly={isReadOnly}
@@ -74,7 +86,7 @@ const renderAttendeesRow = ({action = CONST.IOU.ACTION.CREATE, isReadOnly = fals
                         action={action}
                         iouType={CONST.IOU.TYPE.SUBMIT}
                         reportID={REPORT_ID}
-                        formError=""
+                        fieldError={fieldError}
                     />
                 </ExpenseFormLayoutContext.Provider>
             </ConfirmationFieldsProvider>
@@ -89,6 +101,7 @@ describe('AttendeeField', () => {
     beforeEach(async () => {
         mockShouldOpenInDropdown = undefined;
         mockDropdownTransactionID = undefined;
+        mockDropdownErrorText = undefined;
         await Onyx.clear();
         await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {transactionID: TRANSACTION_ID, reportID: REPORT_ID});
         await waitForBatchedUpdates();
@@ -137,5 +150,25 @@ describe('AttendeeField', () => {
         await waitFor(() => {
             expect(mockShouldOpenInDropdown).toBe(false);
         });
+    });
+
+    it('shows the missing attendees error a blocked confirm revealed on the bordered row', async () => {
+        // Given a confirm blocked because the category needs attendees other than the creator
+        // When the create form renders the attendees row
+        renderAttendeesRow({fieldError: 'violations.missingAttendees'});
+
+        // Then the row shows the error under itself, where the blocked confirm scrolls to
+        await waitFor(() => {
+            expect(mockDropdownErrorText).toBe('violations.missingAttendees');
+        });
+    });
+
+    it('shows the missing attendees error a blocked confirm revealed on the push row', async () => {
+        // Given a confirm blocked because the category needs attendees other than the creator
+        // When a form with push rows renders the attendees row
+        renderAttendeesRow({fieldError: 'violations.missingAttendees', shouldUseDropdownRows: false});
+
+        // Then the row shows the error under itself
+        expect(await screen.findByText('violations.missingAttendees')).toBeOnTheScreen();
     });
 });

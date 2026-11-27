@@ -257,6 +257,15 @@ describe('AttendeeUtils', () => {
                 // Then the violation is reported
                 expect(isMissing).toBe(true);
             });
+
+            it('returns false on a workspace that is no longer Control, even when the category requires attendees', () => {
+                // Given a workspace downgraded from Control, whose category still has areAttendeesRequired set
+                // When checking the violation on an expense with no attendees
+                const isMissing = getIsMissingAttendeesViolation(policyCategories, category, [], ownerLogin, true, false);
+
+                // Then there is no violation, because only Control workspaces enforce the attendee rule
+                expect(isMissing).toBe(false);
+            });
         });
 
         describe('syncMissingAttendeesViolation', () => {

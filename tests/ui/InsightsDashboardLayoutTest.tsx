@@ -41,7 +41,7 @@ jest.mock('@pages/Insights/controls/InsightsPageControls', () => () => <MockText
 jest.mock('@pages/Insights/InsightsTabSelector', () => () => <MockText>Dashboard tabs</MockText>);
 jest.mock('@pages/Insights/states/InsightsEmptyState', () => () => <MockText>No chart data</MockText>);
 jest.mock('@pages/Insights/states/InsightsUpsellState', () => () => <MockText>Upgrade</MockText>);
-jest.mock('@pages/Insights/useInsightsFilters', () => () => ({filters: {policyIDs: []}, isResolved: false}));
+jest.mock('@pages/Insights/useInsightsFilters', () => () => ({filters: {policyIDs: [], date: {preset: 'this-month'}}, isResolved: false}));
 jest.mock('@pages/Insights/useInsightsExport', () => () => ({}));
 
 const DASHBOARDS = [CONST.INSIGHTS.DASHBOARD.SPEND, CONST.INSIGHTS.DASHBOARD.COMPLIANCE];

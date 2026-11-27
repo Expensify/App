@@ -1,5 +1,6 @@
+import {isCategoryMissing} from '@libs/CategoryUtils';
 import DateUtils from '@libs/DateUtils';
-import {sanitizeSearchValue} from '@libs/SearchQueryUtils';
+import {sanitizeFilterValue} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 import type {SearchTagGroup} from '@src/types/onyx/SearchResults';
@@ -9,10 +10,23 @@ import type {GroupedItem, SearchDateFilterKeys, SearchGroupBy} from './types';
 /** Builds the query fragment narrowing a query to a tag group's expenses. */
 function buildTagFilterQuery({tag, tagLevel, parentTagPath}: Pick<SearchTagGroup, 'tag' | 'tagLevel' | 'parentTagPath'>): string {
     if (tagLevel !== undefined) {
-        return `tag:${sanitizeSearchValue(tag)} tagLevel:${tagLevel} tagParent:${sanitizeSearchValue(parentTagPath ?? '') || '""'}`;
+        return `tag:${sanitizeFilterValue(tag)} tagLevel:${tagLevel} tagParent:${sanitizeFilterValue(parentTagPath ?? '') || '""'}`;
     }
     // Grouped snapshots use an empty string or "(untagged)", but Search filters require "none" for missing tags.
-    return `tag:${sanitizeSearchValue(tag === '' || tag === CONST.SEARCH.TAG_UNTAGGED_GROUP_VALUE ? CONST.SEARCH.TAG_EMPTY_VALUE : tag)}`;
+    return `tag:${sanitizeFilterValue(tag === '' || tag === CONST.SEARCH.TAG_UNTAGGED_GROUP_VALUE ? CONST.SEARCH.TAG_EMPTY_VALUE : tag)}`;
+}
+
+/** Builds the query fragment narrowing a query to a merchant's expenses, escaping quotes so the name can't end the filter early. */
+function buildMerchantFilterQuery(merchant: string): string {
+    return `merchant=${sanitizeFilterValue(merchant) || '""'}`;
+}
+
+/**
+ * Builds the query fragment narrowing a query to a category's expenses, escaping quotes so the name can't end the filter early.
+ * Groups of expenses without a category come back empty or as Uncategorized, which Search spells as `none`.
+ */
+function buildCategoryFilterQuery(category: string): string {
+    return `category:${sanitizeFilterValue(isCategoryMissing(category) ? CONST.SEARCH.CATEGORY_EMPTY_VALUE : category)}`;
 }
 
 /** The dates a time bucket covers */
@@ -80,12 +94,12 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
     [CONST.SEARCH.GROUP_BY.CATEGORY]: {
         titleIconName: 'Folder',
         getLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.CATEGORY ? (item.formattedCategory ?? '') : ''),
-        getFilterQuery: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.CATEGORY ? `category:"${item.category}"` : ''),
+        getFilterQuery: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.CATEGORY ? buildCategoryFilterQuery(item.category) : ''),
     },
     [CONST.SEARCH.GROUP_BY.MERCHANT]: {
         titleIconName: 'Basket',
         getLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.MERCHANT ? (item.formattedMerchant ?? '') : ''),
-        getFilterQuery: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.MERCHANT ? `merchant="${item.merchant}"` : ''),
+        getFilterQuery: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.MERCHANT ? buildMerchantFilterQuery(item.merchant) : ''),
     },
     [CONST.SEARCH.GROUP_BY.TAG]: {
         titleIconName: 'Tag',
@@ -163,5 +177,5 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
 };
 
 export default CHART_GROUP_BY_CONFIG;
-export {buildTagFilterQuery};
+export {buildCategoryFilterQuery, buildMerchantFilterQuery, buildTagFilterQuery};
 export type {ChartBucketRange};

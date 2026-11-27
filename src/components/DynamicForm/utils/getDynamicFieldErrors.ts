@@ -144,7 +144,7 @@ function getLegalNameErrors(value: string, translate: LocalizedTranslate): strin
     return messages;
 }
 
-/** For inputs that only accept valid answers: UploadFile checks type and count, AmountForm rejects invalid typing */
+/** For inputs that only accept valid answers: UploadFile checks type and count, AmountFormInline rejects invalid typing */
 const noChecks = () => [];
 
 /** A required field with upload buttons needs a file on each of them, since each button asks for its own document */
