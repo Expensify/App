@@ -1,11 +1,19 @@
-import {act, render, screen, waitFor} from '@testing-library/react-native';
+import {act, render, screen, waitFor, within} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
+import Icon from '@components/Icon';
+import MenuItem from '@components/MenuItem';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import RenderHTML from '@components/RenderHTML';
 import MoneyRequestView from '@components/ReportActionItem/MoneyRequestView';
 import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperStatusContext';
+import UserPills from '@components/UserPills';
 
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import * as PlatformUtils from '@libs/getPlatform';
+
+import {lineHeightScale} from '@styles/typography';
 
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 
@@ -107,6 +115,9 @@ jest.mock('@components/MenuItemWithTopDescription', () => {
     return (props: MockMenuItemWithTopDescriptionProps) => mockMenuItemWithTopDescription(props);
 });
 
+// Rich HTML rendering has its own suite; inspect the selection props without mounting its native engine here.
+jest.mock('@components/RenderHTML', () => () => null);
+
 // Mock the legacy MenuItem (used for some fields like billable), but keep the real compound parts the migrated rows render with
 jest.mock('@components/MenuItem', () => {
     const RN = jest.requireActual<Record<string, React.ComponentType<{testID?: string; children?: React.ReactNode}>>>('react-native');
@@ -153,7 +164,7 @@ function ThemeStylesObserver() {
     return null;
 }
 
-const renderMoneyRequestView = (threadReport: ReturnType<typeof LHNTestUtils.getFakeReport>, policy?: PartialDeep<Policy>, readonly = false) =>
+const renderMoneyRequestView = (threadReport: ReturnType<typeof LHNTestUtils.getFakeReport>, policy?: PartialDeep<Policy>, readonly = false, isFromMergeTransaction = false) =>
     render(
         <ComposeProviders components={[OnyxListItemProvider]}>
             <ScreenWrapperStatusContext.Provider value={SCREEN_WRAPPER_STATUS}>
@@ -172,6 +183,7 @@ const renderMoneyRequestView = (threadReport: ReturnType<typeof LHNTestUtils.get
                     })}
                     shouldShowAnimatedBackground={false}
                     readonly={readonly}
+                    mergeTransactionID={isFromMergeTransaction ? transactionID : undefined}
                 />
             </ScreenWrapperStatusContext.Provider>
         </ComposeProviders>,
@@ -250,6 +262,88 @@ describe('MoneyRequestView edit fields', () => {
         return transaction;
     };
 
+    it('keeps rich descriptions selectable while read-only copy uses plain text', async () => {
+        // Given a read-only expense whose description contains formatting and an entity.
+        const platform = jest.spyOn(PlatformUtils, 'default').mockReturnValue(CONST.PLATFORM.WEB);
+        const threadReport = {...LHNTestUtils.getFakeReport(), parentReportID: expenseReportID, parentReportActionID};
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {comment: {comment: '<strong>Lunch &amp; client</strong>'}});
+        });
+
+        // When its actual composed description row renders on web.
+        renderMoneyRequestView(threadReport, undefined, true);
+        await waitForBatchedUpdatesWithAct();
+        const row = screen.getByLabelText(fieldLabel('common.description'));
+
+        // Then HTML receives selection support, but its copy action receives mention-resolved plain text.
+        expect(within(row).UNSAFE_getByType(RenderHTML).props.isSelectable).toBe(true);
+        expect(within(row).UNSAFE_getByType(MenuItem.Copy).props.value).toBe('Lunch & client');
+        expect(screen.queryByRole('button', {name: fieldLabel('common.description')})).toBeNull();
+        platform.mockRestore();
+    });
+
+    it('keeps paid amount typography and its checkmark outside the trailing actions', async () => {
+        // Given a reimbursable expense on a settled report.
+        const threadReport = {...LHNTestUtils.getFakeReport(), parentReportID: expenseReportID, parentReportActionID};
+        await setupTestData(true);
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {reimbursable: true});
+        });
+
+        // When the paid amount is rendered.
+        renderMoneyRequestView(threadReport);
+        await waitForBatchedUpdatesWithAct();
+        const row = screen.getByLabelText(/^iou\.amount/i);
+        const content = within(row).UNSAFE_getByType(MenuItem.Content);
+
+        // Then the headline value and paid checkmark stay together rather than joining the copy control.
+        expect(within(content).UNSAFE_getByType(MenuItem.FieldValue).props.style).toBe(renderedThemeStyles?.textHeadlineH2);
+        expect(within(content).UNSAFE_getAllByType(Icon)).toHaveLength(1);
+        expect(within(content).UNSAFE_getByType(Icon).props.src).toEqual(expect.objectContaining({testID: 'mock-expensify-icon-Checkmark'}));
+        expect(within(row).UNSAFE_getByType(MenuItem.Copy).props.value).toContain('5000');
+    });
+
+    it('keeps read-only attendee pills outside text leaves and exposes their copy action', async () => {
+        // Given an expense with an external attendee in a workspace that tracks attendees.
+        const threadReport = {...LHNTestUtils.getFakeReport(), parentReportID: expenseReportID, parentReportActionID};
+        const attendeePolicy = {type: CONST.POLICY.TYPE.CORPORATE, isAttendeeTrackingEnabled: true};
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, attendeePolicy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                comment: {attendees: [{email: 'guest@example.com', displayName: 'Guest', avatarUrl: 'https://example.com/avatar.png'}]},
+            });
+        });
+
+        // When the read-only attendee field is composed.
+        renderMoneyRequestView(threadReport, attendeePolicy, true);
+        await waitForBatchedUpdatesWithAct();
+        const row = screen.getByLabelText(/^iou.attendees,/);
+
+        // Then pills retain block layout and selection, while copying remains available without an edit button.
+        expect(within(row).UNSAFE_queryByType(MenuItem.FieldValue)).toBeNull();
+        expect(within(row).UNSAFE_getByType(UserPills).props.isSelectable).toBe(true);
+        expect(within(row).UNSAFE_getByType(MenuItem.Copy).props.value).toContain('Guest');
+        expect(screen.getByText(/^iou.attendees/)).toHaveStyle({lineHeight: lineHeightScale.text});
+        expect(screen.queryByRole('button', {name: /^iou.attendees,/})).toBeNull();
+    });
+
+    it('does not turn the report None placeholder into a copyable value', async () => {
+        // Given a read-only merge preview with no selected destination report.
+        const threadReport = {...LHNTestUtils.getFakeReport(), parentReportID: expenseReportID, parentReportActionID};
+        await setupTestData();
+
+        // When the report row renders the translated None placeholder.
+        renderMoneyRequestView(threadReport, undefined, true, true);
+        await waitForBatchedUpdatesWithAct();
+        const row = screen.getByLabelText('common.report, common.none');
+
+        // Then the placeholder remains visible without gaining a read-only copy action.
+        expect(row).toHaveTextContent(/common.none/);
+        expect(within(row).UNSAFE_queryByType(MenuItem.Copy)).toBeNull();
+    });
+
     it('shows additional fields from the default report table', async () => {
         // Given an expense whose MCC appears in the default report table.
         const threadReport = {...LHNTestUtils.getFakeReport(), parentReportID: expenseReportID, parentReportActionID};
@@ -287,7 +381,7 @@ describe('MoneyRequestView edit fields', () => {
         expect(additionalFields.at(0)).toBe(screen.getByLabelText('common.exchangeRate, 1.2345 EUR/USD'));
         expect(additionalFields.at(1)).toBe(screen.getByLabelText('common.mcc, 0012'));
         expect(screen.getByRole('button', {name: fieldLabel('common.merchant')})).toBeOnTheScreen();
-        expect(screen.getByTestId(/^menu-item-iou\.amount/)).toHaveTextContent('editable');
+        expect(screen.getByRole('button', {name: /^iou\.amount/i})).toBeOnTheScreen();
 
         // When the user turns off Exchange rate in the report's column settings.
         await act(async () => {
@@ -315,7 +409,7 @@ describe('MoneyRequestView edit fields', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then the amount renders without the configured workspace field.
-        expect(screen.getByTestId(/^menu-item-iou\.amount/)).toBeOnTheScreen();
+        expect(screen.getByLabelText(/^iou\.amount/i)).toBeOnTheScreen();
         expect(screen.queryByLabelText(fieldLabel('common.mcc'))).not.toBeOnTheScreen();
     });
 
@@ -351,9 +445,8 @@ describe('MoneyRequestView edit fields', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            const amountItem = screen.getByTestId(/^menu-item-iou\.amount/);
+            const amountItem = screen.getByRole('button', {name: /^iou\.amount/i});
             expect(amountItem).toBeOnTheScreen();
-            expect(amountItem).toHaveTextContent('editable');
         });
 
         await waitFor(() => {
@@ -405,7 +498,7 @@ describe('MoneyRequestView edit fields', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then the preview renders without the empty row and retains any editable sibling at its original level.
-        expect(screen.getByTestId(/^menu-item-iou\.amount/)).toHaveTextContent('editable');
+        expect(screen.getByRole('button', {name: /^iou\.amount/i})).toBeOnTheScreen();
         expect(screen.queryByTestId('menu-item-Empty')).not.toBeOnTheScreen();
         if (hasEnabledSibling) {
             expect(screen.getByTestId('menu-item-Location')).toHaveTextContent('editable');
@@ -437,17 +530,15 @@ describe('MoneyRequestView edit fields', () => {
         // Then each affected description keeps both breakWord and userSelectNone
         await waitFor(() => {
             const renderedRows = mockMenuItemWithTopDescription.mock.calls.map(([props]) => props);
-            const affectedRows = [
-                renderedRows.find(({description}) => description === longTagName),
-                renderedRows.find(({description}) => description?.startsWith('iou.amount')),
-                renderedRows.find(({description}) => description === 'common.description'),
-                renderedRows.find(({description}) => description === 'common.report'),
-            ];
+            const affectedRows = [renderedRows.find(({description}) => description === longTagName)];
 
             expect(affectedRows).not.toContain(undefined);
             for (const row of affectedRows) {
                 expect(row?.descriptionTextStyle).toEqual([renderedThemeStyles?.breakWord, renderedThemeStyles?.userSelectNone]);
             }
+            expect(screen.getByText(/^iou\.amount/i)).toHaveStyle([renderedThemeStyles?.breakWord, renderedThemeStyles?.userSelectNone]);
+            expect(screen.getByText('common.description')).toHaveStyle(renderedThemeStyles?.breakWord);
+            expect(screen.getByText('common.report')).toHaveStyle(renderedThemeStyles?.breakWord);
         });
     });
 
@@ -467,7 +558,7 @@ describe('MoneyRequestView edit fields', () => {
 
         // Then both selectable labels carry the marker used by the multi-field selection scraper
         await waitFor(() => {
-            const toggleLabels = [screen.getByText(/reimbursable$/i, {includeHiddenElements: true}), screen.getByText('common.billable', {includeHiddenElements: true})];
+            const toggleLabels = [screen.getByText('Iou.reimbursable', {includeHiddenElements: true}), screen.getByText('common.billable', {includeHiddenElements: true})];
 
             for (const toggleLabel of toggleLabels) {
                 expect(toggleLabel).toHaveProp('dataSet', expect.objectContaining({[CONST.COPYABLE_TEXT_ELEMENT]: true}));
@@ -678,9 +769,9 @@ describe('MoneyRequestView edit fields', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            const amountItem = screen.getByTestId(/^menu-item-iou\.amount/);
+            const amountItem = screen.getByLabelText(/^iou\.amount/i);
             expect(amountItem).toBeOnTheScreen();
-            expect(amountItem).toHaveTextContent('readonly');
+            expect(screen.queryByRole('button', {name: /^iou\.amount/i})).toBeNull();
         });
 
         await waitFor(() => {
@@ -722,7 +813,7 @@ describe('MoneyRequestView edit fields', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(screen.getByTestId(/^menu-item-iou\.amount/)).toHaveTextContent('editable');
+            expect(screen.getByRole('button', {name: /^iou\.amount/i})).toBeOnTheScreen();
             expect(screen.getByRole('button', {name: fieldLabel('common.merchant')})).toBeOnTheScreen();
             expect(screen.getByRole('button', {name: fieldLabel('common.date')})).toBeOnTheScreen();
         });
@@ -763,7 +854,8 @@ describe('MoneyRequestView edit fields', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(screen.getByTestId(/^menu-item-iou\.amount/)).toHaveTextContent('readonly');
+            expect(screen.getByLabelText(/^iou\.amount/i)).toBeOnTheScreen();
+            expect(screen.queryByRole('button', {name: /^iou\.amount/i})).toBeNull();
             expect(screen.getByLabelText(fieldLabel('common.merchant'))).toBeOnTheScreen();
             expect(screen.queryByRole('button', {name: fieldLabel('common.merchant')})).toBeNull();
             expect(screen.getByLabelText(fieldLabel('common.date'))).toBeOnTheScreen();
@@ -788,7 +880,7 @@ describe('MoneyRequestView edit fields', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(screen.getByTestId(/^menu-item-iou\.amount.*iou\.nonReimbursable/i)).toBeOnTheScreen();
+            expect(screen.getByLabelText(/^iou\.amount.*iou\.nonReimbursable/i)).toBeOnTheScreen();
         });
     });
 
@@ -822,7 +914,7 @@ describe('MoneyRequestView edit fields', () => {
 
         // Then the Amount description flags it as non-reimbursable, the same as in a single-expense report
         await waitFor(() => {
-            expect(screen.getByTestId(/^menu-item-iou\.amount.*iou\.nonReimbursable/i)).toBeOnTheScreen();
+            expect(screen.getByLabelText(/^iou\.amount.*iou\.nonReimbursable/i)).toBeOnTheScreen();
         });
     });
 
@@ -856,8 +948,8 @@ describe('MoneyRequestView edit fields', () => {
 
         // Then the Amount description flags it as reimbursable, the same as in a single-expense report
         await waitFor(() => {
-            expect(screen.getByTestId(/^menu-item-iou\.amount.*iou\.reimbursable/i)).toBeOnTheScreen();
-            expect(screen.queryByTestId(/^menu-item-iou\.amount.*iou\.nonReimbursable/i)).not.toBeOnTheScreen();
+            expect(screen.getByLabelText(/^iou\.amount.*iou\.reimbursable/i)).toBeOnTheScreen();
+            expect(screen.queryByLabelText(/^iou\.amount.*iou\.nonReimbursable/i)).not.toBeOnTheScreen();
         });
     });
 
@@ -889,7 +981,7 @@ describe('MoneyRequestView edit fields', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(screen.getByTestId(/^menu-item-iou\.amount.*iou\.nonReimbursable/i)).toBeOnTheScreen();
+            expect(screen.getByLabelText(/^iou\.amount.*iou\.nonReimbursable/i)).toBeOnTheScreen();
         });
     });
 
@@ -1481,7 +1573,7 @@ describe('MoneyRequestView edit fields', () => {
 
             await waitFor(() => {
                 expect(screen.getByLabelText(fieldLabel('common.distance'))).toBeOnTheScreen();
-                expect(screen.getByTestId(/^menu-item-title-iou\.amount/)).toHaveTextContent('USD-268');
+                expect(screen.getByLabelText(/^iou\.amount/i)).toHaveTextContent(/USD-268/);
             });
             expect(screen.queryByLabelText(fieldLabel(commuterDistanceDescription))).not.toBeOnTheScreen();
         });
