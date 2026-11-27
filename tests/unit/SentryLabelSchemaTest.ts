@@ -22,6 +22,7 @@ describe('CONST.SENTRY_LABEL', () => {
         const invalidLabels = labels.filter((label) => !LABEL_PATTERN.test(label));
 
         // Then all of them match, because a label with any other number of parts gets no inp.category, and lowercase or dotted parts break the naming that the Sentry and FullStory queries rely on
+        // Mobile also skips any string of another shape before looking up the label (touchEventBoundaryProps.ts), so it would never report such a label
         expect(invalidLabels).toEqual([]);
     });
 

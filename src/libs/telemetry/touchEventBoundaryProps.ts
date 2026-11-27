@@ -27,6 +27,14 @@ function oneOf(values: string[]): string {
 const UNKNOWN_LABEL = new RegExp(`^(?!${oneOf(collectSentryLabels(CONST.SENTRY_LABEL))}$)`);
 
 /**
+ * Matches any string that does not have the shape of a label: two or three PascalCase parts joined by hyphens, which
+ * `tests/unit/SentryLabelSchemaTest.ts` requires of every label. Sentry stops at the first `ignoreNames` entry that
+ * matches, so component names, accessibility labels and test IDs are skipped here at once. Only strings shaped like a
+ * label reach `UNKNOWN_LABEL`, which has a branch for every label and is slow on Hermes.
+ */
+const NON_LABEL_SHAPE = /^(?![A-Z][A-Za-z0-9]*(?:-[A-Z][A-Za-z0-9]*){1,2}$)/;
+
+/**
  * Sentry on mobile names each tap after a label found on the tapped element or its parents. By default it uses
  * accessibility labels, test IDs or text, which can contain user data like names, emails and amounts.
  * This config makes it use only labels from `CONST.SENTRY_LABEL`, same as on web.
@@ -40,7 +48,7 @@ const touchEventBoundaryProps: TouchEventBoundaryProps = {
     // If no parent has a valid label, the tap is not reported.
     // Sentry checks component names against this too. It works because the views that carry `sentryLabel` have no
     // component name, so adding Sentry's component annotation Babel plugin would make every label get skipped.
-    ignoreNames: [UNKNOWN_LABEL],
+    ignoreNames: [NON_LABEL_SHAPE, UNKNOWN_LABEL],
 };
 
 export default touchEventBoundaryProps;

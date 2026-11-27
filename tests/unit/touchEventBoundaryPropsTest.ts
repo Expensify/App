@@ -47,6 +47,38 @@ function touch(...viewsFromTouchedUp: View[]) {
     return {wasLogged: logTouchEvent.mock.calls.length > 0, path: logTouchEvent.mock.calls.at(0)?.at(0), label: logTouchEvent.mock.calls.at(0)?.at(1)};
 }
 
+/** Returns all label strings from the nested `CONST.SENTRY_LABEL` object. */
+function collectLabels(value: unknown): string[] {
+    if (typeof value === 'string') {
+        return [value];
+    }
+    if (typeof value === 'object' && value !== null) {
+        return Object.values(value).flatMap(collectLabels);
+    }
+    return [];
+}
+
+const LABELS = collectLabels(CONST.SENTRY_LABEL);
+const KNOWN_LABELS = new Set(LABELS);
+
+/** Strings that are one character off a label, a part of it, longer, in another case or padded, and are not labels themselves. */
+function getLookalikes(label: string): string[] {
+    const otherLastCharacter = label.endsWith('x') ? 'y' : 'x';
+    return [
+        `${label.slice(0, -1)}${otherLastCharacter}`,
+        label.replace('-', '_'),
+        label.slice(0, -1),
+        label.slice(0, label.lastIndexOf('-')),
+        `${label}X`,
+        `${label}-Extra`,
+        label.toLowerCase(),
+        label.toUpperCase(),
+        `${label.charAt(0).toLowerCase()}${label.slice(1)}`,
+        ` ${label}`,
+        `${label}\n`,
+    ].filter((lookalike) => !KNOWN_LABELS.has(lookalike));
+}
+
 describe('touchEventBoundaryProps', () => {
     it('names a tap after the nearest sentryLabel, skipping the user data in the views inside it', () => {
         // Given a list row whose label sits above views that carry a name, an email and a report ID
@@ -109,5 +141,63 @@ describe('touchEventBoundaryProps', () => {
 
         // Then the tap is not reported, so only labels written out in CONST.SENTRY_LABEL get through
         expect(wasLogged).toBe(false);
+    });
+
+    it('reports a tap on every label in CONST.SENTRY_LABEL', () => {
+        // Given every label in CONST.SENTRY_LABEL
+        // When the user taps an element with that label
+        const unreportedLabels = LABELS.filter((sentryLabel) => touch({sentryLabel}).label !== sentryLabel);
+
+        // Then every tap is named after its label. Mobile skips any string that is not shaped like a label before looking it up,
+        // so a label listed here must get two or three PascalCase parts (see contributingGuides/SENTRY_LABEL.md)
+        expect(unreportedLabels).toEqual([]);
+    });
+
+    it('does not report a sentryLabel that only looks like a label', () => {
+        // Given, for every label, strings that are one character off, cut short, longer, in another case or padded with whitespace
+        // When the user taps an element nested inside elements that carry these strings as their sentryLabel
+        const labelsWithReportedLookalikes = LABELS.filter((label) => touch(...getLookalikes(label).map((sentryLabel) => ({sentryLabel}))).wasLogged);
+
+        // Then none of them is reported, because only exact labels from CONST.SENTRY_LABEL get through
+        expect(labelsWithReportedLookalikes).toEqual([]);
+    });
+
+    it('skips every component name, accessibility label and test ID on a long path from the tapped view to its label', () => {
+        // Given a tapped view deep inside named components and views with accessibility labels and test IDs, some of them
+        // hyphenated like labels, below a labelled pressable
+        const componentNames = [
+            'View',
+            'Text',
+            'Animated(View)',
+            'ForwardRef(View)',
+            'Memo(OptionRowLHN)',
+            'Context.Provider',
+            'PressableWithFeedback',
+            'GenericPressable',
+            'OfflineWithFeedback',
+            'MenuItem',
+            'LHNOptionsList',
+            'FlashList',
+            'ScrollView',
+            'ScreenWrapper',
+            'SafeAreaProvider',
+            'GestureHandlerRootView',
+        ];
+        const accessibilityLabels = ['John Smith, $879.17', 'Navigates to a chat with John Smith', 'john.smith@example.com', 'Open actions menu', 'Create expense', 'Back'];
+        const testIDs = ['report-actions-list', 'transaction-item-row', 'report-screen-123', 'LHNOptionsList', 'ReportScreen', 'Report-Unknown', 'Report-Unknown-Element'];
+
+        // When the user taps the innermost view
+        const {label, path} = touch(
+            ...componentNames.map((displayName) => ({displayName})),
+            ...accessibilityLabels.map((accessibilityLabel) => ({accessibilityLabel})),
+            ...testIDs.map((testID) => ({testID})),
+            ...componentNames.map((displayName) => ({displayName, accessibilityLabel: 'John Smith', testID: 'lhn-options-list'})),
+            {sentryLabel: CONST.SENTRY_LABEL.LHN.OPTION_ROW, accessibilityLabel: 'John Smith, $879.17'},
+            ...componentNames.map((displayName) => ({displayName})),
+        );
+
+        // Then the tap is named after the label, and nothing else on the path reaches the span or the breadcrumb
+        expect(label).toBe(CONST.SENTRY_LABEL.LHN.OPTION_ROW);
+        expect(path).toEqual([{label: CONST.SENTRY_LABEL.LHN.OPTION_ROW}]);
     });
 });
