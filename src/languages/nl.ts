@@ -7394,6 +7394,11 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                         subtitle: 'Push de categorieën, tags en rapportvelden van deze workspace naar Expensify Travel zodat reizigers ze bij het boeken invullen.',
                     },
                 },
+                members: {
+                    offDescription: 'Kan geen reizen boeken',
+                    onDescription: 'Kan reizen boeken',
+                    travelAccess: 'Reistoegang',
+                },
                 travelBilling: {
                     travelBookingSection: {
                         title: 'Reisboeking',

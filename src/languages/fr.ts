@@ -7470,6 +7470,11 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                             'Envoyez les catégories, tags et champs de note de frais de cet espace de travail vers Expensify Travel pour que les voyageurs y répondent au moment de la réservation.',
                     },
                 },
+                members: {
+                    offDescription: 'Ne peut pas réserver de voyages',
+                    onDescription: 'Peut réserver des voyages',
+                    travelAccess: 'Accès aux voyages',
+                },
                 travelBilling: {
                     travelBookingSection: {
                         title: 'Réservation de voyage',

@@ -7127,6 +7127,11 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     autoAddTripName: {title: '将行程名称添加到报销单', subtitle: '为在 Expensify 中预订的行程，自动将行程名称添加到报销事由描述中。'},
                     codingSync: {title: '将编码同步到 Expensify Travel', subtitle: '将此工作区的类别、标签和报表字段推送到 Expensify Travel，以便出行人能在预订时填写。'},
                 },
+                members: {
+                    offDescription: '无法预订差旅',
+                    onDescription: '可以预订差旅',
+                    travelAccess: '差旅权限',
+                },
                 travelBilling: {
                     travelBookingSection: {
                         title: '差旅预订',

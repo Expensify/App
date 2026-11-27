@@ -7451,6 +7451,11 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                         subtitle: 'Kategorien, Tags und Berichtsfelder dieses Arbeitsbereichs an Expensify Travel übertragen, damit Reisende sie beim Buchen beantworten.',
                     },
                 },
+                members: {
+                    offDescription: 'Kann keine Reisen buchen',
+                    onDescription: 'Kann Reisen buchen',
+                    travelAccess: 'Reisezugriff',
+                },
                 travelBilling: {
                     travelBookingSection: {
                         title: 'Reisebuchung',

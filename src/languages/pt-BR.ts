@@ -7407,6 +7407,11 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                         subtitle: 'Envie as categorias, tags e campos de relatório deste workspace para o Expensify Travel para que os viajantes os respondam no momento da reserva.',
                     },
                 },
+                members: {
+                    offDescription: 'Não pode reservar viagens',
+                    onDescription: 'Pode reservar viagens',
+                    travelAccess: 'Acesso a viagens',
+                },
                 travelBilling: {
                     travelBookingSection: {
                         title: 'Reserva de viagem',

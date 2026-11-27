@@ -52,6 +52,7 @@ import {
     setMembersSelectedForRoleChange,
     setWorkspaceMembersSelectedForBulkEdit,
 } from '@libs/actions/Policy/Member';
+import {setPolicyTravelMemberAccess} from '@libs/actions/Policy/Travel';
 import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWorkflow} from '@libs/actions/Workflow';
 import {isRuleBotEnforcingRules} from '@libs/AgentRulesUtils';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
@@ -77,6 +78,8 @@ import {
     getConnectionExporters,
     getMemberAccountIDsForWorkspace,
     getReimburserEmail,
+    canChangeMemberTravelAccess,
+    canMemberUseTravel,
     getSelectableRoles,
     hasActiveExpensifyCard,
     isControlPolicy,
@@ -85,6 +88,7 @@ import {
     isPolicyAdmin,
     isPolicyApprover,
     isSubmitPolicy,
+    isWorkspaceProvisionedForTravel,
     PAYER_ROLES,
     shouldHideDynamicExternalWorkflowPeople,
 } from '@libs/PolicyUtils';
@@ -252,6 +256,7 @@ function WorkspaceMembersPage({route, policy}: WorkspaceMembersPageProps) {
 
     const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID];
 
+    const isProvisionedForTravel = isWorkspaceProvisionedForTravel(policy?.travelSettings);
     const canSelectMultiple = canWriteMembers && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true);
 
     let confirmModalPrompt;
@@ -460,6 +465,7 @@ function WorkspaceMembersPage({route, policy}: WorkspaceMembersPageProps) {
     const shouldShowOfficeLocationColumn = !shouldUseNarrowLayout && shouldShowOfficeLocations;
     const officeLocations = getAssignableOfficeLocations(policy, translate, localeCompare);
     const shouldShowBankAccountColumn = !shouldUseNarrowLayout && !isMediumScreenWidth && shouldShowMemberBankAccounts;
+    const shouldShowTravelColumn = !shouldUseNarrowLayout && isProvisionedForTravel && isBetaEnabled(CONST.BETAS.TRAVEL_MEMBER_ACCESS);
 
     // Unlike the custom fields, this column applies to every workspace type, so it isn't gated on Control.
     const isApprovalsEnabled = areApprovalsEnabled(policy);
@@ -478,7 +484,7 @@ function WorkspaceMembersPage({route, policy}: WorkspaceMembersPageProps) {
 
     const assignablePayerRoles = PAYER_ROLES.filter((payerRole) => canMemberAssignRole(policy, currentUserLogin ?? '', payerRole));
     const policyRoles = Object.values(CONST.POLICY.ROLE);
-    const data: WorkspaceMemberRowData[] = filteredMembers.map(({policyEmployee, accountID, details}) => {
+    const data: WorkspaceMemberRowData[] = filteredMembers.map(({policyEmployee, accountID, details, hasKnownAccountID}) => {
         const isPendingDeleteOrError = canEditWorkspaceSettings && (policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyEmployee.errors));
         const employeeRole = policyRoles.find((policyRole) => policyRole === policyEmployee.role);
         const login = details.login ?? '';
@@ -534,6 +540,14 @@ function WorkspaceMembersPage({route, policy}: WorkspaceMembersPageProps) {
             disabled: isPendingDeleteOrError,
             canEditRole,
             onChangeRole: (newRole) => changeMemberRole(login, accountID, policyEmployee.role, newRole),
+            canUseTravel: shouldShowTravelColumn ? canMemberUseTravel(policy, login) : undefined,
+            // A member without a loaded accountID would be sent to the server under an accountID it doesn't know
+            canEditTravelAccess:
+                canChangeMemberTravelAccess(policy, policyEmployee, isBetaEnabled(CONST.BETAS.TRAVEL_MEMBER_ACCESS)) &&
+                !isSelectionModeActive &&
+                !isPendingDeleteOrError &&
+                hasKnownAccountID,
+            onChangeTravelAccess: (canUseTravel) => setPolicyTravelMemberAccess(policy, [{email: login, accountID}], canUseTravel),
             // Note which secondary login was used to invite this primary login
             invitedSecondaryLogin: details?.login ? (invitedPrimaryToSecondaryLogins[details.login] ?? '') : '',
             action: () => openMemberDetails(accountID, login),
@@ -862,6 +876,7 @@ function WorkspaceMembersPage({route, policy}: WorkspaceMembersPageProps) {
                         shouldUseOrdinalApproverLabel={shouldUseOrdinalApproverLabel}
                         shouldShowOfficeLocationColumn={shouldShowOfficeLocationColumn}
                         shouldShowBankAccountColumn={shouldShowBankAccountColumn}
+                        shouldShowTravelColumn={shouldShowTravelColumn}
                         onRowSelectionChange={setSelectedEmployees}
                         headerComponent={tableHeaderComponent}
                         bulkActionOptions={canWriteMembers ? getBulkActionsButtonOptions() : undefined}

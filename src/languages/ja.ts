@@ -7301,6 +7301,11 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                         subtitle: 'このワークスペースのカテゴリ、タグ、レポートフィールドを Expensify Travel にプッシュして、出張者が予約時にそれらに回答できるようにします。',
                     },
                 },
+                members: {
+                    offDescription: '出張を予約できません',
+                    onDescription: '出張を予約できます',
+                    travelAccess: '出張へのアクセス',
+                },
                 travelBilling: {
                     travelBookingSection: {
                         title: '出張予約',

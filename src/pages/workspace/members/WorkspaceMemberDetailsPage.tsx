@@ -57,11 +57,14 @@ import {
     arePaymentsEnabled,
     canMemberAssignRole,
     canMemberManageMemberWithRole,
+    canChangeMemberTravelAccess,
+    canMemberUseTravel,
     canMemberWrite,
     hasActiveExpensifyCard,
     isControlPolicy,
     isPolicyAdmin,
     isPolicyApprover,
+    isWorkspaceProvisionedForTravel,
     PAYER_ROLES,
     shouldHideDynamicExternalWorkflowPeople,
     tryNavigateToSubmitWorkspaceUpgrade,
@@ -70,6 +73,7 @@ import {getChatHistoryTranslationKey, navigateToChatHistory, shouldShowLocalTime
 import {getChatByParticipants, isApproverOfOutstandingPolicyReports} from '@libs/ReportUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import {startSpan} from '@libs/telemetry/activeSpans';
+import {getTravelMemberAccessName} from '@libs/TravelMemberOptionUtils';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 import {getEffectiveWorkArrangement, getMemberLoginByAccountID, getWorkArrangementLabel, isAccountIDGeneratedFromLogin} from '@libs/WorkArrangementUtils';
 import {getFirstApproverLabel, INITIAL_APPROVAL_WORKFLOW, isApprovalWorkflowLockedByIntegration, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
@@ -173,6 +177,8 @@ function WorkspaceMemberDetailsPage({policy, route}: WorkspaceMemberDetailsPageP
     const canWriteMembers = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.MEMBERS);
     const {canWrite: canWriteCategories} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.CATEGORIES);
     const canChangeOfficeLocation = shouldShowOfficeLocation && canWriteMembers;
+    const shouldShowTravelSettings = isWorkspaceProvisionedForTravel(policy?.travelSettings) && isBetaEnabled(CONST.BETAS.TRAVEL_MEMBER_ACCESS);
+    const canChangeTravelSettings = canChangeMemberTravelAccess(policy, member, isBetaEnabled(CONST.BETAS.TRAVEL_MEMBER_ACCESS));
     const canManageSelectedMemberRole = canMemberAssignRole(policy, currentUserLogin, member?.role);
     const canRemoveSelectedMember = canWriteMembers && !isSelectedMemberOwner && !isSelectedMemberCurrentUser && canMemberManageMemberWithRole(policy, currentUserLogin, member?.role);
     const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID];
@@ -656,6 +662,17 @@ function WorkspaceMemberDetailsPage({policy, route}: WorkspaceMemberDetailsPageP
                                         {canWriteMembers && <MenuItem.Chevron />}
                                     </MenuItemField.Row>
                                 </MenuItem.Root>
+                            )}
+                            {shouldShowTravelSettings && (
+                                <OfflineWithFeedback pendingAction={member?.pendingFields?.canUseTravel}>
+                                    <MenuItemField
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.DETAILS_TRAVEL_ACCESS}
+                                        name={translate('workspace.moreFeatures.travel.members.travelAccess')}
+                                        onPress={canChangeTravelSettings ? () => Navigation.navigate(ROUTES.WORKSPACE_MEMBER_TRAVEL_ACCESS.getRoute(policyID, accountID)) : undefined}
+                                        testID="member-travel-access-menu-item"
+                                        value={getTravelMemberAccessName(translate, canMemberUseTravel(policy, memberLogin))}
+                                    />
+                                </OfflineWithFeedback>
                             )}
                             {isControlPolicy(policy) && (
                                 <>

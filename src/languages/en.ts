@@ -8122,6 +8122,11 @@ const translations = {
                         subtitle: "Push this workspace's categories, tags, and report fields to Expensify Travel so travelers answer them at booking time.",
                     },
                 },
+                members: {
+                    offDescription: "Can't book travel",
+                    onDescription: 'Can book travel',
+                    travelAccess: 'Travel access',
+                },
                 travelBilling: {
                     travelBookingSection: {
                         title: 'Travel booking',

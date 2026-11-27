@@ -7406,6 +7406,11 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                             'Invia le categorie, i tag e i campi di rendiconto di questo spazio di lavoro a Expensify Travel così che chi viaggia li compili al momento della prenotazione.',
                     },
                 },
+                members: {
+                    offDescription: 'Non può prenotare viaggi',
+                    onDescription: 'Può prenotare viaggi',
+                    travelAccess: 'Accesso ai viaggi',
+                },
                 travelBilling: {
                     travelBookingSection: {
                         title: 'Prenotazione viaggi',

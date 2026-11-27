@@ -7386,6 +7386,11 @@ ${amount} para ${merchant} - ${date}`,
                             'Envía las categorías, etiquetas y campos de informe de este espacio de trabajo a Expensify Travel para que los viajeros los completen en el momento de la reserva.',
                     },
                 },
+                members: {
+                    offDescription: 'No puede reservar viajes',
+                    onDescription: 'Puede reservar viajes',
+                    travelAccess: 'Acceso a viajes',
+                },
                 travelBilling: {
                     travelBookingSection: {
                         title: 'Reserva de viajes',
