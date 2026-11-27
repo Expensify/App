@@ -558,6 +558,7 @@ function getAccountingIntegrationData(
                 onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_ADVANCED.getRoute(policyID)),
                 subscribedAdvancedSettings: [
                     CONST.RILLET_CONFIG.ACCOUNTING_METHOD,
+                    CONST.RILLET_CONFIG.AUTO_CREATE_VENDOR,
                     CONST.RILLET_CONFIG.AUTO_SYNC,
                     CONST.RILLET_CONFIG.SYNC_REIMBURSED_REPORTS,
                     CONST.RILLET_CONFIG.BILL_PAYMENT_ACCOUNT_CODE,
@@ -711,9 +712,18 @@ function getAccountingIntegrationData(
                     CONST.DIGITS_CONFIG.DEFAULT_VENDORID,
                     CONST.DIGITS_CONFIG.CREDIT_CARD_ACCOUNT_ID,
                 ],
-                // The Advanced page is added in a later release.
-                onAdvancedPagePress: () => null,
-                subscribedAdvancedSettings: [],
+                onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DIGITS_ADVANCED.getRoute(policyID)),
+                subscribedAdvancedSettings: [
+                    CONST.DIGITS_CONFIG.ACCOUNTING_METHOD,
+                    CONST.DIGITS_CONFIG.AUTO_SYNC,
+                    CONST.DIGITS_CONFIG.SYNC_REIMBURSED_REPORTS,
+                    CONST.DIGITS_CONFIG.BILL_PAYMENT_ACCOUNT_ID,
+                    CONST.DIGITS_CONFIG.SYNC_EXPENSIFY_CARD_SETTLEMENTS,
+                    CONST.DIGITS_CONFIG.SETTLEMENTS_BANK_ACCOUNT_ID,
+                    CONST.DIGITS_CONFIG.SYNC_TRAVEL_BILLING_SETTLEMENTS,
+                    CONST.DIGITS_CONFIG.TRAVEL_BILLING_SETTLEMENTS_BANK_ACCOUNT_ID,
+                    CONST.DIGITS_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT_ID,
+                ],
                 workspaceUpgradeNavigationDetails: {
                     integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.digits.alias,
                     backToAfterWorkspaceUpgradeRoute: getBackToAfterWorkspaceUpgradeRouteForDigits(),

@@ -373,8 +373,10 @@ function filterOutRangesWithCorrectValue(
             return knownValues.exportedTo.has(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_ID:
             return !['', 'null', 'undefined', '0', '-1'].includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.CONVERTED_AMOUNT:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_DEBITED:

@@ -130,6 +130,7 @@ import Building from '@assets/images/simple-illustrations/simple-illustration__b
 import BuildingCross from '@assets/images/simple-illustrations/simple-illustration__building_cross.svg';
 import Buildings from '@assets/images/simple-illustrations/simple-illustration__buildings.svg';
 import CalculatorMoney from '@assets/images/simple-illustrations/simple-illustration__calculator-money.svg';
+import CalendarMonthlyMuted from '@assets/images/simple-illustrations/simple-illustration__calendar-monthly-muted.svg';
 import CalendarMonthly from '@assets/images/simple-illustrations/simple-illustration__calendar-monthly.svg';
 import CarIce from '@assets/images/simple-illustrations/simple-illustration__car-ice.svg';
 import Car from '@assets/images/simple-illustrations/simple-illustration__car.svg';
@@ -433,6 +434,7 @@ const Illustrations = {
     Buildings,
     CalculatorMoney,
     CalendarMonthly,
+    CalendarMonthlyMuted,
     Car,
     CardReaderAlt,
     ChatBubbles,

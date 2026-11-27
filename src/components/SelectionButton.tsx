@@ -150,7 +150,8 @@ function SelectionButton({
     };
 
     const firePressHandlerOnClick = (event?: GestureResponderEvent | KeyboardEvent) => {
-        if (event?.type && event.type !== 'click') {
+        // Enter on the focused button is already handled on key down, so the key up press must not toggle it a second time.
+        if (event?.type === 'keyup') {
             return;
         }
 

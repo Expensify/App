@@ -1,3 +1,4 @@
+import canPersistRequest from '@libs/canPersistRequest';
 import {getMicroSecondOnyxErrorWithMessage} from '@libs/ErrorUtils';
 import {clearExperienceCookie} from '@libs/ExperienceCookie';
 import Log from '@libs/Log';
@@ -6,18 +7,16 @@ import {getIsOffline} from '@libs/NetworkState';
 import clearPrefetchOnAppStart from '@libs/Prefetch/clearPrefetchOnAppStart';
 import {logReceiptQueueSnapshot} from '@libs/telemetry/ReceiptObservability';
 
-import CONFIG from '@src/CONFIG';
 import type {SignOutReason} from '@src/CONST';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {RequestsKeptOnSAMLSignOut} from '@src/types/onyx';
 
-import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {isDelegateSessionSelector, isSupportalSessionSelector} from '@selectors/Session';
 import Onyx from 'react-native-onyx';
 
-import {resetSignInFlow} from './HybridApp';
-import {canPersistRequest, getAllIncludingOngoing as getAllPersistedRequestsIncludingOngoing} from './PersistedRequests';
+import {signOutFromOldDotAndRestartSignIn} from './HybridApp';
+import {getAllIncludingOngoing as getAllPersistedRequestsIncludingOngoing} from './PersistedRequests';
 
 let currentShouldForceOffline: boolean | undefined;
 let currentIsUsingImportedState: boolean | undefined;
@@ -160,10 +159,7 @@ function clearStorageAndRedirect(signOutReason: SignOutReason, errorMessage?: st
         // Requests may be processed while sign-out is in progress. Clear again after credentials have been removed so none of those requests remain queued for the next startup.
         await clearPrefetchOnAppStart();
 
-        if (CONFIG.IS_HYBRID_APP) {
-            resetSignInFlow();
-            HybridAppModule.signOutFromOldDot();
-        }
+        signOutFromOldDotAndRestartSignIn();
 
         // When logging out from imported state, reset shouldForceOffline to false and clear the imported state flag
         // so the user can log back in

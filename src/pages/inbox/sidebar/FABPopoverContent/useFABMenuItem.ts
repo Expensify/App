@@ -11,6 +11,7 @@ type FABMenuItemResult = {
     itemIndex: number;
     isFocused: boolean;
     wrapperStyle: ViewStyle;
+    shouldShowIconTiles: boolean;
     setFocusedIndex: (index: number) => void;
     onItemPress: (onSelected: () => void, options?: {shouldCallAfterModalHide?: boolean}) => void;
 };
@@ -18,11 +19,11 @@ type FABMenuItemResult = {
 /**
  * Handles registration of a FAB menu item for arrow-key focus management.
  * Pass `isVisible` for items that conditionally render — registration mirrors visibility.
- * Returns itemIndex, isFocused, wrapperStyle, setFocusedIndex, and onItemPress — everything
+ * Returns itemIndex, isFocused, wrapperStyle, shouldShowIconTiles, setFocusedIndex, and onItemPress — everything
  * a menu item needs to render and interact, with no direct context access required.
  */
 function useFABMenuItem(itemId: string, isVisible = true): FABMenuItemResult {
-    const {registerItem, unregisterItem, registeredItems, focusedIndex, setFocusedIndex, onItemPress} = useFABMenuContext();
+    const {registerItem, unregisterItem, registeredItems, focusedIndex, setFocusedIndex, onItemPress, shouldShowIconTiles} = useFABMenuContext();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
 
@@ -38,7 +39,7 @@ function useFABMenuItem(itemId: string, isVisible = true): FABMenuItemResult {
     const isFocused = focusedIndex !== -1 && focusedIndex === itemIndex;
     const wrapperStyle = StyleUtils.getItemBackgroundColorStyle(false, isFocused, false, theme.activeComponentBG, theme.hoverComponentBG);
 
-    return {itemIndex, isFocused, wrapperStyle, setFocusedIndex, onItemPress};
+    return {itemIndex, isFocused, wrapperStyle, shouldShowIconTiles, setFocusedIndex, onItemPress};
 }
 
 export default useFABMenuItem;
