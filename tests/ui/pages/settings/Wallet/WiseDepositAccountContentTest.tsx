@@ -5,7 +5,7 @@ import {getPages} from '@components/DynamicForm/utils/paginate';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import * as API from '@libs/API';
-import {WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
@@ -368,6 +368,102 @@ describe('WiseDepositAccountContent', () => {
 
             // Then the same page opens outside edit mode, so its button goes on to the holder page instead of back to a confirmation page with every answer gone
             expect(navigateSpy).toHaveBeenCalledWith(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute(undefined, FIRST_PAGE_NAME), {forceReplace: true});
+        });
+
+        describe('and the refresh fails', () => {
+            /** Fails the refresh the pick sent, as the server's failure data would */
+            async function failRefresh() {
+                await Onyx.merge(ONYXKEYS.RAM_ONLY_WISE_BANK_ACCOUNT_FIELDS, {isLoading: false, errors: {refreshError: 'The form could not be refreshed'}});
+                await waitForBatchedUpdatesWithAct();
+            }
+
+            /** The requests for a form the screen sent, read from what reached the network */
+            function getFieldsRequests() {
+                return TestHelper.getFetchMockCalls(READ_COMMANDS.GET_WISE_BANK_ACCOUNT_FIELDS).map(([, init]) => (init?.body instanceof FormData ? Object.fromEntries(init.body) : {}));
+            }
+
+            it('asks for the new currency form again when the user tries again', async () => {
+                await renderScreen(FIRST_PAGE_NAME);
+
+                // Given a pick of EUR whose refresh failed, which left the form on GBP
+                await pickCurrency('EUR');
+                await failRefresh();
+                const requestCountBeforeRetry = getFieldsRequests().length;
+
+                // When the user presses Try again next to the error, since picking EUR again would do nothing
+                fireEvent.press(screen.getByText('common.tryAgain'), {preventDefault: jest.fn()});
+                await waitForBatchedUpdatesWithAct();
+
+                // Then the EUR form is asked for again, with no answers, since a new currency starts the form over
+                const requests = getFieldsRequests();
+                expect(requests).toHaveLength(requestCountBeforeRetry + 1);
+                expect(requests.at(-1)).toMatchObject({country: 'GB', currency: 'EUR'});
+                expect(requests.at(-1)).not.toHaveProperty('inputs');
+            });
+
+            it('sends the answers the user has now when the user tries again', async () => {
+                await renderScreen(FIRST_PAGE_NAME);
+
+                // Given a pick of GBP, which keeps the answers, whose refresh failed
+                await pickCurrency('GBP');
+                await failRefresh();
+                const requestCountBeforeRetry = getFieldsRequests().length;
+
+                // And a holder's name the user changed after the failure
+                await Onyx.merge(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT, {accountHolderName: 'John Doe'});
+                await waitForBatchedUpdatesWithAct();
+
+                // When the user presses Try again
+                fireEvent.press(screen.getByText('common.tryAgain'), {preventDefault: jest.fn()});
+                await waitForBatchedUpdatesWithAct();
+
+                // Then the refresh is sent again with the current answers, so the new form matches what the user has answered
+                const requests = getFieldsRequests();
+                expect(requests).toHaveLength(requestCountBeforeRetry + 1);
+                const inputs = requests.at(-1)?.inputs;
+                expect(typeof inputs === 'string' ? JSON.parse(inputs) : undefined).toMatchObject({currency: 'GBP', sortCode: '403020', accountHolderName: 'John Doe'});
+            });
+
+            it('sends one request when the user taps Try again twice before the error clears', async () => {
+                await renderScreen(FIRST_PAGE_NAME);
+
+                // Given a failed refresh with Try again shown
+                await pickCurrency('GBP');
+                await failRefresh();
+                const requestCountBeforeRetry = getFieldsRequests().length;
+
+                // When the user taps Try again twice in a row, before the request clears the error on screen
+                const retryButton = screen.getByText('common.tryAgain');
+                fireEvent.press(retryButton, {preventDefault: jest.fn()});
+                fireEvent.press(retryButton, {preventDefault: jest.fn()});
+                await waitForBatchedUpdatesWithAct();
+
+                // Then only one refresh is sent, so two answers cannot race to replace the form
+                expect(getFieldsRequests()).toHaveLength(requestCountBeforeRetry + 1);
+            });
+
+            it('hides Try again offline, since the request could not be answered', async () => {
+                await renderScreen(FIRST_PAGE_NAME);
+
+                // Given a failed refresh with Try again shown
+                await pickCurrency('GBP');
+                await failRefresh();
+
+                // When the connection drops
+                await Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: true});
+                await waitForBatchedUpdatesWithAct();
+
+                // Then Try again is gone while the error stays, as the fields that refresh cannot be changed, so the form never waits on a request that cannot get through
+                expect(screen.queryByText('common.tryAgain')).not.toBeOnTheScreen();
+                expect(screen.getByText('The form could not be refreshed')).toBeOnTheScreen();
+
+                // When the connection comes back
+                await Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: false});
+                await waitForBatchedUpdatesWithAct();
+
+                // Then the user can try again
+                expect(screen.getByText('common.tryAgain')).toBeOnTheScreen();
+            });
         });
     });
 

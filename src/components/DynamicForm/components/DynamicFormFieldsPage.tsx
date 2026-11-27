@@ -11,8 +11,11 @@ import toDynamicFormValues from '@components/DynamicForm/utils/toDynamicFormValu
 import FormProvider from '@components/Form/FormProvider';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Text from '@components/Text';
+import TextLink from '@components/TextLink';
 
+import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
@@ -41,6 +44,7 @@ function DynamicFormFieldsPage({
     submitError,
     isRefreshingRequirements,
     refreshError,
+    onRetryRefresh,
     shouldDisableNextWhenOffline,
     onSaveForLater,
     markUnfinishedForm,
@@ -49,8 +53,15 @@ function DynamicFormFieldsPage({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {showContinueOfflineModal} = useContinueOfflineModal();
+    const {isOffline} = useNetwork();
+    const pageSubmitError = isLastPage ? submitError : undefined;
+    const pageError = pageSubmitError ?? refreshError;
+    // Try again sends the refresh again, so it only goes with the refresh's own error. Offline the request would never be answered and the form would wait on it,
+    // so the link is hidden, as the fields that refresh are disabled.
+    const shouldShowRetry = !pageSubmitError && !!refreshError && !!onRetryRefresh && !isOffline;
+    // FormHelpMessage does not announce a message drawn as children, so VoiceOver is told here as it is for a plain message. Web and Android read the alert role below.
+    useAccessibilityAnnouncement(refreshError, shouldShowRetry);
     const page = pages.find((candidate) => candidate.key === currentPageName);
-    const pageError = (isLastPage ? submitError : undefined) ?? refreshError;
     if (!page) {
         return null;
     }
@@ -105,7 +116,24 @@ function DynamicFormFieldsPage({
                     <FormHelpMessage
                         message={pageError}
                         style={styles.mb3}
-                    />
+                    >
+                        {shouldShowRetry ? (
+                            <Text
+                                style={[styles.formError, styles.mb0]}
+                                role={CONST.ROLE.ALERT}
+                                accessibilityLiveRegion="assertive"
+                            >
+                                {`${refreshError} `}
+                                <TextLink
+                                    variant="label"
+                                    onPress={onRetryRefresh}
+                                    sentryLabel={CONST.SENTRY_LABEL.DYNAMIC_FORM.REFRESH_RETRY}
+                                >
+                                    {translate('common.tryAgain')}
+                                </TextLink>
+                            </Text>
+                        ) : undefined}
+                    </FormHelpMessage>
                 ) : undefined
             }
             shouldRenderFooterAboveSubmit
