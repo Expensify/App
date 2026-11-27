@@ -86,6 +86,7 @@ function MerchantOrDescriptionCell({merchantOrDescription, shouldShowTooltip, sh
             canEdit={canEdit}
             isEditing={isEditing}
             onStartEditing={startEditing}
+            editContentContainerStyle={isDescription && styles.mv2}
             editContent={
                 <TextInput
                     ref={handleRef}

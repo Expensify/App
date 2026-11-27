@@ -19,6 +19,7 @@ import type * as NativeNavigation from '@react-navigation/native';
 import type ReactNative from 'react-native';
 
 import React from 'react';
+import {StyleSheet, View} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -134,6 +135,38 @@ describe('EditableCell', () => {
 
         // Then the edit pencil is shown
         expect(await screen.findByTestId('mock-edit-button')).toBeOnTheScreen();
+    });
+
+    it.each(['inline', 'display', 'popover', 'narrow'] as const)('scopes edit container spacing correctly in %s mode', async (mode) => {
+        // Given a cell with spacing intended only for its inline editor
+        mockedUseResponsiveLayout.mockReturnValue(mode === 'narrow' ? NARROW_SCREEN_LAYOUT : MAIN_PANE_LAYOUT);
+
+        // When it renders in the requested mode
+        render(
+            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+                <EditableCell
+                    canEdit
+                    isEditing={mode !== 'display'}
+                    onStartEditing={() => {}}
+                    editContent={mode === 'popover' ? undefined : <View testID="edit-content" />}
+                    editContentContainerStyle={{marginVertical: 8}}
+                    popoverContent={mode === 'popover' ? <Text>Popover</Text> : undefined}
+                >
+                    <View testID="display-content" />
+                </EditableCell>
+            </ComposeProviders>,
+        );
+        await waitForBatchedUpdates();
+
+        // Then spacing reaches the inline box without changing display, popover, or narrow layouts
+        const hasEditSpacing = screen.UNSAFE_getAllByType(View).some(({props}: {props: ReactNative.ViewProps}) => StyleSheet.flatten(props.style)?.marginVertical === 8);
+        expect(hasEditSpacing).toBe(mode === 'inline');
+        if (mode === 'inline') {
+            expect(screen.getByTestId('edit-content')).toBeOnTheScreen();
+        } else {
+            expect(screen.getByTestId('display-content')).toBeOnTheScreen();
+            expect(screen.queryByTestId('edit-content')).not.toBeOnTheScreen();
+        }
     });
 
     it('is editable inside a Wide RHP', async () => {
