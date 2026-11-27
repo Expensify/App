@@ -1969,35 +1969,36 @@ function MoneyRequestView({
                             style={styles.moneyRequestMenuItem}
                             onPress={
                                 canEditReport
-                                    ? callIfAuthenticated(() => {
-                                          if (!canEditReport || !transactionThreadReport) {
-                                              return;
-                                          }
-                                          if (shouldNavigateToUpgradePath) {
+                                    ? () =>
+                                          callIfAuthenticated(() => {
+                                              if (!canEditReport || !transactionThreadReport) {
+                                                  return;
+                                              }
+                                              if (shouldNavigateToUpgradePath) {
+                                                  Navigation.navigate(
+                                                      createDynamicRoute(
+                                                          DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                                                              iouType,
+                                                              action: CONST.IOU.ACTION.EDIT,
+                                                              transactionID: transaction?.transactionID,
+                                                              reportID: transactionThreadReport?.reportID,
+                                                              upgradePath: CONST.UPGRADE_PATHS.REPORTS,
+                                                          }),
+                                                      ),
+                                                  );
+                                                  return;
+                                              }
                                               Navigation.navigate(
                                                   createDynamicRoute(
-                                                      DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                                                      DYNAMIC_ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(
+                                                          CONST.IOU.ACTION.EDIT,
                                                           iouType,
-                                                          action: CONST.IOU.ACTION.EDIT,
-                                                          transactionID: transaction?.transactionID,
-                                                          reportID: transactionThreadReport?.reportID,
-                                                          upgradePath: CONST.UPGRADE_PATHS.REPORTS,
-                                                      }),
+                                                          transaction?.transactionID,
+                                                          transactionThreadReport?.reportID,
+                                                      ),
                                                   ),
                                               );
-                                              return;
-                                          }
-                                          Navigation.navigate(
-                                              createDynamicRoute(
-                                                  DYNAMIC_ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(
-                                                      CONST.IOU.ACTION.EDIT,
-                                                      iouType,
-                                                      transaction?.transactionID,
-                                                      transactionThreadReport?.reportID,
-                                                  ),
-                                              ),
-                                          );
-                                      }, session)
+                                          }, session)()
                                     : undefined
                             }
                         >
