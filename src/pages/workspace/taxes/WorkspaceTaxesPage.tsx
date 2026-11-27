@@ -2,7 +2,7 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, WorkspaceTaxRatesBulkActionType} from '@components/ButtonWithDropdownMenu/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderCentralPane from '@components/Header/composed/HeaderCentralPane';
 import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -66,7 +66,7 @@ function WorkspaceTaxesPage({
     },
 }: WorkspaceTaxesPageProps) {
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.taxes');
-    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {pageGutter} = useLayoutSpacing();
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
     const styles = useThemeStyles();
@@ -273,7 +273,9 @@ function WorkspaceTaxesPage({
     }
     const dropdownMenuOptions = options;
 
-    const shouldShowBulkActionsButton = canWriteTaxes && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : selectedTaxesIDs.length > 0);
+    // The wide layout offers these actions in the floating bar over the table instead, so its header keeps the
+    // page's own buttons no matter what is selected.
+    const shouldShowBulkActionsButton = canWriteTaxes && shouldUseNarrowLayout && isMobileSelectionModeEnabled;
 
     const secondaryActions = [
         {
@@ -292,7 +294,7 @@ function WorkspaceTaxesPage({
 
         if (!shouldShowBulkActionsButton) {
             return (
-                <View style={[!isInLandscapeMode && styles.w100, styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && styles.mb3]}>
+                <View style={[styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && [styles.w100, styles.mb3]]}>
                     {!hasAccountingConnections && (
                         <Button
                             variant={CONST.BUTTON_VARIANT.SUCCESS}
@@ -326,7 +328,7 @@ function WorkspaceTaxesPage({
                 customText={translate('workspace.common.selected', {count: selectedTaxesIDs.length})}
                 shouldAlwaysShowDropdownMenu
                 isSplitButton={false}
-                style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
+                style={shouldDisplayButtonsInSeparateLine && [styles.flexGrow1, styles.mb3]}
                 isDisabled={!selectedTaxesIDs.length}
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAXES.BULK_ACTIONS_DROPDOWN}
             />
@@ -367,11 +369,9 @@ function WorkspaceTaxesPage({
                 shouldShowOfflineIndicatorInWideScreen
                 offlineIndicatorStyle={styles.mtAuto}
             >
-                <HeaderWithBackButton
-                    shouldUseHeadlineHeader={!selectionModeHeader}
+                <HeaderCentralPane
                     title={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.common.taxes')}
-                    shouldShowBackButton={shouldUseNarrowLayout}
-                    shouldDisplayHelpButton
+                    isHeadline={!selectionModeHeader}
                     onBackButtonPress={() => {
                         if (isMobileSelectionModeEnabled) {
                             clearTableSelection();
@@ -382,7 +382,7 @@ function WorkspaceTaxesPage({
                     }}
                 >
                     {!shouldDisplayButtonsInSeparateLine && headerButtons}
-                </HeaderWithBackButton>
+                </HeaderCentralPane>
                 {shouldDisplayButtonsInSeparateLine && !!headerButtons && <View style={pageGutter}>{headerButtons}</View>}
                 {(!hasVisibleTaxes || isLoading) && headerContent}
                 {isLoading && (
@@ -399,6 +399,7 @@ function WorkspaceTaxesPage({
                         shouldShowTaxCodeColumn={shouldShowTaxCodeColumn}
                         onRowSelectionChange={setSelectedTaxesIDs}
                         headerComponent={hasVisibleTaxes ? headerContent : undefined}
+                        bulkActionOptions={canWriteTaxes ? dropdownMenuOptions : undefined}
                     />
                 )}
             </ScreenWrapper>

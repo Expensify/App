@@ -16,6 +16,7 @@ import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -24,7 +25,14 @@ import {getReportFromSearchSnapshot, setSearchMergeReportIDs} from '@libs/action
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
-import {canMergeReports, doReportsHaveMatchingReportFieldValues, getMoneyRequestSpendBreakdown, getPersonalDetailsForAccountID, isReportExportedOrPending} from '@libs/ReportUtils';
+import {
+    canMergeReports,
+    doReportsHaveMatchingReportFieldValues,
+    getMoneyRequestSpendBreakdown,
+    getPersonalDetailsForAccountID,
+    isArchivedReport,
+    isReportExportedOrPending,
+} from '@libs/ReportUtils';
 
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 
@@ -62,7 +70,6 @@ function SearchMergeReports() {
     const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const isReportMergeBetaEnabled = isBetaEnabled(CONST.BETAS.REPORT_MERGE);
     const session = useSession();
     const personalDetails = usePersonalDetails();
     const personalPolicy = usePersonalPolicy();
@@ -70,6 +77,7 @@ function SearchMergeReports() {
     const {translate} = useLocalize();
     const delegateAccountID = useDelegateAccountID();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const illustrations = useMemoizedLazyIllustrations(['EmptyShelves']);
 
@@ -213,6 +221,8 @@ function SearchMergeReports() {
             delegateAccountID,
             getCurrencyDecimals,
             getCurrencySymbol,
+            isChatReportArchived: isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${destinationReport.parentReportID}`]),
+            personalDetailsByLogins: getPersonalDetailsByLogin(),
         });
 
         Navigation.dismissModal({
@@ -241,10 +251,6 @@ function SearchMergeReports() {
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
             return !allReports?.[reportKey] && !!currentSearchResults?.data?.[reportKey];
         });
-
-    if (!isReportMergeBetaEnabled) {
-        return null;
-    }
 
     return (
         <StepScreenWrapper

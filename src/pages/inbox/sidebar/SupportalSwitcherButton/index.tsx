@@ -1,42 +1,22 @@
-import Button from '@components/Button';
 import Icon from '@components/Icon';
-import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
+import SupportalSwitcherPopover from '@components/Navigation/SupportalSwitcher/SupportalSwitcherPopover';
+import useSupportalSwitcherAnchor from '@components/Navigation/SupportalSwitcher/useSupportalSwitcherAnchor';
+import useSupportalSwitcherVisibility from '@components/Navigation/SupportalSwitcher/useSupportalSwitcherVisibility';
 import {PressableWithoutFeedback} from '@components/Pressable';
-import TextInput from '@components/TextInput';
 import Tooltip from '@components/Tooltip';
 
-import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
-import useKeyboardState from '@hooks/useKeyboardState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
-import useOnyx from '@hooks/useOnyx';
-import usePopoverPosition from '@hooks/usePopoverPosition';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {openExternalLink} from '@libs/actions/Link';
-import {getSupportalReason} from '@libs/actions/Session';
-import {getOldDotEnvironmentURL} from '@libs/Environment/Environment';
-import addTrailingForwardSlash from '@libs/UrlUtils';
-
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {AnchorPosition} from '@src/styles';
 
-import {canSupportLoginSelector} from '@selectors/Account';
-import {isSupportalSessionSelector} from '@selectors/Session';
-import React, {useRef, useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
-
-const ANCHOR_ALIGNMENT = {
-    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-};
 
 type SupportalSwitcherButtonProps = {
     /** Whether the pointer is currently over the navigation sidebar */
@@ -49,81 +29,9 @@ function SupportalSwitcherButton({isSidebarHovered}: SupportalSwitcherButtonProp
     const theme = useTheme();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['UserSearch']);
-    const {calculatePopoverPosition} = usePopoverPosition();
-    const {isOffline} = useNetwork();
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- must match PopoverWithMeasuredContent's dock decision (bottom-docked only when isSmallScreenWidth)
-    const {isSmallScreenWidth} = useResponsiveLayout();
-    const {isKeyboardActive} = useKeyboardState();
-    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({
-        addBottomSafeAreaPadding: isSmallScreenWidth && !isKeyboardActive,
-        addOfflineIndicatorBottomSafeAreaPadding: false,
-        style: [styles.createMenuContainer, styles.ph5],
-        additionalPaddingBottom: variables.componentBorderRadiusLarge,
-    });
 
-    const anchorRef = useRef<HTMLDivElement | null>(null);
-    const [anchorPosition, setAnchorPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
-    const [isPopoverVisible, setIsPopoverVisible] = useState(false);
-    const [email, setEmail] = useState('');
-    const [reason, setReason] = useState('');
-    const [isReasonRequired, setIsReasonRequired] = useState(false);
-    const [isCheckingReason, setIsCheckingReason] = useState(false);
-
-    const [canSupportLogin] = useOnyx(ONYXKEYS.ACCOUNT, {selector: canSupportLoginSelector});
-    const [isSupportalSession] = useOnyx(ONYXKEYS.SESSION, {selector: isSupportalSessionSelector});
-
-    // During supportal the account is the customer, so canSupportLogin goes false while switching.
-    const isSupportAgent = (canSupportLogin ?? false) || !!isSupportalSession;
-
-    const openSwitcher = () => {
-        calculatePopoverPosition(anchorRef, ANCHOR_ALIGNMENT).then((position) => {
-            setAnchorPosition(position);
-            setIsPopoverVisible(true);
-        });
-    };
-
-    const closeSwitcher = () => {
-        setIsPopoverVisible(false);
-        setEmail('');
-        setReason('');
-        setIsReasonRequired(false);
-    };
-
-    // OldDot mints the support token behind Cloudflare on the agent's own session. buildOldDotURL would append
-    // the customer's email, which OldDot then checks against the agent's cookie and bounces to /signin.
-    const switchToAccount = (target: string, supportReason: string) => {
-        closeSwitcher();
-        getOldDotEnvironmentURL().then((environmentURL) => {
-            openExternalLink(`${addTrailingForwardSlash(environmentURL)}${CONST.OLDDOT_URLS.SUPPORTAL_LOGIN_NEWDOT(target, supportReason)}`, undefined, true);
-        });
-    };
-
-    const submitEmail = () => {
-        const target = email.trim();
-        if (!target || isCheckingReason || isOffline) {
-            return;
-        }
-
-        setIsCheckingReason(true);
-        getSupportalReason(target)
-            .then((derivedReason) => {
-                if (!derivedReason) {
-                    setIsReasonRequired(true);
-                    return;
-                }
-                switchToAccount(target, '');
-            })
-            .finally(() => setIsCheckingReason(false));
-    };
-
-    const submitReason = () => {
-        const target = email.trim();
-        const enteredReason = reason.trim();
-        if (!target || !enteredReason || isOffline) {
-            return;
-        }
-        switchToAccount(target, enteredReason);
-    };
+    const {isSupportAgent, isSwitcherVisible, showSwitcher, hideSwitcher} = useSupportalSwitcherVisibility();
+    const {anchorRef, anchorPosition, openSwitcher} = useSupportalSwitcherAnchor(showSwitcher);
 
     if (!isSupportAgent) {
         return null;
@@ -131,7 +39,7 @@ function SupportalSwitcherButton({isSidebarHovered}: SupportalSwitcherButtonProp
 
     return (
         <>
-            {(isSidebarHovered || isPopoverVisible) && (
+            {(isSidebarHovered || isSwitcherVisible) && (
                 <Tooltip text={translate('supportalSwitcher.title')}>
                     <PressableWithoutFeedback
                         ref={anchorRef}
@@ -162,59 +70,12 @@ function SupportalSwitcherButton({isSidebarHovered}: SupportalSwitcherButtonProp
                     </PressableWithoutFeedback>
                 </Tooltip>
             )}
-            <PopoverWithMeasuredContent
-                isVisible={isPopoverVisible}
-                onClose={closeSwitcher}
+            <SupportalSwitcherPopover
+                isVisible={isSwitcherVisible}
                 anchorRef={anchorRef}
                 anchorPosition={anchorPosition}
-                anchorAlignment={ANCHOR_ALIGNMENT}
-                enableEdgeToEdgeBottomSafeAreaPadding
-            >
-                <View style={bottomSafeAreaPaddingStyle}>
-                    <TextInput
-                        label={translate('supportalSwitcher.title')}
-                        accessibilityLabel={translate('supportalSwitcher.emailLabel')}
-                        placeholder={translate('supportalSwitcher.emailLabel')}
-                        role={CONST.ROLE.PRESENTATION}
-                        value={email}
-                        onChangeText={setEmail}
-                        onSubmitEditing={submitEmail}
-                        editable={!isCheckingReason && !isReasonRequired}
-                        inputMode={CONST.INPUT_MODE.EMAIL}
-                        autoCapitalize="none"
-                        spellCheck={false}
-                        enterKeyHint="go"
-                    />
-                    {isReasonRequired && (
-                        <View style={styles.mt3}>
-                            <TextInput
-                                label={translate('supportalSwitcher.reasonLabel')}
-                                accessibilityLabel={translate('supportalSwitcher.reasonLabel')}
-                                hint={translate('supportalSwitcher.reasonHint')}
-                                role={CONST.ROLE.PRESENTATION}
-                                value={reason}
-                                onChangeText={setReason}
-                                onSubmitEditing={submitReason}
-                                autoFocus
-                                spellCheck={false}
-                                enterKeyHint="go"
-                            />
-                        </View>
-                    )}
-                    <Button
-                        variant="success"
-                        size={CONST.BUTTON_SIZE.LARGE}
-                        style={styles.mt3}
-                        accessibilityLabel={translate('supportalSwitcher.login')}
-                        sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.SUPPORTAL_SWITCHER_BUTTON}
-                        onPress={isReasonRequired ? submitReason : submitEmail}
-                        isLoading={isCheckingReason}
-                        isDisabled={isOffline || !email.trim() || (isReasonRequired && !reason.trim())}
-                    >
-                        <Button.Text>{translate('supportalSwitcher.login')}</Button.Text>
-                    </Button>
-                </View>
-            </PopoverWithMeasuredContent>
+                onClose={hideSwitcher}
+            />
         </>
     );
 }

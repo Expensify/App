@@ -1,3 +1,4 @@
+import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import Switch from '@components/Switch';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
 import Table, {composeTableListHeader} from '@components/Table';
@@ -8,10 +9,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import tokenizedSearch from '@libs/tokenizedSearch';
 
+import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
@@ -45,17 +48,23 @@ type WorkspaceVendorsTableProps = {
 
     /** Page-level content rendered above the table header inside the scrollable list */
     headerComponent?: React.ReactElement;
+
+    /** The actions the selected vendors support, offered in the floating bar the wide layout shows while rows are selected. */
+    bulkActionOptions?: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>>;
 };
 
-function WorkspaceVendorsTable({vendors, selectionEnabled = false, selectedKeys = [], onRowSelectionChange, headerComponent}: WorkspaceVendorsTableProps) {
+function WorkspaceVendorsTable({vendors, selectionEnabled = false, selectedKeys = [], onRowSelectionChange, headerComponent, bulkActionOptions}: WorkspaceVendorsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
 
-    const columns: Array<TableColumn<WorkspaceVendorTableColumnKey>> = [
+    const columns: Array<TableColumn<WorkspaceVendorTableColumnKey, WorkspaceVendorTableRowData>> = [
         {
             key: 'name',
             label: translate('common.name'),
             sortable: true,
+            dynamicSizing: {
+                getContentToMeasure: (item) => [{text: item.name, fontSize: fontScale.text}],
+            },
         },
         {
             key: 'enabled',
@@ -63,7 +72,7 @@ function WorkspaceVendorsTable({vendors, selectionEnabled = false, selectedKeys 
             sortable: true,
             width: variables.tableSwitchColumnWidth,
             styling: {
-                containerStyles: [styles.justifyContentEnd],
+                alignment: CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.END,
             },
         },
     ];
@@ -124,6 +133,8 @@ function WorkspaceVendorsTable({vendors, selectionEnabled = false, selectedKeys 
 
     return (
         <Table
+            shouldUseDynamicColumns
+            columnResizingID={CONST.TABLES.COLUMN_RESIZING_IDS.WORKSPACE_VENDORS}
             data={vendors}
             initialSortColumn="name"
             title={translate('workspace.common.vendors')}
@@ -144,6 +155,7 @@ function WorkspaceVendorsTable({vendors, selectionEnabled = false, selectedKeys 
             <Table.NoResultsState />
             <Table.Header />
             <Table.Body />
+            {!!bulkActionOptions && <Table.BulkActionBar options={bulkActionOptions} />}
         </Table>
     );
 }

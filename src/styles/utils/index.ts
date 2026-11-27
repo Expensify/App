@@ -634,7 +634,7 @@ function getPDFViewStyle(width: number, height: number): Pick<ViewStyle, 'height
     };
 }
 
-function getWidthAndHeightStyle(width: number, height?: number): Pick<ViewStyle, 'height' | 'width'> {
+function getWidthAndHeightStyle(width: number, height?: number): Dimensions {
     return {
         width,
         height: height ?? width,
@@ -875,9 +875,23 @@ function getVerticalPaddingDiffFromStyle(textInputContainerStyles: ViewStyle): n
         return typeof paddingValue === 'number' ? paddingValue : 0;
     };
 
-    const paddingTop = getNumericPadding(flatStyle?.paddingTop ?? flatStyle.padding);
-    const paddingBottom = getNumericPadding(flatStyle?.paddingBottom ?? flatStyle.padding);
+    const paddingTop = getNumericPadding(flatStyle?.paddingTop ?? flatStyle?.padding);
+    const paddingBottom = getNumericPadding(flatStyle?.paddingBottom ?? flatStyle?.padding);
     return paddingTop - paddingBottom;
+}
+
+/**
+ * Get the padding and border a style puts on each side of its content horizontally
+ */
+function getHorizontalInsetsFromStyle(style: StyleProp<ViewStyle>): {left: number; right: number} {
+    const {padding, paddingHorizontal, paddingLeft, paddingRight, paddingStart, paddingEnd, borderWidth, borderLeftWidth, borderRightWidth, borderStartWidth, borderEndWidth} =
+        StyleSheet.flatten(style) ?? {};
+    const getNumericValue = (value: string | number | Animated.AnimatedNode | null | undefined): number => (typeof value === 'number' ? value : 0);
+
+    return {
+        left: getNumericValue(paddingLeft ?? paddingStart ?? paddingHorizontal ?? padding) + getNumericValue(borderLeftWidth ?? borderStartWidth ?? borderWidth),
+        right: getNumericValue(paddingRight ?? paddingEnd ?? paddingHorizontal ?? padding) + getNumericValue(borderRightWidth ?? borderEndWidth ?? borderWidth),
+    };
 }
 
 /**
@@ -1493,6 +1507,7 @@ const staticStyleUtils = {
     getPaddingRight,
     getPaddingBottom,
     getVerticalPaddingDiffFromStyle,
+    getHorizontalInsetsFromStyle,
     getAutoGrowHeightInputVerticalInset,
     hasSafeAreas,
     getHeight,
@@ -1661,6 +1676,7 @@ function getReportTableColumnLayout(styles: ThemeStyles, columnName: string, opt
             columnWidth = {...getWidthStyle(variables.w36), ...styles.flex1};
             break;
         case CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS:
+        case CONST.SEARCH.TABLE_COLUMNS.GROUP_VIOLATION:
             // Wider than category/tag so short violation labels are less likely to truncate.
             columnWidth = {...getWidthStyle(variables.w130), ...styles.flex1};
             break;
@@ -1741,6 +1757,7 @@ function getReportTableColumnLayout(styles: ThemeStyles, columnName: string, opt
         case CONST.SEARCH.TABLE_COLUMNS.CARD:
         case CONST.SEARCH.TABLE_COLUMNS.REPORT_ID:
         case CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID:
+        case CONST.SEARCH.TABLE_COLUMNS.TRANSACTION_ID:
         case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
         case CONST.SEARCH.TABLE_COLUMNS.VENDOR:
         case CONST.SEARCH.TABLE_COLUMNS.FROM:

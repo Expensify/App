@@ -7,6 +7,7 @@ type SignInUserParams = {
     validateCode?: string;
     deviceInfo: string;
     authToken?: string;
+    isAdvertisingConsentGranted?: boolean;
 };
 
 export default SignInUserParams;

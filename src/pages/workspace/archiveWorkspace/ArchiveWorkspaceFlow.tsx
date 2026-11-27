@@ -17,7 +17,6 @@ import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useRef} from 'react';
@@ -49,15 +48,13 @@ function ArchiveWorkspaceFlow({policyID, onDismiss, onArchiveComplete}: ArchiveW
     const isFocused = useIsFocused();
     const {showConfirmModal, closeModal} = useConfirmModal();
 
-    const [policy, policyResult] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
     const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const [cardFeeds, cardFeedsResult] = useCardFeeds(policyID);
-    const [cardsList, cardsListResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {
+    const [cardFeeds] = useCardFeeds(policyID);
+    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {
         selector: filterInactiveCards,
     });
-
-    const isLoadingData = isLoadingOnyxValue(policyResult, cardFeedsResult, cardsListResult);
 
     const hasCardFeedOrExpensifyCard =
         !isEmptyObject(cardFeeds) ||
@@ -151,7 +148,7 @@ function ArchiveWorkspaceFlow({policyID, onDismiss, onArchiveComplete}: ArchiveW
 
     const hasStartedRef = useRef(false);
     useEffect(() => {
-        if (hasStartedRef.current || isLoadingData) {
+        if (hasStartedRef.current) {
             return;
         }
         hasStartedRef.current = true;

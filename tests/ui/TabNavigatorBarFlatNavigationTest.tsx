@@ -1,5 +1,6 @@
 import {act, cleanup, render, screen} from '@testing-library/react-native';
 
+import {FLAT_NAVIGATION_BAR_COLLAPSED_WIDTH} from '@components/Navigation/SearchSidebarCollapseStore';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -215,7 +216,7 @@ describe('TabNavigatorBar with the flatNav beta', () => {
             await renderBar();
 
             // Then the container reserves only the rail plus the sidebar next to it, which is what offsets the content
-            expect(getContainerWidth('FlatNavigationBar')).toBe(variables.flatNavigationBarCollapsedWidth + variables.sideBarWithLHBWidth);
+            expect(getContainerWidth('FlatNavigationBar')).toBe(FLAT_NAVIGATION_BAR_COLLAPSED_WIDTH + variables.sideBarWithLHBWidth);
         });
 
         it('keeps the icon bar width when the saved state is collapsed but the beta is off', async () => {

@@ -1,3 +1,4 @@
+// cspell:ignore lpignore
 import ActivityIndicator from '@components/ActivityIndicator';
 import Checkbox from '@components/Checkbox';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -25,6 +26,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isMobileChrome, isMobileSafari, isSafari} from '@libs/Browser';
+import getSecretInputFSClass from '@libs/Fullstory/getSecretInputFSClass';
 import {scrollToRight} from '@libs/InputUtils';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
 
@@ -39,6 +41,9 @@ import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useId, useMemo, useRef, useState, useSyncExternalStore} from 'react';
 import {StyleSheet, View} from 'react-native';
 import {Easing, useSharedValue, withTiming} from 'react-native-reanimated';
+
+const ONE_PASSWORD_IGNORE_DATA_KEY = '1p-ignore';
+const LAST_PASS_IGNORE_DATA_KEY = 'lpignore';
 
 function BaseTextInput({
     label = '',
@@ -96,12 +101,24 @@ function BaseTextInput({
     clearButtonIconSize,
     shouldUseDefaultLineHeightForPrefix = true,
     ref,
-    sentryLabel,
+    // A press on the field focuses the input, so inputs without a label of their own report under a shared one.
+    sentryLabel = CONST.SENTRY_LABEL.TEXT_INPUT.FIELD,
     rightHandSideComponent,
     role,
+    shouldIgnorePasswordManager,
     ...inputProps
 }: BaseTextInputProps) {
     const InputComponent = InputComponentMap.get(type) ?? RNTextInput;
+    // Explicit autofill hints identify fields that should still offer saved user details, even with an email keyboard.
+    const isAutofillRequested =
+        inputProps.autoComplete === 'email' ||
+        inputProps.autoComplete === 'username' ||
+        inputProps.autoCompleteType === 'email' ||
+        inputProps.autoCompleteType === 'username' ||
+        inputProps.textContentType === 'emailAddress' ||
+        inputProps.textContentType === 'username';
+    const shouldSuppressPasswordManager =
+        shouldIgnorePasswordManager ?? (!isAutofillRequested && (inputProps.inputMode === CONST.INPUT_MODE.EMAIL || inputProps.keyboardType === 'email-address'));
     const isMarkdownEnabled = type === 'markdown';
     const isAutoGrowHeightMarkdown = isMarkdownEnabled && autoGrowHeight;
     const helpMessageId = useId();
@@ -340,19 +357,20 @@ function BaseTextInput({
     // autoGrow uses autoGrowMeasurementStyles (includes padding), contentWidth doesn't - add padding manually
     const containerPadding = !autoGrow && shouldApplyPaddingToContainer ? styles.textInputContainer.padding * 2 : 0;
 
-    const newTextInputContainerStyles: StyleProp<ViewStyle> = StyleSheet.flatten([
-        styles.textInputContainer,
-        !shouldApplyPaddingToContainer && styles.p0,
-        !hasLabel && styles.pt0,
-        textInputContainerStyles,
-        (autoGrow || !!contentWidth) && StyleUtils.getWidthStyle(textInputWidth + containerPadding),
-        !hideFocusedState && isFocused && styles.borderColorFocus,
-        (!!hasError || !!errorText) && styles.borderColorDanger,
-        autoGrowHeight && {scrollPaddingTop: typeof maxAutoGrowHeight === 'number' ? 2 * maxAutoGrowHeight : undefined},
-        isAutoGrowHeightMarkdown && styles.pb2,
-        inputProps.disabled && shouldUseDisabledStyles && styles.textInputDisabledContainer,
-        shouldAddPaddingBottom && styles.pb1,
-    ]);
+    const newTextInputContainerStyles: StyleProp<ViewStyle> =
+        StyleSheet.flatten([
+            styles.textInputContainer,
+            !shouldApplyPaddingToContainer && styles.p0,
+            !hasLabel && styles.pt0,
+            textInputContainerStyles,
+            (autoGrow || !!contentWidth) && StyleUtils.getWidthStyle(textInputWidth + containerPadding),
+            !hideFocusedState && isFocused && styles.borderColorFocus,
+            (!!hasError || !!errorText) && styles.borderColorDanger,
+            autoGrowHeight && {scrollPaddingTop: typeof maxAutoGrowHeight === 'number' ? 2 * maxAutoGrowHeight : undefined},
+            isAutoGrowHeightMarkdown && styles.pb2,
+            inputProps.disabled && shouldUseDisabledStyles && styles.textInputDisabledContainer,
+            shouldAddPaddingBottom && styles.pb1,
+        ]) ?? {};
 
     // TextInputMeasurement is absolutely positioned, so it doesn’t inherit padding/border.
     // We extract the horizontal padding/border from the input container to get an accurate width.
@@ -498,6 +516,12 @@ function BaseTextInput({
                                         input.current = element as HTMLInputElement | null;
                                     }}
                                     {...inputProps}
+                                    // React Native Web filters raw data-* props, but emits dataSet entries on the HTML input.
+                                    dataSet={
+                                        shouldSuppressPasswordManager
+                                            ? {...inputProps.dataSet, [ONE_PASSWORD_IGNORE_DATA_KEY]: 'true', [LAST_PASS_IGNORE_DATA_KEY]: 'true'}
+                                            : inputProps.dataSet
+                                    }
                                     // Filter out role="presentation" so it doesn't strip the native
                                     // semantics of the <input>. Other roles (e.g. searchbox) are preserved.
                                     role={role === CONST.ROLE.PRESENTATION ? undefined : role}
@@ -542,6 +566,7 @@ function BaseTextInput({
                                     onBlur={onBlur}
                                     onChangeText={setValue}
                                     secureTextEntry={passwordHidden}
+                                    forwardedFSClass={getSecretInputFSClass(inputProps.forwardedFSClass, inputProps.secureTextEntry)}
                                     onPressOut={inputProps.onPress}
                                     showSoftInputOnFocus={!disableKeyboard}
                                     inputMode={inputMode}

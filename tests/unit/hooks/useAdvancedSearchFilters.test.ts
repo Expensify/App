@@ -108,8 +108,8 @@ describe('useAdvancedSearchFilters', () => {
     });
 
     describe('violation filter visibility', () => {
-        it('hides the violation filter when no workspace has Rules enabled', async () => {
-            // Given a paid workspace with Rules turned off, so Auth has no rule-based violations to match for this user
+        it('shows the violation filter when no workspace has Rules enabled', async () => {
+            // Given a paid workspace with Rules turned off, where expenses can still have violations
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, buildPolicy(1, {areRulesEnabled: false}));
             await waitForBatchedUpdates();
 
@@ -117,9 +117,9 @@ describe('useAdvancedSearchFilters', () => {
             const {result} = renderHook(() => useAdvancedSearchFilters(CONST.SEARCH.DATA_TYPES.EXPENSE), {wrapper});
             await waitForBatchedUpdates();
 
-            // Then the violation row is left out so the user is not offered a filter that can only return nothing
+            // Then the violation row is offered because violations do not require Rules to be enabled
             expect(result.current.flat()).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.RECEIPT_TYPE);
-            expect(result.current.flat()).not.toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION);
+            expect(result.current.flat()).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION);
         });
 
         it('shows the violation filter when a workspace has Rules enabled', async () => {
@@ -144,13 +144,13 @@ describe('useAdvancedSearchFilters', () => {
             // When the advanced filters are built for expenses
             const {result} = renderHook(() => useAdvancedSearchFilters(CONST.SEARCH.DATA_TYPES.EXPENSE), {wrapper});
 
-            // Then the violation row is offered, using the same Rules check as the has: violation options
+            // Then the violation row is offered because migrated group workspaces also support violation search
             await waitFor(() => {
                 expect(result.current.flat()).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION);
             });
         });
 
-        it("hides the violation filter when only another workspace's categories have rules", async () => {
+        it("shows the violation filter when only another workspace's categories have rules", async () => {
             // Given a migrated Control workspace with no category rules, and a workspace with Rules turned off
             // that still has leftover category rules, since turning Rules off doesn't clear them
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, buildPolicy(1, {type: CONST.POLICY.TYPE.CORPORATE, areRulesEnabled: undefined}));
@@ -162,9 +162,9 @@ describe('useAdvancedSearchFilters', () => {
             const {result} = renderHook(() => useAdvancedSearchFilters(CONST.SEARCH.DATA_TYPES.EXPENSE), {wrapper});
             await waitForBatchedUpdates();
 
-            // Then the violation row is left out, because each workspace is checked against its own categories
+            // Then the violation row is offered because category rules do not control violation search availability
             expect(result.current.flat()).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.RECEIPT_TYPE);
-            expect(result.current.flat()).not.toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION);
+            expect(result.current.flat()).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION);
         });
     });
 
@@ -728,6 +728,7 @@ describe('useAdvancedSearchFilters', () => {
                 expect(result.current.flat()).not.toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED);
                 expect(result.current.at(3)).toEqual([
                     CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
+                    CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_SUBMISSION,
                     CONST.SEARCH.SYNTAX_FILTER_KEYS.DECLINED,
                     CONST.SEARCH.SYNTAX_FILTER_KEYS.HELD,
                     CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,

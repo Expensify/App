@@ -1,4 +1,4 @@
-import {emailRegex, keysToMask, maskOnyxState, ONYX_KEY_EXPORT_RULES, onyxKeysToMaskFragileData, onyxKeysToRemove, safeOnyxKeys} from '@libs/ExportOnyxState/masking';
+import {collectionKeysToRemove, emailRegex, keysToMask, maskOnyxState, ONYX_KEY_EXPORT_RULES, onyxKeysToMaskFragileData, onyxKeysToRemove, safeOnyxKeys} from '@libs/ExportOnyxState/masking';
 import {isRecord} from '@libs/ObjectUtils';
 
 import CONST from '@src/CONST';
@@ -793,7 +793,7 @@ describe('Onyx key export coverage', () => {
         // onyxKeysToMaskFragileData is written out by hand rather than derived from ONYXKEYS. That's what
         // makes this test useful: a brand new key won't be in any bucket until someone puts it in one.
         const removeKeys = Array.from(onyxKeysToRemove).filter((key): key is Extract<typeof key, string> => typeof key === 'string');
-        const coveredKeys = new Set<string>([...Object.keys(ONYX_KEY_EXPORT_RULES), ...removeKeys, ...safeOnyxKeys, ...onyxKeysToMaskFragileData]);
+        const coveredKeys = new Set<string>([...Object.keys(ONYX_KEY_EXPORT_RULES), ...removeKeys, ...collectionKeysToRemove, ...safeOnyxKeys, ...onyxKeysToMaskFragileData]);
 
         const uncoveredTopLevel = allTopLevelKeys.filter((key) => !coveredKeys.has(key));
         const uncoveredCollection = allCollectionKeys.filter((key) => !coveredKeys.has(key));
@@ -895,7 +895,7 @@ describe('Onyx key export coverage', () => {
 
     it('no key should appear in multiple buckets', () => {
         const rulesKeys = Object.keys(ONYX_KEY_EXPORT_RULES);
-        const removeKeys = new Set<string>(Array.from(onyxKeysToRemove).filter((key): key is Extract<typeof key, string> => typeof key === 'string'));
+        const removeKeys = new Set<string>([...Array.from(onyxKeysToRemove).filter((key): key is Extract<typeof key, string> => typeof key === 'string'), ...collectionKeysToRemove]);
         for (const key of rulesKeys) {
             expect(safeOnyxKeys.has(key)).toBe(false);
             expect(removeKeys.has(key)).toBe(false);
@@ -908,6 +908,42 @@ describe('Onyx key export coverage', () => {
         for (const key of removeKeys) {
             expect(onyxKeysToMaskFragileData.has(key)).toBe(false);
         }
+    });
+
+    it('removes RAM_ONLY_COMPANY_CARD_NUMBER_SEARCH collection members with masking enabled and disabled', () => {
+        // Given an Onyx state with a RAM-only company card number search entry
+        const key = `${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARD_NUMBER_SEARCH}testWorkspace` as const;
+        const input = {[key]: {resultsQuery: '4111111111111111', matchedEncryptedNumbers: ['abc']}};
+
+        // When maskOnyxState runs with masking enabled
+        const maskedOn = maskOnyxState(input, true) as Record<string, unknown>;
+        // Then the collection key is removed
+        expect(maskedOn[key]).toBeUndefined();
+
+        // When maskOnyxState runs with masking disabled
+        const maskedOff = maskOnyxState(input, false) as Record<string, unknown>;
+        // Then the collection key is still removed
+        expect(maskedOff[key]).toBeUndefined();
+    });
+});
+
+describe('integration credentials in the persisted request queue', () => {
+    it.each([
+        ['apiKey', 'RILLET_SECRET_KEY'],
+        ['apiSecret', 'EXAMPLE_API_SECRET'],
+        ['clientSecret', 'BC_CLIENT_SECRET'],
+        ['privateKey', 'EXAMPLE_PRIVATE_KEY'],
+    ])('masks %s on a queued request', (fieldName, secret) => {
+        // Given a connect request that is still waiting in the offline queue
+        const input = {
+            [ONYXKEYS.PERSISTED_REQUESTS]: [{command: 'ConnectPolicyToIntegration', data: {policyID: '1234', [fieldName]: secret}}],
+        };
+
+        // When the state is exported with masking on
+        const exported = JSON.stringify(maskOnyxState(input, true));
+
+        // Then the credential does not appear in the export
+        expect(exported).not.toContain(secret);
     });
 });
 

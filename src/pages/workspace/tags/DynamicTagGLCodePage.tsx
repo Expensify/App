@@ -28,7 +28,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceTagForm';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React from 'react';
 
@@ -42,7 +41,7 @@ function DynamicTagGLCodePage({route}: DynamicEditTagGLCodePageProps) {
     const {inputCallbackRef} = useAutoFocusInput();
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
-    const [policyTags, policyTagsMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
 
     const tagName = route.params.tagName;
     const parentTagsFilter = route.params.parentTagsFilter;
@@ -83,7 +82,7 @@ function DynamicTagGLCodePage({route}: DynamicEditTagGLCodePageProps) {
         goBack();
     };
 
-    if (!currentPolicyTagEntry && !isLoadingOnyxValue(policyTagsMetadata)) {
+    if (!currentPolicyTagEntry) {
         return <NotFoundPage />;
     }
 
