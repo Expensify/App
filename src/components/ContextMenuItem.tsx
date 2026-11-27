@@ -12,7 +12,7 @@ import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 import type {ComponentRef} from 'react';
 import type {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-native';
 
-import React from 'react';
+import React, {useEffect, useRef} from 'react';
 
 import BaseMiniContextMenuItem from './BaseMiniContextMenuItem';
 import FocusableMenuItem from './FocusableMenuItem';
@@ -31,7 +31,8 @@ type ContextMenuItemProps = WithRequiredSentryLabel & {
     /** Whether to show the mini menu */
     isMini?: boolean;
 
-    onPress: (event?: GestureResponderEvent | MouseEvent | KeyboardEvent) => void;
+    /** False or a rejected promise leaves the item available for retry. */
+    onPress: (event?: GestureResponderEvent | MouseEvent | KeyboardEvent) => boolean | void | Promise<boolean | void>;
 
     /** A description text to show under the title */
     description?: string;
@@ -83,18 +84,30 @@ function ContextMenuItem({
     const StyleUtils = useStyleUtils();
     const {windowWidth} = useWindowDimensions();
     const [isThrottledButtonActive, setThrottledButtonInactive] = useThrottledButtonState();
+    const isPendingRef = useRef(false);
+    const isMountedRef = useRef(false);
 
-    const triggerPressAndUpdateSuccess = (event?: GestureResponderEvent | MouseEvent | KeyboardEvent) => {
-        if (!isThrottledButtonActive) {
+    useEffect(() => {
+        isMountedRef.current = true;
+        return () => {
+            isMountedRef.current = false;
+        };
+    }, []);
+
+    const triggerPressAndUpdateSuccess = async (event?: GestureResponderEvent | MouseEvent | KeyboardEvent) => {
+        if (!isThrottledButtonActive || isPendingRef.current) {
             return;
         }
-        onPress(event);
-
-        // We only set the success state when we have icon or text to represent the success state
-        // We may want to replace this check by checking the Result from OnPress Callback in future.
-        if (!!successIcon || successText) {
-            setThrottledButtonInactive();
+        isPendingRef.current = true;
+        try {
+            const didSucceed = await onPress(event);
+            if (didSucceed !== false && (successIcon || successText) && isMountedRef.current) {
+                setThrottledButtonInactive();
+            }
+        } catch {
+            // A failed action must not show success or delay a retry.
         }
+        isPendingRef.current = false;
     };
 
     const itemIcon = !isThrottledButtonActive && successIcon ? successIcon : icon;
@@ -104,7 +117,9 @@ function ContextMenuItem({
         <BaseMiniContextMenuItem
             ref={buttonRef}
             tooltipText={itemText}
-            onPress={triggerPressAndUpdateSuccess}
+            onPress={(event?: GestureResponderEvent | MouseEvent | KeyboardEvent) => {
+                triggerPressAndUpdateSuccess(event);
+            }}
             isDelayButtonStateComplete={!isThrottledButtonActive}
             shouldPreventDefaultFocusOnPress={shouldPreventDefaultFocusOnPress}
             sentryLabel={sentryLabel}

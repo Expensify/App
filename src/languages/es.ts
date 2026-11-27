@@ -2816,7 +2816,6 @@ const translations: TranslationDeepObject<typeof en> = {
             Si pierdes el acceso a tu aplicación de autenticación y no tienes estos códigos, quedarás bloqueado fuera de tu cuenta.<br><br>
             <strong>Nota</strong>: Al habilitar la autenticación de dos factores, se cerrará tu sesión en todas las demás sesiones.
         `),
-        errorStepCodes: 'Copia o descarga los códigos antes de continuar',
         stepVerify: 'Verificar',
         scanCode: 'Escanea el código QR usando tu',
         authenticatorApp: 'aplicación de autenticación',

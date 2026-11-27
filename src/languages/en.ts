@@ -2992,7 +2992,6 @@ const translations = {
             If you lose access to your authenticator app and don't have these codes, you'll be locked out of your account.<br><br>
             <strong>Note</strong>: Enabling 2FA logs you out of all other sessions.
         `),
-        errorStepCodes: 'Please copy or download codes before continuing',
         stepVerify: 'Verify',
         scanCode: 'Scan the QR code using your',
         authenticatorApp: 'authenticator app',

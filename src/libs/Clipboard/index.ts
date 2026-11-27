@@ -2,8 +2,6 @@ import * as Browser from '@libs/Browser';
 
 import CONST from '@src/CONST';
 
-import Clipboard from '@react-native-clipboard/clipboard';
-
 import type {CanSetHtml, SetHtml, SetString} from './types';
 
 type ComposerSelection = {
@@ -23,37 +21,38 @@ type NullableObject<T> = {[K in keyof T]: T[K] | null};
 
 type OriginalSelection = ComposerSelection | NullableObject<AnchorSelection>;
 
-const canSetHtml: CanSetHtml =
-    () =>
-    (...args: ClipboardItems) =>
-        navigator?.clipboard?.write([...args]);
+const canSetHtml: CanSetHtml = () => (!!navigator?.clipboard?.write && typeof ClipboardItem !== 'undefined') || CONST.BROWSER.SAFARI === Browser.getBrowser();
 
 /**
  * Deprecated method to write the content as HTML to clipboard.
  */
-function setHTMLSync(html: string, text: string) {
+function setHTMLSync(html: string | undefined, text: string): boolean {
+    const selection = window?.getSelection();
+    if (!selection || !document.body) {
+        return false;
+    }
     const node = document.createElement('span');
-    node.textContent = html;
+    let didPopulateClipboard = false;
+    node.className = CONST.FULLSTORY.CLASS.MASK;
+    node.textContent = html ?? text;
     node.style.all = 'unset';
     node.style.opacity = '0';
     node.style.position = 'absolute';
     node.style.whiteSpace = 'pre-wrap';
     node.style.userSelect = 'text';
     node.addEventListener('copy', (e) => {
+        if (!e.clipboardData) {
+            return;
+        }
         e.stopPropagation();
         e.preventDefault();
-        e.clipboardData?.clearData();
-        e.clipboardData?.setData('text/html', html);
-        e.clipboardData?.setData('text/plain', text);
+        e.clipboardData.clearData();
+        if (html !== undefined) {
+            e.clipboardData.setData('text/html', html);
+        }
+        e.clipboardData.setData('text/plain', text);
+        didPopulateClipboard = true;
     });
-    document.body.appendChild(node);
-
-    const selection = window?.getSelection();
-
-    if (selection === null) {
-        return;
-    }
-
     const firstAnchorChild = selection.anchorNode?.firstChild;
     const isComposer = firstAnchorChild instanceof HTMLTextAreaElement;
     let originalSelection: OriginalSelection | null = null;
@@ -72,31 +71,26 @@ function setHTMLSync(html: string, text: string) {
         };
     }
 
-    selection.removeAllRanges();
-    const range = document.createRange();
-    range.selectNodeContents(node);
-    selection.addRange(range);
-
     try {
-        document.execCommand('copy');
-    } catch (e) {
-        // The 'copy' command can throw a SecurityError exception, we ignore this exception on purpose.
-        // See https://dvcs.w3.org/hg/editing/raw-file/tip/editing.html#the-copy-command for more details.
+        document.body.appendChild(node);
+        selection.removeAllRanges();
+        const range = document.createRange();
+        range.selectNodeContents(node);
+        selection.addRange(range);
+        return document.execCommand('copy') && didPopulateClipboard;
+    } catch {
+        // Browsers can reject the legacy copy command too; callers must not report success.
+        return false;
+    } finally {
+        node.remove();
+        selection.removeAllRanges();
+        const anchorSelection = originalSelection as AnchorSelection;
+        if (isComposer && 'start' in originalSelection) {
+            firstAnchorChild.setSelectionRange(originalSelection.start, originalSelection.end, originalSelection.direction);
+        } else if (anchorSelection.anchorNode && anchorSelection.focusNode) {
+            selection.setBaseAndExtent(anchorSelection.anchorNode, anchorSelection.anchorOffset, anchorSelection.focusNode, anchorSelection.focusOffset);
+        }
     }
-
-    selection.removeAllRanges();
-
-    const anchorSelection = originalSelection as AnchorSelection;
-
-    if (isComposer && 'start' in originalSelection) {
-        firstAnchorChild.setSelectionRange(originalSelection.start, originalSelection.end, originalSelection.direction);
-    } else if (anchorSelection.anchorNode && anchorSelection.focusNode) {
-        // When copying to the clipboard here, the original values of anchorNode and focusNode will be null since there will be no user selection.
-        // We are adding a check to prevent null values from being passed to setBaseAndExtent, in accordance with the standards of the Selection API as outlined here: https://w3c.github.io/selection-api/#dom-selection-setbaseandextent.
-        selection.setBaseAndExtent(anchorSelection.anchorNode, anchorSelection.anchorOffset, anchorSelection.focusNode, anchorSelection.focusOffset);
-    }
-
-    document.body.removeChild(node);
 }
 
 /**
@@ -122,21 +116,42 @@ const setHtml: SetHtml = (html: string, text: string) => {
             .replaceAll(/<mention-report reportID="(\d+)" *\/>/gi, '<mention-report reportID="$1"></mention-report>')
             .replaceAll(/<mention-user accountID="(\d+)" *\/>/gi, '<mention-user accountID="$1"></mention-user>');
 
-        navigator.clipboard.write([
-            new ClipboardItem({
-                /* eslint-disable @typescript-eslint/naming-convention */
-                'text/html': new Blob([htmlNonClosingTags], {type: 'text/html'}),
-                'text/plain': new Blob([text], {type: 'text/plain'}),
-            }),
-        ]);
+        navigator.clipboard
+            .write([
+                new ClipboardItem({
+                    /* eslint-disable @typescript-eslint/naming-convention */
+                    'text/html': new Blob([htmlNonClosingTags], {type: 'text/html'}),
+                    'text/plain': new Blob([text], {type: 'text/plain'}),
+                }),
+            ])
+            .catch(() => {
+                try {
+                    setHTMLSync(html, text);
+                } catch {
+                    // A failed selection restoration must not create another rejected promise.
+                }
+            });
     }
 };
 
 /**
- * Sets a string on the Clipboard object via react-native-web
+ * Copies text without exposing rejected browser writes to fire-and-forget callers.
  */
-const setString: SetString = (text) => {
-    Clipboard.setString(text);
+const setString: SetString = async (text) => {
+    try {
+        if (navigator?.clipboard?.writeText) {
+            await navigator.clipboard.writeText(text);
+            return true;
+        }
+    } catch {
+        // A denied async write may still permit the legacy copy command.
+    }
+    try {
+        return setHTMLSync(undefined, text);
+    } catch {
+        // Selection APIs may fail too. Never log text, which can contain recovery codes.
+        return false;
+    }
 };
 
 export default {

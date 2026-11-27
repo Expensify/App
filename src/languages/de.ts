@@ -2837,7 +2837,6 @@ const translations: TranslationDeepObject<typeof en> = {
             Wenn Sie den Zugriff auf Ihre Authentifizierungs-App verlieren und diese Codes nicht haben, wird Ihr Konto gesperrt.<br><br>
             <strong>Hinweis</strong>: Durch das Aktivieren der 2FA werden Sie aus allen anderen Sitzungen abgemeldet.
         `),
-        errorStepCodes: 'Bitte kopiere oder lade die Codes herunter, bevor du fortfährst',
         stepVerify: 'Bestätigen',
         scanCode: 'Scanne den QR-Code mit deinem',
         authenticatorApp: 'Authentifizierungs-App',

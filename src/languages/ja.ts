@@ -2808,7 +2808,6 @@ const translations: TranslationDeepObject<typeof en> = {
             認証アプリへのアクセスを失い、これらのコードもお持ちでない場合は、アカウントにログインできなくなります。<br><br>
             <strong>注意</strong>：2FA を有効にすると、他のすべてのセッションからログアウトされます。
         `),
-        errorStepCodes: '続行する前にコードをコピーまたはダウンロードしてください',
         stepVerify: '確認',
         scanCode: '次の端末でQRコードをスキャンしてください:',
         authenticatorApp: '認証アプリ',

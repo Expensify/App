@@ -1,7 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
-import FormHelpMessage from '@components/FormHelpMessage';
 import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayToggle';
 import RenderHTML from '@components/RenderHTML';
 import ScrollView from '@components/ScrollView';
@@ -48,7 +47,6 @@ function DynamicTwoFactorAuthPage({navigation, route}: DynamicTwoFactorAuthPageP
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use correct style
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isExtraSmallScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
-    const [error, setError] = useState('');
     const [statusAnnouncement, setStatusAnnouncement] = useState({id: 0, text: ''});
     const isFocused = useIsFocused();
 
@@ -73,6 +71,15 @@ function DynamicTwoFactorAuthPage({navigation, route}: DynamicTwoFactorAuthPageP
     const is2FASetupInProgress = !!account?.twoFactorAuthSetupInProgress;
 
     const recoveryCodes = account?.recoveryCodes;
+    const copyGenerationRef = useRef(0);
+
+    useEffect(() => {
+        // Ignore a write completed after leaving this step or replacing its recovery codes.
+        copyGenerationRef.current += 1;
+        return () => {
+            copyGenerationRef.current += 1;
+        };
+    }, [isFocused, recoveryCodes]);
 
     const hasLeftFlowRef = useRef(false);
 
@@ -205,11 +212,18 @@ function DynamicTwoFactorAuthPage({navigation, route}: DynamicTwoFactorAuthPageP
                                             textChecked={translate('common.copied')}
                                             icon={icons.Copy}
                                             inline={false}
-                                            onPress={() => {
-                                                Clipboard.setString(account?.recoveryCodes ?? '');
-                                                setError('');
+                                            onPress={async () => {
+                                                const generation = copyGenerationRef.current;
+                                                const didCopy = await Clipboard.setString(recoveryCodes);
+                                                if (generation !== copyGenerationRef.current) {
+                                                    return false;
+                                                }
+                                                if (!didCopy) {
+                                                    return false;
+                                                }
                                                 setCodesAreCopied();
                                                 announceStatus(translate('common.copied'));
+                                                return true;
                                             }}
                                             styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCodesButton]}
                                             wrapperStyles={[styles.twoFactorAuthCodesButtonWrapper, styles.twoFactorAuthCodesButton]}
@@ -237,13 +251,6 @@ function DynamicTwoFactorAuthPage({navigation, route}: DynamicTwoFactorAuthPageP
                             {statusAnnouncement.text}
                         </Text>
                     )}
-                    {!!error && (
-                        <FormHelpMessage
-                            isError
-                            message={error}
-                            style={[styles.mb3]}
-                        />
-                    )}
                     {!!recoveryCodes && !is2FAEnabled && (
                         <Button
                             sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.DOWNLOAD_CODES}
@@ -252,7 +259,6 @@ function DynamicTwoFactorAuthPage({navigation, route}: DynamicTwoFactorAuthPageP
                             isDisabled={!isUserValidated}
                             onPress={() => {
                                 localFileDownload(TWO_FACTOR_AUTH_RECOVERY_CODES_FILENAME, recoveryCodes, translate, undefined, undefined, false);
-                                setError('');
                                 setCodesAreCopied();
                                 announceStatus(translate('fileDownload.success.title'));
                                 // PUSH on web so browser Back returns to the recovery codes. Native has no browser Back, so REPLACE.

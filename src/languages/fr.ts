@@ -2844,7 +2844,6 @@ const translations: TranslationDeepObject<typeof en> = {
             Si vous perdez l’accès à votre application d’authentification et que vous n’avez pas ces codes, vous serez bloqué hors de votre compte.<br><br>
             <strong>Remarque</strong> : L’activation de la 2FA vous déconnecte de toutes les autres sessions.
         `),
-        errorStepCodes: 'Veuillez copier ou télécharger les codes avant de continuer',
         stepVerify: 'Vérifier',
         scanCode: 'Scannez le code QR à l’aide de votre',
         authenticatorApp: 'application d’authentification',
