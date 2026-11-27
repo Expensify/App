@@ -32,6 +32,7 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import React, {useEffect, useRef, useState} from 'react';
+import Onyx from 'react-native-onyx';
 
 type CompanyCardsImportedPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_IMPORTED>;
 
@@ -66,7 +67,6 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
     const policy = usePolicy(policyID);
     const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const feedDomainAccountID = addNewCard?.data?.domainAccountID ?? workspaceAccountID;
-    const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
     const [workspaceCardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${feedDomainAccountID}`);
     const [isImportingTransactions, setIsImportingTransactions] = useState(false);
     const {setIsClosing} = useCloseImportPage();
@@ -200,6 +200,7 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
             }
         }
         setIsImportingTransactions(true);
+        const lastSelectedFeed = await Onyx.get(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
         const importFinalModal = await importCSVCompanyCards({
             policyID,
             domainAccountID: feedDomainAccountID,

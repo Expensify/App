@@ -35,7 +35,7 @@ import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscree
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
 type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps & {
-    onBackButtonPress?: () => void;
+    onBackButtonPress?: () => void | Promise<void>;
     shouldSkipVBBACall?: boolean;
     headerText: string;
 
