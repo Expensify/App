@@ -610,6 +610,13 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 amount: 'number',
                 isFXCostPaidByCompany: 'boolean',
             });
+        case 'wiseQuoteError':
+            return validateObject<ObjectElement<Report, 'wiseQuoteError'>>(value, {
+                code: CONST.WISE.QUOTE_ERROR_CODE,
+                limit: 'number',
+                limitCurrency: 'string',
+                paymentCurrency: 'string',
+            });
         case 'nextStep':
             return validateObject<ObjectElement<Report, 'nextStep'>>(value, {
                 messageKey: 'string',
@@ -671,6 +678,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 withdrawalIDs: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 wiseQuote: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 wiseQuoteRequest: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                wiseQuoteError: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 avatarUrl: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 chatType: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 hasOutstandingChildRequest: CONST.RED_BRICK_ROAD_PENDING_ACTION,
