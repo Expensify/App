@@ -2,8 +2,11 @@ import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
 
+import useConfirmModal from '@hooks/useConfirmModal';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useRunWithPaymentCard from '@hooks/useRunWithPaymentCard';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getLatestError} from '@libs/ErrorUtils';
@@ -23,6 +26,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import {domainNameSelector, technicalContactSettingsSelector} from '@selectors/Domain';
+import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -33,6 +37,9 @@ function DomainAdminsSettingsPage({route}: DomainAdminsSettingsPageProps) {
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
+    const {login: currentUserLogin} = useCurrentUserPersonalDetails();
+    const {hasPaymentCard, canAddPaymentCard, runWithPaymentCard, showNoPaymentCardModal} = useRunWithPaymentCard();
 
     const [domainPendingActions] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`);
     const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`);
@@ -40,6 +47,15 @@ function DomainAdminsSettingsPage({route}: DomainAdminsSettingsPageProps) {
         selector: technicalContactSettingsSelector,
     });
     const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: domainNameSelector});
+
+    const technicalContactEmail = technicalContactSettings?.technicalContactEmail;
+    const isConsolidatedBillingOn = !!technicalContactSettings?.useTechnicalContactBillingCard;
+    const isCurrentUserPrimaryContact = !!technicalContactEmail && Str.caseInsensitiveEquals(technicalContactEmail, currentUserLogin ?? '');
+    const isPaymentCardUnavailable = !hasPaymentCard && !canAddPaymentCard;
+
+    // Consolidated billing charges the primary contact's card, so only they can turn it on.
+    const isLocked = !!technicalContactEmail && !isConsolidatedBillingOn && !isCurrentUserPrimaryContact;
+    const isLockedWithoutPaymentCard = isCurrentUserPrimaryContact && !isConsolidatedBillingOn && isPaymentCardUnavailable;
 
     return (
         <BaseDomainSettingsPage domainAccountID={domainAccountID}>
@@ -52,7 +68,14 @@ function DomainAdminsSettingsPage({route}: DomainAdminsSettingsPageProps) {
                 <MenuItemField
                     sentryLabel={CONST.SENTRY_LABEL.DOMAIN.ADMINS.PRIMARY_CONTACT}
                     name={translate('domain.admins.primaryContact')}
-                    onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_PRIMARY_CONTACT.getRoute(domainAccountID))}
+                    onPress={() => {
+                        // While consolidated billing is on, taking over as primary contact charges the new contact's card.
+                        if (isConsolidatedBillingOn && !isCurrentUserPrimaryContact && isPaymentCardUnavailable) {
+                            showNoPaymentCardModal(CONST.DOMAIN.PAYMENT_CARD_FLOW.PRIMARY_CONTACT);
+                            return;
+                        }
+                        Navigation.navigate(ROUTES.DOMAIN_ADD_PRIMARY_CONTACT.getRoute(domainAccountID));
+                    }}
                     value={technicalContactSettings?.technicalContactEmail}
                 />
             </OfflineWithFeedback>
@@ -61,12 +84,32 @@ function DomainAdminsSettingsPage({route}: DomainAdminsSettingsPageProps) {
                 switchAccessibilityLabel={translate('domain.admins.consolidatedDomainBilling')}
                 switchSentryLabel={CONST.SENTRY_LABEL.DOMAIN.ADMINS.CONSOLIDATED_DOMAIN_BILLING_SWITCH}
                 isActive={!!technicalContactSettings?.technicalContactEmail && !!technicalContactSettings?.useTechnicalContactBillingCard}
-                disabled={!technicalContactSettings?.technicalContactEmail}
+                disabled={!technicalContactEmail || isLocked || isLockedWithoutPaymentCard}
+                disabledAction={
+                    isLocked || isLockedWithoutPaymentCard
+                        ? () => {
+                              if (isLockedWithoutPaymentCard) {
+                                  showNoPaymentCardModal(CONST.DOMAIN.PAYMENT_CARD_FLOW.CONSOLIDATED_BILLING);
+                                  return;
+                              }
+                              showConfirmModal({
+                                  title: translate('workspace.distanceRates.oopsNotSoFast'),
+                                  prompt: translate('domain.admins.consolidatedDomainBillingLockedMessage'),
+                                  confirmText: translate('common.buttonConfirm'),
+                                  shouldShowCancelButton: false,
+                              });
+                          }
+                        : undefined
+                }
                 onToggle={(value) => {
                     if (!domainName) {
                         return;
                     }
-                    toggleConsolidatedDomainBilling(domainAccountID, domainName, value);
+                    if (!value) {
+                        toggleConsolidatedDomainBilling(domainAccountID, domainName, false);
+                        return;
+                    }
+                    runWithPaymentCard(CONST.DOMAIN.PAYMENT_CARD_FLOW.CONSOLIDATED_BILLING, () => toggleConsolidatedDomainBilling(domainAccountID, domainName, true));
                 }}
                 title={translate('domain.admins.consolidatedDomainBilling')}
                 subtitle={

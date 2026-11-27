@@ -1,13 +1,17 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
 import type {ListItem} from '@components/SelectionList/types';
 
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
+import useRunWithPaymentCard from '@hooks/useRunWithPaymentCard';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
@@ -30,8 +34,9 @@ import type {PersonalDetailsList} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {adminAccountIDsSelector, adminPendingActionSelector, technicalContactSettingsSelector} from '@selectors/Domain';
+import {adminAccountIDsSelector, adminPendingActionSelector, domainNameSelector, technicalContactSettingsSelector} from '@selectors/Domain';
 import React from 'react';
+import {View} from 'react-native';
 
 type AdminOption = Omit<ListItem, 'accountID' | 'login'> & {
     accountID: number;
@@ -42,9 +47,13 @@ type DomainAddPrimaryContactPageProps = PlatformStackScreenProps<SettingsNavigat
 function DomainAddPrimaryContactPage({route}: DomainAddPrimaryContactPageProps) {
     const {domainAccountID} = route.params;
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
+    const styles = useThemeStyles();
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const {runWithPaymentCard} = useRunWithPaymentCard();
     const [adminAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         selector: adminAccountIDsSelector,
     });
+    const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: domainNameSelector});
     const [adminPendingActions] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
         selector: adminPendingActionSelector,
     });
@@ -68,9 +77,17 @@ function DomainAddPrimaryContactPage({route}: DomainAddPrimaryContactPageProps) 
     });
     const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`);
 
+    // While consolidated billing is on, the primary contact's card pays the domain's bills, so admins can only choose
+    // themselves and need a card first.
+    const isConsolidatedBillingOn = !!technicalContactSettings?.useTechnicalContactBillingCard;
+
     let technicalContactEmailKey: string | undefined;
     const data: AdminOption[] = [];
     for (const accountID of adminAccountIDs ?? []) {
+        if (isConsolidatedBillingOn && accountID !== currentUserAccountID) {
+            continue;
+        }
+
         // Don't show admins with errors
         const adminErrors = domainErrors?.adminErrors?.[accountID] ?? {};
         if (Object.keys(adminErrors).length !== 0) {
@@ -127,16 +144,32 @@ function DomainAddPrimaryContactPage({route}: DomainAddPrimaryContactPageProps) 
                         if (!option.login || !option.accountID) {
                             return;
                         }
-                        if (option.login !== technicalContactSettings?.technicalContactEmail) {
-                            setPrimaryContact(domainAccountID, option.login, technicalContactSettings?.technicalContactEmail);
+                        if (option.login === technicalContactSettings?.technicalContactEmail) {
+                            Navigation.goBack(ROUTES.DOMAIN_ADMINS_SETTINGS.getRoute(domainAccountID));
+                            return;
                         }
-                        Navigation.goBack(ROUTES.DOMAIN_ADMINS_SETTINGS.getRoute(domainAccountID));
+                        const savePrimaryContact = () => {
+                            setPrimaryContact(domainAccountID, option.login, technicalContactSettings?.technicalContactEmail);
+                            Navigation.goBack(ROUTES.DOMAIN_ADMINS_SETTINGS.getRoute(domainAccountID));
+                        };
+                        if (isConsolidatedBillingOn) {
+                            runWithPaymentCard(CONST.DOMAIN.PAYMENT_CARD_FLOW.PRIMARY_CONTACT, savePrimaryContact);
+                            return;
+                        }
+                        savePrimaryContact();
                     }}
                     ListItem={InviteMemberListItem}
                     canSelectMultiple={false}
                     initiallyFocusedItemKey={technicalContactEmailKey}
                     shouldScrollToFocusedIndex
-                    shouldShowTextInput
+                    customListHeaderContent={
+                        isConsolidatedBillingOn ? (
+                            <View style={[styles.renderHTML, styles.ph5, styles.pv3]}>
+                                <RenderHTML html={translate('domain.admins.primaryContactConsolidatedBillingMessage', domainName ?? '')} />
+                            </View>
+                        ) : undefined
+                    }
+                    shouldShowTextInput={!isConsolidatedBillingOn}
                     textInputOptions={{
                         label: translate('selectionList.findMember'),
                         value: searchTerm,

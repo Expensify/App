@@ -13195,6 +13195,18 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
             consolidatedDomainBillingDescription: (domainName: string) =>
                 `<comment><muted-text-label>Indien ingeschakeld betaalt de primaire contactpersoon voor alle werkruimtes die eigendom zijn van leden van <strong>${domainName}</strong> en ontvangt diegene alle factuurbewijzen.</muted-text-label></comment>`,
             consolidatedDomainBillingError: 'Gefactureerde geconsolideerde domeinen konden niet worden gewijzigd. Probeer het later opnieuw.',
+            consolidatedDomainBillingLockedMessage: 'Only the primary contact can turn on consolidated domain billing. To turn it on, make yourself the primary contact first.',
+            primaryContactConsolidatedBillingMessage: (domainName: string) =>
+                `<muted-text>Consolidated domain billing is on, so you can only make yourself the primary contact. The primary contact pays for all workspaces owned by <strong>${domainName}</strong> members.</muted-text>`,
+            primaryContactPaymentCardTitle: 'Enter your payment card to become the primary contact',
+            consolidatedBillingPaymentCardTitle: 'Enter your payment card to turn on consolidated domain billing',
+            paymentCardSuccessTitle: 'Woohoo! All set.',
+            primaryContactSuccessMessage: (domainName: string) =>
+                `<muted-text><centered-text>You're now the primary contact for <strong>${domainName}</strong>. Your card will pay for all workspaces owned by its members.</centered-text></muted-text>`,
+            consolidatedBillingSuccessMessage: (domainName: string) =>
+                `<muted-text><centered-text>Consolidated domain billing is on for <strong>${domainName}</strong>. Your card will pay for all workspaces owned by its members.</centered-text></muted-text>`,
+            primaryContactNoCardMobileMessage: 'To become the primary contact with consolidated domain billing on, first add a payment card. You can’t add a payment card in the mobile app.',
+            consolidatedBillingNoCardMobileMessage: 'To turn on consolidated domain billing, first add a payment card. You can’t add a payment card in the mobile app.',
             addAdmin: 'Beheerder toevoegen',
             addAdminError: 'Kan dit lid niet als beheerder toevoegen. Probeer het opnieuw.',
             requests: 'Verzoeken',

@@ -3806,6 +3806,7 @@ const SENTRY_LABEL = {
             REQUEST_APPROVE: 'DomainAdmins-RequestApprove',
             REQUEST_DENY: 'DomainAdmins-RequestDeny',
             CONSOLIDATED_DOMAIN_BILLING_SWITCH: 'DomainAdmins-ConsolidatedDomainBillingSwitch',
+            PAYMENT_CARD_SUCCESS_CONFIRM: 'DomainAdmins-PaymentCardSuccessConfirm',
         },
         GROUPS: {
             CREATE_GROUP_BUTTON: 'DomainGroups-CreateGroupButton',

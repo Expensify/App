@@ -1,4 +1,7 @@
+import type CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
+
+import type {ValueOf} from 'type-fest';
 
 type DomainSettingsParamList = {
     [SCREENS.DOMAIN.SAML_VERIFY]: {
@@ -22,6 +25,14 @@ type DomainSettingsParamList = {
     };
     [SCREENS.DOMAIN.ADD_PRIMARY_CONTACT]: {
         domainAccountID: number;
+    };
+    [SCREENS.DOMAIN.DYNAMIC_PAYMENT_CARD]: {
+        domainAccountID: number;
+        flow: ValueOf<typeof CONST.DOMAIN.PAYMENT_CARD_FLOW>;
+    };
+    [SCREENS.DOMAIN.DYNAMIC_PAYMENT_CARD_SUCCESS]: {
+        domainAccountID: number;
+        flow: ValueOf<typeof CONST.DOMAIN.PAYMENT_CARD_FLOW>;
     };
     [SCREENS.DOMAIN.ADD_ADMIN]: {
         domainAccountID: number;

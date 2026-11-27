@@ -1691,6 +1691,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.DOMAIN.ADD_PRIMARY_CONTACT]: {
                             path: ROUTES.DOMAIN_ADD_PRIMARY_CONTACT.route,
                         },
+                        [SCREENS.DOMAIN.DYNAMIC_PAYMENT_CARD]: DYNAMIC_ROUTES.DOMAIN_PAYMENT_CARD.path,
+                        [SCREENS.DOMAIN.DYNAMIC_PAYMENT_CARD_SUCCESS]: DYNAMIC_ROUTES.DOMAIN_PAYMENT_CARD_SUCCESS.path,
                         [SCREENS.DOMAIN.MEMBER_DETAILS]: {
                             path: ROUTES.DOMAIN_MEMBER_DETAILS.route,
                         },
