@@ -35,16 +35,21 @@ import {
     canMatchFlagRuleCategory,
     getCategoryFlagLimit,
     getDescribedFlagForReviewDraft,
+    getFlagCategoryLimit,
     getFlagForReviewConditions,
     getFlagForReviewDraft,
     getFlagForReviewDraftKey,
     getFlagForReviewRuleAmountError,
     getFlagForReviewRulePriority,
     getFlagRuleCategory,
+    hasValidFlagBudgetSelectors,
+    isUnsupportedDailyBudgetHasValue,
     qualifyCategoryFlagRulePath,
+    usesLegacyFlagLimitEditor,
 } from '@libs/FlagForReviewRulesUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import {parseAmountFilterValue} from '@libs/SearchAmountFilterUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -62,6 +67,8 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
+
+import FlagRuleConditionFields from './FlagRuleConditionFields';
 
 type FlagForReviewRulePageBaseProps = {
     policyID: string;
@@ -153,18 +160,21 @@ function FlagForReviewRulePageBase({
 
     const isEditing = !!ruleID || !!editCategoryName;
     const isCategoryLocked = isCategoryLockedProp ?? !!initialCategoryName;
-    const currency = conditions?.limit?.currency ?? policyCurrency;
+    const usesCategoryLimitEditor = isCategoryLocked || usesLegacyFlagLimitEditor(ruleID, policyCategories, conditions);
+    const isIncompatibleCategoryRule = isCategoryLocked && !!conditions && !getFlagCategoryLimit(conditions);
+    const currency = (usesCategoryLimitEditor ? getFlagCategoryLimit(conditions)?.currency : undefined) ?? policyCurrency;
     const isRuleWritePending = !!existingRule?.pendingAction && !existingRule.errors;
-    const canSaveRule = canWriteRules && !isRuleWritePending && (!conditions?.categoryName || !!policyCategories);
-    const canEditCategory = canSaveRule && !isCategoryLocked && !!policy?.areCategoriesEnabled;
-    const shouldShowDescribeRule = !isEditing && !isCategoryLocked;
+    const canSaveRule = canWriteRules && !!form && !isRuleWritePending && !isIncompatibleCategoryRule && (!conditions?.categoryName || !!policyCategories);
+    const canEditCategory = canSaveRule && !usesCategoryLimitEditor && !!policy?.areCategoriesEnabled;
+    const shouldShowDescribeRule = !isEditing && !usesCategoryLimitEditor;
     const originalCategoryName = (ruleID && getFlagRuleCategory(policyCategories, conditions?.categoryName, ruleID)?.name) || conditions?.categoryName || category?.name;
-    const selectedCategoryName = isCategoryLocked ? originalCategoryName : (form?.[INPUT_IDS.CATEGORY] ?? originalCategoryName);
+    const selectedCategoryName = usesCategoryLimitEditor ? originalCategoryName : (form?.[INPUT_IDS.CATEGORY] ?? originalCategoryName);
     const merchant = form?.[INPUT_IDS.MERCHANT]?.trim();
     const enforcement = form?.enforcement ?? conditions?.enforcement ?? (isEditing ? LEGACY_ENFORCEMENT : WARNING);
 
     const draftMaxExpenseAmount = form?.[INPUT_IDS.MAX_EXPENSE_AMOUNT];
-    const maxAmountMenuTitle = draftMaxExpenseAmount ? convertToDisplayString(convertToBackendAmount(Number(draftMaxExpenseAmount)), currency) : '';
+    const amount = usesCategoryLimitEditor ? {amount: draftMaxExpenseAmount, currency} : parseAmountFilterValue(form?.amountToMatch);
+    const maxAmountMenuTitle = amount.amount ? convertToDisplayString(convertToBackendAmount(Number(amount.amount)), amount.currency) : '';
     const expenseLimitType = form?.[INPUT_IDS.EXPENSE_LIMIT_TYPE];
     const isDailyLimit = expenseLimitType === CONST.POLICY.EXPENSE_LIMIT_TYPES.DAILY;
     const dailyLimitDescription = isDailyLimit ? translate('workspace.rules.categoryRules.expenseLimitTypes.dailySubtitle') : undefined;
@@ -172,40 +182,67 @@ function FlagForReviewRulePageBase({
     useEffect(() => () => clearDraftFlagForReviewRule(), []);
 
     useEffect(() => {
-        if ((scopedCategoryName && (!category || areCategoryFlagLimitsLoading)) || (isEditing && (!ruleID || !conditions))) {
+        if ((scopedCategoryName && (!category || areCategoryFlagLimitsLoading)) || (isEditing && (!ruleID || !conditions)) || (conditions?.categoryName && shouldLoadPolicyCategories)) {
             return;
         }
         if (initializedDraftForRuleKeyRef.current === draftKey) {
             return;
         }
 
-        const seededDraft = conditions ? getFlagForReviewDraft({...conditions, categoryName: originalCategoryName}, getCurrencyDecimals) : {[INPUT_IDS.CATEGORY]: originalCategoryName};
+        const seededDraft = conditions
+            ? getFlagForReviewDraft({...conditions, categoryName: originalCategoryName}, getCurrencyDecimals, usesCategoryLimitEditor)
+            : {[INPUT_IDS.CATEGORY]: originalCategoryName};
         // A direct link to a subpage can return an edited field before this screen has mounted.
         setDraftFlagForReviewRule({...seededDraft, ...form, draftKey});
         initializedDraftForRuleKeyRef.current = draftKey;
-    }, [areCategoryFlagLimitsLoading, category, conditions, draftKey, form, getCurrencyDecimals, isEditing, originalCategoryName, ruleID, scopedCategoryName]);
+    }, [
+        areCategoryFlagLimitsLoading,
+        category,
+        conditions,
+        draftKey,
+        form,
+        getCurrencyDecimals,
+        isEditing,
+        originalCategoryName,
+        ruleID,
+        scopedCategoryName,
+        shouldLoadPolicyCategories,
+        usesCategoryLimitEditor,
+    ]);
 
     const selectedCategory = selectedCategoryName ? policyCategories?.[selectedCategoryName] : undefined;
     const otherCategoryLimit = getCategoryFlagLimit(selectedCategory, categoryFlagLimits);
-    const amountError = !merchant || draftMaxExpenseAmount ? getFlagForReviewRuleAmountError(draftMaxExpenseAmount, translate, expenseLimitType) : undefined;
+    const amountError = usesCategoryLimitEditor ? getFlagForReviewRuleAmountError(draftMaxExpenseAmount, translate, expenseLimitType) : undefined;
+    const draftForSave = usesCategoryLimitEditor ? {category: selectedCategoryName, maxExpenseAmount: draftMaxExpenseAmount, expenseLimitType} : {...form, category: selectedCategoryName};
+    const ruleBody = form && buildFlagForReviewRule(draftForSave, currency, enforcement === LEGACY_ENFORCEMENT ? undefined : enforcement);
+    const isCategoryOnlyLimit = !!getFlagCategoryLimit(getFlagForReviewConditions(ruleBody));
     let errorMessage: string | undefined;
-    if (!merchant && !selectedCategoryName) {
+    if (usesCategoryLimitEditor && !selectedCategoryName) {
         errorMessage = translate('workspace.rules.flagForReviewRule.confirmErrorCategory');
-    } else if (selectedCategoryName && !canMatchFlagRuleCategory(selectedCategory)) {
+    } else if (selectedCategoryName && selectedCategoryName !== originalCategoryName && !canMatchFlagRuleCategory(selectedCategory)) {
         errorMessage = translate('common.genericErrorMessage');
-    } else if (!merchant && !haveCategoryFlagLimitsLoaded && (!existingRule || !!conditions?.merchant || selectedCategoryName !== originalCategoryName)) {
+    } else if (usesCategoryLimitEditor && !canMatchFlagRuleCategory(selectedCategory)) {
         errorMessage = translate('common.genericErrorMessage');
-    } else if (!merchant && otherCategoryLimit && otherCategoryLimit.ruleID !== ruleID) {
+    } else if (isCategoryOnlyLimit && !haveCategoryFlagLimitsLoaded && (!getFlagCategoryLimit(conditions) || selectedCategoryName !== originalCategoryName)) {
+        errorMessage = translate('common.genericErrorMessage');
+    } else if (isCategoryOnlyLimit && otherCategoryLimit && otherCategoryLimit.ruleID !== ruleID) {
         errorMessage = translate('workspace.rules.newRule.promptErrors.categoryHasRule');
-    } else {
+    } else if (form?.dailyBudgetToMatch && form.hasToMatch?.some(isUnsupportedDailyBudgetHasValue)) {
+        errorMessage = translate('common.error.invalidField', translate('common.attachment'));
+    } else if (form?.dailyBudgetToMatch && !hasValidFlagBudgetSelectors(form)) {
+        errorMessage = translate('workspace.rules.flagForReviewRule.dailyBudgetSelectorError');
+    } else if (!form?.dailyBudgetToMatch && form?.budgetTagLevel && form.tagsToMatch?.length) {
+        errorMessage = translate('workspace.rules.flagForReviewRule.reselectTagWithoutBudget');
+    } else if (amountError) {
         errorMessage = amountError;
+    } else if (!ruleBody) {
+        errorMessage = translate('workspace.rules.merchantRules.confirmErrorCondition');
     }
 
     const saveRule = () => {
         if (!canSaveRule || !form) {
             return;
         }
-        const ruleBody = buildFlagForReviewRule({...form, category: selectedCategoryName}, currency, enforcement === LEGACY_ENFORCEMENT ? undefined : enforcement);
         if (errorMessage || !ruleBody) {
             setShouldShowError(true);
             return;
@@ -231,6 +268,10 @@ function FlagForReviewRulePageBase({
     };
 
     const navigateToAmount = () => {
+        if (!usesCategoryLimitEditor) {
+            Navigation.navigate(ROUTES.RULES_AMOUNT_TO_MATCH.getRoute(policyID, editRuleID, 'flag'));
+            return;
+        }
         if (!isCategoryScopedFlow) {
             Navigation.navigate(getFlagForReviewRuleAmountRoute(policyID, editRuleID, isCategoryLocked, initialCategoryName));
             return;
@@ -274,7 +315,7 @@ function FlagForReviewRulePageBase({
         );
     }
 
-    if ((isEditing && !conditions) || (!isEditing && !!policy && !canWriteRules)) {
+    if (isIncompatibleCategoryRule || (isEditing && !conditions) || (!isEditing && !!policy && !canWriteRules)) {
         return <NotFoundPage />;
     }
 
@@ -297,7 +338,7 @@ function FlagForReviewRulePageBase({
                         policyID={policyID}
                         ruleType={CONST.GENERATED_RULE.RULE_TYPE.FLAG_FOR_REVIEW}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.FLAG_FOR_REVIEW_RULE_DESCRIBE}
-                        onRuleGenerated={(values) => setDraftFlagForReviewRule(getDescribedFlagForReviewDraft(policyID, values))}
+                        onRuleGenerated={(values) => setDraftFlagForReviewRule(getDescribedFlagForReviewDraft(policyID, policyCurrency, values))}
                         isCategoryEligible={(generatedCategory) => !getCategoryFlagLimit(generatedCategory, categoryFlagLimits)}
                     />
                 )
@@ -331,7 +372,7 @@ function FlagForReviewRulePageBase({
                         <Text style={[styles.textNormal, styles.textSupporting]}>{translate('workspace.rules.flagForReviewRule.subtitle')}</Text>
                         <Text style={[styles.textLabel, styles.textStrong, styles.lh16]}>{translate('workspace.rules.merchantRules.ifAnyExpenseMatches')}</Text>
                     </View>
-                    {!isCategoryLocked && !isDailyLimit && (
+                    {!usesCategoryLimitEditor && (
                         <MenuItem.Root
                             onPress={
                                 canSaveRule ? callIfAuthenticated(() => Navigation.navigate(ROUTES.RULES_FLAG_FOR_REVIEW_RULE_MERCHANT.getRoute(policyID, editRuleID)), session) : undefined
@@ -382,6 +423,14 @@ function FlagForReviewRulePageBase({
                             />
                         )}
                     </MenuItem.Root>
+                    {!usesCategoryLimitEditor && (
+                        <FlagRuleConditionFields
+                            policyID={policyID}
+                            ruleID={editRuleID}
+                            form={form}
+                            canEdit={canSaveRule}
+                        />
+                    )}
                     <View style={[styles.sectionDividerLine, styles.mh5, styles.mv3]} />
                     <Text style={[styles.textLabel, styles.textStrong, styles.lh16, styles.ph5, styles.pv3]}>{translate('workspace.rules.flagForReviewRule.thenDoTheFollowing')}</Text>
                     <Picker

@@ -7,26 +7,25 @@ import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectL
 import type {ListItem} from '@components/SelectionList/types';
 
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {updateDraftMerchantRule} from '@libs/actions/User';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {HAS_OPTIONS} from '@libs/ExpenseDefaultRuleUtils';
+import {isUnsupportedDailyBudgetHasValue} from '@libs/FlagForReviewRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
 import CONST, {HAS_VALUE_TRANSLATION_KEYS} from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import React, {useState} from 'react';
 
-import useMerchantRuleRoute from './useMerchantRuleRoute';
+import useRuleConditionDraft from './useRuleConditionDraft';
 import useRuleConditionSelection from './useRuleConditionSelection';
+import withFlagRuleConditionAccess from './withFlagRuleConditionAccess';
 
 type AddHasToMatchPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_HAS_TO_MATCH | typeof SCREENS.WORKSPACE.DYNAMIC_RULES_HAS_TO_MATCH>;
 
@@ -36,14 +35,18 @@ type HasListItem = ListItem & {
 
 function AddHasToMatchPage({route}: AddHasToMatchPageProps) {
     const {policyID, ruleID} = route.params;
-    const {backToRoute} = useMerchantRuleRoute(DYNAMIC_ROUTES.RULES_HAS_TO_MATCH_FROM_EXPENSE.path, policyID, ruleID);
+    const {backToRoute, form, updateDraft} = useRuleConditionDraft(
+        DYNAMIC_ROUTES.RULES_HAS_TO_MATCH_FROM_EXPENSE.path,
+        policyID,
+        ruleID,
+        'flagCondition' in route.params ? route.params.flagCondition : undefined,
+    );
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policy = usePolicy(policyID);
 
-    const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
-
     const {selectedValues: selectedHasValues, toggleValue: toggleHasValue, toggleAll} = useRuleConditionSelection(form?.hasToMatch ?? []);
+    const hasDailyBudget = !!form && 'dailyBudgetToMatch' in form && !!form.dailyBudgetToMatch;
 
     // Held here rather than written straight to the rule, so that it is kept or dropped along with the parts it
     // applies to when Save or Back is pressed.
@@ -54,6 +57,9 @@ function AddHasToMatchPage({route}: AddHasToMatchPageProps) {
     const isOptionAvailable = (value: string) => {
         if (selectedHasValues.includes(value)) {
             return true;
+        }
+        if (hasDailyBudget && isUnsupportedDailyBudgetHasValue(value)) {
+            return false;
         }
         if (value === CONST.SEARCH.HAS_VALUES.CATEGORY) {
             return !!policy?.areCategoriesEnabled;
@@ -84,7 +90,7 @@ function AddHasToMatchPage({route}: AddHasToMatchPageProps) {
 
     // Clearing every part leaves the rule matching on whatever its other conditions are.
     const handleSave = () => {
-        updateDraftMerchantRule({
+        updateDraft({
             hasToMatch: selectedHasValues,
             hasMatchType: isNegated ? CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO : CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
         });
@@ -138,4 +144,4 @@ function AddHasToMatchPage({route}: AddHasToMatchPageProps) {
     );
 }
 
-export default AddHasToMatchPage;
+export default withFlagRuleConditionAccess(AddHasToMatchPage);

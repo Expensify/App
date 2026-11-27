@@ -9774,6 +9774,13 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 flagType: 'Tipo di segnalazione',
                 flagTypeWarning: 'Avviso',
                 flagTypeWarningDescription: 'Al segnalante verrà mostrato un avviso, ma potrà comunque inviare la spesa',
+                dailyBudget: 'Budget giornaliero',
+                dailyBudgetOver: (amount: string) => `Spesa giornaliera oltre ${amount}`,
+                dailyBudgetDescription:
+                    'Conta le spese tra i report con la stessa data della spesa. Categoria, tag e chi le invia restringono cosa viene conteggiato. Con una categoria o un tag, il totale è per chi le invia.',
+                dailyBudgetSelectorError:
+                    'Un budget giornaliero può corrispondere a un solo compilatore e a un solo tag. Se hai già scelto un tag, riselezionalo per scegliere il suo elenco di tag.',
+                reselectTagWithoutBudget: 'Seleziona di nuovo o cancella il tag dopo aver rimosso il budget giornaliero.',
             },
             agentRulesEmptyState: {title: 'Nessuna regola agente aggiunta', subtitle: 'Crea una regola per automatizzare le policy del tuo workspace.', cta: 'Aggiungi regola IA'},
             categoriesDisabledEmptyState: {title: 'Le categorie non sono abilitate', subtitle: 'Attiva le categorie per avere un maggiore controllo sulle tue spese.'},

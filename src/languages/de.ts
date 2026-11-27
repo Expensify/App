@@ -9829,6 +9829,13 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 flagType: 'Markierungstyp',
                 flagTypeWarning: 'Warnung',
                 flagTypeWarningDescription: 'Die einreichende Person wird gewarnt, kann die Ausgabe aber trotzdem einreichen',
+                dailyBudget: 'Tagesbudget',
+                dailyBudgetOver: (amount: string) => `Tägliche Ausgaben über ${amount}`,
+                dailyBudgetDescription:
+                    'Zählt Ausgaben über mehrere Berichte hinweg mit demselben Ausgabendatum. Kategorie, Tag und Einreichende(r) grenzen ein, was gezählt wird. Mit einer Kategorie oder einem Tag wird die Summe pro Einreichendem berechnet.',
+                dailyBudgetSelectorError:
+                    'Ein Tagesbudget kann einer einreichenden Person und einem Tag zugeordnet werden. Wenn Sie bereits ein Tag ausgewählt haben, wählen Sie es erneut aus, um seine Tag-Liste auszuwählen.',
+                reselectTagWithoutBudget: 'Wählen Sie das Tag nach dem Entfernen des Tagesbudgets erneut aus oder löschen Sie es.',
             },
             agentRulesEmptyState: {
                 title: 'Keine Agentenregeln hinzugefügt',

@@ -43,6 +43,12 @@ function getOptionalIsCategoryLockedQuery(isCategoryLocked?: boolean): string {
     return isCategoryLocked ? '?isCategoryLocked=true' : '';
 }
 
+type FlagRuleConditionMode = 'flag' | typeof CONST.RULES.DAILY_BUDGET_FILTER;
+
+function getWorkspaceRuleConditionRoute<TSuffix extends string>(policyID: string, ruleID: string | undefined, suffix: TSuffix, flagCondition?: FlagRuleConditionMode) {
+    return getUrlWithParams(`workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/${suffix}` as const, {flagCondition});
+}
+
 // This is a file containing constants for all the routes we want to be able to go to
 
 /**
@@ -4727,39 +4733,39 @@ const ROUTES = {
     },
     RULES_TAG_TO_MATCH: {
         route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/tag-to-match',
-        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/tag-to-match` as const,
+        getRoute: (policyID: string, ruleID?: string, flagCondition?: FlagRuleConditionMode) => getWorkspaceRuleConditionRoute(policyID, ruleID, 'tag-to-match', flagCondition),
     },
     RULES_CURRENCY_TO_MATCH: {
         route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/currency-to-match',
-        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/currency-to-match` as const,
+        getRoute: (policyID: string, ruleID?: string, flagCondition?: FlagRuleConditionMode) => getWorkspaceRuleConditionRoute(policyID, ruleID, 'currency-to-match', flagCondition),
     },
     RULES_TAX_RATE_TO_MATCH: {
         route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/tax-rate-to-match',
-        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/tax-rate-to-match` as const,
+        getRoute: (policyID: string, ruleID?: string, flagCondition?: FlagRuleConditionMode) => getWorkspaceRuleConditionRoute(policyID, ruleID, 'tax-rate-to-match', flagCondition),
     },
     RULES_REIMBURSABLE_TO_MATCH: {
         route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/reimbursable-to-match',
-        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/reimbursable-to-match` as const,
+        getRoute: (policyID: string, ruleID?: string, flagCondition?: FlagRuleConditionMode) => getWorkspaceRuleConditionRoute(policyID, ruleID, 'reimbursable-to-match', flagCondition),
     },
     RULES_BILLABLE_TO_MATCH: {
         route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/billable-to-match',
-        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/billable-to-match` as const,
+        getRoute: (policyID: string, ruleID?: string, flagCondition?: FlagRuleConditionMode) => getWorkspaceRuleConditionRoute(policyID, ruleID, 'billable-to-match', flagCondition),
     },
     RULES_SUBMITTER_TO_MATCH: {
         route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/submitter-to-match',
-        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/submitter-to-match` as const,
+        getRoute: (policyID: string, ruleID?: string, flagCondition?: FlagRuleConditionMode) => getWorkspaceRuleConditionRoute(policyID, ruleID, 'submitter-to-match', flagCondition),
     },
     RULES_DATE_TO_MATCH: {
         route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/date-to-match',
-        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/date-to-match` as const,
+        getRoute: (policyID: string, ruleID?: string, flagCondition?: FlagRuleConditionMode) => getWorkspaceRuleConditionRoute(policyID, ruleID, 'date-to-match', flagCondition),
     },
     RULES_DATE_MATCH_TYPE: {
         route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/date-match-type',
-        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/date-match-type` as const,
+        getRoute: (policyID: string, ruleID?: string, flagCondition?: FlagRuleConditionMode) => getWorkspaceRuleConditionRoute(policyID, ruleID, 'date-match-type', flagCondition),
     },
     RULES_AMOUNT_TO_MATCH: {
         route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/amount-to-match',
-        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/amount-to-match` as const,
+        getRoute: (policyID: string, ruleID?: string, flagCondition?: FlagRuleConditionMode) => getWorkspaceRuleConditionRoute(policyID, ruleID, 'amount-to-match', flagCondition),
     },
     RULES_AMOUNT_MATCH_TYPE: {
         route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/amount-match-type',
@@ -4767,15 +4773,15 @@ const ROUTES = {
     },
     RULES_HAS_TO_MATCH: {
         route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/has-to-match',
-        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/has-to-match` as const,
+        getRoute: (policyID: string, ruleID?: string, flagCondition?: FlagRuleConditionMode) => getWorkspaceRuleConditionRoute(policyID, ruleID, 'has-to-match', flagCondition),
     },
     RULES_CARD_TO_MATCH: {
         route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/card-to-match',
-        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/card-to-match` as const,
+        getRoute: (policyID: string, ruleID?: string, flagCondition?: FlagRuleConditionMode) => getWorkspaceRuleConditionRoute(policyID, ruleID, 'card-to-match', flagCondition),
     },
     RULES_MERCHANT_TYPE_TO_MATCH: {
         route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/merchant-type-to-match',
-        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/merchant-type-to-match` as const,
+        getRoute: (policyID: string, ruleID?: string, flagCondition?: FlagRuleConditionMode) => getWorkspaceRuleConditionRoute(policyID, ruleID, 'merchant-type-to-match', flagCondition),
     },
     RULES_AGENT_NEW: {
         route: 'workspaces/:policyID/rules/agent-rules/new',
@@ -6254,4 +6260,4 @@ type Route = {
 
 type DynamicRouteSuffix = (typeof DYNAMIC_ROUTES)[keyof typeof DYNAMIC_ROUTES]['path'];
 
-export type {Route, DynamicRouteSuffix};
+export type {Route, DynamicRouteSuffix, FlagRuleConditionMode};

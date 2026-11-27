@@ -350,7 +350,7 @@ function getNonEmptyValues(values: string[] | undefined): string[] {
  * The tree is left nested, so three conditions become `and(and(a, b), c)`. Each node only takes two children,
  * and nesting to the left keeps the order the form reads them back in.
  */
-function buildExpenseDefaultFilters(formValues: Partial<ExpenseDefaultFormValues>): RuleFilterNode | undefined {
+function buildExpenseConditionComparisons(formValues: Partial<EditableConditions>): RuleFilterComparison[] {
     const comparisons: RuleFilterComparison[] = [];
 
     const merchantToMatch = formValues.merchantToMatch?.trim();
@@ -416,7 +416,11 @@ function buildExpenseDefaultFilters(formValues: Partial<ExpenseDefaultFormValues
         comparisons.push({left: CONDITION.CARD, operator: EQUAL_TO, right: cardsToMatch});
     }
 
-    const [firstComparison, ...rest] = comparisons;
+    return comparisons;
+}
+
+function buildExpenseDefaultFilters(formValues: Partial<ExpenseDefaultFormValues>): RuleFilterNode | undefined {
+    const [firstComparison, ...rest] = buildExpenseConditionComparisons(formValues);
     if (!firstComparison) {
         return undefined;
     }
@@ -1045,11 +1049,12 @@ function canEditExpenseDefaultRule(rule: Rule | undefined, policyID: string | un
     return isPolicyScopedRule(rule, policyID) && isEditableExpenseDefaultRule(rule);
 }
 
-export type {ExpenseDefaultFormValues, ExpenseDefaultRuleSummaryField, OtherCondition};
+export type {EditableConditions, ExpenseDefaultFormValues, ExpenseDefaultRuleSummaryField, OtherCondition};
 export {
     CONDITION,
     buildCopiedExpenseDefaultRules,
     buildExpenseDefaultFilters,
+    buildExpenseConditionComparisons,
     buildExpenseDefaultRule,
     getMerchantTypeLabel,
     MERCHANT_TYPES,
@@ -1062,6 +1067,7 @@ export {
     getExpenseDefaultRuleCount,
     getExpenseDefaultRuleSummaryFields,
     getExpenseDefaultFormValues,
+    getConditionFromLeaf,
     getPolicyExpenseDefaultRules,
     hasExpenseDefaultConditions,
     hasCategoryExpenseDefaultTaxRule,

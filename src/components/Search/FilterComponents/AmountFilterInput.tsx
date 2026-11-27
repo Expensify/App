@@ -37,9 +37,24 @@ type AmountFilterInputProps = {
     containerStyles?: StyleProp<ViewStyle>;
     onAmountChange: (amount: string) => void;
     onCurrencyChange: (currency: string) => void;
+    /** A comparison that cannot use the expense's currency must name one. */
+    shouldRequireCurrency?: boolean;
 };
 
-function AmountFilterInput({ref, baseFilterKey, amount, currency, label, name, autoFocus, errorText, containerStyles, onAmountChange, onCurrencyChange}: AmountFilterInputProps) {
+function AmountFilterInput({
+    ref,
+    baseFilterKey,
+    amount,
+    currency,
+    label,
+    name,
+    autoFocus,
+    errorText,
+    containerStyles,
+    onAmountChange,
+    onCurrencyChange,
+    shouldRequireCurrency,
+}: AmountFilterInputProps) {
     const {translate, preferredLocale} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const [isCurrencyPickerVisible, setIsCurrencyPickerVisible] = useState(false);
@@ -99,7 +114,7 @@ function AmountFilterInput({ref, baseFilterKey, amount, currency, label, name, a
                 headerText={translate('common.selectCurrency')}
                 value={currency}
                 onInputChange={onCurrencyChange}
-                shouldAllowEmptySelection
+                shouldAllowEmptySelection={!shouldRequireCurrency}
             />
         </View>
     );

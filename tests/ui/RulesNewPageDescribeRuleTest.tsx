@@ -162,7 +162,13 @@ const mockedUsePolicy = jest.mocked(usePolicy);
 type WriteSpy = jest.SpiedFunction<typeof API.write>;
 
 function setAdminPolicy(areCategoriesEnabled = false) {
-    mockedUsePolicy.mockReturnValue({...createRandomPolicy(0, CONST.POLICY.TYPE.CORPORATE), id: POLICY_ID, role: CONST.POLICY.ROLE.ADMIN, areCategoriesEnabled});
+    mockedUsePolicy.mockReturnValue({
+        ...createRandomPolicy(0, CONST.POLICY.TYPE.CORPORATE),
+        id: POLICY_ID,
+        role: CONST.POLICY.ROLE.ADMIN,
+        outputCurrency: CONST.CURRENCY.CAD,
+        areCategoriesEnabled,
+    });
 }
 
 async function renderRulesNewPage(categoryName?: string) {
@@ -313,8 +319,8 @@ describe('New rule describe section', () => {
             rule: {maxExpenseAmount: '500'},
         });
 
-        // Then the flag for review editor opens with the generated values, so the admin only reviews and saves
-        expect(await getOnyxValue(ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_FORM)).toEqual({maxExpenseAmount: '500', draftKey: `${POLICY_ID}/new`});
+        // Then the amount condition opens with the generated amount in the workspace currency.
+        expect(await getOnyxValue(ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_FORM)).toEqual({amountToMatch: '500.00 CAD', draftKey: `${POLICY_ID}/new`});
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RULES_FLAG_FOR_REVIEW_RULE_NEW.getRoute(POLICY_ID));
     });
 

@@ -9853,6 +9853,13 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 flagType: 'Type de signalement',
                 flagTypeWarning: 'Avertissement',
                 flagTypeWarningDescription: 'Le déclarant sera averti, mais pourra toujours soumettre la dépense',
+                dailyBudget: 'Budget quotidien',
+                dailyBudgetOver: (amount: string) => `Dépenses quotidiennes au-delà de ${amount}`,
+                dailyBudgetDescription:
+                    'Compte les dépenses sur plusieurs notes de frais pour la même date de dépense. La catégorie, le tag et le déclarant restreignent ce qui est comptabilisé. Avec une catégorie ou un tag, le total est par déclarant.',
+                dailyBudgetSelectorError:
+                    'Un budget quotidien peut correspondre à un déclarant et à un tag. Si vous avez déjà choisi un tag, sélectionnez-le de nouveau pour choisir sa liste de tags.',
+                reselectTagWithoutBudget: 'Resélectionnez ou effacez le tag après avoir supprimé le budget quotidien.',
             },
             agentRulesEmptyState: {
                 title: 'Aucune règle d’agent ajoutée',

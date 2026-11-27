@@ -9641,6 +9641,13 @@ ${reportName}`,
                 flagType: 'フラグの種類',
                 flagTypeWarning: '警告',
                 flagTypeWarningDescription: '申請者には警告されますが、経費を提出することは可能です',
+                dailyBudget: '1 日あたりの予算',
+                dailyBudgetOver: (amount: string) => `1 日あたりの支出が ${amount} を超過`,
+                dailyBudgetDescription:
+                    '同じ経費日付の経費を、複数レポートにわたって集計します。カテゴリ、タグ、提出者で集計対象を絞り込めます。カテゴリまたはタグを指定した場合、合計は提出者ごとになります。',
+                dailyBudgetSelectorError:
+                    '日次予算は、1 人の申請者と 1 つのタグに対応できます。すでにタグを選択している場合は、そのタグリストを選ぶために、もう一度そのタグを選択してください。',
+                reselectTagWithoutBudget: '日次予算を削除した後に、タグを再選択するかクリアしてください。',
             },
             agentRulesEmptyState: {title: 'エージェントルールが追加されていません', subtitle: 'ワークスペースのポリシーを自動化するルールを作成します。', cta: 'AIルールを追加'},
             categoriesDisabledEmptyState: {title: 'カテゴリが有効になっていません', subtitle: 'カテゴリを有効にして、支出をより細かく管理しましょう。'},

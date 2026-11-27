@@ -5,13 +5,15 @@ import {
     getFlagForReviewConditions,
     getFlagForReviewDraft,
     getFlagForReviewTableData,
+    getFlagTagDisplayName,
 } from '@libs/FlagForReviewRulesUtils';
-import {toIndexMap} from '@libs/RuleUtils';
+import {getRuleFilterLeaves, toIndexMap} from '@libs/RuleUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {FlagForReviewRuleForm} from '@src/types/form/FlagForReviewRuleForm';
 import type {Rule} from '@src/types/onyx';
 
 import {createCategoryFlagLimitsSelector, createFlagForReviewRulesSelector} from '@selectors/Rule';
@@ -25,8 +27,8 @@ const selectFlagLimits = createCategoryFlagLimitsSelector(policy.id);
 const selectFlagRules = createFlagForReviewRulesSelector(policy.id);
 const ruleKey = (id: string) => `${ONYXKEYS.COLLECTION.RULE}${id}` as const;
 const {ACTIONS, TRIGGERS, DAILY_BUDGET_FILTER} = CONST.RULES;
-const {AND, OR, EQUAL_TO, GREATER_THAN} = CONST.SEARCH.SYNTAX_OPERATORS;
-const {AMOUNT, CATEGORY} = CONST.SEARCH.SYNTAX_FILTER_KEYS;
+const {AND, OR, EQUAL_TO, GREATER_THAN, LOWER_THAN, NOT_EQUAL_TO} = CONST.SEARCH.SYNTAX_OPERATORS;
+const {AMOUNT, CATEGORY, FROM, TAG, HAS, CARD_ID, TAX_RATE, REIMBURSABLE, BILLABLE, DATE, CURRENCY} = CONST.SEARCH.SYNTAX_FILTER_KEYS;
 const {DAILY, EXPENSE} = CONST.POLICY.EXPENSE_LIMIT_TYPES;
 const mealCategory = {name: 'Meals &amp; drinks', enabled: true};
 const categoryFilter = {left: CATEGORY, operator: EQUAL_TO, right: mealCategory.name};
@@ -91,7 +93,7 @@ describe('mirrored category flag limits', () => {
         // When rendering the table and deriving the edit draft.
         const rows = getFlagForReviewTableData({policyID: policy.id, policyCategories, flagRules, translate: translateLocal, convertToDisplayString, isOffline: false, onNavigate});
         const conditions = flagRules['1'];
-        const form = getFlagForReviewDraft(conditions, () => CONST.DEFAULT_CURRENCY_DECIMALS);
+        const form = getFlagForReviewDraft(conditions, () => CONST.DEFAULT_CURRENCY_DECIMALS, true);
         rows.at(0)?.action();
 
         // Then only the mirrored cap is shown, with daily scope and a stable rule ID.
@@ -181,6 +183,146 @@ describe('mirrored category flag limits', () => {
         // Then the one-based action, exact match, amount and currency survive.
         expect(Object.keys(body?.actions ?? {})).toEqual(['1']);
         expect(body?.actions[1]).toEqual({name: ACTIONS.TRIGGER_VIOLATION, enforcement});
-        expect(conditions && getFlagForReviewDraft(conditions, () => 0)).toMatchObject({...draft, enforcement, currency: 'JPY'});
+        expect(conditions && getFlagForReviewDraft(conditions, () => 0)).toMatchObject({
+            merchantToMatch: 'Starbucks',
+            matchType: EQUAL_TO,
+            category: mealCategory.name,
+            amountToMatch: '3000.00 JPY',
+            enforcement,
+        });
+    });
+
+    it('round-trips every expanded match without turning false booleans into unset conditions', () => {
+        // Given a flag with the same controls used by expense defaults.
+        const draft = {
+            merchantTypesToMatch: [CONST.RULES.MERCHANT_TYPE.DINING],
+            tagsToMatch: ['Client A', 'Client B'],
+            submittersToMatch: ['123', '456'],
+            currenciesToMatch: ['USD', 'JPY'],
+            taxRatesToMatch: ['id_GST'],
+            cardsToMatch: ['789'],
+            dateToMatch: '2026-11-25',
+            dateMatchType: LOWER_THAN,
+            reimbursableToMatch: false,
+            billableToMatch: true,
+            hasToMatch: [CONST.SEARCH.HAS_VALUES.RECEIPT],
+            hasMatchType: NOT_EQUAL_TO,
+        } satisfies Partial<FlagForReviewRuleForm>;
+
+        // When reading and rebuilding the saved warning.
+        const enforcement = CONST.RULES.FLAG_FOR_REVIEW.ENFORCEMENT.WARNING;
+        const rule = buildFlagForReviewRule(draft, 'USD', enforcement);
+        const conditions = getFlagForReviewConditions(rule);
+        const reopenedDraft = conditions && getFlagForReviewDraft(conditions, () => 2);
+
+        // Then every qualifier retains its operator and values, and the action still warns.
+        expect(getRuleFilterLeaves(rule?.filters)).toEqual(
+            expect.arrayContaining([
+                {left: FROM, operator: EQUAL_TO, right: ['123', '456']},
+                {left: TAG, operator: EQUAL_TO, right: ['Client A', 'Client B']},
+                {left: CURRENCY, operator: EQUAL_TO, right: ['USD', 'JPY']},
+                {left: CARD_ID, operator: EQUAL_TO, right: ['789']},
+                {left: TAX_RATE, operator: EQUAL_TO, right: ['id_GST']},
+                {left: REIMBURSABLE, operator: EQUAL_TO, right: 'no'},
+                {left: BILLABLE, operator: EQUAL_TO, right: 'yes'},
+                {left: DATE, operator: LOWER_THAN, right: '2026-11-25'},
+                {left: HAS, operator: NOT_EQUAL_TO, right: [CONST.SEARCH.HAS_VALUES.RECEIPT]},
+            ]),
+        );
+        expect(reopenedDraft).toMatchObject({...draft, enforcement});
+        expect(reopenedDraft && buildFlagForReviewRule(reopenedDraft, 'USD', reopenedDraft.enforcement === enforcement ? enforcement : undefined)).toEqual(rule);
+    });
+
+    it('writes exact scalar budget selectors and separates receipt and expense amount checks', () => {
+        // Given a budget scoped to one category, tag dimension and submitter, with additional expense checks.
+        const draft = {
+            category: mealCategory.name,
+            dailyBudgetToMatch: '100.25 USD',
+            tagsToMatch: ['Client:A'],
+            budgetTagLevel: 2,
+            submittersToMatch: ['123'],
+            amountToMatch: '50.00 CAD',
+            hasToMatch: [CONST.SEARCH.HAS_VALUES.RECEIPT],
+            hasMatchType: NOT_EQUAL_TO,
+        } satisfies Partial<FlagForReviewRuleForm>;
+        const enforcement = CONST.RULES.FLAG_FOR_REVIEW.ENFORCEMENT.BLOCK;
+
+        // When saving and reopening it from GetRules.
+        const rule = buildFlagForReviewRule(draft, 'JPY', enforcement);
+        const conditions = getFlagForReviewConditions(rule);
+        const reopenedDraft = conditions && getFlagForReviewDraft(conditions, () => 2);
+
+        // Then only the selectors use scalar equality; the extra conditions do not become category settings.
+        expect(getRuleFilterLeaves(rule?.filters)).toEqual(
+            expect.arrayContaining([
+                categoryFilter,
+                dailyCap,
+                {left: TAG, operator: EQUAL_TO, right: 'Client:A', tagLevel: 2},
+                {left: FROM, operator: EQUAL_TO, right: '123'},
+                {left: AMOUNT, operator: GREATER_THAN, right: '50.00 CAD'},
+                {left: HAS, operator: NOT_EQUAL_TO, right: [CONST.SEARCH.HAS_VALUES.RECEIPT]},
+            ]),
+        );
+        expect(reopenedDraft).toMatchObject({...draft, enforcement});
+        expect(rule && selectFlagLimits({[ruleKey('1')]: {...dailyRule, ...rule}})).toEqual({});
+    });
+
+    it.each([
+        {tagsToMatch: ['A', 'B'], budgetTagLevel: 1},
+        {tagsToMatch: ['A']},
+        {submittersToMatch: ['123', '456']},
+        {submittersToMatch: ['unknown']},
+        {dailyBudgetToMatch: '10000'},
+    ] as Array<Partial<FlagForReviewRuleForm>>)('refuses unsupported daily budget operands: %o', (unsupported) => {
+        // Given a budget draft with a selector or amount outside Auth's accepted shape.
+        const draft = {dailyBudgetToMatch: '100.00 USD', ...unsupported};
+
+        // When building its SetRule body.
+        const rule = buildFlagForReviewRule(draft, 'USD', CONST.RULES.FLAG_FOR_REVIEW.ENFORCEMENT.BLOCK);
+
+        // Then the rule cannot be saved with ambiguous spend or any currency.
+        expect(rule).toBeUndefined();
+    });
+
+    it.each([EQUAL_TO, NOT_EQUAL_TO])('rejects attachment conditions with %s on daily budgets only', (operator) => {
+        // Given a presence check for an attachment alongside a receipt.
+        const draft = {hasToMatch: [CONST.SEARCH.HAS_VALUES.RECEIPT, CONST.SEARCH.HAS_VALUES.ATTACHMENT], hasMatchType: operator};
+        const enforcement = CONST.RULES.FLAG_FOR_REVIEW.ENFORCEMENT.WARNING;
+
+        // When building a regular flag and budgets using expense or report attachment checks.
+        const regularFlag = buildFlagForReviewRule(draft, 'USD', enforcement);
+        const budget = buildFlagForReviewRule({...draft, dailyBudgetToMatch: dailyCap.right}, 'USD', enforcement);
+        const reportAttachmentBudget = buildFlagForReviewRule({...draft, dailyBudgetToMatch: dailyCap.right, hasToMatch: ['report-attachment']}, 'USD', enforcement);
+
+        // Then the regular attachment check still round-trips, but neither budget can be saved.
+        expect(getFlagForReviewConditions(regularFlag)?.matchingConditions).toEqual([{left: HAS, operator, right: draft.hasToMatch}]);
+        expect(budget).toBeUndefined();
+        expect(reportAttachmentBudget).toBeUndefined();
+    });
+
+    it('reads a stored budget tag without a level as an exact level-one tag', () => {
+        // Given a saved tag budget with an unwrapped tag and Auth's default level.
+        const rule = {...dailyRule, filters: {left: {left: TAG, operator: EQUAL_TO, right: 'Client A'}, operator: AND, right: dailyCap}};
+
+        // When deriving the edit draft.
+        const conditions = getFlagForReviewConditions(rule);
+        const draft = conditions && getFlagForReviewDraft(conditions, () => 2);
+
+        // Then subsequent edits retain the original spending group.
+        expect(draft).toMatchObject({tagsToMatch: ['Client A'], budgetTagLevel: 1, dailyBudgetToMatch: '100.25 USD'});
+    });
+
+    it('keeps literal backslashes visible in exact budget tags', () => {
+        // Given two budget tags that differ by a literal backslash.
+        const plainTag = 'Client:A &amp; B';
+        const escapedTag = 'Client\\:A &amp; B';
+
+        // When naming the exact tag at the selected level.
+        const plain = getFlagTagDisplayName(plainTag, translateLocal, 2);
+        const escaped = getFlagTagDisplayName(escapedTag, translateLocal, 2);
+
+        // Then HTML entities are decoded and the two tags still read differently.
+        expect(plain).toBe('Client:A & B (Tag level 2)');
+        expect(escaped).toBe('Client\\:A & B (Tag level 2)');
     });
 });

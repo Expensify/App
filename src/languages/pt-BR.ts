@@ -9768,6 +9768,13 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 flagType: 'Tipo de sinalização',
                 flagTypeWarning: 'Aviso',
                 flagTypeWarningDescription: 'A pessoa que envia será avisada, mas ainda poderá enviar a despesa',
+                dailyBudget: 'Orçamento diário',
+                dailyBudgetOver: (amount: string) => `Gasto diário acima de ${amount}`,
+                dailyBudgetDescription:
+                    'Conta despesas em vários relatórios para a mesma data da despesa. Categoria, etiqueta e quem enviou restringem o que é contado. Com uma categoria ou etiqueta, o total é por pessoa que enviou.',
+                dailyBudgetSelectorError:
+                    'Um orçamento diário pode corresponder a um remetente e a uma tag. Se você já escolheu uma tag, selecione-a novamente para escolher a lista de tags dela.',
+                reselectTagWithoutBudget: 'Selecione novamente ou limpe a tag depois de remover o orçamento diário.',
             },
             agentRulesEmptyState: {title: 'Nenhuma regra de agente adicionada', subtitle: 'Crie uma regra para automatizar as políticas do seu workspace.', cta: 'Adicionar regra de IA'},
             categoriesDisabledEmptyState: {title: 'Categorias não estão ativadas', subtitle: 'Ative categorias para ter mais controle sobre seus gastos.'},

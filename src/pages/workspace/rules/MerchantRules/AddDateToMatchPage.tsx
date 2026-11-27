@@ -7,17 +7,15 @@ import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {updateDraftMerchantRule} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {isValidDate} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
+import type ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import MERCHANT_RULE_INPUT_IDS from '@src/types/form/MerchantRuleForm';
@@ -27,34 +25,35 @@ import {View} from 'react-native';
 
 import {getMatchTypeLabel} from './matchTypeOptions';
 import useMatchTypeDiscard from './useMatchTypeDiscard';
-import useMerchantRuleRoute from './useMerchantRuleRoute';
+import useRuleConditionDraft from './useRuleConditionDraft';
+import withFlagRuleConditionAccess from './withFlagRuleConditionAccess';
 
 type AddDateToMatchPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_DATE_TO_MATCH | typeof SCREENS.WORKSPACE.DYNAMIC_RULES_DATE_TO_MATCH>;
+type RuleDateFormID = typeof ONYXKEYS.FORMS.MERCHANT_RULE_FORM | typeof ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_FORM;
 
 function AddDateToMatchPage({route}: AddDateToMatchPageProps) {
     const {policyID, ruleID} = route.params;
-    const {isEditing, backToRoute, getRuleRoute} = useMerchantRuleRoute(DYNAMIC_ROUTES.RULES_DATE_TO_MATCH_FROM_EXPENSE.path, policyID, ruleID);
+    const flagCondition = 'flagCondition' in route.params ? route.params.flagCondition : undefined;
+    const {isEditing, backToRoute, getRuleRoute, form, updateDraft, formID} = useRuleConditionDraft(DYNAMIC_ROUTES.RULES_DATE_TO_MATCH_FROM_EXPENSE.path, policyID, ruleID, flagCondition);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
-
     const currentValue = form?.dateToMatch ?? '';
 
-    const keepMatchType = useMatchTypeDiscard('dateMatchType', form?.dateMatchType);
+    const keepMatchType = useMatchTypeDiscard('dateMatchType', form?.dateMatchType, updateDraft);
 
     const goBack = () => {
         Navigation.goBack(backToRoute);
     };
 
-    const onSave = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MERCHANT_RULE_FORM>) => {
+    const saveDate = (values: FormOnyxValues<RuleDateFormID>) => {
         keepMatchType();
-        updateDraftMerchantRule(values);
+        updateDraft({dateToMatch: values.dateToMatch ?? ''});
         goBack();
     };
 
-    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MERCHANT_RULE_FORM>) => {
-        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.MERCHANT_RULE_FORM> = {};
+    const validate = (values: FormOnyxValues<RuleDateFormID>) => {
+        const errors: FormInputErrors<RuleDateFormID> = {};
         const fieldID = MERCHANT_RULE_INPUT_IDS.DATE_TO_MATCH;
         const fieldValue = values[fieldID];
 
@@ -76,11 +75,11 @@ function AddDateToMatchPage({route}: AddDateToMatchPageProps) {
                 title={translate('common.date')}
                 onBackButtonPress={goBack}
             />
-            <FormProvider
+            <FormProvider<RuleDateFormID>
                 style={[styles.flex1]}
-                formID={ONYXKEYS.FORMS.MERCHANT_RULE_FORM}
+                formID={formID}
                 validate={validate}
-                onSubmit={onSave}
+                onSubmit={saveDate}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
                 submitButtonStyles={[styles.ph5]}
@@ -99,7 +98,10 @@ function AddDateToMatchPage({route}: AddDateToMatchPageProps) {
                     name={translate('workspace.rules.merchantRules.matchType')}
                     onPress={() =>
                         Navigation.navigate(
-                            getRuleRoute(DYNAMIC_ROUTES.RULES_DATE_MATCH_TYPE_FROM_EXPENSE.path, ROUTES.RULES_DATE_MATCH_TYPE.getRoute(policyID, isEditing ? ruleID : undefined)),
+                            getRuleRoute(
+                                DYNAMIC_ROUTES.RULES_DATE_MATCH_TYPE_FROM_EXPENSE.path,
+                                ROUTES.RULES_DATE_MATCH_TYPE.getRoute(policyID, isEditing ? ruleID : undefined, flagCondition),
+                            ),
                         )
                     }
                     value={getMatchTypeLabel('dateMatchType', form?.dateMatchType, translate)}
@@ -109,4 +111,4 @@ function AddDateToMatchPage({route}: AddDateToMatchPageProps) {
     );
 }
 
-export default AddDateToMatchPage;
+export default withFlagRuleConditionAccess(AddDateToMatchPage);

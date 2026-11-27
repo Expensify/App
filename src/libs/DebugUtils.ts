@@ -1481,6 +1481,7 @@ function validateTransactionViolationDraftProperty(key: keyof TransactionViolati
                 rejectReason: 'string',
                 formattedLimit: 'string',
                 amount: 'number',
+                isDailyBudget: 'boolean',
                 currency: 'string',
                 surcharge: 'number',
                 invoiceMarkup: 'number',

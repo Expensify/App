@@ -7,7 +7,7 @@
  */
 import {getExpenseDefaultRuleCount, hasExpenseDefaultRuleErrors} from '@libs/ExpenseDefaultRuleUtils';
 import type {CategoryFlagLimits, FlagForReviewConditions} from '@libs/FlagForReviewRulesUtils';
-import {getFlagForReviewConditions} from '@libs/FlagForReviewRulesUtils';
+import {getFlagCategoryLimit, getFlagForReviewConditions} from '@libs/FlagForReviewRulesUtils';
 import {filterRulesForPolicy, isApprovalWorkflowRule} from '@libs/RuleUtils';
 
 import CONST from '@src/CONST';
@@ -34,8 +34,10 @@ const createFlagForReviewRulesSelector = (policyID: string) => (rules: OnyxColle
 
 function getCategoryFlagLimitsForPolicy(rules: OnyxCollection<Rule>, policyID: string, policyCategory?: PolicyCategory): CategoryFlagLimits {
     const limits: Array<[string, NonNullable<CategoryFlagLimits[string]>]> = [];
-    for (const [ruleID, {categoryName, merchant, limit, pendingAction}] of Object.entries(getFlagForReviewRulesForPolicy(rules, policyID))) {
-        if (!categoryName || merchant || !limit) {
+    for (const [ruleID, conditions] of Object.entries(getFlagForReviewRulesForPolicy(rules, policyID))) {
+        const {categoryName, pendingAction} = conditions;
+        const limit = getFlagCategoryLimit(conditions);
+        if (!categoryName || !limit) {
             continue;
         }
         if (policyCategory && categoryName !== policyCategory.name && ruleID !== String(policyCategory.maxExpenseAmountMigrationID)) {

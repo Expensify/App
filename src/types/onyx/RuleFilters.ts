@@ -19,6 +19,9 @@ type RuleFilterComparison = {
 
     /** The literal value being compared against. */
     right: RuleFilterValue;
+
+    /** One-based tag dimension for an exact daily budget match. */
+    tagLevel?: number;
 };
 
 /**

@@ -1,6 +1,5 @@
 import useLocalize from '@hooks/useLocalize';
 
-import {updateDraftMerchantRule} from '@libs/actions/User';
 import {getMerchantTypeLabel, MERCHANT_TYPES} from '@libs/ExpenseDefaultRuleUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -14,7 +13,8 @@ import React from 'react';
 import type {RuleConditionItem} from './RuleConditionMultiSelectPage';
 
 import RuleConditionMultiSelectPage from './RuleConditionMultiSelectPage';
-import useMerchantRuleRoute from './useMerchantRuleRoute';
+import useRuleConditionDraft from './useRuleConditionDraft';
+import withFlagRuleConditionAccess from './withFlagRuleConditionAccess';
 
 type AddMerchantTypeToMatchPageProps = PlatformStackScreenProps<
     SettingsNavigatorParamList,
@@ -23,7 +23,12 @@ type AddMerchantTypeToMatchPageProps = PlatformStackScreenProps<
 
 function AddMerchantTypeToMatchPage({route}: AddMerchantTypeToMatchPageProps) {
     const {policyID, ruleID} = route.params;
-    const {backToRoute} = useMerchantRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_TYPE_TO_MATCH_FROM_EXPENSE.path, policyID, ruleID);
+    const {backToRoute, form, updateDraft} = useRuleConditionDraft(
+        DYNAMIC_ROUTES.RULES_MERCHANT_TYPE_TO_MATCH_FROM_EXPENSE.path,
+        policyID,
+        ruleID,
+        'flagCondition' in route.params ? route.params.flagCondition : undefined,
+    );
     const {translate} = useLocalize();
 
     const merchantTypeItems: RuleConditionItem[] = MERCHANT_TYPES.map((merchantType) => ({
@@ -33,16 +38,16 @@ function AddMerchantTypeToMatchPage({route}: AddMerchantTypeToMatchPageProps) {
 
     return (
         <RuleConditionMultiSelectPage
-            field="merchantTypesToMatch"
+            draftValues={form?.merchantTypesToMatch}
             title={translate('workspace.rules.merchantTypeRule.merchantType')}
             testID="AddMerchantTypeToMatchPage"
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_MERCHANT_TYPE_TO_MATCH_SAVE}
             backToRoute={backToRoute}
             items={merchantTypeItems}
-            onSave={(merchantTypesToMatch) => updateDraftMerchantRule({merchantTypesToMatch})}
+            onSave={(merchantTypesToMatch) => updateDraft({merchantTypesToMatch})}
             getFallbackText={(merchantType) => getMerchantTypeLabel(merchantType, translate)}
         />
     );
 }
 
-export default AddMerchantTypeToMatchPage;
+export default withFlagRuleConditionAccess(AddMerchantTypeToMatchPage);

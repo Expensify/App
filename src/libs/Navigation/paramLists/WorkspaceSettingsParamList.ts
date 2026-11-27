@@ -1982,38 +1982,47 @@ type WorkspaceSettingsParamList = {
     [SCREENS.WORKSPACE.RULES_TAG_TO_MATCH]: {
         policyID: string;
         ruleID: string;
+        flagCondition?: 'flag';
     };
     [SCREENS.WORKSPACE.RULES_CURRENCY_TO_MATCH]: {
         policyID: string;
         ruleID: string;
+        flagCondition?: 'flag';
     };
     [SCREENS.WORKSPACE.RULES_TAX_RATE_TO_MATCH]: {
         policyID: string;
         ruleID: string;
+        flagCondition?: 'flag';
     };
     [SCREENS.WORKSPACE.RULES_REIMBURSABLE_TO_MATCH]: {
         policyID: string;
         ruleID: string;
+        flagCondition?: 'flag';
     };
     [SCREENS.WORKSPACE.RULES_BILLABLE_TO_MATCH]: {
         policyID: string;
         ruleID: string;
+        flagCondition?: 'flag';
     };
     [SCREENS.WORKSPACE.RULES_SUBMITTER_TO_MATCH]: {
         policyID: string;
         ruleID: string;
+        flagCondition?: 'flag';
     };
     [SCREENS.WORKSPACE.RULES_DATE_TO_MATCH]: {
         policyID: string;
         ruleID: string;
+        flagCondition?: 'flag';
     };
     [SCREENS.WORKSPACE.RULES_DATE_MATCH_TYPE]: {
         policyID: string;
         ruleID: string;
+        flagCondition?: 'flag';
     };
     [SCREENS.WORKSPACE.RULES_AMOUNT_TO_MATCH]: {
         policyID: string;
         ruleID: string;
+        flagCondition?: 'flag' | 'dailyBudget';
     };
     [SCREENS.WORKSPACE.RULES_AMOUNT_MATCH_TYPE]: {
         policyID: string;
@@ -2022,14 +2031,17 @@ type WorkspaceSettingsParamList = {
     [SCREENS.WORKSPACE.RULES_HAS_TO_MATCH]: {
         policyID: string;
         ruleID: string;
+        flagCondition?: 'flag';
     };
     [SCREENS.WORKSPACE.RULES_CARD_TO_MATCH]: {
         policyID: string;
         ruleID: string;
+        flagCondition?: 'flag';
     };
     [SCREENS.WORKSPACE.RULES_MERCHANT_TYPE_TO_MATCH]: {
         policyID: string;
         ruleID: string;
+        flagCondition?: 'flag';
     };
     [SCREENS.WORKSPACE.PER_DIEM_IMPORT]: {
         policyID: string;

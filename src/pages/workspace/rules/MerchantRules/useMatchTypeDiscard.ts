@@ -17,15 +17,20 @@ import {getDefaultMatchType} from './matchTypeOptions';
  * than off any one of them. The returned function marks the comparison as kept, which Save calls before it
  * navigates.
  */
-function useMatchTypeDiscard(field: MatchTypeField, matchType: MatchTypeOperator | undefined): () => void {
+function useMatchTypeDiscard(
+    field: MatchTypeField,
+    matchType: MatchTypeOperator | undefined,
+    updateDraft: (values: Partial<Record<MatchTypeField, MatchTypeOperator>>) => void = updateDraftMerchantRule,
+    isEnabled = true,
+): () => void {
     const [initialMatchType] = useState(matchType ?? getDefaultMatchType(field));
     const isSavedRef = useRef(false);
 
     useBeforeRemove(() => {
-        if (isSavedRef.current) {
+        if (!isEnabled || isSavedRef.current || (matchType ?? getDefaultMatchType(field)) === initialMatchType) {
             return;
         }
-        updateDraftMerchantRule({[field]: initialMatchType});
+        updateDraft({[field]: initialMatchType});
     });
 
     return () => {

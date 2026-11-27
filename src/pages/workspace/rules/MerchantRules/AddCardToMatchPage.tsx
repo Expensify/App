@@ -2,7 +2,6 @@ import useExpenseDefaultCardNames from '@hooks/useExpenseDefaultCardNames';
 import useLocalize from '@hooks/useLocalize';
 import usePolicyCards from '@hooks/usePolicyCards';
 
-import {updateDraftMerchantRule} from '@libs/actions/User';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
@@ -15,13 +14,19 @@ import React from 'react';
 import type {RuleConditionItem} from './RuleConditionMultiSelectPage';
 
 import RuleConditionMultiSelectPage from './RuleConditionMultiSelectPage';
-import useMerchantRuleRoute from './useMerchantRuleRoute';
+import useRuleConditionDraft from './useRuleConditionDraft';
+import withFlagRuleConditionAccess from './withFlagRuleConditionAccess';
 
 type AddCardToMatchPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_CARD_TO_MATCH | typeof SCREENS.WORKSPACE.DYNAMIC_RULES_CARD_TO_MATCH>;
 
 function AddCardToMatchPage({route}: AddCardToMatchPageProps) {
     const {policyID, ruleID} = route.params;
-    const {backToRoute} = useMerchantRuleRoute(DYNAMIC_ROUTES.RULES_CARD_TO_MATCH_FROM_EXPENSE.path, policyID, ruleID);
+    const {backToRoute, form, updateDraft} = useRuleConditionDraft(
+        DYNAMIC_ROUTES.RULES_CARD_TO_MATCH_FROM_EXPENSE.path,
+        policyID,
+        ruleID,
+        'flagCondition' in route.params ? route.params.flagCondition : undefined,
+    );
     const {translate} = useLocalize();
     const {cards: policyCards, isLoadingCards} = usePolicyCards(policyID);
     // `usePolicyCards` already asks for every card, so a second loader here would send the same request twice.
@@ -35,17 +40,17 @@ function AddCardToMatchPage({route}: AddCardToMatchPageProps) {
 
     return (
         <RuleConditionMultiSelectPage
-            field="cardsToMatch"
+            draftValues={form?.cardsToMatch}
             title={translate('common.card')}
             testID="AddCardToMatchPage"
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_CARD_TO_MATCH_SAVE}
             backToRoute={backToRoute}
             items={cardItems}
-            onSave={(cardsToMatch) => updateDraftMerchantRule({cardsToMatch})}
+            onSave={(cardsToMatch) => updateDraft({cardsToMatch})}
             getFallbackText={(cardID) => cardNames[cardID] ?? (areCardsLoaded ? translate('workspace.companyCards.deletedCard') : cardID)}
             isLoading={isLoadingCards}
         />
     );
 }
 
-export default AddCardToMatchPage;
+export default withFlagRuleConditionAccess(AddCardToMatchPage);

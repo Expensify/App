@@ -7,7 +7,7 @@ import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {FlagForReviewRuleForm, FlagMerchantMatchType} from '@src/types/form/FlagForReviewRuleForm';
-import type {PolicyCategories, PolicyCategory, Rule} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyCategory, Rule} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {PolicyCategoryExpenseLimitType} from '@src/types/onyx/PolicyCategory';
 import type {FlagForReviewRule, FlagRuleEnforcement} from '@src/types/onyx/Rule';
@@ -15,8 +15,16 @@ import type {RuleFilterComparison, RuleFilterNode} from '@src/types/onyx/RuleFil
 
 import type {FlagForReviewRules} from '@selectors/Rule';
 
+import {Str} from 'expensify-common';
+
+import type {EditableConditions} from './ExpenseDefaultRuleUtils';
+import type {ExpenseDefaultConditionNames} from './MerchantTypeRulesUtils';
+
 import {getDecodedCategoryName} from './CategoryUtils';
 import {convertToBackendAmount, convertToFrontendAmountAsString} from './CurrencyUtils';
+import {buildExpenseConditionComparisons, getConditionFromLeaf, HAS_OPTIONS} from './ExpenseDefaultRuleUtils';
+import {getOtherConditionText} from './MerchantTypeRulesUtils';
+import {getCleanedTagName} from './PolicyUtils';
 import {fromIndexMap, isRuleFilterComparison, isRuleFilterNode, toIndexMap} from './RuleUtils';
 import {formatAmountFilterValue, parseAmountFilterValue} from './SearchAmountFilterUtils';
 
@@ -31,6 +39,8 @@ type FlagForReviewConditions = {
     categoryName?: string;
     merchant?: {name: string; matchType: FlagMerchantMatchType};
     limit?: FlagAmountLimit;
+    dailyBudget?: FlagAmountLimit;
+    matchingConditions: RuleFilterComparison[];
     enforcement?: FlagRuleEnforcement;
 };
 
@@ -49,8 +59,11 @@ type FlagForReviewTableItem = TableData & {
 const {ACTIONS, TRIGGERS, DAILY_BUDGET_FILTER} = CONST.RULES;
 const {WARNING, BLOCK} = CONST.RULES.FLAG_FOR_REVIEW.ENFORCEMENT;
 const {AND, CONTAINS, EQUAL_TO, GREATER_THAN} = CONST.SEARCH.SYNTAX_OPERATORS;
-const {CATEGORY, AMOUNT, MERCHANT} = CONST.SEARCH.SYNTAX_FILTER_KEYS;
+const {CATEGORY, AMOUNT, MERCHANT, FROM, TAG} = CONST.SEARCH.SYNTAX_FILTER_KEYS;
 const {DAILY, EXPENSE} = CONST.POLICY.EXPENSE_LIMIT_TYPES;
+const DEFAULT_BUDGET_TAG_LEVEL = 1;
+const BUDGET_SUBMITTER_ID = /^[1-9]\d*$/;
+const REPORT_ATTACHMENT = 'report-attachment';
 
 function hasExplicitFlagAmount(maxExpenseAmount: number | null | undefined): maxExpenseAmount is number {
     return maxExpenseAmount !== null && maxExpenseAmount !== undefined && maxExpenseAmount !== CONST.DISABLED_MAX_EXPENSE_VALUE;
@@ -111,7 +124,7 @@ function getFlagComparisons(filters: RuleFilterNode | undefined): RuleFilterComp
     if (isRuleFilterComparison(filters)) {
         return [filters];
     }
-    if (filters.operator !== AND) {
+    if (filters.operator !== AND || Object.keys(filters).length !== 3) {
         return undefined;
     }
     const left = getFlagComparisons(filters.left);
@@ -119,7 +132,31 @@ function getFlagComparisons(filters: RuleFilterNode | undefined): RuleFilterComp
     return left && right ? [...left, ...right] : undefined;
 }
 
-function getFlagForReviewConditions(rule: Rule | undefined): FlagForReviewConditions | undefined {
+function parseFlagAmountLimit(operand: string, expenseLimitType: PolicyCategoryExpenseLimitType): FlagAmountLimit | undefined {
+    const {amount, currency} = parseAmountFilterValue(operand);
+    const amountInHundredths = convertToBackendAmount(Number(amount));
+    if (!currency || !Number.isSafeInteger(amountInHundredths) || amountInHundredths < 0) {
+        return undefined;
+    }
+    return {amount: amountInHundredths, currency, expenseLimitType};
+}
+
+function isValidBudgetTagLevel(level: number): boolean {
+    return Number.isSafeInteger(level) && level >= DEFAULT_BUDGET_TAG_LEVEL;
+}
+
+function getFlagCategoryLimit(conditions: FlagForReviewConditions | undefined): FlagAmountLimit | undefined {
+    if (!conditions?.categoryName || conditions.merchant || conditions.matchingConditions.length || (conditions.limit && conditions.dailyBudget)) {
+        return undefined;
+    }
+    return conditions.limit ?? conditions.dailyBudget;
+}
+
+function getFlagTagDisplayName(value: string, translate: LocaleContextProps['translate'], tagLevel?: number): string {
+    return tagLevel ? `${Str.htmlDecode(value)} (${translate('insightsPage.tagLevel', String(tagLevel))})` : getCleanedTagName(value);
+}
+
+function getFlagForReviewConditions(rule: Rule | FlagForReviewRule | undefined): FlagForReviewConditions | undefined {
     if (!rule) {
         return undefined;
     }
@@ -149,40 +186,80 @@ function getFlagForReviewConditions(rule: Rule | undefined): FlagForReviewCondit
     let categoryName: string | undefined;
     let merchant: FlagForReviewConditions['merchant'];
     let limit: FlagAmountLimit | undefined;
-    for (const {left, right, operator} of comparisons) {
-        if (typeof right !== 'string' || !right.trim()) {
+    let dailyBudget: FlagAmountLimit | undefined;
+    const matchingConditions: RuleFilterComparison[] = [];
+    const seenFields = new Set<string>();
+    const hasDailyBudget = comparisons.some(({left}) => left === DAILY_BUDGET_FILTER);
+    for (const comparison of comparisons) {
+        const {left, right, operator, tagLevel} = comparison;
+        if (
+            seenFields.has(left) ||
+            Object.keys(comparison).some((key) => key !== 'left' && key !== 'right' && key !== 'operator' && !(key === 'tagLevel' && hasDailyBudget && left === TAG))
+        ) {
             return undefined;
         }
-        if (left === CATEGORY && operator === EQUAL_TO && !categoryName) {
-            categoryName = right;
-        } else if (left === MERCHANT && isFlagMerchantMatchType(operator) && !merchant) {
-            merchant = {name: right, matchType: operator};
-        } else if ((left === AMOUNT || left === DAILY_BUDGET_FILTER) && operator === GREATER_THAN && !limit) {
-            const {amount, currency} = parseAmountFilterValue(right.trim());
-            const amountInHundredths = convertToBackendAmount(Number(amount));
-            if (!currency || !Number.isSafeInteger(amountInHundredths) || amountInHundredths < 0) {
+        seenFields.add(left);
+        const values = [right].flat();
+        const first = values.length === 1 ? values.at(0) : undefined;
+        if (left === CATEGORY && operator === EQUAL_TO && typeof first === 'string' && first.trim()) {
+            categoryName = first;
+        } else if (left === MERCHANT && isFlagMerchantMatchType(operator) && typeof first === 'string' && first.trim()) {
+            merchant = {name: first, matchType: operator};
+        } else if ((left === AMOUNT || left === DAILY_BUDGET_FILTER) && operator === GREATER_THAN && typeof first === 'string') {
+            const amountLimit = parseFlagAmountLimit(first, left === DAILY_BUDGET_FILTER ? DAILY : EXPENSE);
+            if (!amountLimit) {
                 return undefined;
             }
-            limit = {amount: amountInHundredths, currency, expenseLimitType: left === DAILY_BUDGET_FILTER ? DAILY : EXPENSE};
+            if (left === DAILY_BUDGET_FILTER) {
+                dailyBudget = amountLimit;
+            } else {
+                limit = amountLimit;
+            }
         } else {
-            return undefined;
+            if (left === CATEGORY || left === MERCHANT || left === AMOUNT || left === DAILY_BUDGET_FILTER) {
+                return undefined;
+            }
+            // Auth treats Category, Tag, and Submitter as budget selectors, not ordinary OR lists.
+            const leaf = hasDailyBudget && left === FROM && typeof first === 'number' && Number.isSafeInteger(first) ? {...comparison, right: String(first)} : comparison;
+            const conditions = getConditionFromLeaf(leaf);
+            if (
+                !conditions ||
+                conditions.hasToMatch?.some((value) => !HAS_OPTIONS.some((option) => option === value)) ||
+                (hasDailyBudget && left === FROM && !BUDGET_SUBMITTER_ID.test(String(first))) ||
+                (hasDailyBudget && left === TAG && (typeof first !== 'string' || !first.trim() || !isValidBudgetTagLevel(tagLevel ?? DEFAULT_BUDGET_TAG_LEVEL)))
+            ) {
+                return undefined;
+            }
+            matchingConditions.push(leaf);
         }
     }
-    if (limit?.expenseLimitType === DAILY ? !categoryName || !!merchant || limit.amount === 0 : !merchant && !(categoryName && limit)) {
-        return undefined;
-    }
-    return {categoryName, merchant, limit, enforcement};
+    return {categoryName, merchant, limit, dailyBudget, matchingConditions, enforcement};
 }
 
-function getFlagForReviewDraft(conditions: FlagForReviewConditions, getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals']): Partial<FlagForReviewRuleForm> {
-    const {categoryName, merchant, limit, enforcement} = conditions;
+function getFlagForReviewDraft(
+    conditions: FlagForReviewConditions,
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
+    usesCategoryLimitEditor = false,
+): Partial<FlagForReviewRuleForm> {
+    const {categoryName, merchant, limit, dailyBudget, matchingConditions, enforcement} = conditions;
+    const categoryLimit = usesCategoryLimitEditor ? getFlagCategoryLimit(conditions) : undefined;
+    const budgetTag = dailyBudget && matchingConditions.find(({left}) => left === TAG);
+    const formatLimit = ({amount, currency}: FlagAmountLimit) => `${convertToFrontendAmountAsString(amount, CONST.DEFAULT_CURRENCY_DECIMALS)} ${currency}`;
+    const conditionValues: EditableConditions = {};
+    for (const leaf of matchingConditions) {
+        Object.assign(conditionValues, getConditionFromLeaf(leaf));
+    }
     return {
+        ...conditionValues,
         category: categoryName,
         merchantToMatch: merchant?.name,
         matchType: merchant?.matchType,
-        maxExpenseAmount: limit ? convertToFrontendAmountAsString(limit.amount, getCurrencyDecimals(limit.currency)) : undefined,
-        expenseLimitType: limit?.expenseLimitType,
-        currency: limit?.currency,
+        maxExpenseAmount: categoryLimit ? convertToFrontendAmountAsString(categoryLimit.amount, getCurrencyDecimals(categoryLimit.currency)) : undefined,
+        expenseLimitType: categoryLimit?.expenseLimitType,
+        currency: categoryLimit?.currency,
+        amountToMatch: !usesCategoryLimitEditor && limit ? formatLimit(limit) : undefined,
+        dailyBudgetToMatch: !usesCategoryLimitEditor && dailyBudget ? formatLimit(dailyBudget) : undefined,
+        budgetTagLevel: budgetTag ? (budgetTag.tagLevel ?? DEFAULT_BUDGET_TAG_LEVEL) : undefined,
         enforcement,
     };
 }
@@ -192,17 +269,38 @@ function getFlagForReviewDraftKey(policyID: string, ruleID?: string, categoryNam
     return `${policyID}/${ruleID ?? createKey}`;
 }
 
-function getDescribedFlagForReviewDraft(policyID: string, {category, maxExpenseAmount, expenseLimitType}: Partial<FlagForReviewRuleForm>): Partial<FlagForReviewRuleForm> {
-    return {category, maxExpenseAmount, expenseLimitType, draftKey: getFlagForReviewDraftKey(policyID)};
+function getDescribedFlagForReviewDraft(policyID: string, currency: string, {category, maxExpenseAmount, expenseLimitType}: Partial<FlagForReviewRuleForm>): Partial<FlagForReviewRuleForm> {
+    const amount = formatAmountFilterValue(maxExpenseAmount ?? '', currency);
+    return {category, ...(expenseLimitType === DAILY ? {dailyBudgetToMatch: amount} : {amountToMatch: amount}), draftKey: getFlagForReviewDraftKey(policyID)};
+}
+
+function hasValidFlagBudgetSelectors({tagsToMatch, submittersToMatch, budgetTagLevel}: Partial<FlagForReviewRuleForm>): boolean {
+    const tag = tagsToMatch?.at(0);
+    const submitter = submittersToMatch?.at(0);
+    return (
+        (!tagsToMatch?.length || (tagsToMatch.length === 1 && !!tag?.trim() && isValidBudgetTagLevel(budgetTagLevel ?? 0))) &&
+        (!submittersToMatch?.length || (submittersToMatch.length === 1 && !!submitter && BUDGET_SUBMITTER_ID.test(submitter)))
+    );
+}
+
+function isUnsupportedDailyBudgetHasValue(value: string): boolean {
+    // Auth can't use private report actions to evaluate a daily budget.
+    const hasValue = value.trim();
+    return hasValue === CONST.SEARCH.HAS_VALUES.ATTACHMENT || hasValue === REPORT_ATTACHMENT;
 }
 
 function buildFlagForReviewRule(form: Partial<FlagForReviewRuleForm>, currency: string, enforcement: FlagRuleEnforcement | undefined): FlagForReviewRule | undefined {
-    const {category, merchantToMatch, matchType, maxExpenseAmount, expenseLimitType} = form;
-    const merchant = merchantToMatch?.trim();
+    const {category, maxExpenseAmount, expenseLimitType, amountToMatch, dailyBudgetToMatch, budgetTagLevel, tagsToMatch} = form;
     const threshold = formatAmountFilterValue(maxExpenseAmount ?? '', currency);
-    const isDaily = expenseLimitType === DAILY;
-    const amount = convertToBackendAmount(Number(maxExpenseAmount));
-    if ((maxExpenseAmount?.trim() && (!Number.isSafeInteger(amount) || Number(maxExpenseAmount) < 0)) || (isDaily && (!category || !!merchant || !(amount > 0)))) {
+    const expenseOperand = amountToMatch || (expenseLimitType !== DAILY ? threshold : '');
+    const budgetOperand = dailyBudgetToMatch || (expenseLimitType === DAILY ? threshold : '');
+    if (
+        (maxExpenseAmount?.trim() && (!threshold || Number(maxExpenseAmount) < 0)) ||
+        (expenseOperand && !parseFlagAmountLimit(expenseOperand, EXPENSE)) ||
+        (budgetOperand && (!parseFlagAmountLimit(budgetOperand, DAILY) || !hasValidFlagBudgetSelectors(form) || form.hasToMatch?.some(isUnsupportedDailyBudgetHasValue))) ||
+        (!budgetOperand && !!budgetTagLevel && !!tagsToMatch?.length) ||
+        (expenseLimitType === DAILY && (!category || convertToBackendAmount(Number(maxExpenseAmount)) <= 0 || !budgetOperand))
+    ) {
         return undefined;
     }
 
@@ -210,14 +308,34 @@ function buildFlagForReviewRule(form: Partial<FlagForReviewRuleForm>, currency: 
     if (category) {
         comparisons.push({left: CATEGORY, operator: EQUAL_TO, right: category});
     }
-    if (merchant) {
-        comparisons.push({left: MERCHANT, operator: matchType ?? CONTAINS, right: merchant});
+    const sharedComparisons = buildExpenseConditionComparisons({
+        ...form,
+        reimbursableToMatch: form.reimbursableToMatch === '' ? undefined : form.reimbursableToMatch,
+        billableToMatch: form.billableToMatch === '' ? undefined : form.billableToMatch,
+        amountToMatch: expenseOperand,
+        amountMatchType: GREATER_THAN,
+    });
+    const budgetTag = budgetOperand ? tagsToMatch?.at(0) : undefined;
+    for (const comparison of sharedComparisons) {
+        const {left, right} = comparison;
+        if (budgetOperand && Array.isArray(right)) {
+            if (left === TAG && budgetTag && budgetTagLevel) {
+                // The budget evaluator compares the decoded tag segment, not the serialized tag path.
+                comparisons.push({...comparison, right: budgetTag, tagLevel: budgetTagLevel});
+                continue;
+            }
+            if (left === FROM && right.length === 1 && right[0]) {
+                comparisons.push({...comparison, right: right[0]});
+                continue;
+            }
+        }
+        comparisons.push(comparison);
     }
-    if (threshold) {
-        comparisons.push({left: isDaily ? DAILY_BUDGET_FILTER : AMOUNT, operator: GREATER_THAN, right: threshold});
+    if (budgetOperand) {
+        comparisons.push({left: DAILY_BUDGET_FILTER, operator: GREATER_THAN, right: budgetOperand});
     }
     const [first, ...remaining] = comparisons;
-    if (!first || (!merchant && !(category && threshold))) {
+    if (!first) {
         return undefined;
     }
 
@@ -236,6 +354,10 @@ function getFlagForReviewRulePriority(ruleID: string | undefined, categories: Po
     return CONST.RULES.FLAG_FOR_REVIEW.PRIORITY;
 }
 
+function usesLegacyFlagLimitEditor(ruleID: string | undefined, categories: PolicyCategories | undefined, conditions: FlagForReviewConditions | undefined): boolean {
+    return !!getFlagCategoryLimit(conditions) && (!conditions?.enforcement || getFlagForReviewRulePriority(ruleID, categories) === CONST.RULES.FLAG_FOR_REVIEW.MIGRATED_CATEGORY_PRIORITY);
+}
+
 function getFlagRuleCategory(policyCategories: PolicyCategories | undefined, categoryName: string | undefined, ruleID: string) {
     if (!categoryName || !policyCategories) {
         return undefined;
@@ -252,23 +374,27 @@ function getFlagRuleCategory(policyCategories: PolicyCategories | undefined, cat
 function getFlagForReviewTableData({
     policyID,
     policyCategories,
+    policy,
     flagRules,
     translate,
     convertToDisplayString,
+    conditionNames = {},
     isOffline,
     onNavigate,
 }: {
     policyID: string;
     policyCategories: PolicyCategories | undefined;
+    policy?: Policy;
     flagRules: FlagForReviewRules | undefined;
     translate: LocaleContextProps['translate'];
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    conditionNames?: ExpenseDefaultConditionNames;
     isOffline: boolean;
     onNavigate: (route: Route) => void;
 }): FlagForReviewTableItem[] {
     const typeLabel = translate('workspace.rules.flagForReviewTable.typeLabel');
     const rules: FlagForReviewTableItem[] = [];
-    for (const [ruleID, {categoryName, merchant, limit, enforcement, pendingAction, hasErrors}] of Object.entries(flagRules ?? {})) {
+    for (const [ruleID, {categoryName, merchant, limit, dailyBudget, matchingConditions, enforcement, pendingAction, hasErrors}] of Object.entries(flagRules ?? {})) {
         const category = getFlagRuleCategory(policyCategories, categoryName, ruleID);
         const isPendingDelete = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
         if (category?.enabled === false || (!isOffline && isPendingDelete)) {
@@ -277,10 +403,15 @@ function getFlagForReviewTableData({
 
         const decodedCategoryName = getDecodedCategoryName(category?.name ?? categoryName ?? '');
         const amountDisplay = limit ? convertToDisplayString(limit.amount, limit.currency) : '';
-        const categoryAndAmount =
-            limit?.expenseLimitType === DAILY
-                ? translate('workspace.rules.flagForReviewTable.conditionCategoryAndDailyAmount', decodedCategoryName, amountDisplay)
-                : translate('workspace.rules.flagForReviewTable.conditionCategoryAndAmount', decodedCategoryName, amountDisplay);
+        const budgetDisplay = dailyBudget ? convertToDisplayString(dailyBudget.amount, dailyBudget.currency) : '';
+        const additionalConditions = matchingConditions.map(({left: field, operator, right, tagLevel}) => {
+            const values = [right].flat().map(String);
+            if (field === TAG) {
+                const level = dailyBudget ? (tagLevel ?? DEFAULT_BUDGET_TAG_LEVEL) : undefined;
+                return translate('workspace.rules.expenseDefaultsTable.tagIs', values.map((value) => getFlagTagDisplayName(value, translate, level)).join(', '));
+            }
+            return getOtherConditionText({field, operator, values}, translate, convertToDisplayString, policy, conditionNames);
+        });
         const merchantCondition = merchant
             ? translate(
                   merchant.matchType === EQUAL_TO ? 'workspace.rules.expenseDefaultsTable.merchantExactlyMatches' : 'workspace.rules.expenseDefaultsTable.merchantContains',
@@ -289,9 +420,12 @@ function getFlagForReviewTableData({
             : '';
         const conditionText = [
             merchantCondition,
-            decodedCategoryName && amountDisplay ? categoryAndAmount : '',
-            decodedCategoryName && !amountDisplay ? translate('workspace.rules.expenseDefaultsTable.categoryIs', decodedCategoryName) : '',
+            decodedCategoryName && budgetDisplay ? translate('workspace.rules.flagForReviewTable.conditionCategoryAndDailyAmount', decodedCategoryName, budgetDisplay) : '',
+            !decodedCategoryName && budgetDisplay ? translate('workspace.rules.flagForReviewRule.dailyBudgetOver', budgetDisplay) : '',
+            decodedCategoryName && amountDisplay ? translate('workspace.rules.flagForReviewTable.conditionCategoryAndAmount', decodedCategoryName, amountDisplay) : '',
+            decodedCategoryName && !amountDisplay && !budgetDisplay ? translate('workspace.rules.expenseDefaultsTable.categoryIs', decodedCategoryName) : '',
             !decodedCategoryName && amountDisplay ? translate('workspace.rules.spendRules.maxAmountAbove', {amount: amountDisplay}) : '',
+            ...additionalConditions,
         ]
             .filter(Boolean)
             .join(` ${translate('common.and')} `);
@@ -317,6 +451,7 @@ export {
     buildFlagForReviewRule,
     canMatchFlagRuleCategory,
     getCategoryFlagLimit,
+    getFlagCategoryLimit,
     getDescribedFlagForReviewDraft,
     getFlagForReviewConditions,
     getFlagForReviewDraft,
@@ -325,8 +460,12 @@ export {
     getFlagForReviewRulePriority,
     getFlagForReviewTableData,
     getFlagRuleCategory,
+    getFlagTagDisplayName,
     hasExplicitFlagAmount,
+    hasValidFlagBudgetSelectors,
     isFlagMerchantMatchType,
+    isUnsupportedDailyBudgetHasValue,
     qualifyCategoryFlagRulePath,
+    usesLegacyFlagLimitEditor,
 };
 export type {CategoryFlagLimits, FlagForReviewConditions, FlagForReviewTableItem};

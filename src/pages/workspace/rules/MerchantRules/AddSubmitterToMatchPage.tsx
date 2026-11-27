@@ -3,7 +3,6 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useWorkspaceMembers from '@hooks/useWorkspaceMembers';
 
-import {updateDraftMerchantRule} from '@libs/actions/User';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
@@ -17,7 +16,8 @@ import React from 'react';
 import type {RuleConditionItem} from './RuleConditionMultiSelectPage';
 
 import RuleConditionMultiSelectPage from './RuleConditionMultiSelectPage';
-import useMerchantRuleRoute from './useMerchantRuleRoute';
+import useRuleConditionDraft from './useRuleConditionDraft';
+import withFlagRuleConditionAccess from './withFlagRuleConditionAccess';
 
 type AddSubmitterToMatchPageProps = PlatformStackScreenProps<
     SettingsNavigatorParamList,
@@ -26,7 +26,12 @@ type AddSubmitterToMatchPageProps = PlatformStackScreenProps<
 
 function AddSubmitterToMatchPage({route}: AddSubmitterToMatchPageProps) {
     const {policyID, ruleID} = route.params;
-    const {backToRoute} = useMerchantRuleRoute(DYNAMIC_ROUTES.RULES_SUBMITTER_TO_MATCH_FROM_EXPENSE.path, policyID, ruleID);
+    const {backToRoute, form, updateDraft} = useRuleConditionDraft(
+        DYNAMIC_ROUTES.RULES_SUBMITTER_TO_MATCH_FROM_EXPENSE.path,
+        policyID,
+        ruleID,
+        'flagCondition' in route.params ? route.params.flagCondition : undefined,
+    );
     const {translate, formatPhoneNumber} = useLocalize();
     const policy = usePolicy(policyID);
     const members = useWorkspaceMembers(policy);
@@ -45,16 +50,17 @@ function AddSubmitterToMatchPage({route}: AddSubmitterToMatchPageProps) {
 
     return (
         <RuleConditionMultiSelectPage
-            field="submittersToMatch"
+            draftValues={form?.submittersToMatch}
+            isSingleSelection={!!form && 'dailyBudgetToMatch' in form && !!form.dailyBudgetToMatch}
             title={translate('common.submitter')}
             testID="AddSubmitterToMatchPage"
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SUBMITTER_TO_MATCH_SAVE}
             backToRoute={backToRoute}
             items={submitterItems}
-            onSave={(submittersToMatch) => updateDraftMerchantRule({submittersToMatch})}
+            onSave={(submittersToMatch) => updateDraft({submittersToMatch})}
             getFallbackText={(accountID) => submitters[accountID] ?? translate('common.hidden')}
         />
     );
 }
 
-export default AddSubmitterToMatchPage;
+export default withFlagRuleConditionAccess(AddSubmitterToMatchPage);

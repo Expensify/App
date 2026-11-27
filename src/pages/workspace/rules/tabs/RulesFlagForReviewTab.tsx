@@ -5,10 +5,12 @@ import type {TableEmptyStateProps} from '@components/Table/TableEmptyStates/Tabl
 import WorkspaceFlagForReviewTable from '@components/Tables/WorkspaceFlagForReviewTable';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useExpenseDefaultConditionNames from '@hooks/useExpenseDefaultConditionNames';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 import useRulesPrefetch from '@hooks/useRulesPrefetch';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -47,16 +49,21 @@ function RulesFlagForReviewTab({policyID, canWriteRules, selectedKeys, onSelecti
     const icons = useMemoizedLazyExpensifyIcons(['EmptyStateSpyPigeon']);
     const StyleUtils = useStyleUtils();
     const {convertToDisplayString} = useCurrencyListActions();
+    const policy = usePolicy(policyID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const {areRulesLoading, haveRulesLoaded} = useRulesPrefetch();
     const [flagRules] = useOnyx(ONYXKEYS.COLLECTION.RULE, {selector: createFlagForReviewRulesSelector(policyID)});
+    const hasCardConditions = Object.values(flagRules ?? {}).some(({matchingConditions}) => matchingConditions.some(({left}) => left === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID));
+    const conditionNames = useExpenseDefaultConditionNames(policy, hasCardConditions);
 
     const flagForReviewTableData = getFlagForReviewTableData({
         policyID,
+        policy,
         policyCategories,
         flagRules,
         translate,
         convertToDisplayString,
+        conditionNames,
         isOffline,
         onNavigate: Navigation.navigate,
     });
