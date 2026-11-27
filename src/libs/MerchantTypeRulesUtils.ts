@@ -587,4 +587,5 @@ export {
     saveMerchantTypeRule,
 };
 
+export {getOtherConditionText};
 export type {ExpenseDefaultConditionNames};

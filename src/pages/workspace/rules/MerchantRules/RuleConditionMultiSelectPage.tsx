@@ -6,11 +6,11 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useSearchResults from '@hooks/useSearchResults';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -23,7 +23,6 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
@@ -31,9 +30,6 @@ import React from 'react';
 import {View} from 'react-native';
 
 import useRuleConditionSelection from './useRuleConditionSelection';
-
-/** The fields of a rule that match on a list of values, which are the ones this page can pick for */
-type RuleConditionListField = 'cardsToMatch' | 'currenciesToMatch' | 'merchantTypesToMatch' | 'submittersToMatch' | 'taxRatesToMatch';
 
 type RuleConditionItem = {
     /** What the rule stores, such as a card ID or a currency code */
@@ -53,8 +49,11 @@ type RuleConditionListItem = ListItem & {
 };
 
 type RuleConditionMultiSelectPageProps = {
-    /** The form field the picked values are read from */
-    field: RuleConditionListField;
+    draftValues?: string[];
+
+    /** Use radio buttons and an explicit Any option. */
+    isSingleSelection?: boolean;
+    shouldAlwaysShowSearch?: boolean;
 
     title: string;
 
@@ -80,21 +79,42 @@ type RuleConditionMultiSelectPageProps = {
     isLoading?: boolean;
 };
 
+const ANY_RULE_CONDITION = 'any';
+
 /**
  * The picker every list condition of a rule opens, which only differs by the values it lists and where it saves.
  *
  * A rule keeps matching on a value the workspace has since dropped. Listing it is the only way to see what the
  * rule matches on and the only way to take it off, so such a value is added back rather than left out.
  */
-function RuleConditionMultiSelectPage({field, title, testID, sentryLabel, backToRoute, items, onSave, getFallbackText, isLoading}: RuleConditionMultiSelectPageProps) {
+function RuleConditionMultiSelectPage({
+    draftValues,
+    isSingleSelection,
+    shouldAlwaysShowSearch,
+    title,
+    testID,
+    sentryLabel,
+    backToRoute,
+    items,
+    onSave,
+    getFallbackText,
+    isLoading,
+}: RuleConditionMultiSelectPageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate, localeCompare} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
-    const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
-
-    const {selectedValues, initialSelectedValues, toggleValue, toggleAll} = useRuleConditionSelection(form?.[field] ?? []);
+    let initialValues = draftValues ?? [];
+    if (isSingleSelection) {
+        if (initialValues.length > 1) {
+            // Picking a budget must never silently keep one of several previous matches.
+            initialValues = [];
+        } else if (initialValues.length === 0) {
+            initialValues = [ANY_RULE_CONDITION];
+        }
+    }
+    const {selectedValues, initialSelectedValues, toggleValue, toggleAll} = useRuleConditionSelection(initialValues, isSingleSelection);
 
     const listItems: RuleConditionListItem[] = items.map(({value, text, alternateText, searchableText}) => ({
         keyForList: value,
@@ -106,8 +126,12 @@ function RuleConditionMultiSelectPage({field, title, testID, sentryLabel, backTo
     }));
 
     const listedValues = new Set(listItems.map((item) => item.value));
+    if (isSingleSelection) {
+        listedValues.add(ANY_RULE_CONDITION);
+    }
+    const hasUnavailableSelection = isSingleSelection && selectedValues.some((value) => !listedValues.has(value) && !draftValues?.includes(value));
     for (const value of selectedValues) {
-        if (listedValues.has(value)) {
+        if (listedValues.has(value) || (isSingleSelection && !draftValues?.includes(value))) {
             continue;
         }
         listItems.push({keyForList: value, text: getFallbackText ? getFallbackText(value) : value, value, isSelected: true});
@@ -124,6 +148,10 @@ function RuleConditionMultiSelectPage({field, title, testID, sentryLabel, backTo
     );
 
     const [inputValue, setInputValue, filteredItems] = useSearchResults(sortedItems, filterItem);
+    const anyItem = {keyForList: ANY_RULE_CONDITION, value: ANY_RULE_CONDITION, text: translate('common.any'), isSelected: selectedValues.includes(ANY_RULE_CONDITION)};
+    const selectableItems = isSingleSelection ? [anyItem, ...filteredItems] : filteredItems;
+    const isLoadingOptions = !!isLoading && listItems.length === 0;
+    const isSaveDisabled = isLoadingOptions || (isSingleSelection && (selectedValues.length !== 1 || hasUnavailableSelection));
 
     const toggleItem = (item: RuleConditionListItem) => toggleValue(item.value);
     const toggleSelectAll = () => toggleAll(filteredItems.map((item) => item.value));
@@ -132,7 +160,10 @@ function RuleConditionMultiSelectPage({field, title, testID, sentryLabel, backTo
 
     // Clearing every value leaves the rule matching on whatever its other conditions are.
     const handleSave = () => {
-        onSave(selectedValues);
+        if (isSaveDisabled) {
+            return;
+        }
+        onSave(isSingleSelection ? selectedValues.filter((value) => value !== ANY_RULE_CONDITION) : selectedValues);
         Navigation.goBack(backToRoute, {shouldSkipFocusRestore: true});
     };
 
@@ -148,17 +179,18 @@ function RuleConditionMultiSelectPage({field, title, testID, sentryLabel, backTo
                 onBackButtonPress={goBackToRule}
             />
             <SelectionList
-                canSelectMultiple
+                canSelectMultiple={!isSingleSelection}
+                shouldSingleExecuteRowSelect={isSingleSelection}
                 shouldUpdateFocusedIndex
-                ListItem={MultiSelectListItem}
-                data={filteredItems}
+                ListItem={isSingleSelection ? SingleSelectListItem : MultiSelectListItem}
+                data={isLoadingOptions ? [] : selectableItems}
                 selectedItems={selectedValues}
                 shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                 onSelectRow={toggleItem}
                 onSelectionButtonPress={toggleItem}
-                onSelectAll={filteredItems.length > 0 ? toggleSelectAll : undefined}
+                onSelectAll={!isSingleSelection && filteredItems.length > 0 ? toggleSelectAll : undefined}
                 textInputOptions={
-                    sortedItems.length >= CONST.STANDARD_LIST_ITEM_LIMIT
+                    shouldAlwaysShowSearch || sortedItems.length >= CONST.STANDARD_LIST_ITEM_LIMIT
                         ? {
                               value: inputValue,
                               label: translate('common.search'),
@@ -193,7 +225,9 @@ function RuleConditionMultiSelectPage({field, title, testID, sentryLabel, backTo
                     <FormAlertWithSubmitButton
                         sentryLabel={sentryLabel}
                         buttonText={translate('common.save')}
-                        isAlertVisible={false}
+                        isAlertVisible={hasUnavailableSelection}
+                        message={hasUnavailableSelection ? translate('common.error.fieldRequired') : undefined}
+                        isDisabled={isSaveDisabled}
                         onSubmit={handleSave}
                         enabledWhenOffline
                         containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}

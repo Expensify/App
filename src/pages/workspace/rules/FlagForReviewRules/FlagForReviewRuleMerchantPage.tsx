@@ -17,7 +17,7 @@ import useRulesPrefetch from '@hooks/useRulesPrefetch';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setDraftFlagForReviewRule} from '@libs/actions/User';
-import {getFlagForReviewConditions, getFlagForReviewDraftKey, isFlagMerchantMatchType} from '@libs/FlagForReviewRulesUtils';
+import {getFlagForReviewConditions, getFlagForReviewDraftKey, isFlagMerchantMatchType, usesLegacyFlagLimitEditor} from '@libs/FlagForReviewRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -48,9 +48,10 @@ function FlagForReviewRuleMerchantPage({route}: FlagForReviewRuleMerchantPagePro
     const draftKey = getFlagForReviewDraftKey(policyID, ruleID);
     const draft = storedDraft?.draftKey === draftKey ? storedDraft : undefined;
     const [rule] = useOnyx(`${ONYXKEYS.COLLECTION.RULE}${ruleID}`);
+    const [categories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const {areRulesLoading} = useRulesPrefetch(isEditing);
     const conditions = rule?.scope === CONST.RULES.SCOPE.POLICY && rule.scopeID === policyID ? getFlagForReviewConditions(rule) : undefined;
-    const isDailyLimit = (draft?.expenseLimitType ?? conditions?.limit?.expenseLimitType) === CONST.POLICY.EXPENSE_LIMIT_TYPES.DAILY;
+    const usesCategoryLimitEditor = usesLegacyFlagLimitEditor(ruleID, categories, conditions);
     const [matchType, setMatchType] = useState<string>();
     const selectedMatchType = matchType ?? draft?.matchType ?? conditions?.merchant?.matchType ?? CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS;
     const matchTypes = MATCH_TYPE_OPTIONS.matchType.map(({value, translationKey}) => ({value, label: translate(translationKey)}));
@@ -74,7 +75,7 @@ function FlagForReviewRuleMerchantPage({route}: FlagForReviewRuleMerchantPagePro
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyFeature={CONST.POLICY.POLICY_FEATURE.RULES}
-            shouldBeBlocked={!canWriteRules || isDailyLimit || (isEditing && (!conditions || (!!rule?.pendingAction && !rule.errors)))}
+            shouldBeBlocked={!canWriteRules || usesCategoryLimitEditor || (isEditing && (!conditions || (!!rule?.pendingAction && !rule.errors)))}
         >
             <ScreenWrapper
                 testID="FlagForReviewRuleMerchantPage"

@@ -1,3 +1,5 @@
+import type {EditableConditions} from '@libs/ExpenseDefaultRuleUtils';
+
 import type CONST from '@src/CONST';
 import type {PolicyCategoryExpenseLimitType} from '@src/types/onyx/PolicyCategory';
 import type {FlagRuleEnforcement} from '@src/types/onyx/Rule';
@@ -20,6 +22,8 @@ const INPUT_IDS = {
 type InputID = ValueOf<typeof INPUT_IDS>;
 type FlagMerchantMatchType = typeof CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO | typeof CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS;
 
+type FlagRuleMatchingConditions = Omit<EditableConditions, 'merchantToMatch' | 'matchType' | 'categoriesToMatch' | 'amountMatchType' | 'reimbursableToMatch' | 'billableToMatch'>;
+
 type FlagForReviewRuleForm = Form<
     InputID,
     {
@@ -32,7 +36,15 @@ type FlagForReviewRuleForm = Form<
         [INPUT_IDS.CURRENCY]: string;
         [INPUT_IDS.DRAFT_KEY]: string;
     }
->;
+> &
+    FlagRuleMatchingConditions & {
+        /** An empty value clears a saved condition when the picker is opened from a direct link. */
+        reimbursableToMatch?: boolean | '';
+        billableToMatch?: boolean | '';
+        dailyBudgetToMatch?: string;
+        /** One-based dimension of the exact tag selected for a daily budget. */
+        budgetTagLevel?: number;
+    };
 
 export type {FlagForReviewRuleForm, FlagMerchantMatchType};
 export default INPUT_IDS;

@@ -28,6 +28,9 @@ type MatchTypePageProps = {
     /** The form field the picked comparison is stored under, which also picks the comparisons on offer */
     field: MatchTypeField;
 
+    formID?: typeof ONYXKEYS.FORMS.MERCHANT_RULE_FORM | typeof ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_FORM;
+    selectedMatchType?: MatchTypeOperator;
+
     /** Where saving or backing out returns to, which is the field's own page rather than the rule page */
     backToRoute: Route;
 
@@ -37,13 +40,15 @@ type MatchTypePageProps = {
 };
 
 /** The comparison picker every match type row opens, which only differs by the field it is picking for. */
-function MatchTypePage({field, backToRoute, testID, onSelect}: MatchTypePageProps) {
+function MatchTypePage({field, formID = ONYXKEYS.FORMS.MERCHANT_RULE_FORM, selectedMatchType, backToRoute, testID, onSelect}: MatchTypePageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
+    const [form] = useOnyx(formID);
 
-    const selectedValue = form?.[field] ?? getDefaultMatchType(field);
+    const amountMatchType = form && 'amountMatchType' in form ? form.amountMatchType : undefined;
+    const storedValue = field === 'amountMatchType' ? amountMatchType : form?.[field];
+    const selectedValue = selectedMatchType ?? storedValue ?? getDefaultMatchType(field);
 
     const goBack = () => {
         Navigation.goBack(backToRoute);

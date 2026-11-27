@@ -22,12 +22,20 @@ type RuleConditionSelection = {
  * `toggleAll` takes the values rather than reading them, because the pickers apply it to what the search has
  * left visible rather than to the whole list.
  */
-function useRuleConditionSelection(draftValues: string[]): RuleConditionSelection {
+function useRuleConditionSelection(draftValues: string[], isSingleSelection = false): RuleConditionSelection {
     const [selectedValues, setSelectedValues] = useState<string[]>(draftValues);
     const initialSelectedValues = useInitialSelection(draftValues, {resetOnFocus: true});
 
     const toggleValue = (value: string) => {
-        setSelectedValues((previous) => (previous.includes(value) ? previous.filter((selected) => selected !== value) : [...previous, value]));
+        setSelectedValues((previous) => {
+            if (isSingleSelection) {
+                return [value];
+            }
+            if (previous.includes(value)) {
+                return previous.filter((selected) => selected !== value);
+            }
+            return [...previous, value];
+        });
     };
 
     const toggleAll = (visibleValues: string[]) => {

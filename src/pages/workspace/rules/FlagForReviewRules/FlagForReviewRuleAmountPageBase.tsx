@@ -28,6 +28,7 @@ import {
     getFlagForReviewDraftKey,
     getFlagForReviewRuleAmountError,
     qualifyCategoryFlagRulePath,
+    usesLegacyFlagLimitEditor,
 } from '@libs/FlagForReviewRulesUtils';
 import stripDynamicRouteSuffixFromPath from '@libs/Navigation/helpers/dynamicRoutesUtils/stripDynamicRouteSuffixFromPath';
 import Navigation from '@libs/Navigation/Navigation';
@@ -70,9 +71,10 @@ function FlagForReviewRuleAmountPageBase({policyID, categoryName, ruleID, isCate
     const resolvedRuleID = ruleID ?? getCategoryFlagLimit(category, categoryFlagLimits)?.ruleID;
     const [rule] = useOnyx(`${ONYXKEYS.COLLECTION.RULE}${resolvedRuleID}`);
     const conditions = rule?.scope === CONST.RULES.SCOPE.POLICY && rule.scopeID === policyID ? getFlagForReviewConditions(rule) : undefined;
+    const usesCategoryLimitEditor = isCategoryLocked || !!categoryName || usesLegacyFlagLimitEditor(resolvedRuleID, categories, conditions);
     const draftKey = getFlagForReviewDraftKey(policyID, resolvedRuleID, categoryName);
     const cachedDraft = storedDraft?.draftKey === draftKey ? storedDraft : undefined;
-    const draft = cachedDraft ?? (conditions ? getFlagForReviewDraft(conditions, getCurrencyDecimals) : undefined);
+    const draft = cachedDraft ?? (conditions ? getFlagForReviewDraft(conditions, getCurrencyDecimals, true) : undefined);
     const currency = draft?.currency ?? policy?.outputCurrency ?? CONST.CURRENCY.USD;
     const defaultValue = draft?.maxExpenseAmount ?? '';
     const isMerchantRule = !!draft?.merchantToMatch?.trim();
@@ -148,7 +150,7 @@ function FlagForReviewRuleAmountPageBase({policyID, categoryName, ruleID, isCate
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyFeature={CONST.POLICY.POLICY_FEATURE.RULES}
-            shouldBeBlocked={!canWriteRules || (!!resolvedRuleID && (!conditions || (!!rule?.pendingAction && !rule.errors)))}
+            shouldBeBlocked={!canWriteRules || !usesCategoryLimitEditor || (!!resolvedRuleID && (!conditions || (!!rule?.pendingAction && !rule.errors)))}
         >
             <ScreenWrapper
                 shouldEnableMaxHeight

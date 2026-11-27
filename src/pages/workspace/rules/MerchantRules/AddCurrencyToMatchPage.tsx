@@ -1,7 +1,6 @@
 import {useCurrencyListActions, useCurrencyListState} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 
-import {updateDraftMerchantRule} from '@libs/actions/User';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getCurrencyOptions} from '@libs/SearchUIUtils';
@@ -15,7 +14,8 @@ import React from 'react';
 import type {RuleConditionItem} from './RuleConditionMultiSelectPage';
 
 import RuleConditionMultiSelectPage from './RuleConditionMultiSelectPage';
-import useMerchantRuleRoute from './useMerchantRuleRoute';
+import useRuleConditionDraft from './useRuleConditionDraft';
+import withFlagRuleConditionAccess from './withFlagRuleConditionAccess';
 
 type AddCurrencyToMatchPageProps = PlatformStackScreenProps<
     SettingsNavigatorParamList,
@@ -24,7 +24,12 @@ type AddCurrencyToMatchPageProps = PlatformStackScreenProps<
 
 function AddCurrencyToMatchPage({route}: AddCurrencyToMatchPageProps) {
     const {policyID, ruleID} = route.params;
-    const {backToRoute} = useMerchantRuleRoute(DYNAMIC_ROUTES.RULES_CURRENCY_TO_MATCH_FROM_EXPENSE.path, policyID, ruleID);
+    const {backToRoute, form, updateDraft} = useRuleConditionDraft(
+        DYNAMIC_ROUTES.RULES_CURRENCY_TO_MATCH_FROM_EXPENSE.path,
+        policyID,
+        ruleID,
+        'flagCondition' in route.params ? route.params.flagCondition : undefined,
+    );
     const {translate} = useLocalize();
     const {currencyList} = useCurrencyListState();
     const {getCurrencySymbol} = useCurrencyListActions();
@@ -39,15 +44,15 @@ function AddCurrencyToMatchPage({route}: AddCurrencyToMatchPageProps) {
 
     return (
         <RuleConditionMultiSelectPage
-            field="currenciesToMatch"
+            draftValues={form?.currenciesToMatch}
             title={translate('common.currency')}
             testID="AddCurrencyToMatchPage"
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_CURRENCY_TO_MATCH_SAVE}
             backToRoute={backToRoute}
             items={currencyItems}
-            onSave={(currenciesToMatch) => updateDraftMerchantRule({currenciesToMatch})}
+            onSave={(currenciesToMatch) => updateDraft({currenciesToMatch})}
         />
     );
 }
 
-export default AddCurrencyToMatchPage;
+export default withFlagRuleConditionAccess(AddCurrencyToMatchPage);

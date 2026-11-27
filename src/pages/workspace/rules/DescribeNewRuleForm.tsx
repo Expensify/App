@@ -55,6 +55,7 @@ type DescribeNewRuleFormProps = {
 
 type SeedDraftContext = {
     policyID: string;
+    policyCurrency: string;
 
     /** The cards that a new spend rule can cover, or undefined while the card settings load */
     eligibleCardIDs: string[] | undefined;
@@ -79,14 +80,14 @@ function withoutBetaConditions(values: GeneratedRuleValues): GeneratedRuleValues
 }
 
 /** Seeds the draft of the editor for the generated rule type and opens that editor */
-function seedDraftAndNavigate(values: GeneratedRuleValues, ruleType: GeneratedRuleType, {policyID, eligibleCardIDs, canUseBetaConditions}: SeedDraftContext) {
+function seedDraftAndNavigate(values: GeneratedRuleValues, ruleType: GeneratedRuleType, {policyID, policyCurrency, eligibleCardIDs, canUseBetaConditions}: SeedDraftContext) {
     switch (ruleType) {
         case CONST.GENERATED_RULE.RULE_TYPE.REQUIRE_FIELDS:
             setDraftRequireFieldsRule(getRequireFieldsDraftFromGeneratedValues(values).draft);
             Navigation.navigate(ROUTES.RULES_REQUIRE_FIELDS_RULE_NEW.getRoute(policyID));
             break;
         case CONST.GENERATED_RULE.RULE_TYPE.FLAG_FOR_REVIEW:
-            setDraftFlagForReviewRule(getDescribedFlagForReviewDraft(policyID, values));
+            setDraftFlagForReviewRule(getDescribedFlagForReviewDraft(policyID, policyCurrency, values));
             Navigation.navigate(ROUTES.RULES_FLAG_FOR_REVIEW_RULE_NEW.getRoute(policyID));
             break;
         case CONST.GENERATED_RULE.RULE_TYPE.RESTRICT_CARD_SPEND:
@@ -168,7 +169,12 @@ function DescribeNewRuleForm({policyID, children}: DescribeNewRuleFormProps) {
             shouldUseScrollView
             submitFlexEnabled
             onRuleGenerated={(values, generatedRuleType) =>
-                seedDraftAndNavigate(values, generatedRuleType, {policyID, eligibleCardIDs, canUseBetaConditions: isBetaEnabled(CONST.BETAS.EXPENSE_DEFAULT_CONDITIONS)})
+                seedDraftAndNavigate(values, generatedRuleType, {
+                    policyID,
+                    policyCurrency: policy?.outputCurrency ?? CONST.CURRENCY.USD,
+                    eligibleCardIDs,
+                    canUseBetaConditions: isBetaEnabled(CONST.BETAS.EXPENSE_DEFAULT_CONDITIONS),
+                })
             }
             isCategoryEligible={isCategoryEligible}
             onAgentRuleFallback={offerAgentRule}
