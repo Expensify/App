@@ -20,9 +20,6 @@ type UseOdometerReadingsStateParams = {
     /** The currently selected distance-request-type tab; used to detect "switched away from odometer". */
     selectedTab: string | undefined;
 
-    /** True while the selected-tab Onyx key is still loading - suppresses the tab-reset effect. */
-    isLoadingSelectedTab: boolean;
-
     /** True once `useRestartOnOdometerImagesFailure` has finished verifying any blob URIs in the transaction (gates the initial-refs snapshot). */
     hasVerifiedBlobs: boolean;
 
@@ -100,7 +97,6 @@ function useOdometerReadingsState({
     currentTransaction,
     isEditing,
     selectedTab,
-    isLoadingSelectedTab,
     hasVerifiedBlobs,
     odometerDraft,
     userHasUnsavedTypingRef,
@@ -138,10 +134,6 @@ function useOdometerReadingsState({
 
     // Reset component state when switching away from the odometer tab
     useEffect(() => {
-        if (isLoadingSelectedTab) {
-            return;
-        }
-
         const prevSelectedTab = prevSelectedTabRef.current;
         if (prevSelectedTab === CONST.TAB_REQUEST.DISTANCE_ODOMETER && selectedTab !== CONST.TAB_REQUEST.DISTANCE_ODOMETER) {
             resetOdometerLocalState();
@@ -151,7 +143,7 @@ function useOdometerReadingsState({
         }
 
         prevSelectedTabRef.current = selectedTab;
-    }, [selectedTab, isLoadingSelectedTab]);
+    }, [selectedTab]);
 
     // Snapshot the baseline refs once on mount for the discard-changes diff; never update them after.
     useEffect(() => {

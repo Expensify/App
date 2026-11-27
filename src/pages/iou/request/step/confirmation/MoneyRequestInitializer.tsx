@@ -9,10 +9,9 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {useEffect} from 'react';
+import {useEffect, useRef} from 'react';
 
 type MoneyRequestInitializerProps = {
-    isLoadingTransaction: boolean;
     transaction: OnyxEntry<Transaction>;
     iouType: IOUType;
     reportID: string;
@@ -21,12 +20,18 @@ type MoneyRequestInitializerProps = {
 
 /**
  * Side-effect-only component that initializes a money request (calls startMoneyRequest)
- * when the transaction loads for the first time and has no participants yet.
+ * on mount when the transaction has no participants yet.
  */
-function MoneyRequestInitializer({isLoadingTransaction, transaction, iouType, reportID, draftTransactionIDs}: MoneyRequestInitializerProps) {
+function MoneyRequestInitializer({transaction, iouType, reportID, draftTransactionIDs}: MoneyRequestInitializerProps) {
+    const hasInitializedRef = useRef(false);
+
     useEffect(() => {
-        // Exit early if the transaction is still loading
-        if (!!isLoadingTransaction || (transaction?.transactionID && (!transaction?.isFromGlobalCreate || !isEmptyObject(transaction?.participants)))) {
+        if (hasInitializedRef.current) {
+            return;
+        }
+        hasInitializedRef.current = true;
+
+        if (transaction?.transactionID && (!transaction?.isFromGlobalCreate || !isEmptyObject(transaction?.participants))) {
             return;
         }
 
@@ -38,7 +43,7 @@ function MoneyRequestInitializer({isLoadingTransaction, transaction, iouType, re
             draftTransactionIDs,
         );
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run again
-    }, [isLoadingTransaction]);
+    }, []);
 
     return null;
 }

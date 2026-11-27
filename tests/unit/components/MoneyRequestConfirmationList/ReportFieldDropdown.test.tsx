@@ -45,7 +45,6 @@ jest.mock('@hooks/usePolicyForMovingExpenses', () => () => ({
     policyForMovingExpenses: mockPolicyForMovingExpenses,
     shouldSelectPolicy: mockShouldSelectPolicy,
     shouldNavigateToUpgradePath: false,
-    arePoliciesLoaded: true,
 }));
 let mockIsCreateReportRestricted = false;
 jest.mock('@pages/iou/request/step/IOURequestStepReport/hooks/useCreateReportRestrictionCheck', () => () => () => mockIsCreateReportRestricted);

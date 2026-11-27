@@ -13,7 +13,6 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import {lastExpensesSearchQuerySelector} from '@src/selectors/SearchFilters';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {CommonActions} from '@react-navigation/native';
 import {useEffect} from 'react';
@@ -32,7 +31,7 @@ function TabPressListeners({state, descriptors}: Pick<NativeTabLayoutProps, 'sta
     const [lastExpensesSearchQuery] = useOnyx(ONYXKEYS.SEARCH_FILTERS, {selector: lastExpensesSearchQuerySelector});
     const hasSpendBeenShown = useHasTabBeenShown(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
     const navigateToWorkspaces = useRestoreWorkspacesTabOnNavigate();
-    const [accessibleDashboards, accessibleDashboardsMetadata] = useAccessibleDashboards();
+    const [accessibleDashboards] = useAccessibleDashboards();
     const getTabRoute = (routeName: string) => state.routes.find((tabRoute) => tabRoute.name === routeName);
     const spendNavigatorState = getTabRoute(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR)?.state;
     const spendNavigatorKey = spendNavigatorState?.key;
@@ -47,7 +46,7 @@ function TabPressListeners({state, descriptors}: Pick<NativeTabLayoutProps, 'sta
     const insightsRouteKey = insightsRoute?.key;
     const insightsDashboardID = insightsRoute?.params && 'dashboardID' in insightsRoute.params ? insightsRoute.params.dashboardID : undefined;
     const isInsightsFocused = state.routes.at(state.index)?.name === SCREENS.INSIGHTS;
-    const isInsightsDashboardAccessible = isLoadingOnyxValue(accessibleDashboardsMetadata) || !insightsDashboardID || !!accessibleDashboards?.some((id) => id === insightsDashboardID);
+    const isInsightsDashboardAccessible = !insightsDashboardID || !!accessibleDashboards?.some((id) => id === insightsDashboardID);
 
     useEffect(() => {
         if (hasSpendBeenShown || !spendNavigatorKey || !spendRootRouteKey || spendRootQuery === storedQuery) {

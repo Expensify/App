@@ -2,7 +2,6 @@ import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import TimeModalPicker from '@components/TimeModalPicker';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -45,8 +44,6 @@ type DynamicIOURequestStepTimeProps = WithWritableReportOrNotFoundProps<typeof S
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     transaction: OnyxEntry<OnyxTypes.Transaction>;
 
-    isLoadingTransaction?: boolean;
-
     /** The report linked to the transaction */
     report: OnyxEntry<Report>;
 };
@@ -57,7 +54,6 @@ function DynamicIOURequestStepTime({
         name,
     },
     transaction,
-    isLoadingTransaction,
     report,
 }: DynamicIOURequestStepTimeProps) {
     const styles = useThemeStyles();
@@ -147,10 +143,6 @@ function DynamicIOURequestStepTime({
         [CONST.IOU.TYPE.INVOICE]: translate('workspace.invoices.sendInvoice'),
         [CONST.IOU.TYPE.CREATE]: translate('iou.createExpense'),
     };
-
-    if (isLoadingTransaction) {
-        return <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />;
-    }
 
     return (
         <StepScreenWrapper

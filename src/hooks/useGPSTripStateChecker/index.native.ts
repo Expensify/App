@@ -47,9 +47,8 @@ const CONTINUE_TRIP_MODAL_ID = 'gpsContinueTrip';
 function useGPSTripStateChecker() {
     const {translate} = useLocalize();
     const [showContinueTripModal, setShowContinueTripModal] = useState(false);
-    const [gpsDraftDetails, gpsDraftDetailsMetadata] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
-    const [currentAccountID, currentAccountIDResult] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
-    const isSessionLoaded = currentAccountIDResult.status === 'loaded';
+    const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
+    const [currentAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const hasHandledAppRestart = useRef(false);
     const {isOffline} = useNetwork();
     const {showConfirmModal, closeModalByID} = useConfirmModal();
@@ -62,7 +61,7 @@ function useGPSTripStateChecker() {
     useUpdateGpsNotification();
 
     // A trip started before this shipped records no accountID, so only a different one means another user.
-    const isTripFromDifferentUser = isSessionLoaded && !!gpsDraftDetails?.accountID && gpsDraftDetails.accountID !== currentAccountID;
+    const isTripFromDifferentUser = !!gpsDraftDetails?.accountID && gpsDraftDetails.accountID !== currentAccountID;
 
     // The prompt used to be rendered inline with this as its `isVisible`, so it hid itself again the moment any of
     // these went false. On the global modal stack that no longer happens for free, so the effect below both shows
@@ -120,9 +119,7 @@ function useGPSTripStateChecker() {
     }, [isTripFromDifferentUser]);
 
     useEffect(() => {
-        // Wait for the GPS_DRAFT_DETAILS subscription to hydrate before running the restart check once, so we don't
-        // misread the not-yet-loaded state as "no trip" and wrongly stop an in-progress trip's background task.
-        if (gpsDraftDetailsMetadata.status !== 'loaded' || hasHandledAppRestart.current) {
+        if (hasHandledAppRestart.current) {
             return;
         }
         hasHandledAppRestart.current = true;
@@ -149,7 +146,7 @@ function useGPSTripStateChecker() {
         }
 
         handleGpsTripInProgressOnAppRestart();
-    }, [gpsDraftDetails, gpsDraftDetailsMetadata.status]);
+    }, [gpsDraftDetails]);
 
     useEffect(() => {
         return () => {

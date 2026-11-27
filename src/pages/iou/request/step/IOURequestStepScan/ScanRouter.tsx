@@ -14,7 +14,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import type {Policy, Report} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -131,10 +130,10 @@ ScanNewReceipt.displayName = 'ScanNewReceipt';
 function ScanLocationPrompt({gpsRequired}: {gpsRequired: boolean}) {
     // Hidden tabs stay mounted and remount on tab switches, so without this the prompt would open over other tabs
     const isFocused = useIsFocused();
-    const [shouldStartLocationPermissionFlow, shouldStartLocationPermissionFlowResult] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, {
+    const [shouldStartLocationPermissionFlow] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, {
         selector: shouldStartLocationPermissionFlowSelector,
     });
-    const isPromptCoolingDown = !isLoadingOnyxValue(shouldStartLocationPermissionFlowResult) && !shouldStartLocationPermissionFlow;
+    const isPromptCoolingDown = !shouldStartLocationPermissionFlow;
 
     // The prompt flow skips users inside the prompt window, so onGrant never caches a position for someone who granted it in OS settings
     useEffect(() => {

@@ -33,12 +33,6 @@ type UseResetIOUTypeParams = {
     /** The current draft transaction */
     transaction: OnyxEntry<Transaction>;
 
-    /** Whether the transaction data is still loading */
-    isLoadingTransaction?: boolean;
-
-    /** Whether the selected tab data is still loading */
-    isLoadingSelectedTab?: boolean;
-
     /** The current transaction request type derived from tab/transaction state */
     transactionRequestType: IOURequestType | undefined;
 
@@ -63,8 +57,6 @@ function useResetIOUType({
     reportID,
     report,
     transaction,
-    isLoadingTransaction = false,
-    isLoadingSelectedTab = false,
     transactionRequestType,
     iouType,
     policy,
@@ -82,8 +74,6 @@ function useResetIOUType({
     const hydrateOdometerOnLanding = useOdometerDraftHydrator({
         transaction,
         transactionRequestType,
-        isLoadingTransaction,
-        isLoadingSelectedTab,
     });
 
     // Derive participants from the current report (or the global-create fallback) so the freshly-rebuilt transaction
@@ -164,14 +154,7 @@ function useResetIOUType({
         tabSelectedTypeRef.current = null;
 
         // The test transaction can change the reportID of the transaction on the flow so we should prevent the reportID from being reverted again.
-        if (
-            transaction?.reportID === reportID ||
-            isLoadingTransaction ||
-            isLoadingSelectedTab ||
-            !transactionRequestType ||
-            prevTransactionReportID !== transaction?.reportID ||
-            !personalPolicyID
-        ) {
+        if (transaction?.reportID === reportID || !transactionRequestType || prevTransactionReportID !== transaction?.reportID || !personalPolicyID) {
             return;
         }
         resetIOUTypeIfChanged(transactionRequestType);

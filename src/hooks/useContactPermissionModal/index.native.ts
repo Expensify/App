@@ -18,7 +18,7 @@ import {RESULTS} from 'react-native-permissions';
 import type UseContactPermissionModalParams from './types';
 
 function useContactPermissionModal({onDeny, onGrant, onFocusTextInput, isEnabled = true}: UseContactPermissionModalParams) {
-    const [hasDeniedContactImportPrompt, hasDeniedContactImportPromptMetadata] = useOnyx(ONYXKEYS.HAS_DENIED_CONTACT_IMPORT_PROMPT);
+    const [hasDeniedContactImportPrompt] = useOnyx(ONYXKEYS.HAS_DENIED_CONTACT_IMPORT_PROMPT);
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -92,17 +92,13 @@ function useContactPermissionModal({onDeny, onGrant, onFocusTextInput, isEnabled
     });
 
     useEffect(() => {
-        if (hasDeniedContactImportPromptMetadata.status === 'loading') {
-            return;
-        }
-
         isMountedRef.current = true;
         runContactPermissionFlow();
 
         return () => {
             isMountedRef.current = false;
         };
-    }, [hasDeniedContactImportPrompt, hasDeniedContactImportPromptMetadata.status]);
+    }, [hasDeniedContactImportPrompt]);
 }
 
 export default useContactPermissionModal;

@@ -15,7 +15,6 @@ import {findSelfDMReportID, generateReportID} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {useFocusEffect} from '@react-navigation/native';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
@@ -33,14 +32,13 @@ function TrackExpensePage() {
     const isUnmounted = useRef(false);
     const {isOffline} = useNetwork();
     const shouldSuppressPromotionalUI = useShouldSuppressPromotionalUI();
-    const [hasSeenTrackTraining, hasSeenTrackTrainingResult] = useOnyx(ONYXKEYS.NVP_HAS_SEEN_TRACK_TRAINING);
-    const isLoadingHasSeenTrackTraining = isLoadingOnyxValue(hasSeenTrackTrainingResult);
+    const [hasSeenTrackTraining] = useOnyx(ONYXKEYS.NVP_HAS_SEEN_TRACK_TRAINING);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
 
     useFocusEffect(() => {
         interceptAnonymousUser(() => {
             Navigation.isNavigationReady().then(() => {
-                if (isUnmounted.current || isLoadingHasSeenTrackTraining) {
+                if (isUnmounted.current) {
                     return;
                 }
                 Navigation.goBack();

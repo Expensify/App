@@ -1,8 +1,6 @@
-import ActivityIndicator from '@components/ActivityIndicator';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LoadingIndicator from '@components/LoadingIndicator';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -147,15 +145,7 @@ function useConfirmationParticipants({participants, iouType, privateIsArchivedMa
     );
 }
 
-function IOURequestStepConfirmationContent({
-    report: reportReal,
-    reportDraft,
-    route,
-    transaction: initialTransaction,
-    isLoadingTransaction,
-    shouldHideHeader = false,
-    navigation,
-}: IOURequestStepConfirmationProps) {
+function IOURequestStepConfirmationContent({report: reportReal, reportDraft, route, transaction: initialTransaction, shouldHideHeader = false, navigation}: IOURequestStepConfirmationProps) {
     const {convertToDisplayString} = useCurrencyListActions();
     const params = route.params;
     const {iouType, reportID, transactionID: initialTransactionID, action, backToReport, backTo} = params;
@@ -599,19 +589,6 @@ function IOURequestStepConfirmationContent({
         }
     };
 
-    if (isLoadingTransaction) {
-        // When embedded on IOURequestStartPage (shouldHideHeader), the parent header and tab bar stay visible,
-        // so per UI-1 use ActivityIndicator (the user can still go back). In the standalone RHP route there is
-        // no chrome behind this early return, so keep the fullscreen loader.
-        return shouldHideHeader ? (
-            <View style={[styles.flex1, styles.fullScreenLoading]}>
-                <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
-            </View>
-        ) : (
-            <FullScreenLoadingIndicator onGoBack={navigateBack} />
-        );
-    }
-
     const showReceiptEmptyState = shouldShowReceiptEmptyState(iouType, action, policy, isPerDiemRequest);
 
     const shouldShowSmartScanFields =
@@ -732,7 +709,6 @@ function IOURequestStepConfirmationContent({
              */}
             {!shouldHideHeader && (
                 <MoneyRequestInitializer
-                    isLoadingTransaction={!!isLoadingTransaction}
                     transaction={transaction}
                     iouType={iouType}
                     reportID={reportID}

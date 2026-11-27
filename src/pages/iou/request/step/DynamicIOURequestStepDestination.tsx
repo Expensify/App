@@ -46,7 +46,6 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {ForwardedRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -93,7 +92,7 @@ function DynamicIOURequestStepDestination({
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const reportPolicyID = getIOURequestPolicyID(transaction, report);
     const policyID = reportPolicyID === CONST.POLICY.ID_FAKE ? getPolicyByCustomUnitID(transaction, allPolicies)?.id : reportPolicyID;
-    const [policy, policyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${explicitPolicyID ?? policyID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${explicitPolicyID ?? policyID}`);
     const {accountID} = useCurrentUserPersonalDetails();
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const personalPolicy = usePersonalPolicy();
@@ -115,7 +114,7 @@ function DynamicIOURequestStepDestination({
     const shouldShowNotFoundPage = isEmptyObject(policy);
 
     const {isOffline} = useNetwork();
-    const isLoading = !isOffline && (!customUnit?.rates || isLoadingOnyxValue(policyMetadata));
+    const isLoading = !isOffline && !customUnit?.rates;
     const hasAvailableRates = Object.values(customUnit?.rates ?? {}).some((rate) => getAvailablePerDiemRate(rate) !== undefined);
     const shouldShowEmptyState = !hasAvailableRates && !isOffline && !isLoading;
     const shouldShowOfflineView = !hasAvailableRates && isOffline;

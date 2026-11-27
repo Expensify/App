@@ -162,23 +162,6 @@ describe('useDefaultParticipants', () => {
         expect(isLoading).toBe(true);
     });
 
-    it('should report loading until the billing NVPs the default policy check depends on resolve', async () => {
-        // Starting the merge without awaiting it leaves a pending merge on the key, which `useOnyx` reports as loading.
-        const pendingAmountOwed = Onyx.merge(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 0);
-
-        const {result} = renderDefaultParticipantsHook(CONST.IOU.TYPE.CREATE);
-
-        expect(result.current.isLoading).toBe(true);
-
-        await act(async () => {
-            await pendingAmountOwed;
-            await waitForBatchedUpdates();
-        });
-
-        expect(result.current.isLoading).toBe(false);
-        expect(result.current.participants).toEqual([expect.objectContaining({reportID: workspaceChat.reportID, selected: true})]);
-    });
-
     it('should not seed anything when the expense is not started from global create', async () => {
         const participants = await renderDefaultParticipants(CONST.IOU.TYPE.TRACK, {...createRandomTransaction(1), isFromGlobalCreate: false});
 

@@ -179,7 +179,7 @@ function DynamicIOURequestStepDistance({
     const delegateAccountID = useDelegateAccountID();
     const {nonEmptyWaypointsCount, isWaypointsNullIslandError, duplicateWaypointsError, atLeastTwoDifferentWaypointsError} = useWaypointValidation({waypoints, validatedWaypoints});
     const isCreatingNewRequest = !backTo && !isEditing;
-    const [recentWaypoints, {status: recentWaypointsStatus}] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
+    const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const iouRequestType = getRequestType(currentTransaction);
     const shouldShowMapManualTabs = isEditing || (iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP && !isMapOrGPSRequired(policy));
     const customUnitRateID = getRateID(currentTransaction);
@@ -349,14 +349,14 @@ function DynamicIOURequestStepDistance({
     }
 
     useEffect(() => {
-        if (iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE || isOffline || recentWaypointsStatus === 'loading' || recentWaypoints !== undefined) {
+        if (iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE || isOffline || recentWaypoints !== undefined) {
             return;
         }
 
         // Only load the recent waypoints if they have been read from Onyx as undefined
         // If the account doesn't have recent waypoints they will be returned as an empty array
         openDraftDistanceExpense();
-    }, [iouRequestType, recentWaypointsStatus, recentWaypoints, isOffline]);
+    }, [iouRequestType, recentWaypoints, isOffline]);
 
     useEffect(() => {
         init();

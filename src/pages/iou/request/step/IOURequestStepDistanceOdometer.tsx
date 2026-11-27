@@ -63,7 +63,6 @@ import SCREENS from '@src/SCREENS';
 import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -144,8 +143,7 @@ function IOURequestStepDistanceOdometer({
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const selfDMReport = useSelfDMReport();
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
-    const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.DISTANCE_REQUEST_TYPE}`);
-    const isLoadingSelectedTab = isLoadingOnyxValue(selectedTabResult);
+    const [selectedTab] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.DISTANCE_REQUEST_TYPE}`);
 
     // isEditing: we're changing an already existing odometer expense; isEditingConfirmation: we navigated here by pressing 'Distance' field from the confirmation step during the creation of a new odometer expense to adjust the input before submitting
     const isEditing = action === CONST.IOU.ACTION.EDIT;
@@ -233,7 +231,7 @@ function IOURequestStepDistanceOdometer({
         initialEndImageRef,
         resetOdometerLocalState,
         readingsBaseline,
-    } = useOdometerReadingsState({currentTransaction, isEditing, selectedTab, isLoadingSelectedTab, hasVerifiedBlobs, odometerDraft, userHasUnsavedTypingRef});
+    } = useOdometerReadingsState({currentTransaction, isEditing, selectedTab, hasVerifiedBlobs, odometerDraft, userHasUnsavedTypingRef});
 
     useEffect(() => {
         resetOdometerLocalStateRef.current = resetOdometerLocalState;

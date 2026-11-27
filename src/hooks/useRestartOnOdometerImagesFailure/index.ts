@@ -8,9 +8,7 @@ import {getOdometerImageUri} from '@libs/OdometerUtils';
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 import type {Transaction} from '@src/types/onyx';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -27,8 +25,7 @@ const useRestartOnOdometerImagesFailure = (
     backToReport: string | undefined,
     onBackupHandled?: (args: BackupHandledArgs) => void,
 ): {hasVerifiedBlobs: boolean} => {
-    const [, draftTransactionsMetadata] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
-    const [odometerDraft, odometerDraftStatus] = useOnyx(ONYXKEYS.ODOMETER_DRAFT);
+    const [odometerDraft] = useOnyx(ONYXKEYS.ODOMETER_DRAFT);
     const hasCheckedRef = useRef(false);
     const [asyncVerificationPassed, setAsyncVerificationPassed] = useState(false);
 
@@ -48,7 +45,7 @@ const useRestartOnOdometerImagesFailure = (
     })();
 
     useEffect(() => {
-        if (!transaction || isLoadingOnyxValue(draftTransactionsMetadata) || isLoadingOnyxValue(odometerDraftStatus)) {
+        if (!transaction) {
             return;
         }
 
@@ -123,10 +120,9 @@ const useRestartOnOdometerImagesFailure = (
 
             navigateToStartMoneyRequestStep(CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER, iouType, transaction.transactionID, reportID, CONST.IOU.ACTION.CREATE, backToReport);
         });
-    }, [draftTransactionsMetadata, transaction, iouType, reportID, backToReport, onBackupHandled, odometerDraft, odometerDraftStatus]);
+    }, [transaction, iouType, reportID, backToReport, onBackupHandled, odometerDraft]);
 
-    const isOnyxLoading = isLoadingOnyxValue(draftTransactionsMetadata, odometerDraftStatus);
-    const hasVerifiedBlobs = !!transaction && !isOnyxLoading && (!hasBlobUrls || asyncVerificationPassed);
+    const hasVerifiedBlobs = !!transaction && (!hasBlobUrls || asyncVerificationPassed);
 
     return {hasVerifiedBlobs};
 };

@@ -8,7 +8,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -86,11 +85,6 @@ type PolicyForMovingExpenses = {
     policyForMovingExpenses: OnyxEntry<Policy>;
     shouldSelectPolicy: boolean;
     shouldNavigateToUpgradePath: boolean;
-    /**
-     * False while policies are still loading from Onyx. Callers that act on the result (create report, move
-     * transactions) must no-op until true, as with `useCreateReport`. Picker-only callers can ignore it.
-     */
-    arePoliciesLoaded: boolean;
 };
 
 function usePolicyForMovingExpenses(isPerDiemRequest?: boolean, isTimeRequest?: boolean, expensePolicyID?: string, isUnreportedManagedCardTransaction?: boolean): PolicyForMovingExpenses {
@@ -102,7 +96,7 @@ function usePolicyForMovingExpenses(isPerDiemRequest?: boolean, isTimeRequest?: 
     // Contextual selector — captures login/flags from closure.
     // Returns only IDs + flags (stable output) to prevent re-renders when unrelated policies change.
     const policyQualificationSelector = (policies: OnyxCollection<Policy>) => getPolicyQualificationResult(policies, login, isPerDiemRequest, isTimeRequest, expensePolicyID);
-    const [qualificationResult, policiesLoadStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+    const [qualificationResult] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         selector: policyQualificationSelector,
     });
 
@@ -112,44 +106,39 @@ function usePolicyForMovingExpenses(isPerDiemRequest?: boolean, isTimeRequest?: 
     const resolvedPolicyID = validExpensePolicyID ?? singlePolicyID;
     const [resolvedPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${resolvedPolicyID}`);
 
-    // Gate the upgrade path on policy hydration. Without this, during Onyx cold-start the collection reads
-    // empty and we'd report that a member of a group workspace has none, sending them to MONEY_REQUEST_UPGRADE.
-    // `useCreateReport` guards the same way.
-    const arePoliciesLoaded = !isLoadingOnyxValue(policiesLoadStatus);
-
     // If this is an employee's card transaction that we manage, then we should report it to their default policy
     // which we don't know. Sending an empty `policyID` instructs the backend to auto-select the preferred policy.
     // This never depends on a locally resolved policy, so it has to be answered before the upgrade path below.
     if (isUnreportedManagedCardTransaction) {
-        return {policyForMovingExpensesID: undefined, policyForMovingExpenses: undefined, shouldSelectPolicy: false, shouldNavigateToUpgradePath: false, arePoliciesLoaded};
+        return {policyForMovingExpensesID: undefined, policyForMovingExpenses: undefined, shouldSelectPolicy: false, shouldNavigateToUpgradePath: false};
     }
 
     if (!resolvedPolicyID) {
         if (isPolicyValidForMovingExpenses(activePolicy, login, isPerDiemRequest, isTimeRequest)) {
-            return {policyForMovingExpensesID: activePolicyID, policyForMovingExpenses: activePolicy, shouldSelectPolicy: false, shouldNavigateToUpgradePath: false, arePoliciesLoaded};
+            return {policyForMovingExpensesID: activePolicyID, policyForMovingExpenses: activePolicy, shouldSelectPolicy: false, shouldNavigateToUpgradePath: false};
         }
 
-        return {policyForMovingExpensesID: undefined, policyForMovingExpenses: undefined, shouldSelectPolicy: false, shouldNavigateToUpgradePath: arePoliciesLoaded, arePoliciesLoaded};
+        return {policyForMovingExpensesID: undefined, policyForMovingExpenses: undefined, shouldSelectPolicy: false, shouldNavigateToUpgradePath: true};
     }
 
     // If an expense policy ID is provided and valid, prefer it over the active policy
     if (validExpensePolicyID) {
-        return {policyForMovingExpensesID: validExpensePolicyID, policyForMovingExpenses: resolvedPolicy, shouldSelectPolicy: false, shouldNavigateToUpgradePath: false, arePoliciesLoaded};
+        return {policyForMovingExpensesID: validExpensePolicyID, policyForMovingExpenses: resolvedPolicy, shouldSelectPolicy: false, shouldNavigateToUpgradePath: false};
     }
 
     if (isPolicyValidForMovingExpenses(activePolicy, login, isPerDiemRequest, isTimeRequest)) {
-        return {policyForMovingExpensesID: activePolicyID, policyForMovingExpenses: activePolicy, shouldSelectPolicy: false, shouldNavigateToUpgradePath: false, arePoliciesLoaded};
+        return {policyForMovingExpensesID: activePolicyID, policyForMovingExpenses: activePolicy, shouldSelectPolicy: false, shouldNavigateToUpgradePath: false};
     }
 
     if (singlePolicyID && !isMemberOfMoreThanOnePolicy) {
-        return {policyForMovingExpensesID: singlePolicyID, policyForMovingExpenses: resolvedPolicy, shouldSelectPolicy: false, shouldNavigateToUpgradePath: false, arePoliciesLoaded};
+        return {policyForMovingExpensesID: singlePolicyID, policyForMovingExpenses: resolvedPolicy, shouldSelectPolicy: false, shouldNavigateToUpgradePath: false};
     }
 
     if (isMemberOfMoreThanOnePolicy) {
-        return {policyForMovingExpensesID: undefined, policyForMovingExpenses: undefined, shouldSelectPolicy: true, shouldNavigateToUpgradePath: false, arePoliciesLoaded};
+        return {policyForMovingExpensesID: undefined, policyForMovingExpenses: undefined, shouldSelectPolicy: true, shouldNavigateToUpgradePath: false};
     }
 
-    return {policyForMovingExpensesID: undefined, policyForMovingExpenses: undefined, shouldSelectPolicy: false, shouldNavigateToUpgradePath: true, arePoliciesLoaded};
+    return {policyForMovingExpensesID: undefined, policyForMovingExpenses: undefined, shouldSelectPolicy: false, shouldNavigateToUpgradePath: true};
 }
 
 export default usePolicyForMovingExpenses;
