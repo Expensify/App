@@ -1342,6 +1342,8 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Remitentes',
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: 'Aprobadores',
         },
+        explainChart: (chartTitle: string) => `Explicar ${chartTitle}`,
+        moreForChart: (chartTitle: string) => `Más opciones para ${chartTitle}`,
     },
     allSettingsScreen: {
         subscription: 'Suscripcion',
@@ -12281,6 +12283,7 @@ ${reportName}`,
         selectAllMembers: 'Seleccionar todos los miembros',
         selectAllValues: 'Seleccionar todos los valores',
         selectAllRules: 'Seleccionar todas las reglas',
+        openConciergeActionsMenu: 'Abrir menú de acciones de Concierge',
     },
     parentReportAction: {
         deletedReport: 'Informe eliminado',

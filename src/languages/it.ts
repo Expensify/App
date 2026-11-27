@@ -1351,6 +1351,8 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Mittenti',
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: 'Approvatori',
         },
+        explainChart: (chartTitle: string) => `Spiega ${chartTitle}`,
+        moreForChart: (chartTitle: string) => `Altre opzioni per ${chartTitle}`,
     },
     allSettingsScreen: {
         subscription: 'Abbonamento',
@@ -11886,6 +11888,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         selectAllMembers: 'Seleziona tutti i membri',
         selectAllValues: 'Seleziona tutti i valori',
         selectAllRules: 'Seleziona tutte le regole',
+        openConciergeActionsMenu: 'Apri il menu azioni di Concierge',
     },
     parentReportAction: {
         deletedReport: 'Report eliminato',

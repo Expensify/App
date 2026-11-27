@@ -1336,6 +1336,8 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: '提出者',
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: '承認者',
         },
+        explainChart: (chartTitle: string) => `${chartTitle} を説明`,
+        moreForChart: (chartTitle: string) => `${chartTitle} のその他のオプション`,
     },
     allSettingsScreen: {
         subscription: 'サブスクリプション',
@@ -11692,6 +11694,7 @@ ${reportName}`,
         selectAllMembers: 'すべてのメンバーを選択',
         selectAllValues: 'すべての値を選択',
         selectAllRules: 'すべてのルールを選択',
+        openConciergeActionsMenu: 'Concierge のアクションメニューを開きます',
     },
     parentReportAction: {
         deletedReport: '削除されたレポート',

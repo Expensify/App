@@ -1302,6 +1302,8 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: '提交人',
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: '审批人',
         },
+        explainChart: (chartTitle: string) => `解释 ${chartTitle}`,
+        moreForChart: (chartTitle: string) => `${chartTitle} 的更多选项`,
     },
     allSettingsScreen: {
         subscription: '订阅',
@@ -11393,6 +11395,7 @@ ${reportName}`,
         selectAllMembers: '全选所有成员',
         selectAllValues: '选择所有值',
         selectAllRules: '选择所有规则',
+        openConciergeActionsMenu: '打开 Concierge 操作菜单',
     },
     parentReportAction: {
         deletedReport: '已删除的报告',

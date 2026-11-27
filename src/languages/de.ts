@@ -1348,6 +1348,8 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Einreichende',
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: 'Genehmigende',
         },
+        explainChart: (chartTitle: string) => `${chartTitle} erläutern`,
+        moreForChart: (chartTitle: string) => `Weitere Optionen für ${chartTitle}`,
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -11940,6 +11942,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         selectAllMembers: 'Alle Mitglieder auswählen',
         selectAllValues: 'Alle Werte auswählen',
         selectAllRules: 'Alle Regeln auswählen',
+        openConciergeActionsMenu: 'Concierge-Aktionsmenü öffnen',
     },
     parentReportAction: {
         deletedReport: 'Gelöschter Bericht',

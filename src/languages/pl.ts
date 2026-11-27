@@ -1379,6 +1379,8 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Wysyłający',
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: 'Zatwierdzający',
         },
+        explainChart: (chartTitle: string) => `Wyjaśnij: ${chartTitle}`,
+        moreForChart: (chartTitle: string) => `Więcej opcji dla ${chartTitle}`,
     },
     allSettingsScreen: {
         subscription: 'Subskrypcja',
@@ -11904,6 +11906,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         selectAllMembers: 'Zaznacz wszystkich członków',
         selectAllValues: 'Zaznacz wszystkie wartości',
         selectAllRules: 'Zaznacz wszystkie reguły',
+        openConciergeActionsMenu: 'Otwórz menu działań Concierge',
     },
     parentReportAction: {
         deletedReport: 'Usunięty raport',

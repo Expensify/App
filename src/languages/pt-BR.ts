@@ -1350,6 +1350,8 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Remetentes',
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: 'Aprovadores',
         },
+        explainChart: (chartTitle: string) => `Explicar ${chartTitle}`,
+        moreForChart: (chartTitle: string) => `Mais opções para ${chartTitle}`,
     },
     allSettingsScreen: {
         subscription: 'Assinatura',
@@ -11864,6 +11866,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         selectAllMembers: 'Selecionar todos os membros',
         selectAllValues: 'Selecionar todos os valores',
         selectAllRules: 'Selecionar todas as regras',
+        openConciergeActionsMenu: 'Abrir menu de ações do Concierge',
     },
     parentReportAction: {
         deletedReport: 'Relatório excluído',

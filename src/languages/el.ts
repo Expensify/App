@@ -1394,6 +1394,8 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Υποβάλλοντες',
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: 'Εγκριτές',
         },
+        explainChart: (chartTitle: string) => `Επεξήγηση για το ${chartTitle}`,
+        moreForChart: (chartTitle: string) => `Περισσότερες επιλογές για το ${chartTitle}`,
     },
     allSettingsScreen: {
         subscription: 'Συνδρομή',
@@ -12135,6 +12137,7 @@ ${reportName}`,
         selectAllMembers: 'Επιλέξτε όλα τα μέλη',
         selectAllValues: 'Επιλέξτε όλες τις τιμές',
         selectAllRules: 'Επιλέξτε όλους τους κανόνες',
+        openConciergeActionsMenu: 'Άνοιγμα μενού ενεργειών του Concierge',
     },
     parentReportAction: {
         deletedReport: 'Διαγραμμένη αναφορά',

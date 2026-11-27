@@ -1347,6 +1347,8 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Indieners',
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: 'Fiatteurs',
         },
+        explainChart: (chartTitle: string) => `${chartTitle} uitleggen`,
+        moreForChart: (chartTitle: string) => `Meer opties voor ${chartTitle}`,
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -11855,6 +11857,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         selectAllMembers: 'Alle leden selecteren',
         selectAllValues: 'Selecteer alle waarden',
         selectAllRules: 'Selecteer alle regels',
+        openConciergeActionsMenu: 'Actiemenu Concierge openen',
     },
     parentReportAction: {
         deletedReport: 'Verwijderd rapport',

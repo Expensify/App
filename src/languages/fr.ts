@@ -1355,6 +1355,8 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Déclarants',
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: 'Approbateurs',
         },
+        explainChart: (chartTitle: string) => `Expliquer ${chartTitle}`,
+        moreForChart: (chartTitle: string) => `Plus d’options pour ${chartTitle}`,
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -11970,6 +11972,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         selectAllMembers: 'Sélectionner tous les membres',
         selectAllValues: 'Sélectionner toutes les valeurs',
         selectAllRules: 'Sélectionner toutes les règles',
+        openConciergeActionsMenu: 'Ouvrir le menu des actions de Concierge',
     },
     parentReportAction: {
         deletedReport: 'Note de frais supprimée',
