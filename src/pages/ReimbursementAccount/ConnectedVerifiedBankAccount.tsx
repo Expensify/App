@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import Icon from '@components/Icon';
 import getBankIcon from '@components/Icon/BankIcons';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
@@ -78,7 +78,7 @@ function ConnectedVerifiedBankAccount({reimbursementAccount, onBackButtonPress, 
             shouldEnableMaxHeight
             style={[styles.flex1, styles.justifyContentBetween, styles.mh2]}
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('bankAccount.addBankAccount')}
                 onBackButtonPress={onBackButtonPress}
             />
