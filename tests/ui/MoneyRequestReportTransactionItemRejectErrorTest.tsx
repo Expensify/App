@@ -43,6 +43,8 @@ const ERROR_TIMESTAMP = '1770000000000000';
 // The exact copy Web-Expensify returns for this case (Web-Expensify/lib/ReportAPI.php). It is English-only,
 // so it must never reach the screen.
 const SERVER_REJECT_MESSAGE = 'The expense has already been moved or rejected.';
+const SERVER_REJECT_CORPORATE_CARD_MESSAGE = 'This corporate card expense cannot be rejected individually (server).';
+const SERVER_REJECT_OTHER_MESSAGE = 'An unexpected error occurred while rejecting the expense.';
 
 const report: Report = {
     reportID: REPORT_ID,
@@ -66,6 +68,18 @@ function buildTransaction(overrides: Partial<Transaction> = {}): Transaction {
 /** A transaction the server reported as already moved, which lands under its own `reject` error field. */
 function buildTransactionWithRejectError(): Transaction {
     return buildTransaction({errorFields: {reject: {[ERROR_TIMESTAMP]: SERVER_REJECT_MESSAGE}}});
+}
+
+/** A corporate card expense the server refused to reject individually. */
+function buildTransactionWithRejectCorporateCardError(): Transaction {
+    return buildTransaction({
+        errorFields: {rejectCorporateCard: {[ERROR_TIMESTAMP]: SERVER_REJECT_CORPORATE_CARD_MESSAGE}},
+    });
+}
+
+/** An expense the server rejected with an unexpected error (catch-all). */
+function buildTransactionWithRejectOtherError(): Transaction {
+    return buildTransaction({errorFields: {rejectOther: {[ERROR_TIMESTAMP]: SERVER_REJECT_OTHER_MESSAGE}}});
 }
 
 describe('MoneyRequestReportTransactionItem - reject errors', () => {
@@ -144,6 +158,28 @@ describe('MoneyRequestReportTransactionItem - reject errors', () => {
         expect(screen.queryByTestId('TransactionItemRowRBR')).not.toBeOnTheScreen();
     });
 
+    it('should show the rejectCorporateCard error once, not again inside the row', async () => {
+        // Given: A corporate card expense the server refused to reject individually
+        await renderTransactionItem(buildTransactionWithRejectCorporateCardError());
+
+        // When: The transaction item is rendered
+
+        // Then: Only the dismissible message is shown, so the row itself carries no duplicate of it
+        expect(screen.getAllByText(translateLocal('iou.rejectReport.couldNotRejectStatementReportedCorporateCardExpense'))).toHaveLength(1);
+        expect(screen.queryByTestId('TransactionItemRowRBR')).not.toBeOnTheScreen();
+    });
+
+    it('should show the rejectOther error once, not again inside the row', async () => {
+        // Given: An expense the client could not reject due to an unexpected failure
+        await renderTransactionItem(buildTransactionWithRejectOtherError());
+
+        // When: The transaction item is rendered
+
+        // Then: Only the dismissible message is shown, so the row itself carries no duplicate of it
+        expect(screen.getAllByText(translateLocal('iou.rejectReport.couldNotRejectExpenseContactConcierge'))).toHaveLength(1);
+        expect(screen.queryByTestId('TransactionItemRowRBR')).not.toBeOnTheScreen();
+    });
+
     it('should show an edit error once, not again inside the row', async () => {
         // Given: An expense whose move to another report failed, so it carries a plain message error
         await renderTransactionItem(buildTransaction({errors: {[ERROR_TIMESTAMP]: translateLocal('iou.error.genericEditFailureMessage')}}));
@@ -156,6 +192,22 @@ describe('MoneyRequestReportTransactionItem - reject errors', () => {
     it('should not let the expense be opened while it carries a reject error', async () => {
         // Given: An expense showing a reject error, so the server no longer has it on this report
         await renderTransactionItem(buildTransactionWithRejectError());
+
+        // Then: The row cannot be opened, because the RHP would immediately dismiss itself
+        expect(screen.getByLabelText('View details')).toBeDisabled();
+    });
+
+    it('should not let the expense be opened while it carries a rejectCorporateCard error', async () => {
+        // Given: A corporate card expense the server refused to reject individually
+        await renderTransactionItem(buildTransactionWithRejectCorporateCardError());
+
+        // Then: The row cannot be opened, because the RHP would immediately dismiss itself
+        expect(screen.getByLabelText('View details')).toBeDisabled();
+    });
+
+    it('should not let the expense be opened while it carries a rejectOther error', async () => {
+        // Given: An expense the client could not reject due to an unexpected failure
+        await renderTransactionItem(buildTransactionWithRejectOtherError());
 
         // Then: The row cannot be opened, because the RHP would immediately dismiss itself
         expect(screen.getByLabelText('View details')).toBeDisabled();
@@ -205,5 +257,74 @@ describe('MoneyRequestReportTransactionItem - reject errors', () => {
         const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`);
         expect(transaction?.errorFields?.reject).toBeFalsy();
         expect(transaction).toBeTruthy();
+    });
+
+    it('should clear the rejectCorporateCard error when it is dismissed', async () => {
+        // Given: A corporate card expense the server refused to reject individually
+        await renderTransactionItem(buildTransactionWithRejectCorporateCardError());
+
+        // When: The user dismisses the error
+        fireEvent.press(screen.getByLabelText('Dismiss'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then: The error is cleared and the transaction is preserved
+        const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`);
+        expect(transaction?.errorFields?.rejectCorporateCard).toBeFalsy();
+        expect(transaction).toBeTruthy();
+    });
+
+    it('should clear the rejectOther error when it is dismissed', async () => {
+        // Given: An expense the client could not reject due to an unexpected failure
+        await renderTransactionItem(buildTransactionWithRejectOtherError());
+
+        // When: The user dismisses the error
+        fireEvent.press(screen.getByLabelText('Dismiss'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then: The error is cleared and the transaction is preserved
+        const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`);
+        expect(transaction?.errorFields?.rejectOther).toBeFalsy();
+        expect(transaction).toBeTruthy();
+    });
+
+    it('should show the corporate card translated copy for a rejectCorporateCard error', async () => {
+        // Given: A corporate card expense the server refused to reject individually
+        await renderTransactionItem(buildTransactionWithRejectCorporateCardError());
+
+        // When: The transaction item is rendered with a rejectCorporateCard error
+
+        // Then: The corporate card message is shown, not the generic one, and the raw server string is hidden
+        expect(screen.getByText(translateLocal('iou.rejectReport.couldNotRejectStatementReportedCorporateCardExpense'))).toBeOnTheScreen();
+        expect(screen.queryByText(translateLocal('iou.rejectReport.couldNotRejectExpense'))).not.toBeOnTheScreen();
+        expect(screen.queryByText(SERVER_REJECT_CORPORATE_CARD_MESSAGE)).not.toBeOnTheScreen();
+    });
+
+    it('should show the contact Concierge translated copy for a rejectOther error', async () => {
+        // Given: An expense the server rejected with an unexpected error
+        await renderTransactionItem(buildTransactionWithRejectOtherError());
+
+        // When: The transaction item is rendered with a rejectOther error
+
+        // Then: The contact Concierge message is shown and the raw server string is hidden
+        expect(screen.getByText(translateLocal('iou.rejectReport.couldNotRejectExpenseContactConcierge'))).toBeOnTheScreen();
+        expect(screen.queryByText(SERVER_REJECT_OTHER_MESSAGE)).not.toBeOnTheScreen();
+    });
+
+    it('should show the corporate card message when rejectCorporateCard and rejectOther are both set', async () => {
+        // Given: An expense where the server set rejectCorporateCard but failureData also wrote rejectOther
+        await renderTransactionItem(
+            buildTransaction({
+                errorFields: {
+                    rejectCorporateCard: {[ERROR_TIMESTAMP]: SERVER_REJECT_CORPORATE_CARD_MESSAGE},
+                    rejectOther: {[ERROR_TIMESTAMP]: SERVER_REJECT_OTHER_MESSAGE},
+                },
+            }),
+        );
+
+        // When: The transaction item is rendered with both rejectCorporateCard and rejectOther errors
+
+        // Then: The more specific corporate card error takes priority over the generic fallback
+        expect(screen.getByText(translateLocal('iou.rejectReport.couldNotRejectStatementReportedCorporateCardExpense'))).toBeOnTheScreen();
+        expect(screen.queryByText(translateLocal('iou.rejectReport.couldNotRejectExpense'))).not.toBeOnTheScreen();
     });
 });
