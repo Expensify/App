@@ -159,7 +159,6 @@ function SummaryAverageComparison({comparison, graphKey, periodGroupBy, currency
     }
 
     const isIncrease = comparison.difference > 0;
-    const changeColor = StyleUtils.getSpendChangeColor(isIncrease);
     const percentage = formatPercentOfTotal(comparison.percentage, comparison.difference, preferredLocale);
     const amount = convertToDisplayString(Math.abs(comparison.difference), currency);
 
@@ -169,13 +168,13 @@ function SummaryAverageComparison({comparison, graphKey, periodGroupBy, currency
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.gapHalf]}>
                 <Icon
                     src={isIncrease ? icons.ArrowUpLong : icons.ArrowDownLong}
-                    fill={changeColor}
+                    fill={StyleUtils.getSpendChangeIconColor(isIncrease)}
                     width={variables.iconSizeExtraSmall}
                     height={variables.iconSizeExtraSmall}
                 />
                 <Text
                     variant="label"
-                    style={StyleUtils.getColorStyle(changeColor)}
+                    style={StyleUtils.getColorStyle(StyleUtils.getSpendChangeTextColor(isIncrease))}
                 >
                     {getVersusAverageLabel(amount)}
                 </Text>
