@@ -10,6 +10,7 @@ import signalExpenseAddedGrowl from '@libs/actions/IOU/signalExpenseAddedGrowl';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {addComment, openReport} from '@libs/actions/Report';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import DateUtils from '@libs/DateUtils';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, getReportAction} from '@libs/ReportActionsUtils';
@@ -41,7 +42,7 @@ import createRandomTransaction from '../../utils/collections/transaction';
 import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
 import initCurrencyListContext from '../../utils/initCurrencyListContext';
-import {formatPhoneNumber, getCurrencyDecimalsLocal, getGlobalFetchMock, getOnyxData, getRequiredWriteCall} from '../../utils/TestHelper';
+import {formatPhoneNumber, getCurrencyDecimalsLocal, getGlobalFetchMock, getOnyxData, getRequiredWriteCall, translateLocal} from '../../utils/TestHelper';
 import {isObject} from '../../utils/typeGuards';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -336,6 +337,109 @@ describe('actions/Duplicate', () => {
                     failureData: expect.arrayContaining([]),
                 }),
             );
+        });
+
+        it('sets an error on the kept transaction when the merge fails', async () => {
+            // Given a kept expense and two duplicates on the same report
+            const reportID = 'reportWithFailedMerge';
+            const mainTransactionID = 'mainFailed';
+            const duplicate1ID = 'dupFailed1';
+            const duplicate2ID = 'dupFailed2';
+            const mainTransaction = createMockTransaction(mainTransactionID, reportID, 150);
+            const duplicateTransaction1 = createMockTransaction(duplicate1ID, reportID, 100);
+            const duplicateTransaction2 = createMockTransaction(duplicate2ID, reportID, 50);
+            const ERROR_TIMESTAMP = 1700000000000000;
+            const microsecondsSpy = jest.spyOn(DateUtils, 'getMicroseconds').mockReturnValue(ERROR_TIMESTAMP);
+
+            // When the merge is sent
+            mergeDuplicates({
+                transaction: mainTransaction,
+                transactionList: [duplicateTransaction1, duplicateTransaction2],
+                created: '2024-01-01 12:00:00',
+                merchant: 'Updated Merchant',
+                amount: 200,
+                currency: CONST.CURRENCY.EUR,
+                category: 'Travel',
+                comment: 'Updated comment',
+                billable: true,
+                reimbursable: false,
+                tag: 'UpdatedProject',
+                taxCode: '',
+                receiptID: 123,
+                reportID,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                allTransactionViolations: {},
+                allReportNameValuePairsList: {},
+                allReportsList: {[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: createMockReport(reportID, 300)},
+                allReportActionsList: {},
+            });
+            await waitForBatchedUpdates();
+
+            microsecondsSpy.mockRestore();
+
+            // Then the kept expense gets an error, because the review screen has already closed and nothing else would show the failure
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.MERGE_DUPLICATES,
+                expect.anything(),
+                expect.objectContaining({
+                    failureData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${mainTransactionID}`,
+                            value: {errors: {[ERROR_TIMESTAMP]: translateLocal('iou.error.genericMergeDuplicatesFailureMessage')}},
+                        }),
+                    ]),
+                }),
+            );
+        });
+
+        it('clears the error from an earlier failed merge when the merge is sent again', async () => {
+            // Given a kept expense with an error from an earlier failed merge and a receipt upload error
+            const reportID = 'reportWithRetriedMerge';
+            const mainTransactionID = 'mainRetried';
+            const duplicateID = 'dupRetried';
+            const EARLIER_ERROR_TIMESTAMP = 1700000000000000;
+            const RECEIPT_ERROR_TIMESTAMP = 1700000000000001;
+            const receiptError = translateLocal('iou.error.receiptFailureMessageShort');
+            const mainTransaction = {
+                ...createMockTransaction(mainTransactionID, reportID, 150),
+                errors: {
+                    [EARLIER_ERROR_TIMESTAMP]: translateLocal('iou.error.genericMergeDuplicatesFailureMessage'),
+                    [RECEIPT_ERROR_TIMESTAMP]: receiptError,
+                },
+            };
+            const duplicateTransaction = createMockTransaction(duplicateID, reportID, 100);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${mainTransactionID}`, mainTransaction);
+            await waitForBatchedUpdates();
+
+            // When the user merges again
+            mergeDuplicates({
+                transaction: mainTransaction,
+                transactionList: [duplicateTransaction],
+                created: '2024-01-01 12:00:00',
+                merchant: 'Updated Merchant',
+                amount: 150,
+                currency: CONST.CURRENCY.EUR,
+                category: 'Travel',
+                comment: 'Updated comment',
+                billable: true,
+                reimbursable: false,
+                tag: 'UpdatedProject',
+                taxCode: '',
+                receiptID: 123,
+                reportID,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                allTransactionViolations: {},
+                allReportNameValuePairsList: {},
+                allReportsList: {[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: createMockReport(reportID, 250)},
+                allReportActionsList: {},
+            });
+            await waitForBatchedUpdates();
+
+            // Then only the merge error is cleared, because the server never clears it and the merge doesn't fix the receipt
+            const keptTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${mainTransactionID}`);
+            expect(keptTransaction?.errors).toEqual({[RECEIPT_ERROR_TIMESTAMP]: receiptError});
         });
 
         it('threads allReportActionsList into the transaction-thread cleanup instead of relying on the deprecated report-actions cache', async () => {

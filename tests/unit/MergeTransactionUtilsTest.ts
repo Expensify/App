@@ -9,6 +9,7 @@ import {
     getMergeFieldValue,
     getRateFromMerchant,
     isEmptyMergeValue,
+    isMergeSourceDeleted,
     selectTargetAndSourceTransactionsForMerge,
     shouldNavigateToReceiptReview,
     willReportBecomeOneTransactionReportAfterMerge,
@@ -41,6 +42,34 @@ describe('MergeTransactionUtils', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
         return waitForBatchedUpdates();
+    });
+
+    describe('isMergeSourceDeleted', () => {
+        const buildIOUAction = (deleted?: string): ReportAction => ({
+            ...createRandomReportAction(1),
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            message: [{type: 'COMMENT', html: 'expense', text: 'expense', ...(deleted && {deleted})}],
+        });
+
+        it('flags a source whose IOU action was deleted', () => {
+            // Given the source expense was deleted elsewhere, so its IOU action arrived marked as deleted
+            const sourceIOUAction = buildIOUAction('2026-11-26 10:00:00.000');
+
+            // When checking the source, which has no delete waiting to be sent on this device
+            const isDeleted = isMergeSourceDeleted(false, sourceIOUAction);
+
+            // Then it is flagged, because Auth rejects merging a deleted expense
+            expect(isDeleted).toBe(true);
+        });
+
+        it('does not flag a source that is not loaded', () => {
+            // Given neither the source transaction nor its IOU action is in Onyx, because its report was never opened
+            // When checking the source before the merge is sent
+            const isDeleted = isMergeSourceDeleted(false, undefined);
+
+            // Then it is not flagged, because missing data doesn't mean the expense was deleted
+            expect(isDeleted).toBe(false);
+        });
     });
 
     describe('shouldNavigateToReceiptReview', () => {
