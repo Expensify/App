@@ -581,6 +581,7 @@ function getReservationDetailsFromSequence(icons: TripReservationIcons, tripRese
     const reservationDataIndex = tripReservations?.findIndex((reservation) => reservation.sequenceIndex === sequenceIndex);
     const reservationData = tripReservations.at(reservationDataIndex);
     const reservation = reservationData?.reservation;
+
     // Other reservations (e.g. an overnight hotel during a connection) can sit between two flights of the same leg in the start-date order,
     // so search back for the closest earlier flight of that leg.
     const prevConnectingFlight =
