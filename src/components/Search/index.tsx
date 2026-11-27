@@ -68,7 +68,6 @@ import {
     isTripListItemType,
     isTransactionGroupListItemType,
     isTransactionListItemType,
-    isTransactionReportGroupListItemType,
     isTransactionSearchType,
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
@@ -773,17 +772,6 @@ function Search({
                 }
             }
 
-            if (isTransactionGroupListItemType(item) && !isTransactionReportGroupListItemType(item) && item.transactionsQueryJSON) {
-                handleSearch({
-                    queryJSON: item.transactionsQueryJSON,
-                    searchKey: undefined,
-                    offset: 0,
-                    shouldCalculateTotals: false,
-                    isLoading: false,
-                });
-                return;
-            }
-
             if (!isTransactionItem && !isReportActionListItemType(item) && !isTaskListItemType(item) && !isTransactionGroupListItemType(item)) {
                 return;
             }
@@ -918,7 +906,6 @@ function Search({
         },
         [
             markReportRHPWidth,
-            handleSearch,
             introSelected,
             personalDetails,
             isSelfTourViewed,

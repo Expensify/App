@@ -6,7 +6,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import getPlatform from '@libs/getPlatform';
-import {isTransactionGroupListItemType, isTransactionMatchWithGroupItem, splitGroupsIntoPairs} from '@libs/SearchUIUtils';
+import {isTransactionGroupListItemType, splitGroupsIntoPairs} from '@libs/SearchUIUtils';
 import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
@@ -14,21 +14,22 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
-import type {Transaction} from '@src/types/onyx';
 
 import type {NativeSyntheticEvent} from 'react-native';
 
 import React, {useState} from 'react';
 
-import type {SearchListItem} from './SearchList/ListItem/types';
+import type {SearchListItem, TransactionGroupListItemType} from './SearchList/ListItem/types';
 import type {CommonSearchViewProps, TransactionViewExtras} from './searchViewProps';
-import type {SearchQueryJSON, SelectedTransactions} from './types';
+import type {SelectedTransactions} from './types';
 
+import useOpenGroupsRefetch, {fetchGroupFirstPage} from './hooks/useOpenGroupsRefetch';
 import {NO_OPEN_GROUPS} from './hooks/useOpenGroupsRegistry';
 import useSearchListViewState from './hooks/useSearchListViewState';
 import AnimatedExitRow from './primitives/AnimatedExitRow';
 import SelectionTopBar from './primitives/SelectionTopBar';
 import BaseSearchList from './SearchList/BaseSearchList';
+import getGroupRowActivation from './SearchList/ListItem/getGroupRowActivation';
 import GroupChildrenContainer from './SearchList/ListItem/GroupChildrenContainer';
 import GroupHeader from './SearchList/ListItem/GroupHeader';
 import shouldCollapseExpandedGroupAfterPendingDelete from './SearchList/ListItem/shouldCollapseExpandedGroupAfterPendingDelete';
@@ -69,21 +70,6 @@ function buildSplitGroupData(data: SearchListItem[], shouldSplitGroups: boolean)
         stickyHeaderIndices: stickyHeaderIndices.length > 0 ? stickyHeaderIndices : undefined,
         childrenContainerIndices,
     };
-}
-
-/** Maps each group's `keyForList` to the id of a just-created transaction inside it, for the highlight animation. */
-function buildNewTransactionIDMap(data: SearchListItem[], newTransactions: Transaction[], groupBy: SearchQueryJSON['groupBy']) {
-    const map = new Map<string, string>();
-    if (newTransactions.length === 0) {
-        return map;
-    }
-    for (const item of data) {
-        const matchedTransactionID = newTransactions.find((transaction) => isTransactionMatchWithGroupItem(transaction, item, groupBy))?.transactionID;
-        if (matchedTransactionID && item.keyForList) {
-            map.set(item.keyForList, matchedTransactionID);
-        }
-    }
-    return map;
 }
 
 /**
@@ -137,16 +123,21 @@ function ExpenseGroupedSearchView({
     const {listData, stickyHeaderIndices, childrenContainerIndices} = buildSplitGroupData(data, shouldSplit);
 
     const [expandedGroups, setExpandedGroups] = useState<Set<string>>(() => new Set());
-    const onToggleGroup = (key: string) =>
-        setExpandedGroups((prev) => {
-            const next = new Set(prev);
-            if (next.has(key)) {
-                next.delete(key);
-            } else {
-                next.add(key);
+    // Fetch on open here rather than in the row, because the list reuses rows as it scrolls, and a reused row that lands
+    // on an open group would fetch it again.
+    const toggleGroup = (key: string) => {
+        const next = new Set(expandedGroups);
+        if (next.has(key)) {
+            next.delete(key);
+        } else {
+            next.add(key);
+            const group = data.find((item): item is TransactionGroupListItemType => isTransactionGroupListItemType(item) && item.keyForList === key);
+            if (group?.transactionsQueryJSON) {
+                fetchGroupFirstPage(group.transactionsQueryJSON);
             }
-            return next;
-        });
+        }
+        setExpandedGroups(next);
+    };
 
     if (expandedGroups.size > 0) {
         const nextExpandedGroups = new Set(expandedGroups);
@@ -197,7 +188,25 @@ function ExpenseGroupedSearchView({
         scrollToListIndex,
     } = useSearchListViewState({data, listData, isMobileSelectionModeEnabled, onSelectRow});
 
-    const newTransactionIDByItemKey = buildNewTransactionIDMap(data, newTransactions, groupBy);
+    // Enter on the focused row must do what clicking it does, and a group that isn't a report has no page to open.
+    const activateFocusedRow = (item: SearchListItem) => {
+        if (!isTransactionGroupListItemType(item)) {
+            handleSelectRow(item);
+            return;
+        }
+
+        // A split header row carries a prefixed key, but selection and open state are tracked by the group's own key.
+        const groupKey = isGroupHeaderItem(item) ? item.groupKeyForList : item.keyForList;
+        const {shouldSelect, shouldToggle} = getGroupRowActivation(item, type);
+        if (shouldSelect) {
+            handleSelectRow({...item, keyForList: groupKey});
+        }
+        if (shouldToggle && groupKey) {
+            toggleGroup(groupKey);
+        }
+    };
+
+    useOpenGroupsRefetch({data, expandedGroups, newTransactions, groupBy});
 
     // Selection is tracked per child transaction (plus empty groups), so flatten each group's transactions.
     const groupItems = data.filter(isTransactionGroupListItemType);
@@ -245,7 +254,7 @@ function ExpenseGroupedSearchView({
                     columns={columns}
                     canSelectMultiple={canSelectMultiple}
                     isExpanded={expandedGroups.has(originalKey)}
-                    onToggle={() => onToggleGroup(originalKey)}
+                    onToggle={() => toggleGroup(originalKey)}
                     onSelectRow={handleSelectRow}
                     onCheckboxPress={toggle}
                     onLongPressRow={onLongPressRow}
@@ -266,7 +275,6 @@ function ExpenseGroupedSearchView({
 
         if (isGroupChildrenContainerItem(item)) {
             const originalKey = item.groupKeyForList;
-            const containerNewTransactionID = newTransactionIDByItemKey.get(originalKey);
             return (
                 <GroupChildrenContainer
                     item={item}
@@ -282,13 +290,12 @@ function ExpenseGroupedSearchView({
                     onUndelete={handleUndelete}
                     isFirstItem={index - 1 === firstVisibleIndex}
                     isLastItem={index === lastVisibleIndex && !ListFooterComponent}
-                    newTransactionID={containerNewTransactionID}
                 />
             );
         }
 
         // Non-split group rows: TransactionGroupListItem renders the whole group (header + children).
-        const newTransactionID = item.keyForList ? newTransactionIDByItemKey.get(item.keyForList) : undefined;
+        const groupKey = item.keyForList;
         return (
             <AnimatedExitRow
                 shouldApplyAnimation={type === CONST.SEARCH.DATA_TYPES.EXPENSE && index < listData.length - 1}
@@ -312,7 +319,13 @@ function ExpenseGroupedSearchView({
                     ownerBillingGracePeriodEnd={ownerBillingGracePeriodEnd}
                     nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                     onFocus={onFocus}
-                    newTransactionID={newTransactionID}
+                    isExpanded={!!groupKey && expandedGroups.has(groupKey)}
+                    onToggle={() => {
+                        if (!groupKey) {
+                            return;
+                        }
+                        toggleGroup(groupKey);
+                    }}
                     onUndelete={handleUndelete}
                     isFirstItem={index === firstVisibleIndex}
                     isLastItem={index === lastVisibleIndex && !ListFooterComponent}
@@ -355,7 +368,7 @@ function ExpenseGroupedSearchView({
                 selectionTopBar={selectionTopBar}
                 data={listData}
                 renderItem={renderItem}
-                onSelectRow={handleSelectRow}
+                onSelectRow={activateFocusedRow}
                 keyExtractor={keyExtractor}
                 onScroll={onScroll}
                 onViewableItemsChanged={onViewableItemsChanged}
