@@ -1,3 +1,4 @@
+import {isCategoryMissing} from '@libs/CategoryUtils';
 import DateUtils from '@libs/DateUtils';
 import {sanitizeFilterValue} from '@libs/SearchQueryUtils';
 
@@ -20,9 +21,12 @@ function buildMerchantFilterQuery(merchant: string): string {
     return `merchant=${sanitizeFilterValue(merchant) || '""'}`;
 }
 
-/** Builds the query fragment narrowing a query to a category's expenses, escaping quotes so the name can't end the filter early. */
+/**
+ * Builds the query fragment narrowing a query to a category's expenses, escaping quotes so the name can't end the filter early.
+ * Groups of expenses without a category come back empty or as Uncategorized, which Search spells as `none`.
+ */
 function buildCategoryFilterQuery(category: string): string {
-    return `category:${sanitizeFilterValue(category) || '""'}`;
+    return `category:${sanitizeFilterValue(isCategoryMissing(category) ? CONST.SEARCH.CATEGORY_EMPTY_VALUE : category)}`;
 }
 
 /** The dates a time bucket covers */

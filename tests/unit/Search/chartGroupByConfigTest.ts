@@ -263,6 +263,17 @@ describe('CHART_GROUP_BY_CONFIG', () => {
         expect(query).toBe('merchant=I');
     });
 
+    it.each(['', CONST.SEARCH.CATEGORY_EMPTY_VALUE, CONST.SEARCH.CATEGORY_DEFAULT_VALUE])('drills down to expenses without a category for a group named "%s"', (category) => {
+        // Given the group of expenses without a category, which Search sends empty and Insights sends as Uncategorized
+        const item = createMock<TransactionCategoryGroupListItemType>({groupedBy: CONST.SEARCH.GROUP_BY.CATEGORY, category});
+
+        // When the chart builds its drill-down query
+        const query = CHART_GROUP_BY_CONFIG[CONST.SEARCH.GROUP_BY.CATEGORY].getFilterQuery(item);
+
+        // Then it uses Search's spelling for a missing category, instead of looking for a category with that name
+        expect(query).toBe(`category:${CONST.SEARCH.CATEGORY_EMPTY_VALUE}`);
+    });
+
     it('escapes quotes in merchant and category names, so the filter keeps the whole name', () => {
         // Given a merchant and a category whose names contain a quote
         const merchant = createMock<TransactionMerchantGroupListItemType>({groupedBy: CONST.SEARCH.GROUP_BY.MERCHANT, merchant: 'Joe\'s "Diner"'});
