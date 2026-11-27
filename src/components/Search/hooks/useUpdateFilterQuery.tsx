@@ -6,7 +6,7 @@ import useOnyx from '@hooks/useOnyx';
 
 import Navigation from '@libs/Navigation/Navigation';
 import {markQueryAsRefinement} from '@libs/SearchQueryRefinement';
-import {buildFilterQueryWithSortDefaults, buildSearchQueryJSON, hasValuesIncludeViolationFilter, VIOLATION_HAS_VALUES} from '@libs/SearchQueryUtils';
+import {buildFilterQueryWithSortDefaults, buildSearchQueryJSON, getHasValuesWithRequiredViolations, hasValuesIncludeViolationFilter, VIOLATION_HAS_VALUES} from '@libs/SearchQueryUtils';
 import {filterValidHasValues} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -49,6 +49,11 @@ function useUpdateFilterQuery(queryJSON: SearchQueryJSON | undefined) {
 
         if (updatedFilterFormValues.groupBy !== currentValues.groupBy) {
             updatedFilterFormValues.columns = [];
+        }
+
+        // Only explicit Violation edits normalize its required stages; unrelated refinements preserve typed queries that omit Has.
+        if (CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION in newValues) {
+            updatedFilterFormValues.has = getHasValuesWithRequiredViolations(updatedFilterFormValues);
         }
 
         return updatedFilterFormValues;

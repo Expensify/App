@@ -9,7 +9,17 @@ import CONST from '@src/CONST';
 
 import React, {useState} from 'react';
 
-function ListFilterContentPageWrapper({baseFilterKey, value: initialValue, isNegated: initialIsNegated, type, policyID, ready, onChange, buttonText}: ListFilterContentWrapperProps) {
+function ListFilterContentPageWrapper({
+    baseFilterKey,
+    value: initialValue,
+    isNegated: initialIsNegated,
+    type,
+    violationNames,
+    policyID,
+    ready,
+    onChange,
+    buttonText,
+}: ListFilterContentWrapperProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [value, setValue] = useState(initialValue);
@@ -21,6 +31,7 @@ function ListFilterContentPageWrapper({baseFilterKey, value: initialValue, isNeg
             value={value}
             isNegated={isNegated}
             type={type}
+            violationNames={violationNames}
             policyID={policyID}
             autoFocus
             ready={ready}

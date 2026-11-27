@@ -247,6 +247,39 @@ describe('useSearchFiltersBar', () => {
             // Then it is cleared
             expect(mockUpdateFilterQueryParams).toHaveBeenCalledWith({[CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY]: undefined});
         });
+
+        it('clears positive violations together with the Has pill without clearing negated violations', () => {
+            // Given a removable positive Has pill
+            const item = getFilterItem(CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS, false);
+
+            // When its close button is pressed
+            item?.onClosePress?.();
+
+            // Then Has and positive violations are cleared in the same update, leaving violationNameNot untouched
+            expect(mockUpdateFilterQueryParams).toHaveBeenCalledWith({has: undefined, violationName: undefined});
+        });
+
+        it('does not clear positive violations when removing the negated Has pill', () => {
+            // Given a removable negated Has pill
+            const item = getFilterItem('hasNot', false);
+
+            // When its close button is pressed
+            item?.onClosePress?.();
+
+            // Then only the negated Has filter is removed
+            expect(mockUpdateFilterQueryParams).toHaveBeenCalledWith({hasNot: undefined});
+        });
+
+        it('keeps Has stages when removing the Violation pill', () => {
+            // Given a removable positive Violation pill whose Has stages also work independently
+            const item = getFilterItem(CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION, false);
+
+            // When its close button is pressed
+            item?.onClosePress?.();
+
+            // Then only Violation is removed, leaving the Has stages alone
+            expect(mockUpdateFilterQueryParams).toHaveBeenCalledWith({[CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION]: undefined});
+        });
     });
 
     describe('resetFilters', () => {

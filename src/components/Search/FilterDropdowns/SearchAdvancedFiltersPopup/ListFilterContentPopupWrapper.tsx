@@ -9,7 +9,7 @@ import {isFilterNegatable} from '@libs/SearchQueryUtils';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
-function ListFilterContentPopupWrapper({baseFilterKey, value, isNegated: initialIsNegated, type, policyID, ready, onChange}: ListFilterContentWrapperProps) {
+function ListFilterContentPopupWrapper({baseFilterKey, value, isNegated: initialIsNegated, type, violationNames, policyID, ready, onChange}: ListFilterContentWrapperProps) {
     const styles = useThemeStyles();
     const [isNegated, setIsNegated] = useState(initialIsNegated);
     const isFilterKeyNegatable = isFilterNegatable(baseFilterKey);
@@ -29,6 +29,7 @@ function ListFilterContentPopupWrapper({baseFilterKey, value, isNegated: initial
             value={value}
             isNegated={isNegated}
             type={type}
+            violationNames={violationNames}
             policyID={policyID}
             style={[styles.mt6, styles.flex1]}
             selectionListTextInputStyle={[!isFilterKeyNegatable && [styles.pt5, styles.pb1]]}

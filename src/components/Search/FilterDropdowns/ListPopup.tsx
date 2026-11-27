@@ -43,6 +43,7 @@ function ListPopup({baseFilterKey, isDefault, values, label, updateFilterForm, c
                 value={value}
                 isNegated={isNegated}
                 type={values?.type}
+                violationNames={values?.violationName}
                 policyID={getFilterNegatableValue(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, values)}
                 onChange={setValue}
                 onNegationChange={setIsNegated}

@@ -972,6 +972,24 @@ function hasValuesIncludeViolationFilter(hasValues: readonly string[] | undefine
     return VIOLATION_HAS_VALUES.some((violationHasValue) => !!hasValues?.includes(violationHasValue));
 }
 
+/** Add both violation stages when a supported positive violation filter has no stage selected. */
+function getHasValuesWithRequiredViolations(values: Partial<SearchAdvancedFiltersForm>): SearchAdvancedFiltersForm['has'] | undefined {
+    if (!values.violationName?.length || !isFilterSupported(FILTER_KEYS.VIOLATION, values.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE) || hasValuesIncludeViolationFilter(values.has)) {
+        return values.has;
+    }
+
+    return [...(values.has ?? []), ...VIOLATION_HAS_VALUES];
+}
+
+/** Keep one positive violation stage selected while a positive violation filter depends on it. */
+function isLastRequiredViolationHasValue(value: string, hasValues: readonly string[], violationNames: readonly string[] | undefined): boolean {
+    if (!violationNames?.length || !hasValues.includes(value) || !hasValuesIncludeViolationFilter([value])) {
+        return false;
+    }
+
+    return hasValues.filter((hasValue) => hasValuesIncludeViolationFilter([hasValue])).length === 1;
+}
+
 /**
  * Returns the column the rows are sorted by on the client. Like the backend, it sorts by violations only for expense
  * searches with a positive `has:*-violation` filter, since only those rows carry violation labels, and by date otherwise.
@@ -3876,6 +3894,8 @@ export {
     queryHasViolationFilter,
     getPositiveHasFilterValues,
     hasValuesIncludeViolationFilter,
+    getHasValuesWithRequiredViolations,
+    isLastRequiredViolationHasValue,
     getEffectiveSortBy,
     VIOLATION_HAS_VALUES,
     shouldRefetchSearchOnReportActionChange,

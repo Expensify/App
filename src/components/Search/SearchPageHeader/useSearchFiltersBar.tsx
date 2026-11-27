@@ -224,7 +224,11 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
                               return;
                           }
 
-                          updateFilterQueryParams({[filterKey]: undefined});
+                          // Positive violation filters depend on the Has violation stages, so clearing the Has pill must also clear violationName.
+                          updateFilterQueryParams({
+                              [filterKey]: undefined,
+                              ...(filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS ? {[CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION]: undefined} : {}),
+                          });
                       },
         }),
     );
