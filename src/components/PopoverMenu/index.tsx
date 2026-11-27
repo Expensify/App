@@ -232,6 +232,9 @@ type PopoverMenuProps = Partial<ModalAnimationProps> & {
     /** Whether the modal pads its content by the left and right safe area insets */
     shouldAddSideSafeAreaPadding?: boolean;
 
+    /** How much the backdrop dims the screen under the menu, from 0 (not at all) to 1 */
+    backdropOpacity?: number;
+
     /** Whether we want to avoid the safari exception of ignoring shouldCallAfterModalHide  */
     shouldAvoidSafariException?: boolean;
 
@@ -414,6 +417,7 @@ function BasePopoverMenu({
     shouldUpdateFocusedIndex = true,
     shouldUseModalPaddingStyle,
     shouldAddSideSafeAreaPadding,
+    backdropOpacity,
     shouldAvoidSafariException = false,
     shouldMaintainFocusAfterSubItemSelect: shouldPreserveFocusOnSubItems = true,
     enableEdgeToEdgeBottomSafeAreaPadding,
@@ -906,6 +910,7 @@ function BasePopoverMenu({
             innerContainerStyle={{...styles.pv0, ...innerContainerStyle}}
             shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}
             shouldAddSideSafeAreaPadding={shouldAddSideSafeAreaPadding}
+            backdropOpacity={backdropOpacity}
             shouldHandleNavigationBack={shouldHandleNavigationBack}
             testID={testID}
             shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={!shouldUseScrollView}
