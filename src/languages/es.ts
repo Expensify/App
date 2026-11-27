@@ -2134,7 +2134,9 @@ const translations: TranslationDeepObject<typeof en> = {
         missingABADepositAccount: ({name}: {name: string}) => `${name} no tiene una cuenta bancaria en AUD. Pídele que añada una y vuelve a intentarlo.`,
         submittersMissingABADepositAccount: 'Uno o más remitentes no tienen una cuenta bancaria en AUD. Pídeles que añadan una y vuelve a intentarlo.',
         waitForABAFile: 'Espera mientras generamos el archivo ABA.',
-        successABAFile: '¡Tu archivo ABA se ha generado! Si no se descargó automáticamente, utiliza el botón de abajo.',
+        successABAFile: '¡Tu archivo ABA se ha generado! Si no se descargó automáticamente, usa el botón de abajo.',
+        reportsWithNothingToPayViaABA: 'Uno o más informes no tienen nada que pagar, por lo que no se incluyeron en el archivo ABA.',
+        reportsLeftOutOfABAFile: 'Uno o más informes no se incluyeron en el archivo ABA. Por favor, inténtalo de nuevo más tarde.',
     },
     transactionMerge: {
         listPage: {
