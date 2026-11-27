@@ -1,3 +1,6 @@
+/**
+ * Explains how a new distance rate is calculated, shown at the bottom of Add rate.
+ */
 import Icon from '@components/Icon';
 import SkeletonTextLine from '@components/Skeletons/SkeletonTextLine';
 import Text from '@components/Text';
@@ -60,7 +63,6 @@ function SummaryLine({icon, children}: SummaryLineProps) {
     );
 }
 
-/** Explains how a new distance rate is calculated, shown at the bottom of Add rate. */
 function DistanceRateCalculationSummary({unit, currency, governmentRateCountry, governmentRate}: DistanceRateCalculationSummaryProps) {
     const styles = useThemeStyles();
     const {translate, dateFnsLocale} = useLocalize();
