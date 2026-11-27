@@ -461,6 +461,9 @@ const ONYXKEYS = {
     /** The user's bank accounts */
     BANK_ACCOUNT_LIST: 'bankAccountList',
 
+    /** The workspaces of one owner the user can take over billing for together */
+    BILLING_TAKEOVER_POLICIES: 'billingTakeoverPolicies',
+
     /** The user's payment and P2P cards */
     FUND_LIST: 'fundList',
 
@@ -1973,6 +1976,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.WALLET_ADDITIONAL_DETAILS]: OnyxTypes.WalletAdditionalDetails;
     [ONYXKEYS.WALLET_TERMS]: OnyxTypes.WalletTerms;
     [ONYXKEYS.BANK_ACCOUNT_LIST]: OnyxTypes.BankAccountList;
+    [ONYXKEYS.BILLING_TAKEOVER_POLICIES]: OnyxTypes.BillingTakeoverPolicies;
     [ONYXKEYS.FUND_LIST]: OnyxTypes.FundList;
     [ONYXKEYS.CARD_SUPPORTED_COUNTRIES]: Record<string, string[]>;
     [ONYXKEYS.CARD_LIST]: OnyxTypes.CardList;

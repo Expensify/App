@@ -8489,6 +8489,24 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             successDescription: '您现在是此工作区的所有者。',
             errorTitle: '哎呀！先别急……',
             errorDescription: `<muted-text><centered-text>转移此工作区的所有权时出现问题。请重试，或<concierge-link>联系 Concierge</concierge-link>获取帮助。</centered-text></muted-text>`,
+            takeOverAllWorkspacesTitle: '接管工作区',
+            takeOverAllWorkspacesText: ({ownerName}: {ownerName: string}) => ({
+                one: `${ownerName} 拥有 1 个你是管理员的工作区。你想接管它吗？`,
+                other: (count: number) => `${ownerName} 拥有 ${count} 个你是管理员的工作区。你想接管所有这些工作区，还是只接管这个？`,
+            }),
+            takeOverAllWorkspacesButtonText: () => ({
+                one: '是的，接管它',
+                other: (count: number) => `是的，全部 ${count} 个`,
+            }),
+            takeOverThisWorkspaceButtonText: '不，就这一个',
+            successAllWorkspacesDescription: () => ({
+                one: '几分钟后，您将成为此工作区的所有者。',
+                other: (count: number) => `几分钟后，您将成为全部 ${count} 个工作区的所有者。`,
+            }),
+            takeOverAllWorkspacesSubscriptionText: ({finalCount}: {finalCount: number}) => ({
+                one: `接管所有这些工作区后，所有者的年度订阅将与您的订阅合并。这会使您的订阅人数增加 1 名成员，新的订阅人数将为 ${finalCount}。`,
+                other: (count: number) => `接管所有这些工作区后，所有者的年度订阅将与您的订阅合并。这会使您的订阅人数增加 ${count} 名成员，新的订阅人数将为 ${finalCount}。`,
+            }),
         },
         exportAgainModal: {
             title: '小心！',

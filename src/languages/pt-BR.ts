@@ -8822,6 +8822,25 @@ Se você quiser assumir a cobrança de toda a assinatura deles, peça para que a
             successDescription: 'Agora você é o proprietário deste workspace.',
             errorTitle: 'Opa! Não tão rápido...',
             errorDescription: `<muted-text><centered-text>Houve um problema ao transferir a propriedade deste workspace. Tente novamente ou <concierge-link>entre em contato com o Concierge</concierge-link> para obter ajuda.</centered-text></muted-text>`,
+            takeOverAllWorkspacesTitle: 'Assumir espaços de trabalho',
+            takeOverAllWorkspacesText: ({ownerName}: {ownerName: string}) => ({
+                one: `${ownerName} é proprietário de 1 espaço de trabalho no qual você é admin. Quer assumi-lo?`,
+                other: (count: number) => `${ownerName} é proprietário de ${count} espaços de trabalho em que você é admin. Você quer assumir todos eles ou só este?`,
+            }),
+            takeOverAllWorkspacesButtonText: () => ({
+                one: 'Sim, assumir',
+                other: (count: number) => `Sim, todos os ${count}`,
+            }),
+            takeOverThisWorkspaceButtonText: 'Não, só este',
+            successAllWorkspacesDescription: () => ({
+                one: 'Você será o proprietário deste espaço de trabalho em alguns minutos.',
+                other: (count: number) => `Você será o proprietário de todos os ${count} espaços de trabalho em alguns minutos.`,
+            }),
+            takeOverAllWorkspacesSubscriptionText: ({finalCount}: {finalCount: number}) => ({
+                one: `Assumir todos eles vai unir a assinatura anual do proprietário à sua. Isso vai aumentar o tamanho da sua assinatura em 1 membro, fazendo com que o novo tamanho da sua assinatura seja ${finalCount}.`,
+                other: (count: number) =>
+                    `Assumir todos eles vai unir a assinatura anual do proprietário à sua. Isso vai aumentar o tamanho da sua assinatura em ${count} membros, fazendo com que o novo tamanho da sua assinatura seja ${finalCount}.`,
+            }),
         },
         exportAgainModal: {
             title: 'Cuidado!',

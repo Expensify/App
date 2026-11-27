@@ -8804,6 +8804,25 @@ Als je de facturering voor hun volledige abonnement wilt overnemen, laat hen je 
             successDescription: 'Je bent nu de eigenaar van deze werkruimte.',
             errorTitle: 'Oeps! Niet zo snel...',
             errorDescription: `<muted-text><centered-text>Er is een probleem opgetreden bij het overdragen van het eigendom van deze werkruimte. Probeer het opnieuw of <concierge-link>neem contact op met Concierge</concierge-link> voor hulp.</centered-text></muted-text>`,
+            takeOverAllWorkspacesTitle: 'Werkruimtes overnemen',
+            takeOverAllWorkspacesText: ({ownerName}: {ownerName: string}) => ({
+                one: `${ownerName} is eigenaar van 1 werkruimte waar jij beheerder bent. Wil je die overnemen?`,
+                other: (count: number) => `${ownerName} is eigenaar van ${count} werkruimtes waar jij beheerder bent. Wil je ze allemaal overnemen, of alleen deze?`,
+            }),
+            takeOverAllWorkspacesButtonText: () => ({
+                one: 'Ja, overnemen',
+                other: (count: number) => `Ja, alle ${count}`,
+            }),
+            takeOverThisWorkspaceButtonText: 'Nee, alleen deze',
+            successAllWorkspacesDescription: () => ({
+                one: 'Je bent over een paar minuten de eigenaar van deze werkruimte.',
+                other: (count: number) => `Je wordt over een paar minuten de eigenaar van alle ${count} werkruimtes.`,
+            }),
+            takeOverAllWorkspacesSubscriptionText: ({finalCount}: {finalCount: number}) => ({
+                one: `Als je ze allemaal overneemt, wordt het jaarabonnement van de eigenaar samengevoegd met dat van jou. Hierdoor wordt je abonnement met 1 lid vergroot en wordt je nieuwe abonnementsomvang ${finalCount}.`,
+                other: (count: number) =>
+                    `Als je ze allemaal overneemt, wordt het jaarabonnement van de eigenaar samengevoegd met dat van jou. Hierdoor wordt je abonnement met ${count} leden vergroot en wordt je nieuwe abonnementsomvang ${finalCount}.`,
+            }),
         },
         exportAgainModal: {
             title: 'Voorzichtig!',

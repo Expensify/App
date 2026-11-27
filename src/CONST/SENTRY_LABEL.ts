@@ -1973,6 +1973,10 @@ const SENTRY_LABEL = {
             ROLE_FEEDBACK_CONCIERGE_LINK: 'WorkspaceMembers-RoleFeedbackConciergeLink',
             CONFIGURE_HR_SYNC_LINK: 'WorkspaceMembers-ConfigureHRSyncLink',
         },
+        OWNER_CHANGE: {
+            TAKE_OVER_ALL_WORKSPACES: 'WorkspaceOwnerChange-TakeOverAllWorkspaces',
+            TAKE_OVER_THIS_WORKSPACE: 'WorkspaceOwnerChange-TakeOverThisWorkspace',
+        },
         CATEGORIES: {
             ROW: 'WorkspaceCategories-Row',
             BULK_ACTIONS: {

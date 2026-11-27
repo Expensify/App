@@ -4,9 +4,11 @@ import {getImportFailedFinalModal} from '@libs/actions/ImportSpreadsheet';
 import * as API from '@libs/API';
 import type {
     AddMembersToWorkspaceParams,
+    CheckBulkTransferPolicyBillingOwnerParams,
     DeleteMembersFromWorkspaceParams,
     OpenPolicyMemberProfilePageParams,
     OpenWorkspaceMembersPageParams,
+    QueueBulkTransferPolicyBillingOwnerParams,
     RequestWorkspaceOwnerChangeParams,
     UpdatePolicyMemberDisplayNameParams,
     UpdateWorkspaceMembersRoleParams,
@@ -861,6 +863,93 @@ function requestWorkspaceOwnerChange(policy: OnyxEntry<Policy>, currentUserAccou
     API.write(WRITE_COMMANDS.REQUEST_WORKSPACE_OWNER_CHANGE, params, {optimisticData, successData, failureData});
 }
 
+/**
+ * Saves in billingTakeoverPolicies which of the listed workspaces the user can take over billing for together.
+ */
+function checkBulkTransferPolicyBillingOwner(policyIDs: string[], checkID: string) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.BILLING_TAKEOVER_POLICIES>> = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.BILLING_TAKEOVER_POLICIES,
+            value: {checkID, isLoading: true},
+        },
+    ];
+
+    // The server sets the answer without the checkID, so it's added back here.
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.BILLING_TAKEOVER_POLICIES>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.BILLING_TAKEOVER_POLICIES,
+            value: {checkID, isLoading: false},
+        },
+    ];
+
+    // Without an answer the transfer continues with this workspace only.
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.BILLING_TAKEOVER_POLICIES>> = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.BILLING_TAKEOVER_POLICIES,
+            value: {checkID, policyIDs: [], isLoading: false},
+        },
+    ];
+
+    const params: CheckBulkTransferPolicyBillingOwnerParams = {policyIDList: policyIDs.join(',')};
+
+    API.read(READ_COMMANDS.CHECK_BULK_TRANSFER_POLICY_BILLING_OWNER, params, {optimisticData, successData, failureData});
+}
+
+/**
+ * Answers the check with none of the workspaces when it can't reach the server, so the transfer continues with this workspace only.
+ */
+function skipBulkTransferPolicyBillingOwnerCheck(checkID: string) {
+    Onyx.set(ONYXKEYS.BILLING_TAKEOVER_POLICIES, {checkID, policyIDs: [], isLoading: false});
+}
+
+/**
+ * Takes over billing for every listed workspace from the transfer flow of policyID.
+ */
+function queueBulkTransferPolicyBillingOwner(policyID: string, policyIDs: string[], shouldTransferSubscription: boolean) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                errorFields: null,
+                isLoading: true,
+                isChangeOwnerSuccessful: false,
+                isChangeOwnerFailed: false,
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                isLoading: false,
+                isChangeOwnerSuccessful: true,
+                changeOwnerPolicyCount: policyIDs.length,
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                isLoading: false,
+                isChangeOwnerFailed: true,
+            },
+        },
+    ];
+
+    const params: QueueBulkTransferPolicyBillingOwnerParams = {policyIDList: policyIDs.join(','), shouldTransferSubscription};
+
+    API.write(WRITE_COMMANDS.QUEUE_BULK_TRANSFER_POLICY_BILLING_OWNER, params, {optimisticData, successData, failureData});
+}
+
 function clearWorkspaceOwnerChangeFlow(policyID: string | undefined) {
     if (!policyID) {
         return;
@@ -872,6 +961,7 @@ function clearWorkspaceOwnerChangeFlow(policyID: string | undefined) {
         isLoading: false,
         isChangeOwnerSuccessful: false,
         isChangeOwnerFailed: false,
+        changeOwnerPolicyCount: null,
     });
 }
 
@@ -1776,6 +1866,9 @@ export {
     buildUpdateWorkspaceMembersRoleOnyxData,
     updateWorkspaceMembersRole,
     requestWorkspaceOwnerChange,
+    checkBulkTransferPolicyBillingOwner,
+    skipBulkTransferPolicyBillingOwnerCheck,
+    queueBulkTransferPolicyBillingOwner,
     clearWorkspaceOwnerChangeFlow,
     buildAddMembersToWorkspaceOnyxData,
     addMembersToWorkspace,

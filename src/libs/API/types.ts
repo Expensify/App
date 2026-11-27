@@ -407,6 +407,7 @@ const WRITE_COMMANDS = {
     CREATE_POLICY_DISTANCE_RATE: 'CreatePolicyDistanceRate',
     REQUEST_WORKSPACE_OWNER_CHANGE: 'RequestWorkspaceOwnerChange',
     ADD_BILLING_CARD_AND_REQUEST_WORKSPACE_OWNER_CHANGE: 'AddBillingCardAndRequestPolicyOwnerChange',
+    QUEUE_BULK_TRANSFER_POLICY_BILLING_OWNER: 'QueueBulkTransferPolicyBillingOwner',
     SET_POLICY_DISTANCE_RATES_UNIT: 'SetPolicyDistanceRatesUnit',
     SET_WORKSPACE_DISTANCE_AUTO_UPDATE: 'SetWorkspaceDistanceAutoUpdate',
     SET_CUSTOM_UNIT_DEFAULT_CATEGORY: 'SetCustomUnitDefaultCategory',
@@ -1186,6 +1187,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.CREATE_POLICY_DISTANCE_RATE]: Parameters.CreatePolicyDistanceRateParams;
     [WRITE_COMMANDS.REQUEST_WORKSPACE_OWNER_CHANGE]: Parameters.RequestWorkspaceOwnerChangeParams;
     [WRITE_COMMANDS.ADD_BILLING_CARD_AND_REQUEST_WORKSPACE_OWNER_CHANGE]: Parameters.AddBillingCardAndRequestWorkspaceOwnerChangeParams;
+    [WRITE_COMMANDS.QUEUE_BULK_TRANSFER_POLICY_BILLING_OWNER]: Parameters.QueueBulkTransferPolicyBillingOwnerParams;
     [WRITE_COMMANDS.RENAME_POLICY_TAX]: Parameters.RenamePolicyTaxParams;
     [WRITE_COMMANDS.UPDATE_POLICY_TAX_CODE]: Parameters.UpdatePolicyTaxCodeParams;
     [WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_UNIT]: Parameters.SetPolicyDistanceRatesUnitParams;
@@ -1818,6 +1820,7 @@ const READ_COMMANDS = {
     OPEN_POLICY_HR_PAGE: 'OpenPolicyHRPage',
     OPEN_POLICY_RECRUITING_PAGE: 'OpenPolicyRecruitingPage',
     OPEN_POLICY_PROFILE_PAGE: 'OpenPolicyProfilePage',
+    CHECK_BULK_TRANSFER_POLICY_BILLING_OWNER: 'CheckBulkTransferPolicyBillingOwner',
     OPEN_DUPLICATE_POLICY_PAGE: 'OpenDuplicatePolicyPage',
     OPEN_POLICY_INITIAL_PAGE: 'OpenPolicyInitialPage',
     OPEN_SUBSCRIPTION_PAGE: 'OpenSubscriptionPage',
@@ -1950,6 +1953,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.OPEN_POLICY_COMPANY_CARDS_FEED]: Parameters.OpenPolicyCompanyCardsFeedParams;
     [READ_COMMANDS.OPEN_POLICY_EDIT_CARD_LIMIT_TYPE_PAGE]: Parameters.OpenPolicyEditCardLimitTypePageParams;
     [READ_COMMANDS.OPEN_POLICY_PROFILE_PAGE]: Parameters.OpenPolicyProfilePageParams;
+    [READ_COMMANDS.CHECK_BULK_TRANSFER_POLICY_BILLING_OWNER]: Parameters.CheckBulkTransferPolicyBillingOwnerParams;
     [READ_COMMANDS.OPEN_DUPLICATE_POLICY_PAGE]: Parameters.OpenDuplicatePolicyPageParams;
     [READ_COMMANDS.OPEN_POLICY_INITIAL_PAGE]: Parameters.OpenPolicyInitialPageParams;
     [READ_COMMANDS.OPEN_POLICY_RECEIPT_PARTNERS_PAGE]: Parameters.OpenPolicyReceiptPartnersPageParams;

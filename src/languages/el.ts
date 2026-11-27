@@ -9168,6 +9168,25 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             successDescription: 'Είστε πλέον ο ιδιοκτήτης αυτού του χώρου εργασίας.',
             errorTitle: 'Ουπς! Όχι τόσο γρήγορα...',
             errorDescription: `<muted-text><centered-text>Παρουσιάστηκε πρόβλημα κατά τη μεταφορά της ιδιοκτησίας αυτού του χώρου εργασίας. Δοκιμάστε ξανά ή <concierge-link>επικοινωνήστε με το Concierge</concierge-link> για βοήθεια.</centered-text></muted-text>`,
+            takeOverAllWorkspacesTitle: 'Αναλάβετε χώρους εργασίας',
+            takeOverAllWorkspacesText: ({ownerName}: {ownerName: string}) => ({
+                one: `Ο/Η ${ownerName} είναι κάτοχος 1 χώρου εργασίας όπου είστε διαχειριστής. Θέλετε να τον αναλάβετε;`,
+                other: (count: number) => `Ο/Η ${ownerName} είναι κάτοχος ${count} χώρων εργασίας στους οποίους είστε διαχειριστής. Θέλετε να αναλάβετε όλους ή μόνο αυτόν;`,
+            }),
+            takeOverAllWorkspacesButtonText: () => ({
+                one: 'Ναι, αναλάβετέ τον',
+                other: (count: number) => `Ναι, και τους ${count}`,
+            }),
+            takeOverThisWorkspaceButtonText: 'Όχι, μόνο αυτόν',
+            successAllWorkspacesDescription: () => ({
+                one: 'Θα γίνετε ο κάτοχος αυτού του χώρου εργασίας σε λίγα λεπτά.',
+                other: (count: number) => `Θα γίνετε ο κάτοχος και των ${count} χώρων εργασίας σε λίγα λεπτά.`,
+            }),
+            takeOverAllWorkspacesSubscriptionText: ({finalCount}: {finalCount: number}) => ({
+                one: `Αν τους αναλάβετε όλους, η ετήσια συνδρομή του κατόχου θα συγχωνευτεί με τη δική σας. Αυτό θα αυξήσει το μέγεθος της συνδρομής σας κατά 1 μέλος, κάνοντας το νέο μέγεθος της συνδρομής σας ${finalCount}.`,
+                other: (count: number) =>
+                    `Αν τους αναλάβετε όλους, η ετήσια συνδρομή του κατόχου θα συγχωνευτεί με τη δική σας. Αυτό θα αυξήσει το μέγεθος της συνδρομής σας κατά ${count} μέλη, κάνοντας το νέο μέγεθος της συνδρομής σας ${finalCount}.`,
+            }),
         },
         exportAgainModal: {
             title: 'Προσοχή!',
