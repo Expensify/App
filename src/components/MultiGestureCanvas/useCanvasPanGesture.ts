@@ -119,6 +119,9 @@ const useCanvasPanGesture = ({
 
         // If the content is centered within the canvas, we don't need to run any animations
         if (offsetX.get() === 0 && offsetY.get() === 0 && panTranslateX.get() === 0 && panTranslateY.get() === 0) {
+            // No animation runs here, so nothing else would end a swipe down that never moved the content.
+            // Leaving it set blocks horizontal panning and paging in the carousel until the page is reloaded.
+            isSwipingDownToClose.set(false);
             return;
         }
 
@@ -145,6 +148,9 @@ const useCanvasPanGesture = ({
         }
 
         if (isInVerticalBoundary) {
+            // Only the spring animations below end a swipe down, and none of them runs on this path
+            isSwipingDownToClose.set(false);
+
             // If the (absolute) velocity is 0, we don't need to run an animation
             if (Math.abs(panVelocityY.get()) !== 0) {
                 // Phase out the pan animation
@@ -195,6 +201,13 @@ const useCanvasPanGesture = ({
             // We only allow panning when the content is zoomed in
             if (zoomScale.get() > 1 && !shouldDisableTransformationGestures.get()) {
                 GestureStateManager.activate(evt.handlerTag);
+            }
+
+            // Swipe down to close is a one-finger gesture. With two fingers down the user is pinching,
+            // and the first finger moving down during a slow vertical pinch must not start a swipe.
+            if (evt.numberOfTouches > 1) {
+                previousTouch.set(null);
+                return;
             }
 
             // TODO: this needs tuning to work properly
@@ -255,6 +268,8 @@ const useCanvasPanGesture = ({
 
             // If we are swiping (in the pager), we don't want to return to boundaries
             if (shouldDisableTransformationGestures.get()) {
+                // finishPanGesture is skipped here, so the swipe down has to be ended explicitly
+                isSwipingDownToClose.set(false);
                 return;
             }
 

@@ -8,6 +8,7 @@ type FABMenuContextType = {
     registeredItems: readonly string[];
     registerItem: (id: string) => void;
     unregisterItem: (id: string) => void;
+    shouldShowIconTiles: boolean;
 };
 
 const FABMenuContext = createContext<FABMenuContextType>({
@@ -18,6 +19,7 @@ const FABMenuContext = createContext<FABMenuContextType>({
     registeredItems: [],
     registerItem: () => {},
     unregisterItem: () => {},
+    shouldShowIconTiles: false,
 });
 
 function useFABMenuContext() {

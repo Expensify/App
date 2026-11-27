@@ -25,9 +25,12 @@ type CategoryCellProps = TransactionDataCellProps &
 
         /** The account the expense belongs to, passed only when the current user owns it, so the picker lists just their categories */
         ownerAccountID?: number;
+
+        /** The account the expense belongs to, passed when someone else owns it, so the picker splits the categories by what that member can use */
+        submitterAccountID?: number;
     };
 
-function CategoryCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem, canEdit, onSave, policyID, ownerAccountID}: CategoryCellProps) {
+function CategoryCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem, canEdit, onSave, policyID, ownerAccountID, submitterAccountID}: CategoryCellProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Folder']);
     const styles = useThemeStyles();
 
@@ -85,6 +88,7 @@ function CategoryCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem
                     shouldSwitchPositionIfOverflow={false}
                     onSelected={handleCategorySelected}
                     ownerAccountID={ownerAccountID}
+                    submitterAccountID={submitterAccountID}
                 />
             }
         >
