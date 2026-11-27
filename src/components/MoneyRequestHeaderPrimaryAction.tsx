@@ -20,8 +20,9 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getTransactionThreadPrimaryAction} from '@libs/ReportPrimaryActionUtils';
+import {isReportOwner} from '@libs/ReportUtils';
 import {getReviewNavigationRoute} from '@libs/TransactionPreviewUtils';
-import {removeSettledAndApprovedTransactions} from '@libs/TransactionUtils/duplicates';
+import {hasMultipleCardImports, removeSettledAndApprovedTransactions} from '@libs/TransactionUtils/duplicates';
 
 import {markAsCash as markAsCashAction} from '@userActions/Transaction';
 
@@ -91,8 +92,10 @@ function MoneyRequestHeaderPrimaryAction({reportID}: MoneyRequestHeaderPrimaryAc
     // The violation can list this expense or the same ID twice, while the loaded duplicates are keyed and exclude this expense.
     const expectedDuplicateIDs = new Set(duplicateTransactionIDs.filter((id) => id !== transaction?.transactionID));
     const {hasUnloadedReport: hasUnloadedDuplicateReport, hasSettledOrApprovedReport: hasSettledOrApprovedDuplicate} = useDuplicateReportsStatus(loadedDuplicateTransactions);
-    // Same rule as Keep selected on the review page: a duplicate that is missing, approved or paid is left out of the merge and Confirm fails.
-    const canKeepThisOne = !hasUnloadedDuplicateReport && !hasSettledOrApprovedDuplicate && loadedDuplicateTransactions.length >= expectedDuplicateIDs.size;
+    // Same rule as Keep selected on the review page: a duplicate that is missing, approved or paid is left out of the merge and
+    // Confirm fails, and Auth rejects the owner's merge of two card expenses
+    const isCardMergeBlocked = isReportOwner(parentReport, accountID) && hasMultipleCardImports([transaction, ...loadedDuplicateTransactions]);
+    const canKeepThisOne = !hasUnloadedDuplicateReport && !hasSettledOrApprovedDuplicate && loadedDuplicateTransactions.length >= expectedDuplicateIDs.size && !isCardMergeBlocked;
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
