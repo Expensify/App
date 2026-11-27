@@ -228,6 +228,24 @@ describe('Middleware', () => {
                 expect((await getOnyxValue(transactionKey))?.comment?.comment).toBe('new');
             });
 
+            test('applies a SearchForTodos response once the READ was sent again the maximum number of times', async () => {
+                // Given a SearchForTodos READ where a new WRITE is made while every send of it is in flight, as when ReadNewestAction keeps firing on a busy report
+                const readRequest = prepareRequest(READ_COMMANDS.SEARCH_FOR_TODOS, CONST.API_REQUEST_TYPE.READ, null);
+                const xhrSpy = jest.spyOn(HttpUtils, 'xhr').mockImplementation(() => {
+                    prepareWrite();
+                    return Promise.resolve(buildResponse('old'));
+                });
+
+                // When the READ is sent and every response is older than the latest WRITE
+                processRequest(readRequest, CONST.API_REQUEST_TYPE.READ);
+                await waitForBatchedUpdates();
+                await waitForNetworkPromises();
+
+                // Then the READ is sent again only twice, so it cannot loop forever, and the last response is applied like any other READ response
+                expect(xhrSpy).toHaveBeenCalledTimes(3);
+                expect((await getOnyxValue(transactionKey))?.comment?.comment).toBe('old');
+            });
+
             test('applies a SearchForTodos response sent after the latest WRITE', async () => {
                 // Given a SearchForTodos READ that is sent after the user's edit, so the server already has it
                 prepareWrite();

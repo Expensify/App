@@ -116,6 +116,9 @@ type RequestDataBase<TKey extends OnyxKey> = {
 
     /** The requestIndex of the newest WRITE prepared when this READ was sent, used to tell whether its response is older than a later WRITE */
     latestWriteRequestIndexWhenSent?: number;
+
+    /** How many times this READ was sent again because its response was older than a later WRITE */
+    staleReadResendCount?: number;
 };
 
 /** Model of overall requests sent to the API */
