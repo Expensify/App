@@ -40,6 +40,8 @@ Insights summarize spending data, while **Spend** lets you review individual exp
 
 To explore the expenses behind an insight, select **More (⋮)** on the visualization, then select **View on Spend**. This opens the related results in **Spend**, where you can review individual expenses, apply additional filters, and use grouping options to analyze spending from different perspectives.
 
+If you're a workspace admin or auditor for a workspace on the Control plan, select a chart point or table row in **Insights > Compliance** to open **Details** and review **Flagged expenses** with their violations. Select **View all** to open the matching expenses in **Spend**.
+
 [Learn how to use search operators to analyze spend](/articles/new-expensify/reports-and-expenses/Using-search-operators).
 
 ## How to change how insight data is displayed
