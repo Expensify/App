@@ -5,6 +5,7 @@ import {
     getCategoryNameError,
     getDecodedFullCategoryName,
     getDecodedLeafCategoryName,
+    getMemberCategoryVisibilityPatches,
     getMemberDefaultCategory,
     getMemberVisibleCategoryNames,
     getMembersWithoutVisibleCategories,
@@ -655,6 +656,53 @@ describe('getMembersWithoutVisibleCategories', () => {
 
         // Then no one is blocked, so the check needs no beta
         expect(members).toEqual([]);
+    });
+});
+
+describe('getMemberCategoryVisibilityPatches', () => {
+    const alice = 1;
+    const bob = 2;
+    const carol = 3;
+
+    // Alice and Bob are members, Fuel is limited to Alice, Meals and Travel are open to everyone, and Office is disabled.
+    const policyCategories: PolicyCategories = {
+        Fuel: {name: 'Fuel', enabled: true, visibleTo: buildVisibleTo(alice)},
+        Meals: {name: 'Meals', enabled: true, visibleTo: null},
+        Travel: {name: 'Travel', enabled: true},
+        Office: {name: 'Office', enabled: false, visibleTo: null},
+    };
+
+    it('patches only what changes for a member limited to some categories', () => {
+        // Given Carol should only use Fuel and Meals
+        // When the patches are worked out
+        const patches = getMemberCategoryVisibilityPatches(policyCategories, [carol], ['Fuel', 'Meals'], [alice, bob]);
+
+        // Then Carol is added to Fuel, Travel is limited to everyone else, Meals stays open, and the disabled Office is left alone
+        expect(patches).toEqual({
+            Fuel: {optimisticVisibleTo: buildVisibleTo(carol), failureVisibleTo: {[carol]: null}},
+            Travel: {optimisticVisibleTo: buildVisibleTo(alice, bob), failureVisibleTo: null},
+        });
+    });
+
+    it('removes a member from a category they lose and keeps them out of the other members list', () => {
+        // Given Alice should no longer use Fuel, only Meals
+        // When the patches are worked out
+        const patches = getMemberCategoryVisibilityPatches(policyCategories, [alice], ['Meals'], [alice, bob]);
+
+        // Then Alice is removed from Fuel with null, since visibleTo is merged, and Travel is limited to Bob alone
+        expect(patches).toEqual({
+            Fuel: {optimisticVisibleTo: {[alice]: null}, failureVisibleTo: buildVisibleTo(alice)},
+            Travel: {optimisticVisibleTo: buildVisibleTo(bob), failureVisibleTo: null},
+        });
+    });
+
+    it('returns nothing when the member can already use exactly those categories', () => {
+        // Given Alice can use every enabled category
+        // When she's given every enabled category again
+        const patches = getMemberCategoryVisibilityPatches(policyCategories, [alice], ['Fuel', 'Meals', 'Travel'], [alice, bob]);
+
+        // Then no category changes
+        expect(patches).toEqual({});
     });
 });
 

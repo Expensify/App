@@ -14,7 +14,9 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {ScrollViewProps, ViewStyle} from 'react-native';
+import getSpacing from '@libs/getSpacing';
+
+import type {ScrollViewProps} from 'react-native';
 
 import {useContext} from 'react';
 import {StyleSheet} from 'react-native';
@@ -36,19 +38,6 @@ type HorizontalSafeAreaBleed = ScrollViewStyles & {
 };
 
 type HorizontalSafeAreaBleedProps = ScrollViewStyles & Pick<ScrollViewProps, 'horizontal'>;
-
-type SpacingKey = keyof Pick<ViewStyle, 'margin' | 'marginHorizontal' | 'marginLeft' | 'marginRight' | 'padding' | 'paddingHorizontal' | 'paddingLeft' | 'paddingRight'>;
-
-/** The spacing a style sets on one side, from the most to the least specific key. */
-function getSpacing(style: ViewStyle, keys: SpacingKey[]): number {
-    for (const key of keys) {
-        const value = style[key];
-        if (typeof value === 'number') {
-            return value;
-        }
-    }
-    return 0;
-}
 
 function useHorizontalSafeAreaBleed({style, contentContainerStyle, horizontal}: HorizontalSafeAreaBleedProps): HorizontalSafeAreaBleed {
     const styles = useThemeStyles();
