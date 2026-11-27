@@ -24,7 +24,6 @@ import {
 } from '@components/Navigation/SearchSidebarCollapseStore';
 import useSupportalSwitcherVisibility from '@components/Navigation/SupportalSwitcher/useSupportalSwitcherVisibility';
 import ScrollView from '@components/ScrollView';
-import {useSearchQueryContext} from '@components/Search/SearchContext';
 
 import useAccountTabIndicatorStatus from '@hooks/useAccountTabIndicatorStatus';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -76,7 +75,6 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Home', 'Inbox', 'ReceiptMultiple', 'PieChart', 'Buildings']);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {isCollapsed, isPeeking, isVisuallyCollapsed, toggleSidebar, startPeek, endPeek} = useSearchSidebarCollapse(COLLAPSE_SURFACE.NAVIGATION_BAR);
-    const {currentSearchKey} = useSearchQueryContext();
 
     const {status: inboxStatus, indicatorColor: inboxIndicatorColor} = useInboxTabIndicatorStatus();
     const {status: workspacesStatus, indicatorColor: workspacesIndicatorColor} = useWorkspacesTabIndicatorStatus();
@@ -262,8 +260,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                             isCollapsed={isVisuallyCollapsed}
                                             label={translate('common.spend')}
                                             icon={icons.ReceiptMultiple}
-                                            // While a search of the open subnav is selected, the subnav marks it, so the Spend row does not.
-                                            isSelected={selectedTab === NAVIGATION_TABS.SEARCH && (isVisuallyCollapsed || !currentSearchKey)}
+                                            isSelected={selectedTab === NAVIGATION_TABS.SEARCH}
                                             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.REPORTS}
                                             onPress={navigateToSearch}
                                             linkRoute={getSignedInLinkRoute(storedSearchTabRoute)}
