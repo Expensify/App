@@ -209,6 +209,14 @@ describe('WorkspaceWorkflowsPageRevamp - bank account row', () => {
             expect.objectContaining({conciergeReportID: CONCIERGE_REPORT_ID, isSelfTourViewed: true, hasCompletedGuidedSetupFlow: false}),
         );
         await expect(getInitiatingBankAccountUnlock()).resolves.toEqual(expect.objectContaining({bankAccountIDToUnlock: BANK_ACCOUNT_ID}));
+
+        // When the reimburser presses Unlock again
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('walletPage.bankAccountStatus.unlock')));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the saved request time stops a second request, so Concierge isn't opened again
+        expect(await screen.findByText(TestHelper.translateLocal('bankAccount.unlockAlreadyRequestedTitle'))).toBeOnTheScreen();
+        expect(mockNavigateToConciergeChat).toHaveBeenCalledTimes(1);
     });
 
     it('does not offer the unlock action offline to someone who is not the reimburser', async () => {

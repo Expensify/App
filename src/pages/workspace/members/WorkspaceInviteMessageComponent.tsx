@@ -240,7 +240,6 @@ function WorkspaceInviteMessageComponent({
             return;
         }
 
-        const approvalWorkflow = await Onyx.get(ONYXKEYS.APPROVAL_WORKFLOW);
         const filteredReportActions = getAllPolicyExpenseChatReportActions(allReports, allReportActions);
         const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails, false, false));
         // Unlike the announce room, category visibility includes members with errors, so limiting the invitees doesn't take
@@ -281,6 +280,7 @@ function WorkspaceInviteMessageComponent({
         }
 
         if (isWorkflowApprovalExpensesFromRoute) {
+            const approvalWorkflow = await Onyx.get(ONYXKEYS.APPROVAL_WORKFLOW);
             const nestedBackTo = getSearchParamFromPath(backTo?.toString() ?? '', 'backTo');
             if (nestedBackTo) {
                 Navigation.goBack(nestedBackTo as Routes);
