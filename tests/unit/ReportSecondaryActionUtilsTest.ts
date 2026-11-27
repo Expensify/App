@@ -3955,6 +3955,173 @@ describe('getSecondaryAction', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(false);
     });
 
+    describe('CANCEL_PAYMENT for undoing a Received payment confirmation on a Submit workspace', () => {
+        const PAY_ACTION_ID = 'received_payment_action_id';
+
+        // Submit workspaces are created with payments turned off, so nobody passes the payer checks there.
+        const policy = createMock<Policy>({
+            id: POLICY_ID,
+            type: CONST.POLICY.TYPE.SUBMIT,
+            role: CONST.POLICY.ROLE.EDITOR,
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+        });
+        const paidReport = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            policyID: POLICY_ID,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            managerID: MANAGER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+        });
+
+        function buildPayAction(isSubmitterMarkedPaymentReceived: boolean): ReportAction {
+            return createMock<ReportAction>({
+                reportActionID: PAY_ACTION_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: EMPLOYEE_ACCOUNT_ID,
+                message: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, isSubmitterMarkedPaymentReceived},
+                created: '2026-01-01 00:00:00.000',
+            });
+        }
+
+        // Another member paying the report elsewhere, an hour before the submitter's confirmation
+        const otherMemberPayAction = createMock<ReportAction>({
+            reportActionID: 'other_member_pay_action_id',
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            actorAccountID: MANAGER_ACCOUNT_ID,
+            message: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE},
+            created: '2025-12-31 22:00:00.000',
+        });
+
+        async function getActions(report: Report, payAction: ReportAction, viewerPolicy: Policy = policy, earlierActions: ReportAction[] = []) {
+            // beforeEach's Onyx.clear isn't awaited, so clear again before seeding the actions read from Onyx.
+            await Onyx.clear();
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
+                ...Object.fromEntries(earlierActions.map((action) => [action.reportActionID, action])),
+                [PAY_ACTION_ID]: payAction,
+            });
+            await waitForBatchedUpdates();
+
+            return getSecondaryReportActions({
+                currentUserLogin: EMPLOYEE_EMAIL,
+                currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+                submitterLogin: EMPLOYEE_EMAIL,
+                report,
+                chatReport,
+                reportTransactions: [],
+                originalTransaction: createMock<Transaction>({}),
+                violations: {},
+                bankAccountList: {},
+                policy: viewerPolicy,
+                reportActions: [...earlierActions, payAction],
+                rules: undefined,
+                cardList: undefined,
+            });
+        }
+
+        it('includes CANCEL_PAYMENT for the submitter whose own confirmation paid the report', async () => {
+            // Given a Submit workspace report the submitter marked paid with Received payment
+            // When the submitter opens the More menu
+            const result = await getActions(paidReport, buildPayAction(true));
+
+            // Then they can undo the confirmation, since nobody else can cancel a payment on a Submit workspace
+            expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
+        });
+
+        it('does not include CANCEL_PAYMENT when the latest payment is not a Received payment confirmation', async () => {
+            // Given a Submit workspace report whose latest payment was not the submitter's confirmation
+            // When the submitter opens the More menu
+            const result = await getActions(paidReport, buildPayAction(false));
+
+            // Then Cancel is hidden, because Auth only lets the submitter undo their own confirmation
+            expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
+        });
+
+        it('does not include CANCEL_PAYMENT when someone else paid the report before the submitter confirmed it', async () => {
+            // Given a report another member paid, which the submitter then also confirmed with Received payment
+            // When the submitter opens the More menu
+            const result = await getActions(paidReport, buildPayAction(true), policy, [otherMemberPayAction]);
+
+            // Then Cancel is hidden, because undoing the report would leave the other member's payment in place
+            expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
+        });
+
+        it('includes CANCEL_PAYMENT when the other payment was canceled before the submitter confirmed', async () => {
+            // Given a report whose earlier payment by another member was canceled before the submitter's confirmation
+            const cancellationAction = createMock<ReportAction>({
+                reportActionID: 'cancellation_action_id',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED,
+                created: '2025-12-31 23:00:00.000',
+            });
+
+            // When the submitter opens the More menu
+            const result = await getActions(paidReport, buildPayAction(true), policy, [otherMemberPayAction, cancellationAction]);
+
+            // Then they can undo the confirmation, because the canceled payment no longer counts
+            expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
+        });
+
+        it('does not include CANCEL_PAYMENT when another member marked the report reimbursed without a pay action', async () => {
+            // Given a report an admin marked reimbursed in Expensify Classic, which writes no pay action, before the submitter confirmed it
+            const markedReimbursedAction = createMock<ReportAction>({
+                reportActionID: 'marked_reimbursed_action_id',
+                actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                actorAccountID: MANAGER_ACCOUNT_ID,
+                created: '2025-12-31 22:00:00.000',
+            });
+
+            // When the submitter opens the More menu
+            const result = await getActions(paidReport, buildPayAction(true), policy, [markedReimbursedAction]);
+
+            // Then Cancel is hidden, because Auth counts that as another member's payment
+            expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
+        });
+
+        it('keeps CANCEL_PAYMENT after an undo that failed', async () => {
+            // Given a report whose undo failed, leaving the failed cancellation in the history after the confirmation
+            const failedCancellationAction = createMock<ReportAction>({
+                reportActionID: 'failed_cancellation_action_id',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED,
+                created: '2026-01-01 01:00:00.000',
+                errors: {cancelFailed: 'Cancel failed'},
+            });
+
+            // When the submitter opens the More menu
+            const result = await getActions(paidReport, buildPayAction(true), policy, [failedCancellationAction]);
+
+            // Then they can try again, because Auth never saved the failed cancellation
+            expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
+        });
+
+        it('does not include CANCEL_PAYMENT for someone other than the submitter', async () => {
+            // Given a Submit workspace report that another member submitted and confirmed as paid
+            // When the current user, who isn't the submitter, opens the More menu
+            const result = await getActions({...paidReport, ownerAccountID: MANAGER_ACCOUNT_ID}, buildPayAction(true));
+
+            // Then Cancel is hidden, because only the submitter can undo their confirmation
+            expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
+        });
+
+        it('does not include CANCEL_PAYMENT once the confirmation has been undone', async () => {
+            // Given a Submit workspace report that is Outstanding again after its confirmation was undone
+            // When the submitter opens the More menu
+            const result = await getActions({...paidReport, stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED}, buildPayAction(true));
+
+            // Then Cancel is hidden, because the old pay action stays in the history after the cancellation
+            expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
+        });
+
+        it('does not include CANCEL_PAYMENT for a submitter on an archived Submit workspace', async () => {
+            // Given a Submit workspace that has been deleted
+            // When the submitter opens the More menu on a report they confirmed as paid
+            const result = await getActions(paidReport, buildPayAction(true), {...policy, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
+
+            // Then Cancel is hidden, because Auth rejects the undo on archived workspaces
+            expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
+        });
+    });
+
     it('does not include RECEIVED_PAYMENT when report has only non-reimbursable expenses and policy prevents paying non reimbursable reports ', () => {
         const report = createMock<Report>({
             reportID: REPORT_ID,

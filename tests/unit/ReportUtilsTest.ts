@@ -124,6 +124,7 @@ import {
     getIndicatedMissingPaymentMethod,
     getInvoiceReceiverPersonalDetail,
     getIOUReportActionDisplayMessage,
+    getLatestStandingApprovalAction,
     getLinkedIOUTransaction,
     getMissingPaymentMethodForQueuedPayment,
     getMoneyRequestReportCandidate,
@@ -33458,6 +33459,55 @@ describe('hasOutstandingChildRequest', () => {
         // "does the chat have any OTHER outstanding children")
         // Then no other child remains, so there is no outstanding child request
         expect(hasOutstandingChildRequest(invoiceChatReport, invoiceReportID, currentUserEmail, currentUserAccountID, undefined, undefined)).toBe(false);
+    });
+});
+
+describe('getLatestStandingApprovalAction', () => {
+    const buildAction = (actionName: ReportAction['actionName'], created: string) => createMock<ReportAction>({actionName, created});
+
+    it('returns the latest approval that no reset undid', () => {
+        // Given a report that was submitted and then approved
+        const approvedAction = buildAction(CONST.REPORT.ACTIONS.TYPE.APPROVED, '2026-10-14 11:00:00.000');
+        const reportActions = [buildAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, '2026-10-14 10:00:00.000'), approvedAction];
+
+        // When looking for the approval that still stands
+        // Then it is that approval, because nothing reset it
+        expect(getLatestStandingApprovalAction(reportActions)).toBe(approvedAction);
+    });
+
+    it('returns a close the same way as an approval', () => {
+        // Given a report that was submitted and closed in one step
+        const closedAction = buildAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED, '2026-10-14 10:00:00.000');
+
+        // When looking for the approval that still stands
+        // Then it is the close, because a closed report needs no further approval
+        expect(getLatestStandingApprovalAction([closedAction])).toBe(closedAction);
+    });
+
+    it('returns undefined once an approval reset follows the approval', () => {
+        // Given a report that was approved and then unapproved
+        const reportActions = [
+            buildAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, '2026-10-14 10:00:00.000'),
+            buildAction(CONST.REPORT.ACTIONS.TYPE.APPROVED, '2026-10-14 11:00:00.000'),
+            buildAction(CONST.REPORT.ACTIONS.TYPE.UNAPPROVED, '2026-10-14 12:00:00.000'),
+        ];
+
+        // When looking for the approval that still stands
+        // Then there is none, because unapproving the report undid the approval
+        expect(getLatestStandingApprovalAction(reportActions)).toBeUndefined();
+    });
+
+    it('skips an approval the server rejected', () => {
+        // Given a report whose only approval failed to save
+        const failedApprovalAction = createMock<ReportAction>({
+            actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+            created: '2026-10-14 11:00:00.000',
+            errors: {approveFailed: 'Approval failed'},
+        });
+
+        // When looking for the approval that still stands
+        // Then there is none, because the server never saved that approval
+        expect(getLatestStandingApprovalAction([failedApprovalAction])).toBeUndefined();
     });
 });
 

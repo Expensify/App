@@ -509,7 +509,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                     return;
                 }
 
-                cancelPayment(moneyRequestReport, chatReport, policy, isASAPSubmitBetaEnabled, accountID, email ?? '', hasViolations, isTrackIntentUser, rules);
+                cancelPayment(moneyRequestReport, chatReport, policy, isASAPSubmitBetaEnabled, accountID, email ?? '', hasViolations, isTrackIntentUser, rules, getPersonalDetailsByLogin());
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.RETRACT]: {

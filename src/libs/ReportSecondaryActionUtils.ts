@@ -15,6 +15,7 @@ import type {
     Transaction,
     TransactionViolation,
 } from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -91,6 +92,7 @@ import {
     isProcessingReport as isProcessingReportUtils,
     isReportApproved as isReportApprovedUtils,
     isReportManager as isReportManagerUtils,
+    isReportManuallyReimbursed,
     isReportOwner as isReportOwnerUtils,
     isSelfDM as isSelfDMReportUtils,
     isSettled,
@@ -455,6 +457,61 @@ function getPayActionPaymentType(action: ReportAction | undefined): string | und
     return originalMessage && 'paymentType' in originalMessage ? originalMessage.paymentType : undefined;
 }
 
+/**
+ * Actions after which Auth no longer counts the report's earlier payments when deciding whether the submitter can undo
+ * their confirmation. This matches Auth's list rather than isPaymentAttemptBoundary, so the menu agrees with what Auth accepts.
+ */
+const PAYMENT_CANCELLATION_ACTION_TYPES = new Set<string>([
+    CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED,
+    CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED,
+    CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_BOUNCE,
+    CONST.REPORT.ACTIONS.TYPE.UNAPPROVED,
+    CONST.REPORT.ACTIONS.TYPE.REOPENED,
+]);
+
+/** Payment actions a Received payment confirmation also writes, which only count as another payment when someone else wrote them */
+const CONFIRMATION_PAYMENT_ACTION_TYPES = new Set<string>([CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED, CONST.REPORT.ACTIONS.TYPE.MARKED_REDEEMED]);
+
+/** Payment actions a Received payment confirmation never writes */
+const OTHER_PAYMENT_ACTION_TYPES = new Set<string>([CONST.REPORT.ACTIONS.TYPE.REIMBURSED, CONST.REPORT.ACTIONS.TYPE.MARK_REIMBURSED_FROM_INTEGRATION]);
+
+function isOwnPaymentConfirmation(action: ReportAction, currentAccountID: number): boolean {
+    return isPayAction(action) && action.actorAccountID === currentAccountID && !!getOriginalMessage(action)?.isSubmitterMarkedPaymentReceived;
+}
+
+function isPaymentOtherThanOwnConfirmation(action: ReportAction, currentAccountID: number): boolean {
+    if (isPayAction(action)) {
+        return !isOwnPaymentConfirmation(action, currentAccountID);
+    }
+    if (CONFIRMATION_PAYMENT_ACTION_TYPES.has(action.actionName)) {
+        return action.actorAccountID !== currentAccountID;
+    }
+    return OTHER_PAYMENT_ACTION_TYPES.has(action.actionName);
+}
+
+/**
+ * Whether the current user can undo their own "Received payment" confirmation on a Submit workspace report. Submit
+ * workspaces have no payer, so this is the only way to cancel a payment there. Auth only allows it while every payment
+ * since the latest cancellation is the submitter's own confirmation, because undoing a report someone else paid would
+ * leave that payment in place.
+ */
+function canSubmitterUndoPaymentReceived(report: Report, policy: Policy | undefined, currentAccountID: number): boolean {
+    if (!isSubmitPolicy(policy) || !isCurrentUserSubmitter(report, currentAccountID) || !isReportManuallyReimbursed(report)) {
+        return false;
+    }
+
+    // Auth never saved an action that failed or is being deleted, so a failed undo doesn't hide Cancel for a retry.
+    const reportActions = Object.values(getAllReportActions(report.reportID)).filter(
+        (action): action is ReportAction => !!action && isEmptyObject(action.errors) && action.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+    );
+    const lastCancellationTime = reportActions.reduce(
+        (latest, action) => (PAYMENT_CANCELLATION_ACTION_TYPES.has(action.actionName) && action.created > latest ? action.created : latest),
+        '',
+    );
+    const liveActions = reportActions.filter((action) => action.created > lastCancellationTime);
+    return liveActions.some((action) => isOwnPaymentConfirmation(action, currentAccountID)) && !liveActions.some((action) => isPaymentOtherThanOwnConfirmation(action, currentAccountID));
+}
+
 function isCancelPaymentAction(
     currentAccountID: number,
     currentUserEmail: string,
@@ -472,6 +529,10 @@ function isCancelPaymentAction(
 
     if (isExpenseReport && isArchivedOrPendingDeletePolicy(policy)) {
         return false;
+    }
+
+    if (isExpenseReport && canSubmitterUndoPaymentReceived(report, policy, currentAccountID)) {
+        return true;
     }
 
     const isPayer = isPayerUtils(currentAccountID, currentUserEmail, report, bankAccountList, policy, false);
