@@ -172,7 +172,6 @@ function useSearchSnapshot({queryJSON, searchResults, transactions, reportAction
     const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
     const [personalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
     const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
-    const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
@@ -247,7 +246,6 @@ function useSearchSnapshot({queryJSON, searchResults, transactions, reportAction
                   cardList: personalAndWorkspaceCards,
                   nonPersonalAndWorkspaceCardList: nonPersonalAndWorkspaceCards,
                   isOffline,
-                  customCardNames,
                   conciergeReportID,
                   onyxPersonalDetailsList,
                   isAttendeesEnabledForMovingPolicy,

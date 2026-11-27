@@ -39,7 +39,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isBankAccountEligibleForGlobalReimbursements, isPersonalBankAccountMissingInfo, isWiseOnboardingSubmitted, showUnlockAlreadyRequestedModal} from '@libs/BankAccountUtils';
-import {hasDisplayableAssignedCards, isDirectFeed, maskCardNumber} from '@libs/CardUtils';
+import {getAssignedCardTitle, hasDisplayableAssignedCards, isDirectFeed} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import getWiseOnboardingStatusRoute from '@libs/Navigation/helpers/getWiseOnboardingStatusRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -290,8 +290,7 @@ function WalletPage() {
     const assignedCardPressed = ({event, cardData, icon, cardID}: CardPressHandlerParams) => {
         paymentMethodButtonRef.current = event?.currentTarget as HTMLDivElement;
         setSelectedCard(cardData);
-        const isCSVImportCard = cardData?.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD;
-        const cardTitle = cardData?.nameValuePairs?.cardTitle ?? (isCSVImportCard ? cardData?.cardName : maskCardNumber(cardData?.cardName, cardData?.bank));
+        const cardTitle = cardData ? getAssignedCardTitle(cardData) : undefined;
         setPaymentMethod({
             isSelectedPaymentMethodDefault: false,
             selectedPaymentMethod: {},

@@ -42,13 +42,13 @@ import {
     isCardInactive,
     isCardPendingDigitalWalletApproval,
     isExpensifyCard,
+    getAssignedCardTitle,
     isExpensifyCardPending,
     isExpensifyCardPendingAction,
     isExpiredCard,
     isPersonalCard,
     isTravelCard,
     lastFourNumbersFromCardName,
-    maskCardNumber,
 } from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -424,7 +424,7 @@ function PaymentMethodList({
                     const lastFourPAN = lastFourNumbersFromCardName(card.cardName) || card.lastFourPAN || '';
                     const plaidUrl = getPlaidInstitutionIconUrl(card.bank);
                     const isCSVImportCard = card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD;
-                    const cardTitle = card.nameValuePairs?.cardTitle ?? (isCSVImportCard ? card.cardName : maskCardNumber(card.cardName, card.bank));
+                    const cardTitle = getAssignedCardTitle(card);
                     const pressHandler = onPress as CardPressHandler;
                     const domainDesc = getDescriptionForPolicyDomainCard(card.domainName, policiesForAssignedCards);
                     const cardDescription = [lastFourPAN, domainDesc].filter(Boolean).join(` ${CONST.DOT_SEPARATOR} `);

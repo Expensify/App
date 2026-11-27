@@ -1,4 +1,5 @@
 import {
+    buildCardsData,
     getAssignedCardFeedAccess,
     getCardFeedsForDisplay,
     getCardFeedsForDisplayPerPolicy,
@@ -12,7 +13,7 @@ import {
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, CardFeeds, CardList, CompanyCardFeed, Domain, Policy} from '@src/types/onyx';
+import type {Card, CardFeeds, CardList, CompanyCardFeed, Domain, PersonalDetailsList, Policy} from '@src/types/onyx';
 import type {CardFeedWithNumber, CustomCardFeedData, FeedReimbursable} from '@src/types/onyx/CardFeeds';
 
 /* eslint-disable @typescript-eslint/naming-convention */
@@ -605,6 +606,70 @@ describe('getAssignedCardFeedAccess', () => {
         const policies: OnyxCollection<Policy> = {policy_WS: createTestPolicy({id: 'WS'})};
 
         expect(getAssignedCardFeedAccess({bank, domainName: '', fundID: undefined}, cardFeeds, policies, currentUserLogin)).toEqual({policyID: undefined, isAdmin: false});
+    });
+});
+
+describe('buildCardsData', () => {
+    const emptyIllustrations = createMock({});
+    const emptyCompanyCardIcons = createMock({});
+
+    it('uses card.cardName as the subtitle identifier even when cardTitle is set', () => {
+        // Given a company card with both a user-defined cardTitle and a masked cardName
+        const card = createTestCard({
+            cardID: 1,
+            bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+            fundID: '5001',
+            cardName: '480801XXXXXX2554',
+            nameValuePairs: createCardNameValuePairs({cardTitle: 'My Business Card'}),
+            state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+        });
+        const cardList: CardList = {1: card};
+
+        // When building the card filter items
+        const items = buildCardsData({}, cardList, {}, [], emptyIllustrations, emptyCompanyCardIcons);
+
+        // Then the subtitle (cardName) uses the original card identifier, not the edited title
+        expect(items[0].cardName).toBe('480801XXXXXX2554');
+    });
+
+    it('uses cardTitle as the list item title (text) when set', () => {
+        // Given a card with a user-defined cardTitle
+        const card = createTestCard({
+            cardID: 2,
+            bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+            fundID: '5001',
+            cardName: '480801XXXXXX2554',
+            nameValuePairs: createCardNameValuePairs({cardTitle: 'My Business Card'}),
+            state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+        });
+        const cardList: CardList = {2: card};
+
+        // When building the card filter items
+        const items = buildCardsData({}, cardList, {}, [], emptyIllustrations, emptyCompanyCardIcons);
+
+        // Then the main title shows the user-defined name
+        expect(items[0].text).toBe('My Business Card');
+    });
+
+    it("falls back to the owner's display name as the title when cardTitle is not set", () => {
+        // Given a card with no user-defined title but an owner with a display name
+        const card = createTestCard({
+            cardID: 3,
+            bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+            fundID: '5001',
+            accountID: 100,
+            cardName: '480801XXXXXX2554',
+            nameValuePairs: undefined,
+            state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+        });
+        const cardList: CardList = {3: card};
+        const personalDetailsList: PersonalDetailsList = {100: createMock({accountID: 100, displayName: 'Jane Smith'})};
+
+        // When building the card filter items
+        const items = buildCardsData({}, cardList, personalDetailsList, [], emptyIllustrations, emptyCompanyCardIcons);
+
+        // Then the owner's display name is used as the title
+        expect(items[0].text).toBe('Jane Smith');
     });
 });
 
