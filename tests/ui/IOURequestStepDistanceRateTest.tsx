@@ -1,4 +1,4 @@
-import {act, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -16,6 +16,7 @@ import type ReactNative from 'react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import getOnyxValue from '../utils/getOnyxValue';
 import {signInWithTestUser} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -294,5 +295,22 @@ describe('IOURequestStepDistanceRate', () => {
             `${CONST.BASE_LIST_ITEM_TEST_ID}endedBand`,
             `${CONST.BASE_LIST_ITEM_TEST_ID}summer`,
         ]);
+    });
+
+    it('marks the draft as edited when the user picks another rate while creating an expense', async () => {
+        // Given a distance expense being created, with the rate picker open
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildPolicy(CONST.STANDARD_LIST_ITEM_LIMIT - 2));
+        });
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user picks a rate other than the current one
+        fireEvent.press(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}rate00`));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the draft is marked as edited by the user, since the rate has no flag of its own
+        const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`);
+        expect(draft?.hasUserEdits).toBe(true);
     });
 });

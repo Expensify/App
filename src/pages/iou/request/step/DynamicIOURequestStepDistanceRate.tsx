@@ -21,6 +21,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {
     getIOURequestPolicyID,
+    setDraftHasUserEdits,
     setLastSelectedDistanceRate,
     setMoneyRequestDistanceRate,
     setMoneyRequestTaxAmount,
@@ -275,6 +276,9 @@ function DynamicIOURequestStepDistanceRate({
                 });
             } else {
                 setMoneyRequestDistanceRate(transaction, customUnitRateID, policy, shouldUseTransactionDraft(action));
+                if (shouldUseTransactionDraft(action)) {
+                    setDraftHasUserEdits(transactionID);
+                }
             }
         }
 
