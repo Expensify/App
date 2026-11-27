@@ -264,6 +264,25 @@ describe('SidebarLinksData', () => {
             expect(screen.getByTestId('Pin Icon', {includeHiddenElements: true})).toBeOnTheScreen();
         });
 
+        it('names a chat row after the chat instead of starting with "Navigates to a chat"', async () => {
+            // Given a pinned chat, which always shows in the sidebar
+            LHNTestUtils.getDefaultRenderedSidebarLinks();
+            const report = createReport(true);
+
+            // When the sidebar renders it
+            await initializeState({
+                [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then screen readers hear the chat first, because the navigation hint is no longer at the start of every row's label
+            const chatNameText = screen.getByLabelText(TestHelper.translateLocal('accessibilityHints.chatUserDisplayNames'));
+            const chatName = String([chatNameText.props.children].flat().at(0));
+            const rowLabel = String(getOptionRows().at(0)?.props.accessibilityLabel);
+            expect(rowLabel.startsWith(chatName)).toBe(true);
+            expect(rowLabel).not.toContain(TestHelper.translateLocal('accessibilityHints.navigatesToChat'));
+        });
+
         it('should display the report with violations', async () => {
             // Given the SidebarLinks are rendered.
             LHNTestUtils.getDefaultRenderedSidebarLinks();

@@ -589,6 +589,7 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         amount: '金额',
         submitter: '提交人',
+        clearField: (fieldName: string) => `清除${fieldName}`,
     },
     socials: {
         podcast: '在播客上关注我们',

@@ -36,9 +36,11 @@ function UserInfoCell({avatar, accountID, displayName, avatarSize, containerStyl
 
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, containerStyle]}>
+            {/* The name is read right after, so the avatar's initials would only repeat it */}
             <View
                 style={styles.userSelectNone}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                aria-hidden
             >
                 <UserAvatar
                     imageStyles={styles.alignSelfCenter}

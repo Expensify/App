@@ -38,7 +38,9 @@ function getListItemAccessibilityProps({
     // For multi-select (checkbox/radio), keep existing role and state. Navigational lists (shouldUseOptionRole === false)
     // opt out so the row keeps its button role instead of becoming an option with no listbox container.
     const isSelectableOption = shouldUseOptionRole !== false && !canSelectMultiple && role !== CONST.ROLE.CHECKBOX && role !== CONST.ROLE.RADIO;
-    const effectiveRole = getItemRole(role, isSelectableOption);
+    // A navigational row that does nothing on press gets no role, the same way MenuItem treats a non-interactive item
+    const isInertNavigationalRow = shouldUseOptionRole === false && item.isInteractive === false;
+    const effectiveRole = isInertNavigationalRow ? undefined : getItemRole(role, isSelectableOption);
 
     const isCheckableRole = effectiveRole === CONST.ROLE.CHECKBOX || effectiveRole === CONST.ROLE.RADIO;
     const accessibilityState = isCheckableRole ? {checked: !!isSelected, selected: !!isFocused} : getSelectableState(!!isSelected);

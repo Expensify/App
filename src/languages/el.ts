@@ -591,6 +591,7 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         amount: 'Ποσό',
         submitter: 'Υποβάλλων',
+        clearField: (fieldName: string) => `Εκκαθαρίστε το πεδίο ${fieldName}`,
     },
     socials: {
         podcast: 'Ακολουθήστε μας στο Podcast',

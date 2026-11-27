@@ -20,9 +20,12 @@ type TextInputClearButtonProps = WithSentryLabel & {
     iconSize?: number;
     style?: StyleProp<ViewStyle>;
     onPressButton: () => void;
+
+    /** Label of the field this button clears, so screen readers can say what gets cleared */
+    fieldLabel?: string;
 };
 
-function TextInputClearButton({iconSize = variables.iconSizeNormal, style, onPressButton, sentryLabel = CONST.SENTRY_LABEL.TEXT_INPUT.CLEAR_BUTTON}: TextInputClearButtonProps) {
+function TextInputClearButton({iconSize = variables.iconSizeNormal, style, onPressButton, fieldLabel, sentryLabel = CONST.SENTRY_LABEL.TEXT_INPUT.CLEAR_BUTTON}: TextInputClearButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -32,7 +35,7 @@ function TextInputClearButton({iconSize = variables.iconSizeNormal, style, onPre
             <PressableWithoutFeedback
                 style={[styles.mt4, styles.mh1, style]}
                 accessibilityRole={CONST.ROLE.BUTTON}
-                accessibilityLabel={translate('common.clear')}
+                accessibilityLabel={fieldLabel ? translate('common.clearField', fieldLabel) : translate('common.clear')}
                 onMouseDown={(e) => {
                     e.preventDefault();
                 }}

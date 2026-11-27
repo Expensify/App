@@ -1,6 +1,7 @@
 import type {ProviderProps} from '@components/MoneyRequestConfirmationFields/Provider';
 import ConfirmationFieldsProvider from '@components/MoneyRequestConfirmationFields/Provider';
 import BareUserListItem from '@components/SelectionList/ListItem/BareUserListItem';
+import type {BareUserListItemProps} from '@components/SelectionList/ListItem/types';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {Section, SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 
@@ -18,6 +19,17 @@ import type {MoneyRequestConfirmationListItem} from './types';
 
 import ConfirmationFooterContent from './ConfirmationFooterContent';
 import ConfirmationTelemetry from './ConfirmationTelemetry';
+import shouldUseOptionRoleForRows from './shouldUseOptionRoleForRows';
+
+// The rows open other pages instead of picking a value, so on native they keep the button role
+function ConfirmationListItem(props: BareUserListItemProps<MoneyRequestConfirmationListItem>) {
+    return (
+        <BareUserListItem
+            {...props}
+            shouldUseOptionRole={shouldUseOptionRoleForRows}
+        />
+    );
+}
 
 /** The expense-type flags a variant sets on `ConfirmationFieldsProvider`. Everything else is shared and comes from the hook. */
 type ConfirmationFieldFlags = Pick<
@@ -111,7 +123,7 @@ function ConfirmationListLayout({
             <SelectionListWithSections<MoneyRequestConfirmationListItem>
                 ref={listRef}
                 sections={sections}
-                ListItem={BareUserListItem}
+                ListItem={ConfirmationListItem}
                 onSelectRow={onSelectRow}
                 onDismissError={onDismissError}
                 shouldSingleExecuteRowSelect

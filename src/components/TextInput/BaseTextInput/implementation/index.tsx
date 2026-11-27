@@ -608,6 +608,7 @@ function BaseTextInput({
                                                 onClearInput?.();
                                             }}
                                             iconSize={clearButtonIconSize}
+                                            fieldLabel={label}
                                             style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff), clearButtonStyle]}
                                             sentryLabel={clearButtonSentryLabel}
                                         />

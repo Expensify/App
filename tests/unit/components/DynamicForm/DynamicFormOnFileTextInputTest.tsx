@@ -42,7 +42,7 @@ describe('DynamicFormOnFileTextInput', () => {
 
         // Then the mask shows as read-only text with a clear button, since a saved SSN is replaced, never edited
         expect(screen.getByDisplayValue(ON_FILE_MASK).props.readOnly).toBe(true);
-        expect(screen.getByLabelText('common.clear')).toBeOnTheScreen();
+        expect(screen.getByLabelText('common.clearField')).toBeOnTheScreen();
 
         // And screen readers hear that the answer is on file rather than a row of dots
         expect(screen.getByLabelText('SSN').props.accessibilityHint).toBe('dynamicForm.onFile');
@@ -56,7 +56,7 @@ describe('DynamicFormOnFileTextInput', () => {
         renderInput();
 
         // When the user presses the clear button
-        fireEvent.press(screen.getByLabelText('common.clear'));
+        fireEvent.press(screen.getByLabelText('common.clearField'));
 
         // Then the mask gives way to an empty form input, focused for the new SSN
         expect(screen.queryByDisplayValue(ON_FILE_MASK)).toBeNull();
