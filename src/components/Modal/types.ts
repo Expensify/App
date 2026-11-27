@@ -97,7 +97,7 @@ type BaseModalProps = Partial<ReanimatedModalProps> &
         shouldPreventScrollOnFocus?: boolean;
 
         /** Web only. Defaults to true, so a click outside or Escape releases focus. Pass false for a modal that ignores both. */
-        shouldDeactivateFocusTrapOnClickOutside?: boolean;
+        shouldDeactivateFocusTrapOnOutsideInteraction?: boolean;
 
         /**
          * Temporary flag to disable safe area bottom spacing in modals and to allow edge-to-edge content.

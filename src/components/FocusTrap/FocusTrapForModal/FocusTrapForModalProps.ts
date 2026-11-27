@@ -13,7 +13,7 @@ type FocusTrapForModalProps = {
     shouldReturnFocus?: boolean;
 
     /** Whether a click outside or Escape releases focus. A modal that ignores both keeps focus instead. */
-    shouldDeactivateOnClickOutside?: boolean;
+    shouldDeactivateOnOutsideInteraction?: boolean;
 
     /**
      * The element that opened this trap, a popover's anchor. Only consulted when `document.activeElement`

@@ -24,7 +24,7 @@ function FocusTrapForModal({
     initialFocus = false,
     shouldPreventScroll = false,
     shouldReturnFocus = true,
-    shouldDeactivateOnClickOutside = true,
+    shouldDeactivateOnOutsideInteraction = true,
     launcherRef,
 }: FocusTrapForModalProps) {
     // Track this trap's own launcher so onPostDeactivate targets the right shared-stack entry.
@@ -34,10 +34,10 @@ function FocusTrapForModal({
     // from one that opened on top of us while we were open.
     const trapDepthAtActivateRef = useRef(0);
     // focus-trap reads its options only when the trap is created, so it reads the latest value through this ref.
-    const shouldDeactivateOnClickOutsideRef = useRef(shouldDeactivateOnClickOutside);
+    const shouldDeactivateOnOutsideInteractionRef = useRef(shouldDeactivateOnOutsideInteraction);
     useEffect(() => {
-        shouldDeactivateOnClickOutsideRef.current = shouldDeactivateOnClickOutside;
-    }, [shouldDeactivateOnClickOutside]);
+        shouldDeactivateOnOutsideInteractionRef.current = shouldDeactivateOnOutsideInteraction;
+    }, [shouldDeactivateOnOutsideInteraction]);
 
     const onFocusTrapActive = () => {
         trapDepthAtActivateRef.current = sharedTrapStack.length;
@@ -85,8 +85,8 @@ function FocusTrapForModal({
                 onPostDeactivate: onFocusTrapPostDeactivate,
                 preventScroll: shouldPreventScroll,
                 trapStack: sharedTrapStack,
-                clickOutsideDeactivates: () => shouldDeactivateOnClickOutsideRef.current,
-                escapeDeactivates: () => shouldDeactivateOnClickOutsideRef.current,
+                clickOutsideDeactivates: () => shouldDeactivateOnOutsideInteractionRef.current,
+                escapeDeactivates: () => shouldDeactivateOnOutsideInteractionRef.current,
                 initialFocus,
                 // Lazy so document.body isn't evaluated at render time (SSR-safe).
                 fallbackFocus: () => document.body,

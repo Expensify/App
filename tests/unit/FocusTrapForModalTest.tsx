@@ -356,7 +356,7 @@ describe('FocusTrapForModal — clicks outside', () => {
         render(
             <FocusTrapForModal
                 active
-                shouldDeactivateOnClickOutside={false}
+                shouldDeactivateOnOutsideInteraction={false}
             >
                 {null}
             </FocusTrapForModal>,
@@ -372,7 +372,7 @@ describe('FocusTrapForModal — clicks outside', () => {
         render(
             <FocusTrapForModal
                 active
-                shouldDeactivateOnClickOutside={false}
+                shouldDeactivateOnOutsideInteraction={false}
             >
                 {null}
             </FocusTrapForModal>,
@@ -387,7 +387,7 @@ describe('FocusTrapForModal — clicks outside', () => {
         const {rerender} = render(
             <FocusTrapForModal
                 active
-                shouldDeactivateOnClickOutside={false}
+                shouldDeactivateOnOutsideInteraction={false}
             >
                 {null}
             </FocusTrapForModal>,
@@ -398,7 +398,7 @@ describe('FocusTrapForModal — clicks outside', () => {
         rerender(
             <FocusTrapForModal
                 active
-                shouldDeactivateOnClickOutside
+                shouldDeactivateOnOutsideInteraction
             >
                 {null}
             </FocusTrapForModal>,
