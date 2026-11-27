@@ -1078,6 +1078,8 @@ type BuildOptimisticExpenseReportParams = {
     createdTimestamp?: string;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<Rule>;
+    /** Keeps the optimistic report open when auto-submit is deferred for an earlier item in a batch. */
+    shouldDeferAutoSubmit?: boolean;
 };
 
 type ReportByPolicyMap = Record<string, OnyxCollection<Report>>;
@@ -8657,8 +8659,8 @@ function computeOptimisticReportNameWithMetadata(
  * Returns the stateNum and statusNum for an expense report based on the policy settings
  * @param policy
  */
-function getExpenseReportStateAndStatus(policy: OnyxEntry<Policy>, isASAPSubmitBetaEnabled: boolean, isEmptyOptimisticReport = false) {
-    if (isASAPSubmitBetaEnabled) {
+function getExpenseReportStateAndStatus(policy: OnyxEntry<Policy>, isASAPSubmitBetaEnabled: boolean, isEmptyOptimisticReport = false, shouldDeferAutoSubmit = false) {
+    if (isASAPSubmitBetaEnabled || shouldDeferAutoSubmit) {
         return {
             stateNum: CONST.REPORT.STATE_NUM.OPEN,
             statusNum: CONST.REPORT.STATUS_NUM.OPEN,
@@ -8688,6 +8690,54 @@ function getExpenseReportStateAndStatus(policy: OnyxEntry<Policy>, isASAPSubmitB
     };
 }
 
+type ReportStateAndStatus = {
+    stateNum: ValueOf<typeof CONST.REPORT.STATE_NUM>;
+    statusNum: ValueOf<typeof CONST.REPORT.STATUS_NUM>;
+};
+
+/** Parameters used to finalize the optimistic report state on the last item of a deferred batch. */
+type GetFinalizedDeferredBatchReportStateParams = {
+    /** Optimistic report cloned for the current batch item. */
+    iouReport: Report;
+    /** True when this item reuses an in-memory report carried from an earlier batch item. */
+    hasExistingIOUReport: boolean;
+    /** Explicit false marks the final item of a deferred batch. Undefined means a non-batch request and true means still deferred. */
+    shouldDeferAutoSubmit?: boolean;
+    policy: OnyxEntry<Policy>;
+    isASAPSubmitBetaEnabled: boolean;
+};
+
+/**
+ * Resolves the final optimistic state for the last item of a deferred batch, along with the previous
+ * state so failureData can roll it back if that final request fails.
+ */
+function getFinalizedDeferredBatchReportState({
+    iouReport,
+    hasExistingIOUReport,
+    shouldDeferAutoSubmit,
+    policy,
+    isASAPSubmitBetaEnabled,
+}: GetFinalizedDeferredBatchReportStateParams): {nextState: ReportStateAndStatus; previousState: ReportStateAndStatus} | undefined {
+    // Finalize only on the last item of a deferred batch (false).
+    // Undefined means a single non-batch request that already has its final state, and true means an earlier item is still deferred.
+    if (!hasExistingIOUReport || shouldDeferAutoSubmit !== false || !isOpenExpenseReport(iouReport)) {
+        return undefined;
+    }
+
+    const nextState = getExpenseReportStateAndStatus(policy, isASAPSubmitBetaEnabled);
+    if (nextState.stateNum === iouReport.stateNum && nextState.statusNum === iouReport.statusNum) {
+        return undefined;
+    }
+
+    return {
+        nextState,
+        previousState: {
+            stateNum: iouReport.stateNum ?? CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: iouReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
+        },
+    };
+}
+
 /**
  * Builds an optimistic Expense report with a randomly generated reportID
  *
@@ -8714,6 +8764,7 @@ function buildOptimisticExpenseReport({
     createdTimestamp,
     getCurrencyDecimals,
     rules,
+    shouldDeferAutoSubmit = false,
 }: BuildOptimisticExpenseReportParams): OptimisticExpenseReport {
     // The amount for Expense reports are stored as negative value in the database
     const storedTotal = total * -1;
@@ -8727,7 +8778,7 @@ function buildOptimisticExpenseReport({
     const policyDraft = allPolicyDrafts?.[`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`];
     const policy = policyReal ?? policyDraft;
 
-    const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy, isASAPSubmitBetaEnabled);
+    const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy, isASAPSubmitBetaEnabled, false, shouldDeferAutoSubmit);
 
     const created = createdTimestamp ?? DateUtils.getDBTime();
 
@@ -13587,6 +13638,14 @@ function getIndicatedMissingPaymentMethod(
 }
 
 /**
+ * Whether a SmartScan expense creates a separate report under the ASAP Submit beta.
+ * Adding to an existing report or submitting a tracked expense stays on the target report instead.
+ */
+function willScanRequestCreateNewReport(isScanRequest: boolean, isASAPSubmitBetaEnabled: boolean, action?: IOUAction, isFromExistingReport?: boolean): boolean {
+    return !isFromExistingReport && action !== CONST.IOU.ACTION.SUBMIT && isScanRequest && isASAPSubmitBetaEnabled;
+}
+
+/**
  * Used from expense actions to decide if we need to build an optimistic expense report.
  * Create a new report if:
  * - we don't have an iouReport set in the chatReport
@@ -13612,7 +13671,7 @@ function shouldCreateNewMoneyRequestReport(
         isReportPendingDelete(existingIOUReport) ||
         hasIOUWaitingOnCurrentUserBankAccount(chatReport) ||
         !canAddTransaction(existingIOUReport, rules) ||
-        (!isFromExistingReport && action !== CONST.IOU.ACTION.SUBMIT && isScanRequest && isASAPSubmitBetaEnabled)
+        willScanRequestCreateNewReport(isScanRequest, isASAPSubmitBetaEnabled, action, isFromExistingReport)
     );
 }
 
@@ -16399,6 +16458,7 @@ export {
     findSelfDMReportID,
     formatReportLastMessageText,
     generateReportID,
+    getFinalizedDeferredBatchReportState,
     getCreationReportErrors,
     getAllHeldTransactions,
     getAllPolicyReports,
@@ -16615,6 +16675,7 @@ export {
     selectFilteredReportActionsForReports,
     shouldAutoFocusOnKeyPress,
     shouldCreateNewMoneyRequestReport,
+    willScanRequestCreateNewReport,
     shouldDisableDetailPage,
     shouldDisableRename,
     shouldDisableThread,
@@ -16774,6 +16835,7 @@ export type {
     OptimisticIOUReportAction,
     OptimisticTaskReportAction,
     OptionData,
+    ReportStateAndStatus,
     TransactionDetails,
     PartialReportAction,
     SelfDMParameters,
