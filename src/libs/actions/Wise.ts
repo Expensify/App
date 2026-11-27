@@ -55,7 +55,14 @@ function getWiseQuote(report: Report, full: boolean, bankAccountID: number, isFX
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: reportKey,
-                value: {wiseQuote: null, wiseQuoteRequest: request, errorFields: {wiseQuote: null}},
+                value: {wiseQuote: null, wiseQuoteRequest: {...request, hasResponse: false}, errorFields: {wiseQuote: null}},
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: reportKey,
+                value: {wiseQuoteRequest: {hasResponse: true}},
             },
         ],
         failureData: [

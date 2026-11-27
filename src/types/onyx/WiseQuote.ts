@@ -44,6 +44,9 @@ type WiseQuoteRequest = {
 
     /** Whether the company pays the FX conversion costs instead of the employee, which changes the fees Wise prices */
     isFXCostPaidByCompany?: boolean;
+
+    /** Whether the server answered the request. An answer with no `wiseQuote` means the payment doesn't go through Wise and is paid without a quote */
+    hasResponse?: boolean;
 };
 
 export default WiseQuote;

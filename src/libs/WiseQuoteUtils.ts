@@ -31,6 +31,11 @@ function canReuseWiseQuote(report: Report, request: WiseQuoteRequest, now = Date
     return isSamePayment && validityLeft > MIN_REUSED_QUOTE_VALIDITY_MS;
 }
 
+/** Whether the server answered the report's quote request with no quote, because the payment doesn't go through Wise */
+function isPaidWithoutWiseQuote(report: Pick<Report, 'wiseQuote' | 'wiseQuoteRequest'> | undefined): boolean {
+    return !report?.wiseQuote && !!report?.wiseQuoteRequest?.hasResponse;
+}
+
 /** Whether Wise would reject paying with a quote that expires at this time */
 function isWiseQuoteExpired(expiresAt: string | undefined, now = Date.now()): boolean {
     if (!expiresAt) {
@@ -39,4 +44,4 @@ function isWiseQuoteExpired(expiresAt: string | undefined, now = Date.now()): bo
     return new Date(expiresAt).getTime() - now <= QUOTE_EXPIRY_MARGIN_MS;
 }
 
-export {canReuseWiseQuote, getWiseQuoteRequest, isWiseQuoteExpired};
+export {canReuseWiseQuote, getWiseQuoteRequest, isPaidWithoutWiseQuote, isWiseQuoteExpired};

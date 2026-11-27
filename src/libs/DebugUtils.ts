@@ -610,6 +610,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 amount: 'number',
                 bankAccountID: 'number',
                 isFXCostPaidByCompany: 'boolean',
+                hasResponse: 'boolean',
             });
         case 'nextStep':
             return validateObject<ObjectElement<Report, 'nextStep'>>(value, {

@@ -6,7 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {isWiseQuoteExpired} from '@libs/WiseQuoteUtils';
+import {isWiseQuoteExpired, isPaidWithoutWiseQuote} from '@libs/WiseQuoteUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -23,25 +23,31 @@ type WiseQuoteConfirmModalWrapperProps = ModalProps & {
     /** True when the admin chose to pay only the expenses that are not on hold */
     isPayingUnheldOnly: boolean;
 
-    onConfirm: (wiseQuoteID: string) => void;
+    /** Receives no quote when the server answered that the payment needs none */
+    onConfirm: (wiseQuoteID: string | undefined) => void;
 
     /** Runs instead of onConfirm when the admin pays with a quote Wise would reject as expired */
     onQuoteExpired: () => void;
 };
 
-/** Pay stays disabled until the quote is on screen, since Wise requires the admin to see it before paying */
+/** Pay stays disabled until the quote is on screen, since Wise requires the admin to see it before paying, or until the server answers that the payment needs none */
 function WiseQuoteConfirmModalWrapper({closeModal, resolveModal, reportID, isPayingUnheldOnly, onConfirm, onQuoteExpired}: WiseQuoteConfirmModalWrapperProps) {
     const {translate} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
-    const [wiseQuote] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {selector: (report) => report?.wiseQuote});
+    const [quoteState] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {
+        selector: (report) => ({wiseQuote: report?.wiseQuote, isPaidWithoutQuote: isPaidWithoutWiseQuote(report)}),
+    });
+    const wiseQuote = quoteState?.wiseQuote;
     const wiseQuoteID = wiseQuote?.wiseQuoteID;
+    const isPaidWithoutQuote = !!quoteState?.isPaidWithoutQuote;
+    const canPay = !!wiseQuoteID || isPaidWithoutQuote;
     const confirmText = wiseQuote ? translate('iou.settlePayment', convertToDisplayString(wiseQuote.debitedAmount, wiseQuote.currency)) : translate('iou.pay');
 
     return (
         <ConfirmModalWrapper
             closeModal={(payload) => {
                 closeModal(payload);
-                if (payload?.action !== ModalActions.CONFIRM || !wiseQuoteID) {
+                if (payload?.action !== ModalActions.CONFIRM || !canPay) {
                     return;
                 }
                 if (isWiseQuoteExpired(wiseQuote?.expiresAt)) {
@@ -57,12 +63,13 @@ function WiseQuoteConfirmModalWrapper({closeModal, resolveModal, reportID, isPay
                     <WiseQuotePaymentSummary
                         reportID={reportID}
                         isPayingUnheldOnly={isPayingUnheldOnly}
+                        isQuoteRequired={!isPaidWithoutQuote}
                     />
                 </WisePaymentPrompt>
             }
             confirmText={confirmText}
             cancelText={translate('common.cancel')}
-            isConfirmDisabled={!wiseQuoteID}
+            isConfirmDisabled={!canPay}
             shouldDisableConfirmButtonWhenOffline
             shouldHandleNavigationBack
         />

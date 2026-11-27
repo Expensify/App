@@ -1,4 +1,4 @@
-import {canReuseWiseQuote, getWiseQuoteRequest, isWiseQuoteExpired} from '@libs/WiseQuoteUtils';
+import {canReuseWiseQuote, getWiseQuoteRequest, isWiseQuoteExpired, isPaidWithoutWiseQuote} from '@libs/WiseQuoteUtils';
 
 import CONST from '@src/CONST';
 import type {Report, WiseQuote} from '@src/types/onyx';
@@ -118,6 +118,28 @@ describe('WiseQuoteUtils', () => {
             // When the admin pays with it
             // Then a new quote is fetched instead
             expect(isWiseQuoteExpired('2026-11-06T15:59:00Z', NOW)).toBe(true);
+        });
+    });
+
+    describe('isPaidWithoutWiseQuote', () => {
+        const pendingRequest = {full: true, amount: 1000, bankAccountID: QUOTED_BANK_ACCOUNT_ID, hasResponse: false};
+
+        it('holds once the server answers the request with no quote', () => {
+            // Given a quote request the server answered without a quote
+            // When deciding whether the payment needs one
+            // Then it doesn't, because the payment doesn't go through Wise
+            expect(isPaidWithoutWiseQuote({wiseQuoteRequest: {...pendingRequest, hasResponse: true}})).toBe(true);
+        });
+
+        it.each([
+            ['the request is still loading', {wiseQuoteRequest: pendingRequest}],
+            ['the server answered with a quote', {wiseQuote, wiseQuoteRequest: {...pendingRequest, hasResponse: true}}],
+            ['no quote was asked for', {}],
+        ])('does not hold while %s', (_label, quoteFields) => {
+            // Given the report's quote state
+            // When deciding whether the payment needs a quote
+            // Then Pay waits for the quote or uses it
+            expect(isPaidWithoutWiseQuote(quoteFields)).toBe(false);
         });
     });
 });

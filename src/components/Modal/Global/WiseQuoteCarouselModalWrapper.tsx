@@ -8,7 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {isWiseQuoteExpired} from '@libs/WiseQuoteUtils';
+import {isWiseQuoteExpired, isPaidWithoutWiseQuote} from '@libs/WiseQuoteUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
@@ -42,9 +42,12 @@ type QuoteState = {
     wiseQuoteID?: string;
     expiresAt?: string;
     hasError: boolean;
+
+    /** True when the server answered that the report's payment needs no quote, so it is paid without one */
+    isPaidWithoutQuote: boolean;
 };
 
-/** Pay all stays disabled until every quoted report's quote is loaded, since Wise requires the admin to be able to see each one */
+/** Pay all stays disabled until every quoted report's quote is loaded, or answered as not needed, since Wise requires the admin to be able to see each one */
 function WiseQuoteCarouselModalWrapper({closeModal, resolveModal, reports, quotedReportIDs, onConfirm, onQuoteExpired}: WiseQuoteCarouselModalWrapperProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -52,7 +55,15 @@ function WiseQuoteCarouselModalWrapper({closeModal, resolveModal, reports, quote
         Object.fromEntries(
             quotedReportIDs.map((reportID) => {
                 const report = onyxReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-                return [reportID, {wiseQuoteID: report?.wiseQuote?.wiseQuoteID, expiresAt: report?.wiseQuote?.expiresAt, hasError: !!report?.errorFields?.wiseQuote}];
+                return [
+                    reportID,
+                    {
+                        wiseQuoteID: report?.wiseQuote?.wiseQuoteID,
+                        expiresAt: report?.wiseQuote?.expiresAt,
+                        hasError: !!report?.errorFields?.wiseQuote,
+                        isPaidWithoutQuote: isPaidWithoutWiseQuote(report),
+                    },
+                ];
             }),
         );
     const [quoteStatesByReportID = getEmptyObject<Record<string, QuoteState>>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
@@ -60,8 +71,9 @@ function WiseQuoteCarouselModalWrapper({closeModal, resolveModal, reports, quote
     });
     const quoteStates = Object.entries(quoteStatesByReportID);
     const confirmedQuoteIDs = quoteStates.flatMap(([reportID, {wiseQuoteID}]) => (wiseQuoteID ? [[reportID, wiseQuoteID] as const] : []));
-    const hasEveryQuote = confirmedQuoteIDs.length === quotedReportIDs.length;
-    const isLoading = quoteStates.length < quotedReportIDs.length || quoteStates.some(([, {wiseQuoteID, hasError}]) => !wiseQuoteID && !hasError);
+    const pricedReportIDs = quotedReportIDs.filter((reportID) => !quoteStatesByReportID[reportID]?.isPaidWithoutQuote);
+    const hasEveryQuote = confirmedQuoteIDs.length === pricedReportIDs.length;
+    const isLoading = quoteStates.length < quotedReportIDs.length || quoteStates.some(([, {wiseQuoteID, hasError, isPaidWithoutQuote}]) => !wiseQuoteID && !hasError && !isPaidWithoutQuote);
 
     const confirmText = translate('iou.wisePaymentSummary.payAll');
     const carousel = useWiseQuoteCarousel(reports.length);
@@ -89,7 +101,7 @@ function WiseQuoteCarouselModalWrapper({closeModal, resolveModal, reports, quote
                     <View style={styles.mt5}>
                         <WiseQuoteCarousel
                             reports={reports}
-                            quotedReportIDs={quotedReportIDs}
+                            quotedReportIDs={pricedReportIDs}
                             isLoading={isLoading}
                             carousel={carousel}
                         />
