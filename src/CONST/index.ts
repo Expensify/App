@@ -10958,6 +10958,8 @@ const FRAUD_PROTECTION_EVENT = {
     MERGE_ACCOUNT: 'MergeAccount',
     TOGGLE_TWO_FACTOR_AUTH: 'ToggleTwoFactorAuth',
     ADD_SECONDARY_LOGIN: 'AddSecondaryLogin',
+    REMOVE_SECONDARY_LOGIN: 'RemoveSecondaryLogin',
+    REMOVE_DEVICE: 'RemoveDevice',
     ADD_BILLING_CARD: 'AddBillingCard',
     VIEW_VIRTUAL_CARD_PAN: 'ViewVirtualCardPAN',
     BUSINESS_BANK_ACCOUNT_SETUP: 'BusinessBankAccountSetup',
