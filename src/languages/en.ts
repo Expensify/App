@@ -5991,7 +5991,7 @@ const translations = {
                 title: 'Gmail',
                 inactive: 'Inactive',
                 synced: (relativeTime: string) => `Synced ${relativeTime}`,
-                notSyncedYet: 'Not synced yet',
+                notSyncedYet: 'Never synced',
                 notSynced: 'Not synced',
                 removeConnection: 'Remove connection',
                 removeConnectionTitle: 'Remove Gmail connection',
