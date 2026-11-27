@@ -1257,6 +1257,15 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     insightsPage: {
+        headline: {
+            averageExpense: (amount) => `Ø ${amount}`,
+            flaggedExpenses: ({formattedCount}) => ({one: `Bei ${formattedCount} Ausgabe`, other: `Bei ${formattedCount} Ausgaben`}),
+            violationCount: ({formattedCount}) => ({one: `${formattedCount} Verstoß`, other: `${formattedCount} Verstöße`}),
+            timeToSubmit: (time) => `${time} bis zur Einreichung`,
+            timeToApprove: (time) => `${time} bis zur Genehmigung`,
+            timeToPay: (time) => `${time} bis zur Zahlung`,
+            vsPreviousPeriod: (change) => `${change} gegenüber dem vorherigen Zeitraum`,
+        },
         tagLevel: (level: string) => `Tag-Stufe ${level}`,
         noTaggedExpenses: 'Keine Ausgaben mit Tags',
         noExpensesForTagLevel: (tagLevelName: string) => `Für ${tagLevelName} gibt es in diesem Zeitraum keine Ausgaben.`,
@@ -11630,7 +11639,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             updateExisting: 'Vorhandene aktualisieren',
         },
         chartValueUnavailable: 'Nicht verfügbar',
-        seriesInPeriod: ({series, period}: {series: string; period: string}) => `${series} ${period}`,
     },
     genericErrorPage: {
         title: 'Ups, da ist etwas schiefgelaufen!',

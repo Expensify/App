@@ -7,6 +7,8 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import StringUtils from '@libs/StringUtils';
 
+import CONST from '@src/CONST';
+
 import type {NonEmptyTuple} from 'type-fest';
 
 import type {ChartComparison, SearchChartModel} from './buildChartSeries';
@@ -16,7 +18,7 @@ import type {GroupedItem, SearchChartDataRow, SearchGroupBy} from './types';
 
 import {CHART_SERIES_KEY, getAverageLabelKey, isChartAverage} from './buildChartSeries';
 import CHART_GROUP_BY_CONFIG from './chartGroupByConfig';
-import {formatDates, getComparedBucketLabels, getCounterpartBucketRange, getPositionInPrimaryPeriod, getUnpairedBucketLabels, isTimeGroupBy} from './comparisonBuckets';
+import {getComparedBucketLabels, getCounterpartBucketRange, getPositionInPrimaryPeriod, getUnpairedBucketLabels, isTimeGroupBy} from './comparisonBuckets';
 
 /** Position of each period's stack among the stacks of a bucket */
 const STACK_INDEX = {
@@ -106,7 +108,7 @@ function buildStackedSeries({
     dateFnsLocale,
 }: BuildStackedSeriesParams): SearchChartModel {
     const {getDateRange} = CHART_GROUP_BY_CONFIG[groupBy];
-    const averageValue = isChartAverage(comparison) ? getStackedAverage(data, stages) : undefined;
+    const averageValue = isChartAverage(comparison) ? (comparison[CONST.SEARCH.CHART_METRIC.DURATION] ?? getStackedAverage(data, stages)) : undefined;
     const comparedRows = comparison && !isChartAverage(comparison) ? comparison : undefined;
     const periods = comparedRows?.periods;
     // Time buckets of another period cover other dates, so they are keyed by start date
@@ -226,16 +228,16 @@ function buildStackedSeries({
         })
         .map(({row}) => row);
 
-    const buildStackSeries = (stackIndex: number, period: ChartComparisonPeriods['primary'] | undefined) =>
+    const buildStackSeries = (stackIndex: number, stackLabel?: string) =>
         stages.map((stage): ChartSeries => ({
             key: getStackSeriesKey(stackIndex, stage.key),
             label: stage.label,
             color: stackIndex === STACK_INDEX.PRIMARY ? stage.color : stage.comparisonColor,
             stackIndex,
-            stackLabel: period && formatDates(period, dateFnsLocale),
+            stackLabel,
         }));
-    const [firstSeries, ...otherPrimarySeries] = buildStackSeries(STACK_INDEX.PRIMARY, periods?.primary);
-    const comparisonSeries = periods ? buildStackSeries(STACK_INDEX.COMPARISON, periods.comparison) : [];
+    const [firstSeries, ...otherPrimarySeries] = buildStackSeries(STACK_INDEX.PRIMARY);
+    const comparisonSeries = periods ? buildStackSeries(STACK_INDEX.COMPARISON, translate('insightsPage.compare.previousPeriod')) : [];
     const averageSeries: ChartSeries[] =
         averageValue === undefined
             ? []

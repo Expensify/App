@@ -1288,6 +1288,25 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     insightsPage: {
+        headline: {
+            averageExpense: (amount) => `Średnio ${amount}`,
+            flaggedExpenses: ({formattedCount}) => ({
+                one: `W ${formattedCount} wydatku`,
+                few: `W ${formattedCount} wydatkach`,
+                many: `W ${formattedCount} wydatkach`,
+                other: `W ${formattedCount} wydatku`,
+            }),
+            violationCount: ({formattedCount}) => ({
+                one: `${formattedCount} naruszenie`,
+                few: `${formattedCount} naruszenia`,
+                many: `${formattedCount} naruszeń`,
+                other: `${formattedCount} naruszenia`,
+            }),
+            timeToSubmit: (time) => `${time} do przesłania`,
+            timeToApprove: (time) => `${time} do zatwierdzenia`,
+            timeToPay: (time) => `${time} do zapłaty`,
+            vsPreviousPeriod: (change) => `${change} względem poprzedniego okresu`,
+        },
         tagLevel: (level: string) => `Poziom tagu ${level}`,
         noTaggedExpenses: 'Brak wydatków z tagami',
         noExpensesForTagLevel: (tagLevelName: string) => `Brak wydatków dla ${tagLevelName} w tym zakresie dat.`,
@@ -11591,7 +11610,6 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             updateExisting: 'Zaktualizuj istniejące',
         },
         chartValueUnavailable: 'Niedostępne',
-        seriesInPeriod: ({series, period}: {series: string; period: string}) => `${series} ${period}`,
     },
     genericErrorPage: {
         title: 'Ups, coś poszło nie tak!',

@@ -43,6 +43,7 @@ import useInsightsChartData from '@pages/Insights/useInsightsChartData';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {InsightsDashboardID, InsightsScope, SearchResults} from '@src/types/onyx';
+import type {InsightsHeadlineSummary} from '@src/types/onyx/InsightsDashboard';
 
 import type {OnyxEntry} from 'react-native-onyx';
 import type {NonEmptyTuple} from 'type-fest';
@@ -54,7 +55,9 @@ import Animated, {FadeIn} from 'react-native-reanimated';
 import type {InsightsChartMenuAction} from './InsightsChartMenu';
 
 import InsightsChartMenu from './InsightsChartMenu';
+import InsightsChartSummary, {InsightsChartSummarySkeleton} from './InsightsChartSummary';
 import InsightsDataTable from './InsightsDataTable';
+import {getEfficiencyHeadlineAverage, getEfficiencyHeadlineStages} from './insightsHeadlineValues';
 import InsightsRankingTable from './InsightsRankingTable';
 import InsightsTrackedFromNote from './InsightsTrackedFromNote';
 
@@ -79,6 +82,13 @@ type InsightsChartWidgetProps = {
 
     /** Average the backend returned for the chart's metric, drawn in the Average compare mode */
     average: ChartAverage | undefined;
+
+    headlineSummary?: InsightsHeadlineSummary;
+
+    isHeadline?: boolean;
+
+    /** Keeps the summary skeleton visible when cached chart data is ready but the dashboard response is pending. */
+    shouldWaitForSummary?: boolean;
 
     /** Whether GetInsights answered the dashboard's query */
     isDashboardLoaded: boolean | undefined;
@@ -138,6 +148,9 @@ function InsightsChartWidget({
     averageQueryJSON,
     averageSnapshot,
     average,
+    headlineSummary,
+    isHeadline = false,
+    shouldWaitForSummary = false,
     isDashboardLoaded,
     eligiblePolicyIDs,
     stages,
@@ -169,13 +182,16 @@ function InsightsChartWidget({
         }
     }
 
+    const efficiencyAverage = getEfficiencyHeadlineAverage(getEfficiencyHeadlineStages(headlineSummary?.current, stages));
+    const chartAverage = efficiencyAverage === undefined ? average : {...average, [CONST.SEARCH.CHART_METRIC.DURATION]: efficiencyAverage};
     const {data, state, comparison} = useInsightsChartData(
-        {chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageQueryJSON, averageSnapshot, average, isDashboardLoaded, stages},
+        {chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageQueryJSON, averageSnapshot, average: chartAverage, isDashboardLoaded, stages},
         filters,
     );
     const groupBy = chart.groupBy ?? getQueryGroupBy(filters);
     const isLoading = state === INSIGHTS_CHART_STATE.LOADING;
-    useReportChartCaptureLoading(isLoading);
+    const isSummaryLoading = isHeadline && (isLoading || (state === INSIGHTS_CHART_STATE.READY && shouldWaitForSummary));
+    useReportChartCaptureLoading(isLoading || isSummaryLoading);
     const view = comparison && chart.view === CONST.SEARCH.VIEW.PIE ? CONST.SEARCH.VIEW.BAR : chart.view;
     const isTimeGrouped = !!CHART_GROUP_BY_CONFIG[groupBy].getDateRange;
     const shouldShowTable = !isTimeGrouped && (view === CONST.SEARCH.VIEW.BAR || view === CONST.SEARCH.VIEW.PIE);
@@ -345,6 +361,15 @@ function InsightsChartWidget({
                         testID={`insightsChartEmptyState-${chart.graphKey}`}
                         title={tagLevelName === undefined ? undefined : translate('insightsPage.noTaggedExpenses')}
                         description={tagLevelName === undefined ? undefined : translate('insightsPage.noExpensesForTagLevel', tagLevelName)}
+                    />
+                )}
+                {isSummaryLoading && <InsightsChartSummarySkeleton />}
+                {isHeadline && state === INSIGHTS_CHART_STATE.READY && headlineSummary && (
+                    <InsightsChartSummary
+                        summary={headlineSummary}
+                        stages={stages}
+                        currency={filters.groupCurrency}
+                        shouldShowChange={filters.compare === CONST.SEARCH.COMPARE.PREVIOUS_PERIOD && !!comparison}
                     />
                 )}
                 {(state === INSIGHTS_CHART_STATE.LOADING || state === INSIGHTS_CHART_STATE.READY) &&

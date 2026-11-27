@@ -98,7 +98,7 @@ function useInsightsChartData(dashboardChart: InsightsDashboardChart, filters: I
             }
             // The stage chart averages the stages it shows, so the line follows the stages the workspaces in scope have enabled
             const chartAverage = chart.groupBy === CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE ? {[CONST.SEARCH.CHART_METRIC.DURATION]: getMeanDuration(current.data)} : average;
-            // A stacked chart works its average out from its own buckets
+            // Older cached stacked charts can work out an average from their buckets.
             if (!isStacked && chartAverage?.[chart.metric ?? CONST.SEARCH.CHART_METRIC.AMOUNT] === undefined) {
                 return current;
             }

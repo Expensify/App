@@ -18,6 +18,7 @@ import useLocalize from '@hooks/useLocalize';
 import useMultipleSnapshots from '@hooks/useMultipleSnapshots';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useTheme from '@hooks/useTheme';
@@ -281,6 +282,8 @@ function InsightsDashboardContent({
             isDashboardLoaded,
             eligiblePolicyIDs,
             stages,
+            headlineSummary,
+            shouldWaitForSummary,
         }: InsightsDashboardChart,
         isHeadline = false,
     ) => (
@@ -295,6 +298,9 @@ function InsightsDashboardContent({
             averageQueryJSON={averageQueryJSON}
             averageSnapshot={averageSnapshot}
             average={average}
+            headlineSummary={headlineSummary}
+            isHeadline={isHeadline}
+            shouldWaitForSummary={shouldWaitForSummary}
             isDashboardLoaded={isDashboardLoaded}
             eligiblePolicyIDs={eligiblePolicyIDs}
             stages={stages}
@@ -425,7 +431,10 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
         if (isExporting) {
             return;
         }
-        setViolationStages((currentStages) => ({...currentStages, [graphKey]: stage}));
+        setViolationStages((currentStages) => ({
+            ...currentStages,
+            [graphKey]: stage,
+        }));
     };
     // The bucket actually queried, which Running total resolves to a real day/month bucket. Toggling Running total alone leaves this unchanged, so it stays a client-side transform with no refetch.
     const queryGroupBy = isResolved ? getQueryGroupBy(filters) : undefined;
@@ -459,30 +468,60 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
     // Until the filters and workspaces load, the charts have no query to read data for, so they show their loading state
     const visibleChartQueries = query
         ? [query.headlineChart, ...query.supportingCharts]
-        : [headlineSpec, ...eligibleCharts].map((chart): InsightsChartQuery => ({chart: applyViolationStage(chart, violationStages[chart.graphKey]), queryJSON: undefined}));
+        : [headlineSpec, ...eligibleCharts].map((chart): InsightsChartQuery => ({
+              chart: applyViolationStage(chart, violationStages[chart.graphKey]),
+              queryJSON: undefined,
+          }));
     const snapshots = useMultipleSnapshots(
         visibleChartQueries.flatMap(({queryJSON, previousPeriodQueryJSON, averageQueryJSON}) =>
             [queryJSON, previousPeriodQueryJSON, averageQueryJSON].flatMap((chartQueryJSON) => (chartQueryJSON ? [String(chartQueryJSON.hash)] : [])),
         ),
     );
+    const isDashboardLoaded = hasDashboardResponse(dashboard);
+    // A cached chart can appear before its summary arrives. Don't keep the skeleton up offline or after a failed request.
+    const shouldWaitForSummary = !isOffline && !isDashboardLoaded && !dashboard?.responseJsonCode && !dashboard?.errors;
+    const insightsResponseID = dashboard?.insightsResponseID;
     const charts = visibleChartQueries.map((chartQuery): InsightsDashboardChart => {
         const graph = dashboard?.graphs?.[chartQuery.chart.graphKey];
+        const snapshot = chartQuery.queryJSON ? snapshots[chartQuery.queryJSON.hash] : undefined;
+        const previousPeriodSnapshot = chartQuery.previousPeriodQueryJSON ? snapshots[chartQuery.previousPeriodQueryJSON.hash] : undefined;
+        // A different dashboard query or Search can refresh shared rows without updating this dashboard record.
+        const headlineSummary = insightsResponseID && snapshot?.insightsResponseID === insightsResponseID ? graph?.headlineSummary : undefined;
         return {
             ...chartQuery,
-            snapshot: chartQuery.queryJSON ? snapshots[chartQuery.queryJSON.hash] : undefined,
-            previousPeriodSnapshot: chartQuery.previousPeriodQueryJSON ? snapshots[chartQuery.previousPeriodQueryJSON.hash] : undefined,
+            snapshot,
+            previousPeriodSnapshot,
             averageSnapshot: chartQuery.averageQueryJSON ? snapshots[chartQuery.averageQueryJSON.hash] : undefined,
             average: {
                 [CONST.SEARCH.CHART_METRIC.AMOUNT]: graph?.averageAmount,
                 [CONST.SEARCH.CHART_METRIC.COUNT]: graph?.averageCount,
                 [CONST.SEARCH.CHART_METRIC.DURATION]: graph?.averageDuration,
             },
-            isDashboardLoaded: hasDashboardResponse(dashboard),
+            isDashboardLoaded,
+            headlineSummary: headlineSummary?.previous && previousPeriodSnapshot?.insightsResponseID !== insightsResponseID ? {current: headlineSummary.current} : headlineSummary,
+            shouldWaitForSummary,
             eligiblePolicyIDs: graph?.eligiblePolicyIDs,
             stages: getEnabledStages(chartQuery.chart, policiesInScope, login, isDashboardPolicyEligible),
         };
     });
     const [headlineChart, ...supportingCharts] = charts;
+    const currentPeriodHasResponseID = !!headlineChart.snapshot?.insightsResponseID;
+    const previousPeriodHasResponseID = !!headlineChart.previousPeriodSnapshot?.insightsResponseID;
+    const hadCurrentPeriodResponseID = usePrevious(currentPeriodHasResponseID);
+    const hadPreviousPeriodResponseID = usePrevious(previousPeriodHasResponseID);
+    const previousHash = usePrevious(hash);
+    const didLoseCurrentPeriodResponseID = hadCurrentPeriodResponseID && !currentPeriodHasResponseID && !!headlineChart.snapshot?.data;
+    const didLosePreviousPeriodResponseID =
+        hadPreviousPeriodResponseID && !previousPeriodHasResponseID && !!headlineChart.previousPeriodSnapshot?.data && filters.compare === CONST.SEARCH.COMPARE.PREVIOUS_PERIOD;
+    // Search can replace rows without an Insights response ID. Refresh once when that happens to the chart on screen.
+    const shouldRefreshHeadline = previousHash === hash && (didLoseCurrentPeriodResponseID || didLosePreviousPeriodResponseID);
+    useEffect(() => {
+        if (!shouldRefreshHeadline || !isDashboardVisible || !isFocused || isOffline) {
+            return;
+        }
+        onRequestConditionsChanged();
+    }, [shouldRefreshHeadline, isDashboardVisible, isFocused, isOffline]);
+
     const state = getDashboardState(dashboard, isOffline, charts, shouldUpsell, hasLoadedBefore);
 
     const tabSelector =
@@ -567,7 +606,9 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
                                 policyIDs: filters.policyIDs,
                                 date: filters.date,
                                 groupCurrency: filters.groupCurrency,
-                                ...(dashboardID === CONST.INSIGHTS.DASHBOARD.SPEND && {tagLevel: filters.tagLevel}),
+                                ...(dashboardID === CONST.INSIGHTS.DASHBOARD.SPEND && {
+                                    tagLevel: filters.tagLevel,
+                                }),
                             }}
                             hasFailedToLoad={!!dashboard?.errors}
                             headlineChart={headlineChart}

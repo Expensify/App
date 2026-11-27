@@ -1245,6 +1245,15 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     insightsPage: {
+        headline: {
+            averageExpense: (amount) => `平均${amount}`,
+            flaggedExpenses: ({formattedCount}) => ({one: `${formattedCount}件の経費`, other: `${formattedCount}件の経費`}),
+            violationCount: ({formattedCount}) => ({one: `${formattedCount}件の違反事項`, other: `${formattedCount}件の違反事項`}),
+            timeToSubmit: (time) => `提出まで${time}`,
+            timeToApprove: (time) => `承認まで${time}`,
+            timeToPay: (time) => `支払いまで${time}`,
+            vsPreviousPeriod: (change) => `前期間比 ${change}`,
+        },
         tagLevel: (level: string) => `タグレベル ${level}`,
         noTaggedExpenses: 'タグが付いた経費がありません',
         noExpensesForTagLevel: (tagLevelName: string) => `この期間には${tagLevelName}の経費がありません。`,
@@ -11383,7 +11392,6 @@ ${reportName}`,
             updateExisting: '既存のものを更新',
         },
         chartValueUnavailable: '利用できません',
-        seriesInPeriod: ({series, period}: {series: string; period: string}) => `${series} ${period}`,
     },
     genericErrorPage: {
         title: 'おっと、問題が発生しました！',

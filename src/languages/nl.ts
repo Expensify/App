@@ -1256,6 +1256,15 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     insightsPage: {
+        headline: {
+            averageExpense: (amount) => `Gemiddeld ${amount}`,
+            flaggedExpenses: ({formattedCount}) => ({one: `Bij ${formattedCount} uitgave`, other: `Bij ${formattedCount} uitgaven`}),
+            violationCount: ({formattedCount}) => ({one: `${formattedCount} overtreding`, other: `${formattedCount} overtredingen`}),
+            timeToSubmit: (time) => `${time} tot indiening`,
+            timeToApprove: (time) => `${time} tot goedkeuring`,
+            timeToPay: (time) => `${time} tot betaling`,
+            vsPreviousPeriod: (change) => `${change} ten opzichte van de vorige periode`,
+        },
         tagLevel: (level: string) => `Tagniveau ${level}`,
         noTaggedExpenses: 'Geen uitgaven met tags',
         noExpensesForTagLevel: (tagLevelName: string) => `Geen uitgaven voor ${tagLevelName} in dit datumbereik.`,
@@ -11545,7 +11554,6 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             updateExisting: 'Bestaande bijwerken',
         },
         chartValueUnavailable: 'Niet beschikbaar',
-        seriesInPeriod: ({series, period}: {series: string; period: string}) => `${series} ${period}`,
     },
     genericErrorPage: {
         title: 'Oeps, er is iets misgegaan!',

@@ -1260,6 +1260,15 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     insightsPage: {
+        headline: {
+            averageExpense: (amount) => `${amount} in media`,
+            flaggedExpenses: ({formattedCount}) => ({one: `Su ${formattedCount} spesa`, other: `Su ${formattedCount} spese`}),
+            violationCount: ({formattedCount}) => ({one: `${formattedCount} violazione`, other: `${formattedCount} violazioni`}),
+            timeToSubmit: (time) => `${time} per inviare`,
+            timeToApprove: (time) => `${time} per approvare`,
+            timeToPay: (time) => `${time} per pagare`,
+            vsPreviousPeriod: (change) => `${change} rispetto al periodo precedente`,
+        },
         tagLevel: (level: string) => `Livello tag ${level}`,
         noTaggedExpenses: 'Nessuna spesa con tag',
         noExpensesForTagLevel: (tagLevelName: string) => `Non ci sono spese per ${tagLevelName} in questo intervallo di date.`,
@@ -11575,7 +11584,6 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             updateExisting: 'Aggiorna esistente',
         },
         chartValueUnavailable: 'Non disponibile',
-        seriesInPeriod: ({series, period}: {series: string; period: string}) => `${series} ${period}`,
     },
     genericErrorPage: {
         title: 'Oops, qualcosa è andato storto!',

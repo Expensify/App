@@ -1399,6 +1399,15 @@ const translations = {
         },
     },
     insightsPage: {
+        headline: {
+            averageExpense: (amount: string) => `${amount} average`,
+            flaggedExpenses: ({formattedCount}: {count: number; formattedCount: string}) => ({one: `On ${formattedCount} expense`, other: `On ${formattedCount} expenses`}),
+            violationCount: ({formattedCount}: {count: number; formattedCount: string}) => ({one: `${formattedCount} violation`, other: `${formattedCount} violations`}),
+            timeToSubmit: (time: string) => `${time} to submit`,
+            timeToApprove: (time: string) => `${time} to approve`,
+            timeToPay: (time: string) => `${time} to pay`,
+            vsPreviousPeriod: (change: string) => `${change} vs previous period`,
+        },
         generatingAIInsights: 'Generating AI Insights...',
         generatingAIInsightsSubtitle: "This shouldn't take more than a minute",
         readingChart: (chartTitle: string) => `Reading ${chartTitle}`,
@@ -11689,7 +11698,6 @@ const translations = {
         spendOverTime: 'Spend over time',
         periodSoFar: ({period}: {period: string}) => `${period} so far`,
         chartValueUnavailable: 'Unavailable',
-        seriesInPeriod: ({series, period}: {series: string; period: string}) => `${series} ${period}`,
         weekOf: ({date}: {date: string}) => `Week of ${date}`,
         groupedExpenses: 'grouped expenses',
         bulkActions: {

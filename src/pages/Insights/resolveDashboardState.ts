@@ -5,6 +5,7 @@ import {isGroupEntry, isSearchDataLoaded} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import type {InsightsDashboard} from '@src/types/onyx';
+import type {InsightsHeadlineSummary} from '@src/types/onyx/InsightsDashboard';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -32,6 +33,8 @@ type InsightsDashboardChart = InsightsChartQuery & {
     previousPeriodSnapshot?: OnyxEntry<SearchResults>;
     averageSnapshot?: OnyxEntry<SearchResults>;
     average?: ChartAverage;
+    headlineSummary?: InsightsHeadlineSummary;
+    shouldWaitForSummary?: boolean;
     isDashboardLoaded?: boolean;
     eligiblePolicyIDs?: string[];
 

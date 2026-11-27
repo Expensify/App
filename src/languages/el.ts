@@ -1303,6 +1303,15 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     insightsPage: {
+        headline: {
+            averageExpense: (amount) => `${amount} κατά μέσο όρο`,
+            flaggedExpenses: ({formattedCount}) => ({one: `Σε ${formattedCount} έξοδο`, other: `Σε ${formattedCount} έξοδα`}),
+            violationCount: ({formattedCount}) => ({one: `${formattedCount} παράβαση`, other: `${formattedCount} παραβάσεις`}),
+            timeToSubmit: (time) => `${time} μέχρι την υποβολή`,
+            timeToApprove: (time) => `${time} μέχρι την έγκριση`,
+            timeToPay: (time) => `${time} μέχρι την πληρωμή`,
+            vsPreviousPeriod: (change) => `${change} σε σχέση με την προηγούμενη περίοδο`,
+        },
         tagLevel: (level: string) => `Επίπεδο ετικέτας ${level}`,
         noTaggedExpenses: 'Δεν υπάρχουν δαπάνες με ετικέτες',
         noExpensesForTagLevel: (tagLevelName: string) => `Δεν υπάρχουν δαπάνες για ${tagLevelName} σε αυτό το εύρος ημερομηνιών.`,
@@ -11820,7 +11829,6 @@ ${reportName}`,
             updateExisting: 'Ενημέρωση υπάρχοντος',
         },
         chartValueUnavailable: 'Μη διαθέσιμο',
-        seriesInPeriod: ({series, period}: {series: string; period: string}) => `${series} ${period}`,
     },
     genericErrorPage: {
         title: 'Ωχ, κάτι πήγε στραβά!',

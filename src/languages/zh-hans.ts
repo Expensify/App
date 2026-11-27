@@ -1215,6 +1215,15 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     insightsPage: {
+        headline: {
+            averageExpense: (amount) => `平均 ${amount}`,
+            flaggedExpenses: ({formattedCount}) => ({one: `涉及 ${formattedCount} 笔费用`, other: `涉及 ${formattedCount} 笔费用`}),
+            violationCount: ({formattedCount}) => ({one: `${formattedCount} 项违规`, other: `${formattedCount} 项违规`}),
+            timeToSubmit: (time) => `提交用时 ${time}`,
+            timeToApprove: (time) => `审批用时 ${time}`,
+            timeToPay: (time) => `付款用时 ${time}`,
+            vsPreviousPeriod: (change) => `较上一周期 ${change}`,
+        },
         tagLevel: (level: string) => `标签级别 ${level}`,
         noTaggedExpenses: '没有带标签的费用',
         noExpensesForTagLevel: (tagLevelName: string) => `此日期范围内没有 ${tagLevelName} 的费用。`,
@@ -11087,7 +11096,6 @@ ${reportName}`,
         weekOf: ({date}: {date: string}) => `${date} 当周`,
         saveEdits: {title: '保存编辑', prompt: ({name}: {name: string}) => `要更新对“${name}”的更改，还是创建一个新项？`, createNew: '新建', updateExisting: '更新现有内容'},
         chartValueUnavailable: '不可用',
-        seriesInPeriod: ({series, period}: {series: string; period: string}) => `${series} ${period}`,
     },
     genericErrorPage: {
         title: '哎呀，出错了！',

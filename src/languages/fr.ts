@@ -1261,6 +1261,15 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     insightsPage: {
+        headline: {
+            averageExpense: (amount) => `${amount} en moyenne`,
+            flaggedExpenses: ({formattedCount}) => ({one: `Sur ${formattedCount} dépense`, other: `Sur ${formattedCount} dépenses`}),
+            violationCount: ({formattedCount}) => ({one: `${formattedCount} infraction`, other: `${formattedCount} infractions`}),
+            timeToSubmit: (time) => `${time} pour soumettre`,
+            timeToApprove: (time) => `${time} pour approuver`,
+            timeToPay: (time) => `${time} pour payer`,
+            vsPreviousPeriod: (change) => `${change} par rapport à la période précédente`,
+        },
         tagLevel: (level: string) => `Niveau de tag ${level}`,
         noTaggedExpenses: 'Aucune dépense avec un tag',
         noExpensesForTagLevel: (tagLevelName: string) => `Aucune dépense pour ${tagLevelName} sur cette période.`,
@@ -11659,7 +11668,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             updateExisting: 'Mettre à jour l’existant',
         },
         chartValueUnavailable: 'Indisponible',
-        seriesInPeriod: ({series, period}: {series: string; period: string}) => `${series} ${period}`,
     },
     genericErrorPage: {
         title: 'Oups, quelque chose s’est mal passé !',

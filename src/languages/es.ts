@@ -1251,6 +1251,15 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     insightsPage: {
+        headline: {
+            averageExpense: (amount) => `${amount} de media`,
+            flaggedExpenses: ({formattedCount}) => ({one: `En ${formattedCount} gasto`, other: `En ${formattedCount} gastos`}),
+            violationCount: ({formattedCount}) => ({one: `${formattedCount} infracción`, other: `${formattedCount} infracciones`}),
+            timeToSubmit: (time) => `${time} para enviar`,
+            timeToApprove: (time) => `${time} para aprobar`,
+            timeToPay: (time) => `${time} para pagar`,
+            vsPreviousPeriod: (change) => `${change} respecto al periodo anterior`,
+        },
         tagLevel: (level: string) => `Nivel de etiqueta ${level}`,
         noTaggedExpenses: 'No hay gastos con etiquetas',
         noExpensesForTagLevel: (tagLevelName: string) => `No hay gastos para ${tagLevelName} en este intervalo de fechas.`,
@@ -11511,7 +11520,6 @@ ${reportName}`,
             updateExisting: 'Actualizar existente',
         },
         chartValueUnavailable: 'No disponible',
-        seriesInPeriod: ({series, period}: {series: string; period: string}) => `${series} ${period}`,
     },
     genericErrorPage: {
         title: '¡Oh-oh, algo salió mal!',

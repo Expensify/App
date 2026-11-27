@@ -19,6 +19,7 @@ import {
     ReplaceOptimisticAgentAccountID,
     SaveResponseInOnyx,
     SentryServerTiming,
+    StampInsightsResponse,
     SupportalPermission,
 } from '@libs/Middleware';
 import registerMiddlewares from '@libs/Middleware/register';
@@ -52,6 +53,7 @@ const EXPECTED_ORDER: RequestModule.Middleware[] = [
     DiscardStaleSearchSnapshot,
     ReconcileBulkEditReportAction,
     FlagSearchTransactionWrites,
+    StampInsightsResponse,
     SaveResponseInOnyx,
     FraudMonitoring,
 ];
@@ -68,9 +70,12 @@ describe('Middleware registration', () => {
         expect(registered).toEqual(EXPECTED_ORDER);
     });
 
-    it('registers all 21 middlewares with no duplicates', () => {
-        expect(registered).toHaveLength(21);
-        expect(new Set(registered).size).toBe(21);
+    it('registers all middlewares with no duplicates', () => {
+        // Given the expected middleware list
+        // When the list has been registered
+        // Then no middleware is missing or registered twice
+        expect(registered).toHaveLength(EXPECTED_ORDER.length);
+        expect(new Set(registered).size).toBe(EXPECTED_ORDER.length);
     });
 
     it('keeps SaveResponseInOnyx after every other Onyx-writing middleware and before FraudMonitoring', () => {
