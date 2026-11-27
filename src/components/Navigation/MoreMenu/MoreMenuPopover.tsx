@@ -158,6 +158,8 @@ function MoreMenuPopover({isVisible, onClose, onItemPicked, onModalHide, focused
             shouldUseModalPaddingStyle={false}
             // The card's margins clear the notch in landscape, so the modal's own side padding would only narrow its rows.
             shouldAddSideSafeAreaPadding={false}
+            // The screen and the bar stay in view under the card, and a tap outside it still closes it.
+            backdropOpacity={0}
             innerContainerStyle={styles.moreMenuCard(cardBottomOffset, leftInset, rightInset)}
             scrollContainerStyle={[styles.pv2, styles.ph2]}
         />
