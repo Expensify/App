@@ -1902,4 +1902,44 @@ describe('DateUtils', () => {
             expect(formatted).toEqual(['2,5 dnia', '5 dni', '2,5 godziny', '5 godzin', '5 minut']);
         });
     });
+
+    describe('formatHandlingTime', () => {
+        const numberFormatIn =
+            (locale: Parameters<typeof formatNumber>[0]): LocaleContextProps['numberFormat'] =>
+            (number, options) =>
+                formatNumber(locale, number, options);
+
+        it('writes times shorter than a tenth of an hour as "<0.1 hours"', () => {
+            // Given a stage that took five minutes, which would round to 0.1 hours if rounded first
+            const fiveMinutes = 5 * 60;
+
+            // When it is formatted in English
+            const formatted = DateUtils.formatHandlingTime(fiveMinutes, translateLocal, numberFormatIn(CONST.LOCALES.EN));
+
+            // Then it reads as under a tenth of an hour, so an automated stage never reads as taking no time
+            expect(formatted).toBe('<0.1 hours');
+        });
+
+        it('writes times under a day in hours, rounded to one decimal place', () => {
+            // Given stages that took 2.43 hours and exactly one hour
+            const durations = [2.43 * CONST.DATE.SECONDS_PER_HOUR, CONST.DATE.SECONDS_PER_HOUR];
+
+            // When each is formatted in English
+            const formatted = durations.map((seconds) => DateUtils.formatHandlingTime(seconds, translateLocal, numberFormatIn(CONST.LOCALES.EN)));
+
+            // Then each reads in hours, since days would round them to almost nothing, keeping the singular for one hour
+            expect(formatted).toEqual(['2.4 hours', '1 hour']);
+        });
+
+        it('writes times of a day or more in days', () => {
+            // Given a stage that took 4.2 days
+            const fourPointTwoDays = 4.2 * CONST.DATE.SECONDS_PER_DAY;
+
+            // When it is formatted in English
+            const formatted = DateUtils.formatHandlingTime(fourPointTwoDays, translateLocal, numberFormatIn(CONST.LOCALES.EN));
+
+            // Then it reads in days, like the other Efficiency charts
+            expect(formatted).toBe('4.2 days');
+        });
+    });
 });

@@ -72,6 +72,12 @@ type InsightsViolationStage = ValueOf<typeof CONST.INSIGHTS.VIOLATION_STAGE>;
 /** Violation stage the user picked on each chart that offers one */
 type InsightsViolationStages = Partial<Record<InsightsGraphKey, InsightsViolationStage>>;
 
+/** The workflow stage a Handled by chart splits between people, AI agents and rules */
+type InsightsHandledByStage = ValueOf<typeof CONST.INSIGHTS.HANDLED_BY_STAGE>;
+
+/** Handled by stage the user picked on each chart that offers one */
+type InsightsHandledByStages = Partial<Record<InsightsGraphKey, InsightsHandledByStage>>;
+
 type InsightsChartSpec = {
     /** Slot the request names the chart's snapshot under, and the response's `graphs` confirms it in */
     graphKey: InsightsGraphKey;
@@ -103,6 +109,9 @@ type InsightsChartSpec = {
     /** Stage whose violations a chart without a stage control counts, which Explain names */
     violationStage?: InsightsViolationStage;
 
+    /** Lets the user switch the chart between the approve and submit stages. The chart's own `workflowStage` and `dateFilterKey` are the approve stage's. */
+    hasHandledByStageControl?: boolean;
+
     /** The chart is shown when any workspace in scope passes this. A chart that declares none is always shown. */
     isPolicyEligible?: PolicyEligibilityCheck;
 
@@ -120,6 +129,12 @@ const VIOLATION_HAS_VALUES: HasFilterValues = [CONST.SEARCH.HAS_VALUES.SUBMITTED
 const VIOLATION_STAGE_FILTERS: Record<InsightsViolationStage, Required<Pick<InsightsChartSpec, 'has' | 'dateFilterKey'>>> = {
     [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: {has: [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION], dateFilterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_SUBMISSION},
     [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: {has: [CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION], dateFilterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL},
+};
+
+/** The workflow stage each Handled by stage counts, and the action date that finishes it, so a report counts in the period it finished the stage */
+const HANDLED_BY_STAGE_FILTERS: Record<InsightsHandledByStage, Required<Pick<InsightsChartSpec, 'workflowStage' | 'dateFilterKey'>>> = {
+    [CONST.INSIGHTS.HANDLED_BY_STAGE.APPROVE]: {workflowStage: CONST.SEARCH.WORKFLOW_STAGES.SUBMITTED_APPROVED, dateFilterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL},
+    [CONST.INSIGHTS.HANDLED_BY_STAGE.SUBMIT]: {workflowStage: CONST.SEARCH.WORKFLOW_STAGES.CREATED_SUBMITTED, dateFilterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_SUBMISSION},
 };
 
 type InsightsDashboardSpec = {
@@ -223,6 +238,18 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
             stages: WORKFLOW_STAGES,
         },
         supportingCharts: [
+            {
+                graphKey: CONST.INSIGHTS.GRAPH.HANDLED_BY,
+                titleKey: 'insightsPage.handledBy.title',
+                ...HANDLED_BY_STAGE_FILTERS[CONST.INSIGHTS.HANDLED_BY_STAGE.APPROVE],
+                hasHandledByStageControl: true,
+                view: CONST.SEARCH.VIEW.TABLE,
+                isFullWidth: true,
+                groupBy: CONST.SEARCH.GROUP_BY.HANDLED_BY,
+                metric: CONST.SEARCH.CHART_METRIC.COUNT,
+                sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
+                sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            },
             {
                 graphKey: CONST.INSIGHTS.GRAPH.AVERAGE_PROCESSING_TIME,
                 titleKey: 'insightsPage.averageProcessingTime',
@@ -441,8 +468,34 @@ function getViolationStage(chart: InsightsChartSpec, violationStages: InsightsVi
     return violationStages[chart.graphKey] ?? CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED;
 }
 
+/** Returns the Handled by stages the workspaces in scope can show. Approve needs a workspace with approvals on, and comes first since it's the default. */
+function getHandledByStageOptions(policiesInScope: Policy[]): InsightsHandledByStage[] {
+    const canApprove = policiesInScope.some((policy) => areApprovalsEnabled(policy));
+    return canApprove ? [CONST.INSIGHTS.HANDLED_BY_STAGE.APPROVE, CONST.INSIGHTS.HANDLED_BY_STAGE.SUBMIT] : [CONST.INSIGHTS.HANDLED_BY_STAGE.SUBMIT];
+}
+
+/** Returns the stage a chart with a Handled by stage control counts: the user's pick while the workspaces in scope offer it, otherwise the first stage they offer. Other charts have none. */
+function getHandledByStage(chart: InsightsChartSpec, handledByStages: InsightsHandledByStages, stageOptions: InsightsHandledByStage[]): InsightsHandledByStage | undefined {
+    if (!chart.hasHandledByStageControl) {
+        return undefined;
+    }
+    const pickedStage = handledByStages[chart.graphKey];
+    return pickedStage && stageOptions.includes(pickedStage) ? pickedStage : stageOptions.at(0);
+}
+
+/** Points a chart with a Handled by stage control at the given stage. Other charts keep the chart as declared. */
+function applyHandledByStage(chart: InsightsChartSpec, stage: InsightsHandledByStage | undefined): InsightsChartSpec {
+    if (!chart.hasHandledByStageControl || !stage) {
+        return chart;
+    }
+    return {...chart, ...HANDLED_BY_STAGE_FILTERS[stage]};
+}
+
 export {
+    applyHandledByStage,
     applyViolationStage,
+    getHandledByStage,
+    getHandledByStageOptions,
     getAccessibleDashboards,
     getChartSpec,
     getEnabledStages,
@@ -455,5 +508,5 @@ export {
     shouldUpsellControlPlan,
     VIOLATION_HAS_VALUES,
 };
-export type {InsightsChartSpec, InsightsChartStage, InsightsDateFilterKey, InsightsViolationStage, InsightsViolationStages};
+export type {InsightsChartSpec, InsightsChartStage, InsightsDateFilterKey, InsightsHandledByStage, InsightsHandledByStages, InsightsViolationStage, InsightsViolationStages};
 export default INSIGHTS_DASHBOARD_SPECS;

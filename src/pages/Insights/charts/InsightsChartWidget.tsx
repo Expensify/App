@@ -29,7 +29,7 @@ import {buildSearchQueryJSON, getDateFilterRange} from '@libs/SearchQueryUtils';
 import InsightsExplainButton from '@pages/Insights/ai/InsightsExplainButton';
 import buildInsightsChartCSV from '@pages/Insights/buildInsightsChartCSV';
 import InsightsGroupByDropdown from '@pages/Insights/controls/InsightsGroupByDropdown';
-import type {InsightsChartSpec, InsightsChartStage, InsightsViolationStage} from '@pages/Insights/dashboardSpecs';
+import type {InsightsChartSpec, InsightsChartStage, InsightsHandledByStage, InsightsViolationStage} from '@pages/Insights/dashboardSpecs';
 import INSIGHTS_DASHBOARD_SPECS, {isStackedChart} from '@pages/Insights/dashboardSpecs';
 import {getInsightsDetailsItemParams} from '@pages/Insights/details/insightsDetailsItem';
 import getInsightsLastDay from '@pages/Insights/getInsightsLastDay';
@@ -55,8 +55,10 @@ import type {InsightsChartMenuAction} from './InsightsChartMenu';
 
 import InsightsChartMenu from './InsightsChartMenu';
 import InsightsDataTable from './InsightsDataTable';
+import InsightsHandledByTable from './InsightsHandledByTable';
 import InsightsRankingTable from './InsightsRankingTable';
 import InsightsTrackedFromNote from './InsightsTrackedFromNote';
+import useHandledBySetupRows from './useHandledBySetupRows';
 
 type InsightsChartWidgetProps = {
     dashboardID: InsightsDashboardID;
@@ -113,6 +115,9 @@ type InsightsChartWidgetProps = {
     /** Shows the violation stage control in the header of a chart that offers one */
     onViolationStageChange?: (stage: InsightsViolationStage) => void;
 
+    /** Stage a Handled by chart counts, left out by other charts */
+    handledByStage?: InsightsHandledByStage;
+
     /** Last day GetInsights counted expenses through, as a yyyy-MM-dd string, which the chart and its Details panel treat as today so they stop where the data stops */
     asOfDate?: string;
 
@@ -149,6 +154,7 @@ function InsightsChartWidget({
     onGroupByChange,
     violationStage,
     onViolationStageChange,
+    handledByStage,
     asOfDate,
     tagLevelName,
     children,
@@ -159,6 +165,7 @@ function InsightsChartWidget({
     const {cardPaddingHorizontal, cardPaddingBottom} = useLayoutSpacing();
     const icons = useMemoizedLazyExpensifyIcons(['Expand', 'Table']);
     const {getCurrencyDecimals} = useCurrencyListActions();
+    const {setupRows: handledBySetupRows} = useHandledBySetupRows(filters.policyIDs, handledByStage);
     const controls: React.ReactNode[] = [];
     const notes: React.ReactNode[] = [];
     for (const child of React.Children.toArray(children)) {
@@ -282,6 +289,9 @@ function InsightsChartWidget({
     }
 
     const canUseMenuActions = !!queryJSON && (state === INSIGHTS_CHART_STATE.READY || (isLoading && canOpenOnSpend));
+    // An empty stage still lists its setup rows, which are what a workspace without automation needs
+    const shouldShowHandledByTable =
+        !!handledByStage && (state === INSIGHTS_CHART_STATE.LOADING || state === INSIGHTS_CHART_STATE.READY || (state === INSIGHTS_CHART_STATE.EMPTY && handledBySetupRows.length > 0));
     const shownViolationStage = chart.hasViolationStageControl ? violationStage : undefined;
     let headerMenu: React.ReactNode = null;
     // The stage row stays reachable while the picked stage is empty or failed, so the user can switch back
@@ -340,14 +350,26 @@ function InsightsChartWidget({
             >
                 {state === INSIGHTS_CHART_STATE.OFFLINE && <ChartOfflineState />}
                 {state === INSIGHTS_CHART_STATE.ERROR && <ChartErrorState onRetry={onRetry} />}
-                {state === INSIGHTS_CHART_STATE.EMPTY && (
+                {state === INSIGHTS_CHART_STATE.EMPTY && !shouldShowHandledByTable && (
                     <ChartEmptyState
                         testID={`insightsChartEmptyState-${chart.graphKey}`}
                         title={tagLevelName === undefined ? undefined : translate('insightsPage.noTaggedExpenses')}
                         description={tagLevelName === undefined ? undefined : translate('insightsPage.noExpensesForTagLevel', tagLevelName)}
                     />
                 )}
-                {(state === INSIGHTS_CHART_STATE.LOADING || state === INSIGHTS_CHART_STATE.READY) &&
+                {shouldShowHandledByTable && (
+                    <InsightsHandledByTable
+                        title={translate(chart.titleKey)}
+                        data={data}
+                        comparison={comparison}
+                        isComparingPreviousPeriod={filters.compare === CONST.SEARCH.COMPARE.PREVIOUS_PERIOD}
+                        stage={handledByStage}
+                        policyIDs={filters.policyIDs}
+                        isLoading={isLoading}
+                    />
+                )}
+                {!handledByStage &&
+                    (state === INSIGHTS_CHART_STATE.LOADING || state === INSIGHTS_CHART_STATE.READY) &&
                     (view === CONST.SEARCH.VIEW.TABLE ? (
                         <InsightsRankingTable
                             title={translate(chart.titleKey)}

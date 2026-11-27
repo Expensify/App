@@ -8629,6 +8629,8 @@ const CONST = {
             VIOLATION: 'violation',
             PAID_BY: 'paid-by',
             WORKFLOW_STAGE: 'workflow-stage',
+            // Groups reports by who finished a workflow stage: people, each AI agent or rules. Only Insights queries use it.
+            HANDLED_BY: 'handled-by',
         },
         WORKFLOW_STAGES: {
             CREATED_SUBMITTED: 'created-submitted',
@@ -9012,6 +9014,10 @@ const CONST = {
                     EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
                     TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
                 },
+                HANDLED_BY: {
+                    EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
+                    TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
+                },
             };
         },
         get TYPE_DEFAULT_COLUMNS() {
@@ -9077,6 +9083,7 @@ const CONST = {
                 VIOLATION: [this.TABLE_COLUMNS.GROUP_VIOLATION, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 PAID_BY: [this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 WORKFLOW_STAGE: [this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
+                HANDLED_BY: [this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
             };
         },
         BOOLEAN: {
@@ -10842,6 +10849,7 @@ const CONST = {
             LONGEST_TO_SUBMIT: 'longestToSubmit',
             SLOWEST_TO_APPROVE: 'slowestToApprove',
             MOST_TIME_TO_PAY: 'mostTimeToPay',
+            HANDLED_BY: 'handledBy',
         },
         AI_INSIGHT: {
             SIGNAL: {
@@ -10869,6 +10877,15 @@ const CONST = {
         VIOLATION_STAGE: {
             SUBMITTED: 'submitted',
             APPROVED: 'approved',
+        },
+        HANDLED_BY_STAGE: {
+            APPROVE: 'approve',
+            SUBMIT: 'submit',
+        },
+        HANDLED_BY_SOURCE: {
+            PEOPLE: 'people',
+            AGENT: 'agent',
+            RULES: 'rules',
         },
     },
 

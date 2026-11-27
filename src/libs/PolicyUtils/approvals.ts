@@ -474,6 +474,11 @@ function getWorkflowApprovalsUnavailable(policy: OnyxEntry<Policy>) {
     return policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL || !!policy?.errorFields?.approvalMode;
 }
 
+/** Whether the workspace's "Auto-approve compliant reports" setting is on. A saved limit keeps it on even before the options flag syncs. */
+function isAutoApproveCompliantReportsEnabled(policy: OnyxEntry<Policy>): boolean {
+    return (!!policy?.shouldShowAutoApprovalOptions || (policy?.autoApproval?.limit !== undefined && policy.autoApproval.limit > 0)) && !getWorkflowApprovalsUnavailable(policy);
+}
+
 export {
     isSubmitterAndApprover,
     getApprovalWorkflow,
@@ -492,4 +497,5 @@ export {
     getSubmitReportManagerAccountID,
     getForwardsToAccount,
     getWorkflowApprovalsUnavailable,
+    isAutoApproveCompliantReportsEnabled,
 };

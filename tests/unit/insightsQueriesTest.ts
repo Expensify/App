@@ -459,6 +459,47 @@ describe('insightsQueries', () => {
             expect(parsePayload(twoWorkspaces)?.inputQuery).toContain('policyID:A1,B2');
             expect(parsePayload(twoWorkspaces)).toEqual(expect.objectContaining({insightsHashes: buildExpectedHashes(filters)}));
         });
+
+        it('sends the Handled by stage and stores each stage under its own dashboard entry and snapshots', () => {
+            // Given the Efficiency dashboard requested without a Handled by stage, and with each stage
+            const withoutStage = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.EFFICIENCY, FILTERS, EFFICIENCY_SPEC.supportingCharts);
+
+            // When the approve and submit stages are requested
+            const approve = buildInsightsJsonQuery(
+                CONST.INSIGHTS.DASHBOARD.EFFICIENCY,
+                FILTERS,
+                EFFICIENCY_SPEC.supportingCharts,
+                {},
+                {
+                    [CONST.INSIGHTS.GRAPH.HANDLED_BY]: CONST.INSIGHTS.HANDLED_BY_STAGE.APPROVE,
+                },
+            );
+            const submit = buildInsightsJsonQuery(
+                CONST.INSIGHTS.DASHBOARD.EFFICIENCY,
+                FILTERS,
+                EFFICIENCY_SPEC.supportingCharts,
+                {},
+                {
+                    [CONST.INSIGHTS.GRAPH.HANDLED_BY]: CONST.INSIGHTS.HANDLED_BY_STAGE.SUBMIT,
+                },
+            );
+
+            // Then the backend is told which stage to split, since the graph key alone doesn't say
+            expect(JSON.parse(approve?.jsonQuery ?? '{}')).toMatchObject({handledByStages: {[CONST.INSIGHTS.GRAPH.HANDLED_BY]: CONST.INSIGHTS.HANDLED_BY_STAGE.APPROVE}});
+            expect(JSON.parse(withoutStage?.jsonQuery ?? '{}')).not.toHaveProperty('handledByStages');
+
+            // And each stage gets its own dashboard entry, so switching back reads what was stored
+            expect(new Set([withoutStage?.hash, approve?.hash, submit?.hash]).size).toBe(3);
+
+            // And the Handled by snapshots differ by stage, because each stage narrows to its own workflow stage and action date
+            const getHandledByQuery = (request: InsightsQuery | undefined) => request?.supportingCharts.find(({chart}) => chart.graphKey === CONST.INSIGHTS.GRAPH.HANDLED_BY)?.queryJSON;
+            const approveQuery = getHandledByQuery(approve);
+            const submitQuery = getHandledByQuery(submit);
+            expect(approveQuery?.groupBy).toBe(CONST.SEARCH.GROUP_BY.HANDLED_BY);
+            expect(approveQuery ? buildSearchQueryString(approveQuery) : '').toContain('workflowStage:submitted-approved');
+            expect(submitQuery ? buildSearchQueryString(submitQuery) : '').toContain('workflowStage:created-submitted');
+            expect(approveQuery?.hash).not.toBe(submitQuery?.hash);
+        });
     });
 
     describe('buildInsightsQueryString', () => {

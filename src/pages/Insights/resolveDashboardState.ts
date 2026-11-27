@@ -69,8 +69,8 @@ function getDashboardState(
     });
     const hasLoadedChart = chartStates.some(({isLoaded}) => isLoaded);
     const hasChartWithRows = chartStates.some(({hasRows}) => hasRows);
-    // The other violation stage may still have data, so the charts and their stage controls stay on screen to switch back
-    const hasViolationStageControl = charts.some(({chart}) => chart.hasViolationStageControl);
+    // The other violation or Handled by stage may still have data, so the charts and their stage controls stay on screen to switch back
+    const hasViolationStageControl = charts.some(({chart}) => chart.hasViolationStageControl || chart.hasHandledByStageControl);
 
     if (isOffline && !hasLoadedChart && dashboard?.hasResults !== false) {
         return hasViolationStageControl ? INSIGHTS_DASHBOARD_STATE.READY : INSIGHTS_DASHBOARD_STATE.OFFLINE;

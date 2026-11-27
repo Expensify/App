@@ -12,6 +12,7 @@ import {
 } from '@components/Table/tableAccessibility';
 import Text from '@components/Text';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -26,11 +27,13 @@ import CONST from '@src/CONST';
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
 
+import type {InsightsRankingTableColumn, RankingTableColumnIndexes} from './InsightsRankingTableRow';
+
 import buildRankingTableRows from './buildRankingTableRows';
 import InsightsDataTableSkeleton from './InsightsDataTableSkeleton';
 import InsightsRankingTableAverageLine from './InsightsRankingTableAverageLine';
 import InsightsRankingTableAverageMarker from './InsightsRankingTableAverageMarker';
-import InsightsRankingTableRow, {RANKING_TABLE_COLUMN} from './InsightsRankingTableRow';
+import InsightsRankingTableRow, {getRankingTableColumnIndexes} from './InsightsRankingTableRow';
 
 const AVERAGE_FRACTION_DIGITS = 1;
 
@@ -55,13 +58,31 @@ type InsightsRankingTableProps = {
     /** Whether the page compares against the previous period, which adds the change column */
     isComparingPreviousPeriod: boolean;
 
-    /** The chart's query, which a pressed row opens on Spend */
-    queryJSON: Readonly<SearchQueryJSON> | undefined;
+    /** The chart's query, which a pressed row opens on Spend. Without it the rows can't be pressed. */
+    queryJSON?: Readonly<SearchQueryJSON>;
 
     isLoading?: boolean;
 
     /** Called with the pressed row's group. Without it, a pressed row opens on Spend */
     onRowPress?: (item: GroupedItem) => void;
+
+    /** Header of the group column, the group-by's name unless given */
+    groupColumnTitle?: string;
+
+    /** Group cell content for each row, the group's label unless given */
+    renderLabel?: (item: GroupedItem) => React.ReactNode;
+
+    /** The column after the count, each group's amount unless given */
+    valueColumn?: InsightsRankingTableColumn;
+
+    /** Draws the change gray in both directions, for changes that are neither good nor bad on their own */
+    isChangeNeutral?: boolean;
+
+    /** Leaves space under the last row, which a table whose last row ends the card doesn't want */
+    shouldPadBottom?: boolean;
+
+    /** Rows listed under the groups, rendered given the position the first of them takes and the table's column positions. The table renders even with no groups when there are some. */
+    extraRows?: {count: number; render: (firstRowIndex: number, columnIndexes: RankingTableColumnIndexes) => React.ReactNode};
 };
 
 /** Table of the groups with the highest count, with each group's share drawn as a bar, its count, its amount and, when comparing, how it changed. */
@@ -76,6 +97,12 @@ function InsightsRankingTable({
     queryJSON,
     isLoading,
     onRowPress,
+    groupColumnTitle,
+    renderLabel,
+    valueColumn,
+    isChangeNeutral,
+    extraRows,
+    shouldPadBottom = true,
 }: InsightsRankingTableProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -83,6 +110,7 @@ function InsightsRankingTable({
     const {translate, numberFormat} = useLocalize();
     const {cardPadding, cardPaddingHorizontal, cardPaddingBottom} = useLayoutSpacing();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {convertToDisplayString} = useCurrencyListActions();
 
     if (isLoading) {
         // The column headers: a label line, its padding and the divider below
@@ -98,7 +126,7 @@ function InsightsRankingTable({
             variables.borderTopWidth;
 
         return (
-            <View style={!shouldUseNarrowLayout && cardPaddingBottom}>
+            <View style={!shouldUseNarrowLayout && shouldPadBottom && cardPaddingBottom}>
                 <InsightsDataTableSkeleton
                     fixedNumItems={rowLimit ?? CONST.SEARCH.TOP_SEARCH_LIMIT}
                     shouldShowIndicator={false}
@@ -110,9 +138,34 @@ function InsightsRankingTable({
     }
 
     const {rows, average, averageWidthPercent} = buildRankingTableRows({data, comparison, isComparingPreviousPeriod});
-    if (rows.length === 0) {
+    const extraRowCount = extraRows?.count ?? 0;
+    if (rows.length === 0 && extraRowCount === 0) {
         return null;
     }
+
+    const shownValueColumn: InsightsRankingTableColumn = valueColumn ?? {
+        title: translate('iou.amount'),
+        renderCell: (item) => <Text>{convertToDisplayString(item.total, item.currency)}</Text>,
+        getAccessibilityText: (item) => convertToDisplayString(item.total, item.currency),
+    };
+    const columnIndexes = getRankingTableColumnIndexes(isComparingPreviousPeriod);
+    const renderRows = () =>
+        rows.map((row, index) => (
+            <InsightsRankingTableRow
+                key={row.item.keyForList}
+                row={row}
+                groupBy={groupBy}
+                countDimension={countDimension}
+                queryJSON={queryJSON}
+                onPress={onRowPress}
+                label={renderLabel?.(row.item)}
+                valueColumn={shownValueColumn}
+                columnIndexes={columnIndexes}
+                isChangeNeutral={isChangeNeutral}
+                averageWidthPercent={averageWidthPercent}
+                rowIndex={index}
+            />
+        ));
 
     const formatCount = (count: number) => formatChartCount(count, countDimension, translate, numberFormat);
 
@@ -122,18 +175,8 @@ function InsightsRankingTable({
     if (shouldUseNarrowLayout) {
         return (
             <View style={styles.borderTop}>
-                {rows.map((row, index) => (
-                    <InsightsRankingTableRow
-                        key={row.item.keyForList}
-                        row={row}
-                        groupBy={groupBy}
-                        countDimension={countDimension}
-                        queryJSON={queryJSON}
-                        onPress={onRowPress}
-                        averageWidthPercent={averageWidthPercent}
-                        rowIndex={index}
-                    />
-                ))}
+                {renderRows()}
+                {extraRowCount > 0 && extraRows?.render(rows.length, columnIndexes)}
                 {!!formattedAverage && (
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.borderTop, cardPadding]}>
                         <InsightsRankingTableAverageMarker style={styles.insightsRankingTableAverageLegendMark} />
@@ -151,13 +194,38 @@ function InsightsRankingTable({
 
     const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowLayout);
     const headerLabelStyle = [styles.tableHeaderContentHeight, styles.pv2];
-    const columnCount = isComparingPreviousPeriod ? RANKING_TABLE_COLUMN.CHANGE : RANKING_TABLE_COLUMN.AMOUNT;
+    const valueHeader = (
+        <View
+            style={[styles.insightsRankingTableNumberColumn, styles.alignItemsEnd]}
+            {...getColumnHeaderAccessibilityProps(isTableSemanticsEnabled, false, false, undefined, columnIndexes.value)}
+        >
+            <SortableHeaderLabel
+                text={shownValueColumn.title}
+                isActive={false}
+                sortOrder={CONST.SEARCH.SORT_ORDER.DESC}
+                innerContainerStyle={headerLabelStyle}
+            />
+        </View>
+    );
+    const changeHeader = columnIndexes.change !== undefined && (
+        <View
+            style={styles.insightsRankingTableChangeColumn}
+            {...getColumnHeaderAccessibilityProps(isTableSemanticsEnabled, false, false, undefined, columnIndexes.change)}
+        >
+            <SortableHeaderLabel
+                text={translate('insightsPage.compare.percentChange')}
+                isActive={false}
+                sortOrder={CONST.SEARCH.SORT_ORDER.DESC}
+                innerContainerStyle={headerLabelStyle}
+            />
+        </View>
+    );
 
     return (
-        <View style={cardPaddingBottom}>
+        <View style={shouldPadBottom && cardPaddingBottom}>
             <View
                 style={styles.pRelative}
-                {...getTableContainerAccessibilityProps(isTableSemanticsEnabled, title, rows.length, columnCount)}
+                {...getTableContainerAccessibilityProps(isTableSemanticsEnabled, title, rows.length + extraRowCount, columnIndexes.total)}
             >
                 <View
                     style={[styles.flexRow, styles.gap5, cardPaddingHorizontal, styles.borderBottom]}
@@ -165,10 +233,10 @@ function InsightsRankingTable({
                 >
                     <View
                         style={[styles.flex1, styles.mnw0]}
-                        {...getColumnHeaderAccessibilityProps(isTableSemanticsEnabled, false, false, undefined, RANKING_TABLE_COLUMN.GROUP)}
+                        {...getColumnHeaderAccessibilityProps(isTableSemanticsEnabled, false, false, undefined, columnIndexes.group)}
                     >
                         <SortableHeaderLabel
-                            text={translate(`search.filters.groupBy.${groupBy}`)}
+                            text={groupColumnTitle ?? translate(`search.filters.groupBy.${groupBy}`)}
                             isActive={false}
                             sortOrder={CONST.SEARCH.SORT_ORDER.DESC}
                             innerContainerStyle={headerLabelStyle}
@@ -176,7 +244,7 @@ function InsightsRankingTable({
                     </View>
                     <View
                         style={styles.insightsRankingTableShareColumn}
-                        {...getColumnHeaderAccessibilityProps(isTableSemanticsEnabled, false, false, undefined, RANKING_TABLE_COLUMN.SHARE)}
+                        {...getColumnHeaderAccessibilityProps(isTableSemanticsEnabled, false, false, undefined, columnIndexes.share)}
                     >
                         <View style={styles.flex1}>
                             <SortableHeaderLabel
@@ -189,7 +257,7 @@ function InsightsRankingTable({
                     </View>
                     <View
                         style={styles.insightsRankingTableNumberColumn}
-                        {...getColumnHeaderAccessibilityProps(isTableSemanticsEnabled, true, true, CONST.SEARCH.SORT_ORDER.DESC, RANKING_TABLE_COLUMN.COUNT)}
+                        {...getColumnHeaderAccessibilityProps(isTableSemanticsEnabled, true, true, CONST.SEARCH.SORT_ORDER.DESC, columnIndexes.count)}
                     >
                         <SortableHeaderLabel
                             text={translate(COUNT_COLUMN_TITLE_KEYS[countDimension])}
@@ -198,44 +266,12 @@ function InsightsRankingTable({
                             innerContainerStyle={headerLabelStyle}
                         />
                     </View>
-                    <View
-                        style={[styles.insightsRankingTableNumberColumn, styles.alignItemsEnd]}
-                        {...getColumnHeaderAccessibilityProps(isTableSemanticsEnabled, false, false, undefined, RANKING_TABLE_COLUMN.AMOUNT)}
-                    >
-                        <SortableHeaderLabel
-                            text={translate('iou.amount')}
-                            isActive={false}
-                            sortOrder={CONST.SEARCH.SORT_ORDER.DESC}
-                            innerContainerStyle={headerLabelStyle}
-                        />
-                    </View>
-                    {isComparingPreviousPeriod && (
-                        <View
-                            style={styles.insightsRankingTableChangeColumn}
-                            {...getColumnHeaderAccessibilityProps(isTableSemanticsEnabled, false, false, undefined, RANKING_TABLE_COLUMN.CHANGE)}
-                        >
-                            <SortableHeaderLabel
-                                text={translate('insightsPage.compare.percentChange')}
-                                isActive={false}
-                                sortOrder={CONST.SEARCH.SORT_ORDER.DESC}
-                                innerContainerStyle={headerLabelStyle}
-                            />
-                        </View>
-                    )}
+                    {valueHeader}
+                    {changeHeader}
                 </View>
                 <View {...getRowGroupAccessibilityProps(isTableSemanticsEnabled)}>
-                    {rows.map((row, index) => (
-                        <InsightsRankingTableRow
-                            key={row.item.keyForList}
-                            row={row}
-                            groupBy={groupBy}
-                            countDimension={countDimension}
-                            queryJSON={queryJSON}
-                            onPress={onRowPress}
-                            averageWidthPercent={averageWidthPercent}
-                            rowIndex={index}
-                        />
-                    ))}
+                    {renderRows()}
+                    {extraRowCount > 0 && extraRows?.render(rows.length, columnIndexes)}
                 </View>
                 {!!formattedAverage && averageWidthPercent !== undefined && (
                     // Laid out like the rows, so one unbroken line runs over every bar at the average

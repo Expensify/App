@@ -16,6 +16,9 @@ import {RANKING_TABLE_CHANGE} from './buildRankingTableRows';
 
 type InsightsRankingTableChangeProps = {
     change: RankingTableChange;
+
+    /** Draws the change gray in both directions */
+    isNeutral?: boolean;
 };
 
 function formatRankingTableChange(change: RankingTableChange, translate: LocaleContextProps['translate'], numberFormat: LocaleContextProps['numberFormat']) {
@@ -42,7 +45,7 @@ function formatRankingTableChange(change: RankingTableChange, translate: LocaleC
 }
 
 /** How a ranking table row's count changed against the previous period */
-function InsightsRankingTableChange({change}: InsightsRankingTableChangeProps) {
+function InsightsRankingTableChange({change, isNeutral}: InsightsRankingTableChangeProps) {
     const styles = useThemeStyles();
     const {translate, numberFormat} = useLocalize();
     const {text, accessibilityLabel} = formatRankingTableChange(change, translate, numberFormat);
@@ -62,6 +65,7 @@ function InsightsRankingTableChange({change}: InsightsRankingTableChangeProps) {
         <InsightsChangeBadge
             text={text}
             isIncrease={change.type === RANKING_TABLE_CHANGE.INCREASE}
+            isNeutral={isNeutral}
             style={styles.alignSelfEnd}
         />
     );

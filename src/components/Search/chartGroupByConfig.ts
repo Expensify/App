@@ -160,6 +160,12 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
         getLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE ? item.formattedWorkflowStage : ''),
         getFilterQuery: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE ? `${CONST.SEARCH.SYNTAX_FILTER_KEYS.WORKFLOW_STAGE}:${item.workflowStage}` : ''),
     },
+    [CONST.SEARCH.GROUP_BY.HANDLED_BY]: {
+        titleIconName: 'Users',
+        getLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.HANDLED_BY ? item.formattedHandledBy : ''),
+        // Search has no filter for who finished a stage, so a row has no query to drill into
+        getFilterQuery: () => '',
+    },
 };
 
 export default CHART_GROUP_BY_CONFIG;

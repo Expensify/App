@@ -13,7 +13,7 @@ import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceS
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
-import {arePaymentsEnabled, getWorkflowApprovalsUnavailable, isAutoPayApprovedReportsAvailable, isControlPolicy} from '@libs/PolicyUtils';
+import {arePaymentsEnabled, getWorkflowApprovalsUnavailable, isAutoApproveCompliantReportsEnabled, isAutoPayApprovedReportsAvailable, isControlPolicy} from '@libs/PolicyUtils';
 
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
@@ -120,7 +120,7 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
                 : translate('workspace.rules.expenseReportRules.autoApproveCompliantReportsSubtitle'),
             shouldParseSubtitle: workflowApprovalsUnavailable,
             switchAccessibilityLabel: translate('workspace.rules.expenseReportRules.autoApproveCompliantReportsTitle'),
-            isActive: (!!policy?.shouldShowAutoApprovalOptions || (policy?.autoApproval?.limit !== undefined && policy.autoApproval.limit > 0)) && !workflowApprovalsUnavailable,
+            isActive: isAutoApproveCompliantReportsEnabled(policy),
             disabled: workflowApprovalsUnavailable || !canWriteApprovals,
             disabledAction: withApprovalsReadOnlyFallback(),
             showLockIcon: workflowApprovalsUnavailable || !canWriteApprovals,

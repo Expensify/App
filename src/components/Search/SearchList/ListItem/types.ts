@@ -25,6 +25,7 @@ import type {
     SearchApproverGroup,
     SearchViolationGroup,
     SearchWorkflowStageGroup,
+    SearchHandledByGroup,
     SearchCardGroup,
     SearchCategoryGroup,
     SearchDataTypes,
@@ -572,6 +573,11 @@ type TransactionWorkflowStageGroupListItemType = TransactionGroupListItemType & 
         formattedWorkflowStage: string;
     };
 
+type TransactionHandledByGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.HANDLED_BY} & SearchHandledByGroup & {
+        /** Source name for display: Members, Rules or the AI agent's name */
+        formattedHandledBy: string;
+    };
+
 type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
     SearchListActionProps & {
         /** Whether the item's action is loading */
@@ -648,6 +654,7 @@ type GroupHeaderItemType =
     | (TransactionViolationGroupListItemType & GroupHeaderListItemType)
     | (TransactionPaidByGroupListItemType & GroupHeaderListItemType)
     | (TransactionWorkflowStageGroupListItemType & GroupHeaderListItemType)
+    | (TransactionHandledByGroupListItemType & GroupHeaderListItemType)
     | (TransactionGroupListItemType & GroupHeaderListItemType);
 
 type GroupChildrenContainerItemType = TransactionGroupListItemType & {
@@ -711,6 +718,7 @@ export type {
     TransactionViolationGroupListItemType,
     TransactionPaidByGroupListItemType,
     TransactionWorkflowStageGroupListItemType,
+    TransactionHandledByGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
     TransactionGroupListItemProps,
     TransactionGroupListExpandedProps,
