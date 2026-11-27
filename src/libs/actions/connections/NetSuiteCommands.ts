@@ -1,3 +1,4 @@
+import {buildDeleteApprovalWorkflowRulesOnyxData} from '@libs/actions/ApprovalWorkflowRulesOnyxData';
 import * as API from '@libs/API';
 import type {ConnectPolicyToNetSuiteParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -9,9 +10,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {Connections, NetSuiteCustomFormID, NetSuiteCustomList, NetSuiteCustomSegment, NetSuiteMappingValues} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
+import type Rule from '@src/types/onyx/Rule';
 
 import type {CONST as COMMON_CONST} from 'expensify-common';
-import type {OnyxUpdate} from 'react-native-onyx';
+import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import isObject from 'lodash/isObject';
@@ -929,8 +931,19 @@ function updateNetSuiteSyncReimbursedReports(policyID: string, value: boolean) {
     API.write(WRITE_COMMANDS.UPDATE_NETSUITE_SYNC_REIMBURSED_REPORTS, parameters, onyxData);
 }
 
-function updateNetSuiteSyncPeople(policyID: string, value: boolean) {
-    const onyxData = updateNetSuiteSyncOptionsOnyxData(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_PEOPLE, value, !value);
+/**
+ * Turn importing NetSuite employees on or off.
+ *
+ * @param approvalWorkflowRulesToDelete The workspace's approval workflow rules, when the change has NetSuite set the approvers. The backend deletes them then.
+ */
+function updateNetSuiteSyncPeople(policyID: string, value: boolean, approvalWorkflowRulesToDelete?: OnyxCollection<Rule>) {
+    const syncPeopleOnyxData = updateNetSuiteSyncOptionsOnyxData(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_PEOPLE, value, !value);
+    const approvalWorkflowRulesOnyxData = approvalWorkflowRulesToDelete ? buildDeleteApprovalWorkflowRulesOnyxData(policyID, approvalWorkflowRulesToDelete) : undefined;
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.RULE> = {
+        optimisticData: [...syncPeopleOnyxData.optimisticData, ...(approvalWorkflowRulesOnyxData?.optimisticData ?? [])],
+        successData: [...syncPeopleOnyxData.successData, ...(approvalWorkflowRulesOnyxData?.successData ?? [])],
+        failureData: [...syncPeopleOnyxData.failureData, ...(approvalWorkflowRulesOnyxData?.failureData ?? [])],
+    };
 
     const parameters = {
         policyID,
