@@ -11,6 +11,7 @@ import type {
     AddPaymentCardParams,
     ChangePolicyUberBillingAccountPageParams,
     CreateWorkspaceFromIOUPaymentParams,
+    QueueBulkArchivePolicyParams,
     ArchivePolicyParams,
     UnarchivePolicyParams,
     CreateWorkspaceParams,
@@ -36,6 +37,7 @@ import type {
     EnablePolicyTaxesParams,
     EnablePolicyWorkflowsParams,
     InviteWorkspaceEmployeesToUberParams,
+    QueueBulkLeavePolicyParams,
     LeavePolicyParams,
     OpenDraftWorkspaceRequestParams,
     OpenDuplicatePolicyPageParams,
@@ -802,6 +804,45 @@ function archivePolicy(params: ArchivePolicyActionParams) {
     API.write(WRITE_COMMANDS.ARCHIVE_POLICY, apiParams, {optimisticData, failureData, successData});
 
     Log.info(`[ArchivePolicy] Archived policy ${policyName} (${policyID})`);
+}
+
+function queueBulkArchivePolicy(policyIDs: string[]) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [];
+
+    for (const policyID of policyIDs) {
+        const key = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key,
+            value: {
+                archivedDate: DateUtils.getDBTime(),
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                errors: null,
+            },
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key,
+            value: {
+                archivedDate: null,
+                pendingAction: null,
+                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+            },
+        });
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key,
+            value: {
+                pendingAction: null,
+            },
+        });
+    }
+
+    const apiParams: QueueBulkArchivePolicyParams = {policyIDList: policyIDs.join(',')};
+
+    API.write(WRITE_COMMANDS.QUEUE_BULK_ARCHIVE_POLICY, apiParams, {optimisticData, failureData, successData});
 }
 
 type UnarchivePolicyActionParams = {
@@ -1775,7 +1816,6 @@ function leaveWorkspace(currentUserAccountID: number, currentUserEmail: string, 
     if (!policy) {
         return;
     }
-    const workspaceChats = ReportUtils.getAllWorkspaceReports(policy.id);
 
     const optimisticData: Array<
         OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS>
@@ -1817,6 +1857,25 @@ function leaveWorkspace(currentUserAccountID: number, currentUserEmail: string, 
             },
         },
     ];
+
+    const reportsOnyxData = getLeaveWorkspaceReportsOnyxData(currentUserAccountID, policy.id, policy.name);
+    optimisticData.push(...reportsOnyxData.optimisticData);
+    successData.push(...reportsOnyxData.successData);
+    failureData.push(...reportsOnyxData.failureData);
+
+    const params: LeavePolicyParams = {
+        policyID: policy.id,
+        email: currentUserEmail,
+    };
+    API.write(WRITE_COMMANDS.LEAVE_POLICY, params, {optimisticData, successData, failureData});
+}
+
+/** Closes and archives the workspace chats the current user loses access to when leaving the workspace */
+function getLeaveWorkspaceReportsOnyxData(currentUserAccountID: number, policyID: string, policyName: string | undefined) {
+    const workspaceChats = ReportUtils.getAllWorkspaceReports(policyID);
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS>> = [];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA>> = [];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS>> = [];
 
     const currentTime = DateUtils.getDBTime();
     const pendingChatMembers = ReportUtils.getPendingChatMembers([currentUserAccountID], [], CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
@@ -1868,7 +1927,7 @@ function leaveWorkspace(currentUserAccountID: number, currentUserEmail: string, 
                     value: {
                         statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                         stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                        oldPolicyName: policy?.name ?? '',
+                        oldPolicyName: policyName ?? '',
                         isPinned: false,
                     },
                 },
@@ -1913,11 +1972,53 @@ function leaveWorkspace(currentUserAccountID: number, currentUserEmail: string, 
         }
     }
 
-    const params: LeavePolicyParams = {
-        policyID: policy.id,
-        email: currentUserEmail,
-    };
-    API.write(WRITE_COMMANDS.LEAVE_POLICY, params, {optimisticData, successData, failureData});
+    return {optimisticData, successData, failureData};
+}
+
+function queueBulkLeavePolicy(currentUserAccountID: number, currentUserEmail: string, policies: Array<Pick<Policy, 'id' | 'name' | 'pendingAction'>>) {
+    const optimisticData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS>
+    > = [];
+    const failureData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS>
+    > = [];
+
+    for (const policy of policies) {
+        const key = `${ONYXKEYS.COLLECTION.POLICY}${policy.id}` as const;
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key,
+            value: {
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                employeeList: {
+                    [currentUserEmail]: {
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    },
+                },
+            },
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key,
+            value: {
+                pendingAction: policy.pendingAction ?? null,
+                employeeList: {
+                    [currentUserEmail]: {
+                        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.people.error.genericRemove'),
+                    },
+                },
+            },
+        });
+
+        const reportsOnyxData = getLeaveWorkspaceReportsOnyxData(currentUserAccountID, policy.id, policy.name);
+        optimisticData.push(...reportsOnyxData.optimisticData);
+        failureData.push(...reportsOnyxData.failureData);
+    }
+
+    const params: QueueBulkLeavePolicyParams = {policyIDList: policies.map((policy) => policy.id).join(',')};
+
+    // No successData, because the backend removes the workspaces that were left once the queued job runs.
+    API.write(WRITE_COMMANDS.QUEUE_BULK_LEAVE_POLICY, params, {optimisticData, failureData});
 }
 
 function addBillingCardAndRequestPolicyOwnerChange(
@@ -8628,9 +8729,11 @@ function setWorkspaceConfirmationCurrency(currency: string) {
 
 export {
     leaveWorkspace,
+    queueBulkLeavePolicy,
     addBillingCardAndRequestPolicyOwnerChange,
     deleteWorkspace,
     archivePolicy,
+    queueBulkArchivePolicy,
     unarchivePolicy,
     updateAddress,
     updateLastAccessedWorkspace,

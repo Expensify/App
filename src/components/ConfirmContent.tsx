@@ -72,6 +72,10 @@ type ConfirmContentProps = {
     shouldReverseStackedButtons?: boolean;
     titleStyles?: StyleProp<TextStyle>;
     titleContainerStyles?: StyleProp<ViewStyle>;
+
+    /** Maximum number of lines before the title truncates. 0 shows the full title */
+    numberOfTitleLines?: number;
+
     promptStyles?: StyleProp<TextStyle>;
     subtitleStyles?: StyleProp<TextStyle>;
     contentStyles?: StyleProp<ViewStyle>;
@@ -121,6 +125,7 @@ function ConfirmContent({
     shouldCenterContent = false,
     shouldStackButtons = true,
     titleStyles,
+    numberOfTitleLines,
     promptStyles,
     contentStyles,
     iconAdditionalStyles,
@@ -173,7 +178,12 @@ function ConfirmContent({
     const titleContent = (
         <View style={[styles.flexRow, isTitleLoading ? styles.justifyContentBetween : {}, styles.alignItemsCenter, isCentered ? {} : styles.mb4, titleContainerStyles]}>
             <HeaderTitle>
-                <HeaderTitle.Text style={titleStyles}>{title}</HeaderTitle.Text>
+                <HeaderTitle.Text
+                    style={titleStyles}
+                    numberOfLines={numberOfTitleLines}
+                >
+                    {title}
+                </HeaderTitle.Text>
             </HeaderTitle>
             {isTitleLoading && <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL} />}
         </View>

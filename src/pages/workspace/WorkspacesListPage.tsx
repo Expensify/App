@@ -1,24 +1,41 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
+import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
+import type {ButtonWithDropdownMenuRef, DropdownOption, WorkspacesBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import type {TableHandle} from '@components/Table';
 import type {WorkspaceRowData, WorkspaceTableColumnKey} from '@components/Tables/WorkspaceListTable';
 import WorkspaceListTable from '@components/Tables/WorkspaceListTable';
+import BulkActionConfirmationPrompt from '@components/Tables/WorkspaceListTable/BulkActionConfirmationPrompt';
+import BulkArchiveWorkspacesFlow from '@components/Tables/WorkspaceListTable/BulkArchiveWorkspacesFlow';
+import BulkLeaveWorkspacesFlow from '@components/Tables/WorkspaceListTable/BulkLeaveWorkspacesFlow';
+import LeaveWorkspaceFlow from '@components/Tables/WorkspaceListTable/LeaveWorkspaceFlow';
+import TransferOwnershipFlow from '@components/Tables/WorkspaceListTable/TransferOwnershipFlow';
 import WorkspaceListLayout, {WorkspaceListHeaderContent} from '@components/WorkspaceListLayout';
 
-import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
+import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
+import useConfirmModal from '@hooks/useConfirmModal';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useIsAppLoadPending} from '@hooks/useInFlightRequests';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchBackPress from '@hooks/useSearchBackPress';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {close} from '@libs/actions/Modal';
+import {clearCopyPolicySettings} from '@libs/actions/Policy/CopyPolicySettings';
+import {queueBulkExportPolicyMembers} from '@libs/actions/Policy/Member';
 import {clearDuplicateWorkspace, dismissWorkspaceError} from '@libs/actions/Policy/Policy';
+import {callIfAuthenticated} from '@libs/actions/Session';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import openInternalRouteInNewTab from '@libs/Navigation/helpers/openInternalRouteInNewTab';
@@ -29,26 +46,44 @@ import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {WorkspaceNavigatorParamList} from '@libs/Navigation/types';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {isPaidGroupPolicyByType} from '@libs/PolicyUtils';
+import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
+import {getWorkspacesBulkActions} from '@libs/WorkspacesSettingsUtils';
+import type {WorkspacesBulkAction} from '@libs/WorkspacesSettingsUtils';
+
+import {setNameValuePair} from '@userActions/User';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {canDowngradeSelector} from '@src/selectors/Account';
 import {createDisplayDetailsByAccountIDsSelector} from '@src/selectors/PersonalDetails';
-import {createCopySettingsEligibleTargetsSelector, createWorkspaceListPoliciesSelector} from '@src/selectors/Policy';
+import {
+    createCopySettingsEligibleTargetsSelector,
+    createOwnedPaidPoliciesCountsSelector,
+    createReimburserPolicyIDsSelector,
+    createWorkspaceListPoliciesSelector,
+} from '@src/selectors/Policy';
 
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import ArchiveWorkspaceFlow from './archiveWorkspace/ArchiveWorkspaceFlow';
+import UnarchiveWorkspaceFlow from './archiveWorkspace/UnarchiveWorkspaceFlow';
 import CopyPolicySettingsProgressModal from './copyPolicySettings/CopyPolicySettingsProgressModal';
 import DeleteWorkspaceFlow from './deleteWorkspace/DeleteWorkspaceFlow';
 
+type ActiveWorkspaceFlow = {
+    type: WorkspacesBulkActionType;
+    policyID: string;
+};
+
 function WorkspacesListPage() {
     const tableRef = useRef<TableHandle<WorkspaceRowData, WorkspaceTableColumnKey, string>>(null);
-    const icons = useMemoizedLazyExpensifyIcons(['Plus']);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowCircleClockwise', 'Box', 'Copy', 'Exit', 'Export', 'Plus', 'Star', 'Transfer', 'Trashcan']);
     const styles = useThemeStyles();
+    const {pageGutter} = useLayoutSpacing();
     const {translate, formatPhoneNumber} = useLocalize();
     useDocumentTitle(translate('common.workspaces'));
     const {isOffline} = useNetwork();
@@ -59,7 +94,18 @@ function WorkspacesListPage() {
     const isAppLoadPending = useIsAppLoadPending();
     const shouldShowLoadingIndicator = isAppLoadPending && !isOffline;
     const route = useRoute<PlatformStackRouteProp<WorkspaceNavigatorParamList, typeof SCREENS.WORKSPACES_LIST>>();
-    const {isRestrictedPolicyCreation} = usePreferredPolicy();
+    const {isRestrictedPolicyCreation, isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const {showConfirmModal} = useConfirmModal();
+    const [canRenderTransferOwnerButton] = useOnyx(ONYXKEYS.FUND_LIST, {selector: shouldRenderTransferOwnerButton});
+    const [isLoadingBill] = useOnyx(ONYXKEYS.IS_LOADING_BILL_WHEN_DOWNGRADE);
+    const [canDowngrade] = useOnyx(ONYXKEYS.ACCOUNT, {selector: canDowngradeSelector});
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const [ownedPaidPoliciesCounts] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createOwnedPaidPoliciesCountsSelector(currentUserPersonalDetails.accountID)});
+    const shouldCalculateBillNewDot = !!canDowngrade && ownedPaidPoliciesCounts?.total === 1;
+    const wouldBlockDeletion = (amountOwed ?? 0) > 0 && ownedPaidPoliciesCounts?.active === 1;
+    const bulkActionsDropdownRef = useRef<ButtonWithDropdownMenuRef>(null);
+    const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const {isBetaEnabled} = usePermissions();
     const canUseArchivePolicies = isBetaEnabled(CONST.BETAS.ARCHIVE_POLICIES);
     const [duplicateWorkspace] = useOnyx(ONYXKEYS.DUPLICATE_WORKSPACE);
@@ -71,6 +117,7 @@ function WorkspacesListPage() {
 
     // IDs of every workspace eligible as a copy-settings target. Derived once per policy write (not per row) so each row can cheaply decide whether to offer "Copy settings".
     const [copySettingsEligibleTargets] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createCopySettingsEligibleTargetsSelector(session?.email)});
+    const [reimburserPolicyIDs] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createReimburserPolicyIDsSelector(session?.email)});
 
     // A workspace can copy its settings when there is at least one other eligible target.
     const isWorkspaceEligibleToCopy = (policyID: string) =>
@@ -78,6 +125,13 @@ function WorkspacesListPage() {
 
     const [policyIDToDelete, setPolicyIDToDelete] = useState<string>();
     const [policyIDToArchive, setPolicyIDToArchive] = useState<string>();
+    const [activeFlow, setActiveFlow] = useState<ActiveWorkspaceFlow>();
+    const [policyIDsToLeave, setPolicyIDsToLeave] = useState<string[]>();
+    const [policyIDsToArchive, setPolicyIDsToArchive] = useState<string[]>();
+    const [selectedPolicyIDs, setSelectedPolicyIDs] = useState<string[]>([]);
+    const clearSelection = () => setSelectedPolicyIDs([]);
+
+    useCleanupSelectedOptions(clearSelection);
 
     // Narrow subscription keeping the owner name/avatar columns reactive without re-rendering the page
     // when anything else in the personal details list changes.
@@ -131,6 +185,7 @@ function WorkspacesListPage() {
                 isArchived: false,
                 isJoinRequestPending: true,
                 isEligibleToCopy: false,
+                isReimburser: false,
                 isDefault: activePolicyID === policyID,
                 shouldAnimateInHighlight: duplicateWorkspace?.policyID === policyID,
                 ownerAccountID,
@@ -161,6 +216,7 @@ function WorkspacesListPage() {
                 isJoinRequestPending: false,
                 isArchived: policy.isArchived,
                 isEligibleToCopy,
+                isReimburser: !!reimburserPolicyIDs?.includes(policyID),
                 shouldAnimateInHighlight: duplicateWorkspace?.policyID === policyID,
                 isDefault: activePolicyID === policyID,
                 isDeleted: policy.isPendingDelete,
@@ -220,7 +276,179 @@ function WorkspacesListPage() {
         return () => handle.cancel();
     }, [workspaceRows.length, isFocused]);
 
-    const headerButton = !isRestrictedPolicyCreation && !!workspaceRows.length && (
+    useEffect(() => {
+        if (isLoadingBill) {
+            return;
+        }
+        bulkActionsDropdownRef.current?.setIsMenuVisible(false);
+    }, [isLoadingBill]);
+
+    const selectedRows = workspaceRows.filter((row) => selectedPolicyIDs.includes(row.policyID));
+
+    const showBulkActionResult = (appliedPolicyIDs: string[], title: string, message: string) => {
+        const skippedRows = selectedRows.filter((row) => !appliedPolicyIDs.includes(row.policyID));
+        if (skippedRows.length === 0) {
+            return;
+        }
+        showConfirmModal({
+            title,
+            prompt: (
+                <BulkActionConfirmationPrompt
+                    message={message}
+                    consequences={skippedRows.map((row) => row.title)}
+                />
+            ),
+            confirmText: translate('common.buttonConfirm'),
+            buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
+            shouldShowCancelButton: false,
+            shouldEnablePromptScroll: true,
+        });
+    };
+
+    const getBulkActionOption = ({type, policyIDs}: WorkspacesBulkAction): DropdownOption<WorkspacesBulkActionType> => {
+        const [firstPolicyID = ''] = policyIDs;
+        const isSingleSelection = selectedRows.length === 1;
+        const isLoadingBillForFirstPolicy = !!isLoadingBill && policyIDToDelete === firstPolicyID;
+
+        switch (type) {
+            case CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.SET_AS_DEFAULT:
+                return {
+                    value: type,
+                    text: translate('workspace.common.setAsDefaultShort'),
+                    icon: icons.Star,
+                    sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.LIST.BULK_ACTIONS_SET_AS_DEFAULT,
+                    onSelected: () => {
+                        if (!activePolicyID) {
+                            return;
+                        }
+                        setNameValuePair(ONYXKEYS.NVP_ACTIVE_POLICY_ID, firstPolicyID, activePolicyID);
+                        clearSelection();
+                    },
+                };
+            case CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.EXPORT_MEMBERS:
+                return {
+                    value: type,
+                    text: translate('workspace.common.exportMembers'),
+                    icon: icons.Export,
+                    sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.LIST.BULK_ACTIONS_EXPORT_MEMBERS,
+                    shouldSkipFocusRestore: true,
+                    onSelected: () => {
+                        queueBulkExportPolicyMembers(policyIDs);
+                        clearSelection();
+                        if (policyIDs.length === selectedRows.length) {
+                            return;
+                        }
+                        close(() =>
+                            showBulkActionResult(
+                                policyIDs,
+                                translate('workspace.common.exportedMembersWorkspacesTitle', policyIDs.length, selectedRows.length),
+                                translate('workspace.common.exportMembersFailed'),
+                            ),
+                        );
+                    },
+                };
+            case CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.TRANSFER_OWNER:
+                return {
+                    value: type,
+                    text: translate('workspace.people.transferOwner'),
+                    icon: icons.Transfer,
+                    sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.LIST.BULK_ACTIONS_TRANSFER_OWNER,
+                    shouldSkipFocusRestore: true,
+                    onSelected: () => setActiveFlow({type, policyID: firstPolicyID}),
+                };
+            case CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.COPY_SETTINGS:
+                return {
+                    value: type,
+                    text: translate('workspace.copyPolicySettings.title'),
+                    icon: icons.Copy,
+                    sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.LIST.BULK_ACTIONS_COPY_SETTINGS,
+                    onSelected: () => {
+                        clearCopyPolicySettings();
+                        Navigation.navigate(ROUTES.POLICY_COPY_SETTINGS.getRoute(firstPolicyID));
+                    },
+                };
+            case CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.DUPLICATE:
+                return {
+                    value: type,
+                    text: translate('common.duplicate'),
+                    icon: icons.Plus,
+                    sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.LIST.BULK_ACTIONS_DUPLICATE,
+                    onSelected: () => Navigation.navigate(ROUTES.WORKSPACE_DUPLICATE.getRoute(firstPolicyID)),
+                };
+            case CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.ARCHIVE:
+                return {
+                    value: type,
+                    text: translate('common.archive'),
+                    icon: icons.Box,
+                    sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.LIST.BULK_ACTIONS_ARCHIVE,
+                    shouldSkipFocusRestore: true,
+                    onSelected: () => {
+                        // The single workspace confirmation is handled by ArchiveWorkspaceFlow, mounted below.
+                        if (isSingleSelection) {
+                            setPolicyIDToArchive(firstPolicyID);
+                            return;
+                        }
+                        setPolicyIDsToArchive(policyIDs);
+                    },
+                };
+            case CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.DELETE:
+                return {
+                    value: type,
+                    text: translate('common.delete'),
+                    icon: icons.Trashcan,
+                    sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.LIST.BULK_ACTIONS_DELETE,
+                    shouldSkipFocusRestore: true,
+                    onSelected: () => {
+                        if (isLoadingBillForFirstPolicy) {
+                            return;
+                        }
+
+                        // All the pre-deletion checks and the confirmation modal are handled by DeleteWorkspaceFlow, mounted below.
+                        setPolicyIDToDelete(firstPolicyID);
+                    },
+                    disabled: isLoadingBillForFirstPolicy,
+                    shouldShowLoadingSpinnerIcon: isLoadingBillForFirstPolicy,
+                    shouldCloseModalOnSelect: !shouldCalculateBillNewDot || wouldBlockDeletion,
+                };
+            case CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.UNARCHIVE:
+                return {
+                    value: type,
+                    text: translate('workspace.common.unarchive'),
+                    icon: icons.ArrowCircleClockwise,
+                    sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.LIST.BULK_ACTIONS_UNARCHIVE,
+                    shouldSkipFocusRestore: true,
+                    onSelected: callIfAuthenticated(() => setActiveFlow({type, policyID: firstPolicyID}), session),
+                };
+            case CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.LEAVE:
+            default:
+                return {
+                    value: type,
+                    text: translate('common.leave'),
+                    icon: icons.Exit,
+                    sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.LIST.BULK_ACTIONS_LEAVE,
+                    shouldSkipFocusRestore: true,
+                    onSelected: callIfAuthenticated(() => {
+                        if (isSingleSelection) {
+                            setActiveFlow({type, policyID: firstPolicyID});
+                            return;
+                        }
+                        setPolicyIDsToLeave(policyIDs);
+                    }, session),
+                };
+        }
+    };
+
+    const bulkActionOptions = getWorkspacesBulkActions(selectedRows, {
+        currentUserAccountID: currentUserPersonalDetails.accountID,
+        preferredPolicyID,
+        isRestrictedToPreferredPolicy,
+        canArchivePolicies: canUseArchivePolicies,
+        canRenderTransferOwnerButton: !!canRenderTransferOwnerButton,
+    }).map(getBulkActionOption);
+
+    const dismissActiveFlow = () => setActiveFlow(undefined);
+
+    const newWorkspaceButton = !isRestrictedPolicyCreation && !!workspaceRows.length && (
         <Button
             variant={CONST.BUTTON_VARIANT.SUCCESS}
             accessibilityLabel={translate('common.new')}
@@ -231,26 +459,50 @@ function WorkspacesListPage() {
             <Button.Text>{translate('common.new')}</Button.Text>
         </Button>
     );
-    const headerComponent = (
-        <WorkspaceListHeaderContent
-            activeTabKey="workspaces"
-            headerButton={headerButton}
-        />
-    );
 
-    const onBackButtonPress = () => {
-        Navigation.goBack(route.params?.backTo);
-        return true;
+    // The wide layout offers the bulk actions in the floating bar over the table instead.
+    const headerComponent =
+        shouldUseNarrowLayout && isMobileSelectionModeEnabled ? (
+            <View style={styles.pb3}>
+                <ButtonWithDropdownMenu<WorkspacesBulkActionType>
+                    ref={bulkActionsDropdownRef}
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    shouldAlwaysShowDropdownMenu
+                    customText={translate('workspace.common.selected', {count: selectedRows.length})}
+                    size={CONST.BUTTON_SIZE.MEDIUM}
+                    onPress={() => null}
+                    options={bulkActionOptions}
+                    isSplitButton={false}
+                    isDisabled={!selectedRows.length}
+                    style={[styles.w100, pageGutter]}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.LIST.BULK_ACTIONS_DROPDOWN}
+                />
+            </View>
+        ) : (
+            <WorkspaceListHeaderContent
+                activeTabKey="workspaces"
+                headerButton={newWorkspaceButton}
+            />
+        );
+
+    const exitSelectionMode = () => {
+        clearSelection();
+        turnOffMobileSelectionMode();
     };
 
-    useAndroidBackButtonHandler(onBackButtonPress);
+    useSearchBackPress({
+        onClearSelection: clearSelection,
+        onNavigationCallBack: () => Navigation.goBack(route.params?.backTo),
+    });
 
     return (
         <WorkspaceListLayout
             activeTabKey="workspaces"
-            headerButton={headerButton}
+            headerButton={newWorkspaceButton}
             headerComponent={headerComponent}
             scrollHeaderWithTable
+            isSelectionModeEnabled={isMobileSelectionModeEnabled}
+            onExitSelectionMode={exitSelectionMode}
         >
             <>
                 {shouldShowLoadingIndicator ? (
@@ -265,9 +517,9 @@ function WorkspacesListPage() {
                         ref={tableRef}
                         workspaces={workspaceRows}
                         headerComponent={headerComponent}
-                        onDeleteWorkspace={setPolicyIDToDelete}
-                        onArchiveWorkspace={setPolicyIDToArchive}
-                        pendingDeletePolicyID={policyIDToDelete}
+                        selectedKeys={selectedPolicyIDs}
+                        onRowSelectionChange={setSelectedPolicyIDs}
+                        bulkActionOptions={bulkActionOptions}
                     />
                 )}
                 {!!policyIDToDelete && (
@@ -275,6 +527,7 @@ function WorkspacesListPage() {
                         key={policyIDToDelete}
                         policyID={policyIDToDelete}
                         onDismiss={() => setPolicyIDToDelete(undefined)}
+                        onDeleteComplete={clearSelection}
                     />
                 )}
                 {!!policyIDToArchive && (
@@ -282,6 +535,46 @@ function WorkspacesListPage() {
                         key={policyIDToArchive}
                         policyID={policyIDToArchive}
                         onDismiss={() => setPolicyIDToArchive(undefined)}
+                        onArchiveComplete={clearSelection}
+                    />
+                )}
+                {!!policyIDsToArchive && (
+                    <BulkArchiveWorkspacesFlow
+                        selectedRows={selectedRows}
+                        policyIDs={policyIDsToArchive}
+                        onConfirm={clearSelection}
+                        onDismiss={() => setPolicyIDsToArchive(undefined)}
+                    />
+                )}
+                {activeFlow?.type === CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.LEAVE && (
+                    <LeaveWorkspaceFlow
+                        policyID={activeFlow.policyID}
+                        onDismiss={dismissActiveFlow}
+                        onLeaveComplete={clearSelection}
+                    />
+                )}
+                {!!policyIDsToLeave && (
+                    <BulkLeaveWorkspacesFlow
+                        selectedRows={selectedRows}
+                        policyIDs={policyIDsToLeave}
+                        onConfirm={clearSelection}
+                        onDismiss={() => setPolicyIDsToLeave(undefined)}
+                    />
+                )}
+                {activeFlow?.type === CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.UNARCHIVE && (
+                    <UnarchiveWorkspaceFlow
+                        policyID={activeFlow.policyID}
+                        onDismiss={dismissActiveFlow}
+                        onUnarchiveComplete={clearSelection}
+                    />
+                )}
+                {activeFlow?.type === CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.TRANSFER_OWNER && (
+                    <TransferOwnershipFlow
+                        policyID={activeFlow.policyID}
+                        onDismiss={() => {
+                            dismissActiveFlow();
+                            clearSelection();
+                        }}
                     />
                 )}
                 <CopyPolicySettingsProgressModal />

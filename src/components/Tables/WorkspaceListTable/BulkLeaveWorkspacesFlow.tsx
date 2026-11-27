@@ -1,0 +1,120 @@
+import {ModalActions} from '@components/Modal/Global/ModalContext';
+
+import useConfirmModal from '@hooks/useConfirmModal';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
+
+import {close} from '@libs/actions/Modal';
+import {queueBulkLeavePolicy} from '@libs/actions/Policy/Policy';
+import {isApproverOfOutstandingPolicyReports} from '@libs/ReportUtils';
+import {getBulkLeaveWorkspacesConsequences} from '@libs/WorkspacesSettingsUtils';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+
+import React, {useEffect, useRef} from 'react';
+
+import type {WorkspaceRowData} from '.';
+
+import BulkActionConfirmationPrompt from './BulkActionConfirmationPrompt';
+
+type BulkLeaveWorkspacesFlowProps = {
+    /** Every selected workspace, including the ones the user can't leave */
+    selectedRows: WorkspaceRowData[];
+
+    /** IDs of the selected workspaces the user can leave */
+    policyIDs: string[];
+
+    /** Called after the user confirms leaving */
+    onConfirm: () => void;
+
+    /** Called when the flow is finished or abandoned, so the parent can unmount this component */
+    onDismiss: () => void;
+};
+
+/**
+ * Leave flow for several workspaces at once. Like LeaveWorkspaceFlow, it subscribes to the full policies only while it is mounted.
+ */
+function BulkLeaveWorkspacesFlow({selectedRows, policyIDs, onConfirm, onDismiss}: BulkLeaveWorkspacesFlowProps) {
+    const {translate} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
+    const privateIsArchivedMap = usePrivateIsArchivedMap();
+
+    const hasStartedRef = useRef(false);
+    useEffect(() => {
+        if (hasStartedRef.current) {
+            return;
+        }
+        hasStartedRef.current = true;
+
+        close(() => {
+            const userLogin = currentUserPersonalDetails.login ?? '';
+            const getPolicy = (row: WorkspaceRowData) => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${row.policyID}`];
+            const rowsToLeave = selectedRows.filter((row) => policyIDs.includes(row.policyID));
+            const skippedRows = selectedRows.filter((row) => !policyIDs.includes(row.policyID));
+
+            const consequences = getBulkLeaveWorkspacesConsequences(
+                rowsToLeave.map((row) => ({
+                    policy: getPolicy(row),
+                    isApproverOfOutstandingReports: isApproverOfOutstandingPolicyReports(
+                        currentUserPersonalDetails.accountID,
+                        outstandingReportsByPolicyID?.[row.policyID],
+                        privateIsArchivedMap,
+                    ),
+                })),
+                userLogin,
+                translate,
+            );
+            showConfirmModal({
+                title: translate('workspace.common.leaveWorkspacesTitle', {count: rowsToLeave.length}),
+                prompt: (
+                    <BulkActionConfirmationPrompt
+                        message={translate('common.leaveWorkspacesConfirmation')}
+                        consequences={consequences}
+                    />
+                ),
+                confirmText: translate('common.leave'),
+                cancelText: translate('common.cancel'),
+                buttonVariant: CONST.BUTTON_VARIANT.DANGER,
+                shouldEnablePromptScroll: true,
+            }).then((result) => {
+                if (result.action !== ModalActions.CONFIRM) {
+                    onDismiss();
+                    return;
+                }
+                queueBulkLeavePolicy(
+                    currentUserPersonalDetails.accountID,
+                    userLogin,
+                    rowsToLeave.map((row) => ({id: row.policyID, name: row.title, pendingAction: row.pendingAction})),
+                );
+                onConfirm();
+                if (skippedRows.length === 0) {
+                    onDismiss();
+                    return;
+                }
+                showConfirmModal({
+                    title: translate('workspace.common.leftWorkspacesTitle', rowsToLeave.length, selectedRows.length),
+                    prompt: (
+                        <BulkActionConfirmationPrompt
+                            message={translate('common.leaveWorkspacesFailed')}
+                            consequences={skippedRows.map((row) => row.title)}
+                        />
+                    ),
+                    confirmText: translate('common.buttonConfirm'),
+                    buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
+                    shouldShowCancelButton: false,
+                    shouldEnablePromptScroll: true,
+                }).then(() => onDismiss());
+            });
+        });
+    });
+
+    return null;
+}
+
+export default BulkLeaveWorkspacesFlow;

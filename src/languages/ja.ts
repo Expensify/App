@@ -469,8 +469,7 @@ const translations: TranslationDeepObject<typeof en> = {
             `このワークスペースを退出すると、優先エクスポーターとしてあなたの代わりにワークスペースのオーナーである${workspaceOwner}が設定されます。`,
         leaveWorkspaceConfirmationTechContact: (workspaceOwner: string) =>
             `このワークスペースを退出すると、あなたに代わってワークスペースのオーナーである${workspaceOwner}が技術連絡先になります。`,
-        leaveWorkspaceReimburser:
-            '支払担当者であるため、このワークスペースを退出することはできません。［ワークスペース］＞［支払いの作成または追跡］で新しい支払担当者を設定してから、もう一度お試しください。',
+        leaveWorkspaceReimburser: '支払者であるため、このワークスペースから退出することはできません。Workflows ＞ Payments で新しい支払者を設定してから、もう一度お試しください。',
         reimbursable: '払い戻し対象',
         nonReimbursable: '本人精算不可',
         editYourProfile: 'プロフィールを編集',
@@ -579,6 +578,15 @@ const translations: TranslationDeepObject<typeof en> = {
         exportsTo: 'エクスポート先',
         shareReport: 'レポートを共有',
         reportShared: 'レポートを共有しました',
+        archive: 'アーカイブ',
+        leaveWorkspacesConfirmation: 'これらのワークスペースを退出すると、',
+        leaveWorkspacesConsequenceMember: 'その相手に経費を提出することはできません',
+        leaveWorkspacesConsequenceAuditor: '相手のレポートや設定を表示することはできません',
+        leaveWorkspacesConsequenceAdmin: '相手の設定を管理することはできません',
+        leaveWorkspacesConsequenceApprover: '承認ワークフローでは、ワークスペースのオーナーがあなたの代わりを務めます',
+        leaveWorkspacesConsequenceExporter: 'ワークスペースのオーナーが、優先エクスポーターとしてあなたに代わります',
+        leaveWorkspacesConsequenceTechContact: 'ワークスペースのオーナーが、技術窓口としてのあなたに代わります',
+        leaveWorkspacesFailed: '自分が所有者である、または支払者として設定されているワークスペースは退出できません。これらを確認して、もう一度お試しください。',
         dayCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
             one: (count: number) => `${formattedCount ?? count} 日`,
             other: (count: number) => `${formattedCount ?? count} 日`,
@@ -5491,7 +5499,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             archive: 'ワークスペースをアーカイブ',
             archiveConfirmation: 'このワークスペースをアーカイブしてもよろしいですか？',
             archiveWithThirdPartyCardsConfirmation:
-                'このワークスペースをアーカイブしてもよろしいですか？ すべてのクレジットカードのユーザーへの割り当てが解除され、未申請のカード経費は完全に削除されます。',
+                'このワークスペースをアーカイブしてもよろしいですか？メンバーに割り当てられているすべてのクレジットカードが解除され、未提出のカード経費は完全に削除されます。',
             archiveWithExpensifyCardsConfirmation:
                 'このワークスペースをアーカイブしてもよろしいですか？ すべての Expensify カードの利用限度額が $0 に設定され、新しい購入はすべて自動的に拒否されます。',
             unarchive: 'アーカイブ解除',
@@ -5624,6 +5632,27 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             roleSelectorDescription: `メンバーのワークスペース権限を管理するロールを割り当ててください。<a href="${CONST.HELP_DOC_LINKS.WORKSPACE_ROLES_AND_PERMISSIONS}">ワークスペースロールを比較</a>。`,
             roleSelectorFeedback: '必要なロールが見つかりませんか？',
             roleSelectorFeedbackLink: 'お知らせください',
+            archiveWorkspacesConfirmation: 'これらのワークスペースをアーカイブしてもよろしいですか？',
+            archiveWorkspacesConfirmationWithConsequences: 'これらのワークスペースをアーカイブしてもよろしいですか？この操作により、次のことが行われます。',
+            archiveConsequenceExpensifyCardLimits: 'すべての Expensify カードの上限額を $0 に設定します',
+            archiveConsequenceDeclinePurchases: '新しい購入の試行を自動的に拒否します',
+            archiveConsequenceUnassignCards: 'メンバーからすべてのクレジットカードの割り当てを解除',
+            archiveConsequenceDeleteCardExpenses: '未提出のカード経費をすべて完全に削除する',
+            setAsDefaultShort: 'デフォルトに設定',
+            exportMembers: 'メンバーをエクスポート',
+            archiveWorkspacesTitle: () => ({
+                one: 'ワークスペース 1件をアーカイブしますか？',
+                other: (count: number) => `${count} 件のワークスペースをアーカイブしますか？`,
+            }),
+            leaveWorkspacesTitle: () => ({
+                one: '1つのワークスペースから退出しますか？',
+                other: (count: number) => `${count} 個のワークスペースから離れますか？`,
+            }),
+            leftWorkspacesTitle: (count: number, total: number) => `${total} 個のワークスペースのうち ${count} 個を退出しました`,
+            archivedWorkspacesTitle: (count: number, total: number) => `${total} 個のワークスペースのうち ${count} 個をアーカイブしました`,
+            archiveWorkspacesFailed: '自分が所有していないワークスペースや、すでにアーカイブされているワークスペースはアーカイブできません。内容を確認して、もう一度お試しください。',
+            exportedMembersWorkspacesTitle: (count: number, total: number) => `${total} 件のワークスペースのうち ${count} 件のメンバーをエクスポートしました`,
+            exportMembersFailed: 'メンバーを管理できないワークスペースのメンバーはエクスポートできません。対象のワークスペースを確認してから、もう一度お試しください。',
         },
         createdForClient: {
             title: 'クライアントのワークスペースを作成しました！',

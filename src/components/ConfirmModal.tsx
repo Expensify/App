@@ -66,6 +66,10 @@ type ConfirmModalProps = {
     shouldShowDismissIcon?: boolean;
     titleContainerStyles?: StyleProp<ViewStyle>;
     titleStyles?: StyleProp<TextStyle>;
+
+    /** Maximum number of lines before the title truncates. 0 shows the full title */
+    numberOfTitleLines?: number;
+
     promptStyles?: StyleProp<TextStyle>;
     subtitleStyles?: StyleProp<TextStyle>;
     iconAdditionalStyles?: StyleProp<ViewStyle>;
@@ -136,6 +140,7 @@ function ConfirmModal({
     iconSource,
     onModalHide = () => {},
     titleStyles,
+    numberOfTitleLines,
     iconAdditionalStyles,
     promptStyles,
     shouldCenterContent = false,
@@ -221,6 +226,7 @@ function ConfirmModal({
                 titleContainerStyles={titleContainerStyles}
                 iconAdditionalStyles={iconAdditionalStyles}
                 titleStyles={titleStyles}
+                numberOfTitleLines={numberOfTitleLines}
                 promptStyles={promptStyles}
                 shouldStackButtons={shouldStackButtons}
                 shouldReverseStackedButtons={shouldReverseStackedButtons}

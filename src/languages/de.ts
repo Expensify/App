@@ -471,7 +471,7 @@ const translations: TranslationDeepObject<typeof en> = {
         leaveWorkspaceConfirmationTechContact: (workspaceOwner: string) =>
             `Wenn du diesen Workspace verlässt, wirst du als technischer Kontakt durch ${workspaceOwner}, den Workspace-Inhaber, ersetzt.`,
         leaveWorkspaceReimburser:
-            'Du kannst diesen Workspace als Erstattungsverantwortliche·r nicht verlassen. Bitte lege unter „Workspaces > Zahlungen senden oder nachverfolgen“ eine·n neue·n Erstattungsverantwortliche·n fest und versuche es erneut.',
+            'Sie können diesen Workspace als Zahlenden nicht verlassen. Bitte legen Sie unter Workflows > Zahlungen einen neuen Zahlenden fest und versuchen Sie es dann erneut.',
         reimbursable: 'Erstattungsfähig',
         nonReimbursable: 'Nicht erstattungsfähig',
         editYourProfile: 'Profil bearbeiten',
@@ -581,6 +581,16 @@ const translations: TranslationDeepObject<typeof en> = {
         exportsTo: 'Exportiert nach',
         shareReport: 'Bericht teilen',
         reportShared: 'Bericht geteilt',
+        archive: 'Archiv',
+        leaveWorkspacesConfirmation: 'Wenn Sie diese Arbeitsbereiche verlassen:',
+        leaveWorkspacesConsequenceMember: 'Sie können keine Ausgaben mehr an sie einreichen',
+        leaveWorkspacesConsequenceAuditor: 'Sie können ihre Berichte und Einstellungen nicht anzeigen',
+        leaveWorkspacesConsequenceAdmin: 'Sie können ihre Einstellungen nicht verwalten',
+        leaveWorkspacesConsequenceApprover: 'Die/Der Arbeitsbereichseigentümer wird Sie im Genehmigungsworkflow ersetzen',
+        leaveWorkspacesConsequenceExporter: 'Der Workspace-Inhaber wird Sie als bevorzugte exportierende Person ersetzen',
+        leaveWorkspacesConsequenceTechContact: 'Der Arbeitsbereichs-Inhaber wird Sie als technischen Ansprechpartner ersetzen',
+        leaveWorkspacesFailed:
+            'Sie können Arbeitsbereiche, die Sie besitzen oder bei denen Sie als Zahlungspflichtige*r festgelegt sind, nicht verlassen. Bitte überprüfen Sie diese und versuchen Sie es erneut.',
         dayCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
             one: (count: number) => `${formattedCount ?? count} Tag`,
             other: (count: number) => `${formattedCount ?? count} Tage`,
@@ -5572,7 +5582,7 @@ ${amount} für ${merchant} – ${date}`,
             archive: 'Workspace archivieren',
             archiveConfirmation: 'Möchten Sie diesen Workspace wirklich archivieren?',
             archiveWithThirdPartyCardsConfirmation:
-                'Möchten Sie diesen Workspace wirklich archivieren? Dadurch werden allen Benutzern die Kreditkarten entzogen und alle nicht eingereichten Kartenausgaben endgültig gelöscht.',
+                'Sind Sie sicher, dass Sie diesen Workspace archivieren möchten? Dadurch werden allen Mitgliedern die Kreditkartenzuweisungen entfernt und alle nicht eingereichten Kartenausgaben dauerhaft gelöscht.',
             archiveWithExpensifyCardsConfirmation:
                 'Möchten Sie diesen Workspace wirklich archivieren? Dadurch werden alle Expensify Card-Limits auf 0 $ gesetzt und neue Kaufversuche automatisch abgelehnt.',
             unarchive: 'Wiederherstellen',
@@ -5706,6 +5716,29 @@ ${amount} für ${merchant} – ${date}`,
             roleSelectorDescription: `Weisen Sie eine Rolle zu, um die Workspace-Berechtigungen eines Mitglieds zu verwalten. <a href="${CONST.HELP_DOC_LINKS.WORKSPACE_ROLES_AND_PERMISSIONS}">Workspace-Rollen vergleichen</a>.`,
             roleSelectorFeedback: 'Sie sehen die benötigte Rolle nicht?',
             roleSelectorFeedbackLink: 'Lassen Sie es uns wissen',
+            archiveWorkspacesConfirmation: 'Sind Sie sicher, dass Sie diese Arbeitsbereiche archivieren möchten?',
+            archiveWorkspacesConfirmationWithConsequences: 'Möchten Sie diese Arbeitsbereiche wirklich archivieren? Dadurch werden:',
+            archiveConsequenceExpensifyCardLimits: 'Setzen Sie alle Expensify Kartenlimits auf 0 $',
+            archiveConsequenceDeclinePurchases: 'Neue Kaufversuche automatisch ablehnen',
+            archiveConsequenceUnassignCards: 'Allen Mitgliedern alle Kreditkarten entziehen',
+            archiveConsequenceDeleteCardExpenses: 'Nicht eingereichte Kartenausgaben dauerhaft löschen',
+            setAsDefaultShort: 'Als Standard festlegen',
+            exportMembers: 'Mitglieder exportieren',
+            archiveWorkspacesTitle: () => ({
+                one: '1 Arbeitsbereich archivieren?',
+                other: (count: number) => `${count} Arbeitsbereiche archivieren?`,
+            }),
+            leaveWorkspacesTitle: () => ({
+                one: '1 Arbeitsbereich verlassen?',
+                other: (count: number) => `${count} Arbeitsbereiche verlassen?`,
+            }),
+            leftWorkspacesTitle: (count: number, total: number) => `${count} von ${total} Arbeitsbereichen verlassen`,
+            archivedWorkspacesTitle: (count: number, total: number) => `${count} von ${total} Arbeitsbereichen archiviert`,
+            archiveWorkspacesFailed:
+                'Sie können keine Arbeitsbereiche archivieren, die Sie nicht besitzen oder die bereits archiviert sind. Bitte überprüfen Sie diese und versuchen Sie es erneut.',
+            exportedMembersWorkspacesTitle: (count: number, total: number) => `Exportierte Mitglieder von ${count} von insgesamt ${total} Arbeitsbereichen`,
+            exportMembersFailed:
+                'Sie können Mitglieder von Arbeitsbereichen, in denen Sie keine Mitglieder verwalten können, nicht exportieren. Bitte überprüfen Sie diese und versuchen Sie es erneut.',
         },
         createdForClient: {
             title: 'Du hast einen Workspace für deinen Kunden erstellt!',

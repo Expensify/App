@@ -24,6 +24,9 @@ type LeaveWorkspaceFlowProps = {
 
     /** Called when the flow is finished or abandoned, so the parent can unmount this component */
     onDismiss: () => void;
+
+    /** Called after the user confirms leaving the workspace */
+    onLeaveComplete?: () => void;
 };
 
 /**
@@ -31,7 +34,7 @@ type LeaveWorkspaceFlowProps = {
  * The full policy entry needed to build the confirmation prompt is subscribed to only for the
  * lifetime of the flow, so the workspaces list rows don't re-render on every policy change.
  */
-function LeaveWorkspaceFlow({policyID, onDismiss}: LeaveWorkspaceFlowProps) {
+function LeaveWorkspaceFlow({policyID, onDismiss, onLeaveComplete}: LeaveWorkspaceFlowProps) {
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -56,6 +59,7 @@ function LeaveWorkspaceFlow({policyID, onDismiss}: LeaveWorkspaceFlowProps) {
             if (policy?.achAccount?.reimburser === userLogin) {
                 showConfirmModal({
                     title: policy?.name ? translate('common.leaveWorkspaceTitle', policy.name) : translate('common.leaveWorkspace'),
+                    numberOfTitleLines: 0,
                     prompt,
                     confirmText: translate('common.buttonConfirm'),
                     buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
@@ -66,6 +70,7 @@ function LeaveWorkspaceFlow({policyID, onDismiss}: LeaveWorkspaceFlowProps) {
 
             showConfirmModal({
                 title: policy?.name ? translate('common.leaveWorkspaceTitle', policy.name) : translate('common.leaveWorkspace'),
+                numberOfTitleLines: 0,
                 prompt,
                 confirmText: translate('common.leave'),
                 cancelText: translate('common.cancel'),
@@ -73,6 +78,7 @@ function LeaveWorkspaceFlow({policyID, onDismiss}: LeaveWorkspaceFlowProps) {
             }).then((result) => {
                 if (result.action === ModalActions.CONFIRM && policy) {
                     leaveWorkspace(currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '', policy);
+                    onLeaveComplete?.();
                 }
                 onDismiss();
             });
