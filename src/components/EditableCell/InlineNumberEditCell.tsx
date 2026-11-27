@@ -14,9 +14,12 @@ import TextWithTooltip from '@components/TextWithTooltip';
 
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getLocalizedCurrencySymbol, hasSpaceBetweenSymbolAndAmount} from '@libs/CurrencyUtils';
+
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
@@ -29,6 +32,20 @@ import type {EditableProps} from './types';
 
 import EditableCell from './EditableCell';
 import useInlineEditState from './useInlineEditState';
+
+// A cell with `children` has to choose whether to keep room for the edit button, which sits at a left-aligned cell's trailing edge and can cover them.
+type TrailingContentProps =
+    | {
+          children?: never;
+          shouldReserveEditButtonClearance?: never;
+      }
+    | {
+          /** Rendered right after the display text (like an icon), so it stays next to the value instead of at the cell's edge. Hidden while editing. */
+          children: ReactNode;
+
+          /** Pass true when `children` sit next to the edit button in a left-aligned cell, or it covers them. Keep it fixed while shown, or the row shifts. */
+          shouldReserveEditButtonClearance: boolean;
+      };
 
 type InlineNumberEditCellProps = {
     /** Frontend numeric string used as the initial edit buffer. Conversion stays at the call site. */
@@ -55,10 +72,8 @@ type InlineNumberEditCellProps = {
 
     /** Defaults to Number() comparison so "1.00" and "1" are treated as unchanged. */
     isEqual?: (newValue: string, originalValue: string) => boolean;
-
-    /** Rendered right after the display text (like an icon), so it stays next to the value instead of at the cell's edge. Hidden while editing. */
-    children?: ReactNode;
-} & EditableProps<string>;
+} & EditableProps<string> &
+    TrailingContentProps;
 
 const areNumericValuesEqual = (newValue: string, originalValue: string) => Number(newValue) === Number(originalValue);
 
@@ -72,10 +87,12 @@ function InlineNumberEditCell({
     textAlign = 'right',
     isEqual = areNumericValuesEqual,
     children,
+    shouldReserveEditButtonClearance,
     canEdit,
     onSave,
 }: InlineNumberEditCellProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {preferredLocale} = useLocalize();
     const inputRef = useRef<BaseTextInputRef | null>(null);
     const isRightAligned = textAlign === 'right';
@@ -147,7 +164,16 @@ function InlineNumberEditCell({
             }
         >
             {children ? (
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, isRightAligned && styles.justifyContentEnd]}>
+                // Keeps room for the trailing edit button even while it is hidden, so hover doesn't shift the row
+                <View
+                    style={[
+                        styles.flexRow,
+                        styles.alignItemsCenter,
+                        styles.gap2,
+                        isRightAligned && styles.justifyContentEnd,
+                        !isRightAligned && shouldReserveEditButtonClearance && StyleUtils.getPaddingRight(variables.editableCellEditButtonClearance),
+                    ]}
+                >
                     {displayTextElement}
                     {children}
                 </View>

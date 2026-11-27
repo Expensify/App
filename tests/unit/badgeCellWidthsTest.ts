@@ -6,6 +6,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import measureMicroStrongTextWidth from '@libs/measureTextWidth/measureMicroStrongTextWidth';
 
+import CONST from '@src/CONST';
+
 jest.mock('@libs/measureTextWidth/measureMicroStrongTextWidth', () => jest.fn());
 
 const mockMeasureMicroStrongTextWidth = jest.mocked(measureMicroStrongTextWidth);
@@ -67,6 +69,16 @@ describe('badgeCellWidths', () => {
 
             // Then it fits the widest badge whole, since only the text before it may truncate
             expect(minWidth).toBe(126);
+        });
+
+        it('never drops below the usual drag bound when the badge is small', () => {
+            // Given a badge that, with the content before it, is narrower than the usual drag bound
+            // When the drag minimum is computed
+            const minWidth = getBadgeColumnDragMinWidth([24], 10);
+
+            // Then it stays at the usual bound, because it replaces that bound, and a column with a badge shouldn't drag
+            // narrower than the same column without one
+            expect(minWidth).toBe(CONST.TABLES.COLUMN_RESIZE.MIN_WIDTH);
         });
     });
 });

@@ -62,6 +62,12 @@ type WorkspaceDistanceRatesTableRowProps = {
     isGovernmentRateAutoUpdateEnabled: boolean;
     statusLabels: Record<string, string>;
     unit?: Unit;
+
+    /**
+     * True when the user can edit rates at all, so the rate cell keeps room for the edit button. Unlike an item's
+     * `canEditRate`, it doesn't change in selection mode or while deleting, so the cell doesn't shift.
+     */
+    canWriteDistanceRates: boolean;
 };
 
 function getRateStatusColors(status: string, theme: ReturnType<typeof useTheme>, isSelected?: boolean) {
@@ -90,6 +96,7 @@ function WorkspaceDistanceRatesTableRow({
     isGovernmentRateAutoUpdateEnabled,
     statusLabels,
     unit,
+    canWriteDistanceRates,
 }: WorkspaceDistanceRatesTableRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -248,6 +255,7 @@ function WorkspaceDistanceRatesTableRow({
                             <WorkspaceDistanceRateValueCell
                                 rate={rate}
                                 displayText={formattedRate}
+                                shouldReserveEditButtonClearance={canWriteDistanceRates}
                                 canEdit={item.canEditRate && !item.disabled}
                                 onSave={item.onChangeRate}
                             >
