@@ -498,6 +498,26 @@ describe('SearchBulkActionsButton with violation groups that share an expense', 
         expect(getFooterConvertedAmounts).toHaveBeenCalledTimes(1);
     });
 
+    it('asks again when a group gains an expense while the groups total stays the same', () => {
+        // Given the union answered for the two groups
+        const {rerender} = renderButton(violationQueryJSON);
+        const request = getUnionRequest();
+        mockFooterConversion = {searchTotals: {[request.queryJSON.hash]: {USD: {count: 2, total: 200}}}, sources: request.sources};
+        rerender(<SearchBulkActionsButton queryJSON={violationQueryJSON} />);
+        expect(getFooterConvertedAmounts).toHaveBeenCalledTimes(1);
+
+        // When the shared expense is split in two, so Over limit holds one more expense for the same total
+        mockSearchData = {...mockSearchData, [overLimitKey]: {violation: CONST.VIOLATIONS.OVER_LIMIT, count: 2, total: 100, currency: 'USD'}};
+        rerender(<SearchBulkActionsButton queryJSON={violationQueryJSON} />);
+
+        // Then the old answer no longer counts, and the union is asked for again against the new counts
+        expect(getBarProps().isSelectedCountLoading).toBe(true);
+        expect(getFooterConvertedAmounts).toHaveBeenCalledTimes(2);
+        expect(jest.mocked(getFooterConvertedAmounts).mock.calls.at(1)?.at(0)?.sources?.searchGroupCounts).toEqual({
+            [request.queryJSON.hash]: {USD: `${missingCategoryKey}:2,${overLimitKey}:2`},
+        });
+    });
+
     it('asks in the groups own currency when the search carries none', () => {
         // Given a search whose results name no currency
         mockSearchCurrency = undefined;

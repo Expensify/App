@@ -13,13 +13,14 @@ import {canGroupsShareExpenses, isGroupEntry} from '@libs/SearchUIUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 import React, {createContext, useContext, useEffect, useRef} from 'react';
 
 import type {SearchQueryJSON, SelectedTransactionInfo, SelectedTransactions} from './types';
 
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionContext} from './SearchContext';
-import {getClaimedGroupKeys} from './selectionBuilders';
+import {getClaimedGroupKeys, getSearchGroupCountByKey} from './selectionBuilders';
 
 type SharedGroupSelection = {
     /** Every expense in the selected groups, which the server counts and sums once each however many of the groups it sits in */
@@ -27,6 +28,9 @@ type SharedGroupSelection = {
 
     /** The selected groups' totals added up. The union's figures are stamped against it, so a change to any of the groups asks again */
     groupsTotal: number;
+
+    /** Each selected group's expense count, as `groupKey:count` pairs. The union is stamped against it too, so a group gaining or losing an expense asks again even when its total stays the same */
+    groupsCounts: string;
 
     /** Rows checked one by one that no selected group covers, which are added to the union's figures */
     looseEntries: SelectedTransactionInfo[];
@@ -95,28 +99,34 @@ function getSharedGroupSelection(
             currency = group.currency;
         }
     }
+    // Sorted, since the groups are listed in the order they were checked, which says nothing about what they hold
+    const groupsCounts = groupKeys
+        .map((groupKey) => `${groupKey}:${getSearchGroupCountByKey(searchData, groupKey) ?? ''}`)
+        .sort()
+        .join(',');
     const looseEntries = Object.entries(selectedTransactions)
         .filter(([key, transaction]) => !isGroupEntry(key) && getClaimedGroupKeys(transaction).length === 0)
         .map(([, transaction]) => transaction);
-    return {unionQueryJSON, groupsTotal, looseEntries, currency};
+    return {unionQueryJSON, groupsTotal, groupsCounts, looseEntries, currency};
 }
 
 /**
- * Asks for the union of the selected groups once per set of groups and group totals. It is asked in the currency the
+ * Asks for the union of the selected groups once per set of groups, group totals and group counts. It is asked in the currency the
  * footer shows: the footer writes a picked currency into the query, and otherwise shows the search's own currency.
  */
-function SharedGroupSelectionTotalProvider({children}: {children: React.ReactNode}) {
+function SharedGroupSelectionTotalProvider({children}: ChildrenProps) {
     const {selectedTransactions, areAllMatchingItemsSelected} = useSearchSelectionContext();
     const {currentSearchResults} = useSearchResultsContext();
     const {currentSearchKey, currentSearchQueryJSON} = useSearchQueryContext();
     const {isOffline} = useNetwork();
     // Requests sent whose stamp has not reached Onyx yet, keyed by query hash and currency. Onyx writes the stamp a moment
     // after the request goes out, so a render in that gap would otherwise send the same request again.
-    const pendingGroupsTotalByRequestKey = useRef(new Map<string, number>());
+    const pendingGroupsStampByRequestKey = useRef(new Map<string, string>());
 
     const sharedGroupSelection = getSharedGroupSelection(currentSearchQueryJSON, selectedTransactions, currentSearchResults?.data, areAllMatchingItemsSelected);
     const hash = sharedGroupSelection?.unionQueryJSON.hash;
     const groupsTotal = sharedGroupSelection?.groupsTotal;
+    const groupsCounts = sharedGroupSelection?.groupsCounts;
     const currency = getFooterSelectionFromQuery(currentSearchQueryJSON).footerCurrency ?? currentSearchResults?.search?.currency ?? sharedGroupSelection?.currency;
     const [answer] = useOnyx(ONYXKEYS.SEARCH_FOOTER_CONVERSION, {
         selector: (conversion) =>
@@ -125,11 +135,12 @@ function SharedGroupSelectionTotalProvider({children}: {children: React.ReactNod
                 : {
                       total: conversion?.searchTotals?.[hash]?.[currency],
                       source: conversion?.sources?.searchTotals?.[hash]?.[currency],
+                      countsSource: conversion?.sources?.searchGroupCounts?.[hash]?.[currency],
                       hasFailed: !!conversion?.failedCurrencies?.[currency],
                   },
     });
-    // The answer describes the groups as they are now only while it was stamped against their current total
-    const wasRequested = groupsTotal !== undefined && answer?.source === groupsTotal;
+    // The answer describes the groups as they are now only while it was stamped against their current totals and counts
+    const wasRequested = groupsTotal !== undefined && answer?.source === groupsTotal && answer?.countsSource === groupsCounts;
     const total = wasRequested ? (answer?.total ?? undefined) : undefined;
 
     useEffect(() => {
@@ -140,18 +151,22 @@ function SharedGroupSelectionTotalProvider({children}: {children: React.ReactNod
         // The pending mark only covers the gap until the request's stamp reaches Onyx. Once it has, the stamp answers, so
         // the mark is dropped: Search clears the cached figures when it is left, and the union has to be asked for again after that.
         if (wasRequested) {
-            pendingGroupsTotalByRequestKey.current.delete(requestKey);
+            pendingGroupsStampByRequestKey.current.delete(requestKey);
             return;
         }
-        if (pendingGroupsTotalByRequestKey.current.get(requestKey) === sharedGroupSelection.groupsTotal) {
+        const groupsStamp = `${sharedGroupSelection.groupsTotal}_${sharedGroupSelection.groupsCounts}`;
+        if (pendingGroupsStampByRequestKey.current.get(requestKey) === groupsStamp) {
             return;
         }
-        pendingGroupsTotalByRequestKey.current.set(requestKey, sharedGroupSelection.groupsTotal);
+        pendingGroupsStampByRequestKey.current.set(requestKey, groupsStamp);
         getFooterConvertedAmounts({
             queryJSON: sharedGroupSelection.unionQueryJSON,
             searchKey: currentSearchKey,
             targetCurrency: currency,
-            sources: {searchTotals: {[hash]: {[currency]: sharedGroupSelection.groupsTotal}}},
+            sources: {
+                searchTotals: {[hash]: {[currency]: sharedGroupSelection.groupsTotal}},
+                searchGroupCounts: {[hash]: {[currency]: sharedGroupSelection.groupsCounts}},
+            },
         });
     }, [currency, currentSearchKey, hash, isOffline, sharedGroupSelection, wasRequested]);
 

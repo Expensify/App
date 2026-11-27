@@ -474,7 +474,8 @@ function mergeRowsIntoPartlyLoadedGroups(
         return selectedTransactions;
     }
     const partlyLoadedGroups = new Map<SearchGroupKey, {group: SearchGroupBase; rowKeys: string[]}>();
-    for (const [groupKey, rowKeys] of getSelectedRowKeysByGroupKey(selectedTransactions)) {
+    const rowKeysByGroupKey = getSelectedRowKeysByGroupKey(selectedTransactions);
+    for (const [groupKey, rowKeys] of rowKeysByGroupKey) {
         if (!isGroupEntry(groupKey)) {
             continue;
         }
@@ -487,6 +488,32 @@ function mergeRowsIntoPartlyLoadedGroups(
         const isClaimStillLoading = !isWhollySelected && rowKeys.some((key) => getClaimedGroupKey(selectedTransactions[key]) === groupKey);
         const hasRowsThatLeft = isWhollySelected && rowKeys.length > groupCount && rowKeys.some((key) => !!selectedTransactions[key].isKeptOffPage);
         if (isClaimStillLoading || hasRowsThatLeft) {
+            partlyLoadedGroups.set(groupKey, {group, rowKeys});
+        }
+    }
+    // Where groups share expenses, checking a second header stores the rows under it, so a group checked earlier can be named only among
+    // the rows' other claims. When fewer rows claim it than it holds, the rest are still loading and its entry has to stand for them too.
+    const otherClaimRowKeysByGroupKey = new Map<SearchGroupKey, string[]>();
+    for (const [key, transaction] of Object.entries(selectedTransactions)) {
+        if (isGroupEntry(key)) {
+            continue;
+        }
+        for (const groupKey of transaction.otherClaimedGroupKeys ?? []) {
+            if (!isGroupEntry(groupKey) || rowKeysByGroupKey.has(groupKey) || Object.hasOwn(selectedTransactions, groupKey)) {
+                continue;
+            }
+            const rowKeys = otherClaimRowKeysByGroupKey.get(groupKey);
+            if (rowKeys) {
+                rowKeys.push(key);
+            } else {
+                otherClaimRowKeysByGroupKey.set(groupKey, [key]);
+            }
+        }
+    }
+    for (const [groupKey, rowKeys] of otherClaimRowKeysByGroupKey) {
+        const group = searchData?.[groupKey];
+        const groupCount = getSearchGroupCount(group);
+        if (group && groupCount !== undefined && rowKeys.length < groupCount) {
             partlyLoadedGroups.set(groupKey, {group, rowKeys});
         }
     }

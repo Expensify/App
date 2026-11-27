@@ -223,10 +223,49 @@ describe('selectionBuilders', () => {
             // When the rows are merged into the groups they stand for
             const merged = mergeRowsIntoPartlyLoadedGroups(selection, searchData, false);
 
-            // Then the group's entry still names the other group, whose own unloaded expenses the rows were the only record of
-            expect(Object.keys(merged)).toEqual([groupKey]);
+            // Then the group's entry still names the other group, whose own unloaded expenses the rows were the only record of, and that group gets its own entry too
+            expect(Object.keys(merged).sort()).toEqual([groupKey, otherGroupKey].sort());
             expect(merged[groupKey]?.otherClaimedGroupKeys).toEqual([otherGroupKey]);
             expect(getGroupKeysSelectedViaGroup(merged).sort()).toEqual([groupKey, otherGroupKey].sort());
+        });
+
+        it('adds an entry for a partly loaded group that only the rows of another checked group still claim, so no action skips its unloaded expenses', () => {
+            // Given a three-expense group whose two loaded rows were then checked through another group's header, which stored them there
+            const searchData = buildDayGroupData([
+                [groupKey, {count: 2, total: 20}],
+                [otherGroupKey, {count: 3, total: 30}],
+            ]);
+            const selection = buildSelection({
+                txn1: {isSelectedViaGroup: true, groupKey, isEntireGroupSelected: true, otherClaimedGroupKeys: [otherGroupKey]},
+                txn2: {isSelectedViaGroup: true, groupKey, isEntireGroupSelected: true, otherClaimedGroupKeys: [otherGroupKey]},
+            });
+
+            // When the rows are merged into the groups they stand for
+            const merged = mergeRowsIntoPartlyLoadedGroups(selection, searchData, false);
+
+            // Then the partly loaded group gets its own entry, so actions send its query, while the rows stay with the group they are stored under
+            expect(Object.keys(merged).sort()).toEqual([otherGroupKey, 'txn1', 'txn2'].sort());
+            expect(merged[otherGroupKey]).toEqual(expect.objectContaining({displayAmount: 30}));
+            expect(merged.txn1).toBe(selection.txn1);
+        });
+
+        it('adds no entry for a group the rows of another checked group claim when they are every expense in it', () => {
+            // Given a two-expense group whose rows were then checked through another group's header, which stored them there
+            const searchData = buildDayGroupData([
+                [groupKey, {count: 3, total: 30}],
+                [otherGroupKey, {count: 2, total: 20}],
+            ]);
+            const selection = buildSelection({
+                txn1: {isSelectedViaGroup: true, groupKey, isEntireGroupSelected: true, otherClaimedGroupKeys: [otherGroupKey]},
+                txn2: {isSelectedViaGroup: true, groupKey, isEntireGroupSelected: true, otherClaimedGroupKeys: [otherGroupKey]},
+                txn3: {isSelectedViaGroup: true, groupKey, isEntireGroupSelected: true},
+            });
+
+            // When the rows are merged into the groups they stand for
+            const merged = mergeRowsIntoPartlyLoadedGroups(selection, searchData, false);
+
+            // Then the selection is left as it was, since its rows already are the whole of both groups
+            expect(merged).toBe(selection);
         });
 
         it('keeps the workspace of the rows it replaces, and whether they all come from one-expense reports', () => {
