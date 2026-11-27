@@ -126,6 +126,10 @@ export default {
     iconBottomBar: 24,
     /** Glyph size in the floating tab bar. */
     iconFloatingTabBar: 20,
+    /** Side of the smaller glyph drawn beside a glyph in the floating tab bar, such as the chevron of the More item. */
+    floatingTabBarIconAccessorySize: 10,
+    /** Gap between a glyph in the floating tab bar and the smaller glyph drawn beside it. */
+    floatingTabBarIconAccessoryGap: 4,
     /** Account avatar size in the floating tab bar. */
     avatarFloatingTabBar: avatarSizes.avatarSizeXSmall,
     // The tab glyphs are drawn about this far above the bottom of their box.

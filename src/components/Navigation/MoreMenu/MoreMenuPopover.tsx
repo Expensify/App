@@ -1,5 +1,5 @@
 /**
- * The menu the More item of the flat nav native bar opens: Accounting, Saved, Insights and Workspaces, with the one the
+ * The menu the More item of the flat nav tab bar opens: Accounting, Saved, Insights and Workspaces, with the one the
  * user is on highlighted. It floats as a card just above the bar, so the bar stays in view under it.
  */
 import IconWithStatusIndicator from '@components/Navigation/IconWithStatusIndicator';
@@ -13,6 +13,7 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRestoreWorkspacesTabOnNavigate from '@hooks/useRestoreWorkspacesTabOnNavigate';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useTheme from '@hooks/useTheme';
@@ -74,7 +75,8 @@ function MoreMenuPopover({isVisible, onClose, onItemPicked, onModalHide, focused
     const styles = useThemeStyles();
     const {bottom: bottomInset, left: leftInset, right: rightInset} = useSafeAreaInsets();
     // A bar laid out as a column sits beside the content, so the card only clears the home indicator then.
-    const cardBottomOffset = useIsTabBarVertical() ? bottomInset : getTabBarTop(bottomInset);
+    const {isInLandscapeMode} = useResponsiveLayout();
+    const cardBottomOffset = useIsTabBarVertical() ? bottomInset : getTabBarTop(bottomInset, isInLandscapeMode);
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const anchorRef = useRef<ComponentRef<typeof View>>(null);
     const isSearchFocused = focusedTabRouteName === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR;

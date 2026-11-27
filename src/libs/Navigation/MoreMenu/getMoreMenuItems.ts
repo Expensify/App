@@ -72,11 +72,11 @@ function getMoreMenuItems({sections, focusedTabRouteName, activeFlatNavSectionID
         });
     }
     items.push(
-        {id: MORE_MENU.ITEM.INSIGHTS, translationPath: 'common.insights', iconName: 'PieChart', isActive: activeItemID === MORE_MENU.ITEM.INSIGHTS},
+        {id: MORE_MENU.ITEM.INSIGHTS, translationPath: 'common.insights', iconName: MORE_MENU.PAGE_ICON_NAMES.insights, isActive: activeItemID === MORE_MENU.ITEM.INSIGHTS},
         {
             id: MORE_MENU.ITEM.WORKSPACES,
             translationPath: 'common.workspacesTabTitle',
-            iconName: 'Buildings',
+            iconName: MORE_MENU.PAGE_ICON_NAMES.workspaces,
             isActive: activeItemID === MORE_MENU.ITEM.WORKSPACES,
             indicatorColor: workspacesDotColor,
         },

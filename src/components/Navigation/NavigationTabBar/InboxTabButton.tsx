@@ -21,6 +21,9 @@ import useWideInboxNavigation from './useWideInboxNavigation';
 type InboxTabButtonProps = {
     selectedTab: ValueOf<typeof NAVIGATION_TABS>;
     isWideLayout: boolean;
+
+    /** Whether the narrow tab shows as selected, which the flat nav bar decides. Defaults to Inbox being the selected tab. */
+    isSelected?: boolean;
 };
 
 type WideInboxTabButtonProps = {
@@ -61,13 +64,14 @@ function WideInboxTabButton({selectedTab, statusIndicatorColor, accessibilityLab
     );
 }
 
-function InboxTabButton({selectedTab, isWideLayout}: InboxTabButtonProps) {
+function InboxTabButton({selectedTab, isWideLayout, isSelected: isSelectedProp}: InboxTabButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {status: chatTabBrickRoad, indicatorColor: statusIndicatorColor} = useInboxTabIndicatorStatus();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Inbox']);
 
     const accessibilityLabel = getTabAccessibilityLabel(translate('common.inbox'), !!chatTabBrickRoad, translate);
+    const isSelected = isSelectedProp ?? selectedTab === NAVIGATION_TABS.INBOX;
 
     if (isWideLayout) {
         return (
@@ -92,7 +96,7 @@ function InboxTabButton({selectedTab, isWideLayout}: InboxTabButtonProps) {
             linkRoute={ROUTES.INBOX}
             role={CONST.ROLE.TAB}
             accessibilityLabel={accessibilityLabel}
-            accessibilityState={{selected: selectedTab === NAVIGATION_TABS.INBOX}}
+            accessibilityState={{selected: isSelected}}
             wrapperStyle={styles.navigationTabBarSlot}
             style={styles.navigationTabBarItem}
             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INBOX}
@@ -100,7 +104,7 @@ function InboxTabButton({selectedTab, isWideLayout}: InboxTabButtonProps) {
             <TabBarItem
                 icon={expensifyIcons.Inbox}
                 label={translate('common.inbox')}
-                isSelected={selectedTab === NAVIGATION_TABS.INBOX}
+                isSelected={isSelected}
                 statusIndicatorColor={statusIndicatorColor}
                 numberOfLines={1}
             />

@@ -1,6 +1,8 @@
 import type {NativeTabRouteName} from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/nativeTabItemUtils';
 import type {MoreMenuItemID} from '@libs/Navigation/MoreMenu/MORE_MENU';
 
+import variables from '@styles/variables';
+
 import type {NativeBottomTabNavigationOptions} from '@react-navigation/bottom-tabs/unstable';
 
 import type NativeTabBarOptionsParams from './types';
@@ -16,7 +18,9 @@ const useNativeTabBarOptions: UseNativeTabBarOptions = () => ({screenOptions: {}
 
 const getFloatingButtonsBottom = (bottomInset: number) => bottomInset;
 
-const getTabBarTop = (bottomInset: number) => bottomInset;
+/** Distance from the bottom of the window to the top edge of the floating JS bar that narrow layouts draw instead. */
+const getTabBarTop = (bottomInset: number, isInLandscapeMode = false) =>
+    bottomInset + variables.floatingTabBarBottomInset + (isInLandscapeMode ? variables.floatingTabBarLandscapeHeight : variables.floatingTabBarHeight);
 
 export default useNativeTabBarOptions;
 export {getFloatingButtonsBottom, getTabBarTop};

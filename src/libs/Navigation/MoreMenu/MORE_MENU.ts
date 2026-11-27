@@ -10,6 +10,12 @@ const MORE_MENU = {
         WORKSPACES: 'workspaces',
     },
 
+    /** The icons of the entries that open a page. An entry that opens a flat nav section takes the icon of its section. */
+    PAGE_ICON_NAMES: {
+        insights: 'PieChart',
+        workspaces: 'Buildings',
+    },
+
     /** The entries that open a flat nav section, in the order the More menu lists them. */
     SECTION_ITEMS: [FLAT_NAV.SECTION.ACCOUNTING, FLAT_NAV.SECTION.SAVED],
 } as const;

@@ -10,6 +10,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {FlatNavSectionID} from '@libs/Navigation/FlatNav/types';
 import getMoreTabItemID from '@libs/Navigation/MoreMenu/getMoreTabItemID';
+import MoreMenuStateContext, {isMoreItemSelectedByMenu} from '@libs/Navigation/MoreMenu/MoreMenuStateContext';
+import type {MoreMenuState} from '@libs/Navigation/MoreMenu/MoreMenuStateContext';
 import {bottomTabScreenLayoutWrapper} from '@libs/Navigation/PlatformStackNavigation/ScreenLayout';
 import type {TabNavigatorParamList} from '@libs/Navigation/types';
 import type {SearchKey} from '@libs/SearchKeyUtils';
@@ -30,13 +32,11 @@ import {authTokenTypeSelector} from '@selectors/Session';
 import React, {createContext, useContext, useState} from 'react';
 import {View} from 'react-native';
 
-import type {MoreMenuState} from './NativeTabNavigator/MoreMenuStateContext';
 import type {NativeTabRouteName} from './NativeTabNavigator/nativeTabItemUtils';
 import type {NativeTabLayoutProps} from './NativeTabNavigator/NativeTabLayout';
 
 import getActiveTabRoute from './NativeTabNavigator/getActiveTabRoute';
 import isTabHostFullWidth from './NativeTabNavigator/isTabHostFullWidth';
-import MoreMenuStateContext, {isMoreItemSelectedByMenu} from './NativeTabNavigator/MoreMenuStateContext';
 import {findSearchTabRoute, getFlatNavTabHiddenRouteName, getFlatNavTabHostRouteName, getSearchTabSearchKey} from './NativeTabNavigator/nativeTabItemUtils';
 import NativeTabLayout from './NativeTabNavigator/NativeTabLayout';
 import tabScreenListeners from './NativeTabNavigator/tabScreenListeners';

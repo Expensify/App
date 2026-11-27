@@ -819,6 +819,12 @@ const staticStyles = (theme: ThemeColors) =>
             marginHorizontal: -variables.floatingTabBarSelectedOverhang,
         },
 
+        // The room a smaller glyph beside a tab's glyph takes, kept on both sides so the glyph stays centered over its label.
+        navigationTabBarIconAccessory: {
+            width: variables.floatingTabBarIconAccessoryGap + variables.floatingTabBarIconAccessorySize,
+            paddingLeft: variables.floatingTabBarIconAccessoryGap,
+        },
+
         androidNativeTabBarSpacer: {
             height: variables.androidNativeTabBarHeight,
         },

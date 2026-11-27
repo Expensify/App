@@ -8,6 +8,7 @@ import {PressableWithFeedback} from '@components/Pressable';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -25,6 +26,8 @@ import type {ValueOf} from 'type-fest';
 import React from 'react';
 import {View} from 'react-native';
 
+import FlatNavTabBarItems from './FlatNavTabBarItems';
+import HomeTabButton from './HomeTabButton';
 import InboxTabButton from './InboxTabButton';
 import InsightsTabButton from './InsightsTabButton';
 import NAVIGATION_TABS from './NAVIGATION_TABS';
@@ -46,6 +49,8 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ExpensifyAppIcon', 'Home']);
 
     const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
+    const {isBetaEnabled} = usePermissions();
+    const isFlatNavEnabled = isBetaEnabled(CONST.BETAS.FLAT_NAV);
 
     const StyleUtils = useStyleUtils();
 
@@ -147,38 +152,29 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
                 style={[styles.navigationTabBarContainer, isInLandscapeMode && styles.navigationTabBarContainerLandscape]}
                 testID="NavigationTabBar"
             >
-                <PressableWithFeedback
-                    onPress={navigateToNewDotHome}
-                    linkRoute={ROUTES.HOME}
-                    role={CONST.ROLE.TAB}
-                    accessibilityLabel={translate('common.home')}
-                    wrapperStyle={styles.navigationTabBarSlot}
-                    style={styles.navigationTabBarItem}
-                    sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.HOME}
-                >
-                    <TabBarItem
-                        icon={expensifyIcons.Home}
-                        label={translate('common.home')}
-                        isSelected={selectedTab === NAVIGATION_TABS.HOME}
-                        numberOfLines={1}
-                    />
-                </PressableWithFeedback>
-                <InboxTabButton
-                    selectedTab={selectedTab}
-                    isWideLayout={false}
-                />
-                <SearchTabButton
-                    selectedTab={selectedTab}
-                    isWideLayout={false}
-                />
-                <InsightsTabButton
-                    selectedTab={selectedTab}
-                    isWideLayout={false}
-                />
-                <WorkspacesTabButton
-                    selectedTab={selectedTab}
-                    isWideLayout={false}
-                />
+                {isFlatNavEnabled ? (
+                    <FlatNavTabBarItems selectedTab={selectedTab} />
+                ) : (
+                    <>
+                        <HomeTabButton selectedTab={selectedTab} />
+                        <InboxTabButton
+                            selectedTab={selectedTab}
+                            isWideLayout={false}
+                        />
+                        <SearchTabButton
+                            selectedTab={selectedTab}
+                            isWideLayout={false}
+                        />
+                        <InsightsTabButton
+                            selectedTab={selectedTab}
+                            isWideLayout={false}
+                        />
+                        <WorkspacesTabButton
+                            selectedTab={selectedTab}
+                            isWideLayout={false}
+                        />
+                    </>
+                )}
             </View>
 
             {shouldShowFloatingButtons && (

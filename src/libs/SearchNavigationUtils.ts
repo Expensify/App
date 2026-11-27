@@ -22,15 +22,23 @@ import {getLastSearchQuery} from './SearchUIUtils';
 /** The Spend searches that have a tab of their own on narrow layouts. Every user has both. */
 type SpendTabSearchKey = typeof CONST.SEARCH.SEARCH_KEYS.EXPENSES | typeof CONST.SEARCH.SEARCH_KEYS.REPORTS;
 
+function getCannedSpendSearchRoute(searchKey: SearchKey, searchQuery: string, lastSearchQuery: string | undefined) {
+    return ROUTES.SEARCH_ROOT.getRoute({query: getValidLastQuery(lastSearchQuery, searchQuery, searchKey), searchKey});
+}
+
 function navigateToCannedSpendSearch(searchKey: SearchKey, searchQuery: string, lastSearchQuery: string | undefined, clearSelectedTransactions: () => void) {
     clearSelectedTransactions();
     setSearchContext(false);
-    const query = getValidLastQuery(lastSearchQuery, searchQuery, searchKey);
-    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query, searchKey}));
+    Navigation.navigate(getCannedSpendSearchRoute(searchKey, searchQuery, lastSearchQuery));
 }
 
 function getSpendTabSearchQuery(searchKey: SpendTabSearchKey) {
     return buildCannedSearchQuery(searchKey === CONST.SEARCH.SEARCH_KEYS.REPORTS ? {type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} : undefined);
+}
+
+/** The route of the Expenses or Reports tab, on the query the user last left it with. */
+function getSpendTabRoute(searchKey: SpendTabSearchKey, lastSearchQuery: string | undefined) {
+    return getCannedSpendSearchRoute(searchKey, getSpendTabSearchQuery(searchKey), lastSearchQuery);
 }
 
 /** Opens the Expenses or Reports tab on the query the user last left it with. */
@@ -99,5 +107,5 @@ function navigateToFlatNavSection(section: FlatNavSection, searchFilters: OnyxEn
 }
 
 export default navigateToCannedSpendSearch;
-export {navigateToFlatNavItem, navigateToFlatNavSection, navigateToSearch, navigateToSpendTab, showSpendTabSearchOnMountedSearchPage};
+export {getSpendTabRoute, navigateToFlatNavItem, navigateToFlatNavSection, navigateToSearch, navigateToSpendTab, showSpendTabSearchOnMountedSearchPage};
 export type {SpendTabSearchKey};

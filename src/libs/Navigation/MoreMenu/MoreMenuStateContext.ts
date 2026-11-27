@@ -1,6 +1,6 @@
 /**
- * The state of the More menu of the flat nav native bar. The tab navigator owns it, because the bar shows the More item
- * as selected for as long as the menu is up, and the press listeners inside the navigator open and close the menu.
+ * The state of the More menu of the flat nav tab bar. The tab navigator owns it, because the bar shows the More item as
+ * selected for as long as the menu is up, and the More item opens the menu that the navigator shows.
  */
 import type {Dispatch, SetStateAction} from 'react';
 

@@ -4,9 +4,9 @@ import MoreMenuPopover from '@components/Navigation/MoreMenu/MoreMenuPopover';
 
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import FlatNavTabPressListeners from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/FlatNavTabPressListeners';
-import MoreMenuStateContext, {isMoreItemSelectedByMenu} from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/MoreMenuStateContext';
-import type {MoreMenuState} from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/MoreMenuStateContext';
 import type {NativeTabLayoutProps} from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/NativeTabLayout';
+import MoreMenuStateContext, {isMoreItemSelectedByMenu} from '@libs/Navigation/MoreMenu/MoreMenuStateContext';
+import type {MoreMenuState} from '@libs/Navigation/MoreMenu/MoreMenuStateContext';
 import {navigateToSpendTab, showSpendTabSearchOnMountedSearchPage} from '@libs/SearchNavigationUtils';
 import {startNavigateToReportsTabSpans} from '@libs/telemetry/startTabNavigationSpans';
 

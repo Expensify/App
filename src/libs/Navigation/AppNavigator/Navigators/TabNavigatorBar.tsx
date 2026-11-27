@@ -2,12 +2,14 @@ import {useFullScreenBlockingViewState} from '@components/FullScreenBlockingView
 import FlatNavigationBar from '@components/Navigation/FlatNavigationBar';
 import useNavigationBarWidth from '@components/Navigation/FlatNavigationBar/useNavigationBarWidth';
 import useShouldUseFlatNavigationBar from '@components/Navigation/FlatNavigationBar/useShouldUseFlatNavigationBar';
+import MoreMenu from '@components/Navigation/MoreMenu/MoreMenu';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import ROUTE_TO_NAVIGATION_TAB from '@components/Navigation/NavigationTabBar/ROUTE_TO_NAVIGATION_TAB';
 import {COLLAPSE_SURFACE, layoutTransitionStyle, useSearchSidebarCollapse} from '@components/Navigation/SearchSidebarCollapseStore';
 import {SetNavigatorTabBarVisibleContext} from '@components/Navigation/TabBarBottomContent/NavigatorTabBarVisibilityProvider';
 
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
@@ -19,6 +21,7 @@ import cancelTabNavigationSpans, {NAVIGATION_TAB_TO_SPANS} from '@libs/telemetry
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 
 import type {BottomTabBarProps} from '@react-navigation/bottom-tabs';
@@ -38,6 +41,8 @@ function TabNavigatorBar({state}: Pick<BottomTabBarProps, 'state'>) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const shouldUseFlatNavigationBar = useShouldUseFlatNavigationBar();
+    const {isBetaEnabled} = usePermissions();
+    const isFlatNavEnabled = isBetaEnabled(CONST.BETAS.FLAT_NAV);
     const navigationBarWidth = useNavigationBarWidth();
     const {isPeeking: isNavigationBarPeeking} = useSearchSidebarCollapse(COLLAPSE_SURFACE.NAVIGATION_BAR);
     const activeRoute = state.routes[state.index];
@@ -92,6 +97,7 @@ function TabNavigatorBar({state}: Pick<BottomTabBarProps, 'state'>) {
                     selectedTab={selectedTab}
                     shouldShowFloatingButtons={!isHidden}
                 />
+                {isFlatNavEnabled && <MoreMenu focusedTabRouteName={activeRoute?.name} />}
             </View>
         );
     }
