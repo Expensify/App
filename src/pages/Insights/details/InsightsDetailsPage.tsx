@@ -162,10 +162,10 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
     const biggestChangesState = getInsightsDetailsSectionState({
         isOffline,
         isLoaded: !!biggestChanges,
-        hasErrors: !isEmptyObject(details?.errors),
+        hasErrors: hasDetailsErrors,
         responseJsonCode: details?.responseJsonCode,
     });
-    const comparison = summary ? getInsightsAverageComparison(summary) : undefined;
+    const comparison = details?.summary ? getInsightsAverageComparison(details.summary) : undefined;
     const shouldShowBiggestChanges =
         !!detailsQuery &&
         !!chartSpec?.detailsSections?.includes(CONST.INSIGHTS.DETAILS_SECTION.BIGGEST_CHANGES) &&
