@@ -12181,6 +12181,150 @@ describe('actions/Report', () => {
             expect(builtOriginalMessage?.type).toBe(CONST.IOU.REPORT_ACTION_TYPE.TRACK);
         });
 
+        describe("another member's legacy unreported expense with no IOU action", () => {
+            const adminSelfDMReportID = '605';
+            const snapshotHash = 67890;
+
+            /** Opens another member's legacy expense the way Search does: not owned, with no IOU action or self DM */
+            function openMemberLegacyExpenseAsAdmin(transaction: OnyxTypes.Transaction) {
+                return Report.createTransactionThreadReport({
+                    introSelected: TEST_INTRO_SELECTED,
+                    conciergeChat: undefined,
+                    currentUserLogin: TEST_USER_LOGIN,
+                    currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    personalDetails: undefined,
+                    iouReportAction: createMock<OnyxTypes.ReportAction>({}),
+                    transaction,
+                    isOwnedByCurrentUser: false,
+                    snapshotHash,
+                });
+            }
+
+            /** Finds the action built for the thread under its generated parent report */
+            async function getPlaceholderAction(thread: OnyxTypes.Report | undefined) {
+                const parentReportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${thread?.parentReportID}`);
+                return Object.values(parentReportActions ?? {}).find((action) => action?.childReportID === thread?.reportID);
+            }
+
+            beforeEach(async () => {
+                // generateReportID returns one ID in this file, so the generated parent gets its own
+                jest.mocked(ReportUtils.generateReportID).mockReturnValueOnce('placeholder-parent');
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${adminSelfDMReportID}`, {
+                    reportID: adminSelfDMReportID,
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+                });
+                await Onyx.set(ONYXKEYS.SELF_DM_REPORT_ID, adminSelfDMReportID);
+                await waitForBatchedUpdates();
+            });
+
+            afterEach(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}`, null);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminSelfDMReportID}`, null);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${adminSelfDMReportID}`, null);
+                await Onyx.set(ONYXKEYS.SELF_DM_REPORT_ID, null);
+                await waitForBatchedUpdates();
+            });
+
+            it('should open the thread under a generated parent report and ask the backend to link the expense', async () => {
+                // Given an admin with a self DM, and a member's legacy expense
+                const mockFetch = TestHelper.createGlobalFetchMock();
+                global.fetch = mockFetch;
+                mockFetch.pause?.();
+                const transaction = {...createRandomTransaction(605), reportID: CONST.REPORT.UNREPORTED_REPORT_ID};
+
+                // When the admin opens it, before the response arrives
+                const result = openMemberLegacyExpenseAsAdmin(transaction);
+                await waitForBatchedUpdates();
+
+                // Then a thread is created
+                const threadReportID = result?.reportID;
+                expect(threadReportID).toBeDefined();
+                if (!threadReportID) {
+                    return;
+                }
+
+                // And it opens under a generated parent, not the admin's self DM
+                expect(result?.parentReportID).toBeDefined();
+                expect(result?.parentReportID).not.toBe(CONST.REPORT.UNREPORTED_REPORT_ID);
+                expect(result?.parentReportID).not.toBe(adminSelfDMReportID);
+                const adminSelfDMActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminSelfDMReportID}`);
+                expect(adminSelfDMActions).toBeUndefined();
+
+                // And the placeholder is a track action with no actor, since the owner is unknown until the backend responds
+                const placeholderAction = await getPlaceholderAction(result);
+                expect(placeholderAction?.actorAccountID).toBe(CONST.DEFAULT_NUMBER_ID);
+                const placeholderOriginalMessage = isActionOfType(placeholderAction, CONST.REPORT.ACTIONS.TYPE.IOU) ? getOriginalMessage(placeholderAction) : undefined;
+                expect(placeholderOriginalMessage?.type).toBe(CONST.IOU.REPORT_ACTION_TYPE.TRACK);
+
+                // And OpenReport asks the backend to create the IOU action with that ID
+                TestHelper.expectAPICommandToHaveBeenCalledWith(WRITE_COMMANDS.OPEN_REPORT, 0, {
+                    reportID: threadReportID,
+                    transactionID: transaction.transactionID,
+                    moneyRequestPreviewReportActionID: placeholderAction?.reportActionID,
+                });
+
+                // And the row in the snapshot it was opened from points at the thread, since it has no IOU action for the next tap to find the thread through
+                const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}`);
+                expect(snapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]?.transactionThreadReportID).toBe(threadReportID);
+
+                await mockFetch.resume?.();
+                await waitForBatchedUpdates();
+            });
+
+            it('should remove the placeholder action once OpenReport succeeds', async () => {
+                // Given a member's legacy expense opened by an admin
+                const transaction = {...createRandomTransaction(606), reportID: CONST.REPORT.UNREPORTED_REPORT_ID};
+
+                // When OpenReport succeeds
+                const result = openMemberLegacyExpenseAsAdmin(transaction);
+                await waitForBatchedUpdates();
+                await waitForNetworkPromises();
+                await waitForBatchedUpdates();
+
+                // Then the placeholder is removed, since the backend returns the real IOU action
+                expect(await getPlaceholderAction(result)).toBeUndefined();
+            });
+
+            it('should remove the placeholder action when OpenReport fails', async () => {
+                // Given a member's legacy expense opened by an admin, and a server that rejects the request
+                const mockFetch = TestHelper.createGlobalFetchMock();
+                global.fetch = mockFetch;
+                mockFetch.fail?.();
+                const transaction = {...createRandomTransaction(607), reportID: CONST.REPORT.UNREPORTED_REPORT_ID};
+
+                // When OpenReport fails
+                const result = openMemberLegacyExpenseAsAdmin(transaction);
+                await waitForBatchedUpdates();
+                await waitForNetworkPromises();
+                await waitForBatchedUpdates();
+
+                // Then the placeholder and the Search row's link to the thread are removed too, so the next open starts over
+                expect(await getPlaceholderAction(result)).toBeUndefined();
+                const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}`);
+                expect(snapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]?.transactionThreadReportID).toBeUndefined();
+            });
+        });
+
+        it("should not open a legacy expense when the caller doesn't say whose it is", () => {
+            // Given a legacy unreported expense with no IOU action, from a caller that doesn't pass isOwnedByCurrentUser
+            const transaction = {...createRandomTransaction(608), reportID: CONST.REPORT.UNREPORTED_REPORT_ID};
+
+            // When its thread is created
+            const result = Report.createTransactionThreadReport({
+                introSelected: TEST_INTRO_SELECTED,
+                conciergeChat: undefined,
+                currentUserLogin: TEST_USER_LOGIN,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                personalDetails: undefined,
+                transaction,
+            });
+
+            // Then nothing is created, because only a caller that decided the expense is another member's gets the generated parent
+            expect(result).toBeUndefined();
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 0);
+        });
+
         it('should return an optimistic transaction thread report when given a valid report and action', async () => {
             const parentReport: OnyxTypes.Report = {
                 ...createRandomReport(100, undefined),

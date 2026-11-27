@@ -376,6 +376,12 @@ type OpenReportActionBaseParams = {
     /** The parent report ID for the transaction thread (optional, defaults to transaction.reportID) */
     parentReportID?: string;
 
+    /** Whether the transaction is another member's legacy expense. Its optimistic IOU action has no actor and is removed once OpenReport finishes */
+    isOtherMemberLegacyExpense?: boolean;
+
+    /** The hash of the Search snapshot the expense row comes from */
+    snapshotHash?: number;
+
     shouldAddPendingFields?: boolean;
 
     /** The optimistic selfDM report when it exists on the server but was filtered out from OpenApp response (e.g., no actions yet) */
@@ -1826,6 +1832,8 @@ function openReport(params: OpenReportActionParams) {
         transaction,
         transactionViolations,
         parentReportID,
+        isOtherMemberLegacyExpense = false,
+        snapshotHash,
         shouldAddPendingFields = true,
         optimisticSelfDMReport,
         parentReportAction,
@@ -1882,6 +1890,7 @@ function openReport(params: OpenReportActionParams) {
               | typeof ONYXKEYS.COLLECTION.POLICY
               | typeof ONYXKEYS.NVP_ONBOARDING
               | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
+              | typeof ONYXKEYS.COLLECTION.SNAPSHOT
           >
         | PersonalDetailsUtils.PersonalDetailsOnyxUpdate
     > = [
@@ -1948,6 +1957,7 @@ function openReport(params: OpenReportActionParams) {
               | typeof ONYXKEYS.COLLECTION.POLICY
               | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
               | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
+              | typeof ONYXKEYS.COLLECTION.SNAPSHOT
           >
         | PersonalDetailsUtils.PersonalDetailsOnyxUpdate
     > = [
@@ -2010,12 +2020,14 @@ function openReport(params: OpenReportActionParams) {
         // Use optimisticSelfDMReport if provided (when selfDM exists but wasn't in allReports)
         const parentReport =
             transactionParentReportID === optimisticSelfDMReport?.reportID ? optimisticSelfDMReport : allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionParentReportID}`];
-        const submitterAccountID = parentReport?.ownerAccountID ?? currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID;
+
+        const submitterAccountID = isOtherMemberLegacyExpense ? CONST.DEFAULT_NUMBER_ID : (parentReport?.ownerAccountID ?? currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID);
         const submitterPersonalDetails = submitterAccountID ? personalDetails?.[submitterAccountID] : undefined;
-        const submitterEmail = submitterPersonalDetails?.login ?? currentUserLogin ?? '';
+        const submitterEmail = isOtherMemberLegacyExpense ? '' : (submitterPersonalDetails?.login ?? currentUserLogin ?? '');
 
         const optimisticIOUAction = buildOptimisticIOUReportAction({
-            type: isSelfDM(parentReport) ? CONST.IOU.REPORT_ACTION_TYPE.TRACK : CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+            // Another member's legacy expense is tracked in their self DM
+            type: isSelfDM(parentReport) || isOtherMemberLegacyExpense ? CONST.IOU.REPORT_ACTION_TYPE.TRACK : CONST.IOU.REPORT_ACTION_TYPE.CREATE,
             amount: Math.abs(transaction.amount),
             currency: transaction.currency,
             comment: transaction.comment?.comment ?? '',
@@ -2082,6 +2094,35 @@ function openReport(params: OpenReportActionParams) {
                 },
             },
         });
+
+        if (isOtherMemberLegacyExpense) {
+            const removePlaceholderAction: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionParentReportID}`,
+                value: {[iouReportActionID]: null},
+            };
+            successData.push(removePlaceholderAction);
+            failureData.push(removePlaceholderAction);
+
+            // The Search row still has no IOU action, so the thread ID on the row is what lets the next tap reopen this thread
+            if (snapshotHash) {
+                const optimisticSnapshotData: NullishDeep<SearchResultDataType> = {};
+                optimisticSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = {transactionThreadReportID: reportID};
+                optimisticData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}` as const,
+                    value: {data: optimisticSnapshotData},
+                });
+
+                const failureSnapshotData: NullishDeep<SearchResultDataType> = {};
+                failureSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = {transactionThreadReportID: null};
+                failureData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}` as const,
+                    value: {data: failureSnapshotData},
+                });
+            }
+        }
 
         parameters.moneyRequestPreviewReportActionID = iouReportActionID;
 
@@ -2603,6 +2644,9 @@ type CreateTransactionThreadReportParams = {
 
     /** Whether the expense belongs to the current user. Read from the IOU action's actor when not set, so pass it for a legacy expense that has no IOU action */
     isOwnedByCurrentUser?: boolean;
+
+    /** The hash of the Search snapshot the expense row comes from */
+    snapshotHash?: number;
 };
 
 function createTransactionThreadReport(params: CreateTransactionThreadReportParams): OptimisticChatReport | undefined {
@@ -2626,7 +2670,11 @@ function createTransactionThreadReport(params: CreateTransactionThreadReportPara
     const isUnreportedTransaction = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const shouldUseSelfDM = isTrackExpense || isUnreportedTransaction;
     const isOwnedByCurrentUser = params.isOwnedByCurrentUser ?? iouReportAction?.actorAccountID === currentUserAccountID;
-    if (shouldUseSelfDM && !isOwnedByCurrentUser && !params.selfDMReportID) {
+    const isInUnknownSelfDM = shouldUseSelfDM && !isOwnedByCurrentUser && !params.selfDMReportID;
+
+    // Without an IOU action, the fallback ownership is always false, so only a caller that said the expense isn't the user's gets here
+    const isOtherMemberLegacyExpense = isInUnknownSelfDM && params.isOwnedByCurrentUser === false && !!transaction && !iouReportAction?.reportActionID;
+    if (isInUnknownSelfDM && !isOtherMemberLegacyExpense) {
         Log.warn('Cannot build transaction thread in the current user self DM for an expense owned by another user', {
             transactionID: transaction?.transactionID,
             reportActionID: iouReportAction?.reportActionID,
@@ -2634,11 +2682,14 @@ function createTransactionThreadReport(params: CreateTransactionThreadReportPara
         return;
     }
 
-    const selfDMReportID = shouldUseSelfDM ? (params.selfDMReportID ?? findSelfDMReportID()) : undefined;
+    const selfDMReportID = shouldUseSelfDM && !isOtherMemberLegacyExpense ? (params.selfDMReportID ?? findSelfDMReportID()) : undefined;
+
+    // Another member's legacy expense has no IOU action to find their self DM, so it opens under a generated parent until the backend links it
+    const placeholderParentReportID = isOtherMemberLegacyExpense ? generateReportID() : undefined;
 
     let optimisticSelfDMReport: Report | undefined;
     let parentReportAction: ReportAction | undefined;
-    let reportToUse = iouReport;
+    let reportToUse: OnyxEntry<Report> = placeholderParentReportID ? {reportID: placeholderParentReportID} : iouReport;
     if (selfDMReportID) {
         reportToUse = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
 
@@ -2690,7 +2741,9 @@ function createTransactionThreadReport(params: CreateTransactionThreadReportPara
         parentReportActionID: iouReportAction?.reportActionID,
         transaction,
         transactionViolations,
-        parentReportID: selfDMReportID,
+        parentReportID: selfDMReportID ?? placeholderParentReportID,
+        isOtherMemberLegacyExpense,
+        snapshotHash: params.snapshotHash,
         shouldAddPendingFields,
         optimisticSelfDMReport,
         parentReportAction,

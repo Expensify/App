@@ -757,6 +757,7 @@ function Search({
                     IOUTransactionID: item?.reportAction?.childReportID,
                     shouldNavigate: shouldOpenTransactionThread && !shouldOpenTransactionThreadInNewTab,
                     fullPolicySnapshotLastModifiedByPolicyID,
+                    snapshotHash: queryJSON.hash,
                 });
                 if (shouldOpenTransactionThreadInNewTab && targetReportID) {
                     openInternalRouteInNewTab(
@@ -832,6 +833,7 @@ function Search({
                                 transactionPreviewData,
                                 shouldNavigate: false,
                                 fullPolicySnapshotLastModifiedByPolicyID,
+                                snapshotHash: queryJSON.hash,
                             });
                         });
                     } else {

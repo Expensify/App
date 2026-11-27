@@ -15625,17 +15625,37 @@ describe('SearchUIUtils', () => {
                 expect(createTransactionThreadReport).toHaveBeenCalledWith(expect.objectContaining({selfDMReportID, isOwnedByCurrentUser: true}));
             });
 
-            test("Should not open an expense on another member's managed card", () => {
-                // Given an expense on another member's managed card, which an admin sees on their card feed
+            test("Should reopen the thread already created for another member's legacy expense", () => {
+                // Given another member's legacy expense whose Search row already points at the thread opened for it
+                const existingThreadReportID = 'legacy-thread-123';
+                const item = {...buildLegacyUnreportedItem(true, currentUserAccountID + 1), transactionThreadReportID: existingThreadReportID};
+
+                // When the admin opens it again, before Search refreshes the row with the IOU action
+                const targetReportID = SearchUIUtils.createAndOpenSearchTransactionThread({...baseParams, item, shouldNavigate: false});
+
+                // Then that thread opens, so a second tap doesn't create another thread and send another OpenReport
+                expect(targetReportID).toBe(existingThreadReportID);
+                expect(createTransactionThreadReport).not.toHaveBeenCalled();
+            });
+
+            test("Should open an expense on another member's managed card outside the admin's self DM", () => {
+                // Given a legacy expense on another member's managed card, which an admin sees on their card feed
                 const item = buildLegacyUnreportedItem(true, currentUserAccountID + 1);
 
-                // When the admin opens it from Search
-                const targetReportID = SearchUIUtils.createAndOpenSearchTransactionThread({...baseParams, item});
+                // When the admin opens it from a Search snapshot
+                const snapshotHash = 67890;
+                const targetReportID = SearchUIUtils.createAndOpenSearchTransactionThread({...baseParams, item, shouldNavigate: false, snapshotHash});
 
-                // Then nothing is created, because without an action the member's self DM is unknown and the admin's own self DM is the wrong place
-                expect(targetReportID).toBeUndefined();
-                expect(createTransactionThreadReport).not.toHaveBeenCalled();
-                expect(Navigation.navigate).not.toHaveBeenCalled();
+                // Then the thread opens without a self DM, because the member's is unknown, and gets the snapshot so the row can be linked to the thread
+                expect(targetReportID).toBe(threadReportID);
+                expect(createTransactionThreadReport).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        selfDMReportID: undefined,
+                        isOwnedByCurrentUser: false,
+                        transaction: expect.objectContaining({reportID: CONST.REPORT.UNREPORTED_REPORT_ID}),
+                        snapshotHash,
+                    }),
+                );
             });
         });
 

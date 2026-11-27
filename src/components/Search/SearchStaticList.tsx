@@ -165,6 +165,7 @@ function SearchStaticList({
                 IOUTransactionID: item.reportAction?.childReportID,
                 shouldNavigate: shouldOpenTransactionThread,
                 fullPolicySnapshotLastModifiedByPolicyID,
+                snapshotHash: queryJSON.hash,
             });
             if (shouldOpenTransactionThread) {
                 return;

@@ -2740,6 +2740,9 @@ type CreateAndOpenSearchTransactionThreadParams = {
 
     /** The lastModified of each policy's cached full policy snapshot, keyed by policyID */
     fullPolicySnapshotLastModifiedByPolicyID?: Record<string, number>;
+
+    /** The hash of the Search snapshot the row comes from, which can be an expanded group's rather than the current query's */
+    snapshotHash?: number;
 };
 
 /** Creates transaction thread report and navigates to it from the search page */
@@ -2759,6 +2762,7 @@ function createAndOpenSearchTransactionThread({
     getCurrencyDecimals,
     conciergeChat,
     fullPolicySnapshotLastModifiedByPolicyID,
+    snapshotHash,
 }: CreateAndOpenSearchTransactionThreadParams): string | undefined {
     const isUnreportedTransaction = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const isDeleted = isDeletedTransaction(item);
@@ -2775,8 +2779,10 @@ function createAndOpenSearchTransactionThread({
     const expenseSelfDMReportID = isOwnExpense ? (findSelfDMReportID() ?? ownerSelfDMReportID) : ownerSelfDMReportID;
     const selfDMReportID = isUnreportedTransaction ? expenseSelfDMReportID : undefined;
     const iouReportAction = getIOUActionForReportID(selfDMReportID ?? item.reportID, item.transactionID);
-    // Another member's unreported expense can only open in their self DM
-    if (isUnreportedTransaction && !selfDMReportID) {
+
+    // Another member's unreported expense opens in their self DM. A legacy one has no IOU action to find it, so the backend links it instead
+    const isOtherMemberLegacyExpense = !ownerAction && !isOwnExpense;
+    if (isUnreportedTransaction && !selfDMReportID && !isOtherMemberLegacyExpense) {
         return;
     }
 
@@ -2787,12 +2793,14 @@ function createAndOpenSearchTransactionThread({
         : {hasTransaction: false, hasParentReport: false, hasParentReportAction: false, hasTransactionThreadReport: true};
     setOptimisticDataForTransactionThreadPreview(item, previewData, getCurrencyDecimals, delegateAccountID, IOUTransactionID);
 
-    const hasActualTransactionThread = iouReportAction?.childReportID && iouReportAction?.childReportID !== CONST.FAKE_REPORT_ID;
+    // Another member's legacy expense has no IOU action to hold its thread, so a thread opened for it earlier is on the row
+    const existingTransactionThreadReportID = iouReportAction?.childReportID ?? (isOtherMemberLegacyExpense ? item.transactionThreadReportID : undefined);
+    const hasActualTransactionThread = !!existingTransactionThreadReportID && existingTransactionThreadReportID !== CONST.FAKE_REPORT_ID;
     let transactionThreadReport;
 
     // The transaction thread can be created from the chat page and the snapshot data is stale
     if (hasActualTransactionThread) {
-        transactionThreadReport = getReportOrDraftReport({reportID: iouReportAction.childReportID});
+        transactionThreadReport = getReportOrDraftReport({reportID: existingTransactionThreadReportID});
     }
 
     // Only create a new thread when there's no existing childReportID.
@@ -2820,6 +2828,7 @@ function createAndOpenSearchTransactionThread({
             fullPolicySnapshotLastModified: iouReport?.policyID ? fullPolicySnapshotLastModifiedByPolicyID?.[iouReport.policyID] : undefined,
             selfDMReportID,
             isOwnedByCurrentUser: isOwnExpense,
+            snapshotHash,
         });
     }
 
@@ -2829,7 +2838,7 @@ function createAndOpenSearchTransactionThread({
     // When we have an actual transaction thread (childReportID from Onyx) but the report isn't in Onyx yet
     // (e.g. Search didn't return the IOU action for deleted items), use childReportID directly so we don't navigate with undefined
     const targetReportID = shouldNavigateToTransactionThread
-        ? (transactionThreadReport?.reportID ?? (hasActualTransactionThread ? iouReportAction.childReportID : undefined))
+        ? (transactionThreadReport?.reportID ?? (hasActualTransactionThread ? existingTransactionThreadReportID : undefined))
         : item.reportID;
 
     if (shouldNavigate && targetReportID) {
