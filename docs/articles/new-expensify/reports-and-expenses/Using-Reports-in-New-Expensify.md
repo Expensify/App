@@ -73,7 +73,7 @@ You can choose from a wide range of columns, including:
 
 - **Avatar** – The profile image of the report submitter
 - **Date** – When the report or expense was created
-- **Transaction ID** – The unique identifier for each expense, available in **Expenses**. Select it in **Display > Edit columns** to show it, then select the column header to sort by transaction ID.
+- **Transaction ID** – The unique identifier for each expense, available in **Expenses**
 - **Submitted** – The date the report was submitted for approval
 - **Paid** – The date the report was paid
 - **Total** – The total amount of the report or expense
