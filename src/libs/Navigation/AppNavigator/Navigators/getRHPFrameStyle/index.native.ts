@@ -6,7 +6,7 @@ const getRHPFrameStyle: GetRHPFrameStyle = ({styles, animatedWidth, shouldUseNar
     styles.r0,
     styles.h100,
     styles.overflowHidden,
-    {width: shouldUseNarrowLayout ? '100%' : animatedWidth},
+    shouldUseNarrowLayout ? styles.w100 : {width: animatedWidth},
 ];
 
 export default getRHPFrameStyle;

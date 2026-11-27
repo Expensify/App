@@ -31,6 +31,7 @@ import type {Routes, TransactionCustomUnit} from '../../src/types/onyx/Transacti
 import type {TransactionViolation} from '../../src/types/onyx/TransactionViolation';
 
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
+import {buildMergeDuplicatesParams, buildNewTransactionAfterReviewingDuplicates, canMergeDuplicates, compareDuplicateTransactionFields} from '../../src/libs/TransactionUtils/duplicates';
 import createRandomPolicy, {createCategoryTaxRulesCollection} from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
@@ -348,27 +349,42 @@ describe('TransactionUtils', () => {
 
     describe('getCategoryTaxCode', () => {
         const POLICY_ID = '0';
+        const policyWithTaxTracking: Policy = {...createRandomPolicy(0), id: POLICY_ID, taxRates: CONST.DEFAULT_TAX, tax: {trackingEnabled: true}};
 
         it('should return the associated tax when the category matches a category rule', () => {
             // Given a policy with an expense default that sets a tax for a category
             const category = 'Advertising';
-            const fakePolicy: Policy = {...createRandomPolicy(0), id: POLICY_ID, taxRates: CONST.DEFAULT_TAX};
             const rules = createCategoryTaxRulesCollection(POLICY_ID, category, 'id_TAX_RATE_1');
 
             // When retrieving the tax from the associated category
-            const categoryTaxCode = TransactionUtils.getCategoryTaxCode(category, generateTransaction(), fakePolicy, rules);
+            const categoryTaxCode = TransactionUtils.getCategoryTaxCode(category, generateTransaction(), policyWithTaxTracking, rules);
 
             // Then it should return the tax code the rule sets
             expect(categoryTaxCode).toBe('id_TAX_RATE_1');
         });
 
+        it('leaves tax alone while workspace tax tracking is off', () => {
+            // Given an active rate and a matching category rule in a workspace with taxes turned off
+            const category = 'Advertising';
+            const policyWithoutTaxTracking = {...policyWithTaxTracking, tax: {trackingEnabled: false}};
+            const rules = createCategoryTaxRulesCollection(POLICY_ID, category, 'id_TAX_RATE_1');
+            const transaction = generateTransaction();
+
+            // When resolving tax for the confirmation preview or a category edit
+            const categoryTaxCode = TransactionUtils.getCategoryTaxCode(category, transaction, policyWithoutTaxTracking, rules);
+            const categoryTaxDetails = TransactionUtils.getCategoryTaxDetails(category, transaction, policyWithoutTaxTracking, rules, getCurrencyDecimalsLocal);
+
+            // Then neither the rule nor its workspace fallback writes a tax
+            expect(categoryTaxCode).toBeUndefined();
+            expect(categoryTaxDetails).toEqual({categoryTaxCode: undefined, categoryTaxAmount: undefined, categoryTaxValue: undefined});
+        });
+
         it("should return undefined when the category doesn't match any category rule", () => {
             // Given an expense default that sets a tax for a different category
-            const fakePolicy: Policy = {...createRandomPolicy(0), id: POLICY_ID, taxRates: CONST.DEFAULT_TAX};
             const rules = createCategoryTaxRulesCollection(POLICY_ID, 'Advertising', 'id_TAX_RATE_1');
 
             // When retrieving the tax for a category no rule matches
-            const categoryTaxCode = TransactionUtils.getCategoryTaxCode('Benefits', generateTransaction(), fakePolicy, rules);
+            const categoryTaxCode = TransactionUtils.getCategoryTaxCode('Benefits', generateTransaction(), policyWithTaxTracking, rules);
 
             // Then no rule applies, so the caller is left to fall back to the workspace default
             expect(categoryTaxCode).toBeUndefined();
@@ -377,11 +393,10 @@ describe('TransactionUtils', () => {
         it('should ignore a rule that also matches on a merchant', () => {
             // Given a rule matching on a category and a merchant, which is narrower than the category alone
             const category = 'Advertising';
-            const fakePolicy: Policy = {...createRandomPolicy(0), id: POLICY_ID, taxRates: CONST.DEFAULT_TAX};
             const rules = createCategoryTaxRulesCollection(POLICY_ID, category, 'id_TAX_RATE_1', 'Starbucks');
 
             // When retrieving the tax for that category
-            const categoryTaxCode = TransactionUtils.getCategoryTaxCode(category, generateTransaction(), fakePolicy, rules);
+            const categoryTaxCode = TransactionUtils.getCategoryTaxCode(category, generateTransaction(), policyWithTaxTracking, rules);
 
             // Then the rule is skipped, because applying it would tax every expense in the category rather than the ones it matches
             expect(categoryTaxCode).toBeUndefined();
@@ -392,8 +407,7 @@ describe('TransactionUtils', () => {
 
             function buildDistancePolicy(taxEnabled: boolean, rateTaxRateExternalID?: string, isRateTaxDisabled = false): Policy {
                 return {
-                    ...createRandomPolicy(0),
-                    id: POLICY_ID,
+                    ...policyWithTaxTracking,
                     taxRates: {
                         ...CONST.DEFAULT_TAX,
                         taxes: {
@@ -507,11 +521,9 @@ describe('TransactionUtils', () => {
         });
 
         it('should return undefined when the policy has no expense defaults', () => {
-            // Given a policy with no rules at all
-            const fakePolicy: Policy = {...createRandomPolicy(0), id: POLICY_ID, taxRates: CONST.DEFAULT_TAX};
-
-            // When retrieving the tax for a category
-            const categoryTaxCode = TransactionUtils.getCategoryTaxCode('Advertising', generateTransaction(), fakePolicy, {});
+            // Given taxes are on, so the only reason to skip a default is that no rule matches
+            // When resolving the category tax with no rules configured
+            const categoryTaxCode = TransactionUtils.getCategoryTaxCode('Advertising', generateTransaction(), policyWithTaxTracking, {});
 
             // Then no rule applies
             expect(categoryTaxCode).toBeUndefined();
@@ -532,6 +544,7 @@ describe('TransactionUtils', () => {
         }) =>
             ({
                 ...createRandomPolicy(0),
+                tax: {trackingEnabled: true},
                 taxRates: {
                     ...CONST.DEFAULT_TAX,
                     taxes: {
@@ -677,6 +690,27 @@ describe('TransactionUtils', () => {
     });
 
     describe('getUpdatedTransaction', () => {
+        it('uses the supplied translator for a pending route instead of the global locale', () => {
+            // Given a translator whose output differs from the global locale
+            const translate = jest.fn(() => 'Injected pending label');
+            const transaction = generateTransaction({comment: {waypoints: {}}});
+
+            // When a waypoint edit has no resolved route yet
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                translate,
+                transaction,
+                transactionChanges: {waypoints: {waypoint0: {address: 'New destination'}}},
+                isFromExpenseReport: false,
+                personalPolicyOutputCurrency: undefined,
+                getCurrencySymbol: getCurrencySymbolLocal,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+            });
+
+            // Then the optimistic merchant comes from the caller's translator
+            expect(translate).toHaveBeenCalledWith('iou.fieldPending');
+            expect(updatedTransaction.modifiedMerchant).toBe('Injected pending label');
+        });
+
         it('should preserve a confirmed zero Scan amount while another field edit is pending', () => {
             // Given a submitted Scan whose explicit zero survived a cache reset without its draft flag
             const transaction = generateTransaction({
@@ -729,6 +763,60 @@ describe('TransactionUtils', () => {
             expect(TransactionUtils.isFailedScanAmountPlaceholder(updatedTransaction)).toBe(true);
         });
 
+        it('should clear the workspace amount from Search when the amount is edited', () => {
+            // Given a searched expense whose workspace amount came from Search
+            const transaction = generateTransaction({amount: -1000, currency: CONST.CURRENCY.USD, policyConvertedAmount: -1000, policyCurrency: CONST.CURRENCY.USD});
+
+            // When its amount is edited
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: true,
+                transactionChanges: {amount: 2500},
+                personalPolicyOutputCurrency: undefined,
+                getCurrencySymbol: getCurrencySymbolLocal,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+            });
+
+            // Then the stale workspace amount is cleared so the expense shows its own amount until the next search
+            expect(updatedTransaction.policyConvertedAmount).toBeNull();
+        });
+
+        it('should clear the workspace amount when the amount is edited on a transaction without one', () => {
+            // Given an expense whose stored copy has no workspace amount, while the Search snapshot still holds one from an earlier search
+            const transaction = generateTransaction({amount: -1000, currency: CONST.CURRENCY.USD});
+
+            // When its amount is edited
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: true,
+                transactionChanges: {amount: 2500},
+                personalPolicyOutputCurrency: undefined,
+                getCurrencySymbol: getCurrencySymbolLocal,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+            });
+
+            // Then the update still clears it, so the snapshot does not keep showing the old workspace amount
+            expect(updatedTransaction.policyConvertedAmount).toBeNull();
+        });
+
+        it('should keep the workspace amount from Search when the amount does not change', () => {
+            // Given a searched expense whose workspace amount came from Search
+            const transaction = generateTransaction({amount: -1000, currency: CONST.CURRENCY.USD, policyConvertedAmount: -1000, policyCurrency: CONST.CURRENCY.USD});
+
+            // When only its merchant is edited
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: true,
+                transactionChanges: {merchant: 'New merchant'},
+                personalPolicyOutputCurrency: undefined,
+                getCurrencySymbol: getCurrencySymbolLocal,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+            });
+
+            // Then the workspace amount stays because it still matches the expense
+            expect(updatedTransaction.policyConvertedAmount).toBe(-1000);
+        });
+
         it('should update transaction when distance is changed', () => {
             // Given: a policy with a mileage rate
             const fakePolicy: Policy = {
@@ -762,9 +850,11 @@ describe('TransactionUtils', () => {
             });
 
             const newDistance = 20; // change distance to 20 miles
+            const translate = jest.fn(() => 'Injected distance label');
 
             // When: updating the transaction with a new distance
             const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                translate,
                 transaction,
                 isFromExpenseReport: false,
                 policy: fakePolicy,
@@ -776,6 +866,7 @@ describe('TransactionUtils', () => {
 
             // Then: quantity should be updated
             expect(updatedTransaction.comment?.customUnit?.quantity).toBe(newDistance);
+            expect(translate).toHaveBeenCalledWith('common.mile');
 
             // And: amount should be recalculated (20 miles × 1 USD = 20)
             expect(updatedTransaction.modifiedAmount).toBe(20);
@@ -1652,7 +1743,7 @@ describe('TransactionUtils', () => {
         it("resolves the category rule's tax when an existing expense's category changes", () => {
             // Given an expense on a policy whose expense default sets a tax for the category being picked
             const transaction = generateTransaction({category: 'Meals', taxCode: 'id_TAX_EXEMPT', taxValue: '0%', taxAmount: 0});
-            const policy: Policy = {...createRandomPolicy(0), id: '0', taxRates: CONST.DEFAULT_TAX};
+            const policy: Policy = {...createRandomPolicy(0), id: '0', taxRates: CONST.DEFAULT_TAX, tax: {trackingEnabled: true}};
             const rules = createCategoryTaxRulesCollection('0', 'Advertising', 'id_TAX_RATE_1');
 
             // When the category is edited, which an existing expense does without passing through the confirmation page
@@ -1676,7 +1767,7 @@ describe('TransactionUtils', () => {
         it('leaves the tax alone when the category is cleared on a server backed edit', () => {
             // Given an expense carrying the tax its category rule set
             const transaction = generateTransaction({category: 'Advertising', taxCode: 'id_TAX_RATE_1', taxValue: '5%', taxAmount: 5});
-            const policy: Policy = {...createRandomPolicy(0), id: '0', taxRates: CONST.DEFAULT_TAX};
+            const policy: Policy = {...createRandomPolicy(0), id: '0', taxRates: CONST.DEFAULT_TAX, tax: {trackingEnabled: true}};
             const rules = createCategoryTaxRulesCollection('0', 'Advertising', 'id_TAX_RATE_1');
 
             // When the category is cleared
@@ -2800,6 +2891,26 @@ describe('TransactionUtils', () => {
     });
 
     describe('isViolationDismissed', () => {
+        it('treats a categoryNotAllowed dismissal by an admin as dismissed for the member too', () => {
+            // Given an admin who coded the member's expense to a category the member can't use, which dismisses categoryNotAllowed
+            const transaction = generateTransaction({
+                comment: {
+                    dismissedViolations: {
+                        [CONST.VIOLATIONS.CATEGORY_NOT_ALLOWED]: {
+                            [OTHER_USER_EMAIL]: DateUtils.getDBTime(),
+                        },
+                    },
+                },
+            });
+            const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.CATEGORY_NOT_ALLOWED};
+
+            // When the member views the expense, without any report context
+            const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, undefined, undefined);
+
+            // Then it's dismissed for them as well, since the admin's override applies to everyone
+            expect(result).toBe(true);
+        });
+
         describe('Current user dismissed it themselves', () => {
             it('should return true when current user dismissed the violation', () => {
                 // Given a transaction with a violation dismissed by current user
@@ -3183,6 +3294,79 @@ describe('TransactionUtils', () => {
 
                 expect(shouldShowFutureDate({...createRandomTransaction(0), created: '2026-08-30'})).toBe(false);
             });
+        });
+    });
+
+    describe('hasViolation', () => {
+        const futureDateViolations: TransactionViolation[] = [
+            {
+                name: CONST.VIOLATIONS.FUTURE_DATE,
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+                showInReview: true,
+            },
+        ];
+        const policy: Policy = createRandomPolicy(0, CONST.POLICY.TYPE.CORPORATE);
+
+        afterEach(() => {
+            jest.useRealTimers();
+        });
+
+        it('should return true for a futureDate violation when the date and time are beyond the +14 hour window', () => {
+            // Given a futureDate violation on an expense that SmartScan dated today at UTC+14, with a time that hasn't happened yet at UTC+14
+            jest.useFakeTimers();
+            jest.setSystemTime(new Date('2026-10-27T17:18:00Z'));
+            const transaction = generateTransaction({created: '2026-10-28', modifiedCreated: '2026-10-28 18:11:40'});
+
+            // When checking whether the expense has a violation
+            const result = TransactionUtils.hasViolation(transaction, futureDateViolations, CURRENT_USER_EMAIL, CURRENT_USER_ID, openReport, CURRENT_USER_EMAIL, policy);
+
+            // Then the violation counts, because the backend still returns it and it is shown on the expense
+            expect(result).toBe(true);
+        });
+
+        it('should return false for a stale futureDate violation once the date is within the +14 hour window', () => {
+            // Given a futureDate violation saved earlier on a date-only expense dated the current UTC+14 date
+            jest.useFakeTimers();
+            jest.setSystemTime(new Date('2026-10-27T17:18:00Z'));
+            const transaction = generateTransaction({created: '2026-10-28'});
+
+            // When checking whether the expense has a violation
+            const result = TransactionUtils.hasViolation(transaction, futureDateViolations, CURRENT_USER_EMAIL, CURRENT_USER_ID, openReport, CURRENT_USER_EMAIL, policy);
+
+            // Then the violation doesn't count, because it is hidden and can't block Submit under strict rules
+            expect(result).toBe(false);
+        });
+
+        it('should return false for a missingAttendees violation when attendee tracking is off', () => {
+            // Given a missingAttendees violation on a Control workspace that has attendee tracking turned off, so the violation is hidden
+            const missingAttendeesViolations: TransactionViolation[] = [{name: CONST.VIOLATIONS.MISSING_ATTENDEES, type: CONST.VIOLATION_TYPES.VIOLATION}];
+            const trackingOffPolicy: Policy = {...policy, isAttendeeTrackingEnabled: false};
+
+            // When checking whether the expense has a violation
+            const result = TransactionUtils.hasViolation(
+                generateTransaction(),
+                missingAttendeesViolations,
+                CURRENT_USER_EMAIL,
+                CURRENT_USER_ID,
+                openReport,
+                CURRENT_USER_EMAIL,
+                trackingOffPolicy,
+            );
+
+            // Then the violation doesn't count, because the user can't see it and has nothing to fix before submitting
+            expect(result).toBe(false);
+        });
+
+        it('should return true for a missingCategory violation while Concierge AI picks a category', () => {
+            // Given a missingCategory violation on a new expense that is still being created, so it is hidden while Concierge AI picks a category
+            const missingCategoryViolations: TransactionViolation[] = [{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION}];
+            const transaction = generateTransaction({category: '', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
+
+            // When checking whether the expense has a violation
+            const result = TransactionUtils.hasViolation(transaction, missingCategoryViolations, CURRENT_USER_EMAIL, CURRENT_USER_ID, openReport, CURRENT_USER_EMAIL, policy);
+
+            // Then the violation still counts, so the report can't be submitted before the category is set
+            expect(result).toBe(true);
         });
     });
 
@@ -4241,6 +4425,42 @@ describe('TransactionUtils', () => {
         });
     });
 
+    describe('getAmountWithDisplaySign', () => {
+        it('shows an IOU amount as positive', () => {
+            // Given an amount stored as negative on an IOU, which can never be negative
+            const storedAmount = -100;
+
+            // When it is signed for display outside an expense report or tracked expense
+            const displayAmount = TransactionUtils.getAmountWithDisplaySign(storedAmount);
+
+            // Then it shows as positive
+            expect(displayAmount).toBe(100);
+        });
+
+        it('flips the stored sign for expense reports and tracked expenses', () => {
+            // Given an expense stored with the opposite sign, as expense reports and tracked expenses store it
+            const storedAmount = -100;
+
+            // When it is signed for display on an expense report and as a tracked expense
+            const expenseReportAmount = TransactionUtils.getAmountWithDisplaySign(storedAmount, true);
+            const trackedExpenseAmount = TransactionUtils.getAmountWithDisplaySign(storedAmount, false, true);
+
+            // Then both show the flipped sign, so a refund stored as positive would show as negative
+            expect(expenseReportAmount).toBe(100);
+            expect(trackedExpenseAmount).toBe(100);
+            expect(TransactionUtils.getAmountWithDisplaySign(100, true)).toBe(-100);
+        });
+
+        it('shows zero without a negative sign', () => {
+            // Given a zero amount on an expense report
+            // When it is signed for display
+            const displayAmount = TransactionUtils.getAmountWithDisplaySign(0, true);
+
+            // Then it is plain zero, so the cell never shows -0
+            expect(Object.is(displayAmount, 0)).toBe(true);
+        });
+    });
+
     describe('hasTaxRateWithMatchingValue', () => {
         const policy: Policy = {
             ...createRandomPolicy(0),
@@ -4421,8 +4641,15 @@ describe('TransactionUtils', () => {
             statusNum: CONST.REPORT.STATUS_NUM.OPEN,
         };
 
+        // Duplicates are compared only when their report is loaded, and generateTransaction defaults to report '1'.
+        beforeAll(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${fakeReportID}`, fakeReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {...fakeReport, reportID: '1'});
+            await waitForBatchedUpdates();
+        });
+
         it('should return empty keep and change when reviewingTransaction or reportID is missing', () => {
-            const result = TransactionUtils.compareDuplicateTransactionFields({}, undefined, [], undefined, undefined, undefined, undefined);
+            const result = compareDuplicateTransactionFields({}, undefined, [], undefined, undefined, undefined, undefined);
             expect(result.keep).toEqual({});
             expect(result.change).toEqual({});
         });
@@ -4443,7 +4670,7 @@ describe('TransactionUtils', () => {
                 reportID: fakeReportID,
             });
 
-            const result = TransactionUtils.compareDuplicateTransactionFields({}, transaction1, [transaction2], fakeReport, undefined, undefined, undefined);
+            const result = compareDuplicateTransactionFields({}, transaction1, [transaction2], fakeReport, undefined, undefined, undefined);
 
             expect(result.keep.merchant).toBe('Merchant A');
             expect(result.keep.category).toBe('Food');
@@ -4465,7 +4692,7 @@ describe('TransactionUtils', () => {
                 reportID: fakeReportID,
             });
 
-            const result = TransactionUtils.compareDuplicateTransactionFields({}, transaction1, [transaction2], fakeReport, undefined, undefined, undefined);
+            const result = compareDuplicateTransactionFields({}, transaction1, [transaction2], fakeReport, undefined, undefined, undefined);
 
             expect(result.change.merchant).toContain('Merchant A');
             expect(result.change.merchant).toContain('Merchant B');
@@ -4497,7 +4724,7 @@ describe('TransactionUtils', () => {
             });
 
             const fakePolicy = {...createRandomPolicy(0), id: 'fakePolicyID', areTagsEnabled: true};
-            const result = TransactionUtils.compareDuplicateTransactionFields(singleLevelPolicyTags, transaction1, [transaction2], fakeReport, undefined, fakePolicy, undefined);
+            const result = compareDuplicateTransactionFields(singleLevelPolicyTags, transaction1, [transaction2], fakeReport, undefined, fakePolicy, undefined);
 
             expect(result.change.tag).toContain('Engineering');
             expect(result.change.tag).toContain('Marketing');
@@ -4528,7 +4755,7 @@ describe('TransactionUtils', () => {
             });
 
             const fakePolicy = {...createRandomPolicy(0), id: 'fakePolicyID', areTagsEnabled: true};
-            const result = TransactionUtils.compareDuplicateTransactionFields(singleLevelPolicyTags, transaction1, [transaction2], fakeReport, undefined, fakePolicy, undefined);
+            const result = compareDuplicateTransactionFields(singleLevelPolicyTags, transaction1, [transaction2], fakeReport, undefined, fakePolicy, undefined);
 
             // Since only one enabled tag is available and empty is not included, tag should not be in change
             expect(result.change.tag).toBeUndefined();
@@ -4561,7 +4788,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 expect(result.keep.merchant).toBe('Starbucks');
                 expect(result.keep.category).toBe('Food');
@@ -4584,7 +4811,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 expect(result.keep.description).toBe('');
                 expect(result.change.description).toBeUndefined();
@@ -4603,7 +4830,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 expect(result.keep.merchant).toBe('Amazon');
                 expect(result.change.merchant).toBeUndefined();
@@ -4623,7 +4850,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 expect(result.keep.merchant).toBeUndefined();
                 expect(result.change.merchant).toEqual(expect.arrayContaining(['Amazon', 'Best Buy', 'Target']));
@@ -4643,7 +4870,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 expect(result.keep.merchant).toBe('Modified Merchant');
                 expect(result.change.merchant).toBeUndefined();
@@ -4667,7 +4894,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, undefined);
 
                 expect(result.keep.category).toBe('Travel');
                 expect(result.change.category).toBeUndefined();
@@ -4700,7 +4927,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, policyCategories);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, policyCategories);
 
                 expect(result.keep.category).toBeUndefined();
                 expect(result.change.category).toEqual(expect.arrayContaining(['Travel', 'Food']));
@@ -4733,7 +4960,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, policyCategories);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, policyCategories);
 
                 // When only one valid category exists and fields differ, keep preserves the first transaction's category
                 expect(result.keep.category).toBe('Travel');
@@ -4768,7 +4995,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, policyCategories);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, policyCategories);
 
                 // When only one valid category exists and fields differ, keep preserves the first transaction's category
                 expect(result.keep.category).toBe('Travel');
@@ -4791,7 +5018,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, undefined);
 
                 // When categories are not enabled and fields differ, keep preserves the first transaction's category
                 expect(result.keep.category).toBe('Travel');
@@ -4821,7 +5048,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, policyCategories);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, policyCategories);
 
                 expect(result.change.category).toEqual(expect.arrayContaining(['Travel', '']));
             });
@@ -4839,7 +5066,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 expect(result.keep.tag).toBe('Client A');
                 expect(result.change.tag).toBeUndefined();
@@ -4861,7 +5088,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, undefined);
 
                 expect(result.keep.tag).toBe('Client A');
                 expect(result.change.tag).toBeUndefined();
@@ -4900,7 +5127,7 @@ describe('TransactionUtils', () => {
             });
 
             const fakePolicy = {...createRandomPolicy(0), id: 'fakePolicyID', areTagsEnabled: true};
-            const result = TransactionUtils.compareDuplicateTransactionFields(multiLevelPolicyTags, transaction1, [transaction2], fakeReport, undefined, fakePolicy, undefined);
+            const result = compareDuplicateTransactionFields(multiLevelPolicyTags, transaction1, [transaction2], fakeReport, undefined, fakePolicy, undefined);
 
             expect(result.change.tag).toContain('Engineering:Project A');
             expect(result.change.tag).toContain('Engineering:Project B');
@@ -4937,7 +5164,7 @@ describe('TransactionUtils', () => {
                 reportID: fakeReportID,
             });
 
-            const result = TransactionUtils.compareDuplicateTransactionFields(multiLevelPolicyTags, transaction1, [transaction2], fakeReport, undefined, undefined, undefined);
+            const result = compareDuplicateTransactionFields(multiLevelPolicyTags, transaction1, [transaction2], fakeReport, undefined, undefined, undefined);
 
             expect(result.keep.tag).toBe('Engineering:Project A');
             expect(result.change.tag).toBeUndefined();
@@ -4967,13 +5194,53 @@ describe('TransactionUtils', () => {
             });
 
             const fakePolicy = {...createRandomPolicy(0), id: 'fakePolicyID', areTagsEnabled: true};
-            const result = TransactionUtils.compareDuplicateTransactionFields(singleLevelPolicyTags, transaction1, [transaction2], fakeReport, undefined, fakePolicy, undefined);
+            const result = compareDuplicateTransactionFields(singleLevelPolicyTags, transaction1, [transaction2], fakeReport, undefined, fakePolicy, undefined);
 
             expect(result.change.tag).toContain('Engineering');
             expect(result.change.tag).toContain('');
         });
 
         describe('description field comparison', () => {
+            it('normalizes and deduplicates description choices before review', () => {
+                // Given API descriptions can contain numbers or missing text despite the declared string type
+                const descriptions = [12345, '12345', 0, '0', undefined, null, '', 'Lunch', 'Lunch'];
+                const [reviewingTransaction, ...duplicates] = descriptions.map((description): Transaction => Object.assign(generateTransaction(), {comment: {comment: description}}));
+                duplicates.push(generateTransaction({comment: {}}), generateTransaction({comment: undefined}));
+
+                // When different descriptions require a review step
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+
+                // Then each normalized value appears once, with zero distinct from an empty description
+                expect(result.change.description).toEqual(['12345', '0', '', 'Lunch']);
+                expect(result.keep.description).toBeUndefined();
+            });
+
+            it.each([12345, 0])('keeps a normalized string when numeric %s matches a string description', (description) => {
+                // Given the first transaction has a numeric API description and its duplicate has equivalent text
+                const reviewingTransaction = Object.assign(generateTransaction(), {comment: {comment: description}});
+                const duplicates = [generateTransaction({comment: {comment: description.toString()}})];
+
+                // When matching descriptions bypass the review screen
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+
+                // Then review state still receives a string rather than the raw number
+                expect(result.keep.description).toBe(description.toString());
+                expect(result.change.description).toBeUndefined();
+            });
+
+            it.each([undefined, {}, {comment: null}, {comment: ''}])('keeps an empty string for empty comment %j', (comment) => {
+                // Given empty API comment variants should all mean no description
+                const reviewingTransaction = Object.assign(generateTransaction(), {comment});
+                const duplicates = [generateTransaction({comment: {comment: ''}})];
+
+                // When the descriptions are compared
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+
+                // Then an empty comment object cannot leak into review state
+                expect(result.keep.description).toBe('');
+                expect(result.change.description).toBeUndefined();
+            });
+
             it('should keep description when all descriptions are the same', () => {
                 const reviewingTransaction = generateTransaction({
                     comment: {comment: 'Business meeting'},
@@ -4985,7 +5252,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 expect(result.keep.description).toBe('Business meeting');
                 expect(result.change.description).toBeUndefined();
@@ -5005,7 +5272,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 expect(result.keep.description).toBeUndefined();
                 expect(result.change.description).toHaveLength(3);
@@ -5024,7 +5291,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 expect(result.keep.taxCode).toBe('id_TAX_EXEMPT');
                 expect(result.change.taxCode).toBeUndefined();
@@ -5064,7 +5331,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, undefined);
 
                 // When only one valid tax exists and fields differ, keep preserves the first transaction's taxCode
                 expect(result.keep.taxCode).toBe('id_TAX_EXEMPT');
@@ -5105,7 +5372,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, undefined);
 
                 // When only one valid tax exists and fields differ, keep preserves the first transaction's taxCode
                 expect(result.keep.taxCode).toBe('id_TAX_EXEMPT');
@@ -5125,7 +5392,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 expect(result.keep.billable).toBe(true);
                 expect(result.change.billable).toBeUndefined();
@@ -5142,7 +5409,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 expect(result.keep.billable).toBeUndefined();
                 expect(result.change.billable).toEqual(expect.arrayContaining([true, false]));
@@ -5161,7 +5428,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 expect(result.keep.reimbursable).toBe(true);
                 expect(result.change.reimbursable).toBeUndefined();
@@ -5178,7 +5445,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 expect(result.keep.reimbursable).toBeUndefined();
                 expect(result.change.reimbursable).toEqual(expect.arrayContaining([true, false]));
@@ -5200,7 +5467,7 @@ describe('TransactionUtils', () => {
                 ];
 
                 // When duplicates with different reimbursable values are compared
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, managedCardTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, managedCardTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 // Then duplicate resolution preserves the restriction without offering a choice
                 expect(result.keep.reimbursable).toBe(false);
@@ -5213,7 +5480,7 @@ describe('TransactionUtils', () => {
                 const duplicates = [generateTransaction({reimbursable: false, managedCard: false})];
 
                 // When duplicates with different reimbursable values are compared
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, managedCardTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, managedCardTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 // Then the forced reimbursable value survives duplicate resolution
                 expect(result.keep.reimbursable).toBe(true);
@@ -5227,7 +5494,7 @@ describe('TransactionUtils', () => {
                 const duplicates = [generateTransaction({reimbursable: true, managedCard: false})];
 
                 // When the expense is kept during duplicate resolution
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, managedCardTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, managedCardTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 // Then the missing value still defaults to non-reimbursable
                 expect(result.keep.reimbursable).toBe(false);
@@ -5246,7 +5513,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, cashTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, cashTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 // The kept cash expense must not be silently converted to non-reimbursable; the differing values are
                 // surfaced as a review step instead.
@@ -5274,7 +5541,7 @@ describe('TransactionUtils', () => {
                 ];
 
                 // When navigating back with the locked company card still selected
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingCashTransaction, duplicates, mockReport, managedCardTransactionID, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingCashTransaction, duplicates, mockReport, managedCardTransactionID, mockPolicy, undefined);
 
                 // Then the reimbursable step stays hidden
                 expect(result.keep.reimbursable).toBe(false);
@@ -5297,7 +5564,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingCashTransaction, duplicates, mockReport, cashTransactionID, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingCashTransaction, duplicates, mockReport, cashTransactionID, mockPolicy, undefined);
 
                 expect(result.keep.reimbursable).toBeUndefined();
                 expect(result.change.reimbursable).toEqual(expect.arrayContaining([true, false]));
@@ -5313,7 +5580,7 @@ describe('TransactionUtils', () => {
                 const duplicates = [generateTransaction({reimbursable: false, managedCard: false})];
 
                 // When the duplicate fields are compared
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, companyCardTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, companyCardTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 // Then the forced value is kept, so resolving duplicates can't silently make the expense non-reimbursable
                 expect(result.keep.reimbursable).toBe(true);
@@ -5330,7 +5597,7 @@ describe('TransactionUtils', () => {
                 const duplicates = [generateTransaction({reimbursable: false, managedCard: false})];
 
                 // When the duplicate fields are compared
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, companyCardTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, companyCardTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 // Then the user picks the reimbursable value in the review step
                 expect(result.keep.reimbursable).toBeUndefined();
@@ -5343,7 +5610,7 @@ describe('TransactionUtils', () => {
                 const duplicates = [generateTransaction({reimbursable: false, managedCard: false})];
 
                 // When the duplicate fields are compared
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, companyCardTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, companyCardTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 // Then the user can choose, because a missing restriction means "Do Not Force"
                 expect(result.keep.reimbursable).toBeUndefined();
@@ -5360,7 +5627,7 @@ describe('TransactionUtils', () => {
                 const duplicates = [generateTransaction({reimbursable: true, managedCard: false})];
 
                 // When the duplicate fields are compared
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, expensifyCardTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, expensifyCardTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 // Then Expensify Card expenses stay non-reimbursable
                 expect(result.keep.reimbursable).toBe(false);
@@ -5388,7 +5655,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, selectedTransactionID, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, selectedTransactionID, mockPolicy, undefined);
 
                 expect(result.keep.comment).toBeDefined();
                 expect(result.keep.comment?.customUnit?.name).toBe(CONST.CUSTOM_UNITS.NAME_DISTANCE);
@@ -5411,7 +5678,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 expect(result.keep.comment).toBeUndefined();
             });
@@ -5419,7 +5686,7 @@ describe('TransactionUtils', () => {
 
         describe('edge cases and data validation', () => {
             it('should return empty keep and change when reviewingTransaction is undefined', () => {
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, undefined, [], mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, undefined, [], mockReport, undefined, mockPolicy, undefined);
 
                 expect(result.keep).toEqual({});
                 expect(result.change).toEqual({});
@@ -5430,7 +5697,7 @@ describe('TransactionUtils', () => {
                     merchant: 'Amazon',
                 });
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, [], mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, [], mockReport, undefined, mockPolicy, undefined);
 
                 expect(result.keep.merchant).toBe('Amazon');
                 expect(result.change).toEqual({});
@@ -5441,7 +5708,7 @@ describe('TransactionUtils', () => {
                     merchant: 'Amazon',
                 });
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, undefined, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, undefined, mockReport, undefined, mockPolicy, undefined);
 
                 expect(result.keep.merchant).toBe('Amazon');
                 expect(result.change).toEqual({});
@@ -5464,7 +5731,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 // Should compare all transactions (Amazon, Best Buy, Target) since removeSettledAndApprovedTransactions
                 // checks the actual report state from Onyx, and in this case all reports may not be properly settled
@@ -5502,7 +5769,7 @@ describe('TransactionUtils', () => {
                     Travel: {name: 'Travel', enabled: true},
                 };
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, policyCategories);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, policyCategories);
 
                 expect(result.keep.merchant).toBe('Starbucks');
                 expect(result.change.category).toEqual(expect.arrayContaining(['Food', 'Travel']));
@@ -5579,7 +5846,7 @@ describe('TransactionUtils', () => {
             const reimbursedDuplicate = generateTransaction({reportID: MERGE_REIMBURSED_REPORT_ID});
             const duplicates = [openDuplicate, submittedDuplicate, approvedDuplicate, closedDuplicate, reimbursedDuplicate];
 
-            const params = TransactionUtils.buildMergeDuplicatesParams(
+            const params = buildMergeDuplicatesParams(
                 buildReviewDuplicates(
                     keptTransaction.transactionID,
                     duplicates.map((transaction) => transaction.transactionID),
@@ -5596,7 +5863,7 @@ describe('TransactionUtils', () => {
             const keptTransaction = generateTransaction({reportID: MERGE_KEPT_OPEN_REPORT_ID});
             const closedDuplicate = generateTransaction({reportID: MERGE_CLOSED_REPORT_ID});
 
-            const params = TransactionUtils.buildMergeDuplicatesParams(
+            const params = buildMergeDuplicatesParams(
                 buildReviewDuplicates(keptTransaction.transactionID, [closedDuplicate.transactionID]),
                 [closedDuplicate],
                 keptTransaction,
@@ -5612,7 +5879,7 @@ describe('TransactionUtils', () => {
             const reimbursedDuplicate = generateTransaction({reportID: MERGE_REIMBURSED_REPORT_ID});
             const duplicates = [approvedDuplicate, reimbursedDuplicate];
 
-            const params = TransactionUtils.buildMergeDuplicatesParams(
+            const params = buildMergeDuplicatesParams(
                 buildReviewDuplicates(
                     keptTransaction.transactionID,
                     duplicates.map((transaction) => transaction.transactionID),
@@ -5623,6 +5890,29 @@ describe('TransactionUtils', () => {
             );
 
             expect(params.transactionList).toEqual([]);
+        });
+
+        it('excludes a duplicate whose report is not loaded but keeps an unreported one', () => {
+            // Given one duplicate on a report missing from Onyx, whose state could be approved or paid,
+            // and one unreported duplicate that has no report at all
+            const keptTransaction = generateTransaction({reportID: MERGE_KEPT_OPEN_REPORT_ID});
+            const unloadedDuplicate = generateTransaction({reportID: 'unloadedDuplicateReport'});
+            const unreportedDuplicate = generateTransaction({reportID: CONST.REPORT.UNREPORTED_REPORT_ID});
+            const duplicates = [unloadedDuplicate, unreportedDuplicate];
+
+            // When building the merge params
+            const params = buildMergeDuplicatesParams(
+                buildReviewDuplicates(
+                    keptTransaction.transactionID,
+                    duplicates.map((transaction) => transaction.transactionID),
+                ),
+                duplicates,
+                keptTransaction,
+                keptTransaction,
+            );
+
+            // Then only the unreported duplicate is sent, so Auth never receives a transaction it would reject
+            expect(params.transactionList.map((transaction) => transaction.transactionID)).toEqual([unreportedDuplicate.transactionID]);
         });
     });
 
@@ -5635,35 +5925,69 @@ describe('TransactionUtils', () => {
 
         it('allows merging when the kept report is open and there are duplicates', () => {
             const report = buildReportWithState(CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATUS_NUM.OPEN);
-            expect(TransactionUtils.canMergeDuplicates(report, DUPLICATE_IDS)).toBe(true);
+            expect(canMergeDuplicates(report, report.reportID, DUPLICATE_IDS)).toBe(true);
         });
 
         it('allows merging when the kept report is awaiting first approval', () => {
             const report = buildReportWithState(CONST.REPORT.STATE_NUM.SUBMITTED, CONST.REPORT.STATUS_NUM.SUBMITTED);
-            expect(TransactionUtils.canMergeDuplicates(report, DUPLICATE_IDS)).toBe(true);
+            expect(canMergeDuplicates(report, report.reportID, DUPLICATE_IDS)).toBe(true);
         });
 
         it('allows merging when the kept expense is unreported (no resolvable report)', () => {
-            expect(TransactionUtils.canMergeDuplicates(undefined, DUPLICATE_IDS)).toBe(true);
+            expect(canMergeDuplicates(undefined, CONST.REPORT.UNREPORTED_REPORT_ID, DUPLICATE_IDS)).toBe(true);
+        });
+
+        it('allows merging when the kept expense has no report ID at all', () => {
+            // Given a legacy unreported expense that carries no report ID instead of the unreported sentinel
+            // When checking whether the merge can be sent
+            const canMerge = canMergeDuplicates(undefined, undefined, DUPLICATE_IDS);
+
+            // Then it is treated like an unreported expense, which Auth still lets you merge
+            expect(canMerge).toBe(true);
+        });
+
+        it('blocks merging when the kept report is not loaded', () => {
+            // Given a kept expense that sits on a report missing from Onyx, so its state is unknown
+            const unloadedReportID = 'unloadedKeptReport';
+
+            // When checking whether the merge can be sent
+            const canMerge = canMergeDuplicates(undefined, unloadedReportID, DUPLICATE_IDS);
+
+            // Then it is blocked, because the report may be approved or paid and Auth would reject the merge
+            expect(canMerge).toBe(false);
         });
 
         it('blocks merging when the kept report is approved and closed (Submit & Close)', () => {
             const report = buildReportWithState(CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.CLOSED);
-            expect(TransactionUtils.canMergeDuplicates(report, DUPLICATE_IDS)).toBe(false);
+            expect(canMergeDuplicates(report, report.reportID, DUPLICATE_IDS)).toBe(false);
         });
 
         it('blocks merging when the kept report is reimbursed', () => {
             const report = buildReportWithState(CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.REIMBURSED);
-            expect(TransactionUtils.canMergeDuplicates(report, DUPLICATE_IDS)).toBe(false);
+            expect(canMergeDuplicates(report, report.reportID, DUPLICATE_IDS)).toBe(false);
         });
 
         it('blocks merging when there are no duplicates left to merge', () => {
             const report = buildReportWithState(CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATUS_NUM.OPEN);
-            expect(TransactionUtils.canMergeDuplicates(report, [])).toBe(false);
+            expect(canMergeDuplicates(report, report.reportID, [])).toBe(false);
         });
     });
 
     describe('buildNewTransactionAfterReviewingDuplicates', () => {
+        it.each(['0', ''])('preserves selected description %j through confirmation and merge', (description) => {
+            // Given a reviewed description must not fall back to the original text, even when it is empty
+            const transaction = generateTransaction({comment: {comment: 'Original', customUnit: {name: 'Distance'}}});
+            const reviewDuplicates = createMock<ReviewDuplicates>({description, comment: transaction.comment});
+
+            // When confirmation and the merge request are built
+            const updatedTransaction = buildNewTransactionAfterReviewingDuplicates(reviewDuplicates, transaction);
+            const params = buildMergeDuplicatesParams(reviewDuplicates, [], updatedTransaction, transaction);
+
+            // Then both retain the selected string without discarding comment metadata
+            expect(updatedTransaction.comment).toEqual({...transaction.comment, comment: description});
+            expect(params.comment).toBe(description);
+        });
+
         it('preserves the kept transaction tax amount when the selected tax code matches the existing tax code', () => {
             const duplicatedTransaction = generateTransaction({
                 transactionID: 'transaction1',
@@ -5688,7 +6012,7 @@ describe('TransactionUtils', () => {
                 billable: true,
             };
 
-            const updatedTransaction = TransactionUtils.buildNewTransactionAfterReviewingDuplicates(reviewDuplicates, duplicatedTransaction);
+            const updatedTransaction = buildNewTransactionAfterReviewingDuplicates(reviewDuplicates, duplicatedTransaction);
 
             expect(updatedTransaction.taxCode).toBe('id_TAX_RATE_1');
             expect(updatedTransaction.taxAmount).toBe(-500);
@@ -6330,6 +6654,44 @@ describe('TransactionUtils', () => {
 
         it('returns false for undefined', () => {
             expect(TransactionUtils.isSplitContainerTransaction(undefined)).toBe(false);
+        });
+    });
+
+    describe('isUnreportedTransactionOwnedByCurrentUser', () => {
+        it('returns true for an expense that is not on a managed card, whoever holds the card', () => {
+            // Given an unreported expense that is not on a managed card, which only its owner can see
+            const transaction = generateTransaction({reportID: CONST.REPORT.UNREPORTED_REPORT_ID, managedCard: false});
+
+            // When ownership is decided without an IOU action
+            // Then it belongs to the current user, even though no card of theirs matches
+            expect(TransactionUtils.isUnreportedTransactionOwnedByCurrentUser(transaction, false)).toBe(true);
+        });
+
+        it('returns true for an expense with no managedCard flag', () => {
+            // Given a legacy unreported expense that has no managedCard flag, which means it is not on a managed card
+            const transaction = generateTransaction({reportID: CONST.REPORT.UNREPORTED_REPORT_ID, managedCard: undefined});
+
+            // When ownership is decided without an IOU action
+            // Then it belongs to the current user
+            expect(TransactionUtils.isUnreportedTransactionOwnedByCurrentUser(transaction, false)).toBe(true);
+        });
+
+        it('returns true for a managed card expense when the current user holds the card', () => {
+            // Given an unreported expense on a managed card that the current user holds
+            const transaction = generateTransaction({reportID: CONST.REPORT.UNREPORTED_REPORT_ID, managedCard: true});
+
+            // When ownership is decided without an IOU action
+            // Then it belongs to the current user
+            expect(TransactionUtils.isUnreportedTransactionOwnedByCurrentUser(transaction, true)).toBe(true);
+        });
+
+        it('returns false for a managed card expense when another member holds the card', () => {
+            // Given an unreported expense on another member's managed card, which an admin can see on their card feed
+            const transaction = generateTransaction({reportID: CONST.REPORT.UNREPORTED_REPORT_ID, managedCard: true});
+
+            // When ownership is decided without an IOU action
+            // Then it doesn't belong to the current user, so it isn't opened in their self DM
+            expect(TransactionUtils.isUnreportedTransactionOwnedByCurrentUser(transaction, false)).toBe(false);
         });
     });
 });

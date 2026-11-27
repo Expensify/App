@@ -6,9 +6,14 @@ import type * as ContextMenuActionsModule from '@pages/inbox/report/ContextMenu/
 
 import CONST from '@src/CONST';
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Report, ReportAction} from '@src/types/onyx';
+
+import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
 import {formatPhoneNumber} from '../utils/TestHelper';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('expo-web-browser', () => ({
     openAuthSessionAsync: jest.fn(),
@@ -328,6 +333,35 @@ describe('ContextMenuActions copy message', () => {
         expect(mockSetString).toHaveBeenCalledWith('office change');
     });
 
+    it.each([
+        ['editable when the current user created the expense', 1, true],
+        ['read-only when someone else created the expense', 2, false],
+    ])('copies the scan failed message as %s', (_, iouActionActorAccountID, expectedCanEdit) => {
+        // Given a scan failed action in an expense thread whose parent IOU action is passed in the payload
+        mockCanSetHtml.mockReturnValue(false);
+        const recordTranslation = jest.fn();
+        const translate = <TPath extends TranslationPaths>(path: TPath, ...parameters: TranslationParameters<TPath>): string => {
+            recordTranslation(path, ...parameters);
+            return path;
+        };
+        const scanFailedAction = createMock<ReportAction>({
+            actionName: CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED,
+            message: [{html: ''}],
+        });
+        const payload: CopyMessagePayload = {
+            ...createReportActionPayload(scanFailedAction),
+            reportParentAction: createMock<ReportAction>({actorAccountID: iouActionActorAccountID}),
+            currentUserAccountID: 1,
+            translate,
+        };
+
+        // When its message is copied
+        copyMessageAction.onPress(false, payload);
+
+        // Then whether the user can still edit the expense is decided by who created the parent IOU action
+        expect(recordTranslation).toHaveBeenCalledWith('violations.smartscanFailed', {canEdit: expectedCanEdit, missingFields: undefined});
+    });
+
     it('copies the localized member work arrangement message as html when supported', () => {
         // Given the clipboard supports HTML, when the member arrangement message is copied, then the shared rich clipboard path is used.
         mockCanSetHtml.mockReturnValue(true);
@@ -351,5 +385,66 @@ describe('ContextMenuActions copy message', () => {
         expect(mockGetClipboardText).toHaveBeenCalledWith('workspaceActions.updatedMemberWorkArrangement', undefined, undefined);
         expect(mockSetHtml).toHaveBeenCalledWith('workspaceActions.updatedMemberWorkArrangement', 'updated work arrangement');
         expect(mockSetString).not.toHaveBeenCalled();
+    });
+
+    describe('queued payment in a thread', () => {
+        beforeAll(() => {
+            Onyx.init({keys: ONYXKEYS});
+            return waitForBatchedUpdates();
+        });
+
+        afterAll(() => Onyx.clear());
+
+        it('copies the message for the parent invoice, like the shown text', async () => {
+            // Given a queued payment shown at the top of a thread whose parent is an invoice
+            const invoiceReportID = 'queuedInvoice';
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${invoiceReportID}`, {reportID: invoiceReportID, type: CONST.REPORT.TYPE.INVOICE, ownerAccountID: 2});
+            await waitForBatchedUpdates();
+            const threadReport = createMock<Report>({reportID: 'queuedThread', type: CONST.REPORT.TYPE.CHAT, parentReportID: invoiceReportID, parentReportActionID: '3'});
+            const payload = createReportActionPayload(
+                createMock<CopyMessagePayload['reportAction']>({
+                    actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED,
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated -- Auth sends paymentType on originalMessage, which getOriginalMessage reads.
+                    originalMessage: {paymentType: CONST.IOU.PAYMENT_TYPE.VBBA},
+                }),
+            );
+
+            if (!copyMessageAction?.onPress) {
+                throw new Error('Copy message context menu action was not found');
+            }
+
+            // When its message is copied
+            copyMessageAction.onPress(false, {...payload, report: threadReport, formatPhoneNumber});
+
+            // Then it asks the invoice sender for a bank account, because ReimbursementQueuedContent shows the parent invoice's message
+            expect(mockSetString).toHaveBeenCalledWith('iou.waitingOnVendorBankAccount');
+        });
+    });
+
+    it.each([
+        [false, 'workspaceActions.setCategoryVisibility'],
+        [true, 'workspaceActions.setCategoryVisibility\nworkspaceActions.categoryVisibilityCategoriesList'],
+    ])('copies the category visibility message the row shows when isThreadReportParentAction is %s', (isThreadReportParentAction, expectedText) => {
+        // Given a category visibility change with too many categories to list inline
+        const reportAction = createMock<CopyMessagePayload['reportAction']>({
+            actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_CATEGORY_VISIBILITY,
+            // eslint-disable-next-line @typescript-eslint/no-deprecated -- the fixture needs the change log data that getOriginalMessage reads to build the message
+            originalMessage: {
+                categoryNames: Array.from({length: CONST.POLICY.CATEGORY_VISIBILITY.MAX_LISTED_ITEMS}, (_, index) => `Category ${index + 1}`),
+                accountIDs: [],
+                hadRestriction: false,
+                reason: CONST.POLICY.CATEGORY_VISIBILITY.REASON.SET_BY_ADMIN,
+            },
+        });
+
+        if (!copyMessageAction?.onPress) {
+            throw new Error('Copy message context menu action was not found');
+        }
+
+        // When the message is copied from #admins or from the top of its thread
+        copyMessageAction.onPress(false, {...createReportActionPayload(reportAction), isThreadReportParentAction});
+
+        // Then the copied text matches the row: #admins only counts the categories, while the top of the thread also lists them in full
+        expect(mockSetString).toHaveBeenCalledWith(expectedText);
     });
 });

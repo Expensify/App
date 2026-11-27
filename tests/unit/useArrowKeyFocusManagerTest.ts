@@ -1,9 +1,13 @@
 import {act, renderHook} from '@testing-library/react-native';
 
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
+import type {ArrowKeyFocusManagerConfig} from '@hooks/useArrowKeyFocusManager';
 
 type ShortcutCallback = () => void;
 type ShortcutConfig = {isActive?: boolean};
+
+/** The rows a re-rendered list hands the hook */
+type ListRowsProps = Pick<ArrowKeyFocusManagerConfig, 'maxIndex' | 'disabledIndexes'>;
 
 const shortcuts: Record<string, {callback: ShortcutCallback; isActive: boolean}> = {};
 
@@ -239,5 +243,38 @@ describe('useArrowKeyFocusManager', () => {
 
         // Then focus returns to the first row
         expect(result.current[0]).toBe(1);
+    });
+
+    it('keeps its arrow key subscriptions when the list re-renders with new rows', () => {
+        // Given a list subscribed to the arrow keys, as a list behind an open dropdown is
+        const initialRows: ListRowsProps = {maxIndex: 3, disabledIndexes: [0]};
+        const {rerender} = renderHook((props: ListRowsProps) => useArrowKeyFocusManager({...props, isActive: true}), {
+            initialProps: initialRows,
+        });
+        const subscribedArrowUp = shortcuts.ArrowUp?.callback;
+        const subscribedArrowDown = shortcuts.ArrowDown?.callback;
+
+        // When its rows change, e.g. a participant's name arrives from another session
+        rerender({maxIndex: 4, disabledIndexes: [0, 2]});
+
+        // Then the same callbacks stay subscribed, so the list does not subscribe again on top of the dropdown and take
+        // its arrow keys
+        expect(shortcuts.ArrowUp?.callback).toBe(subscribedArrowUp);
+        expect(shortcuts.ArrowDown?.callback).toBe(subscribedArrowDown);
+    });
+
+    it('moves through the latest rows after the list re-renders', () => {
+        // Given a list of two rows focused on its last row
+        const initialRows: ListRowsProps = {maxIndex: 1, disabledIndexes: []};
+        const {result, rerender} = renderHook((props: ListRowsProps) => useArrowKeyFocusManager({...props, initialFocusedIndex: 1, isActive: true}), {
+            initialProps: initialRows,
+        });
+
+        // When rows are added below it, the one right under the focused row disabled, and ArrowDown is pressed
+        rerender({maxIndex: 3, disabledIndexes: [2]});
+        pressArrowDown();
+
+        // Then focus moves into the new rows, skipping the disabled one, rather than wrapping around the old two
+        expect(result.current[0]).toBe(3);
     });
 });

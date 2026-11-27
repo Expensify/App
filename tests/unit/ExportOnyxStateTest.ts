@@ -1,4 +1,4 @@
-import {emailRegex, keysToMask, maskOnyxState, ONYX_KEY_EXPORT_RULES, onyxKeysToMaskFragileData, onyxKeysToRemove, safeOnyxKeys} from '@libs/ExportOnyxState/masking';
+import {collectionKeysToRemove, emailRegex, keysToMask, maskOnyxState, ONYX_KEY_EXPORT_RULES, onyxKeysToMaskFragileData, onyxKeysToRemove, safeOnyxKeys} from '@libs/ExportOnyxState/masking';
 import {isRecord} from '@libs/ObjectUtils';
 
 import CONST from '@src/CONST';
@@ -464,6 +464,29 @@ describe('maskOnyxState', () => {
         expect(vendors[externalID].name).not.toBe('Acme Supplies');
     });
 
+    it.each([true, false])('masks cached Insights queries and answers with fragile masking %s', (isMaskingFragileDataEnabled) => {
+        // Given a cached explanation containing private spending details in both the query and answer
+        const explanationKey = `${ONYXKEYS.COLLECTION.INSIGHTS_EXPLANATION}123`;
+        const explanation = {
+            jsonQuery: JSON.stringify({explainPrompt: 'Explain spending at Private Merchant', accountID: 42}),
+            response: 'Private Merchant spending increased by $500.',
+            createdAt: '2024-01-01 00:00:00',
+        };
+
+        // When exporting with either setting, since private cache data must always be masked
+        const result = maskOnyxState({[explanationKey]: explanation}, isMaskingFragileDataEnabled);
+        const maskedExplanation = result[explanationKey];
+        if (!isRecord(maskedExplanation)) {
+            throw new Error('Expected a masked Insights explanation');
+        }
+
+        // Then private content is masked while the timestamp remains available for debugging
+        expect(maskedExplanation.jsonQuery).toMatch(/^[a-z]+$/);
+        expect(maskedExplanation.response).toMatch(/^[a-z]+$/);
+        expect(maskedExplanation.createdAt).toBe(explanation.createdAt);
+        expect(JSON.stringify(result)).not.toContain('Private Merchant');
+    });
+
     it.each([true, false])('should keep a parked attachment edit out of the export verbatim, with fragile masking %s', (isMaskingFragileDataEnabled) => {
         // Given a parked edit holding the comment the author typed
         const draft = 'lunch receipt for the Tokyo trip';
@@ -680,6 +703,74 @@ describe('maskOnyxState', () => {
         }
     });
 
+    it('should mask identity and credential fields saved in form drafts', () => {
+        // Given wallet, bank account, Travel and accounting setup data that hold SSNs, dates of birth, tax IDs and credentials, including a beneficial owner's fields, which are keyed by owner ID
+        const sensitiveValues = ['123456789', '1985-04-12', '6789', '1990-01-31', '4321', '98-7654321', '11-2233445', '55-6677889', 'IntacctPassword', 'NetSuiteTokenSecret'];
+        const {PREFIX, DOB, SSN_LAST_4} = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
+        const ownerID = '6f1c2b3a-1234-4bcd-9e8f-000000000001';
+        const input = {
+            session: mockSession,
+            [ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_DRAFT]: {ssn: '123456789', dob: '1985-04-12'},
+            [ONYXKEYS.TRAVEL_PROVISIONING]: {taxID: '98-7654321'},
+            [ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT]: {
+                ssnLast4: '6789',
+                companyTaxID: '11-2233445',
+                taxIDEINNumber: '55-6677889',
+                [`${PREFIX}_${ownerID}_${DOB}`]: '1990-01-31',
+                [`${PREFIX}_${ownerID}_${SSN_LAST_4}`]: '4321',
+                beneficialOwnerKeys: [ownerID],
+            },
+            [ONYXKEYS.FORMS.SAGE_INTACCT_CREDENTIALS_FORM_DRAFT]: {password: 'IntacctPassword'},
+            [ONYXKEYS.FORMS.NETSUITE_TOKEN_INPUT_FORM_DRAFT]: {netSuiteTokenSecret: 'NetSuiteTokenSecret'},
+        };
+
+        // When the state is exported with masking on
+        const serialized = JSON.stringify(maskOnyxState(input, true));
+
+        // Then none of those values appear in the export, so a file shared with support can't leak them
+        for (const sensitiveValue of sensitiveValues) {
+            expect(serialized).not.toContain(sensitiveValue);
+        }
+    });
+
+    it('should mask the token and secret field names that server logs redact', () => {
+        // Given Plaid, OAuth and NetSuite credentials stored under the same field names the Web-Expensify log redaction covers
+        const fieldNames = [
+            'access_token',
+            'accessSecret',
+            'accessToken',
+            'accessTokenSecret',
+            'asset_report_token',
+            'assetReportToken',
+            'client_secret',
+            'netSuiteTokenID',
+            'oldAccessToken',
+            'oldAssetReportToken',
+            'plaidAccessToken',
+            'plaidAssetReportToken',
+            'public_token',
+            'publicToken',
+            'refresh_token',
+            'refreshToken',
+            'secret',
+            'tokenID',
+            'tokenSecret',
+        ];
+        const credentials = Object.fromEntries(fieldNames.map((fieldName) => [fieldName, `${fieldName}-live-value`]));
+        const input = {
+            session: mockSession,
+            [ONYXKEYS.PLAID_DATA]: credentials,
+        };
+
+        // When the state is exported with masking on
+        const serialized = JSON.stringify(maskOnyxState(input, true));
+
+        // Then none of the credential values appear in the export, so the export redacts at least what the server logs do
+        for (const credentialValue of Object.values(credentials)) {
+            expect(serialized).not.toContain(credentialValue);
+        }
+    });
+
     it.each([
         ['masking enabled', true],
         ['masking disabled', false],
@@ -725,7 +816,7 @@ describe('Onyx key export coverage', () => {
         // onyxKeysToMaskFragileData is written out by hand rather than derived from ONYXKEYS. That's what
         // makes this test useful: a brand new key won't be in any bucket until someone puts it in one.
         const removeKeys = Array.from(onyxKeysToRemove).filter((key): key is Extract<typeof key, string> => typeof key === 'string');
-        const coveredKeys = new Set<string>([...Object.keys(ONYX_KEY_EXPORT_RULES), ...removeKeys, ...safeOnyxKeys, ...onyxKeysToMaskFragileData]);
+        const coveredKeys = new Set<string>([...Object.keys(ONYX_KEY_EXPORT_RULES), ...removeKeys, ...collectionKeysToRemove, ...safeOnyxKeys, ...onyxKeysToMaskFragileData]);
 
         const uncoveredTopLevel = allTopLevelKeys.filter((key) => !coveredKeys.has(key));
         const uncoveredCollection = allCollectionKeys.filter((key) => !coveredKeys.has(key));
@@ -827,7 +918,7 @@ describe('Onyx key export coverage', () => {
 
     it('no key should appear in multiple buckets', () => {
         const rulesKeys = Object.keys(ONYX_KEY_EXPORT_RULES);
-        const removeKeys = new Set<string>(Array.from(onyxKeysToRemove).filter((key): key is Extract<typeof key, string> => typeof key === 'string'));
+        const removeKeys = new Set<string>([...Array.from(onyxKeysToRemove).filter((key): key is Extract<typeof key, string> => typeof key === 'string'), ...collectionKeysToRemove]);
         for (const key of rulesKeys) {
             expect(safeOnyxKeys.has(key)).toBe(false);
             expect(removeKeys.has(key)).toBe(false);
@@ -840,6 +931,42 @@ describe('Onyx key export coverage', () => {
         for (const key of removeKeys) {
             expect(onyxKeysToMaskFragileData.has(key)).toBe(false);
         }
+    });
+
+    it('removes RAM_ONLY_COMPANY_CARD_NUMBER_SEARCH collection members with masking enabled and disabled', () => {
+        // Given an Onyx state with a RAM-only company card number search entry
+        const key = `${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARD_NUMBER_SEARCH}testWorkspace` as const;
+        const input = {[key]: {resultsQuery: '4111111111111111', matchedEncryptedNumbers: ['abc']}};
+
+        // When maskOnyxState runs with masking enabled
+        const maskedOn = maskOnyxState(input, true) as Record<string, unknown>;
+        // Then the collection key is removed
+        expect(maskedOn[key]).toBeUndefined();
+
+        // When maskOnyxState runs with masking disabled
+        const maskedOff = maskOnyxState(input, false) as Record<string, unknown>;
+        // Then the collection key is still removed
+        expect(maskedOff[key]).toBeUndefined();
+    });
+});
+
+describe('integration credentials in the persisted request queue', () => {
+    it.each([
+        ['apiKey', 'RILLET_SECRET_KEY'],
+        ['apiSecret', 'EXAMPLE_API_SECRET'],
+        ['clientSecret', 'BC_CLIENT_SECRET'],
+        ['privateKey', 'EXAMPLE_PRIVATE_KEY'],
+    ])('masks %s on a queued request', (fieldName, secret) => {
+        // Given a connect request that is still waiting in the offline queue
+        const input = {
+            [ONYXKEYS.PERSISTED_REQUESTS]: [{command: 'ConnectPolicyToIntegration', data: {policyID: '1234', [fieldName]: secret}}],
+        };
+
+        // When the state is exported with masking on
+        const exported = JSON.stringify(maskOnyxState(input, true));
+
+        // Then the credential does not appear in the export
+        expect(exported).not.toContain(secret);
     });
 });
 

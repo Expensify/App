@@ -2,15 +2,21 @@ import {fireEvent, render, screen, waitFor} from '@testing-library/react-native'
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useSwitchToClassic from '@hooks/useSwitchToClassic';
 
 import {maskOnyxState, readOnyxState, saveOnyxStateFile} from '@libs/ExportOnyxState';
-import {shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
 
 import TroubleshootPage from '@pages/settings/Troubleshoot/TroubleshootPage';
 
+import type CONFIG from '@src/CONFIG';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {TryNewDot} from '@src/types/onyx';
+
 import {subDays} from 'date-fns';
 import React from 'react';
+
+import createMock from '../../../utils/createMock';
 
 const mockShowConfirmModal = jest.fn();
 const mockLogWarn = jest.fn<void, [string, Record<string, unknown>]>();
@@ -26,7 +32,7 @@ jest.mock('@hooks/useLazyAsset', () => ({
     })),
 }));
 jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: (key: string) => key})));
-let mockTryNewDot: unknown;
+let mockTryNewDot: TryNewDot | undefined;
 jest.mock('@hooks/useOnyx', () => jest.fn((key: string) => [key === 'nvp_tryNewDot' ? mockTryNewDot : undefined, {status: 'loaded'}]));
 jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: false})));
 jest.mock('@hooks/useSwitchToClassic', () => jest.fn());
@@ -42,7 +48,7 @@ jest.mock('@components/Modal/Global/ModalContext', () => ({
     ModalActions: {CONFIRM: 'CONFIRM', CLOSE: 'CLOSE'},
 }));
 jest.mock('@components/ActivityIndicator', () => () => null);
-jest.mock('@components/HeaderWithBackButton', () => () => null);
+jest.mock('@components/Header/composed/HeaderCentralPane', () => () => null);
 jest.mock('@components/ImportOnyxState', () => () => null);
 jest.mock(
     '@components/ScreenWrapper',
@@ -127,8 +133,15 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),
     navigate: jest.fn(),
 }));
-jest.mock('@libs/TryNewDotUtils', () => ({
-    shouldHideOldAppRedirect: jest.fn(() => true),
+let mockIsHybridApp = true;
+jest.mock('@src/CONFIG', () => ({
+    __esModule: true,
+    default: {
+        ...jest.requireActual<{default: typeof CONFIG}>('@src/CONFIG').default,
+        get IS_HYBRID_APP() {
+            return mockIsHybridApp;
+        },
+    },
 }));
 jest.mock('@userActions/App', () => ({clearOnyxAndResetApp: jest.fn()}));
 jest.mock('@userActions/Welcome', () => ({resetAllChecks: jest.fn()}));
@@ -216,8 +229,71 @@ describe('TroubleshootPage Onyx export', () => {
     });
 });
 
+describe('TroubleshootPage Classic eligibility', () => {
+    let tryNewDot: TryNewDot | undefined;
+    let isLoadingApp: boolean;
+
+    beforeEach(() => {
+        arrangeSwitchToClassic(false);
+        tryNewDot = undefined;
+        isLoadingApp = true;
+        jest.mocked(useConfirmModal).mockReturnValue(createMock<ReturnType<typeof useConfirmModal>>({showConfirmModal: mockShowConfirmModal}));
+        jest.mocked(useOnyx).mockImplementation((key) => {
+            switch (key) {
+                case ONYXKEYS.NVP_TRY_NEW_DOT:
+                    return [tryNewDot, {status: 'loaded'}];
+                case ONYXKEYS.IS_LOADING_APP:
+                    return [isLoadingApp, {status: 'loaded'}];
+                default:
+                    return [undefined, {status: 'loaded'}];
+            }
+        });
+    });
+
+    afterEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it('keeps the row hidden after clearing the NVP while OpenApp is loading', () => {
+        // Given cleared NVP data with loaded storage metadata and OpenApp still loading
+        // When Troubleshoot renders the HybridApp Classic entry point
+        render(React.createElement(TroubleshootPage));
+
+        // Then the row never exposes an action that would silently return
+        expect(screen.queryByRole('button', {name: 'exitSurvey.goToExpensifyClassic'})).toBeNull();
+    });
+
+    it('keeps a blocked account hidden after OpenApp returns without a tap', () => {
+        // Given the row is hidden while the cleared NVP is unresolved
+        const {rerender} = render(React.createElement(TroubleshootPage));
+        expect(screen.queryByRole('button', {name: 'exitSurvey.goToExpensifyClassic'})).toBeNull();
+
+        // When OpenApp hydrates a locked account and finishes loading
+        tryNewDot = createMock<TryNewDot>({isLockedToNewApp: true});
+        isLoadingApp = false;
+        rerender(React.createElement(TroubleshootPage));
+
+        // Then the row remains hidden without needing any interaction
+        expect(screen.queryByRole('button', {name: 'exitSurvey.goToExpensifyClassic'})).toBeNull();
+    });
+
+    it('shows the row when OpenApp finishes without an NVP', () => {
+        // Given an eligible account with an absent NVP while OpenApp is loading
+        const {rerender} = render(React.createElement(TroubleshootPage));
+        expect(screen.queryByRole('button', {name: 'exitSurvey.goToExpensifyClassic'})).toBeNull();
+
+        // When OpenApp finishes and the optional NVP is still absent
+        isLoadingApp = false;
+        rerender(React.createElement(TroubleshootPage));
+
+        // Then Classic becomes available rather than remaining hidden indefinitely
+        expect(screen.getByRole('button', {name: 'exitSurvey.goToExpensifyClassic'})).toBeTruthy();
+    });
+});
+
 describe('TroubleshootPage switch to Classic', () => {
     beforeEach(() => {
+        mockIsHybridApp = false;
         jest.mocked(useConfirmModal).mockReturnValue({
             showModal: jest.fn(() => Promise.resolve({action: 'CLOSE'} as const)),
             resolveModal: jest.fn(),
@@ -226,16 +302,25 @@ describe('TroubleshootPage switch to Classic', () => {
             closeModalByID: jest.fn(),
         });
         arrangeSwitchToClassic(false);
-        jest.mocked(shouldHideOldAppRedirect).mockReturnValue(false);
+        jest.mocked(useOnyx).mockImplementation((key) => {
+            switch (key) {
+                case ONYXKEYS.NVP_TRY_NEW_DOT:
+                    return [mockTryNewDot, {status: 'loaded'}];
+                case ONYXKEYS.IS_LOADING_APP:
+                    return [false, {status: 'loaded'}];
+                default:
+                    return [undefined, {status: 'loaded'}];
+            }
+        });
 
         // The user took the exit survey yesterday, so Troubleshoot switches without asking again
-        mockTryNewDot = {classicRedirect: {dismissed: true, dismissedReasons: [{reason: 'Too many clicks', timestamp: subDays(new Date(), 1)}]}};
+        mockTryNewDot = createMock<TryNewDot>({classicRedirect: {dismissed: true, dismissedReasons: [{reason: 'Too many clicks', timestamp: subDays(new Date(), 1)}]}});
     });
 
     afterEach(() => {
+        mockIsHybridApp = true;
         mockTryNewDot = undefined;
         jest.mocked(useNetwork).mockReturnValue({isOffline: false});
-        jest.mocked(shouldHideOldAppRedirect).mockReturnValue(true);
         jest.clearAllMocks();
     });
 

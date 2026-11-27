@@ -24,6 +24,7 @@ import type {
     EnablePolicyAutoApprovalOptionsParams,
     EnablePolicyAutoReimbursementLimitParams,
     EnablePolicyCompanyCardsParams,
+    EnableDistanceRequestTaxParams,
     EnablePolicyConnectionsParams,
     EnablePolicyExpensifyCardsParams,
     EnablePolicyHRParams,
@@ -97,6 +98,7 @@ import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import getWorkspaceCreatedAnalyticsEvent from '@libs/getWorkspaceCreatedAnalyticsEvent';
 import GoogleTagManager from '@libs/GoogleTagManager';
 import Log from '@libs/Log';
+import {getIsOffline} from '@libs/NetworkState';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {rand64} from '@libs/NumberUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
@@ -368,8 +370,8 @@ function isCurrencySupportedForDirectReimbursement(currency: string) {
 /**
  * Checks if the currency is supported for global reimbursement
  */
-function isCurrencySupportedForGlobalReimbursement(currency: string) {
-    return (CONST.DIRECT_REIMBURSEMENT_CURRENCIES as readonly string[]).includes(currency);
+function isCurrencySupportedForGlobalReimbursement(currency: string | undefined) {
+    return CONST.DIRECT_REIMBURSEMENT_CURRENCIES.some((supportedCurrency) => supportedCurrency === currency);
 }
 
 /** Check if the policy has invoicing company details */
@@ -4162,37 +4164,19 @@ function openPolicyReceiptPartnersPage(policyID?: string) {
     }
 
     const params: OpenPolicyReceiptPartnersPageParams = {policyID};
-    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                value: {
-                    isLoadingReceiptPartners: true,
-                },
-            },
-        ],
-        successData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                value: {
-                    isLoadingReceiptPartners: null,
-                },
-            },
-        ],
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                value: {
-                    isLoadingReceiptPartners: null,
-                },
-            },
-        ],
-    };
-
-    API.read(READ_COMMANDS.OPEN_POLICY_RECEIPT_PARTNERS_PAGE, params, onyxData);
+    const loadingKey = `${ONYXKEYS.COLLECTION.RAM_ONLY_IS_LOADING_RECEIPT_PARTNERS}${policyID}` as const;
+    // An offline read applies none of its Onyx data, so nothing would clear the flag.
+    const isOffline = getIsOffline();
+    API.read(
+        READ_COMMANDS.OPEN_POLICY_RECEIPT_PARTNERS_PAGE,
+        params,
+        isOffline
+            ? {}
+            : {
+                  optimisticData: [{onyxMethod: Onyx.METHOD.SET, key: loadingKey, value: true}],
+                  finallyData: [{onyxMethod: Onyx.METHOD.SET, key: loadingKey, value: false}],
+              },
+    );
 }
 
 function removePolicyReceiptPartnersConnection(policyID: string, partnerName: string, receiptPartnerData?: UberReceiptPartner) {
@@ -5080,6 +5064,16 @@ function createWorkspaceFromIOUPayment({
                         },
                     ],
                     created: DateUtils.getDBTime(),
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+            },
+        });
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${memberData.workspaceChatReportID}`,
+            value: {
+                [reportPreviewAction.reportActionID]: {
+                    pendingAction: null,
                 },
             },
         });
@@ -5183,7 +5177,7 @@ function createWorkspaceFromIOUPayment({
     return {policyID, workspaceChatReportID: memberData.workspaceChatReportID, reportPreviewReportActionID: reportPreviewAction?.reportActionID, adminsChatReportID};
 }
 
-function enablePolicyConnections(policyID: string, enabled: boolean, shouldGoBack = true) {
+function enablePolicyConnections(policyID: string, enabled: boolean) {
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
@@ -5225,13 +5219,9 @@ function enablePolicyConnections(policyID: string, enabled: boolean, shouldGoBac
     const parameters: EnablePolicyConnectionsParams = {policyID, enabled};
 
     API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_CONNECTIONS, parameters, onyxData);
-
-    if (enabled && getIsNarrowLayout() && shouldGoBack) {
-        goBackWhenEnableFeature();
-    }
 }
 
-function enablePolicyHR(policyID: string, enabled: boolean, shouldGoBack = true) {
+function enablePolicyHR(policyID: string, enabled: boolean) {
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
@@ -5273,13 +5263,9 @@ function enablePolicyHR(policyID: string, enabled: boolean, shouldGoBack = true)
     const parameters: EnablePolicyHRParams = {policyID, enabled};
 
     API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_HR, parameters, onyxData);
-
-    if (enabled && getIsNarrowLayout() && shouldGoBack) {
-        goBackWhenEnableFeature();
-    }
 }
 
-function enablePolicyRecruiting(policyID: string, enabled: boolean, shouldGoBack = true) {
+function enablePolicyRecruiting(policyID: string, enabled: boolean) {
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
@@ -5311,7 +5297,7 @@ function enablePolicyRecruiting(policyID: string, enabled: boolean, shouldGoBack
                 value: {
                     isRecruitingEnabled: !enabled,
                     pendingFields: {
-                        isMCPEnabled: null,
+                        isRecruitingEnabled: null,
                     },
                 },
             },
@@ -5321,13 +5307,9 @@ function enablePolicyRecruiting(policyID: string, enabled: boolean, shouldGoBack
     const parameters: EnablePolicyRecruitingParams = {policyID, enabled};
 
     API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_RECRUITING, parameters, onyxData);
-
-    if (enabled && getIsNarrowLayout() && shouldGoBack) {
-        goBackWhenEnableFeature();
-    }
 }
 
-function enablePolicyMCP(policyID: string, enabled: boolean, shouldGoBack = true) {
+function enablePolicyMCP(policyID: string, enabled: boolean) {
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
@@ -5369,13 +5351,9 @@ function enablePolicyMCP(policyID: string, enabled: boolean, shouldGoBack = true
     const parameters: EnablePolicyMCPParams = {policyID, enabled};
 
     API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_MCP, parameters, onyxData);
-
-    if (enabled && getIsNarrowLayout() && shouldGoBack) {
-        goBackWhenEnableFeature();
-    }
 }
 
-function enablePolicyReceiptPartners(policyID: string, enabled: boolean, shouldGoBack = true) {
+function enablePolicyReceiptPartners(policyID: string, enabled: boolean) {
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
@@ -5417,10 +5395,6 @@ function enablePolicyReceiptPartners(policyID: string, enabled: boolean, shouldG
     const parameters: TogglePolicyReceiptPartnersParams = {policyID, enabled};
 
     API.write(WRITE_COMMANDS.TOGGLE_RECEIPT_PARTNERS, parameters, onyxData);
-
-    if (enabled && getIsNarrowLayout() && shouldGoBack) {
-        goBackWhenEnableFeature();
-    }
 }
 
 type ConnectionFeatureName =
@@ -5452,7 +5426,7 @@ function enablePolicyFeatureForConnection(policy: OnyxEntry<Policy>, featureName
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED && policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${policy.id}`, true);
     }
-    ENABLE_CONNECTION_FEATURE[featureName](policy.id, true, false);
+    ENABLE_CONNECTION_FEATURE[featureName](policy.id, true);
 }
 
 /** Save the preferred export method for a policy */
@@ -5616,15 +5590,48 @@ function enablePolicyInvoiceFields(policyID: string, enabled: boolean) {
     enablePolicyFields(policyID, enabled, WRITE_COMMANDS.ENABLE_POLICY_INVOICE_FIELDS);
 }
 
-function enablePolicyTaxes(
-    policyID: string,
-    enabled: true,
-    isVendorMatchingBetaEnabled: boolean | undefined,
-    currentTaxRates: TaxRatesWithDefault | undefined,
-    policyData?: PolicyData,
-): void;
-function enablePolicyTaxes(policyID: string, enabled: false, isVendorMatchingBetaEnabled: boolean | undefined, currentTaxRates?: undefined, policyData?: PolicyData): void;
-function enablePolicyTaxes(policyID: string, enabled: boolean, isVendorMatchingBetaEnabled: boolean | undefined, currentTaxRates?: TaxRatesWithDefault, policyData?: PolicyData) {
+/** Copy newly eligible UK rates only when cached references can match the server's optimistic IDs. */
+function buildGovernmentRatesOnTaxEnable(policy: OnyxEntry<Policy>, updatedPolicy: OnyxEntry<Policy>, governmentMileageRates: GovernmentMileageRate[] | undefined) {
+    if (
+        !policy?.shouldAutoUpdateGovernmentDistanceRates ||
+        policy.outputCurrency !== CONST.CURRENCY.GBP ||
+        !updatedPolicy ||
+        PolicyUtils.isTaxTrackingEnabled(true, policy, true) ||
+        !PolicyUtils.isTaxTrackingEnabled(true, updatedPolicy, true)
+    ) {
+        return;
+    }
+
+    // A prerequisite can fail before this queued tax request succeeds, leaving rates the server never created.
+    if (
+        policy.pendingFields?.shouldAutoUpdateGovernmentDistanceRates ||
+        policy.pendingFields?.outputCurrency ||
+        policy.pendingFields?.tax ||
+        PolicyUtils.getDistanceRateCustomUnit(policy)?.pendingFields?.taxEnabled
+    ) {
+        return;
+    }
+
+    // This key is shared by workspaces, so cached rates can belong to a different country or currency.
+    const referenceRates = governmentMileageRates?.filter(
+        (rate) => rate.currency === CONST.CURRENCY.GBP && rate.sourceRateID.split('_').at(0) === CONST.CUSTOM_UNITS.GOVERNMENT_RATE_FUEL_BAND_COUNTRY,
+    );
+    if (!referenceRates?.length) {
+        return;
+    }
+
+    return buildOnyxDataForGovernmentRateAutoUpdate(updatedPolicy, true, referenceRates, policy.outputCurrency, undefined, {shouldUpdateSettings: false});
+}
+
+type EnablePolicyTaxesOptions = {
+    policy?: OnyxEntry<Policy>;
+    governmentMileageRates?: GovernmentMileageRate[];
+    policyData?: PolicyData;
+};
+
+function enablePolicyTaxes(policyID: string, enabled: boolean, isVendorMatchingBetaEnabled: boolean | undefined, {policy, governmentMileageRates, policyData}: EnablePolicyTaxesOptions) {
+    const currentTaxRates = policy?.taxRates;
+    const governmentRateData = buildGovernmentRatesOnTaxEnable(policy, policy ? {...policy, tax: {...policy.tax, trackingEnabled: enabled}} : undefined, governmentMileageRates);
     const defaultTaxRates: TaxRatesWithDefault = CONST.DEFAULT_TAX;
     const taxRatesData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
@@ -5696,6 +5703,7 @@ function enablePolicyTaxes(policyID: string, enabled: boolean, isVendorMatchingB
         },
     ];
     optimisticData.push(...(shouldAddDefaultTaxRatesData ? (taxRatesData.optimisticData ?? []) : []));
+    optimisticData.push(...(governmentRateData?.onyxData.optimisticData ?? []));
 
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
@@ -5709,6 +5717,7 @@ function enablePolicyTaxes(policyID: string, enabled: boolean, isVendorMatchingB
         },
     ];
     successData.push(...(shouldAddDefaultTaxRatesData ? (taxRatesData.successData ?? []) : []));
+    successData.push(...(governmentRateData?.onyxData.successData ?? []));
 
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
@@ -5725,6 +5734,7 @@ function enablePolicyTaxes(policyID: string, enabled: boolean, isVendorMatchingB
         },
     ];
     failureData.push(...(shouldAddDefaultTaxRatesData ? (taxRatesData.failureData ?? []) : []));
+    failureData.push(...(governmentRateData?.onyxData.failureData ?? []));
 
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData,
@@ -5748,7 +5758,11 @@ function enablePolicyTaxes(policyID: string, enabled: boolean, isVendorMatchingB
     if (shouldAddDefaultTaxRatesData) {
         parameters.taxFields = JSON.stringify(defaultTaxRates);
     }
-    API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_TAXES, parameters, onyxData);
+    if (governmentRateData && Object.keys(governmentRateData.optimisticRateIDs).length > 0) {
+        parameters.optimisticRateIDs = JSON.stringify(governmentRateData.optimisticRateIDs);
+    }
+    // Opposite toggles must keep their completion data because enabling taxes can also add tax and distance rates.
+    API.write(WRITE_COMMANDS.ENABLE_POLICY_TAXES, parameters, onyxData);
 
     if (enabled && getIsNarrowLayout()) {
         goBackWhenEnableFeature();
@@ -6005,7 +6019,32 @@ function dismissUKFuelRateTaxError(policyID: string, customUnit: CustomUnit) {
     );
 }
 
-function enableDistanceRequestTax(policyID: string, customUnitName: string, customUnitID: string, attributes: Attributes, currentAttributes: Attributes | undefined) {
+function enableDistanceRequestTax(
+    policy: Policy,
+    customUnitName: string,
+    customUnitID: string,
+    attributes: Attributes,
+    currentAttributes: Attributes | undefined,
+    governmentMileageRates: GovernmentMileageRate[] | undefined,
+) {
+    const policyID = policy.id;
+    const customUnit = policy.customUnits?.[customUnitID];
+    const governmentRateData = customUnit
+        ? buildGovernmentRatesOnTaxEnable(
+              policy,
+              {
+                  ...policy,
+                  customUnits: {
+                      ...policy.customUnits,
+                      [customUnitID]: {
+                          ...customUnit,
+                          attributes: {...currentAttributes, ...attributes},
+                      },
+                  },
+              },
+              governmentMileageRates,
+          )
+        : undefined;
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
@@ -6056,13 +6095,18 @@ function enableDistanceRequestTax(policyID: string, customUnitName: string, cust
         ],
     };
 
-    const params = {
+    onyxData.optimisticData?.push(...(governmentRateData?.onyxData.optimisticData ?? []));
+    onyxData.successData?.push(...(governmentRateData?.onyxData.successData ?? []));
+    onyxData.failureData?.push(...(governmentRateData?.onyxData.failureData ?? []));
+
+    const params: EnableDistanceRequestTaxParams = {
         policyID,
         customUnit: JSON.stringify({
             customUnitName,
             customUnitID,
             attributes,
         }),
+        ...(governmentRateData && Object.keys(governmentRateData.optimisticRateIDs).length > 0 ? {optimisticRateIDs: JSON.stringify(governmentRateData.optimisticRateIDs)} : {}),
     };
     API.write(WRITE_COMMANDS.ENABLE_DISTANCE_REQUEST_TAX, params, onyxData);
 }
@@ -8373,27 +8417,19 @@ function updateInvoiceCompanyWebsite(policyID: string, companyWebsite: string, c
     API.write(WRITE_COMMANDS.UPDATE_INVOICE_COMPANY_WEBSITE, parameters, {optimisticData, successData, failureData});
 }
 
+type AccessiblePoliciesOnyxData = {
+    requestID: string;
+    optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES>>;
+    successData: Array<OnyxUpdate<typeof ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>>;
+    failureData: Array<OnyxUpdate<typeof ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES>>;
+};
+
 /**
- * Validates user account and returns a list of accessible policies.
+ * Builds the loading, success and failure Onyx data shared by the accessible policies commands.
  */
-/**
- * @param validateEmailTaskReport The join-workspace intent's "validate your email" Concierge task, when one exists.
- * Auth auto-completes it as part of this command via a forwarded CompleteTask, but ticking it here too avoids waiting
- * on that command's Pusher update to reach the client. The tick rides the command's successData so it only lands once
- * the command has actually succeeded - an invalid validate code must leave the task open. See
- * getOnboardingTaskCompletionOnSuccessData.
- */
-function getAccessiblePolicies(
-    validateCode?: string,
-    validateEmailTaskReport?: OnyxEntry<Report>,
-    validateEmailTaskParentReport?: OnyxEntry<Report>,
-    isValidateEmailTaskParentReportArchived?: boolean,
-    validateEmailTaskHasOutstandingChildTask?: boolean,
-    validateEmailTaskParentReportAction?: OnyxEntry<ReportAction>,
-    currentUserAccountID?: number,
-): string {
+function buildAccessiblePoliciesOnyxData(): AccessiblePoliciesOnyxData {
     const requestID = rand64();
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES>> = [
+    const optimisticData: AccessiblePoliciesOnyxData['optimisticData'] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES,
@@ -8405,7 +8441,7 @@ function getAccessiblePolicies(
         },
     ];
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
+    const successData: AccessiblePoliciesOnyxData['successData'] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES,
@@ -8417,7 +8453,7 @@ function getAccessiblePolicies(
         },
     ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES>> = [
+    const failureData: AccessiblePoliciesOnyxData['failureData'] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES,
@@ -8427,6 +8463,44 @@ function getAccessiblePolicies(
             },
         },
     ];
+
+    return {requestID, optimisticData, successData, failureData};
+}
+
+/**
+ * Returns a list of the policies accessible to the current user.
+ */
+function getAccessiblePolicies(): string {
+    const {requestID, optimisticData, successData, failureData} = buildAccessiblePoliciesOnyxData();
+
+    API.write(WRITE_COMMANDS.GET_ACCESSIBLE_POLICIES, null, {
+        optimisticData,
+        successData,
+        failureData,
+    });
+
+    return requestID;
+}
+
+/**
+ * Validates the user account with the given validate code and returns a list of accessible policies.
+ *
+ * @param validateEmailTaskReport The join-workspace intent's "validate your email" Concierge task, when one exists.
+ * Auth auto-completes it as part of this command via a forwarded CompleteTask, but ticking it here too avoids waiting
+ * on that command's Pusher update to reach the client. The tick rides the command's successData so it only lands once
+ * the command has actually succeeded - an invalid validate code must leave the task open. See
+ * getOnboardingTaskCompletionOnSuccessData.
+ */
+function validateUserAndGetAccessiblePolicies(
+    validateCode: string,
+    validateEmailTaskReport?: OnyxEntry<Report>,
+    validateEmailTaskParentReport?: OnyxEntry<Report>,
+    isValidateEmailTaskParentReportArchived?: boolean,
+    validateEmailTaskHasOutstandingChildTask?: boolean,
+    validateEmailTaskParentReportAction?: OnyxEntry<ReportAction>,
+    currentUserAccountID?: number,
+): string {
+    const {requestID, optimisticData, successData, failureData} = buildAccessiblePoliciesOnyxData();
 
     let completedTaskReportActionID: string | undefined;
     if (validateEmailTaskReport && currentUserAccountID) {
@@ -8442,9 +8516,7 @@ function getAccessiblePolicies(
         completedTaskReportActionID = validateEmailTaskCompletion.completedTaskReportActionID;
     }
 
-    const command = validateCode ? WRITE_COMMANDS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES : WRITE_COMMANDS.GET_ACCESSIBLE_POLICIES;
-
-    API.write(command, validateCode ? {validateCode, completedTaskReportActionID} : null, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES, {validateCode, completedTaskReportActionID}, {optimisticData, successData, failureData});
 
     return requestID;
 }
@@ -8672,6 +8744,7 @@ export {
     updateInvoiceCompanyWebsite,
     downgradeToTeam,
     getAccessiblePolicies,
+    validateUserAndGetAccessiblePolicies,
     clearGetAccessiblePoliciesErrors,
     calculateBillNewDot,
     payAndDowngrade,

@@ -4,6 +4,7 @@ import {
     compareByRBR,
     createTransactionPreviewConditionals,
     getReviewNavigationRoute,
+    getTransactionPreviewParticipantIDs,
     getTransactionPreviewTextAndTranslationPaths,
     getUniqueActionErrorsForTransaction,
     getViolationTranslatePath,
@@ -13,7 +14,7 @@ import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportActions, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Report, ReportAction, ReportActions, Transaction, TransactionViolation} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -205,6 +206,61 @@ describe('TransactionPreviewUtils', () => {
 
             // Then no missing amount error is shown, because $0 is a valid amount for an unreported expense
             expect(result.RBRMessage.translationPath).not.toEqual('iou.missingAmount');
+        });
+
+        it('displays the server rejection reason on a receipt error when present', () => {
+            // Given a scan transaction whose ReceiptError carries a server rejection reason
+            const serverReason = 'New expenses cannot be added to this report.';
+            const functionArgs = {
+                ...basicProps,
+                transaction: {
+                    ...basicProps.transaction,
+                    errors: {
+                        receiptError: {
+                            error: CONST.IOU.RECEIPT_ERROR,
+                            source: 'file:///receipt.jpg',
+                            filename: 'receipt.jpg',
+                            message: serverReason,
+                        },
+                    },
+                },
+                violations: [],
+                originalTransaction: undefined,
+                shouldShowRBR: true,
+            };
+
+            // When building the preview text for the transaction
+            const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
+
+            // Then the server rejection reason is shown instead of the generic receipt upload failure
+            expect(result.RBRMessage).toEqual({text: serverReason});
+        });
+
+        it('strips HTML tags and line breaks from a server rejection reason on a receipt error', () => {
+            // Given a scan transaction whose ReceiptError carries an HTML server rejection reason
+            const functionArgs = {
+                ...basicProps,
+                transaction: {
+                    ...basicProps.transaction,
+                    errors: {
+                        receiptError: {
+                            error: CONST.IOU.RECEIPT_ERROR,
+                            source: 'file:///receipt.jpg',
+                            filename: 'receipt.jpg',
+                            message: 'Check <a href="https://expensify.com">policy settings</a>.<br />Try again.',
+                        },
+                    },
+                },
+                violations: [],
+                originalTransaction: undefined,
+                shouldShowRBR: true,
+            };
+
+            // When building the preview text for the transaction
+            const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
+
+            // Then raw HTML tags and line breaks are converted to clean single-line plain text
+            expect(result.RBRMessage).toEqual({text: 'Check policy settings. Try again.'});
         });
 
         it('should display cash or card as the preview type', () => {
@@ -864,6 +920,12 @@ describe('TransactionPreviewUtils', () => {
             statusNum: CONST.REPORT.STATUS_NUM.OPEN,
         };
 
+        // Duplicates are only compared when their report is loaded and still mergeable.
+        beforeEach(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${fakeReportID}`, fakeReport);
+            await waitForBatchedUpdates();
+        });
+
         it('should navigate to confirmation page when all fields match', () => {
             const transaction1 = buildOptimisticTransaction({
                 transactionParams: {amount: 100, currency: 'USD', reportID: fakeReportID, comment: '', attendees: [], created: '2024-01-01'},
@@ -1258,6 +1320,50 @@ describe('TransactionPreviewUtils', () => {
 
         it('should return 1 when only the second transaction has RBR', () => {
             expect(compareByRBR(cleanTransaction, rbrTransaction, undefined, cbrEmail, cbrAccountID, cbrReport, undefined, cbrPolicy)).toBe(1);
+        });
+    });
+
+    describe('getTransactionPreviewParticipantIDs', () => {
+        const reportPreviewAction = createMock<ReportAction>({childManagerAccountID: 3, childOwnerAccountID: 4});
+
+        it('reads the approver and submitter from the report', () => {
+            // Given a loaded report and a preview action that disagree, the report is the fresher source
+            const report = createMock<Report>({managerID: 1, ownerAccountID: 2});
+
+            // When the participants are resolved
+            const result = getTransactionPreviewParticipantIDs(report, reportPreviewAction);
+
+            // Then the report wins
+            expect(result).toEqual({managerID: 1, ownerAccountID: 2});
+        });
+
+        it('falls back to the preview action while the report is not loaded', () => {
+            // Given no report yet, which is the case for a preview in a chat that hasn't opened the report
+            // When the participants are resolved
+            const result = getTransactionPreviewParticipantIDs(undefined, reportPreviewAction);
+
+            // Then the child IDs from the preview action are used, so the card still subscribes to the right people
+            expect(result).toEqual({managerID: 3, ownerAccountID: 4});
+        });
+
+        it('resolves each participant from its own source', () => {
+            // Given a report that has an approver but no submitter yet
+            const report = createMock<Report>({managerID: 1});
+
+            // When the participants are resolved
+            const result = getTransactionPreviewParticipantIDs(report, reportPreviewAction);
+
+            // Then each one falls back on its own, not together
+            expect(result).toEqual({managerID: 1, ownerAccountID: 4});
+        });
+
+        it('returns the default ID when neither source has the participants', () => {
+            // Given neither a report nor a preview action
+            // When the participants are resolved
+            const result = getTransactionPreviewParticipantIDs(undefined, undefined);
+
+            // Then both are the default ID, which matches no personal detail
+            expect(result).toEqual({managerID: CONST.DEFAULT_NUMBER_ID, ownerAccountID: CONST.DEFAULT_NUMBER_ID});
         });
     });
 });
