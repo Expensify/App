@@ -228,6 +228,23 @@ describe('Approval workflow composed rows', () => {
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT.getRoute(policyID, 1));
     });
 
+    it('opens an over-limit approver of a new workflow to edit them rather than to pick them again', () => {
+        // Given a new workflow whose second approver only receives reports over a set amount and is followed by a final approver
+        mockWorkflow.action = CONST.APPROVAL_WORKFLOW.ACTION.CREATE;
+        mockWorkflow.approvers.push(
+            {email: mockAdditionalApproverEmail, displayName: 'Additional Approver', overLimitAmount: 1000},
+            {email: 'final@example.com', displayName: 'Final Approver'},
+        );
+
+        // When the admin goes back to the over-limit approver's row
+        renderEditor();
+        fireEvent.press(screen.getByRole('button', {name: 'Additional Approver'}), pressEvent);
+
+        // Then their approval limit page opens, the same way as in an existing workflow, instead of the approver picker
+        expect(Navigation.navigate).toHaveBeenCalledTimes(1);
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT.getRoute(policyID, 1));
+    });
+
     it('does not restore the removed additional-approver picker when the primary approver is missing', () => {
         // Given an edit flow with an unselected primary approver
         mockWorkflow.approvers = [undefined];

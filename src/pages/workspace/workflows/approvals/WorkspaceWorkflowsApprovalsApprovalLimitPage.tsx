@@ -77,8 +77,8 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
     const shouldUseApprovalWorkflowRules = useShouldUseApprovalWorkflowRules(policy);
     const approverIndex = Number(route.params.approverIndex) || 0;
     const isEditFlow = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT;
-    // A newly picked approver gets the same steps as in a new workflow, even while an existing workflow is edited
-    const isEditingApprover = isEditFlow && route.params.isAddingApprover !== 'true';
+    // New and existing workflows both open this page to edit an approver already in them, while the approver picker opens it to finish adding a new one
+    const isEditingApprover = route.params.isAddingApprover !== 'true';
     const currentApprover = removedApprover ?? approvalWorkflow?.approvers?.[approverIndex];
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
@@ -141,6 +141,11 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
             // a fresh edit screen that re-derives the workflow from the policy — wiping the unsaved
             // draft (the seeded agent and any in-progress edits). POP_TO returns to the live screen.
             Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, firstApprover, approvalWorkflow?.memberEmail), {compareParams: false});
+            return;
+        }
+        // An approver of a new workflow is opened from its summary page, which is still open under this one
+        if (isEditingApprover) {
+            Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID));
             return;
         }
         // Mark that we've completed the initial wizard flow before navigating to the summary page
