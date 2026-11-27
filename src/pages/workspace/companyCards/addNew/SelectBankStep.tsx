@@ -14,6 +14,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {isUsingNonProductionAPI} from '@libs/ApiUtils';
 import {getBankCardDetailsImage, getCorrectStepForPlaidSelectedBank} from '@libs/CardUtils';
 
 import variables from '@styles/variables';
@@ -62,7 +63,7 @@ function SelectBankStep() {
     const data = Object.values(CONST.COMPANY_CARDS.BANKS)
         .filter((bank) => {
             if (bank === CONST.COMPANY_CARDS.BANKS.MOCK_BANK) {
-                return CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.PRODUCTION || activeServer !== CONST.SERVER.PRODUCTION;
+                return CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.PRODUCTION || isUsingNonProductionAPI(activeServer);
             }
             if (bank === CONST.COMPANY_CARDS.BANKS.FILE_IMPORT) {
                 return false;

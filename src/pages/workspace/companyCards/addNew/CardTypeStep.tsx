@@ -14,6 +14,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {addNewCompanyCardsFeed} from '@libs/actions/CompanyCards';
+import {isUsingNonProductionAPI} from '@libs/ApiUtils';
 import {isPlaidSupportedCountry} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -21,7 +22,6 @@ import variables from '@styles/variables';
 
 import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 
-import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -135,7 +135,7 @@ function CardTypeStep({policyID, cardFeeds, workspaceAccountID}: CardTypeStepPro
     const typeSelected = localTypeSelected ?? addNewCard?.data?.feedType;
     const [isError, setIsError] = useState(false);
     // Gate on the API the requests actually reach, since a dev build talks to production by default.
-    const shouldShowMockFeed = activeServer !== CONST.SERVER.PRODUCTION || CONFIG.IS_USING_LOCAL_WEB;
+    const shouldShowMockFeed = isUsingNonProductionAPI(activeServer);
     const data = getAvailableCompanyCardTypes({
         translate,
         typeSelected,

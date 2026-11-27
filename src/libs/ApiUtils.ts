@@ -77,6 +77,14 @@ function resolveActiveServer(value: Server | undefined, environment: ValueOf<typ
 }
 
 /**
+ * Whether API requests go somewhere other than production. The resolver reports production on local web, but
+ * requests there reach a local backend, so local web counts as non-production.
+ */
+function isUsingNonProductionAPI(activeServer: Server): boolean {
+    return activeServer !== CONST.SERVER.PRODUCTION || CONFIG.IS_USING_LOCAL_WEB;
+}
+
+/**
  * The state the app itself runs on. Derived on demand rather than cached, so that a preference stored before
  * the environment resolved is still applied once it does.
  */
@@ -133,4 +141,4 @@ function isQAServerActive(): boolean {
 }
 
 export type {ActiveServerState, Server};
-export {getApiRoot, getCommandURL, isQAServerActive, resolveActiveServer};
+export {getApiRoot, getCommandURL, isQAServerActive, isUsingNonProductionAPI, resolveActiveServer};

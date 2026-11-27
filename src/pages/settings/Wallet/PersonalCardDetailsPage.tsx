@@ -23,6 +23,7 @@ import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {isUsingNonProductionAPI} from '@libs/ApiUtils';
 import navigateToCardTransactions from '@libs/CardNavigationUtils';
 import {getCardFeedIcon, getPlaidInstitutionIconUrl, hasCardConnectionIssue, isPersonalCard} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
@@ -39,7 +40,6 @@ import variables from '@styles/variables';
 
 import {clearCardErrorField, deletePersonalCard, syncCard, unassignCard} from '@userActions/Card';
 
-import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -152,8 +152,7 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
 
     // Show "Break connection" only when Mock Bank requests target non-production APIs.
     const isMockBank = cardBank.includes(CONST.COMPANY_CARDS.BANK_CONNECTIONS.MOCK_BANK);
-    const isUsingNonProductionAPI = activeServer !== CONST.SERVER.PRODUCTION || CONFIG.IS_USING_LOCAL_WEB;
-    const shouldShowBreakConnection = isMockBank && isUsingNonProductionAPI;
+    const shouldShowBreakConnection = isMockBank && isUsingNonProductionAPI(activeServer);
 
     const lastScrape = card?.lastScrape
         ? format(getLocalDateFromDatetime(card.lastScrape), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING)
