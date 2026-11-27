@@ -32,10 +32,8 @@ function useScrollableWrapper({shouldUseScrollView: shouldUseScrollViewProp = fa
 
     const shouldUseScrollView = shouldUseScrollViewProp || isInLandscapeMode;
 
-    // The bottom inset is only needed while the modal is bottom-docked, which is exactly when `onboardingIsMediumOrLargerScreenWidth`
-    // is false, and it must be dropped while the keyboard is up, otherwise a gap appears above it.
+    // Drop the inset while the keyboard is up, otherwise a gap appears above it.
     const shouldAddBottomSafeAreaPadding = !onboardingIsMediumOrLargerScreenWidth && !isKeyboardActive;
-    // Without a ScrollView, the inset is only added for edge-to-edge modals. Other parents (e.g. `CenteredModalLayout`) already apply it.
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding: enableEdgeToEdgeBottomSafeAreaPadding && !shouldUseScrollView && shouldAddBottomSafeAreaPadding,
         addOfflineIndicatorBottomSafeAreaPadding: false,
