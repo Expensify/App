@@ -17,7 +17,6 @@ import {
     getReportTransactions,
     getUnheldReimbursableTotal,
     hasOutstandingChildRequest,
-    isArchivedReport,
     isExpenseReport,
     isInvoiceReport,
     isReportTotalPending,
@@ -44,7 +43,7 @@ import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate}
 import cloneDeep from 'lodash/cloneDeep';
 import Onyx from 'react-native-onyx';
 
-import {getAllReportActionsFromIOU, getAllReportNameValuePairs, getAllTransactions, getAllTransactionViolations} from '.';
+import {getAllReportActionsFromIOU, getAllTransactions, getAllTransactionViolations} from '.';
 import {getReportPreviewReportAction, maybeUpdateReportNameForFormulaTitle} from './MoneyRequestBuilder';
 import {getGroupPendingDeleteOnyxUpdate} from './SearchUpdate';
 
@@ -72,6 +71,7 @@ type DeleteMoneyRequestFunctionParams = {
     iouReportTransactions: OnyxTypes.Transaction[];
     chatReport: OnyxEntry<OnyxTypes.Report>;
     isChatIOUReportArchived: boolean;
+    isArchivedIOUReport: boolean;
     isSingleTransactionView?: boolean;
     transactionIDsPendingDeletion?: string[];
     selectedTransactionIDs?: string[];
@@ -831,6 +831,7 @@ function deleteMoneyRequest({
     iouReportTransactions,
     chatReport,
     isChatIOUReportArchived,
+    isArchivedIOUReport,
     isSingleTransactionView = false,
     transactionIDsPendingDeletion,
     selectedTransactionIDs,
@@ -1037,7 +1038,7 @@ function deleteMoneyRequest({
         currentUserAccountID,
         transactionThread: transactionThreadReport,
         iouReport,
-        isArchivedIOUReport: isArchivedReport(getAllReportNameValuePairs()?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport?.reportID}`]),
+        isArchivedIOUReport,
         chatReport,
         transactionThreadReportActionsParam: transactionThreadReportActions,
     });

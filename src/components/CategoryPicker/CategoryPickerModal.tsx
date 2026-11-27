@@ -5,25 +5,22 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import type {ListItem} from '@components/SelectionList/types';
 import Tooltip from '@components/Tooltip';
 
+import useDebouncedState from '@hooks/useDebouncedState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
+import usePickerPopoverRowCount from '@hooks/usePickerPopoverRowCount';
+import usePickerPopoverSession from '@hooks/usePickerPopoverSession';
 import useTheme from '@hooks/useTheme';
 
-import {getEnabledCategoriesCount, getVisibleCategories} from '@libs/CategoryUtils';
-import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import startOpenCategoryPickerSpan from '@libs/telemetry/startOpenCategoryPickerSpan';
 
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {WithSentryLabelWhenPressable} from '@src/types/utils/SentryLabel';
 
-import policyCategoriesVisibilitySelector from '@selectors/PolicyCategories';
-import React, {useLayoutEffect, useState} from 'react';
+import React, {useLayoutEffect} from 'react';
 
-import CategoryPicker from '.';
+import {CategoryPickerList, getCategoryPickerOptions, useCategoryPickerData} from '.';
 
 type CategoryPickerModalProps = WithSentryLabelWhenPressable<'onAddCategory', 'addCategorySentryLabel'> & {
     /** The policy whose categories should be shown */
@@ -48,6 +45,9 @@ type CategoryPickerModalProps = WithSentryLabelWhenPressable<'onAddCategory', 'a
 
     /** The account the expense belongs to, passed only when the current user owns it, so the list shows just the categories they can use */
     ownerAccountID?: number;
+
+    /** The account the expense belongs to, passed when someone else owns it, so the picker splits the categories by what that member can use */
+    submitterAccountID?: number;
 } & Omit<AnchoredSelectionListPopoverProps, 'optionCount' | 'isSearchable' | 'title' | 'backButtonSentryLabel' | 'headerActions' | 'children'>;
 
 function CategoryPickerModal({
@@ -60,20 +60,32 @@ function CategoryPickerModal({
     addCategorySentryLabel,
     onCreateCategory,
     ownerAccountID,
+    submitterAccountID,
     isVisible,
     onClose,
+    onModalHide,
     shouldShowHeader = false,
     ...popoverProps
 }: CategoryPickerModalProps) {
     const theme = useTheme();
-    const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
 
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`, {selector: policyCategoriesVisibilitySelector});
-    const [renderedRowCount, setRenderedRowCount] = useState<number>();
-
-    // Counts what the picker lists, so the search input shows only when the owner's own list is long enough.
-    const categoriesCount = getEnabledCategoriesCount(ownerAccountID === undefined || !policyCategories ? policyCategories : getVisibleCategories(policyCategories, ownerAccountID));
+    const {searchKey, shouldPrepareOptions, finishClosing} = usePickerPopoverSession(isVisible, onModalHide);
+    const data = useCategoryPickerData(policyID, submitterAccountID);
+    const {translate} = data;
+    const options = shouldPrepareOptions ? getCategoryPickerOptions(data, {selectedCategory, shouldAlwaysShowGLCode, searchInputThreshold, ownerAccountID, submitterAccountID}) : undefined;
+    const {rowCount, setRowCountFrozen, unfilteredSections} = usePickerPopoverRowCount(options ? () => options.getSections('') : undefined, searchKey);
+    const [search, debouncedSearch, setSearch] = useDebouncedState({searchKey, value: ''}, undefined, {
+        onDebouncedValueChange: (nextSearch) => {
+            // A pending debounce may finish after the list has opened again or switched between sheet and popover.
+            if (nextSearch.searchKey !== searchKey) {
+                return;
+            }
+            setRowCountFrozen(!!nextSearch.value);
+        },
+    });
+    const debouncedSearchValue = debouncedSearch.searchKey === searchKey ? debouncedSearch.value : '';
+    const sections = debouncedSearchValue ? options?.getSections(debouncedSearchValue) : unfilteredSections;
 
     // A layout effect, so the span starts before the picker's own effects run and can end it. The popover only renders
     // the picker while it's open, so the picker mounts again on every open.
@@ -104,8 +116,9 @@ function CategoryPickerModal({
             {...popoverProps}
             isVisible={isVisible}
             onClose={onClose}
-            optionCount={renderedRowCount ?? categoriesCount}
-            isSearchable={categoriesCount >= searchInputThreshold}
+            onModalHide={finishClosing}
+            optionCount={rowCount}
+            isSearchable={options?.hasSearchablePolicyCategories ?? false}
             title={translate('common.category')}
             backButtonSentryLabel={CONST.SENTRY_LABEL.CATEGORY_PICKER_MODAL.BACK_BUTTON}
             shouldShowHeader={shouldShowHeader || !!onAddCategory}
@@ -130,17 +143,21 @@ function CategoryPickerModal({
                 )
             }
         >
-            <CategoryPicker
-                onRenderedRowCountChange={setRenderedRowCount}
-                selectedCategory={selectedCategory}
-                policyID={policyID}
-                onSubmit={handleCategorySelect}
-                onCreateCategory={onCreateCategory ? createCategory : undefined}
-                shouldAutoFocusSearchInput
-                shouldAlwaysShowGLCode={shouldAlwaysShowGLCode}
-                searchInputThreshold={searchInputThreshold}
-                ownerAccountID={ownerAccountID}
-            />
+            {options && sections && (
+                <CategoryPickerList
+                    options={options}
+                    sections={sections}
+                    searchValue={search.searchKey === searchKey ? search.value : ''}
+                    debouncedSearchValue={debouncedSearchValue}
+                    setSearchValue={(value) => setSearch({searchKey, value})}
+                    selectedCategory={selectedCategory}
+                    policyID={policyID}
+                    onSubmit={handleCategorySelect}
+                    onCreateCategory={onCreateCategory ? createCategory : undefined}
+                    shouldAutoFocusSearchInput
+                    ownerAccountID={ownerAccountID}
+                />
+            )}
         </AnchoredSelectionListPopover>
     );
 }

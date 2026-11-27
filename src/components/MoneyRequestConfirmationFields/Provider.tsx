@@ -80,6 +80,9 @@ type ProviderProps = {
     /** Reports whether the inline tax amount field is currently empty, so submission can be blocked when it is left empty */
     onTaxAmountEmptyChange?: (isEmpty: boolean) => void;
 
+    /** Reports whether the inline amount field holds input the draft can't show as the user's: a sign with no digits, or a currency the user picked */
+    onUnsavedAmountInputChange?: (hasUnsavedInput: boolean) => void;
+
     /** Block components rendered inside the Provider */
     children: ReactNode;
 };
@@ -108,6 +111,7 @@ function Provider({
     fieldViewRefs,
     onSubmitForm,
     onTaxAmountEmptyChange,
+    onUnsavedAmountInputChange,
     children,
 }: ProviderProps) {
     const value = {
@@ -134,6 +138,7 @@ function Provider({
         fieldViewRefs,
         onSubmitForm,
         onTaxAmountEmptyChange,
+        onUnsavedAmountInputChange,
     };
     return <ConfirmationFieldsContext.Provider value={value}>{children}</ConfirmationFieldsContext.Provider>;
 }
