@@ -27,9 +27,7 @@ function isLocalRuleModule(ruleModule: unknown): ruleModule is LocalRuleModule {
     return typeof ruleName === 'string' && typeof create === 'function' && typeof meta === 'object' && meta !== null;
 }
 
-function loadLocalRule(ruleName: string): LocalRuleModule {
-    const ruleModule: unknown = require(`../../eslint-plugin-local-rules/${ruleName}`);
-
+function loadLocalRule(ruleName: string, ruleModule: unknown): LocalRuleModule {
     if (!isLocalRuleModule(ruleModule)) {
         throw new TypeError(`Expected ${ruleName} to export an ESLint rule module.`);
     }
@@ -37,7 +35,7 @@ function loadLocalRule(ruleName: string): LocalRuleModule {
     return ruleModule;
 }
 
-const ruleModule = loadLocalRule('no-onyx-get-snapshot-key');
+const ruleModule = loadLocalRule('no-onyx-get-snapshot-key', require('../../eslint-plugin-local-rules/no-onyx-get-snapshot-key'));
 
 const ruleTester = new RuleTester({
     languageOptions: {
@@ -450,7 +448,7 @@ describe('no-onyx-get-snapshot-key on a multi-line Onyx.multiGet', () => {
 describe('no-onyx-get-snapshot-key next to no-unsafe-onyx-read', () => {
     it('leaves the position check in place when only the key rule is disabled', () => {
         // Given a render-time read of a snapshot key with a reasoned disable of the key rule only
-        const positionRule = loadLocalRule('no-unsafe-onyx-read');
+        const positionRule = loadLocalRule('no-unsafe-onyx-read', require('../../eslint-plugin-local-rules/no-unsafe-onyx-read'));
         const code = [
             ONYX_IMPORT,
             'function Row({reportID}) {',

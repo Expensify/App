@@ -61,6 +61,16 @@ git fetch origin tag 1.0.0-0 --no-tags --depth=1 # This will fetch the latest co
 git fetch origin tag 1.0.1-0 --no-tags --shallow-exclude=1.0.0-0 # This will fetch all commits from the 1.0.1-0 tag, except for those that are reachable from the 1.0.0-0 tag.
 ```
 
+## Selective test runs
+
+On pull requests, Jest (`test.yml`) and Reassure (`reassurePerformanceTests.yml`) run only the tests that import a changed file, directly or through other files. Pushes to `main` and deploys run every test.
+
+- Jest picks the tests with `--changedSince=HEAD^1`, the base the PR merges into.
+- A change to a file every test loads without importing it (dependencies, Jest and Babel config, setup files, mocks) runs every test. Those paths are in `.github/fullTestRunPaths.yml`.
+- Tests that use `fs` or `child_process` always run on PRs, because Jest can't trace the files they read or run.
+
+If you add a file every test loads without importing it, add it to `.github/fullTestRunPaths.yml`.
+
 ## Which checkout action to use
 
 - **Linux jobs:** use `useblacksmith/checkout`. Blacksmith's Linux runners grant a sticky disk in ~0.3s, so its persistent "git-mirror" cache makes the clone much faster.

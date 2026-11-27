@@ -5,6 +5,8 @@ coverage:
       default:
         informational: true
         target: auto
+        branches:
+          - main
     patch:
       default:
         informational: true
@@ -13,11 +15,10 @@ coverage:
 
 codecov:
   notify:
-    # We shard our tests into 16 chunks, so we want CodeCov to wait for 16 builds before commenting
-    after_n_builds: 16
+    wait_for_ci: true
 
 comment:
-  require_changes: 'coverage_drop OR uncovered_patch'
+  require_changes: 'uncovered_patch'
   layout: 'condensed_header, files'
   hide_project_coverage: true
   hide_comment_details: false

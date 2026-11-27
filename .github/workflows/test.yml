@@ -4,7 +4,7 @@ on:
   workflow_call:
   pull_request:
     types: [opened, synchronize]
-    paths: ['**.js', '**.ts', '**.tsx', 'package.json', 'package-lock.json']
+    paths: ['**.js', '**.ts', '**.tsx', 'package.json', 'package-lock.json', 'patches/**', '.nvmrc', '.env.example', '.github/fullTestRunPaths.yml']
 
 concurrency:
   group: ${{ github.ref == 'refs/heads/main' && format('{0}-{1}', github.ref, github.sha) || github.ref }}-jest
@@ -28,6 +28,16 @@ jobs:
     steps:
       - name: Checkout
         uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
+        with:
+          # On a PR, HEAD is the merge commit and HEAD^1 the base it merges into, which --changedSince diffs against.
+          fetch-depth: 2
+
+      - name: Check for changes that need a full run
+        id: fullRun
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4.0.1
+        with:
+          filters: .github/fullTestRunPaths.yml
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
@@ -46,8 +56,13 @@ jobs:
           key: ${{ runner.os }}-jest-${{ strategy.job-total }}shards-${{ matrix.chunk }}-${{ hashFiles('package-lock.json', 'patches/**', 'babel.config.js') }}
           restore-keys: ${{ runner.os }}-jest-${{ strategy.job-total }}shards-${{ matrix.chunk }}-
 
+      # On PRs, only the tests that import a changed file. Pushes to main and deploys run everything.
       - name: Jest tests
-        run: npm test -- --silent --shard=${{ fromJSON(matrix.chunk) }}/${{ strategy.job-total }} --maxWorkers=3 --coverage --coverageDirectory=coverage/shard-${{ matrix.chunk }}
+        run: npm test -- --silent --shard=${{ fromJSON(matrix.chunk) }}/${{ strategy.job-total }} --maxWorkers=3 --coverage --coverageDirectory=coverage/shard-${{ matrix.chunk }} ${{ github.event_name == 'pull_request' && steps.fullRun.outputs.any != 'true' && '--changedSince=HEAD^1 --passWithNoTests' || '' }}
+
+      - name: Jest tests that read files instead of importing them
+        if: ${{ github.event_name == 'pull_request' && steps.fullRun.outputs.any != 'true' && matrix.chunk == 1 }}
+        run: git grep -lE "['\"](node:)?(fs|fs/promises|child_process)['\"]" -- tests/unit tests/ui tests/actions tests/navigation | xargs -r npm test -- --silent
 
       - name: Upload coverage to Codecov (PRs - tokenless)
         if: ${{ github.event_name == 'pull_request' }}

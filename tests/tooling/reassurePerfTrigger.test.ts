@@ -60,6 +60,7 @@ describe('Reassure perf trigger paths', () => {
         ['README.md', false],
         ['.github/workflows/reassurePerformanceTests.yml', true],
         ['.github/workflows/seedJestPerfCache.yml', true],
+        ['.github/fullTestRunPaths.yml', true],
         ['.github/actions/javascript/validateReassureOutput/index.js', true],
         ['.github/actions/composite/setupNode/action.yml', true],
     ])('%s triggers the check: %p', (filePath, expectedToRun) => {

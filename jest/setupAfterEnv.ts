@@ -6,7 +6,7 @@ import type {KeyboardEventName} from 'react-native';
 import {Keyboard} from 'react-native';
 import Onyx from 'react-native-onyx';
 
-import mockUseSingleExecution from '../tests/utils/mockUseSingleExecution';
+import mockUseSingleExecution from './mockUseSingleExecution';
 
 jest.useRealTimers();
 
