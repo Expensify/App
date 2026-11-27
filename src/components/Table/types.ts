@@ -1,3 +1,5 @@
+import type {SearchColumnAlignment} from '@styles/utils';
+
 import type {FlashListProps, FlashListRef} from '@shopify/flash-list';
 import type {PropsWithChildren} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
@@ -29,6 +31,9 @@ type TableColumnStyling = {
     /** Optional flex value to control the column's width relative to other columns. */
     flex?: number;
 
+    /** Where the heading's label sits. The column menu's caret takes the side away from it. Defaults to the start. */
+    alignment?: SearchColumnAlignment;
+
     /** Optional custom styles for the column container. */
     containerStyles?: StyleProp<ViewStyle>;
 
@@ -48,6 +53,9 @@ type MeasurableCellContent = {
 
     /** Font weight the text renders at. Defaults to the normal weight. */
     fontWeight?: string;
+
+    /** Width of non-text content rendered right after the text on this row only, e.g. a badge. */
+    trailingWidth?: number;
 };
 
 /**
@@ -67,7 +75,10 @@ type TableColumnDynamicSizing<DataType extends TableData = TableData> = {
     /** Whether this column's values come from a fixed set (a role, a status), so it always fits them in full and never truncates. */
     shouldFitContent?: boolean;
 
-    /** Smallest width this column may be squeezed to, capped at its content width. Defaults to a readable width. */
+    /**
+     * Narrowest width this column may be squeezed or dragged to, capped at its content width. Raises the usual readable
+     * floor, never lowers it. Omitted to use that floor alone.
+     */
     minWidth?: number;
 
     /**
@@ -246,9 +257,6 @@ type TableProps<DataType extends TableData, ColumnKey extends string = string, F
 
         /** Optional initial sort order to apply to `initialSortColumn` on mount. Defaults to ascending. */
         initialSortOrder?: SortOrder;
-
-        /** Optional column to force-sort by when the table switches to narrow layout. The wide-layout sorting is restored when leaving narrow layout. */
-        narrowLayoutSortColumn?: ColumnKey;
 
         /** Optional initial search string to apply on mount. */
         initialSearchString?: string;

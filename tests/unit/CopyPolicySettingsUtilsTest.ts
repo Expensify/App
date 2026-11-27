@@ -58,6 +58,28 @@ describe('CopyPolicySettingsUtils', () => {
             expect(getConnectionCompanyID(policy, CONST.POLICY.CONNECTIONS.NAME.NETSUITE)).toBe('NS-ACME');
         });
 
+        it('returns undefined for QuickBooks Online when realmId is an empty string', () => {
+            // Given a QBO connection left with an empty realmId, which a failed entity switch writes when no entity was selected before
+            const policy = makePolicyWithConnection(CONST.POLICY.CONNECTIONS.NAME.QBO, {config: {realmId: ''}});
+
+            // When the company ID is read for the copy and bulk export checks
+            const companyID = getConnectionCompanyID(policy, CONST.POLICY.CONNECTIONS.NAME.QBO);
+
+            // Then it matches a missing company ID, so the bulk export does not count the two as different companies
+            expect(companyID).toBeUndefined();
+        });
+
+        it('returns undefined for NetSuite when accountID is an empty string', () => {
+            // Given a NetSuite connection with an empty accountID
+            const policy = makePolicyWithConnection(CONST.POLICY.CONNECTIONS.NAME.NETSUITE, {accountID: ''});
+
+            // When the company ID is read for the copy and bulk export checks
+            const companyID = getConnectionCompanyID(policy, CONST.POLICY.CONNECTIONS.NAME.NETSUITE);
+
+            // Then it is treated as no company, the same way the credentials-based integrations treat an empty companyID
+            expect(companyID).toBeUndefined();
+        });
+
         it('returns credentials.companyID for Sage Intacct', () => {
             const policy = makePolicyWithConnection(CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, {config: {credentials: {companyID: 'INTACCT-1'}}});
             expect(getConnectionCompanyID(policy, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT)).toBe('INTACCT-1');

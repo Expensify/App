@@ -9,6 +9,7 @@ import type {MoneyRequestReportPreviewProps} from '@components/ReportActionItem/
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
 import type * as WideRHPContextProvider from '@components/WideRHPContextProvider';
+import type * as PendingRHPWidths from '@components/WideRHPContextProvider/pendingRHPWidths';
 
 import useNetwork from '@hooks/useNetwork';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
@@ -33,7 +34,7 @@ import type {OnyxCollection, OnyxEntry, OnyxMergeInput} from 'react-native-onyx'
 
 import {PortalProvider} from '@gorhom/portal';
 import * as NativeNavigation from '@react-navigation/native';
-import React from 'react';
+import React, {Profiler} from 'react';
 import Onyx from 'react-native-onyx';
 
 import {actionR14932 as mockAction} from '../../__mocks__/reportData/actions';
@@ -44,6 +45,7 @@ import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const mockSecondTransactionID = `${mockTransaction.transactionID}2`;
+const UNRELATED_ACCOUNT_ID = 987654;
 const defaultPreviewTransactions = [mockTransaction, {...mockTransaction, transactionID: mockSecondTransactionID}];
 const defaultReportWithTransactionsAndViolations: [OnyxEntry<Report>, Transaction[], OnyxCollection<TransactionViolation[]>] = [
     mockIOUReport,
@@ -132,12 +134,15 @@ jest.mock('@hooks/useReportTransactionsCollection', () => ({
 
 // The RHP widths never reach the rendered output, so capture the calls to assert they are requested and released.
 const mockMarkReportRHPWidth = jest.fn();
-const mockUnmarkReportRHPWidth = jest.fn();
+const mockClearPendingRHPWidth = jest.fn<void, [string]>();
+jest.mock('@components/WideRHPContextProvider/pendingRHPWidths', () => ({
+    ...jest.requireActual<typeof PendingRHPWidths>('@components/WideRHPContextProvider/pendingRHPWidths'),
+    clearPendingRHPWidth: (reportID: string) => mockClearPendingRHPWidth(reportID),
+}));
 jest.mock('@components/WideRHPContextProvider', () => ({
     ...jest.requireActual<typeof WideRHPContextProvider>('@components/WideRHPContextProvider'),
     useWideRHPActions: () => ({
         markReportRHPWidth: mockMarkReportRHPWidth,
-        unmarkReportRHPWidth: mockUnmarkReportRHPWidth,
     }),
 }));
 
@@ -172,25 +177,32 @@ const mockContextMenuActionsValue = {
     onShowContextMenu: (callback: () => void) => callback(),
 };
 
-const renderPage = ({isWhisper = false, isHovered = false}: Partial<MoneyRequestReportPreviewProps>) => {
+const onPreviewRender = jest.fn();
+
+const renderPage = ({isWhisper = false, isHovered = false, chatReport = mockChatReport}: Partial<MoneyRequestReportPreviewProps>) => {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider]}>
             <ScreenWrapper testID="test">
                 <PortalProvider>
                     <ShowContextMenuStateContext.Provider value={mockContextMenuStateValue}>
                         <ShowContextMenuActionsContext.Provider value={mockContextMenuActionsValue}>
-                            <MoneyRequestReportPreview
-                                policyID={mockChatReport.policyID}
-                                action={mockAction}
-                                iouReportID={mockIOUReport.reportID}
-                                iouReport={mockIOUReportProp}
-                                chatReportID={mockChatReport.reportID}
-                                chatReport={mockChatReport}
-                                onPaymentOptionsShow={() => {}}
-                                onPaymentOptionsHide={() => {}}
-                                isHovered={isHovered}
-                                isWhisper={isWhisper}
-                            />
+                            <Profiler
+                                id="MoneyRequestReportPreview"
+                                onRender={onPreviewRender}
+                            >
+                                <MoneyRequestReportPreview
+                                    policyID={mockChatReport.policyID}
+                                    action={mockAction}
+                                    iouReportID={mockIOUReport.reportID}
+                                    iouReport={mockIOUReportProp}
+                                    chatReportID={mockChatReport.reportID}
+                                    chatReport={chatReport}
+                                    onPaymentOptionsShow={() => {}}
+                                    onPaymentOptionsHide={() => {}}
+                                    isHovered={isHovered}
+                                    isWhisper={isWhisper}
+                                />
+                            </Profiler>
                         </ShowContextMenuActionsContext.Provider>
                     </ShowContextMenuStateContext.Provider>
                 </PortalProvider>
@@ -281,6 +293,62 @@ describe('MoneyRequestReportPreview', () => {
         return act(async () => {
             await Onyx.clear();
             await waitForBatchedUpdatesWithAct();
+        });
+    });
+
+    describe('personal details writes', () => {
+        const INVOICE_RECEIVER_ACCOUNT_ID = 876543;
+        const invoiceChatReport: Report = {
+            ...mockChatReport,
+            chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+            invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, accountID: INVOICE_RECEIVER_ACCOUNT_ID},
+        };
+
+        const renderSettledPreview = async (chatReport: Report) => {
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [INVOICE_RECEIVER_ACCOUNT_ID]: {accountID: INVOICE_RECEIVER_ACCOUNT_ID, login: 'payer@test.com', displayName: 'Payer'},
+                    [UNRELATED_ACCOUNT_ID]: {accountID: UNRELATED_ACCOUNT_ID, login: 'unrelated@test.com', displayName: 'Unrelated'},
+                });
+            });
+            renderPage({chatReport});
+            await waitForBatchedUpdatesWithAct();
+            setCurrentWidth();
+            await act(async () => {
+                await Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, mockOnyxTransactions);
+                await waitForBatchedUpdatesWithAct();
+            });
+            await waitForBatchedUpdatesWithAct();
+            onPreviewRender.mockClear();
+        };
+
+        const renamePerson = async (accountID: number) => {
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[accountID]: {displayName: `Renamed ${accountID}`}});
+            });
+            await waitForBatchedUpdatesWithAct();
+        };
+
+        it('does not re-render the preview or its expense cards when someone outside the report is renamed', async () => {
+            // Given a report preview with its expense cards rendered in an invoice room
+            await renderSettledPreview(invoiceChatReport);
+
+            // When a person who is neither the invoice payer nor a participant of the expenses is renamed
+            await renamePerson(UNRELATED_ACCOUNT_ID);
+
+            // Then nothing in the preview commits, which is what made large accounts slow
+            expect(onPreviewRender).not.toHaveBeenCalled();
+        });
+
+        it('re-renders the preview when the invoice payer is renamed', async () => {
+            // Given a report preview in an invoice room billed to an individual
+            await renderSettledPreview(invoiceChatReport);
+
+            // When the invoice payer is renamed
+            await renamePerson(INVOICE_RECEIVER_ACCOUNT_ID);
+
+            // Then the preview still hears about it through its narrowed subscription
+            expect(onPreviewRender).toHaveBeenCalled();
         });
     });
 
@@ -481,6 +549,21 @@ describe('MoneyRequestReportPreview', () => {
                 childReportID: `thread_${transactionID}`,
                 originalMessage: {...mockAction, IOUTransactionID: transactionID},
             };
+        };
+
+        const buildActionWithoutThread = (reportID: string | undefined, transactionID: string | undefined) => {
+            if (!reportID || !transactionID) {
+                return undefined;
+            }
+            return {
+                ...mockAction,
+                childReportID: undefined,
+                originalMessage: {...mockAction, IOUTransactionID: transactionID},
+            };
+        };
+
+        const personalDetailsWithUnrelatedPerson = {
+            [UNRELATED_ACCOUNT_ID]: {accountID: UNRELATED_ACCOUNT_ID, login: 'unrelated@test.com', displayName: 'Unrelated'},
         };
 
         const renderAndPopulateCarousel = async () => {
@@ -1079,16 +1162,7 @@ describe('MoneyRequestReportPreview', () => {
         it('falls back to opening the parent report when the pressed expense has no thread', async () => {
             mockResponsiveLayoutOverride = wideResponsiveLayout;
             jest.spyOn(ReportActions, 'createTransactionThreadReport').mockReturnValue(undefined);
-            jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation((reportID, transactionID) => {
-                if (!reportID || !transactionID) {
-                    return undefined;
-                }
-                return {
-                    ...mockAction,
-                    childReportID: undefined,
-                    originalMessage: {...mockAction, IOUTransactionID: transactionID},
-                };
-            });
+            jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithoutThread);
 
             await renderAndPopulateCarousel();
             await pressSecondTransaction();
@@ -1100,22 +1174,58 @@ describe('MoneyRequestReportPreview', () => {
             // Narrow has no super-wide RHP, so the fallback lands on the report screen itself.
             mockResponsiveLayoutOverride = narrowResponsiveLayout;
             jest.spyOn(ReportActions, 'createTransactionThreadReport').mockReturnValue(undefined);
-            jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation((reportID, transactionID) => {
-                if (!reportID || !transactionID) {
-                    return undefined;
-                }
-                return {
-                    ...mockAction,
-                    childReportID: undefined,
-                    originalMessage: {...mockAction, IOUTransactionID: transactionID},
-                };
-            });
+            jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithoutThread);
 
             await renderAndPopulateCarousel();
             await pressSecondTransaction();
 
             expect(navigateSpy).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(mockIOUReport.reportID, undefined, undefined, ''));
             expect(navigateSpy).not.toHaveBeenCalledWith(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: mockIOUReport.reportID, backTo: ''}));
+        });
+
+        it('creates the thread with the whole personal details list, not only the people the preview shows', async () => {
+            // Given a list that holds someone the preview never shows, since the card only subscribes to the invoice receiver
+            mockResponsiveLayoutOverride = wideResponsiveLayout;
+            const createThreadSpy = jest.spyOn(ReportActions, 'createTransactionThreadReport').mockReturnValue(undefined);
+            jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithoutThread);
+            await renderAndPopulateCarousel();
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsWithUnrelatedPerson);
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            // When an expense without a thread is pressed
+            await pressSecondTransaction();
+
+            // Then the thread gets the full list read at press time, so its participants resolve
+            expect(createThreadSpy).toHaveBeenCalledWith(expect.objectContaining({personalDetails: expect.objectContaining(personalDetailsWithUnrelatedPerson)}));
+        });
+
+        it('creates the thread with the whole personal details list when the press waits for the report actions to load', async () => {
+            // Given the pressed expense's IOU action isn't cached yet, so the press defers until the report loads
+            mockResponsiveLayoutOverride = narrowResponsiveLayout;
+            jest.spyOn(ReportActions, 'openReport').mockImplementation(() => {});
+            const createThreadSpy = jest.spyOn(ReportActions, 'createTransactionThreadReport').mockReturnValue(undefined);
+            const getIOUActionSpy = jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockReturnValue(undefined);
+            await renderAndPopulateCarousel();
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsWithUnrelatedPerson);
+                await waitForBatchedUpdatesWithAct();
+            });
+            await pressSecondTransaction();
+            expect(createThreadSpy).not.toHaveBeenCalled();
+
+            // When the IOU action arrives without a thread
+            getIOUActionSpy.mockImplementation(buildActionWithoutThread);
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockIOUReport.reportID}`, {
+                    [`${mockAction.reportActionID}_loaded`]: mockAction,
+                });
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            // Then the deferred press still creates the thread with the full list it carried from the press
+            expect(createThreadSpy).toHaveBeenCalledWith(expect.objectContaining({personalDetails: expect.objectContaining(personalDetailsWithUnrelatedPerson)}));
         });
 
         it('widens the RHP for the report and the pressed expense, and narrows the expense back when the press is abandoned', async () => {
@@ -1130,7 +1240,7 @@ describe('MoneyRequestReportPreview', () => {
 
             expect(mockMarkReportRHPWidth).toHaveBeenCalledWith(mockIOUReport.reportID, 'super-wide');
             expect(mockMarkReportRHPWidth).toHaveBeenCalledWith(`thread_${mockSecondTransactionID}`, 'wide');
-            expect(mockUnmarkReportRHPWidth).not.toHaveBeenCalled();
+            expect(mockClearPendingRHPWidth).not.toHaveBeenCalled();
 
             await act(async () => {
                 await new Promise((resolve) => {
@@ -1138,7 +1248,7 @@ describe('MoneyRequestReportPreview', () => {
                 });
             });
 
-            expect(mockUnmarkReportRHPWidth).toHaveBeenCalledWith(`thread_${mockSecondTransactionID}`);
+            expect(mockClearPendingRHPWidth).toHaveBeenCalledWith(`thread_${mockSecondTransactionID}`);
         });
 
         it('seeds the expense view carousel in the order the cards are rendered, not collection order', async () => {

@@ -1,9 +1,10 @@
 /**
  * The entries of the More menu of the flat nav tab bar, in render order, with the one the user is on marked. Accounting
- * and Saved are listed only when their flat nav section is visible.
+ * and Saved are listed only when their flat nav section is visible and has a search to open.
  */
 import type {ExpensifyIconName} from '@components/Icon/ExpensifyIconLoader';
 
+import {getFlatNavSectionDefaultItem} from '@libs/Navigation/FlatNav/FlatNavUtils';
 import type {FlatNavSection} from '@libs/Navigation/FlatNav/types';
 import type FlatNavTabBarFocus from '@libs/Navigation/FlatNavTabBar/FlatNavTabBarFocus';
 
@@ -60,7 +61,8 @@ function getMoreMenuItems({sections, focusedTabRouteName, activeFlatNavSectionID
     const items: MoreMenuItem[] = [];
     for (const id of SECTION_ITEM_IDS) {
         const section = sections.find((visibleSection) => visibleSection.id === id);
-        if (!section) {
+        // Offline, the Saved section stays visible while all its saved searches are pending delete, and none of them can be opened.
+        if (!section || !getFlatNavSectionDefaultItem(section)) {
             continue;
         }
         items.push({
@@ -86,4 +88,4 @@ function getMoreMenuItems({sections, focusedTabRouteName, activeFlatNavSectionID
 }
 
 export default getMoreMenuItems;
-export type {GetMoreMenuItemsParams};
+export type {GetMoreMenuItemsParams, MoreMenuItem};

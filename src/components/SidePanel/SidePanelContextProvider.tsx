@@ -50,7 +50,7 @@ type SidePanelStateContextProps = {
 };
 
 type SidePanelActionsContextProps = {
-    openSidePanel: (options?: {forceConcierge?: boolean; reportID?: string}) => void;
+    openSidePanel: (options?: {forceConcierge?: boolean; reportID?: string; reportActionID?: string}) => void;
     closeSidePanel: (options?: {afterTransition?: () => void}) => void;
 };
 
@@ -86,6 +86,7 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
     const sidePanelWidth = shouldUseNarrowLayout ? windowWidth : dockedSidePanelWidth;
 
     const [isSidePanelTransitionEnded, setIsSidePanelTransitionEnded] = useState(true);
+    const [isSidePanelClosing, setIsSidePanelClosing] = useState(false);
     const {shouldHideSidePanel, shouldHideSidePanelBackdrop, shouldHideHelpButton, isSidePanelHiddenOrLargeScreen, sidePanelNVP} = useSidePanelDisplayStatus();
     const shouldHideToolTip = isExtraLargeScreenWidth ? !isSidePanelTransitionEnded : !shouldHideSidePanel;
 
@@ -119,6 +120,8 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
 
     if (prevShouldHideSidePanel !== shouldHideSidePanel) {
         setPrevShouldHideSidePanel(shouldHideSidePanel);
+        // The closed Onyx value arrives before the slide-out ends, so keep Help hidden until the animation completes.
+        setIsSidePanelClosing(shouldHideSidePanel);
         if (!shouldHideSidePanel && !sessionStartTime) {
             setSessionStartTime(getServerAnchoredDBTime());
         }
@@ -157,6 +160,9 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
             }),
         ]).start(({finished}) => {
             setIsSidePanelTransitionEnded(true);
+            if (finished) {
+                setIsSidePanelClosing(false);
+            }
             // Clear the session after the slide-out, not when it starts: the panel stays mounted for the animation and
             // a null session empties its message list. `finished` is false on an interrupted close, sparing the new session.
             if (finished && shouldHideSidePanel) {
@@ -182,9 +188,9 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
         focusComposerWithDelay(ReportActionComposeFocusManager.composerRef.current, CONST.SIDE_PANEL_ANIMATED_TRANSITION + CONST.COMPOSER_FOCUS_DELAY)(true);
     };
 
-    const openSidePanel = (options?: {forceConcierge?: boolean; reportID?: string}) => {
+    const openSidePanel = (options?: {forceConcierge?: boolean; reportID?: string; reportActionID?: string}) => {
         setSessionStartTime(getServerAnchoredDBTime());
-        SidePanelActions.openSidePanel(!isExtraLargeScreenWidth, options?.forceConcierge, options?.reportID);
+        SidePanelActions.openSidePanel(!isExtraLargeScreenWidth, options?.forceConcierge, options?.reportID, options?.reportActionID);
     };
 
     // Because of the React Compiler we don't need to memoize it manually
@@ -194,7 +200,7 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
         isSidePanelHiddenOrLargeScreen,
         shouldHideSidePanel,
         shouldHideSidePanelBackdrop,
-        shouldHideHelpButton,
+        shouldHideHelpButton: shouldHideHelpButton || isSidePanelClosing,
         shouldHideToolTip,
         sidePanelOffset,
         sidePanelTranslateX,

@@ -1,5 +1,5 @@
 import Checkbox from '@components/Checkbox';
-import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
+import {useSession} from '@components/OnyxListItemProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import StatusBadge from '@components/StatusBadge';
@@ -10,6 +10,7 @@ import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -17,6 +18,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasPendingSearchWrite} from '@libs/pendingSearchWrite';
 import {getReportStatusColorStyle, getReportStatusTooltipTranslation, getReportStatusTranslation, isOneTransactionReport} from '@libs/ReportUtils';
+import {getEffectiveSortBy} from '@libs/SearchQueryUtils';
 import {createAndOpenSearchTransactionThread, getSections, getSortedSections, getValidGroupBy, isCreatedDateType} from '@libs/SearchUIUtils';
 import {isDeletedTransaction} from '@libs/TransactionUtils';
 
@@ -84,7 +86,6 @@ function SearchStaticList({
     const {translate, localeCompare, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
     const session = useSession();
-    const personalDetails = usePersonalDetails();
     const accountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const email = session?.email;
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
@@ -120,10 +121,11 @@ function SearchStaticList({
             reportAttributesDerivedValue: undefined,
         });
 
-        return getSortedSections(type, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy)
+        return getSortedSections(type, filteredData, localeCompare, translate, getEffectiveSortBy(queryJSON), sortOrder, validGroupBy)
             .filter((item): item is TransactionListItemType => 'transactionID' in item && item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
             .slice(0, STATIC_LIST_MAX_ITEMS);
     })();
+    const [personalDetails] = usePersonalDetailsByIDs([accountID, ...sortedData.flatMap((item) => [item.reportAction?.actorAccountID, item.report?.ownerAccountID])]);
 
     // Sync the pending-expense placeholder on focus and notify the parent that
     // the destination is visible (focus signal for the dual-gate span ending).
@@ -359,43 +361,42 @@ function SearchStaticList({
             style={styles.flex1}
             onLayout={onLayout}
         >
-            {!shouldUseNarrowLayout &&
-                columns.length > 0 && (
-                    // The headings span the row's full height, so the checkbox carries the vertical padding instead.
-                    <View style={[styles.searchListHeaderContainerStyle, styles.listTableHeaderCompact, styles.searchListHeaderTableStyle, styles.pv0, styles.pb0, pageGutterMargin]}>
-                        {canSelectMultiple && (
-                            <View
-                                style={styles.pv2}
-                                accessibilityElementsHidden
-                                importantForAccessibility="no-hide-descendants"
-                            >
-                                <Checkbox
-                                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.SELECT_ALL_CHECKBOX}
-                                    accessibilityLabel={translate('workspace.people.selectAll')}
-                                    isChecked={false}
-                                    disabled
-                                    containerStyle={styles.m0}
-                                    onPress={() => {}}
-                                />
-                            </View>
-                        )}
-                        <View style={[styles.pr9, styles.flex1, styles.alignSelfStretch]}>
-                            <SearchTableHeader
-                                canSelectMultiple={canSelectMultiple}
-                                columns={columns}
-                                type={type}
-                                onSortPress={() => {}}
-                                sortBy={sortBy}
-                                sortOrder={sortOrder}
-                                shouldShowYear={false}
-                                isAmountColumnWide={false}
-                                isTaxAmountColumnWide={false}
-                                shouldShowSorting={false}
-                                groupBy={validGroupBy}
+            {!shouldUseNarrowLayout && columns.length > 0 && (
+                // The headings span the row's full height, so the checkbox carries the vertical padding instead.
+                <View style={[styles.searchListHeaderContainerStyle, styles.listTableHeaderCompact, styles.searchListHeaderTableStyle, styles.pv0, styles.pb0, pageGutterMargin]}>
+                    {canSelectMultiple && (
+                        <View
+                            style={styles.pv2}
+                            accessibilityElementsHidden
+                            importantForAccessibility="no-hide-descendants"
+                        >
+                            <Checkbox
+                                sentryLabel={CONST.SENTRY_LABEL.SEARCH.SELECT_ALL_CHECKBOX}
+                                accessibilityLabel={translate('workspace.people.selectAll')}
+                                isChecked={false}
+                                disabled
+                                containerStyle={styles.m0}
+                                onPress={() => {}}
                             />
                         </View>
+                    )}
+                    <View style={[styles.pr9, styles.flex1, styles.alignSelfStretch]}>
+                        <SearchTableHeader
+                            canSelectMultiple={canSelectMultiple}
+                            columns={columns}
+                            type={type}
+                            onSortPress={() => {}}
+                            sortBy={sortBy}
+                            sortOrder={sortOrder}
+                            shouldShowYear={false}
+                            isAmountColumnWide={false}
+                            isTaxAmountColumnWide={false}
+                            shouldShowSorting={false}
+                            groupBy={validGroupBy}
+                        />
                     </View>
-                )}
+                </View>
+            )}
             <FlatList
                 data={sortedData}
                 renderItem={shouldUseNarrowLayout ? renderItem : (info) => renderWideItem(info, sortedData.length)}

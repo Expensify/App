@@ -1,3 +1,4 @@
+import {useSession} from '@components/OnyxListItemProvider';
 import {useSearchSelectionContext} from '@components/Search/SearchContext';
 
 import type {TransactionInlineEditParams} from '@libs/actions/TransactionInlineEdit';
@@ -8,12 +9,12 @@ import {
     editTransactionDescriptionInline,
     editTransactionMerchantInline,
     editTransactionTagInline,
-    getTransactionEditPermissions,
+    resolveTransactionEditPermissions,
 } from '@libs/actions/TransactionInlineEdit';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getDistanceRateCustomUnitRate} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
-import {isTrackExpenseReportNew} from '@libs/ReportUtils';
+import {applyRules, doesNeedRules, isTrackExpenseReportNew} from '@libs/ReportUtils';
 import {filterRulesForPolicy} from '@libs/RuleUtils';
 import showInlineEditError from '@libs/showInlineEditError';
 import {isDistanceRequest, isExpenseUnreported, isPerDiemRequest} from '@libs/TransactionUtils';
@@ -30,6 +31,7 @@ import type {OnyxEntry} from 'react-native-onyx';
  * than being duplicated across every surface that renders a transaction.
  */
 import {guidedSetupAndTourStatusSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {personalDetailsListSelector} from '@selectors/PersonalDetails';
 import {fullPolicySnapshotLastModifiedSelector} from '@selectors/Policy';
 import {useEffect, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports -- Need original useOnyx to avoid reading partial Search snapshot policy data.
@@ -102,6 +104,12 @@ type EditParamsReadOnSave =
     | 'currentUserEmail'
     | 'rules';
 
+// A hook of its own so the compiler memoizes the selector: in the caller it shares a scope with the permissions and loses memoization.
+function usePolicyRules(policyID: string | undefined) {
+    const [policyRules] = useOnyx(ONYXKEYS.COLLECTION.RULE, {selector: (rules) => filterRulesForPolicy(rules, policyID)});
+    return policyRules;
+}
+
 function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: UseTransactionInlineEditParams): UseTransactionInlineEditReturn {
     const {translate} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
@@ -160,7 +168,8 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
 
     const originalTransactionID = transaction?.comment?.originalTransactionID;
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(originalTransactionID)}`);
-    const [personalDetailsList] = useAllPersonalDetails();
+    const sessionAccountID = useSession()?.accountID;
+    const [personalDetailsList] = useAllPersonalDetails(personalDetailsListSelector([sessionAccountID, parentReportAction?.actorAccountID, parentReportForAction?.ownerAccountID]));
     const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
 
@@ -177,7 +186,6 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
     const isTrackExpense = isTrackExpenseReportNew(transactionThreadReport, effectiveParentReport, parentReportAction);
 
     const editPolicy = completePolicy ?? policy;
-    const [policyRules] = useOnyx(ONYXKEYS.COLLECTION.RULE, {selector: (rules) => filterRulesForPolicy(rules, editPolicy?.id)});
     const customUnitRateID = isDistanceRequest(transaction) ? transaction?.comment?.customUnit?.customUnitRateID : undefined;
     const shouldLookupDistancePolicy = !!customUnitRateID && !getDistanceRateCustomUnitRate(editPolicy, customUnitRateID);
     const distanceOriginalPolicy = useDistanceRateOriginalPolicy(customUnitRateID, shouldLookupDistancePolicy);
@@ -185,12 +193,12 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
     const {isOffline} = useNetwork();
     const personalPolicy = usePersonalPolicy();
 
-    const permissions = getTransactionEditPermissions({
+    const resolvedPermissions = resolveTransactionEditPermissions({
         transaction,
         parentReportAction,
         parentReport: effectiveParentReport,
         parentReportActions,
-        policy: completePolicy ?? policy,
+        policy: editPolicy,
         transactionThreadReport,
         policyCategories,
         policyTags,
@@ -199,8 +207,11 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
         originalTransaction,
         disabled: hasSelectedTransactions,
         shouldSelectPolicyForUnreported: shouldSelectPolicy,
-        rules: policyRules,
     });
+    const doPermissionsNeedRules = doesNeedRules(resolvedPermissions);
+    // Without a policyID the selector skips the scan.
+    const policyRules = usePolicyRules(doPermissionsNeedRules ? editPolicy?.id : undefined);
+    const permissions = applyRules(resolvedPermissions, policyRules);
 
     const wasEditingOnMouseDownRef = useRef(false);
 
@@ -223,6 +234,7 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
             delegateAccountID,
             getCurrencyDecimals,
             getCurrencySymbol,
+            translate,
             transactions: duplicateTransactions,
             transactionViolations: duplicateTransactionViolations,
             isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),

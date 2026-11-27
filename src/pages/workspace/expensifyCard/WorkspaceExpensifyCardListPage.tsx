@@ -1,11 +1,10 @@
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
-import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import CardFeedIcon from '@components/CardFeedIcon';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import type {InlineEditSaveResult} from '@components/EditableCell';
 import FeedSelector from '@components/FeedSelector';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderCentralPane from '@components/Header/composed/HeaderCentralPane';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -33,7 +32,7 @@ import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButton
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
-import {clearIssueNewCardFormData, exportExpensifyCardListToCSV, setIssueNewCardStepAndData} from '@libs/actions/Card';
+import {clearIssueNewCardFormData, setIssueNewCardStepAndData} from '@libs/actions/Card';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {clearDeletePaymentMethodError} from '@libs/actions/PaymentMethods';
 import {
@@ -81,6 +80,7 @@ import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import EmptyCardView from './EmptyCardView';
+import useExpensifyCardBulkExportOptions from './useExpensifyCardBulkExportOptions';
 
 type WorkspaceExpensifyCardListPageProps = {
     /** Route from navigation */
@@ -91,7 +91,7 @@ type WorkspaceExpensifyCardListPageProps = {
 };
 
 function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExpensifyCardListPageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Export', 'Gear', 'Plus']);
+    const icons = useMemoizedLazyExpensifyIcons(['Gear', 'Plus']);
     const {shouldUseNarrowLayout, isMediumScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
@@ -278,26 +278,15 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
         };
     });
 
-    const bulkExportOptions: Array<DropdownOption<typeof CONST.EXPENSIFY_CARD.BULK_ACTIONS.EXPORT_CSV>> = [
-        {
-            icon: icons.Export,
-            text: translate('workspace.expensifyCard.exportAsCSV'),
-            value: CONST.EXPENSIFY_CARD.BULK_ACTIONS.EXPORT_CSV,
-            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.BULK_ACTIONS_EXPORT_CSV,
-            onSelected: () => {
-                const selectedCards = cardRows.filter((row) => validatedSelectedCardKeys.includes(row.keyForList)).map((row) => row.card);
-                exportExpensifyCardListToCSV({
-                    policyID,
-                    cards: selectedCards,
-                    personalDetailsList: personalDetails,
-                    settlementCurrency,
-                    defaultLimitType,
-                    translate,
-                    formatPhoneNumber,
-                });
-            },
-        },
-    ];
+    const bulkExportOptions = useExpensifyCardBulkExportOptions({
+        policyID,
+        cardRows,
+        selectedCardKeys: validatedSelectedCardKeys,
+        personalDetails,
+        settlementCurrency,
+        defaultLimitType,
+        clearCardSelection: clearTableSelection,
+    });
 
     const handleIssueCardPress = () => {
         if (!canWriteExpensifyCard) {
@@ -330,7 +319,9 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     const getHeaderButtons = () => {
         const headerButtonsRowStyle = [styles.flexRow, styles.gap2, !shouldShowSelector && shouldDisplayButtonsInSeparateLine && styles.mb3];
 
-        const shouldShowBulkSelectionDropdown = shouldUseNarrowLayout ? isMobileSelectionModeEnabled : selectedCardIDs.length > 0;
+        // The wide layout offers these actions in the floating bar over the table instead, so its header keeps the
+        // page's own buttons no matter what is selected.
+        const shouldShowBulkSelectionDropdown = shouldUseNarrowLayout && isMobileSelectionModeEnabled;
 
         if (shouldShowBulkSelectionDropdown) {
             return (
@@ -442,15 +433,13 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
             shouldEnableMaxHeight
             testID="WorkspaceExpensifyCardListPage"
         >
-            <HeaderWithBackButton
-                shouldUseHeadlineHeader={!selectionModeHeader}
+            <HeaderCentralPane
                 title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.expensifyCard')}
-                shouldShowBackButton={shouldUseNarrowLayout}
-                shouldDisplayHelpButton
+                isHeadline={!selectionModeHeader}
                 onBackButtonPress={handleBackButtonPress}
             >
                 {!shouldShowSelector && !shouldDisplayButtonsInSeparateLine && isBankAccountVerified && shouldShowHeaderButtons && getHeaderButtons()}
-            </HeaderWithBackButton>
+            </HeaderCentralPane>
             {isCardListEmpty ? (
                 <>
                     {pageHeaderContent}
@@ -486,6 +475,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                         listFooterComponent={disclaimerFooter}
                         listFooterComponentStyle={[styles.flexGrow1, styles.justifyContentEnd]}
                         listContentContainerStyle={[styles.flexGrow1, {minHeight: windowHeight - headerHeight + footerHeight}]}
+                        bulkActionOptions={bulkExportOptions}
                     />
                 </View>
             )}

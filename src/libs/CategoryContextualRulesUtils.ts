@@ -15,10 +15,12 @@ import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
+import type {ExpenseDefaultConditionNames} from './MerchantTypeRulesUtils';
+
 import {getRuleDeletionPendingAction} from './CategoryTaxRulesUtils';
-import {getCategoryExpenseDefaultRules, getExpenseDefaultRuleSummaryFields, getExpenseDefaultTaxID, isEditableExpenseDefaultRule} from './ExpenseDefaultRuleUtils';
+import {getCategoryExpenseDefaultRules, getExpenseDefaultTaxID, isEditableExpenseDefaultRule} from './ExpenseDefaultRuleUtils';
 import {hasExplicitFlagAmount} from './FlagForReviewRulesUtils';
-import {getExpenseDefaultConditionText, getExpenseDefaultRuleDescription} from './MerchantTypeRulesUtils';
+import {getExpenseDefaultConditionText, getExpenseDefaultRuleDescription, getVisibleExpenseDefaultRuleSummaryFields} from './MerchantTypeRulesUtils';
 import {
     categoryHasAnyRequireFieldsRule,
     formatRequireFieldsRuleDescriptions,
@@ -71,7 +73,9 @@ function getCategoryContextualRules({
     categoryName,
     translate,
     convertToDisplayString,
+    convertToDisplayStringWithoutCurrency,
     isOffline,
+    conditionNames,
 }: {
     policy: Policy | undefined;
     /** Read for the pending delete of the category a tax default depends on. */
@@ -81,8 +85,11 @@ function getCategoryContextualRules({
     categoryName: string;
     translate: LocaleContextProps['translate'];
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
     /** Offline keeps optimistically deleted rules listed so the pending delete is visible. */
     isOffline: boolean;
+    /** Names for the members and cards a rule matches on, which the policy alone cannot resolve. */
+    conditionNames?: ExpenseDefaultConditionNames;
 }): CategoryContextualRule[] {
     if (!policy?.id || !category) {
         return [];
@@ -129,7 +136,7 @@ function getCategoryContextualRules({
     // An expense default is an ordinary rule rather than something stored on the category, so it is looked up by
     // what it matches on. The summary is the table's, so a rule reads the same in both places.
     for (const {ruleID, rule} of getCategoryExpenseDefaultRules(policyRules, policy.id, categoryName)) {
-        const summary = getExpenseDefaultRuleDescription(getExpenseDefaultRuleSummaryFields(rule), policy, translate, convertToDisplayString);
+        const summary = getExpenseDefaultRuleDescription(getVisibleExpenseDefaultRuleSummaryFields(rule, policy), policy, translate, convertToDisplayString);
         if (!summary) {
             continue;
         }
@@ -150,7 +157,7 @@ function getCategoryContextualRules({
             sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.SETTINGS_RULE_ROW.TAX,
             summary,
             // The category is left out, since naming the page the admin is already on reads as noise.
-            conditionSummary: getExpenseDefaultConditionText(rule.filters, translate, true),
+            conditionSummary: getExpenseDefaultConditionText(rule.filters, translate, convertToDisplayStringWithoutCurrency, true, policy, conditionNames),
             dynamicRoutePath: DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_TAX_EDIT.getRoute(ruleID),
             pendingAction: rulePendingAction,
             isDisabled: isRulePendingDelete || !isRuleOpenable,

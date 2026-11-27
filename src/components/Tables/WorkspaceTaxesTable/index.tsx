@@ -1,10 +1,10 @@
+import type {DropdownOption, WorkspaceTaxRatesBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
 import Table, {composeTableListHeader} from '@components/Table';
 import compareOptionalValues from '@components/Table/compareOptionalValues';
 
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import tokenizedSearch from '@libs/tokenizedSearch';
 
@@ -28,11 +28,14 @@ type WorkspaceTaxesTableProps = {
     selectionEnabled: boolean;
     selectedKeys: string[];
 
-    /** Whether the workspace has tax codes worth a column. Narrow and medium layouts hide it regardless. */
+    /** Whether tax codes are available for sorting. Narrow and medium layouts hide the cells, but keep the sort option. */
     shouldShowTaxCodeColumn: boolean;
 
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
     headerComponent?: React.ReactElement;
+
+    /** The actions the selected rates support, offered in the floating bar the wide layout shows while rows are selected. */
+    bulkActionOptions?: Array<DropdownOption<WorkspaceTaxRatesBulkActionType>>;
 };
 
 /**
@@ -49,14 +52,18 @@ function getNumericTaxRateValue(value: string): string | undefined {
     return Number.isNaN(Number.parseFloat(value)) ? undefined : value;
 }
 
-export default function WorkspaceTaxesTable({taxes, selectionEnabled, selectedKeys, shouldShowTaxCodeColumn, onRowSelectionChange, headerComponent}: WorkspaceTaxesTableProps) {
-    const styles = useThemeStyles();
+export default function WorkspaceTaxesTable({
+    taxes,
+    selectionEnabled,
+    selectedKeys,
+    shouldShowTaxCodeColumn,
+    onRowSelectionChange,
+    headerComponent,
+    bulkActionOptions,
+}: WorkspaceTaxesTableProps) {
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
-
-    // Narrow and medium layouts collapse the columns into a card that has nowhere to put the code.
-    const shouldShowTaxCodeCell = !shouldUseNarrowTableLayout && shouldShowTaxCodeColumn;
 
     const taxTableColumns: Array<TableColumn<WorkspaceTaxTableColumnKey, WorkspaceTaxTableRowData>> = [
         {
@@ -82,7 +89,7 @@ export default function WorkspaceTaxesTable({taxes, selectionEnabled, selectedKe
                 shouldFitContent: true,
             },
         },
-        ...(shouldShowTaxCodeCell
+        ...(shouldShowTaxCodeColumn
             ? [
                   {
                       key: 'taxCode' as const,
@@ -100,7 +107,7 @@ export default function WorkspaceTaxesTable({taxes, selectionEnabled, selectedKe
             sortable: true,
             width: variables.tableSwitchColumnWidth,
             styling: {
-                containerStyles: [styles.justifyContentEnd],
+                alignment: CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.END,
             },
         },
         {
@@ -161,7 +168,6 @@ export default function WorkspaceTaxesTable({taxes, selectionEnabled, selectedKe
             columnResizingID={CONST.TABLES.COLUMN_RESIZING_IDS.WORKSPACE_TAXES}
             data={taxes}
             initialSortColumn="name"
-            narrowLayoutSortColumn="name"
             selectionEnabled={selectionEnabled}
             title={translate('workspace.common.taxes')}
             columns={taxTableColumns}
@@ -176,6 +182,7 @@ export default function WorkspaceTaxesTable({taxes, selectionEnabled, selectedKe
             <Table.NoResultsState />
             <Table.Header />
             <Table.Body />
+            {!!bulkActionOptions && <Table.BulkActionBar options={bulkActionOptions} />}
         </Table>
     );
 }

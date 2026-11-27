@@ -10,6 +10,7 @@ import CONST from '@src/CONST';
 import type {Policy, Transaction} from '@src/types/onyx';
 import type {Attendee, Participant, SplitExpense} from '@src/types/onyx/IOU';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {Unit} from '@src/types/onyx/Policy';
 import type {Comment, Receipt, Routes, TransactionCustomUnit, TransactionPendingFieldsKey, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -18,10 +19,7 @@ import type {ValueOf} from 'type-fest';
 
 import lodashSet from 'lodash/set';
 
-// This cycle import is safe because this file was extracted from TransactionUtils/index.ts, which re-exports it.
-// The functions imported here are pure helpers that aren't called at initialization time.
-// eslint-disable-next-line import/no-cycle
-import {isManualDistanceRequest, isOdometerDistanceRequest} from './index';
+import {isManualDistanceRequest, isOdometerDistanceRequest} from './fields';
 
 type TransactionParams = {
     /** Amount of the transaction, in cents */
@@ -61,6 +59,7 @@ type TransactionParams = {
     waypoints?: WaypointCollection;
     odometerStart?: number;
     odometerEnd?: number;
+    odometerUnit?: Unit;
     routes?: Routes;
     gpsCoordinates?: string;
     type?: ValueOf<typeof CONST.TRANSACTION.TYPE>;
@@ -123,6 +122,7 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         waypoints,
         odometerStart,
         odometerEnd,
+        odometerUnit,
         routes,
         type,
         count,
@@ -140,6 +140,9 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
     }
     if (odometerEnd !== undefined) {
         commentJSON.odometerEnd = odometerEnd;
+    }
+    if (odometerUnit !== undefined) {
+        commentJSON.odometerUnit = odometerUnit;
     }
     if (isDemoTransactionParam) {
         commentJSON.isDemoTransaction = true;
@@ -226,6 +229,7 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
                   state: receiptState ?? receipt.state ?? CONST.IOU.RECEIPT_STATE.SCAN_READY,
                   isTestDriveReceipt: receipt.isTestDriveReceipt,
                   pageCount: receipt.pageCount,
+                  receiptTraceId: receipt.receiptTraceId,
               }
             : undefined,
         hasEReceipt: existingTransaction?.hasEReceipt,

@@ -10,7 +10,9 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getCategoryOnlyExpenseDefaultTaxID, hasCategoryExpenseDefaultTaxRule} from '@libs/ExpenseDefaultRuleUtils';
-import {getDistanceRateCustomUnit, getDistanceRateCustomUnitRate, isSelectableTaxCode, isTaxCodeCustomized, resolveCurrentTaxCode} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnit, getDistanceRateCustomUnitRate} from '@libs/PolicyUtils/customUnits';
+import {isPolicyFeatureEnabled} from '@libs/PolicyUtils/features';
+import {formatTaxRateName, isSelectableTaxCode, isTaxCodeCustomized, resolveCurrentTaxCode} from '@libs/PolicyUtils/tax';
 
 import CONST from '@src/CONST';
 import type {Policy, Rule, TaxRate, TaxRates, Transaction} from '@src/types/onyx';
@@ -18,11 +20,8 @@ import type {Unit} from '@src/types/onyx/Policy';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
+import {getAmount, getCurrency, getRateID, getTaxCode, isDistanceRequest, isPerDiemRequest, isTimeRequest} from './fields';
 import getDistanceInMeters from './getDistanceInMeters';
-// This cycle import is safe because this file was extracted from TransactionUtils/index.ts, which re-exports it.
-// The functions imported here are pure helpers that aren't called at initialization time.
-// eslint-disable-next-line import/no-cycle
-import {getAmount, getCurrency, getRateID, getTaxCode, isDistanceRequest, isPerDiemRequest, isTimeRequest} from './index';
 
 function getTaxCodeForDisplay(transaction: Transaction, policy: OnyxEntry<Policy>): string {
     if (isPerDiemRequest(transaction) || isTimeRequest(transaction) || !isTaxCodeCustomized(transaction.taxCode, policy)) {
@@ -86,7 +85,11 @@ function getDistanceCategoryTaxCode(
 ): string | undefined {
     // Tax tracking being off for distance rates hides the Tax field, so a value written there would be invisible, and a
     // rate carrying its own tax rate outranks the rule.
-    if (!getDistanceRateCustomUnit(policy)?.attributes?.taxEnabled || hasSelectableRateTaxCode(policy, customUnitRateID)) {
+    if (
+        !isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED) ||
+        !getDistanceRateCustomUnit(policy)?.attributes?.taxEnabled ||
+        hasSelectableRateTaxCode(policy, customUnitRateID)
+    ) {
         return undefined;
     }
     return getSelectableCategoryTaxCode(policy, rules, category, defaultTaxCode);
@@ -134,7 +137,8 @@ function transformedTaxRates(translate: LocalizedTranslate, policy: OnyxEntry<Po
 
         return policy && getDefaultTaxCode(policy, transaction);
     };
-    const getModifiedName = (data: TaxRate, code: string) => `${data.name} (${data.value})${defaultTaxCode() === code ? ` ${CONST.DOT_SEPARATOR} ${translate('common.default')}` : ''}`;
+    const getModifiedName = (data: TaxRate, code: string) =>
+        `${formatTaxRateName(data.name, data.value)}${defaultTaxCode() === code ? ` ${CONST.DOT_SEPARATOR} ${translate('common.default')}` : ''}`;
     const taxes = Object.fromEntries(Object.entries(taxRates?.taxes ?? {}).map(([code, data]) => [code, {...data, code, modifiedName: getModifiedName(data, code), name: data.name}]));
     return taxes;
 }
@@ -277,6 +281,10 @@ function getTaxRateTitle(
  * rule can apply.
  */
 function getCategoryTaxCode(category: string, transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Policy>, rules: OnyxCollection<Rule>, currency?: string): string | undefined {
+    if (!isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED)) {
+        return undefined;
+    }
+
     if (isDistanceRequest(transaction)) {
         const customUnitRateID = getRateID(transaction);
         return getDistanceCategoryTaxCode(policy, rules, customUnitRateID, category, getDefaultTaxCode(policy, transaction, undefined, customUnitRateID));
@@ -300,6 +308,9 @@ function getCategoryTaxDetails(
     currency?: string,
 ) {
     const unresolvedTaxDetails = {categoryTaxCode: undefined, categoryTaxAmount: undefined, categoryTaxValue: undefined};
+    if (!isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED)) {
+        return unresolvedTaxDetails;
+    }
 
     // Both branches fall back to the workspace default, which keeps a category with no rule from carrying the rate
     // its predecessor set, the way the confirmation page does for every other expense. A policy with no tax rule at

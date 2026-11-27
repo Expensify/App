@@ -1,11 +1,12 @@
 /** Converts a clicked chart group to the URL params the Details panel names it by, and back to its title and Spend filter. */
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
-import CHART_GROUP_BY_CONFIG from '@components/Search/chartGroupByConfig';
-import type {GroupedItem, SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
+import CHART_GROUP_BY_CONFIG, {buildTagFilterQuery} from '@components/Search/chartGroupByConfig';
+import type {GroupedItem, SearchDateFilterKeys, SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
 
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import DateUtils from '@libs/DateUtils';
-import {adjustTimeRangeToDateFilters} from '@libs/SearchUIUtils';
+import {getViolationDisplayName} from '@libs/SearchQueryUtils';
+import {adjustTimeRangeToDateFilters, getTagGroupLabel} from '@libs/SearchUIUtils';
 import {isInvalidMerchantValue, isValidDate} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
@@ -25,31 +26,49 @@ type InsightsDetailsItem = {
 };
 
 type InsightsDetailsItemParams = {
-    /** The member's account ID, the merchant, the category, or the first day of the period */
+    /** The member's account ID, the merchant, the category, the tag, the violation, or the first day of the period */
     itemKey: string;
 
     /** Last day of the period, trimmed to the date range like the chart's label */
     periodEnd?: string;
+
+    /** Tag level of a tag, undefined when the chart groups by every level of the tag together */
+    tagLevel?: number;
+
+    /** Encoded parent tags of a dependent tag */
+    parentTagPath?: string;
 };
 
 type ResolveInsightsDetailsItemParams = InsightsDetailsItemParams & {
     groupBy: SearchGroupBy;
 
-    /** The member a Top spenders item names */
+    /** The date a period narrows, the expense date unless the chart counts by an action's date */
+    dateFilterKey?: SearchDateFilterKeys;
+
+    /** The member a submitter or approver item names */
     member: OnyxEntry<PersonalDetails>;
     dateFnsLocale: DateFnsLocale | undefined;
     translate: LocalizedTranslate;
 };
 
 /** Returns the URL params the Details panel names a clicked group by. A period is trimmed to the chart's date range, as the chart labels it. */
-function getInsightsDetailsItemParams(item: GroupedItem, queryJSON: Readonly<SearchQueryJSON>): InsightsDetailsItemParams | undefined {
+function getInsightsDetailsItemParams(
+    item: GroupedItem,
+    queryJSON: Readonly<SearchQueryJSON>,
+    dateFilterKey: SearchDateFilterKeys = CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+): InsightsDetailsItemParams | undefined {
     switch (item.groupedBy) {
         case CONST.SEARCH.GROUP_BY.FROM:
+        case CONST.SEARCH.GROUP_BY.APPROVER:
             return {itemKey: String(item.accountID)};
+        case CONST.SEARCH.GROUP_BY.VIOLATION:
+            return {itemKey: item.violation};
         case CONST.SEARCH.GROUP_BY.MERCHANT:
             return {itemKey: item.merchant};
         case CONST.SEARCH.GROUP_BY.CATEGORY:
             return {itemKey: item.category};
+        case CONST.SEARCH.GROUP_BY.TAG:
+            return {itemKey: item.tag, tagLevel: item.tagLevel, parentTagPath: item.parentTagPath};
         default:
             break;
     }
@@ -60,7 +79,7 @@ function getInsightsDetailsItemParams(item: GroupedItem, queryJSON: Readonly<Sea
     }
     const {start, end} = adjustTimeRangeToDateFilters(
         range,
-        queryJSON.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE),
+        queryJSON.flatFilters.filter((filter) => filter.key === dateFilterKey),
     );
     return {itemKey: start, periodEnd: end};
 }
@@ -83,15 +102,31 @@ function getPeriodTitle(groupBy: SearchGroupBy, range: {start: string; end: stri
 }
 
 /** Resolves the key in the Details panel's URL to the item's title and the filter narrowing the chart's query to it. */
-function resolveInsightsDetailsItem({groupBy, itemKey, periodEnd, member, dateFnsLocale, translate}: ResolveInsightsDetailsItemParams): InsightsDetailsItem | undefined {
+function resolveInsightsDetailsItem({
+    groupBy,
+    itemKey,
+    periodEnd,
+    parentTagPath,
+    tagLevel,
+    dateFilterKey = CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+    member,
+    dateFnsLocale,
+    translate,
+}: ResolveInsightsDetailsItemParams): InsightsDetailsItem | undefined {
     switch (groupBy) {
-        case CONST.SEARCH.GROUP_BY.FROM: {
+        case CONST.SEARCH.GROUP_BY.FROM:
+        case CONST.SEARCH.GROUP_BY.APPROVER: {
             const name = member?.displayName ?? member?.login;
             if (!name) {
                 return undefined;
             }
-            return {title: name, filterQuery: `from:${itemKey}`};
+            return {title: name, filterQuery: `${groupBy}:${itemKey}`};
         }
+        case CONST.SEARCH.GROUP_BY.VIOLATION:
+            if (!itemKey) {
+                return undefined;
+            }
+            return {title: getViolationDisplayName(itemKey, translate), filterQuery: `${CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION}:${itemKey}`};
         case CONST.SEARCH.GROUP_BY.MERCHANT: {
             const isEmptyMerchant = !itemKey || itemKey === CONST.SEARCH.MERCHANT_EMPTY_VALUE || itemKey === CONST.TRANSACTION.UNKNOWN_MERCHANT || isInvalidMerchantValue(itemKey);
             return {title: isEmptyMerchant ? translate('search.noMerchant') : itemKey, filterQuery: `merchant="${itemKey}"`};
@@ -101,14 +136,21 @@ function resolveInsightsDetailsItem({groupBy, itemKey, periodEnd, member, dateFn
                 title: !itemKey || itemKey === CONST.SEARCH.CATEGORY_EMPTY_VALUE ? itemKey : getDecodedCategoryName(itemKey),
                 filterQuery: `category:"${itemKey}"`,
             };
+        case CONST.SEARCH.GROUP_BY.TAG: {
+            if (tagLevel !== undefined && (!Number.isSafeInteger(tagLevel) || tagLevel < 1)) {
+                return undefined;
+            }
+            const tagGroup = {tag: itemKey, tagLevel, parentTagPath};
+            return {title: getTagGroupLabel(tagGroup, translate), filterQuery: buildTagFilterQuery(tagGroup)};
+        }
         default: {
             if (!periodEnd || !isValidDate(itemKey) || !isValidDate(periodEnd)) {
                 return undefined;
             }
             const range = {start: itemKey, end: periodEnd};
-            return {title: getPeriodTitle(groupBy, range, dateFnsLocale), filterQuery: `date>=${range.start} date<=${range.end}`};
+            return {title: getPeriodTitle(groupBy, range, dateFnsLocale), filterQuery: `${dateFilterKey}>=${range.start} ${dateFilterKey}<=${range.end}`};
         }
     }
 }
 
-export {getInsightsDetailsItemParams, resolveInsightsDetailsItem};
+export {getInsightsDetailsItemParams, getPeriodTitle, resolveInsightsDetailsItem};

@@ -3,7 +3,7 @@ import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import type {EmptyStateButton} from '@components/EmptyStateComponent/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderCentralPane from '@components/Header/composed/HeaderCentralPane';
 import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import RenderHTML from '@components/RenderHTML';
@@ -16,6 +16,7 @@ import useAlertModals from '@hooks/useAlertModals';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useEndSelectionWhenBulkEditCleared from '@hooks/useEndSelectionWhenBulkEditCleared';
 import useEnvironment from '@hooks/useEnvironment';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -40,12 +41,12 @@ import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {renameCategoryInline} from '@libs/actions/Policy/InlineEdit';
-import {getCategoryApproverRule, getDecodedCategoryName, getMembersWithoutVisibleCategories} from '@libs/CategoryUtils';
+import {getCategoryApproverRule, getDecodedCategoryName, getEnabledCategoriesCount, getMembersWithoutVisibleCategories} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {hasEnabledOptions, isDisablingOrDeletingLastEnabledCategory} from '@libs/OptionsListUtils';
-import {arePolicyRulesEnabled, getConnectedIntegration, hasAccountingConnections, hasTags, isControlPolicy, shouldShowSyncError} from '@libs/PolicyUtils';
+import {arePolicyRulesEnabled, getConnectedIntegration, hasAccountingConnections, hasTags, isControlPolicy, isPolicyAdmin, shouldShowSyncError} from '@libs/PolicyUtils';
 import showInlineEditError from '@libs/showInlineEditError';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -59,6 +60,7 @@ import {
     openPolicyCategoriesPage,
     setPolicyAutoCategorizeNewExpenses,
     setPolicyShowCategoryGLCodes,
+    setWorkspaceCategoriesSelectedForBulkEdit,
     setWorkspaceCategoryEnabled,
 } from '@userActions/Policy/Category';
 import {clearPolicyErrorField} from '@userActions/Policy/Policy';
@@ -101,8 +103,13 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const buildDynamicRoute = useScreenBoundDynamicRoute();
 
     const [selectedCategoryKeys, setSelectedCategoryKeys] = useState<string[]>([]);
+    const [categoriesSelectedForBulkEditCount = 0] = useOnyx(ONYXKEYS.RAM_ONLY_WORKSPACE_CATEGORIES_SELECTED_FOR_BULK_EDIT, {
+        selector: (selection) => selection?.categoryNames.length,
+    });
+    useEndSelectionWhenBulkEditCleared(categoriesSelectedForBulkEditCount, () => setSelectedCategoryKeys([]));
+
     const canSelectMultiple = canWriteCategories && (isSmallScreenWidth ? isMobileSelectionModeEnabled : true);
-    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close', 'Download', 'Gear', 'Plus', 'Table', 'Trashcan']);
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close', 'Download', 'Eye', 'Gear', 'Plus', 'Table', 'Trashcan']);
 
     const {
         taskReport: setupCategoryTaskReport,
@@ -268,6 +275,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const isSelectionModeActive = selectedCategoryKeys.length > 0 || isMobileSelectionModeEnabled;
 
+    const enabledCategoriesCount = getEnabledCategoriesCount(policyCategories);
+
     const categoryRows: WorkspaceCategoryTableRowData[] = categories.reduce<WorkspaceCategoryTableRowData[]>((acc, value) => {
         const isDisabled = value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
@@ -284,6 +293,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             keyForList: value.name,
             name: getDecodedCategoryName(value.name),
             glCode: value['GL Code'],
+            payrollCode: value['Payroll Code'],
             disabled: isDisabled,
             approverAvatar,
             approverAccountID,
@@ -291,7 +301,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             enabled: value.enabled,
             errors: value.errors ?? undefined,
             pendingAction: value.pendingAction,
-            isLocked: isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value]) || !canWriteCategories || isDisabled,
+            isLocked: isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value], enabledCategoriesCount) || !canWriteCategories || isDisabled,
             canEditName: canWriteCategories && !isDisabled && !isSelectionModeActive,
             action: () => navigateToCategory(value),
             onToggleEnabled: (enabled: boolean) => handleCategoryToggle(enabled, value),
@@ -302,6 +312,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
         return acc;
     }, []);
+
+    const shouldShowPayrollCodeColumn = isControlPolicyWithWideLayout && categoryRows.some((category) => !!category.payrollCode);
 
     const navigateToCreateCategoryPage = () => {
         Navigation.navigate(buildDynamicRoute(isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_CATEGORY_CREATE.path : DYNAMIC_ROUTES.WORKSPACE_CATEGORY_CREATE.path));
@@ -439,16 +451,12 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     }
     const secondaryActions = menuItems;
 
-    const getHeaderButtons = () => {
-        if (!canWriteCategories && secondaryActions.length === 0) {
-            return null;
-        }
-
+    const getBulkActionOptions = () => {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
         const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
         const selectedCategoriesObject = selectedCategoryKeys.map((key) => policyCategories?.[key]);
 
-        if (canWriteCategories && (isSmallScreenWidth ? canSelectMultiple : selectedCategoryKeys.length > 0)) {
+        if (canWriteCategories) {
             if (!isThereAnyAccountingConnection) {
                 options.push({
                     icon: icons.Trashcan,
@@ -567,6 +575,32 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 });
             }
 
+            // The server rejects visibility changes on disabled categories, so only the enabled ones are edited
+            if (isPolicyAdmin(policy) && isControlPolicy(policy) && enabledCategories.length > 0) {
+                options.push({
+                    icon: icons.Eye,
+                    text: translate('workspace.categories.editVisibility'),
+                    value: CONST.POLICY.BULK_ACTION_TYPES.EDIT_VISIBILITY,
+                    sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.BULK_ACTIONS_EDIT_VISIBILITY,
+                    onSelected: () => {
+                        setWorkspaceCategoriesSelectedForBulkEdit(policyId, enabledCategories);
+                        Navigation.navigate(buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORIES_BULK_VISIBLE_TO.path));
+                    },
+                });
+            }
+        }
+
+        return options;
+    };
+
+    const getHeaderButtons = () => {
+        if (!canWriteCategories && secondaryActions.length === 0) {
+            return null;
+        }
+
+        // The floating bar over the table takes these actions wherever it fits, which is the full-width page and not
+        // the RHP. The header keeps offering them everywhere the bar cannot go.
+        if (canWriteCategories && shouldUseNarrowLayout && (isSmallScreenWidth ? canSelectMultiple : selectedCategoryKeys.length > 0)) {
             return (
                 <ButtonWithDropdownMenu
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
@@ -574,9 +608,9 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     shouldAlwaysShowDropdownMenu
                     size={CONST.BUTTON_SIZE.MEDIUM}
                     customText={translate('workspace.common.selected', {count: selectedCategoryKeys.length})}
-                    options={options}
+                    options={getBulkActionOptions()}
                     isSplitButton={false}
-                    style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
+                    style={shouldDisplayButtonsInSeparateLine && [styles.flexGrow1, styles.mb3]}
                     isDisabled={!selectedCategoryKeys.length}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.BULK_ACTIONS_DROPDOWN}
                     testID="WorkspaceCategoriesPage-header-dropdown-menu-button"
@@ -678,11 +712,9 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 shouldShowOfflineIndicatorInWideScreen
                 offlineIndicatorStyle={styles.mtAuto}
             >
-                <HeaderWithBackButton
-                    shouldShowBackButton={shouldUseNarrowLayout}
+                <HeaderCentralPane
                     title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.categories')}
-                    shouldUseHeadlineHeader={!selectionModeHeader}
-                    shouldDisplayHelpButton
+                    isHeadline={!selectionModeHeader}
                     onBackButtonPress={() => {
                         if (isMobileSelectionModeEnabled) {
                             clearTableSelection();
@@ -699,7 +731,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     }}
                 >
                     {!shouldDisplayButtonsInSeparateLine && getHeaderButtons()}
-                </HeaderWithBackButton>
+                </HeaderCentralPane>
                 {shouldDisplayButtonsInSeparateLine && !!getHeaderButtons() && <View style={pageGutter}>{getHeaderButtons()}</View>}
 
                 {(!hasVisibleCategories || isLoading) && headerContent}
@@ -719,9 +751,11 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         emptyStateSubtitleText={subtitleText}
                         emptyStateButtons={emptyStateButtons}
                         shouldShowGLCodeColumn={shouldShowGLCodeColumn}
+                        shouldShowPayrollCodeColumn={shouldShowPayrollCodeColumn}
                         shouldShowApproverColumn={shouldShowApproverColumn}
                         onRowSelectionChange={setSelectedCategoryKeys}
                         headerComponent={hasVisibleCategories ? headerContent : undefined}
+                        bulkActionOptions={canWriteCategories ? getBulkActionOptions() : undefined}
                     />
                 )}
             </ScreenWrapper>

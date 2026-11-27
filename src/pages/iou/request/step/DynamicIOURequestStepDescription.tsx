@@ -28,7 +28,7 @@ import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Parser from '@libs/Parser';
 import {arePolicyRulesEnabled} from '@libs/PolicyUtils';
 import shouldForceKeyboardIfAlreadyFocused from '@libs/shouldForceKeyboardIfAlreadyFocused';
-import {hasReceipt} from '@libs/TransactionUtils';
+import {getDescription, hasReceipt} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
 
@@ -50,6 +50,7 @@ import {loginSelector} from '@selectors/PersonalDetails';
 import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useState} from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
@@ -75,16 +76,10 @@ function DynamicIOURequestStepDescription({
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const allTransactionViolations = useAllTransactionViolations(transaction?.transactionID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
-    const [policyVendors] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_VENDORS}${report?.policyID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [iouReportOwnerLogin] = usePersonalDetail(parentReport?.ownerAccountID, loginSelector);
-    const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
-
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
 
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -97,11 +92,9 @@ function DynamicIOURequestStepDescription({
 
     let currentDescriptionInMarkdown;
     if (!isTransactionDraft || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE) {
-        currentDescriptionInMarkdown = Parser.htmlToMarkdown(
-            isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? (splitDraftTransaction?.comment?.comment ?? '') : (transaction?.comment?.comment ?? ''),
-        );
+        currentDescriptionInMarkdown = Parser.htmlToMarkdown(getDescription(isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction));
     } else {
-        currentDescriptionInMarkdown = isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? (splitDraftTransaction?.comment?.comment ?? '') : (transaction?.comment?.comment ?? '');
+        currentDescriptionInMarkdown = getDescription(isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction);
     }
 
     const [currentDescription, setCurrentDescription] = useState(currentDescriptionInMarkdown);
@@ -135,7 +128,7 @@ function DynamicIOURequestStepDescription({
         setCurrentDescription(value);
     };
 
-    const updateComment = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM>) => {
+    const updateComment = async (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM>) => {
         if (!transaction?.transactionID) {
             return;
         }
@@ -149,14 +142,22 @@ function DynamicIOURequestStepDescription({
         }
 
         if (isEditingSplit) {
-            setDraftSplitTransaction(transaction?.transactionID, splitDraftTransaction ?? transaction, {comment: newComment}, getCurrencyDecimals, getCurrencySymbol);
+            setDraftSplitTransaction(translate, transaction?.transactionID, splitDraftTransaction ?? transaction, {comment: newComment}, getCurrencyDecimals, getCurrencySymbol);
             setIsSaved(true);
             armNavigateBack();
             return;
         }
 
         if (action === CONST.IOU.ACTION.EDIT) {
+            const [rules, policyTags, policyVendors, reportPolicyTags, introSelected] = await Onyx.multiGet([
+                ONYXKEYS.COLLECTION.RULE,
+                `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`,
+                `${ONYXKEYS.COLLECTION.POLICY_VENDORS}${report?.policyID}`,
+                `${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`,
+                ONYXKEYS.NVP_INTRO_SELECTED,
+            ]);
             updateMoneyRequestDescription({
+                translate,
                 isVendorMatchingBetaEnabled,
                 transactionID: transaction?.transactionID,
                 transaction,
@@ -173,7 +174,7 @@ function DynamicIOURequestStepDescription({
                 isASAPSubmitBetaEnabled,
                 delegateAccountID,
                 reportPolicyTags,
-                isTrackIntentUser,
+                isTrackIntentUser: isTrackIntentUserSelector(introSelected),
                 violations: allTransactionViolations,
                 getCurrencyDecimals,
                 getCurrencySymbol,

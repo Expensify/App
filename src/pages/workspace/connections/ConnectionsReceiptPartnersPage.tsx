@@ -55,6 +55,7 @@ function ConnectionsReceiptPartnersPage({route}: ConnectionsReceiptPartnersPageP
     } = useReceiptPartnersSettings(policyID, {
         // These settings have nothing to show once Uber is disconnected
         onDisconnectConfirmed: (disconnect) => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID), {afterTransition: disconnect}),
+        onRevokePageOpened: () => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID)),
     });
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.receiptPartners');
     const isLoading = policy?.isLoading;
@@ -93,11 +94,7 @@ function ConnectionsReceiptPartnersPage({route}: ConnectionsReceiptPartnersPageP
                             subtitle={uberData?.description}
                             titleStyles={[styles.textNormal, styles.lineHeightLarge]}
                         />
-                        {!!uberData && canWriteMoreFeatures && (
-                            <Header.Right>
-                                <Header.ThreeDotsMenu items={getOverflowMenu(CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER)} />
-                            </Header.Right>
-                        )}
+                        {!!uberData && canWriteMoreFeatures && <Header.ThreeDotsMenu items={getOverflowMenu(CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER)} />}
                     </Header>
                     <ScrollView
                         contentContainerStyle={styles.pt3}

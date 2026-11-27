@@ -1,25 +1,76 @@
 /** Declares the charts each Insights dashboard renders and how they map to backend graph slots and search views. */
 
-import type {SearchChartCountDimension, SearchChartMetric, SearchGroupBy, SearchView} from '@components/Search/types';
+import type {GroupedItem, SearchChartCountDimension, SearchChartMetric, SearchGroupBy, SearchView} from '@components/Search/types';
 
+import {arePaymentsEnabled} from '@libs/PolicyUtils/payments';
 import {canEditWorkspaceSettings} from '@libs/PolicyUtils/permissions';
 import {isArchivedOrPendingDeletePolicy, isControlPolicy, isGroupPolicy} from '@libs/PolicyUtils/policyType';
 import {areApprovalsEnabled} from '@libs/PolicyUtils/workflows';
-import {isPolicyEligibleForTopCategories, isPolicyEligibleForTopSpenders} from '@libs/SearchUIUtils';
+import {isPolicyEligibleForTopCategories, isPolicyEligibleForTopSpenders, isPolicyEligibleForTopTags} from '@libs/SearchUIUtils';
+
+import colors from '@styles/theme/colors';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {HasFilterValues} from '@src/types/form/SearchAdvancedFiltersForm';
-import type {Beta, InsightsDashboardID, InsightsGraphKey, InsightsSearchKey, Policy} from '@src/types/onyx';
-import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+import type {InsightsDashboardID, InsightsGraphKey, InsightsSearchKey, Policy} from '@src/types/onyx';
+import type {SearchDataTypes, SearchWorkflowStageDurations} from '@src/types/onyx/SearchResults';
 
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {canViewAllPolicyData, hasMultipleMembers} from './insightsAccess';
 
+type PolicyEligibilityCheck = (policy: Policy, login: string | undefined) => boolean;
+
+/** One workflow stage a chart shows */
+type InsightsChartStage = {
+    workflowStage: ValueOf<typeof CONST.SEARCH.WORKFLOW_STAGES>;
+
+    /** The time-bucket field holding how long the bucket's reports spent in the stage */
+    durationField: keyof SearchWorkflowStageDurations;
+
+    /** Color of the stage's segment in the current period's stack */
+    color: string;
+
+    /** Color of the stage's segment in the previous period's stack */
+    comparisonColor: string;
+
+    /** The stage is shown when any workspace in scope passes this. A stage that declares none is always shown. */
+    isPolicyEligible?: PolicyEligibilityCheck;
+};
+
+/** The stages a report moves through, in order, each drawn in a darker shade of its period's hue than the one after it */
+const WORKFLOW_STAGES: InsightsChartStage[] = [
+    {
+        workflowStage: CONST.SEARCH.WORKFLOW_STAGES.CREATED_SUBMITTED,
+        durationField: 'submitAverageTime',
+        color: colors.blue600,
+        comparisonColor: colors.green600,
+    },
+    {
+        workflowStage: CONST.SEARCH.WORKFLOW_STAGES.SUBMITTED_APPROVED,
+        durationField: 'approveAverageTime',
+        color: colors.blue400,
+        comparisonColor: colors.green400,
+        isPolicyEligible: areApprovalsEnabled,
+    },
+    {
+        workflowStage: CONST.SEARCH.WORKFLOW_STAGES.APPROVED_PAID,
+        durationField: 'reimburseAverageTime',
+        color: colors.blue200,
+        comparisonColor: colors.green200,
+    },
+];
+
 /** Dates a chart can narrow the page's period by */
-type InsightsDateFilterKey = typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL;
+type InsightsDateFilterKey = typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_SUBMISSION | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL;
+
+/** Whose violations a chart counts: the ones kept when expenses were submitted, or when they were approved */
+type InsightsViolationStage = ValueOf<typeof CONST.INSIGHTS.VIOLATION_STAGE>;
+
+/** Violation stage the user picked on each chart that offers one */
+type InsightsViolationStages = Partial<Record<InsightsGraphKey, InsightsViolationStage>>;
 
 type InsightsChartSpec = {
     /** Slot the request names the chart's snapshot under, and the response's `graphs` confirms it in */
@@ -46,12 +97,30 @@ type InsightsChartSpec = {
     /** The date the page's date filter applies to, so the chart's Spend query matches what the backend counts. Defaults to the expense date. */
     dateFilterKey?: InsightsDateFilterKey;
 
+    /** Lets the user switch the chart between submitters' and approvers' violations. The chart's own `has` and `dateFilterKey` are the submitters' default. */
+    hasViolationStageControl?: boolean;
+
+    /** Stage whose violations a chart without a stage control counts, which Explain names */
+    violationStage?: InsightsViolationStage;
+
     /** The chart is shown when any workspace in scope passes this. A chart that declares none is always shown. */
-    isPolicyEligible?: (policy: Policy, login: string | undefined) => boolean;
+    isPolicyEligible?: PolicyEligibilityCheck;
+
+    /**
+     * The workflow stages the chart shows, of which it drops those no workspace in scope is eligible for.
+     * A time-grouped chart stacks them in each bucket's column, and a chart grouped by workflow stage draws them as its groups.
+     */
+    stages?: InsightsChartStage[];
 };
 
 /** Violations kept at submission or approval */
 const VIOLATION_HAS_VALUES: HasFilterValues = [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION, CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION];
+
+/** The violations each stage counts, and the action date the backend buckets them by, so the Spend query finds the same expenses even when a report was submitted more than once */
+const VIOLATION_STAGE_FILTERS: Record<InsightsViolationStage, Required<Pick<InsightsChartSpec, 'has' | 'dateFilterKey'>>> = {
+    [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: {has: [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION], dateFilterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_SUBMISSION},
+    [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: {has: [CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION], dateFilterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL},
+};
 
 type InsightsDashboardSpec = {
     /** Identifies the dashboard to the backend. */
@@ -60,11 +129,8 @@ type InsightsDashboardSpec = {
     /** Label of the dashboard's tab in the segmented control */
     labelKey: TranslationPaths;
 
-    /** The dashboard is hidden unless this beta is enabled */
-    beta?: Beta;
-
     /** The dashboard is shown when any workspace in scope passes this. A dashboard that declares none is always shown. */
-    isPolicyEligible?: (policy: Policy, login: string | undefined) => boolean;
+    isPolicyEligible?: PolicyEligibilityCheck;
 
     /** The search type of every query on the dashboard: `expense` for charts of expenses, `expense-report` for charts of reports */
     queryType: SearchDataTypes;
@@ -74,6 +140,9 @@ type InsightsDashboardSpec = {
 
     /** Whether the charts link to the Spend page, from their menus and from a pressed point that has no Details panel to open. Defaults to true. */
     supportsDrillIn?: boolean;
+
+    /** Whether a pressed point opens the Details panel */
+    hasDetailsPanel: boolean;
 
     /** The dashboard's charts are replaced by the Control upsell when no workspace in scope is on Control */
     requiresControlPlan?: boolean;
@@ -90,6 +159,7 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
         searchKey: CONST.INSIGHTS.SEARCH_KEY.SPEND,
         labelKey: 'common.spend',
         queryType: CONST.SEARCH.DATA_TYPES.EXPENSE,
+        hasDetailsPanel: true,
         headlineChart: {
             graphKey: CONST.INSIGHTS.GRAPH.SPEND_OVER_TIME,
             titleKey: 'search.spendOverTime',
@@ -125,31 +195,43 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
                 limit: CONST.SEARCH.TOP_SEARCH_LIMIT,
                 isPolicyEligible: isPolicyEligibleForTopCategories,
             },
+            {
+                graphKey: CONST.INSIGHTS.GRAPH.TOP_TAGS,
+                titleKey: 'search.tabs.topTags',
+                view: CONST.SEARCH.VIEW.PIE,
+                groupBy: CONST.SEARCH.GROUP_BY.TAG,
+                sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
+                sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+                limit: CONST.SEARCH.TOP_SEARCH_LIMIT,
+                isPolicyEligible: isPolicyEligibleForTopTags,
+            },
         ],
     },
     [CONST.INSIGHTS.DASHBOARD.EFFICIENCY]: {
         searchKey: CONST.INSIGHTS.SEARCH_KEY.EFFICIENCY,
         labelKey: 'insightsPage.efficiency',
-        beta: CONST.BETAS.INSIGHTS_EFFICIENCY,
         isPolicyEligible: canViewAllPolicyData,
         queryType: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
         countDimension: CONST.SEARCH.CHART_COUNT_DIMENSION.REPORT,
         supportsDrillIn: false,
+        hasDetailsPanel: false,
         headlineChart: {
             graphKey: CONST.INSIGHTS.GRAPH.WORKFLOW_EFFICIENCY,
             titleKey: 'insightsPage.workflowEfficiency',
             view: CONST.SEARCH.VIEW.BAR,
-            metric: CONST.SEARCH.CHART_METRIC.COUNT,
+            metric: CONST.SEARCH.CHART_METRIC.DURATION,
+            stages: WORKFLOW_STAGES,
         },
         supportingCharts: [
             {
                 graphKey: CONST.INSIGHTS.GRAPH.AVERAGE_PROCESSING_TIME,
                 titleKey: 'insightsPage.averageProcessingTime',
-                view: CONST.SEARCH.VIEW.PIE,
+                view: CONST.SEARCH.VIEW.BAR,
                 groupBy: CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE,
                 metric: CONST.SEARCH.CHART_METRIC.DURATION,
                 sortBy: CONST.SEARCH.SORT_BY_COLUMNS.AVERAGE_TIME,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+                stages: WORKFLOW_STAGES,
             },
             {
                 graphKey: CONST.INSIGHTS.GRAPH.LONGEST_TO_SUBMIT,
@@ -181,6 +263,7 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
                 view: CONST.SEARCH.VIEW.BAR,
                 groupBy: CONST.SEARCH.GROUP_BY.PAID_BY,
                 metric: CONST.SEARCH.CHART_METRIC.DURATION,
+                isPolicyEligible: arePaymentsEnabled,
                 sortBy: CONST.SEARCH.SORT_BY_COLUMNS.AVERAGE_TIME,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
                 limit: CONST.SEARCH.TOP_SEARCH_LIMIT,
@@ -190,23 +273,24 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
     [CONST.INSIGHTS.DASHBOARD.COMPLIANCE]: {
         searchKey: CONST.INSIGHTS.SEARCH_KEY.COMPLIANCE,
         labelKey: 'insightsPage.compliance',
-        beta: CONST.BETAS.INSIGHTS_COMPLIANCE,
         isPolicyEligible: canViewAllPolicyData,
         queryType: CONST.SEARCH.DATA_TYPES.EXPENSE,
         requiresControlPlan: true,
+        hasDetailsPanel: true,
         headlineChart: {
             graphKey: CONST.INSIGHTS.GRAPH.VIOLATIONS_OVER_TIME,
             titleKey: 'insightsPage.violationsOverTime',
             view: CONST.SEARCH.VIEW.LINE,
-            has: VIOLATION_HAS_VALUES,
+            ...VIOLATION_STAGE_FILTERS[CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED],
+            hasViolationStageControl: true,
             metric: CONST.SEARCH.CHART_METRIC.COUNT,
         },
         supportingCharts: [
             {
                 graphKey: CONST.INSIGHTS.GRAPH.VIOLATIONS_BY_SUBMITTER,
+                violationStage: CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED,
                 titleKey: 'insightsPage.violationsBySubmitter',
-                has: [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION],
-                dateFilterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
+                ...VIOLATION_STAGE_FILTERS[CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED],
                 view: CONST.SEARCH.VIEW.BAR,
                 groupBy: CONST.SEARCH.GROUP_BY.FROM,
                 metric: CONST.SEARCH.CHART_METRIC.COUNT,
@@ -217,9 +301,9 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
             },
             {
                 graphKey: CONST.INSIGHTS.GRAPH.VIOLATIONS_BY_APPROVER,
+                violationStage: CONST.INSIGHTS.VIOLATION_STAGE.APPROVED,
                 titleKey: 'insightsPage.violationsByApprover',
-                has: [CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION],
-                dateFilterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL,
+                ...VIOLATION_STAGE_FILTERS[CONST.INSIGHTS.VIOLATION_STAGE.APPROVED],
                 view: CONST.SEARCH.VIEW.BAR,
                 groupBy: CONST.SEARCH.GROUP_BY.APPROVER,
                 metric: CONST.SEARCH.CHART_METRIC.COUNT,
@@ -231,7 +315,8 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
             {
                 graphKey: CONST.INSIGHTS.GRAPH.TOP_VIOLATIONS,
                 titleKey: 'insightsPage.topViolations',
-                has: VIOLATION_HAS_VALUES,
+                ...VIOLATION_STAGE_FILTERS[CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED],
+                hasViolationStageControl: true,
                 view: CONST.SEARCH.VIEW.TABLE,
                 isFullWidth: true,
                 groupBy: CONST.SEARCH.GROUP_BY.VIOLATION,
@@ -244,23 +329,55 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
     },
 };
 
+/** Drops the workflow-stage groups of stages no workspace in scope is eligible for, so the chart agrees with the others showing those stages */
+function keepEnabledStageGroups(rows: GroupedItem[] | undefined, stages: InsightsChartStage[] | undefined): GroupedItem[] | undefined {
+    if (!rows || !stages) {
+        return rows;
+    }
+    const enabledStages = new Set(stages.map(({workflowStage}) => workflowStage));
+    return rows.filter((item) => !('workflowStage' in item) || enabledStages.has(item.workflowStage));
+}
+
+/** Whether the chart stacks its stages in each time bucket's column, rather than drawing them as its groups */
+function isStackedChart(chart: InsightsChartSpec): boolean {
+    return !!chart.stages && chart.groupBy !== CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE;
+}
+
 /** Returns the workspaces the filter leaves in scope. No selected workspaces means every workspace is in scope. */
 function getPoliciesInScope(policies: OnyxCollection<Policy>, policyIDs: string[]): Policy[] {
     return Object.values(policies ?? {}).filter((policy): policy is Policy => !!policy && (policyIDs.length === 0 || policyIDs.includes(policy.id)));
 }
 
 /**
- * Returns the charts that at least one workspace in scope is eligible for.
- * A dashboard's own eligibility narrows the scope too, so a chart only counts the workspaces the dashboard reports on.
+ * Returns the charts or stages that at least one workspace in scope is eligible for.
+ * A dashboard's own eligibility narrows the scope too, so a chart or stage only counts the workspaces the dashboard reports on.
  */
-function getVisibleCharts(
-    charts: InsightsChartSpec[],
+function filterEligible<T extends {isPolicyEligible?: PolicyEligibilityCheck}>(
+    items: T[],
     policiesInScope: Policy[],
     login: string | undefined,
-    isDashboardPolicyEligible?: InsightsDashboardSpec['isPolicyEligible'],
-): InsightsChartSpec[] {
+    isDashboardPolicyEligible?: PolicyEligibilityCheck,
+): T[] {
     const dashboardPolicies = isDashboardPolicyEligible ? policiesInScope.filter((policy) => isDashboardPolicyEligible(policy, login)) : policiesInScope;
-    return charts.filter(({isPolicyEligible}) => !isPolicyEligible || dashboardPolicies.some((policy) => isPolicyEligible(policy, login)));
+    return items.filter(({isPolicyEligible}) => !isPolicyEligible || dashboardPolicies.some((policy) => isPolicyEligible(policy, login)));
+}
+
+/** Returns the charts that at least one workspace in scope is eligible for */
+function getVisibleCharts(charts: InsightsChartSpec[], policiesInScope: Policy[], login: string | undefined, isDashboardPolicyEligible?: PolicyEligibilityCheck): InsightsChartSpec[] {
+    return filterEligible(charts, policiesInScope, login, isDashboardPolicyEligible);
+}
+
+/**
+ * Returns the stages of a chart that at least one workspace in scope is eligible for, by the same rule as the charts themselves,
+ * so a stage left out of one chart is left out of every chart showing it. Undefined for a chart that declares no stages.
+ */
+function getEnabledStages(
+    chart: InsightsChartSpec,
+    policiesInScope: Policy[],
+    login: string | undefined,
+    isDashboardPolicyEligible?: PolicyEligibilityCheck,
+): InsightsChartStage[] | undefined {
+    return chart.stages && filterEligible(chart.stages, policiesInScope, login, isDashboardPolicyEligible);
 }
 
 /**
@@ -290,14 +407,53 @@ function getUpgradeablePolicyIDsInScope(policiesInScope: Policy[], login: string
  * Returns the dashboards the user can open, ignoring the workspace filter.
  * Workspaces deleted offline stay in Onyx until the server confirms, so they don't count, or a dashboard would vanish only on reconnect.
  */
-function getAccessibleDashboards(policies: OnyxCollection<Policy>, login: string | undefined, isBetaEnabled: (beta: Beta) => boolean): InsightsDashboardID[] {
+function getAccessibleDashboards(policies: OnyxCollection<Policy>, login: string | undefined): InsightsDashboardID[] {
     const activePolicies = Object.values(policies ?? {}).filter((policy): policy is Policy => !!policy && !isArchivedOrPendingDeletePolicy(policy));
     return Object.values(CONST.INSIGHTS.DASHBOARD).filter((dashboardID) => {
-        const {beta, isPolicyEligible} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
-        return (!beta || isBetaEnabled(beta)) && (!isPolicyEligible || activePolicies.some((policy) => isPolicyEligible(policy, login)));
+        const {isPolicyEligible} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
+        return !isPolicyEligible || activePolicies.some((policy) => isPolicyEligible(policy, login));
     });
 }
 
-export {getAccessibleDashboards, getPoliciesInScope, getUpgradeablePolicyIDsInScope, getVisibleCharts, shouldUpsellControlPlan, VIOLATION_HAS_VALUES};
-export type {InsightsChartSpec, InsightsDateFilterKey};
+/** Points a chart with a violation stage control at the stage the user picked. Other charts, or no pick yet, keep the chart as declared. */
+function applyViolationStage(chart: InsightsChartSpec, stage: InsightsViolationStage | undefined): InsightsChartSpec {
+    if (!chart.hasViolationStageControl || !stage) {
+        return chart;
+    }
+    return {...chart, ...VIOLATION_STAGE_FILTERS[stage]};
+}
+
+/** Returns the dashboard's chart with the given graph key, pointed at the given violation stage. */
+function getChartSpec(dashboardID: InsightsDashboardID, graphKey: string, stage: InsightsViolationStage | undefined): InsightsChartSpec | undefined {
+    const {headlineChart, supportingCharts} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
+    const chart = [headlineChart, ...supportingCharts].find((spec) => spec.graphKey === graphKey);
+    if (!chart) {
+        return undefined;
+    }
+    return applyViolationStage(chart, stage);
+}
+
+/** Returns the stage a chart with a violation stage control counts, the submitters' until the user picks one. Other charts have none. */
+function getViolationStage(chart: InsightsChartSpec, violationStages: InsightsViolationStages): InsightsViolationStage | undefined {
+    if (!chart.hasViolationStageControl) {
+        return undefined;
+    }
+    return violationStages[chart.graphKey] ?? CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED;
+}
+
+export {
+    applyViolationStage,
+    getAccessibleDashboards,
+    getChartSpec,
+    getEnabledStages,
+    getPoliciesInScope,
+    getUpgradeablePolicyIDsInScope,
+    getViolationStage,
+    getVisibleCharts,
+    isStackedChart,
+    keepEnabledStageGroups,
+    shouldUpsellControlPlan,
+    VIOLATION_HAS_VALUES,
+};
+export type {InsightsChartSpec, InsightsChartStage, InsightsDateFilterKey, InsightsViolationStage, InsightsViolationStages};
 export default INSIGHTS_DASHBOARD_SPECS;

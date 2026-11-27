@@ -63,7 +63,7 @@ function performPostBatchCleanup({
         return;
     }
 
-    // A caller whose write reports the chat it used passes that chat as preResolvedChatTarget. Any other caller has the chat worked out here.
+    // A caller that knows the chat it wrote to passes that chat as preResolvedChatTarget. Any other caller has the chat worked out here.
     const {report: resolvedReport, chatReportID} =
         preResolvedChatTarget ??
         resolveChatTargetForSubmitCleanup({
