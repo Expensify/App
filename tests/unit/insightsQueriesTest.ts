@@ -779,7 +779,7 @@ describe('scopeInsightsDrillDownQuery', () => {
         const query = buildSearchQueryJSON('type:expense from:123 date:this-month policyID:A1,B2');
 
         // When Auth returns the one eligible workspace for a drill-down
-        const scoped = scopeInsightsDrillDownQuery(query, CONST.INSIGHTS.GRAPH.TOP_SPENDERS, ['A1']);
+        const scoped = scopeInsightsDrillDownQuery(query, true, ['A1']);
 
         // Then Search only sees the eligible workspace and keeps the original spender and date filters
         expect(getFilterFromQuery(scoped, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID).value).toEqual(['A1']);
@@ -792,7 +792,7 @@ describe('scopeInsightsDrillDownQuery', () => {
         const query = buildSearchQueryJSON('type:expense group-by:from date:this-month');
 
         // When Auth has not returned eligible workspaces or returns an empty list
-        const scope = (ids: string[] | undefined) => scopeInsightsDrillDownQuery(query, CONST.INSIGHTS.GRAPH.TOP_SPENDERS, ids);
+        const scope = (ids: string[] | undefined) => scopeInsightsDrillDownQuery(query, true, ids);
 
         // Then neither case falls back to an unfiltered Search
         expect(scope(undefined)).toBeUndefined();
