@@ -7,6 +7,7 @@ import {createTransactionThreadReport} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 
 import RecentlyAddedSection from '@pages/home/RecentlyAddedSection';
+import type {RecentlyAddedItem} from '@pages/home/RecentlyAddedSection/useRecentlyAddedData';
 import {useRecentlyAddedData} from '@pages/home/RecentlyAddedSection/useRecentlyAddedData';
 
 import OnyxListItemProvider from '@src/components/OnyxListItemProvider';
@@ -79,6 +80,7 @@ jest.mock('react-native-reanimated', () => {
 });
 
 jest.mock('@pages/home/RecentlyAddedSection/useRecentlyAddedData', () => ({
+    ...jest.requireActual('@pages/home/RecentlyAddedSection/useRecentlyAddedData'),
     useRecentlyAddedData: jest.fn(),
 }));
 
@@ -110,38 +112,20 @@ const mockCreateTransactionThreadReport = jest.mocked(createTransactionThreadRep
 
 const ACCOUNT_ID = 12345;
 
-type RecentlyAddedRowFixture = {
-    transactionID: string;
-    reportID: string;
-    created: string;
-    merchant: string;
-    amount: number;
-    currency: string;
-    transaction: Transaction;
-    report?: Report;
-};
-
-function buildTransaction(transactionID: string, reportID: string): Transaction {
-    return {transactionID, reportID, amount: 0, created: '', currency: 'USD', merchant: '', comment: {}} as Transaction;
+function buildTransaction(transactionID: string, reportID: string, merchant: string, amount: number, created: string): Transaction {
+    return {transactionID, reportID, amount, created, currency: 'USD', merchant, comment: {}} as Transaction;
 }
 
-const ROW_1: RecentlyAddedRowFixture = {
+const ROW_1_TRANSACTION = buildTransaction('t1', 'thread1', 'Velocity Systems', 87690, '2026-03-26');
+const ROW_1: RecentlyAddedItem = {
     transactionID: 't1',
     reportID: 'thread1',
-    created: '2026-03-26',
-    merchant: 'Velocity Systems',
-    amount: 87690,
-    currency: 'USD',
-    transaction: buildTransaction('t1', 'thread1'),
+    snapshotTransaction: ROW_1_TRANSACTION,
 };
-const ROW_2: RecentlyAddedRowFixture = {
+const ROW_2: RecentlyAddedItem = {
     transactionID: 't2',
     reportID: 'thread2',
-    created: '2026-03-25',
-    merchant: 'Nitro Fuel Supply Co.',
-    amount: 97622,
-    currency: 'USD',
-    transaction: buildTransaction('t2', 'thread2'),
+    snapshotTransaction: buildTransaction('t2', 'thread2', 'Nitro Fuel Supply Co.', 97622, '2026-03-25'),
 };
 
 function setWideLayout() {
@@ -318,9 +302,8 @@ describe('RecentlyAddedSection', () => {
             // Given a failed Scan whose zero amount is only a placeholder
             const failedScanRow = {
                 ...ROW_1,
-                amount: 0,
-                transaction: {
-                    ...ROW_1.transaction,
+                snapshotTransaction: {
+                    ...ROW_1_TRANSACTION,
                     amount: 0,
                     iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
                     receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
@@ -341,9 +324,8 @@ describe('RecentlyAddedSection', () => {
             // Given an incomplete Scan that is OPEN while its merchant edit is pending offline
             const offlineScanRow = {
                 ...ROW_1,
-                amount: 0,
-                transaction: {
-                    ...ROW_1.transaction,
+                snapshotTransaction: {
+                    ...ROW_1_TRANSACTION,
                     amount: 0,
                     iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
                     receipt: {state: CONST.IOU.RECEIPT_STATE.OPEN},
@@ -365,9 +347,8 @@ describe('RecentlyAddedSection', () => {
             // Given a Scan whose zero amount was explicitly confirmed by the user
             const confirmedZeroRow = {
                 ...ROW_1,
-                amount: 0,
-                transaction: {
-                    ...ROW_1.transaction,
+                snapshotTransaction: {
+                    ...ROW_1_TRANSACTION,
                     amount: 0,
                     iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
                     receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
@@ -389,10 +370,9 @@ describe('RecentlyAddedSection', () => {
             // Given a zero-value Scan on a settled report
             const settledZeroRow = {
                 ...ROW_1,
-                amount: 0,
-                report: {reportID: ROW_1.reportID, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED} as Report,
-                transaction: {
-                    ...ROW_1.transaction,
+                snapshotReport: {reportID: ROW_1.reportID, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED} as Report,
+                snapshotTransaction: {
+                    ...ROW_1_TRANSACTION,
                     amount: 0,
                     iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
                     receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
@@ -407,6 +387,52 @@ describe('RecentlyAddedSection', () => {
             // Then the settled zero remains visible
             expect(screen.getByText('USD 0')).toBeOnTheScreen();
             expect(screen.queryByText(/violations\.shortName\.smartscanFailed/)).not.toBeOnTheScreen();
+        });
+    });
+
+    describe('live row data', () => {
+        it('should show the live transaction once it changes after the row rendered', async () => {
+            // Given a row rendered from the Search snapshot copy of an expense
+            mockUseRecentlyAddedData.mockReturnValue({transactions: [ROW_1], isAwaitingFirstResult: false});
+            renderRecentlyAddedSection();
+            await waitForBatchedUpdatesWithAct();
+            expect(screen.getByText('Velocity Systems')).toBeOnTheScreen();
+
+            // When the expense is edited offline, which only updates its live transactions_ key and never the snapshot
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${ROW_1.transactionID}`, {
+                    ...ROW_1_TRANSACTION,
+                    merchant: 'Edited Merchant',
+                    pendingFields: {merchant: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the row reads its own live transaction and shows the edit instead of the stale snapshot merchant
+            expect(screen.getByText('Edited Merchant')).toBeOnTheScreen();
+            expect(screen.queryByText('Velocity Systems')).not.toBeOnTheScreen();
+        });
+
+        it('should use the live report once it changes after the row rendered', async () => {
+            // Given a failed Scan whose zero amount is hidden because the snapshot still has its report open
+            const failedScanRow: RecentlyAddedItem = {
+                ...ROW_1,
+                snapshotReport: {reportID: ROW_1.reportID, statusNum: CONST.REPORT.STATUS_NUM.OPEN},
+                snapshotTransaction: {...ROW_1_TRANSACTION, amount: 0, iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN, receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED}},
+            };
+            mockUseRecentlyAddedData.mockReturnValue({transactions: [failedScanRow], isAwaitingFirstResult: false});
+            renderRecentlyAddedSection();
+            await waitForBatchedUpdatesWithAct();
+            expect(screen.queryByText('USD 0')).not.toBeOnTheScreen();
+
+            // When the report is reimbursed, which only updates its live report_ key and never the snapshot
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${ROW_1.reportID}`, {reportID: ROW_1.reportID, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the row reads its own live report, so the zero on a settled report is a real amount and shows
+            expect(screen.getByText('USD 0')).toBeOnTheScreen();
         });
     });
 
@@ -533,7 +559,7 @@ describe('RecentlyAddedSection', () => {
         it('seeds a pending-delete expense without a descriptor so the carousel follows its live transaction', async () => {
             // Given an expense deleted offline, which stays in the list with strikethrough
             setWideLayout();
-            const pendingDeleteRow = {...ROW_1, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
+            const pendingDeleteRow: RecentlyAddedItem = {...ROW_1, snapshotTransaction: {...ROW_1_TRANSACTION, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}};
             mockUseRecentlyAddedData.mockReturnValue({transactions: [pendingDeleteRow, ROW_2], isAwaitingFirstResult: false});
 
             renderRecentlyAddedSection();

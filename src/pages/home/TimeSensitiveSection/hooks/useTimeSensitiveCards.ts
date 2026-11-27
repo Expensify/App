@@ -13,13 +13,30 @@ import {areAddressAndPersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
 import {getUnresolvedCardFraudAlertAction} from '@libs/ReportUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card} from '@src/types/onyx';
+import type {Card, ReportActions} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 import {isActingAsDelegateSelector} from '@selectors/Account';
 
 function useTimeSensitiveCards() {
     const [cards] = useOnyx(ONYXKEYS.CARD_LIST);
-    const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
+    // Resolved in the selector, so other report action writes don't re-render Home.
+    const [cardIDsWithFraud] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
+        selector: (reportActions: OnyxCollection<ReportActions>) => {
+            const cardIDs: Record<string, true> = {};
+            for (const card of Object.values(cards ?? {})) {
+                const fraudAlertReportID = card?.nameValuePairs?.possibleFraud?.fraudAlertReportID;
+                if (
+                    fraudAlertReportID &&
+                    !!getUnresolvedCardFraudAlertAction(card, String(fraudAlertReportID), reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fraudAlertReportID}`])
+                ) {
+                    cardIDs[card.cardID] = true;
+                }
+            }
+            return cardIDs;
+        },
+    });
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector});
     const personalDetailsMissing = areAddressAndPersonalDetailsMissing(privatePersonalDetails);
@@ -39,10 +56,7 @@ function useTimeSensitiveCards() {
             cardsPendingDigitalWalletApproval.push(card);
         }
 
-        const fraudAlertReportID = card.nameValuePairs?.possibleFraud?.fraudAlertReportID;
-        const reportActions = fraudAlertReportID ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fraudAlertReportID}`] : undefined;
-
-        if (fraudAlertReportID && !!getUnresolvedCardFraudAlertAction(card, String(fraudAlertReportID), reportActions)) {
+        if (cardIDsWithFraud?.[card.cardID]) {
             cardsWithFraud.push(card);
         }
 

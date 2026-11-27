@@ -16627,6 +16627,7 @@ export {
     isPolicyExpenseChat,
     isProcessingReport,
     isOpenReport,
+    isOpenOrProcessingReport,
     isReportEligibleForViolationFix,
     getSubmitterUnfixableViolationNames,
     isAwaitingFirstLevelApproval,
