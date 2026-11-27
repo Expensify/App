@@ -1443,6 +1443,13 @@ const translations = {
             quarterAverage: (count: number) => `${count} quarter average`,
             shareOfTotal: 'Share of total',
         },
+        recentHistory: {
+            title: 'Recent history',
+            dayAverageFor: (count: number, item: string) => `${count}-day average for ${item}`,
+            weekAverageFor: (count: number, item: string) => `${count}-week average for ${item}`,
+            monthAverageFor: (count: number, item: string) => `${count}-month average for ${item}`,
+            quarterAverageFor: (count: number, item: string) => `${count}-quarter average for ${item}`,
+        },
         compliance: 'Compliance',
         violationsOverTime: 'Violations over time',
         topViolations: 'Top violations',
@@ -4730,9 +4737,10 @@ const translations = {
     },
     welcomeSignUpForm: {
         join: 'Join',
-        transactionalSMSConsent: 'By providing my phone number, I agree to receive transactional account alerts from Expensify.',
-        transactionalSMSConsentFinePrint: 'Standard message and data rates may apply. Reply STOP to opt out.',
+        smsConsentIntro: 'By providing my phone number:',
+        transactionalSMSConsent: 'I agree to receive transactional account alerts from Expensify.',
         marketingSMSConsent: 'I agree to receive marketing texts from Expensify.',
+        termsWithSMSRates: `<muted-text-xs>By logging in, you agree to the <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Terms of Service</a> and <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacy</a>. Standard message and data rates may apply. Message frequency varies. Reply HELP for help. Reply STOP to opt out.</muted-text-xs>`,
     },
     detailsPage: {
         localTime: 'Local time',
@@ -7076,6 +7084,8 @@ const translations = {
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Out-of-pocket expenses will export when paid',
                 },
             },
+            autoCreateVendor: 'Auto-create vendors',
+            autoCreateVendorDescription: "Expensify will automatically create vendors in Rillet if they don't exist already.",
             syncReimbursedReports: 'Sync reimbursed reports',
             syncReimbursedReportsDescription: 'When a report is paid via ACH, a payment will be generated in this account.',
             achPaymentAccount: {

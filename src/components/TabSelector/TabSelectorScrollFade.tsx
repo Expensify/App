@@ -1,14 +1,13 @@
+import EdgeFade from '@components/EdgeFade';
 import useHorizontalSafeAreaReach from '@components/HorizontalSafeArea/useHorizontalSafeAreaReach';
 
 import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
 
-import React, {useId} from 'react';
+import React from 'react';
 import {View} from 'react-native';
-import Svg, {Defs, LinearGradient, Rect, Stop} from 'react-native-svg';
 
 type TabSelectorScrollFadeProps = {
     /** Which edge of the tab row the fade covers */
@@ -17,10 +16,8 @@ type TabSelectorScrollFadeProps = {
 
 /** Fades the tabs out toward an edge so a cut-off tab reads as scrollable */
 function TabSelectorScrollFade({side}: TabSelectorScrollFadeProps) {
-    const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const gradientID = useId();
     // The tab row reaches the screen edge through the horizontal safe area, so the fade sits at that edge too.
     const reach = useHorizontalSafeAreaReach();
 
@@ -29,36 +26,7 @@ function TabSelectorScrollFade({side}: TabSelectorScrollFadeProps) {
             pointerEvents="none"
             style={[styles.pAbsolute, styles.t0, styles.b0, side === 'left' ? {left: -reach.left} : {right: -reach.right}, StyleUtils.getWidthStyle(variables.tabSelectorScrollFadeWidth)]}
         >
-            <Svg
-                width="100%"
-                height="100%"
-            >
-                <Defs>
-                    <LinearGradient
-                        id={gradientID}
-                        x1={side === 'left' ? 1 : 0}
-                        y1="0"
-                        x2={side === 'left' ? 0 : 1}
-                        y2="0"
-                    >
-                        <Stop
-                            offset="0"
-                            stopColor={theme.appBG}
-                            stopOpacity="0"
-                        />
-                        <Stop
-                            offset="1"
-                            stopColor={theme.appBG}
-                            stopOpacity="1"
-                        />
-                    </LinearGradient>
-                </Defs>
-                <Rect
-                    width="100%"
-                    height="100%"
-                    fill={`url(#${gradientID})`}
-                />
-            </Svg>
+            <EdgeFade side={side} />
         </View>
     );
 }

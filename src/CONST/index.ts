@@ -367,6 +367,15 @@ const CONST = {
         PAUSE_DURATION: 250,
         RECOVERY_DURATION: 150,
     },
+    MARQUEE_ANIMATION: {
+        MS_PER_PIXEL: 25,
+        MIN_DURATION: 600,
+        HOLD_DURATION: 2000,
+    },
+    FLAT_NAV_ROW_ACTION_ANIMATION: {
+        DURATION: 150,
+        HIDDEN_OFFSET: 8,
+    },
     ANIMATION_IN_TIMING: 100,
     COMPOSER_FOCUS_DELAY: 150,
     MAX_TRANSITION_DURATION_MS: 1000,
@@ -4528,6 +4537,7 @@ const CONST = {
         CREDIT_CARD_ACCOUNTCODE: 'creditCardAccountCode',
         EXPORT_TO_MULTIPLE_ACCOUNTS: 'exportToMultipleAccounts',
         ACCOUNTING_METHOD: 'accountingMethod',
+        AUTO_CREATE_VENDOR: 'autoCreateVendor',
         AUTO_SYNC: 'autoSync',
         SYNC_REIMBURSED_REPORTS: 'syncReimbursedReports',
         BILL_PAYMENT_ACCOUNT_CODE: 'billPaymentAccountCode',
@@ -10869,6 +10879,11 @@ const CONST = {
         VIOLATION_STAGE: {
             SUBMITTED: 'submitted',
             APPROVED: 'approved',
+        },
+        DETAILS_SECTION: {
+            SUMMARY: 'summary',
+            RECENT_HISTORY: 'recentHistory',
+            TOP_EXPENSES: 'topExpenses',
         },
     },
 

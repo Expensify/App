@@ -204,6 +204,7 @@ function DynamicCategoryVisibleToPage({route}: DynamicCategoryVisibleToPageProps
                     categoryCount: translate('workspace.people.categoriesCount', {count: targetCategoryNames.length}),
                     memberCount: isOpeningToEveryone ? translate('workspaceActions.everyone') : translate('workspace.categories.membersCount', {count: newSelectedAccountIDs.length}),
                 }),
+                duration: CONST.GROWL.DURATION_LONG,
             });
         }
     };

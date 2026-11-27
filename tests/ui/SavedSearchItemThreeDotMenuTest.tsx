@@ -162,6 +162,26 @@ describe('SavedSearchItemThreeDotMenu', () => {
             expect(endPeekIfPointerLeft).toHaveBeenCalledTimes(1);
         });
 
+        it('should not report to its surface by itself when the menu is removed', () => {
+            // Given a menu inside a peeking surface, with the menu's modal mocked so that nothing but the modal reports a hide
+            const endPeekIfPointerLeft = jest.fn();
+            const {unmount} = render(
+                <PeekSurfaceContext.Provider value={{holdPeekUntilMenuCloses: jest.fn(), endPeekIfPointerLeft}}>
+                    <SavedSearchItemThreeDotMenu
+                        menuItems={[{text: RENAME, onSelected: jest.fn(), sentryLabel: CONST.SENTRY_LABEL.TEST.LABEL}]}
+                        isDisabledItem={false}
+                    />
+                </PeekSurfaceContext.Provider>,
+            );
+
+            // When the menu is opened and then removed, for example because its saved search was deleted elsewhere
+            fireEvent.press(screen.getByText('Menu icon'));
+            unmount();
+
+            // Then the menu adds no cleanup of its own, because a real modal reports the hide when it unmounts, and doing both would settle the peek twice
+            expect(endPeekIfPointerLeft).not.toHaveBeenCalled();
+        });
+
         it('should keep working outside a peeking surface', () => {
             // Given a menu rendered without a surface around it
             renderMenu();

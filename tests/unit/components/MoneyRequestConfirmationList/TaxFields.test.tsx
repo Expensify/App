@@ -6,11 +6,13 @@ import ExpenseFormLayoutContext, {dropdownRowsExpenseFormLayout} from '@componen
 import TaxFields from '@components/MoneyRequestConfirmationList/sections/TaxFields';
 
 import Navigation from '@libs/Navigation/Navigation';
+import {getCalculatedTaxAmount} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import type {IOUAction} from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy} from '@src/types/onyx';
+import type {Policy, Transaction} from '@src/types/onyx';
 
 import type {ReactNode} from 'react';
 
@@ -18,18 +20,25 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../../../utils/collections/policies';
+import createMock from '../../../utils/createMock';
 import waitForBatchedUpdates from '../../../utils/waitForBatchedUpdates';
 
-jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key, preferredLocale: 'en'}));
+jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string, ...params: unknown[]) => [key, ...params].join(' '), preferredLocale: 'en'}));
 jest.mock('@hooks/useThemeStyles', () => () => ({}));
 jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn()}));
-// The currency list lives in a provider the form is rendered without here. USD has two decimals.
+// The currency list lives in a provider the form is rendered without here. USD has two decimals, and an amount displays as its raw value.
 jest.mock('@hooks/useCurrencyList', () => ({
-    useCurrencyListActions: jest.fn(() => ({getCurrencyDecimals: jest.fn(() => 2), getCurrencySymbol: jest.fn(() => '$'), convertToDisplayString: jest.fn(() => '$0.00')})),
+    useCurrencyListActions: jest.fn(() => ({
+        getCurrencyDecimals: jest.fn(() => 2),
+        getCurrencySymbol: jest.fn(() => '$'),
+        convertToDisplayString: jest.fn((amount: number) => `display:${amount}`),
+    })),
 }));
-// The tax amount input beside the row is its own component with its own tests, so only whether it is read-only is recorded.
+// The tax amount input beside the row is its own component with its own tests, so here it only records the error and the read-only state it is given.
+let mockTaxAmountErrorText: string | undefined;
 let mockIsTaxAmountInputReadOnly: boolean | undefined;
-jest.mock('@components/NumberWithSymbolForm', () => ({readOnly}: {readOnly?: boolean}) => {
+jest.mock('@components/NumberWithSymbolForm', () => ({errorText, readOnly}: {errorText?: string; readOnly?: boolean}) => {
+    mockTaxAmountErrorText = errorText;
     mockIsTaxAmountInputReadOnly = readOnly;
     return null;
 });
@@ -73,6 +82,7 @@ const taxRates = {
 const policy: Policy = {...createRandomPolicy(1), id: 'policy1', outputCurrency: 'USD', taxRates};
 const policyWithoutRates: Policy = {...policy, taxRates: {...taxRates, taxes: {}}};
 const policyForMovingExpenses: Policy = {...createRandomPolicy(2), id: 'policy2', outputCurrency: 'USD', taxRates};
+const draftTransaction = createMock<Transaction>({transactionID: TRANSACTION_ID, reportID: REPORT_ID, amount: -10000, currency: 'USD'});
 
 type RenderParams = {
     action?: IOUAction;
@@ -81,6 +91,7 @@ type RenderParams = {
     /** Workspace the form has. `null` renders the row without one, as a tracked expense being moved does */
     taxPolicy?: Policy | null;
     movingPolicy?: Policy;
+    taxAmountError?: TranslationPaths;
     isDiscardModalVisible?: boolean;
 };
 
@@ -90,6 +101,7 @@ const renderTaxRateRow = ({
     didConfirm = false,
     taxPolicy = policy,
     movingPolicy,
+    taxAmountError,
     isDiscardModalVisible = false,
 }: RenderParams = {}) =>
     render(
@@ -112,7 +124,7 @@ const renderTaxRateRow = ({
                     iouType={CONST.IOU.TYPE.SUBMIT}
                     reportID={REPORT_ID}
                     formError=""
-                    clearFormErrors={jest.fn()}
+                    taxAmountError={taxAmountError}
                 />
             </ExpenseFormLayoutContext.Provider>
         </ConfirmationFieldsProvider>,
@@ -126,10 +138,11 @@ describe('TaxFields', () => {
     beforeEach(async () => {
         mockShouldOpenInDropdown = undefined;
         mockDropdownPolicyID = undefined;
+        mockTaxAmountErrorText = undefined;
         mockIsTaxAmountInputReadOnly = undefined;
         jest.mocked(Navigation.navigate).mockClear();
         await Onyx.clear();
-        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {transactionID: TRANSACTION_ID, reportID: REPORT_ID, amount: -10000, currency: 'USD'});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, draftTransaction);
         await waitForBatchedUpdates();
     });
 
@@ -219,6 +232,30 @@ describe('TaxFields', () => {
         // Then the row keeps the full-page selector, as the category and tag rows do for edits
         await waitFor(() => {
             expect(mockShouldOpenInDropdown).toBe(false);
+        });
+    });
+
+    it('names the maximum the rate allows in the over-the-limit tax amount error', async () => {
+        // Given a confirm blocked by a tax amount above what the expense's rate allows
+        // When the form renders the tax amount input
+        renderTaxRateRow({taxAmountError: 'iou.error.invalidTaxAmount'});
+
+        // Then the input's error names the maximum for this rate and amount, since the error key alone can't carry it
+        const maxTaxAmount = getCalculatedTaxAmount(policy, draftTransaction, 'USD', 2);
+        expect(maxTaxAmount).toBeGreaterThan(0);
+        await waitFor(() => {
+            expect(mockTaxAmountErrorText).toBe(`iou.error.invalidTaxAmount display:${maxTaxAmount}`);
+        });
+    });
+
+    it('shows the required tax amount error without a limit', async () => {
+        // Given a confirm blocked by an emptied tax amount
+        // When the form renders the tax amount input
+        renderTaxRateRow({taxAmountError: 'common.error.fieldRequired'});
+
+        // Then the input shows that error on its own, since an empty amount has no limit to name
+        await waitFor(() => {
+            expect(mockTaxAmountErrorText).toBe('common.error.fieldRequired');
         });
     });
 });

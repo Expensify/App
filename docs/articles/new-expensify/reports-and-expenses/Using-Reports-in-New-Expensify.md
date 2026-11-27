@@ -1,7 +1,7 @@
 ---
 title: Using Spend in New Expensify
 description: Learn how to use Spend in New Expensify to search, filter, customize columns, and save searches for expenses, invoices, trips, and chats.
-keywords: [Spend, New Expensify, report filters, search commands, custom columns, saved searches, share saved search, My expenses saved search, default saved search, group expenses, invoices, expenses, chats, trips, reimbursement tracking, view expenses, customize report view, reporting table columns, Tag GL code, Category GL code, Paid by column, Paid by filter, who paid a report, Edit columns, Display menu]
+keywords: [Spend, New Expensify, report filters, search commands, custom columns, saved searches, share saved search, My expenses saved search, default saved search, group expenses, invoices, expenses, chats, trips, reimbursement tracking, view expenses, customize report view, reporting table columns, Tag GL code, Category GL code, Paid by column, Paid by filter, who paid a report, Edit columns, Display menu, Converted amount, converted currency]
 ---
 
 <div id="new-expensify" markdown="1">
@@ -44,6 +44,7 @@ Filter reports by type, status, category, or date to find specific information.
    - **Date:** This month, last month
    - **Status:** Outstanding, Paid
    - **From:** You, or someone else
+   - **Converted amount:** Filter expenses by their amount in the workspace currency, or choose a currency to compare expenses in that currency.
    - **Paid by:** The member who paid the report. On both the **Expense** and **Expense Report** types, this sits directly below **Paid**.
 6. Click **View Results** to see the filtered results.
 
@@ -75,6 +76,7 @@ You can choose from a wide range of columns, including:
 - **Submitted** – The date the report was submitted for approval
 - **Paid** – The date the report was paid
 - **Total** – The total amount of the report or expense
+- **Converted amount** – In **Spend > Expenses**, shows each expense in its workspace currency, or its original currency if it has no workspace. The table heading is **Converted**; select it to sort by converted amount.
 - **Workspace** – The workspace the report belongs to
 - **Paid status** – The payment stage of a paid report: **Marked as paid**, **Withdrawing**, or **Confirmed**
 - **Paid by** – The member who paid the report. This stays blank until the report is paid, and it updates as soon as you pay the report from **Spend**

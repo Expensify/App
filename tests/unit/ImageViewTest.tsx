@@ -1,5 +1,7 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
+import AttachmentViewImage from '@components/Attachments/AttachmentView/AttachmentViewImage';
+import ImageLoadEventContext from '@components/ImageLoadEventContext';
 import type ImageViewProps from '@components/ImageView/types';
 
 import CONST from '@src/CONST';
@@ -18,6 +20,9 @@ let mockIsOffline = false;
 jest.mock('@hooks/useNetwork', () => () => ({isOffline: mockIsOffline}));
 
 jest.mock('@libs/DeviceCapabilities', () => ({canUseTouchScreen: () => false}));
+
+// AttachmentViewImage imports ImageView by its folder, which Jest would resolve to the native file
+jest.mock('@components/ImageView', () => jest.requireActual<{default: React.ComponentType<ImageViewProps>}>('@components/ImageView/index.tsx'));
 
 jest.mock('@components/Image', () => {
     const MockReact = jest.requireActual<typeof React>('react');
@@ -171,5 +176,70 @@ describe('ImageView (web)', () => {
         // Then no timeout notice is offered, so the image can still load once the device is back online
         expect(screen.queryByTestId('retry-button')).toBeNull();
         expect(onError).not.toHaveBeenCalled();
+    });
+});
+
+describe('ImageView (web) load events and source changes', () => {
+    beforeEach(() => {
+        jest.useFakeTimers();
+        mockIsOffline = false;
+    });
+
+    afterEach(() => {
+        jest.useRealTimers();
+    });
+
+    it('reports a stall and the recovery after it', () => {
+        // Given a receipt screen that listens for load events, and an image that never sends a byte
+        const reportImageLoadEvent = jest.fn();
+        render(
+            <ImageLoadEventContext.Provider value={reportImageLoadEvent}>
+                <ImageView
+                    url={IMAGE_URL}
+                    fileName="receipt.jpg"
+                />
+            </ImageLoadEventContext.Provider>,
+        );
+        act(() => {
+            jest.advanceTimersByTime(CONST.TIMING.IMAGE_LOAD_CEILING_TIMEOUT);
+        });
+
+        // When the slow load finally finishes
+        fireEvent(screen.getByTestId('full-image'), 'load', {nativeEvent: {width: 100, height: 100}});
+
+        // Then the stall and the recovery are both reported, which tells a slow load from a stuck one
+        expect(reportImageLoadEvent).toHaveBeenNthCalledWith(1, {type: 'stall', reason: 'ceiling', component: 'ImageView', source: IMAGE_URL});
+        expect(reportImageLoadEvent).toHaveBeenNthCalledWith(2, {type: 'recovered', component: 'ImageView', source: IMAGE_URL});
+    });
+
+    it('starts a fresh load with a spinner when the source changes, like after rotating a receipt', () => {
+        // Given a receipt image that has loaded
+        const {rerender} = render(
+            <AttachmentViewImage
+                url={IMAGE_URL}
+                isAuthTokenRequired={false}
+                loadComplete={false}
+                isImage
+            />,
+        );
+        fireEvent(screen.getByTestId('full-image'), 'load', {nativeEvent: {width: 100, height: 100}});
+        expect(screen.queryByTestId('loading-indicator')).toBeNull();
+
+        // When the modal swaps in the rotated image
+        rerender(
+            <AttachmentViewImage
+                url="https://example.com/receipt-rotated.jpg"
+                isAuthTokenRequired={false}
+                loadComplete={false}
+                isImage
+            />,
+        );
+
+        // Then the new image shows its own spinner instead of the previous image's loaded state, and its stall is caught
+        expect(screen.getByTestId('loading-indicator')).toBeTruthy();
+        act(() => {
+            jest.advanceTimersByTime(CONST.TIMING.IMAGE_LOAD_CEILING_TIMEOUT);
+        });
+        expect(screen.getByTestId('retry-button')).toBeTruthy();
     });
 });

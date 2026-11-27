@@ -154,4 +154,39 @@ describe('forwardLogsToSentry', () => {
         // And the free-text server message stays in our own logs only
         expect(breadcrumb?.data).not.toHaveProperty('serverMessage');
     });
+
+    it('forwards the receipt image keys from a uiError line and drops anything else', () => {
+        // Given a receipt image failure line carrying the image context and a stray url
+        const packet = packetWith('[hmmm] [Receipt] uiError', {
+            event: 'uiError',
+            transactionID: '42',
+            surface: 'list',
+            component: 'ImageWithLoading',
+            receiptSourceKind: 'remote',
+            afterTimeout: false,
+            receiptState: 'SCANREADY',
+            pendingAction: 'update',
+            isReceiptPending: true,
+            hasErrors: false,
+            url: 'https://www.expensify.com/receipts/w_abc123.jpg',
+        });
+
+        // When the packet is mirrored to Sentry
+        forwardLogsToSentry(packet);
+
+        // Then the image context reaches Sentry and the url does not
+        const breadcrumb = jest.mocked(Sentry.addBreadcrumb).mock.calls.at(0)?.[0];
+        expect(breadcrumb?.data).toEqual({
+            event: 'uiError',
+            transactionID: '42',
+            surface: 'list',
+            component: 'ImageWithLoading',
+            receiptSourceKind: 'remote',
+            afterTimeout: false,
+            receiptState: 'SCANREADY',
+            pendingAction: 'update',
+            isReceiptPending: true,
+            hasErrors: false,
+        });
+    });
 });

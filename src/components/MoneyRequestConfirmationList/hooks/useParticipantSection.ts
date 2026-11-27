@@ -44,12 +44,7 @@ function useParticipantSection({
     const selectedParticipants = selectedParticipantsProp.filter((participant) => participant.selected);
     const payeePersonalDetails = payeePersonalDetailsProp ?? currentUserPersonalDetails;
 
-    const participantRowErrors =
-        formError !== 'iou.error.noParticipantSelected' && formError !== 'violations.missingAttendees'
-            ? undefined
-            : {
-                  participants: translate(formError),
-              };
+    const participantRowErrors = formError === 'iou.error.noParticipantSelected' ? {participants: translate(formError)} : undefined;
 
     useEffect(() => {
         if (selectedParticipants.length === 0) {
@@ -59,7 +54,7 @@ function useParticipantSection({
     }, [selectedParticipants.length, clearFormErrors]);
 
     const dismissParticipantRowError = () => {
-        clearFormErrors(['iou.error.noParticipantSelected', 'violations.missingAttendees']);
+        clearFormErrors(['iou.error.noParticipantSelected']);
     };
 
     const {splitParticipants, getSplitSectionHeader} = useSplitParticipants({

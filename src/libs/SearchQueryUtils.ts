@@ -187,7 +187,7 @@ function buildMerchantFilterQuery(
     if (!isNegated) {
         operator = selectedMerchantOperator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO ? EXPLICIT_EQUAL_TO_OPERATOR : operatorToCharMap[CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS];
     }
-    return `${prefix}${CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT}${operator}${sanitizeSearchValue(value)}`;
+    return `${prefix}${CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT}${operator}${sanitizeFilterValue(value)}`;
 }
 
 // Pre-computed validation Sets for buildFilterFormValuesFromQuery (avoids recreating per filter iteration)
@@ -319,6 +319,15 @@ function sanitizeSearchValue(str: string) {
         return `"${escaped}"`;
     }
     return escaped;
+}
+
+/**
+ * Escapes a filter's value like `sanitizeSearchValue`, and also quotes a value that starts or ends with a quote of its own,
+ * which the parser would otherwise read as the value's delimiters and drop.
+ */
+function sanitizeFilterValue(str: string) {
+    const sanitized = sanitizeSearchValue(str);
+    return !sanitized.startsWith('"') && /^["“”]|["“”]$/.test(str) ? `"${sanitized}"` : sanitized;
 }
 
 function getKeywordQueryForSearchInput(keywords: string[]) {
@@ -738,11 +747,11 @@ function buildFilterValuesString(filterName: string, queryFilters: QueryFilter[]
         if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD) {
             filterValueString += `${delimiter}${escapeKeyword(sanitizeSearchValue(queryFilter.value.toString()))}`;
         } else if (index !== 0 && (previousValueHasSameOp || nextValueHasSameOp)) {
-            filterValueString += `${delimiter}${sanitizeSearchValue(queryFilter.value.toString())}`;
+            filterValueString += `${delimiter}${sanitizeFilterValue(queryFilter.value.toString())}`;
         } else if (queryFilter.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO) {
-            filterValueString += ` ${CONST.SEARCH.NOT_PREFIX}${filterName}:${sanitizeSearchValue(queryFilter.value.toString())}`;
+            filterValueString += ` ${CONST.SEARCH.NOT_PREFIX}${filterName}:${sanitizeFilterValue(queryFilter.value.toString())}`;
         } else if (queryFilter.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_CONTAINS) {
-            filterValueString += ` ${CONST.SEARCH.NOT_PREFIX}${filterName}${operatorToCharMap[CONST.SEARCH.SYNTAX_OPERATORS.NOT_CONTAINS]}${sanitizeSearchValue(queryFilter.value.toString())}`;
+            filterValueString += ` ${CONST.SEARCH.NOT_PREFIX}${filterName}${operatorToCharMap[CONST.SEARCH.SYNTAX_OPERATORS.NOT_CONTAINS]}${sanitizeFilterValue(queryFilter.value.toString())}`;
         } else if (queryFilter.operator === CONST.SEARCH.SYNTAX_OPERATORS.RANGE) {
             const rangeBoundaries = parseRangeQueryValue(queryFilter.value.toString());
             if (rangeBoundaries.from) {
@@ -759,7 +768,7 @@ function buildFilterValuesString(filterName: string, queryFilters: QueryFilter[]
             if (!operatorChar) {
                 continue;
             }
-            filterValueString += ` ${filterName}${operatorChar}${sanitizeSearchValue(queryFilter.value.toString())}`;
+            filterValueString += ` ${filterName}${operatorChar}${sanitizeFilterValue(queryFilter.value.toString())}`;
         }
     }
 
@@ -3835,6 +3844,7 @@ export {
     buildCannedSearchQuery,
     resolvePolicyIDFromName,
     sanitizeSearchValue,
+    sanitizeFilterValue,
     getKeywordQueryForSearchInput,
     getQueryWithUpdatedValues,
     getQueryWithPreservedSort,

@@ -1,7 +1,7 @@
 /** Row of a flagged expense: its receipt, merchant and amount, with its violations next to the date. */
 import DateCell from '@components/Search/SearchList/ListItem/DateCell';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
-import Text from '@components/Text';
+import TextWithTooltip from '@components/TextWithTooltip';
 import ReceiptCell from '@components/TransactionItemRow/DataCells/ReceiptCell';
 import TransactionItemRowNarrowSubtitle from '@components/TransactionItemRow/TransactionItemRowNarrowSubtitle';
 import TransactionItemRowNarrowTextColumn from '@components/TransactionItemRow/TransactionItemRowNarrowTextColumn';
@@ -47,13 +47,13 @@ function InsightsFlaggedExpenseRow({expense, violations}: InsightsFlaggedExpense
                     shouldShowTooltip
                 />
                 <TransactionItemRowNarrowSubtitle>
-                    <Text
+                    <TextWithTooltip
+                        text={violations.join(` ${CONST.DOT_SEPARATOR} `)}
                         variant="label"
                         numberOfLines={1}
                         style={[styles.flex1, styles.textSupporting]}
-                    >
-                        {violations.join(` ${CONST.DOT_SEPARATOR} `)}
-                    </Text>
+                        shouldShowTooltip
+                    />
                     <DateCell
                         date={getCreated(expense)}
                         showTooltip

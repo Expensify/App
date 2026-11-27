@@ -950,6 +950,7 @@ const SENTRY_LABEL = {
         },
         DETAILS_TOP_EXPENSE: 'Insights-DetailsTopExpense',
         DETAILS_TOP_EXPENSES_VIEW_ALL: 'Insights-DetailsTopExpensesViewAll',
+        DETAILS_RECENT_HISTORY_VIEW_ALL: 'Insights-DetailsRecentHistoryViewAll',
         FUTURE_EXPENSES_VIEW: 'Insights-FutureExpensesView',
     },
     EXPENSE_RULES: {
@@ -2645,6 +2646,7 @@ const SENTRY_LABEL = {
                 IMPORT_CUSTOM_FIELD_HELP_LINK: 'WorkspaceAccountingNetSuite-ImportCustomFieldHelpLink',
             },
             RILLET: {
+                AUTO_CREATE_VENDOR_SWITCH: 'WorkspaceAccountingRillet-AutoCreateVendorSwitch',
                 AUTO_SYNC_SWITCH: 'WorkspaceAccountingRillet-AutoSyncSwitch',
                 ACCOUNTING_METHOD: 'WorkspaceAccountingRillet-AccountingMethod',
                 ACH_PAYMENT_ACCOUNT: 'WorkspaceAccountingRillet-ACHPaymentAccount',

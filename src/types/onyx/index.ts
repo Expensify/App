@@ -131,7 +131,7 @@ import type InitiatingBankAccountUnlock from './InitiatingBankAccountUnlock';
 import type InsightsDashboard from './InsightsDashboard';
 import type {AIInsight, AIInsightChip, InsightsDashboardID, InsightsFutureExpenses, InsightsGraphKey, InsightsSearchKey} from './InsightsDashboard';
 import type InsightsDetails from './InsightsDetails';
-import type {InsightsDetailsSummary} from './InsightsDetails';
+import type {InsightsDetailsHistoryPeriod, InsightsDetailsSummary} from './InsightsDetails';
 import type InsightsExplanation from './InsightsExplanation';
 import type IntroSelected from './IntroSelected';
 import type InvitedEmailsToAccountIDs from './InvitedEmailsToAccountIDs';
@@ -343,6 +343,7 @@ export type {
     InsightsDashboard,
     InsightsDashboardID,
     InsightsDetails,
+    InsightsDetailsHistoryPeriod,
     InsightsDetailsSummary,
     InsightsExplanation,
     InsightsFutureExpenses,

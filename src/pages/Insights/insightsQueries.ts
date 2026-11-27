@@ -8,12 +8,17 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 import type {InsightsDashboard, InsightsDashboardID, InsightsGraphKey} from '@src/types/onyx';
 
-import {addDays, format, parseISO} from 'date-fns';
+import type {Duration} from 'date-fns';
+
+import {addDays, format, min, parseISO, sub, subMonths} from 'date-fns';
 
 import type {InsightsChartSpec, InsightsDateFilterKey, InsightsViolationStages} from './dashboardSpecs';
 import type {InsightsFilters} from './insightsFilters';
+import type {InsightsTimeGroupBy} from './insightsGroupByUtils';
 
 import INSIGHTS_DASHBOARD_SPECS, {applyViolationStage, getViolationStage, VIOLATION_HAS_VALUES} from './dashboardSpecs';
+import {RECENT_HISTORY_PERIOD_COUNT} from './details/buildRecentHistoryRows';
+import getCalendarPeriod from './details/getCalendarPeriod';
 import getInsightsDateRange from './getInsightsDateRange';
 import getInsightsLastDay from './getInsightsLastDay';
 import {getQueryGroupBy} from './insightsGroupByUtils';
@@ -23,6 +28,9 @@ const COMPARE_AVERAGE_PERIOD_COUNT = 1;
 
 /** How many expenses the Details panel lists under Top expenses */
 const TOP_EXPENSES_LIMIT = 10;
+
+/** How many months Recent history's View all goes back from the summarized period's end, the most the average can cover. Rounded back to the start of the panel's period. */
+const RECENT_HISTORY_MONTHS_BACK = 12;
 
 /** Range of the numbers Search hashes its queries into, which the dashboard's hash shares */
 const INSIGHTS_HASH_RANGE = 2 ** 32;
@@ -193,6 +201,40 @@ function buildFutureExpensesQueryString(filters: InsightsFilters, asOfDate: stri
     );
 }
 
+/** Returns how far back the given number of periods reaches, for subtracting from a date. */
+function getPeriodsDuration(periodGroupBy: InsightsTimeGroupBy, count: number): Duration {
+    switch (periodGroupBy) {
+        case CONST.SEARCH.GROUP_BY.DAY:
+            return {days: count};
+        case CONST.SEARCH.GROUP_BY.WEEK:
+            return {weeks: count};
+        case CONST.SEARCH.GROUP_BY.MONTH:
+            return {months: count};
+        case CONST.SEARCH.GROUP_BY.QUARTER:
+            return {months: count * 3};
+        default:
+            return {years: count};
+    }
+}
+
+/** Builds the Spend page query behind Recent history's View all: the item's expenses from the oldest period the average or the list covers through the summarized one, grouped by the panel's period. */
+function buildRecentHistoryQueryString(filters: InsightsFilters, periodGroupBy: InsightsTimeGroupBy, periodEnd: string, itemFilterQuery: string): SearchQueryString {
+    const end = parseISO(periodEnd);
+    const oldestDay = format(min([subMonths(end, RECENT_HISTORY_MONTHS_BACK), sub(end, getPeriodsDuration(periodGroupBy, RECENT_HISTORY_PERIOD_COUNT - 1))]), CONST.DATE.FNS_FORMAT_STRING);
+    const start = getCalendarPeriod(periodGroupBy, oldestDay)?.start ?? oldestDay;
+    const query = buildQueryStringFromFilterFormValues(
+        {
+            ...buildFilterFormValues(filters, false),
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            [FILTER_KEYS.DATE_RANGE]: getRangeQueryValue(start, periodEnd),
+            groupBy: periodGroupBy,
+            view: CONST.SEARCH.VIEW.TABLE,
+        },
+        {sortOrder: CONST.SEARCH.SORT_ORDER.DESC},
+    );
+    return `${query} ${itemFilterQuery}`;
+}
+
 /** Builds the dashboard-wide query at the bucket the charts are drawn with, without a comparison. */
 function buildDashboardQueryJSON(dashboard: InsightsDashboardID, filters: InsightsFilters): Readonly<SearchQueryJSON> | undefined {
     return buildDashboardQuery(buildInsightsQueryString({...filters, groupBy: getQueryGroupBy(filters), compare: undefined}), dashboard);
@@ -332,6 +374,7 @@ export {
     buildDetailsFiltersQueryJSON,
     buildFutureExpensesQueryString,
     buildInsightsQueryString,
+    buildRecentHistoryQueryString,
     buildTopExpensesQueryJSON,
     scopeInsightsDrillDownQuery,
     TOP_EXPENSES_LIMIT,

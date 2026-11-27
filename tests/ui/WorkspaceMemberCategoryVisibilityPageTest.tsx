@@ -131,7 +131,8 @@ describe('WorkspaceMemberCategoryVisibilityPage', () => {
         save();
 
         // Then both members get exactly those categories, the page goes back to the members list and clears the selection
-        // once it has closed, and a toast says how many categories were set for how many members
+        // once it has closed, and a toast says how many categories were set for how many members, staying up long enough
+        // to read both of its sentences
         expect(setPolicyMemberCategoryVisibility).toHaveBeenCalledWith(
             POLICY_ID,
             [MEMBER_1_ACCOUNT_ID, MEMBER_2_ACCOUNT_ID],
@@ -141,7 +142,7 @@ describe('WorkspaceMemberCategoryVisibilityPage', () => {
             [MEMBER_1_LOGIN, MEMBER_2_LOGIN],
         );
         expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.WORKSPACE_MEMBERS.getRoute(POLICY_ID), {afterTransition: clearWorkspaceMembersSelectedForBulkEdit});
-        expect(Growl.success).toHaveBeenCalledWith({bodyText: 'workspace.people.bulkCategoryVisibilitySaved'});
+        expect(Growl.success).toHaveBeenCalledWith({bodyText: 'workspace.people.bulkCategoryVisibilitySaved', duration: CONST.GROWL.DURATION_LONG});
     });
 
     it('blocks saving the bulk edit with nothing checked', () => {

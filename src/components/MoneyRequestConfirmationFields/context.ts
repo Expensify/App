@@ -43,14 +43,14 @@ type ConfirmationFieldsContextValue = {
     /** Scrolls the surface so an inline field's input is not hidden behind the keyboard when focused (new manual expense flow). */
     scrollFocusedInputIntoView?: (input: MeasurableInput) => void;
 
-    /** The refs the amount, merchant and date fields attach their outer view to, so a blocked confirm can scroll to them */
+    /** The refs the fields that show their own errors attach their outer view to, so a blocked confirm can scroll to them */
     fieldViewRefs?: ConfirmationFieldViewRefs;
 
     /** Submits the whole expense. Used by inline inputs to keep Enter-to-confirm on hardware-keyboard setups (new manual expense flow). */
     onSubmitForm?: () => void;
 
-    /** Reports whether the inline tax amount field is currently empty, so submission can be blocked when it is left empty (new manual expense flow). */
-    onTaxAmountEmptyChange?: (isEmpty: boolean) => void;
+    /** Records the receipt whose inline tax amount input was emptied, or undefined once it holds a value, so submission can be blocked while it is left empty (new manual expense flow). */
+    setEmptyTaxAmountTransactionID?: (transactionID: string | undefined) => void;
 
     /** Reports whether the inline amount field holds input the draft can't show as the user's: a sign with no digits, or a currency the user picked (new manual expense flow). */
     onUnsavedAmountInputChange?: (hasUnsavedInput: boolean) => void;

@@ -14,8 +14,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 
-import variables from '@styles/variables';
-
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -24,7 +22,7 @@ import {View} from 'react-native';
 
 import type {RankingTableRow} from './buildRankingTableRows';
 
-import InsightsRankingTableAverageMarker from './InsightsRankingTableAverageMarker';
+import InsightsMeterBar from './InsightsMeterBar';
 import InsightsRankingTableChange, {formatRankingTableChange} from './InsightsRankingTableChange';
 
 /** Smaller shares would otherwise be displayed as zero. In percentage points. */
@@ -116,14 +114,10 @@ function InsightsRankingTableRow({row, groupBy, countDimension, queryJSON, onPre
                         {!!change && <InsightsRankingTableChange change={change} />}
                     </View>
                 </View>
-                <View style={styles.insightsRankingTableBarTrack}>
-                    <View style={styles.insightsRankingTableBar(barWidthPercent)} />
-                    {averageWidthPercent !== undefined && (
-                        <View style={styles.insightsRankingTableAverageLineAnchor(averageWidthPercent, variables.insightsRankingTableAverageMarkerOverhang)}>
-                            <InsightsRankingTableAverageMarker style={styles.flex1} />
-                        </View>
-                    )}
-                </View>
+                <InsightsMeterBar
+                    widthPercent={barWidthPercent}
+                    averageWidthPercent={averageWidthPercent}
+                />
             </PressableWithFeedback>
         );
     }

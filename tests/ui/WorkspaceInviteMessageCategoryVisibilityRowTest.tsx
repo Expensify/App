@@ -145,6 +145,8 @@ describe('WorkspaceInviteMessageComponent - Category visibility row', () => {
             } satisfies PersonalDetailsList);
             await Onyx.merge(ONYXKEYS.SESSION, {email: ADMIN_EMAIL, accountID: ADMIN_ACCOUNT_ID});
             await Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${POLICY_ID}`, {[INVITEE_EMAIL]: INVITEE_ACCOUNT_ID});
+            // The complete category list has been read, so the categories each test sets are all the workspace has
+            await Onyx.set(`${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_CATEGORIES_LOADING_STATE}${POLICY_ID}`, {isLoading: false, hasOnceLoaded: true});
             await waitForBatchedUpdatesWithAct();
         });
     });
@@ -157,7 +159,10 @@ describe('WorkspaceInviteMessageComponent - Category visibility row', () => {
     });
 
     it('shows All categories and sends no categories when the admin leaves the row alone', async () => {
-        // Given a Control workspace admin inviting a member, with categories enabled and no category choice yet
+        // Given a Control workspace admin inviting a member, with an enabled category and no category choice yet
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}`, {Meals: {name: 'Meals', enabled: true}});
+        });
         await renderPage(buildPolicy());
 
         // Then the row says the new member can use every category
@@ -171,6 +176,37 @@ describe('WorkspaceInviteMessageComponent - Category visibility row', () => {
         expect(addMembersToWorkspaceMock).toHaveBeenCalledTimes(1);
         // The categories are passed in the options object, the last argument.
         expect(addMembersToWorkspaceMock.mock.lastCall?.[8]?.categoryNames).toBeUndefined();
+    });
+
+    it('leaves the row empty and sends no categories when the workspace has no enabled category', async () => {
+        // Given every category of the workspace was disabled or deleted after the admin limited the invitees to Travel
+        await setCategoriesAndDraft({Travel: {name: 'Travel', enabled: false}}, ['Travel']);
+        await renderPage(buildPolicy());
+
+        // Then the row is empty like on a member's details page, without claiming All categories or asking for a
+        // category the admin can't pick
+        expect(queryCategoryVisibilityRow()).toBeOnTheScreen();
+        expect(screen.queryByText(translateLocal('workspace.people.allCategories'))).not.toBeOnTheScreen();
+        expect(screen.queryByText(translateLocal('workspace.people.categoriesCount', {count: 0}))).not.toBeOnTheScreen();
+        expect(screen.queryByTestId('menu-item-brick-road-indicator')).not.toBeOnTheScreen();
+
+        // When the admin sends the invite
+        await pressInvite();
+
+        // Then it goes through without categories, since there's nothing to limit the new member to
+        expect(addMembersToWorkspaceMock).toHaveBeenCalledTimes(1);
+        expect(addMembersToWorkspaceMock.mock.lastCall?.[8]?.categoryNames).toBeUndefined();
+    });
+
+    it('shows All categories while the complete category list is still being read', async () => {
+        // Given a lazy-loaded workspace whose categories haven't been read yet
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_CATEGORIES_LOADING_STATE}${POLICY_ID}`, {isLoading: true, hasOnceLoaded: false});
+        });
+        await renderPage(buildPolicy());
+
+        // Then the row doesn't treat the missing list as a workspace without categories
+        expect(screen.getByText(translateLocal('workspace.people.allCategories'))).toBeOnTheScreen();
     });
 
     it('shows the number of chosen categories and sends them with the invite', async () => {

@@ -2,6 +2,7 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import ConfirmationFieldsProvider from '@components/MoneyRequestConfirmationFields/Provider';
 import AmountField from '@components/MoneyRequestConfirmationList/sections/AmountField';
+import ExpenseFormLayoutContext from '@components/MoneyRequestConfirmationList/sections/ExpenseFormLayoutContext';
 import type {NumberWithSymbolFormProps} from '@components/NumberWithSymbolForm';
 
 import {setMoneyRequestAmount, setMoneyRequestCurrency} from '@libs/actions/IOU/MoneyRequest';
@@ -15,7 +16,9 @@ import type {IOURequestType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 
-import React from 'react';
+import type {View} from 'react-native';
+
+import React, {createRef} from 'react';
 
 const mockFocusAmountInput = jest.fn();
 let mockIsScreenFocused = true;
@@ -124,10 +127,11 @@ jest.mock('@components/MenuItem', () => {
 });
 jest.mock('@components/DropdownFieldRow', () => {
     const {Text} = jest.requireActual<Record<'Text', React.ComponentType<{children?: React.ReactNode}>>>('react-native');
-    return ({value, isInteractive = true}: {value?: string; isInteractive?: boolean}) => (
+    return ({value, isInteractive = true, errorText}: {value?: string; isInteractive?: boolean; errorText?: string}) => (
         <>
             <Text>{`Read-only amount: ${value ?? ''}`}</Text>
             {isInteractive && <Text>Opens amount page</Text>}
+            {!!errorText && <Text>{errorText}</Text>}
         </>
     );
 });
@@ -157,7 +161,6 @@ jest.mock('@hooks/useThemeStyles', () => () => ({}));
 jest.mock('@hooks/useCurrencyList', () => ({useCurrencyListActions: () => ({getCurrencyDecimals: () => 2, getCurrencySymbol: () => '$'})}));
 jest.mock('@libs/DeviceCapabilities', () => ({canUseTouchScreen: () => mockCanUseTouchScreen}));
 jest.mock('@libs/actions/IOU/MoneyRequest', () => ({
-    getMoneyRequestParticipantsFromReport: () => [],
     setMoneyRequestAmount: jest.fn(),
     setMoneyRequestCurrency: jest.fn(),
     clearMoneyRequestAmount: jest.fn(),
@@ -171,22 +174,21 @@ const amountFieldProps: React.ComponentProps<typeof AmountField> = {
     isDistanceRequest: false,
     shouldShowTimeRequestFields: false,
     shouldDisplayFieldError: false,
-    formError: 'iou.error.invalidAmount',
     fieldError: undefined,
     policy: undefined,
-    clearFormErrors: jest.fn(),
-    setFormError: jest.fn(),
 };
 
-describe('AmountField split-bill error clearing', () => {
+describe('AmountField split-bill amount errors', () => {
     beforeEach(() => {
         mockTransactionSlice = {transactionID: '1', amount: 0, currency: 'USD', isAmountMissing: false};
         mockOnyxValues = {};
     });
 
     it('shows the missing amount error for a failed split scan', () => {
+        // Given a split being edited whose failed scan left the amount missing, with the split's missing-field errors shown
         mockTransactionSlice = {transactionID: '1', amount: 0, currency: 'USD', isAmountMissing: true};
 
+        // When the field renders
         render(
             <ConfirmationFieldsProvider
                 transactionID="1"
@@ -198,15 +200,17 @@ describe('AmountField split-bill error clearing', () => {
                 <AmountField
                     {...amountFieldProps}
                     shouldDisplayFieldError
-                    formError="iou.receiptScanningFailed"
                 />
             </ConfirmationFieldsProvider>,
         );
 
+        // Then it asks for the amount, since the scan didn't fill it in
         expect(screen.getByText('common.error.enterAmount')).toBeOnTheScreen();
     });
 
     it('does not show a missing amount error when the split amount is valid', () => {
+        // Given a split being edited whose amount is set, with the split's missing-field errors shown
+        // When the field renders
         render(
             <ConfirmationFieldsProvider
                 transactionID="1"
@@ -218,17 +222,19 @@ describe('AmountField split-bill error clearing', () => {
                 <AmountField
                     {...amountFieldProps}
                     shouldDisplayFieldError
-                    formError="iou.receiptScanningFailed"
                 />
             </ConfirmationFieldsProvider>,
         );
 
+        // Then it asks for nothing, because only a missing amount gets that error
         expect(screen.queryByText('common.error.enterAmount')).not.toBeOnTheScreen();
     });
 
     it('does not show the split missing amount error outside the field-error state', () => {
+        // Given a new expense with no amount, which isn't a split being edited, so the split's missing-field errors are off
         mockTransactionSlice = {transactionID: '1', amount: 0, currency: 'USD', isAmountMissing: true};
 
+        // When the field renders
         render(
             <ConfirmationFieldsProvider
                 transactionID="1"
@@ -236,18 +242,16 @@ describe('AmountField split-bill error clearing', () => {
                 action={CONST.IOU.ACTION.CREATE}
                 iouType={CONST.IOU.TYPE.SUBMIT}
             >
-                <AmountField
-                    {...amountFieldProps}
-                    formError="iou.receiptScanningFailed"
-                />
+                <AmountField {...amountFieldProps} />
             </ConfirmationFieldsProvider>,
         );
 
+        // Then it asks for nothing yet, since a new expense's missing amount only shows once a confirm is blocked
         expect(screen.queryByText('common.error.enterAmount')).not.toBeOnTheScreen();
     });
 
-    it('keeps the split amount error at zero and clears it when the amount becomes nonzero', () => {
-        const clearFormErrors = jest.fn();
+    it('shows the amount error a blocked save revealed on an edited split', () => {
+        // Given a split being edited whose save was blocked by its $0 amount, after the user already typed an amount, so the missing-field state is off
         render(
             <ConfirmationFieldsProvider
                 transactionID="1"
@@ -258,36 +262,14 @@ describe('AmountField split-bill error clearing', () => {
             >
                 <AmountField
                     {...amountFieldProps}
-                    clearFormErrors={clearFormErrors}
+                    fieldError="common.error.enterAmount"
                 />
             </ConfirmationFieldsProvider>,
         );
 
-        fireEvent.press(screen.getByText('Enter zero'));
-        expect(clearFormErrors).not.toHaveBeenCalledWith(expect.arrayContaining(['iou.error.invalidAmount']));
-
-        fireEvent.press(screen.getByText('Enter one'));
-        expect(clearFormErrors).toHaveBeenCalledWith(expect.arrayContaining(['iou.error.invalidAmount']));
-    });
-
-    it('does not clear a split-specific error outside split-bill editing', () => {
-        const clearFormErrors = jest.fn();
-        render(
-            <ConfirmationFieldsProvider
-                transactionID="1"
-                reportID="2"
-                action={CONST.IOU.ACTION.CREATE}
-                iouType={CONST.IOU.TYPE.SUBMIT}
-            >
-                <AmountField
-                    {...amountFieldProps}
-                    clearFormErrors={clearFormErrors}
-                />
-            </ConfirmationFieldsProvider>,
-        );
-
-        fireEvent.press(screen.getByText('Enter one'));
-        expect(clearFormErrors).toHaveBeenCalledWith(['common.error.invalidAmount']);
+        // When the field renders
+        // Then it shows that error under the input, the same message the field shows for a missing amount before any save
+        expect(screen.getByText('common.error.enterAmount')).toBeOnTheScreen();
     });
 
     it('seeds a split draft from the saved transaction when no split draft exists yet', () => {
@@ -533,6 +515,39 @@ describe('AmountField while the receipt is scanning', () => {
         // Then the editable amount input stays, so the user can still type an amount inline
         expect(screen.getByText('Enter zero')).toBeOnTheScreen();
         expect(screen.queryByText('Read-only amount: Scanning…')).not.toBeOnTheScreen();
+    });
+
+    it.each([
+        ['push row', false],
+        ['bordered row', true],
+    ])('shows the amount error a blocked save revealed on the %s of a split edited while its receipt is scanning', (_layout, shouldUseDropdownRows) => {
+        // Given a split being edited whose receipt is still scanning, so its amount is a read-only row, and whose save was blocked by its $0 amount
+        const fieldViewRefs = {amount: createRef<View>(), merchant: createRef<View>(), date: createRef<View>(), taxAmount: createRef<View>(), attendees: createRef<View>()};
+
+        // When the field renders
+        render(
+            <ConfirmationFieldsProvider
+                transactionID="1"
+                reportID="2"
+                action={CONST.IOU.ACTION.EDIT}
+                iouType={CONST.IOU.TYPE.SPLIT}
+                isEditingSplitBill
+                fieldViewRefs={fieldViewRefs}
+            >
+                <ExpenseFormLayoutContext.Provider value={{shouldUseDropdownRows}}>
+                    <AmountField
+                        {...amountFieldProps}
+                        formattedAmount="Scanning…"
+                        fieldError="common.error.enterAmount"
+                    />
+                </ExpenseFormLayoutContext.Provider>
+            </ConfirmationFieldsProvider>,
+        );
+
+        // Then the row shows the error and holds the amount ref, so the blocked save scrolls to a message instead of doing nothing visible
+        expect(screen.getByText('Read-only amount: Scanning…')).toBeOnTheScreen();
+        expect(screen.getByText('common.error.enterAmount')).toBeOnTheScreen();
+        expect(fieldViewRefs.amount.current).not.toBeNull();
     });
 });
 

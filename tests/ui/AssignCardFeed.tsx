@@ -19,7 +19,7 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import AssigneeStep from '@pages/workspace/companyCards/assignCard/AssigneeStep';
 import ConfirmationStep from '@pages/workspace/companyCards/assignCard/ConfirmationStep';
 
-import {setAssignCardStepAndData} from '@userActions/CompanyCards';
+import {assignWorkspaceCompanyCard, setAssignCardStepAndData} from '@userActions/CompanyCards';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -32,6 +32,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import {createRandomCompanyCard} from '../utils/collections/card';
 import createMock from '../utils/createMock';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
@@ -46,6 +47,8 @@ const COMMERCIAL_FEED: CompanyCardFeedWithDomainID = `${CONST.COMPANY_CARD.FEED_
 const DIRECT_FEED = `plaid.ins_123#${WORKSPACE_ACCOUNT_ID}`;
 
 const CARD_ID = '1234';
+
+const SIGNED_IN_ACCOUNT_ID = 7;
 
 // Set up a global fetch mock for API requests in tests.
 TestHelper.setupGlobalFetchMock();
@@ -930,6 +933,57 @@ describe('AssignCardFeed', () => {
 
             unmount();
             await waitForBatchedUpdatesWithAct();
+        });
+    });
+
+    describe('ConfirmationStep - submit', () => {
+        const pressAssignCard = async (options: {isCardAlreadyAssigned: boolean}) => {
+            await TestHelper.signInWithTestUser(SIGNED_IN_ACCOUNT_ID);
+            const policy = {
+                ...LHNTestUtils.getFakePolicy(),
+                areCompanyCardsEnabled: true,
+                role: CONST.POLICY.ROLE.ADMIN,
+                policyAccountID: WORKSPACE_ACCOUNT_ID,
+            };
+            const assignCardData = createMockAssignCardData({feedType: 'commercial'});
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+                setHasRadio(true);
+                await Onyx.merge(ONYXKEYS.ASSIGN_CARD, assignCardData);
+                if (options.isCardAlreadyAssigned) {
+                    const assignedCard = {...createRandomCompanyCard(1), encryptedCardNumber: assignCardData.cardToAssign.encryptedCardNumber};
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${WORKSPACE_ACCOUNT_ID}_${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}`, {[assignedCard.cardID]: assignedCard});
+                }
+            });
+            renderConfirmationStep({policyID: policy.id, feed: COMMERCIAL_FEED, cardID: CARD_ID});
+            await waitForBatchedUpdatesWithAct();
+            fireEvent.press(await screen.findByTestId(CONST.ASSIGN_CARD_BUTTON_TEST_ID));
+            await waitForBatchedUpdatesWithAct();
+        };
+
+        it('assigns the card with the workspace account ID of the policy and the signed-in account ID', async () => {
+            // Given a card that is not assigned yet
+            // When the admin taps Assign card
+            await pressAssignCard({isCardAlreadyAssigned: false});
+
+            // Then the card is assigned for the policy's workspace account by the signed-in admin
+            expect(assignWorkspaceCompanyCard).toHaveBeenCalledWith(
+                expect.objectContaining({policyAccountID: WORKSPACE_ACCOUNT_ID}),
+                WORKSPACE_ACCOUNT_ID,
+                expect.anything(),
+                undefined,
+                SIGNED_IN_ACCOUNT_ID,
+            );
+        });
+
+        it('shows the already assigned error instead of assigning a card the workspace already has', async () => {
+            // Given a card that is already assigned in the same feed
+            // When the admin taps Assign card
+            await pressAssignCard({isCardAlreadyAssigned: true});
+
+            // Then the error is shown and the card is not assigned
+            expect(await screen.findByText(TestHelper.translateLocal('workspace.companyCards.cardAlreadyAssignedError'))).toBeOnTheScreen();
+            expect(assignWorkspaceCompanyCard).not.toHaveBeenCalled();
         });
     });
 

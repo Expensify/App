@@ -14,6 +14,9 @@ type TabSelectorActionsContextType = {
     onContainerScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
     scrollToTab: (tabKey: string) => void;
     onTabLayout: (tabKey: string, event: LayoutChangeEvent) => void;
+
+    /** The row's last scroll offset, which outlives the row when it remounts under the same provider. */
+    getContainerX: () => number;
 };
 
 type TabSelectorContextProviderProps = {

@@ -7,7 +7,7 @@
 
 Oxlint flags default imports of the deprecated modules (`restrictedImportPatterns` in `oxlint.config.mts`) and uses of the deprecated symbols (`@typescript-eslint/no-deprecated`). The seatbelt file `config/oxlint/oxlint.seatbelt.tsv` freezes the existing call sites. Never edit it by hand (see `contributingGuides/LINTING.md`). Migrate each call site in its own PR.
 
-`AmountForm` is the exception to both rules. Lint does not flag its consumers, because they import `AmountForm` and not `NumberWithSymbolForm`, and it is migrated as one unit rather than per consumer. See [section 7](#7-amountform).
+`AmountFormInline` and `AmountFormKeypad` are the exception to both rules. Lint does not flag their consumers, because they import the adapters and not `NumberWithSymbolForm`, and they were migrated as one unit rather than per consumer. See [section 7](#7-amountforminline-and-amountformkeypad).
 
 > [!TIP]
 > **Quick Start (4-step migration):**
@@ -373,7 +373,7 @@ Approach 1 (recommended): make the screen standalone and follow the structure of
 
 `FormProvider` also provided things that a standalone page must re-create or drop on purpose. Check whether the page relies on the submit button's loading state (`isLoading` from the form's Onyx key), server errors shown by the form alert (the form's `errors`), and draft saving (`shouldSaveDraft` and the form draft key).
 
-Approach 2 (only if the screen cannot leave `FormProvider` in the same PR): wrap `KeypadAmountEditor` in an `InputWrapper`-compatible component and pass `addBottomSafeAreaPadding={false}` to it, since a parent already applies the bottom safe area (`FormWrapper` or, on screens that do not opt into edge-to-edge, `ScreenWrapper`). Forward `onBlur`, `onSubmitEditing` and the form `ref` to `.Input` (not to the root), and register the component in the `ValidInputs` union in `src/components/Form/types.ts`. For amount fields, use the `AmountForm` adapter ([section 7](#7-amountform)) instead of writing a new one.
+Approach 2 (only if the screen cannot leave `FormProvider` in the same PR): wrap `KeypadAmountEditor` in an `InputWrapper`-compatible component and pass `addBottomSafeAreaPadding={false}` to it, since a parent already applies the bottom safe area (`FormWrapper` or, on screens that do not opt into edge-to-edge, `ScreenWrapper`). Forward `onBlur`, `onSubmitEditing` and the form `ref` to `.Input` (not to the root), and register the component in the `ValidInputs` union in `src/components/Form/types.ts`. For amount fields, use the `AmountFormKeypad` adapter ([section 7](#7-amountforminline-and-amountformkeypad)) instead of writing a new one.
 
 ## 6. Migrating `MoneyRequestAmountInput`
 
@@ -406,31 +406,21 @@ The legacy effect that syncs `amount` into the editor has these rules. Re-create
   - `initialIsNegativeRef` is the baseline for `onSignDirtyChange`. Both the flip button and `clearNegative` report it. In the editor both arrive through `onInputChange` with a signed value, so compute the sign there (`startsWith('-')`) and compare it with the baseline. `IOURequestStepAmount` mirrors the typed amount and the sign-dirty flag in state for `getAmountHasUnsavedChanges` (see the dirty-tracking rule in [section 2](#2-behavior-semantics)).
   - The `getNumber` handle (`MoneyRequestAmountFormHandle`) returns the signed value, and `''` for an empty input. `KeypadAmountEditor.getNumber()` is already signed, but a flip on an empty input yields `'-'`. Normalize it before reporting or validating.
 
-## 7. `AmountForm`
+## 7. `AmountFormInline` and `AmountFormKeypad`
 
-`AmountForm` (`src/components/AmountForm.tsx`) is the `FormProvider` adapter for amount fields. It derives `decimals` and the localized symbol from `currency`, forwards `ref` to the text input so `FormProvider` can focus the first invalid field, forwards `numberFormRef` to the editor, and is registered in `ValidInputs`. Keep it as an adapter. Migrating its usages to the primitives one by one would make every screen re-create this wiring, or leave `FormProvider` and lose its loading state, error alert and drafts.
+`AmountFormInline` and `AmountFormKeypad` (`src/components/AmountFormAdapters/`) are the `FormProvider` adapters for amount fields. Both derive `decimals` and the localized symbol from `currency` with `useAmountFormCurrency`, forward `ref` to the text input so `FormProvider` can focus the first invalid field, forward `numberFormRef` to the editor, and are registered in `ValidInputs`. Keep them as adapters. Migrating their usages to the primitives one by one would make every screen re-create this wiring, or leave `FormProvider` and lose its loading state, error alert and drafts.
 
-One consumer, `WorkspaceWorkflowsApprovalsApprovalLimitPage`, renders `AmountForm` directly outside `FormProvider` (controlled through `value`, `onInputChange` and a `key`). Keep that usage working in both PRs below.
+One consumer, `WorkspaceWorkflowsApprovalsApprovalLimitPage`, renders `AmountFormInline` directly outside `FormProvider` (controlled through `value`, `onInputChange` and a `key`).
 
-`AmountForm` picks one of two paths:
+| Adapter              | Renders              | Consumers                                                                                                 |
+| -------------------- | -------------------- | --------------------------------------------------------------------------------------------------------- |
+| `AmountFormInline`   | `AmountFormField`    | `ChronosScheduleOOOPage` and the other `FormProvider` consumers                                          |
+| `AmountFormKeypad`   | `KeypadAmountEditor` | `PolicyDistanceRateEditPage`, `PolicyDistanceRateTaxReclaimableEditPage`, `DynamicExpensifyCardLimitPage` |
 
-| Path   | Condition                  | Renders today          | Consumers                                                                                                   |
-| ------ | -------------------------- | ---------------------- | ----------------------------------------------------------------------------------------------------------- |
-| Inline | `displayAsTextInput`       | `AmountFormField`      | `ChronosScheduleOOOPage` and the other `FormProvider` consumers                                             |
-| Pad    | `displayAsTextInput` unset | `KeypadAmountEditor`   | `PolicyDistanceRateEditPage`, `PolicyDistanceRateTaxReclaimableEditPage`, `DynamicExpensifyCardLimitPage` |
+Both adapters take the shared props in `AmountFormBaseProps`. Each adds only what its path uses, so passing a prop that the other path would ignore is a type error:
 
-The inline path routes directly to `AmountFormField`, composing `AmountFormField.CurrencyPickerButton` inside `AmountFormField.Input` as a child when `shouldShowCurrencyButton` is set.
-
-Migrate in two PRs:
-
-1. **Migrate the legacy pad path inside `AmountForm`** (done). Consumers are unchanged and the rendered behavior is kept.
-   - It renders `KeypadAmountEditor` without `footer`, because `FormProvider` renders the submit button. `KeypadAmountEditor.Symbol` goes before `.Input` unless `hideCurrencySymbol` is set, and `.Input` gets `autoGrowExtraSpace={0}` because the legacy path did not pass the prop while `KeypadAmountEditor.Input` defaults to `variables.w80`. The currency picker action renders only when `isCurrencyPressable` is true and `currency` is non-empty.
-   - The editor stays nested in the `FormProvider` scroll view, as the legacy form was. This is not the standalone layout that [example D](#d-standalone-screen-or-formprovider) recommends for new screens. On every pad screen a parent already applies the bottom safe area and the offline indicator spacing (`FormWrapper` on the distance rate pages, `ScreenWrapper` on `DynamicExpensifyCardLimitPage`, which does not opt into edge-to-edge), so pass `addBottomSafeAreaPadding={false}` to the editor. Without it, `KeypadAmountLayout` adds the inset a second time between the pad and the submit button.
-   - `disabled` is ignored in the pad path, because `KeypadAmountEditor.Input` has no `disabled` prop and no pad consumer needs it. `label` only sets the accessibility label, and `onSubmitEditing` is forwarded, which the legacy path dropped. No pad consumer passes either prop.
-   - `tests/ui/AmountFormTest.tsx` covers the pad path with its symbol, decimals, `numberFormRef`, `ref`, error text and currency button.
-2. **Split `AmountForm` into an inline adapter and a pad adapter.** Do this in a separate PR that does not change rendering. `displayAsTextInput` is a mode switch ([CLEAN-REACT-PATTERNS-1](../.claude/skills/app-coding-standards/rules/clean-react-1-composition-over-config.md)), and the two paths share only the currency derivation.
-   - Move the currency derivation (`decimals` override, `getCurrencyDecimals`, `getLocalizedCurrencySymbol`) into a hook used by both adapters.
-   - Give each adapter its own props type. The inline adapter takes `label`, `disabled` and the currency button props. The pad adapter takes none of them, so passing one is a type error instead of a prop that is silently ignored.
-   - Register both adapters in `ValidInputs` and remove `AmountForm`.
-   - Every `FormProvider` consumer passes `displayAsTextInput` as a literal, so each one only changes `InputComponent` and drops the prop; `WorkspaceWorkflowsApprovalsApprovalLimitPage` changes its direct JSX tag to `AmountFormInline`. Migrate all consumers in this one PR.
-   - The inline adapter must also work without `InputWrapper`, because `WorkspaceWorkflowsApprovalsApprovalLimitPage` renders it directly.
+- `AmountFormInline` adds `label`, `disabled` and the currency button props. It composes `AmountFormField.CurrencyPickerButton` inside `AmountFormField.Input` as a child when `shouldShowCurrencyButton` is set. It also works without `InputWrapper`, as in `WorkspaceWorkflowsApprovalsApprovalLimitPage`.
+- `AmountFormKeypad` renders `KeypadAmountEditor` without `footer`, because `FormProvider` renders the submit button, and without a currency picker action, because no keypad consumer lets the user change the currency. `KeypadAmountEditor.Symbol` goes before `.Input` unless `hideCurrencySymbol` is set, and `.Input` gets `autoGrowExtraSpace={0}`, because it defaults to `variables.w80`.
+- The keypad editor stays nested in the `FormProvider` scroll view. This is not the standalone layout that [example D](#d-standalone-screen-or-formprovider) recommends for new screens. On every keypad screen a parent already applies the bottom safe area and the offline indicator spacing (`FormWrapper` on the distance rate pages, `ScreenWrapper` on `DynamicExpensifyCardLimitPage`, which does not opt into edge-to-edge), so `AmountFormKeypad` passes `addBottomSafeAreaPadding={false}`. Without it, `KeypadAmountLayout` adds the inset a second time between the pad and the submit button.
+- `AmountFormKeypad` takes no `disabled`, because `KeypadAmountEditor.Input` has no `disabled` prop and no keypad consumer needs it.
+- Both adapters forward `onSubmitEditing` to the input. `FormProvider` passes it to every single-line input, so this is what submits the form on Enter.
