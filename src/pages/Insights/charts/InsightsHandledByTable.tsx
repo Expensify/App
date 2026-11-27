@@ -4,6 +4,8 @@ import type {GroupedItem} from '@components/Search/types';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import DateUtils from '@libs/DateUtils';
 
@@ -14,6 +16,7 @@ import CONST from '@src/CONST';
 import type {ValueOf} from 'type-fest';
 
 import React from 'react';
+import {View} from 'react-native';
 
 import type {InsightsHandledBySourceIcon} from './InsightsHandledBySource';
 import type {InsightsRankingTableColumn} from './InsightsRankingTableRow';
@@ -53,7 +56,9 @@ type InsightsHandledByTableProps = {
 };
 
 function InsightsHandledByTable({title, data, comparison, isComparingPreviousPeriod, stage, policyIDs, isLoading}: InsightsHandledByTableProps) {
+    const styles = useThemeStyles();
     const {translate, numberFormat} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {setupRows, setupPolicyID} = useHandledBySetupRows(policyIDs, stage);
     // A row of zeros says nothing, so sources that finished no reports are left out
     const sources = data.filter((item) => item.count > 0);
@@ -79,41 +84,44 @@ function InsightsHandledByTable({title, data, comparison, isComparingPreviousPer
         ) : null;
 
     return (
-        <InsightsRankingTable
-            title={title}
-            data={sources}
-            groupBy={CONST.SEARCH.GROUP_BY.HANDLED_BY}
-            countDimension={CONST.SEARCH.CHART_COUNT_DIMENSION.REPORT}
-            rowLimit={SKELETON_ROW_COUNT}
-            // An average across people, agents and rules means nothing, so only the previous period is compared
-            comparison={isComparingPreviousPeriod ? comparison : undefined}
-            isComparingPreviousPeriod={isComparingPreviousPeriod}
-            isLoading={isLoading}
-            groupColumnTitle={translate('insightsPage.handledBy.sourceColumn')}
-            renderLabel={renderSource}
-            valueColumn={averageTimeColumn}
-            isChangeNeutral
-            // The design runs the last row to the card's bottom edge
-            shouldPadBottom={false}
-            extraRows={
-                setupPolicyID
-                    ? {
-                          count: setupRows.length,
-                          render: (firstRowIndex, columnIndexes) =>
-                              setupRows.map((setupRow, index) => (
-                                  <InsightsHandledBySetupRow
-                                      key={setupRow}
-                                      type={setupRow}
-                                      stage={stage}
-                                      policyID={setupPolicyID}
-                                      rowIndex={firstRowIndex + index}
-                                      columnIndexes={columnIndexes}
-                                  />
-                              )),
-                      }
-                    : undefined
-            }
-        />
+        // The design sets the column headers 24px under the card title, 4px more than the card header leaves
+        <View style={!shouldUseNarrowLayout && styles.pt1}>
+            <InsightsRankingTable
+                title={title}
+                data={sources}
+                groupBy={CONST.SEARCH.GROUP_BY.HANDLED_BY}
+                countDimension={CONST.SEARCH.CHART_COUNT_DIMENSION.REPORT}
+                rowLimit={SKELETON_ROW_COUNT}
+                // An average across people, agents and rules means nothing, so only the previous period is compared
+                comparison={isComparingPreviousPeriod ? comparison : undefined}
+                isComparingPreviousPeriod={isComparingPreviousPeriod}
+                isLoading={isLoading}
+                groupColumnTitle={translate('insightsPage.handledBy.sourceColumn')}
+                renderLabel={renderSource}
+                valueColumn={averageTimeColumn}
+                isChangeNeutral
+                // The design runs the last row to the card's bottom edge
+                shouldPadBottom={false}
+                extraRows={
+                    setupPolicyID
+                        ? {
+                              count: setupRows.length,
+                              render: (firstRowIndex, columnIndexes) =>
+                                  setupRows.map((setupRow, index) => (
+                                      <InsightsHandledBySetupRow
+                                          key={setupRow}
+                                          type={setupRow}
+                                          stage={stage}
+                                          policyID={setupPolicyID}
+                                          rowIndex={firstRowIndex + index}
+                                          columnIndexes={columnIndexes}
+                                      />
+                                  )),
+                          }
+                        : undefined
+                }
+            />
+        </View>
     );
 }
 
