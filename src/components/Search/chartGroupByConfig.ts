@@ -1,5 +1,5 @@
 import DateUtils from '@libs/DateUtils';
-import {sanitizeSearchValue} from '@libs/SearchQueryUtils';
+import {sanitizeFilterValue} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 import type {SearchTagGroup} from '@src/types/onyx/SearchResults';
@@ -9,20 +9,20 @@ import type {GroupedItem, SearchDateFilterKeys, SearchGroupBy} from './types';
 /** Builds the query fragment narrowing a query to a tag group's expenses. */
 function buildTagFilterQuery({tag, tagLevel, parentTagPath}: Pick<SearchTagGroup, 'tag' | 'tagLevel' | 'parentTagPath'>): string {
     if (tagLevel !== undefined) {
-        return `tag:${sanitizeSearchValue(tag)} tagLevel:${tagLevel} tagParent:${sanitizeSearchValue(parentTagPath ?? '') || '""'}`;
+        return `tag:${sanitizeFilterValue(tag)} tagLevel:${tagLevel} tagParent:${sanitizeFilterValue(parentTagPath ?? '') || '""'}`;
     }
     // Grouped snapshots use an empty string or "(untagged)", but Search filters require "none" for missing tags.
-    return `tag:${sanitizeSearchValue(tag === '' || tag === CONST.SEARCH.TAG_UNTAGGED_GROUP_VALUE ? CONST.SEARCH.TAG_EMPTY_VALUE : tag)}`;
+    return `tag:${sanitizeFilterValue(tag === '' || tag === CONST.SEARCH.TAG_UNTAGGED_GROUP_VALUE ? CONST.SEARCH.TAG_EMPTY_VALUE : tag)}`;
 }
 
 /** Builds the query fragment narrowing a query to a merchant's expenses, escaping quotes so the name can't end the filter early. */
 function buildMerchantFilterQuery(merchant: string): string {
-    return `merchant=${sanitizeSearchValue(merchant) || '""'}`;
+    return `merchant=${sanitizeFilterValue(merchant) || '""'}`;
 }
 
 /** Builds the query fragment narrowing a query to a category's expenses, escaping quotes so the name can't end the filter early. */
 function buildCategoryFilterQuery(category: string): string {
-    return `category:${sanitizeSearchValue(category) || '""'}`;
+    return `category:${sanitizeFilterValue(category) || '""'}`;
 }
 
 /** The dates a time bucket covers */
