@@ -96,6 +96,7 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
                     title={translate('domain.admins.resetDomain')}
                     icon={icons.ClosedSign}
                     onPress={() => Navigation.navigate(ROUTES.DOMAIN_RESET_DOMAIN.getRoute(domainAccountID, accountID))}
+                    linkRoute={ROUTES.DOMAIN_RESET_DOMAIN.getRoute(domainAccountID, accountID)}
                 />
             )}
             {!domainHasOnlyOneAdmin && (

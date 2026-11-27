@@ -580,6 +580,7 @@ function PaymentMethodList({
                     shouldShowRightIcon: true,
                     shouldShowThreeDotsMenu: false,
                     onPress: () => Navigation.navigate(ROUTES.SETTINGS_WALLET_TRAVEL_CVV),
+                    linkRoute: ROUTES.SETTINGS_WALLET_TRAVEL_CVV,
                 });
             }
 

@@ -140,6 +140,7 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
                                     title={translate(item.translationKey)}
                                     icon={item.icon}
                                     onPress={item.action}
+                                    linkRoute={item.route}
                                     brickRoadIndicator={item.brickRoadIndicator}
                                     wrapperStyle={[menuItemWrapperStyle, selectedStyle]}
                                     hoveredStyle={hoveredStyle}

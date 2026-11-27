@@ -1,6 +1,7 @@
 import Hoverable from '@components/Hoverable';
 import useIsCompactPopover from '@components/MenuItem/hooks/useIsCompactPopover';
 import useRemoveNonInteractiveClickHandler from '@components/MenuItem/hooks/useRemoveNonInteractiveClickHandler';
+import isKeyboardActivatedClick from '@components/MenuItem/isKeyboardActivatedClick';
 import MenuItemAccessibilityContext, {useMenuItemAccessibility} from '@components/MenuItem/MenuItemAccessibilityContext';
 import {MenuItemConfigContext, MenuItemInteractionContext} from '@components/MenuItem/MenuItemContext';
 import MenuItemSecondaryInteractionContext, {useMenuItemSecondaryInteractionRegistry} from '@components/MenuItem/MenuItemSecondaryInteractionContext';
@@ -22,6 +23,7 @@ import mergeRefs from '@libs/mergeRefs';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import type {Route} from '@src/ROUTES';
 import type {WithSentryLabelWhenPressable} from '@src/types/utils/SentryLabel';
 import type WithTestID from '@src/types/utils/TestID';
 
@@ -37,6 +39,9 @@ type MenuItemRootProps = PropsWithChildren &
     ForwardedFSClassProps & {
         /** Function to fire when the row is pressed */
         onPress?: (event: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
+
+        /** Renders the row as a link to this route on web, so it can be opened in a new tab */
+        linkRoute?: Route;
 
         isDisabled?: boolean;
 
@@ -77,6 +82,7 @@ type MenuItemRootProps = PropsWithChildren &
 function MenuItemRoot({
     children,
     onPress,
+    linkRoute,
     isDisabled = false,
     isCompact = false,
     isFocused = false,
@@ -96,6 +102,8 @@ function MenuItemRoot({
     const isCompactPopover = useIsCompactPopover();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isInteractive = !!onPress;
+    const rowLinkRoute = isInteractive ? linkRoute : undefined;
+    const rowRole = rowLinkRoute && !isDisabled ? CONST.ROLE.LINK : CONST.ROLE.BUTTON;
     const shouldEnableTextSelection = shouldAllowTextSelection && getPlatform() === CONST.PLATFORM.WEB;
     const {
         didTouchStartOnCopyableText,
@@ -122,8 +130,9 @@ function MenuItemRoot({
             return;
         }
 
-        // Prevent clicked menu items from retaining an unwanted focus outline on web, especially in Safari
-        if (event?.type === 'click' && typeof HTMLElement !== 'undefined' && event.currentTarget instanceof HTMLElement) {
+        // Prevent clicked menu items from retaining an unwanted focus outline on web, especially in Safari.
+        // Keyboard users need the focus to stay on a linked row they activate with Enter.
+        if (event?.type === 'click' && !isKeyboardActivatedClick(event) && typeof HTMLElement !== 'undefined' && event.currentTarget instanceof HTMLElement) {
             event.currentTarget.blur();
         }
 
@@ -194,7 +203,8 @@ function MenuItemRoot({
                         }
                         disabled={isDisabled}
                         ref={mergeRefs<HTMLDivElement | ComponentRef<typeof View> | ComponentRef<typeof Text> | undefined>(pressableRef, ref)}
-                        role={isInteractive ? CONST.ROLE.BUTTON : undefined}
+                        role={isInteractive ? rowRole : undefined}
+                        linkRoute={rowLinkRoute}
                         accessibilityLabel={rowAccessibilityLabel}
                         accessibilityHint={accessibilityHint}
                         accessibilityState={accessibilityState}

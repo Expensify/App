@@ -281,8 +281,8 @@ describe('ProfilePage - agent account', () => {
         jest.mocked(Navigation.navigate).mockClear();
 
         // When two private rows are pressed before the first navigation finishes.
-        fireEvent.press(screen.getByTestId('legal-name-menu-item'), {nativeEvent: {}});
-        fireEvent.press(screen.getByTestId('address-menu-item'), {nativeEvent: {}});
+        fireEvent.press(screen.getByTestId('legal-name-menu-item'), {nativeEvent: {}, preventDefault: jest.fn()});
+        fireEvent.press(screen.getByTestId('address-menu-item'), {nativeEvent: {}, preventDefault: jest.fn()});
 
         // Then a second private-details screen is not pushed on top of the first.
         expect(Navigation.navigate).toHaveBeenCalledTimes(1);
@@ -362,7 +362,7 @@ describe('ProfilePage - agent account', () => {
 
         // When the vacation delegate row is pressed
         // MenuItem only forwards the press to onPress when it receives an event, so pass a minimal one.
-        fireEvent.press(screen.getByTestId('vacation-delegate-menu-item'), {nativeEvent: {}});
+        fireEvent.press(screen.getByTestId('vacation-delegate-menu-item'), {nativeEvent: {}, preventDefault: jest.fn()});
         await waitForBatchedUpdatesWithAct();
 
         // Then the form opens with Choose delegate unselected, so the member and the clear after date are picked on one screen
@@ -385,7 +385,7 @@ describe('ProfilePage - agent account', () => {
         expect(screen.getByText(/^Until /)).toBeDefined();
 
         // When the row is pressed
-        fireEvent.press(screen.getByTestId('vacation-delegate-menu-item'), {nativeEvent: {}});
+        fireEvent.press(screen.getByTestId('vacation-delegate-menu-item'), {nativeEvent: {}, preventDefault: jest.fn()});
         await waitForBatchedUpdatesWithAct();
 
         // Then the form opens, where the date can be changed or the delegate removed

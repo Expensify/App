@@ -90,6 +90,7 @@ function PaymentHistoryTableRow({row, dateLabel, shouldShowDivider}: PaymentHist
     return (
         <MenuItem.Root
             onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_PAYMENT_DETAILS.getRoute(row.purchaseID))}
+            linkRoute={ROUTES.SETTINGS_SUBSCRIPTION_PAYMENT_DETAILS.getRoute(row.purchaseID)}
             sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.PAYMENT_HISTORY_ROW}
             accessibilityLabel={[dateLabel, shouldShowStateBadge ? stateLabel : undefined, activeUserLabel, amountLabel, taxLabel].filter(Boolean).join(', ')}
             style={[styles.ph4, styles.pv4, shouldShowDivider && styles.borderBottom]}

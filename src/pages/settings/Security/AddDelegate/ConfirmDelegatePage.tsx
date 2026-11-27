@@ -90,6 +90,7 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
                         name={translate('delegate.accessLevel')}
                         value={translate('delegate.role', role)}
                         onPress={() => Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(login, role, ROUTES.SETTINGS_DELEGATE_CONFIRM.getRoute(login, role)))}
+                        linkRoute={ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(login, role, ROUTES.SETTINGS_DELEGATE_CONFIRM.getRoute(login, role))}
                     />
                     <FormHelpMessage
                         isError={false}

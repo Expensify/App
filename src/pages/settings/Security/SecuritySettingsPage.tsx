@@ -36,6 +36,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
@@ -51,6 +52,7 @@ type BaseMenuItemType = WithRequiredSentryLabel & {
     icon: IconAsset;
     iconRight?: IconAsset;
     action: () => Promise<void> | void;
+    linkRoute?: Route;
     link?: string;
     wrapperStyle?: StyleProp<ViewStyle>;
     brickRoadIndicator?: MenuItemProps['brickRoadIndicator'];
@@ -120,6 +122,7 @@ function SecuritySettingsPage() {
             translationKey: 'multifactorAuthentication.revoke.title',
             icon: icons.Fingerprint,
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.REVOKE_MFA,
+            linkRoute: ROUTES.MULTIFACTOR_AUTHENTICATION_REVOKE,
             action: () => {
                 Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_REVOKE);
             },
@@ -156,6 +159,7 @@ function SecuritySettingsPage() {
             translationKey: 'lockAccountPage.unlockAccount',
             icon: icons.UserLock,
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.LOCK_UNLOCK_ACCOUNT,
+            linkRoute: ROUTES.SETTINGS_UNLOCK_ACCOUNT,
             action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_UNLOCK_ACCOUNT)),
         });
     } else {
@@ -163,6 +167,7 @@ function SecuritySettingsPage() {
             translationKey: 'lockAccountPage.reportSuspiciousActivity',
             icon: icons.UserLock,
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.LOCK_UNLOCK_ACCOUNT,
+            linkRoute: ROUTES.SETTINGS_LOCK_ACCOUNT,
             action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_LOCK_ACCOUNT)),
         });
     }
@@ -175,6 +180,7 @@ function SecuritySettingsPage() {
             icon: icons.Monitor,
             brickRoadIndicator: deviceManagementBrickRoadIndicator,
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.DEVICE_MANAGEMENT,
+            linkRoute: ROUTES.SETTINGS_DEVICE_MANAGEMENT,
             action: () => Navigation.navigate(ROUTES.SETTINGS_DEVICE_MANAGEMENT),
         });
     }
@@ -248,8 +254,9 @@ function SecuritySettingsPage() {
         title: translate(item.translationKey),
         icon: item.icon,
         onPress: item.action,
+        linkRoute: item.linkRoute,
         shouldShowRightIcon: true,
-        link: '',
+        link: item.linkRoute ? undefined : '',
         wrapperStyle: [styles.sectionMenuItemTopDescription],
         sentryLabel: item.sentryLabel,
         brickRoadIndicator: item.brickRoadIndicator,

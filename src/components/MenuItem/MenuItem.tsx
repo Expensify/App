@@ -50,10 +50,11 @@ import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionConte
 import {fontScale, lineHeightScale} from '@styles/typography';
 import variables from '@styles/variables';
 
-import {callIfAuthenticated} from '@userActions/Session';
+import {callIfAuthenticated, getLinkRouteIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import type {TooltipAnchorAlignment} from '@src/types/utils/AnchorAlignment';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -70,6 +71,7 @@ import React, {useRef} from 'react';
 import {View} from 'react-native';
 
 import useRemoveNonInteractiveClickHandler from './hooks/useRemoveNonInteractiveClickHandler';
+import isKeyboardActivatedClick from './isKeyboardActivatedClick';
 
 type IconProps = {
     /** Flag to choose between avatar image or an icon */
@@ -379,6 +381,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** The accessibility role to use for this menu item */
         role?: Role;
 
+        /** Renders the row as a link to this route on web, so it can be opened in a new tab */
+        linkRoute?: Route;
+
         /** Overrides the computed accessibilityState (e.g. `{checked}` for a row that acts as a switch) */
         accessibilityState?: AccessibilityState;
 
@@ -511,6 +516,7 @@ function MenuItem({
     shouldUseNativeHoverEvents = false,
     sentryLabel,
     role = CONST.ROLE.BUTTON,
+    linkRoute,
     accessibilityState,
     shouldBeAccessible = true,
     tabIndex = 0,
@@ -669,7 +675,8 @@ function MenuItem({
             return;
         }
 
-        if (event?.type === 'click') {
+        // Keyboard users need the focus to stay on a linked row they activate with Enter
+        if (event?.type === 'click' && !isKeyboardActivatedClick(event)) {
             const target = event.currentTarget;
             // On web the target is a DOM element that can lose focus; native targets have no blur method
             if (target && typeof target === 'object' && 'blur' in target && typeof target.blur === 'function') {
@@ -702,6 +709,10 @@ function MenuItem({
     // A copyable row without a label of its own still opens the copy menu on a long press, so it reports that under the
     // copy label.
     const pressableSentryLabel = sentryLabel ?? (copyable ? CONST.SENTRY_LABEL.MENU_ITEM.COPY_LONG_PRESS : undefined);
+
+    const rowLinkRoute = shouldCheckActionAllowedOnPress && !isAnonymousAction ? getLinkRouteIfAuthenticated(linkRoute, session) : linkRoute;
+    // Only the default button role turns into a link, so a row given its own role, such as a tab, keeps it
+    const rowRole = rowLinkRoute && !disabled && role === CONST.ROLE.BUTTON ? CONST.ROLE.LINK : role;
 
     // A known account renders straight from the personal-details context. Only the report-derived avatars need `ReportAvatar`.
     const rightIconAccountIDNumber = Number(rightIconAccountID);
@@ -783,7 +794,8 @@ function MenuItem({
                                 disabledStyle={shouldUseDefaultCursorWhenDisabled && [styles.cursorDefault]}
                                 disabled={disabled}
                                 ref={mergeRefs(ref, popoverAnchor, pressableRef)}
-                                role={interactive ? role : undefined}
+                                role={interactive ? rowRole : undefined}
+                                linkRoute={rowLinkRoute}
                                 accessibilityLabel={accessibilityLabelWithContextMenuHint}
                                 accessibilityHint={accessibilityHint}
                                 // The label repeats the title, so a masked title also masks the row that carries the label

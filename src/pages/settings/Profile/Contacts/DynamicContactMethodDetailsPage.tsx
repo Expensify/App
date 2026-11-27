@@ -273,6 +273,7 @@ function DynamicContactMethodDetailsPage({route}: DynamicContactMethodDetailsPag
                         title={translate('contacts.setAsDefault')}
                         icon={icons.Star}
                         onPress={isAccountLocked ? showLockedAccountModal : navigateToSetDefaultConfirm}
+                        linkRoute={isAccountLocked ? undefined : ROUTES.SETTINGS_CONTACT_METHOD_SET_DEFAULT_CONFIRM.getRoute(contactMethod, backTo)}
                     />
                 </OfflineWithFeedback>
             ) : null}

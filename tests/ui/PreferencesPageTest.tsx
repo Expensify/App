@@ -83,8 +83,8 @@ describe('PreferencesPage distance preferences', () => {
         expect(screen.getByText('4127 Maple Ridge Dr, Boulder, CO, 80301, US')).toBeOnTheScreen();
 
         // When the member presses the home address row
-        // MenuItem only forwards the press to onPress when it receives an event, so pass a minimal one.
-        fireEvent.press(screen.getByText('Home address'), {nativeEvent: {}});
+        // MenuItem only forwards the press to onPress when it receives an event, and the row is a link that prevents the browser's own navigation, so pass a minimal one.
+        fireEvent.press(screen.getByText('Home address'), {nativeEvent: {}, preventDefault: jest.fn()});
 
         // Then the address-only page opens, so changing the address does not require a legal name, date of birth,
         // phone number or magic code

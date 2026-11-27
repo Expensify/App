@@ -47,7 +47,7 @@ import {formatVacationDelegateClearDateTime, getActiveVacationDelegate, getVacat
 import useTimeSensitiveHomeAddress from '@pages/home/TimeSensitiveSection/hooks/useTimeSensitiveHomeAddress';
 
 import {clearAgentAvatarUpdateError} from '@userActions/Agent';
-import {callIfAuthenticated} from '@userActions/Session';
+import {callIfAuthenticated, getLinkRouteIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -229,6 +229,7 @@ function ProfilePage() {
         testID: string;
         sentryLabel: SentryLabel;
         action: () => void;
+        linkRoute: Route | undefined;
         brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
         furtherDetails?: string;
     }> = [
@@ -238,6 +239,7 @@ function ProfilePage() {
             testID: 'legal-name-menu-item',
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.LEGAL_NAME,
             action: () => navigateToPrivateDetails(INPUT_IDS.LEGAL_FIRST_NAME),
+            linkRoute: getLinkRouteIfAuthenticated(ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.getRoute(INPUT_IDS.LEGAL_FIRST_NAME), session),
         },
         {
             description: translate('common.dob'),
@@ -245,6 +247,7 @@ function ProfilePage() {
             testID: 'dob-menu-item',
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.DATE_OF_BIRTH,
             action: () => navigateToPrivateDetails(INPUT_IDS.DATE_OF_BIRTH),
+            linkRoute: getLinkRouteIfAuthenticated(ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.getRoute(INPUT_IDS.DATE_OF_BIRTH), session),
         },
         {
             description: translate('common.phoneNumber'),
@@ -252,6 +255,7 @@ function ProfilePage() {
             testID: 'phone-number-menu-item',
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.PHONE_NUMBER,
             action: () => navigateToPrivateDetails(INPUT_IDS.PHONE_NUMBER),
+            linkRoute: getLinkRouteIfAuthenticated(ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.getRoute(INPUT_IDS.PHONE_NUMBER), session),
             brickRoadIndicator: privatePersonalDetails?.errorFields?.phoneNumber ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         },
         {
@@ -260,6 +264,7 @@ function ProfilePage() {
             testID: 'address-menu-item',
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.ADDRESS,
             action: () => navigateToPrivateDetails(INPUT_IDS.ADDRESS_LINE_1),
+            linkRoute: getLinkRouteIfAuthenticated(ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.getRoute(INPUT_IDS.ADDRESS_LINE_1), session),
             brickRoadIndicator: shouldShowAddHomeAddressGBR ? CONST.BRICK_ROAD_INDICATOR_STATUS.INFO : undefined,
             furtherDetails: commuterExclusionsWorkspaceName ? translate('privatePersonalDetails.commuterExclusionsHint', {workspaceName: commuterExclusionsWorkspaceName}) : undefined,
         },
@@ -338,6 +343,7 @@ function ProfilePage() {
                                 >
                                     <MenuItemSectionRoot
                                         onPress={detail.onPress ?? (pageRoute ? () => Navigation.navigate(pageRoute) : undefined)}
+                                        linkRoute={detail.onPress ? undefined : pageRoute}
                                         testID={detail?.testID}
                                         sentryLabel={detail.sentryLabel}
                                         accessibilityLabel={detail.accessibilityLabel}
@@ -386,6 +392,7 @@ function ProfilePage() {
                                 <MenuItemSectionRoot
                                     key={detail.testID}
                                     onPress={() => callIfAuthenticated(detail.action, session)()}
+                                    linkRoute={detail.linkRoute}
                                     testID={detail.testID}
                                     sentryLabel={detail.sentryLabel}
                                 >

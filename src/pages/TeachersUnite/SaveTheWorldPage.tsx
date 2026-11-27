@@ -68,11 +68,13 @@ function SaveTheWorldPage() {
         {
             translationKey: 'teachersUnitePage.iKnowATeacher',
             action: waitForNavigate(() => Navigation.navigate(ROUTES.I_KNOW_A_TEACHER)),
+            linkRoute: ROUTES.I_KNOW_A_TEACHER,
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_TEACHERS_UNITE.I_KNOW_A_TEACHER,
         },
         {
             translationKey: 'teachersUnitePage.iAmATeacher',
             action: waitForNavigate(() => Navigation.navigate(ROUTES.I_AM_A_TEACHER)),
+            linkRoute: ROUTES.I_AM_A_TEACHER,
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_TEACHERS_UNITE.I_AM_A_TEACHER,
         },
     ];
@@ -80,8 +82,8 @@ function SaveTheWorldPage() {
         key: item.translationKey,
         title: translate(item.translationKey as TranslationPaths),
         onPress: item.action,
+        linkRoute: item.linkRoute,
         shouldShowRightIcon: true,
-        link: '',
         wrapperStyle: [styles.sectionMenuItemTopDescription],
         sentryLabel: item.sentryLabel,
     }));

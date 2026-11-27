@@ -32,7 +32,7 @@ import BaseDomainMemberDetailsComponent from '@pages/domain/BaseDomainMemberDeta
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
 import {clearVacationDelegateError} from '@userActions/Domain';
-import {callIfAuthenticated} from '@userActions/Session';
+import {callIfAuthenticated, getLinkRouteIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -135,6 +135,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
                     sentryLabel={CONST.SENTRY_LABEL.DOMAIN.MEMBERS.DOMAIN_GROUP}
                     name={translate('domain.members.domainGroup')}
                     onPress={() => Navigation.navigate(ROUTES.DOMAIN_MEMBER_MOVE_TO_GROUP.getRoute(domainAccountID, accountID))}
+                    linkRoute={ROUTES.DOMAIN_MEMBER_MOVE_TO_GROUP.getRoute(domainAccountID, accountID)}
                     value={userSecurityGroup?.securityGroup?.name}
                 />
             </OfflineWithFeedback>
@@ -200,6 +201,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
                     sentryLabel={CONST.SENTRY_LABEL.DOMAIN.MEMBERS.REPORT_SUSPICIOUS_ACTIVITY}
                     key="ReportSuspiciousActivity"
                     onPress={callIfAuthenticated(() => Navigation.navigate(ROUTES.DOMAIN_LOCK_ACCOUNT.getRoute(domainAccountID, accountID)), session)}
+                    linkRoute={getLinkRouteIfAuthenticated(ROUTES.DOMAIN_LOCK_ACCOUNT.getRoute(domainAccountID, accountID), session)}
                 >
                     <MenuItem.Row>
                         <MenuItem.Leading>

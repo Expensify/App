@@ -682,6 +682,9 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                                 icon={expensifyIcons.CreditCardLock}
                                                 title={translate('cardPage.editSpendRules')}
                                                 onPress={navigateToSpendRulesPage}
+                                                linkRoute={
+                                                    policyIDForCurrentCard ? ROUTES.SETTINGS_WALLET_EXPENSIFY_CARD_SPEND_RULES.getRoute(policyIDForCurrentCard, spendRule?.ruleID) : undefined
+                                                }
                                             />
                                         )}
                                     </>

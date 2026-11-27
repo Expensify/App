@@ -342,6 +342,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                                         highlighted={!!item?.highlighted}
                                         focused={isItemFocused}
                                         role={CONST.ROLE.TAB}
+                                        linkRoute={item.getRoute()}
                                         badgeText={item.badgeTranslationKey ? translate(item.badgeTranslationKey) : item.badgeText}
                                         isBadgeSuccess={item.isBadgeSuccess}
                                         shouldIconUseAutoWidthStyle

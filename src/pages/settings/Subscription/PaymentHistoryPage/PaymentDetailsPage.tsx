@@ -152,6 +152,7 @@ function PaymentDetailsPage({route}: PaymentDetailsPageProps) {
                     onPress={() => {
                         Navigation.navigate(ROUTES.BILLING_RECEIPT.getRoute(purchaseID));
                     }}
+                    linkRoute={ROUTES.BILLING_RECEIPT.getRoute(purchaseID)}
                     sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.VIEW_BILLING_RECEIPT}
                     accessibilityLabel={translate(isInvoice ? 'subscription.paymentHistory.viewInvoice' : 'subscription.paymentHistory.viewReceipt')}
                     style={[styles.ph5, styles.pv4]}

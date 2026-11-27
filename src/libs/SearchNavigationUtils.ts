@@ -1,5 +1,6 @@
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type {SearchFilters} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -17,11 +18,16 @@ import {getLastSearchQuery} from './SearchUIUtils';
 /** The Spend searches that have a tab of their own on narrow layouts. Every user has both. */
 type SpendTabSearchKey = typeof CONST.SEARCH.SEARCH_KEYS.EXPENSES | typeof CONST.SEARCH.SEARCH_KEYS.REPORTS;
 
+/** Returns the route of a canned search on the query the user last left it with. */
+function getCannedSpendSearchRoute(searchKey: SearchKey, searchQuery: string, lastSearchQuery: string | undefined): Route {
+    const query = getValidLastQuery(lastSearchQuery, searchQuery, searchKey);
+    return ROUTES.SEARCH_ROOT.getRoute({query, searchKey});
+}
+
 function navigateToCannedSpendSearch(searchKey: SearchKey, searchQuery: string, lastSearchQuery: string | undefined, clearSelectedTransactions: () => void) {
     clearSelectedTransactions();
     setSearchContext(false);
-    const query = getValidLastQuery(lastSearchQuery, searchQuery, searchKey);
-    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query, searchKey}));
+    Navigation.navigate(getCannedSpendSearchRoute(searchKey, searchQuery, lastSearchQuery));
 }
 
 /** Opens the Expenses or Reports tab on the query the user last left it with. */
@@ -59,5 +65,5 @@ function navigateToFlatNavSection(section: FlatNavSection, searchFilters: OnyxEn
 }
 
 export default navigateToCannedSpendSearch;
-export {navigateToFlatNavItem, navigateToFlatNavSection, navigateToSearch, navigateToSpendTab};
+export {getCannedSpendSearchRoute, navigateToFlatNavItem, navigateToFlatNavSection, navigateToSearch, navigateToSpendTab};
 export type {SpendTabSearchKey};

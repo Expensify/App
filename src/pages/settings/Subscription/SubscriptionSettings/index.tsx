@@ -173,6 +173,7 @@ function SubscriptionSettings() {
                     <View style={styles.mt5}>
                         <MenuItemSectionRoot
                             onPress={onSubscriptionSizePress}
+                            linkRoute={isActingAsDelegate ? undefined : ROUTES.SETTINGS_SUBSCRIPTION_SIZE.getRoute(CONST.SUBSCRIPTION_SIZE.PAGE_NAME.SIZE)}
                             sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.SUBSCRIPTION_SIZE}
                         >
                             <MenuItemField.Row
@@ -344,6 +345,7 @@ function SubscriptionSettings() {
                 <View style={styles.mt5}>
                     <MenuItemSectionRoot
                         onPress={isExpensifyCodeApplied ? undefined : onExpensifyCodePress}
+                        linkRoute={isExpensifyCodeApplied || isActingAsDelegate ? undefined : ROUTES.SETTINGS_SUBSCRIPTION_EXPENSIFY_CODE}
                         sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.EXPENSIFY_CODE}
                     >
                         <MenuItemField.Row

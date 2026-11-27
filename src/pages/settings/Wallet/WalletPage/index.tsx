@@ -803,6 +803,7 @@ function WalletPage() {
                             </>
                             <MenuItemSectionRoot
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS)}
+                                linkRoute={ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS}
                                 sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.IMPORT_TRANSACTIONS}
                             >
                                 <MenuItem.Row>

@@ -9,10 +9,11 @@ import getVacationDelegateDisplayName from '@libs/getVacationDelegateDisplayName
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import {formatVacationDelegateClearDateTime, getActiveVacationDelegate, getVacationDelegateClearDateTime} from '@libs/VacationDelegateUtils';
 
-import {callIfAuthenticated} from '@userActions/Session';
+import {callIfAuthenticated, getLinkRouteIfAuthenticated} from '@userActions/Session';
 
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
@@ -105,9 +106,12 @@ type VacationDelegateSectionProps = WithRequiredSentryLabel & {
      * Should navigate the user to the vacation delegate selection screen.
      */
     onPress: () => void;
+
+    /** Renders the row as a link to this route on web, so it can be opened in a new tab */
+    linkRoute?: Route;
 };
 
-function VacationDelegateMenuItemPreset({vacationDelegate, label, timezone, errors, pendingAction, onCloseError, onPress, sentryLabel}: VacationDelegateSectionProps) {
+function VacationDelegateMenuItemPreset({vacationDelegate, label, timezone, errors, pendingAction, onCloseError, onPress, linkRoute, sentryLabel}: VacationDelegateSectionProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
@@ -136,6 +140,7 @@ function VacationDelegateMenuItemPreset({vacationDelegate, label, timezone, erro
                 <MenuItem.Root
                     sentryLabel={sentryLabel}
                     onPress={callIfAuthenticated(onPress, session)}
+                    linkRoute={getLinkRouteIfAuthenticated(linkRoute, session)}
                     accessibilityLabel={[rowLabel, delegateDisplayName, untilText].filter(Boolean).join(', ')}
                 >
                     <VacationDelegateMenuItemRow
@@ -152,6 +157,7 @@ function VacationDelegateMenuItemPreset({vacationDelegate, label, timezone, erro
                     sentryLabel={sentryLabel}
                     name={rowLabel}
                     onPress={onPress}
+                    linkRoute={linkRoute}
                 />
             )}
         </OfflineWithFeedback>

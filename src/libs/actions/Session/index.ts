@@ -580,6 +580,11 @@ function callIfAuthenticated<TCallback extends ((...args: any[]) => any) | void>
     return callback;
 }
 
+/** Returns the route only for a signed-in user, since opening it in a new tab would skip the sign-in prompt of `callIfAuthenticated` */
+function getLinkRouteIfAuthenticated(route: Route | undefined, session: OnyxEntry<Session>): Route | undefined {
+    return isAnonymousUser(session) ? undefined : route;
+}
+
 /**
  * Request a new validateCode for user to sign in via passwordless flow
  */
@@ -1997,6 +2002,7 @@ export {
     beginGoogleSignIn,
     setSupportAuthToken,
     callIfAuthenticated,
+    getLinkRouteIfAuthenticated,
     signIn,
     signInWithValidateCode,
     handleExitToNavigation,

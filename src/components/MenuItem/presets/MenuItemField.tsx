@@ -13,7 +13,7 @@ import useOnyx from '@hooks/useOnyx';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import hasRenderableChildren from '@libs/hasRenderableChildren';
 
-import {callIfAuthenticated} from '@userActions/Session';
+import {callIfAuthenticated, getLinkRouteIfAuthenticated} from '@userActions/Session';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -103,6 +103,7 @@ function MenuItemFieldPreset({
     isValueSelectable = false,
     children,
     onPress,
+    linkRoute,
     isDisabled = false,
     sentryLabel,
     testID,
@@ -115,6 +116,7 @@ function MenuItemFieldPreset({
     return (
         <MenuItemRoot
             {...pressProps}
+            linkRoute={getLinkRouteIfAuthenticated(linkRoute, session)}
             isDisabled={isDisabled}
             testID={testID}
             accessibilityLabel={[name, value].filter(Boolean).join(', ')}

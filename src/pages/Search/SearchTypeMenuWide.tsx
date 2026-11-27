@@ -12,15 +12,17 @@ import useTodoCounts from '@hooks/useTodoCounts';
 import type {TodoCounts} from '@hooks/useTodoCounts';
 
 import type {SearchKey} from '@libs/SearchKeyUtils';
-import navigateToCannedSpendSearch from '@libs/SearchNavigationUtils';
+import navigateToCannedSpendSearch, {getCannedSpendSearchRoute} from '@libs/SearchNavigationUtils';
 import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
 import {getItemBadgeText, getLastSearchQuery, getSearchTypeMenuItemSentryLabel, getSectionBadgeText, SEARCH_TYPE_MENU_ICON_NAMES} from '@libs/SearchUIUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {SearchFilters} from '@src/types/onyx';
 
 import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 
 import {useRoute} from '@react-navigation/native';
 import React, {useContext, useLayoutEffect, useRef, useState} from 'react';
@@ -34,9 +36,12 @@ type SectionParams = {
     section: SearchTypeMenuSection;
     reportCounts: TodoCounts;
     onItemPress: (key: SearchKey, query: string) => void;
+
+    /** Filters that hold the query each item was last left with */
+    searchFilters: OnyxEntry<SearchFilters>;
 };
 
-function Section({section, reportCounts, onItemPress}: SectionParams) {
+function Section({section, reportCounts, onItemPress, searchFilters}: SectionParams) {
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(SEARCH_TYPE_MENU_ICON_NAMES);
 
@@ -69,6 +74,7 @@ function Section({section, reportCounts, onItemPress}: SectionParams) {
                             badgeText={getItemBadgeText(item.key, reportCounts)}
                             focused={focused}
                             onPress={() => onItemPress(item.key, item.searchQuery)}
+                            linkRoute={getCannedSpendSearchRoute(item.key, item.searchQuery, getLastSearchQuery(searchFilters, item.key))}
                             sentryLabel={getSearchTypeMenuItemSentryLabel(item.key)}
                         />
                     );
@@ -125,6 +131,7 @@ function SearchTypeMenuWide() {
                         section={expenseReportsSection}
                         onItemPress={handleTypeMenuItemPress}
                         reportCounts={reportCounts}
+                        searchFilters={searchFilters}
                     />
                 )}
 
@@ -134,6 +141,7 @@ function SearchTypeMenuWide() {
                         section={section}
                         onItemPress={handleTypeMenuItemPress}
                         reportCounts={reportCounts}
+                        searchFilters={searchFilters}
                     />
                 ))}
             </View>

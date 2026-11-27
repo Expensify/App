@@ -207,6 +207,7 @@ jest.mock('@components/withNavigationFallback', () => (Component: React.Componen
 
 jest.mock('@userActions/Session', () => ({
     callIfAuthenticated: <TCallback extends ((...args: never[]) => unknown) | undefined>(callback: TCallback) => callback,
+    getLinkRouteIfAuthenticated: (route: unknown) => route,
 }));
 
 jest.mock('@shopify/flash-list', () => {

@@ -65,6 +65,7 @@ function SettingsMenuItem({item, isFocused, keyTitle, isExecuting, isScreenFocus
             icon={item.icon}
             disabled={isExecuting && !isFocused}
             onPress={onPress}
+            linkRoute={item.route}
             iconStyles={item.iconStyles}
             badgeText={item.badgeText}
             badgeStyle={item.badgeStyle}
