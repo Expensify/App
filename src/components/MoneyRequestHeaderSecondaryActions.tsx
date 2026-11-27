@@ -21,7 +21,7 @@ import useOnyx from '@hooks/useOnyx';
 import useParticipantsPolicyTags from '@hooks/useParticipantsPolicyTags';
 import usePermissions from '@hooks/usePermissions';
 import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
-import {usePersonalDetail} from '@hooks/usePersonalDetails';
+import {usePersonalDetail, usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
@@ -103,7 +103,6 @@ import type {ButtonWithDropdownMenuRef, DropdownOption} from './ButtonWithDropdo
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from './DelegateNoAccessModalProvider';
 import {ModalActions} from './Modal/Global/ModalContext';
-import {usePersonalDetails} from './OnyxListItemProvider';
 import {useSearchQueryContext, useSearchSelectionActions} from './Search/SearchContext';
 import {useWideRHPState} from './WideRHPContextProvider';
 
@@ -127,10 +126,10 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const theme = useTheme();
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const isInSidePanel = useIsInSidePanel();
-    const {login: currentUserLogin, email: currentUserEmail, accountID, localCurrencyCode, displayName: currentUserDisplayName} = useCurrentUserPersonalDetails();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const {login: currentUserLogin, email: currentUserEmail, accountID, localCurrencyCode, displayName: currentUserDisplayName} = currentUserPersonalDetails;
     const delegateAccountID = useDelegateAccountID();
     const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
-    const personalDetails = usePersonalDetails();
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'ArrowCollapse',
@@ -214,6 +213,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const iouReportTransactionsCollection = useReportTransactionsCollection(iouReport?.reportID);
     const iouReportTransactions = Object.values(iouReportTransactionsCollection);
     const isParentReportArchived = useReportIsArchived(report?.parentReportID);
+    const isArchivedIOUReport = useReportIsArchived(iouReport?.reportID);
     const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -274,6 +274,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const policyTagList = useMoneyRequestPolicyTagsForReport({report: duplicateTargetReport, currentUserAccountID: accountID});
     const participants = getMoneyRequestParticipantsFromReport(duplicateTargetReport, accountID);
     const participantsPolicyTags = useParticipantsPolicyTags(participants);
+    const [personalDetails] = usePersonalDetailsByIDs([participants.at(0)?.accountID]);
 
     // Duplicate action throttle
     const handleDuplicateReset = () => {
@@ -318,6 +319,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                 recentWaypoints,
                 targetPolicyTags,
                 currentUser: {accountID, email: currentUserLogin ?? ''},
+                currentUserPersonalDetails,
                 currentUserLocalCurrency: localCurrencyCode ?? CONST.CURRENCY.USD,
                 isTrackIntentUser,
                 delegateAccountID,
@@ -632,6 +634,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                             isSingleTransactionView: true,
                             isChatReportArchived: isParentReportArchived,
                             isChatIOUReportArchived,
+                            isArchivedIOUReport,
                             allTransactionViolationsParam: allTransactionViolations,
                             currentUserAccountID: accountID,
                             currentUserEmail: currentUserLogin ?? '',

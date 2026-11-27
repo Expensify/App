@@ -17,7 +17,7 @@ import type {MeasurableFont} from './measureTextWidth/types';
 import {getCompanyCardDescription} from './CardUtils';
 import {getCategoryGLCode, getDecodedLeafCategoryName, isCategoryMissing} from './CategoryUtils';
 import getBase62ReportID from './getBase62ReportID';
-import measureTextWidth from './measureTextWidth';
+import measureMicroStrongTextWidth from './measureTextWidth/measureMicroStrongTextWidth';
 import {getTagGLCode, getVendorDisplayName} from './PolicyUtils';
 import {getReportName} from './ReportNameUtils';
 import {getPolicyName, getReportStatusTranslation} from './ReportUtils';
@@ -105,6 +105,7 @@ const DYNAMICALLY_SIZED_SEARCH_COLUMNS = new Set<SearchColumnType>([
     CONST.SEARCH.TABLE_COLUMNS.TITLE,
     CONST.SEARCH.TABLE_COLUMNS.REPORT_ID,
     CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID,
+    CONST.SEARCH.TABLE_COLUMNS.TRANSACTION_ID,
     CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID,
     CONST.SEARCH.TABLE_COLUMNS.GROUP_BANK_ACCOUNT,
     CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID,
@@ -149,6 +150,7 @@ const SEARCH_COLUMN_HEADER_TRANSLATION_KEYS: Partial<Record<SearchColumnType, Tr
     [CONST.SEARCH.TABLE_COLUMNS.TITLE]: 'common.title',
     [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: 'common.longReportID',
     [CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID]: 'common.reportID',
+    [CONST.SEARCH.TABLE_COLUMNS.TRANSACTION_ID]: 'common.transactionID',
     [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID]: 'common.withdrawalID',
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_BANK_ACCOUNT]: 'common.bankAccount',
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID]: 'common.withdrawalID',
@@ -246,6 +248,8 @@ function getTransactionColumnContentToMeasure(
             return [{text: item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? '' : item.reportID}];
         case CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID:
             return [{text: item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? '' : getBase62ReportID(Number(item.reportID))}];
+        case CONST.SEARCH.TABLE_COLUMNS.TRANSACTION_ID:
+            return [{text: item.transactionID}];
         case CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID:
             return [{text: item.withdrawalID}];
         case CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID:
@@ -408,7 +412,7 @@ function getSearchColumnContentToMeasure(column: SearchColumnType, item: SearchL
  * Uses the bold weight and reserves the sort arrow even when unsorted, so sorting a column never changes the result.
  */
 function measureSearchHeaderLabelWidth(text: string, labelGap: number): number | null {
-    const textWidth = measureTextWidth(text, {fontSize: textVariants.microStrong.fontSize, fontWeight: '700'});
+    const textWidth = measureMicroStrongTextWidth(text);
     return textWidth === null ? null : textWidth + labelGap + variables.iconSizeExtraSmall;
 }
 

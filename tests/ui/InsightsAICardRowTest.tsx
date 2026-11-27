@@ -1,4 +1,4 @@
-import {act, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
@@ -31,6 +31,7 @@ jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: false})));
 jest.mock('@components/Search/SearchRouter/useAskConcierge', () => jest.fn());
 const LOADING_TITLE = 'Generating AI Insights...';
 const LOADING_SUBTITLE = "This shouldn't take more than a minute";
+const mockAskConcierge = jest.fn();
 
 const INSIGHTS_SCOPE: InsightsScope = {
     searchKey: CONST.INSIGHTS.SEARCH_KEY.SPEND,
@@ -82,8 +83,14 @@ describe('InsightsAICardRow', () => {
 
     beforeEach(async () => {
         jest.useFakeTimers();
+        mockAskConcierge.mockClear();
         jest.mocked(useNetwork).mockReturnValue({isOffline: false});
-        jest.mocked(useAskConcierge).mockReturnValue({askConcierge: jest.fn(), askConciergeWithAttachment: jest.fn(), shouldShowAskConcierge: true, conciergeTargetReportID: undefined});
+        jest.mocked(useAskConcierge).mockReturnValue({
+            askConcierge: mockAskConcierge,
+            askConciergeWithAttachment: jest.fn(),
+            shouldShowAskConcierge: true,
+            conciergeTargetReportID: undefined,
+        });
         await Onyx.set(ONYXKEYS.CURRENCY_LIST, currencyList);
         await waitForBatchedUpdatesWithAct();
     });
@@ -178,8 +185,8 @@ describe('InsightsAICardRow', () => {
         ['desktop', false, false],
         ['tablet', false, true],
         ['narrow', true, false],
-    ] as const)('reserves the same space for the loader and cards on %s layouts', async (_layout, shouldUseNarrowLayout, isMediumScreenWidth) => {
-        // Given loading and loaded content share a responsive space reservation
+    ] as const)('reserves space only while loading on %s layouts', async (_layout, shouldUseNarrowLayout, isMediumScreenWidth) => {
+        // Given the loader reserves room for the tallest card layout
         jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue(createMock<ReturnType<typeof useResponsiveLayoutModule.default>>({shouldUseNarrowLayout, isMediumScreenWidth}));
         const {rerender} = await renderRow(undefined);
         const loadingStyle: unknown = StyleSheet.flatten(screen.root.props.style);
@@ -199,8 +206,8 @@ describe('InsightsAICardRow', () => {
         );
         await act(async () => jest.advanceTimersByTimeAsync(0));
 
-        // Then the chart below keeps the same reserved boundary
-        expect(findAncestorWithStyle(screen.getByText(SPIKE.title), 'minHeight', minHeight)).toBeDefined();
+        // Then the cards take their own height, so short insights keep the designed spacing around the row
+        expect(findAncestorWithStyle(screen.getByText(SPIKE.title), 'minHeight', minHeight)).toBeUndefined();
     });
 
     it('reveals cards one at a time across tablet rows', async () => {
@@ -295,6 +302,26 @@ describe('InsightsAICardRow', () => {
         expect(screen.queryByText(/%/)).toBeNull();
     });
 
+    it.each([false, true])('passes card evidence to Explain when available: %s', async (hasContext) => {
+        // Given either a legacy card or a card carrying its exact category and comparison evidence.
+        const askConcierge = jest.fn();
+        jest.mocked(useAskConcierge).mockReturnValue({askConcierge, askConciergeWithAttachment: jest.fn(), shouldShowAskConcierge: true, conciergeTargetReportID: undefined});
+        const explainContext: NonNullable<AIInsight['explainContext']> = {
+            graphKey: CONST.INSIGHTS.GRAPH.TOP_CATEGORIES,
+            groupBy: CONST.SEARCH.GROUP_BY.WEEK,
+            signal: CONST.INSIGHTS.AI_INSIGHT.SIGNAL.SPIKE,
+            evidence: {category: 'IT Site Hosting', total: 10000},
+        };
+        const insight = {...SPIKE, ...(hasContext && {explainContext})};
+        await renderRow([insight]);
+
+        // When the user asks about the card.
+        fireEvent.press(screen.getByRole('button', {name: 'Explain'}));
+
+        // Then structured facts accompany the current filters, without making legacy cards unusable.
+        expect(askConcierge).toHaveBeenCalledWith(SPIKE.explainPrompt, {insightsScope: {...INSIGHTS_SCOPE, ...(hasContext && {insight: explainContext})}}, undefined);
+    });
+
     it('tells screen readers which way the change went', async () => {
         // Given an increase and a decrease
         // When the row renders
@@ -303,6 +330,40 @@ describe('InsightsAICardRow', () => {
         // Then each chip reads its direction, since the arrow and color are only visual
         expect(screen.getByLabelText(/Up 400%/)).toBeOnTheScreen();
         expect(screen.getByLabelText(/Down .*30,318/)).toBeOnTheScreen();
+    });
+
+    it('shows duration changes in hours below a day and days otherwise', async () => {
+        // Given Efficiency cards with time differences below and above one day
+        const slower: AIInsight = {
+            ...SPIKE,
+            title: 'Time to submit',
+            chip: {
+                type: CONST.INSIGHTS.AI_INSIGHT.CHIP_TYPE.CHANGE,
+                direction: CONST.INSIGHTS.AI_INSIGHT.CHIP_DIRECTION.INCREASE,
+                unit: CONST.INSIGHTS.AI_INSIGHT.CHIP_UNIT.DURATION,
+                value: 12600,
+            },
+        };
+        const faster: AIInsight = {
+            ...TREND,
+            title: 'Time to approve',
+            chip: {
+                type: CONST.INSIGHTS.AI_INSIGHT.CHIP_TYPE.CHANGE,
+                direction: CONST.INSIGHTS.AI_INSIGHT.CHIP_DIRECTION.DECREASE,
+                unit: CONST.INSIGHTS.AI_INSIGHT.CHIP_UNIT.DURATION,
+                value: 362880,
+            },
+        };
+
+        const smallChange: AIInsight = {...faster, id: 'record', title: 'Time to pay', chip: {...faster.chip, value: 120}};
+
+        // When the cards render
+        await renderRow([slower, faster, smallChange], false, {...INSIGHTS_SCOPE, searchKey: CONST.INSIGHTS.SEARCH_KEY.EFFICIENCY});
+
+        // Then each localized value keeps the correct change direction
+        expect(screen.getByLabelText('Up 3.5 hours')).toBeOnTheScreen();
+        expect(screen.getByLabelText('Down 4.2 days')).toBeOnTheScreen();
+        expect(screen.getByLabelText('Down <0.1 hours')).toBeOnTheScreen();
     });
 
     it('formats a neutral duration chip in days instead of money or a percentage', async () => {
@@ -331,5 +392,50 @@ describe('InsightsAICardRow', () => {
         expect(screen.getByText(insight.title)).toBeOnTheScreen();
         expect(screen.getByText(insight.summary)).toBeOnTheScreen();
         expect(screen.queryByText(/%/)).toBeNull();
+    });
+
+    it("explains matching child tags using each card's parent and level", async () => {
+        // Given the same child tag under two parents and one card with comparison evidence
+        const scope = {...INSIGHTS_SCOPE, tagLevel: 1};
+        const explainContext: NonNullable<AIInsight['explainContext']> = {
+            graphKey: CONST.INSIGHTS.GRAPH.TOP_TAGS,
+            groupBy: CONST.SEARCH.GROUP_BY.WEEK,
+            signal: CONST.INSIGHTS.AI_INSIGHT.SIGNAL.SPIKE,
+            evidence: {tag: 'Marketing', total: 10000},
+        };
+        const cards = ['US', 'EU'].map((parentTagPath) => ({
+            ...SPIKE,
+            id: parentTagPath,
+            title: `Marketing (${parentTagPath})`,
+            tagLevel: 2,
+            parentTagPath,
+            ...(parentTagPath === 'US' && {explainContext}),
+        }));
+        await renderRow(cards, false, scope);
+
+        // When each card is explained
+        const buttons = screen.getAllByRole('button', {name: 'Explain'});
+        fireEvent.press(buttons[0]);
+        fireEvent.press(buttons[1]);
+
+        // Then both requests use the card's parent without dropping its evidence or changing dashboard scope
+        expect(mockAskConcierge).toHaveBeenNthCalledWith(1, SPIKE.explainPrompt, {insightsScope: {...scope, tagLevel: 2, tagParent: 'US', insight: explainContext}}, undefined);
+        expect(mockAskConcierge).toHaveBeenNthCalledWith(2, SPIKE.explainPrompt, {insightsScope: {...scope, tagLevel: 2, tagParent: 'EU'}}, undefined);
+        expect(scope).toStrictEqual({...INSIGHTS_SCOPE, tagLevel: 1});
+    });
+
+    it.each(['', 'US\\:East:New York\\\\Office'])('preserves encoded parent %j without changing legacy card scope', async (parentTagPath) => {
+        // Given tag metadata that is empty for independent tags or contains separator escapes
+        const scope = {...INSIGHTS_SCOPE, tagLevel: 1};
+        await renderRow([{...SPIKE, id: 'tag', tagLevel: 3, parentTagPath}, TREND], false, scope);
+
+        // When the tag card and a legacy card are explained
+        const buttons = screen.getAllByRole('button', {name: 'Explain'});
+        fireEvent.press(buttons[0]);
+        fireEvent.press(buttons[1]);
+
+        // Then parent bytes survive and cards without metadata retain their original scope
+        expect(mockAskConcierge).toHaveBeenNthCalledWith(1, SPIKE.explainPrompt, {insightsScope: {...scope, tagLevel: 3, tagParent: parentTagPath}}, undefined);
+        expect(mockAskConcierge).toHaveBeenNthCalledWith(2, TREND.explainPrompt, {insightsScope: scope}, undefined);
     });
 });

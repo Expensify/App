@@ -3,6 +3,7 @@ import Icon from '@components/Icon';
 import Text from '@components/Text';
 
 import useIndicatorStatus from '@hooks/useIndicatorStatus';
+import useIsMobileWebLandscape from '@hooks/useIsMobileWebLandscape';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -163,6 +164,7 @@ function DebugTabView({selectedTab}: Props) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout, isExtraLargeScreenWidth} = useResponsiveLayout();
+    const isMobileWebLandscape = useIsMobileWebLandscape();
     const {shouldHideSidePanel} = useSidePanelDisplayStatus();
     const {windowWidth} = useWindowDimensions();
     const {sidePanelWidth} = useSidePanelState();
@@ -247,7 +249,11 @@ function DebugTabView({selectedTab}: Props) {
     return (
         <View
             testID="DebugTabViewContainer"
-            style={[shouldUseNarrowLayout ? positionStyle : {...styles.pAbsolute, ...positionStyle}]}
+            style={[
+                shouldUseNarrowLayout ? positionStyle : {...styles.pAbsolute, ...positionStyle},
+                // Native keeps its floating buttons above a full-width bar, so only the mobile web bar needs this.
+                isMobileWebLandscape && styles.debugTabViewMobileWebLandscape,
+            ]}
             pointerEvents="box-none"
         >
             <View

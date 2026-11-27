@@ -103,6 +103,9 @@ jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed
 
 const RORY_EMAIL = 'rory@expensifail.com';
 const RORY_ACCOUNT_ID = 3;
+const RORY_PERSONAL_DETAILS_BY_LOGINS: PersonalDetailsByLogin = {
+    [RORY_EMAIL]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
+};
 const CARLOS_EMAIL = 'cmartins@expensifail.com';
 const CARLOS_ACCOUNT_ID = 1;
 
@@ -141,9 +144,6 @@ describe('actions/IOU/ReportWorkflow', () => {
             keys: ONYXKEYS,
             initialKeyStates: {
                 [ONYXKEYS.SESSION]: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
-                    [RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
-                },
             },
         });
         initOnyxDerivedValues();
@@ -211,6 +211,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 .then(() => {
                     if (chatReport) {
                         requestMoney({
+                            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                             isVendorMatchingBetaEnabled: false,
                             getCurrencyDecimals: getCurrencyDecimalsLocal,
                             conciergeChat: undefined,
@@ -942,6 +943,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 .then(() => {
                     if (chatReport) {
                         requestMoney({
+                            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                             isVendorMatchingBetaEnabled: false,
                             getCurrencyDecimals: getCurrencyDecimalsLocal,
                             conciergeChat: undefined,
@@ -1036,6 +1038,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     .then(() => {
                         if (chatReport) {
                             requestMoney({
+                                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                                 isVendorMatchingBetaEnabled: false,
                                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                                 conciergeChat: undefined,
@@ -1093,6 +1096,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     .then(() => {
                         if (chatReport) {
                             requestMoney({
+                                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                                 isVendorMatchingBetaEnabled: false,
                                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                                 conciergeChat: undefined,
@@ -1363,6 +1367,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     .then(() => {
                         if (chatReport) {
                             requestMoney({
+                                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                                 isVendorMatchingBetaEnabled: false,
                                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                                 conciergeChat: undefined,
@@ -1420,6 +1425,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     .then(() => {
                         if (chatReport) {
                             requestMoney({
+                                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                                 isVendorMatchingBetaEnabled: false,
                                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                                 conciergeChat: undefined,
@@ -1637,6 +1643,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 .then(() => {
                     if (chatReport) {
                         requestMoney({
+                            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                             isVendorMatchingBetaEnabled: false,
                             getCurrencyDecimals: getCurrencyDecimalsLocal,
                             conciergeChat: undefined,
@@ -1875,6 +1882,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             if (chatReport) {
                 requestMoney({
+                    personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                     isVendorMatchingBetaEnabled: false,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     conciergeChat: undefined,
@@ -6680,6 +6688,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                         ],
                     },
                     undefined,
+                    undefined,
                     false,
                 ),
             ).toBe(false);
@@ -6695,7 +6704,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     excludeEmptyChats: false,
                     doesReportHaveViolations: false,
                     isReportArchived: false,
-                    draftComment: undefined,
+                    hasDraftComment: undefined,
                     currentUserLogin: RORY_EMAIL,
                     currentUserAccountID: RORY_ACCOUNT_ID,
                     conciergeReportID: undefined,
@@ -6708,6 +6717,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                         ],
                     },
                     derivedIsEmptyReport: undefined,
+                    pendingExpenseActionMetadata: undefined,
                     hasGuidesEmails: false,
                 }),
             ).not.toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);

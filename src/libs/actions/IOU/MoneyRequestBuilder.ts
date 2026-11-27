@@ -1,4 +1,5 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
@@ -16,7 +17,7 @@ import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {getDistanceRateCustomUnit, getReimbursementChoice, hasDependentTags, isGroupPolicy} from '@libs/PolicyUtils';
 import ReceiptStorage from '@libs/ReceiptStorage';
 import {getOriginalMessage, getReportActionHtml, getReportActionText, isReportPreviewAction} from '@libs/ReportActionsUtils';
-import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction} from '@libs/ReportUtils';
+import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction, ReportStateAndStatus} from '@libs/ReportUtils';
 import {
     buildOptimisticAddCommentReportAction,
     buildOptimisticChatReport,
@@ -28,6 +29,7 @@ import {
     computeOptimisticReportNameWithMetadata,
     generateReportID,
     getChatByParticipants,
+    getFinalizedDeferredBatchReportState,
     getNewestOutstandingReportForUser,
     getOutstandingChildRequest,
     getReimbursableTotal,
@@ -68,6 +70,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {ErrorFields, Errors, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
+import type {Unit} from '@src/types/onyx/Policy';
 import type {ReportNextStep} from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -89,6 +92,7 @@ import type RequestMoneyParticipantParams from './types/RequestMoneyParticipantP
 import type {GPSPoint} from './types/TrackExpenseTransactionParams';
 
 import {getAllPersonalDetails, getAllReportActionsFromIOU, getAllReportNameValuePairs, getAllReports} from './index';
+import {buildNewTransactionFlagForReportTable, wasReportShowingRowsWhenActionBegan} from './PendingNewTransactions';
 import {getSearchOnyxUpdate} from './SearchUpdate';
 
 type OneOnOneIOUReport = OnyxTypes.Report | undefined | null;
@@ -120,7 +124,7 @@ type MoneyRequestInformation = {
     iouAction: OptimisticIOUReportAction;
     createdChatReportActionID?: string;
     createdIOUReportActionID?: string;
-    reportPreviewAction: OnyxTypes.ReportAction;
+    reportPreviewAction: OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>;
     transactionThreadReportID?: string;
     createdReportActionIDForThread: string | undefined;
     onyxData: OnyxData<BuildOnyxDataForMoneyRequestKeys>;
@@ -151,6 +155,7 @@ type RequestMoneyTransactionParams = Omit<BaseTransactionParams, 'comment'> & {
     customUnit?: TransactionCustomUnit;
     odometerStart?: number;
     odometerEnd?: number;
+    odometerUnit?: Unit;
 
     /** Transaction type (e.g., 'time' for time tracking expenses) */
     type?: ValueOf<typeof CONST.TRANSACTION.TYPE>;
@@ -169,14 +174,13 @@ type RequestMoneyTransactionParams = Omit<BaseTransactionParams, 'comment'> & {
 
     /** The selfDM report ID for split transactions */
     selfDMReportID?: string;
-
-    /** Keeps this transaction off the `pendingNewTransactionIDs` highlight rail, for flows that never open the expense report */
-    shouldSkipReportHighlightRail?: boolean;
 };
 
 type RequestMoneyInformation = {
     report: OnyxEntry<OnyxTypes.Report>;
     existingIOUReport?: OnyxEntry<OnyxTypes.Report>;
+    /** Carried from an earlier batch iteration so later items update the same preview before Onyx flushes. */
+    existingReportPreviewAction?: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>;
     participantParams: RequestMoneyParticipantParams;
     policyParams?: BasePolicyParams;
     gpsPoint?: GPSPoint;
@@ -221,12 +225,15 @@ type RequestMoneyInformation = {
     /** Readiness barrier the API write waits on, handed down by whoever triggered the navigation. */
     writeBarrier?: WriteReadyBarrier;
     rules: OnyxCollection<OnyxTypes.Rule>;
+    personalDetailsByLogins: PersonalDetailsByLogin | undefined;
     isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
 type MoneyRequestInformationParams = {
     parentChatReport: OnyxEntry<OnyxTypes.Report>;
     existingIOUReport?: OnyxEntry<OnyxTypes.Report>;
+    /** Carried from an earlier batch iteration so later items update the same preview before Onyx flushes. */
+    existingReportPreviewAction?: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>;
     transactionParams: RequestMoneyTransactionParams;
     participantParams: RequestMoneyParticipantParams;
     policyParams?: BasePolicyParams;
@@ -251,6 +258,7 @@ type MoneyRequestInformationParams = {
     shouldGenerateTransactionThreadReport?: boolean;
     isSplitExpense?: boolean;
     isReverseSplitOperation?: boolean;
+    shouldFlagNewTransactionForReportTable: boolean;
     action?: IOUAction;
     currentReportActionID?: string;
 
@@ -272,10 +280,13 @@ type MoneyRequestInformationParams = {
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<OnyxTypes.Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
+    personalDetailsByLogins?: PersonalDetailsByLogin;
     /** Report actions of `parentChatReport` */
     parentChatReportActions?: OnyxEntry<OnyxTypes.ReportActions>;
     /** Report actions of the participant's existing chat, which is their policy expense chat or the 1:1 chat found by `getChatByParticipants` */
     participantChatReportActions?: OnyxEntry<OnyxTypes.ReportActions>;
+    /** Keeps a newly created optimistic expense report open when auto-submit is deferred for a batch item. */
+    shouldDeferAutoSubmit?: boolean;
 };
 
 type MoneyRequestOptimisticParams = {
@@ -328,12 +339,14 @@ type BuildOnyxDataForMoneyRequestParams = {
     isSelfDMSplit?: boolean;
     /** The selfDM report ID for split transactions */
     selfDMReportID?: string;
-    /** Whether to skip the `pendingNewTransactionIDs` highlight rail because this flow never opens the expense report */
-    shouldSkipReportHighlightRail?: boolean;
+    shouldFlagNewTransactionForReportTable: boolean;
     isTrackIntentUser: boolean | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<OnyxTypes.Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
+    personalDetailsByLogins?: PersonalDetailsByLogin;
+    /** Restores the report state in failureData when the final batch item transitions it out of OPEN and fails. */
+    previousIOUReportState?: ReportStateAndStatus;
 };
 
 type BuildOnyxDataForTestDriveIOUParams = {
@@ -478,6 +491,16 @@ function getTransactionWithPreservedLocalReceiptSource(transaction: OnyxTypes.Tr
     return transaction;
 }
 
+/** Whether the report shows rows besides this add, which its `transactionCount` already counts. Only asked on an action's first add. */
+function isReportShowingRowsBesidesThisAdd(report: OnyxInputValue<OnyxTypes.Report>, existingReportTransactions: OnyxTypes.Transaction[]): boolean {
+    const countedBesidesThisAdd = Math.max((report?.transactionCount ?? 0) - 1, 0);
+    // Only a complete cache can subtract pending deletes. A partial one would count too few and drop the flag.
+    if (existingReportTransactions.length < countedBesidesThisAdd) {
+        return true;
+    }
+    return existingReportTransactions.some((reportTransaction) => reportTransaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+}
+
 function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyRequestParams): OnyxData<BuildOnyxDataForMoneyRequestKeys> {
     const allReports = getAllReports();
     const {
@@ -498,12 +521,14 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         isSelfDMSplit,
         isReverseSplitOperation,
         selfDMReportID,
-        shouldSkipReportHighlightRail,
+        shouldFlagNewTransactionForReportTable,
         isTrackIntentUser,
         delegateAccountID,
         getCurrencyDecimals,
         rules,
         isVendorMatchingBetaEnabled,
+        personalDetailsByLogins,
+        previousIOUReportState,
     } = moneyRequestParams;
     const {policy, policyCategories, policyTagList} = policyParams;
     const {
@@ -737,25 +762,19 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         });
     }
 
-    // Only flag when the add makes the report multi-tx: on 0→1 the table fresh-mounts with the tx already present, so
-    // nothing consumes the flag and it goes stale. Same reason callers pass shouldSkipReportHighlightRail when the flow
-    // won't open the expense report. No successData - it races the mount.
-    const existingReportTransactions = iou.report?.reportID
-        ? getReportTransactions(iou.report.reportID).filter((reportTransaction) => reportTransaction.transactionID !== transaction.transactionID)
-        : [];
-    const addMakesReportMultiTransaction =
-        isMoneyRequestReport(iou.report) && existingReportTransactions.some((reportTransaction) => reportTransaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-    if (iou.report?.reportID && transaction.transactionID && !isSelfDMSplit && !shouldSkipReportHighlightRail && addMakesReportMultiTransaction) {
-        onyxData.optimisticData?.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${iou.report.reportID}`,
-            value: {pendingNewTransactionIDs: {[transaction.transactionID]: true}},
-        });
-        onyxData.failureData?.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${iou.report.reportID}`,
-            value: {pendingNewTransactionIDs: {[transaction.transactionID]: null}},
-        });
+    const reportTransactionsFromCache = iou.report?.reportID ? getReportTransactions(iou.report.reportID) : [];
+    const existingReportTransactions = reportTransactionsFromCache.filter((reportTransaction) => reportTransaction.transactionID !== transaction.transactionID);
+    // Only an insertion into a report that already showed rows is flagged: its first rows are its contents. No successData clear, which would race the list mounting.
+    if (shouldFlagNewTransactionForReportTable && iou.report?.reportID && transaction.transactionID && !isSelfDMSplit && isMoneyRequestReport(iou.report)) {
+        const isTransactionAlreadyOnReport = reportTransactionsFromCache.some((reportTransaction) => reportTransaction.transactionID === transaction.transactionID);
+        // A row already on the report adds nothing. Asking about it would leave it out of the count, so the report could look empty to the action's later adds.
+        const wasShowingRowsWhenActionBegan =
+            !isTransactionAlreadyOnReport && wasReportShowingRowsWhenActionBegan(iou.report.reportID, () => isReportShowingRowsBesidesThisAdd(iou.report, existingReportTransactions));
+        if (wasShowingRowsWhenActionBegan) {
+            const {optimisticUpdate, failureUpdate} = buildNewTransactionFlagForReportTable({expenseReportID: iou.report.reportID, transactionID: transaction.transactionID});
+            onyxData.optimisticData?.push(optimisticUpdate);
+            onyxData.failureData?.push(failureUpdate);
+        }
     }
 
     if (shouldGenerateTransactionThreadReport && !isSelfDMSplit && !isEmptyObject(transactionThreadCreatedReportAction)) {
@@ -1067,6 +1086,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${iou.report.reportID}`,
                 value: {
+                    ...previousIOUReportState,
                     pendingFields: null,
                     errorFields: {
                         ...(shouldCreateNewMoneyRequestReport ? {createChat: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage')} : {}),
@@ -1203,6 +1223,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             isASAPSubmitBetaEnabled,
             isTrackIntentUser,
             rules,
+            personalDetailsByLogins,
         });
         onyxData.optimisticData?.push(violationsOnyxData);
         onyxData.optimisticData?.push({
@@ -1304,6 +1325,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     const {
         parentChatReport,
         existingIOUReport,
+        existingReportPreviewAction,
         transactionParams,
         participantParams,
         policyParams = {},
@@ -1326,6 +1348,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         shouldGenerateTransactionThreadReport = true,
         isSplitExpense,
         isReverseSplitOperation,
+        shouldFlagNewTransactionForReportTable,
         action,
         currentReportActionID,
         existingTransactionThreadReportID,
@@ -1343,8 +1366,10 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         getCurrencyDecimals,
         rules,
         isVendorMatchingBetaEnabled,
+        personalDetailsByLogins,
         parentChatReportActions,
         participantChatReportActions,
+        shouldDeferAutoSubmit,
     } = moneyRequestInformation;
     const {payeeAccountID = currentUserAccountIDParam, payeeEmail = currentUserEmailParam, participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
@@ -1381,9 +1406,9 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         waypoints,
         odometerStart,
         odometerEnd,
+        odometerUnit,
         isSelfDMSplit,
         selfDMReportID,
-        shouldSkipReportHighlightRail,
     } = transactionParams;
 
     const payerEmail = addSMSDomainIfPhoneNumber(participant.login ?? '');
@@ -1460,6 +1485,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     const optimisticReportID = optimisticIOUReportID ?? generateReportID();
 
     let didUpdateOptimisticTotal = false;
+    let previousIOUReportState: ReportStateAndStatus | undefined;
 
     const shouldUseCommuterModifiedValues = hasAppliedCommuterExclusion(existingTransaction);
     const reportAmount = shouldUseCommuterModifiedValues && modifiedAmount !== undefined ? modifiedAmount : amount;
@@ -1482,6 +1508,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                   isASAPSubmitBetaEnabled,
                   getCurrencyDecimals,
                   rules,
+                  shouldDeferAutoSubmit,
               })
             : buildOptimisticIOUReport(payeeAccountID, payerAccountID, reportAmount, chatReport.reportID, currency, getCurrencyDecimals, undefined, undefined, optimisticReportID);
     } else if (isTransactionAlreadyOnReport) {
@@ -1539,6 +1566,18 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                 }
             }
         }
+        const finalizedBatchReportState = getFinalizedDeferredBatchReportState({
+            iouReport,
+            hasExistingIOUReport: !!existingIOUReport,
+            shouldDeferAutoSubmit,
+            policy,
+            isASAPSubmitBetaEnabled,
+        });
+        if (finalizedBatchReportState) {
+            iouReport.stateNum = finalizedBatchReportState.nextState.stateNum;
+            iouReport.statusNum = finalizedBatchReportState.nextState.statusNum;
+            previousIOUReportState = finalizedBatchReportState.previousState;
+        }
     } else {
         iouReport = updateIOUOwnerAndTotal(iouReport, payeeAccountID, reportAmount, currency);
     }
@@ -1588,6 +1627,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             waypoints,
             odometerStart,
             odometerEnd,
+            odometerUnit,
         },
         isDemoTransactionParam: transactionParams.receipt?.isTestDriveReceipt,
     });
@@ -1651,8 +1691,9 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     }
 
     if (isSplitExpense && existingTransaction) {
-        const {convertedAmount: originalConvertedAmount, ...existingTransactionWithoutConvertedAmount} = existingTransaction;
-        optimisticTransaction = fastMerge(existingTransactionWithoutConvertedAmount, optimisticTransaction, false);
+        // A split can move to another report, so it shows its own amount instead of the original's workspace amount until the next search
+        const {convertedAmount: originalConvertedAmount, policyConvertedAmount, ...existingTransactionWithoutConvertedAmounts} = existingTransaction;
+        optimisticTransaction = fastMerge(existingTransactionWithoutConvertedAmounts, optimisticTransaction, false);
         if (customUnit && optimisticTransaction.comment) {
             optimisticTransaction.comment.customUnit = customUnit;
         }
@@ -1716,21 +1757,16 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         chatReportActions = chatReport.reportID === parentChatReport?.reportID ? parentChatReportActions : participantChatReportActions;
     }
 
-    let reportPreviewAction = shouldCreateNewMoneyRequestReport ? null : getReportPreviewReportAction(chatReport.reportID, iouReport.reportID, chatReportActions);
+    let reportPreviewAction = shouldCreateNewMoneyRequestReport
+        ? null
+        : (getReportPreviewReportAction(chatReport.reportID, iouReport.reportID, chatReportActions) ?? existingReportPreviewAction ?? null);
 
     if (reportPreviewAction) {
         reportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, getCurrencyDecimals, false, comment, optimisticTransaction);
     } else {
-        reportPreviewAction = buildOptimisticReportPreview(
-            chatReport,
-            iouReport,
-            getCurrencyDecimals,
-            delegateAccountID,
-            comment,
-            optimisticTransaction,
-            undefined,
-            optimisticReportPreviewActionID,
-        );
+        // Reuse the report preview action ID when a later batch item runs before Onyx caches the first preview.
+        const previewActionID = shouldCreateNewMoneyRequestReport ? optimisticReportPreviewActionID : (optimisticReportPreviewActionID ?? existingIOUReport?.parentReportActionID);
+        reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, getCurrencyDecimals, delegateAccountID, comment, optimisticTransaction, undefined, previewActionID);
         chatReport.lastVisibleActionCreated = reportPreviewAction.created;
 
         // Generated ReportPreview action is a parent report action of the iou report.
@@ -1773,6 +1809,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         isASAPSubmitBetaEnabled,
         isTrackIntentUser,
         rules,
+        personalDetailsByLogins,
     });
 
     // STEP 5: Build Onyx Data
@@ -1784,6 +1821,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         isOneOnOneSplit: isSplitExpense,
         isReverseSplitOperation,
         rules,
+        personalDetailsByLogins,
         policyParams: {
             policy,
             policyCategories,
@@ -1825,10 +1863,11 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         delegateAccountID,
         isSelfDMSplit,
         selfDMReportID,
-        shouldSkipReportHighlightRail,
+        shouldFlagNewTransactionForReportTable,
         isTrackIntentUser,
         getCurrencyDecimals,
         isVendorMatchingBetaEnabled,
+        previousIOUReportState,
     });
 
     return {

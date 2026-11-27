@@ -28,7 +28,7 @@ type WorkspaceTaxesTableProps = {
     selectionEnabled: boolean;
     selectedKeys: string[];
 
-    /** Whether the workspace has tax codes worth a column. Narrow and medium layouts hide it regardless. */
+    /** Whether tax codes are available for sorting. Narrow and medium layouts hide the cells, but keep the sort option. */
     shouldShowTaxCodeColumn: boolean;
 
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
@@ -65,9 +65,6 @@ export default function WorkspaceTaxesTable({
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
-    // Narrow and medium layouts collapse the columns into a card that has nowhere to put the code.
-    const shouldShowTaxCodeCell = !shouldUseNarrowTableLayout && shouldShowTaxCodeColumn;
-
     const taxTableColumns: Array<TableColumn<WorkspaceTaxTableColumnKey, WorkspaceTaxTableRowData>> = [
         {
             key: 'name',
@@ -92,7 +89,7 @@ export default function WorkspaceTaxesTable({
                 shouldFitContent: true,
             },
         },
-        ...(shouldShowTaxCodeCell
+        ...(shouldShowTaxCodeColumn
             ? [
                   {
                       key: 'taxCode' as const,
@@ -171,7 +168,6 @@ export default function WorkspaceTaxesTable({
             columnResizingID={CONST.TABLES.COLUMN_RESIZING_IDS.WORKSPACE_TAXES}
             data={taxes}
             initialSortColumn="name"
-            narrowLayoutSortColumn="name"
             selectionEnabled={selectionEnabled}
             title={translate('workspace.common.taxes')}
             columns={taxTableColumns}

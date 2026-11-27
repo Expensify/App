@@ -9,6 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import tokenizedSearch from '@libs/tokenizedSearch';
 
+import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -70,7 +71,7 @@ export default function WorkspacePerDiemTable({
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
-    const columns: Array<TableColumn<PerDiemTableColumnKey>> = [
+    const columns: Array<TableColumn<PerDiemTableColumnKey, PerDiemTableRowData>> = [
         {
             key: 'destination',
             label: translate('common.destination'),
@@ -79,6 +80,10 @@ export default function WorkspacePerDiemTable({
                 // editableCellHeader matches the padded destination cell so the label and value share an edge.
                 containerStyles: [styles.editableCellHeader],
             },
+            dynamicSizing: {
+                getContentToMeasure: (item) => [{text: item.destination, fontSize: fontScale.text}],
+                extraWidth: variables.editableCellChromeWidth,
+            },
         },
         {
             key: 'subrate',
@@ -86,6 +91,11 @@ export default function WorkspacePerDiemTable({
             sortable: true,
             styling: {
                 containerStyles: [styles.editableCellHeader],
+            },
+            dynamicSizing: {
+                getContentToMeasure: (item) => [{text: item.subRateName, fontSize: fontScale.text}],
+                // The cell has the same padding and border as the destination cell.
+                extraWidth: variables.editableCellChromeWidth,
             },
         },
         {
@@ -96,6 +106,11 @@ export default function WorkspacePerDiemTable({
                 // Keep the amount right-aligned, inset by the same chrome as the padded amount cell.
                 alignment: CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.END,
                 containerStyles: [styles.editableCellHeader],
+            },
+            dynamicSizing: {
+                getContentToMeasure: (item) => [{text: item.formattedAmount, fontSize: fontScale.text}],
+                shouldFitContent: true,
+                extraWidth: variables.editableCellChromeWidth,
             },
         },
         {key: 'actions', label: '', sortable: false, width: variables.tableCaretColumnWidth},
@@ -158,6 +173,8 @@ export default function WorkspacePerDiemTable({
 
     return (
         <Table
+            shouldUseDynamicColumns
+            columnResizingID={CONST.TABLES.COLUMN_RESIZING_IDS.WORKSPACE_PER_DIEM}
             data={perDiemData}
             columns={columns}
             selectionEnabled={selectionEnabled}
@@ -168,7 +185,6 @@ export default function WorkspacePerDiemTable({
             compareItems={compareItems}
             isItemInSearch={isItemInSearch}
             initialSortColumn="destination"
-            narrowLayoutSortColumn="destination"
             title={translate('common.perDiem')}
         >
             <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>

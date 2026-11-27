@@ -875,8 +875,8 @@ function getVerticalPaddingDiffFromStyle(textInputContainerStyles: ViewStyle): n
         return typeof paddingValue === 'number' ? paddingValue : 0;
     };
 
-    const paddingTop = getNumericPadding(flatStyle?.paddingTop ?? flatStyle.padding);
-    const paddingBottom = getNumericPadding(flatStyle?.paddingBottom ?? flatStyle.padding);
+    const paddingTop = getNumericPadding(flatStyle?.paddingTop ?? flatStyle?.padding);
+    const paddingBottom = getNumericPadding(flatStyle?.paddingBottom ?? flatStyle?.padding);
     return paddingTop - paddingBottom;
 }
 
@@ -1699,6 +1699,7 @@ function getReportTableColumnLayout(styles: ThemeStyles, columnName: string, opt
         case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL:
         case CONST.SEARCH.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL:
         case CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT:
+        case CONST.SEARCH.TABLE_COLUMNS.CONVERTED_AMOUNT:
         case CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT:
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL:
         case CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE:
@@ -1757,6 +1758,7 @@ function getReportTableColumnLayout(styles: ThemeStyles, columnName: string, opt
         case CONST.SEARCH.TABLE_COLUMNS.CARD:
         case CONST.SEARCH.TABLE_COLUMNS.REPORT_ID:
         case CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID:
+        case CONST.SEARCH.TABLE_COLUMNS.TRANSACTION_ID:
         case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
         case CONST.SEARCH.TABLE_COLUMNS.VENDOR:
         case CONST.SEARCH.TABLE_COLUMNS.FROM:
@@ -2137,8 +2139,11 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
      */
     getMentionTextColor: (isOurMention: boolean): string => (isOurMention ? theme.ourMentionText : theme.mentionText),
 
-    /** Returns the color of a change in spend, red when it went up and green when it went down */
-    getSpendChangeColor: (isIncrease: boolean): string => (isIncrease ? theme.danger : theme.successHover),
+    /** Returns the arrow color of a change in spend, red when it went up and green when it went down */
+    getSpendChangeIconColor: (isIncrease: boolean): string => (isIncrease ? theme.danger : theme.success),
+
+    /** Returns the text color of a change in spend, red when it went up and green when it went down */
+    getSpendChangeTextColor: (isIncrease: boolean): string => (isIncrease ? theme.textError : theme.textSuccess),
 
     /**
      * Generate the wrapper styles for the mini ReportActionContextMenu.

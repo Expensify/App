@@ -117,6 +117,21 @@ describe('getAllNonDeletedTransactions', () => {
         expect(result.map((t) => t.transactionID)).toContain(transactionR14932.transactionID);
         expect(result.map((t) => t.transactionID)).toContain(orphanedTransaction.transactionID);
     });
+
+    test('should decide by the first action of an expense when several actions point to it', () => {
+        // Given an expense with a deleted action and a live action, as getIOUActionForTransactionID returns the first one
+        const deletedAction = {...actionR14932, reportActionID: 'deleted1', originalMessage: {...originalMessageR14932, deleted: '2026-08-25 16:46:25.669'}};
+        const liveAction = {...actionR14932, reportActionID: 'live1'};
+        const transactions = {[transactionR14932.transactionID]: transactionR14932};
+
+        // When the deleted action comes first, then when the live action comes first
+        const deletedFirst = getAllNonDeletedTransactions(transactions, [deletedAction, liveAction]);
+        const liveFirst = getAllNonDeletedTransactions(transactions, [liveAction, deletedAction]);
+
+        // Then only the order of the actions decides whether the expense stays on the report
+        expect(deletedFirst).toHaveLength(0);
+        expect(liveFirst.map((t) => t.transactionID)).toEqual([transactionR14932.transactionID]);
+    });
 });
 
 describe('getAllNonDeletedTransactions - Expensify Card pending/posted deduplication', () => {

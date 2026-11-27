@@ -22,7 +22,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportChangeApproverParamList} from '@libs/Navigation/types';
-import {getMemberAccountIDsForWorkspace, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {getMemberAccountIDsForWorkspace, hasDynamicExternalWorkflow, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {
     canReassignAsApprover,
     getDisplayNameForParticipant,
@@ -75,6 +75,8 @@ function ReportReassignApproverPage({report, policy, isLoadingReportData}: Repor
         (isEmptyObject(policy) && !isLoadingReportData) ||
         (!isPolicyAdmin(policy) && !canMemberReassignApprover) ||
         isPendingDeletePolicy(policy) ||
+        // A dynamic external workflow picks the next approver, so no one can reassign the report to someone else.
+        hasDynamicExternalWorkflow(policy) ||
         !isMoneyRequestReport(report) ||
         isMoneyRequestReportPendingDeletion(report) ||
         !isProcessingReport(report) ||

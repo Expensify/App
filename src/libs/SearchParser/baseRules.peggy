@@ -20,7 +20,8 @@ date = "date"i { return "date"; }
 amount = "amount"i { return "amount"; }
 merchant = "merchant"i { return "merchant"; }
 description = "description"i { return "description"; }
-reportID = "reportid"i / "report-id"i { return "reportID"; }
+reportID = ("reportid"i / "report-id"i) { return "reportID"; }
+transactionID = ("transactionid"i / "transaction-id"i) { return "transactionID"; }
 keyword = "keyword"i { return "keyword"; }
 in = "in"i { return "in"; }
 currency = "currency"i { return "currency"; }
@@ -115,6 +116,7 @@ action = "action"i { return "action"; }
 total = "total"i {return "total"; }
 has = "has"i {return "has"; }
 is = "is"i {return "is"; }
+convertedAmount = ("convertedAmount"i / "converted-amount"i) {return "convertedAmount"}
 purchaseAmount = "purchaseAmount"i / "purchase-amount"i {return "purchaseAmount"}
 purchaseCurrency = "purchaseCurrency"i / "purchase-currency"i {return "purchaseCurrency"}
 amountDebited = "amountDebited"i / "amount-debited"i {return "amountDebited"}
@@ -134,6 +136,7 @@ values
 
 columnsValues
   = originalAmount
+  / convertedAmountColumn
   / taxRateValue
   / taxAmount
   / policyName
@@ -141,6 +144,7 @@ columnsValues
   / bankAccountColumn
   / reportId
   / base62ReportId
+  / transactionId
   / exportedToColumnValue
   / exchangeRate
   / reimbursableTotal
@@ -171,6 +175,7 @@ columnsValues
 perDiem                 = "per-diem"i &wordBoundary                 { return "perDiem"; }
 draft                  = ("drafts"i / "draft"i) &wordBoundary       { return "drafts"; }
 originalAmount          = "purchase-amount"i &wordBoundary          { return "originalamount"; }
+convertedAmountColumn   = "converted-amount"i &wordBoundary         { return "convertedAmount"; }
 taxAmount               = "tax"i &wordBoundary                      { return "taxAmount"; }
 taxRateValue            = "tax-rate"i &wordBoundary                 { return "taxrate"; }
 policyName              = "policy-name"i &wordBoundary              { return "policyname"; }
@@ -178,6 +183,7 @@ withdrawalId            = "withdrawal-id"i &wordBoundary            { return "wi
 bankAccountColumn       = "bank-account"i &wordBoundary             { return "bankAccount"; }
 reportId                = "long-report-id"i &wordBoundary           { return "reportID"; }
 base62ReportId          = "report-id"i &wordBoundary                { return "base62ReportID"; }
+transactionId           = "transaction-id"i &wordBoundary           { return "transactionID"; }
 exportedToColumnValue   = "exported-to"i &wordBoundary              { return "exportedto"; }
 exportedToKeyEnd = wordBoundary / _ (":" / "=")
 exportedTo
@@ -278,3 +284,12 @@ wordBoundary
 footerCount = ("footerCount"i / "footer-count"i) { return "footerCount"; }
 footerCurrency = ("footerCurrency"i / "footer-currency"i) { return "footerCurrency"; }
 footerTotal = ("footerTotal"i / "footer-total"i) { return "footerTotal"; }
+
+leftPinnedColumns = ("leftPinnedColumns"i / "left-pinned-columns"i) {
+  isColumnsContext = true;
+  return "leftPinnedColumns";
+}
+rightPinnedColumns = ("rightPinnedColumns"i / "right-pinned-columns"i) {
+  isColumnsContext = true;
+  return "rightPinnedColumns";
+}
