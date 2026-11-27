@@ -7617,6 +7617,9 @@ ${amount} para ${merchant} - ${date}`,
                 subtitle: 'Establecer una tarifa por hora facturable para el seguimiento de tiempo.',
                 defaultHourlyRate: 'Tarifa por hora predeterminada',
             },
+            hr: {
+                subtitle: 'Conecta herramientas de RR. HH. y mantén sincronizadas las aprobaciones de los empleados.',
+            },
         },
         reports: {
             reportsCustomTitleExamples: 'Ejemplos:',

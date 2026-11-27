@@ -8350,6 +8350,9 @@ const translations = {
                 subtitle: 'Set a billable hourly rate for time tracking.',
                 defaultHourlyRate: 'Default hourly rate',
             },
+            hr: {
+                subtitle: 'Connect HR tools and keep employee approvals in sync.',
+            },
         },
         reports: {
             reportsCustomTitleExamples: 'Examples:',

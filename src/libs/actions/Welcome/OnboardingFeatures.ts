@@ -17,6 +17,7 @@ type OnboardingFeatureID = ValueOf<
         | 'ARE_TAGS_ENABLED'
         | 'ARE_PER_DIEM_RATES_ENABLED'
         | 'IS_TIME_TRACKING_ENABLED'
+        | 'IS_HR_ENABLED'
     >
 >;
 
@@ -44,6 +45,7 @@ const ONBOARDING_FEATURES: OnboardingFeatureConfig[] = [
     {id: CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED},
     {id: CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED, requiresUpdate: true},
     {id: CONST.POLICY.MORE_FEATURES.IS_TIME_TRACKING_ENABLED},
+    {id: CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED, requiresUpdate: true},
 ];
 
 function getDefaultOnboardingFeaturesMap(): OnboardingFeatureMapItem[] {

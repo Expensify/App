@@ -7659,6 +7659,9 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 subtitle: 'Ustaw godzinową stawkę rozliczeniową do śledzenia czasu.',
                 defaultHourlyRate: 'Domyślna stawka godzinowa',
             },
+            hr: {
+                subtitle: 'Połącz narzędzia HR i synchronizuj zatwierdzenia pracowników.',
+            },
             vendors: {
                 title: 'Dostawcy',
                 subtitle: 'Dopasuj wydatki z karty do kontrahentów zaimportowanych z twojego oprogramowania księgowego.',

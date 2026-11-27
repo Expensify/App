@@ -153,6 +153,30 @@ describe('Onboarding interested features and accounting pages', () => {
         expect(navigate).not.toHaveBeenCalledWith(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
     });
 
+    it.each([false, true])('offers HR unchecked and submits its selected state as %s', async (isHRSelected) => {
+        // Given HR is optional, so users can continue without choosing it
+        renderInterestedFeaturesPage();
+        await waitForBatchedUpdatesWithAct();
+        const hrCheckbox = screen.getByRole(CONST.ROLE.CHECKBOX, {name: TestHelper.translateLocal('workspace.common.hr')});
+        expect(hrCheckbox).not.toBeChecked();
+        expect(screen.getByText(TestHelper.translateLocal('workspace.moreFeatures.hr.subtitle'))).toBeOnTheScreen();
+
+        // When accounting is skipped, the feature choices are submitted directly
+        fireEvent.press(screen.getByRole(CONST.ROLE.CHECKBOX, {name: TestHelper.translateLocal('workspace.moreFeatures.connections.title')}));
+        if (isHRSelected) {
+            fireEvent.press(hrCheckbox);
+            expect(screen.getByRole(CONST.ROLE.CHECKBOX, {name: TestHelper.translateLocal('workspace.common.hr')})).toBeChecked();
+        }
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('common.continue')));
+
+        // Then HR carries the Control requirement without making selection mandatory
+        await waitFor(() => {
+            expect(mockCompleteOnboardingFlow).toHaveBeenCalledWith({
+                featuresMap: expect.arrayContaining([expect.objectContaining({id: CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED, enabled: isHRSelected, requiresUpdate: true})]),
+            });
+        });
+    });
+
     it('auto-focuses the Other input and completes with a trimmed integration name', async () => {
         const scrollToEndSpy = jest.spyOn(ScrollView.prototype, 'scrollToEnd');
         const renderResult = renderAccountingPage();
