@@ -1,8 +1,5 @@
-import dependencyExtractor from '../../jest/dependencyExtractor';
+import {extract} from '../../jest/dependencyExtractor';
 
-type Extractor = {extract: (code: string, filePath: string, defaultExtract: (rewrittenCode: string) => string) => string};
-
-const {extract} = dependencyExtractor as Extractor;
 const rewrite = (code: string) => extract(code, '', (rewrittenCode) => rewrittenCode);
 
 describe('dependencyExtractor', () => {
