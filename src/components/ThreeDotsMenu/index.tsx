@@ -15,6 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {isMobile} from '@libs/Browser';
+import isHTMLElement from '@libs/isHTMLElement';
 
 import type {AnchorPosition} from '@styles/index';
 import variables from '@styles/variables';
@@ -26,11 +27,58 @@ import KeyboardUtils from '@src/utils/keyboard';
 import type {ComponentRef} from 'react';
 
 import {isModalCoveringSelector} from '@selectors/Modal';
+import debounce from 'lodash/debounce';
 import React, {useEffect, useImperativeHandle, useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type ThreeDotsMenuProps from './types';
 import type {ThreeDotsMenuHandle} from './types';
+
+/**
+ * FlashList writes an explicit pixel width onto each row after the window has already resized, which moves this
+ * button without changing the button's own size. Watch the ancestors that do change size, and report once the button's window rect has actually moved.
+ */
+function subscribeToAnchorMovement(anchor: HTMLElement, onMove: () => void): () => void {
+    if (typeof ResizeObserver === 'undefined') {
+        return () => {};
+    }
+
+    const initialRect = anchor.getBoundingClientRect();
+    let lastLeft = initialRect.left;
+    let lastTop = initialRect.top;
+    let lastWidth = initialRect.width;
+    let lastHeight = initialRect.height;
+    let frame = 0;
+
+    const observer = new ResizeObserver(() => {
+        cancelAnimationFrame(frame);
+        frame = requestAnimationFrame(() => {
+            if (!anchor.isConnected) {
+                return;
+            }
+            const nextRect = anchor.getBoundingClientRect();
+            if (nextRect.left === lastLeft && nextRect.top === lastTop && nextRect.width === lastWidth && nextRect.height === lastHeight) {
+                return;
+            }
+            lastLeft = nextRect.left;
+            lastTop = nextRect.top;
+            lastWidth = nextRect.width;
+            lastHeight = nextRect.height;
+            onMove();
+        });
+    });
+
+    let node: HTMLElement | null = anchor;
+    while (node) {
+        observer.observe(node);
+        node = node.parentElement;
+    }
+
+    return () => {
+        cancelAnimationFrame(frame);
+        observer.disconnect();
+    };
+}
 
 function ThreeDotsMenu({
     iconTooltip = 'common.more',
@@ -91,6 +139,28 @@ function ThreeDotsMenu({
     const calculateAndSetThreeDotsMenuPosition = () => calculatePopoverPosition(buttonRef, anchorAlignment);
 
     const getMenuPosition = shouldSelfPosition ? calculateAndSetThreeDotsMenuPosition : getAnchorPosition;
+    const getMenuPositionRef = useRef(getMenuPosition);
+    const isPopupMenuVisibleRef = useRef(isPopupMenuVisible);
+    const updateMenuPositionRef = useRef<() => void>(() => {});
+
+    // Keep the latest resolver on a ref. updateMenuPosition is a new function every render, and putting it in the
+    // resize effect deps restarts the debounce and reconnects the observer on every parent render.
+    useLayoutEffect(() => {
+        isPopupMenuVisibleRef.current = isPopupMenuVisible;
+        getMenuPositionRef.current = getMenuPosition;
+        updateMenuPositionRef.current = () => {
+            const resolvePosition = getMenuPositionRef.current;
+            if (!isPopupMenuVisibleRef.current || !resolvePosition) {
+                return;
+            }
+            resolvePosition().then((value) => {
+                if (!isPopupMenuVisibleRef.current) {
+                    return;
+                }
+                setPosition((previousPosition) => (previousPosition?.horizontal === value.horizontal && previousPosition?.vertical === value.vertical ? previousPosition : value));
+            });
+        };
+    });
 
     const onThreeDotsPress = () => {
         if (isPopupMenuVisible) {
@@ -128,13 +198,7 @@ function ThreeDotsMenu({
     };
 
     const updateMenuPosition = () => {
-        if (!getMenuPosition || !isPopupMenuVisible) {
-            return;
-        }
-
-        getMenuPosition().then((value) => {
-            setPosition(value);
-        });
+        updateMenuPositionRef.current();
     };
 
     useImperativeHandle(threeDotsMenuRef as React.RefObject<ThreeDotsMenuHandle & {onThreeDotsPress: () => void}> | undefined, () => ({
@@ -151,8 +215,24 @@ function ThreeDotsMenu({
     }, [hidePopoverMenu, isBehindModal, isPopupMenuVisible, isContainerFocused]);
 
     useLayoutEffect(() => {
-        updateMenuPosition();
-    }, [windowWidth, windowHeight, shouldSelfPosition, updateMenuPosition]);
+        if (!isPopupMenuVisible) {
+            return;
+        }
+        const debouncedRepositionMenu = debounce(() => {
+            updateMenuPositionRef.current();
+        }, CONST.TIMING.RESIZE_DEBOUNCE_TIME);
+        debouncedRepositionMenu();
+        return () => debouncedRepositionMenu.cancel();
+    }, [windowWidth, windowHeight, isPopupMenuVisible]);
+
+    useEffect(() => {
+        if (!isPopupMenuVisible || !isHTMLElement(buttonRef.current)) {
+            return;
+        }
+        return subscribeToAnchorMovement(buttonRef.current, () => {
+            updateMenuPositionRef.current();
+        });
+    }, [isPopupMenuVisible]);
 
     const getIconFill = () => {
         if (!shouldChangeFillOnOpen) {
