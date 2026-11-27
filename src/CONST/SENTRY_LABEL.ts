@@ -950,6 +950,7 @@ const SENTRY_LABEL = {
         },
         DETAILS_TOP_EXPENSE: 'Insights-DetailsTopExpense',
         DETAILS_TOP_EXPENSES_VIEW_ALL: 'Insights-DetailsTopExpensesViewAll',
+        DETAILS_EDIT_RULE: 'Insights-DetailsEditRule',
         FUTURE_EXPENSES_VIEW: 'Insights-FutureExpensesView',
     },
     EXPENSE_RULES: {

@@ -1420,6 +1420,10 @@ const translations = {
         topExpenses: 'Top expenses',
         flaggedExpenses: 'Flagged expenses',
         noFlaggedExpensesInRange: 'No flagged expenses in this range',
+        violationRule: {
+            rule: 'Rule',
+            editRule: 'Edit rule',
+        },
         summary: {
             title: 'Summary',
             over: (percentage: string) => `${percentage} over`,

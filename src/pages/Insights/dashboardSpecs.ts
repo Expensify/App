@@ -393,6 +393,14 @@ function shouldUpsellControlPlan(dashboardID: InsightsDashboardID, policiesInSco
     return !policiesInScope.some((policy) => isControlPolicy(policy) && !isArchivedOrPendingDeletePolicy(policy) && (!isPolicyEligible || isPolicyEligible(policy, login)));
 }
 
+/** Returns the workspaces in scope whose data the dashboard reports on, leaving out archived ones and, on dashboards that need Control, the ones without it. */
+function getReportedPolicies(dashboardID: InsightsDashboardID, policiesInScope: Policy[], login: string | undefined): Policy[] {
+    const {requiresControlPlan, isPolicyEligible} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
+    return policiesInScope.filter(
+        (policy) => !isArchivedOrPendingDeletePolicy(policy) && (!requiresControlPlan || isControlPolicy(policy)) && (!isPolicyEligible || isPolicyEligible(policy, login)),
+    );
+}
+
 /**
  * Returns the workspaces in scope the user could upgrade to Control.
  * Eligibility mirrors the upgrade page's own gate so the CTA never lands on a not-found page.
@@ -447,6 +455,7 @@ export {
     getChartSpec,
     getEnabledStages,
     getPoliciesInScope,
+    getReportedPolicies,
     getUpgradeablePolicyIDsInScope,
     getViolationStage,
     getVisibleCharts,
