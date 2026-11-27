@@ -121,6 +121,7 @@ import type {
     SaveSearch,
     SearchResults,
     SearchTagFilterItem,
+    SearchUserFiltersState,
     Transaction,
     TransactionViolations,
 } from '@src/types/onyx';
@@ -1292,6 +1293,11 @@ function setSearchTagFiltersPagination(
         baseHasMore,
         baseCursor,
     });
+}
+
+function setSearchUserFiltersState(policyIDs: string, state: SearchUserFiltersState) {
+    const policyIDsKey = policyIDs || ALL_POLICY_IDS_KEY;
+    Onyx.set(`${ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_USER_FILTERS_STATE}${policyIDsKey}`, state);
 }
 
 function openSearchUserFiltersPage(params: OpenSearchUserFiltersPageParams, shouldCancelPendingRequests = false): Promise<{hasMore: boolean; nextCursor: string; logins: string[]}> {
@@ -3096,6 +3102,7 @@ export {
     openSearchUserFiltersPage,
     ALL_POLICY_IDS_KEY,
     setSearchTagFiltersPagination,
+    setSearchUserFiltersState,
     getPolicyFromSearchSnapshot,
     getReportFromSearchSnapshot,
     getReportActionsFromSearchSnapshot,

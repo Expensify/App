@@ -13,6 +13,7 @@ import useSearchUserFilters from '@hooks/useSearchUserFilters';
 import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {ALL_POLICY_IDS_KEY} from '@libs/actions/Search';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import type {OptionData} from '@libs/PersonalDetailOptionsListUtils';
 import {getExpensifyTeamExclusions} from '@libs/PolicyUtils';
@@ -21,9 +22,12 @@ import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {PersonalDetailsList, Policy, SearchUserFiltersState} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import React, {useState} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
 
 import ListFilterWrapper from './ListFilterViewWrapper';
 
@@ -31,6 +35,64 @@ type UserSelectorProps = SearchFilterCommonProps<string[] | undefined> & {
     /** The currently selected workspace filter, used to limit suggestions to those workspaces' members */
     policyID: Filter | undefined;
 };
+
+const scopedLoginsSelector = (state: OnyxEntry<SearchUserFiltersState>) => state?.scopedLogins;
+
+const EMPTY_LOGINS: string[] = [];
+
+function getCanonicalPolicyIDs(selectedPolicies: Policy[] | undefined): string {
+    if (!selectedPolicies?.length) {
+        return '';
+    }
+    return selectedPolicies
+        .map((policy) => policy.id)
+        .sort()
+        .join(',');
+}
+
+function getWorkspaceMemberLogins(
+    selectedPolicies: Policy[] | undefined,
+    serverScopedLogins: string[],
+    initialSelectedValues: string[],
+    personalDetails: OnyxEntry<PersonalDetailsList>,
+): Set<string> | undefined {
+    if (!selectedPolicies) {
+        return undefined;
+    }
+
+    const logins = new Set<string>();
+    for (const policy of selectedPolicies) {
+        if (policy.employeeList) {
+            const employeeLogins = Object.keys(policy.employeeList);
+            for (const login of employeeLogins) {
+                const employee = policy.employeeList[login];
+                if (employee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(employee.errors)) {
+                    continue;
+                }
+                logins.add(login);
+            }
+        }
+        logins.add(policy.owner);
+    }
+    for (const login of serverScopedLogins) {
+        logins.add(login);
+    }
+    for (const accountID of initialSelectedValues) {
+        const login = personalDetails?.[accountID]?.login;
+        if (login) {
+            logins.add(login);
+        }
+    }
+    return logins.size ? logins : undefined;
+}
+
+function useSelectedPolicies(policyID: Filter | undefined) {
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const selectedPolicies = policyID?.value?.length ? getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY, policies) : undefined;
+    const policyIDs = getCanonicalPolicyIDs(selectedPolicies);
+
+    return {policies, selectedPolicies, policyIDs};
+}
 
 function UserSelector({value = [], isNegatable, policyID, selectionListTextInputStyle, selectionListStyle, autoFocus, ready = true, footer, onChange}: UserSelectorProps) {
     const styles = useThemeStyles();
@@ -40,8 +102,10 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
     const personalDetails = usePersonalDetails();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const shouldFocusInputOnScreenFocus = autoFocus && canFocusInputOnScreenFocus();
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [serverScopedLoginsByPolicy, setServerScopedLoginsByPolicy] = useState<{policyIDs: string; logins: string[]}>({policyIDs: '', logins: []});
+    const {policies, selectedPolicies, policyIDs} = useSelectedPolicies(policyID);
+    const policyIDsKey = policyIDs || ALL_POLICY_IDS_KEY;
+    const [scopedLogins] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_USER_FILTERS_STATE}${policyIDsKey}`, {selector: scopedLoginsSelector});
+    const serverScopedLogins = policyIDs ? (scopedLogins ?? EMPTY_LOGINS) : EMPTY_LOGINS;
 
     const initialSelectedAccountIDs = value.reduce<Set<string>>((acc, id) => {
         const participant = personalDetails?.[id];
@@ -60,43 +124,10 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
     // top on first render without repinning rows that are toggled afterwards.
     const initialSelectedValues = useInitialValue(() => value);
 
-    const selectedPolicies = policyID?.value?.length ? getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY, policies) : undefined;
-    const policyIDs = selectedPolicies ? selectedPolicies.map((policy) => policy.id).join(',') : '';
-    const serverScopedLogins = serverScopedLoginsByPolicy.policyIDs === policyIDs ? serverScopedLoginsByPolicy.logins : [];
-
     // When the workspace filter is set, only suggest the members of the selected workspaces and people returned by
     // the server for those workspaces' reports (such as removed members). Users that were already selected when the
     // filter opened are kept in the list even when they aren't members, so they can still be deselected here.
-    const workspaceMemberLogins = (() => {
-        if (!selectedPolicies) {
-            return undefined;
-        }
-
-        const logins = new Set<string>();
-        for (const policy of selectedPolicies) {
-            if (policy.employeeList) {
-                const employeeLogins = Object.keys(policy.employeeList);
-                for (const login of employeeLogins) {
-                    const employee = policy.employeeList[login];
-                    if (employee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(employee.errors)) {
-                        continue;
-                    }
-                    logins.add(login);
-                }
-            }
-            logins.add(policy.owner);
-        }
-        for (const login of serverScopedLogins) {
-            logins.add(login);
-        }
-        for (const accountID of initialSelectedValues) {
-            const login = personalDetails?.[accountID]?.login;
-            if (login) {
-                logins.add(login);
-            }
-        }
-        return logins.size ? logins : undefined;
-    })();
+    const workspaceMemberLogins = getWorkspaceMemberLogins(selectedPolicies, serverScopedLogins, initialSelectedValues, personalDetails);
 
     const {searchTerm, debouncedSearchTerm, setSearchTerm, selectedOptions, availableOptions, toggleSelection, areOptionsInitialized} = usePersonalDetailSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
@@ -111,24 +142,10 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
         shouldKeepSelectedInAvailableOptions: true,
     });
 
-    const addServerScopedLogins = (scopedPolicyIDs: string, logins: string[]) => {
-        setServerScopedLoginsByPolicy((prev) => {
-            if (prev.policyIDs !== scopedPolicyIDs) {
-                return {policyIDs: scopedPolicyIDs, logins: Array.from(new Set(logins))};
-            }
-            const mergedLogins = Array.from(new Set([...prev.logins, ...logins]));
-            if (mergedLogins.length === prev.logins.length) {
-                return prev;
-            }
-            return {policyIDs: scopedPolicyIDs, logins: mergedLogins};
-        });
-    };
-
     const {isSearching, isLoadingMore, hasMore, loadMoreUsers} = useSearchUserFilters({
         policyIDs,
         searchTerm: debouncedSearchTerm,
         ready,
-        onScopedLoginsChange: addServerScopedLogins,
     });
 
     const trimmedSearchTerm = debouncedSearchTerm.trim();
