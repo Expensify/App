@@ -1,3 +1,6 @@
+/**
+ * The "Reconciliation account" row of the Travel Billing section. It is its own component so that only this row subscribes to the reconciliation account, and only while continuous reconciliation is on.
+ */
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 

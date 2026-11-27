@@ -8,5 +8,5 @@ import type {OnyxEntry} from 'react-native-onyx';
 const connectedBankAccountIDSelector = (policyID: string | undefined) => (bankAccountList: OnyxEntry<BankAccountList>) =>
     Object.values(bankAccountList ?? {}).find((bankAccount) => bankAccount?.accountData?.additionalData?.policyID === policyID)?.methodID;
 
-// eslint-disable-next-line import/prefer-default-export
+// eslint-disable-next-line import/prefer-default-export -- additional selectors may be added here
 export {connectedBankAccountIDSelector};

@@ -76,7 +76,7 @@ type ToggleSettingOptionRowProps = {
     accordionStyle?: StyleProp<ViewStyle>;
     isActive: boolean;
 
-    /** Callback to be called when the switch is toggled */
+    /** Callback to be called when the switch is toggled. A union of two function types, so async handlers and sync callers that return a value both fit. */
     onToggle: ((isEnabled: boolean) => void) | ((isEnabled: boolean) => Promise<void>);
 
     /** SubMenuItems will be shown when the option is enabled */

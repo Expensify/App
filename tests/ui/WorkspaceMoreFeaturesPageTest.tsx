@@ -344,7 +344,11 @@ describe('WorkspaceMoreFeaturesPage', () => {
     });
 
     describe('Concierge-routed disable flows', () => {
+        const CONCIERGE_REPORT_ID = '456';
+        const TEST_USER_ACCOUNT_ID = 1;
+
         it('opens Concierge chat when the user confirms the Expensify Card disable warning', async () => {
+            // Given a workspace with an issued Expensify Card, which can only be disabled through Concierge, and a stored Concierge chat and onboarding state
             await TestHelper.signInWithTestUser();
             getCompanyFeedsMock.mockReturnValue({});
             await act(async () => {
@@ -353,10 +357,14 @@ describe('WorkspaceMoreFeaturesPage', () => {
                     someCardID: {nameValuePairs: {}},
                 });
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}1`, {paymentBankAccountID: 1});
+                await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_REPORT_ID);
+                await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false, selfTourViewed: true});
             });
 
             renderPage({policyID: POLICY_ID});
             await waitForBatchedUpdatesWithAct();
+
+            // When the user presses the locked switch and confirms the warning
             fireEvent.press(await findLockedSwitch('workspace.moreFeatures.expensifyCard.subtitle'));
 
             await waitFor(() => {
@@ -365,18 +373,27 @@ describe('WorkspaceMoreFeaturesPage', () => {
             fireEvent.press(await screen.findByLabelText(TestHelper.translateLocal('workspace.moreFeatures.expensifyCard.disableCardButton')));
             await waitForBatchedUpdatesWithAct();
 
+            // Then Concierge opens once, with the chat, account and tour state read at press time
             expect(navigateToConciergeChatSpy).toHaveBeenCalledTimes(1);
+            expect(navigateToConciergeChatSpy).toHaveBeenCalledWith(
+                expect.objectContaining({conciergeReportID: CONCIERGE_REPORT_ID, currentUserAccountID: TEST_USER_ACCOUNT_ID, isSelfTourViewed: true, hasCompletedGuidedSetupFlow: false}),
+            );
         });
 
         it('opens Concierge chat when the user confirms the Company Cards disable warning', async () => {
+            // Given a workspace with a company card feed, which can only be disabled through Concierge, and a stored Concierge chat and onboarding state
             await TestHelper.signInWithTestUser();
             getCompanyFeedsMock.mockReturnValue({someFeed: {}} as ReturnType<typeof CardUtils.getCompanyFeeds>);
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildPolicy({id: POLICY_ID, areCompanyCardsEnabled: true}));
+                await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_REPORT_ID);
+                await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false, selfTourViewed: true});
             });
 
             renderPage({policyID: POLICY_ID});
             await waitForBatchedUpdatesWithAct();
+
+            // When the user presses the locked switch and confirms the warning
             fireEvent.press(await findLockedSwitch('workspace.moreFeatures.companyCards.subtitle'));
 
             await waitFor(() => {
@@ -385,7 +402,11 @@ describe('WorkspaceMoreFeaturesPage', () => {
             fireEvent.press(await screen.findByLabelText(TestHelper.translateLocal('workspace.moreFeatures.companyCards.disableCardButton')));
             await waitForBatchedUpdatesWithAct();
 
+            // Then Concierge opens once, with the chat, account and tour state read at press time
             expect(navigateToConciergeChatSpy).toHaveBeenCalledTimes(1);
+            expect(navigateToConciergeChatSpy).toHaveBeenCalledWith(
+                expect.objectContaining({conciergeReportID: CONCIERGE_REPORT_ID, currentUserAccountID: TEST_USER_ACCOUNT_ID, isSelfTourViewed: true, hasCompletedGuidedSetupFlow: false}),
+            );
         });
     });
 
@@ -411,7 +432,7 @@ describe('WorkspaceMoreFeaturesPage', () => {
             fireEvent.press(await findUnlockedSwitch('workspace.moreFeatures.perDiem.subtitle'));
             await waitForBatchedUpdatesWithAct();
 
-            // Then the handler reads the quick action at press time, so enablePerDiem can clear it
+            // Then the stored quick action still reaches enablePerDiem, which clears it because it points at this workspace's chat
             await waitFor(async () => {
                 expect(await Onyx.get(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE)).toBeUndefined();
             });
@@ -435,7 +456,7 @@ describe('WorkspaceMoreFeaturesPage', () => {
                 // When the user turns the taxes switch on
                 fireEvent.press(await findUnlockedSwitch('workspace.moreFeatures.taxes.subtitle'));
 
-                // Then the handler reads the rates at press time and hands them to enablePolicyTaxes
+                // Then the stored rates still reach enablePolicyTaxes, which needs them to add the government rates
                 await waitFor(() => {
                     expect(enablePolicyTaxesSpy).toHaveBeenCalledWith(POLICY_ID, true, expect.anything(), expect.objectContaining({governmentMileageRates}));
                 });
