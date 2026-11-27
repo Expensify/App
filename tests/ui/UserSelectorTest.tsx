@@ -1,14 +1,17 @@
-import {render} from '@testing-library/react-native';
+import {act, render} from '@testing-library/react-native';
 
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import UserSelector from '@components/Search/FilterComponents/UserSelector';
 import SelectionList from '@components/SelectionList';
 
+import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
+import useSearchUserFilters from '@hooks/useSearchUserFilters';
 
 import type {OptionData} from '@libs/PersonalDetailOptionsListUtils';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList} from '@src/types/onyx';
 
 import React from 'react';
@@ -17,6 +20,7 @@ jest.mock('@components/SelectionList', () => jest.fn(() => null));
 jest.mock('@components/SelectionList/ListItem/UserSelectionListItem', () => jest.fn(() => null));
 jest.mock('@components/OnyxListItemProvider', () => ({usePersonalDetails: jest.fn()}));
 jest.mock('@hooks/usePersonalDetailSearchSelector', () => jest.fn());
+jest.mock('@hooks/useSearchUserFilters', () => jest.fn());
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => jest.fn(() => ({email: 'me@expensify.com', accountID: 999})));
 jest.mock('@hooks/useOnyx', () => jest.fn(() => [undefined]));
 jest.mock('@hooks/useThemeStyles', () => jest.fn(() => ({pb0: {}})));
@@ -30,7 +34,9 @@ jest.mock('@libs/PolicyUtils', () => ({getExpensifyTeamExclusions: () => ({})}))
 describe('UserSelector', () => {
     const mockedSelectionList = jest.mocked(SelectionList);
     const mockedUsePersonalDetailSearchSelector = jest.mocked(usePersonalDetailSearchSelector);
+    const mockedUseSearchUserFilters = jest.mocked(useSearchUserFilters);
     const mockedUsePersonalDetails = jest.mocked(usePersonalDetails);
+    const mockedUseOnyx = jest.mocked(useOnyx);
 
     // Pre-selected rows are only floated to the top once the list reaches STANDARD_LIST_ITEM_LIMIT, so build
     // enough options to exceed that threshold (see moveInitialSelectionToTop in SelectionListOrderUtils).
@@ -75,9 +81,18 @@ describe('UserSelector', () => {
 
     beforeEach(() => {
         mockedSelectionList.mockClear();
+        mockedUsePersonalDetailSearchSelector.mockClear();
+        mockedUseSearchUserFilters.mockClear();
+        mockedUseOnyx.mockReturnValue([undefined, {status: 'loaded'}]);
         currentUserOption = null;
         mockedUsePersonalDetails.mockReturnValue(personalDetailsList);
         mockedUsePersonalDetailSearchSelector.mockImplementation(buildSelectorReturn);
+        mockedUseSearchUserFilters.mockReturnValue({
+            isSearching: false,
+            isLoadingMore: false,
+            hasMore: false,
+            loadMoreUsers: jest.fn(),
+        });
     });
 
     it('floats pre-selected items to the top on first render', () => {
@@ -194,5 +209,124 @@ describe('UserSelector', () => {
         // Then the selected user remains visible so they can be deselected
         const selectionListProps = mockedSelectionList.mock.lastCall?.[0];
         expect(selectionListProps?.data.at(0)).toEqual(expect.objectContaining(publicProfileOption));
+    });
+
+    it('hides the no-results message while loading, searching, or debouncing and shows it once an empty lookup settles', () => {
+        // Given an empty option list
+        let searchTerm = '';
+        let debouncedSearchTerm = '';
+        let areOptionsInitialized = false;
+        let isSearching = false;
+        mockedUsePersonalDetailSearchSelector.mockImplementation((config) => ({
+            ...buildSelectorReturn(config),
+            searchTerm,
+            debouncedSearchTerm,
+            availableOptions: {
+                selectedOptions: [],
+                recentOptions: [],
+                personalDetails: [],
+                userToInvite: null,
+                extraOptions: [],
+                currentUserOption: null,
+            },
+            areOptionsInitialized,
+        }));
+        mockedUseSearchUserFilters.mockImplementation(() => ({
+            isSearching,
+            isLoadingMore: false,
+            hasMore: false,
+            loadMoreUsers: jest.fn(),
+        }));
+
+        // When options are not initialized yet (skeleton showing)
+        const {rerender} = render(
+            <UserSelector
+                value={[]}
+                policyID={undefined}
+                onChange={jest.fn()}
+            />,
+        );
+        expect(mockedSelectionList.mock.lastCall?.[0]?.textInputOptions?.headerMessage).toBeUndefined();
+
+        // When options are initialized but the server lookup is still in flight
+        areOptionsInitialized = true;
+        isSearching = true;
+        rerender(
+            <UserSelector
+                value={[]}
+                policyID={undefined}
+                onChange={jest.fn()}
+            />,
+        );
+        expect(mockedSelectionList.mock.lastCall?.[0]?.textInputOptions?.headerMessage).toBeUndefined();
+
+        // When the lookup has settled but the user typed a new search term that is still debouncing
+        isSearching = false;
+        searchTerm = 'alice';
+        debouncedSearchTerm = '';
+        rerender(
+            <UserSelector
+                value={[]}
+                policyID={undefined}
+                onChange={jest.fn()}
+            />,
+        );
+        expect(mockedSelectionList.mock.lastCall?.[0]?.textInputOptions?.headerMessage).toBeUndefined();
+
+        // When the debounced search term catches up and the lookup has settled with no results
+        debouncedSearchTerm = 'alice';
+        rerender(
+            <UserSelector
+                value={[]}
+                policyID={undefined}
+                onChange={jest.fn()}
+            />,
+        );
+        expect(mockedSelectionList.mock.lastCall?.[0]?.textInputOptions?.headerMessage).toBe('common.noResultsFound');
+    });
+
+    it('merges server-scoped logins into workspaceMemberLogins and skips re-rendering when duplicate logins arrive', () => {
+        // Given a workspace filter with one policy
+        const memberEmail = 'member@example.com';
+        mockedUseOnyx.mockReturnValue([
+            {
+                [`${ONYXKEYS.COLLECTION.POLICY}policy-1`]: {
+                    id: 'policy-1',
+                    owner: 'owner@example.com',
+                    employeeList: {
+                        [memberEmail]: {email: memberEmail},
+                    },
+                },
+            },
+            {status: 'loaded'},
+        ]);
+
+        render(
+            <UserSelector
+                value={[]}
+                policyID={{value: ['policy-1'], isNegated: false}}
+                onChange={jest.fn()}
+            />,
+        );
+
+        const onScopedLoginsChange = mockedUseSearchUserFilters.mock.lastCall?.[0]?.onScopedLoginsChange;
+        expect(onScopedLoginsChange).toBeDefined();
+
+        // When the server returns a removed member for policy-1
+        act(() => {
+            onScopedLoginsChange?.('policy-1', ['removed@example.com']);
+        });
+
+        const includeLoginsAfterFirst = mockedUsePersonalDetailSearchSelector.mock.lastCall?.[0]?.includeLoginsOnly;
+        expect(includeLoginsAfterFirst).toEqual(new Set(['member@example.com', 'owner@example.com', 'removed@example.com']));
+        const renderCountAfterFirst = mockedSelectionList.mock.calls.length;
+
+        // When a subsequent response for the same policy returns the same login
+        act(() => {
+            onScopedLoginsChange?.('policy-1', ['removed@example.com']);
+        });
+
+        // Then the state is unchanged and UserSelector does not re-render
+        expect(mockedSelectionList.mock.calls).toHaveLength(renderCountAfterFirst);
     });
 });

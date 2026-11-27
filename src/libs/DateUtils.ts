@@ -27,6 +27,7 @@ import {
     intervalToDuration,
     isAfter,
     isBefore,
+    isExists,
     isSameDay,
     isSameMonth,
     isSameSecond,
@@ -121,9 +122,15 @@ function getWeekEndsOn(): WeekDay {
 // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
 function getLocalDateFromDatetime(locale: Locale | undefined, currentSelectedTimezone: string | SelectedTimezone, datetime?: string): Date {
     if (!datetime) {
-        const res = toZonedTime(new Date(), currentSelectedTimezone);
-        if (Number.isNaN(res.getTime())) {
-            Log.warn('DateUtils.getLocalDateFromDatetime: toZonedTime returned an invalid date. Returning current date.', {
+        let res: Date | undefined;
+        try {
+            res = toZonedTime(new Date(), currentSelectedTimezone);
+        } catch {
+            // Another user's timezone can be any text. date-fns-tz returns an invalid date for most names it doesn't
+            // know, but throws for some, such as `constructor`, so both get the current date below.
+        }
+        if (!res || Number.isNaN(res.getTime())) {
+            Log.warn('DateUtils.getLocalDateFromDatetime: toZonedTime returned an invalid date or threw. Returning current date.', {
                 locale,
                 datetime,
                 currentSelectedTimezone,
@@ -188,16 +195,19 @@ function isYesterday(date: Date, timeZone: SelectedTimezone): boolean {
 /**
  * We have to fall back to older timezone names for native platforms that do not ship with newer timezone names to avoid a crash.
  * Memoize to prevent unnecessary calculation as timezone support will not change on runtime on a platform.
+ *
+ * @returns the timezone, its older name, or undefined when the platform knows neither
  */
 // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
-const fallbackToSupportedTimezone = memoize((timezoneInput: SelectedTimezone): SelectedTimezone | string => {
+const fallbackToSupportedTimezone = memoize((timezoneInput: SelectedTimezone): SelectedTimezone | string | undefined => {
     try {
         const date = new Date();
         const testDate = toZonedTime(date, timezoneInput);
         format(testDate, CONST.DATE.FNS_FORMAT_STRING);
         return timezoneInput;
     } catch (error) {
-        return timezoneNewToBackwardMap[timezoneInput];
+        // Other users' timezones can be any text, such as `constructor`, which would otherwise find a built-in object member
+        return Object.hasOwn(timezoneNewToBackwardMap, timezoneInput) ? timezoneNewToBackwardMap[timezoneInput] : undefined;
     }
 });
 
@@ -210,7 +220,8 @@ const fallbackToSupportedTimezone = memoize((timezoneInput: SelectedTimezone): S
  * Jan 20, 2019 at 5:30 PM    anything over 1 year ago
  */
 function datetimeToCalendarTime(locale: Locale | undefined, datetime: string, currentSelectedTimezone: SelectedTimezone, includeTimeZone = false, isLowercase = false): string {
-    const date = getLocalDateFromDatetime(locale, fallbackToSupportedTimezone(currentSelectedTimezone), datetime);
+    // A timezone the platform doesn't know under any name has no offset to apply, so the time is shown in UTC
+    const date = getLocalDateFromDatetime(locale, fallbackToSupportedTimezone(currentSelectedTimezone) ?? 'UTC', datetime);
     const dateFnsLocale = IntlStore.getDateFnsLocale(locale);
     const tz = includeTimeZone ? ' [UTC]Z' : '';
     let todayAt = translateLocalize(locale, 'common.todayAt');
@@ -277,13 +288,25 @@ function datetimeToRelative(locale: Locale | undefined, datetime: string, curren
  * @returns
  */
 function getZoneAbbreviation(datetime: string | Date, selectedTimezone: SelectedTimezone, dateFnsLocale: DateFnsLocale | undefined): string {
-    // The zone name comes from `Intl`, so passing the language gives its own name for the zone, such as the German
-    // abbreviation for Central European Summer Time, instead of always the English one.
-    const abbreviation = formatInTimeZone(datetime, selectedTimezone, 'zzz', {locale: dateFnsLocale});
-    if (abbreviation === 'GMT') {
-        return formatInTimeZone(datetime, selectedTimezone, 'O', {locale: dateFnsLocale});
+    // A timezone the platform doesn't know has no abbreviation, and showing the device's own would mislabel another user's time
+    const supportedTimezone = fallbackToSupportedTimezone(selectedTimezone);
+    if (!supportedTimezone) {
+        return '';
     }
-    return abbreviation;
+    try {
+        // The zone name comes from `Intl`, so passing the language gives its own name for the zone, such as the German
+        // abbreviation for Central European Summer Time, instead of always the English one.
+        const abbreviation = formatInTimeZone(datetime, supportedTimezone, 'zzz', {locale: dateFnsLocale});
+        if (abbreviation === 'GMT') {
+            return formatInTimeZone(datetime, supportedTimezone, 'O', {locale: dateFnsLocale});
+        }
+        return abbreviation;
+    } catch {
+        // The timezone can come from another user's personal details, which the server stores as any text, and an
+        // invalid date or timezone makes formatting throw. There is no abbreviation to show then, and throwing here
+        // would crash the page rendering it.
+        return '';
+    }
 }
 
 /**
@@ -643,9 +666,25 @@ function getStatusUntilDate(
         return '';
     }
 
-    const date = fromZonedTime(inputDate, inputDateTimeZone);
-    const input = toZonedTime(date, currentSelectedTimezone);
-    const now = toZonedTime(new Date(), currentSelectedTimezone);
+    // Some native platforms only know older timezone names. Another user's timezone can also be text that is not a
+    // timezone this platform knows under any name, and there is no reliable time to show then. An empty timezone is
+    // excluded too, because date-fns-tz reads it as the device's timezone when parsing but as UTC when converting.
+    const supportedInputTimezone = fallbackToSupportedTimezone(inputDateTimeZone);
+    const supportedCurrentTimezone = fallbackToSupportedTimezone(currentSelectedTimezone);
+    if (!supportedInputTimezone || !supportedCurrentTimezone) {
+        return '';
+    }
+
+    const date = fromZonedTime(inputDate, supportedInputTimezone);
+    const input = toZonedTime(date, supportedCurrentTimezone);
+    const now = toZonedTime(new Date(), supportedCurrentTimezone);
+
+    // The server stores any clear-after text that PHP can parse, such as `tomorrow`, which is not a date here, and
+    // formatting an invalid date throws. There is no date to show then, and throwing would crash the chat list.
+    if (!isValid(input) || !isValid(now)) {
+        return '';
+    }
+
     const endOfToday = endOfDay(now);
 
     // If the date is adjusted to the following day
@@ -1083,11 +1122,26 @@ function getFormattedDuration(translateParam: LocaleContextProps['translate'], d
 
 const MAX_AVERAGE_DURATION_FRACTION_DIGITS = 1;
 
-/** The smallest difference between two average durations that formatAverageDuration writes differently, in seconds */
+/** The smallest difference between two average durations of a day or more that formatAverageDuration writes differently, in seconds */
 const AVERAGE_DURATION_PRECISION_IN_SECONDS = CONST.DATE.SECONDS_PER_DAY / 10 ** MAX_AVERAGE_DURATION_FRACTION_DIGITS;
 
 /**
- * Writes an average duration in days in the viewer's locale, e.g. "2.5 days", or "2.5d" when compact.
+ * Picks the Y-axis tick step for a chart of average durations from the unit its largest value reads in, so ticks land on round minutes,
+ * hours or days and short durations are not drawn against an axis stretched to a tenth of a day.
+ */
+function getAverageDurationTickStep(maxDurationInSeconds: number): number {
+    if (maxDurationInSeconds < CONST.DATE.SECONDS_PER_HOUR) {
+        return CONST.DATE.SECONDS_PER_MINUTE;
+    }
+    if (maxDurationInSeconds < CONST.DATE.SECONDS_PER_DAY) {
+        return CONST.DATE.SECONDS_PER_HOUR / 10 ** MAX_AVERAGE_DURATION_FRACTION_DIGITS;
+    }
+    return AVERAGE_DURATION_PRECISION_IN_SECONDS;
+}
+
+/**
+ * Writes an average duration in a single unit in the viewer's locale: minutes under an hour, hours under a day and days otherwise,
+ * e.g. "50 minutes", "2.5 hours" or "2.5 days", or "50m", "2.5h" or "2.5d" when compact.
  * The number is rounded and formatted here rather than left to the translation, because locales whose `one` plural category also covers 0 and fractions
  * would otherwise print a literal "1" for them.
  */
@@ -1097,12 +1151,26 @@ function formatAverageDuration(
     numberFormat: LocaleContextProps['numberFormat'],
     shouldUseCompactNotation = false,
 ): string {
-    const days = Number((durationInSeconds / CONST.DATE.SECONDS_PER_DAY).toFixed(MAX_AVERAGE_DURATION_FRACTION_DIGITS));
-    const formattedDays = numberFormat(days, {maximumFractionDigits: MAX_AVERAGE_DURATION_FRACTION_DIGITS});
-    if (shouldUseCompactNotation) {
-        return `${formattedDays}${translateParam('common.dayAbbreviation')}`;
+    // The unit is picked after rounding, so 59.8 minutes reads "1 hour" rather than "60 minutes".
+    // A small negative difference rounds to -0, which would print as "-0 minutes", so it becomes 0.
+    const roundTo = (secondsPerUnit: number, fractionDigits: number) => Number((durationInSeconds / secondsPerUnit).toFixed(fractionDigits)) || 0;
+    const minutes = roundTo(CONST.DATE.SECONDS_PER_MINUTE, 0);
+    const hours = roundTo(CONST.DATE.SECONDS_PER_HOUR, MAX_AVERAGE_DURATION_FRACTION_DIGITS);
+    const formatInUnit = (
+        count: number,
+        countKey: 'common.minuteCount' | 'common.hourCount' | 'common.dayCount',
+        abbreviationKey: 'common.minuteAbbreviation' | 'common.hourAbbreviation' | 'common.dayAbbreviation',
+    ) => {
+        const formattedCount = numberFormat(count, {maximumFractionDigits: MAX_AVERAGE_DURATION_FRACTION_DIGITS});
+        return shouldUseCompactNotation ? `${formattedCount}${translateParam(abbreviationKey)}` : translateParam(countKey, {count, formattedCount});
+    };
+    if (Math.abs(minutes) < CONST.DATE.SECONDS_PER_HOUR / CONST.DATE.SECONDS_PER_MINUTE) {
+        return formatInUnit(minutes, 'common.minuteCount', 'common.minuteAbbreviation');
     }
-    return translateParam('common.dayCount', {count: days, formattedCount: formattedDays});
+    if (Math.abs(hours) < CONST.DATE.SECONDS_PER_DAY / CONST.DATE.SECONDS_PER_HOUR) {
+        return formatInUnit(hours, 'common.hourCount', 'common.hourAbbreviation');
+    }
+    return formatInUnit(roundTo(CONST.DATE.SECONDS_PER_DAY, MAX_AVERAGE_DURATION_FRACTION_DIGITS), 'common.dayCount', 'common.dayAbbreviation');
 }
 
 const TIME_UNIT_PADDING = 2; // Pad time units to 2 digits (e.g., "09" instead of "9")
@@ -1392,11 +1460,14 @@ const normalizeDateToEndOfDay = (thruDate: string, timeZone: SelectedTimezone | 
 };
 
 /**
- * Returns the start and end dates of a month in the format yyyy-MM-dd.
+ * Returns the start and end dates of a month in the format yyyy-MM-dd, or undefined when the year or month doesn't name a real month.
  * @param year - Year (e.g., 2025)
  * @param month - Month (1-12, where 1 is January)
  */
-function getMonthDateRange(year: number, month: number): {start: string; end: string} {
+function getMonthDateRange(year: number, month: number): {start: string; end: string} | undefined {
+    if (!isExists(year, month - 1, 1)) {
+        return undefined;
+    }
     return {
         start: format(new Date(year, month - 1, 1), 'yyyy-MM-dd'),
         end: format(new Date(year, month, 0), 'yyyy-MM-dd'),
@@ -1429,11 +1500,14 @@ function getWeekDateRange(weekStartDate: string): {start: string; end: string} {
  * @param month - Month (1-12, where 1 is January)
  */
 function isDateStringInMonth(dateString: string, year: number, month: number): boolean {
+    const monthRange = getMonthDateRange(year, month);
+    if (!monthRange) {
+        return false;
+    }
     const datePart = dateString.substring(0, 10);
-    const {start: monthStart, end: monthEnd} = getMonthDateRange(year, month);
 
     // String comparison works because yyyy-MM-dd format is lexicographically sortable
-    return datePart >= monthStart && datePart <= monthEnd;
+    return datePart >= monthRange.start && datePart <= monthRange.end;
 }
 
 /** Returns a compact date label, e.g. "Sep 15, ’26", or "Sep 15" when the year is left out. */
@@ -1490,14 +1564,22 @@ function getShortFormattedDateRangeForSearch(startDate: string, endDate: string,
     return `${format(start, 'MMM d', {locale: dateFnsLocale})} - ${formattedEnd}`;
 }
 
-function getYearDateRange(year: number): {start: string; end: string} {
+/** Returns the start and end dates of a year in the format yyyy-MM-dd, or undefined when the year doesn't name a real year. */
+function getYearDateRange(year: number): {start: string; end: string} | undefined {
+    if (!isExists(year, 0, 1)) {
+        return undefined;
+    }
     return {
         start: `${year}-01-01`,
         end: `${year}-12-31`,
     };
 }
 
-function getQuarterDateRange(year: number, quarter: number): {start: string; end: string} {
+/** Returns the start and end dates of a quarter in the format yyyy-MM-dd, or undefined when the year or quarter (1-4) doesn't name a real quarter. */
+function getQuarterDateRange(year: number, quarter: number): {start: string; end: string} | undefined {
+    if (!isExists(year, (quarter - 1) * 3, 1)) {
+        return undefined;
+    }
     const startMonth = (quarter - 1) * 3 + 1;
     const endMonth = quarter * 3;
     // Use set() to create dates in local timezone explicitly
@@ -1615,6 +1697,7 @@ const DateUtils = {
     getFormattedDurationBetweenDates,
     getFormattedDuration,
     formatAverageDuration,
+    getAverageDurationTickStep,
     formatCountdownTimer,
     isFutureDay,
     isTransactionDateFuture,

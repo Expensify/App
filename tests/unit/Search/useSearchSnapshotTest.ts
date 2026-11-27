@@ -79,6 +79,7 @@ jest.mock('@libs/TransactionUtils', () => ({
 jest.mock('@libs/SearchQueryUtils', () => ({
     isDefaultExpensesQuery: () => false,
     queryHasViolationFilter: () => false,
+    getEffectiveSortBy: (queryJSON: {sortBy?: string} | undefined) => queryJSON?.sortBy,
 }));
 jest.mock('@libs/ReportUtils', () => ({
     selectFilteredReportActions: (value: unknown) => value,

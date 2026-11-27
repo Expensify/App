@@ -1,3 +1,4 @@
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 import type {SearchQueryJSON} from '@components/Search/types';
 
 import {clearAllRelatedReportActionErrors} from '@libs/actions/ClearReportActionErrors';
@@ -136,6 +137,9 @@ const JULES_ACCOUNT_ID = 2;
 const JULES_PARTICIPANT: Participant = {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, role: 'member'};
 const RORY_EMAIL = 'rory@expensifail.com';
 const RORY_ACCOUNT_ID = 3;
+const RORY_PERSONAL_DETAILS_BY_LOGINS: PersonalDetailsByLogin = {
+    [RORY_EMAIL]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
+};
 const RORY_PARTICIPANT: Participant = {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, role: 'admin'};
 const VIT_EMAIL = 'vit@expensifail.com';
 const VIT_ACCOUNT_ID = 4;
@@ -167,7 +171,6 @@ describe('actions/IOU', () => {
             keys: ONYXKEYS,
             initialKeyStates: {
                 [ONYXKEYS.SESSION]: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
                 [ONYXKEYS.CURRENCY_LIST]: currencyList,
             },
         });
@@ -201,6 +204,7 @@ describe('actions/IOU', () => {
             let transactionThreadCreatedAction: OnyxEntry<ReportAction>;
             mockFetch?.pause?.();
             requestMoney({
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 isVendorMatchingBetaEnabled: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
@@ -466,6 +470,7 @@ describe('actions/IOU', () => {
                 )
                 .then(() => {
                     requestMoney({
+                        personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                         isVendorMatchingBetaEnabled: false,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
                         conciergeChat: undefined,
@@ -701,6 +706,7 @@ describe('actions/IOU', () => {
                 .then(() => {
                     if (chatReport) {
                         requestMoney({
+                            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                             isVendorMatchingBetaEnabled: false,
                             getCurrencyDecimals: getCurrencyDecimalsLocal,
                             conciergeChat: undefined,
@@ -871,6 +877,7 @@ describe('actions/IOU', () => {
             let transactionThreadAction: OnyxEntry<ReportAction>;
             mockFetch?.pause?.();
             requestMoney({
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 isVendorMatchingBetaEnabled: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
@@ -1262,7 +1269,6 @@ describe('actions/IOU', () => {
                 Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport),
                 Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`, policyExpenseChat),
                 Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy),
-                Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[accountant.accountID]: accountant}),
             ]);
             await waitForBatchedUpdates();
 
@@ -1291,6 +1297,7 @@ describe('actions/IOU', () => {
                 },
                 isASAPSubmitBetaEnabled: true,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
@@ -1365,6 +1372,7 @@ describe('actions/IOU', () => {
                 },
                 isASAPSubmitBetaEnabled: true,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
@@ -1396,6 +1404,7 @@ describe('actions/IOU', () => {
 
         it('does not trigger notifyNewAction when doing the money request in a money request report', () => {
             requestMoney({
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 isVendorMatchingBetaEnabled: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
@@ -1436,6 +1445,7 @@ describe('actions/IOU', () => {
             // Given a chat report (not an expense report) as the destination
             // When a money request is made in it
             requestMoney({
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 isVendorMatchingBetaEnabled: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
@@ -1478,6 +1488,7 @@ describe('actions/IOU', () => {
 
         it('should pass isSelfTourViewed true to the request when user has viewed the tour', () => {
             const {iouReport} = requestMoney({
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 isVendorMatchingBetaEnabled: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
@@ -1534,6 +1545,7 @@ describe('actions/IOU', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${workspaceChat.reportID}`, workspaceChat);
 
             requestMoney({
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 isVendorMatchingBetaEnabled: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
@@ -1584,6 +1596,7 @@ describe('actions/IOU', () => {
             expect(nonReimbursableTotal).toBe(0);
 
             requestMoney({
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 isVendorMatchingBetaEnabled: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
@@ -1654,6 +1667,7 @@ describe('actions/IOU', () => {
 
             // When the expense is created
             requestMoney({
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 isVendorMatchingBetaEnabled: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
@@ -1722,6 +1736,7 @@ describe('actions/IOU', () => {
 
             // When requesting money
             requestMoney({
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 isVendorMatchingBetaEnabled: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
@@ -1799,6 +1814,7 @@ describe('actions/IOU', () => {
             const merchant = 'Test Store';
 
             const {iouReport} = requestMoney({
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 isVendorMatchingBetaEnabled: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
@@ -1878,6 +1894,7 @@ describe('actions/IOU', () => {
 
             const amount = 10000;
             const {iouReport} = requestMoney({
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 isVendorMatchingBetaEnabled: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
@@ -1928,6 +1945,7 @@ describe('actions/IOU', () => {
             const amount = 2500;
 
             const {iouReport} = requestMoney({
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 isVendorMatchingBetaEnabled: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
@@ -2018,6 +2036,7 @@ describe('actions/IOU', () => {
                 },
                 isASAPSubmitBetaEnabled: true,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
@@ -2091,6 +2110,7 @@ describe('actions/IOU', () => {
 
             // When: submitting the tracked expense to another user
             const {iouReport} = requestMoney({
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 isVendorMatchingBetaEnabled: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
@@ -2173,6 +2193,7 @@ describe('actions/IOU', () => {
                     // Request money from CARLOS, but pass the existing chat report with JULES
                     // This simulates the scenario where submit frequency is disabled and user selects a different participant
                     requestMoney({
+                        personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                         isVendorMatchingBetaEnabled: false,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
                         conciergeChat: undefined,
@@ -2265,6 +2286,7 @@ describe('actions/IOU', () => {
                 .then(() => {
                     // Request money from CARLOS with matching chat report
                     requestMoney({
+                        personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                         isVendorMatchingBetaEnabled: false,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
                         conciergeChat: undefined,
@@ -2348,6 +2370,7 @@ describe('actions/IOU', () => {
                 .then(() => {
                     // Request money with isPolicyExpenseChat: true - should skip participant validation
                     requestMoney({
+                        personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                         isVendorMatchingBetaEnabled: false,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
                         conciergeChat: undefined,
@@ -2426,6 +2449,7 @@ describe('actions/IOU', () => {
                     // Request money from CARLOS but passing a policy expense chat report with different participants (JULES)
                     // Since the chatReport is a policy expense chat, participant validation should be skipped
                     requestMoney({
+                        personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                         isVendorMatchingBetaEnabled: false,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
                         conciergeChat: undefined,
@@ -2504,6 +2528,7 @@ describe('actions/IOU', () => {
                     // Track expense in self-DM with accountID: 0 (as getMoneyRequestParticipantsFromReport does)
                     // This simulates the scenario where user starts an expense from "Your Space"
                     requestMoney({
+                        personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                         isVendorMatchingBetaEnabled: false,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
                         conciergeChat: undefined,
@@ -2581,6 +2606,7 @@ describe('actions/IOU', () => {
                 mockFetch?.pause?.();
 
                 requestMoney({
+                    personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                     isVendorMatchingBetaEnabled: false,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     conciergeChat: undefined,
@@ -2646,6 +2672,7 @@ describe('actions/IOU', () => {
                 mockFetch?.pause?.();
 
                 requestMoney({
+                    personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                     isVendorMatchingBetaEnabled: false,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     conciergeChat,
@@ -2717,11 +2744,69 @@ describe('actions/IOU', () => {
         });
 
         test.each([
+            {amount: -1000, taxAmount: -48, expectedTaxAmount: -48},
+            {amount: 1000, taxAmount: 48, expectedTaxAmount: 48},
+            {amount: -1000, taxAmount: 0, expectedTaxAmount: 0},
+            {amount: 1000, taxAmount: undefined, expectedTaxAmount: 0},
+        ])('sends signedTaxAmount=$expectedTaxAmount for amount=$amount and taxAmount=$taxAmount', async ({amount, taxAmount, expectedTaxAmount}) => {
+            // Given a tax value in display units, including refunds and expenses without tax
+            const taxCode = 'tax-rate-5';
+
+            // When the expense is created, the API must preserve that value without changing its sign
+            requestMoney({
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
+                isVendorMatchingBetaEnabled: false,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                conciergeChat: undefined,
+                report: {reportID: ''},
+                participantParams: {
+                    payeeEmail: RORY_EMAIL,
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
+                },
+                transactionParams: {
+                    amount,
+                    taxAmount,
+                    taxCode,
+                    attendees: [],
+                    currency: CONST.CURRENCY.USD,
+                    created: '',
+                    merchant: 'KFC',
+                    comment: '',
+                },
+                shouldGenerateTransactionThreadReport: true,
+                isASAPSubmitBetaEnabled: false,
+                transactionViolations: {},
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                policyRecentlyUsedCurrencies: [],
+                existingTransactionDraft: undefined,
+                draftTransactionIDs: [],
+                isSelfTourViewed: false,
+                quickAction: undefined,
+                personalDetails: {},
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                formatPhoneNumber,
+                rules: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then only the signed parameter is sent, so the backend does not discard negative tax
+            expect(writeSpy).toHaveBeenCalledTimes(1);
+            const [command, params] = getRequiredWriteCall(writeSpy.mock.calls);
+            expect(command).toBe(WRITE_COMMANDS.REQUEST_MONEY);
+            expect(params).toEqual(expect.objectContaining({amount, signedTaxAmount: expectedTaxAmount, taxCode}));
+            expect(params).not.toHaveProperty('taxAmount');
+        });
+
+        test.each([
             [WRITE_COMMANDS.REQUEST_MONEY, CONST.IOU.ACTION.CREATE],
             [WRITE_COMMANDS.CONVERT_TRACKED_EXPENSE_TO_REQUEST, CONST.IOU.ACTION.SUBMIT],
         ])('%s', async (expectedCommand: ApiCommand, action: IOUAction) => {
             // When an expense is created
             requestMoney({
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 isVendorMatchingBetaEnabled: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
@@ -2793,6 +2878,7 @@ describe('actions/IOU', () => {
 
             // When the expense is submitted
             requestMoney({
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 isVendorMatchingBetaEnabled: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
@@ -2889,6 +2975,7 @@ describe('actions/IOU', () => {
                         action === CONST.IOU.ACTION.SHARE ? {accountant: {accountID: VIT_ACCOUNT_ID, login: VIT_EMAIL}, newAccountIDs: [], newLogins: [], formatPhoneNumber} : undefined,
                     isASAPSubmitBetaEnabled: true,
                     currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                    currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                     introSelected: undefined,
                     quickAction: undefined,
                     recentWaypoints: [],
@@ -2960,6 +3047,7 @@ describe('actions/IOU', () => {
                         action === CONST.IOU.ACTION.SHARE ? {accountant: {accountID: VIT_ACCOUNT_ID, login: VIT_EMAIL}, newAccountIDs: [], newLogins: [], formatPhoneNumber} : undefined,
                     isASAPSubmitBetaEnabled: true,
                     currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                    currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                     introSelected: undefined,
                     quickAction: undefined,
                     recentWaypoints: [],
@@ -3018,6 +3106,7 @@ describe('actions/IOU', () => {
 
                 // When it is submitted to a workspace with a stale local receipt file
                 requestMoney({
+                    personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                     isVendorMatchingBetaEnabled: false,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     conciergeChat: undefined,
@@ -3078,6 +3167,8 @@ describe('actions/IOU', () => {
         });
 
         it('adds grouped from snapshot optimistic data for grouped search queries', async () => {
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}});
+
             const currentSearchQueryJSON = {
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
@@ -3099,6 +3190,7 @@ describe('actions/IOU', () => {
             const getCurrentSearchQueryJSONSpy = jest.spyOn(SearchQueryUtils, 'getCurrentSearchQueryJSON').mockReturnValue(currentSearchQueryJSON);
 
             requestMoney({
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 isVendorMatchingBetaEnabled: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
@@ -3211,6 +3303,7 @@ describe('actions/IOU', () => {
                     action === CONST.IOU.ACTION.SHARE ? {accountant: {accountID: VIT_ACCOUNT_ID, login: VIT_EMAIL}, newAccountIDs: [], newLogins: [], formatPhoneNumber} : undefined,
                 isASAPSubmitBetaEnabled: true,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
@@ -3251,6 +3344,7 @@ describe('actions/IOU', () => {
                 transactionID: 'create-transaction-tx',
             };
             return {
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 isVendorMatchingBetaEnabled: false,
                 isDraftChatReport: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -3260,6 +3354,7 @@ describe('actions/IOU', () => {
                 report,
                 currentUserAccountID: CREATE_TRANSACTION_USER_ACCOUNT_ID,
                 currentUserEmail: CREATE_TRANSACTION_USER_LOGIN,
+                currentUserPersonalDetails: {accountID: CREATE_TRANSACTION_USER_ACCOUNT_ID, login: CREATE_TRANSACTION_USER_LOGIN},
                 shouldGenerateTransactionThreadReport: false,
                 isASAPSubmitBetaEnabled: true,
                 quickAction: undefined,
@@ -3306,6 +3401,90 @@ describe('actions/IOU', () => {
 
             expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.REQUEST_MONEY, 1);
             expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.TRACK_EXPENSE, 0);
+        });
+
+        it.each([
+            {iouType: CONST.IOU.TYPE.TRACK, expectedCommand: WRITE_COMMANDS.TRACK_EXPENSE, seed: 92},
+            {iouType: CONST.IOU.TYPE.SUBMIT, expectedCommand: WRITE_COMMANDS.REQUEST_MONEY, seed: 95},
+        ])('defers auto-submit, reuses one preview card, and finalizes Submit and Close state for $expectedCommand batches', async ({iouType, expectedCommand, seed}) => {
+            // Given a workspace with Instant Submit, Submit and Close, and reimbursements disabled, plus two receipts dropped at once
+            await signInWithTestUser(CREATE_TRANSACTION_USER_ACCOUNT_ID, CREATE_TRANSACTION_USER_LOGIN);
+            const policyID = `submit-and-close-policy-${seed}`;
+            const chatReportID = `submit-and-close-chat-${seed}`;
+            const policy: Policy = {
+                ...createRandomPolicy(seed, CONST.POLICY.TYPE.TEAM),
+                id: policyID,
+                autoReporting: true,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+            };
+            const chatReport: Report = {
+                ...createRandomReport(seed, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                reportID: chatReportID,
+                policyID,
+                ownerAccountID: CREATE_TRANSACTION_USER_ACCOUNT_ID,
+                iouReportID: undefined,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, chatReport);
+            const tx1 = {...createRandomTransaction(seed + 1), transactionID: `batch-tx-${seed}-1`, amount: 0, currency: 'USD', created: '2026-11-26'};
+            const tx2 = {...createRandomTransaction(seed + 2), transactionID: `batch-tx-${seed}-2`, amount: 0, currency: 'USD', created: '2026-11-26'};
+
+            // When both receipts are submitted in one batch via createTransaction
+            const writeSpy = jest.spyOn(API, 'writeWhenReady');
+            createTransaction({
+                ...buildCreateTransactionParams(iouType, chatReport),
+                isASAPSubmitBetaEnabled: false,
+                policyParams: {policy},
+                participant: {reportID: chatReportID, isPolicyExpenseChat: true, policyID},
+                transactions: [tx1, tx2],
+                files: [
+                    {transactionID: tx1.transactionID, source: `receipt-${seed}-1`},
+                    {transactionID: tx2.transactionID, source: `receipt-${seed}-2`},
+                ],
+                optimisticTransactionIDs: [`opt-tx-${seed}-1`, `opt-tx-${seed}-2`],
+            });
+            await waitForBatchedUpdates();
+
+            // Then both calls target the same report and preview action, and only the first defers auto-submit
+            const commandCalls = writeSpy.mock.calls.filter(([command]) => command === expectedCommand);
+            expect(commandCalls).toHaveLength(2);
+            const firstParams = commandCalls.at(0)?.at(1);
+            const secondParams = commandCalls.at(1)?.at(1);
+            const firstReportID = typeof firstParams === 'object' && firstParams !== null && 'iouReportID' in firstParams ? firstParams.iouReportID : undefined;
+            const firstPreviewActionID =
+                typeof firstParams === 'object' && firstParams !== null && 'reportPreviewReportActionID' in firstParams ? firstParams.reportPreviewReportActionID : undefined;
+            expect(firstReportID).toBeTruthy();
+            expect(firstPreviewActionID).toBeTruthy();
+            expect(firstParams).toEqual(expect.objectContaining({iouReportID: firstReportID, reportPreviewReportActionID: firstPreviewActionID, shouldDeferAutoSubmit: true}));
+            expect(secondParams).toEqual(expect.objectContaining({iouReportID: firstReportID, reportPreviewReportActionID: firstPreviewActionID, shouldDeferAutoSubmit: false}));
+
+            // And the final item restores the optimistic Submit and Close report status, rolls it back on failure, and keeps preview count accurate
+            const createdReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${String(firstReportID)}`);
+            expect(createdReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.APPROVED);
+            expect(createdReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.CLOSED);
+            const secondOnyxData = commandCalls.at(1)?.at(2);
+            const failureDataUpdates =
+                typeof secondOnyxData === 'object' && secondOnyxData !== null && 'failureData' in secondOnyxData && Array.isArray(secondOnyxData.failureData)
+                    ? secondOnyxData.failureData
+                    : [];
+            expect(failureDataUpdates).toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({
+                        key: `${ONYXKEYS.COLLECTION.REPORT}${String(firstReportID)}`,
+                        value: expect.objectContaining({
+                            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                        }),
+                    }),
+                ]),
+            );
+            const chatActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`);
+            const previewActions = Object.values(chatActions ?? {}).filter((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW);
+            expect(previewActions).toHaveLength(1);
+            expect(previewActions.at(0)?.childMoneyRequestCount).toBe(2);
+            writeSpy.mockRestore();
         });
     });
 });

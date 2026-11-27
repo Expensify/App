@@ -21,21 +21,20 @@ import type {
     DynamicFormAddressField,
     DynamicFormChoiceField,
     DynamicFormField,
+    DynamicFormFieldFormat,
     DynamicFormFieldType,
     DynamicFormListField,
-    DynamicFormNumberField,
     DynamicFormSchemaField,
-    DynamicFormTextField,
 } from '@src/types/onyx';
 
-import getAddressInputKeys, {getAddressCountry, getStateOptions, isStateAsked} from './getAddressInputKeys';
+import getAddressInputKeys, {getAddressCountry, getHiddenAddressPartKeys, getStateCodes, isCountryAllowed, isStateAsked, isZipCodeRequired, isZipCodeShown} from './getAddressInputKeys';
 import getAnswerKeys from './getAnswerKeys';
 import getFieldOptions from './getFieldOptions';
 import {getFieldLabel} from './getLocalizedText';
 import getVisibleFields from './getVisibleFields';
 import hasProvidedAnswer from './hasProvidedAnswer';
 import isSupportedField from './isSupportedField';
-import {getListItems, getListItemSensitiveAnswers} from './listItems';
+import {getListItemFiles, getListItems, getListItemSensitiveAnswers} from './listItems';
 import logSchemaProblem from './logSchemaProblem';
 import summarizeListItem, {getListItemFallbackTitle} from './summarizeListItem';
 
@@ -79,10 +78,10 @@ function matchesRegex(value: string, pattern: string, fieldKey: string): boolean
     }
 }
 
-/** The format checks text and number fields share */
-function getFormatErrors(field: DynamicFormTextField | DynamicFormNumberField, value: string, translate: LocalizedTranslate): string[] {
+/** The format checks text fields, number fields and the zip of an address share. `fieldKey` names the field in the log of a broken pattern. */
+function getFormatErrors(field: DynamicFormFieldFormat, fieldKey: string, value: string, translate: LocalizedTranslate): string[] {
     const messages: string[] = [];
-    if (field.regex && !matchesRegex(value, field.regex, field.key)) {
+    if (field.regex && !matchesRegex(value, field.regex, fieldKey)) {
         messages.push(translate('dynamicForm.error.invalidFormat', {example: field.example}));
     }
     if (field.minLength !== undefined && value.length < field.minLength) {
@@ -148,13 +147,23 @@ function getLegalNameErrors(value: string, translate: LocalizedTranslate): strin
 /** For inputs that only accept valid answers: UploadFile checks type and count, AmountForm rejects invalid typing */
 const noChecks = () => [];
 
+/** A required field with upload buttons needs a file on each of them, since each button asks for its own document */
+const validateFileUploads: FieldValidator<'file'> = (field, values, translate) => {
+    if (!field.required || !field.uploads) {
+        return [];
+    }
+    const usedTypes = new Set(getListItems(values[field.key]).flatMap((entry) => (getListItemFiles(entry).length > 0 ? [entry.fileType] : [])));
+    const hasFileOnEveryButton = field.uploads.every((upload) => upload.fileTypes.some((option) => usedTypes.has(option.key)));
+    return hasFileOnEveryButton ? [] : [translate('common.error.fieldRequired')];
+};
+
 const PERCENT_MIN = 1;
 const PERCENT_MAX = 100;
 
 const VALIDATORS: {[TType in DynamicFormFieldType]: FieldValidator<TType>} = {
     text: (field, values, translate) => {
         const value = getStringAnswer(field, values);
-        const messages = getFormatErrors(field, value, translate);
+        const messages = getFormatErrors(field, field.key, value, translate);
         if (field.rule === 'legalName') {
             messages.push(...getLegalNameErrors(value, translate));
         }
@@ -168,7 +177,7 @@ const VALIDATORS: {[TType in DynamicFormFieldType]: FieldValidator<TType>} = {
         if (!Number.isFinite(Number(value))) {
             return [translate('dynamicForm.error.invalidFormat', {example: field.example})];
         }
-        return getFormatErrors(field, value, translate);
+        return getFormatErrors(field, field.key, value, translate);
     },
     select: getChoiceErrors,
     radio: getChoiceErrors,
@@ -185,14 +194,14 @@ const VALIDATORS: {[TType in DynamicFormFieldType]: FieldValidator<TType>} = {
         }
         return meetsMinimumAgeRequirement(value) ? [] : [translate('bankAccount.error.age')];
     },
-    // The street is the field's own value and needs no check beyond required. getAddressPartErrors checks the other parts.
-    address: noChecks,
+    // The street is the field's own value. An address search pick is not cut to the input's limit, so its length is checked here. getAddressPartErrors checks the other parts.
+    address: (field, values, translate) => getFormatErrors({maxLength: field.maxLength}, field.key, getStringAnswer(field, values), translate),
     multiselect: getMultiChoiceErrors,
     countryMultiselect: getMultiChoiceErrors,
     boolean: noChecks,
     country: noChecks,
     currency: noChecks,
-    file: noChecks,
+    file: validateFileUploads,
     amount: noChecks,
     percent: (field, values, translate) => {
         const percent = Number(getStringAnswer(field, values));
@@ -203,34 +212,65 @@ const VALIDATORS: {[TType in DynamicFormFieldType]: FieldValidator<TType>} = {
 
 /** An optional address the user has started filling in is checked like a required one, so it is never submitted in part */
 function isAddressRequired(field: DynamicFormAddressField, values: DynamicFormValues): boolean {
+    if (field.required) {
+        return true;
+    }
     const {street, city, state, zipCode, country} = getAddressInputKeys(field.key);
-    return field.required || [street, city, state, zipCode, country].some((partKey) => isAnswered(values[partKey]));
+    // A part the form hides can hold a value the user never typed, so it does not count as a started address
+    const hiddenPartKeys = getHiddenAddressPartKeys(field, values);
+    return [street, city, state, zipCode, country].some((partKey) => !hiddenPartKeys.includes(partKey) && isAnswered(values[partKey]));
 }
 
 /** A state the country's picker does not list, such as a full name AddressSearch saved before the picker took codes, leaves the picker blank, so it is asked again */
-function isStateAnswered(state: FormValue | undefined, country: Country | ''): boolean {
-    const stateOptions = getStateOptions(country);
-    return typeof state === 'string' && !!stateOptions && Object.hasOwn(stateOptions, state);
+function isStateAnswered(field: DynamicFormAddressField, state: FormValue | undefined, country: Country | ''): boolean {
+    return typeof state === 'string' && getStateCodes(field, country).includes(state);
+}
+
+/** A state or country the field's picker does not list leaves that picker blank, so it counts as not answered */
+function isAddressPartAnswered(field: DynamicFormAddressField, partKey: string, values: DynamicFormValues): boolean {
+    const addressKeys = getAddressInputKeys(field.key);
+    const country = getAddressCountry(field.key, values);
+    if (partKey === addressKeys.state) {
+        return isStateAnswered(field, values[partKey], country);
+    }
+    if (partKey === addressKeys.country) {
+        return isCountryAllowed(field, country);
+    }
+    return isAnswered(values[partKey]);
 }
 
 /** Each address part has its own input, so its errors go under its own draft key */
 function getAddressPartErrors(field: DynamicFormAddressField, values: DynamicFormValues, translate: LocalizedTranslate): Array<[inputID: string, message: string]> {
     const addressKeys = getAddressInputKeys(field.key);
     const country = getAddressCountry(field.key, values);
-    // A country whose zip format accepts an empty zip does not require one
-    const isZipAsked = !country || !isValidZipCodeForCountry('', country);
     const partErrors: Array<[string, string]> = [];
     if (isAddressRequired(field, values)) {
-        const requiredPartKeys = [addressKeys.city, addressKeys.country, ...(isZipAsked ? [addressKeys.zipCode] : []), ...(isStateAsked(country) ? [addressKeys.state] : [])];
+        const requiredPartKeys = [
+            addressKeys.city,
+            addressKeys.country,
+            ...(isZipCodeRequired(field, country) ? [addressKeys.zipCode] : []),
+            ...(isStateAsked(field, country) ? [addressKeys.state] : []),
+        ];
         for (const partKey of requiredPartKeys) {
-            const isPartAnswered = partKey === addressKeys.state ? isStateAnswered(values[partKey], country) : isAnswered(values[partKey]);
-            if (!isPartAnswered) {
+            if (!isAddressPartAnswered(field, partKey, values)) {
                 partErrors.push([partKey, translate('common.error.fieldRequired')]);
             }
         }
     }
+    const city = values[addressKeys.city];
+    if (typeof city === 'string' && city.trim() !== '') {
+        for (const message of getFormatErrors(field.cityFormat ?? {}, addressKeys.city, city.trim(), translate)) {
+            partErrors.push([addressKeys.city, message]);
+        }
+    }
     const zipCode = values[addressKeys.zipCode];
-    if (field.rule !== 'zipCode' || typeof zipCode !== 'string' || zipCode.trim() === '') {
+    if (!isZipCodeShown(field) || typeof zipCode !== 'string' || zipCode.trim() === '') {
+        return partErrors;
+    }
+    for (const message of getFormatErrors(field.zipCodeFormat ?? {}, addressKeys.zipCode, zipCode.trim(), translate)) {
+        partErrors.push([addressKeys.zipCode, message]);
+    }
+    if (field.rule !== 'zipCode') {
         return partErrors;
     }
     if (!isValidZipCodeForCountry(zipCode, country)) {

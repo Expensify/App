@@ -15,7 +15,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getGovernmentRateCountryForCurrency, getGovernmentRateCountryPhraseTranslationKey, isSharedGovernmentRateCurrency} from '@libs/PolicyDistanceRatesUtils';
-import {goBackFromInvalidPolicy} from '@libs/PolicyUtils';
+import {goBackFromInvalidPolicy, isCurrencyChangeBlockedByDirectReimbursement} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -59,6 +59,22 @@ function WorkspaceOverviewCurrencyPage({policy}: WorkspaceOverviewCurrencyPagePr
 
     const onSelectCurrency = (item: CurrencyListItem) => {
         if (!policy) {
+            return;
+        }
+
+        if (isCurrencyChangeBlockedByDirectReimbursement(policy, item.currencyCode)) {
+            showConfirmModal({
+                title: translate('workspace.editor.directReimbursementCurrencyTitle'),
+                prompt: translate('workspace.editor.directReimbursementCurrencyPrompt', item.currencyCode),
+                confirmText: translate('workspace.editor.goToWorkflows'),
+                cancelText: translate('common.cancel'),
+                shouldShowCancelButton: true,
+            }).then((result) => {
+                if (result.action !== ModalActions.CONFIRM) {
+                    return;
+                }
+                Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS.getRoute(policy.id, CONST.TAB.WORKFLOWS.PAYMENTS));
+            });
             return;
         }
 

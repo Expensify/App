@@ -3,7 +3,7 @@ import type {ExpenseDefaultTableItem} from '@components/Tables/WorkspaceExpenseD
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
-import CONST from '@src/CONST';
+import CONST, {HAS_VALUE_TRANSLATION_KEYS} from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/MerchantTypeRuleForm';
@@ -13,7 +13,7 @@ import type {Policy, PolicyTagLists, Rule} from '@src/types/onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import type {ExpenseDefaultRuleSummaryField} from './ExpenseDefaultRuleUtils';
+import type {ExpenseDefaultRuleSummaryField, OtherCondition} from './ExpenseDefaultRuleUtils';
 
 import {DEFAULT_MCC_GROUP, isDefaultMccGroupID} from './actions/Policy/OptimisticPolicyCategoriesAndMccGroups';
 import {setWorkspaceDefaultSpendCategory} from './actions/Policy/Policy';
@@ -21,16 +21,28 @@ import {clearMerchantRuleErrors} from './actions/Policy/Rules';
 import {getTaxRateDisplayName} from './CategoryTaxRulesUtils';
 import {getDecodedCategoryName} from './CategoryUtils';
 import {
+    CONDITION,
     getExpenseDefaultConditionSummary,
     getExpenseDefaultRuleSummaryFields,
+    getMerchantTypeLabel,
     getPolicyExpenseDefaultRules,
     isEditableExpenseDefaultRule,
     isExpenseDefaultTaxValue,
 } from './ExpenseDefaultRuleUtils';
 import {getMccGroupDisplayName} from './PolicyRulesUtils';
-import {getCommaSeparatedTagNameWithSanitizedColons, getVendorRuleDisplayValue, isTagInPolicy} from './PolicyUtils';
+import {getCommaSeparatedTagNameWithSanitizedColons, getVendorRuleDisplayValue, isPolicyFeatureEnabled, isTagInPolicy} from './PolicyUtils';
+import {getAmountFilterDisplayValue} from './SearchAmountFilterUtils';
 
 const MERCHANT_TYPE_RULE_KEY_PREFIX = 'mcc-group:';
+
+/** Returns the actions to show without changing the saved rule when Taxes is off. */
+function getVisibleExpenseDefaultRuleSummaryFields(rule: Rule, policy: OnyxEntry<Policy>): ExpenseDefaultRuleSummaryField[] {
+    const summaryFields = getExpenseDefaultRuleSummaryFields(rule);
+    if (isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED)) {
+        return summaryFields;
+    }
+    return summaryFields.filter(({field}) => field !== CONST.RULES.EXPENSE_DEFAULT.FIELD.TAX);
+}
 
 /**
  * Reads the fields a rule sets into one sentence, such as "Update tax to GST, amount to $10".
@@ -171,8 +183,10 @@ function getMerchantRulesTableData({
     policyTags,
     translate,
     convertToDisplayString,
+    convertToDisplayStringWithoutCurrency,
     isOffline,
     onNavigate,
+    conditionNames = {},
 }: {
     policy: Policy | undefined;
     policyID: string;
@@ -180,8 +194,10 @@ function getMerchantRulesTableData({
     policyTags?: OnyxEntry<PolicyTagLists>;
     translate: LocaleContextProps['translate'];
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
     isOffline: boolean;
     onNavigate: (route: Route) => void;
+    conditionNames?: ExpenseDefaultConditionNames;
 }): ExpenseDefaultTableItem[] {
     const policyRules = getPolicyExpenseDefaultRules(rules, policyID);
 
@@ -204,16 +220,20 @@ function getMerchantRulesTableData({
                 }
                 return secondCreated < firstCreated ? -1 : 1;
             })
-            .map(({ruleID, rule}) => {
+            .map(({ruleID, rule}): ExpenseDefaultTableItem | undefined => {
+                const visibleFields = getVisibleExpenseDefaultRuleSummaryFields(rule, policy);
+                if (visibleFields.length === 0) {
+                    return undefined;
+                }
+
                 // The backend keeps a deleted tag on the rule so it applies again if the tag is recreated, so hide it here.
                 // Tags that haven't loaded yet are kept to avoid flicker.
-                const summaryFields = getExpenseDefaultRuleSummaryFields(rule).filter(
-                    ({field, value}) => field !== FIELD.TAG || !policyTags || typeof value !== 'string' || isTagInPolicy(value, policyTags),
-                );
-                const {merchants, categories, tags} = getExpenseDefaultConditionSummary(rule.filters);
+                const summaryFields = visibleFields.filter(({field, value}) => field !== FIELD.TAG || !policyTags || typeof value !== 'string' || isTagInPolicy(value, policyTags));
+                const {merchants, categories, tags, others} = getExpenseDefaultConditionSummary(rule.filters);
                 const merchantNames = merchants.map(({value}) => value).join(', ');
                 const categoryNames = categories.map(getDecodedCategoryName).join(', ');
                 const tagNames = tags.map(getCommaSeparatedTagNameWithSanitizedColons).join(', ');
+                const conditionText = getExpenseDefaultConditionText(rule.filters, translate, convertToDisplayStringWithoutCurrency, false, policy, conditionNames);
 
                 const hasOnlyMerchantRename = summaryFields.length === 1 && summaryFields.at(0)?.field === FIELD.MERCHANT;
                 const typeLabel = hasOnlyMerchantRename ? translate('workspace.rules.expenseDefaultsTable.rename') : translate('workspace.rules.expenseDefaultsTable.update');
@@ -235,12 +255,14 @@ function getMerchantRulesTableData({
                 return {
                     keyForList: ruleID,
                     ruleID,
-                    section: getExpenseDefaultSection(merchants.length > 0, categories.length > 0, tags.length > 0),
+                    section: getExpenseDefaultSection(merchants.length > 0, categories.length > 0, tags.length > 0, others.length > 0),
                     isRename: hasOnlyMerchantRename,
                     typeLabel,
-                    conditionText: getExpenseDefaultConditionText(rule.filters, translate),
+                    conditionText,
                     ruleDescription,
-                    searchTokens: [merchantNames, categoryNames, tagNames, ruleDescription].filter(Boolean),
+                    // The condition text carries the other conditions' own values, so searching finds a rule by a
+                    // currency or a card the three named fields never mention.
+                    searchTokens: [merchantNames, categoryNames, tagNames, conditionText, ruleDescription].filter(Boolean),
                     pendingAction,
                     errors: rule.errors,
                     onCloseError: () => clearMerchantRuleErrors(ruleID, rule),
@@ -248,7 +270,189 @@ function getMerchantRulesTableData({
                     action: openEditor,
                 };
             })
+            .filter((item) => item !== undefined)
     );
+}
+
+/** Names a rule holds for the members and cards it matches on, which the policy alone cannot resolve. */
+type ExpenseDefaultConditionNames = {
+    /** Member display names, keyed by account ID */
+    submitters?: Record<string, string>;
+
+    /** Card descriptions, keyed by card ID */
+    cards?: Record<string, string>;
+
+    /** Whether every card this account can see has arrived, so a card with no name is gone rather than pending */
+    areCardsLoaded?: boolean;
+};
+
+/**
+ * Lowercases a phrase's first letter so it reads on from "Date is" or "Amount is".
+ *
+ * Only the first letter, because the rest is a date or a formatted amount whose currency code carries its own
+ * casing.
+ */
+function toSentenceContinuation(phrase: string): string {
+    return phrase.charAt(0).toLowerCase() + phrase.slice(1);
+}
+
+/**
+ * Words a date comparison, such as "After 2026-01-01", which the rule editor's row and the rules table both show.
+ *
+ * Returns an empty string for an operator that compares no two dates, the way the other conditions do.
+ */
+function getDateComparisonText(date: string, operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>, translate: LocaleContextProps['translate']): string {
+    const {SYNTAX_OPERATORS} = CONST.SEARCH;
+    if (operator === SYNTAX_OPERATORS.GREATER_THAN) {
+        return translate('search.filters.date.after', date);
+    }
+    if (operator === SYNTAX_OPERATORS.LOWER_THAN) {
+        return translate('search.filters.date.before', date);
+    }
+    if (operator === SYNTAX_OPERATORS.EQUAL_TO) {
+        return translate('search.filters.date.on', date);
+    }
+    return '';
+}
+
+/**
+ * Words an amount comparison, such as "Greater than $30.00", which the rule editor's row and the rules table both
+ * show.
+ *
+ * Returns an empty string for an operator that compares no two amounts, the way the other conditions do.
+ */
+function getAmountComparisonText(
+    amount: string,
+    operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>,
+    translate: LocaleContextProps['translate'],
+    convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'],
+): string {
+    const {SYNTAX_OPERATORS} = CONST.SEARCH;
+    const formattedAmount = getAmountFilterDisplayValue(amount, convertToDisplayStringWithoutCurrency);
+    if (operator === SYNTAX_OPERATORS.GREATER_THAN) {
+        return translate('search.filters.amount.greaterThan', formattedAmount);
+    }
+    if (operator === SYNTAX_OPERATORS.LOWER_THAN) {
+        return translate('search.filters.amount.lessThan', formattedAmount);
+    }
+    if (operator === SYNTAX_OPERATORS.EQUAL_TO) {
+        return translate('search.filters.amount.equalTo', formattedAmount);
+    }
+    return '';
+}
+
+/** Lists the parts a has condition checks for, without saying whether the expense has to carry them. */
+function getHasConditionValueText(values: string[], translate: LocaleContextProps['translate']): string {
+    return values.map((value) => translate(HAS_VALUE_TRANSLATION_KEYS[value] ?? 'common.other')).join(', ');
+}
+
+/**
+ * Words a has condition, which the rule editor's row and the rules table both show.
+ *
+ * Returns an empty string for an operator that is neither has nor doesn't have, the way the other conditions do.
+ */
+function getHasConditionText(values: string[], operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>, translate: LocaleContextProps['translate']): string {
+    const parts = getHasConditionValueText(values, translate);
+    if (operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO) {
+        return translate('workspace.rules.expenseDefaultsTable.doesNotHaveValue', parts);
+    }
+    if (operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
+        return translate('workspace.rules.expenseDefaultsTable.hasValue', parts);
+    }
+    return '';
+}
+
+/**
+ * Words one condition on a field other than merchant, category and tag.
+ *
+ * Returns an empty string for a field, operator or value this has no wording for, so a rule carrying one still
+ * reads as the conditions it can describe rather than as a blank cell.
+ */
+function getOtherConditionText(
+    {field, operator, values}: OtherCondition,
+    translate: LocaleContextProps['translate'],
+    convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'],
+    policy: OnyxEntry<Policy>,
+    conditionNames: ExpenseDefaultConditionNames,
+): string {
+    const {SYNTAX_OPERATORS, BOOLEAN} = CONST.SEARCH;
+
+    // A stored `neq` inverts what the rule matches, and the editor keeps such a rule read-only, so the fields that
+    // check this read as an equals or not at all rather than describing the opposite of what they do.
+    const isEqualityMatch = operator === SYNTAX_OPERATORS.EQUAL_TO;
+
+    if (field === CONDITION.CURRENCY) {
+        if (!isEqualityMatch) {
+            return '';
+        }
+        return translate('workspace.rules.expenseDefaultsTable.currencyIs', values.join(', '));
+    }
+
+    if (field === CONDITION.CARD) {
+        if (!isEqualityMatch) {
+            return '';
+        }
+        return translate(
+            'workspace.rules.expenseDefaultsTable.cardIs',
+            values.map((cardID) => conditionNames.cards?.[cardID] ?? (conditionNames.areCardsLoaded ? translate('workspace.companyCards.deletedCard') : cardID)).join(', '),
+        );
+    }
+
+    if (field === CONDITION.TAX_RATE) {
+        if (!isEqualityMatch) {
+            return '';
+        }
+        return translate('workspace.rules.expenseDefaultsTable.taxRateIs', values.map((externalID) => getTaxRateDisplayName(policy, externalID)).join(', '));
+    }
+
+    if (field === CONDITION.SUBMITTER) {
+        if (!isEqualityMatch) {
+            return '';
+        }
+        return translate('workspace.rules.expenseDefaultsTable.submitterIs', values.map((accountID) => conditionNames.submitters?.[accountID] ?? translate('common.hidden')).join(', '));
+    }
+
+    if (field === CONDITION.MERCHANT_TYPE) {
+        if (!isEqualityMatch) {
+            return '';
+        }
+        return translate('workspace.rules.expenseDefaultsTable.merchantTypeIs', values.map((merchantType) => getMerchantTypeLabel(merchantType, translate)).join(', '));
+    }
+
+    if (field === CONDITION.REIMBURSABLE || field === CONDITION.BILLABLE) {
+        const value = values.at(0);
+        if (!isEqualityMatch || values.length !== 1 || (value !== BOOLEAN.YES && value !== BOOLEAN.NO)) {
+            return '';
+        }
+        const booleanLabel = translate(value === BOOLEAN.YES ? 'common.yes' : 'common.no');
+        return field === CONDITION.REIMBURSABLE
+            ? translate('workspace.rules.expenseDefaultsTable.reimbursableIs', booleanLabel)
+            : translate('workspace.rules.expenseDefaultsTable.billableIs', booleanLabel);
+    }
+
+    if (field === CONDITION.DATE) {
+        const date = values.at(0);
+        if (values.length !== 1 || !date) {
+            return '';
+        }
+        const comparison = getDateComparisonText(date, operator, translate);
+        return comparison ? translate('workspace.rules.expenseDefaultsTable.dateIs', toSentenceContinuation(comparison)) : '';
+    }
+
+    if (field === CONDITION.AMOUNT) {
+        const amount = values.at(0);
+        if (values.length !== 1 || !amount) {
+            return '';
+        }
+        const comparison = getAmountComparisonText(amount, operator, translate, convertToDisplayStringWithoutCurrency);
+        return comparison ? translate('workspace.rules.expenseDefaultsTable.amountIs', toSentenceContinuation(comparison)) : '';
+    }
+
+    if (field === CONDITION.HAS) {
+        return getHasConditionText(values, operator, translate);
+    }
+
+    return '';
 }
 
 /**
@@ -258,8 +462,15 @@ function getMerchantRulesTableData({
  * `shouldOmitCategories` drops the category clause for the category's own settings page, where naming the
  * category the admin is already looking at reads as noise.
  */
-function getExpenseDefaultConditionText(filters: Rule['filters'], translate: LocaleContextProps['translate'], shouldOmitCategories = false): string {
-    const {merchants, categories, tags} = getExpenseDefaultConditionSummary(filters);
+function getExpenseDefaultConditionText(
+    filters: Rule['filters'],
+    translate: LocaleContextProps['translate'],
+    convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'],
+    shouldOmitCategories = false,
+    policy?: OnyxEntry<Policy>,
+    conditionNames: ExpenseDefaultConditionNames = {},
+): string {
+    const {merchants, categories, tags, others} = getExpenseDefaultConditionSummary(filters);
 
     const contained: string[] = [];
     const exact: string[] = [];
@@ -282,6 +493,12 @@ function getExpenseDefaultConditionText(filters: Rule['filters'], translate: Loc
     if (tags.length > 0) {
         conditions.push(translate('workspace.rules.expenseDefaultsTable.tagIs', tags.map(getCommaSeparatedTagNameWithSanitizedColons).join(', ')));
     }
+    for (const condition of others) {
+        const conditionText = getOtherConditionText(condition, translate, convertToDisplayStringWithoutCurrency, policy, conditionNames);
+        if (conditionText) {
+            conditions.push(conditionText);
+        }
+    }
 
     // A rule matches on every condition it carries, so the row reads them as one sentence.
     return conditions.join(` ${translate('common.and')} `);
@@ -291,11 +508,12 @@ function getExpenseDefaultConditionText(filters: Rule['filters'], translate: Loc
  * The section a rule is listed under, which is the one field it matches on.
  *
  * A rule matching on more than one field belongs to no single section, so it goes under its own heading rather
- * than being repeated in each of them. A rule matching on none of the three is one the summary can't read, and
- * it keeps the merchants heading it has always had.
+ * than being repeated in each of them. The headings cover merchant, category and tag only, so a rule matching
+ * solely on one of the other fields has no heading of its own and shares the catch-all until the design says
+ * where it belongs. A rule matching on nothing the summary can read keeps the merchants heading it has always had.
  */
-function getExpenseDefaultSection(hasMerchants: boolean, hasCategories: boolean, hasTags: boolean): ValueOf<typeof CONST.POLICY.EXPENSE_DEFAULTS_SECTION> {
-    if ([hasMerchants, hasCategories, hasTags].filter(Boolean).length > 1) {
+function getExpenseDefaultSection(hasMerchants: boolean, hasCategories: boolean, hasTags: boolean, hasOtherConditions = false): ValueOf<typeof CONST.POLICY.EXPENSE_DEFAULTS_SECTION> {
+    if ([hasMerchants, hasCategories, hasTags, hasOtherConditions].filter(Boolean).length > 1) {
         return CONST.POLICY.EXPENSE_DEFAULTS_SECTION.MULTIPLE_CONDITIONS;
     }
     if (hasCategories) {
@@ -303,6 +521,9 @@ function getExpenseDefaultSection(hasMerchants: boolean, hasCategories: boolean,
     }
     if (hasTags) {
         return CONST.POLICY.EXPENSE_DEFAULTS_SECTION.TAGS;
+    }
+    if (hasOtherConditions) {
+        return CONST.POLICY.EXPENSE_DEFAULTS_SECTION.MULTIPLE_CONDITIONS;
     }
     return CONST.POLICY.EXPENSE_DEFAULTS_SECTION.MERCHANTS;
 }
@@ -314,8 +535,10 @@ function getExpenseDefaultsTableData({
     policyTags,
     translate,
     convertToDisplayString,
+    convertToDisplayStringWithoutCurrency,
     isOffline,
     onNavigate,
+    conditionNames,
 }: {
     policy: Policy | undefined;
     policyID: string;
@@ -324,23 +547,44 @@ function getExpenseDefaultsTableData({
     policyTags: OnyxEntry<PolicyTagLists>;
     translate: LocaleContextProps['translate'];
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
     isOffline: boolean;
     onNavigate: (route: Route) => void;
+    /** Names for the members and cards a rule matches on, which the policy alone cannot resolve. */
+    conditionNames?: ExpenseDefaultConditionNames;
 }): ExpenseDefaultTableItem[] {
-    const merchantRules = getMerchantRulesTableData({policy, policyID, rules, policyTags, translate, convertToDisplayString, isOffline, onNavigate});
+    const merchantRules = getMerchantRulesTableData({
+        policy,
+        policyID,
+        rules,
+        policyTags,
+        translate,
+        convertToDisplayString,
+        convertToDisplayStringWithoutCurrency,
+        isOffline,
+        onNavigate,
+        conditionNames,
+    });
     const merchantTypeRules = getMerchantTypeRulesTableData({policy, translate, onNavigate});
 
     return [...merchantRules, ...merchantTypeRules];
 }
 
 export {
+    getAmountComparisonText,
+    getDateComparisonText,
     getDefaultMccGroupCategory,
     getExpenseDefaultConditionText,
+    getHasConditionText,
+    getHasConditionValueText,
     getExpenseDefaultRuleDescription,
     getExpenseDefaultsTableData,
     getMerchantRulesTableData,
     getMerchantTypeRuleFormFromMccGroup,
+    getVisibleExpenseDefaultRuleSummaryFields,
     isDefaultMccGroupID,
     isMerchantTypeRuleKey,
     saveMerchantTypeRule,
 };
+
+export type {ExpenseDefaultConditionNames};

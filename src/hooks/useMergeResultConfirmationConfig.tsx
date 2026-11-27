@@ -8,7 +8,8 @@ import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 
-import {shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import {isTryNewDotLoading, shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
 
 import {closeReactNativeApp} from '@userActions/HybridApp';
 import {openOldDotLink} from '@userActions/Link';
@@ -16,7 +17,7 @@ import {openOldDotLink} from '@userActions/Link';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
 import type IconAsset from '@src/types/utils/IconAsset';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -40,6 +41,7 @@ type MergeResultConfirmationConfig = {
     descriptionComponent?: React.ReactNode;
     ctaComponent?: React.ReactNode;
     onButtonPress?: () => void;
+    primaryButtonText?: string;
     illustration?: DotLottieAnimation | IconAsset;
     illustrationStyle?: StyleProp<ViewStyle>;
     secondaryButtonText?: string;
@@ -62,11 +64,12 @@ function useMergeResultConfirmationConfig({result, login}: {result: ValueOf<type
     const {translate} = useLocalize();
     const [userEmailOrPhone] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [isTrackingGPS = false] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {selector: isTrackingSelector});
     const {environmentURL} = useEnvironment();
     const buildDynamicRoute = useScreenBoundDynamicRoute();
-    const lazyIllustrations = useMemoizedLazyIllustrations(['RunningTurtle', 'LockClosedOrange']);
-    const isLoadingTryNewDot = isLoadingOnyxValue(tryNewDotMetadata);
+    const lazyIllustrations = useMemoizedLazyIllustrations(['RunningTurtle', 'LockClosedOrange', 'EarthWithControls']);
+    const isLoadingTryNewDot = isTryNewDotLoading(tryNewDot, isLoadingOnyxValue(tryNewDotMetadata), isLoadingApp);
     const isClassicRedirectBlocked = shouldHideOldAppRedirect(tryNewDot, isLoadingTryNewDot, CONFIG.IS_HYBRID_APP);
 
     const defaultResult = {
@@ -80,6 +83,14 @@ function useMergeResultConfirmationConfig({result, login}: {result: ValueOf<type
             descriptionComponent: <DescriptionHTML html={translate('mergeAccountsPage.mergeSuccess.description', login, userEmailOrPhone ?? '')} />,
             illustration: LottieAnimations.Fireworks,
             illustrationStyle: {width: 150, height: 150},
+        },
+        [CONST.MERGE_ACCOUNT_RESULTS.PENDING_DOMAIN_APPROVAL]: {
+            heading: translate('mergeAccountsPage.mergePendingDomainAdmin.heading'),
+            descriptionComponent: <DescriptionHTML html={translate('mergeAccountsPage.mergePendingDomainAdmin.description')} />,
+            illustration: lazyIllustrations.EarthWithControls,
+            illustrationStyle: {width: 150, height: 150},
+            primaryButtonText: translate('mergeAccountsPage.mergePendingDomainAdmin.gotIt'),
+            onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY.getRoute()),
         },
         [CONST.MERGE_ACCOUNT_RESULTS.ERR_NO_EXIST]: {
             descriptionComponent: (

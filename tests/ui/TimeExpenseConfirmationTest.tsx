@@ -137,6 +137,12 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
+// The page renders outside a navigator screen, so the discard guard, which reads the route, is stubbed
+jest.mock('@hooks/useDiscardChangesConfirmation', () => ({
+    __esModule: true,
+    default: () => ({suppressDiscardPrompt: jest.fn()}),
+}));
+
 const ACCOUNT_ID = 1;
 const ACCOUNT_LOGIN = 'test@user.com';
 const REPORT_ID = '1';

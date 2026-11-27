@@ -2,7 +2,7 @@
 title: Workspace Rules
 description: Configure and manage rules for your workspace to enforce expense policies and automate compliance.
 keywords: [New Expensify, workspace rules, rules tabs, general rules, card restrictions, expense defaults, field requirements, flag for review, agent rules, expense rules, receipt requirements, category rules, prohibited expenses, disable Smartscan, automate expenses, non-reimbursable, cash expenses, billable expenses, control expenses, compliance, itemized receipt, merchant rules, spend rules, Expensify Card spend rules, block transactions, public receipt visibility, describe your rule, build a rule with Concierge, AI rules builder]
-internalScope: Audience is workspace admins on the Collect and Control plans. Covers enabling Rules and configuring each tab of the Rules page, including basic rules, Expensify Card restrictions, expense defaults, field requirements, flag for review, and agent rules, plus having Concierge build a rule from a plain-English description. Does not cover personal expense rules, Workspace Merchant Rules setup details, report-level rules in Workflows, or troubleshooting specific rule outcomes.
+internalScope: Audience is workspace admins on the Collect and Control plans. Covers enabling Rules and configuring each tab of the Rules page, including basic rules, Expensify Card restrictions, expense defaults, field requirements, flag for review, and agent rules, plus having Concierge build a rule from a plain-English description. Does not cover personal expense rules, report-level rules in Workflows, or troubleshooting specific rule outcomes.
 ---
 
 # Workspace Rules
@@ -56,7 +56,7 @@ Available rules:
 - **Attendee tracking** – Track the per-person cost for every expense.
 - **Public receipt visibility** – Control who can view receipt images. When enabled, receipts are viewable by anyone with the URL, even people who don't have access to the report. When disabled (the default), receipts are only viewable by Expensify members with access to the report containing the receipt.
 
-**Cash expenses** and **Billable expenses** can also be set per merchant. [Learn how Merchant Rules work](/articles/new-expensify/workspaces/Workspace-Merchant-Rules).
+**Cash expenses** and **Billable expenses** can also be set per merchant. [Learn how expense defaults work](#how-to-apply-expense-defaults-on-the-expense-defaults-tab).
 
 ![The Rules page on the General tab, showing the tab bar and the full Basic rules card.]({{site.url}}/assets/images/Rules_general.png){:width="100%"}
 
@@ -82,20 +82,33 @@ For more details on configuring card restriction rules, see [Expensify Card Spen
 
 ## How to apply expense defaults on the Expense defaults tab
 
-The **Expense defaults** tab holds rules that fill in expense fields automatically, so members don't have to. Each rule matches on a merchant, a merchant type, or a category, and then updates fields such as the category, tag, description, or tax rate.
+The **Expense defaults** tab holds rules that fill in expense fields automatically, so members don't have to. Create rules that match one or more expense conditions, then apply defaults such as the category, tag, description, tax rate, or amount. Expense defaults require the Control plan.
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**.
-2. Select **Rules**.
-3. Select **Add rule**.
-4. Choose **Apply expense defaults**.
-5. Select **Merchant** to update fields on expenses from a specific merchant, or **Category** to set a default tax rate for a specific category.
-6. Configure the rule and select **Save rule**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Rules**.
+2. Open the **Expense defaults** tab and select **Add rule**.
+3. Select **Apply expense defaults**.
+4. Under **If any expense matches:**, set at least one condition. Available conditions depend on your workspace settings:
+   - **Submitter**: Select one or more submitters.
+   - **Amount**: Enter an amount and choose **Equal to**, **Greater than**, or **Less than**.
+   - **Merchant**: Enter a merchant name and choose **Contains** or **Exactly matches**.
+   - **Merchant type**: Select one or more merchant types.
+   - **Category**: Select one or more categories to match.
+   - **Tag**: Select one or more tags to match.
+   - **Reimbursable**: Choose **Yes** or **No**.
+   - **Billable**: Choose **Yes** or **No**.
+   - **Date**: Select a date and choose **On**, **After**, or **Before**.
+   - **Currency**: Select one or more currencies.
+   - **Card**: Select one or more cards.
+5. Under **Then apply the following defaults:**, select at least one field to update. For example, match a **Category** and set a **Tax** default, or match a **Merchant** and set an **Amount** default. Available fields depend on your workspace settings.
+6. (Optional) Select **Preview** to open **Preview matches** and review matching unsubmitted expenses. Previewing does not change expenses.
+7. (Optional) Enable **Apply to existing unsubmitted expenses** to also update matching expenses that haven't been submitted yet.
+8. Select **Save rule**.
 
-A category default tax rate applies only to new expenses in that category. Expenses that already exist don't change.
+An expense must match every condition you set. For example, a rule with a merchant and a category condition only matches expenses with both. Within a category or tag condition, matching any selected value is enough. You can also create a category-only or tag-only rule without a merchant condition.
+
+Expense defaults apply to matching new expenses. **Apply to existing unsubmitted expenses** is disabled by default. Saving without this option does not retroactively update existing expenses, and enabling it does not update submitted expenses. **Amount** can be used as a matching condition or as a default to apply.
 
 Default categories based on the merchant's MCC (Merchant Category Code) also live on this tab. They appear as rules with a condition of **Merchant type is** and a rule of **Update category to**. You can change the category a merchant type maps to, but you can't edit the merchant type or delete these rules.
-
-[Learn how Merchant Rules work](/articles/new-expensify/workspaces/Workspace-Merchant-Rules).
 
 ---
 

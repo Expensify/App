@@ -52,7 +52,6 @@ import {
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
     isOdometerDistanceRequest as isOdometerDistanceRequestTransactionUtils,
-    isPartiallyEnteredScanExpense,
     isScanning,
     isScanRequest,
 } from '@libs/TransactionUtils';
@@ -96,6 +95,7 @@ import {View} from 'react-native';
 import type {IOURequestStepConfirmationProps} from './types';
 import type {ConfirmationSubmissionParams, ConfirmationVariantProps} from './variants/types';
 
+import useConfirmationDiscardGuard from './useConfirmationDiscardGuard';
 import useConfirmationTransactionPager from './useConfirmationTransactionPager';
 import useParticipantPickerState from './useParticipantPickerState';
 import useSubmitDestinationPreMount from './useSubmitDestinationPreMount';
@@ -369,8 +369,8 @@ function IOURequestStepConfirmationContent({
         }
     }
 
-    // The confirmation only validates the transaction it shows, so find the partially filled one across all receipts.
-    const partiallyManuallyFilledScanID = transactions.find((item) => isPartiallyEnteredScanExpense(item, canEnterScanFieldsManually, isPolicyExpenseChat))?.transactionID;
+    // While the next receipt loads the pager still shows the previous one, so filter by the one shown.
+    const siblingTransactions = transactions.filter((item) => item.transactionID !== transaction?.transactionID);
 
     const isFromGlobalCreate = transaction?.isFromGlobalCreate === true || transaction?.isFromFloatingActionButton === true;
 
@@ -400,6 +400,14 @@ function IOURequestStepConfirmationContent({
 
     const submitLock = useSubmitLock();
     const {isConfirmed, formHasBeenSubmitted} = submitLock;
+
+    const {setHasUnsavedAmountInput, suppressDiscardPrompt} = useConfirmationDiscardGuard({
+        // Embedded on the start page, this confirmation is the flow's first step, so leaving it throws the draft away
+        shouldConfirmDiscardingChanges: shouldHideHeader,
+        requestType,
+        isAmountSet: !!transaction?.isAmountSet,
+        isSubmitting: isConfirmed,
+    });
 
     const {destinationReportID, optimisticP2PDestinationReportID, preMountDestinationReportID, revealPreMountDestination, cleanupPreMount, onExpenseWriteWillStart} =
         useSubmitDestinationPreMount({
@@ -654,7 +662,7 @@ function IOURequestStepConfirmationContent({
         isPerDiemRequest,
         shouldShowSmartScanFields,
         canEnterScanFieldsManually,
-        partiallyManuallyFilledScanID,
+        siblingTransactions,
         onSwitchToTransaction: setCurrentTransactionID,
         action,
         isConfirmed,
@@ -662,6 +670,8 @@ function IOURequestStepConfirmationContent({
         expensesNumber: transactions.length,
         isTimeRequest,
         shouldHideToSection,
+        onUnsavedAmountInputChange: setHasUnsavedAmountInput,
+        onSubmitWillStart: suppressDiscardPrompt,
     };
 
     const renderSubmissionVariant = () => {
@@ -747,8 +757,6 @@ function IOURequestStepConfirmationContent({
                 reportID={reportID}
                 action={action}
                 backToReport={backToReport}
-                report={report}
-                participants={participants}
                 draftTransactionIDs={draftTransactionIDs}
                 isReceiptReady={!isOdometerDistanceRequest || isOdometerReady}
                 canEnterScanFieldsManually={canEnterScanFieldsManually}
