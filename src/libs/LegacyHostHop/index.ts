@@ -149,6 +149,13 @@ const shouldHopToSharedHost: ShouldHopToSharedHost = () => {
     if (!isLegacyAppHost() || !readExperienceCookie()) {
         return false;
     }
+
+    // The App learns its own network state only after startup, so the browser's flag is the one offline signal here.
+    // Offline, the cached app on this host still opens, while the shared host may not.
+    if (navigator.onLine === false) {
+        Log.info('[LegacyHostHop] Staying on this host while the browser is offline');
+        return false;
+    }
     if (hasSharedHostBrake()) {
         Log.info('[LegacyHostHop] Staying on this host because the router asked this browser to stay off the shared host');
         return false;

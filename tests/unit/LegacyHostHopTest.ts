@@ -55,6 +55,10 @@ function arrangeCookies(cookies: string) {
     cookieGetter.mockReturnValue(cookies);
 }
 
+function arrangeBrowserOffline() {
+    jest.spyOn(Navigator.prototype, 'onLine', 'get').mockReturnValue(false);
+}
+
 function getNavigatedURL(): URL {
     return new URL(mockReplace.mock.calls.at(0)?.at(0) ?? '');
 }
@@ -115,6 +119,17 @@ describe('LegacyHostHop', () => {
             arrangeCookies('experience=new; hybridWebClassicHost=www');
 
             expect(shouldHopToSharedHost()).toBe(false);
+        });
+
+        it('stays while the browser is offline', () => {
+            // Given a browser that reports it has no network
+            arrangeBrowserOffline();
+
+            // When startup asks whether to hop
+            const shouldHop = shouldHopToSharedHost();
+
+            // Then it stays, because the shared host can't load while the cached app on this host can
+            expect(shouldHop).toBe(false);
         });
 
         it('stays when this tab hopped within the guard duration', () => {
@@ -257,6 +272,25 @@ describe('LegacyHostHop', () => {
             expect(mockWaitForIdle).not.toHaveBeenCalled();
             expect(mockGetShortLivedAuthToken).not.toHaveBeenCalled();
             expect(mockReplace).not.toHaveBeenCalled();
+        });
+
+        it.each([
+            ['a signed out page', undefined, `${LEGACY_ORIGIN}/r/123`],
+            ['an anonymous session', {authToken: 'anon', authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS}, `${LEGACY_ORIGIN}/r/123`],
+            ['a /transition link', SIGNED_IN_SESSION, `${LEGACY_ORIGIN}/transition?shortLivedAuthToken=abc`],
+            ['a signed in page', SIGNED_IN_SESSION, `${LEGACY_ORIGIN}/r/123`],
+        ])('stays with %s while the browser is offline', async (_, session: Session | undefined, href) => {
+            // Given a browser that reports it has no network before the App knows its own network state
+            arrangeLocation(href);
+            arrangeBrowserOffline();
+
+            // When the page hops
+            const hop = hopToSharedHost(session);
+
+            // Then it stays on the cached app here without marking the tab, so the hop can happen once the browser is back online
+            await expect(hop).resolves.toBe(false);
+            expect(mockReplace).not.toHaveBeenCalled();
+            expect(sessionStorage.getItem(CONST.SESSION_STORAGE_KEYS.SHARED_HOST_HOP)).toBeNull();
         });
 
         it('moves a signed in page when the auth token is renewed for the same account while the token is fetched', async () => {

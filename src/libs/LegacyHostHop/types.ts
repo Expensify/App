@@ -2,7 +2,7 @@ import type {Session} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-/** Whether this page should move to the shared host. It reads only the URL, cookies and sessionStorage, so it can run while rendering. */
+/** Whether this page should move to the shared host. It reads only the URL, cookies, sessionStorage and the browser's online flag, so it can run while rendering. */
 type ShouldHopToSharedHost = () => boolean;
 
 /**
