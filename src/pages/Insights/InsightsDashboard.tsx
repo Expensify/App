@@ -65,6 +65,7 @@ import INSIGHTS_DASHBOARD_SPECS, {
     getVisibleCharts,
     shouldUpsellControlPlan,
 } from './dashboardSpecs';
+import {getCompliancePolicyIDs} from './insightsAccess';
 import {getQueryGroupBy} from './insightsGroupByUtils';
 import buildInsightsJsonQuery from './insightsQueries';
 import InsightsTabSelector from './InsightsTabSelector';
@@ -421,6 +422,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
     const [violationStages, setViolationStages] = useState<InsightsViolationStages>({});
     const {headlineChart: headlineSpec, supportingCharts: supportingSpecs, isPolicyEligible: isDashboardPolicyEligible, queryType} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
     const policiesInScope = getPoliciesInScope(policies, filters.policyIDs);
+    const compliancePolicyIDs = dashboardID === CONST.INSIGHTS.DASHBOARD.COMPLIANCE ? getCompliancePolicyIDs(policiesInScope, login) : undefined;
     const eligibleCharts = getVisibleCharts(supportingSpecs, policiesInScope, login, isDashboardPolicyEligible);
     // Settled from the policies already in Onyx, so the charts are never requested for a dashboard the upsell stands in for
     const shouldUpsell = arePoliciesLoaded && shouldUpsellControlPlan(dashboardID, policiesInScope, filters.policyIDs, login);
@@ -510,7 +512,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
                 [CONST.SEARCH.CHART_METRIC.DURATION]: graph?.averageDuration,
             },
             isAverageLoaded: isCurrentDashboardLoaded || !!graph,
-            eligiblePolicyIDs: graph?.eligiblePolicyIDs,
+            eligiblePolicyIDs: compliancePolicyIDs ?? graph?.eligiblePolicyIDs,
             stages: getEnabledStages(chartQuery.chart, policiesInScope, login, isDashboardPolicyEligible),
             isAwaitingData: isTopTagsWaitingForLevel && chartQuery.chart.graphKey === CONST.INSIGHTS.GRAPH.TOP_TAGS,
         };

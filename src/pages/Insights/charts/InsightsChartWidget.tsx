@@ -83,7 +83,7 @@ type InsightsChartWidgetProps = {
     /** Whether the GetInsights response the chart's average comes from has loaded, from the current GetInsights response or the last loaded one */
     isAverageLoaded: boolean | undefined;
 
-    /** Workspaces the Spend drill-down is limited to so it matches the Top spenders ranking */
+    /** Workspaces the chart counts when its Search drill-down needs a workspace filter */
     eligiblePolicyIDs?: string[];
 
     /** The chart's stages some workspace in scope is eligible for, set when the chart declares stages */
@@ -256,7 +256,7 @@ function InsightsChartWidget({
 
     const queryJSONForSearch = scopeInsightsDrillDownQuery(
         buildSearchQueryJSON(applyInsightsFilters(chart, filters, undefined, today, trackedFrom)) ?? queryJSON,
-        chart.graphKey,
+        dashboardID === CONST.INSIGHTS.DASHBOARD.COMPLIANCE || chart.graphKey === CONST.INSIGHTS.GRAPH.TOP_SPENDERS,
         eligiblePolicyIDs,
     );
     const canOpenOnSpend = supportsDrillIn && !!queryJSONForSearch;
