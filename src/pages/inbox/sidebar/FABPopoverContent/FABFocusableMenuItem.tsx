@@ -5,8 +5,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import variables from '@styles/variables';
-
 import CONST from '@src/CONST';
 import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
@@ -15,6 +13,7 @@ import {View} from 'react-native';
 import FABMenuIconTile from './FABMenuIconTile';
 import getFABMenuIconTile from './getFABMenuIconTile';
 import useFABMenuItem from './useFABMenuItem';
+import {getIconTileContentProps, getIconTileRowStyle, shouldDrawIconTile} from './useIconTileMenuItemProps';
 
 type FABFocusableMenuItemProps = Omit<MenuItemProps, 'focused' | 'onFocus' | 'wrapperStyle' | 'shouldCheckActionAllowedOnPress' | 'role' | 'onPress'> &
     WithRequiredSentryLabel & {
@@ -39,7 +38,7 @@ function FABFocusableMenuItem({itemId, isVisible = true, onPress, shouldCallAfte
     // Avatars and icon stacks keep their default rendering, only a single plain icon moves onto the tile.
     const rowIcon = !!icon && typeof icon !== 'string' && !Array.isArray(icon) ? icon : undefined;
     const iconTile =
-        iconTileStyle && (iconTileStyle.iconName ?? rowIcon) ? (
+        iconTileStyle && shouldDrawIconTile(itemId, !!rowIcon) ? (
             <FABMenuIconTile
                 tile={iconTileStyle}
                 fallbackIcon={rowIcon}
@@ -51,15 +50,9 @@ function FABFocusableMenuItem({itemId, isVisible = true, onPress, shouldCallAfte
             // FABFocusableMenuItemProps is a strict subset of MenuItemProps — spreading forwards all remaining props safely
 
             {...(props as MenuItemProps)}
-            // The tile takes the place of the regular icon, so the row drops its own icon and centers the tile next to the text
             {...(iconTile
                 ? {
-                      icon: undefined,
-                      iconWidth: undefined,
-                      iconHeight: undefined,
-                      displayInDefaultIconColor: false,
-                      leftComponent: iconTile,
-                      innerContainerStyle: styles.alignItemsCenter,
+                      ...getIconTileContentProps(iconTile, styles),
                       // The divider above the row already adds space, so the section label sits closer to it.
                       // Together with the 17px divider, 6px above and 2px below keep the label section 45px tall, as in the design
                       labelStyle: [styles.pt1half, StyleUtils.getPaddingBottom(2)],
@@ -68,12 +61,9 @@ function FABFocusableMenuItem({itemId, isVisible = true, onPress, shouldCallAfte
             sentryLabel={sentryLabel}
             focused={isFocused}
             onFocus={() => setFocusedIndex(itemIndex)}
-            // The row size goes with the wrapper style, which MenuItem applies after its compact popover styles, so the design height holds on every layout
-            wrapperStyle={
-                iconTile
-                    ? [wrapperStyle, StyleUtils.getMinimumHeight(shouldUseNarrowLayout ? variables.optionRowHeight : variables.optionRowHeightCompact), styles.pv0, styles.alignItemsCenter]
-                    : wrapperStyle
-            }
+            // Unlike the popover menu rows, this row keeps its compact popover styles, which space the quick action description,
+            // so the tile height goes into the wrapper style that MenuItem applies after them
+            wrapperStyle={iconTile ? [wrapperStyle, getIconTileRowStyle(shouldUseNarrowLayout, styles, StyleUtils)] : wrapperStyle}
             shouldCheckActionAllowedOnPress={false}
             role={CONST.ROLE.BUTTON}
             onPress={onPress ? () => onItemPress(onPress, {shouldCallAfterModalHide}) : undefined}
