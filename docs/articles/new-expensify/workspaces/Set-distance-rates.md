@@ -27,6 +27,8 @@ Automatic updates are available for Control workspaces with a default currency o
 
 Once enabled, **Distance rates** will appear in the workspace menu. 
 
+**Note:** **Distance rates** is already enabled on workspaces that Expensify creates when you choose **Track expenses for my business** or **Organize my personal spending** during onboarding.
+
 ---
 
 ## How to add distance rates
