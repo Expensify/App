@@ -23,7 +23,8 @@
                 "rock.config.mjs",
                 "rspack.config.mjs",
                 "tests/perf-test/**/*.perf-test.{ts,tsx}",
-                "tests/perf-local/**/*.perf-local.ts"
+                "tests/perf-local/**/*.perf-local.ts",
+                "jest/TimezoneEnvironment.ts"
             ],
             "project": [
                 "src/**/*.{js,jsx,ts,tsx}",
@@ -80,6 +81,7 @@
         "@react-native/assets-registry"
     ],
     "ignoreBinaries": ["mkcert", "openssl", "xdg-open", "ruby"],
+    "ignoreUnresolved": ["./jest/TimezoneEnvironment.ts"],
     "ignoreIssues": {
         "rock.config.mjs": ["unlisted"],
         "src/libs/SearchParser/searchParser.js": ["exports"],

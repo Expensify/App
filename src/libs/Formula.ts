@@ -7,7 +7,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {addDays, addMonths, endOfDay, endOfMonth, getDay, lastDayOfMonth, set, startOfDay, startOfMonth, subDays, subMonths} from 'date-fns';
+import {addDays, addMonths, endOfDay, endOfMonth, getDay, lastDayOfMonth, parseISO, set, startOfDay, startOfMonth, subDays, subMonths} from 'date-fns';
 
 import type {FormulaPart} from './FormulaParser';
 
@@ -17,6 +17,7 @@ import formatDate from './FormulaDatetime';
 import {extract, FORMULA_PART_TYPES, parse, parsePart} from './FormulaParser';
 import getBase62ReportID from './getBase62ReportID';
 import Log from './Log';
+import {isDelayedSubmissionEnabled} from './PolicyUtils/workflows';
 import {getAllReportActions} from './ReportActionsUtils';
 import {getHumanReadableStatus, getMoneyRequestSpendBreakdown, getReportTransactions} from './ReportUtils';
 import {getAutoReportingOffsetsForFrequency, sortSemiMonthlyOffsets} from './SubmissionScheduleUtils';
@@ -182,9 +183,9 @@ function computeAutoReportingInfo(part: FormulaPart, context: FormulaContext, su
 
     switch (subField.toLowerCase()) {
         case 'start':
-            return formatDate(startDate?.toISOString(), format);
+            return formatDate(startDate, format);
         case 'end':
-            return formatDate(endDate?.toISOString(), format);
+            return formatDate(endDate, format);
         default:
             return part.definition;
     }
@@ -564,9 +565,6 @@ function getOldestTransactionDate(reportID: string, context?: FormulaContext): s
     }
 
     const transactions = getAllReportTransactionsWithContext(reportID, context);
-    if (!transactions || transactions.length === 0) {
-        return new Date().toISOString();
-    }
 
     let oldestDate: string | undefined;
 
@@ -688,11 +686,30 @@ function getMonthlyLastBusinessDayPeriod(currentDate: Date): {startDate: Date; e
  * Calculate the start and end dates for auto-reporting based on the frequency and current date
  */
 function getAutoReportingDates(policy: OnyxEntry<Policy>, report: Report, currentDate = new Date(), context?: FormulaContext): {startDate: Date | undefined; endDate: Date | undefined} {
-    const frequency = policy?.autoReportingFrequency;
-    const offset = policy?.autoReportingOffset;
+    if (!policy) {
+        return {startDate: undefined, endDate: undefined};
+    }
+
+    const frequency = policy.autoReportingFrequency;
+    const offset = policy.autoReportingOffset;
+
+    // Trip reports use the actual first and last expense dates. So do workspaces with no reporting period, matching the
+    // backend, so the title never shows a date unrelated to the report. That is auto-reporting off, instant, or
+    // "immediate", which is daily or manual submission.
+    const hasAutoReportingPeriod = isDelayedSubmissionEnabled(policy) && frequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE;
+    if (!hasAutoReportingPeriod || frequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP) {
+        // Like the backend, a report without expenses uses the date it was created
+        const startDateString = getOldestTransactionDate(report.reportID, context) ?? report.created;
+        const endDateString = getNewestTransactionDate(report.reportID, context) ?? report.created;
+        // Parse these the same way formatDate does, so a date stored without a time keeps its day west of UTC
+        return {
+            startDate: startDateString ? parseISO(startDateString) : currentDate,
+            endDate: endDateString ? parseISO(endDateString) : currentDate,
+        };
+    }
 
     // Return undefined if no frequency is set
-    if (!frequency || !policy) {
+    if (!frequency) {
         return {startDate: undefined, endDate: undefined};
     }
 
@@ -735,14 +752,6 @@ function getAutoReportingDates(policy: OnyxEntry<Policy>, report: Report, curren
             break;
         }
 
-        case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP: {
-            const oldestTransactionDateString = getOldestTransactionDate(report.reportID, context);
-            const newestTransactionDateString = getNewestTransactionDate(report.reportID, context);
-            startDate = oldestTransactionDateString ? new Date(oldestTransactionDateString) : currentDate;
-            endDate = newestTransactionDateString ? new Date(newestTransactionDateString) : currentDate;
-            break;
-        }
-
         default:
             // For any other frequency, use current date as both start and end
             startDate = currentDate;
@@ -762,9 +771,6 @@ function getNewestTransactionDate(reportID: string, context?: FormulaContext): s
     }
 
     const transactions = getAllReportTransactionsWithContext(reportID, context);
-    if (!transactions || transactions.length === 0) {
-        return new Date().toISOString();
-    }
 
     let newestDate: string | undefined;
 

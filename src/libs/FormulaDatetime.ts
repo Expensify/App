@@ -1,4 +1,4 @@
-import {format as dateFnsFormat} from 'date-fns';
+import {format as dateFnsFormat, getDayOfYear, getISOWeek, parseISO} from 'date-fns';
 
 /**
  * Get ordinal suffix for a day (st, nd, rd, th)
@@ -20,38 +20,6 @@ function getOrdinalSuffix(day: number): string {
 }
 
 /**
- * Calculate ISO week number for a given date
- * Uses the "first Thursday" rule: Week 1 is the week containing the year's first Thursday
- */
-function calculateISOWeekNumber(date: Date): number {
-    // Create a copy to avoid modifying the original date
-    const target = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
-
-    // Set to nearest Thursday: current date + 4 - current day number
-    // Make Sunday's day number 7 (getUTCDay returns 0 for Sunday)
-
-    const dayNum = target.getUTCDay() || 7;
-    target.setUTCDate(target.getUTCDate() + 4 - dayNum);
-
-    // Get first day of year for the Thursday's year (in UTC)
-    const yearStart = new Date(Date.UTC(target.getUTCFullYear(), 0, 1));
-
-    // Calculate full weeks to nearest Thursday
-    const weekNum = Math.ceil(((target.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
-
-    return weekNum;
-}
-
-/**
- * Calculate day of year (0-indexed)
- */
-function calculateDayOfYear(date: Date): number {
-    const year = date.getFullYear();
-    const yearStart = new Date(year, 0, 1);
-    return Math.floor((date.getTime() - yearStart.getTime()) / (1000 * 60 * 60 * 24));
-}
-
-/**
  * Get localized month and day names using date-fns
  */
 function getLocalizedNames(date: Date) {
@@ -68,13 +36,12 @@ function getLocalizedNames(date: Date) {
 }
 
 /**
- * Get time components in UTC timezone (to match Classic/OldDot behavior)
+ * Get the hour, minute and second of a date, and their 12-hour forms
  */
-function getUTCTimeComponents(date: Date) {
-    // Use UTC methods to match Classic behavior
-    const hours = date.getUTCHours();
-    const minutes = date.getUTCMinutes();
-    const seconds = date.getUTCSeconds();
+function getTimeComponents(date: Date) {
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+    const seconds = date.getSeconds();
 
     let hours12 = hours;
     if (hours === 0) {
@@ -100,45 +67,52 @@ function getUTCTimeComponents(date: Date) {
  * Format date as RFC 2822/RFC 5322 format
  * Example: "Thu, 08 Jan 2025 15:30:45 +0000"
  */
-function formatRFC2822(date: Date): string {
+function formatRFC2822(date: Date, isExactTime: boolean): string {
     const {shortDayName, shortMonthName} = getLocalizedNames(date);
     const day = date.getDate().toString().padStart(2, '0');
     const year = date.getFullYear();
 
-    const hours = date.getUTCHours().toString().padStart(2, '0');
-    const minutes = date.getUTCMinutes().toString().padStart(2, '0');
-    const seconds = date.getUTCSeconds().toString().padStart(2, '0');
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    const seconds = date.getSeconds().toString().padStart(2, '0');
 
-    // Get timezone offset in format +0000 or -0500
-    const timezoneOffset = -date.getTimezoneOffset();
-    const offsetSign = timezoneOffset >= 0 ? '+' : '-';
-    const offsetHours = Math.floor(Math.abs(timezoneOffset) / 60)
-        .toString()
-        .padStart(2, '0');
-    const offsetMinutes = (Math.abs(timezoneOffset) % 60).toString().padStart(2, '0');
-    const timezoneString = `${offsetSign}${offsetHours}${offsetMinutes}`;
+    // The backend reads a stored date and time as UTC. An exact time shows in the user's time zone, so it has their offset.
+    let timezoneString = '+0000';
+    if (isExactTime) {
+        const timezoneOffset = -date.getTimezoneOffset();
+        const offsetSign = timezoneOffset >= 0 ? '+' : '-';
+        const offsetHours = Math.floor(Math.abs(timezoneOffset) / 60)
+            .toString()
+            .padStart(2, '0');
+        const offsetMinutes = (Math.abs(timezoneOffset) % 60).toString().padStart(2, '0');
+        timezoneString = `${offsetSign}${offsetHours}${offsetMinutes}`;
+    }
 
     return `${shortDayName}, ${day} ${shortMonthName} ${year} ${hours}:${minutes}:${seconds} ${timezoneString}`;
 }
 
 /**
- * Create token definitions for date formatting
+ * Create token definitions for date formatting. An exact time is a moment shown in the user's time zone, like the
+ * current time. Otherwise the date holds a stored date and time.
  */
-function createDateTokens(date: Date): Array<{token: string; value: string}> {
+function createDateTokens(date: Date, isExactTime: boolean): Array<{token: string; value: string}> {
     const year = date.getFullYear();
     const month = date.getMonth() + 1;
     const day = date.getDate();
     const dayOfWeek = date.getDay(); // 0 = Sunday, 6 = Saturday
     const isoDayOfWeek = dayOfWeek === 0 ? 7 : dayOfWeek; // 1 = Monday, 7 = Sunday
-    const dayOfYear = calculateDayOfYear(date);
+    // Formula day numbers start at 0 on January 1, while date-fns starts at 1
+    const dayOfYear = getDayOfYear(date) - 1;
     const daysInMonth = new Date(year, month, 0).getDate();
-    const weekNumber = calculateISOWeekNumber(date);
+    const weekNumber = getISOWeek(date);
 
     // Get localized names
     const {fullMonthName, shortMonthName, fullDayName, shortDayName} = getLocalizedNames(date);
 
-    // Get time components in UTC timezone (to match Classic/OldDot behavior)
-    const {hours, minutes, seconds, hours12, meridiem, meridiemUpperCase} = getUTCTimeComponents(date);
+    const {hours, minutes, seconds, hours12, meridiem, meridiemUpperCase} = getTimeComponents(date);
+
+    // The backend reads a stored date and time as UTC, so the ISO and Unix times do too. An exact time is already a moment.
+    const moment = isExactTime ? date : new Date(Date.UTC(year, date.getMonth(), day, hours, minutes, seconds, date.getMilliseconds()));
 
     return [
         // Year formats (longest to shortest)
@@ -187,9 +161,12 @@ function createDateTokens(date: Date): Array<{token: string; value: string}> {
         {token: 'a', value: meridiem},
 
         // Full Date/Time formats
-        {token: 'c', value: date.toISOString()}, // ISO 8601: 2025-01-08T15:30:45.123Z
-        {token: 'r', value: formatRFC2822(date)}, // RFC 2822: Thu, 08 Jan 2025 15:30:45 +0000
-        {token: 'U', value: Math.floor(date.getTime() / 1000).toString()}, // Unix timestamp
+        // ISO 8601: 2025-01-08T15:30:45.123Z
+        {token: 'c', value: moment.toISOString()},
+        // RFC 2822: Thu, 08 Jan 2025 15:30:45 +0000
+        {token: 'r', value: formatRFC2822(date, isExactTime)},
+        // Unix timestamp
+        {token: 'U', value: Math.floor(moment.getTime() / 1000).toString()},
     ];
 }
 
@@ -232,19 +209,26 @@ function applyTokenReplacement(format: string, tokens: Array<{token: string; val
  * Format a date value with comprehensive token-based date format support
  * Supports 40+ date format tokens with localization and timezone handling
  */
-function formatDate(dateString: string | undefined, format = 'yyyy-MM-dd'): string {
-    if (!dateString) {
+function formatDate(value: string | Date | undefined, format = 'yyyy-MM-dd'): string {
+    if (!value) {
         return '';
     }
 
     try {
-        const date = new Date(dateString);
+        // A Date holds the date and time to show in its local parts. parseISO reads a string into local parts:
+        // - A date stored without a time zone, like the expense date "2025-01-20" or the report's created time
+        //   "2025-01-08 15:30:45", keeps its stored date and time, like the backend. new Date() would read "2025-01-20"
+        //   as midnight UTC, which is the previous day west of UTC.
+        // - A UTC time, like the current time "2025-01-08T15:30:45.123Z", is an exact moment, so it shows in the user's
+        //   time zone.
+        const isExactTime = typeof value === 'string' && value.endsWith('Z');
+        const date = value instanceof Date ? value : parseISO(value);
         if (Number.isNaN(date.getTime())) {
             return '';
         }
 
         // Create tokens for the date
-        const tokens = createDateTokens(date);
+        const tokens = createDateTokens(date, isExactTime);
 
         // Apply token replacement
         return applyTokenReplacement(format, tokens);

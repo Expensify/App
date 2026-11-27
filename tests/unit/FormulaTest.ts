@@ -642,7 +642,7 @@ describe('CustomFormula', () => {
         });
 
         test('should compute weekly frequency dates', () => {
-            const policy = createMock<Policy>({autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY});
+            const policy = createMock<Policy>({autoReporting: true, autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY});
             const context = createMockContext(policy);
 
             expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-13');
@@ -651,7 +651,7 @@ describe('CustomFormula', () => {
 
         test('should compute semi-monthly frequency dates', () => {
             jest.setSystemTime(new Date('2025-01-10T12:00:00Z'));
-            const policy = createMock<Policy>({autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY});
+            const policy = createMock<Policy>({autoReporting: true, autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY});
             const context = createMockContext(policy);
 
             expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-01');
@@ -670,6 +670,7 @@ describe('CustomFormula', () => {
             // Given a twice a month schedule on the 10th and 20th
             jest.setSystemTime(new Date(now));
             const policy = createMock<Policy>({
+                autoReporting: true,
                 autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY,
                 autoReportingOffset: 10,
                 autoReportingOffsetSecondSemiMonthly: 20,
@@ -689,6 +690,7 @@ describe('CustomFormula', () => {
             // Given a weekly schedule submitted on Monday
             jest.setSystemTime(new Date(now));
             const policy = createMock<Policy>({
+                autoReporting: true,
                 autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY,
                 autoReportingOffset: CONST.POLICY.AUTO_REPORTING_WEEKDAYS.MONDAY,
             });
@@ -707,6 +709,7 @@ describe('CustomFormula', () => {
             // Given a twice a month schedule on the 10th and 31st during February
             jest.setSystemTime(new Date('2025-02-15T12:00:00Z'));
             const policy = createMock<Policy>({
+                autoReporting: true,
                 autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY,
                 autoReportingOffset: 10,
                 autoReportingOffsetSecondSemiMonthly: 31,
@@ -720,6 +723,7 @@ describe('CustomFormula', () => {
 
         test('should compute monthly frequency with specific offset', () => {
             const policy = createMock<Policy>({
+                autoReporting: true,
                 autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY,
                 autoReportingOffset: 25,
             });
@@ -731,6 +735,7 @@ describe('CustomFormula', () => {
 
         test('should compute monthly frequency with last business day', () => {
             const policy = createMock<Policy>({
+                autoReporting: true,
                 autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY,
                 autoReportingOffset: CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_BUSINESS_DAY_OF_MONTH,
             });
@@ -748,7 +753,7 @@ describe('CustomFormula', () => {
 
             mockReportUtils.getReportTransactions.mockReturnValue(mockTransactions);
 
-            const policy = createMock<Policy>({autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP});
+            const policy = createMock<Policy>({autoReporting: true, autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP});
             const context = createMockContext(policy);
 
             expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-08');
@@ -809,14 +814,37 @@ describe('CustomFormula', () => {
             expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-14');
         });
 
-        test('should fall back to current date for trip frequency when no transactions', () => {
+        test('trip frequency on a report without expenses', () => {
+            // Given a trip report created before today that has no expenses yet
             mockReportUtils.getReportTransactions.mockReturnValue([]);
+            const policy = createMock<Policy>({autoReporting: true, autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP});
 
-            const policy = createMock<Policy>({autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP});
+            // When the auto-reporting parts are computed
+            const context: FormulaContext = {...createMockContext(policy), report: createMock<Report>({reportID: '123', created: '2025-01-10 09:00:00.000'})};
+
+            // Then they use the report's created date, like the backend, rather than today
+            expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-10');
+            expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-10');
+        });
+
+        test.each([
+            {description: 'auto-reporting off', autoReporting: false, autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY},
+            {description: 'instant submit', autoReporting: true, autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT},
+            {description: 'immediate submit', autoReporting: true, autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE},
+        ])('workspace without an auto-reporting period because of $description', ({autoReporting, autoReportingFrequency}) => {
+            // Given a report with expenses on two dates, on a workspace with no auto-reporting period
+            mockReportUtils.getReportTransactions.mockReturnValue([
+                createMock<Transaction>({transactionID: 'trans1', created: '2025-01-08T12:00:00Z', merchant: 'Hotel', amount: 5000}),
+                createMock<Transaction>({transactionID: 'trans2', created: '2025-01-14T16:45:00Z', merchant: 'Restaurant', amount: 3000}),
+            ]);
+            const policy = createMock<Policy>({autoReporting, autoReportingFrequency});
+
+            // When the auto-reporting parts are computed
             const context = createMockContext(policy);
 
-            expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-19');
-            expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-19');
+            // Then they use the earliest and latest expense dates, matching the backend, so the title never shows a date unrelated to the report
+            expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-08');
+            expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-14');
         });
 
         test('should prefer context.transaction over context.allTransactions when transactionIDs match', () => {
@@ -893,7 +921,7 @@ describe('CustomFormula', () => {
         });
 
         test('should apply custom date formats', () => {
-            const policy = createMock<Policy>({autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY});
+            const policy = createMock<Policy>({autoReporting: true, autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY});
             const context = createMockContext(policy);
 
             expect(compute('{report:autoreporting:start:MMMM dd, yyyy}', context)).toBe('January 13, 2025');
@@ -902,7 +930,7 @@ describe('CustomFormula', () => {
 
         test('should return formula definition when policy or frequency is missing', () => {
             expect(compute('{report:autoreporting:start}', {getCurrencyDecimals: getCurrencyDecimalsLocal, report: mockReport, policy: undefined})).toBe('{report:autoreporting:start}');
-            expect(compute('{report:autoreporting:end}', createMockContext(createMock<Policy>({})))).toBe('{report:autoreporting:end}');
+            expect(compute('{report:autoreporting:end}', createMockContext(createMock<Policy>({autoReporting: true})))).toBe('{report:autoreporting:end}');
         });
     });
 
@@ -1297,7 +1325,7 @@ describe('CustomFormula', () => {
 
             // RFC 2822 format (r token)
             const rResult = compute('{report:startdate:r}', mockContextWithDate);
-            expect(rResult).toMatch(/^Wed, 08 Jan 2025 \d{2}:\d{2}:\d{2} [+-]\d{4}$/);
+            expect(rResult).toBe('Wed, 08 Jan 2025 15:30:45 +0000');
 
             // Unix timestamp (U token)
             const uResult = compute('{report:startdate:U}', mockContextWithDate);
