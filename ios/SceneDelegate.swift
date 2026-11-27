@@ -99,8 +99,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
   // MARK: - Forwarding to React Native and the app delegate
 
-  // React Native 0.88 ignores `RCTLinkingManager`'s app delegate entry points in apps that adopt
-  // UIScene, so links reach JS through its scene entry points. The app delegate still gets them, so
+  // `RCTLinkingManager`'s app delegate entry points do nothing in apps that adopt UIScene, so links
+  // reach JS through its scene entry points. The app delegate still gets them, so
   // Expo subscribers and any `UIApplicationDelegate` swizzling (Firebase swizzles both selectors) see them.
 
   private func forward(urlContext: UIOpenURLContext, in scene: UIScene) {
