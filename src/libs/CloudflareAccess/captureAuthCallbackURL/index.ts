@@ -55,15 +55,15 @@ function runCapture(): CapturedAuthCallback {
 
     const oauthError = params.get('error');
     if (oauthError) {
-        return {outcome: 'provider-error', errorMessage: new OAuthError(oauthError, params.get('error_description') ?? undefined).message};
+        return {outcome: 'provider-error', flowCreatedAt: flow.createdAt, errorMessage: new OAuthError(oauthError, params.get('error_description') ?? undefined).message};
     }
 
     const code = params.get('code');
     if (!code) {
-        return {outcome: 'invalid-callback', errorMessage: 'OAuth callback is missing the authorization code'};
+        return {outcome: 'invalid-callback', flowCreatedAt: flow.createdAt, errorMessage: 'OAuth callback is missing the authorization code'};
     }
 
-    return {outcome: 'code-captured', exchange: {code, codeVerifier: flow.codeVerifier}};
+    return {outcome: 'code-captured', flowCreatedAt: flow.createdAt, exchange: {code, codeVerifier: flow.codeVerifier}};
 }
 
 const captureCloudflareAuthCallbackURL: CaptureCloudflareAuthCallbackURL = () => {

@@ -34,6 +34,7 @@ jest.mock('@userActions/CloudflareSession', () => ({
 
 const RETURN_URL = 'http://localhost/settings/troubleshoot';
 const FLOW = {state: 'state-1', codeVerifier: 'verifier-1', returnURL: RETURN_URL, createdAt: 1_700_000_000_000};
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
 let captureAuthCallback: typeof CaptureAuthCallbackModule;
 let authRedirectCallback: typeof AuthRedirectCallbackModule;
@@ -97,10 +98,13 @@ describe('the boot-time QA auth callback handling', () => {
         expect(pendingAuthFlowStorage.consumePendingAuthFlow(FLOW.state)).not.toBeNull();
     });
 
-    it('sweeps expired records from abandoned round trips on every boot', () => {
-        // Given a round trip abandoned on the Authorize screen, whose record has since expired, and a later ordinary boot on an app route
+    it('sweeps records older than a day on every boot and keeps younger ones', () => {
+        // Given a round trip abandoned on the Authorize screen more than a day ago, another one left there 11 minutes ago, and a later ordinary boot on an app route
+        const recentFlow = {...FLOW, state: 'state-2', createdAt: FLOW.createdAt + ONE_DAY_MS};
         pendingAuthFlowStorage.savePendingAuthFlow(FLOW);
-        nowSpy.mockReturnValue(FLOW.createdAt + 11 * 60 * 1000);
+        nowSpy.mockReturnValue(recentFlow.createdAt);
+        pendingAuthFlowStorage.savePendingAuthFlow(recentFlow);
+        nowSpy.mockReturnValue(recentFlow.createdAt + 11 * 60 * 1000);
         Object.defineProperty(window, 'location', {
             value: {origin: 'http://localhost', href: RETURN_URL, pathname: '/settings/troubleshoot'},
             writable: true,
@@ -110,8 +114,10 @@ describe('the boot-time QA auth callback handling', () => {
         // When the boot-time handler runs
         runBoot();
 
-        // Then the record is gone from storage: no callback will ever consume it, and localStorage would otherwise keep it on disk indefinitely
+        // Then the day-old record is gone from storage: no callback will ever consume it, and localStorage would otherwise keep it on disk indefinitely
         expect(window.localStorage.getItem(`${CONST.LOCAL_STORAGE_KEYS.QA_AUTH_REDIRECT_FLOW_PREFIX}${FLOW.state}`)).toBeNull();
+        // Then the 11-minute-old record survives. Chrome reloads the page on Back after about 10 minutes on the consent page, and the reloaded page needs an open record to tell it came back from Cloudflare
+        expect(pendingAuthFlowStorage.consumePendingAuthFlow(recentFlow.state)).toEqual(recentFlow);
     });
 
     it('is a no-op when QA auth is not configured', () => {
@@ -215,6 +221,33 @@ describe('the boot-time QA auth callback handling', () => {
         // Then with no code there is nothing to redeem, so calling the token endpoint could only fail or mislead
         expect(runBoot()).toBe('invalid-callback');
         expect(sessionActions.exchangeCodeForCloudflareSession).not.toHaveBeenCalled();
+    });
+
+    it.each([
+        ['code-captured', '?code=auth-code-1&state=state-1'],
+        ['provider-error', '?state=state-1&error=access_denied'],
+        ['invalid-callback', '?state=state-1'],
+    ])('reports when the round trip left for Cloudflare on a %s callback', (outcome, search) => {
+        // Given a callback whose record was saved when the round trip left
+        arrangeCallbackURL(search);
+        pendingAuthFlowStorage.savePendingAuthFlow(FLOW);
+
+        // When the handler runs
+        runBoot();
+
+        // Then the capture carries the record's createdAt. The record is consumed here, so the capture is the only place left to tie the callback to what started the round trip, such as the email saved on Continue
+        expect(captureAuthCallback.getCapturedCloudflareAuthCallback()).toMatchObject({outcome, flowCreatedAt: FLOW.createdAt});
+    });
+
+    it('reports no departure time when no record matches the callback', () => {
+        // Given a callback with no stored flow
+        arrangeCallbackURL('?code=auth-code-1&state=state-1');
+
+        // When the handler runs
+        runBoot();
+
+        // Then the capture has no createdAt, since nothing proves when, or whether, this browser left
+        expect(captureAuthCallback.getCapturedCloudflareAuthCallback().flowCreatedAt).toBeUndefined();
     });
 
     it('refuses a callback with no stored flow, and lands on a safe route', () => {

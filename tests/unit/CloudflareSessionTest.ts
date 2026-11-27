@@ -7,7 +7,6 @@ import type * as SessionCleanupModule from '@libs/SessionCleanup';
 
 import type * as SessionActionsModule from '@userActions/CloudflareSession';
 
-import CONST from '@src/CONST';
 import type * as OnyxKeysModule from '@src/ONYXKEYS';
 import type CloudflareSession from '@src/types/onyx/CloudflareSession';
 
@@ -468,7 +467,7 @@ describe('redirectToCloudflareSignIn', () => {
                 sessionCleanup.runSessionCleanupCallbacks();
             },
         },
-    ])('drops a round trip still waiting on its callback on $trigger', async ({reset}) => {
+    ])('keeps a round trip still waiting on its callback through $trigger', async ({reset}) => {
         // Given a round trip whose navigation to the Authorize screen has been requested
         jest.mocked(pkce.generatePKCEPair).mockResolvedValue(PAIR_1);
         SessionActions.redirectToCloudflareSignIn();
@@ -477,35 +476,8 @@ describe('redirectToCloudflareSignIn', () => {
         // When the session is reset before the callback arrives
         await reset();
 
-        // Then the callback can no longer complete: a record left behind would let a round trip started before the reset sign this browser in after it
-        expect(pendingAuthFlowStorage.consumePendingAuthFlow(OAUTH_STATE)).toBeNull();
-    });
-
-    it('still wipes the stored session on Clear session when storage methods throw', async () => {
-        // Given a stored session, and a hardened configuration whose Storage lists a pending record but throws SecurityError from its methods
-        await seedSession(SESSION_A);
-        const setSpy = jest.spyOn(Onyx, 'set');
-        const throwSecurityError = () => {
-            throw new Error('SecurityError');
-        };
-        Object.defineProperty(window, 'localStorage', {
-            value: {
-                [`${CONST.LOCAL_STORAGE_KEYS.QA_AUTH_REDIRECT_FLOW_PREFIX}${OAUTH_STATE}`]: '{}',
-                getItem: throwSecurityError,
-                removeItem: throwSecurityError,
-                setItem: throwSecurityError,
-            },
-            writable: true,
-            configurable: true,
-        });
-
-        // When the user presses Clear session
-        await SessionActions.clearCloudflareSession();
-
-        // Then the stored session is still wiped. Clearing the pending records is the optional half of the reset,
-        // and a throw there must not keep the session alive for other tabs and the next boot
-        expect(setSpy).toHaveBeenCalledWith(ONYXKEYS.CLOUDFLARE_SESSION, null);
-        setSpy.mockRestore();
+        // Then the record is still there. It may belong to another tab still on the consent page, whose Allow needs it. Keeping it is safe: it holds no token, and an Allow after an Expensify sign-out gives this browser only a Cloudflare session, which Cloudflare's own sign-in would give it anyway
+        expect(pendingAuthFlowStorage.consumePendingAuthFlow(OAUTH_STATE)).toMatchObject({codeVerifier: PAIR_1.codeVerifier});
     });
 });
 
