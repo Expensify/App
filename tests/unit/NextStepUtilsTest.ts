@@ -122,6 +122,7 @@ describe('libs/NextStepUtils', () => {
                 };
                 const result = buildOptimisticNextStep({
                     rules: undefined,
+                    personalDetailsByLogins,
                     report: emptyReport,
                     policy,
                     currentUserAccountIDParam: currentUserAccountID,
@@ -148,6 +149,7 @@ describe('libs/NextStepUtils', () => {
                 };
                 const result = buildOptimisticNextStep({
                     rules: undefined,
+                    personalDetailsByLogins,
                     report,
                     policy,
                     currentUserAccountIDParam: currentUserAccountID,
@@ -173,6 +175,7 @@ describe('libs/NextStepUtils', () => {
                 };
                 const result = buildOptimisticNextStep({
                     rules: undefined,
+                    personalDetailsByLogins,
                     report,
                     policy,
                     currentUserAccountIDParam: currentUserAccountID,
@@ -204,6 +207,7 @@ describe('libs/NextStepUtils', () => {
                     };
                     const result = buildOptimisticNextStep({
                         rules: undefined,
+                        personalDetailsByLogins,
                         report,
                         policy: {
                             ...policy,
@@ -237,6 +241,7 @@ describe('libs/NextStepUtils', () => {
                     };
                     const result = buildOptimisticNextStep({
                         rules: undefined,
+                        personalDetailsByLogins,
                         report,
                         policy: {
                             ...policy,
@@ -271,6 +276,7 @@ describe('libs/NextStepUtils', () => {
                     };
                     const result = buildOptimisticNextStep({
                         rules: undefined,
+                        personalDetailsByLogins,
                         report,
                         policy: {
                             ...policy,
@@ -297,6 +303,7 @@ describe('libs/NextStepUtils', () => {
                     const buildMonthlyOnThe2ndNextStep = () =>
                         buildOptimisticNextStep({
                             rules: undefined,
+                            personalDetailsByLogins,
                             report,
                             policy: {
                                 ...policy,
@@ -364,6 +371,7 @@ describe('libs/NextStepUtils', () => {
                     };
                     const result = buildOptimisticNextStep({
                         rules: undefined,
+                        personalDetailsByLogins,
                         report,
                         policy: {
                             ...policy,
@@ -398,6 +406,7 @@ describe('libs/NextStepUtils', () => {
                     };
                     const result = buildOptimisticNextStep({
                         rules: undefined,
+                        personalDetailsByLogins,
                         report,
                         policy: {
                             ...policy,
@@ -433,6 +442,7 @@ describe('libs/NextStepUtils', () => {
                     };
                     const result = buildOptimisticNextStep({
                         rules: undefined,
+                        personalDetailsByLogins,
                         report,
                         policy: {
                             ...policy,
@@ -464,6 +474,7 @@ describe('libs/NextStepUtils', () => {
                     };
                     const result = buildOptimisticNextStep({
                         rules: undefined,
+                        personalDetailsByLogins,
                         report,
                         policy: {
                             ...policy,
@@ -498,6 +509,7 @@ describe('libs/NextStepUtils', () => {
                 };
                 const result = buildOptimisticNextStep({
                     rules: undefined,
+                    personalDetailsByLogins,
                     report,
                     policy,
                     currentUserAccountIDParam: currentUserAccountID,
@@ -527,6 +539,7 @@ describe('libs/NextStepUtils', () => {
                     };
                     const result = buildOptimisticNextStep({
                         rules: undefined,
+                        personalDetailsByLogins,
                         report,
                         policy,
                         currentUserAccountIDParam: currentUserAccountID,
@@ -565,6 +578,7 @@ describe('libs/NextStepUtils', () => {
                     };
                     const result = buildOptimisticNextStep({
                         rules: undefined,
+                        personalDetailsByLogins,
                         report,
                         policy,
                         currentUserAccountIDParam: currentUserAccountID,
@@ -598,6 +612,7 @@ describe('libs/NextStepUtils', () => {
                     };
                     const result = buildOptimisticNextStep({
                         rules: undefined,
+                        personalDetailsByLogins,
                         report,
                         policy,
                         currentUserAccountIDParam: currentUserAccountID,
@@ -625,6 +640,7 @@ describe('libs/NextStepUtils', () => {
                     };
                     const result = buildOptimisticNextStep({
                         rules: undefined,
+                        personalDetailsByLogins,
                         report,
                         policy,
                         currentUserAccountIDParam: currentUserAccountID,
@@ -654,6 +670,7 @@ describe('libs/NextStepUtils', () => {
                     };
                     const result = buildOptimisticNextStep({
                         rules: undefined,
+                        personalDetailsByLogins,
                         report,
                         policy,
                         currentUserAccountIDParam: currentUserAccountID,
@@ -683,6 +700,7 @@ describe('libs/NextStepUtils', () => {
                     };
                     const result = buildOptimisticNextStep({
                         rules: undefined,
+                        personalDetailsByLogins,
                         report,
                         policy,
                         currentUserAccountIDParam: currentUserAccountID,
@@ -711,6 +729,7 @@ describe('libs/NextStepUtils', () => {
                     };
                     const result = buildOptimisticNextStep({
                         rules: undefined,
+                        personalDetailsByLogins,
                         report,
                         policy: {...policy, reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO},
                         currentUserAccountIDParam: currentUserAccountID,
@@ -738,6 +757,7 @@ describe('libs/NextStepUtils', () => {
                 // When the report is approved
                 const result = buildOptimisticNextStep({
                     rules: undefined,
+                    personalDetailsByLogins,
                     report,
                     policy: manualPolicy,
                     currentUserAccountIDParam: currentUserAccountID,
@@ -771,6 +791,7 @@ describe('libs/NextStepUtils', () => {
                     };
                     const result = buildOptimisticNextStep({
                         rules: undefined,
+                        personalDetailsByLogins,
                         report,
                         policy,
                         currentUserAccountIDParam: currentUserAccountID,
@@ -800,6 +821,7 @@ describe('libs/NextStepUtils', () => {
                 };
                 const result = buildOptimisticNextStep({
                     rules: undefined,
+                    personalDetailsByLogins,
                     report,
                     policy,
                     currentUserAccountIDParam: currentUserAccountID,
@@ -833,6 +855,7 @@ describe('libs/NextStepUtils', () => {
                     };
                     const result = buildOptimisticNextStep({
                         rules: undefined,
+                        personalDetailsByLogins,
                         report,
                         policy,
                         currentUserAccountIDParam: currentUserAccountID,
@@ -858,6 +881,7 @@ describe('libs/NextStepUtils', () => {
                     };
                     const result = buildOptimisticNextStep({
                         rules: undefined,
+                        personalDetailsByLogins,
                         report,
                         policy,
                         currentUserAccountIDParam: currentUserAccountID,
@@ -1875,6 +1899,7 @@ describe('libs/NextStepUtils', () => {
 
             const result = buildOptimisticNextStep({
                 rules: undefined,
+                personalDetailsByLogins: undefined,
                 report,
                 policy,
                 currentUserAccountIDParam: currentUserAccountID,
@@ -1896,6 +1921,7 @@ describe('libs/NextStepUtils', () => {
 
             const result = buildOptimisticNextStep({
                 rules: undefined,
+                personalDetailsByLogins: undefined,
                 report,
                 policy,
                 currentUserAccountIDParam: currentUserAccountID,
@@ -1980,6 +2006,7 @@ describe('libs/NextStepUtils', () => {
             // When the optimistic next step is built for the report's next status
             const result = buildOptimisticNextStep({
                 rules: undefined,
+                personalDetailsByLogins: undefined,
                 report,
                 policy,
                 currentUserAccountIDParam: currentUserAccountID,
