@@ -494,7 +494,7 @@ function useReportActionsScroll({
         : -1;
     let initialScrollIndex: number | undefined;
     let initialScrollIndexParams: {viewPosition?: number; viewOffset?: number} | undefined;
-    if (targetIndex > 0) {
+    if (targetIndex >= 0) {
         initialScrollIndex = targetIndex;
         initialScrollIndexParams = {viewPosition: 1, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET};
     } else if (shouldFocusToTopOnMount) {

@@ -5,7 +5,7 @@ import {canViewAllPolicyData, hasMultipleMembers} from '@pages/Insights/insights
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, Policy} from '@src/types/onyx';
+import type {Policy} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -42,10 +42,6 @@ function getVisibleComplianceCharts(policies: Policy[], policyIDs: string[] = []
     return getVisibleCharts(COMPLIANCE_SPEC.supportingCharts, getPoliciesInScope(toCollection(policies), policyIDs), LOGIN, COMPLIANCE_SPEC.isPolicyEligible).map(({graphKey}) => graphKey);
 }
 
-const isComplianceBetaEnabled = (beta: Beta) => beta === CONST.BETAS.INSIGHTS_COMPLIANCE;
-const isEfficiencyBetaEnabled = (beta: Beta) => beta === CONST.BETAS.INSIGHTS_EFFICIENCY;
-const isNoBetaEnabled = () => false;
-
 describe('insightsAccess', () => {
     describe('canViewAllPolicyData', () => {
         it('lets admins and auditors view all of the workspace data', () => {
@@ -79,81 +75,48 @@ describe('insightsAccess', () => {
     });
 
     describe('getAccessibleDashboards', () => {
-        it('hides Compliance without the beta, even from admins', () => {
-            // Given an admin of a workspace who doesn't have the compliance beta
-            const policies = toCollection([buildPolicy(1, CONST.POLICY.ROLE.ADMIN)]);
-
-            // When the dashboards they can open are resolved
-            const dashboards = getAccessibleDashboards(policies, LOGIN, isNoBetaEnabled);
-
-            // Then only Spend is offered, so the beta keeps Compliance out of production
-            expect(dashboards).toEqual([SPEND]);
-        });
-
-        it('offers Compliance to admins and auditors with the beta', () => {
-            // Given one user who administers a workspace and another who audits one, both with the beta
-            const adminPolicies = toCollection([buildPolicy(1, CONST.POLICY.ROLE.ADMIN)]);
-            const auditorPolicies = toCollection([buildPolicy(1, CONST.POLICY.ROLE.AUDITOR)]);
-
-            // When the dashboards they can open are resolved
-            // Then both get Spend followed by Compliance, in the order the tabs are shown
-            expect(getAccessibleDashboards(adminPolicies, LOGIN, isComplianceBetaEnabled)).toEqual([SPEND, COMPLIANCE]);
-            expect(getAccessibleDashboards(auditorPolicies, LOGIN, isComplianceBetaEnabled)).toEqual([SPEND, COMPLIANCE]);
-        });
-
-        it('hides Compliance from members who are neither admin nor auditor', () => {
-            // Given a user with the beta who is only a regular member of their workspaces
+        it('hides Compliance and Efficiency from members who are neither admin nor auditor', () => {
+            // Given a user who is only a regular member of their workspaces
             const policies = toCollection([buildPolicy(1, CONST.POLICY.ROLE.USER), buildPolicy(2, CONST.POLICY.ROLE.USER)]);
 
             // When the dashboards they can open are resolved
-            const dashboards = getAccessibleDashboards(policies, LOGIN, isComplianceBetaEnabled);
+            const dashboards = getAccessibleDashboards(policies, LOGIN);
 
-            // Then only Spend is offered, since they can't review other members' violations
+            // Then only Spend is offered, since they can't review other members' expenses or reports
             expect(dashboards).toEqual([SPEND]);
         });
 
-        it('offers Compliance when any of the workspaces qualifies, whatever the roles on the others', () => {
-            // Given a user with the beta who administers one workspace and is a regular member of another
+        it('offers Compliance and Efficiency when any workspace qualifies', () => {
+            // Given a user who administers one workspace and is a regular member of another
             const policies = toCollection([buildPolicy(1, CONST.POLICY.ROLE.ADMIN), buildPolicy(2, CONST.POLICY.ROLE.USER)]);
 
             // When the dashboards they can open are resolved
-            const dashboards = getAccessibleDashboards(policies, LOGIN, isComplianceBetaEnabled);
+            const dashboards = getAccessibleDashboards(policies, LOGIN);
 
-            // Then Compliance is offered, so narrowing the workspace filter to the member one can't hide its tab
-            expect(dashboards).toEqual([SPEND, COMPLIANCE]);
+            // Then both tabs are offered, regardless of their role in the other workspace
+            expect(dashboards).toEqual([SPEND, EFFICIENCY, COMPLIANCE]);
         });
 
-        it('hides Compliance once its only qualifying workspace is deleted offline', () => {
-            // Given an admin with the beta whose only workspace is waiting for the server to confirm its deletion
+        it('hides Compliance and Efficiency once their only qualifying workspace is deleted offline', () => {
+            // Given an admin whose only workspace is waiting for the server to confirm its deletion
             const policies = toCollection([{...buildPolicy(1, CONST.POLICY.ROLE.ADMIN), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}]);
 
             // When the dashboards they can open are resolved
-            const dashboards = getAccessibleDashboards(policies, LOGIN, isComplianceBetaEnabled);
+            const dashboards = getAccessibleDashboards(policies, LOGIN);
 
-            // Then Compliance is gone right away, instead of turning into a not-found page on reconnect
+            // Then both tabs are gone right away, rather than turning into not-found pages on reconnect
             expect(dashboards).toEqual([SPEND]);
         });
 
-        it('offers Efficiency to admins and auditors with the beta, on every plan', () => {
-            // Given an admin of a Collect workspace and an auditor of a Control workspace, both with the beta
+        it('offers Compliance and Efficiency to admins and auditors without betas', () => {
+            // Given an admin of a Collect workspace and an auditor of a Control workspace
             const adminPolicies = toCollection([buildPolicy(1, CONST.POLICY.ROLE.ADMIN, CONST.POLICY.TYPE.TEAM)]);
             const auditorPolicies = toCollection([buildPolicy(1, CONST.POLICY.ROLE.AUDITOR, CONST.POLICY.TYPE.CORPORATE)]);
 
             // When the dashboards they can open are resolved
-            // Then both get Spend followed by Efficiency, since no plan is required
-            expect(getAccessibleDashboards(adminPolicies, LOGIN, isEfficiencyBetaEnabled)).toEqual([SPEND, EFFICIENCY]);
-            expect(getAccessibleDashboards(auditorPolicies, LOGIN, isEfficiencyBetaEnabled)).toEqual([SPEND, EFFICIENCY]);
-        });
-
-        it('hides Efficiency from members who are neither admin nor auditor', () => {
-            // Given a user with the beta who is only a regular member of their workspace
-            const policies = toCollection([buildPolicy(1, CONST.POLICY.ROLE.USER)]);
-
-            // When the dashboards they can open are resolved
-            const dashboards = getAccessibleDashboards(policies, LOGIN, isEfficiencyBetaEnabled);
-
-            // Then only Spend is offered, since they can't see how long other members' reports take
-            expect(dashboards).toEqual([SPEND]);
+            // Then both see all three tabs in the same order; the Control upsell is handled inside Compliance
+            expect(getAccessibleDashboards(adminPolicies, LOGIN)).toEqual([SPEND, EFFICIENCY, COMPLIANCE]);
+            expect(getAccessibleDashboards(auditorPolicies, LOGIN)).toEqual([SPEND, EFFICIENCY, COMPLIANCE]);
         });
     });
     describe('hasMultipleMembers', () => {

@@ -404,6 +404,14 @@ function canEditWorkspaceSettings(policy: OnyxInputOrEntry<Policy>, login?: stri
     return isPolicyAdmin(policy, login) || (isSubmitPolicy(policy) && isPolicyEditor(policy, login));
 }
 
+/**
+ * Whether the current user can choose which categories the members they're inviting can use. Only workspace admins
+ * can, so People Admins don't get the option, and only on Control workspaces with categories enabled.
+ */
+function canSetInvitedMembersCategoryVisibility(policy: OnyxEntry<Policy>): boolean {
+    return isPolicyAdmin(policy) && isControlPolicy(policy) && !!policy?.areCategoriesEnabled;
+}
+
 export {
     isPolicyAdmin,
     isPolicyOwner,
@@ -433,6 +441,7 @@ export {
     isAdminOfCardEnabledPolicy,
     isPolicyEmployee,
     canEditWorkspaceSettings,
+    canSetInvitedMembersCategoryVisibility,
 };
 
 export type {PolicyFeature, PolicyFeatureAccess};

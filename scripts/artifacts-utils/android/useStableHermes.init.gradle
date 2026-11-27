@@ -1,0 +1,36 @@
+// cspell:ignore allprojects -- Gradle's API name
+// Builds our react-android artifacts against the prebuilt Hermes the app links, instead of compiling Hermes from source.
+//
+// Mirrors upstream's `react.internal.useHermesStable` (the root build.gradle.kts of facebook/react-native, which the npm
+// package does not ship): it disables the hermes-engine project and resolves it to the prebuilt
+// com.facebook.hermes:hermes-android of the given version. Without it, hermes-engine compiles the Hermes tag from
+// sdks/.hermesv1version, which can differ from the HERMES_VERSION_NAME the app links, so react-android would be
+// compiled against other Hermes headers than recorded in its POM.
+//
+// Passed with --init-script by publishReactNativeAndroidArtifacts.yml. It applies to every build of the composite,
+// but only changes the one that contains the hermes-engine project: the react-native build included from source.
+// Expects HERMES_VERSION, as printed by get-hermes-version.sh.
+
+def hermesEnginePath = ':packages:react-native:ReactAndroid:hermes-engine'
+def hermesVersion = System.getenv('HERMES_VERSION')
+
+allprojects { currentProject ->
+    if (currentProject.rootProject.findProject(hermesEnginePath) == null) {
+        return
+    }
+    if (!hermesVersion) {
+        throw new GradleException('HERMES_VERSION is not set; run scripts/artifacts-utils/get-hermes-version.sh to get it.')
+    }
+
+    if (currentProject.path == hermesEnginePath) {
+        currentProject.tasks.configureEach { enabled = false }
+    }
+
+    currentProject.configurations.configureEach {
+        resolutionStrategy.dependencySubstitution {
+            substitute(project(hermesEnginePath))
+                .using(module("com.facebook.hermes:hermes-android:${hermesVersion}"))
+                .because('react-android artifacts are built against the prebuilt Hermes the app links')
+        }
+    }
+}

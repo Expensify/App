@@ -16,6 +16,9 @@ import type {OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
+// Remounts share generation, but completed answers stay only in the evictable Onyx cache.
+const pendingExplanations = new Map<string, Promise<void>>();
+
 /** Sends an Insights read command and stores the response's JSON code, which distinguishes backend errors from requests that got no response */
 function requestInsights<TKey extends OnyxKey>(
     command: typeof READ_COMMANDS.GET_INSIGHTS | typeof READ_COMMANDS.GET_INSIGHTS_DETAILS,
@@ -129,4 +132,21 @@ function setInsightsFilters(searchKey: InsightsSearchKey, query: SearchQueryStri
     Onyx.merge(ONYXKEYS.SEARCH_FILTERS, {[searchKey]: {query}});
 }
 
-export {getInsights, getInsightsDetails, setInsightsFilters};
+function preloadInsightsExplanation(jsonQuery: string, hash: number): Promise<void> {
+    const pending = pendingExplanations.get(jsonQuery);
+    if (pending) {
+        return pending;
+    }
+    const request = waitForWrites(READ_COMMANDS.GET_INSIGHTS_EXPLANATION)
+        .then(async () => {
+            await makeRequestWithSideEffects(READ_COMMANDS.GET_INSIGHTS_EXPLANATION, {jsonQuery, hash});
+        })
+        .catch((error: unknown) => {
+            Log.hmmm('[Insights] explanation preload failed', {error: String(error)});
+        })
+        .finally(() => pendingExplanations.delete(jsonQuery));
+    pendingExplanations.set(jsonQuery, request);
+    return request;
+}
+
+export {getInsights, getInsightsDetails, preloadInsightsExplanation, setInsightsFilters};
