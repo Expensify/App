@@ -4742,6 +4742,7 @@ describe('actions/Duplicate', () => {
                 canApprove: false,
                 canSubmit: false,
                 canChangeApprover: false,
+                canReject: false,
                 total: 0,
                 chatReportID: undefined,
             })),

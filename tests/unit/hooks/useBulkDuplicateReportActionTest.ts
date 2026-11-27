@@ -73,6 +73,7 @@ function makeSelectedReport(overrides: Partial<SelectedReports> = {}): SelectedR
         canApprove: false,
         canSubmit: false,
         canChangeApprover: false,
+        canReject: false,
         total: 100,
         currency: 'USD',
         chatReportID: undefined,

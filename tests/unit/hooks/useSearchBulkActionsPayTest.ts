@@ -334,6 +334,7 @@ function makeSelectedReport(overrides: Partial<SelectedReports> = {}): SelectedR
         canApprove: false,
         canSubmit: false,
         canChangeApprover: false,
+        canReject: false,
         ...overrides,
     };
 }
@@ -722,6 +723,7 @@ describe('useSearchBulkActions - bulk pay chat report fallback', () => {
                 canApprove: false,
                 canSubmit: false,
                 canChangeApprover: false,
+                canReject: false,
             },
         ];
         jest.mocked(getLastPolicyPaymentMethod).mockReturnValue(CONST.IOU.PAYMENT_TYPE.ELSEWHERE);
@@ -807,6 +809,7 @@ describe('useSearchBulkActions - bulk pay chat report fallback', () => {
                 canApprove: false,
                 canSubmit: false,
                 canChangeApprover: false,
+                canReject: false,
             },
         ];
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}1`, {reportID: '1', type: CONST.REPORT.TYPE.EXPENSE, policyID: 'policy1'});

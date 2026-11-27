@@ -808,6 +808,7 @@ describe('getPayOption', () => {
             canApprove: false,
             canSubmit: false,
             canChangeApprover: false,
+            canReject: false,
         };
     }
 

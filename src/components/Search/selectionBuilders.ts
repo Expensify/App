@@ -553,6 +553,7 @@ function deriveSelectedReports(transactionIDs: SelectedTransactions, data: Searc
                 canApprove: item.canApprove,
                 canSubmit: item.canSubmit,
                 canChangeApprover: item.canChangeApprover,
+                canReject: item.canReject,
                 currency: item.currency,
                 chatReportID: item.chatReportID,
                 managerID: item.managerID,
@@ -580,6 +581,8 @@ function deriveSelectedReports(transactionIDs: SelectedTransactions, data: Searc
                 canApprove: item.canApprove,
                 canSubmit: item.canSubmit,
                 canChangeApprover: item.canChangeApprover,
+                // The expense's entry already ran the report-level reject check when the row was selected.
+                canReject: transactionIDs[item.keyForList].canReject,
                 currency: item.currency,
                 chatReportID: item.report?.chatReportID,
                 managerID: item.report?.managerID,
