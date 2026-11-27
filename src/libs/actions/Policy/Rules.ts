@@ -56,7 +56,7 @@ type PendingRulesFetch = {
 const pendingRulesFetches = new Map<string, PendingRulesFetch>();
 let cachedRules: OnyxCollection<Rule>;
 
-// The action needs live rules when a response arrives to avoid undoing edits made after the request started.
+// A fetch can outlive its screen, so the action tracks rule changes until the response is applied.
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.RULE,
     callback: (rules) => {
@@ -80,13 +80,19 @@ function isRuleKey(key: string): key is RuleKey {
     return key.startsWith(ONYXKEYS.COLLECTION.RULE) && key !== ONYXKEYS.COLLECTION.RULE;
 }
 
-function applyPolicyRulesSnapshot(policyID: string, snapshot: Record<string, Rule>, rulesBeforeFetch: OnyxCollection<Rule>, newRuleKeys: ReadonlySet<string>) {
+function getPolicyRulesSnapshotUpdates(
+    policyID: string,
+    snapshot: Record<string, Rule>,
+    rulesBeforeFetch: OnyxCollection<Rule>,
+    currentRules: OnyxCollection<Rule>,
+    newRuleKeys: ReadonlySet<string>,
+): OnyxMultiSetInput {
     const updates: OnyxMultiSetInput = {};
     const previousPolicyRules = filterRulesForPolicy(rulesBeforeFetch, policyID);
 
     // Leave newer rule data and local changes in place when applying the snapshot.
     const canReplaceCachedRule = (key: string) => {
-        const current = cachedRules?.[key];
+        const current = currentRules?.[key];
         return current === previousPolicyRules[key] && !newRuleKeys.has(key) && !current?.pendingAction && !current?.errors;
     };
 
@@ -100,7 +106,7 @@ function applyPolicyRulesSnapshot(policyID: string, snapshot: Record<string, Rul
             updates[key] = rule;
         }
     }
-    return Onyx.multiSet(updates);
+    return updates;
 }
 
 /** Refreshes one workspace without replacing the rules for other workspaces or accounts. */
@@ -151,7 +157,7 @@ async function getPolicyRules(policyID: string | undefined) {
         if (!isCurrentFetch()) {
             return;
         }
-        // Cache reset removes the loading key. The action must release the slot so screens can refetch.
+        // Cancel on cache clear even if the screen that started the fetch has unmounted.
         const statusConnection = Onyx.connectWithoutView({
             key,
             callback: (value) => {
@@ -183,7 +189,8 @@ async function getPolicyRules(policyID: string | undefined) {
         if (!isCurrentFetch()) {
             return;
         }
-        await applyPolicyRulesSnapshot(policyID, response.rules, rulesBeforeFetch, newRuleKeys);
+        const updates = getPolicyRulesSnapshotUpdates(policyID, response.rules, rulesBeforeFetch, cachedRules, newRuleKeys);
+        await Onyx.multiSet(updates);
         status = LOADED;
     } catch (error) {
         Log.hmmm('[Rules] Failed to fetch workspace rules', {policyID, error: String(error)});
