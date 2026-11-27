@@ -4106,6 +4106,124 @@ describe('SearchUIUtils', () => {
             expect(feedNameByCardID.get(workspaceFeedCardID)).not.toBe('Deleted feed');
         });
 
+        it('uses cardTitle as the group-by-card heading for a company card, ignoring any per-viewer custom name', () => {
+            // Given a company card with an authoritative cardTitle and an entry in the per-viewer customCardNames NVP.
+            const companyCardID = 77777777;
+            const data: OnyxTypes.SearchResults['data'] = {
+                personalDetailsList: {},
+                [`${CONST.SEARCH.GROUP_PREFIX}${companyCardID}` as const]: {
+                    accountID: adminAccountID,
+                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                    cardID: companyCardID,
+                    cardName: 'Chase Visa',
+                    count: 1,
+                    currency: 'USD',
+                    lastFourPAN: '4321',
+                    total: 50,
+                },
+            };
+
+            const cardList = createMock<OnyxTypes.CardList>({
+                [companyCardID]: createMock<OnyxTypes.Card>({
+                    cardID: companyCardID,
+                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                    nameValuePairs: {cardTitle: 'Corporate Visa'},
+                }),
+            });
+
+            // The card is a company card — present in the non-personal list.
+            const nonPersonalAndWorkspaceCardList = createMock<OnyxTypes.CardList>({
+                [companyCardID]: createMock<OnyxTypes.Card>({cardID: companyCardID, bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}),
+            });
+
+            // When the user has a personal rename for this card in their NVP.
+            const customCardNames: Record<number, string> = {[companyCardID]: 'My personal rename'};
+
+            const [sections] = getSectionsByType(
+                SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    data,
+                    currentAccountID: adminAccountID,
+                    currentUserEmail: '',
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    rules: undefined,
+                    groupBy: CONST.SEARCH.GROUP_BY.CARD,
+                    cardFeeds: undefined,
+                    cardList,
+                    nonPersonalAndWorkspaceCardList,
+                    customCardNames,
+                    conciergeReportID: undefined,
+                    convertToDisplayString,
+                    reportAttributesDerivedValue: undefined,
+                }),
+                (item): item is TransactionCardGroupListItemType => SearchUIUtils.isTransactionGroupListItemType(item) && 'cardID' in item,
+            );
+
+            // Then the heading uses cardTitle with last four, NOT the per-viewer personal rename.
+            expect(sections[0].formattedCardName).toBe('Corporate Visa • 4321');
+        });
+
+        it('applies the per-viewer custom name for personal cards in the group-by-card heading', () => {
+            // Given a personal card whose owner has a custom rename in their NVP.
+            const personalCardID = 88888888;
+            const data: OnyxTypes.SearchResults['data'] = {
+                personalDetailsList: {},
+                [`${CONST.SEARCH.GROUP_PREFIX}${personalCardID}` as const]: {
+                    accountID: adminAccountID,
+                    bank: CONST.PERSONAL_CARDS.BANK_NAME.CHASE,
+                    cardID: personalCardID,
+                    cardName: 'Chase Personal',
+                    count: 1,
+                    currency: 'USD',
+                    lastFourPAN: '8888',
+                    total: 25,
+                },
+            };
+
+            const cardList = createMock<OnyxTypes.CardList>({
+                [personalCardID]: createMock<OnyxTypes.Card>({
+                    cardID: personalCardID,
+                    bank: CONST.PERSONAL_CARDS.BANK_NAME.CHASE,
+                    fundID: undefined,
+                }),
+            });
+
+            // The card is personal — absent from the non-personal list.
+            const nonPersonalAndWorkspaceCardList = createMock<OnyxTypes.CardList>({});
+
+            // When the user has a personal rename for this card.
+            const customCardNames: Record<number, string> = {[personalCardID]: 'My Chase'};
+
+            const [sections] = getSectionsByType(
+                SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    data,
+                    currentAccountID: adminAccountID,
+                    currentUserEmail: '',
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    rules: undefined,
+                    groupBy: CONST.SEARCH.GROUP_BY.CARD,
+                    cardFeeds: undefined,
+                    cardList,
+                    nonPersonalAndWorkspaceCardList,
+                    customCardNames,
+                    conciergeReportID: undefined,
+                    convertToDisplayString,
+                    reportAttributesDerivedValue: undefined,
+                }),
+                (item): item is TransactionCardGroupListItemType => SearchUIUtils.isTransactionGroupListItemType(item) && 'cardID' in item,
+            );
+
+            // Then the heading shows the personal rename with last four.
+            expect(sections[0].formattedCardName).toBe('My Chase • 8888');
+        });
+
         it('should return getWithdrawalIDSections result when type is EXPENSE and groupBy is withdrawal-id', () => {
             expect(
                 SearchUIUtils.getSections({

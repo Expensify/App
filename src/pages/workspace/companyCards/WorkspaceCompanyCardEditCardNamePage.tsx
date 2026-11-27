@@ -48,15 +48,19 @@ function WorkspaceCompanyCardEditCardNamePage({route, navigation}: WorkspaceComp
     const [cardFeeds] = useCardFeeds(policyID);
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyFeeds[feed]);
+    const bankName = getCompanyCardFeed(feed);
     const goBackToCardDetails = () => Navigation.goBack(getCompanyCardDetailsBackPath(policyID, feed, cardID, navigation.getState()));
 
     const [sharedCardCustomNames] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainOrWorkspaceAccountID}`, {
         selector: companyCardCustomNamesSelector,
     });
+    const [previousCardTitle] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainOrWorkspaceAccountID}_${bankName}`, {
+        selector: (cardsList) => cardsList?.[cardID]?.nameValuePairs?.cardTitle,
+    });
     const defaultValue = getCompanyCardCustomName(cardID, sharedCardCustomNames, customCardNames);
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM>) => {
-        updateCompanyCardName(domainOrWorkspaceAccountID, cardID, StringUtils.sanitizeName(values[INPUT_IDS.NAME]), getCompanyCardFeed(feed), defaultValue);
+        updateCompanyCardName(domainOrWorkspaceAccountID, cardID, StringUtils.sanitizeName(values[INPUT_IDS.NAME]), bankName, previousCardTitle);
         goBackToCardDetails();
     };
 

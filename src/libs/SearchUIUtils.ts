@@ -3767,7 +3767,14 @@ function getCardSections(
             }
             const transactionsQueryJSON = getGroupTransactionsQueryJSON(queryJSON, CONST.SEARCH.GROUP_BY.CARD, cardGroup);
 
-            let formattedCardName = customCardNames?.[cardGroup.cardID];
+            const card = cardList?.[cardGroup.cardID];
+            // Company cards from card feeds can lack a `fundID`, so `isPersonalCard` alone can misclassify them.
+            // Presence in the non-personal list definitively identifies workspace/company-feed cards as NOT personal.
+            const isPersonal = !!card && isPersonalCard(card) && !nonPersonalAndWorkspaceCardList?.[cardGroup.cardID];
+
+            // Personal-card renames live in the per-viewer NVP; company cards share one authoritative cardTitle so the
+            // per-viewer map must not override it.
+            let formattedCardName = isPersonal ? customCardNames?.[cardGroup.cardID] : undefined;
             if (formattedCardName === undefined) {
                 const cached = cardDescriptionByCardID.get(cardGroup.cardID);
                 if (cached !== undefined) {
@@ -3779,6 +3786,7 @@ function getCardSections(
                             bank: cardGroup.bank,
                             cardName: cardGroup.cardName,
                             lastFourPAN: cardGroup.lastFourPAN,
+                            nameValuePairs: card?.nameValuePairs,
                         } as OnyxTypes.Card,
                         translate,
                         personalDetails?.displayName,
@@ -3788,12 +3796,6 @@ function getCardSections(
             } else if (cardGroup.lastFourPAN) {
                 formattedCardName = formattedCardNameWithDotAndLastFour(formattedCardName, cardGroup.lastFourPAN);
             }
-
-            const card = cardList?.[cardGroup.cardID];
-            // A workspace/company card from a card feed can also lack a `fundID`, so `isPersonalCard` alone would misclassify it.
-            // The non-personal card list keeps every company/workspace-feed card while filtering personal cards out, so presence
-            // there means the card is definitively NOT personal.
-            const isPersonal = !!card && isPersonalCard(card) && !nonPersonalAndWorkspaceCardList?.[cardGroup.cardID];
             cardSections[key] = {
                 groupedBy: CONST.SEARCH.GROUP_BY.CARD,
                 transactions: [],

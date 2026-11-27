@@ -3095,6 +3095,52 @@ describe('CardUtils', () => {
             const description = getCardDescriptionForSearchTable(card, translateLocal, 'John Doe');
             expect(description).toBe("John Doe's card • 5644");
         });
+
+        it('should use cardTitle before displayName for a company card that has cardTitle set', () => {
+            // Given a company card with an authoritative cardTitle and a cardholder display name.
+            const card: Card = {
+                accountID: 18439984,
+                bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                cardID: 11111111,
+                cardName: 'Chase Visa',
+                domainName: 'expensify-policy41314f4dc5ce25af.exfy',
+                fraud: 'none',
+                lastFourPAN: '9999',
+                lastScrape: '',
+                lastUpdated: '',
+                state: 3,
+                nameValuePairs: createMock<Card['nameValuePairs']>({cardTitle: 'Corporate Visa'}),
+            };
+
+            // When the description is requested with a cardholder display name.
+            const description = getCardDescriptionForSearchTable(card, translateLocal, 'Jane Smith');
+
+            // Then cardTitle takes precedence over the display name, with lastFourPAN appended.
+            expect(description).toBe('Corporate Visa • 9999');
+        });
+
+        it('should return cardTitle without lastFourPAN when lastFourPAN is absent', () => {
+            // Given a company card with cardTitle but no last four digits on record.
+            const card: Card = {
+                accountID: 18439984,
+                bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                cardID: 22222222,
+                cardName: 'Chase Visa',
+                domainName: 'expensify-policy41314f4dc5ce25af.exfy',
+                fraud: 'none',
+                lastFourPAN: '',
+                lastScrape: '',
+                lastUpdated: '',
+                state: 3,
+                nameValuePairs: createMock<Card['nameValuePairs']>({cardTitle: 'Corporate Visa'}),
+            };
+
+            // When the description is requested.
+            const description = getCardDescriptionForSearchTable(card, translateLocal, 'Jane Smith');
+
+            // Then cardTitle is returned as-is without a dot separator.
+            expect(description).toBe('Corporate Visa');
+        });
     });
 
     describe('getDisplayableExpensifyCards', () => {
@@ -3913,6 +3959,63 @@ describe('CardUtils', () => {
         it("should return 'Travel invoicing' for another member's travel card that isn't in the viewer's card list", () => {
             const description = getCompanyCardDescription(mockTranslate, 'Expensify Card - 6909', 99999, undefined, CONST.TRAVEL.PROGRAM_TRAVEL_US);
             expect(description).toBe('Travel invoicing');
+        });
+
+        it('should use cardTitle with lastFourPAN when the card has an authoritative cardTitle', () => {
+            // Given a company card whose cardTitle has been set by the admin.
+            const cardListWithTitle: CardList = {
+                '30000001': createMock<Card>({
+                    cardID: 30000001,
+                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                    cardName: '480801XXXXXX1234',
+                    lastFourPAN: '1234',
+                    nameValuePairs: {cardTitle: 'Corporate Visa'},
+                }),
+            };
+
+            // When the description is requested for the company card.
+            const description = getCompanyCardDescription(mockTranslate, 'Corporate Visa', 30000001, cardListWithTitle);
+
+            // Then the authoritative cardTitle is shown with masked last digits.
+            expect(description).toBe('Corporate Visa • 1234');
+        });
+
+        it('should use cardTitle alone when lastFourPAN is absent', () => {
+            // Given a company card with cardTitle but no lastFourPAN recorded.
+            const cardListWithTitle: CardList = {
+                '30000002': createMock<Card>({
+                    cardID: 30000002,
+                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX,
+                    cardName: 'Some Amex',
+                    lastFourPAN: '',
+                    nameValuePairs: {cardTitle: 'Amex Business'},
+                }),
+            };
+
+            // When the description is requested.
+            const description = getCompanyCardDescription(mockTranslate, 'Amex Business', 30000002, cardListWithTitle);
+
+            // Then cardTitle is returned without a dot separator.
+            expect(description).toBe('Amex Business');
+        });
+
+        it('should fall back to cardName when cardTitle is not set', () => {
+            // Given a company card with no cardTitle — simulating a card not yet backfilled.
+            const legacyCardList: CardList = {
+                '30000003': createMock<Card>({
+                    cardID: 30000003,
+                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                    cardName: '480801XXXXXX5678',
+                    lastFourPAN: '5678',
+                    nameValuePairs: undefined,
+                }),
+            };
+
+            // When the description is requested.
+            const description = getCompanyCardDescription(mockTranslate, '480801XXXXXX5678', 30000003, legacyCardList);
+
+            // Then the existing cardName is returned unchanged (no duplicate last-four appended).
+            expect(description).toBe('480801XXXXXX5678');
         });
     });
 

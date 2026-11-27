@@ -271,7 +271,7 @@ function getCardDescriptionForSearchTable(card: Card, translate: LocalizedTransl
     if (isCSVCard) {
         return card.nameValuePairs?.cardTitle ?? card.cardName ?? '';
     }
-    const finalName = getDefaultCardName(displayName ?? '') ?? card.cardName;
+    const finalName = card.nameValuePairs?.cardTitle ?? getDefaultCardName(displayName ?? '') ?? card.cardName;
     return card.lastFourPAN ? `${finalName} ${CONST.DOT_SEPARATOR} ${card.lastFourPAN}` : `${finalName}`;
 }
 
@@ -297,6 +297,10 @@ function getCompanyCardDescription(translate: LocalizedTranslate, transactionCar
         return formattedTransactionCardName;
     }
 
+    const cardTitle = card.nameValuePairs?.cardTitle;
+    if (cardTitle) {
+        return card.lastFourPAN ? `${cardTitle} ${CONST.DOT_SEPARATOR} ${card.lastFourPAN}` : cardTitle;
+    }
     return card.cardName === CONST.EXPENSE.TYPE.CASH_CARD_NAME ? '' : card.cardName;
 }
 

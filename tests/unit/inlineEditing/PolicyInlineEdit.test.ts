@@ -5,6 +5,7 @@ import {
     getExpensifyCardLimitInlineEditError,
     getExpensifyCardLimitInlineUpdate,
     renameCategoryInline,
+    renameCompanyCardInline,
     renameExpensifyCardInline,
     updateDistanceRateValueInline,
     updateDistanceTaxClaimableValueInline,
@@ -22,7 +23,9 @@ import {updateWorkspaceMembersRole} from '@userActions/Policy/Member';
 
 import CONST from '@src/CONST';
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, Policy} from '@src/types/onyx';
+import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
 
 import type {PartialDeep} from 'type-fest';
@@ -331,6 +334,63 @@ describe('PolicyInlineEdit', () => {
 
             // Then nothing changes and no request is written
             expect(mockWrite).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('renameCompanyCardInline', () => {
+        const WORKSPACE_ACCOUNT_ID = 12345678;
+        const CARD_ID = '99001';
+        const BANK_NAME = CONST.COMPANY_CARD.FEED_BANK_NAME.VISA as CompanyCardFeedWithNumber;
+        const WORKSPACE_CARDS_KEY = `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${WORKSPACE_ACCOUNT_ID}_${BANK_NAME}`;
+
+        it('does not persist a name the user never changed', () => {
+            // Given a card displayed as "Corporate Visa"
+            // When the editor closes on blur with the same name
+            const rejection = renameCompanyCardInline(translate, WORKSPACE_ACCOUNT_ID, CARD_ID, 'Corporate Visa', BANK_NAME, 'Corporate Visa', 'Corporate Visa');
+
+            // Then nothing is written and no toast is raised
+            expect(rejection).toBeUndefined();
+            expect(mockWrite).not.toHaveBeenCalled();
+        });
+
+        it('does not persist an invalid name', () => {
+            // Given a card displayed as "Corporate Visa"
+            // When the editor commits a name containing an HTML-like tag
+            const rejection = renameCompanyCardInline(translate, WORKSPACE_ACCOUNT_ID, CARD_ID, '</>', BANK_NAME, 'Corporate Visa', 'Corporate Visa');
+
+            // Then the edit is dropped with the invalid-character error
+            expect(rejection).toBe('common.error.invalidCharacter');
+            expect(mockWrite).not.toHaveBeenCalled();
+        });
+
+        it('passes nameValuePairs.cardTitle as the rollback value so a failed rename restores the authoritative title', () => {
+            // Given a card whose nameValuePairs.cardTitle is "Corporate Visa" (the authoritative source)
+            // while the legacy NVP alias map might hold a different stale value
+            const actualCardTitle = 'Corporate Visa';
+
+            // When the user renames it to "New Name"
+            renameCompanyCardInline(translate, WORKSPACE_ACCOUNT_ID, CARD_ID, 'New Name', BANK_NAME, actualCardTitle, actualCardTitle);
+
+            // Then failureData restores nameValuePairs.cardTitle to the actual previous title
+            const {onyxData} = getWriteCall(WRITE_COMMANDS.UPDATE_COMPANY_CARD_NAME);
+            const onyxDataRecord = requireRecord(onyxData, 'Missing onyx data');
+            const rawFailureData = Array.isArray(onyxDataRecord.failureData) ? onyxDataRecord.failureData : [];
+            const cardListRollback = rawFailureData.find(
+                (item): item is {key: string; value: Record<string, unknown>} => isRecord(item) && typeof item.key === 'string' && item.key === WORKSPACE_CARDS_KEY,
+            );
+            expect(cardListRollback?.value?.[CARD_ID]).toMatchObject({
+                nameValuePairs: expect.objectContaining({cardTitle: actualCardTitle}),
+            });
+        });
+
+        it('persists the sanitized new name', () => {
+            // Given a card and a new name padded with whitespace
+            // When the editor commits the padded name
+            const rejection = renameCompanyCardInline(translate, WORKSPACE_ACCOUNT_ID, CARD_ID, '  Travel Visa  ', BANK_NAME, 'Corporate Visa', 'Corporate Visa');
+
+            // Then the trimmed name reaches the backend
+            expect(rejection).toBeUndefined();
+            expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_COMPANY_CARD_NAME, expect.objectContaining({cardName: 'Travel Visa'}), expect.anything());
         });
     });
 

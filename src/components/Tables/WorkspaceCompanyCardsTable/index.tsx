@@ -310,7 +310,6 @@ function WorkspaceCompanyCardsTable({
                   const cardholder = assignedCard?.accountID ? personalDetails?.[assignedCard.accountID] : undefined;
                   const isCardDeleted = assignedCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
                   const cardID = assignedCard?.cardID;
-                  // The cell shows a placeholder when the card was never renamed. Rollback uses the stored name so a failed rename does not persist that placeholder.
                   const storedCardName = getCompanyCardCustomName(cardID, sharedCardCustomNames, customCardNames);
                   const customCardName = storedCardName ?? getDefaultCardName(cardholder?.displayName ?? '');
                   const canEditName = canWriteCompanyCards && !!bankName && isAssigned && cardID !== undefined && !isCardDeleted && !isSelectionModeActive;
@@ -356,7 +355,9 @@ function WorkspaceCompanyCardsTable({
                           if (!bankName || cardID === undefined) {
                               return;
                           }
-                          showInlineEditError(renameCompanyCardInline(translate, domainOrWorkspaceAccountID, String(cardID), newName, bankName, customCardName, storedCardName));
+                          showInlineEditError(
+                              renameCompanyCardInline(translate, domainOrWorkspaceAccountID, String(cardID), newName, bankName, customCardName, assignedCard?.nameValuePairs?.cardTitle),
+                          );
                       },
                       onDismissError: () => {
                           if (hasTransactionStartDateErrors && bankName && cardID !== undefined) {
