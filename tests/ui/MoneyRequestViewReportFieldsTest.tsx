@@ -179,9 +179,9 @@ const renderReportFields = async (
     fieldCount: number,
     extraFields: OnyxTypes.PolicyReportField[] = [],
     reportOnlyFields: OnyxTypes.PolicyReportField[] = [],
-    options: {report?: Partial<OnyxTypes.Report>; reportNameValuePairs?: OnyxTypes.ReportNameValuePairs} = {},
+    options: {report?: Partial<OnyxTypes.Report>; policy?: Partial<OnyxTypes.Policy>; reportNameValuePairs?: OnyxTypes.ReportNameValuePairs} = {},
 ) => {
-    const policy = buildPolicy(fieldCount, extraFields);
+    const policy = {...buildPolicy(fieldCount, extraFields), ...options.policy};
     const report = {...buildReport(reportOnlyFields), ...options.report};
 
     await act(async () => {
@@ -616,6 +616,61 @@ describe('MoneyRequestViewReportFields', () => {
         expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
         expect(deleteReportField).toHaveBeenCalledTimes(1);
         expect(deleteReportField).toHaveBeenCalledWith(reportID, expect.objectContaining({fieldID: 'deletedField'}));
+    });
+
+    it('locks the fields for the submitter once the report is forwarded past the first approver', async () => {
+        // Given a submitter who is not a workspace admin, on a workspace where they submit to a first approver who
+        // forwards to a second one. Admins can always edit, so the submitter has to be a plain member for the lock to show
+        const submitterLogin = 'test@user.com';
+        const firstApproverAccountID = 2;
+        const firstApproverLogin = 'approver1@test.com';
+        const secondApproverAccountID = 3;
+        const secondApproverLogin = 'approver2@test.com';
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [accountID]: {accountID, login: submitterLogin},
+                [firstApproverAccountID]: {accountID: firstApproverAccountID, login: firstApproverLogin},
+                [secondApproverAccountID]: {accountID: secondApproverAccountID, login: secondApproverLogin},
+            });
+        });
+        const policyOverrides: Partial<OnyxTypes.Policy> = {
+            role: CONST.POLICY.ROLE.USER,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+            approver: firstApproverLogin,
+            employeeList: {
+                [submitterLogin]: {email: submitterLogin, role: CONST.POLICY.ROLE.USER, submitsTo: firstApproverLogin},
+                [firstApproverLogin]: {email: firstApproverLogin, role: CONST.POLICY.ROLE.USER, submitsTo: firstApproverLogin, forwardsTo: secondApproverLogin},
+                [secondApproverLogin]: {email: secondApproverLogin, role: CONST.POLICY.ROLE.USER, submitsTo: firstApproverLogin},
+            },
+        };
+        const submittedReport: Partial<OnyxTypes.Report> = {
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            managerID: firstApproverAccountID,
+        };
+
+        // When the submitted report is still waiting on the first approver
+        const {rerender} = await renderReportFields(1, [], [], {policy: policyOverrides, report: submittedReport});
+
+        // Then the submitter can still edit the field, because the report has not left the first approval level
+        expect(screen.getByLabelText('Field1')).not.toHaveProp('readOnly', true);
+
+        // When the first approver forwards the report, which moves the manager to the second approver
+        const policy = {...buildPolicy(1), ...policyOverrides};
+        const forwardedReport = {...buildReport(), ...submittedReport, managerID: secondApproverAccountID};
+        rerender(
+            <ComposeProviders components={[OnyxListItemProvider]}>
+                <MoneyRequestViewReportFields
+                    report={forwardedReport}
+                    policy={policy}
+                />
+            </ComposeProviders>,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the field is locked for the submitter, because the manager's login no longer matches the approver the
+        // report was submitted to, so a later approver is already reviewing the values
+        expect(screen.getByLabelText('Field1')).toHaveProp('readOnly', true);
     });
 
     it('keeps the field when the delete is cancelled', async () => {

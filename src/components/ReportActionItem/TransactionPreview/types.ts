@@ -1,4 +1,4 @@
-import type {PersonalDetailsList, Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 import type {DimensionValue, GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
@@ -92,9 +92,6 @@ type TransactionPreviewContentProps = {
 
     chatReport: OnyxEntry<Report>;
 
-    /** Optional details about people involved in the transaction */
-    personalDetails?: PersonalDetailsList;
-
     /** Indicates whether the transaction consists of duplicates */
     areThereDuplicates: boolean;
 
@@ -106,7 +103,11 @@ type TransactionPreviewContentProps = {
     /** Determine whether to hide the component's children if deletion is pending */
     shouldHideOnDelete?: boolean;
 
-    reportPreviewAction?: ReportAction;
+    /** Approver of the expense, used to pick its personal details */
+    managerID: number;
+
+    /** Submitter of the expense, used to pick its personal details */
+    ownerAccountID: number;
 
     /** Whether to show payer/receiver data in the preview */
     shouldShowPayerAndReceiver?: boolean;

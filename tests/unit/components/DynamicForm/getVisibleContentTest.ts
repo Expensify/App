@@ -1,7 +1,7 @@
 import getContentFields from '@components/DynamicForm/utils/getContentFields';
 import {getVisibleContent} from '@components/DynamicForm/utils/getVisibleFields';
 
-import type {DynamicFormField, DynamicFormHeading, DynamicFormLink} from '@src/types/onyx';
+import type {DynamicFormField, DynamicFormHeading, DynamicFormLink, DynamicFormNotice} from '@src/types/onyx';
 
 const email: DynamicFormField = {key: 'email', type: 'text', required: true};
 
@@ -11,7 +11,35 @@ const dataProtection: DynamicFormLink = {
     textKey: 'addPersonalBankAccount.howDoWeProtectYourData',
 };
 
+const recipients: DynamicFormNotice = {key: 'recipients', presentation: 'notice', textKey: 'addPersonalBankAccount.notices.alipayRecipients'};
+const limits: DynamicFormNotice = {key: 'limits', presentation: 'notice', textKey: 'addPersonalBankAccount.notices.alipayLimits'};
+
 describe('getVisibleContent', () => {
+    it('keeps two notices in a row where the schema puts them', () => {
+        // Given two notices between a heading and its field, then a notice after the last field
+        const details: DynamicFormHeading = {key: 'details', title: 'Details'};
+        const closing: DynamicFormNotice = {key: 'closing', presentation: 'notice', text: 'Payments arrive in two days.'};
+
+        // When the content is checked
+        const visibleContent = getVisibleContent([details, recipients, limits, email, closing], {});
+
+        // Then both notices stay under the heading, unlike two headings in a row, and the last one needs no field after it
+        expect(visibleContent).toEqual([details, recipients, limits, email, closing]);
+        expect(getContentFields(visibleContent)).toEqual([email]);
+    });
+
+    it('drops a notice with no text and hides one whose condition is not met', () => {
+        // Given a notice with no wording and a notice shown only for Alipay
+        const empty: DynamicFormNotice = {key: 'empty', presentation: 'notice'};
+        const alipayOnly: DynamicFormNotice = {...limits, showWhen: {key: 'payoutType', equals: ['chinese_alipay']}};
+
+        // When the content is checked for a SWIFT account
+        const visibleContent = getVisibleContent([empty, alipayOnly, email], {payoutType: 'swift_code'});
+
+        // Then only the field is left
+        expect(visibleContent).toEqual([email]);
+    });
+
     it('keeps a heading when the heading after it is hidden by its own condition', () => {
         // Given a heading, then a heading shown only for business recipients, then a field
         const details: DynamicFormHeading = {key: 'details', title: 'Details'};

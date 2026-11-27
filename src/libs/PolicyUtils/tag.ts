@@ -99,7 +99,11 @@ function matchesParentTagPath(policyTag: ValueOf<PolicyTags>, parentTagPath: str
  * Dependent tag lists can hold same-named child tags under different parents (stored under unique
  * record keys), so a tag only matches by name when its parent filter also matches the parent tag path.
  */
-function findPolicyTagAtLevel(levelTags: PolicyTags, tagName: string, parentTagPath: string): ValueOf<PolicyTags> | undefined {
+function findPolicyTagAtLevel(levelTags: PolicyTags | null | undefined, tagName: string, parentTagPath: string): ValueOf<PolicyTags> | undefined {
+    if (!levelTags) {
+        return undefined;
+    }
+
     const matchesTagAtLevel = (levelTag: ValueOf<PolicyTags> | undefined): levelTag is ValueOf<PolicyTags> => {
         if (!levelTag || levelTag.name !== tagName) {
             return false;

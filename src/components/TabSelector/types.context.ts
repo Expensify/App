@@ -1,3 +1,5 @@
+import type {HorizontalSafeAreaReach} from '@components/HorizontalSafeArea/useHorizontalSafeAreaReach';
+
 import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView} from 'react-native';
@@ -7,7 +9,8 @@ type TabSelectorStateContextType = {
 };
 
 type TabSelectorActionsContextType = {
-    onContainerLayout: (event: LayoutChangeEvent) => void;
+    /** `safeAreaReach` is how far the container reaches into the horizontal safe area, where tabs aren't visible. */
+    onContainerLayout: (event: LayoutChangeEvent, safeAreaReach: HorizontalSafeAreaReach) => void;
     onContainerScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
     scrollToTab: (tabKey: string) => void;
     onTabLayout: (tabKey: string, event: LayoutChangeEvent) => void;

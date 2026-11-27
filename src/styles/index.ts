@@ -181,6 +181,10 @@ const flatNavigationBarSubnavIndent = variables.flatNavigationBarRowPadding + va
 // The subnav rule runs under the centre of the icons above it: the row's inset, padding and half the icon.
 const flatNavigationBarSubnavRuleLeft = variables.flatNavigationBarRowInset + variables.flatNavigationBarRowPadding + variables.iconSizeNormal / 2;
 
+// Space the landscape tab bar leaves on its right for the column of floating buttons beside it: the buttons' offset
+// from the screen edge, their width and the same gap the bar keeps from the left edge.
+const floatingTabBarLandscapeRightMargin = variables.floatingActionButtonRightOffset + variables.componentSizeLarge + variables.floatingTabBarHorizontalInset;
+
 const picker = (theme: ThemeColors) =>
     ({
         backgroundColor: theme.transparent,
@@ -792,6 +796,8 @@ const staticStyles = (theme: ThemeColors) =>
 
         navigationTabBarContainerLandscape: {
             height: variables.floatingTabBarLandscapeHeight,
+            alignSelf: 'flex-start',
+            marginRight: floatingTabBarLandscapeRightMargin,
         },
 
         // A grid item is otherwise never narrower than its label, so the label could not truncate.
@@ -2169,7 +2175,7 @@ const staticStyles = (theme: ThemeColors) =>
             // floatingActionButton top property value (componentSizeLarge + 16) +
             // + floatingCameraButton height (componentSizeLarge) + gap (12) = 2 * componentSizeLarge + 28
             top: 2 * -variables.componentSizeLarge - 28,
-            right: 16,
+            right: variables.floatingActionButtonRightOffset,
             zIndex: 10,
         },
 
@@ -2178,6 +2184,24 @@ const staticStyles = (theme: ThemeColors) =>
             top: -variables.componentSizeLarge - 16,
             right: variables.floatingActionButtonRightOffset,
             zIndex: 10,
+        },
+
+        // Lines the button's bottom up with the bottom of the landscape tab bar it sits beside.
+        floatingActionButtonPositionLandscape: {
+            top: variables.floatingTabBarLandscapeHeight - variables.componentSizeLarge,
+        },
+
+        // Keeps the same 12px gap above the floating action button as in portrait.
+        floatingCameraButtonLandscape: {
+            top: variables.floatingTabBarLandscapeHeight - 2 * variables.componentSizeLarge - 12,
+        },
+
+        // Takes the debug row out of the flow, so the floating buttons beside the landscape bar stay anchored to the
+        // bar's top, and keeps it from reaching under them.
+        debugTabViewMobileWebLandscape: {
+            position: 'absolute',
+            bottom: '100%',
+            marginRight: floatingTabBarLandscapeRightMargin,
         },
 
         // Keeps the footer's content clear of the floating (+) button, which sits over its right end on narrow layouts.

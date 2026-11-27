@@ -5,9 +5,11 @@ import {
     getCategoryNameError,
     getDecodedFullCategoryName,
     getDecodedLeafCategoryName,
+    getMemberCategoryVisibilityPatches,
     getMemberDefaultCategory,
     getMemberVisibleCategoryNames,
     getMembersWithoutVisibleCategories,
+    getUnavailableCategories,
     getVisibleCategories,
     hasAnyCategoryGLCode,
     hasAnyCategoryRules,
@@ -657,6 +659,53 @@ describe('getMembersWithoutVisibleCategories', () => {
     });
 });
 
+describe('getMemberCategoryVisibilityPatches', () => {
+    const alice = 1;
+    const bob = 2;
+    const carol = 3;
+
+    // Alice and Bob are members, Fuel is limited to Alice, Meals and Travel are open to everyone, and Office is disabled.
+    const policyCategories: PolicyCategories = {
+        Fuel: {name: 'Fuel', enabled: true, visibleTo: buildVisibleTo(alice)},
+        Meals: {name: 'Meals', enabled: true, visibleTo: null},
+        Travel: {name: 'Travel', enabled: true},
+        Office: {name: 'Office', enabled: false, visibleTo: null},
+    };
+
+    it('patches only what changes for a member limited to some categories', () => {
+        // Given Carol should only use Fuel and Meals
+        // When the patches are worked out
+        const patches = getMemberCategoryVisibilityPatches(policyCategories, [carol], ['Fuel', 'Meals'], [alice, bob]);
+
+        // Then Carol is added to Fuel, Travel is limited to everyone else, Meals stays open, and the disabled Office is left alone
+        expect(patches).toEqual({
+            Fuel: {optimisticVisibleTo: buildVisibleTo(carol), failureVisibleTo: {[carol]: null}},
+            Travel: {optimisticVisibleTo: buildVisibleTo(alice, bob), failureVisibleTo: null},
+        });
+    });
+
+    it('removes a member from a category they lose and keeps them out of the other members list', () => {
+        // Given Alice should no longer use Fuel, only Meals
+        // When the patches are worked out
+        const patches = getMemberCategoryVisibilityPatches(policyCategories, [alice], ['Meals'], [alice, bob]);
+
+        // Then Alice is removed from Fuel with null, since visibleTo is merged, and Travel is limited to Bob alone
+        expect(patches).toEqual({
+            Fuel: {optimisticVisibleTo: {[alice]: null}, failureVisibleTo: buildVisibleTo(alice)},
+            Travel: {optimisticVisibleTo: buildVisibleTo(bob), failureVisibleTo: null},
+        });
+    });
+
+    it('returns nothing when the member can already use exactly those categories', () => {
+        // Given Alice can use every enabled category
+        // When she's given every enabled category again
+        const patches = getMemberCategoryVisibilityPatches(policyCategories, [alice], ['Fuel', 'Meals', 'Travel'], [alice, bob]);
+
+        // Then no category changes
+        expect(patches).toEqual({});
+    });
+});
+
 describe('getVisibleCategories', () => {
     const policyCategories: PolicyCategories = {
         Travel: {name: 'Travel', enabled: true, visibleTo: null},
@@ -681,6 +730,24 @@ describe('getVisibleCategories', () => {
 
         // Then the disabled one is still there, so filtering doesn't change how disabled categories are handled
         expect(Object.keys(visibleCategories)).toEqual(['Travel', 'Meals', 'Software', 'Office']);
+    });
+});
+
+describe('getUnavailableCategories', () => {
+    it("returns the enabled categories the member can't use, leaving out disabled ones", () => {
+        // Given a member on Meals' list but not on Software's, and a disabled category they can't use either
+        const policyCategories: PolicyCategories = {
+            Travel: {name: 'Travel', enabled: true, visibleTo: null},
+            Meals: {name: 'Meals', enabled: true, visibleTo: buildVisibleTo(1)},
+            Software: {name: 'Software', enabled: true, visibleTo: buildVisibleTo(2)},
+            Office: {name: 'Office', enabled: false, visibleTo: buildVisibleTo(2)},
+        };
+
+        // When an admin's picker works out what the member can't use
+        const unavailableCategories = getUnavailableCategories(policyCategories, 1);
+
+        // Then only Software is listed, since a disabled category can't be picked by anyone
+        expect(Object.keys(unavailableCategories)).toEqual(['Software']);
     });
 });
 

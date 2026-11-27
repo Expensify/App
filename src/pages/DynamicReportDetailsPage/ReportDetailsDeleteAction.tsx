@@ -55,6 +55,7 @@ function ReportDetailsDeleteAction({reportID, caseID, requestData}: ReportDetail
             isSingleTransactionView,
             isMoneyRequestReportArchived,
             isChatIOUReportArchived,
+            isArchivedIOUReport,
             iouPolicy,
             deleteTransactions,
         } = requestData;
@@ -81,6 +82,7 @@ function ReportDetailsDeleteAction({reportID, caseID, requestData}: ReportDetail
                 isSingleTransactionView,
                 isChatReportArchived: isMoneyRequestReportArchived,
                 isChatIOUReportArchived,
+                isArchivedIOUReport,
                 allTransactionViolationsParam: allTransactionViolations,
                 currentUserAccountID,
                 currentUserEmail: currentUserEmail ?? '',
