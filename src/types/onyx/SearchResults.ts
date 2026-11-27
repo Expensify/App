@@ -175,6 +175,18 @@ type SearchGroupBase = {
     /** The group's share of `search.total` in percentage points */
     percentOfTotal?: number;
 
+    /** Total value of the group's reimbursable transactions. Absent on an answer that predates the per-group breakdowns, where it means unknown rather than zero. */
+    reimbursableTotal?: number;
+
+    /** Total value of the group's non-reimbursable transactions. Absent on an answer that predates the per-group breakdowns, where it means unknown rather than zero. */
+    nonReimbursableTotal?: number;
+
+    /** Total value of the group's billable transactions. Absent on an answer that predates the per-group breakdowns, where it means unknown rather than zero. */
+    billableTotal?: number;
+
+    /** Total value of the group's non-billable transactions. Absent on an answer that predates the per-group breakdowns, where it means unknown rather than zero. */
+    nonBillableTotal?: number;
+
     /** Set to `delete` while every expense in the group is being deleted, so the row can leave the list before the next Search response drops the group */
     pendingAction?: PendingAction;
 };

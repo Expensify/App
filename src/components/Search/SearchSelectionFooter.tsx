@@ -8,7 +8,7 @@ import {close} from '@libs/actions/Modal';
 import {getFooterConvertedAmounts, search} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildSearchQueryJSON, getDefaultFooterCount, getFooterSelectionFromQuery, getQueryWithFooterSelection} from '@libs/SearchQueryUtils';
-import {doesTransactionMatchFooterTotal, isGroupEntry} from '@libs/SearchUIUtils';
+import {doesTransactionMatchFooterTotal, getGroupTotalsByBreakdown, isGroupEntry} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -122,12 +122,25 @@ function getTransactionCount(transactionKeys: string[], transactions: SelectedTr
 // conversion arrives). The footer stamps each conversion against this value and compares it on every render, so an
 // inline edit that moves it is detected and the cached conversion is fetched again.
 // Sources are expense-signed (the negation of the displayed amount), so callers sum them with `total - source`.
-function getEntrySource(entry: SelectedTransactionInfo): number {
+// A group selected under its own key stands for rows the client never loaded, so it contributes the server's total for
+// the breakdown on display instead of a figure summed from the rows themselves.
+function getEntrySource(entry: SelectedTransactionInfo, footerTotal: SearchFooterTotal): number {
+    const groupTotal = entry.groupTotalsByBreakdown?.[footerTotal];
+    if (groupTotal !== undefined) {
+        return -groupTotal;
+    }
+
     return entry.groupAmount ?? -entry.displayAmount;
 }
 
-function getTransactionTotal(transactions: SelectedTransactionInfo[]): number {
-    return transactions.reduce((total, transaction) => total - getEntrySource(transaction), 0);
+function getTransactionTotal(transactions: SelectedTransactionInfo[], footerTotal: SearchFooterTotal): number {
+    return transactions.reduce((total, transaction) => total - getEntrySource(transaction, footerTotal), 0);
+}
+
+// A group carries one figure per breakdown, so it contributes under every one of them rather than being classified the
+// way a row is.
+function doesEntryMatchFooterTotal(key: string, entry: SelectedTransactionInfo | undefined, footerTotal: SearchFooterTotal): boolean {
+    return isGroupEntry(key) || doesTransactionMatchFooterTotal(entry?.transaction, footerTotal);
 }
 
 // Every selected row needs a fresh cached conversion for the target currency before the selected total can be shown
@@ -202,6 +215,7 @@ function SearchSelectionFooter({searchResults, style}: SearchSelectionFooterProp
     const convertedTransactions = footerConversion?.transactions;
     const convertedReports = footerConversion?.reports;
     const convertedGroups = footerConversion?.groups;
+    const convertedGroupTotals = footerConversion?.groupTotals;
     const convertedSearchTotal = footerConversion?.searchTotals?.[currentSearchHash];
     const failedConversionCurrencies = footerConversion?.failedCurrencies;
 
@@ -298,10 +312,10 @@ function SearchSelectionFooter({searchResults, style}: SearchSelectionFooterProp
         for (const [key, transaction] of Object.entries(transactions)) {
             const transactionID = transaction.transaction?.transactionID;
             if (!isGroupEntry(key) && transactionID) {
-                transactionSourceByID[transactionID] = getEntrySource(transaction);
+                transactionSourceByID[transactionID] = getEntrySource(transaction, CONST.SEARCH.FOOTER_TOTAL.TOTAL);
             }
             if (isGroupEntry(key)) {
-                groupSourceByKey[key] = getEntrySource(transaction);
+                groupSourceByKey[key] = getEntrySource(transaction, CONST.SEARCH.FOOTER_TOTAL.TOTAL);
             }
         }
     }
@@ -339,7 +353,7 @@ function SearchSelectionFooter({searchResults, style}: SearchSelectionFooterProp
         }
         for (const transaction of Object.values(excludedTransactions)) {
             if (transaction.reportID) {
-                reportSources[transaction.reportID] = (reportSources[transaction.reportID] ?? 0) + getEntrySource(transaction);
+                reportSources[transaction.reportID] = (reportSources[transaction.reportID] ?? 0) + getEntrySource(transaction, CONST.SEARCH.FOOTER_TOTAL.TOTAL);
             }
         }
         reportSourceByID = reportSources;
@@ -349,7 +363,15 @@ function SearchSelectionFooter({searchResults, style}: SearchSelectionFooterProp
     // the live source — so an inline edit that moves the live source makes it stale and triggers a refetch below.
     const isTransactionFresh = (transactionID: string, currency: string) =>
         convertedTransactions?.[transactionID]?.[currency] !== undefined && conversionSources?.transactions?.[transactionID]?.[currency] === transactionSourceByID[transactionID];
-    const isGroupFresh = (key: string, currency: string) => convertedGroups?.[key]?.[currency] !== undefined && conversionSources?.groups?.[key]?.[currency] === groupSourceByKey[key];
+    // The command converts a group once per breakdown, so a group shows its own figure in the chosen currency instead
+    // of falling back to the search's own. The plain total keeps reading the flat figure, which older caches also have.
+    const getConvertedGroupAmount = (key: string, currency: string) =>
+        footerTotalBreakdown === CONST.SEARCH.FOOTER_TOTAL.TOTAL
+            ? convertedGroups?.[key]?.[currency]
+            : getGroupTotalsByBreakdown(convertedGroupTotals?.[key]?.[currency] ?? {})[footerTotalBreakdown];
+    // A conversion that carries no figure for the breakdown on display is no use to it, so the footer keeps the whole
+    // selection in the default currency rather than mixing one currency's breakdown into another's total.
+    const isGroupFresh = (key: string, currency: string) => getConvertedGroupAmount(key, currency) !== undefined && conversionSources?.groups?.[key]?.[currency] === groupSourceByKey[key];
     const isReportFresh = (reportID: string, currency: string) =>
         convertedReports?.[reportID]?.[currency] !== undefined && conversionSources?.reports?.[reportID]?.[currency] === reportSourceByID[reportID];
 
@@ -378,8 +400,11 @@ function SearchSelectionFooter({searchResults, style}: SearchSelectionFooterProp
     // is the server's figures, since a select-all covers rows that were never loaded and so cannot be counted here.
     const defaultFooterCountType = getDefaultFooterCount(currentSearchQueryJSON?.type);
 
-    // A group row selected as a whole is out of scope for now, pending the backend returning breakdowns per group. It
-    // reaches the selection one of two ways: as a single group entry when its expenses are not loaded, or as those
+    // A group row selected as a whole has no count to switch to: the server returns how many expenses a group holds,
+    // never how many reports they sit on. Its total is a different matter — the group carries one figure per breakdown
+    // — so only the count selector steps aside for it.
+    //
+    // It reaches the selection one of two ways: as a single group entry when its expenses are not loaded, or as those
     // expenses each flagged `isSelectedViaGroup` when they are. The flag is cleared as soon as one of them is toggled
     // off, so a part-deselected group counts as an individual selection again and keeps both selectors.
     //
@@ -397,12 +422,10 @@ function SearchSelectionFooter({searchResults, style}: SearchSelectionFooterProp
     const shouldShowCountSelector = (isExpenseType || isReportsSearch) && !hasGroupSelection && (hasPartialSelection || (!shouldUseLiveData && typeof metadataReportCount === 'number'));
     const footerCountType = shouldShowCountSelector ? (footerSelection.footerCount ?? defaultFooterCountType) : undefined;
 
-    // An excluded collapsed group hides the breakdown's figure, so the selector stays to lead back to the plain total.
-    const hasExcludedGroupWithQueryBreakdown = excludedGroupKeys.length > 0 && !!footerSelection.footerTotal;
     // An empty result set has no total to break down, so it keeps the plain total spend with no selector.
     // Footer selections are only kept for expense and report searches, so other types keep the plain total.
     const isFooterTotalSupported = isExpenseType || isReportsSearch;
-    const shouldShowTotalSelector = isFooterTotalSupported && (!hasGroupSelection || hasExcludedGroupWithQueryBreakdown) && (!!metadataCount || selectedTransactionsKeys.length > 0);
+    const shouldShowTotalSelector = isFooterTotalSupported && (!!metadataCount || selectedTransactionsKeys.length > 0);
 
     // Use the per-selection (client) total for a partial selection; nothing-selected and everything-selected both fall
     // to the whole-search grand total, which every search type now returns converted, keyed by the search hash.
@@ -446,9 +469,14 @@ function SearchSelectionFooter({searchResults, style}: SearchSelectionFooterProp
     // A report's converted total has no breakdown inside it, so excluding one under a breakdown falls to the default
     // currency, where the exclusion is summed from the report's own matching expenses.
     const canConvertExcludedReports = !hasExcludedReports || footerTotalBreakdown === CONST.SEARCH.FOOTER_TOTAL.TOTAL;
-    // A collapsed group is excluded as one entry with no expenses to classify, so nothing tells how much of it falls in
-    // the breakdown. No figure is shown rather than one that still counts the group.
-    const hasExcludedGroupUnderBreakdown = excludedGroupKeys.length > 0 && footerTotalBreakdown !== CONST.SEARCH.FOOTER_TOTAL.TOTAL;
+    const isBreakdownApplied = footerTotalBreakdown !== CONST.SEARCH.FOOTER_TOTAL.TOTAL;
+    // A group answered before the server returned its breakdowns carries only a plain total, and that total counts rows
+    // the breakdown leaves out. No figure is shown rather than one that still counts them.
+    const hasGroupWithUnknownBreakdownTotal =
+        isBreakdownApplied &&
+        [...selectedGroupKeys.map((key) => selectedTransactions[key]), ...excludedGroupKeys.map((key) => excludedTransactions[key])].some(
+            (entry) => entry?.groupTotalsByBreakdown?.[footerTotalBreakdown] === undefined,
+        );
     const areAllExcludedConverted =
         !(!hasCustomFooterCurrency || !selectedCurrency || (!hasExcludedExpenses && !hasExcludedReports)) &&
         (hasExcludedReports
@@ -468,7 +496,7 @@ function SearchSelectionFooter({searchResults, style}: SearchSelectionFooterProp
         !isOffline &&
         !hasConversionFailed &&
         hasCustomFooterCurrency &&
-        (shouldUseClientTotal || (canConvertExcludedReports && !hasExcludedGroupUnderBreakdown)) &&
+        (shouldUseClientTotal || canConvertExcludedReports) &&
         (shouldUseClientTotal ? hasConvertibleSelection && !areAllSelectedConverted : !isSearchTotalFresh || ((hasExcludedExpenses || hasExcludedReports) && !areAllExcludedConverted));
     const shouldShowFooter = (!areAllMatchingItemsSelected && selectedTransactionsKeys.length > 0) || (shouldAllowFooterTotals && !!metadata?.count);
 
@@ -483,7 +511,9 @@ function SearchSelectionFooter({searchResults, style}: SearchSelectionFooterProp
     } else {
         const selectedTransactionItems = Object.values(selectedTransactions);
         const fallbackCurrency = effectiveDefaultCurrency ?? selectedTransactionItems.at(0)?.groupCurrency ?? selectedTransactionItems.at(0)?.currency;
-        if (shouldUseClientTotal) {
+        if (shouldUseClientTotal && hasGroupWithUnknownBreakdownTotal) {
+            footerData = {count: selectedExpenseCount, total: undefined, currency: fallbackCurrency};
+        } else if (shouldUseClientTotal) {
             const shouldUseConvertedSelectedTotal = hasCustomFooterCurrency && areAllSelectedConverted && !hasConversionFailed && !!selectedCurrency;
 
             // Reports sum each selected report's converted total; other searches sum per row — whole groups from the
@@ -499,32 +529,35 @@ function SearchSelectionFooter({searchResults, style}: SearchSelectionFooterProp
                     ? selectedReportIDs.reduce((acc, reportID) => acc - (convertedReports?.[reportID]?.[selectedCurrency] ?? 0), 0)
                     : selectedTransactionsKeys.reduce((acc, key) => {
                           const transaction = selectedTransactions[key];
-                          if (!doesTransactionMatchFooterTotal(transaction.transaction, footerTotalBreakdown)) {
+                          if (!doesEntryMatchFooterTotal(key, transaction, footerTotalBreakdown)) {
                               return acc;
                           }
                           let convertedAmount;
                           if (shouldConvertSelectedTotal && selectedCurrency) {
                               if (isGroupEntry(key)) {
-                                  convertedAmount = convertedGroups?.[key]?.[selectedCurrency];
+                                  convertedAmount = getConvertedGroupAmount(key, selectedCurrency);
                               } else if (transaction.transaction?.transactionID) {
                                   convertedAmount = convertedTransactions?.[transaction.transaction.transactionID]?.[selectedCurrency];
                               }
                           }
-                          return acc - (convertedAmount ?? getEntrySource(transaction));
+                          return acc - (convertedAmount ?? getEntrySource(transaction, footerTotalBreakdown));
                       }, 0);
             footerData = {
                 count: selectedExpenseCount,
                 total,
                 currency: shouldConvertSelectedTotal ? selectedCurrency : fallbackCurrency,
             };
-        } else if (hasExcludedGroupUnderBreakdown) {
+        } else if (hasGroupWithUnknownBreakdownTotal) {
             footerData = {
                 count: metadataCount === undefined ? undefined : Math.max(metadataCount - excludedExpenseCount + rowsCheckedInExcludedGroupsCount, 0),
                 total: undefined,
                 currency: effectiveDefaultCurrency ?? metadataCurrency,
             };
         } else {
-            const excludedKeysForTotal = excludedTransactionsKeys.filter((key) => doesTransactionMatchFooterTotal(excludedTransactions[key]?.transaction, footerTotalBreakdown));
+            const excludedKeysForTotal = excludedTransactionsKeys.filter((key) => doesEntryMatchFooterTotal(key, excludedTransactions[key], footerTotalBreakdown));
+            const rowsCheckedInExcludedGroupsForTotal = Object.entries(rowsCheckedInExcludedGroups).filter(([key, transaction]) =>
+                doesEntryMatchFooterTotal(key, transaction, footerTotalBreakdown),
+            );
             if (
                 hasCustomFooterCurrency &&
                 isSearchTotalFresh &&
@@ -538,11 +571,11 @@ function SearchSelectionFooter({searchResults, style}: SearchSelectionFooterProp
                         const transactionID = transaction.transaction?.transactionID;
                         let convertedAmount;
                         if (isGroupEntry(key)) {
-                            convertedAmount = convertedGroups?.[key]?.[selectedCurrency];
+                            convertedAmount = getConvertedGroupAmount(key, selectedCurrency);
                         } else if (transactionID) {
                             convertedAmount = convertedTransactions?.[transactionID]?.[selectedCurrency];
                         }
-                        return total - (convertedAmount ?? getEntrySource(transaction));
+                        return total - (convertedAmount ?? getEntrySource(transaction, footerTotalBreakdown));
                     }, 0);
                 let excludedConvertedTotal = 0;
                 if (hasExcludedReports && selectedCurrency) {
@@ -550,7 +583,7 @@ function SearchSelectionFooter({searchResults, style}: SearchSelectionFooterProp
                 } else if (hasExcludedExpenses) {
                     excludedConvertedTotal =
                         getConvertedTotal(excludedKeysForTotal.map((key): [string, SelectedTransactionInfo] => [key, excludedTransactions[key]])) -
-                        getConvertedTotal(Object.entries(rowsCheckedInExcludedGroups));
+                        getConvertedTotal(rowsCheckedInExcludedGroupsForTotal);
                 }
                 footerData = {
                     count: Math.max(selectedCurrencyConvertedTotal.count - excludedExpenseCount + rowsCheckedInExcludedGroupsCount, 0),
@@ -560,7 +593,14 @@ function SearchSelectionFooter({searchResults, style}: SearchSelectionFooterProp
             } else {
                 const excludedTotal =
                     hasExcludedExpenses || hasExcludedReports
-                        ? getTransactionTotal(excludedKeysForTotal.map((key) => excludedTransactions[key])) - getTransactionTotal(Object.values(rowsCheckedInExcludedGroups))
+                        ? getTransactionTotal(
+                              excludedKeysForTotal.map((key) => excludedTransactions[key]),
+                              footerTotalBreakdown,
+                          ) -
+                          getTransactionTotal(
+                              rowsCheckedInExcludedGroupsForTotal.map(([, transaction]) => transaction),
+                              footerTotalBreakdown,
+                          )
                         : 0;
                 footerData = {
                     count: metadataCount === undefined ? undefined : Math.max(metadataCount - excludedExpenseCount + rowsCheckedInExcludedGroupsCount, 0),

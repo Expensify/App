@@ -14,6 +14,30 @@ type ConvertedTotal = {
 type ConvertedTotalByCurrency = Record<string, ConvertedTotal>;
 
 /**
+ * A group's converted totals in a single target currency, one per breakdown the Spend footer can show. The field names
+ * match the group row's own totals, so the same breakdown lookup reads either of them.
+ */
+type ConvertedGroupTotals = {
+    /** Converted total of every transaction in the group */
+    total?: number;
+
+    /** Converted total of the group's reimbursable transactions */
+    reimbursableTotal?: number;
+
+    /** Converted total of the group's non-reimbursable transactions */
+    nonReimbursableTotal?: number;
+
+    /** Converted total of the group's billable transactions */
+    billableTotal?: number;
+
+    /** Converted total of the group's non-billable transactions */
+    nonBillableTotal?: number;
+};
+
+/** A group's converted totals keyed by target currency code */
+type ConvertedGroupTotalsByCurrency = Record<string, ConvertedGroupTotals>;
+
+/**
  * The default-currency source figure a cached conversion was computed from, keyed by target currency code. The
  * footer stamps this when it requests a conversion and compares it to the live snapshot value on every render; a
  * mismatch (e.g. after an inline edit) means the cached conversion is stale and must be fetched again.
@@ -30,6 +54,13 @@ type SearchFooterConversion = {
 
     /** Per-group converted totals (grouped searches), keyed by group key then by target currency */
     groups?: Record<string, ConvertedAmountByCurrency>;
+
+    /**
+     * Per-group converted totals broken down the way the footer shows them, keyed by group key then by target currency.
+     * A collapsed group stands for rows the client never loaded, so this is the only way to show its figure for a
+     * breakdown in a currency other than the search's own.
+     */
+    groupTotals?: Record<string, ConvertedGroupTotalsByCurrency>;
 
     /** Whole-search converted totals, keyed by search query hash then by target currency */
     searchTotals?: Record<string, ConvertedTotalByCurrency>;

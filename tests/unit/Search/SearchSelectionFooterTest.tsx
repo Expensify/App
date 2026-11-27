@@ -176,6 +176,11 @@ function buildSelectedTransaction(currency: string, groupCurrency?: string, grou
     };
 }
 
+/** A collapsed group entry as the server answers it now, carrying one total per breakdown. */
+function buildSelectedGroup(groupAmount: number, totalsByBreakdown: Partial<Record<SearchFooterTotal, number>>): SelectedTransactionInfo {
+    return {...buildSelectedTransaction(CONST.CURRENCY.USD, CONST.CURRENCY.USD, groupAmount), groupTotalsByBreakdown: totalsByBreakdown};
+}
+
 function buildSelectedReport(reportID: string, total: number): SelectedReports {
     return {
         reportID,
@@ -542,6 +547,108 @@ describe('SearchSelectionFooter', () => {
             expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 170, total: undefined}));
         });
 
+        it('adds back only a re-checked row that belongs to the breakdown', async () => {
+            // Given Select all on the reimbursable breakdown, with a group carrying its own reimbursable figure
+            // unchecked, and two of its expenses checked again: one reimbursable, one not
+            setSearchQuery(`type:expense group-by:category footerTotal:${CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE}`);
+            mockAreAllMatchingItemsSelected.current = true;
+            mockExcludedTransactions.current = {
+                [GROUP_KEY]: buildSelectedGroup(-50000, {[CONST.SEARCH.FOOTER_TOTAL.TOTAL]: 50000, [CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE]: 20000}),
+            };
+            mockSelectedTransactions.current = {
+                transaction1: {...buildFlaggedTransaction(-3000, {reimbursable: true}), groupKey: GROUP_KEY},
+                transaction2: {...buildFlaggedTransaction(-4000, {reimbursable: false}), groupKey: GROUP_KEY},
+            };
+            const searchResults = buildSearchResults(CONST.CURRENCY.USD, 172, 80000, CONST.SEARCH.DATA_TYPES.EXPENSE, undefined, true);
+            mockCurrentSearchResults.current = {...searchResults, data: {[GROUP_KEY]: makeSettlementGroup({count: 3, total: 50000})}};
+
+            // When the footer renders
+            render(<SearchSelectionFooter searchResults={searchResults} />);
+            await waitForBatchedUpdates();
+
+            // Then the group's reimbursable share comes off and only the reimbursable row goes back on: 80000 - 20000 + 3000.
+            // The non-reimbursable row was never part of the figure, so it adds nothing, while both still count.
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 171, total: 63000}));
+        });
+
+        it('keeps the converted whole-search total when the groups are selected rather than excluded', async () => {
+            // Given every expense selected through its group, on the reimbursable breakdown in EUR, so the figure is
+            // the server's whole-search total and no group conversion takes part in it
+            setSearchQuery(`type:expense group-by:category footerTotal:${CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE} footerCurrency:${CONST.CURRENCY.EUR}`);
+            mockExcludedTransactions.current = {};
+            mockAreAllMatchingItemsSelected.current = false;
+            mockSelectedTransactions.current = {
+                [GROUP_KEY]: buildSelectedGroup(-50000, {[CONST.SEARCH.FOOTER_TOTAL.TOTAL]: 50000, [CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE]: 20000}),
+            };
+            const searchHash = mockSearchQueryContext.current.currentSearchHash;
+            await Onyx.merge(ONYXKEYS.SEARCH_FOOTER_CONVERSION, {
+                searchTotals: {[searchHash]: {[CONST.CURRENCY.EUR]: {count: 3, total: 18000}}},
+                sources: {searchTotals: {[searchHash]: {[CONST.CURRENCY.EUR]: 20000}}},
+            });
+            const searchResults = buildSearchResults(CONST.CURRENCY.USD, 3, 20000, CONST.SEARCH.DATA_TYPES.EXPENSE);
+            mockCurrentSearchResults.current = {...searchResults, data: {[GROUP_KEY]: makeSettlementGroup({count: 3, total: 50000})}};
+
+            // When the footer renders
+            render(<SearchSelectionFooter searchResults={searchResults} />);
+            await waitForBatchedUpdates();
+
+            // Then it stays on the converted figure: a selected group is never converted on its own here, so there is
+            // nothing a plain-total conversion could spoil
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({total: 18000, currency: CONST.CURRENCY.EUR}));
+        });
+
+        it('keeps an excluded group in the default currency when the conversion carries no figure for the breakdown', async () => {
+            // Given a select-all on the reimbursable breakdown in EUR, with the search's own converted total fresh
+            setSearchQuery(`type:expense group-by:category footerTotal:${CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE} footerCurrency:${CONST.CURRENCY.EUR}`);
+            mockSelectedTransactions.current = {};
+            mockAreAllMatchingItemsSelected.current = true;
+            mockExcludedTransactions.current = {
+                [GROUP_KEY]: buildSelectedGroup(-50000, {[CONST.SEARCH.FOOTER_TOTAL.TOTAL]: 50000, [CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE]: 20000}),
+            };
+            const searchHash = mockSearchQueryContext.current.currentSearchHash;
+
+            // When the group's cached EUR figure is a conversion of its plain total, as every group conversion is
+            await Onyx.merge(ONYXKEYS.SEARCH_FOOTER_CONVERSION, {
+                searchTotals: {[searchHash]: {[CONST.CURRENCY.EUR]: {count: 172, total: 70000}}},
+                groups: {[GROUP_KEY]: {[CONST.CURRENCY.EUR]: -45000}},
+                sources: {searchTotals: {[searchHash]: {[CONST.CURRENCY.EUR]: 80000}}, groups: {[GROUP_KEY]: {[CONST.CURRENCY.EUR]: -50000}}},
+            });
+            const searchResults = buildSearchResults(CONST.CURRENCY.USD, 172, 80000, CONST.SEARCH.DATA_TYPES.EXPENSE, undefined, true);
+            mockCurrentSearchResults.current = {...searchResults, data: {[GROUP_KEY]: makeSettlementGroup({count: 3, total: 50000})}};
+
+            render(<SearchSelectionFooter searchResults={searchResults} />);
+            await waitForBatchedUpdates();
+
+            // Then the footer stays on the default currency and takes the group's reimbursable share off there, instead
+            // of taking its whole converted amount off a total that only covers the breakdown
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({total: 60000, currency: CONST.CURRENCY.USD}));
+        });
+
+        it("shows a selected group's converted figure for the breakdown on display", async () => {
+            // Given a group selected on the reimbursable breakdown in EUR, with the command's converted figure for each
+            // breakdown cached against the group's own source
+            setSearchQuery(`type:expense group-by:category footerTotal:${CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE} footerCurrency:${CONST.CURRENCY.EUR}`);
+            mockExcludedTransactions.current = {};
+            mockAreAllMatchingItemsSelected.current = false;
+            mockSelectedTransactions.current = {
+                [GROUP_KEY]: buildSelectedGroup(-14000, {[CONST.SEARCH.FOOTER_TOTAL.TOTAL]: 14000, [CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE]: 10000}),
+            };
+            await Onyx.merge(ONYXKEYS.SEARCH_FOOTER_CONVERSION, {
+                groups: {[GROUP_KEY]: {[CONST.CURRENCY.EUR]: -12762}},
+                groupTotals: {[GROUP_KEY]: {[CONST.CURRENCY.EUR]: {total: -12762, reimbursableTotal: -9116}}},
+                sources: {groups: {[GROUP_KEY]: {[CONST.CURRENCY.EUR]: -14000}}},
+            });
+            const searchResults = buildSearchResults(CONST.CURRENCY.USD, 0, 0, CONST.SEARCH.DATA_TYPES.EXPENSE);
+            mockCurrentSearchResults.current = {...searchResults, data: {[GROUP_KEY]: makeSettlementGroup({count: 2, total: 14000})}};
+
+            // When the footer renders
+            render(<SearchSelectionFooter searchResults={searchResults} />);
+            await waitForBatchedUpdates();
+
+            // Then it shows the group's reimbursable figure in EUR, instead of dropping back to the default currency
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({total: 9116, currency: CONST.CURRENCY.EUR}));
+        });
+
         it('keeps the total selector under a breakdown, so the plain total can still be picked', async () => {
             // When the footer describes the reimbursable breakdown, which leaves it no figure to show
             await renderWithExcludedGroup(`type:expense group-by:category footerTotal:${CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE}`);
@@ -550,12 +657,32 @@ describe('SearchSelectionFooter', () => {
             expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({totalType: CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE, shouldShowTotalSelector: true}));
         });
 
-        it('hides the total selector for the excluded group on the plain total, as for any group selection', async () => {
+        it('offers the total selector for the excluded group on the plain total', async () => {
             // When the footer describes the plain total
             await renderWithExcludedGroup('type:expense group-by:category');
 
-            // Then the group selection keeps the selector out, as before
-            expect(mockCapturedFooterProps.current?.shouldShowTotalSelector).toBe(false);
+            // Then the selector is offered: a group carries a figure for every breakdown, so there is one to switch to
+            expect(mockCapturedFooterProps.current?.shouldShowTotalSelector).toBe(true);
+        });
+
+        it('takes a group off the breakdown it is excluded from, using the figure the server returned for it', async () => {
+            // Given a select-all on the reimbursable breakdown with a collapsed group unchecked, the group carrying its
+            // own reimbursable figure
+            setSearchQuery(`type:expense group-by:category footerTotal:${CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE}`);
+            mockSelectedTransactions.current = {};
+            mockAreAllMatchingItemsSelected.current = true;
+            mockExcludedTransactions.current = {
+                [GROUP_KEY]: buildSelectedGroup(-50000, {[CONST.SEARCH.FOOTER_TOTAL.TOTAL]: 50000, [CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE]: 20000}),
+            };
+            const searchResults = buildSearchResults(CONST.CURRENCY.USD, 172, 80000, CONST.SEARCH.DATA_TYPES.EXPENSE, undefined, true);
+            mockCurrentSearchResults.current = {...searchResults, data: {[GROUP_KEY]: makeSettlementGroup({count: 3, total: 50000})}};
+
+            // When the footer renders
+            render(<SearchSelectionFooter searchResults={searchResults} />);
+            await waitForBatchedUpdates();
+
+            // Then only the group's reimbursable share comes off the search's reimbursable total
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 169, total: 60000}));
         });
 
         it('still takes the group off the plain total', async () => {
@@ -1432,15 +1559,37 @@ describe('SearchSelectionFooter', () => {
             expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({countType: CONST.SEARCH.FOOTER_COUNT.REPORTS, totalType: CONST.SEARCH.FOOTER_TOTAL.TOTAL, total: -400}));
         });
 
-        it('offers neither selector while a group with no loaded expenses is selected', async () => {
+        it('offers the total but no count while a group with no loaded expenses is selected', async () => {
+            // Given a collapsed group selected on its own, so the client holds no rows of it
             setSearchQuery('type:expense groupBy:category');
             mockSelectedTransactions.current = {[`${CONST.SEARCH.GROUP_PREFIX}category1`]: buildSelectedTransaction(CONST.CURRENCY.USD, CONST.CURRENCY.USD, -100)};
 
+            // When the footer renders
             render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 87)} />);
             await waitForBatchedUpdates();
 
+            // Then the count stays out, since the server never says how many reports a group's expenses sit on, while
+            // the total is offered: the group carries a figure for every breakdown
             expect(mockCapturedFooterProps.current?.countType).toBeUndefined();
-            expect(mockCapturedFooterProps.current?.totalType).toBeUndefined();
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({totalType: CONST.SEARCH.FOOTER_TOTAL.TOTAL, shouldShowTotalSelector: true}));
+        });
+
+        it('sums a selected group at the breakdown the footer is showing', async () => {
+            // Given a collapsed group selected under the billable breakdown, with the server's figure for each one
+            setSearchQuery('type:expense groupBy:category footerTotal:billable');
+            mockSelectedTransactions.current = {
+                [`${CONST.SEARCH.GROUP_PREFIX}category1`]: buildSelectedGroup(-50000, {
+                    [CONST.SEARCH.FOOTER_TOTAL.TOTAL]: 50000,
+                    [CONST.SEARCH.FOOTER_TOTAL.BILLABLE]: 12000,
+                }),
+            };
+
+            // When the footer renders
+            render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 87)} />);
+            await waitForBatchedUpdates();
+
+            // Then the billable figure is what the group contributes, not the plain total it also carries
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({totalType: CONST.SEARCH.FOOTER_TOTAL.BILLABLE, shouldShowTotalSelector: true, total: 12000}));
         });
 
         it('names the breakdown the figure is, keeping the selector so an excluded group can lead back to the plain total', async () => {
@@ -1458,17 +1607,21 @@ describe('SearchSelectionFooter', () => {
             expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({totalType: CONST.SEARCH.FOOTER_TOTAL.BILLABLE, shouldShowTotalSelector: true, countType: undefined}));
         });
 
-        it('keeps the plain total over a group selection the client sums itself, which has no breakdown to apply', async () => {
+        it('shows no figure for a selected group answered before the server returned its breakdowns', async () => {
+            // Given a group selected under the billable breakdown, carrying only the plain total an older answer had
             setSearchQuery('type:expense groupBy:category footerTotal:billable');
             mockSelectedTransactions.current = {[`${CONST.SEARCH.GROUP_PREFIX}category1`]: buildSelectedTransaction(CONST.CURRENCY.USD, CONST.CURRENCY.USD, -100)};
 
+            // When the footer renders
             render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 87)} />);
             await waitForBatchedUpdates();
 
-            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({totalType: undefined, shouldShowTotalSelector: false}));
+            // Then no figure is shown rather than the plain total, which still counts rows the breakdown leaves out,
+            // and the selector stays so the plain total can be picked back
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({totalType: CONST.SEARCH.FOOTER_TOTAL.BILLABLE, shouldShowTotalSelector: true, total: undefined}));
         });
 
-        it('offers neither selector while a group row is selected through its header, which stores its expenses', async () => {
+        it('offers the total but no count while a group row is selected through its header, which stores its expenses', async () => {
             setSearchQuery('type:expense groupBy:category');
             // Ticking a group whose expenses are loaded stores them individually, each flagged as selected via the group.
             mockSelectedTransactions.current = {
@@ -1480,7 +1633,7 @@ describe('SearchSelectionFooter', () => {
             await waitForBatchedUpdates();
 
             expect(mockCapturedFooterProps.current?.countType).toBeUndefined();
-            expect(mockCapturedFooterProps.current?.totalType).toBeUndefined();
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({totalType: CONST.SEARCH.FOOTER_TOTAL.TOTAL, shouldShowTotalSelector: true}));
         });
 
         it('brings both selectors back once a group is part-deselected, which clears the group flag', async () => {
