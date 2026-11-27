@@ -353,8 +353,8 @@ function AttachmentView({
                 </>
             );
 
-            // A loaded image toggles the carousel arrows when tapped, but this view replaces it, so it has to toggle
-            // them itself. Otherwise the arrows can't be brought back once they auto-hide on touch screens.
+            // Tapping a loaded image brings back the carousel arrows, but this view replaces the image, so it has to
+            // toggle them itself. Otherwise the arrows can't be brought back once they auto-hide on touch screens.
             const toggleCarouselArrows = onPress ?? (canUseTouchScreen() ? onTap : undefined);
             if (!toggleCarouselArrows) {
                 return <View style={[styles.flexColumn, styles.alignItemsCenter, styles.justifyContentCenter]}>{notFoundContent}</View>;
