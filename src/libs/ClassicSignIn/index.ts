@@ -8,7 +8,7 @@ import {getIsOffline} from '@libs/NetworkState';
 
 import CONST from '@src/CONST';
 
-import type {CanOpenClassicSignIn, OpenClassicSignIn, OpenClassicSignOutAfter, PreventClassicSignInDuring} from './types';
+import type {CanOpenClassicSignIn, ForgetClassicSignOut, OpenClassicSignIn, OpenClassicSignOutAfter, PreventClassicSignInDuring} from './types';
 
 // Long enough for the Classic sign-out page to load and end the Classic session, so other tabs don't open the sign-in page before that
 const SIGN_OUT_PAGE_LOAD_MS = 30 * 1000;
@@ -192,4 +192,15 @@ const preventClassicSignInDuring: PreventClassicSignInDuring = (navigation) => {
     });
 };
 
-export {canOpenClassicSignIn, openClassicSignIn, openClassicSignOutAfter, preventClassicSignInDuring};
+const forgetClassicSignOut: ForgetClassicSignOut = () => {
+    if (!isSharedProductHost()) {
+        return;
+    }
+    try {
+        window.localStorage.removeItem(CONST.LOCAL_STORAGE_KEYS.CLASSIC_SIGN_OUT);
+    } catch (error) {
+        Log.hmmm('[ClassicSignIn] Unable to forget a sign out', {error});
+    }
+};
+
+export {canOpenClassicSignIn, forgetClassicSignOut, openClassicSignIn, openClassicSignOutAfter, preventClassicSignInDuring};

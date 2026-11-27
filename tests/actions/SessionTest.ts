@@ -11,7 +11,7 @@ import * as SignInRedirect from '@libs/actions/SignInRedirect';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import asyncOpenURL from '@libs/asyncOpenURL';
 import buildOldDotURL from '@libs/buildOldDotURL';
-import {openClassicSignOutAfter, preventClassicSignInDuring} from '@libs/ClassicSignIn';
+import {forgetClassicSignOut, openClassicSignOutAfter, preventClassicSignInDuring} from '@libs/ClassicSignIn';
 import {clearExperienceCookie, isSharedProductHost} from '@libs/ExperienceCookie';
 import getPlatform from '@libs/getPlatform';
 import Growl from '@libs/Growl';
@@ -82,6 +82,7 @@ jest.mock('@libs/ExperienceCookie', () => ({
 }));
 
 jest.mock('@libs/ClassicSignIn', () => ({
+    forgetClassicSignOut: jest.fn(),
     openClassicSignOutAfter: jest.fn(),
     preventClassicSignInDuring: jest.fn(),
 }));
@@ -1798,6 +1799,87 @@ describe('Session', () => {
 
             // Then the stamp leaves it unchanged
             expect(session?.creationDate).toBe(creationDate);
+        });
+    });
+
+    describe('unfinished Classic sign out', () => {
+        const SIGNED_IN_SESSION = {authToken: 'authToken', accountID: 1, email: 'user@example.com'};
+
+        test('is forgotten once the user signs in', async () => {
+            // Given a signed out page
+            await Onyx.set(ONYXKEYS.SESSION, null);
+            await waitForBatchedUpdates();
+            jest.mocked(forgetClassicSignOut).mockClear();
+
+            // When the user signs in
+            await Onyx.set(ONYXKEYS.SESSION, SIGNED_IN_SESSION);
+            await waitForBatchedUpdates();
+
+            // Then the sign out is forgotten, so a later sign-in request doesn't end the Classic session the user has now
+            expect(forgetClassicSignOut).toHaveBeenCalledTimes(1);
+        });
+
+        test('is kept while the signed in session only changes', async () => {
+            // Given a signed in user
+            await Onyx.set(ONYXKEYS.SESSION, SIGNED_IN_SESSION);
+            await waitForBatchedUpdates();
+            jest.mocked(forgetClassicSignOut).mockClear();
+
+            // When the auth token is renewed
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: 'renewedAuthToken'});
+            await waitForBatchedUpdates();
+
+            // Then nothing is forgotten, since a sign out that starts now must still reach Classic
+            expect(forgetClassicSignOut).not.toHaveBeenCalled();
+        });
+
+        test.each([
+            ['an anonymous session starts', {authToken: 'anonymousAuthToken', authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS}],
+            ['the session has no auth token', {email: 'user@example.com'}],
+        ])('is kept when %s', async (_description, session) => {
+            // Given a signed out page
+            await Onyx.set(ONYXKEYS.SESSION, null);
+            await waitForBatchedUpdates();
+            jest.mocked(forgetClassicSignOut).mockClear();
+
+            // When the session changes without the user signing in
+            await Onyx.set(ONYXKEYS.SESSION, session);
+            await waitForBatchedUpdates();
+
+            // Then nothing is forgotten
+            expect(forgetClassicSignOut).not.toHaveBeenCalled();
+        });
+
+        test('is kept for the session the page loaded with', () => {
+            // Given a freshly loaded page whose session subscriptions haven't received anything yet
+            let connectSpy: jest.SpiedFunction<typeof Onyx.connectWithoutView> | undefined;
+            let isolatedForgetClassicSignOut: jest.Mock | undefined;
+            jest.isolateModules(() => {
+                const isolatedOnyx = jest.requireActual<{default: typeof Onyx}>('react-native-onyx').default;
+                connectSpy = jest.spyOn(isolatedOnyx, 'connectWithoutView');
+                isolatedForgetClassicSignOut = jest.requireMock<{forgetClassicSignOut: jest.Mock}>('@libs/ClassicSignIn').forgetClassicSignOut;
+                jest.requireActual('@src/libs/actions/Session');
+            });
+            const deliverSession = (session: OnyxEntry<Session>) => {
+                for (const [options] of connectSpy?.mock.calls ?? []) {
+                    if (options.key === ONYXKEYS.SESSION) {
+                        options.callback?.(session, ONYXKEYS.SESSION);
+                    }
+                }
+            };
+
+            // When the stored session of a signed in user is the first one delivered
+            deliverSession({...SIGNED_IN_SESSION});
+
+            // Then nothing is forgotten, since that session may be one a sign out in another tab is about to clear
+            expect(isolatedForgetClassicSignOut).not.toHaveBeenCalled();
+
+            // When the user signs out and in again on this page
+            deliverSession(undefined);
+            deliverSession({...SIGNED_IN_SESSION});
+
+            // Then the sign out is forgotten
+            expect(isolatedForgetClassicSignOut).toHaveBeenCalledTimes(1);
         });
     });
 

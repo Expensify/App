@@ -461,6 +461,59 @@ describe('ClassicSignIn', () => {
         expect(canOpenClassicSignIn()).toBe(true);
     });
 
+    it('opens the Classic sign-in page after a sign out that was forgotten', () => {
+        // Given a sign out that never reached Classic, and a user who has signed in again since
+        window.localStorage.setItem(CONST.LOCAL_STORAGE_KEYS.CLASSIC_SIGN_OUT, 'pending');
+        loadClassicSignIn().forgetClassicSignOut();
+
+        // When a later page asks for the Classic sign-in page
+        openSignInPageFromNewPage();
+
+        // Then the sign-in page opens, so the Classic session the user has by then stays
+        expect(window.localStorage.getItem(CONST.LOCAL_STORAGE_KEYS.CLASSIC_SIGN_OUT)).toBeNull();
+        expect(mockReplace).toHaveBeenCalledTimes(1);
+        expect(mockReplace).toHaveBeenCalledWith(SIGN_IN_URL);
+    });
+
+    it('forgets the time the Classic sign-out page opened', () => {
+        // Given a sign-out page that opened a moment ago, and a user who has signed in again since
+        window.localStorage.setItem(CONST.LOCAL_STORAGE_KEYS.CLASSIC_SIGN_OUT, String(Date.now()));
+        loadClassicSignIn().forgetClassicSignOut();
+
+        // When a later page asks for the Classic sign-in page
+        openSignInPageFromNewPage();
+
+        // Then the sign-in page opens instead of the sign-out page
+        expect(mockReplace).toHaveBeenCalledWith(SIGN_IN_URL);
+    });
+
+    it('keeps the sign out when storage is unavailable', () => {
+        // Given a browser that blocks storage
+        jest.spyOn(Storage.prototype, 'removeItem').mockImplementation(() => {
+            throw new Error('blocked');
+        });
+        const {forgetClassicSignOut} = loadClassicSignIn();
+
+        // When the sign out is forgotten
+        const forget = () => forgetClassicSignOut();
+
+        // Then it doesn't throw, and the failure is logged
+        expect(forget).not.toThrow();
+        expect(mockHmmm).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not forget a sign out on other hosts', () => {
+        // Given a host that serves only New Expensify, with a mark left in storage
+        mockIsSharedProductHost = false;
+        window.localStorage.setItem(CONST.LOCAL_STORAGE_KEYS.CLASSIC_SIGN_OUT, 'pending');
+
+        // When the sign out is forgotten
+        loadClassicSignIn().forgetClassicSignOut();
+
+        // Then storage stays untouched, since the Classic pages never open there
+        expect(window.localStorage.getItem(CONST.LOCAL_STORAGE_KEYS.CLASSIC_SIGN_OUT)).toBe('pending');
+    });
+
     it('does nothing on other hosts', async () => {
         // Given a page on a host that serves only New Expensify
         mockIsSharedProductHost = false;
@@ -482,6 +535,7 @@ describe('ClassicSignIn', () => {
         // When it is asked to open the Classic pages
         NativeClassicSignIn.openClassicSignIn();
         NativeClassicSignIn.openClassicSignOutAfter(Promise.resolve());
+        NativeClassicSignIn.forgetClassicSignOut();
 
         // Then the page stays, and nothing limits the sign-in
         expect(mockReplace).not.toHaveBeenCalled();

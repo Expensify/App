@@ -25,7 +25,7 @@ import type SignInUserParams from '@libs/API/parameters/SignInUserParams';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import asyncOpenURL from '@libs/asyncOpenURL';
 import buildOldDotURL from '@libs/buildOldDotURL';
-import {openClassicSignOutAfter, preventClassicSignInDuring} from '@libs/ClassicSignIn';
+import {forgetClassicSignOut, openClassicSignOutAfter, preventClassicSignInDuring} from '@libs/ClassicSignIn';
 import {hasAuthToken} from '@libs/CurrentUserStore';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import {isSharedProductHost} from '@libs/ExperienceCookie';
@@ -107,7 +107,11 @@ let authPromiseResolver: ((value: boolean) => void) | null = null;
 let isHybridAppSetupFinished = false;
 let hasSwitchedAccountInHybridMode = false;
 
-// Use connectWithoutView since this only reacts to session changes outside React: it stamps a missing creationDate, resolves waitForUserSignIn and hands the new auth token to OldDot in HybridApp
+let hasLoadedSession = false;
+let wasSignedIn = false;
+
+// Use connectWithoutView since this only reacts to session changes outside React: it stamps a missing creationDate, resolves waitForUserSignIn, hands the new auth token to OldDot in HybridApp
+// and forgets an unfinished Expensify Classic sign out once the user signs in again
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
@@ -123,6 +127,14 @@ Onyx.connectWithoutView({
         if (CONFIG.IS_HYBRID_APP && isHybridAppSetupFinished && authToken && !isAnonymousUser(value)) {
             HybridAppModule.sendAuthToken({authToken});
         }
+
+        // The session the page loaded with says nothing about a new sign-in, so only a later change from signed out to signed in counts
+        const isSignedIn = !!authToken && !isAnonymousUser(value);
+        if (hasLoadedSession && isSignedIn && !wasSignedIn) {
+            forgetClassicSignOut();
+        }
+        hasLoadedSession = true;
+        wasSignedIn = isSignedIn;
     },
 });
 

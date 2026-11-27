@@ -24,4 +24,10 @@ type OpenClassicSignOutAfter = (cleanup: Promise<unknown>) => void;
  */
 type PreventClassicSignInDuring = (navigation: Promise<unknown>) => void;
 
-export type {CanOpenClassicSignIn, OpenClassicSignIn, OpenClassicSignOutAfter, PreventClassicSignInDuring};
+/**
+ * Forgets a sign out that hasn't reached Expensify Classic. Called once the user is signed in again, so a later sign-in request opens the sign-in page
+ * instead of ending the Expensify Classic session the user has by then. Does nothing on any host other than the one that serves both products.
+ */
+type ForgetClassicSignOut = () => void;
+
+export type {CanOpenClassicSignIn, ForgetClassicSignOut, OpenClassicSignIn, OpenClassicSignOutAfter, PreventClassicSignInDuring};
