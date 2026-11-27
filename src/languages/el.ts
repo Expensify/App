@@ -5827,6 +5827,20 @@ ${amount} για ${merchant} - ${date}`,
             noResultsPrompt: '<muted-text><centered-text>Παρακαλούμε προσαρμόστε την αναζήτησή σας ή <a href="#">προτείνετε μια ενσωμάτωση</a>.</centered-text></muted-text>',
             allConnectedTitle: 'Έχετε συνδεθεί πλήρως',
             allConnectedPrompt: '<muted-text><centered-text>Όλα εδώ είναι ήδη συνδεδεμένα. Μπορείτε επίσης να <a href="#">προτείνετε μια ενσωμάτωση</a>.</centered-text></muted-text>',
+            gmail: {
+                title: 'Gmail',
+                inactive: 'Ανενεργό',
+                synced: (relativeTime: string) => `Συγχρονίστηκε ${relativeTime}`,
+                notSyncedYet: 'Δεν συγχρονίστηκε ποτέ',
+                notSynced: 'Δεν συγχρονίστηκε',
+                removeConnection: 'Αφαίρεση σύνδεσης',
+                removeConnectionTitle: 'Κατάργηση σύνδεσης Gmail',
+                removeConnectionPrompt: (email: string) => `Είστε βέβαιοι ότι θέλετε να σταματήσετε την εισαγωγή αποδείξεων για το ${email}; Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.`,
+                error: {
+                    [CONST.OAUTH_CONNECTIONS.ERROR.INVALID_GRANT]: 'Δεν ήταν δυνατή η σύνδεση με το Gmail λόγω λανθασμένων διαπιστευτηρίων.',
+                    [CONST.OAUTH_CONNECTIONS.ERROR.ADMIN_RESTRICTED]: 'Ο διαχειριστής του Google Workspace πρέπει να εγκρίνει το Expensify.',
+                },
+            },
         },
         receiptPartners: {
             uber: {

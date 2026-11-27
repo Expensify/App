@@ -5717,6 +5717,20 @@ ${amount} para ${merchant} - ${date}`,
             noResultsPrompt: '<muted-text><centered-text>Ajuste sua pesquisa ou <a href="#">sugira uma integração</a>.</centered-text></muted-text>',
             allConnectedTitle: 'Tudo conectado',
             allConnectedPrompt: '<muted-text><centered-text>Tudo aqui já está conectado. Você também pode <a href="#">sugerir uma integração</a>.</centered-text></muted-text>',
+            gmail: {
+                title: 'Gmail',
+                inactive: 'Inativo',
+                synced: (relativeTime: string) => `Sincronizado ${relativeTime}`,
+                notSyncedYet: 'Nunca sincronizado',
+                notSynced: 'Não sincronizado',
+                removeConnection: 'Remover conexão',
+                removeConnectionTitle: 'Remover conexão com o Gmail',
+                removeConnectionPrompt: (email: string) => `Tem certeza de que quer parar de importar recibos para ${email}? Essa ação não pode ser desfeita.`,
+                error: {
+                    [CONST.OAUTH_CONNECTIONS.ERROR.INVALID_GRANT]: 'Não foi possível conectar ao Gmail devido a credenciais incorretas.',
+                    [CONST.OAUTH_CONNECTIONS.ERROR.ADMIN_RESTRICTED]: 'Seu administrador do Google Workspace precisa aprovar o Expensify.',
+                },
+            },
         },
         receiptPartners: {
             uber: {

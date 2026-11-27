@@ -5712,6 +5712,20 @@ ${amount} voor ${merchant} - ${date}`,
             noResultsPrompt: '<muted-text><centered-text>Pas je zoekopdracht aan of <a href="#">stel een integratie voor</a>.</centered-text></muted-text>',
             allConnectedTitle: 'Je bent helemaal verbonden',
             allConnectedPrompt: '<muted-text><centered-text>Alles hier is al verbonden. Je kunt ook <a href="#">een integratie voorstellen</a>.</centered-text></muted-text>',
+            gmail: {
+                title: 'Gmail',
+                inactive: 'Inactief',
+                synced: (relativeTime: string) => `Gesynchroniseerd ${relativeTime}`,
+                notSyncedYet: 'Nooit gesynchroniseerd',
+                notSynced: 'Niet gesynchroniseerd',
+                removeConnection: 'Verbinding verwijderen',
+                removeConnectionTitle: 'Gmail-verbinding verwijderen',
+                removeConnectionPrompt: (email: string) => `Weet je zeker dat je wilt stoppen met het importeren van bonnetjes voor ${email}? Deze actie kan niet ongedaan worden gemaakt.`,
+                error: {
+                    [CONST.OAUTH_CONNECTIONS.ERROR.INVALID_GRANT]: 'Er kon geen verbinding worden gemaakt met Gmail vanwege onjuiste inloggegevens.',
+                    [CONST.OAUTH_CONNECTIONS.ERROR.ADMIN_RESTRICTED]: 'Je Google Workspace-beheerder moet Expensify goedkeuren.',
+                },
+            },
         },
         receiptPartners: {
             uber: {

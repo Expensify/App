@@ -5531,6 +5531,20 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             noResultsPrompt: '<muted-text><centered-text>请调整您的搜索条件或<a href="#">建议一个集成</a>。</centered-text></muted-text>',
             allConnectedTitle: '全部已连接',
             allConnectedPrompt: '<muted-text><centered-text>这里的一切都已连接完成。您也可以<a href="#">建议一个集成</a>。</centered-text></muted-text>',
+            gmail: {
+                title: 'Gmail',
+                inactive: '未激活',
+                synced: (relativeTime: string) => `已同步（${relativeTime}）`,
+                notSyncedYet: '从未同步',
+                notSynced: '未同步',
+                removeConnection: '移除连接',
+                removeConnectionTitle: '移除 Gmail 连接',
+                removeConnectionPrompt: (email: string) => `确定要停止导入 ${email} 的收据吗？此操作无法撤销。`,
+                error: {
+                    [CONST.OAUTH_CONNECTIONS.ERROR.INVALID_GRANT]: '由于凭证不正确，无法连接到 Gmail。',
+                    [CONST.OAUTH_CONNECTIONS.ERROR.ADMIN_RESTRICTED]: '您的 Google Workspace 管理员需要批准 Expensify。',
+                },
+            },
         },
         receiptPartners: {
             uber: {
