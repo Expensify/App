@@ -1118,6 +1118,28 @@ describe('useSearchAutoRefetch', () => {
             expect(search).toHaveBeenCalledTimes(1);
         });
 
+        it('waits for an expense refetch already sent before refreshing from the first page', async () => {
+            // Given Search on its third page while a Select all job runs, and an added expense that sends a refetch
+            await Onyx.set(BULK_ACTION_KEY, {state: CONST.BULK_ACTION.STATE.RUNNING, action: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_WORKSPACE});
+            const {initialProps, rerender} = renderWithResults({}, {transactions_1: row('1')}, {offset: 100});
+            await waitForBatchedUpdatesWithAct();
+            const transactions = {transactions_1: row('1'), transactions_2: row('2')};
+            rerender({transactions, previousTransactions: {transactions_1: row('1')}});
+            await waitForBatchedUpdatesWithAct();
+            expect(search).toHaveBeenCalledTimes(1);
+
+            // When the job finishes before that refetch's results arrive
+            await Onyx.merge(BULK_ACTION_KEY, {state: CONST.BULK_ACTION.STATE.DONE, total: 1, failedReportIDs: []});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then nothing else is sent until they do, and then the first page is fetched again
+            expect(search).toHaveBeenCalledTimes(1);
+            rerender({transactions, previousTransactions: transactions, searchResults: {...initialProps.searchResults, data: {transactions_2: row('2')}}});
+            await waitForBatchedUpdatesWithAct();
+            expect(search).toHaveBeenCalledTimes(2);
+            expect(search).toHaveBeenLastCalledWith(expect.objectContaining({offset: 0}));
+        });
+
         it('does not search again while the job is still running', async () => {
             // Given Search is open while a Select all job runs
             await Onyx.set(BULK_ACTION_KEY, {state: CONST.BULK_ACTION.STATE.RUNNING, action: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_WORKSPACE});

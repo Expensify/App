@@ -328,10 +328,12 @@ function useSearchAutoRefetch({
         }
         // Kept until Search can run, since `usePrevious` moves on and the finished job can't be detected again.
         const isSearchStillActive = isFocused || isSearchTopmostFullScreenRoute();
-        if (!hasFinishedBulkActionRef.current || !isSearchStillActive || isOffline || shouldReturnTripRooms || searchResults?.search?.isLoading) {
+        // Waits for a refetch already sent, so it doesn't race this first-page one.
+        if (!hasFinishedBulkActionRef.current || !isSearchStillActive || isOffline || shouldReturnTripRooms || searchResults?.search?.isLoading || searchTriggeredRef.current) {
             return;
         }
         hasFinishedBulkActionRef.current = false;
+        searchTriggeredRef.current = true;
         // The job can change reports on every page, so the results are fetched again from the first one.
         TransitionTracker.runAfterTransitions({
             callback: () => {
@@ -349,6 +351,7 @@ function useSearchAutoRefetch({
         searchKey,
         shouldCalculateTotals,
         searchResults?.search?.isLoading,
+        searchResultsData,
     ]);
 
     return {newTransactions};
