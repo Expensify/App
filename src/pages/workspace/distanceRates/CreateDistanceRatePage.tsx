@@ -70,6 +70,7 @@ import type {ValueOf} from 'type-fest';
 
 import React, {useEffect, useRef, useState} from 'react';
 import {Keyboard, View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 import EuroCountryDropdown from './EuroCountryDropdown';
 
@@ -98,7 +99,6 @@ function CreateDistanceRatePage({
     const isDistanceRateUpgrade = transactionID && reportID;
     const {isBetaEnabled} = usePermissions();
     const shouldShowCountryAndKind = !isDistanceRateUpgrade && isBetaEnabled(CONST.BETAS.MILEAGE_UI);
-    const [transactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(transactionID)}`);
     const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST);
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
     const [governmentMileageRates] = useOnyx(ONYXKEYS.GOVERNMENT_MILEAGE_RATES);
@@ -197,7 +197,7 @@ function CreateDistanceRatePage({
         Navigation.goBack();
     };
 
-    const saveCustomRate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM>) => {
+    const saveCustomRate = async (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM>) => {
         // A blocking view is shown when customUnitID is undefined, so this function should never be called
         if (!customUnitID) {
             return;
@@ -216,6 +216,7 @@ function CreateDistanceRatePage({
         createPolicyDistanceRate(policyID, customUnitID, newRate);
         if (isDistanceRateUpgrade) {
             const isEdit = action === CONST.IOU.ACTION.EDIT;
+            const transactionDraft = await Onyx.get(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(transactionID)}`);
             setMoneyRequestDistanceRate(transactionDraft, customUnitRateID, policy, true);
             Navigation.goBack(
                 !isEdit
@@ -236,7 +237,7 @@ function CreateDistanceRatePage({
             saveGovernmentRate();
             return;
         }
-        saveCustomRate(values);
+        return saveCustomRate(values);
     };
 
     const kindTabs: Array<TabSelectorBaseItem<DistanceRateKind>> = [
