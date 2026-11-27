@@ -12,9 +12,14 @@ import {getShortLivedAuthToken} from '@userActions/Link';
 import {getAllIncludingOngoing as getAllPersistedRequests, waitForInitialization as waitForPersistedRequests} from '@userActions/PersistedRequests';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Session} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import {isAnonymousSessionSelector, isDelegateSessionSelector, isSupportalSessionSelector} from '@selectors/Session';
+import Onyx from 'react-native-onyx';
 
 import type {HopToSharedHost, ShouldHopToSharedHost} from './types';
 
@@ -52,6 +57,47 @@ function markHopInThisTab(): boolean {
     }
 }
 
+type SessionWatch = {
+    /** Resolves once the watch has seen the live session. From then on it gets each session value Onyx delivers, which is where the request takes its token from. */
+    waitUntilWatching: () => Promise<void>;
+
+    /** Whether every session seen so far was a signed in, ordinary session of the checked account */
+    hasOnlySeenCheckedAccount: () => boolean;
+
+    stop: () => void;
+};
+
+/**
+ * The token request authenticates with whichever session is live when it is sent, and another tab can change that session through Onyx.
+ * A renewed token for the same account is fine, but a Copilot session gets its own long-lived token back, so any other session seen while waiting means the token can't go into a URL.
+ */
+function watchSession(checkedSession: Session): SessionWatch {
+    let hasOnlySeenCheckedAccount = true;
+    let resolveWatching: () => void = () => {};
+    const watching = new Promise<void>((resolve) => {
+        resolveWatching = resolve;
+    });
+
+    // Uses connectWithoutView because this runs outside React and has to see each session value the request could be sent with, while a render only sees the latest one
+    const connection = Onyx.connectWithoutView({
+        key: ONYXKEYS.SESSION,
+        callback: (liveSession: OnyxEntry<Session>) => {
+            // Without an account ID on the checked session, no live session can be confirmed as the same account
+            const isCheckedAccount = !!liveSession?.authToken && checkedSession.accountID !== undefined && liveSession.accountID === checkedSession.accountID;
+            if (!isCheckedAccount || isSupportalSessionSelector(liveSession) || isDelegateSessionSelector(liveSession)) {
+                hasOnlySeenCheckedAccount = false;
+            }
+            resolveWatching();
+        },
+    });
+
+    return {
+        waitUntilWatching: () => watching,
+        hasOnlySeenCheckedAccount: () => hasOnlySeenCheckedAccount,
+        stop: () => connection.unsubscribe(),
+    };
+}
+
 function buildTransitionURL(origin: string, shortLivedAuthToken: string, email: string | undefined, exitTo: string): string {
     const params = new URLSearchParams({shortLivedAuthToken});
     if (email) {
@@ -63,11 +109,19 @@ function buildTransitionURL(origin: string, shortLivedAuthToken: string, email: 
     return `${origin}/${ROUTES.TRANSITION_BETWEEN_APPS}?${params.toString()}`;
 }
 
-/** Leaving drops requests that haven't reached the server, so the token is fetched only once the queue has drained */
-async function getShortLivedAuthTokenAfterQueue(hasTimedOut: () => boolean): Promise<string | undefined> {
+/**
+ * Leaving drops requests that haven't reached the server, so the token is fetched only once the queue has drained.
+ * The request also waits for the session watch, so the session it is sent with is one the watch has seen.
+ */
+async function getShortLivedAuthTokenAfterQueue(sessionWatch: SessionWatch, hasTimedOut: () => boolean): Promise<string | undefined> {
     await waitForPersistedRequests();
     await waitForIdle();
+    await sessionWatch.waitUntilWatching();
     if (hasTimedOut()) {
+        return undefined;
+    }
+    if (!sessionWatch.hasOnlySeenCheckedAccount()) {
+        Log.info('[LegacyHostHop] Staying on this host because the session changed before the short-lived token was requested');
         return undefined;
     }
     if (getIsOffline() || getAllPersistedRequests().length > 0) {
@@ -78,7 +132,7 @@ async function getShortLivedAuthTokenAfterQueue(hasTimedOut: () => boolean): Pro
 }
 
 /** Resolves to undefined after the timeout, so a slow queue or token request never holds startup */
-function getShortLivedAuthTokenWithTimeout(): Promise<string | undefined> {
+function getShortLivedAuthTokenWithTimeout(sessionWatch: SessionWatch): Promise<string | undefined> {
     let timeoutID: ReturnType<typeof setTimeout> | undefined;
     let hasTimedOut = false;
     const timeout = new Promise<undefined>((resolve) => {
@@ -88,7 +142,7 @@ function getShortLivedAuthTokenWithTimeout(): Promise<string | undefined> {
             resolve(undefined);
         }, CONST.LEGACY_HOST_HOP.TIMEOUT_MS);
     });
-    return Promise.race([getShortLivedAuthTokenAfterQueue(() => hasTimedOut), timeout]).finally(() => clearTimeout(timeoutID));
+    return Promise.race([getShortLivedAuthTokenAfterQueue(sessionWatch, () => hasTimedOut), timeout]).finally(() => clearTimeout(timeoutID));
 }
 
 const shouldHopToSharedHost: ShouldHopToSharedHost = () => {
@@ -137,16 +191,25 @@ const hopToSharedHost: HopToSharedHost = async (session) => {
         return false;
     }
 
-    // A token that arrives after the timeout is dropped here, because only the race's result can navigate
-    const shortLivedAuthToken = await getShortLivedAuthTokenWithTimeout();
-    if (!shortLivedAuthToken) {
-        Log.hmmm('[LegacyHostHop] Staying on this host without a short-lived token');
-        return false;
-    }
+    const sessionWatch = watchSession(session);
+    try {
+        // A token that arrives after the timeout is dropped here, because only the race's result can navigate
+        const shortLivedAuthToken = await getShortLivedAuthTokenWithTimeout(sessionWatch);
+        if (!shortLivedAuthToken) {
+            Log.hmmm('[LegacyHostHop] Staying on this host without a short-lived token');
+            return false;
+        }
+        if (!sessionWatch.hasOnlySeenCheckedAccount()) {
+            Log.info('[LegacyHostHop] Staying on this host because the session changed while the short-lived token was fetched');
+            return false;
+        }
 
-    Log.info('[LegacyHostHop] Moving to the shared host with a short-lived token');
-    window.location.replace(buildTransitionURL(origin, shortLivedAuthToken, session.email, `${pathname.slice(1)}${search}`));
-    return true;
+        Log.info('[LegacyHostHop] Moving to the shared host with a short-lived token');
+        window.location.replace(buildTransitionURL(origin, shortLivedAuthToken, session.email, `${pathname.slice(1)}${search}`));
+        return true;
+    } finally {
+        sessionWatch.stop();
+    }
 };
 
 export {shouldHopToSharedHost, hopToSharedHost};

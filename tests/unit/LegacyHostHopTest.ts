@@ -2,7 +2,14 @@ import * as NativeLegacyHostHop from '@libs/LegacyHostHop/index.native';
 import type * as WebLegacyHostHop from '@libs/LegacyHostHop/index.ts';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Session} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const LEGACY_ORIGIN = 'https://dev.new.expensify.com:8082';
 const SHARED_ORIGIN = 'https://expensify.com.dev';
@@ -48,8 +55,15 @@ function arrangeCookies(cookies: string) {
     cookieGetter.mockReturnValue(cookies);
 }
 
-beforeEach(() => {
+function getNavigatedURL(): URL {
+    return new URL(mockReplace.mock.calls.at(0)?.at(0) ?? '');
+}
+
+beforeAll(() => Onyx.init({keys: ONYXKEYS}));
+
+beforeEach(async () => {
     jest.clearAllMocks();
+    await Onyx.set(ONYXKEYS.SESSION, SIGNED_IN_SESSION);
     realLocation = window.location;
     cookieGetter = jest.spyOn(Document.prototype, 'cookie', 'get');
     sessionStorage.clear();
@@ -228,6 +242,144 @@ describe('LegacyHostHop', () => {
             expect(mockWaitForIdle).not.toHaveBeenCalled();
             expect(mockGetShortLivedAuthToken).not.toHaveBeenCalled();
             expect(mockReplace).not.toHaveBeenCalled();
+        });
+
+        it('moves a signed in page when the auth token is renewed for the same account while the token is fetched', async () => {
+            // Given the stored auth token has expired, so the token request reauthenticates the same account and is sent again
+            mockGetShortLivedAuthToken.mockImplementation(async () => {
+                await Onyx.merge(ONYXKEYS.SESSION, {authToken: 'renewedAuthToken'});
+                return 'short+lived/token';
+            });
+
+            // When a signed in page hops
+            const hop = hopToSharedHost(SIGNED_IN_SESSION);
+
+            // Then it still moves, because a renewed token belongs to the account that passed the checks
+            await expect(hop).resolves.toBe(true);
+            expect(getNavigatedURL().searchParams.get('shortLivedAuthToken')).toBe('short+lived/token');
+        });
+
+        it('sends the token request only after the session watch has seen the live session', async () => {
+            // Given a session watch whose first value is held back
+            let deliverSession: (session: OnyxEntry<Session>) => void = () => {};
+            jest.spyOn(Onyx, 'connectWithoutView').mockImplementation((options) => {
+                deliverSession = (session) => options.callback?.(session, ONYXKEYS.SESSION);
+                return {unsubscribe: () => {}};
+            });
+
+            // When a signed in page hops and the queue has drained
+            const hop = hopToSharedHost(SIGNED_IN_SESSION);
+            await waitForBatchedUpdates();
+
+            // Then the token is not requested yet, because the request could be sent with a session the watch never sees
+            expect(mockGetShortLivedAuthToken).not.toHaveBeenCalled();
+
+            // When the watch sees the live session
+            deliverSession(SIGNED_IN_SESSION);
+
+            // Then the token is requested and the page moves
+            await expect(hop).resolves.toBe(true);
+            expect(mockGetShortLivedAuthToken).toHaveBeenCalledTimes(1);
+        });
+
+        it('does not request a token when the live session is already a Copilot session', async () => {
+            // Given the live session became a Copilot session before the hop started watching it
+            await Onyx.set(ONYXKEYS.SESSION, {...SIGNED_IN_SESSION, authToken: 'delegateAuthToken', authTokenType: CONST.AUTH_TOKEN_TYPES.DELEGATE});
+
+            // When a page hops with the session it captured earlier
+            const hop = hopToSharedHost(SIGNED_IN_SESSION);
+
+            // Then it stays without sending the request, since the server would answer with the Copilot session's long-lived token
+            await expect(hop).resolves.toBe(false);
+            expect(mockGetShortLivedAuthToken).not.toHaveBeenCalled();
+        });
+
+        it('stays when the checked session has no account ID', async () => {
+            // Given a session without an account ID, which the watch can't tell apart from another account's
+            const session: Session = {authToken: 'authToken', email: 'user+beta@example.com'};
+            await Onyx.set(ONYXKEYS.SESSION, session);
+
+            // When the page hops
+            const hop = hopToSharedHost(session);
+
+            // Then it stays, because the account behind the token can't be confirmed
+            await expect(hop).resolves.toBe(false);
+            expect(mockReplace).not.toHaveBeenCalled();
+        });
+
+        it('stays when the session is a Copilot session only while the token request is sent', async () => {
+            // Given another tab switches to a Copilot session while the request is sent, and the original session comes back before the response
+            mockGetShortLivedAuthToken.mockImplementation(async () => {
+                await Onyx.merge(ONYXKEYS.SESSION, {authToken: 'delegateLongLivedToken', authTokenType: CONST.AUTH_TOKEN_TYPES.DELEGATE});
+                await Onyx.set(ONYXKEYS.SESSION, SIGNED_IN_SESSION);
+                return 'delegateLongLivedToken';
+            });
+
+            // When a signed in page hops
+            const hop = hopToSharedHost(SIGNED_IN_SESSION);
+
+            // Then it stays, because the server answers a Copilot session with its long-lived token, which must never reach a URL
+            await expect(hop).resolves.toBe(false);
+            expect(mockReplace).not.toHaveBeenCalled();
+        });
+
+        it.each([
+            ['another account signed in', {authToken: 'otherAuthToken', email: 'other@example.com', accountID: 2}],
+            ['the session became a Copilot session', {...SIGNED_IN_SESSION, authToken: 'delegateAuthToken', authTokenType: CONST.AUTH_TOKEN_TYPES.DELEGATE}],
+            ['the session became a Supportal session', {...SIGNED_IN_SESSION, authToken: 'supportAuthToken', authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT}],
+            ['the session signed out', {}],
+            ['the session lost its auth token', {...SIGNED_IN_SESSION, authToken: undefined}],
+        ])('stays when %s while the token was fetched', async (_, liveSession: Session) => {
+            // Given the session changes in another tab while the token request is in flight
+            mockGetShortLivedAuthToken.mockImplementation(async () => {
+                await Onyx.set(ONYXKEYS.SESSION, liveSession);
+                return 'short+lived/token';
+            });
+
+            // When a signed in page hops
+            const hop = hopToSharedHost(SIGNED_IN_SESSION);
+
+            // Then it stays, because the token may belong to a session that never passed the checks
+            await expect(hop).resolves.toBe(false);
+            expect(mockReplace).not.toHaveBeenCalled();
+        });
+
+        it.each([
+            ['moves', () => {}, true],
+            ['stays without a token', () => mockGetShortLivedAuthToken.mockResolvedValue(undefined), false],
+            [
+                'stays after the session changed',
+                () =>
+                    mockGetShortLivedAuthToken.mockImplementation(async () => {
+                        await Onyx.set(ONYXKEYS.SESSION, {});
+                        return 'short+lived/token';
+                    }),
+                false,
+            ],
+            ['stays after the timeout', () => mockWaitForIdle.mockReturnValue(new Promise(() => {})), false],
+        ])('stops watching the session when the page %s', async (_, arrange, isLeaving) => {
+            // Given a session watch whose unsubscribe is recorded
+            const connectWithoutView = Onyx.connectWithoutView.bind(Onyx);
+            const unsubscribe = jest.fn();
+            jest.spyOn(Onyx, 'connectWithoutView').mockImplementation((options) => {
+                const connection = connectWithoutView(options);
+                return {
+                    unsubscribe: () => {
+                        unsubscribe();
+                        connection.unsubscribe();
+                    },
+                };
+            });
+            jest.useFakeTimers();
+            arrange();
+
+            // When a signed in page hops, and the timeout passes if it is still waiting
+            const hop = hopToSharedHost(SIGNED_IN_SESSION);
+            await jest.advanceTimersByTimeAsync(CONST.LEGACY_HOST_HOP.TIMEOUT_MS);
+
+            // Then the watch is stopped on the way out, so the subscription never outlives the hop
+            await expect(hop).resolves.toBe(isLeaving);
+            expect(unsubscribe).toHaveBeenCalledTimes(1);
         });
 
         it('stays when the queue does not drain before the timeout', async () => {

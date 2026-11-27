@@ -22,6 +22,8 @@ function SharedHostHopHandler({onStay}: SharedHostHopHandlerProps) {
         if (hasStarted.current || session === undefined) {
             return;
         }
+
+        // A later session change doesn't restart the move, because the move watches the live session itself until it navigates
         hasStarted.current = true;
         hopToSharedHost(session)
             .then((isLeaving) => {
