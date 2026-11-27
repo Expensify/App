@@ -6,9 +6,12 @@ import useKeyboardState from '@hooks/useKeyboardState';
 import useOnyx from '@hooks/useOnyx';
 import usePopoverPosition from '@hooks/usePopoverPosition';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
+import isTablet from '@libs/isTablet';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -21,7 +24,9 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import {useIsFocused} from '@react-navigation/core';
 import {willAlertModalBecomeVisibleSelector} from '@selectors/Modal';
 import React, {useRef, useState} from 'react';
-import {View} from 'react-native';
+import {Dimensions, View} from 'react-native';
+import {useReanimatedKeyboardAnimation} from 'react-native-keyboard-controller';
+import Animated, {useAnimatedStyle} from 'react-native-reanimated';
 
 type PopoverComponentProps = {
     isExpanded: boolean;
@@ -77,7 +82,14 @@ function FilterPopupButton({
         addOfflineIndicatorBottomSafeAreaPadding: false,
     });
     const StyleUtils = useStyleUtils();
+    const {paddingTop: safeAreaPaddingTop, paddingBottom: safeAreaPaddingBottom} = useSafeAreaPaddings(true);
+    // The modal's avoidKeyboard pads from a modal-local frame and falls short when the modal window is inset, so on phones the sheet pads itself and drops the landscape height cap that would clip it.
+    const shouldPadForKeyboard = isSmallScreenWidth && !isTablet();
+    const {height: keyboardOffset} = useReanimatedKeyboardAnimation();
     const {windowHeight} = useWindowDimensions();
+    // Without edge-to-edge (HybridApp) the modal stops above the navigation bar while the keyboard height counts from the screen bottom, so that overlap is not padded again.
+    const modalBottomInset = Math.min(Math.max(windowHeight - Dimensions.get('window').height - safeAreaPaddingTop, 0), safeAreaPaddingBottom);
+    const keyboardRoomStyle = useAnimatedStyle(() => ({paddingBottom: Math.max(safeAreaPaddingBottom, -keyboardOffset.get() - modalBottomInset)}));
     const triggerRef = useRef<ComponentRef<typeof View> | null>(null);
     const anchorRef = useRef<ComponentRef<typeof View> | null>(null);
     const [isOverlayVisible, setIsOverlayVisible] = useState(false);
@@ -142,7 +154,8 @@ function FilterPopupButton({
             {isFocused && hasEverExpanded && (
                 <PopoverWithMeasuredContent
                     anchorRef={triggerRef}
-                    avoidKeyboard
+                    avoidKeyboard={!shouldPadForKeyboard}
+                    shouldLimitHeightIfBottomDockedInLandscapeMode={!shouldPadForKeyboard}
                     isVisible={isOverlayVisible}
                     onClose={toggleOverlay}
                     onModalShow={onModalShow}
@@ -165,7 +178,7 @@ function FilterPopupButton({
                     shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={false}
                     enableEdgeToEdgeBottomSafeAreaPadding
                 >
-                    <View style={[containerStyles, bottomSafeAreaPaddingStyle]}>{popoverContent}</View>
+                    <Animated.View style={[containerStyles, shouldPadForKeyboard ? keyboardRoomStyle : bottomSafeAreaPaddingStyle]}>{popoverContent}</Animated.View>
                 </PopoverWithMeasuredContent>
             )}
         </View>
