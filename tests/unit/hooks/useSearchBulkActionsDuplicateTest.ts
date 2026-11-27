@@ -299,6 +299,26 @@ function useSearchBulkActionsWithDuplicateReport({queryJSON}: {queryJSON: Search
 
 const renderHookWithProvider: typeof renderHook = (callback, options) => renderHook(callback, {...options, wrapper: OnyxListItemProvider});
 
+const STORED_ONBOARDING = {hasCompletedGuidedSetupFlow: true, selfTourViewed: true};
+const STORED_INTRO_SELECTED = {choice: CONST.ONBOARDING_CHOICES.TRACK_PERSONAL};
+const STORED_QUICK_ACTION = {action: CONST.QUICK_ACTIONS.REQUEST_MANUAL, chatReportID: 'quickActionChat'};
+const STORED_RECENTLY_USED_CURRENCIES = ['EUR', 'GBP'];
+const STORED_RECENT_WAYPOINTS = [{name: 'Office', address: '1 Main St', lat: 1, lng: 2}];
+const STORED_CONCIERGE_REPORT_ID = 'concierge1';
+const STORED_CONCIERGE_CHAT = {reportID: STORED_CONCIERGE_REPORT_ID, reportName: 'Concierge'};
+
+async function seedStoredDuplicateData() {
+    await Onyx.multiSet({
+        [ONYXKEYS.NVP_ONBOARDING]: STORED_ONBOARDING,
+        [ONYXKEYS.NVP_INTRO_SELECTED]: STORED_INTRO_SELECTED,
+        [ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE]: STORED_QUICK_ACTION,
+        [ONYXKEYS.RECENTLY_USED_CURRENCIES]: STORED_RECENTLY_USED_CURRENCIES,
+        [ONYXKEYS.NVP_RECENT_WAYPOINTS]: STORED_RECENT_WAYPOINTS,
+        [ONYXKEYS.CONCIERGE_REPORT_ID]: STORED_CONCIERGE_REPORT_ID,
+        [`${ONYXKEYS.COLLECTION.REPORT}${STORED_CONCIERGE_REPORT_ID}` as const]: STORED_CONCIERGE_CHAT,
+    });
+}
+
 describe('useSearchBulkActions - duplicate option', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
@@ -617,6 +637,39 @@ describe('useSearchBulkActions - duplicate option', () => {
     // ============================================================
     // Data / invocation tests
     // ============================================================
+
+    it('should pass the stored onboarding, intent, quick action, recent data, drafts and Concierge chat to bulkDuplicateExpenses', async () => {
+        // Given a user who saw the tour, chose a track intent, and has a quick action, recent currencies, recent waypoints, a transaction draft and a Concierge chat, which the copies' optimistic data is built from
+        await seedStoredDuplicateData();
+        const draft = {...createRandomTransaction(3), transactionID: 'draft1'};
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${draft.transactionID}`, draft);
+        const txn = {...createRandomTransaction(1), transactionID: '610', managedCard: false};
+        mockSelectedTransactions = {[txn.transactionID]: makeSelectedTransaction({reportID: 'r1'})};
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${txn.transactionID}`, txn);
+        const {result} = renderHookWithProvider(() => useSearchBulkActionsWithDuplicate({queryJSON: baseQueryJSON}));
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeDefined();
+        });
+
+        // When the user duplicates the selected expense
+        await act(async () => {
+            result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)?.onSelected?.();
+            await waitForBatchedUpdates();
+        });
+
+        // Then the stored onboarding state, intent, quick action, recent currencies, recent waypoints, drafts and Concierge chat still reach bulkDuplicateExpenses
+        expect(bulkDuplicateExpenses).toHaveBeenCalledWith(
+            expect.objectContaining({
+                isSelfTourViewed: true,
+                isTrackIntentUser: true,
+                quickAction: STORED_QUICK_ACTION,
+                policyRecentlyUsedCurrencies: STORED_RECENTLY_USED_CURRENCIES,
+                recentWaypoints: STORED_RECENT_WAYPOINTS,
+                conciergeChat: STORED_CONCIERGE_CHAT,
+                transactionDrafts: expect.objectContaining({[draft.transactionID]: expect.objectContaining({transactionID: draft.transactionID})}),
+            }),
+        );
+    });
 
     it('should call bulkDuplicateExpenses with all selected transaction IDs', async () => {
         const txn1 = {...createRandomTransaction(1), transactionID: '600', managedCard: false};
