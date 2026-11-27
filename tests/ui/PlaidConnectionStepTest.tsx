@@ -24,7 +24,6 @@ jest.mock('@expensify/react-native-hybrid-app', () => ({
     },
 }));
 jest.mock('@components/BlockingViews/FullPageOfflineBlockingView', () => jest.fn(({children}: {children: React.ReactNode}) => children));
-jest.mock('@components/HeaderWithBackButton', () => jest.fn(() => null));
 jest.mock('@components/PlaidLink', () => jest.fn(() => null));
 jest.mock('@components/ScreenWrapper', () => jest.fn(({children}: {children: React.ReactNode}) => children));
 jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: (key: string) => key})));

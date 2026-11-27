@@ -1,7 +1,7 @@
 import Button from '@components/Button';
 import DatePicker from '@components/DatePicker';
 import FormHelpMessage from '@components/FormHelpMessage';
-import Header from '@components/Header';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
@@ -110,10 +110,10 @@ function CompanyCardTransactionStartDateForm({
             testID={testID}
             enableEdgeToEdgeBottomSafeAreaPadding
         >
-            <Header>
-                <Header.BackButton onPress={onBackButtonPress} />
-                <Header.Title title={translate('workspace.moreFeatures.companyCards.transactionStartDate')} />
-            </Header>
+            <HeaderWithBackButtonAndTitle
+                title={translate('workspace.moreFeatures.companyCards.transactionStartDate')}
+                onBackButtonPress={onBackButtonPress}
+            />
             <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{description}</Text>
             <View style={styles.flex1}>
                 <SelectionList

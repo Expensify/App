@@ -1,5 +1,5 @@
 import CardUnsubmittedTransactionsPrompt from '@components/CardUnsubmittedTransactionsPrompt';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ImageSVG from '@components/ImageSVG';
 import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
@@ -209,7 +209,7 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
                 enableEdgeToEdgeBottomSafeAreaPadding
                 testID="DynamicWorkspaceCompanyCardDetailsPage"
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('workspace.moreFeatures.companyCards.cardDetails')}
                     onBackButtonPress={() => Navigation.goBack(backPath)}
                 />

@@ -1,7 +1,7 @@
 import FixedFooter from '@components/FixedFooter';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FormHelpMessage from '@components/FormHelpMessage';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -126,7 +126,7 @@ function WorkspaceCompanyCardStatementCloseDateSelectionList({
             shouldEnableMaxHeight
             shouldShowOfflineIndicatorInWideScreen={!enabledWhenOffline}
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={title}
                 onBackButtonPress={goBack}
             />
