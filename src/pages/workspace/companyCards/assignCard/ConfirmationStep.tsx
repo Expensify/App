@@ -111,7 +111,7 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
         const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
         const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyCardFeedData);
 
-        const isFeedExpired = isSelectedFeedExpired(cardFeeds?.[feed]);
+        const isFeedExpired = isSelectedFeedExpired(companyCardFeedData);
         const institutionId = !!getPlaidInstitutionId(bankName);
 
         if (isFeedExpired) {

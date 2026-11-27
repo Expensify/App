@@ -1,6 +1,7 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
+import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
@@ -85,6 +86,8 @@ jest.mock('@hooks/useConfirmModal', () => jest.requireActual<typeof ConfirmModal
 TestHelper.setupGlobalFetchMock();
 
 const conciergeChatKey = `${ONYXKEYS.COLLECTION.REPORT}999` as const;
+const SIGNED_IN_ACCOUNT_ID = 7;
+const INTRO_SELECTED = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
 
 const cardSettingsKey = `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${WORKSPACE_ACCOUNT_ID}` as const;
 
@@ -184,14 +187,15 @@ describe('WorkspaceCardsListLabel', () => {
         await act(async () => {
             await Onyx.merge(cardSettingsKey, {US: {paymentBankAccountID: 1234, isPaymentBankAccountConnectedWithPlaid: false}});
             await Onyx.multiSet({
-                [ONYXKEYS.NVP_INTRO_SELECTED]: {choice: CONST.ONBOARDING_CHOICES.ADMIN},
-                [ONYXKEYS.NVP_ONBOARDING]: {hasCompletedGuidedSetupFlow: false},
+                [ONYXKEYS.SESSION]: {accountID: SIGNED_IN_ACCOUNT_ID},
+                [ONYXKEYS.NVP_INTRO_SELECTED]: INTRO_SELECTED,
+                [ONYXKEYS.NVP_ONBOARDING]: {hasCompletedGuidedSetupFlow: false, selfTourViewed: true},
                 ...onyxData,
             });
             await waitForBatchedUpdatesWithAct();
         });
         render(
-            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentUserPersonalDetailsProvider]}>
                 <WorkspaceCardsListLabel
                     type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.REMAINING_LIMIT}
                     value={100000}
@@ -213,8 +217,17 @@ describe('WorkspaceCardsListLabel', () => {
             [conciergeChatKey]: {reportID: '999'},
         });
 
-        // Then OpenReport gets the stored chat and is enqueued first, so Concierge replies last
-        expect(mockOpenReport).toHaveBeenCalledWith(expect.objectContaining({reportID: '999', conciergeChat: expect.objectContaining({reportID: '999'})}));
+        // Then OpenReport gets the stored chat and onboarding data and is enqueued first, so Concierge replies last
+        expect(mockOpenReport).toHaveBeenCalledWith(
+            expect.objectContaining({
+                reportID: '999',
+                conciergeChat: expect.objectContaining({reportID: '999'}),
+                introSelected: INTRO_SELECTED,
+                currentUserAccountID: SIGNED_IN_ACCOUNT_ID,
+                isSelfTourViewed: true,
+                hasCompletedGuidedSetupFlow: false,
+            }),
+        );
         expect(mockOpenReport.mock.invocationCallOrder.at(0)).toBeLessThan(mockRequestExpensifyCardLimitIncrease.mock.invocationCallOrder.at(0) ?? 0);
     });
 
@@ -224,7 +237,14 @@ describe('WorkspaceCardsListLabel', () => {
         await requestLimitIncreaseWithPendingOnboarding({});
 
         // Then the chat is created with the onboarding data, and the limit increase is requested after it
-        expect(mockNavigateToConciergeChat).toHaveBeenCalledTimes(1);
+        expect(mockNavigateToConciergeChat).toHaveBeenCalledWith(
+            expect.objectContaining({
+                introSelected: INTRO_SELECTED,
+                currentUserAccountID: SIGNED_IN_ACCOUNT_ID,
+                isSelfTourViewed: true,
+                hasCompletedGuidedSetupFlow: false,
+            }),
+        );
         expect(mockOpenReport).not.toHaveBeenCalled();
         expect(mockRequestExpensifyCardLimitIncrease).toHaveBeenCalledTimes(1);
     });
