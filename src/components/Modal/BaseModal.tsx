@@ -5,6 +5,7 @@ import NavigationBar from '@components/NavigationBar';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import RHPResizeHandle from '@components/RHPResizeHandle';
 import ScreenWrapperOfflineIndicatorContext from '@components/ScreenWrapper/ScreenWrapperOfflineIndicatorContext';
+import ScreenWrapperTopInsetHeaderContext from '@components/ScreenWrapper/ScreenWrapperTopInsetHeaderContext';
 import ScrollView from '@components/ScrollView';
 
 import useKeyboardState from '@hooks/useKeyboardState';
@@ -446,7 +447,11 @@ function BaseModal({
                             )}
                             <FSClassContext.Provider value={forwardedFSClass}>
                                 <HorizontalSafeAreaContext.Provider value={HORIZONTAL_SAFE_AREA_PLACEMENT.BOX}>
-                                    <ColorSchemeWrapper>{shouldWrapChildrenInScrollView ? <ScrollView>{children}</ScrollView> : children}</ColorSchemeWrapper>
+                                    {/* A header in the modal must not take the top inset over from the screen behind it, which keeps its own padding.
+                                        A ScreenWrapper inside the modal provides this context again for its own header. */}
+                                    <ScreenWrapperTopInsetHeaderContext.Provider value={undefined}>
+                                        <ColorSchemeWrapper>{shouldWrapChildrenInScrollView ? <ScrollView>{children}</ScrollView> : children}</ColorSchemeWrapper>
+                                    </ScreenWrapperTopInsetHeaderContext.Provider>
                                 </HorizontalSafeAreaContext.Provider>
                             </FSClassContext.Provider>
                         </Animated.View>

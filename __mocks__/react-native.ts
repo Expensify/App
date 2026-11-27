@@ -64,7 +64,7 @@ jest.doMock('react-native', () => {
                         listener(appState);
                     }
                 },
-                addEventListener(type: ReactNative.AppStateEvent, listener: (state: ReactNative.AppStateStatus) => void) {
+                addEventListener(type: ReactNative.AppStateEvent, listener: Parameters<typeof ReactNative.AppState.addEventListener>[1]) {
                     if (type === 'change') {
                         const originalCount = count;
                         changeListeners[originalCount] = listener;
@@ -88,7 +88,9 @@ jest.doMock('react-native', () => {
                 },
             },
         },
-        ReactNative,
+        // The actual module, not the `import * as` namespace: Babel's wildcard interop copies only enumerable exports, and
+        // React Native 0.88 re-exports `Touchable` (still read by react-native-svg) as a non-enumerable property.
+        jest.requireActual<typeof ReactNative>('react-native'),
     ) as ReactNativeMock;
 
     return reactNativeMock;

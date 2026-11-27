@@ -1,20 +1,25 @@
 import {act, renderHook} from '@testing-library/react-native';
 
-import useReportIDToNameMap, {
+import useReportIDToNameMap, {useMentionedReportIDToNameMap} from '@hooks/useReportIDToNameMap';
+
+import {
+    buildMentionedReportIDToNameMapFromReportNames,
     buildMentionedRoomPlaceholderMap,
     buildReportIDToNameMap,
     getMentionedReportIDs,
+    getMentionedReportIDsInReportActions,
     getReportIDToNameMapForRoomsInMarkdown,
-    useMentionedReportIDToNameMap,
-} from '@hooks/useReportIDToNameMap';
+} from '@libs/ReportIDToNameMapUtils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
+import type {Report, ReportAction} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
+import createMock from '../utils/createMock';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 function createReport(reportID: string, overrides: Partial<Report> = {}): Report {
@@ -358,5 +363,70 @@ describe('buildMentionedRoomPlaceholderMap', () => {
 
         // Then nothing is mapped
         expect(map).toEqual({});
+    });
+});
+
+describe('getMentionedReportIDsInReportActions', () => {
+    it('returns the rooms mentioned in every message fragment of every action, once each', () => {
+        // Given two actions, one with several fragments, that mention the same room more than once
+        const firstAction = createMock<ReportAction>({
+            message: [
+                {type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: 'a <mention-report reportID="1"></mention-report>', text: 'a'},
+                {type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: 'b <mention-report reportID="2"></mention-report>', text: 'b'},
+            ],
+        });
+        const secondAction = createMock<ReportAction>({
+            message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: 'c <mention-report reportID="1"></mention-report>', text: 'c'}],
+        });
+
+        // When reading the mentioned reportIDs, with a missing action as LHN rows pass when there is no swapped action
+        const reportIDs = getMentionedReportIDsInReportActions([firstAction, undefined, secondAction]);
+
+        // Then each room is looked up once, so the LHN text and thread names name all of them
+        expect(reportIDs).toEqual(['1', '2']);
+    });
+});
+
+describe('buildMentionedReportIDToNameMapFromReportNames', () => {
+    it('maps only the mentioned rooms that have a name', () => {
+        // Given derived report names for more reports than the action mentions
+        const [namedRoomID, otherRoomID, unnamedRoomID, unloadedRoomID] = ['1', '2', '3', '4'];
+        const reportNames = {[namedRoomID]: {reportName: '#one', rawReportName: '#one'}, [otherRoomID]: {reportName: '#two', rawReportName: '#two'}, [unnamedRoomID]: {reportName: ''}};
+        const reportAction = createMock<ReportAction>({
+            message: [
+                {
+                    type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                    html: `<mention-report reportID="${namedRoomID}"></mention-report> <mention-report reportID="${unnamedRoomID}"></mention-report> <mention-report reportID="${unloadedRoomID}"></mention-report>`,
+                    text: '',
+                },
+            ],
+        });
+
+        // When building the map for the rooms the action mentions, one of which has no name and one of which isn't loaded
+        const map = buildMentionedReportIDToNameMapFromReportNames(reportNames, [reportAction]);
+
+        // Then only the named room is mapped, so rooms the action doesn't mention aren't copied and no room gets an empty name
+        expect(map).toEqual({[namedRoomID]: '#one'});
+    });
+
+    it('prefers the raw name and falls back to the display name for entries restored without one', () => {
+        // Given an archived room whose display name has the archived suffix, and a room whose entry was saved by an older version without a raw name
+        const [archivedRoomID, restoredRoomID] = ['1', '2'];
+        const reportNames = {[archivedRoomID]: {reportName: '#archived (archived) ', rawReportName: '#archived'}, [restoredRoomID]: {reportName: '#restored'}};
+        const reportAction = createMock<ReportAction>({
+            message: [
+                {
+                    type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                    html: `<mention-report reportID="${archivedRoomID}"></mention-report> <mention-report reportID="${restoredRoomID}"></mention-report>`,
+                    text: '',
+                },
+            ],
+        });
+
+        // When building the map for the rooms the action mentions
+        const map = buildMentionedReportIDToNameMapFromReportNames(reportNames, [reportAction]);
+
+        // Then the archived room keeps its raw name, and the restored room is still named instead of being left out, which would render as #Hidden
+        expect(map).toEqual({[archivedRoomID]: '#archived', [restoredRoomID]: '#restored'});
     });
 });

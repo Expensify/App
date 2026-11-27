@@ -7,20 +7,21 @@ import isSearchTopmostFullScreenRoute from './isSearchTopmostFullScreenRoute';
 
 type GetReportRouteForCurrentContextParams = {
     reportID: string | undefined;
+    reportActionID?: string;
     isPendingCreation?: boolean;
 };
 
-function getReportRouteForCurrentContext({reportID, isPendingCreation = false}: GetReportRouteForCurrentContextParams): Route {
+function getReportRouteForCurrentContext({reportID, reportActionID, isPendingCreation = false}: GetReportRouteForCurrentContextParams): Route {
     if (!reportID) {
         return ROUTES.REPORT_WITH_ID.getRoute('');
     }
 
     const backTo = Navigation.getActiveRoute();
     if (isSearchTopmostFullScreenRoute() && !isPendingCreation) {
-        return ROUTES.SEARCH_REPORT.getRoute({reportID, backTo});
+        return ROUTES.SEARCH_REPORT.getRoute({reportID, reportActionID, backTo});
     }
 
-    return ROUTES.REPORT_WITH_ID.getRoute(reportID, undefined, undefined, backTo, undefined, isPendingCreation);
+    return ROUTES.REPORT_WITH_ID.getRoute(reportID, reportActionID, undefined, backTo, undefined, isPendingCreation);
 }
 
 export default getReportRouteForCurrentContext;

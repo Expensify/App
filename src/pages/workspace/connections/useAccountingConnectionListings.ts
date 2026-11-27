@@ -21,8 +21,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
+import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 import type {ConnectionListing, ConnectionStatus} from './types';
 
@@ -30,6 +32,13 @@ import {getSyncStatusMessage} from './utils';
 
 // Listings only read an integration's title and icon. The setup flow inputs are read by `AccountingContext` when a flow starts.
 const NO_REUSABLE_CONNECTIONS = {sageIntacct: false, qbd: false, certinia: false, rillet: false, dualEntry: false, campfire: false};
+
+type WaitlistListingName = ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME> & keyof typeof CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY;
+
+/** Builds the listing of an accounting integration whose connector isn't released yet, so the grid shows its waitlist card. */
+function getWaitlistListing(name: WaitlistListingName, icon?: IconAsset): ConnectionListing {
+    return {key: name, category: CONST.TAB.CONNECTIONS.ACCOUNTING, title: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[name], icon};
+}
 
 function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionListing[] {
     const policyID = policy?.id;
@@ -48,6 +57,7 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
         'NetSuiteSquare',
         'QBDSquare',
         'CertiniaSquare',
+        'AcumaticaSquare',
         'RilletSquare',
         'DualEntrySquare',
         'CampfireSquare',
@@ -61,13 +71,9 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
     }
 
     const canUseBusinessCentralIntegration = isBetaEnabled(CONST.BETAS.BUSINESS_CENTRAL) || !!policy?.connections?.businessCentral;
-    const canUseDigitsIntegration = isBetaEnabled(CONST.BETAS.DIGITS) || !!policy?.connections?.digits;
     const accountingIntegrations = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.filter((name) => {
         if (name === CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL) {
             return canUseBusinessCentralIntegration;
-        }
-        if (name === CONST.POLICY.CONNECTIONS.NAME.DIGITS) {
-            return canUseDigitsIntegration;
         }
         return true;
     });
@@ -161,35 +167,26 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
                 anchorRef.current = button;
             },
         };
-        if (name !== CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT) {
-            return listing;
-        }
-
-        // Sage Accounting sits next to Sage Intacct, the other Sage product, and Odoo follows them as designed. Their
-        // connector flows arrive in later releases, so beta users also see their waitlist cards for now.
-        return [
-            listing,
-            {
-                key: CONST.POLICY.CONNECTIONS.NAME.SAGE_ACCOUNTING,
-                category: CONST.TAB.CONNECTIONS.ACCOUNTING,
-                title: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.sageAccounting,
+        if (name === CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT) {
+            // Sage Accounting sits next to Sage Intacct, the other Sage product, and Odoo follows them as designed. Their
+            // connector flows arrive in later releases, so beta users also see their waitlist cards for now.
+            return [
+                listing,
                 // Sage Accounting shares the Sage logo with Sage Intacct
-                icon: accountingIcons.IntacctSquare,
-            },
-            {
-                key: CONST.POLICY.CONNECTIONS.NAME.ODOO,
-                category: CONST.TAB.CONNECTIONS.ACCOUNTING,
-                title: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.odoo,
-            },
-        ];
+                getWaitlistListing(CONST.POLICY.CONNECTIONS.NAME.SAGE_ACCOUNTING, accountingIcons.IntacctSquare),
+                getWaitlistListing(CONST.POLICY.CONNECTIONS.NAME.ODOO),
+            ];
+        }
+        if (name === CONST.POLICY.CONNECTIONS.NAME.CERTINIA) {
+            // Acumatica is placed after Certinia, as in the design. Its connector flow arrives in a later release,
+            // so only its waitlist is offered for now.
+            return [listing, getWaitlistListing(CONST.POLICY.CONNECTIONS.NAME.ACUMATICA, accountingIcons.AcumaticaSquare)];
+        }
+        return listing;
     });
 
     // The connector flow arrives in a later release, so beta users also see the waitlist for now.
-    listings.push({
-        key: CONST.POLICY.CONNECTIONS.NAME.EXACT_ONLINE,
-        category: CONST.TAB.CONNECTIONS.ACCOUNTING,
-        title: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.exactOnline,
-    });
+    listings.push(getWaitlistListing(CONST.POLICY.CONNECTIONS.NAME.EXACT_ONLINE));
     return listings;
 }
 

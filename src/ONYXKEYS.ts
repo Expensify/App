@@ -59,11 +59,20 @@ const ONYXKEYS = {
     /** The Wise onboarding page saves still running, by save ID. RAM-only, since a page with an SSN skips the queue, so its save ends when the app closes and must not keep the flow saving after a reload. */
     RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES: 'wiseOnboardingPendingSaves',
 
+    /**
+     * The Wise onboarding pages that have not saved yet. They are kept apart from the reimbursement account, since the server replaces that key each time
+     * the page reads it, which would drop the marks. They are kept on disk, like the draft they describe.
+     */
+    WISE_ONBOARDING_UNSAVED_PAGES: 'wiseOnboardingUnsavedPages',
+
     /** The ID of the bank account whose business details the Wise intro page has started reading. RAM-only, since a reload ends the read. */
     RAM_ONLY_WISE_INTRO_READ_BANK_ACCOUNT_ID: 'wiseIntroReadBankAccountID',
 
     /** Ordered reportIDs from the latest SearchForReports response, used to display server search results in the tier order Auth returned. */
     RAM_ONLY_SEARCH_RESULT_REPORT_IDS: 'searchResultReportIDs',
+
+    /** Transactions (and the reports they left) that successful user writes or server pushes changed, each with the ID of the write that last changed it (only recent writes are kept), so Search can refetch the snapshot that shows them */
+    RAM_ONLY_SEARCH_TRANSACTION_WRITES: 'searchTransactionWrites',
     /** Boolean flag set whenever we are searching for users in the server */
     RAM_ONLY_IS_SEARCHING_FOR_USERS: 'isSearchingForUsers',
 
@@ -593,6 +602,8 @@ const ONYXKEYS = {
     RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_BULK_EDIT: 'workspaceMembersSelectedForBulkEdit',
     /** The workspace members selected for the bulk role change, with the workspace they were selected on */
     RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_ROLE_CHANGE: 'workspaceMembersSelectedForRoleChange',
+    /** The workspace categories selected for a bulk visibility change, with the workspace they were selected on */
+    RAM_ONLY_WORKSPACE_CATEGORIES_SELECTED_FOR_BULK_EDIT: 'workspaceCategoriesSelectedForBulkEdit',
 
     // The theme setting set by the user in preferences.
     // This can be either "light", "dark", "system", "light-contrast", "dark-contrast" or "system-contrast"
@@ -1023,6 +1034,7 @@ const ONYXKEYS = {
         AGENT: 'agent_',
         ATTACHMENT: 'attachment_',
         DOMAIN: 'domain_',
+
         DOWNLOAD: 'download_',
         EXPORT_DOWNLOAD: 'nvp_exportDownload_',
         BULK_ACTION: 'nvp_bulkAction_',
@@ -1054,6 +1066,7 @@ const ONYXKEYS = {
         WORKSPACE_INVITE_WORK_ARRANGEMENT_DRAFT: 'workspaceInviteWorkArrangementDraft_',
         WORKSPACE_INVITE_ROLE_DRAFT: 'workspaceInviteRoleDraft_',
         WORKSPACE_INVITE_APPROVER_DRAFT: 'workspaceInviteApproverDraft_',
+        WORKSPACE_INVITE_CATEGORY_VISIBILITY_DRAFT: 'workspaceInviteCategoryVisibilityDraft_',
         REPORT: 'report_',
         REPORT_NAME_VALUE_PAIRS: 'reportNameValuePairs_',
         REPORT_DRAFT: 'reportDraft_',
@@ -1076,6 +1089,9 @@ const ONYXKEYS = {
         /** Set while `GetDuplicateTransactionDetails` is in flight, keyed by transactionID.
          *  Registered as RAM-only in `setup/index.ts`. */
         RAM_ONLY_IS_LOADING_DUPLICATE_TRANSACTION_DETAILS: 'isLoadingDuplicateTransactionDetails_',
+        /** Set while `OpenPolicyReceiptPartnersPage` is in flight, keyed by policyID. Kept off the policy so the request doesn't
+         *  rewrite it and rerun everything that reads it. Registered as RAM-only in `setup/index.ts`. */
+        RAM_ONLY_IS_LOADING_RECEIPT_PARTNERS: 'isLoadingReceiptPartners_',
         /** Session-scoped loading flags for company cards page and feeds.
          *  Registered as RAM-only in `setup/index.ts`. */
         RAM_ONLY_COMPANY_CARDS_LOADING_STATE: 'companyCardsLoadingState_',
@@ -1159,6 +1175,9 @@ const ONYXKEYS = {
 
         /** Data of the Insights Details panels, keyed by a hash of the graph, filters, period and item */
         INSIGHTS_DETAILS: 'insightsDetails_',
+
+        /** Preloaded Concierge answers keyed by question, account, and Insights filters. */
+        INSIGHTS_EXPLANATION: 'insightsExplanation_',
 
         // Shared NVPs
         /** Collection of agent prompts keyed by agent accountID, representing agents owned by the current user */
@@ -1733,6 +1752,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_WORK_ARRANGEMENT_DRAFT]: boolean;
     [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT]: string;
     [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT]: string;
+    [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_CATEGORY_VISIBILITY_DRAFT]: string[];
     [ONYXKEYS.COLLECTION.REPORT]: OnyxTypes.Report;
     [ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS]: OnyxTypes.ReportNameValuePairs;
     [ONYXKEYS.COLLECTION.REPORT_DRAFT]: OnyxTypes.Report;
@@ -1741,6 +1761,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.REPORT_UPCOMING_STEPS]: OnyxTypes.ReportUpcomingSteps;
     [ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE]: OnyxTypes.ReportLoadingState;
     [ONYXKEYS.COLLECTION.RAM_ONLY_IS_LOADING_DUPLICATE_TRANSACTION_DETAILS]: boolean;
+    [ONYXKEYS.COLLECTION.RAM_ONLY_IS_LOADING_RECEIPT_PARTNERS]: boolean;
     [ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE]: OnyxTypes.CompanyCardsLoadingState;
     [ONYXKEYS.COLLECTION.RAM_ONLY_PERSONAL_DETAILS_LOADING_STATE]: OnyxTypes.PersonalDetailsLoadingState;
     [ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARD_NUMBER_SEARCH]: OnyxTypes.CompanyCardNumberSearch;
@@ -1789,6 +1810,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.SNAPSHOT]: OnyxTypes.SearchResults;
     [ONYXKEYS.COLLECTION.INSIGHTS]: OnyxTypes.InsightsDashboard;
     [ONYXKEYS.COLLECTION.INSIGHTS_DETAILS]: OnyxTypes.InsightsDetails;
+    [ONYXKEYS.COLLECTION.INSIGHTS_EXPLANATION]: OnyxTypes.InsightsExplanation;
     [ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT]: OnyxTypes.Agent;
     [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END]: OnyxTypes.BillingGraceEndPeriod;
     [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER]: OnyxTypes.CardFeeds;
@@ -2004,6 +2026,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.RAM_ONLY_DOMAIN_MEMBERS_SELECTED_FOR_MOVE]: string[];
     [ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_BULK_EDIT]: OnyxTypes.WorkspaceMembersSelectedForBulkEdit;
     [ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_ROLE_CHANGE]: OnyxTypes.WorkspaceMembersSelectedForRoleChange;
+    [ONYXKEYS.RAM_ONLY_WORKSPACE_CATEGORIES_SELECTED_FOR_BULK_EDIT]: OnyxTypes.WorkspaceCategoriesSelectedForBulkEdit;
     [ONYXKEYS.VERIFY_3DS_SUBSCRIPTION]: string;
     [ONYXKEYS.VERIFY_3DS_SUBSCRIPTION_SOURCE]: string;
     [ONYXKEYS.PREFERRED_THEME]: ValueOf<typeof CONST.THEME>;
@@ -2025,8 +2048,10 @@ type OnyxValuesMapping = {
     [ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS]: boolean;
     [ONYXKEYS.RAM_ONLY_IS_LOADING_DEPOSIT_ACCOUNT_SETUP]: boolean;
     [ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES]: Record<string, boolean>;
+    [ONYXKEYS.WISE_ONBOARDING_UNSAVED_PAGES]: OnyxTypes.WiseOnboardingUnsavedPages;
     [ONYXKEYS.RAM_ONLY_WISE_INTRO_READ_BANK_ACCOUNT_ID]: number;
     [ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS]: string[] | null;
+    [ONYXKEYS.RAM_ONLY_SEARCH_TRANSACTION_WRITES]: {writeID: number; oldestWriteID: number; transactionIDs: Record<string, number>; reportIDs: Record<string, number>};
     [ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS]: boolean;
     [ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN]: boolean;
     [ONYXKEYS.LAST_VISITED_PATH]: string | undefined;

@@ -381,6 +381,7 @@ function getOnyxTargetTransactionData({
         });
     } else {
         data = getUpdateMoneyRequestParams({
+            translate,
             isVendorMatchingBetaEnabled,
             transactionID: targetTransaction.transactionID,
             transaction: targetTransaction,

@@ -30,25 +30,28 @@ jest.mock('@hooks/usePopoverPosition', () => ({
     default: () => ({calculatePopoverPosition: mockCalculatePopoverPosition}),
 }));
 
-type RenderOptions = {isSupportAgent?: boolean; isSwitcherVisible?: boolean; isCollapsed?: boolean};
+type RenderOptions = {isSupportAgent?: boolean; isRowVisible?: boolean; isSwitcherVisible?: boolean; isCollapsed?: boolean};
 
-function renderItem({isSupportAgent = true, isSwitcherVisible = false, isCollapsed = false}: RenderOptions = {}) {
+function renderItem(initialOptions: RenderOptions = {}) {
     const showSwitcher = jest.fn();
     const hideSwitcher = jest.fn();
     const onSwitcherHidden = jest.fn();
-    render(
+    const buildItem = ({isSupportAgent = true, isRowVisible = true, isSwitcherVisible = false, isCollapsed = false}: RenderOptions) => (
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <FlatNavSupportalItem
                 isCollapsed={isCollapsed}
                 isSupportAgent={isSupportAgent}
+                isRowVisible={isRowVisible}
                 isSwitcherVisible={isSwitcherVisible}
                 showSwitcher={showSwitcher}
                 hideSwitcher={hideSwitcher}
                 onSwitcherHidden={onSwitcherHidden}
             />
-        </ComposeProviders>,
+        </ComposeProviders>
     );
-    return {showSwitcher, hideSwitcher, onSwitcherHidden};
+    const {rerender} = render(buildItem(initialOptions));
+    const rerenderItem = (options: RenderOptions) => rerender(buildItem(options));
+    return {showSwitcher, hideSwitcher, onSwitcherHidden, rerenderItem};
 }
 
 describe('FlatNavSupportalItem', () => {
@@ -118,6 +121,54 @@ describe('FlatNavSupportalItem', () => {
         // Then the row was measured and the switcher asked to open
         expect(mockCalculatePopoverPosition).toHaveBeenCalledTimes(1);
         expect(showSwitcher).toHaveBeenCalledTimes(1);
+    });
+
+    it('hides the row but keeps the switcher mounted when the row is not revealed', async () => {
+        // Given a support agent whose pointer is away from the Account row
+        const isRowVisible = false;
+
+        // When the supportal item renders
+        renderItem({isRowVisible});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the row is hidden, but the switcher stays mounted so it can still close with its animation
+        expect(screen.queryByRole(CONST.ROLE.BUTTON)).toBeNull();
+        expect(mockPopoverProps?.isVisible).toBe(false);
+    });
+
+    it('keeps the row while the switcher is showing, even once the pointer leaves the Account row', async () => {
+        // Given a support agent whose switcher is open and whose pointer left for the switcher's overlay
+        const isRowVisible = false;
+        const isSwitcherVisible = true;
+
+        // When the supportal item renders
+        renderItem({isRowVisible, isSwitcherVisible});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the row stays, so the open switcher keeps the row it is anchored to
+        expect(screen.getByRole(CONST.ROLE.BUTTON, {name: 'Supportal into another account'})).toBeOnTheScreen();
+    });
+
+    it('keeps the row through the switcher close animation, so the switcher can hand focus back to it', async () => {
+        // Given a support agent whose switcher is open while the pointer and focus are away from the Account row
+        const {onSwitcherHidden, rerenderItem} = renderItem({isRowVisible: false, isSwitcherVisible: true});
+        await waitForBatchedUpdatesWithAct();
+
+        // When the switcher starts closing
+        rerenderItem({isRowVisible: false, isSwitcherVisible: false});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the row stays while the closing switcher is still on screen
+        expect(screen.getByRole(CONST.ROLE.BUTTON, {name: 'Supportal into another account'})).toBeOnTheScreen();
+
+        // When the switcher's modal is gone
+        act(() => {
+            mockPopoverProps?.onModalHide?.();
+        });
+
+        // Then the row hides and the bar is told the switcher has fully closed
+        expect(screen.queryByRole(CONST.ROLE.BUTTON)).toBeNull();
+        expect(onSwitcherHidden).toHaveBeenCalledTimes(1);
     });
 
     it('marks the row open while the switcher is showing', async () => {

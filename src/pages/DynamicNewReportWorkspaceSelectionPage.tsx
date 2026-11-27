@@ -162,6 +162,7 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
                     currentUserPersonalDetails,
                     newReport: optimisticReport,
                     policy: policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`],
+                    policies,
                     policyCategories: undefined,
                     policyTagList,
                     transactions,

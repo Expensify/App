@@ -10,7 +10,7 @@ import type {Policy, PolicyTagLists, RecentlyUsedTags, Report, Transaction} from
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../../utils/collections/policies';
-import {getCurrencyDecimalsLocal, getCurrencySymbolLocal} from '../../utils/TestHelper';
+import {getCurrencyDecimalsLocal, getCurrencySymbolLocal, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@src/libs/Navigation/Navigation', () => ({
@@ -106,6 +106,7 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
 
         // When updating a field other than tag
         const {onyxData} = getUpdateMoneyRequestParams({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             rules: undefined,
             iouReportOwnerLogin: undefined,
@@ -148,6 +149,7 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
 
         // When updating the tag field
         const {onyxData} = getUpdateMoneyRequestParams({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             rules: undefined,
             iouReportOwnerLogin: undefined,
@@ -194,6 +196,7 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
 
         // When updating the tag to tag2 while tag1 is already in recently used
         const {onyxData} = getUpdateMoneyRequestParams({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             rules: undefined,
             iouReportOwnerLogin: undefined,
@@ -242,6 +245,7 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
 
         // When updating the tag to tag1 which already exists in recently used
         const {onyxData} = getUpdateMoneyRequestParams({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             rules: undefined,
             iouReportOwnerLogin: undefined,
@@ -280,6 +284,7 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
 
         // When updating the tag with policyTagList: undefined
         const {onyxData: withUndefined} = getUpdateMoneyRequestParams({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             rules: undefined,
             iouReportOwnerLogin: undefined,
@@ -303,6 +308,7 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
 
         // When updating the tag with policyTagList: {} (empty)
         const {onyxData: withEmpty} = getUpdateMoneyRequestParams({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             rules: undefined,
             iouReportOwnerLogin: undefined,
@@ -372,6 +378,7 @@ describe('getUpdateMoneyRequestParams — distance rate change with pending wayp
 
     function getParamsForRateChange(transaction: Transaction) {
         return getUpdateMoneyRequestParams({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             rules: undefined,
             iouReportOwnerLogin: undefined,
@@ -492,6 +499,7 @@ describe('getUpdateMoneyRequestParams — receipt page count', () => {
 
     function getOptimisticPageCountForDistanceChange(transaction: Transaction) {
         const {onyxData} = getUpdateMoneyRequestParams({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             rules: undefined,
             iouReportOwnerLogin: undefined,
@@ -585,6 +593,7 @@ describe('getUpdateMoneyRequestParams — next step of a submitted report', () =
 
     function hasOptimisticNextStep(report: Report, policy: Policy, transactionChanges: Parameters<typeof getUpdateMoneyRequestParams>[0]['transactionChanges']): boolean {
         const {onyxData} = getUpdateMoneyRequestParams({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             rules: undefined,
             iouReportOwnerLogin: undefined,

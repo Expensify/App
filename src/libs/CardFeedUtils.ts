@@ -590,7 +590,8 @@ function getCombinedCardFeedsFromAllFeeds(
                 ...feedSettings,
                 ...oAuthAccountDetails,
                 ...reimbursableOverrides,
-                customFeedName: customFeedName ?? feedSettings?.uploadLayoutSettings?.layoutName,
+                // An empty nickname means the feed has no custom name, so `||` lets it fall back to the CSV layout name
+                customFeedName: customFeedName || feedSettings?.uploadLayoutSettings?.layoutName,
                 domainID,
                 feed: feedName,
                 status,

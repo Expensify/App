@@ -114,8 +114,8 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         multiDexEnabled rootProject.ext.multiDexEnabled
-        versionCode 1009055300
-        versionName "9.5.53-0"
+        versionCode 1009055500
+        versionName "9.5.55-0"
         // Supported language variants must be declared here to avoid from being removed during the compilation.
         // This also helps us to not include unnecessary language variants in the APK.
         resConfigs "en", "es"
@@ -214,6 +214,19 @@ afterEvaluate {
     }
 }
 
+// litert-support is an empty wrapper (no classes or resources) around litert-support-api and litert, and it declares
+// the same org.tensorflow.lite.support namespace as litert-support-api, which AGP 9 rejects. Onfido depends on the wrapper
+// and on litert directly, so resolving the wrapper to litert-support-api keeps the same classes.
+// This can be removed once we migrate to @entrust.corporation/idvsdk-reactnative.
+configurations.configureEach {
+    resolutionStrategy.eachDependency { details ->
+        if (details.requested.group == "com.google.ai.edge.litert" && details.requested.name == "litert-support") {
+            details.useTarget("com.google.ai.edge.litert:litert-support-api:${details.requested.version}")
+            details.because("litert-support duplicates the litert-support-api namespace")
+        }
+    }
+}
+
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
@@ -233,6 +246,8 @@ dependencies {
 
     // AndroidX support library
     implementation 'androidx.legacy:legacy-support-core-utils:1.0.0'
+
+    testImplementation 'junit:junit:4.13.2'
 
     // Multi Dex Support: https://developer.android.com/studio/build/multidex#mdex-gradle
     implementation 'androidx.multidex:multidex:2.0.1'
