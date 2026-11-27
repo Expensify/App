@@ -7,7 +7,7 @@ import type {PersonalDetailsForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 import type {InvitedEmailsToAccountIDs, OnyxInputOrEntry, PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
-import type {OnyxData} from '@src/types/onyx/Request';
+import type {AnyOnyxUpdate, OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry, OnyxMergeInput, OnyxUpdate} from 'react-native-onyx';
@@ -258,6 +258,21 @@ function buildPersonalDetailsUpdate(personalDetails: PersonalDetailsUpdate): Ony
         key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         value: personalDetails,
     };
+}
+
+/**
+ * Extracts logins from personal details updates in Onyx data.
+ */
+function getLoginsFromOnyxUpdates(onyxData?: AnyOnyxUpdate[]): string[] {
+    const update = onyxData?.find((item) => item.key === ONYXKEYS.PERSONAL_DETAILS_LIST);
+    if (!isRecord(update?.value)) {
+        return [];
+    }
+
+    return Object.values(update.value)
+        .filter(isRecord)
+        .map((detail) => detail.login)
+        .filter((login): login is string => typeof login === 'string');
 }
 
 // The Onyx update produced by buildPersonalDetailsUpdate. Use it instead of naming the key in an OnyxUpdate generic.
@@ -593,4 +608,5 @@ export {
     areTravelPersonalDetailsMissing,
     temporaryGetDisplayNameOrDefault,
     buildPersonalDetailsUpdate,
+    getLoginsFromOnyxUpdates,
 };

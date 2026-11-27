@@ -185,7 +185,6 @@ export default function WorkspacePerDiemTable({
             compareItems={compareItems}
             isItemInSearch={isItemInSearch}
             initialSortColumn="destination"
-            narrowLayoutSortColumn="destination"
             title={translate('common.perDiem')}
         >
             <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>

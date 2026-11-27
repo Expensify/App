@@ -677,9 +677,10 @@ describe('actions/PolicyMember', () => {
             Member.addMembersToWorkspace({[newEmail]: newAccountID}, {}, 'Welcome', policy, [existingAccountID], CONST.POLICY.ROLE.USER, currentUser, {}, {policyCategories});
             await waitForBatchedUpdates();
 
-            // Then Fuel is limited to the existing member again, since the new member never joined
+            // Then Fuel is limited to the existing member again, since the new member never joined, and no longer shows as pending
             const categories = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
             expect(categories?.Fuel?.visibleTo).toEqual({[existingAccountID]: true});
+            expect(categories?.Fuel?.pendingFields?.visibleTo).toBeFalsy();
         });
 
         it('removes the temporary accountID of an invitee without personal details from limited categories once the invite succeeds', async () => {
@@ -708,9 +709,152 @@ describe('actions/PolicyMember', () => {
             );
             await waitForBatchedUpdates();
 
-            // Then the temporary accountID is gone, since the backend sends the real one, while the known invitee keeps access
+            // Then the temporary accountID is gone, since the backend sends the real one, while the known invitee keeps access,
+            // and Fuel no longer shows as pending
             const categories = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
             expect(categories?.Fuel?.visibleTo).toEqual({[existingAccountID]: true, [knownAccountID]: true});
+            expect(categories?.Fuel?.pendingFields?.visibleTo).toBeFalsy();
+        });
+
+        it('limits invited members to the chosen categories and sends them to the backend', async () => {
+            // Given Fuel limited to an existing member, and Meals and Travel open to everyone
+            const policyID = '1';
+            const existingAccountID = 1111;
+            const newAccountID = 1234;
+            const newEmail = 'new@gmail.com';
+            const policy = createRandomPolicy(Number(policyID));
+            const policyCategories = {
+                Fuel: {name: 'Fuel', enabled: true, visibleTo: {[existingAccountID]: true}},
+                Meals: {name: 'Meals', enabled: true, visibleTo: null},
+                Travel: {name: 'Travel', enabled: true, visibleTo: null},
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, policyCategories);
+
+            // When a new member is invited with only Fuel and Meals, before the backend responds
+            mockFetch?.pause?.();
+            Member.addMembersToWorkspace(
+                {[newEmail]: newAccountID},
+                {},
+                'Welcome',
+                policy,
+                [existingAccountID],
+                CONST.POLICY.ROLE.USER,
+                currentUser,
+                {},
+                {
+                    policyCategories,
+                    categoryNames: ['Fuel', 'Meals'],
+                },
+            );
+            await waitForBatchedUpdates();
+
+            // Then the new member is added to Fuel, Meals stays open, and Travel is limited to everyone else, the same way restricting an existing member works
+            const categories = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+            expect(categories?.Fuel?.visibleTo).toEqual({[existingAccountID]: true, [newAccountID]: true});
+            expect(categories?.Meals?.visibleTo).toBeFalsy();
+            expect(categories?.Travel?.visibleTo).toEqual({[existingAccountID]: true});
+
+            // And the changed categories show the change as pending while offline, but Meals, which didn't change, doesn't
+            expect(categories?.Fuel?.pendingFields?.visibleTo).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            expect(categories?.Travel?.pendingFields?.visibleTo).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            expect(categories?.Meals?.pendingFields?.visibleTo).toBeUndefined();
+
+            // And the chosen categories go to the backend, which saves the restriction
+            expect(getJSONRequestParameter(WRITE_COMMANDS.ADD_MEMBERS_TO_WORKSPACE, 'categoryNames')).toEqual(['Fuel', 'Meals']);
+            await mockFetch?.resume?.();
+        });
+
+        it('limits a category open to everyone to every current member, including ones left out of the announce room', async () => {
+            // Given Travel open to everyone, and an existing member whose last change failed, so the announce room leaves them out
+            const policyID = '1';
+            const existingAccountID = 1111;
+            const erroredAccountID = 2222;
+            const newAccountID = 1234;
+            const newEmail = 'new@gmail.com';
+            const policy = createRandomPolicy(Number(policyID));
+            const policyCategories = {
+                Fuel: {name: 'Fuel', enabled: true, visibleTo: null},
+                Travel: {name: 'Travel', enabled: true, visibleTo: null},
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, policyCategories);
+
+            // When a new member is invited with only Fuel, before the backend responds
+            mockFetch?.pause?.();
+            Member.addMembersToWorkspace(
+                {[newEmail]: newAccountID},
+                {},
+                'Welcome',
+                policy,
+                [existingAccountID],
+                CONST.POLICY.ROLE.USER,
+                currentUser,
+                {},
+                {
+                    policyCategories,
+                    categoryNames: ['Fuel'],
+                    categoryVisibilityMemberAccountIDs: [existingAccountID, erroredAccountID],
+                },
+            );
+            await waitForBatchedUpdates();
+
+            // Then Travel stays visible to the member with errors too, since only the new member was limited
+            const categories = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+            expect(categories?.Travel?.visibleTo).toEqual({[existingAccountID]: true, [erroredAccountID]: true});
+            await mockFetch?.resume?.();
+        });
+
+        it('opens categories back up when an invite with chosen categories fails', async () => {
+            // Given Fuel limited to an existing member and Travel open to everyone
+            const policyID = '1';
+            const existingAccountID = 1111;
+            const newAccountID = 1234;
+            const newEmail = 'new@gmail.com';
+            const policy = createRandomPolicy(Number(policyID));
+            const policyCategories = {
+                Fuel: {name: 'Fuel', enabled: true, visibleTo: {[existingAccountID]: true}},
+                Travel: {name: 'Travel', enabled: true, visibleTo: null},
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, policyCategories);
+
+            // When inviting a new member with only Fuel fails
+            mockFetch?.fail?.();
+            Member.addMembersToWorkspace(
+                {[newEmail]: newAccountID},
+                {},
+                'Welcome',
+                policy,
+                [existingAccountID],
+                CONST.POLICY.ROLE.USER,
+                currentUser,
+                {},
+                {
+                    policyCategories,
+                    categoryNames: ['Fuel'],
+                },
+            );
+            await waitForBatchedUpdates();
+
+            // Then both categories are back to how they were, since the new member never joined
+            const categories = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+            expect(categories?.Fuel?.visibleTo).toEqual({[existingAccountID]: true});
+            expect(categories?.Travel?.visibleTo).toBeFalsy();
+        });
+
+        it('sends no categories when the invited members can use every category', async () => {
+            // Given a workspace with categories
+            const policyID = '1';
+            const existingAccountID = 1111;
+            const newAccountID = 1234;
+            const newEmail = 'new@gmail.com';
+            const policy = createRandomPolicy(Number(policyID));
+            const policyCategories = {Fuel: {name: 'Fuel', enabled: true, visibleTo: null}};
+
+            // When a member is invited without choosing categories
+            Member.addMembersToWorkspace({[newEmail]: newAccountID}, {}, 'Welcome', policy, [existingAccountID], CONST.POLICY.ROLE.USER, currentUser, {}, {policyCategories});
+            await waitForBatchedUpdates();
+
+            // Then no categoryNames are sent, so the backend leaves the new member unrestricted
+            expect(getJSONRequestParameter(WRITE_COMMANDS.ADD_MEMBERS_TO_WORKSPACE, 'categoryNames')).toBeUndefined();
         });
 
         it('uses new personal details onyx data to decide new-member success-data participants instead of the deprecated copy', () => {

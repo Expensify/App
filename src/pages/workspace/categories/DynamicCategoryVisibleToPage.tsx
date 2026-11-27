@@ -1,6 +1,10 @@
 /**
  * Lets a workspace admin choose which members can use a category, from that category's settings page. Checked members
  * can use it and unchecked members can't. Unchecking every member disables the category.
+ *
+ * Opened from the Categories list's bulk menu, it sets the same members for every selected category instead. It then
+ * starts with nothing checked, since those categories may have different members today, and saving replaces their
+ * current visibility.
  */
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
@@ -15,6 +19,7 @@ import useInitialSelection from '@hooks/useInitialSelection';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMembersNeedCategoryModal from '@hooks/useMembersNeedCategoryModal';
+import useOnyx from '@hooks/useOnyx';
 import useOverridableSelection from '@hooks/useOverridableSelection';
 import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
@@ -24,8 +29,9 @@ import useSearchResults from '@hooks/useSearchResults';
 import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {setPolicyCategoryMemberVisibility} from '@libs/actions/Policy/Category';
+import {clearWorkspaceCategoriesSelectedForBulkEdit, setPolicyCategoryMemberVisibility} from '@libs/actions/Policy/Category';
 import {getDecodedCategoryName, getMembersWithoutVisibleCategories, isCategoryVisibleToMember} from '@libs/CategoryUtils';
+import Growl from '@libs/Growl';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {formatMemberForList, isDisablingOrDeletingLastEnabledCategory} from '@libs/OptionsListUtils';
@@ -39,23 +45,26 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 
 import React, {useEffect} from 'react';
 
-type DynamicCategoryVisibleToPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_CATEGORY_VISIBLE_TO>;
+type DynamicCategoryVisibleToPageProps = PlatformStackScreenProps<
+    SettingsNavigatorParamList,
+    typeof SCREENS.WORKSPACE.DYNAMIC_CATEGORY_VISIBLE_TO | typeof SCREENS.WORKSPACE.DYNAMIC_CATEGORIES_BULK_VISIBLE_TO
+>;
 
 type MemberListItem = MemberForList & {
     /** The member's accountID, which moveInitialSelectionToTop matches against the initial selection */
     value: number;
 };
 
-function DynamicCategoryVisibleToPage({
-    route: {
-        params: {policyID, categoryName},
-    },
-}: DynamicCategoryVisibleToPageProps) {
+function DynamicCategoryVisibleToPage({route}: DynamicCategoryVisibleToPageProps) {
+    const policyID = route.params.policyID;
+    const isBulkEdit = route.name === SCREENS.WORKSPACE.DYNAMIC_CATEGORIES_BULK_VISIBLE_TO;
+    const categoryName = 'categoryName' in route.params ? route.params.categoryName : '';
     const styles = useThemeStyles();
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
@@ -67,16 +76,24 @@ function DynamicCategoryVisibleToPage({
     // The modal hook decides who counts as a current member, so the rows here match the members it checks.
     const {policyMemberAccountIDs: memberAccountIDs, policyMemberAccountIDsByLogin: memberAccountIDsByLogin, showMembersNeedCategoryModal} = useMembersNeedCategoryModal(policyID);
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
-    const categorySettingsBackPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_VISIBLE_TO.path);
+    const backPath = useDynamicBackPath(isBulkEdit ? DYNAMIC_ROUTES.WORKSPACE_CATEGORIES_BULK_VISIBLE_TO.path : DYNAMIC_ROUTES.WORKSPACE_CATEGORY_VISIBLE_TO.path);
     const shouldFooterBeInsideList = useShouldFooterBeInsideList();
+    const [bulkEditSelection] = useOnyx(ONYXKEYS.RAM_ONLY_WORKSPACE_CATEGORIES_SELECTED_FOR_BULK_EDIT);
 
-    const policyCategory = policyCategories[categoryName];
+    // Categories picked on another workspace's list are left out. The selection only lives in memory, so a bulk edit
+    // opened from a link or after a refresh has none and shows not found.
+    const bulkEditCategoryNames = bulkEditSelection?.policyID === policyID ? bulkEditSelection.categoryNames : [];
     // The server rejects visibility changes on a disabled category. A pending enabled change means this page just disabled
     // the category by unchecking every member, so the page stays as it is while it closes instead of flashing not found.
-    const isCategoryDisabled = !!policyCategory && !policyCategory.enabled && !policyCategory.pendingFields?.enabled;
+    const targetCategoryNames = (isBulkEdit ? bulkEditCategoryNames : [categoryName]).filter((name) => {
+        const category = policyCategories[name];
+        return !!category && (category.enabled || !!category.pendingFields?.enabled);
+    });
 
-    // A missing visibleTo means every member can use the category, so every row starts checked.
-    const visibleAccountIDs = memberAccountIDs.filter((accountID) => isCategoryVisibleToMember(policyCategory, accountID));
+    const policyCategory = policyCategories[categoryName];
+    // A missing visibleTo means every member can use the category, so every row starts checked. A bulk edit starts with
+    // nothing checked, since the selected categories may have different members today.
+    const visibleAccountIDs = isBulkEdit ? [] : memberAccountIDs.filter((accountID) => isCategoryVisibleToMember(policyCategory, accountID));
     // Rows are keyed by the member's accountID as a string, which is what the list and the selection hook compare.
     const visibleMemberKeys = visibleAccountIDs.map((accountID) => String(accountID));
     const {selectedKeys, toggleKey, toggleVisibleKeys} = useOverridableSelection(visibleMemberKeys);
@@ -140,15 +157,23 @@ function DynamicCategoryVisibleToPage({
         const newSelectedAccountIDs = memberAccountIDs.filter((accountID) => selectedKeySet.has(String(accountID)));
         const deselectedAccountIDs = memberAccountIDs.filter((accountID) => !selectedKeySet.has(String(accountID)));
         const visibleAccountIDSet = new Set(visibleAccountIDs);
-        const hasChanges = newSelectedAccountIDs.length !== visibleAccountIDs.length || newSelectedAccountIDs.some((accountID) => !visibleAccountIDSet.has(accountID));
-        if (!hasChanges || !policyCategory) {
-            Navigation.goBack(categorySettingsBackPath);
+        // Saving a bulk edit replaces every selected category's members, even for categories that already have exactly these
+        const hasChanges = isBulkEdit || newSelectedAccountIDs.length !== visibleAccountIDs.length || newSelectedAccountIDs.some((accountID) => !visibleAccountIDSet.has(accountID));
+        if (!hasChanges || targetCategoryNames.length === 0) {
+            Navigation.goBack(backPath);
             return;
         }
 
-        // Unchecking every member disables the category, so the workspace's last enabled category can't be left that way.
+        // Unchecking every member disables the categories, so the workspace's last enabled category can't be left that way.
         const isDisablingCategory = newSelectedAccountIDs.length === 0;
-        if (isDisablingCategory && isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [policyCategory])) {
+        if (
+            isDisablingCategory &&
+            isDisablingOrDeletingLastEnabledCategory(
+                policy,
+                policyCategories,
+                targetCategoryNames.map((name) => policyCategories[name]),
+            )
+        ) {
             showConfirmModal({
                 title: translate('workspace.categories.cannotDeleteOrDisableAllCategories.title'),
                 prompt: translate('workspace.categories.cannotDeleteOrDisableAllCategories.description'),
@@ -158,14 +183,31 @@ function DynamicCategoryVisibleToPage({
             return;
         }
 
-        const membersWithoutVisibleCategories = getMembersWithoutVisibleCategories(policyCategories, [categoryName], deselectedAccountIDs);
+        const membersWithoutVisibleCategories = getMembersWithoutVisibleCategories(policyCategories, targetCategoryNames, deselectedAccountIDs);
         if (membersWithoutVisibleCategories.length > 0) {
-            showMembersNeedCategoryModal(membersWithoutVisibleCategories, [categoryName], !isDisablingCategory);
+            showMembersNeedCategoryModal(membersWithoutVisibleCategories, targetCategoryNames, !isDisablingCategory);
             return;
         }
 
-        setPolicyCategoryMemberVisibility(policyID, [categoryName], newSelectedAccountIDs, deselectedAccountIDs, policyData, isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING));
-        Navigation.goBack(categorySettingsBackPath);
+        setPolicyCategoryMemberVisibility(policyID, targetCategoryNames, newSelectedAccountIDs, deselectedAccountIDs, policyData, isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING));
+        if (!isBulkEdit) {
+            Navigation.goBack(backPath);
+            return;
+        }
+
+        // Clearing the selection right away would leave this page with no categories, so it would show not found while it closes
+        Navigation.goBack(backPath, {afterTransition: clearWorkspaceCategoriesSelectedForBulkEdit});
+        // Disabled categories go back to everyone if they're enabled again, so no member's visibility was set
+        if (!isDisablingCategory) {
+            // Checking every member opens the categories to everyone, members who join later included, so the toast says everyone
+            const isOpeningToEveryone = newSelectedAccountIDs.length === memberAccountIDs.length;
+            Growl.success({
+                bodyText: translate('workspace.people.bulkCategoryVisibilitySaved', {
+                    categoryCount: translate('workspace.people.categoriesCount', {count: targetCategoryNames.length}),
+                    memberCount: isOpeningToEveryone ? translate('workspaceActions.everyone') : translate('workspace.categories.membersCount', {count: newSelectedAccountIDs.length}),
+                }),
+            });
+        }
     };
 
     return (
@@ -173,7 +215,7 @@ function DynamicCategoryVisibleToPage({
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED}
-            shouldBeBlocked={!canWriteCategories || !policyCategory || isCategoryDisabled}
+            shouldBeBlocked={!canWriteCategories || targetCategoryNames.length === 0}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
@@ -182,8 +224,8 @@ function DynamicCategoryVisibleToPage({
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButtonAndTitle
-                    title={translate('workspace.categories.visibleTo')}
-                    onBackButtonPress={() => Navigation.goBack(categorySettingsBackPath)}
+                    title={translate(isBulkEdit ? 'workspace.categories.editVisibility' : 'workspace.categories.visibleTo')}
+                    onBackButtonPress={() => Navigation.goBack(backPath)}
                 />
                 <SelectionList
                     canSelectMultiple
@@ -194,7 +236,11 @@ function DynamicCategoryVisibleToPage({
                     onSelectRow={toggleMember}
                     onSelectAll={filteredMemberItems.length > 0 ? toggleSelectAll : undefined}
                     customListHeaderContent={
-                        <Text style={[styles.ph5, styles.pb3]}>{translate('workspace.categories.visibleToDescription', {categoryName: getDecodedCategoryName(categoryName)})}</Text>
+                        <Text style={[styles.ph5, styles.pb3]}>
+                            {isBulkEdit
+                                ? translate('workspace.categories.bulkVisibleToDescription')
+                                : translate('workspace.categories.visibleToDescription', {categoryName: getDecodedCategoryName(categoryName)})}
+                        </Text>
                     }
                     textInputOptions={{
                         value: inputValue,
@@ -217,6 +263,8 @@ function DynamicCategoryVisibleToPage({
                             buttonText={translate('common.save')}
                             isAlertVisible={false}
                             onSubmit={saveVisibility}
+                            // Saving before the members load would read as unchecking every member, which disables the categories in a bulk edit
+                            isDisabled={!hasMembers}
                             enabledWhenOffline
                             containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
                         />
