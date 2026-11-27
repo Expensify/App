@@ -102,6 +102,7 @@ import type {
     SearchTagGroup,
     SearchTask,
     SearchTransactionAction,
+    SearchTrip,
     SearchWeekGroup,
     SearchWithdrawalIDGroup,
     SearchYearGroup,
@@ -2585,6 +2586,15 @@ function getRowCapabilities(allActions: SearchTransactionAction[]): RowCapabilit
         canSubmit: allActions.includes(CONST.SEARCH.ACTION_TYPES.SUBMIT),
         canChangeApprover: allActions.includes(CONST.SEARCH.ACTION_TYPES.CHANGE_APPROVER),
     };
+}
+
+/**
+ * Whether a report opened from Spend shows the read-only trip summary instead of the trip room. Admins see trips in their workspaces
+ * that they aren't in, and the room would fail its access check for them.
+ */
+function shouldShowReadOnlyTripSummary(searchTripRoom: Pick<SearchTrip, 'chatType' | 'isTripRoomMember'> | undefined): boolean {
+    // Older results don't say, so the room opens as before
+    return searchTripRoom?.chatType === CONST.REPORT.CHAT_TYPE.TRIP_ROOM && searchTripRoom.isTripRoomMember === false;
 }
 
 /**
@@ -8703,6 +8713,7 @@ export {
     isReportActionEntry,
     isTaskListItemType,
     isTripListItemType,
+    shouldShowReadOnlyTripSummary,
     normalizeTripStatuses,
     getFiltersFormWithTripRoomStatuses,
     getActions,

@@ -14,7 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions, shouldDisplayReportTableView} from '@libs/MoneyRequestReportUtils';
 import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID, isTransactionThread} from '@libs/ReportActionsUtils';
-import {isInvoiceReport, isMoneyRequestReport, isOneTransactionReport} from '@libs/ReportUtils';
+import {isInvoiceReport, isMoneyRequestReport, isOneTransactionReport, isTripRoom} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -83,7 +83,8 @@ function WideRHPReceiptPanelGate() {
     let rhpWidth: RHPWidth = 'narrow';
     if (isConfirmedMultiTransactionReport) {
         rhpWidth = 'super-wide';
-    } else if (shouldShowWideRHP) {
+    } else if (shouldShowWideRHP || isTripRoom(report)) {
+        // A trip room opens wide from Spend. The row press marks it too, but that mark is used up if this panel remounts while the room loads.
         rhpWidth = 'wide';
     }
     useRHPWidth(rhpWidth);

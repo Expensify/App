@@ -18531,6 +18531,23 @@ describe('Trip search', () => {
         expect(sorted.find((row) => row.reportID === '2')?.total).toBe(159732);
     });
 
+    it('shows the read-only trip summary only to people outside the trip room', () => {
+        // Given a trip room from the trip search, which says whether the current user is in it
+        // When they aren't in the room, the room would fail its access check
+        // Then the read-only summary opens instead of the room
+        expect(SearchUIUtils.shouldShowReadOnlyTripSummary(buildTrip('1', {isTripRoomMember: false}))).toBe(true);
+
+        // When they are in the room, even as a hidden participant who has to join, or the result doesn't say
+        // Then the room opens as usual
+        expect(SearchUIUtils.shouldShowReadOnlyTripSummary(buildTrip('1', {isTripRoomMember: true}))).toBe(false);
+        expect(SearchUIUtils.shouldShowReadOnlyTripSummary(buildTrip('1'))).toBe(false);
+
+        // When the report isn't a trip room from the search results, such as a chat or an expense report
+        // Then the report screen opens as usual
+        expect(SearchUIUtils.shouldShowReadOnlyTripSummary({chatType: undefined, isTripRoomMember: false})).toBe(false);
+        expect(SearchUIUtils.shouldShowReadOnlyTripSummary(undefined)).toBe(false);
+    });
+
     it('keeps the expense rows for a trip search without the beta', () => {
         // Given the same results read without the TravelApproval beta, where type:trip is still an expense search
         // When the search results are turned into rows

@@ -724,6 +724,7 @@ function Search({
                 if (openInternalRouteInNewTab(tripRoute, event)) {
                     return;
                 }
+                markReportRHPWidth(item.reportID, 'wide');
                 requestAnimationFrame(() => Navigation.navigate(tripRoute));
                 return;
             }

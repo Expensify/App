@@ -33,7 +33,7 @@ import {
 } from '@src/libs/TripReservationUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {Report} from '@src/types/onyx';
+import type {Report, ReportNameValuePairs} from '@src/types/onyx';
 import type {Reservation} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 
@@ -51,9 +51,21 @@ type ReservationViewProps = {
     shouldShowArrowIcon?: boolean;
     shouldCenterIcon?: boolean;
     isCancelled?: boolean;
+
+    /** Shows the reservation without linking to its details, for users who can't open the trip room */
+    isReadOnly?: boolean;
 };
 
-function ReservationView({reservation, transactionID, tripRoomReportID, sequenceIndex, shouldShowArrowIcon = true, shouldCenterIcon = false, isCancelled}: ReservationViewProps) {
+function ReservationView({
+    reservation,
+    transactionID,
+    tripRoomReportID,
+    sequenceIndex,
+    shouldShowArrowIcon = true,
+    shouldCenterIcon = false,
+    isCancelled,
+    isReadOnly = false,
+}: ReservationViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -165,17 +177,22 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
             accessibilityLabel={isCancelled ? descriptionWithStatus : undefined}
             secondaryIcon={reservationIcon}
             isSecondaryIconHoverable
-            shouldShowRightIcon
+            shouldShowRightIcon={!isReadOnly}
             wrapperStyle={[styles.taskDescriptionMenuItem]}
             shouldGreyOutWhenDisabled={false}
             numberOfLinesTitle={0}
-            interactive
+            interactive={!isReadOnly}
             iconHeight={20}
             iconWidth={20}
             iconStyles={[StyleUtils.getTripReservationIconContainer(false), styles.mr3, shouldCenterIcon && styles.alignSelfCenter]}
             secondaryIconFill={theme.icon}
-            onPress={() =>
-                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_TRIP_DETAILS.getRoute(tripRoomReportID, transactionID, String(reservation.reservationID), sequenceIndex)))
+            onPress={
+                isReadOnly
+                    ? undefined
+                    : () =>
+                          Navigation.navigate(
+                              createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_TRIP_DETAILS.getRoute(tripRoomReportID, transactionID, String(reservation.reservationID), sequenceIndex)),
+                          )
             }
         />
     );
@@ -189,9 +206,15 @@ type TripDetailsViewProps = {
 
     /** Trip transactions associated with the report */
     tripTransactions: Transaction[];
+
+    /** The trip's bookings from search results, for users whose Onyx doesn't have the trip room's own */
+    reportNameValuePairs?: OnyxEntry<ReportNameValuePairs>;
+
+    /** Shows the bookings without linking to their details, for users who can't open the trip room */
+    isReadOnly?: boolean;
 };
 
-function TripDetailsView({tripRoomReport, shouldShowHorizontalRule, tripTransactions}: TripDetailsViewProps) {
+function TripDetailsView({tripRoomReport, shouldShowHorizontalRule, tripTransactions, reportNameValuePairs: reportNameValuePairsProp, isReadOnly = false}: TripDetailsViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
@@ -202,7 +225,8 @@ function TripDetailsView({tripRoomReport, shouldShowHorizontalRule, tripTransact
         return `${convertToDisplayString(amount, currency)} • ${trips.toLowerCase()}`;
     };
 
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${tripRoomReport?.reportID}`);
+    const [tripRoomNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${tripRoomReport?.reportID}`);
+    const reportNameValuePairs = reportNameValuePairsProp ?? tripRoomNameValuePairs;
 
     if (!tripRoomReport) {
         return null;
@@ -245,6 +269,7 @@ function TripDetailsView({tripRoomReport, shouldShowHorizontalRule, tripTransact
                                         shouldShowArrowIcon={false}
                                         shouldCenterIcon
                                         isCancelled={isCancelled}
+                                        isReadOnly={isReadOnly}
                                     />
                                 </OfflineWithFeedback>
                             );
