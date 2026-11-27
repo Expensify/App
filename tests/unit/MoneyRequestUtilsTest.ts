@@ -5,8 +5,8 @@ import {
     getStringFieldHasUnsavedChanges,
     getWaypointsHasUnsavedChanges,
     handleNegativeAmountFlipping,
-    hasMoneyRequestDraftUserEdits,
-    haveMoneyRequestDraftsUserEdits,
+    hasDraftUserEdits,
+    haveDraftsUserEdits,
     isConfirmationAmountMissing,
     isConfirmationDateMissing,
     isConfirmationMerchantRequired,
@@ -545,7 +545,7 @@ describe('getBackendAmountFromInput', () => {
     });
 });
 
-describe('hasMoneyRequestDraftUserEdits', () => {
+describe('hasDraftUserEdits', () => {
     const PARTICIPANT_ACCOUNT_ID = 1;
     const buildDraft = (fields: Partial<Transaction>) =>
         createMock<Transaction>({transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID, iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL, amount: 0, comment: {}, ...fields});
@@ -556,8 +556,8 @@ describe('hasMoneyRequestDraftUserEdits', () => {
 
         // When checking it for user edits
         // Then it's clean, so closing the flow doesn't prompt
-        expect(hasMoneyRequestDraftUserEdits(draft)).toBe(false);
-        expect(hasMoneyRequestDraftUserEdits(undefined)).toBe(false);
+        expect(hasDraftUserEdits(draft)).toBe(false);
+        expect(hasDraftUserEdits(undefined)).toBe(false);
     });
 
     it.each([
@@ -574,7 +574,7 @@ describe('hasMoneyRequestDraftUserEdits', () => {
 
         // When checking it for user edits
         // Then it's dirty, because closing the flow would lose that input
-        expect(hasMoneyRequestDraftUserEdits(draft)).toBe(true);
+        expect(hasDraftUserEdits(draft)).toBe(true);
     });
 
     it('ignores a receipt the flow attached on its own', () => {
@@ -584,8 +584,8 @@ describe('hasMoneyRequestDraftUserEdits', () => {
 
         // When checking them for user edits
         // Then neither counts, since the user didn't attach them
-        expect(hasMoneyRequestDraftUserEdits(testReceiptDraft)).toBe(false);
-        expect(hasMoneyRequestDraftUserEdits(testDriveReceiptDraft)).toBe(false);
+        expect(hasDraftUserEdits(testReceiptDraft)).toBe(false);
+        expect(hasDraftUserEdits(testDriveReceiptDraft)).toBe(false);
     });
 
     it('ignores the amount and merchant a distance draft fills in on its own', () => {
@@ -594,7 +594,7 @@ describe('hasMoneyRequestDraftUserEdits', () => {
 
         // When checking it for user edits
         // Then it's clean, since only the waypoints carry the user's input
-        expect(hasMoneyRequestDraftUserEdits(draft)).toBe(false);
+        expect(hasDraftUserEdits(draft)).toBe(false);
 
         // When the user enters the waypoints
         const draftWithWaypoint = buildDraft({
@@ -608,7 +608,7 @@ describe('hasMoneyRequestDraftUserEdits', () => {
         });
 
         // Then it's dirty
-        expect(hasMoneyRequestDraftUserEdits(draftWithWaypoint)).toBe(true);
+        expect(hasDraftUserEdits(draftWithWaypoint)).toBe(true);
     });
 
     it('detects input entered on the earlier steps of each request type', () => {
@@ -619,15 +619,15 @@ describe('hasMoneyRequestDraftUserEdits', () => {
 
         // When checking them for user edits
         // Then each one is dirty
-        expect(hasMoneyRequestDraftUserEdits(manualDistanceDraft)).toBe(true);
-        expect(hasMoneyRequestDraftUserEdits(perDiemDraft)).toBe(true);
-        expect(hasMoneyRequestDraftUserEdits(timeDraft)).toBe(true);
+        expect(hasDraftUserEdits(manualDistanceDraft)).toBe(true);
+        expect(hasDraftUserEdits(perDiemDraft)).toBe(true);
+        expect(hasDraftUserEdits(timeDraft)).toBe(true);
 
         // When nothing was entered yet on those steps
         // Then they're clean
-        expect(hasMoneyRequestDraftUserEdits(buildDraft({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL, comment: {customUnit: {quantity: null}}}))).toBe(false);
-        expect(hasMoneyRequestDraftUserEdits(buildDraft({iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM}))).toBe(false);
-        expect(hasMoneyRequestDraftUserEdits(buildDraft({iouRequestType: CONST.IOU.REQUEST_TYPE.TIME}))).toBe(false);
+        expect(hasDraftUserEdits(buildDraft({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL, comment: {customUnit: {quantity: null}}}))).toBe(false);
+        expect(hasDraftUserEdits(buildDraft({iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM}))).toBe(false);
+        expect(hasDraftUserEdits(buildDraft({iouRequestType: CONST.IOU.REQUEST_TYPE.TIME}))).toBe(false);
     });
 
     it('treats a GPS draft as clean, since its trip survives the flow closing', () => {
@@ -636,7 +636,7 @@ describe('hasMoneyRequestDraftUserEdits', () => {
 
         // When checking it for user edits
         // Then it's clean
-        expect(hasMoneyRequestDraftUserEdits(draft)).toBe(false);
+        expect(hasDraftUserEdits(draft)).toBe(false);
     });
 
     it('treats odometer readings or photos as user edits', () => {
@@ -647,9 +647,9 @@ describe('hasMoneyRequestDraftUserEdits', () => {
 
         // When checking them for user edits
         // Then the reading and the photo would be lost, so those drafts are dirty, and the empty one is clean
-        expect(hasMoneyRequestDraftUserEdits(readingDraft)).toBe(true);
-        expect(hasMoneyRequestDraftUserEdits(photoDraft)).toBe(true);
-        expect(hasMoneyRequestDraftUserEdits(emptyDraft)).toBe(false);
+        expect(hasDraftUserEdits(readingDraft)).toBe(true);
+        expect(hasDraftUserEdits(photoDraft)).toBe(true);
+        expect(hasDraftUserEdits(emptyDraft)).toBe(false);
     });
 
     it('treats odometer readings that match the draft saved for later as clean', () => {
@@ -658,15 +658,15 @@ describe('hasMoneyRequestDraftUserEdits', () => {
 
         // When the same readings were saved for later
         // Then nothing is lost, since they're kept after the flow closes, so it's clean
-        expect(hasMoneyRequestDraftUserEdits(draft, {savedOdometerDraft: {odometerStartReading: 10, odometerEndReading: 20}})).toBe(false);
+        expect(hasDraftUserEdits(draft, {savedOdometerDraft: {odometerStartReading: 10, odometerEndReading: 20}})).toBe(false);
 
         // When the user changed a reading after it was saved
         // Then it's dirty again
-        expect(hasMoneyRequestDraftUserEdits(draft, {savedOdometerDraft: {odometerStartReading: 10, odometerEndReading: 25}})).toBe(true);
+        expect(hasDraftUserEdits(draft, {savedOdometerDraft: {odometerStartReading: 10, odometerEndReading: 25}})).toBe(true);
     });
 });
 
-describe('haveMoneyRequestDraftsUserEdits', () => {
+describe('haveDraftsUserEdits', () => {
     const SECOND_TRANSACTION_ID = '2';
 
     it('checks every draft, since multi-scan keeps one draft per receipt', () => {
@@ -687,7 +687,7 @@ describe('haveMoneyRequestDraftsUserEdits', () => {
 
         // When checking the flow's drafts for user edits
         // Then the scanned receipt makes the flow dirty
-        expect(haveMoneyRequestDraftsUserEdits(drafts)).toBe(true);
-        expect(haveMoneyRequestDraftsUserEdits(undefined)).toBe(false);
+        expect(haveDraftsUserEdits(drafts)).toBe(true);
+        expect(haveDraftsUserEdits(undefined)).toBe(false);
     });
 });

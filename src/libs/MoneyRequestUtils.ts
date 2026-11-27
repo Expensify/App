@@ -249,7 +249,7 @@ function getWaypointsHasUnsavedChanges(
     return haveWaypointAddressesChanged(committedWaypoints, currentWaypoints);
 }
 
-type MoneyRequestDraftUserEditsOptions = {
+type DraftUserEditsOptions = {
     /** Odometer readings the user saved for later. They're kept after the flow closes, so a draft that still matches them has nothing to lose. */
     savedOdometerDraft?: OnyxEntry<OdometerDraft>;
 };
@@ -274,7 +274,7 @@ function hasOdometerDraftUserEdits(comment: Comment | undefined, savedOdometerDr
  * category, tag and tax, billable, the distance amount and merchant, the test and test drive receipts, ...) don't count, so a draft
  * the user didn't touch has nothing to lose.
  */
-function hasMoneyRequestDraftUserEdits(transaction: OnyxEntry<Transaction>, options: MoneyRequestDraftUserEditsOptions = {}): boolean {
+function hasDraftUserEdits(transaction: OnyxEntry<Transaction>, options: DraftUserEditsOptions = {}): boolean {
     if (!transaction) {
         return false;
     }
@@ -310,8 +310,8 @@ function hasMoneyRequestDraftUserEdits(transaction: OnyxEntry<Transaction>, opti
 /**
  * Whether any draft of the flow has user input. Multi-scan has one draft per receipt.
  */
-function haveMoneyRequestDraftsUserEdits(drafts: OnyxCollection<Transaction>, options?: MoneyRequestDraftUserEditsOptions): boolean {
-    return Object.values(drafts ?? {}).some((draft) => hasMoneyRequestDraftUserEdits(draft, options));
+function haveDraftsUserEdits(drafts: OnyxCollection<Transaction>, options?: DraftUserEditsOptions): boolean {
+    return Object.values(drafts ?? {}).some((draft) => hasDraftUserEdits(draft, options));
 }
 
 /**
@@ -409,6 +409,6 @@ export {
     getAmountHasUnsavedChanges,
     getStringFieldHasUnsavedChanges,
     getWaypointsHasUnsavedChanges,
-    hasMoneyRequestDraftUserEdits,
-    haveMoneyRequestDraftsUserEdits,
+    hasDraftUserEdits,
+    haveDraftsUserEdits,
 };
