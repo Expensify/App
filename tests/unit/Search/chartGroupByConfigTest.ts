@@ -1,3 +1,4 @@
+import {buildChartDrillDownQuery} from '@components/Search/chartDrillDown';
 import CHART_GROUP_BY_CONFIG from '@components/Search/chartGroupByConfig';
 import type {
     TransactionCardGroupListItemType,
@@ -259,7 +260,37 @@ describe('CHART_GROUP_BY_CONFIG', () => {
         const query = CHART_GROUP_BY_CONFIG[CONST.SEARCH.GROUP_BY.MERCHANT].getFilterQuery(item);
 
         // Then the exact operator prevents matching merchants that only contain this name.
-        expect(query).toBe('merchant="I"');
+        expect(query).toBe('merchant=I');
+    });
+
+    it('escapes quotes in merchant and category names, so the filter keeps the whole name', () => {
+        // Given a merchant and a category whose names contain a quote
+        const merchant = createMock<TransactionMerchantGroupListItemType>({groupedBy: CONST.SEARCH.GROUP_BY.MERCHANT, merchant: 'Joe\'s "Diner"'});
+        const category = createMock<TransactionCategoryGroupListItemType>({groupedBy: CONST.SEARCH.GROUP_BY.CATEGORY, category: 'Team "fun"'});
+
+        // When the chart builds their drill-down queries
+        const merchantQuery = CHART_GROUP_BY_CONFIG[CONST.SEARCH.GROUP_BY.MERCHANT].getFilterQuery(merchant);
+        const categoryQuery = CHART_GROUP_BY_CONFIG[CONST.SEARCH.GROUP_BY.CATEGORY].getFilterQuery(category);
+
+        // Then the quotes are escaped, so they can't close the value early and leave the rest as separate search terms
+        expect(merchantQuery).toBe('merchant="Joe\'s \\"Diner\\""');
+        expect(categoryQuery).toBe('category:"Team \\"fun\\""');
+        expect(buildSearchQueryJSON(`type:expense ${merchantQuery}`)?.flatFilters).toEqual([
+            {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'Joe\'s "Diner"'}]},
+        ]);
+    });
+
+    it.each(['"Acme"', '“Acme”', '"Acme" Inc'])('keeps the quotes of a merchant named %s after Spend parses and rebuilds the query', (name) => {
+        // Given a merchant whose name starts or ends with a quote of its own
+        const item = createMock<TransactionMerchantGroupListItemType>({groupedBy: CONST.SEARCH.GROUP_BY.MERCHANT, merchant: name});
+        const queryJSON = buildSearchQueryJSON('type:expense');
+
+        // When the chart drills down to Spend, which parses the filter and rebuilds the query
+        const drillDownQuery = queryJSON && buildChartDrillDownQuery(queryJSON, CHART_GROUP_BY_CONFIG[CONST.SEARCH.GROUP_BY.MERCHANT].getFilterQuery(item));
+
+        // Then the merchant keeps its quotes, instead of the parser reading them as the value's own and matching a merchant without them
+        const merchantFilter = buildSearchQueryJSON(drillDownQuery ?? '')?.flatFilters.find(({key}) => key === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT);
+        expect(merchantFilter?.filters.at(0)?.value).toBe(name);
     });
 
     test.each(cases)('returns the $groupBy chart values for a matching item', ({groupBy, item, expectedIcon, expectedLabel, expectedShortLabel, expectedFilterQuery}) => {

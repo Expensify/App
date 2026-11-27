@@ -824,6 +824,11 @@ const translations: TranslationDeepObject<typeof en> = {
         changePin: {
             didNotChange: 'Δεν αλλάξαμε το PIN σας. Παρακαλούμε προσπαθήστε ξανά.',
         },
+        addToWallet: {
+            failedHeader: 'Δεν ήταν δυνατή η προσθήκη της κάρτας',
+            failedTitle: 'Δεν μπορέσαμε να προσθέσουμε την κάρτα σας στο πορτοφόλι σας',
+            failedSubtitle: 'Κάτι πήγε στραβά κατά την προσθήκη της κάρτας. Αν υπάρχει ήδη στο πορτοφόλι σας, μπορείτε να τη χρησιμοποιήσετε εκεί.',
+        },
         revealCardDetail: {
             couldNotReveal: 'Δεν μπορέσαμε να εμφανίσουμε τα στοιχεία της κάρτας σας. Παρακαλούμε δοκιμάστε ξανά.',
         },
@@ -2794,6 +2799,11 @@ const translations: TranslationDeepObject<typeof en> = {
             reachOutForHelp:
                 '<muted-text><centered-text>Μη διστάσετε να <concierge-link>επικοινωνήσετε με το Concierge</concierge-link> αν έχετε οποιεσδήποτε ερωτήσεις!</centered-text></muted-text>',
             goToExpensifyClassic: 'Μετάβαση στο Expensify Classic',
+        },
+        mergePendingDomainAdmin: {
+            heading: 'Ηλεκτρονικό ταχυδρομείο με περιορισμένο τομέα',
+            description: '<muted-text><centered-text>Έχει ειδοποιηθεί ένας διαχειριστής domain για να εγκρίνει το αίτημα συγχώνευσης λογαριασμών.</centered-text></muted-text>',
+            gotIt: 'Το κατάλαβα',
         },
         mergeFailureSAMLDomainControlDescription: (email: string) =>
             `<muted-text><centered-text>Δεν μπορείτε να συγχωνεύσετε το <strong>${email}</strong> επειδή ελέγχεται από το <strong>${email.split('@').at(1) ?? ''}</strong>. Παρακαλούμε <concierge-link>επικοινωνήστε με το Concierge</concierge-link> για βοήθεια.</centered-text></muted-text>`,
@@ -7476,11 +7486,13 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 description: `Πρέπει να παραμείνει ενεργοποιημένη τουλάχιστον μία κατηγορία, επειδή ο χώρος εργασίας σας απαιτεί κατηγορίες.`,
             },
             visibleTo: 'Ορατό σε',
+            editVisibility: 'Επεξεργασία ορατότητας',
             membersCount: ({count}: {count: number}) => ({
                 one: '1 μέλος',
                 other: `${count} μέλη`,
             }),
             visibleToDescription: ({categoryName}: {categoryName: string}) => `Επιλέξτε ποια μέλη μπορούν να χρησιμοποιούν την κατηγορία ${categoryName} όταν υποβάλλουν δαπάνες.`,
+            bulkVisibleToDescription: 'Επιλέξτε ποια μέλη μπορούν να χρησιμοποιούν αυτές τις κατηγορίες όταν υποβάλλουν έξοδα.',
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `Δεν είναι δυνατή η απενεργοποίηση της κατηγορίας ${categoryName}`,
                 bulkTitle: 'Δεν μπορείτε να απενεργοποιήσετε αυτές τις κατηγορίες',

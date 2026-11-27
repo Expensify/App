@@ -791,6 +791,11 @@ const translations: TranslationDeepObject<typeof en> = {
         setPin: {didNotShipCard: '我们未能寄出您的卡。请重试。'},
         revealPin: {couldNotReveal: '我们无法显示您的 PIN。请重试。'},
         changePin: {didNotChange: '我们未更改您的 PIN。请重试。'},
+        addToWallet: {
+            failedHeader: '无法添加银行卡',
+            failedTitle: '我们无法将您的银行卡添加到您的钱包',
+            failedSubtitle: '添加银行卡时出了问题。如果银行卡已在您的钱包中，您可以直接在那里使用。',
+        },
         revealCardDetail: {couldNotReveal: '我们无法显示您的卡片详情。请重试。'},
     },
     validateCodeModal: {
@@ -2639,6 +2644,7 @@ const translations: TranslationDeepObject<typeof en> = {
             reachOutForHelp: '<muted-text><centered-text>如果有任何问题，欢迎<concierge-link>联系 Concierge</concierge-link>！</centered-text></muted-text>',
             goToExpensifyClassic: '前往 Expensify 经典版',
         },
+        mergePendingDomainAdmin: {heading: '受限域电子邮箱', description: '<muted-text><centered-text>已通知域管理员来批准合并账户的请求。</centered-text></muted-text>', gotIt: '明白了'},
         mergeFailureSAMLDomainControlDescription: (email: string) =>
             `<muted-text><centered-text>您无法合并 <strong>${email}</strong>，因为它由 <strong>${email.split('@').at(1) ?? ''}</strong> 管理。请<concierge-link>联系 Concierge</concierge-link>获取帮助。</centered-text></muted-text>`,
         mergeFailureSAMLAccountDescription: (email: string) =>
@@ -7054,11 +7060,13 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 description: `由于您的工作区需要类别，必须至少保留一个已启用的类别。`,
             },
             visibleTo: '可见范围',
+            editVisibility: '编辑可见性',
             membersCount: ({count}: {count: number}) => ({
                 one: '1 名成员',
                 other: `${count} 名成员`,
             }),
             visibleToDescription: ({categoryName}: {categoryName: string}) => `选择哪些成员可以在提交报销时使用 ${categoryName} 类别。`,
+            bulkVisibleToDescription: '选择哪些成员可以在提交报销时使用这些类别。',
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `无法禁用 ${categoryName}`,
                 bulkTitle: '无法禁用这些类别',

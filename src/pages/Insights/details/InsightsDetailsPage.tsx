@@ -49,7 +49,7 @@ import getInsightsItemColor from './getInsightsItemColor';
 import InsightsBiggestChanges from './InsightsBiggestChanges';
 import {resolveInsightsDetailsItem} from './insightsDetailsItem';
 import InsightsDetailsSectionError from './InsightsDetailsSectionError';
-import {getInsightsDetailsSectionState, INSIGHTS_DETAILS_SECTION_STATE} from './insightsDetailsSectionState';
+import {getInsightsDetailsSectionState} from './insightsDetailsSectionState';
 import InsightsRecentHistory from './InsightsRecentHistory';
 import InsightsSummary from './InsightsSummary';
 import InsightsTopExpenses from './InsightsTopExpenses';
@@ -143,14 +143,20 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
                   details?.eligiblePolicyIDs,
               )
             : undefined;
-    const summary = details?.summary;
-    const detailsState = getInsightsDetailsSectionState({
+    const hasDetailsErrors = !isEmptyObject(details?.errors);
+    const summaryState = getInsightsDetailsSectionState({
         isOffline,
-        isLoaded: !!summary,
-        hasErrors: !isEmptyObject(details?.errors),
+        isLoaded: !!details?.summary,
+        hasErrors: hasDetailsErrors,
         responseJsonCode: details?.responseJsonCode,
     });
-    const hasDetailsFailed = !!detailsQuery && (detailsState === INSIGHTS_DETAILS_SECTION_STATE.STALE || detailsState === INSIGHTS_DETAILS_SECTION_STATE.ERROR);
+    const recentHistoryState = getInsightsDetailsSectionState({
+        isOffline,
+        isLoaded: details?.recentHistory !== undefined,
+        hasErrors: hasDetailsErrors,
+        responseJsonCode: details?.responseJsonCode,
+    });
+    const hasDetailsFailed = !!detailsQuery && !isOffline && hasDetailsErrors;
 
     const biggestChanges = details?.biggestChanges?.[biggestChangesGroupBy];
     const biggestChangesState = getInsightsDetailsSectionState({
@@ -208,7 +214,7 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
                     </View>
                     {hasDetailsFailed ? (
                         <InsightsDetailsSectionError
-                            isStale={detailsState === INSIGHTS_DETAILS_SECTION_STATE.STALE}
+                            isStale={details?.responseJsonCode === CONST.JSON_CODE.NO_RESPONSE}
                             onRetry={requestDetails}
                         />
                     ) : (
@@ -218,16 +224,16 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
                                     query={detailsQuery}
                                     graphKey={chartSpec.graphKey}
                                     currency={filters.groupCurrency}
-                                    summary={summary}
-                                    state={detailsState}
+                                    summary={details?.summary}
+                                    state={summaryState}
                                 />
                             )}
                             {!!detailsQuery && !!chartSpec.detailsSections?.includes(CONST.INSIGHTS.DETAILS_SECTION.RECENT_HISTORY) && (
                                 <InsightsRecentHistory
                                     query={detailsQuery}
                                     history={details?.recentHistory}
-                                    summary={summary}
-                                    state={detailsState}
+                                    summary={details?.summary}
+                                    state={recentHistoryState}
                                     currency={filters.groupCurrency}
                                     color={itemColor}
                                     itemTitle={item.title}

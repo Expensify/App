@@ -9,16 +9,15 @@ import SelectionListWithSections from '@components/SelectionList/SelectionListWi
 import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
 import type {ListItem, SelectionListWithSectionsHandle} from '@components/SelectionList/types';
 
-import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
+import useHeaderAreaHeight from '@hooks/useHeaderAreaHeight';
 import useIsSupportalSession from '@hooks/useIsSupportalSession';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
-import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useSearchSelector from '@hooks/useSearchSelector';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -81,8 +80,7 @@ function NewChatPage({ref}: NewChatPageProps) {
     const personalData = useCurrentUserPersonalDetails();
     const currentUserAccountID = personalData.accountID;
     const currentUserEmail = personalData.email ?? '';
-    const {top} = useSafeAreaInsets();
-    const {contentHeaderHeight} = useContentHeaderHeight();
+    const headerAreaHeight = useHeaderAreaHeight();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -432,7 +430,7 @@ function NewChatPage({ref}: NewChatPageProps) {
             shouldEnablePickerAvoiding={false}
             disableOfflineIndicatorSafeAreaPadding
             shouldShowOfflineIndicator={false}
-            keyboardVerticalOffset={contentHeaderHeight + top + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding}
+            keyboardVerticalOffset={headerAreaHeight + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding}
             // Disable the focus trap of this page to activate the parent focus trap in `NewChatSelectorPage`.
             focusTrapSettings={{active: false}}
             testID="NewChatPage"

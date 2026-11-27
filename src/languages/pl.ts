@@ -823,6 +823,11 @@ const translations: TranslationDeepObject<typeof en> = {
         setPin: {didNotShipCard: 'Nie wysłaliśmy twojej karty. Spróbuj ponownie.'},
         revealPin: {couldNotReveal: 'Nie udało się wyświetlić twojego PIN-u. Spróbuj ponownie.'},
         changePin: {didNotChange: 'Nie zmieniliśmy twojego PIN-u. Spróbuj ponownie.'},
+        addToWallet: {
+            failedHeader: 'Nie udało się dodać karty',
+            failedTitle: 'Nie udało się dodać Twojej karty do portfela',
+            failedSubtitle: 'Podczas dodawania karty coś poszło nie tak. Jeśli karta jest już w Twoim portfelu, możesz z niej tam korzystać.',
+        },
         revealCardDetail: {couldNotReveal: 'Nie udało się wyświetlić szczegółów Twojej karty. Spróbuj ponownie.'},
     },
     validateCodeModal: {
@@ -2779,6 +2784,11 @@ const translations: TranslationDeepObject<typeof en> = {
             limitedSupport: 'Nie obsługujemy jeszcze łączenia kont w Nowym Expensify. Wykonaj tę akcję w Expensify Classic.',
             reachOutForHelp: '<muted-text><centered-text>Jeśli masz jakieś pytania, śmiało <concierge-link>skontaktuj się z Concierge</concierge-link>!</centered-text></muted-text>',
             goToExpensifyClassic: 'Przejdź do Expensify Classic',
+        },
+        mergePendingDomainAdmin: {
+            heading: 'E-mail z ograniczeniem domeny',
+            description: '<muted-text><centered-text>Administrator domeny został powiadomiony o zatwierdzeniu prośby o połączenie kont.</centered-text></muted-text>',
+            gotIt: 'Rozumiem',
         },
         mergeFailureSAMLDomainControlDescription: (email: string) =>
             `<muted-text><centered-text>Nie możesz połączyć <strong>${email}</strong>, ponieważ jest kontrolowany przez <strong>${email.split('@').at(1) ?? ''}</strong>. Prosimy <concierge-link>skontaktować się z Concierge</concierge-link> po pomoc.</centered-text></muted-text>`,
@@ -7348,6 +7358,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 description: `Co najmniej jedna kategoria musi pozostać włączona, ponieważ w Twoim workspace wymagane są kategorie.`,
             },
             visibleTo: 'Widoczne dla',
+            editVisibility: 'Edytuj widoczność',
             membersCount: ({count}: {count: number}) => ({
                 one: '1 członek',
                 few: `${count} członkowie`,
@@ -7355,6 +7366,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 other: `${count} członka`,
             }),
             visibleToDescription: ({categoryName}: {categoryName: string}) => `Wybierz, którzy członkowie mogą używać kategorii ${categoryName} podczas przesyłania wydatków.`,
+            bulkVisibleToDescription: 'Wybierz, którzy członkowie mogą używać tych kategorii podczas wysyłania wydatków.',
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `Nie można wyłączyć ${categoryName}`,
                 bulkTitle: 'Nie można wyłączyć tych kategorii',

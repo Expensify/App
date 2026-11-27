@@ -1,4 +1,3 @@
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ChartOfflineState from '@components/Search/ChartOfflineState';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
@@ -12,6 +11,7 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {CAROUSEL_SOURCE, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
@@ -61,7 +61,7 @@ function InsightsTopExpenses({queryJSON, title, emptyText, viewAllQuery, onRetry
     const {expenses, violationsByTransactionID, state} = useInsightsTopExpenses(queryJSON);
     const {markReportRHPWidth} = useWideRHPActions();
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-    const personalDetails = usePersonalDetails();
+    const [personalDetails] = usePersonalDetailsByIDs([currentUserAccountID, ...expenses.flatMap((expense) => [expense.reportAction?.actorAccountID, expense.report?.ownerAccountID])]);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});

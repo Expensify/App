@@ -803,6 +803,11 @@ const translations: TranslationDeepObject<typeof en> = {
         changePin: {
             didNotChange: 'No pudimos cambiar tu PIN. Por favor, inténtalo de nuevo.',
         },
+        addToWallet: {
+            failedHeader: 'No se pudo añadir la tarjeta',
+            failedTitle: 'No hemos podido añadir tu tarjeta a tu cartera',
+            failedSubtitle: 'Algo salió mal al añadir la tarjeta. Si ya está en tu cartera, puedes usarla allí.',
+        },
         revealCardDetail: {couldNotReveal: 'No hemos podido mostrar los datos de tu tarjeta. Por favor, inténtalo de nuevo.'},
     },
     validateCodeModal: {
@@ -2718,6 +2723,11 @@ const translations: TranslationDeepObject<typeof en> = {
             limitedSupport: 'Todavía no es posible fusionar cuentas en New Expensify. Por favor, realiza esta acción en Expensify Classic en su lugar',
             reachOutForHelp: '<muted-text><centered-text>¡No dudes en <concierge-link>comunicarte con Concierge</concierge-link> si tienes alguna pregunta!</centered-text></muted-text>',
             goToExpensifyClassic: 'Dirígete a Expensify Classic',
+        },
+        mergePendingDomainAdmin: {
+            heading: 'Correo electrónico restringido por dominio',
+            description: '<muted-text><centered-text>Se ha avisado a un administrador de dominio para que apruebe la solicitud de fusionar cuentas.</centered-text></muted-text>',
+            gotIt: 'Entendido',
         },
         mergeFailureSAMLDomainControlDescription: (email) =>
             `<muted-text><centered-text>No puedes fusionar <strong>${email}</strong> porque está controlado por <strong>${email.split('@').at(1) ?? ''}</strong>. Póngase <concierge-link>en contacto con Concierge</concierge-link> si necesita ayuda.</centered-text></muted-text>`,
@@ -7298,11 +7308,13 @@ ${amount} para ${merchant} - ${date}`,
                 description: `Debe quedar al menos una categoría habilitada porque tu espacio de trabajo requiere categorías.`,
             },
             visibleTo: 'Visible para',
+            editVisibility: 'Editar visibilidad',
             membersCount: ({count}: {count: number}) => ({
                 one: '1 miembro',
                 other: `${count} miembros`,
             }),
             visibleToDescription: ({categoryName}: {categoryName: string}) => `Elige qué miembros pueden usar la categoría ${categoryName} al enviar gastos.`,
+            bulkVisibleToDescription: 'Elige qué miembros pueden usar estas categorías al enviar gastos.',
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `No se puede desactivar ${categoryName}`,
                 bulkTitle: 'No se pueden deshabilitar estas categorías',
