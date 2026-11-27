@@ -1,5 +1,6 @@
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+import ErrorMessageRow from '@components/ErrorMessageRow';
 import HeaderCentralPane from '@components/Header/composed/HeaderCentralPane';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import RenderHTML from '@components/RenderHTML';
@@ -35,7 +36,7 @@ import {canMemberWrite, getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
 import {close} from '@userActions/Modal';
-import {deleteWorkspacePerDiemRates, downloadPerDiemCSV, openPolicyPerDiemPage} from '@userActions/Policy/PerDiem';
+import {clearPolicyPerDiemRatesErrorFields, deleteWorkspacePerDiemRates, downloadPerDiemCSV, openPolicyPerDiemPage} from '@userActions/Policy/PerDiem';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -243,9 +244,21 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     const headerButtons = getHeaderButtons();
 
     const subtitleContent = (
-        <View style={[styles.flexRow, styles.renderHTML, styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-            <RenderHTML html={translate('workspace.perDiem.subtitle')} />
-        </View>
+        <>
+            <View style={[styles.flexRow, styles.renderHTML, styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                <RenderHTML html={translate('workspace.perDiem.subtitle')} />
+            </View>
+            <ErrorMessageRow
+                errors={customUnit?.errorFields?.deleteRates}
+                errorRowStyles={[pageGutter, styles.mb5]}
+                onDismiss={() => {
+                    if (!customUnit) {
+                        return;
+                    }
+                    clearPolicyPerDiemRatesErrorFields(policyID, customUnit.customUnitID, {deleteRates: null});
+                }}
+            />
+        </>
     );
 
     const emptyState: TableEmptyStateProps = {

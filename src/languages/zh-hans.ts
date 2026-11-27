@@ -5584,6 +5584,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                 other: '删除费率',
             }),
             deletePerDiemRate: '删除每日津贴费率',
+            deleteRatesError: '无法删除你的每日津贴费率。请重试。',
             findPerDiemRate: '查找每日补贴标准',
             areYouSureDelete: () => ({
                 one: '确定要删除此费率吗？',

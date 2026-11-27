@@ -5771,6 +5771,7 @@ ${amount} para ${merchant} - ${date}`,
                 other: 'Excluir tarifas',
             }),
             deletePerDiemRate: 'Excluir taxa de diária',
+            deleteRatesError: 'Não foi possível excluir suas taxas de diária. Tente novamente.',
             findPerDiemRate: 'Encontrar taxa de diária',
             areYouSureDelete: () => ({
                 one: 'Tem certeza de que deseja excluir esta tarifa?',

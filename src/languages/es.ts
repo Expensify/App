@@ -5794,6 +5794,7 @@ ${amount} para ${merchant} - ${date}`,
                 other: 'Eliminar tasas',
             }),
             deletePerDiemRate: 'Eliminar tasa per diem',
+            deleteRatesError: 'No pudimos eliminar tus tasas per diem. Inténtalo de nuevo.',
             findPerDiemRate: 'Encontrar tasa per diem',
             areYouSureDelete: () => ({
                 one: '¿Estás seguro de que quieres eliminar esta tasa?',

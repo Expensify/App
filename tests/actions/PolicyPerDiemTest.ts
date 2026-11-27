@@ -1,6 +1,7 @@
 /* eslint-disable rulesdir/no-multiple-api-calls -- Each test invokes one action; the rule's ancestor scan combines otherwise independent tests. */
 import {
     clearPerDiemRateError,
+    clearPolicyPerDiemRatesErrorFields,
     deleteWorkspacePerDiemRates,
     editPerDiemRateAmount,
     editPerDiemRateCurrency,
@@ -53,6 +54,19 @@ const customUnit: CustomUnit = {
         },
     },
 };
+
+function getSelectedSubRates(unit: CustomUnit) {
+    return Object.values(unit.rates).flatMap((rate) =>
+        (rate.subRates ?? []).map((subRate) => ({
+            destination: rate.name ?? '',
+            subRateName: subRate.name,
+            rate: subRate.rate,
+            currency: rate.currency ?? 'USD',
+            rateID: rate.customUnitRateID,
+            subRateID: subRate.id,
+        })),
+    );
+}
 
 OnyxUpdateManager();
 describe('actions/Policy/PerDiem', () => {
@@ -255,6 +269,7 @@ describe('actions/Policy/PerDiem', () => {
                                         },
                                         [unchangedRateID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, errors: null, errorFields: null},
                                     },
+                                    errorFields: {deleteRates: null},
                                 },
                             },
                         },
@@ -310,6 +325,7 @@ describe('actions/Policy/PerDiem', () => {
                                         [rateID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, errors: null, errorFields: null},
                                         [unchangedRateID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, errors: null, errorFields: null},
                                     },
+                                    errorFields: {deleteRates: null},
                                 },
                             },
                         },
@@ -351,7 +367,12 @@ describe('actions/Policy/PerDiem', () => {
                 optimisticData: [
                     expect.objectContaining({
                         value: {
-                            customUnits: {[customUnitID]: {rates: {[rateID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, errors: null, errorFields: null}}}},
+                            customUnits: {
+                                [customUnitID]: {
+                                    rates: {[rateID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, errors: null, errorFields: null}},
+                                    errorFields: {deleteRates: null},
+                                },
+                            },
                         },
                     }),
                 ],
@@ -362,16 +383,7 @@ describe('actions/Policy/PerDiem', () => {
     it('keeps every destination pending deletion and restores them when clearing all rates fails', async () => {
         // Given multiple destinations and a paused request so the optimistic state can be checked.
         mockFetch.pause();
-        const selectedSubRates = Object.values(customUnit.rates).flatMap((rate) =>
-            (rate.subRates ?? []).map((subRate) => ({
-                destination: rate.name ?? '',
-                subRateName: subRate.name,
-                rate: subRate.rate,
-                currency: rate.currency ?? 'USD',
-                rateID: rate.customUnitRateID,
-                subRateID: subRate.id,
-            })),
-        );
+        const selectedSubRates = getSelectedSubRates(customUnit);
 
         // When every row is deleted, every destination remains available for offline feedback.
         deleteWorkspacePerDiemRates('policy', customUnit, selectedSubRates);
@@ -380,12 +392,13 @@ describe('actions/Policy/PerDiem', () => {
         expect(policy?.customUnits?.[customUnitID]?.rates?.[rateID]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
         expect(policy?.customUnits?.[customUnitID]?.rates?.[unchangedRateID]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
         expect(policy?.customUnits?.[customUnitID]?.rates?.[rateID]?.subRates).toEqual(currentRate.subRates);
+        expect(policy?.customUnits?.[customUnitID]?.errorFields?.deleteRates).toBeFalsy();
 
         mockFetch.fail();
         await mockFetch.resume();
         await waitForBatchedUpdates();
 
-        // Then failure restores the original object and every subrate, with one dismissible row error.
+        // Then failure restores every rate unchanged, with one dismissible bulk error.
         policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}policy`);
         const restoredRates = policy?.customUnits?.[customUnitID]?.rates;
         expect(Array.isArray(restoredRates)).toBe(false);
@@ -393,12 +406,138 @@ describe('actions/Policy/PerDiem', () => {
         expect(restoredRates?.[rateID]?.subRates).toEqual(currentRate.subRates);
         expect(restoredRates?.[rateID]?.pendingAction).toBeFalsy();
         expect(restoredRates?.[unchangedRateID]).toEqual(customUnit.rates[unchangedRateID]);
-        expect(restoredRates?.[rateID]?.errorFields?.breakfast).toBeTruthy();
+        expect(restoredRates).toEqual(customUnit.rates);
+        expect(Object.values(policy?.customUnits?.[customUnitID]?.errorFields?.deleteRates ?? {})).toEqual(['workspace.perDiem.deleteRatesError']);
 
-        clearPerDiemRateError('policy', customUnitID, rateID, 'breakfast');
+        clearPolicyPerDiemRatesErrorFields('policy', customUnitID, {deleteRates: null});
         await waitForBatchedUpdates();
         policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}policy`);
-        expect(policy?.customUnits?.[customUnitID]?.rates?.[rateID]?.errorFields?.breakfast).toBeFalsy();
+        expect(policy?.customUnits?.[customUnitID]?.errorFields?.deleteRates).toBeFalsy();
+        expect(policy?.customUnits?.[customUnitID]?.rates).toEqual(customUnit.rates);
+    });
+
+    it('restores a mixed bulk selection without replacing unrelated errors', async () => {
+        // Given a partial destination and a complete destination selected, plus an unrelated settings error.
+        const unrelatedError = {existingError: 'Existing settings error'};
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy`, {
+            customUnits: {[customUnitID]: {errorFields: {defaultCategory: unrelatedError}}},
+        });
+        const selectedSubRates = getSelectedSubRates(customUnit).filter((subRate) => subRate.subRateID !== 'lunch');
+        mockFetch.pause();
+
+        // When the mixed deletion fails.
+        deleteWorkspacePerDiemRates('policy', customUnit, selectedSubRates);
+        await waitForBatchedUpdates();
+        let policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}policy`);
+        expect(policy?.customUnits?.[customUnitID]?.rates?.[rateID]?.subRates).toEqual([
+            {...currentRate.subRates?.[0], pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+            currentRate.subRates?.[1],
+        ]);
+        expect(policy?.customUnits?.[customUnitID]?.rates?.[unchangedRateID]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        mockFetch.fail();
+        await mockFetch.resume();
+        await waitForBatchedUpdates();
+
+        // Then every affected rate returns without deletion row errors, and dismissal preserves the other error.
+        policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}policy`);
+        expect(policy?.customUnits?.[customUnitID]?.rates).toEqual(customUnit.rates);
+        expect(Object.keys(policy?.customUnits?.[customUnitID]?.errorFields?.deleteRates ?? {})).toHaveLength(1);
+        clearPolicyPerDiemRatesErrorFields('policy', customUnitID, {deleteRates: null});
+        await waitForBatchedUpdates();
+        policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}policy`);
+        expect(policy?.customUnits?.[customUnitID]?.errorFields?.deleteRates).toBeFalsy();
+        expect(policy?.customUnits?.[customUnitID]?.errorFields?.defaultCategory).toEqual(unrelatedError);
+        expect(policy?.customUnits?.[customUnitID]?.rates).toEqual(customUnit.rates);
+    });
+
+    it.each([true, false])('clears the previous bulk error when retrying with success=%s', async (shouldSucceed) => {
+        // Given a previous bulk failure that has not been dismissed.
+        const selectedSubRates = getSelectedSubRates(customUnit);
+        mockFetch.fail();
+        deleteWorkspacePerDiemRates('policy', customUnit, selectedSubRates);
+        await waitForBatchedUpdates();
+        let policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}policy`);
+        expect(policy?.customUnits?.[customUnitID]?.errorFields?.deleteRates).toBeTruthy();
+        mockFetch.pause();
+
+        // When the user retries, the previous error clears before the response arrives.
+        deleteWorkspacePerDiemRates('policy', customUnit, selectedSubRates);
+        await waitForBatchedUpdates();
+        policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}policy`);
+        expect(policy?.customUnits?.[customUnitID]?.errorFields?.deleteRates).toBeFalsy();
+        if (shouldSucceed) {
+            mockFetch.succeed();
+        } else {
+            mockFetch.fail();
+        }
+        await mockFetch.resume();
+        await waitForBatchedUpdates();
+
+        // Then success leaves no error, while another failure shows only one new error and restores the rates.
+        policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}policy`);
+        expect(Object.keys(policy?.customUnits?.[customUnitID]?.errorFields?.deleteRates ?? {})).toHaveLength(shouldSucceed ? 0 : 1);
+        expect(policy?.customUnits?.[customUnitID]?.rates).toEqual(shouldSucceed ? [] : customUnit.rates);
+    });
+
+    it('keeps a single-row error when the selection contains the same row twice', async () => {
+        // Given a duplicated selection that still represents only one deleted row.
+        const selectedSubRates = getSelectedSubRates(customUnit).filter((subRate) => subRate.subRateID === 'breakfast');
+        mockFetch.fail();
+
+        // When the request fails, duplicate entries must not turn it into a bulk failure.
+        deleteWorkspacePerDiemRates('policy', customUnit, [...selectedSubRates, ...selectedSubRates]);
+        await waitForBatchedUpdates();
+
+        // Then both sibling subrates remain and only the selected row receives feedback.
+        const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}policy`);
+        const restoredUnit = policy?.customUnits?.[customUnitID];
+        expect(restoredUnit?.rates?.[rateID]?.subRates).toEqual(currentRate.subRates);
+        expect(restoredUnit?.rates?.[rateID]?.errorFields?.breakfast).toBeTruthy();
+        expect(restoredUnit?.rates?.[rateID]?.errorFields?.lunch).toBeFalsy();
+        expect(restoredUnit?.errorFields?.deleteRates).toBeFalsy();
+        expect(restoredUnit?.rates?.[unchangedRateID]).toEqual(customUnit.rates[unchangedRateID]);
+    });
+
+    it('shows a bulk error for matching subrate IDs in different destinations', async () => {
+        // Given two destinations whose Breakfast rows share an ID, with Lunch left unselected.
+        const unit: CustomUnit = {
+            ...customUnit,
+            rates: {
+                ...customUnit.rates,
+                [unchangedRateID]: {...customUnit.rates[unchangedRateID], subRates: [{id: 'breakfast', name: 'Breakfast', rate: 2000}]},
+            },
+        };
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy`, {customUnits: {[customUnitID]: unit}});
+        const selectedSubRates = getSelectedSubRates(unit).filter((subRate) => subRate.subRateID === 'breakfast');
+        mockFetch.fail();
+
+        // When both rows fail deletion, their destination IDs must keep them distinct.
+        deleteWorkspacePerDiemRates('policy', unit, selectedSubRates);
+        await waitForBatchedUpdates();
+
+        // Then both destinations are restored without row errors, with exactly one bulk message.
+        const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}policy`);
+        const restoredUnit = policy?.customUnits?.[customUnitID];
+        expect(restoredUnit?.rates).toEqual(unit.rates);
+        expect(Object.values(restoredUnit?.errorFields?.deleteRates ?? {})).toEqual(['workspace.perDiem.deleteRatesError']);
+    });
+
+    it('keeps a row error when deleting the last remaining subrate fails', async () => {
+        // Given a workspace containing only one subrate, which uses delete-all transport.
+        const lastRate = customUnit.rates[unchangedRateID];
+        const singleRateUnit = {...customUnit, rates: {[unchangedRateID]: lastRate}};
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy`, {customUnits: {[customUnitID]: {rates: {[rateID]: null}}}});
+        mockFetch.fail();
+
+        // When deletion of that last row fails.
+        deleteWorkspacePerDiemRates('policy', singleRateUnit, getSelectedSubRates(singleRateUnit));
+        await waitForBatchedUpdates();
+
+        // Then only the restored row has a dismissible error, not a bulk error.
+        const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}policy`);
+        expect(policy?.customUnits?.[customUnitID]?.rates?.[unchangedRateID]?.subRates).toEqual(lastRate.subRates);
+        expect(policy?.customUnits?.[customUnitID]?.rates?.[unchangedRateID]?.errorFields?.['breakfast-two']).toBeTruthy();
+        expect(policy?.customUnits?.[customUnitID]?.errorFields?.deleteRates).toBeFalsy();
     });
 
     it.each([
@@ -495,7 +634,8 @@ describe('actions/Policy/PerDiem', () => {
         policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}policy`);
         const rates = policy?.customUnits?.[customUnitID]?.rates;
         expect(rates?.[rateID]?.subRates).toEqual(currentRate.subRates);
-        expect(rates?.[rateID]?.errorFields?.breakfast).toBeTruthy();
+        expect(rates?.[rateID]?.errorFields?.breakfast).toBeFalsy();
+        expect(policy?.customUnits?.[customUnitID]?.errorFields?.deleteRates).toBeTruthy();
         const earlierRate = rates?.[unchangedRateID];
         if (doesFirstDeletionSucceed) {
             expect(earlierRate).toBeFalsy();

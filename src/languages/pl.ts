@@ -5813,6 +5813,7 @@ ${amount} dla ${merchant} - ${date}`,
                 other: 'Usuń stawki',
             }),
             deletePerDiemRate: 'Usuń stawkę ryczałtową',
+            deleteRatesError: 'Nie udało się usunąć stawek ryczałtowych. Spróbuj ponownie.',
             findPerDiemRate: 'Znajdź stawkę ryczałtu dziennego',
             areYouSureDelete: () => ({
                 one: 'Na pewno chcesz usunąć tę stawkę?',

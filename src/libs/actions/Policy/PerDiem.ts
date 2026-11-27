@@ -236,7 +236,7 @@ function isEverySubRateSelected(customUnit: CustomUnit, subRatesToBeDeleted: Sub
  * Builds the targeted updates for deleting a subset of subrates: the changed parent rates to send, the destination IDs
  * to remove, and the matching Onyx data. Selected rows stay visible offline until the server confirms deletion.
  */
-function prepareCustomUnitRateUpdates(customUnit: CustomUnit, subRatesToBeDeleted: SubRateData[], error: Errors) {
+function prepareCustomUnitRateUpdates(customUnit: CustomUnit, subRatesToBeDeleted: SubRateData[], error?: Errors) {
     const mappedDeletedSubRatesToRate = subRatesToBeDeleted.reduce(
         (acc, subRate) => {
             if (subRate.rateID in acc) {
@@ -270,9 +270,13 @@ function prepareCustomUnitRateUpdates(customUnit: CustomUnit, subRatesToBeDelete
             ...currentRate,
             // Earlier queued deletions must not be restored when this request finishes.
             subRates: currentSubRates.filter((subRate) => subRate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
-            errors: null,
-            errorFields: Object.fromEntries(affectedSubRateIDs.map((subRateID) => [subRateID, error])),
             pendingAction: null,
+            ...(error
+                ? {
+                      errors: null,
+                      errorFields: Object.fromEntries(affectedSubRateIDs.map((subRateID) => [subRateID, error])),
+                  }
+                : {}),
         };
         const remainingSubRates = currentSubRates.filter((subRate) => !selectedSubRateIDs.has(subRate.id) && subRate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
         if (!remainingSubRates.length) {
@@ -320,7 +324,14 @@ function deleteWorkspacePerDiemRates(policyID: string, customUnit: CustomUnit | 
     if (!policyID || isEmptyObject(customUnit) || !subRatesToBeDeleted.length) {
         return;
     }
-    const error = getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage');
+    const selectedSubRateKeys = new Set(
+        subRatesToBeDeleted
+            .filter((subRate) => customUnit.rates[subRate.rateID]?.subRates?.some((currentSubRate) => currentSubRate.id === subRate.subRateID))
+            .map((subRate) => getPerDiemRowKey(subRate.rateID, subRate.subRateID)),
+    );
+    // Deleting the last remaining row uses delete-all too, but should keep single-row feedback.
+    const isBulkDeletion = selectedSubRateKeys.size > 1;
+    const error = getMicroSecondOnyxErrorWithTranslationKey(isBulkDeletion ? 'workspace.perDiem.deleteRatesError' : 'common.genericErrorMessage');
     let parameters: UpdateWorkspaceCustomUnitParams;
     let optimisticRates: Record<string, NullishDeep<Rate> | null>;
     let successRates: Record<string, NullishDeep<Rate> | null>;
@@ -338,7 +349,6 @@ function deleteWorkspacePerDiemRates(policyID: string, customUnit: CustomUnit | 
         const firstSelectedSubRate = subRatesToBeDeleted.at(0);
         const firstSelectedRate = firstSelectedSubRate ? customUnit.rates[firstSelectedSubRate.rateID] : undefined;
         // Earlier deletions own their rollback; touching those rates here could remove a rate their failed request just restored.
-        // Attach one row error to avoid duplicating the same error across the full selection.
         failureRates = Object.fromEntries(
             Object.entries(customUnit.rates)
                 .filter(([, rate]) => rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
@@ -347,7 +357,7 @@ function deleteWorkspacePerDiemRates(policyID: string, customUnit: CustomUnit | 
                     {...rate, subRates: rate.subRates?.filter((subRate) => subRate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE), pendingAction: null},
                 ]),
         );
-        if (firstSelectedSubRate && firstSelectedRate) {
+        if (!isBulkDeletion && firstSelectedSubRate && firstSelectedRate) {
             failureRates[firstSelectedSubRate.rateID] = {
                 ...firstSelectedRate,
                 subRates: firstSelectedRate.subRates?.filter((subRate) => subRate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
@@ -357,7 +367,7 @@ function deleteWorkspacePerDiemRates(policyID: string, customUnit: CustomUnit | 
             };
         }
     } else {
-        const targetedUpdates = prepareCustomUnitRateUpdates(customUnit, subRatesToBeDeleted, error);
+        const targetedUpdates = prepareCustomUnitRateUpdates(customUnit, subRatesToBeDeleted, isBulkDeletion ? undefined : error);
         if (!Object.keys(targetedUpdates.optimisticRates).length) {
             return;
         }
@@ -387,6 +397,7 @@ function deleteWorkspacePerDiemRates(policyID: string, customUnit: CustomUnit | 
                     customUnits: {
                         [customUnit.customUnitID]: {
                             rates: optimisticRates,
+                            ...(isBulkDeletion ? {errorFields: {deleteRates: null}} : {}),
                         },
                     },
                 },
@@ -413,6 +424,7 @@ function deleteWorkspacePerDiemRates(policyID: string, customUnit: CustomUnit | 
                     customUnits: {
                         [customUnit.customUnitID]: {
                             rates: failureRates,
+                            ...(isBulkDeletion ? {errorFields: {deleteRates: error}} : {}),
                         },
                     },
                 },

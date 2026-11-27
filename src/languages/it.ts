@@ -5769,6 +5769,7 @@ ${amount} per ${merchant} - ${date}`,
                 other: 'Elimina tariffe',
             }),
             deletePerDiemRate: 'Elimina tariffa di diaria',
+            deleteRatesError: 'Non è stato possibile eliminare le tariffe di diaria. Riprova.',
             findPerDiemRate: 'Trova tariffa diaria',
             areYouSureDelete: () => ({
                 one: 'Sei sicuro di voler eliminare questa tariffa?',

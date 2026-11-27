@@ -5719,6 +5719,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                 other: 'レートを削除',
             }),
             deletePerDiemRate: '日当レートを削除',
+            deleteRatesError: '日当レートを削除できませんでした。もう一度お試しください。',
             findPerDiemRate: '日当額を検索',
             areYouSureDelete: () => ({
                 one: 'このレートを削除してもよろしいですか？',

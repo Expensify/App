@@ -5803,6 +5803,7 @@ ${amount} für ${merchant} – ${date}`,
                 other: 'Tarife löschen',
             }),
             deletePerDiemRate: 'Pauschale löschen',
+            deleteRatesError: 'Deine Pauschalen konnten nicht gelöscht werden. Bitte versuche es erneut.',
             findPerDiemRate: 'Tagessatz finden',
             areYouSureDelete: () => ({
                 one: 'Sind Sie sicher, dass Sie diesen Satz löschen möchten?',
