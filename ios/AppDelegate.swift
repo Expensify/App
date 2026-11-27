@@ -113,20 +113,6 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate {
     }
   }
 
-  // UIKit routes links to `SceneDelegate`, which calls back into these so `RCTLinkingManager`,
-  // Expo subscribers and any `UIApplicationDelegate` swizzling all see the same events.
-  override func application(_ application: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
-      return RCTLinkingManager.application(application, open: url, options: options)
-  }
-
-  override func application(_ application: UIApplication,
-                   continue userActivity: NSUserActivity,
-                   restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void) -> Bool {
-      return RCTLinkingManager.application(application,
-                                           continue: userActivity,
-                                           restorationHandler: restorationHandler)
-  }
-
   // This methods is needed to support the hardware keyboard shortcuts
   func keyCommands() -> [Any]? {
     return HardwareShortcuts.sharedInstance().keyCommands()
