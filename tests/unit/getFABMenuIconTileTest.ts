@@ -82,6 +82,30 @@ describe('getFABMenuIconTile', () => {
         expect(tile).toEqual(expected);
     });
 
+    it.each([
+        [CONST.QUICK_ACTIONS.REQUEST_MANUAL, colors.green700, colors.green200],
+        [CONST.QUICK_ACTIONS.REQUEST_SCAN, colors.green700, colors.green200],
+        [CONST.QUICK_ACTIONS.REQUEST_TIME, colors.green700, colors.green200],
+        [CONST.QUICK_ACTIONS.PER_DIEM, colors.green700, colors.green200],
+        [CONST.QUICK_ACTIONS.SPLIT_MANUAL, colors.green700, colors.green200],
+        [CONST.QUICK_ACTIONS.SPLIT_SCAN, colors.green700, colors.green200],
+        [CONST.QUICK_ACTIONS.TRACK_MANUAL, colors.green700, colors.green200],
+        [CONST.QUICK_ACTIONS.TRACK_SCAN, colors.green700, colors.green200],
+        [CONST.QUICK_ACTIONS.TRACK_PER_DIEM, colors.green700, colors.green200],
+        [CONST.QUICK_ACTIONS.SEND_MONEY, colors.green700, colors.green200],
+        [CONST.QUICK_ACTIONS.REQUEST_DISTANCE, colors.pink700, colors.pink200],
+        [CONST.QUICK_ACTIONS.TRACK_DISTANCE, colors.pink700, colors.pink200],
+        [CONST.QUICK_ACTIONS.SPLIT_DISTANCE, colors.pink700, colors.pink200],
+        [CONST.QUICK_ACTIONS.ASSIGN_TASK, colors.yellow600, colors.yellow100],
+    ])('colors the quick action tile for "%s" like the create row that starts the same flow', (quickAction, tileColor, iconColor) => {
+        // Given the user's last create action
+        // When the quick action tile is requested
+        const tile = getFABMenuIconTile(IDS.QUICK_ACTION, quickAction);
+
+        // Then it takes the matching row's colors, keeps the divider and leaves the icon to the row, so the action icon still shows
+        expect(tile).toEqual({tileColor, iconColor, shouldShowDividerAbove: true});
+    });
+
     it('covers every create menu item id', () => {
         // Given every id the create menu can render
         // When a tile is requested for each
