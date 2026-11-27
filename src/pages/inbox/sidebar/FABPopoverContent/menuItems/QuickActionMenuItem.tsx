@@ -169,6 +169,7 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
                 }}
                 shouldTeleportPortalToModalLayer
                 icon={getQuickActionIcon(icons, quickAction?.action)}
+                quickActionName={quickAction.action}
                 title={quickActionTitle}
                 rightIconAccountID={quickActionAvatars.at(0)?.id ?? CONST.DEFAULT_NUMBER_ID}
                 description={quickActionSubtitle}

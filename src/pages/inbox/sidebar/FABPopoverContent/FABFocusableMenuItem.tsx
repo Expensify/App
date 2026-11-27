@@ -8,6 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import {View} from 'react-native';
@@ -22,9 +23,12 @@ type FABFocusableMenuItemProps = Omit<MenuItemProps, 'focused' | 'onFocus' | 'wr
         isVisible?: boolean;
         onPress?: () => void;
         shouldCallAfterModalHide?: boolean;
+
+        /** Last create action of the user, which picks the tile color of the quick action row */
+        quickActionName?: QuickActionName;
     };
 
-function FABFocusableMenuItem({itemId, isVisible = true, onPress, shouldCallAfterModalHide, sentryLabel, ...props}: FABFocusableMenuItemProps) {
+function FABFocusableMenuItem({itemId, isVisible = true, onPress, shouldCallAfterModalHide, sentryLabel, quickActionName, ...props}: FABFocusableMenuItemProps) {
     const {itemIndex, isFocused, wrapperStyle, shouldShowIconTiles, setFocusedIndex, onItemPress} = useFABMenuItem(itemId, isVisible);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -35,7 +39,7 @@ function FABFocusableMenuItem({itemId, isVisible = true, onPress, shouldCallAfte
     }
 
     const {icon} = props;
-    const iconTileStyle = shouldShowIconTiles ? getFABMenuIconTile(itemId) : undefined;
+    const iconTileStyle = shouldShowIconTiles ? getFABMenuIconTile(itemId, quickActionName) : undefined;
     // Avatars and icon stacks keep their default rendering, only a single plain icon moves onto the tile.
     const rowIcon = !!icon && typeof icon !== 'string' && !Array.isArray(icon) ? icon : undefined;
     const iconTile =
