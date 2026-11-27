@@ -1386,6 +1386,13 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: 'Zatwierdzający',
             chartTitle: (title: string, stage: string) => `${title} (${stage})`,
         },
+        recentHistory: {
+            title: 'Ostatnia historia',
+            dayAverageFor: (count: number, item: string) => `Średnia z ${count} dni dla ${item}`,
+            weekAverageFor: (count: number, item: string) => `${count}-tygodniowa średnia dla ${item}`,
+            monthAverageFor: (count: number, item: string) => `Średnia z ${count} miesięcy dla ${item}`,
+            quarterAverageFor: (count: number, item: string) => `Średnia z ${count} kwartałów dla ${item}`,
+        },
         flaggedExpenses: 'Oznaczone wydatki',
         noFlaggedExpensesInRange: 'Brak oznaczonych wydatków w tym zakresie',
     },

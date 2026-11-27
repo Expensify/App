@@ -1,4 +1,5 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import VictoryTheme from '@components/Charts/VictoryTheme';
 import Header from '@components/Header';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -13,12 +14,19 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {InsightsDetailsParamList} from '@libs/Navigation/types';
-import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 
 import INSIGHTS_DASHBOARD_SPECS, {getChartSpec} from '@pages/Insights/dashboardSpecs';
 import getInsightsLastDay from '@pages/Insights/getInsightsLastDay';
 import {getQueryGroupBy} from '@pages/Insights/insightsGroupByUtils';
-import {applyInsightsFilters, buildChartSnapshotQueryJSON, buildTopExpensesQueryJSON, scopeInsightsDrillDownQuery, withInsightsSnapshotHash} from '@pages/Insights/insightsQueries';
+import {
+    applyInsightsFilters,
+    buildChartSnapshotQueryJSON,
+    buildRecentHistoryQueryString,
+    buildTopExpensesQueryJSON,
+    scopeInsightsDrillDownQuery,
+    withInsightsSnapshotHash,
+} from '@pages/Insights/insightsQueries';
 import useInsightsFilters from '@pages/Insights/useInsightsFilters';
 
 import CONST from '@src/CONST';
@@ -26,13 +34,16 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import {getYear, parseISO} from 'date-fns';
 import React from 'react';
 import {View} from 'react-native';
 
 import buildInsightsDetailsQuery from './buildInsightsDetailsQuery';
+import getInsightsItemColor from './getInsightsItemColor';
 import {resolveInsightsDetailsItem} from './insightsDetailsItem';
 import InsightsDetailsSectionError from './InsightsDetailsSectionError';
-import {getInsightsDetailsSectionState, INSIGHTS_DETAILS_SECTION_STATE} from './insightsDetailsSectionState';
+import {getInsightsDetailsSectionState} from './insightsDetailsSectionState';
+import InsightsRecentHistory from './InsightsRecentHistory';
 import InsightsSummary from './InsightsSummary';
 import InsightsTopExpenses from './InsightsTopExpenses';
 import useRequestInsightsDetails from './useRequestInsightsDetails';
@@ -60,6 +71,11 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
         selector: (snapshot) => (memberAccountID === undefined ? undefined : snapshot?.data?.personalDetailsList?.[memberAccountID]),
     });
     const member = chartMember ?? storedMember;
+    // A comparison draws the donut as bars, which are colored by a different ranking
+    const shownView = filters.compare && chartSpec?.view === CONST.SEARCH.VIEW.PIE ? CONST.SEARCH.VIEW.BAR : chartSpec?.view;
+    const [itemColor = VictoryTheme.colors.default] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${chartQueryJSON?.hash}`, {
+        selector: (snapshot) => getInsightsItemColor(snapshot?.data, chartSpec?.groupBy, shownView, chartSpec?.limit, itemKey),
+    });
     // A period's title depends on the saved Group by, so nothing resolves until the saved filters load
     const item =
         chartSpec && isResolved
@@ -83,6 +99,7 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
         chartSpec && topExpensesSnapshotHash !== undefined
             ? buildInsightsDetailsQuery({
                   graphKey: chartSpec.graphKey,
+                  sections: chartSpec.detailsSections,
                   filters,
                   itemGroupBy: chartSpec.groupBy,
                   itemKey,
@@ -95,14 +112,28 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
     const {isOffline} = useNetwork();
     const [details] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS_DETAILS}${detailsQuery?.hash}`);
     const viewAllQueryJSON = chartSpec ? scopeInsightsDrillDownQuery(topExpensesQueryJSON, chartSpec.graphKey, details?.eligiblePolicyIDs) : undefined;
-    const summary = details?.summary;
-    const detailsState = getInsightsDetailsSectionState({
+    const recentHistoryQueryJSON =
+        chartSpec && detailsQuery && item
+            ? scopeInsightsDrillDownQuery(
+                  buildSearchQueryJSON(buildRecentHistoryQueryString(filters, detailsQuery.periodGroupBy, detailsQuery.period.end, item.filterQuery)),
+                  chartSpec.graphKey,
+                  details?.eligiblePolicyIDs,
+              )
+            : undefined;
+    const hasDetailsErrors = !isEmptyObject(details?.errors);
+    const summaryState = getInsightsDetailsSectionState({
         isOffline,
-        isLoaded: !!summary,
-        hasErrors: !isEmptyObject(details?.errors),
+        isLoaded: !!details?.summary,
+        hasErrors: hasDetailsErrors,
         responseJsonCode: details?.responseJsonCode,
     });
-    const hasDetailsFailed = !!detailsQuery && (detailsState === INSIGHTS_DETAILS_SECTION_STATE.STALE || detailsState === INSIGHTS_DETAILS_SECTION_STATE.ERROR);
+    const recentHistoryState = getInsightsDetailsSectionState({
+        isOffline,
+        isLoaded: details?.recentHistory !== undefined,
+        hasErrors: hasDetailsErrors,
+        responseJsonCode: details?.responseJsonCode,
+    });
+    const hasDetailsFailed = !!detailsQuery && !isOffline && hasDetailsErrors;
 
     const chartTitle = chartSpec?.hasViolationStageControl
         ? translate(
@@ -146,7 +177,7 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
                     </View>
                     {hasDetailsFailed ? (
                         <InsightsDetailsSectionError
-                            isStale={detailsState === INSIGHTS_DETAILS_SECTION_STATE.STALE}
+                            isStale={details?.responseJsonCode === CONST.JSON_CODE.NO_RESPONSE}
                             onRetry={requestDetails}
                         />
                     ) : (
@@ -156,8 +187,21 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
                                     query={detailsQuery}
                                     graphKey={chartSpec.graphKey}
                                     currency={filters.groupCurrency}
-                                    summary={summary}
-                                    state={detailsState}
+                                    summary={details?.summary}
+                                    state={summaryState}
+                                />
+                            )}
+                            {!!detailsQuery && !!chartSpec.detailsSections?.includes(CONST.INSIGHTS.DETAILS_SECTION.RECENT_HISTORY) && (
+                                <InsightsRecentHistory
+                                    query={detailsQuery}
+                                    history={details?.recentHistory}
+                                    summary={details?.summary}
+                                    state={recentHistoryState}
+                                    currency={filters.groupCurrency}
+                                    color={itemColor}
+                                    itemTitle={item.title}
+                                    viewAllQuery={recentHistoryQueryJSON && buildSearchQueryString(recentHistoryQueryJSON)}
+                                    currentYear={getYear(parseISO(getInsightsLastDay(asOf)))}
                                 />
                             )}
                             {!!topExpensesQueryJSON && (!isTopSpenders || !!detailsQuery) && (

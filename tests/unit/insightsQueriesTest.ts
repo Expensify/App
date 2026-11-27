@@ -11,6 +11,7 @@ import buildInsightsJsonQuery, {
     applyInsightsFilters,
     buildFutureExpensesQueryString,
     buildInsightsQueryString,
+    buildRecentHistoryQueryString,
     buildTopExpensesQueryJSON,
     scopeInsightsDrillDownQuery,
 } from '@pages/Insights/insightsQueries';
@@ -667,6 +668,52 @@ describe('insightsQueries', () => {
 
             // Then the query is the same as one that doesn't stop at today, since expense dates don't bound that chart
             expect(chartQuery).toBe(applyInsightsFilters(chart, filters));
+        });
+    });
+
+    describe('buildRecentHistoryQueryString', () => {
+        it("covers the item's spend in each of the panel's periods, from a year before the period through it", () => {
+            // Given a This month dashboard in one workspace, summarizing November so far
+            const filters: InsightsFilters = {...FILTERS, date: {preset: CONST.SEARCH.DATE_PRESETS.THIS_MONTH}, policyIDs: ['policyA']};
+
+            // When the query behind Recent history's View all is built for a merchant
+            const query = buildRecentHistoryQueryString(filters, CONST.SEARCH.GROUP_BY.MONTH, '2026-11-24', 'merchant="Uber"');
+
+            // Then it covers November 2025 through November 24, the months the average covers and the summarized one, regardless of the dashboard's Date range
+            const queryJSON = buildSearchQueryJSON(query);
+            expect(query).toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}>=2025-11-01`);
+            expect(query).toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}<=2026-11-24`);
+            expect(query).not.toContain(CONST.SEARCH.DATE_PRESETS.THIS_MONTH);
+
+            // And it keeps the workspace and the item, and lists them as a table grouped by month
+            expect(query).toContain('policyA');
+            expect(query).toContain('merchant="Uber"');
+            expect(queryJSON?.groupBy).toBe(CONST.SEARCH.GROUP_BY.MONTH);
+            expect(queryJSON?.view).toBe(CONST.SEARCH.VIEW.TABLE);
+        });
+
+        it('starts on the first day of the oldest period, so each listed period is complete', () => {
+            // Given a This quarter dashboard, summarizing Q4 2026 so far
+            const filters: InsightsFilters = {...FILTERS, date: {preset: CONST.SEARCH.DATE_PRESETS.THIS_QUARTER}};
+
+            // When the query behind Recent history's View all is built
+            const query = buildRecentHistoryQueryString(filters, CONST.SEARCH.GROUP_BY.QUARTER, '2026-11-24', 'merchant="Amazon"');
+
+            // Then it starts on October 1, 2025 rather than November 1, so Q4 2025 counts all of its months like the average does
+            expect(query).toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}>=2025-10-01`);
+            expect(query).toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}<=2026-11-24`);
+        });
+
+        it('reaches back to the oldest year the section lists', () => {
+            // Given a This year dashboard, whose Recent history lists 2026 so far and the three years before it
+            const filters: InsightsFilters = {...FILTERS, date: {preset: CONST.SEARCH.DATE_PRESETS.THIS_YEAR}};
+
+            // When the query behind Recent history's View all is built
+            const query = buildRecentHistoryQueryString(filters, CONST.SEARCH.GROUP_BY.YEAR, '2026-11-24', 'merchant="Amazon"');
+
+            // Then it starts on January 1, 2023 rather than at last year, so every listed year can be found on Spend
+            expect(query).toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}>=2023-01-01`);
+            expect(query).toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}<=2026-11-24`);
         });
     });
 

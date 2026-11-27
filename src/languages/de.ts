@@ -1355,6 +1355,13 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: 'Genehmigende',
             chartTitle: (title: string, stage: string) => `${title} (${stage})`,
         },
+        recentHistory: {
+            title: 'Letzte Aktivitäten',
+            dayAverageFor: (count: number, item: string) => `${count}-Tage-Durchschnitt für ${item}`,
+            weekAverageFor: (count: number, item: string) => `${count}-Wochen-Durchschnitt für ${item}`,
+            monthAverageFor: (count: number, item: string) => `${count}-Monatsdurchschnitt für ${item}`,
+            quarterAverageFor: (count: number, item: string) => `${count}-Quartalsdurchschnitt für ${item}`,
+        },
         flaggedExpenses: 'Markierte Ausgaben',
         noFlaggedExpensesInRange: 'Keine markierten Ausgaben in diesem Zeitraum',
     },

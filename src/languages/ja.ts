@@ -1343,6 +1343,13 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: '承認者',
             chartTitle: (title: string, stage: string) => `${title}（${stage}）`,
         },
+        recentHistory: {
+            title: '最近の履歴',
+            dayAverageFor: (count: number, item: string) => `${count} 日間の${item}の平均`,
+            weekAverageFor: (count: number, item: string) => `${count}週間平均 (${item})`,
+            monthAverageFor: (count: number, item: string) => `${item} の${count}か月平均`,
+            quarterAverageFor: (count: number, item: string) => `${item}の${count}四半期平均`,
+        },
         flaggedExpenses: 'フラグ付き経費',
         noFlaggedExpensesInRange: 'この範囲にはフラグ付き経費はありません',
     },

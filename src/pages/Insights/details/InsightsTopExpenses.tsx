@@ -1,6 +1,4 @@
-import Icon from '@components/Icon';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ChartOfflineState from '@components/Search/ChartOfflineState';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {SearchQueryJSON, SearchQueryString} from '@components/Search/types';
@@ -11,11 +9,9 @@ import {useWideRHPActions} from '@components/WideRHPContextProvider';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {CAROUSEL_SOURCE, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
@@ -28,8 +24,6 @@ import {getCreated, getCurrency, isScanning} from '@libs/TransactionUtils';
 
 import {TOP_EXPENSES_LIMIT} from '@pages/Insights/insightsQueries';
 
-import variables from '@styles/variables';
-
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -40,6 +34,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 import InsightsDetailsSectionError from './InsightsDetailsSectionError';
+import InsightsDetailsSectionHeader from './InsightsDetailsSectionHeader';
 import {INSIGHTS_DETAILS_SECTION_STATE} from './insightsDetailsSectionState';
 import InsightsFlaggedExpenseRow from './InsightsFlaggedExpenseRow';
 import useInsightsTopExpenses from './useInsightsTopExpenses';
@@ -61,11 +56,9 @@ type InsightsTopExpensesProps = {
 /** Lists the largest expenses behind the clicked item, each opening in the RHP. */
 function InsightsTopExpenses({queryJSON, title, emptyText, viewAllQuery, onRetry}: InsightsTopExpensesProps) {
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {translate, dateFnsLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const {expenses, violationsByTransactionID, state} = useInsightsTopExpenses(queryJSON);
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowUpRight']);
     const {markReportRHPWidth} = useWideRHPActions();
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [personalDetails] = usePersonalDetailsByIDs([currentUserAccountID, ...expenses.flatMap((expense) => [expense.reportAction?.actorAccountID, expense.report?.ownerAccountID])]);
@@ -130,36 +123,10 @@ function InsightsTopExpenses({queryJSON, title, emptyText, viewAllQuery, onRetry
 
     return (
         <View style={[styles.highlightBG, styles.borderRadiusComponentLarge, styles.overflowHidden]}>
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.p4, styles.borderBottom]}>
-                <Text
-                    variant="label"
-                    style={styles.textSupporting}
-                >
-                    {title}
-                </Text>
-                {!!viewAllQuery && expenses.length > 0 && (
-                    <PressableWithoutFeedback
-                        onPress={() => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: viewAllQuery}))}
-                        accessibilityRole={CONST.ROLE.LINK}
-                        accessibilityLabel={translate('insightsPage.viewAll')}
-                        sentryLabel={CONST.SENTRY_LABEL.INSIGHTS.DETAILS_TOP_EXPENSES_VIEW_ALL}
-                        style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}
-                    >
-                        <Text
-                            variant="label"
-                            style={styles.link}
-                        >
-                            {translate('insightsPage.viewAll')}
-                        </Text>
-                        <Icon
-                            src={icons.ArrowUpRight}
-                            fill={theme.link}
-                            width={variables.iconSizeExtraSmall}
-                            height={variables.iconSizeExtraSmall}
-                        />
-                    </PressableWithoutFeedback>
-                )}
-            </View>
+            <InsightsDetailsSectionHeader
+                title={title}
+                viewAll={viewAllQuery && expenses.length > 0 ? {query: viewAllQuery, sentryLabel: CONST.SENTRY_LABEL.INSIGHTS.DETAILS_TOP_EXPENSES_VIEW_ALL} : undefined}
+            />
             {state === INSIGHTS_DETAILS_SECTION_STATE.LOADING && (
                 <SearchRowSkeleton
                     shouldAnimate

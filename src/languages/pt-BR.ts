@@ -1357,6 +1357,13 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: 'Aprovadores',
             chartTitle: (title: string, stage: string) => `${title} (${stage})`,
         },
+        recentHistory: {
+            title: 'Histórico recente',
+            dayAverageFor: (count: number, item: string) => `Média de ${count} dias para ${item}`,
+            weekAverageFor: (count: number, item: string) => `Média de ${count} semanas de ${item}`,
+            monthAverageFor: (count: number, item: string) => `Média de ${count} mês(es) para ${item}`,
+            quarterAverageFor: (count: number, item: string) => `Média de ${count} trimestres de ${item}`,
+        },
         flaggedExpenses: 'Despesas sinalizadas',
         noFlaggedExpensesInRange: 'Nenhuma despesa sinalizada neste intervalo',
     },

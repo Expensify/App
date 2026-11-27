@@ -1401,6 +1401,13 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: 'Εγκριτές',
             chartTitle: (title: string, stage: string) => `${title} (${stage})`,
         },
+        recentHistory: {
+            title: 'Πρόσφατο ιστορικό',
+            dayAverageFor: (count: number, item: string) => `${count}ήμερος μέσος όρος για ${item}`,
+            weekAverageFor: (count: number, item: string) => `μέσος όρος ${count} εβδομάδων για ${item}`,
+            monthAverageFor: (count: number, item: string) => `${count}-μηνιαίος μέσος όρος για ${item}`,
+            quarterAverageFor: (count: number, item: string) => `Μέσος όρος ${count} τριμήνων για το στοιχείο ${item}`,
+        },
         flaggedExpenses: 'Επισημασμένες δαπάνες',
         noFlaggedExpensesInRange: 'Δεν υπάρχουν επισημασμένες δαπάνες σε αυτό το εύρος',
     },
