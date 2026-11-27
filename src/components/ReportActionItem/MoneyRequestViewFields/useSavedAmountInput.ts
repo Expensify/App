@@ -60,7 +60,14 @@ function useSavedAmountInput({amount, decimals, getAmountError, onSave}: UseSave
     const [inputError, setInputError] = useState('');
     const [shownSavedValue, setShownSavedValue] = useState(savedValue);
     const [resetCount, setResetCount] = useState(0);
-    if (!isFocused && shownSavedValue !== savedValue) {
+    // A focused input the user has not typed in follows the saved amount too. The input keeps its own text while focused,
+    // so it is remounted and the edit ended: left as it was, a change of currency would cut that text to the new
+    // currency's decimals and count the cut as something the user typed.
+    const isUntouched = inputValue === savedValue;
+    if (shownSavedValue !== savedValue && (!isFocused || isUntouched)) {
+        if (isFocused) {
+            finishEditing();
+        }
         setShownSavedValue(savedValue);
         setInputError('');
     }

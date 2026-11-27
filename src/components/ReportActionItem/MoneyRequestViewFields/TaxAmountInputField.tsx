@@ -49,8 +49,10 @@ function TaxAmountInputField({transaction, updateParams, policy, taxAmount, curr
     const {updateTaxAmount} = useUpdateTransactionTaxAmount({transactionID: transaction?.transactionID, transaction, updateParams, policy});
 
     const decimals = getCurrencyDecimals(currency);
-    // The tax amount page caps the tax at what the expense's tax rate works out to, as the create form does.
-    const maxTaxAmount = getCalculatedTaxAmount(policy, transaction, currency, decimals);
+    // The tax amount page caps the tax at what the expense's tax rate works out to, as the create form does. An empty
+    // tax code counts as none there, so the workspace's default rate, which the rate row shows, sets the cap.
+    const transactionForTaxRate = transaction && !transaction.taxCode ? {...transaction, taxCode: undefined} : transaction;
+    const maxTaxAmount = getCalculatedTaxAmount(policy, transactionForTaxRate, currency, decimals);
     const getAmountError = (newTaxAmount: number) => (newTaxAmount > maxTaxAmount ? translate('iou.error.invalidTaxAmount', convertToDisplayString(maxTaxAmount, currency)) : '');
     const {inputValue, inputError, inputKey, startEditing, applyTypedAmount, saveTypedAmount, inputRef, blurInput} = useSavedAmountInput({
         amount: taxAmount,

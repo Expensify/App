@@ -89,6 +89,7 @@ function DescriptionInputField({transaction, updateParams, isReportInGroupPolicy
                 type="markdown"
                 excludedMarkdownStyles={!isReportInGroupPolicy ? ['mentionReport'] : []}
                 hint={hint}
+                shouldRenderHintAsHTML={!!hint}
                 errorText={inputError || errorText}
                 sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.DESCRIPTION_FIELD}
             />

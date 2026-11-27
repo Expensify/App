@@ -2,6 +2,7 @@ import {act, fireEvent, render, renderHook, screen} from '@testing-library/react
 
 import ComposeProviders from '@components/ComposeProviders';
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
+import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import AmountInputField from '@components/ReportActionItem/MoneyRequestViewFields/AmountInputField';
@@ -56,7 +57,8 @@ jest.mock('@components/DatePicker', () => ({onInputChange, shouldHideClearButton
 });
 jest.mock('@hooks/useCurrencyList', () => ({
     useCurrencyListActions: jest.fn(() => ({
-        getCurrencyDecimals: jest.fn(() => 2),
+        // Yen has no decimals, unlike the dollar the expenses here start in
+        getCurrencyDecimals: jest.fn((currency?: string) => (currency === 'JPY' ? 0 : 2)),
         getCurrencySymbol: jest.fn(() => '$'),
         convertToDisplayString: jest.fn((amountInCents = 0) => `USD ${(amountInCents / 100).toFixed(2)}`),
     })),
@@ -220,14 +222,29 @@ describe('saved expense inline fields', () => {
     });
 
     describe('DescriptionInputField', () => {
-        const renderDescription = () =>
+        // A hint is rendered as HTML, which needs the HTML engine around the field
+        const renderDescription = (hint?: string) =>
             renderField(
-                <DescriptionInputField
-                    transaction={transaction}
-                    updateParams={updateParams}
-                    isReportInGroupPolicy
-                />,
+                <HTMLEngineProvider>
+                    <DescriptionInputField
+                        transaction={transaction}
+                        updateParams={updateParams}
+                        isReportInGroupPolicy
+                        hint={hint}
+                    />
+                </HTMLEngineProvider>,
             );
+
+        it('renders the formatting of a category hint instead of showing its tags', async () => {
+            // Given a category whose description hint has bold text, which is stored as HTML
+            renderDescription('Include the <strong>client name</strong>');
+            await waitForBatchedUpdatesWithAct();
+
+            // When the description field shows
+            // Then the hint reads as text, with no HTML tags left in it
+            expect(screen.getByText('client name')).toBeOnTheScreen();
+            expect(screen.queryByText(/<strong>/)).not.toBeOnTheScreen();
+        });
 
         it('saves the typed description when the input loses focus', async () => {
             // Given a saved expense whose description is shown in the input
@@ -312,8 +329,8 @@ describe('saved expense inline fields', () => {
             owner: 'owner@test.com',
             outputCurrency: CONST.CURRENCY.USD,
         };
-        const renderAmount = (amount = 5000) =>
-            renderField(
+        const amountField = (amount = 5000, currency: string = CONST.CURRENCY.USD) => (
+            <Providers>
                 <AmountInputField
                     transaction={transaction}
                     updateParams={updateParams}
@@ -321,14 +338,33 @@ describe('saved expense inline fields', () => {
                     policy={policy}
                     policyCategories={undefined}
                     amount={amount}
-                    currency={CONST.CURRENCY.USD}
+                    currency={currency}
                     label="Amount"
                     iouType={CONST.IOU.TYPE.SUBMIT}
                     allowNegative={false}
                     isP2P
                     isCurrencyEditable
-                />,
-            );
+                />
+            </Providers>
+        );
+        const renderAmount = (amount?: number) => render(amountField(amount));
+
+        it('does not save when the amount and currency change elsewhere while the untouched input is focused', async () => {
+            // Given a saved expense of $10.75 whose amount input is focused, with nothing typed
+            const {rerender} = renderAmount(1075);
+            await waitForBatchedUpdatesWithAct();
+            fireEvent(screen.getByLabelText('Amount'), 'focus');
+
+            // When another tab changes the expense to ¥20, and the input is then left
+            rerender(amountField(2000, 'JPY'));
+            await waitForBatchedUpdatesWithAct();
+            fireEvent(screen.getByLabelText('Amount'), 'blur');
+            await waitForBatchedUpdatesWithAct();
+
+            // Then nothing is sent, since cutting the old text to yen's decimals is not an edit, and the input shows the new amount
+            expect(updateMoneyRequestAmountAndCurrency).not.toHaveBeenCalled();
+            expect(screen.getByLabelText('Amount').props.value).toBe('20');
+        });
 
         it('saves the typed amount when the input loses focus', async () => {
             // Given a saved expense whose amount is shown in the input
@@ -414,10 +450,10 @@ describe('saved expense inline fields', () => {
             taxRates: {name: 'Tax', defaultExternalID: TAX_CODE, defaultValue: '10%', foreignTaxDefault: TAX_CODE, taxes: {[TAX_CODE]: {name: 'VAT', value: '10%'}}},
         };
         const taxedTransaction: Transaction = {...transaction, amount: 5500, taxCode: TAX_CODE, taxAmount: 300};
-        const renderTaxAmount = () =>
+        const renderTaxAmount = (taxCode: string = TAX_CODE) =>
             renderField(
                 <TaxAmountInputField
-                    transaction={taxedTransaction}
+                    transaction={{...taxedTransaction, taxCode}}
                     updateParams={updateParams}
                     policy={taxPolicy}
                     taxAmount={300}
@@ -442,6 +478,22 @@ describe('saved expense inline fields', () => {
             // Then it is saved to that expense in the smallest currency unit, as the tax amount page would save it
             expect(updateMoneyRequestTaxAmount).toHaveBeenCalledTimes(1);
             expect(updateMoneyRequestTaxAmount).toHaveBeenCalledWith(expect.objectContaining({transactionID: TRANSACTION_ID, taxAmount: 450, transactionThreadReport: threadReport}));
+        });
+
+        it('caps the tax by the workspace default rate when the saved tax code is empty', async () => {
+            // Given a saved expense whose tax code is an empty string, for which the rate row shows the workspace's default 10%
+            renderTaxAmount('');
+            await waitForBatchedUpdatesWithAct();
+            const input = screen.getByLabelText('Tax amount');
+
+            // When a tax amount within what the default rate allows is typed and the input is left
+            fireEvent(input, 'focus');
+            fireEvent.changeText(input, '4.5');
+            fireEvent(input, 'blur');
+            await waitForBatchedUpdatesWithAct();
+
+            // Then it is saved, as the tax amount page would, instead of being refused as above a cap of zero
+            expect(updateMoneyRequestTaxAmount).toHaveBeenCalledWith(expect.objectContaining({transactionID: TRANSACTION_ID, taxAmount: 450}));
         });
 
         it('shows an error instead of saving a tax amount above what the tax rate works out to', async () => {
