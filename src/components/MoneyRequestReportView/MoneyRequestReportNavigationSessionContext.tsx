@@ -41,4 +41,3 @@ function useSaveMoneyRequestReportNavigationSession(): SaveMoneyRequestReportNav
 }
 
 export {MoneyRequestReportNavigationSessionProvider, useMoneyRequestReportNavigationSession, useSaveMoneyRequestReportNavigationSession};
-export type {MoneyRequestReportNavigationSession};
