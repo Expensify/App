@@ -170,15 +170,17 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
                 session,
             )}
         >
-            <View style={styles.flexRow}>
-                <View style={[StyleUtils.getTripReservationIconContainer(false), styles.mr3, shouldCenterIcon && styles.alignSelfCenter]}>
-                    <Icon
-                        src={reservationIcon}
-                        width={variables.iconSizeNormal}
-                        height={variables.iconSizeNormal}
-                        fill={theme.icon}
-                    />
-                </View>
+            <MenuItem.Row>
+                <MenuItem.Leading>
+                    <View style={[StyleUtils.getTripReservationIconContainer(false), shouldCenterIcon && styles.alignSelfCenter]}>
+                        <Icon
+                            src={reservationIcon}
+                            width={variables.iconSizeNormal}
+                            height={variables.iconSizeNormal}
+                            fill={theme.icon}
+                        />
+                    </View>
+                </MenuItem.Leading>
                 <MenuItem.Content>
                     <MenuItem.FieldName style={styles.lh16}>{descriptionWithStatus}</MenuItem.FieldName>
                     {titleComponent()}
@@ -186,7 +188,7 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
                 <MenuItem.Trailing>
                     <MenuItem.Chevron />
                 </MenuItem.Trailing>
-            </View>
+            </MenuItem.Row>
         </MenuItem.Root>
     );
 }

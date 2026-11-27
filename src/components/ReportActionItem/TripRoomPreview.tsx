@@ -84,7 +84,7 @@ function ReservationView({reservation, onPress, isCancelled}: ReservationViewPro
 
     const description = translate(`travel.${reservation.type}`);
 
-    const titleStyle = [styles.mt1, isCancelled && styles.textSupporting];
+    const titleStyle = isCancelled ? styles.textSupporting : undefined;
 
     let titleComponent = (
         <Text
@@ -121,20 +121,22 @@ function ReservationView({reservation, onPress, isCancelled}: ReservationViewPro
             shouldRemoveBackground
             onPress={onPress ? callIfAuthenticated(onPress, session) : undefined}
         >
-            <View style={styles.flexRow}>
-                <View style={[StyleUtils.getTripReservationIconContainer(false), styles.mr3, styles.alignSelfCenter]}>
-                    <Icon
-                        src={reservationIcon}
-                        width={variables.iconSizeNormal}
-                        height={variables.iconSizeNormal}
-                        fill={theme.icon}
-                    />
-                </View>
-                <View style={[styles.flex1, styles.justifyContentCenter, StyleUtils.getMenuItemTextContainerStyle(true)]}>
+            <MenuItem.Row>
+                <MenuItem.Leading>
+                    <View style={StyleUtils.getTripReservationIconContainer(false)}>
+                        <Icon
+                            src={reservationIcon}
+                            width={variables.iconSizeNormal}
+                            height={variables.iconSizeNormal}
+                            fill={theme.icon}
+                        />
+                    </View>
+                </MenuItem.Leading>
+                <MenuItem.Content>
                     <MenuItem.FieldName style={styles.lh16}>{displayDescription}</MenuItem.FieldName>
                     {titleComponent}
-                </View>
-            </View>
+                </MenuItem.Content>
+            </MenuItem.Row>
         </MenuItem.Root>
     );
 }
@@ -165,33 +167,36 @@ function BookingView({booking, bookingApproval, onPress}: BookingViewProps) {
     return (
         <MenuItem.Root
             sentryLabel={CONST.SENTRY_LABEL.TRIP_ROOM_PREVIEW.BOOKING}
-            accessibilityLabel={isCancelled ? description : [description, title].filter(Boolean).join(', ')}
+            accessibilityLabel={isCancelled ? description : undefined}
             style={[styles.taskDescriptionMenuItem, styles.p0]}
             shouldRemoveBackground
             onPress={callIfAuthenticated(onPress, session)}
         >
-            <View style={styles.flexRow}>
-                <View style={[StyleUtils.getTripReservationIconContainer(false), styles.mr3, styles.alignSelfCenter]}>
-                    <Icon
-                        src={getTripReservationIcon(expensifyIcons, firstReservation?.type, isCancelled)}
-                        width={variables.iconSizeNormal}
-                        height={variables.iconSizeNormal}
-                        fill={theme.icon}
-                    />
-                </View>
-                <View style={[styles.flex1, styles.justifyContentCenter, StyleUtils.getMenuItemTextContainerStyle(true)]}>
-                    <MenuItem.FieldName style={[styles.lh16, styles.mb1]}>{description}</MenuItem.FieldName>
-                    <MenuItem.FieldValue style={[styles.mt1, isCancelled && styles.textSupporting]}>{title}</MenuItem.FieldValue>
-                </View>
+            <MenuItem.Row>
+                <MenuItem.Leading>
+                    <View style={StyleUtils.getTripReservationIconContainer(false)}>
+                        <Icon
+                            src={getTripReservationIcon(expensifyIcons, firstReservation?.type, isCancelled)}
+                            width={variables.iconSizeNormal}
+                            height={variables.iconSizeNormal}
+                            fill={theme.icon}
+                        />
+                    </View>
+                </MenuItem.Leading>
+                <MenuItem.Content>
+                    <MenuItem.FieldName style={styles.lh16}>{description}</MenuItem.FieldName>
+                    <MenuItem.FieldValue style={isCancelled && styles.textSupporting}>{title}</MenuItem.FieldValue>
+                </MenuItem.Content>
                 {!!statusBadge && (
-                    <StatusBadge
-                        text={statusBadge.text}
-                        backgroundColor={statusBadge.backgroundColor}
-                        textColor={statusBadge.textColor}
-                        badgeStyles={styles.ml3}
-                    />
+                    <MenuItem.Trailing>
+                        <StatusBadge
+                            text={statusBadge.text}
+                            backgroundColor={statusBadge.backgroundColor}
+                            textColor={statusBadge.textColor}
+                        />
+                    </MenuItem.Trailing>
                 )}
-            </View>
+            </MenuItem.Row>
         </MenuItem.Root>
     );
 }

@@ -1,4 +1,4 @@
-import {act, fireEvent, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen, within} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
@@ -142,6 +142,34 @@ describe('TripRoomPreview', () => {
         // Then the preview stays as it was before the beta
         expect(screen.getByText(/4 trips/)).toBeOnTheScreen();
         expect(screen.getByText('View')).toBeOnTheScreen();
+    });
+
+    it.each([false, true])('preserves booking accessible names when cancelled=%s', async (isCancelled) => {
+        // Given booking rows can derive their normal names from their text leaves, but cancelled rows override them.
+        await setUpTrip({accountID: TRAVELER_ACCOUNT_ID, betas: [CONST.BETAS.TRAVEL_APPROVAL]});
+        if (isCancelled) {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${TRIP_ROOM_ID}`, {
+                    tripData: {
+                        payload: {
+                            pnrs: tripPayload.pnrs?.map((pnr) => ({...pnr, data: {...pnr.data, bookingStatus: CONST.PNR_STATUS.CANCELLED}})),
+                        },
+                    },
+                });
+            });
+        }
+
+        // When the trip preview renders with compound content.
+        renderPreview();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then normal names include the booking title, while cancelled names retain the cancellation description only.
+        const name = isCancelled ? `Canceled ${CONST.DOT_SEPARATOR} Flight` : /^Flight, Flight to /;
+        const rows = screen.UNSAFE_getAllByType(MenuItem.Root);
+        expect(rows).toHaveLength(2);
+        for (const row of rows) {
+            expect(within(row).getByRole(CONST.ROLE.BUTTON, {name})).toBeOnTheScreen();
+        }
     });
 
     it('asks an approver to review an outstanding booking', async () => {
