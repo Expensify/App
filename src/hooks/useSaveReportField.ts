@@ -19,8 +19,8 @@ import type {Policy, PolicyReportField, Report} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import Onyx from 'react-native-onyx';
 
-import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
 import {usePersonalDetail} from './usePersonalDetails';
 import useReportTransactions from './useReportTransactions';
@@ -29,16 +29,13 @@ import useReportTransactionViolations from './useReportTransactionViolations';
 function useSaveReportField(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>) {
     const session = useSession();
     const {isBetaEnabled} = usePermissions();
-    const [recentlyUsedReportFields] = useOnyx(ONYXKEYS.RECENTLY_USED_REPORT_FIELDS);
     // Both of these are scoped to this report so a transaction or violation change in an unrelated report does not re-render every consumer.
     const reportTransactions = useReportTransactions(report?.reportID);
     const [transactionViolations] = useReportTransactionViolations(reportTransactions);
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [reportOwnerLogin] = usePersonalDetail(report?.ownerAccountID, loginSelector);
     const [reportManagerLogin] = usePersonalDetail(report?.managerID, loginSelector);
 
-    return (reportField: PolicyReportField, value: string) => {
+    return async (reportField: PolicyReportField, value: string) => {
         if (!report) {
             return;
         }
@@ -54,6 +51,7 @@ function useSaveReportField(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>
             return;
         }
 
+        const [recentlyUsedReportFields, introSelected, rules] = await Onyx.multiGet([ONYXKEYS.RECENTLY_USED_REPORT_FIELDS, ONYXKEYS.NVP_INTRO_SELECTED, ONYXKEYS.COLLECTION.RULE]);
         const fieldKey = getReportFieldKey(reportField.fieldID);
         const hasViolations = hasViolationsReportUtils(
             report.reportID,
@@ -96,7 +94,7 @@ function useSaveReportField(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>
             hasViolationsParam: hasViolations,
             recentlyUsedReportFields,
             shouldFixViolations: hasOtherViolations,
-            isTrackIntentUser,
+            isTrackIntentUser: isTrackIntentUserSelector(introSelected),
             rules,
         });
     };

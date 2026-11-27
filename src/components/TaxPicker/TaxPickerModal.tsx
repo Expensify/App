@@ -36,7 +36,7 @@ type TaxPickerModalProps = {
     iouType?: IOUType;
 
     /** Called when the user confirms a tax rate. `shouldClearTax` asks to clear the tax instead, for a rate the workspace no longer has */
-    onSelected?: (tax: TaxRatesOption, shouldClearTax?: boolean) => void;
+    onSelected?: (tax: TaxRatesOption, shouldClearTax?: boolean) => void | Promise<void>;
 
     /** Whether tapping the rate already picked hands it to `onSelected` again, for a caller that clears it that way, rather than only closing the list */
     allowDeselect?: boolean;

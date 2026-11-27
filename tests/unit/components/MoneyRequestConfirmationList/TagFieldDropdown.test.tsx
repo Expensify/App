@@ -22,7 +22,7 @@ jest.mock('@libs/actions/IOU/MoneyRequest', () => ({
 }));
 
 // The list itself is covered by the TagPickerModal tests; here only what the dropdown hands it, and what it does with a pick, matter.
-type MockTagPickerModalProps = {selectedTag?: string; tagListIndex?: number; onSelected?: (tag: string) => void};
+type MockTagPickerModalProps = {selectedTag?: string; tagListIndex?: number; onSelected?: (tag: string) => void | Promise<void>};
 let mockTagPickerModalProps: MockTagPickerModalProps | undefined;
 jest.mock('@components/TagPicker/TagPickerModal', () => (props: MockTagPickerModalProps) => {
     mockTagPickerModalProps = props;
@@ -88,7 +88,9 @@ describe('TagFieldDropdown', () => {
         await waitForBatchedUpdates();
         expect(mockTagPickerModalProps?.tagListIndex).toBe(1);
         expect(mockTagPickerModalProps?.selectedTag).toBe('Alpha');
-        act(() => mockTagPickerModalProps?.onSelected?.('Beta'));
+        await act(async () => {
+            await mockTagPickerModalProps?.onSelected?.('Beta');
+        });
 
         // Then the draft is saved with `Beta` in the second slot and `Engineering` untouched in the first, so a row never
         // writes over another list's tag

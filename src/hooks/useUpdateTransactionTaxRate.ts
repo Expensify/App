@@ -15,6 +15,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {loginSelector} from '@selectors/PersonalDetails';
+import Onyx from 'react-native-onyx';
 
 import useAllTransactionViolations from './useAllTransactionViolations';
 import {useCurrencyListActions} from './useCurrencyList';
@@ -50,7 +51,7 @@ type UseUpdateTransactionTaxRateResult = {
      * Writes the picked tax rate, and the tax amount it works out to on the expense's amount, to whichever of the three
      * stores backs the expense. `shouldClearTax` clears the tax instead, for a rate the workspace no longer has.
      */
-    updateTaxRate: (taxes: TaxRatesOption, shouldClearTax?: boolean) => void;
+    updateTaxRate: (taxes: TaxRatesOption, shouldClearTax?: boolean) => void | Promise<void>;
 };
 
 /**
@@ -66,19 +67,21 @@ function useUpdateTransactionTaxRate({transactionID, transaction, report, policy
 
     const policyID = policy?.id;
 
-    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`);
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(policyID)}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
-    const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
     const [iouReportOwnerLogin] = usePersonalDetail(parentReport?.ownerAccountID, loginSelector);
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const allTransactionViolations = useAllTransactionViolations(transactionID);
 
-    const currentTransaction = isEditingSplit && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction;
+    const updateTaxRate = async (taxes: TaxRatesOption, shouldClearTax?: boolean) => {
+        const [splitDraftTransaction, policyCategories, policyTags, reportPolicyTags, introSelected, rules] = await Onyx.multiGet([
+            `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`,
+            `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`,
+            `${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(policyID)}`,
+            `${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`,
+            ONYXKEYS.NVP_INTRO_SELECTED,
+            ONYXKEYS.COLLECTION.RULE,
+        ]);
+        const currentTransaction = isEditingSplit && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction;
 
-    const updateTaxRate = (taxes: TaxRatesOption, shouldClearTax?: boolean) => {
         const updateTaxRateParams = {
             translate,
             isVendorMatchingBetaEnabled: isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING),
@@ -98,7 +101,7 @@ function useUpdateTransactionTaxRate({transactionID, transaction, report, policy
             isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
             delegateAccountID,
             reportPolicyTags,
-            isTrackIntentUser,
+            isTrackIntentUser: isTrackIntentUserSelector(introSelected),
             violations: allTransactionViolations,
             getCurrencyDecimals,
             getCurrencySymbol,

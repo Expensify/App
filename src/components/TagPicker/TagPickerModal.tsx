@@ -28,7 +28,7 @@ type TagPickerModalProps = {
     shouldShowGLCode?: boolean;
 
     /** Called when the user confirms a tag selection */
-    onSelected?: (tag: string) => void;
+    onSelected?: (tag: string) => void | Promise<void>;
 
     /** Index of the tag list to show. Defaults to the first list */
     tagListIndex?: number;

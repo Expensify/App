@@ -109,7 +109,9 @@ describe('TaxFieldDropdown', () => {
         expect(mockTaxPickerModalProps?.transactionID).toBe(TRANSACTION_ID);
         expect(mockTaxPickerModalProps?.selectedTaxRate).toBe('Standard (5%)');
         expect(mockTaxPickerModalProps?.action).toBe(CONST.IOU.ACTION.CREATE);
-        act(() => mockTaxPickerModalProps?.onSelected?.({code: REDUCED_TAX_CODE, keyForList: 'Reduced (10%)-1', text: 'Reduced (10%)'}));
+        await act(async () => {
+            await mockTaxPickerModalProps?.onSelected?.({code: REDUCED_TAX_CODE, keyForList: 'Reduced (10%)-1', text: 'Reduced (10%)'});
+        });
 
         // Then the draft is saved with the reduced rate, its value and the tax amount recalculated from the expense's
         // amount, the same as picking it on the full-page selector
