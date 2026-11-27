@@ -6798,6 +6798,19 @@ const CONST = {
 
         EMOJI_SKIN_TONES: /[\u{1f3fb}-\u{1f3ff}]/gu,
 
+        // useHtmlPaste checks these URLs when pasted images have no recognized emoji metadata.
+        // This lets it replace emoji images without treating every pasted image as an emoji.
+        EMOJI_IMAGE_SOURCE: {
+            // Identifies standard emoji images copied from Facebook, Messenger, and Instagram.
+            META: /^https:\/\/(?:static\.xx\.fbcdn\.net|static\.cdninstagram\.com)\/images\/emoji\.php\/v\d+\/[a-z\d]+\/\d+\/\d+\/[a-f\d]+(?:_[a-f\d]+)*\.png(?:\?[^\s#]*)?$/i,
+            // Identifies standard emoji images from YouTube comments without matching channel custom emojis.
+            YOUTUBE: /^https:\/\/www\.youtube\.com\/s\/gaming\/emoji\/[a-f\d]+\/emoji_u[a-f\d]+(?:_[a-f\d]+)*\.png(?:\?[^\s#]*)?$/i,
+            // Identifies Teams message emojis, including skin tones, by their asset URL alone.
+            TEAMS: /^https:\/\/tflteams\.public\.onecdn\.static\.microsoft\/evergreen-assets\/personal-expressions\/v\d+\/assets\/emoticons\/[a-z\d_]+\/default\/\d+_f(?:_s[2-6])?\.png(?:\?[^\s#]*)?$/i,
+            // Matches Discourse emoji asset URLs and captures their names and optional skin tones.
+            DISCOURSE: /^https:\/\/emoji\.discourse-cdn\.com\/twitter\/([a-z\d_+-]+)(?:\/([2-6]))?\.png(?:\?[^\s#]*)?$/i,
+        },
+
         PRIVATE_USER_AREA: /[\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}]/u,
 
         ONLY_PRIVATE_USER_AREA: /^[\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}]+$/u,

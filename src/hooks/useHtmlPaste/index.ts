@@ -1,3 +1,5 @@
+import {emojiNameTable} from '@assets/emojis';
+
 import {buildAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 import useOnyx from '@hooks/useOnyx';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
@@ -50,31 +52,57 @@ const insertAtCaret = (target: HTMLElement, insertedText: string, maxLength: num
 };
 
 /**
- * Checks whether an image contains Slack's metadata identifying it as an emoji.
+ * Identifies pasted emoji images using metadata supplied by the source app or known `src` URL patterns.
  *
  * @param image The image element to inspect.
- * @returns `true` when Slack's emoji metadata is present; otherwise, `false`.
+ * @returns True if the image has recognized emoji data attributes or its `src` matches a known emoji image URL pattern.
  */
 function isEmojiImage(image: HTMLImageElement): boolean {
     const dataset = image.dataset;
 
-    return dataset.stringifyEmoji !== undefined || dataset.stringifyType === 'emoji';
+    if (dataset.stringifyEmoji !== undefined || dataset.stringifyType === 'emoji' || dataset.emoji !== undefined || dataset.type === 'emoji') {
+        return true;
+    }
+
+    // Some sources omit emoji data-* fields, and alt text alone is not reliable.
+    // Check the image's src against known emoji URL patterns instead.
+    const source = image.getAttribute('src') ?? '';
+    const patterns = CONST.REGEX.EMOJI_IMAGE_SOURCE;
+    return patterns.TEAMS.test(source) || patterns.DISCOURSE.test(source) || patterns.META.test(source) || patterns.YOUTUBE.test(source);
 }
 
 /**
- * Returns the text that should replace an image identified by Slack's emoji metadata.
+ * Returns source emoji text, resolving supported Discourse image tones and keeping unsupported shortcodes intact.
  *
  * @param image Image element being pasted.
- * @returns The shortcode or legacy alt text, or an empty string when the image should remain unchanged.
+ * @returns Source text or the resolved Discourse skin-tone variant, or an empty string when the image should remain unchanged.
  */
 function getEmojiReplacementText(image: HTMLImageElement): string {
     if (!isEmojiImage(image)) {
         return '';
     }
 
-    // Slack's data-* metadata identifies the emoji and supplies its shortcode, with alt text as the legacy fallback.
-    const shortcode = image.dataset.stringifyEmoji;
-    return shortcode?.length ? shortcode : image.alt;
+    const dataset = image.dataset;
+    const metadataText = dataset.stringifyEmoji || dataset.emoji;
+    if (metadataText) {
+        return metadataText;
+    }
+
+    // Prefer Discord's alt text, which already contains the skin tone, over a shortcode the Composer may not recognize.
+    if (dataset.type === 'emoji') {
+        return image.alt || dataset.name || '';
+    }
+
+    const discourseMatch = CONST.REGEX.EMOJI_IMAGE_SOURCE.DISCOURSE.exec(image.getAttribute('src') ?? '');
+    const discourseName = discourseMatch?.[1];
+    const discourseTone = discourseMatch?.[2];
+    if (discourseName && discourseTone) {
+        // Discourse numbers tones from 2 (light) to 6 (dark); our variants run from dark to light.
+        // Keep the complete source shortcode when we do not support its name or tone variant.
+        return emojiNameTable[discourseName]?.types?.[6 - Number(discourseTone)] ?? image.alt;
+    }
+
+    return image.alt;
 }
 
 /**
