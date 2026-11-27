@@ -130,6 +130,9 @@ type Response<TKey extends OnyxKey> = {
     /** Whether the account already exists */
     accountExists?: boolean;
 
+    /** Whether BeginSignIn emailed or texted a magic code. False for SAML accounts, which sign in without one */
+    validateCodeSent?: boolean;
+
     /** PIN for an activated UK/EU Expensify Card */
     pin?: string;
 
