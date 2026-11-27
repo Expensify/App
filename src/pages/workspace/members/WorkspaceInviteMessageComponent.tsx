@@ -15,6 +15,7 @@ import TextInput from '@components/TextInput';
 import useApprovalWorkflows from '@hooks/useApprovalWorkflows';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useConfirmModal from '@hooks/useConfirmModal';
+import useLoadPolicyCategories from '@hooks/useLoadPolicyCategories';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -139,9 +140,12 @@ function WorkspaceInviteMessageComponent({
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const [categoryVisibilityDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_CATEGORY_VISIBILITY_DRAFT}${policyID}`);
     const shouldShowCategoryVisibilityRow = canSetInvitedMembersCategoryVisibility(policy);
+    // A lazy-loaded workspace may only have some of its categories, so the complete list is read here too.
+    const {isLoadingCompletePolicyCategories} = useLoadPolicyCategories(shouldShowCategoryVisibilityRow ? policyID : undefined);
     // With no enabled category there's nothing to limit the new members to, so the row stays empty like on a member's
     // details page, and the invite ignores an earlier choice instead of waiting for a category the admin can't pick.
-    const hasEnabledCategories = getEnabledCategoriesCount(policyCategories) > 0;
+    // Until the complete list arrives, the workspace counts as having categories.
+    const hasEnabledCategories = isLoadingCompletePolicyCategories || getEnabledCategoriesCount(policyCategories) > 0;
     // Another admin can disable, rename or delete a chosen category while this page is open, and the invite can only
     // limit the new members to enabled categories, so the row and the invite count only those.
     const categoryVisibilityDraftNames = hasEnabledCategories ? categoryVisibilityDraft?.filter((categoryName) => !!policyCategories?.[categoryName]?.enabled) : undefined;

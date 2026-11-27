@@ -145,6 +145,8 @@ describe('WorkspaceInviteMessageComponent - Category visibility row', () => {
             } satisfies PersonalDetailsList);
             await Onyx.merge(ONYXKEYS.SESSION, {email: ADMIN_EMAIL, accountID: ADMIN_ACCOUNT_ID});
             await Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${POLICY_ID}`, {[INVITEE_EMAIL]: INVITEE_ACCOUNT_ID});
+            // The complete category list has been read, so the categories each test sets are all the workspace has
+            await Onyx.set(`${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_CATEGORIES_LOADING_STATE}${POLICY_ID}`, {isLoading: false, hasOnceLoaded: true});
             await waitForBatchedUpdatesWithAct();
         });
     });
@@ -194,6 +196,17 @@ describe('WorkspaceInviteMessageComponent - Category visibility row', () => {
         // Then it goes through without categories, since there's nothing to limit the new member to
         expect(addMembersToWorkspaceMock).toHaveBeenCalledTimes(1);
         expect(addMembersToWorkspaceMock.mock.lastCall?.[8]?.categoryNames).toBeUndefined();
+    });
+
+    it('shows All categories while the complete category list is still being read', async () => {
+        // Given a lazy-loaded workspace whose categories haven't been read yet
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_CATEGORIES_LOADING_STATE}${POLICY_ID}`, {isLoading: true, hasOnceLoaded: false});
+        });
+        await renderPage(buildPolicy());
+
+        // Then the row doesn't treat the missing list as a workspace without categories
+        expect(screen.getByText(translateLocal('workspace.people.allCategories'))).toBeOnTheScreen();
     });
 
     it('shows the number of chosen categories and sends them with the invite', async () => {
