@@ -4112,8 +4112,7 @@ ${amount} per ${merchant} - ${date}`,
             title: "Impossibile aggiungere l'email di lavoro",
             subtitle: (workEmail: string | undefined) =>
                 `Non è stato possibile aggiungere ${workEmail}. Riprova più tardi in Impostazioni oppure chatta con Concierge per ricevere assistenza.`,
-            validatedPublicDomainSubtitle: (workEmail: string | undefined) =>
-                `Non siamo riusciti ad aggiungere ${workEmail}. Per unire questi account, accedi come ${workEmail} e vai su Account > Sicurezza > Unisci account per completare la procedura.`,
+            validatedPublicDomainSubtitle: (workEmail: string | undefined) => `Accedi con ${workEmail} e unisci questo account da Account > Sicurezza > Unisci account.`,
             workAccountClosedSubtitle:
                 'L’account di lavoro associato a questa email è chiuso. Contatta l’amministratore della tua azienda per riattivarlo oppure registrati con un’altra email.',
             domainControlledSubtitle: (workEmail: string | undefined) => `${workEmail} è un accesso controllato dal dominio per un account Expensify esistente.`,

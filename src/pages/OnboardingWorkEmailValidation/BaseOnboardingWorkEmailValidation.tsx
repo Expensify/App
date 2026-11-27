@@ -111,7 +111,8 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles, route}: BaseO
     }, [isConciergeTaskFlow, isCurrentPrimaryValidated]);
 
     useEffect(() => {
-        if (onboardingValues?.isMergeAccountStepCompleted === undefined) {
+        // A blocked merge can also mark the step completed, but its error must stay visible until confirmation.
+        if (onboardingValues?.isMergeAccountStepCompleted === undefined || onboardingValues?.isMergingAccountBlocked) {
             return;
         }
         setOnboardingErrorMessage(null);
@@ -148,6 +149,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles, route}: BaseO
         });
     }, [
         onboardingValues?.isMergeAccountStepCompleted,
+        onboardingValues?.isMergingAccountBlocked,
         onboardingValues?.shouldRedirectToClassicAfterMerge,
         onboardingValues?.isMergeAccountStepSkipped,
         isVsb,

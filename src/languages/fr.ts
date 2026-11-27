@@ -4137,8 +4137,7 @@ ${amount} pour ${merchant} - ${date}`,
             title: 'Impossible d’ajouter l’adresse e-mail professionnelle',
             subtitle: (workEmail: string | undefined) =>
                 `Nous n’avons pas pu ajouter ${workEmail}. Veuillez réessayer plus tard dans les Paramètres ou discuter avec Concierge pour obtenir de l’aide.`,
-            validatedPublicDomainSubtitle: (workEmail: string | undefined) =>
-                `Nous n’avons pas pu ajouter ${workEmail}. Pour fusionner ces comptes, veuillez vous connecter en tant que ${workEmail} puis aller dans Compte > Sécurité > Fusionner les comptes pour terminer le processus.`,
+            validatedPublicDomainSubtitle: (workEmail: string | undefined) => `Connectez-vous avec ${workEmail} et fusionnez ce compte depuis Compte > Sécurité > Fusionner les comptes.`,
             workAccountClosedSubtitle:
                 'Le compte professionnel associé à cet e-mail est fermé. Veuillez contacter l’administrateur de votre entreprise pour le réactiver, ou inscrivez-vous avec un autre e-mail.',
             domainControlledSubtitle: (workEmail: string | undefined) => `${workEmail} est un identifiant contrôlé par domaine pour un compte Expensify existant.`,
