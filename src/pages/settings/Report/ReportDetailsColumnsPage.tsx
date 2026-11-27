@@ -119,7 +119,8 @@ function ReportDetailsColumnsPage() {
             const receiptColumnIndex = hasSavedColumns
                 ? (reportDetailsColumns ?? []).indexOf(CONST.SEARCH.TABLE_COLUMNS.RECEIPT)
                 : REPORT_DETAILS_DEFAULT_COLUMNS.indexOf(CONST.SEARCH.TABLE_COLUMNS.RECEIPT);
-            const columnsToSave = isCustomizeFields && shouldShowReceiptColumn ? [...selectedColumnIds] : selectedColumnIds;
+            // Required fields stay visible in expense details, but they must not be added to the shared table preference unless they were already selected there.
+            const columnsToSave = isCustomizeFields ? selectedColumnIds.filter((column) => !requiredColumns.has(column) || currentColumns.includes(column)) : selectedColumnIds;
             if (isCustomizeFields && shouldShowReceiptColumn) {
                 columnsToSave.splice(Math.max(receiptColumnIndex, 0), 0, CONST.SEARCH.TABLE_COLUMNS.RECEIPT);
             }

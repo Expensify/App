@@ -301,7 +301,7 @@ function MoneyRequestView({
 
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`);
     const [policyVendors] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_VENDORS}${getNonEmptyStringOnyxID(policyID)}`);
-    const targetPolicyID = updatedTransaction?.reportID ? parentReport?.policyID : policyID;
+    const targetPolicyID = isExpenseUnreported ? policyID : parentReport?.policyID;
     const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(targetPolicyID)}`);
     const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
     const transactionCard = transaction?.cardID ? nonPersonalAndWorkspaceCards?.[transaction.cardID] : undefined;
@@ -1948,7 +1948,7 @@ function MoneyRequestView({
                         reportActions={parentReportActions}
                         policy={policy}
                         policyCategories={policyCategories}
-                        policyTags={reportPolicyTags}
+                        policyTags={policyTagList}
                         visibleAttendeeCount={shouldShowAttendees ? transactionAttendees.length : 0}
                         isVendorColumnAvailable={hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING))}
                     />

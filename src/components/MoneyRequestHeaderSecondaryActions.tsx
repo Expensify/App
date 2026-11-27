@@ -51,6 +51,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
+import {getPolicyByCustomUnitID} from '@libs/PolicyUtils';
 import {sortAndSectionPopoverMenuItems, TRANSACTION_MORE_MENU_SECTIONS} from '@libs/PopoverMenuSections';
 import {getOriginalMessage, getTrackExpenseActionableWhisper, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {getTransactionThreadPrimaryAction} from '@libs/ReportPrimaryActionUtils';
@@ -192,6 +193,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const splitEffectivePolicy = useSplitEffectivePolicy(report, undefined, transaction);
+    const [perDiemPolicyID] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (policies) => (isPerDiemRequest(transaction) ? getPolicyByCustomUnitID(transaction, policies)?.id : undefined)});
     const personalPolicy = usePersonalPolicy();
     const restrictedActionPolicyID = useRestrictedActionPolicyID(policy);
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
@@ -604,7 +606,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                 const isPersonalExpense = isSelfDM(parentReport);
                 const context = isPersonalExpense
                     ? {
-                          policyID: policyForMovingExpenses?.id ?? policy?.id,
+                          policyID: (isPerDiemRequest(transaction) ? perDiemPolicyID : policyForMovingExpenses?.id) ?? policy?.id,
                           transactionID: transaction?.transactionID,
                       }
                     : undefined;
