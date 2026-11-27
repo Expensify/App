@@ -150,7 +150,7 @@ function TransactionPreviewContent({
     const canEdit = isIOUActionType && canEditMoneyRequest(action, transaction, rules, isChatReportArchived, report, policy, reportActions);
     const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(report?.policyID)}`;
     const connectionLink = getBrokenConnectionUrlToFixPersonalCard(personalCardsWithBrokenConnection, environmentURL, buildDynamicRoute);
-    const isMarkAsCash = parentReport && currentUserLogin ? isMarkAsCashActionForTransaction(currentUserLogin, parentReport, violations, policy) : false;
+    const isMarkAsCash = parentReport && currentUserLogin ? isMarkAsCashActionForTransaction(currentUserLogin, currentUserAccountID, parentReport, violations, policy) : false;
 
     const violationMessage = firstViolation
         ? ViolationsUtils.getViolationTranslation({

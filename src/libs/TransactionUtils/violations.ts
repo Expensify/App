@@ -5,7 +5,8 @@
 import {isPersonalCard} from '@libs/CardUtils';
 import DateUtils from '@libs/DateUtils';
 import {isAttendeeTrackingEnabled as isAttendeeTrackingEnabledForPolicy, isInstantSubmitEnabled, isPolicyAdmin, isPolicyMember as isPolicyMemberPolicyUtils} from '@libs/PolicyUtils';
-import {isCurrentUserSubmitter, isIOUReport, isOpenExpenseReport, isProcessingReport, isReportManager, isSettled} from '@libs/ReportUtils';
+import {isCurrentUserSubmitter, isReportManager} from '@libs/ReportRoles';
+import {isIOUReport, isOpenExpenseReport, isProcessingReport, isSettled} from '@libs/ReportTypeAndStatus';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -13,10 +14,8 @@ import type {CardList, Policy, Report, Transaction, TransactionViolation, Transa
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
-// This cycle import is safe because this file was extracted from TransactionUtils/index.ts, which re-exports it.
-// The functions imported here are pure helpers that aren't called at initialization time.
-// eslint-disable-next-line import/no-cycle
-import {getCreated, isCategoryBeingAnalyzed, isExpenseValueUnsettled, isPending, isScanning} from './index';
+import {getCreated} from './fields';
+import isCategoryBeingAnalyzed from './isCategoryBeingAnalyzed';
 
 /**
  * Get all transaction violations of the transaction with given transactionID.
@@ -127,12 +126,12 @@ function getUnsuppressibleBrokenConnectionTransactionID(
     })?.transactionID;
 }
 
-function shouldShowBrokenConnectionViolationInternal(brokenConnectionViolations: TransactionViolation[], report: OnyxEntry<Report>, policy: OnyxEntry<Policy>) {
+function shouldShowBrokenConnectionViolationInternal(brokenConnectionViolations: TransactionViolation[], report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, currentUserAccountID: number) {
     if (brokenConnectionViolations.length === 0) {
         return false;
     }
 
-    if (!isPolicyAdmin(policy) || isCurrentUserSubmitter(report)) {
+    if (!isPolicyAdmin(policy) || isCurrentUserSubmitter(report, currentUserAccountID)) {
         return true;
     }
 
@@ -146,10 +145,10 @@ function shouldShowBrokenConnectionViolationInternal(brokenConnectionViolations:
 /**
  * Check if user should see broken connection violation warning based on violations list.
  */
-function shouldShowBrokenConnectionViolation(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, transactionViolations: TransactionViolation[]): boolean {
+function shouldShowBrokenConnectionViolation(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, transactionViolations: TransactionViolation[], currentUserAccountID: number): boolean {
     const brokenConnectionViolations = transactionViolations.filter((violation) => isBrokenConnectionViolation(violation));
 
-    return shouldShowBrokenConnectionViolationInternal(brokenConnectionViolations, report, policy);
+    return shouldShowBrokenConnectionViolationInternal(brokenConnectionViolations, report, policy, currentUserAccountID);
 }
 
 /**
@@ -184,7 +183,7 @@ function shouldShowBrokenConnectionViolationForMultipleTransactions(
         });
     });
 
-    return shouldShowBrokenConnectionViolationInternal(brokenConnectionViolations, report, policy);
+    return shouldShowBrokenConnectionViolationInternal(brokenConnectionViolations, report, policy, currentUserAccountID);
 }
 
 /**
@@ -339,13 +338,6 @@ function hasAnyTransactionWithoutRTERViolation(
             return !hasBrokenConnectionViolation(transaction, transactionViolations, currentUserEmail, currentUserAccountID, report, reportOwnerLogin, policy);
         })
     );
-}
-
-/**
- * Check if the transaction is pending or has a pending rter violation.
- */
-function hasPendingUI(transaction: OnyxEntry<Transaction>, transactionViolations?: TransactionViolations | null): boolean {
-    return isScanning(transaction) || isPending(transaction) || (!!transaction && hasPendingRTERViolation(transactionViolations));
 }
 
 /**
@@ -608,27 +600,6 @@ function hasSubmissionBlockingViolations(
     return hasSubmissionBlockingViolationInList(violations);
 }
 
-function isTransactionSubmittable(
-    transaction: Transaction,
-    report: OnyxEntry<Report>,
-    transactionViolations: OnyxCollection<TransactionViolations> | undefined,
-    currentUserEmail: string | undefined,
-    currentUserAccountID: number | undefined,
-    reportOwnerLogin: string | undefined,
-    policy: OnyxEntry<Policy>,
-    isTransactionScanning: (transactionToCheck: OnyxEntry<Transaction>) => boolean = isScanning,
-): boolean {
-    if (isExpenseValueUnsettled(transaction, report, isTransactionScanning)) {
-        return false;
-    }
-
-    if (transactionViolations && currentUserEmail && currentUserAccountID !== undefined) {
-        return !hasSubmissionBlockingViolations(transaction, transactionViolations, currentUserEmail, currentUserAccountID, report, reportOwnerLogin, policy);
-    }
-
-    return true;
-}
-
 export {
     allHavePendingRTERViolation,
     getTransactionViolations,
@@ -639,7 +610,6 @@ export {
     hasDuplicateTransactions,
     hasNoticeTypeViolation,
     hasPendingRTERViolation,
-    hasPendingUI,
     hasSubmissionBlockingViolationInList,
     hasSubmissionBlockingViolationInReport,
     hasSubmissionBlockingViolations,
@@ -649,7 +619,6 @@ export {
     isBrokenConnectionViolation,
     isDuplicate,
     isPendingRTERViolation,
-    isTransactionSubmittable,
     isViolationDismissed,
     mergeProhibitedViolations,
     shouldShowBrokenConnectionViolation,

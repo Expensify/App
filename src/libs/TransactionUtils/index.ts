@@ -8,7 +8,6 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import {convertAttendeesToArray, normalizeAttendees} from '@libs/AttendeeUtils';
 import {isTravelCardTransaction} from '@libs/CardUtils';
-import {isCategoryMissing} from '@libs/CategoryUtils';
 import type {MachineDateFormat} from '@libs/DateUtils';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -21,15 +20,14 @@ import {
     isTimeTrackingEnabled,
 } from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {getReportOrDraftReport, getReportTransactions, getTransactionDetails, isInvoiceReport, isIOUReport, isThread} from '@libs/ReportUtils';
+import {getReportOrDraftReport, getReportTransactions, getTransactionDetails, isIOUReport, isThread} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
-import {isInvalidMerchantValue} from '@libs/ValidationUtils';
 
 import type {IOURequestType, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, CardList, OnyxInputOrEntry, PersonalDetails, Policy, RecentWaypoint, Report, Transaction} from '@src/types/onyx';
+import type {Card, CardList, OnyxInputOrEntry, PersonalDetails, Policy, RecentWaypoint, Report, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {Comment, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
@@ -72,12 +70,14 @@ import {
     getReimbursable,
     hasNonReimbursableTransactions,
     isPending,
+    isMerchantMissing,
 } from './fields';
 import getDistanceInMeters from './getDistanceInMeters';
 import getSelectedRouteKey from './getSelectedRouteKey';
 import getTagArrayFromName from './getTagArrayFromName';
 import {getClearedPendingFields, getDistanceMerchantForTransaction, getUpdatedTransaction} from './getUpdatedTransaction';
 import hasCreateFailed from './hasCreateFailed';
+import isCategoryBeingAnalyzed from './isCategoryBeingAnalyzed';
 import {
     calculateTaxAmount,
     getCalculatedTaxAmount,
@@ -103,7 +103,6 @@ import {
     hasDuplicateTransactions,
     hasNoticeTypeViolation,
     hasPendingRTERViolation,
-    hasPendingUI,
     hasSubmissionBlockingViolationInList,
     hasSubmissionBlockingViolationInReport,
     hasSubmissionBlockingViolations,
@@ -113,7 +112,6 @@ import {
     isBrokenConnectionViolation,
     isDuplicate,
     isPendingRTERViolation,
-    isTransactionSubmittable,
     isViolationDismissed,
     mergeProhibitedViolations,
     shouldShowBrokenConnectionViolation,
@@ -121,6 +119,34 @@ import {
     shouldShowViolation,
     shouldSuppressBrokenConnectionStatus,
 } from './violations';
+
+/**
+ * Check if the transaction is pending or has a pending rter violation.
+ */
+function hasPendingUI(transaction: OnyxEntry<Transaction>, transactionViolations?: TransactionViolations | null): boolean {
+    return isScanning(transaction) || isPending(transaction) || (!!transaction && hasPendingRTERViolation(transactionViolations));
+}
+
+function isTransactionSubmittable(
+    transaction: Transaction,
+    report: OnyxEntry<Report>,
+    transactionViolations: OnyxCollection<TransactionViolations> | undefined,
+    currentUserEmail: string | undefined,
+    currentUserAccountID: number | undefined,
+    reportOwnerLogin: string | undefined,
+    policy: OnyxEntry<Policy>,
+    isTransactionScanning: (transactionToCheck: OnyxEntry<Transaction>) => boolean = isScanning,
+): boolean {
+    if (isExpenseValueUnsettled(transaction, report, isTransactionScanning)) {
+        return false;
+    }
+
+    if (transactionViolations && currentUserEmail && currentUserAccountID !== undefined) {
+        return !hasSubmissionBlockingViolations(transaction, transactionViolations, currentUserEmail, currentUserAccountID, report, reportOwnerLogin, policy);
+    }
+
+    return true;
+}
 
 function isDeletedTransaction(transaction: {reportID?: string}): boolean {
     return transaction.reportID === CONST.REPORT.TRASH_REPORT_ID;
@@ -416,13 +442,6 @@ function hasOdometerImageSource(transaction: OnyxInputOrEntry<Transaction>, imag
 
 function isDemoTransaction(transaction: OnyxInputOrEntry<Transaction>): boolean {
     return transaction?.comment?.isDemoTransaction ?? false;
-}
-
-function isMerchantMissing(transaction: OnyxEntry<Transaction>) {
-    if (transaction?.modifiedMerchant && transaction.modifiedMerchant !== '') {
-        return isInvalidMerchantValue(transaction.modifiedMerchant);
-    }
-    return isInvalidMerchantValue(transaction?.merchant);
 }
 
 /**
@@ -1023,60 +1042,6 @@ function isReceiptBeingScanned(transaction: OnyxInputOrEntry<Transaction>): bool
  */
 function isReceiptScanBlockingEdit(transaction: OnyxInputOrEntry<Transaction>): boolean {
     return isReceiptBeingScanned(transaction) && transaction?.iouRequestType !== CONST.IOU.REQUEST_TYPE.MANUAL;
-}
-
-/**
- * Check if category is being analyzed (manual request creation or auto-categorization grace period)
- */
-function isCategoryBeingAnalyzed(transaction: OnyxEntry<Transaction>, report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>): boolean {
-    if (!transaction) {
-        return false;
-    }
-
-    if (policy?.autoCategorizeNewExpenses === false) {
-        return false;
-    }
-
-    if (isExpenseUnreported(transaction)) {
-        return false;
-    }
-
-    // Only consider analyzing if category is actually missing
-    const category = getCategory(transaction);
-    if (!isCategoryMissing(category)) {
-        return false;
-    }
-
-    // Don't consider partial transactions (empty merchant and zero amount) as analyzing
-    if (isMerchantMissing(transaction) && transaction.amount === 0) {
-        return false;
-    }
-
-    // Invoice expense is not auto-categorized
-    if (isInvoiceReport(report)) {
-        return false;
-    }
-
-    const pendingAction = transaction.pendingAction;
-    const pendingAutoCategorizationTime = transaction.comment?.pendingAutoCategorizationTime;
-
-    // Check if manual request is being created
-    if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-        return transaction.wasAutoCategorizeEnabledOnCreation !== false;
-    }
-
-    // Check if within auto-categorization grace period
-    if (pendingAutoCategorizationTime && typeof pendingAutoCategorizationTime === 'string') {
-        const pendingTime = new Date(`${pendingAutoCategorizationTime.replace(' ', 'T')}Z`);
-        if (!Number.isNaN(pendingTime.getTime())) {
-            const currentTime = new Date();
-            const elapsedMs = currentTime.getTime() - pendingTime.getTime();
-            const oneMinuteMs = 60 * 1000;
-            return elapsedMs < oneMinuteMs;
-        }
-    }
-
-    return false;
 }
 
 function didReceiptScanSucceed(transaction: OnyxEntry<Transaction>): boolean {

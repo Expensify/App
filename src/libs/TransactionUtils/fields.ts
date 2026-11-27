@@ -3,6 +3,7 @@
  * that TransactionUtils/index.ts itself imports, like DistanceRequestUtils, can read a transaction without an import cycle.
  */
 import DateUtils from '@libs/DateUtils';
+import {isInvalidMerchantValue} from '@libs/ValidationUtils';
 
 import type {IOURequestType} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -150,6 +151,13 @@ function getMerchant(transaction: OnyxInputOrEntry<Transaction>): string {
     return transaction?.modifiedMerchant ? transaction.modifiedMerchant : (transaction?.merchant ?? '');
 }
 
+function isMerchantMissing(transaction: OnyxEntry<Transaction>) {
+    if (transaction?.modifiedMerchant && transaction.modifiedMerchant !== '') {
+        return isInvalidMerchantValue(transaction.modifiedMerchant);
+    }
+    return isInvalidMerchantValue(transaction?.merchant);
+}
+
 /**
  * Determine whether a transaction is made with a centrally managed card (Expensify or Company Card).
  */
@@ -266,6 +274,7 @@ export {
     getTaxCode,
     getDescription,
     getMerchant,
+    isMerchantMissing,
     isManagedCardTransaction,
     isExpensifyCardTransaction,
     isCardTransactionReimbursableEditable,

@@ -613,14 +613,14 @@ function isSubmitViaPDFAction(report: Report, currentUserAccountID: number, poli
     return isSubmitPolicy(policy) && isCurrentUserSubmitter(report, currentUserAccountID);
 }
 
-function isMarkAsCashActionForTransaction(currentUserLogin: string, parentReport: Report, violations: TransactionViolation[], policy?: Policy): boolean {
+function isMarkAsCashActionForTransaction(currentUserLogin: string, currentUserAccountID: number, parentReport: Report, violations: TransactionViolation[], policy?: Policy): boolean {
     const hasPendingRTERViolation = hasPendingRTERViolationTransactionUtils(violations);
 
     if (hasPendingRTERViolation) {
         return true;
     }
 
-    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationTransactionUtils(parentReport, policy, violations);
+    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationTransactionUtils(parentReport, policy, violations, currentUserAccountID);
 
     if (!shouldShowBrokenConnectionViolation) {
         return false;
@@ -630,7 +630,7 @@ function isMarkAsCashActionForTransaction(currentUserLogin: string, parentReport
         return false;
     }
 
-    const isReportSubmitter = isCurrentUserSubmitter(parentReport);
+    const isReportSubmitter = isCurrentUserSubmitter(parentReport, currentUserAccountID);
     const isReportApprover = isPolicyApprover(policy, currentUserLogin);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
@@ -664,7 +664,7 @@ function getTransactionThreadPrimaryAction(
         return isFromReviewDuplicates ? CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.KEEP_THIS_ONE : CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REVIEW_DUPLICATES;
     }
 
-    if (isMarkAsCashActionForTransaction(currentUserLogin, parentReport, violations, policy)) {
+    if (isMarkAsCashActionForTransaction(currentUserLogin, currentUserAccountID, parentReport, violations, policy)) {
         return CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.MARK_AS_CASH;
     }
 

@@ -352,7 +352,7 @@ function MoneyRequestReceiptView({
     const doesTransactionHaveReceipt = !!transactionToCheck?.receipt && !isEmptyObject(transactionToCheck?.receipt);
     // Empty state for invoices should be displayed only in WideRHP
     const shouldShowReceiptEmptyState = (isDisplayedInWideRHP || !isInvoice) && !hasReceipt && !!transactionToCheck && !doesTransactionHaveReceipt;
-    const isMarkAsCash = parentReport && currentUserLogin ? isMarkAsCashActionForTransaction(currentUserLogin, parentReport, transactionViolations, policy) : false;
+    const isMarkAsCash = parentReport && currentUserLogin ? isMarkAsCashActionForTransaction(currentUserLogin, currentUserAccountID, parentReport, transactionViolations, policy) : false;
 
     const routeDistanceMeters = transaction?.comment?.customUnit?.routeDistanceMeters;
     const distanceUnit = transaction?.comment?.customUnit?.distanceUnit;
