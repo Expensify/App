@@ -44,7 +44,7 @@ const [personalDetails] = usePersonalDetailsByIDs([report?.ownerAccountID, repor
 
 - The code is a list row component, or code that `renderItem` calls.
 - It reads data that is the same for every row, not the row's own item, and either:
-    - calls `useOnyx` on a key that has a hook in `OnyxListItemProvider`, or
+    - calls `useOnyx` on a key that has a hook in `OnyxListItemProvider`, or reads that key from the state view in a `useOnyxState` selector, or
     - reads the whole personal details list (`usePersonalDetails`, `useAllPersonalDetails`) but uses only a few people whose IDs it knows.
 
 **DO NOT flag if:**
@@ -56,6 +56,7 @@ const [personalDetails] = usePersonalDetailsByIDs([report?.ownerAccountID, repor
 
 **Search Patterns** (hints for reviewers):
 - `useOnyx`
+- `useOnyxState`
 - `renderItem`
 - `usePersonalDetails\(\)`
 - `useAllPersonalDetails`
