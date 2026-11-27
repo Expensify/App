@@ -84,7 +84,6 @@ function InsightsHandledByTable({title, data, comparison, isComparingPreviousPer
         ) : null;
 
     return (
-        // The design sets the column headers 24px under the card title, 4px more than the card header leaves
         <View style={!shouldUseNarrowLayout && styles.pt1}>
             <InsightsRankingTable
                 title={title}
@@ -92,7 +91,6 @@ function InsightsHandledByTable({title, data, comparison, isComparingPreviousPer
                 groupBy={CONST.SEARCH.GROUP_BY.HANDLED_BY}
                 countDimension={CONST.SEARCH.CHART_COUNT_DIMENSION.REPORT}
                 rowLimit={SKELETON_ROW_COUNT}
-                // An average across people, agents and rules means nothing, so only the previous period is compared
                 comparison={isComparingPreviousPeriod ? comparison : undefined}
                 isComparingPreviousPeriod={isComparingPreviousPeriod}
                 isLoading={isLoading}
