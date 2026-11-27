@@ -211,6 +211,24 @@ describe('Selecting groups that share expenses', () => {
         expect(result.current.selectedTransactions['2']?.isEntireGroupSelected).toBe(false);
     });
 
+    it('ends the claim of a group on every shared expense once a new expense joins it, including expenses no longer on its page', async () => {
+        // Given both groups checked through their headers over the expenses they share
+        const {result, rerender} = renderSelection();
+        await checkBothGroups(result, rerender);
+
+        // When a refresh of Over limit's first page brings a new, unchecked expense and no longer shows the second shared expense
+        overLimitGroup = {...buildCategoryGroup(OVER_LIMIT_KEY, [buildRow(1, OVER_LIMIT_KEY), buildRow(3, OVER_LIMIT_KEY)]), count: 3, hasMoreTransactions: true};
+        rerender({});
+        await act(async () => waitForBatchedUpdatesWithAct());
+
+        // Then neither shared expense claims Over limit any more, so an export and the union no longer take the whole group with the new expense in it
+        expect(result.current.selectedTransactions['1']?.otherClaimedGroupKeys).toBeUndefined();
+        expect(result.current.selectedTransactions['2']).toEqual(expect.objectContaining({isSelected: true, groupKey: MISSING_CATEGORY_KEY}));
+        expect(result.current.selectedTransactions['2']?.otherClaimedGroupKeys).toBeUndefined();
+        expect(result.current.selectedTransactions['3']).toBeUndefined();
+        expect(getGroupKeysSelectedViaGroup(result.current.selectedTransactions)).toEqual([MISSING_CATEGORY_KEY]);
+    });
+
     it('ends the claims of a group a refresh drops', async () => {
         // Given both groups checked through their headers over the expenses they share
         const {result, rerender} = renderSelection();

@@ -332,7 +332,7 @@ function getOtherClaimedGroupKeysField(otherClaimedGroupKeys: readonly string[] 
 }
 
 /** The row with the given groups taken off its other claimed groups, or the same row when it names none of them. */
-function withoutOtherGroupClaims(transaction: SelectedTransactionInfo, groupKeys: ReadonlySet<string>): SelectedTransactionInfo {
+function removeOtherGroupClaims(transaction: SelectedTransactionInfo, groupKeys: ReadonlySet<string>): SelectedTransactionInfo {
     if (!transaction.otherClaimedGroupKeys?.some((groupKey) => groupKeys.has(groupKey))) {
         return transaction;
     }
@@ -377,7 +377,7 @@ function deselectSharedGroup(
         return {selectedTransactions: nextSelectedTransactions, releasedGroupKeys};
     }
     for (const [key, transaction] of Object.entries(nextSelectedTransactions)) {
-        let nextTransaction = withoutOtherGroupClaims(transaction, releasedGroupKeys);
+        let nextTransaction = removeOtherGroupClaims(transaction, releasedGroupKeys);
         if (nextTransaction.groupKey && releasedGroupKeys.has(nextTransaction.groupKey) && nextTransaction.isSelectedViaGroup) {
             nextTransaction = {...nextTransaction, isSelectedViaGroup: false};
         }
@@ -976,9 +976,11 @@ function applyShiftRangeBatchToSelection(
                     partialGroupKeys.add(parentGroupKey);
                     touchGroup(parentGroupKey, lookups.childrenByGroupKey.get(parentGroupKey) ?? []);
                 }
-                // Every other header that covered the row stops covering its group as well, since the row is now unchecked in it.
+                // Every other header that covered the row stops covering its group as well, since the row is now unchecked in it. The row can be
+                // stored under one of those groups rather than the one listed last, so each is recounted, or Delete would still take it whole.
                 for (const claimedGroupKey of getClaimedGroupKeys(updated[row.keyForList])) {
                     partialGroupKeys.add(claimedGroupKey);
+                    touchGroup(claimedGroupKey, lookups.childrenByGroupKey.get(claimedGroupKey) ?? []);
                 }
                 updated = spellOutGroupSelection(updated, row.keyForList, areAllMatchingItemsSelected, lookups);
                 dropKey(row.keyForList);
@@ -1039,7 +1041,7 @@ function applyShiftRangeBatchToSelection(
     // Rows left behind must stop claiming the group covers them, or an export sends a whole-group filter.
     const releasedGroupKeys = new Set([...partialGroupKeys].filter((groupKey) => !wholeGroupKeys.has(groupKey)));
     for (const [key, transaction] of Object.entries(updated)) {
-        let nextTransaction = withoutOtherGroupClaims(transaction, releasedGroupKeys);
+        let nextTransaction = removeOtherGroupClaims(transaction, releasedGroupKeys);
         if (nextTransaction.isSelectedViaGroup && nextTransaction.groupKey && releasedGroupKeys.has(nextTransaction.groupKey)) {
             nextTransaction = {...nextTransaction, isSelectedViaGroup: false};
         }
@@ -1093,7 +1095,7 @@ export {
     resolveGroupCount,
     getClaimedGroupKeys,
     getOtherClaimedGroupKeysField,
-    withoutOtherGroupClaims,
+    removeOtherGroupClaims,
     deselectSharedGroup,
     getGroupClaims,
     getLowerCount,

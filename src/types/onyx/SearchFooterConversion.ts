@@ -59,10 +59,11 @@ type SearchFooterConversion = {
         searchTotals?: Record<string, SourceByCurrency>;
 
         /**
-         * The expense counts of the selected groups each union of groups was computed from, as `groupKey:count` pairs, keyed by search hash then by
-         * target currency. A group can gain or lose an expense without its total moving, as when an expense is split, so the totals alone can't tell.
+         * The expense count and total of each selected group each union of groups was computed from, as `groupKey:count:total` entries, keyed by search
+         * hash then by target currency. The groups' summed total can stay the same while the union changes, as when an expense is split or two groups'
+         * totals move by offsetting amounts, so the sum alone can't tell.
          */
-        searchGroupCounts?: Record<string, Record<string, string>>;
+        searchGroupFigures?: Record<string, Record<string, string>>;
     };
 };
 

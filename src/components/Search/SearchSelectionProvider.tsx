@@ -9,7 +9,7 @@ import type {SearchData, SearchSelectionActionsValue, SearchSelectionContextValu
 
 import {useSearchQueryContext, useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
 import {SearchSelectionActionsContext, SearchSelectionClearGenerationContext, SearchSelectionContext} from './SearchContextDefinitions';
-import {deriveSelectedReports, getClaimedGroupKeys, isRowChecked, withoutOtherGroupClaims} from './selectionBuilders';
+import {deriveSelectedReports, getClaimedGroupKeys, isRowChecked, removeOtherGroupClaims} from './selectionBuilders';
 
 type SearchSelectionProviderProps = {
     children: React.ReactNode;
@@ -293,7 +293,7 @@ function createSelectionActions(setSelectionState: React.Dispatch<React.SetState
                     if (key === transactionID) {
                         return acc;
                     }
-                    const remainingValue = withoutOtherGroupClaims(value, partialGroupKeys);
+                    const remainingValue = removeOtherGroupClaims(value, partialGroupKeys);
                     acc[key] =
                         remainingValue.groupKey && partialGroupKeys.has(remainingValue.groupKey)
                             ? {...remainingValue, isSelectedViaGroup: false, isEntireGroupSelected: false, coveredGroupCount: undefined}

@@ -29,8 +29,11 @@ type SharedGroupSelection = {
     /** The selected groups' totals added up. The union's figures are stamped against it, so a change to any of the groups asks again */
     groupsTotal: number;
 
-    /** Each selected group's expense count, as `groupKey:count` pairs. The union is stamped against it too, so a group gaining or losing an expense asks again even when its total stays the same */
-    groupsCounts: string;
+    /**
+     * Each selected group's expense count and total, as `groupKey:count:total` entries. The union is stamped against them too, since the groups' summed total
+     * stays the same when one group gains or loses an expense with no change in amount, or when two groups' totals change by offsetting amounts.
+     */
+    groupsFigures: string;
 
     /** Rows checked one by one that no selected group covers, which are added to the union's figures */
     looseEntries: SelectedTransactionInfo[];
@@ -87,31 +90,26 @@ function getSharedGroupSelection(
     }
     let groupsTotal = 0;
     let currency: string | undefined;
+    const groupFigures: string[] = [];
     for (const groupKey of groupKeys) {
         const group: unknown = searchData[groupKey];
-        if (!group || typeof group !== 'object') {
-            continue;
-        }
-        if ('total' in group && typeof group.total === 'number') {
-            groupsTotal += group.total;
-        }
-        if (!currency && 'currency' in group && typeof group.currency === 'string') {
+        const groupTotal = group && typeof group === 'object' && 'total' in group && typeof group.total === 'number' ? group.total : undefined;
+        groupFigures.push(`${groupKey}:${getSearchGroupCountByKey(searchData, groupKey) ?? ''}:${groupTotal ?? ''}`);
+        groupsTotal += groupTotal ?? 0;
+        if (!currency && group && typeof group === 'object' && 'currency' in group && typeof group.currency === 'string') {
             currency = group.currency;
         }
     }
     // Sorted, since the groups are listed in the order they were checked, which says nothing about what they hold
-    const groupsCounts = groupKeys
-        .map((groupKey) => `${groupKey}:${getSearchGroupCountByKey(searchData, groupKey) ?? ''}`)
-        .sort()
-        .join(',');
+    const groupsFigures = groupFigures.sort().join(',');
     const looseEntries = Object.entries(selectedTransactions)
         .filter(([key, transaction]) => !isGroupEntry(key) && getClaimedGroupKeys(transaction).length === 0)
         .map(([, transaction]) => transaction);
-    return {unionQueryJSON, groupsTotal, groupsCounts, looseEntries, currency};
+    return {unionQueryJSON, groupsTotal, groupsFigures, looseEntries, currency};
 }
 
 /**
- * Asks for the union of the selected groups once per set of groups, group totals and group counts. It is asked in the currency the
+ * Asks for the union of the selected groups once per set of groups and their counts and totals. It is asked in the currency the
  * footer shows: the footer writes a picked currency into the query, and otherwise shows the search's own currency.
  */
 function SharedGroupSelectionTotalProvider({children}: ChildrenProps) {
@@ -126,7 +124,7 @@ function SharedGroupSelectionTotalProvider({children}: ChildrenProps) {
     const sharedGroupSelection = getSharedGroupSelection(currentSearchQueryJSON, selectedTransactions, currentSearchResults?.data, areAllMatchingItemsSelected);
     const hash = sharedGroupSelection?.unionQueryJSON.hash;
     const groupsTotal = sharedGroupSelection?.groupsTotal;
-    const groupsCounts = sharedGroupSelection?.groupsCounts;
+    const groupsFigures = sharedGroupSelection?.groupsFigures;
     const currency = getFooterSelectionFromQuery(currentSearchQueryJSON).footerCurrency ?? currentSearchResults?.search?.currency ?? sharedGroupSelection?.currency;
     const [answer] = useOnyx(ONYXKEYS.SEARCH_FOOTER_CONVERSION, {
         selector: (conversion) =>
@@ -135,12 +133,12 @@ function SharedGroupSelectionTotalProvider({children}: ChildrenProps) {
                 : {
                       total: conversion?.searchTotals?.[hash]?.[currency],
                       source: conversion?.sources?.searchTotals?.[hash]?.[currency],
-                      countsSource: conversion?.sources?.searchGroupCounts?.[hash]?.[currency],
+                      figuresSource: conversion?.sources?.searchGroupFigures?.[hash]?.[currency],
                       hasFailed: !!conversion?.failedCurrencies?.[currency],
                   },
     });
-    // The answer describes the groups as they are now only while it was stamped against their current totals and counts
-    const wasRequested = groupsTotal !== undefined && answer?.source === groupsTotal && answer?.countsSource === groupsCounts;
+    // The answer describes the groups as they are now only while it was stamped against each group's current count and total
+    const wasRequested = groupsTotal !== undefined && answer?.source === groupsTotal && answer?.figuresSource === groupsFigures;
     const total = wasRequested ? (answer?.total ?? undefined) : undefined;
 
     useEffect(() => {
@@ -154,7 +152,7 @@ function SharedGroupSelectionTotalProvider({children}: ChildrenProps) {
             pendingGroupsStampByRequestKey.current.delete(requestKey);
             return;
         }
-        const groupsStamp = `${sharedGroupSelection.groupsTotal}_${sharedGroupSelection.groupsCounts}`;
+        const groupsStamp = `${sharedGroupSelection.groupsTotal}_${sharedGroupSelection.groupsFigures}`;
         if (pendingGroupsStampByRequestKey.current.get(requestKey) === groupsStamp) {
             return;
         }
@@ -165,7 +163,7 @@ function SharedGroupSelectionTotalProvider({children}: ChildrenProps) {
             targetCurrency: currency,
             sources: {
                 searchTotals: {[hash]: {[currency]: sharedGroupSelection.groupsTotal}},
-                searchGroupCounts: {[hash]: {[currency]: sharedGroupSelection.groupsCounts}},
+                searchGroupFigures: {[hash]: {[currency]: sharedGroupSelection.groupsFigures}},
             },
         });
     }, [currency, currentSearchKey, hash, isOffline, sharedGroupSelection, wasRequested]);

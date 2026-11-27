@@ -62,7 +62,7 @@ import {
     resolveGroupCount,
     spellOutGroupSelection,
     stampGroupCoverageFlags,
-    withoutOtherGroupClaims,
+    removeOtherGroupClaims,
 } from './selectionBuilders';
 
 type SearchWriteActionsProviderProps = {
@@ -269,6 +269,8 @@ function useReconcileSelectionWithData({
             const mayGroupHoldRow = getMayGroupHoldRow(filteredData);
             // Claims that groups sharing a row add or end on it, applied once every group has been read, since the group the row is stored under can come later.
             const groupClaimChangesByRowKey = new Map<string, GroupClaimChange>();
+            // Groups whose header selection ended in this refresh. A shared row can still name one of them while it is off that group's page, so the claim is ended on every row.
+            const endedGroupKeys = new Set<string>();
             for (const transactionGroup of filteredData) {
                 if (!Object.hasOwn(transactionGroup, 'transactions') || !('transactions' in transactionGroup)) {
                     continue;
@@ -337,6 +339,9 @@ function useReconcileSelectionWithData({
                 const hasRowJoinedOnFirstPage = !!groupClaim && !transactionGroup.transactionsOffset && hasUnselectedRow();
                 const hasExpenseJoinedSinceClaim = hasGroupGrownSinceClaim || hasRowJoinedOnFirstPage;
                 const isClaimEnding = hasExpenseJoinedSinceClaim || (hasClaimCoveredGroup && hasUnselectedRow());
+                if (doGroupsShareExpenses && isClaimEnding && !!groupClaim && reportKey) {
+                    endedGroupKeys.add(reportKey);
+                }
                 // A group checked through its header stands for every row in it, loaded or not, so the rows it is written out into and the rows that load later keep that claim.
                 const isWritingOutGroupSelection = !isExpenseReportType && (wasReportSelected || (!!groupClaim && !hasClaimCoveredGroup && !hasExpenseJoinedSinceClaim));
                 const propagateSelectionToAllRows = isExpenseReportType && (wasReportSelected || hasIndividualSelectedInGroup);
@@ -516,10 +521,13 @@ function useReconcileSelectionWithData({
 
             // A group a refresh dropped is never read above, so its claims are ended here. Left in, they would keep it in
             // the selection, and an export of the selected groups would fail on a group the results no longer hold.
-            for (const [key, entry] of Object.entries(searchResultsData ? newTransactionList : {})) {
-                const goneGroupKeys = new Set(entry.otherClaimedGroupKeys?.filter((groupKey) => !isGroupEntry(groupKey) || !searchResultsData?.[groupKey]));
+            // A group whose header selection ended is dropped the same way, so an export or the union no longer takes it whole.
+            for (const [key, entry] of Object.entries(newTransactionList)) {
+                const goneGroupKeys = new Set(
+                    entry.otherClaimedGroupKeys?.filter((groupKey) => endedGroupKeys.has(groupKey) || (!!searchResultsData && (!isGroupEntry(groupKey) || !searchResultsData[groupKey]))),
+                );
                 if (goneGroupKeys.size > 0) {
-                    newTransactionList[key] = withoutOtherGroupClaims(entry, goneGroupKeys);
+                    newTransactionList[key] = removeOtherGroupClaims(entry, goneGroupKeys);
                 }
             }
         } else {
@@ -963,7 +971,7 @@ function SearchWriteActionsProvider({
                             releasedGroupKeys.add(claimedGroupKey);
                         }
                         for (const [key, transaction] of Object.entries(updatedTransactions)) {
-                            let nextTransaction = withoutOtherGroupClaims(transaction, releasedGroupKeys);
+                            let nextTransaction = removeOtherGroupClaims(transaction, releasedGroupKeys);
                             if (nextTransaction.groupKey && releasedGroupKeys.has(nextTransaction.groupKey) && nextTransaction.isSelectedViaGroup) {
                                 nextTransaction = {...nextTransaction, isSelectedViaGroup: false};
                             }
