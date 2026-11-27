@@ -170,7 +170,6 @@ function useSearchSnapshot({queryJSON, searchResults, transactions, reportAction
     const exportReportActions = useLiveFilteredReportActions();
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [onyxPersonalDetailsList] = useAllPersonalDetails();
-    const [accountIDToName] = useAllPersonalDetails((personalDetailsList) => buildAccountIDToNameMap(personalDetailsList));
     const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
     const [personalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
     const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
@@ -256,7 +255,8 @@ function useSearchSnapshot({queryJSON, searchResults, transactions, reportAction
                   reportAttributesDerivedValue: reportAttributesForSections,
                   optimisticTransactionID,
                   shouldReturnTripRooms,
-                  accountIDToName,
+                  // Only task and expense report sections parse names, so other types skip building the map.
+                  accountIDToName: isTask || isExpenseReportType ? buildAccountIDToNameMap(onyxPersonalDetailsList ?? undefined) : undefined,
               }
             : undefined,
     );
@@ -297,7 +297,6 @@ function useSearchSnapshot({queryJSON, searchResults, transactions, reportAction
                       convertToDisplayString,
                       reportActions: exportReportActions,
                       reportAttributesDerivedValue: undefined,
-                      accountIDToName,
                   });
                   // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- group children are flat transactions
                   const typedGroupTransactions = groupTransactions as TransactionListItemType[];

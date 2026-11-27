@@ -33,6 +33,7 @@ import {
     getChildTransactions,
     getDeleteConfirmationPrompt,
     getDeleteExpenseTitle,
+    getDescription,
     getOriginalTransactionWithSplitInfo,
     hasCustomUnitOutOfPolicyViolation as hasCustomUnitOutOfPolicyViolationTransactionUtils,
     hasAppliedCommuterExclusion,
@@ -59,7 +60,7 @@ import {policyExpenseChatSelector} from '@selectors/Report';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import {useRef} from 'react';
 
-import {buildAccountIDToNameMap} from './useAccountIDToNameMap';
+import {useMentionedAccountIDToNameMap} from './useAccountIDToNameMap';
 import useBlockDistanceRequest from './useBlockDistanceRequest';
 import useConfirmModal from './useConfirmModal';
 import {useCurrencyListActions} from './useCurrencyList';
@@ -144,6 +145,8 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     const personalPolicy = usePersonalPolicy();
     const restrictedActionPolicyID = useRestrictedActionPolicyID(policy);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`);
+    // Only the users mentioned in the descriptions that can be duplicated are looked up, keyed by accountID.
+    const accountIDToName = useMentionedAccountIDToNameMap([transaction, ...nonPendingDeleteTransactions].map(getDescription).join(' '));
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`);
     const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(requestParentReportAction);
     const [chatIOUReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(iouReport?.chatReportID)}`);
@@ -287,9 +290,6 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
         const optimisticChatReportID = generateReportID();
         const optimisticIOUReportID = generateReportID();
         const activePolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${duplicateTargetPolicy?.id}`] ?? {};
-        const personalDetailsByLogins = getPersonalDetailsByLogin();
-        // Built at press time from the non-subscribing snapshot, so the hook doesn't re-render on every personal details change.
-        const accountIDToName = buildAccountIDToNameMap(personalDetailsByLogins);
 
         for (const item of transactionList) {
             const existingTransactionID = getExistingTransactionID(item.linkedTrackedExpenseReportAction);
@@ -297,7 +297,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
 
             duplicateTransactionAction({
                 isVendorMatchingBetaEnabled,
-                personalDetailsByLogins,
+                personalDetailsByLogins: getPersonalDetailsByLogin(),
                 getCurrencyDecimals,
                 transaction: item,
                 optimisticChatReportID,
@@ -486,13 +486,10 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 const activePolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${targetPolicyForDuplicate?.id}`] ?? {};
                 const reportDuplicateParticipants = getMoneyRequestParticipantsFromReport(targetChatForDuplicate, currentUserPersonalDetails?.accountID);
                 const reportDuplicateParticipantsPolicyTags = getPolicyTagsSelector(reportDuplicateParticipants)(allPolicyTags);
-                const personalDetailsByLogins = getPersonalDetailsByLogin();
-                // Built at press time from the non-subscribing snapshot, so the hook doesn't re-render on every personal details change.
-                const accountIDToName = buildAccountIDToNameMap(personalDetailsByLogins);
 
                 duplicateReportAction({
                     isVendorMatchingBetaEnabled,
-                    personalDetailsByLogins,
+                    personalDetailsByLogins: getPersonalDetailsByLogin(),
                     sourceReport: moneyRequestReport,
                     sourceReportTransactions: nonPendingDeleteTransactions,
                     sourceReportName: moneyRequestReport?.reportName ?? '',
