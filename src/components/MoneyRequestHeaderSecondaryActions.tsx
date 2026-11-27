@@ -601,7 +601,14 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                     return;
                 }
 
-                Navigation.navigate(ROUTES.REPORT_SETTINGS_COLUMNS.getRoute(parentReport.reportID, true));
+                const isPersonalExpense = isSelfDM(parentReport);
+                const context = isPersonalExpense
+                    ? {
+                          policyID: policyForMovingExpenses?.id ?? policy?.id,
+                          transactionID: transaction?.transactionID,
+                      }
+                    : undefined;
+                Navigation.navigate(ROUTES.REPORT_SETTINGS_COLUMNS.getRoute(parentReport.reportID, true, context));
             },
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DELETE]: {

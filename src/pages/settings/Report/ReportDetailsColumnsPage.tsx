@@ -6,6 +6,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 
 import {setReportDetailsColumns} from '@libs/actions/ReportLayout';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getReportDetailsColumns from '@libs/getReportDetailsColumns';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -45,9 +46,11 @@ function ReportDetailsColumnsPage() {
     const route = useRoute<PlatformStackRouteProp<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.COLUMNS>>();
     const reportID = route.params.reportID;
     const isCustomizeFields = route.params.isCustomizeFields;
+    const policyID = route.params.policyID ?? undefined;
     const [reportDetailsColumns] = useOnyx(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
+    const effectivePolicyID = policyID ?? report?.policyID;
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(effectivePolicyID)}`);
     // Selector keeps re-renders scoped to this report's transactions. We intentionally return undefined
     // while the collection is loading so the caller can distinguish "loading" from "no transactions".
     const [reportTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
@@ -55,7 +58,10 @@ function ReportDetailsColumnsPage() {
             if (!transactions) {
                 return undefined;
             }
-            return Object.values(transactions).filter((transaction): transaction is Transaction => !!transaction && transaction.reportID === reportID);
+            return Object.values(transactions).filter(
+                (transaction): transaction is Transaction =>
+                    !!transaction && (transaction.reportID === reportID || (!!isCustomizeFields && !!route.params.transactionID && transaction.transactionID === route.params.transactionID)),
+            );
         },
     });
     const {isBetaEnabled} = usePermissions();
@@ -68,7 +74,7 @@ function ReportDetailsColumnsPage() {
     // Wait for transactions to load before rendering. ColumnsSettingsList snapshots
     // currentColumns in useState on mount and does not sync prop updates, so we must
     // pass the final value on first render.
-    const isLoading = !reportTransactions;
+    const isLoading = !reportTransactions || (!!policyID && !policy);
 
     // When no custom columns are saved, compute which columns getColumnsToShow would
     // return for this report so data-driven columns (e.g. Exchange rate, Original amount,
@@ -85,6 +91,8 @@ function ReportDetailsColumnsPage() {
             report,
             policy,
             isVendorColumnAvailable,
+            shouldUseWorkspaceColumnPreferences: !!policyID,
+            fallbackPolicyID: policyID,
         });
 
         // Filter to only columns available in the custom columns list (drops RECEIPT/TYPE/COMMENTS etc.)

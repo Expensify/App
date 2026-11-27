@@ -17,6 +17,8 @@ type GetReportDetailsColumnsParams = {
     columns?: SearchCustomColumnIds[];
     shouldShowCommentsColumn?: boolean;
     isVendorColumnAvailable?: boolean;
+    shouldUseWorkspaceColumnPreferences?: boolean;
+    fallbackPolicyID?: string;
 };
 
 function getConfiguredReportDetailsColumns(columns: readonly string[] | undefined, isVendorColumnAvailable: boolean): SearchCustomColumnIds[] {
@@ -24,8 +26,17 @@ function getConfiguredReportDetailsColumns(columns: readonly string[] | undefine
     return isVendorColumnAvailable ? configuredColumns : configuredColumns.filter((column) => column !== CONST.SEARCH.TABLE_COLUMNS.VENDOR);
 }
 
-function getReportDetailsColumns({report, policy, transactions, columns, shouldShowCommentsColumn, isVendorColumnAvailable}: GetReportDetailsColumnsParams) {
-    const isExpenseReportViewFromIOUReport = isIOUReport(report);
+function getReportDetailsColumns({
+    report,
+    policy,
+    transactions,
+    columns,
+    shouldShowCommentsColumn,
+    isVendorColumnAvailable,
+    shouldUseWorkspaceColumnPreferences,
+    fallbackPolicyID,
+}: GetReportDetailsColumnsParams) {
+    const isExpenseReportViewFromIOUReport = isIOUReport(report) && !shouldUseWorkspaceColumnPreferences;
     return getColumnsToShow({
         currentAccountID: undefined,
         data: transactions,
@@ -39,6 +50,7 @@ function getReportDetailsColumns({report, policy, transactions, columns, shouldS
         shouldShowReimbursableColumn: hasNonReimbursableTransactions(transactions),
         reportCurrency: report?.currency,
         isPolicyTaxEnabled: isPolicyTaxEnabled(policy),
+        fallbackPolicyID,
         isVendorColumnAvailable,
     });
 }

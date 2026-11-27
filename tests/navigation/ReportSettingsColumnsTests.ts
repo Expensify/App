@@ -15,6 +15,12 @@ describe('ReportSettingsColumns route and navigation', () => {
             expect(ROUTES.REPORT_SETTINGS_COLUMNS.getRoute(reportID)).toBe(`r/${reportID}/settings/columns`);
         });
 
+        it('should include workspace context when customizing fields for an unreported expense', () => {
+            expect(ROUTES.REPORT_SETTINGS_COLUMNS.getRoute('111', true, {policyID: '222', transactionID: '333'})).toBe(
+                'r/111/settings/columns?isCustomizeFields=true&policyID=222&transactionID=333',
+            );
+        });
+
         it('should generate unique paths for different report IDs', () => {
             const route1 = ROUTES.REPORT_SETTINGS_COLUMNS.getRoute('111');
             const route2 = ROUTES.REPORT_SETTINGS_COLUMNS.getRoute('222');

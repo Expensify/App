@@ -171,6 +171,8 @@ type ReportSettingsNavigatorParamList = {
     [SCREENS.REPORT_SETTINGS.COLUMNS]: {
         reportID: string;
         isCustomizeFields?: boolean;
+        policyID?: string;
+        transactionID?: string;
     };
 };
 
