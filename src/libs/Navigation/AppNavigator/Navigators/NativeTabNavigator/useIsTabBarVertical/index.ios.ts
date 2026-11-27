@@ -1,9 +1,9 @@
-import {VERTICAL_BAR_EDGE, VerticalBarNitroModule} from '@expensify/nitro-utils';
+import {WindowBarsNitroModule, VERTICAL_BAR_EDGE} from '@expensify/nitro-utils';
 import {useSyncExternalStore} from 'react';
 
-const subscribe = (onChange: () => void) => VerticalBarNitroModule.addEdgeListener(onChange);
+const subscribe = (onChange: () => void) => WindowBarsNitroModule.addChangeListener(onChange);
 
-const getIsTabBarVertical = () => VerticalBarNitroModule.edge !== VERTICAL_BAR_EDGE.UNSPECIFIED;
+const getIsTabBarVertical = () => WindowBarsNitroModule.verticalBarEdge !== VERTICAL_BAR_EDGE.UNSPECIFIED;
 
 /**
  * Whether UIKit lays the tab bar out as a column: it does so inside the vertical bar, the side column a foldable iPhone

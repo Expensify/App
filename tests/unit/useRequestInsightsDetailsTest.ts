@@ -40,7 +40,9 @@ const OTHER_QUERY = buildDetailsQuery(2, 20);
 const TOP_EXPENSES_QUERY_JSON = buildTopExpensesQueryJSON('type:expense view:table date>=2026-01-01 date<=2026-03-31');
 
 function renderRequest(query: InsightsDetailsQuery | undefined, topExpensesQueryJSON: Readonly<SearchQueryJSON> | undefined) {
-    return renderHook((props: {query: InsightsDetailsQuery | undefined}) => useRequestInsightsDetails(props.query, topExpensesQueryJSON), {initialProps: {query}});
+    return renderHook((props: {query: InsightsDetailsQuery | undefined}) => useRequestInsightsDetails(props.query, topExpensesQueryJSON, false), {
+        initialProps: {query},
+    });
 }
 
 describe('useRequestInsightsDetails', () => {

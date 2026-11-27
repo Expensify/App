@@ -68,11 +68,11 @@ function WorkspaceTaxesSettingsPage({
                 style={styles.defaultModalContainer}
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
+                <HeaderWithBackButton title={translate('common.settings')} />
                 <ScrollView
                     contentContainerStyle={styles.flexGrow1}
                     addBottomSafeAreaPadding
                 >
-                    <HeaderWithBackButton title={translate('common.settings')} />
                     <View style={styles.flex1}>
                         {menuItems.map((item) => (
                             <OfflineWithFeedback

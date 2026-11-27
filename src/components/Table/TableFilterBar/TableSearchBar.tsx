@@ -7,6 +7,7 @@ import usePrevious from '@hooks/usePrevious';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import {getShouldSuppressBackgroundInputFocus, subscribeToShouldSuppressBackgroundInputFocus} from '@libs/ModalFocusManager';
 
 import variables from '@styles/variables';
@@ -18,12 +19,12 @@ import React, {useEffect, useLayoutEffect, useRef, useState, useSyncExternalStor
 /**
  * Renders a search input that filters table data.
  */
-type TableSearchBarProps = {
+type TableSearchBarProps = ForwardedFSClassProps & {
     /** Label and accessibility label for the search input. */
     label: string;
 };
 
-function TableSearchBar({label}: TableSearchBarProps) {
+function TableSearchBar({label, forwardedFSClass}: TableSearchBarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const inputRef = useRef<BaseTextInputRef>(null);
@@ -114,6 +115,7 @@ function TableSearchBar({label}: TableSearchBarProps) {
             textInputContainerStyles={textInputContainerStyles}
             touchableInputWrapperStyle={touchableInputWrapperStyle}
             accessibilityLabel={label}
+            forwardedFSClass={forwardedFSClass}
             shouldHideClearButton={false}
             clearButtonStyle={shouldUseNarrowTableLayout ? undefined : styles.mr0}
             clearButtonIconSize={shouldUseNarrowTableLayout ? undefined : variables.iconSizeSmall}

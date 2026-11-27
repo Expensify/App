@@ -928,13 +928,9 @@ function getQBDReimbursableAccounts(
 /** Accounting integrations still behind a beta are left out unless the workspace is already connected to them */
 function getAvailableAccountingIntegrations(policy: OnyxEntry<Policy>, isBetaEnabled: (beta: Beta) => boolean) {
     const canUseBusinessCentralIntegration = isBetaEnabled(CONST.BETAS.BUSINESS_CENTRAL) || !!policy?.connections?.businessCentral;
-    const canUseDigitsIntegration = isBetaEnabled(CONST.BETAS.DIGITS) || !!policy?.connections?.digits;
     return CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.filter((name) => {
         if (name === CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL) {
             return canUseBusinessCentralIntegration;
-        }
-        if (name === CONST.POLICY.CONNECTIONS.NAME.DIGITS) {
-            return canUseDigitsIntegration;
         }
         return true;
     });

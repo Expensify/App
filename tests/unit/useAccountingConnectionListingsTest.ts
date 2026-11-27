@@ -220,6 +220,17 @@ describe('useAccountingConnectionListings', () => {
         expect(zohoBooks).toBeDefined();
     });
 
+    it('should offer Digits to a workspace without any beta', () => {
+        // Given a workspace with no accounting connection and no betas
+        mockEnabledBetas = [];
+
+        // When the accounting listings are built
+        const digits = findListing(CONST.POLICY.CONNECTIONS.NAME.DIGITS);
+
+        // Then Digits is offered, because it no longer needs a beta
+        expect(digits).toBeDefined();
+    });
+
     it('should pass a failed Zoho Books connect error to the Zoho Books card', () => {
         // Given the Zoho Books OAuth flow failed after leaving the app, so the backend left its error on the policy
         const connectError = 'Zoho Books organizations with multiple locations are not supported yet.';

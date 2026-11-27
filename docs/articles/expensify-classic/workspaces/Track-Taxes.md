@@ -36,14 +36,11 @@ If your Workspace is not connected to an accounting system, follow these steps t
 
 ---
 
-# Track Tax by Expense Category
+## How to set category tax defaults in New Expensify
 
-You can also set tax rates for specific expense categories:
-1. Go to **Settings > Workspaces > [Workspace Name] > Categories**.
-2. Click **Edit** next to the desired category.
-3. Click the **Default Tax** dropdown and select the desired tax rate.
+Category tax defaults are managed in New Expensify instead of Expensify Classic. To configure them, see [Configure expense defaults in New Expensify](/articles/new-expensify/workspaces/Workspace-Rules#how-to-apply-expense-defaults-on-the-expense-defaults-tab).
 
-This rate will be applied to all new expenses under this category, overriding the workspace's default currency tax rate.
+Default tax rates for workspace-currency and foreign-currency expenses are still managed in Expensify Classic.
 
 ---
 
@@ -83,4 +80,3 @@ This means the tax amount of $16.67 is included in the total.
 If you are simply trying to calculate the price before tax, you can use the formula: 
 
 **Price before tax = (Total price) ÷ (1 + Tax rate)**
-
