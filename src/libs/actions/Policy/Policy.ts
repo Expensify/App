@@ -98,6 +98,7 @@ import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import getWorkspaceCreatedAnalyticsEvent from '@libs/getWorkspaceCreatedAnalyticsEvent';
 import GoogleTagManager from '@libs/GoogleTagManager';
 import Log from '@libs/Log';
+import {getIsOffline} from '@libs/NetworkState';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {rand64} from '@libs/NumberUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
@@ -4163,37 +4164,19 @@ function openPolicyReceiptPartnersPage(policyID?: string) {
     }
 
     const params: OpenPolicyReceiptPartnersPageParams = {policyID};
-    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                value: {
-                    isLoadingReceiptPartners: true,
-                },
-            },
-        ],
-        successData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                value: {
-                    isLoadingReceiptPartners: null,
-                },
-            },
-        ],
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                value: {
-                    isLoadingReceiptPartners: null,
-                },
-            },
-        ],
-    };
-
-    API.read(READ_COMMANDS.OPEN_POLICY_RECEIPT_PARTNERS_PAGE, params, onyxData);
+    const loadingKey = `${ONYXKEYS.COLLECTION.RAM_ONLY_IS_LOADING_RECEIPT_PARTNERS}${policyID}` as const;
+    // An offline read applies none of its Onyx data, so nothing would clear the flag.
+    const isOffline = getIsOffline();
+    API.read(
+        READ_COMMANDS.OPEN_POLICY_RECEIPT_PARTNERS_PAGE,
+        params,
+        isOffline
+            ? {}
+            : {
+                  optimisticData: [{onyxMethod: Onyx.METHOD.SET, key: loadingKey, value: true}],
+                  finallyData: [{onyxMethod: Onyx.METHOD.SET, key: loadingKey, value: false}],
+              },
+    );
 }
 
 function removePolicyReceiptPartnersConnection(policyID: string, partnerName: string, receiptPartnerData?: UberReceiptPartner) {
@@ -5081,6 +5064,16 @@ function createWorkspaceFromIOUPayment({
                         },
                     ],
                     created: DateUtils.getDBTime(),
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+            },
+        });
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${memberData.workspaceChatReportID}`,
+            value: {
+                [reportPreviewAction.reportActionID]: {
+                    pendingAction: null,
                 },
             },
         });
@@ -5184,7 +5177,7 @@ function createWorkspaceFromIOUPayment({
     return {policyID, workspaceChatReportID: memberData.workspaceChatReportID, reportPreviewReportActionID: reportPreviewAction?.reportActionID, adminsChatReportID};
 }
 
-function enablePolicyConnections(policyID: string, enabled: boolean, shouldGoBack = true) {
+function enablePolicyConnections(policyID: string, enabled: boolean) {
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
@@ -5226,13 +5219,9 @@ function enablePolicyConnections(policyID: string, enabled: boolean, shouldGoBac
     const parameters: EnablePolicyConnectionsParams = {policyID, enabled};
 
     API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_CONNECTIONS, parameters, onyxData);
-
-    if (enabled && getIsNarrowLayout() && shouldGoBack) {
-        goBackWhenEnableFeature();
-    }
 }
 
-function enablePolicyHR(policyID: string, enabled: boolean, shouldGoBack = true) {
+function enablePolicyHR(policyID: string, enabled: boolean) {
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
@@ -5274,13 +5263,9 @@ function enablePolicyHR(policyID: string, enabled: boolean, shouldGoBack = true)
     const parameters: EnablePolicyHRParams = {policyID, enabled};
 
     API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_HR, parameters, onyxData);
-
-    if (enabled && getIsNarrowLayout() && shouldGoBack) {
-        goBackWhenEnableFeature();
-    }
 }
 
-function enablePolicyRecruiting(policyID: string, enabled: boolean, shouldGoBack = true) {
+function enablePolicyRecruiting(policyID: string, enabled: boolean) {
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
@@ -5312,7 +5297,7 @@ function enablePolicyRecruiting(policyID: string, enabled: boolean, shouldGoBack
                 value: {
                     isRecruitingEnabled: !enabled,
                     pendingFields: {
-                        isMCPEnabled: null,
+                        isRecruitingEnabled: null,
                     },
                 },
             },
@@ -5322,13 +5307,9 @@ function enablePolicyRecruiting(policyID: string, enabled: boolean, shouldGoBack
     const parameters: EnablePolicyRecruitingParams = {policyID, enabled};
 
     API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_RECRUITING, parameters, onyxData);
-
-    if (enabled && getIsNarrowLayout() && shouldGoBack) {
-        goBackWhenEnableFeature();
-    }
 }
 
-function enablePolicyMCP(policyID: string, enabled: boolean, shouldGoBack = true) {
+function enablePolicyMCP(policyID: string, enabled: boolean) {
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
@@ -5370,13 +5351,9 @@ function enablePolicyMCP(policyID: string, enabled: boolean, shouldGoBack = true
     const parameters: EnablePolicyMCPParams = {policyID, enabled};
 
     API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_MCP, parameters, onyxData);
-
-    if (enabled && getIsNarrowLayout() && shouldGoBack) {
-        goBackWhenEnableFeature();
-    }
 }
 
-function enablePolicyReceiptPartners(policyID: string, enabled: boolean, shouldGoBack = true) {
+function enablePolicyReceiptPartners(policyID: string, enabled: boolean) {
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
@@ -5418,10 +5395,6 @@ function enablePolicyReceiptPartners(policyID: string, enabled: boolean, shouldG
     const parameters: TogglePolicyReceiptPartnersParams = {policyID, enabled};
 
     API.write(WRITE_COMMANDS.TOGGLE_RECEIPT_PARTNERS, parameters, onyxData);
-
-    if (enabled && getIsNarrowLayout() && shouldGoBack) {
-        goBackWhenEnableFeature();
-    }
 }
 
 type ConnectionFeatureName =
@@ -5453,7 +5426,7 @@ function enablePolicyFeatureForConnection(policy: OnyxEntry<Policy>, featureName
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED && policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${policy.id}`, true);
     }
-    ENABLE_CONNECTION_FEATURE[featureName](policy.id, true, false);
+    ENABLE_CONNECTION_FEATURE[featureName](policy.id, true);
 }
 
 /** Save the preferred export method for a policy */

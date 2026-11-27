@@ -5,6 +5,7 @@ import RenderHTML from '@components/RenderHTML';
 import AgentsTable from '@components/Tables/AgentsTable';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useFetchAfterAppLoaded from '@hooks/useFetchAfterAppLoaded';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -33,7 +34,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
-import React, {useEffect, useEffectEvent} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
@@ -77,11 +78,7 @@ function WorkspaceAgentsPage({route}: WorkspaceAgentsPageProps) {
         // Will be removed in https://github.com/Expensify/Expensify/issues/694677
         getWorkspaceMembers();
     };
-    const fetchAgentsAndMembersEvent = useEffectEvent(() => fetchAgentsAndMembers());
-
-    useEffect(() => {
-        fetchAgentsAndMembersEvent();
-    }, []);
+    useFetchAfterAppLoaded(fetchAgentsAndMembers);
     useNetwork({onReconnect: fetchAgentsAndMembers});
 
     useWorkspaceDocumentTitle(policy?.name, 'agentsPage.title');

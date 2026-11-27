@@ -18,6 +18,9 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/Network/SequentialQueue', () => ({flush: jest.fn()}));
 
+// These cases cover web, where a request holding a File can't be stored, and Jest would otherwise load the native variant
+jest.mock('@libs/canPersistRequest', () => jest.requireActual<Record<string, unknown>>('../../src/libs/canPersistRequest/index.ts'));
+
 const ACCOUNT_ID = 1;
 const OTHER_ACCOUNT_ID = 2;
 const DRAFT_KEY = `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}123` as const;

@@ -9311,6 +9311,92 @@ describe('actions/Policy', () => {
     });
 
     describe('createWorkspaceFromIOUPayment', () => {
+        it.each(['previewAction', '', undefined])('should handle the pending preview lifecycle with action ID %s', async (reportActionID) => {
+            // Given a synchronized IOU preview, or missing preview data, before moving it to a new workspace.
+            const iouReport: Report = {
+                ...createRandomReport(1, undefined),
+                reportID: '500',
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: 200,
+                chatReportID: '501',
+                policyID: 'oldPolicyID',
+                currency: CONST.CURRENCY.USD,
+                total: 1000,
+            };
+            const reportPreviewAction: ReportAction | undefined =
+                reportActionID === undefined
+                    ? undefined
+                    : {
+                          reportActionID,
+                          actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                          childReportID: iouReport.reportID,
+                          created: '2024-01-01',
+                          message: [],
+                          pendingAction: null,
+                      };
+            const originalPreviewAction = reportPreviewAction ? {...reportPreviewAction} : undefined;
+            const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
+            const isIOUReportUsingReportSpy = jest.spyOn(ReportUtils, 'isIOUReportUsingReport').mockReturnValue(true);
+
+            // When the payment flow optimistically moves the preview to a newly created workspace chat.
+            const result = Policy.createWorkspaceFromIOUPayment({
+                iouReport,
+                reportPreviewAction,
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
+                currentUserDisplayName: undefined,
+                iouReportOwnerEmail: 'owner@example.com',
+                currentUserLocalCurrency: CONST.CURRENCY.USD,
+                lastWorkspaceNumber: undefined,
+                localeTranslate: TestHelper.translateLocal,
+                reportActionsList: {},
+                doesEmployeePersonalDetailExist: false,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                reportTransactions: [],
+                hasOwnedPaidPolicy: false,
+            });
+            await waitForBatchedUpdates();
+
+            // Then only a valid destination preview is pending, success clears it, and failure restores the original.
+            expect(result).toBeDefined();
+            const writeOptions = requireRecord(requireCallArgument(apiWriteSpy.mock.calls.at(0), 2));
+            const destinationKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${result?.workspaceChatReportID}`;
+            const originalKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.chatReportID}`;
+            if (reportActionID) {
+                expect(writeOptions).toEqual(
+                    expect.objectContaining({
+                        optimisticData: expect.arrayContaining([
+                            expect.objectContaining({key: originalKey, value: {[reportActionID]: null}}),
+                            expect.objectContaining({
+                                key: destinationKey,
+                                value: {[reportActionID]: expect.objectContaining({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD})},
+                            }),
+                        ]),
+                        successData: expect.arrayContaining([expect.objectContaining({key: destinationKey, value: {[reportActionID]: {pendingAction: null}}})]),
+                        failureData: expect.arrayContaining([
+                            expect.objectContaining({key: destinationKey, value: {[reportActionID]: null}}),
+                            expect.objectContaining({key: originalKey, value: {[reportActionID]: originalPreviewAction}}),
+                        ]),
+                    }),
+                );
+                expect(reportPreviewAction).toEqual(originalPreviewAction);
+            } else {
+                for (const phase of ['optimisticData', 'successData', 'failureData']) {
+                    const actionUpdates = requireRecordArrayProperty(writeOptions, phase).filter((update) =>
+                        requireStringProperty(update, 'key').startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS),
+                    );
+                    for (const update of actionUpdates) {
+                        const actionIDs = Object.keys(requireRecord(readProperty(update, 'value')));
+                        expect(actionIDs).not.toContain('undefined');
+                        expect(actionIDs).not.toContain('');
+                    }
+                }
+            }
+
+            apiWriteSpy.mockRestore();
+            isIOUReportUsingReportSpy.mockRestore();
+        });
+
         it('should set ownerAccountID from explicit currentUserAccountID parameter', async () => {
             // Set Onyx session to a DIFFERENT accountID to verify the explicit parameter is used
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
@@ -9685,6 +9771,86 @@ describe('actions/Policy', () => {
 
             // And the Total rendered for the converted report is positive rather than -$50.00
             expect(ReportUtils.getMoneyRequestSpendBreakdown(optimisticReport).totalDisplaySpend).toBe(5000);
+        });
+    });
+
+    describe('openPolicyReceiptPartnersPage', () => {
+        const policy = createRandomPolicy(1);
+        const POLICY_KEY = `${ONYXKEYS.COLLECTION.POLICY}${policy.id}` as const;
+        const LOADING_KEY = `${ONYXKEYS.COLLECTION.RAM_ONLY_IS_LOADING_RECEIPT_PARTNERS}${policy.id}` as const;
+
+        afterEach(async () => {
+            NetworkState.setForceOffline(false);
+            mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+        });
+
+        it('sets the loading flag while the request is in flight and clears it when the request finishes, without writing the policy', async () => {
+            // Given a workspace, subscribers watching it, and a request that hasn't been answered yet
+            await Onyx.set(POLICY_KEY, policy);
+            let policyWrites = 0;
+            const connection = Onyx.connect({
+                key: POLICY_KEY,
+                callback: () => {
+                    policyWrites++;
+                },
+            });
+            await waitForBatchedUpdates();
+            policyWrites = 0;
+            mockFetch.pause?.();
+
+            // When the receipt partners data is requested
+            Policy.openPolicyReceiptPartnersPage(policy.id);
+            await waitForBatchedUpdates();
+
+            // Then the flag is set, so the Uber card can show a loader
+            expect(await getOnyxValue(LOADING_KEY)).toBe(true);
+
+            // When the server answers
+            await mockFetch.resume?.();
+            await waitForBatchedUpdates();
+
+            // Then the flag is cleared, and the policy was never rewritten, so everything reading it stays idle
+            expect(await getOnyxValue(LOADING_KEY)).toBe(false);
+            expect(policyWrites).toBe(0);
+            connection.unsubscribe();
+        });
+
+        it('clears the loading flag when the request fails', async () => {
+            // Given a request that will fail
+            mockFetch.fail?.();
+
+            // When the receipt partners data is requested
+            Policy.openPolicyReceiptPartnersPage(policy.id);
+            await waitForBatchedUpdates();
+
+            // Then the flag is cleared, so the Uber card isn't stuck on a loader
+            expect(await getOnyxValue(LOADING_KEY)).toBe(false);
+        });
+
+        it('clears the loading flag when the server returns an HTTP error', async () => {
+            // Given a server that answers with a 500, which the read resolves with an error code instead of throwing
+            mockFetch.mockImplementationOnce(() => Promise.resolve(createMock<Response>({ok: false, status: 500, statusText: 'Internal Server Error'})));
+
+            // When the receipt partners data is requested
+            Policy.openPolicyReceiptPartnersPage(policy.id);
+            await waitForBatchedUpdates();
+
+            // Then the flag is cleared, so the Uber card isn't stuck on a loader
+            expect(await getOnyxValue(LOADING_KEY)).toBe(false);
+        });
+
+        it('does not set the loading flag offline', async () => {
+            // Given the user is offline, where a read applies none of its Onyx data
+            await Onyx.set(LOADING_KEY, null);
+            NetworkState.setForceOffline(true);
+
+            // When the receipt partners data is requested
+            Policy.openPolicyReceiptPartnersPage(policy.id);
+            await waitForBatchedUpdates();
+
+            // Then the flag is never set, so it can't be left stuck on with nothing to clear it
+            expect(await getOnyxValue(LOADING_KEY)).toBeUndefined();
         });
     });
 });

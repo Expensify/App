@@ -252,6 +252,50 @@ describe('RefreshCardFeedConnectionPage', () => {
         expect(mockCloseRHPFlow).toHaveBeenCalledTimes(1);
     });
 
+    it('does not close RHP flow when the feed expiration changes as the feed finishes loading', async () => {
+        // Given a refreshing bank connection whose feed is loading with a cached expiration
+        await Onyx.merge(ONYXKEYS.ASSIGN_CARD, {
+            currentStep: CONST.COMPANY_CARD.STEP.BANK_CONNECTION,
+            isRefreshing: true,
+        });
+        mockUseCardFeeds.mockReturnValue([
+            {[MOCK_FEED]: {feed: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE, accountList: [], credentials: '', expiration: 20240101, status: {isLoading: true}}},
+            {status: 'loaded'},
+            undefined,
+            {},
+            0,
+        ]);
+
+        const {rerender} = render(
+            <RefreshCardFeedConnectionPage
+                policy={MOCK_POLICY}
+                route={MOCK_ROUTE}
+            />,
+        );
+        await act(async () => {
+            await waitForBatchedUpdates();
+        });
+
+        // When the load finishes with a different expiration from the server
+        mockUseCardFeeds.mockReturnValue([
+            {[MOCK_FEED]: {feed: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE, accountList: [], credentials: '', expiration: 20250101, status: {isLoading: false}}},
+            {status: 'loaded'},
+            undefined,
+            {},
+            0,
+        ]);
+        rerender(
+            <RefreshCardFeedConnectionPage
+                policy={MOCK_POLICY}
+                route={MOCK_ROUTE}
+            />,
+        );
+        await waitForBatchedUpdates();
+
+        // Then the fresh server data is not treated as a finished login and the page stays open
+        expect(mockCloseRHPFlow).not.toHaveBeenCalled();
+    });
+
     it('does not close RHP flow when the feed expiration is first read from storage while refreshing', async () => {
         // Given a refreshing bank connection whose card feeds have not loaded from storage yet
         await Onyx.merge(ONYXKEYS.ASSIGN_CARD, {

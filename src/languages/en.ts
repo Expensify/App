@@ -497,6 +497,7 @@ const translations = {
         reportID: 'Report ID',
         longReportID: 'Long Report ID',
         withdrawalID: 'Withdrawal ID',
+        transactionID: 'Transaction ID',
         internationalReimbursementIDs: 'International reimbursement IDs',
         amountDebited: 'Amount debited',
         amountReimbursed: 'Amount reimbursed',
@@ -614,6 +615,7 @@ const translations = {
         corpayPayModalTitle: 'Pay report',
         corpayPayModalPrompt: 'This submitter has a non-USD bank account. Enable global reimbursements to pay the report, or ask them to add a USD bank account.',
         purchaseAmount: 'Purchase amount',
+        convertedAmount: 'Converted amount',
         originalAmount: 'Original amount',
         frequency: 'Frequency',
         link: 'Link',
@@ -903,6 +905,11 @@ const translations = {
         changePin: {
             didNotChange: "We didn't change your PIN. Please try again.",
         },
+        addToWallet: {
+            failedHeader: "Couldn't add card",
+            failedTitle: "We couldn't add your card to your wallet",
+            failedSubtitle: "Something went wrong while adding the card. If it's already in your wallet, you can use it there.",
+        },
         revealCardDetail: {
             couldNotReveal: "We couldn't reveal your card details. Please try again.",
         },
@@ -1124,6 +1131,7 @@ const translations = {
     },
     supportalSwitcher: {
         title: 'Supportal into another account',
+        navigationLabel: 'Supportal',
         emailLabel: 'Email address',
         reasonLabel: 'Support login reason',
         reasonHint: 'No recent tickets found for this account.',
@@ -1399,6 +1407,9 @@ const translations = {
         writingYourInsights: 'Writing your insights',
         tagLevel: (level: string) => `Tag level ${level}`,
         tagLevelLabel: 'Tag level',
+        noTaggedExpenses: 'No tagged expenses',
+        // @context The selected tag list name can be a custom name like Department or a fallback like Tag level 2.
+        noExpensesForTagLevel: (tagLevelName: string) => `No expenses for ${tagLevelName} in this date range.`,
         parent: 'Parent',
         shareOfTotal: 'Share of total (%)',
         viewOnSpend: 'View on Spend',
@@ -1407,7 +1418,31 @@ const translations = {
         viewDetails: 'View details',
         viewAll: 'View all',
         topExpenses: 'Top expenses',
-        noExpensesInRange: 'No expenses in this range',
+        flaggedExpenses: 'Flagged expenses',
+        noFlaggedExpensesInRange: 'No flagged expenses in this range',
+        summary: {
+            title: 'Summary',
+            over: (percentage: string) => `${percentage} over`,
+            under: (percentage: string) => `${percentage} under`,
+            versusMerchantAverage: (amount: string) => `${amount} vs this merchant's average`,
+            versusMemberAverage: (amount: string) => `${amount} vs this member's average`,
+            versusCategoryAverage: (amount: string) => `${amount} vs this category's average`,
+            versusAverageDay: (amount: string) => `${amount} vs average day`,
+            versusAverageWeek: (amount: string) => `${amount} vs average week`,
+            versusAverageMonth: (amount: string) => `${amount} vs average month`,
+            versusAverageQuarter: (amount: string) => `${amount} vs average quarter`,
+            moreHistoryNeeded: 'More history needed:',
+            daysOfHistoryNeeded: (count: number) => `Average comparison will show after ${count} complete days of history`,
+            weeksOfHistoryNeeded: (count: number) => `Average comparison will show after ${count} complete weeks of history`,
+            monthsOfHistoryNeeded: (count: number) => `Average comparison will show after ${count} complete months of history`,
+            quartersOfHistoryNeeded: (count: number) => `Average comparison will show after ${count} complete quarters of history`,
+            periodSpend: (period: string) => `${period} spend`,
+            dayAverage: (count: number) => `${count} day average`,
+            weekAverage: (count: number) => `${count} week average`,
+            monthAverage: (count: number) => `${count} month average`,
+            quarterAverage: (count: number) => `${count} quarter average`,
+            shareOfTotal: 'Share of total',
+        },
         compliance: 'Compliance',
         violationsOverTime: 'Violations over time',
         topViolations: 'Top violations',
@@ -1429,6 +1464,7 @@ const translations = {
             label: 'Violations by',
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Submitters',
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: 'Approvers',
+            chartTitle: (title: string, stage: string) => `${title} (${stage})`,
         },
         compare: {
             label: 'Compare',
@@ -1615,6 +1651,8 @@ const translations = {
         flash: 'flash',
         flipCamera: 'flip camera',
         multiScan: 'multi-scan',
+        receiptEnhancements: 'Receipt enhancements',
+        receiptEnhancementsEnabled: 'Receipt enhancements enabled',
         shutter: 'shutter',
         gallery: 'gallery',
         deleteReceipt: 'Delete receipt',
@@ -2068,14 +2106,15 @@ const translations = {
         wisePaymentSummary: {
             confirmPayment: 'Confirm payment',
             reportTotal: 'Report total',
-            unheldAmountBeingPaid: 'Unheld amount being paid',
-            debitAmount: 'Debit amount',
             employeeWillReceive: 'Employee will receive',
+            companyWillPay: 'Company will pay',
             totalFees: 'Total fees',
             fxRate: 'FX rate',
             paymentDetails: 'Payment details',
             debitedAmount: 'Debited amount',
             employeeReceived: 'Employee received',
+            paymentDisclosure: ({buttonText}: {buttonText: string}) =>
+                `<muted-text-micro>Recipient may receive less due to fees charged by the recipient’s bank and foreign taxes. By clicking ${buttonText}, I accept Wise’s <a href="${CONST.WISE.TERMS_URL}">Terms of Use</a> and <a href="${CONST.WISE.PRIVACY_URL}">Privacy Policy</a>.</muted-text-micro>`,
             payAll: 'Pay all',
             fxRateExpiredTitle: 'FX rate expired',
             fxRatesExpiredTitle: 'FX rates expired',
@@ -2489,6 +2528,9 @@ const translations = {
                 }
                 return `Waiting for the cancelled payment to finish processing${formattedETA}.`;
             },
+            // Every next step message takes the same params, and this one shows none of them
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT_REVIEW]: (params: ReportNextStepMessageParams) => `Payment on hold, look for another update.`,
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (params: ReportNextStepMessageParams) =>
                 `Oops! Looks like you're submitting to <strong>yourself</strong>. Approving your own reports is <strong>forbidden</strong> by your workspace. Please submit this report to someone else or contact your admin to change the person you submit to.`,
@@ -2741,6 +2783,7 @@ const translations = {
             usingImportedState: 'You are using imported state. Press here to clear it.',
             debugMode: 'Debug mode',
             showBranchNameInTitle: 'Show branch name in browser title',
+            hideEnvironmentBadge: 'Hide environment badge',
             betaOverrides: 'Beta overrides',
             betaOverridesDescription:
                 'Overrides are local to this device and only affect frontend checks. A beta keeps an override only while it differs from your account betas, so toggling it back removes the override. “Reset all overrides” restores the values from your account. Some betas are gated on the backend too, so those can still fail at the request level.',
@@ -2752,6 +2795,8 @@ const translations = {
             leftHandNavCache: 'Left Hand Nav cache',
             clearleftHandNavCache: 'Clear',
             softKillTheApp: 'Soft kill the app',
+            testBusinessBankAccount: 'Test USD business bank account',
+            testPersonalBankAccount: 'Test USD personal bank account',
             kill: 'Kill',
             sentryDebug: 'Sentry debug',
             sentrySendDescription: 'Send data to Sentry',
@@ -2847,6 +2892,11 @@ const translations = {
             limitedSupport: 'We don’t yet support merging accounts on New Expensify. Please take this action on Expensify Classic instead.',
             reachOutForHelp: '<muted-text><centered-text>Feel free to <concierge-link>reach out to Concierge</concierge-link> if you have any questions!</centered-text></muted-text>',
             goToExpensifyClassic: 'Go to Expensify Classic',
+        },
+        mergePendingDomainAdmin: {
+            heading: 'Domain restricted email',
+            description: '<muted-text><centered-text>A domain admin has been notified to approve the request to merge accounts.</centered-text></muted-text>',
+            gotIt: 'Got it',
         },
         mergeFailureSAMLDomainControlDescription: (email: string) =>
             `<muted-text><centered-text>You can’t merge <strong>${email}</strong> because it’s controlled by <strong>${email.split('@').at(1) ?? ''}</strong>. Please <concierge-link>reach out to Concierge</concierge-link> for assistance.</centered-text></muted-text>`,
@@ -4680,7 +4730,10 @@ const translations = {
     },
     welcomeSignUpForm: {
         join: 'Join',
-        marketingSMSConsent: 'I agree to receive marketing texts from Expensify',
+        smsConsentIntro: 'By providing my phone number:',
+        transactionalSMSConsent: 'I agree to receive transactional account alerts from Expensify.',
+        marketingSMSConsent: 'I agree to receive marketing texts from Expensify.',
+        termsWithSMSRates: `<muted-text-xs>By logging in, you agree to the <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Terms of Service</a> and <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacy</a>. Standard message and data rates may apply. Message frequency varies. Reply HELP for help. Reply STOP to opt out.</muted-text-xs>`,
     },
     detailsPage: {
         localTime: 'Local time',
@@ -4875,6 +4928,14 @@ const translations = {
         maskedValueLabel: ({label, ending}: {label: string; ending: string}) => `${label} ending in ${ending}`,
         numberedItem: ({item, number}: {item: string; number: number}) => `${item} ${number}`,
         questionsChanged: 'The questions on this page changed',
+        continueOffline: {
+            title: "You can't continue offline",
+            prompt: "An internet connection is needed to fill out this form. Don't worry, we'll save your progress and you can continue when you're back online.",
+            promptWithSensitiveAnswers:
+                "An internet connection is needed to fill out this form. We'll save your progress so you can continue when you're back online. For your security, sensitive details aren't saved and will need to be entered again.",
+            saveForLater: 'Save and fill out later',
+            progressSaved: 'Your progress has been saved',
+        },
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'SWIFT/BIC must be 8 or 11 characters long, with 6 letters followed by 2 or 5 letters or numbers.',
@@ -4886,6 +4947,14 @@ const translations = {
         bankDetails: 'Bank details',
         accountHolderDetails: 'Account holder details',
         howDoWeProtectYourData: 'How do we protect your data?',
+        notices: {
+            katakanaName: 'Enter your name exactly as it appears on your Japanese bank account. It is usually written in カタカナ (katakana). A mismatch may delay or reject your payment.',
+            alipayRecipients: 'Only mainland Chinese, Hong Kong, or Macao recipients can be paid through Alipay.',
+            alipayLimits:
+                'Alipay can receive up to 50,000 CNY per payment and between 300,000 and 600,000 CNY per year. Monthly limits on the number of payments may also apply, depending on the purpose of the payment.',
+            malaysianNonResidentLimit:
+                'Non-residents with a bank account in Malaysia can only receive 10,000 Malaysian ringgit per day. A payment above this limit may lead your bank to close your account.',
+        },
         currencyHeader: "What's your bank account's currency?",
         confirmationStepHeader: 'Check your info.',
         confirmationStepSubHeader: 'Double check the details below, and check the terms box to confirm.',
@@ -5619,6 +5688,10 @@ const translations = {
             railTicketExchange: (origin: string, destination: string, startDate: string) => `Your rail ticket for ${origin} → ${destination} on ${startDate} has been exchanged.`,
             railTicketUpdate: (origin: string, destination: string, startDate: string) => `Your rail ticket for ${origin} → ${destination} on ${startDate} has been updated.`,
             defaultUpdate: (type: string) => `Your ${type} reservation was updated.`,
+            hotelBooked: (hotelName: string, startDate: string) => `Your hotel reservation at ${hotelName} (check-in ${startDate}) has been booked.`,
+            carBooked: (vendor: string, startDate: string) => `Your ${vendor} car rental (pick-up ${startDate}) has been booked.`,
+            railTicketBooked: (origin: string, destination: string, startDate: string) => `Your rail ticket for ${origin} → ${destination} on ${startDate} has been booked.`,
+            defaultBooked: (type: string) => `Your ${type} reservation has been booked.`,
         },
         nudge: {
             airfareManual:
@@ -5886,6 +5959,9 @@ const translations = {
             },
             chatgpt: {
                 title: 'ChatGPT',
+            },
+            grok: {
+                title: 'Grok',
             },
         },
         connections: {
@@ -7001,6 +7077,8 @@ const translations = {
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Out-of-pocket expenses will export when paid',
                 },
             },
+            autoCreateVendor: 'Auto-create vendors',
+            autoCreateVendorDescription: "Expensify will automatically create vendors in Rillet if they don't exist already.",
             syncReimbursedReports: 'Sync reimbursed reports',
             syncReimbursedReportsDescription: 'When a report is paid via ACH, a payment will be generated in this account.',
             achPaymentAccount: {
@@ -7327,6 +7405,41 @@ const translations = {
             noVendorsFoundDescription: 'Please add vendors in Digits and sync the connection again',
             noAccountsFound: 'No accounts found',
             noAccountsFoundDescription: 'Please add bank or credit card accounts in Digits and sync the connection again',
+            noBankAccountsFoundDescription: 'Please add bank accounts in Digits and sync the connection again',
+            noPayableAccountsFoundDescription: 'Please add credit card or current liability accounts in Digits and sync the connection again',
+            autoSyncDescription: 'Sync Digits and Expensify automatically, every day. Reports sync in realtime.',
+            accountingMethods: {
+                label: 'Export method',
+                description: 'Choose when to export expenses.',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Accrual',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Cash',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Out-of-pocket expenses will export when final approved',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Out-of-pocket expenses will export when paid',
+                },
+            },
+            syncReimbursedReports: 'Sync reimbursed reports',
+            syncReimbursedReportsDescription: 'When a report is paid via ACH, a bill payment will be generated in this account.',
+            billPaymentAccount: {
+                label: 'Bill payment account',
+                description: "Choose where to pay bills from and we'll create the payment in Digits.",
+            },
+            syncExpensifyCardSettlements: 'Sync Expensify Card settlements',
+            settlementAccount: {
+                label: 'Expensify Card settlement account',
+                description: "Choose your settlement account and we'll create the payment in Digits.",
+            },
+            syncTravelBillingSettlements: 'Sync Consolidated Travel Billing settlements',
+            travelBillingSettlementAccount: {
+                label: 'Consolidated Travel Billing settlement account',
+                description: "Choose your settlement account and we'll create the payment in Digits.",
+            },
+            travelBillingPayableAccount: {
+                label: 'Consolidated Travel Billing payable account',
+            },
+            missingSettlementAccount: (accountName: string) => `Settlements won't sync until you choose the ${accountName}.`,
         },
         zohoBooks: {
             organization: 'Zoho Books organization',
@@ -7909,6 +8022,8 @@ const translations = {
             createFailureMessage: 'An error occurred while creating the category, please try again',
             addCategory: 'Add category',
             createCategoryFromSearch: (categoryName: string) => `Create “${categoryName}” category`,
+            availableToMember: (memberName: string) => `Available to ${memberName}`,
+            notAvailableToMember: (memberName: string) => `Not available to ${memberName}`,
             editCategory: 'Edit category',
             editCategories: 'Edit categories',
             findCategory: 'Find category',
@@ -7926,11 +8041,13 @@ const translations = {
                 description: `At least one category must remain enabled because your workspace requires categories.`,
             },
             visibleTo: 'Visible to',
+            editVisibility: 'Edit visibility',
             membersCount: ({count}: {count: number}) => ({
                 one: '1 member',
                 other: `${count} members`,
             }),
             visibleToDescription: ({categoryName}: {categoryName: string}) => `Choose which members can use the ${categoryName} category when submitting expenses.`,
+            bulkVisibleToDescription: 'Choose which members can use these categories when submitting expenses.',
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `Can’t disable ${categoryName}`,
                 bulkTitle: 'Can’t disable these categories',
@@ -8600,6 +8717,9 @@ const translations = {
             },
             changeOfficeLocation: 'Change office location',
             changeWorkArrangement: 'Change work arrangement',
+            editCategoryVisibility: 'Edit category visibility',
+            bulkCategoryVisibilitySaved: ({categoryCount, memberCount}: {categoryCount: string; memberCount: string}) =>
+                `Set ${categoryCount} for ${memberCount}. This replaces their current category visibility.`,
             removeWorkspaceMemberButtonTitle: 'Remove from workspace',
             removeGroupMemberButtonTitle: 'Remove from group',
             removeRoomMemberButtonTitle: 'Remove from chat',
@@ -12013,7 +12133,8 @@ const translations = {
                 reimbursementRefunded: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Funds were returned to bank account ${bankAccountLastFour}. You can retry the payment.`,
                 reimbursementRefundedWithoutBankAccount: 'Funds were returned. You can retry the payment.',
                 reimbursementHeld: 'Payment on hold while our partner completes a review. Look for another update. Chat with <concierge-link>Concierge</concierge-link>.',
-                reimbursementReleased: 'The review is complete and your payment is on its way. The final FX rate may change the amount.',
+                reimbursementReleased: ({expectedDate}: {expectedDate: string}) => `Payment released, funds are expected to arrive by ${expectedDate}.`,
+                reimbursementReleasedWithoutDate: 'Payment released.',
                 selectedForRandomAudit: `randomly selected for review`,
                 selectedForRandomAuditMarkdown: `[randomly selected](https://help.expensify.com/articles/expensify-classic/reports/Set-a-random-report-audit-schedule) for review`,
                 share: (to: string) => `invited member ${to}`,
@@ -12051,7 +12172,9 @@ const translations = {
                     mentionedAccountID?: number;
                 }) => {
                     let warningTime = 'soon';
-                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_MONTH) {
+                        warningTime = 'in one month';
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
                         warningTime = 'in two weeks';
                     } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
                         warningTime = 'in one week';

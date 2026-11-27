@@ -43,6 +43,24 @@ describe('forwardLogsToSentry', () => {
         expect(breadcrumb?.data).not.toHaveProperty('fileSizeBytes');
     });
 
+    it('forwards the source kind of a dropped receipt but not its path', () => {
+        // Given a [Receipt] dropped line for a file in the image cache
+        const packet = packetWith('[alrt] [Receipt] dropped', {
+            event: 'dropped',
+            receiptTraceId: 'trace-Y',
+            sourceKind: 'imageManipulatorCache',
+            source: 'file:///var/mobile/Library/Caches/ImageManipulator/abc.jpg',
+        });
+
+        // When the packet is mirrored to Sentry
+        forwardLogsToSentry(packet);
+
+        // Then Sentry gets the kind but not the path
+        const breadcrumb = jest.mocked(Sentry.addBreadcrumb).mock.calls.at(0)?.[0];
+        expect(breadcrumb?.data).toEqual(expect.objectContaining({sourceKind: 'imageManipulatorCache'}));
+        expect(breadcrumb?.data).not.toHaveProperty('source');
+    });
+
     it('does not forward the receipt-scoped params (event/transactionID) for a different prefix', () => {
         // Given a forwarded [MFA] line that happens to carry the receipt-scoped `event`/`transactionID` params
         const packet = packetWith('[info] [MFA] verifying code', {
@@ -113,5 +131,27 @@ describe('forwardLogsToSentry', () => {
 
         // Then nothing is mirrored to Sentry
         expect(Sentry.addBreadcrumb).not.toHaveBeenCalled();
+    });
+    it('forwards the server result class and code but drops the server message', () => {
+        // Given a serverResult line whose server message could name a person
+        const packet = packetWith('[alrt] [Receipt] server result', {
+            event: 'serverResult',
+            receiptTraceId: 'trace-R',
+            command: 'RequestMoney',
+            resultClass: 'permanent',
+            jsonCode: 666,
+            requestID: 'req-9',
+            serverMessage: 'Jane Doe cannot submit this',
+        });
+
+        // When the packet is mirrored to Sentry
+        forwardLogsToSentry(packet);
+
+        // Then the class, code and request id arrive, so failures can be grouped and joined to server logs
+        const breadcrumb = jest.mocked(Sentry.addBreadcrumb).mock.calls.at(0)?.[0];
+        expect(breadcrumb?.data).toMatchObject({resultClass: 'permanent', jsonCode: 666, requestID: 'req-9'});
+
+        // And the free-text server message stays in our own logs only
+        expect(breadcrumb?.data).not.toHaveProperty('serverMessage');
     });
 });

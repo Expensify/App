@@ -1,4 +1,4 @@
-// cspell:ignore Montag Dienstag Freitag Sonntag März Τρίτη Κυριακή Januar grudzień janv styczeń stycznia dnia godziny godzin minut
+// cspell:ignore Montag Dienstag Freitag Sonntag März Τρίτη Κυριακή Januar Februar grudzień janv styczeń stycznia dnia godziny godzin minut
 // cspell:ignore Ιανουάριος Ιανουαρίου lundi novembre Δευτέρα Νοεμβρίου -- German, Polish, French and Greek weekday and month
 // names, asserted verbatim so the locale-driven formatters are covered rather than only the English path.
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
@@ -72,6 +72,30 @@ describe('DateUtils', () => {
     const datetime = '2022-11-07 00:00:00';
     const timezone = 'Atlantic/Reykjavik';
 
+    describe('formatToReadableString', () => {
+        it.each(['', 'unknown-preset', '2026-02-30', '2026-13-01', '2026-11-08T00:00:00.000Z'])('returns an empty label for the invalid calendar date %s', (date) => {
+            // Given an invalid calendar date or a value outside the date-only contract
+            // When it reaches the shared formatter
+            const label = DateUtils.formatToReadableString(date, enUS);
+
+            // Then formatting cannot throw during render or display the unsupported raw value
+            expect(label).toBe('');
+        });
+
+        it('preserves a valid leap day and localized date output', () => {
+            // Given a valid custom day and locales with different component ordering
+            const date = '2024-02-29';
+
+            // When the shared formatter renders the date
+            const english = DateUtils.formatToReadableString(date, enUS);
+            const german = DateUtils.formatToReadableString(date, de);
+
+            // Then the day stays intact and formatting continues to respect each locale
+            expect(english).toBe('February 29, 2024');
+            expect(german).toBe('29. Februar 2024');
+        });
+    });
+
     it('getZoneAbbreviation should show zone abbreviation from the datetime', () => {
         const zoneAbbreviation = DateUtils.getZoneAbbreviation(datetime, timezone, enUS);
         expect(zoneAbbreviation).toBe('GMT+0');
@@ -137,6 +161,16 @@ describe('DateUtils', () => {
     it('should fallback to current date when getLocalDateFromDatetime is failing', () => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         const localDate = DateUtils.getLocalDateFromDatetime(LOCALE, 'InvalidTimezone' as SelectedTimezone, undefined);
+        expect(localDate.getTime()).not.toBeNaN();
+    });
+
+    it.each(['constructor', '__proto__', 'toString'])('should fallback to current date for the timezone %p instead of throwing', (objectKeyTimezone) => {
+        // Given another user's timezone that matches a property every object has, which date-fns-tz finds in its caches
+        // and calls as a formatter
+        // When their current local time is read
+        const localDate = DateUtils.getLocalDateFromDatetime(LOCALE, objectKeyTimezone, undefined);
+
+        // Then a valid date is returned instead of a TypeError crashing the profile and the chat composer
         expect(localDate.getTime()).not.toBeNaN();
     });
 
@@ -661,6 +695,37 @@ describe('DateUtils', () => {
 
         it('returns empty string when input date is empty', () => {
             expect(DateUtils.getStatusUntilDate(translateLocal, undefined, '', inputTimeZoneNY, currentTimeZone)).toBe('');
+        });
+
+        it.each(['tomorrow', '+1 day', 'not a date', '2025-13-45 99:99:99'])('returns empty string for the clear-after value %p', (clearAfter) => {
+            // Given a clear-after value the server accepts because PHP can parse it, but which is not a date here
+            // When another user's status with that value is shown
+            // Then nothing is shown instead of `format` throwing a RangeError that crashes the chat list
+            expect(DateUtils.getStatusUntilDate(translateLocal, undefined, clearAfter, inputTimeZoneNY, currentTimeZone)).toBe('');
+        });
+
+        it.each(['Not/AZone', '', 'constructor'])('returns empty string for the timezone %p', (unknownTimezone) => {
+            // Given a valid clear-after date and a timezone this platform doesn't know under any name, which another
+            // user's personal details can hold
+            const clearAfter = '2025-10-19 15:34:00';
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- other users' personal details can hold a timezone that isn't in the app's list
+            const statusTimezone = unknownTimezone as SelectedTimezone;
+
+            // When the status is shown with that timezone as the status owner's or the viewer's timezone
+            // Then no expiry is shown, since there is no reliable time to show, instead of the error crashing the chat list
+            expect(DateUtils.getStatusUntilDate(translateLocal, undefined, clearAfter, statusTimezone, currentTimeZone)).toBe('');
+            expect(DateUtils.getStatusUntilDate(translateLocal, undefined, clearAfter, inputTimeZoneNY, statusTimezone)).toBe('');
+        });
+
+        it('reads the UTC offset timezone "Z" as UTC', () => {
+            // Given a timezone that isn't in the app's list but that date-fns-tz reads as a UTC offset
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- other users' personal details can hold a timezone that isn't in the app's list
+            const utcOffsetTimezone = 'Z' as SelectedTimezone;
+
+            // When the status is shown with it as the status owner's or the viewer's timezone
+            // Then the expiry is converted from or to UTC, such as 15:34 UTC being 8:34 AM in Los Angeles in October
+            expect(DateUtils.getStatusUntilDate(translateLocal, undefined, '2025-10-19 15:34:00', utcOffsetTimezone, currentTimeZone)).toBe('Until 8:34 AM');
+            expect(DateUtils.getStatusUntilDate(translateLocal, undefined, '2025-10-19 15:34:00', inputTimeZoneNY, utcOffsetTimezone)).toBe('Until 7:34 PM');
         });
 
         it('returns "Until h:mm a" when input and current timezone are same', () => {
@@ -1623,6 +1688,85 @@ describe('DateUtils', () => {
             // Berlin in German and `JST` for Tokyo in Japanese
             expect(DateUtils.getZoneAbbreviation(SUMMER_INSTANT, BERLIN, de)).toBe('MESZ');
             expect(DateUtils.getZoneAbbreviation(SUMMER_INSTANT, TOKYO, ja)).toBe('JST');
+        });
+
+        it.each(['Not/AZone', 'Z', '', 'constructor'])('returns empty string for the timezone %p', (unknownTimezone) => {
+            // Given a timezone `Intl` doesn't know, which another user's personal details can hold
+            // When its abbreviation is shown on that user's profile
+            // Then nothing is shown, rather than the viewer's own abbreviation or a RangeError crashing the page
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- other users' personal details can hold a timezone that isn't in the app's list
+            expect(DateUtils.getZoneAbbreviation(SUMMER_INSTANT, unknownTimezone as SelectedTimezone, enUS)).toBe('');
+        });
+
+        it('returns empty string for a datetime that is not a date', () => {
+            // Given a datetime that cannot be parsed
+            // When its zone is named
+            // Then nothing is shown instead of a RangeError
+            expect(DateUtils.getZoneAbbreviation('tomorrow', NEW_YORK, enUS)).toBe('');
+        });
+    });
+
+    describe('getMonthDateRange', () => {
+        it('returns the first and last day of a month', () => {
+            // Given February of a leap year, whose last day differs from other years
+            // When its range is built
+            // Then the range ends on the 29th
+            expect(DateUtils.getMonthDateRange(2024, 2)).toEqual({start: '2024-02-01', end: '2024-02-29'});
+        });
+
+        it.each([0, 13, 1.5, Number.NaN])('returns undefined for month %p', (month) => {
+            // Given a month that doesn't exist, which `Date` would roll into another year
+            // When its range is built
+            // Then there is no range rather than one in the wrong year
+            expect(DateUtils.getMonthDateRange(2025, month)).toBeUndefined();
+        });
+
+        it('returns undefined for a year that is not an integer', () => {
+            // Given a missing year, which `format` would throw on
+            // When a range is built for it
+            // Then there is no range rather than a crash
+            expect(DateUtils.getMonthDateRange(Number.NaN, 6)).toBeUndefined();
+        });
+    });
+
+    describe('getQuarterDateRange', () => {
+        it('returns the first and last day of a quarter', () => {
+            // Given the last quarter of the year
+            // When its range is built
+            // Then it covers October through December
+            expect(DateUtils.getQuarterDateRange(2025, 4)).toEqual({start: '2025-10-01', end: '2025-12-31'});
+        });
+
+        it.each([0, 5, 2.5, Number.NaN])('returns undefined for quarter %p', (quarter) => {
+            // Given a quarter that doesn't exist, which `Date` would roll into another year
+            // When its range is built
+            // Then there is no range rather than one in the wrong year
+            expect(DateUtils.getQuarterDateRange(2025, quarter)).toBeUndefined();
+        });
+    });
+
+    describe('getYearDateRange', () => {
+        it('returns the first and last day of a year', () => {
+            // Given a year
+            // When its range is built
+            // Then it covers January 1 through December 31
+            expect(DateUtils.getYearDateRange(2025)).toEqual({start: '2025-01-01', end: '2025-12-31'});
+        });
+
+        it.each([2025.5, Number.NaN])('returns undefined for year %p', (year) => {
+            // Given a year that isn't a whole number, which would build a date string no search can parse
+            // When its range is built
+            // Then there is no range rather than an invalid filter
+            expect(DateUtils.getYearDateRange(year)).toBeUndefined();
+        });
+    });
+
+    describe('isDateStringInMonth', () => {
+        it('matches no date for a month outside the year', () => {
+            // Given month 13, which would otherwise roll into January of the next year
+            // When a January date is checked against it
+            // Then it doesn't match
+            expect(DateUtils.isDateStringInMonth('2026-01-15', 2025, 13)).toBe(false);
         });
     });
 

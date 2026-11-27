@@ -7,6 +7,7 @@ import type {HRConnectionName} from '@libs/merge/HRUtils';
 import type {RecruitingConnectionName} from '@libs/merge/RecruitingUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -40,15 +41,16 @@ jest.mock('@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute', () =
 jest.mock('@libs/Navigation/TransitionTracker', () => ({
     __esModule: true,
     default: {
-        runAfterTransitions: ({callback}: {callback: () => void}) => {
+        runAfterTransitions: jest.fn(({callback}: {callback: () => void}) => {
             callback();
             return {cancel: jest.fn()};
-        },
+        }),
     },
 }));
 
 const mockNavigate = jest.mocked(Navigation.navigate);
 const mockCreateDynamicRoute = jest.mocked(createDynamicRoute);
+const mockRunAfterTransitions = jest.mocked(TransitionTracker.runAfterTransitions);
 const RESULT = {addedEmployeesCount: 2, removedEmployeesCount: 1, skippedEmployees: [{id: '7', name: 'Al Ex', reason: 'No email address.'}]};
 const RUNNING = CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.GUSTO_SYNC_TITLE;
 const JOB_DONE = CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE;
@@ -101,6 +103,11 @@ describe('useMergeSyncResultsPage', () => {
         mockIsFocused = true;
         mockNavigate.mockClear();
         mockCreateDynamicRoute.mockClear();
+        mockRunAfterTransitions.mockReset();
+        mockRunAfterTransitions.mockImplementation(({callback}) => {
+            callback();
+            return {cancel: jest.fn()};
+        });
     });
 
     afterEach(async () => {
@@ -182,6 +189,76 @@ describe('useMergeSyncResultsPage', () => {
 
         expect(mockCreateDynamicRoute).toHaveBeenCalledWith(DYNAMIC_ROUTES.WORKSPACE_HR_SYNC_RESULTS.path);
         expect(mockNavigate).toHaveBeenCalledTimes(1);
+    });
+
+    it('drops modal-delayed results on blur and opens nothing when the user comes back', async () => {
+        // Given a sync that finishes while a modal holds its results screen back
+        const {rerender} = await renderWith([RUNNING, '2026-08-26 10:00:00.000']);
+        await setModalVisible(true);
+        await pushSyncProgress(JOB_DONE, '2026-08-26 10:00:05.000', RESULT);
+
+        // When the user moves to another screen before the results screen opens
+        mockIsFocused = false;
+        rerender({});
+        await setModalVisible(false);
+
+        // Then nothing opens on top of the other screen, which isn't a valid base for the results route
+        expect(mockNavigate).not.toHaveBeenCalled();
+
+        // When the user comes back to the screen that watched the sync
+        mockIsFocused = true;
+        rerender({});
+
+        // Then the dropped result cannot open later over a screen the user returned to
+        expect(mockCreateDynamicRoute).not.toHaveBeenCalled();
+        expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('cancels queued navigation on blur and drops results even after refocus', async () => {
+        // Given a completed sync whose navigation is waiting for a transition to finish
+        const pendingCallbacks = new Set<Parameters<typeof TransitionTracker.runAfterTransitions>[0]['callback']>();
+        const cancelHandles: jest.Mock[] = [];
+        mockRunAfterTransitions.mockImplementation(({callback}) => {
+            pendingCallbacks.add(callback);
+            const cancel = jest.fn(() => pendingCallbacks.delete(callback));
+            cancelHandles.push(cancel);
+            return {cancel};
+        });
+        const flushTransitions = () => {
+            act(() => {
+                const callbacks = [...pendingCallbacks];
+                pendingCallbacks.clear();
+                for (const callback of callbacks) {
+                    callback();
+                }
+            });
+        };
+        const {rerender} = await renderWith([RUNNING, '2026-08-26 10:00:00.000']);
+        await pushSyncProgress(JOB_DONE, '2026-08-26 10:00:05.000', RESULT);
+        expect(mockRunAfterTransitions).toHaveBeenCalledTimes(1);
+        expect(mockRunAfterTransitions).toHaveBeenCalledWith(expect.objectContaining({waitForUpcomingTransition: true}));
+        expect(mockNavigate).not.toHaveBeenCalled();
+
+        // When the user leaves before the transition finishes, cleanup must cancel the old navigation
+        mockIsFocused = false;
+        rerender({});
+        expect(cancelHandles.at(0)).toHaveBeenCalledTimes(1);
+        expect(mockRunAfterTransitions).toHaveBeenCalledTimes(1);
+        flushTransitions();
+
+        // Then no results open over the other screen
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(mockCreateDynamicRoute).not.toHaveBeenCalled();
+
+        // When the user returns, flushing transitions must not revive the dropped result
+        mockIsFocused = true;
+        rerender({});
+        flushTransitions();
+
+        // Then neither a route nor another navigation is queued for the old result
+        expect(mockRunAfterTransitions).toHaveBeenCalledTimes(1);
+        expect(mockCreateDynamicRoute).not.toHaveBeenCalled();
+        expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it('opens the results screen over an RHP that is still open', async () => {

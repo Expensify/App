@@ -5,6 +5,7 @@ import DropdownField from '@components/DropdownField';
 import DropdownFieldRow from '@components/DropdownFieldRow';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
+import ExpenseFieldContainer from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldContainer';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
@@ -34,15 +35,15 @@ import {isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
 import {getBackendAmountFromInput} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
-import {canShowReimbursableToggleForPolicy, getCleanedTagName, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils} from '@libs/PolicyUtils';
+import {canShowReimbursableToggleForPolicy, getCleanedTagName, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils, resolveCurrentTaxCode} from '@libs/PolicyUtils';
 import {canEditFieldOfMoneyRequest, isInvoiceReport, isIOUReport, isReportApproved, isSettled} from '@libs/ReportUtils';
-import {getSearchBulkEditPolicyID} from '@libs/SearchUIUtils';
+import {getSearchBulkEditExpenseOwnerAccountID, getSearchBulkEditPolicyID} from '@libs/SearchUIUtils';
 import {getDependentTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import startOpenCategoryPickerSpan from '@libs/telemetry/startOpenCategoryPickerSpan';
 import {
     getAttendeesListDisplayString,
     getTagArrayFromName,
-    getTaxName,
+    getWorkspaceTaxesSettingsName,
     hasSplitExpenseInSelection,
     isCardTransactionReimbursableEditable,
     isDistanceRequest,
@@ -61,6 +62,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {TransactionChanges} from '@src/types/onyx/Transaction';
 
+import type {ComponentRef} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
@@ -199,6 +201,10 @@ function SearchEditMultiplePage() {
     });
 
     const policyID = getSearchBulkEditPolicyID(selectedTransactionIDs, activePolicyID, mergedTransactions, mergedReports);
+    // The category list is limited to the current user's categories when every expense is theirs, and split by what
+    // the owner can use when every expense belongs to one other member, as on the full-page category selector.
+    const selectedExpensesOwnerAccountID = getSearchBulkEditExpenseOwnerAccountID(selectedTransactionIDs, currentUserAccountID, mergedTransactions, mergedReports);
+    const isEverySelectedExpenseOwn = selectedExpensesOwnerAccountID === currentUserAccountID;
 
     const policy = policyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] : undefined;
     const policyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`];
@@ -224,7 +230,7 @@ function SearchEditMultiplePage() {
     const [isSaving, setIsSaving] = useState(false);
     const [isCurrencyPickerVisible, setIsCurrencyPickerVisible] = useState(false);
     const [isDropdownVisible, setIsDropdownVisible] = useState(false);
-    const currencyButtonRef = useRef<View>(null);
+    const currencyButtonRef = useRef<ComponentRef<typeof View>>(null);
     const shouldSaveButtonBeInScrollView = useShouldFooterBeInsideList();
 
     // On touch devices Enter is the only way to add a new line to the description, so it saves only with a hardware keyboard.
@@ -443,7 +449,7 @@ function SearchEditMultiplePage() {
     // The selectable rows open their list in a container anchored to the row. A dependent tag level needs the levels
     // above it, which only the full page walks through, and a selection without a workspace has no lists to show.
     const canOpenListInDropdown = !!policyID;
-    const selectedTaxRate = draftTransaction?.taxCode ? (getTaxName(translate, policy, draftTransaction) ?? '') : '';
+    const selectedTaxRate = draftTransaction?.taxCode ? (getWorkspaceTaxesSettingsName(translate, policy, resolveCurrentTaxCode(policy, draftTransaction.taxCode)) ?? '') : '';
     const taxRateName = policy?.taxRates?.name ?? translate('common.tax');
     const lockedAmountTitle = draftAmount !== undefined ? convertToDisplayStringWithoutCurrency(draftAmount, currency) : '';
 
@@ -487,12 +493,14 @@ function SearchEditMultiplePage() {
                 >
                     <Text style={[styles.ph5, styles.mb3, styles.textSupporting]}>{translate('search.bulkActions.editMultipleDescription')}</Text>
                     {isAmountDisabled ? (
-                        <DropdownFieldRow
-                            name={translate('iou.amount')}
-                            value={lockedAmountTitle}
-                            isInteractive={false}
-                            sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.AMOUNT_FIELD}
-                        />
+                        <ExpenseFieldContainer>
+                            <DropdownFieldRow
+                                name={translate('iou.amount')}
+                                value={lockedAmountTitle}
+                                isInteractive={false}
+                                sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.AMOUNT_FIELD}
+                            />
+                        </ExpenseFieldContainer>
                     ) : (
                         <View style={[styles.mh4, styles.mv2]}>
                             <AmountFormField
@@ -534,13 +542,15 @@ function SearchEditMultiplePage() {
                         />
                     </View>
                     {hasPartiallyEditableMerchantTransaction ? (
-                        <DropdownFieldRow
-                            name={translate('common.merchant')}
-                            value={draftMerchant}
-                            numberOfLinesValue={2}
-                            isInteractive={false}
-                            sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.MERCHANT_FIELD}
-                        />
+                        <ExpenseFieldContainer>
+                            <DropdownFieldRow
+                                name={translate('common.merchant')}
+                                value={draftMerchant}
+                                numberOfLinesValue={2}
+                                isInteractive={false}
+                                sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.MERCHANT_FIELD}
+                            />
+                        </ExpenseFieldContainer>
                     ) : (
                         <View style={[styles.mh4, styles.mv2]}>
                             <TextInput
@@ -556,12 +566,14 @@ function SearchEditMultiplePage() {
                         </View>
                     )}
                     {hasPartiallyEditableDateTransaction ? (
-                        <DropdownFieldRow
-                            name={translate('common.date')}
-                            value={draftDate}
-                            isInteractive={false}
-                            sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.DATE_FIELD}
-                        />
+                        <ExpenseFieldContainer>
+                            <DropdownFieldRow
+                                name={translate('common.date')}
+                                value={draftDate}
+                                isInteractive={false}
+                                sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.DATE_FIELD}
+                            />
+                        </ExpenseFieldContainer>
                     ) : (
                         <View style={styles.mh4}>
                             <DatePicker
@@ -576,26 +588,30 @@ function SearchEditMultiplePage() {
                         </View>
                     )}
                     {areCategoriesEnabled && (
-                        <DropdownField
-                            onVisibilityChange={setIsDropdownVisible}
-                            name={translate('common.category')}
-                            value={draftTransaction?.category ?? ''}
-                            numberOfLinesValue={2}
-                            onPress={() => {
-                                startOpenCategoryPickerSpan();
-                                Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_CATEGORY_RHP);
-                            }}
-                            shouldOpenInDropdown={canOpenListInDropdown}
-                            listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
-                            renderDropdown={(dropdownProps) => (
-                                <SearchEditMultipleCategoryDropdown
-                                    {...dropdownProps}
-                                    policyID={policyID}
-                                    selectedCategory={draftTransaction?.category ?? ''}
-                                />
-                            )}
-                            sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.CATEGORY_FIELD}
-                        />
+                        <ExpenseFieldContainer>
+                            <DropdownField
+                                onVisibilityChange={setIsDropdownVisible}
+                                name={translate('common.category')}
+                                value={draftTransaction?.category ?? ''}
+                                numberOfLinesValue={2}
+                                onPress={() => {
+                                    startOpenCategoryPickerSpan();
+                                    Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_CATEGORY_RHP);
+                                }}
+                                shouldOpenInDropdown={canOpenListInDropdown}
+                                listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
+                                renderDropdown={(dropdownProps) => (
+                                    <SearchEditMultipleCategoryDropdown
+                                        {...dropdownProps}
+                                        policyID={policyID}
+                                        selectedCategory={draftTransaction?.category ?? ''}
+                                        ownerAccountID={isEverySelectedExpenseOwn ? currentUserAccountID : undefined}
+                                        submitterAccountID={isEverySelectedExpenseOwn ? undefined : selectedExpensesOwnerAccountID}
+                                    />
+                                )}
+                                sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.CATEGORY_FIELD}
+                            />
+                        </ExpenseFieldContainer>
                     )}
                     {areTagsEnabled &&
                         policyTagLists.map((tagList, tagListIndex) => {
@@ -604,109 +620,117 @@ function SearchEditMultiplePage() {
                             }
                             const tagName = tagsArray.at(tagListIndex) ?? '';
                             return (
-                                <DropdownField
-                                    onVisibilityChange={setIsDropdownVisible}
-                                    key={tagList.name}
-                                    name={tagList.name || translate('common.tag')}
-                                    value={tagName ? getCleanedTagName(tagName) : ''}
-                                    numberOfLinesValue={2}
-                                    onPress={() => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_TAG_RHP.getRoute(tagListIndex))}
-                                    shouldOpenInDropdown={canOpenListInDropdown && !hasDependentTags}
-                                    listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
-                                    renderDropdown={(dropdownProps) => (
-                                        <SearchEditMultipleTagDropdown
-                                            {...dropdownProps}
-                                            policyID={policyID}
-                                            tagListIndex={tagListIndex}
-                                            transactionTag={draftTransaction?.tag ?? ''}
-                                            recordedTagChanges={draftTransaction?.bulkEditTagChanges ?? {}}
-                                            policyTags={policyTags}
-                                            hasMultipleTagLists={policy?.hasMultipleTagLists ?? false}
-                                        />
-                                    )}
-                                    sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.TAG_FIELD}
-                                />
+                                <ExpenseFieldContainer key={tagList.name}>
+                                    <DropdownField
+                                        onVisibilityChange={setIsDropdownVisible}
+                                        name={tagList.name || translate('common.tag')}
+                                        value={tagName ? getCleanedTagName(tagName) : ''}
+                                        numberOfLinesValue={2}
+                                        onPress={() => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_TAG_RHP.getRoute(tagListIndex))}
+                                        shouldOpenInDropdown={canOpenListInDropdown && !hasDependentTags}
+                                        listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
+                                        renderDropdown={(dropdownProps) => (
+                                            <SearchEditMultipleTagDropdown
+                                                {...dropdownProps}
+                                                policyID={policyID}
+                                                tagListIndex={tagListIndex}
+                                                transactionTag={draftTransaction?.tag ?? ''}
+                                                recordedTagChanges={draftTransaction?.bulkEditTagChanges ?? {}}
+                                                policyTags={policyTags}
+                                                hasMultipleTagLists={policy?.hasMultipleTagLists ?? false}
+                                            />
+                                        )}
+                                        sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.TAG_FIELD}
+                                    />
+                                </ExpenseFieldContainer>
                             );
                         })}
                     {isTaxTrackingEnabled && (
-                        <DropdownField
-                            onVisibilityChange={setIsDropdownVisible}
-                            name={taxRateName}
-                            value={selectedTaxRate}
-                            onPress={() => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_TAX_RHP)}
-                            shouldOpenInDropdown={canOpenListInDropdown && !isTaxDisabled}
-                            listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
-                            renderDropdown={(dropdownProps) => (
-                                <SearchEditMultipleTaxDropdown
-                                    {...dropdownProps}
-                                    policyID={policyID}
-                                    currentTaxCode={draftTransaction?.taxCode ?? ''}
-                                    selectedTaxRate={selectedTaxRate}
-                                />
-                            )}
-                            isInteractive={!isTaxDisabled}
-                            sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.TAX_FIELD}
-                        />
+                        <ExpenseFieldContainer>
+                            <DropdownField
+                                onVisibilityChange={setIsDropdownVisible}
+                                name={taxRateName}
+                                value={selectedTaxRate}
+                                onPress={() => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_TAX_RHP)}
+                                shouldOpenInDropdown={canOpenListInDropdown && !isTaxDisabled}
+                                listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
+                                renderDropdown={(dropdownProps) => (
+                                    <SearchEditMultipleTaxDropdown
+                                        {...dropdownProps}
+                                        policyID={policyID}
+                                        currentTaxCode={draftTransaction?.taxCode ?? ''}
+                                    />
+                                )}
+                                isInteractive={!isTaxDisabled}
+                                sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.TAX_FIELD}
+                            />
+                        </ExpenseFieldContainer>
                     )}
                     {areSelectedTransactionsReimbursable && (
-                        <DropdownField
-                            onVisibilityChange={setIsDropdownVisible}
-                            name={translate('common.reimbursable')}
-                            value={getPendingBooleanTitle(draftTransaction?.reimbursable)}
-                            shouldOpenInDropdown={!hasPartiallyEditableReimbursableTransaction}
-                            listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
-                            renderDropdown={(dropdownProps) => (
-                                <SearchEditMultipleBooleanDropdown
-                                    {...dropdownProps}
-                                    title={translate('common.reimbursable')}
-                                    selectedValue={draftTransaction?.reimbursable}
-                                    onSelected={saveDraftReimbursable}
-                                />
-                            )}
-                            isInteractive={!hasPartiallyEditableReimbursableTransaction}
-                            sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.REIMBURSABLE_FIELD}
-                        />
+                        <ExpenseFieldContainer>
+                            <DropdownField
+                                onVisibilityChange={setIsDropdownVisible}
+                                name={translate('common.reimbursable')}
+                                value={getPendingBooleanTitle(draftTransaction?.reimbursable)}
+                                shouldOpenInDropdown={!hasPartiallyEditableReimbursableTransaction}
+                                listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
+                                renderDropdown={(dropdownProps) => (
+                                    <SearchEditMultipleBooleanDropdown
+                                        {...dropdownProps}
+                                        title={translate('common.reimbursable')}
+                                        selectedValue={draftTransaction?.reimbursable}
+                                        onSelected={saveDraftReimbursable}
+                                    />
+                                )}
+                                isInteractive={!hasPartiallyEditableReimbursableTransaction}
+                                sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.REIMBURSABLE_FIELD}
+                            />
+                        </ExpenseFieldContainer>
                     )}
                     {areSelectedTransactionsBillable && (
-                        <DropdownField
-                            onVisibilityChange={setIsDropdownVisible}
-                            name={translate('common.billable')}
-                            value={getPendingBooleanTitle(draftTransaction?.billable)}
-                            shouldOpenInDropdown={!isBillableDisabled}
-                            listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
-                            renderDropdown={(dropdownProps) => (
-                                <SearchEditMultipleBooleanDropdown
-                                    {...dropdownProps}
-                                    title={translate('common.billable')}
-                                    selectedValue={draftTransaction?.billable}
-                                    onSelected={saveDraftBillable}
-                                />
-                            )}
-                            isInteractive={!isBillableDisabled}
-                            sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.BILLABLE_FIELD}
-                        />
+                        <ExpenseFieldContainer>
+                            <DropdownField
+                                onVisibilityChange={setIsDropdownVisible}
+                                name={translate('common.billable')}
+                                value={getPendingBooleanTitle(draftTransaction?.billable)}
+                                shouldOpenInDropdown={!isBillableDisabled}
+                                listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
+                                renderDropdown={(dropdownProps) => (
+                                    <SearchEditMultipleBooleanDropdown
+                                        {...dropdownProps}
+                                        title={translate('common.billable')}
+                                        selectedValue={draftTransaction?.billable}
+                                        onSelected={saveDraftBillable}
+                                    />
+                                )}
+                                isInteractive={!isBillableDisabled}
+                                sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.BILLABLE_FIELD}
+                            />
+                        </ExpenseFieldContainer>
                     )}
                     {areAttendeesEnabled && (
-                        <DropdownField
-                            onVisibilityChange={setIsDropdownVisible}
-                            name={translate('iou.attendees')}
-                            valueComponent={hasDraftAttendees ? <SearchEditMultipleAttendeePills attendees={draftAttendees} /> : undefined}
-                            hasValueComponent={hasDraftAttendees}
-                            accessibilityLabel={
-                                hasDraftAttendees ? `${translate('iou.attendees')}, ${getAttendeesListDisplayString(draftAttendees, formatPhoneNumber, localeCompare)}` : undefined
-                            }
-                            onPress={() => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_ATTENDEES_RHP)}
-                            shouldOpenInDropdown={canOpenListInDropdown && !isAttendeesDisabled}
-                            listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
-                            renderDropdown={(dropdownProps) => (
-                                <SearchEditMultipleAttendeesDropdown
-                                    {...dropdownProps}
-                                    draftAttendees={draftAttendees}
-                                />
-                            )}
-                            isInteractive={!isAttendeesDisabled}
-                            sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.ATTENDEES_FIELD}
-                        />
+                        <ExpenseFieldContainer>
+                            <DropdownField
+                                onVisibilityChange={setIsDropdownVisible}
+                                name={translate('iou.attendees')}
+                                valueComponent={hasDraftAttendees ? <SearchEditMultipleAttendeePills attendees={draftAttendees} /> : undefined}
+                                hasValueComponent={hasDraftAttendees}
+                                accessibilityLabel={
+                                    hasDraftAttendees ? `${translate('iou.attendees')}, ${getAttendeesListDisplayString(draftAttendees, formatPhoneNumber, localeCompare)}` : undefined
+                                }
+                                onPress={() => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_ATTENDEES_RHP)}
+                                shouldOpenInDropdown={canOpenListInDropdown && !isAttendeesDisabled}
+                                listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
+                                renderDropdown={(dropdownProps) => (
+                                    <SearchEditMultipleAttendeesDropdown
+                                        {...dropdownProps}
+                                        draftAttendees={draftAttendees}
+                                    />
+                                )}
+                                isInteractive={!isAttendeesDisabled}
+                                sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.ATTENDEES_FIELD}
+                            />
+                        </ExpenseFieldContainer>
                     )}
                     {shouldSaveButtonBeInScrollView && saveButton}
                 </ScrollView>
