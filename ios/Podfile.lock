@@ -2353,7 +2353,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - react-native-view-shot (5.1.0):
+  - react-native-view-shot (6.2.1):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -4197,7 +4197,7 @@ SPEC CHECKSUMS:
   react-native-quick-base64: f93ca829b2c94cc5b3a175533af49f934a4697e7
   react-native-safe-area-context: cbf4eb4f74e7e171b460b5db9d040944f0d22573
   react-native-skia: 8357184e313e2445a9eecc6c66e93a336ff4776b
-  react-native-view-shot: a04f37a4c4603f926e1195d52b33ff0c708d2ba4
+  react-native-view-shot: 827d9debbbf62306d2df4008a4d2c393e6fcc4cb
   react-native-wallet: 704e28afd329ba8e1ad47e373128cbcf11d94cf1
   react-native-webview: 55736f4d580fbfe0fef21558c3a90793ee38f261
   React-NativeModulesApple: 52f3def085f129de1307e3eb78e26729ff70f421
