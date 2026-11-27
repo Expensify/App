@@ -105,6 +105,14 @@ function formatE164PhoneNumber(phoneNumber: string, countryCode: number) {
     return parsedPhoneNumber.number?.e164;
 }
 
+/** Reads a number without a country code as one from the address country, so it matches the admin shipping form */
+function parsePhoneNumberForAddress(phoneNumber: string, addressCountry: string | undefined, countryCode: number) {
+    if (!addressCountry) {
+        return parsePhoneNumber(appendCountryCode(phoneNumber, countryCode));
+    }
+    return parsePhoneNumber(phoneNumber, {regionCode: addressCountry});
+}
+
 /**
  * Format a login string by removing SMS domain if applicable
  * @param login - The login string to format
@@ -130,6 +138,7 @@ export {
     areEmailsFromSamePrivateDomain,
     postSAMLLogin,
     formatE164PhoneNumber,
+    parsePhoneNumberForAddress,
     getEmailDomain,
     isDomainPublic,
     normalizeLogin,

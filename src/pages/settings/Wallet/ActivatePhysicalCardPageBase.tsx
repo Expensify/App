@@ -8,6 +8,7 @@ import type {ValidateCodeInputHandle} from '@components/ValidateCodeInput';
 
 import useLocalize from '@hooks/useLocalize';
 import useNonPersonalCardList from '@hooks/useNonPersonalCardList';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -16,10 +17,12 @@ import {activatePhysicalExpensifyCard, clearCardListErrors} from '@libs/actions/
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import {areAddressAndPersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -28,6 +31,8 @@ import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
+
+import ActivatePhysicalCardPersonalDetails from './ActivatePhysicalCardPersonalDetails';
 
 type ActivatePhysicalCardPageBaseProps = {
     cardID?: string;
@@ -45,12 +50,18 @@ function ActivatePhysicalCardPageBase({cardID = '', navigateBackTo, cardDetailsP
     const {isExtraSmallScreenHeight} = useResponsiveLayout();
     const {translate} = useLocalize();
     const cardList = useNonPersonalCardList() ?? getEmptyObject<CardList>();
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
 
     const [formError, setFormError] = useState('');
     const [lastFourDigits, setLastFourDigits] = useState('');
     const [canShowError, setCanShowError] = useState<boolean>(false);
+    const [shouldShowPersonalDetails, setShouldShowPersonalDetails] = useState(false);
+    const [hasEnteredWrongDigits, setHasEnteredWrongDigits] = useState(false);
 
     const inactiveCard = cardList?.[cardID];
+
+    // A card shipped to an address the admin entered asks for the cardholder's own details, unless they're on file
+    const shouldConfirmPersonalDetails = !!inactiveCard?.nameValuePairs?.shippingAddress && areAddressAndPersonalDetailsMissing(privatePersonalDetails);
     const cardError = getLatestErrorMessage(inactiveCard ?? {});
 
     const activateCardCodeInputRef = useRef<ValidateCodeInputHandle>(null);
@@ -83,6 +94,8 @@ function ActivatePhysicalCardPageBase({cardID = '', navigateBackTo, cardDetailsP
 
         if (cardError && inactiveCard?.cardID) {
             clearCardListErrors(inactiveCard?.cardID);
+            setShouldShowPersonalDetails(false);
+            setHasEnteredWrongDigits(true);
         }
 
         setLastFourDigits(text);
@@ -100,11 +113,32 @@ function ActivatePhysicalCardPageBase({cardID = '', navigateBackTo, cardDetailsP
             return;
         }
 
+        if (shouldConfirmPersonalDetails) {
+            clearCardListErrors(inactiveCard.cardID);
+            setShouldShowPersonalDetails(true);
+            return;
+        }
+
         activatePhysicalExpensifyCard(lastFourDigits, inactiveCard?.cardID);
     };
 
     if (isEmptyObject(inactiveCard)) {
         return <NotFoundPage />;
+    }
+
+    // Wrong digits only come back once the details and magic code are sent, so the error is shown on this step
+    if (shouldShowPersonalDetails && !cardError) {
+        return (
+            <ActivatePhysicalCardPersonalDetails
+                card={inactiveCard}
+                lastFourDigits={lastFourDigits}
+                onBackButtonPress={() => {
+                    // The code input submits on its own when it mounts with all four digits
+                    setLastFourDigits('');
+                    setShouldShowPersonalDetails(false);
+                }}
+            />
+        );
     }
 
     return (
@@ -127,6 +161,7 @@ function ActivatePhysicalCardPageBase({cardID = '', navigateBackTo, cardDetailsP
                     value={lastFourDigits}
                     onChangeText={onCodeInput}
                     onFulfill={submitAndNavigateToNextPage}
+                    shouldSubmitOnComplete={!hasEnteredWrongDigits && !cardError}
                     errorText={canShowError ? formError || cardError : ''}
                     ref={activateCardCodeInputRef}
                 />
@@ -140,7 +175,7 @@ function ActivatePhysicalCardPageBase({cardID = '', navigateBackTo, cardDetailsP
                 onPress={submitAndNavigateToNextPage}
             >
                 <Button.KeyboardShortcut />
-                <Button.Text>{translate('activateCardPage.activatePhysicalCard')}</Button.Text>
+                <Button.Text>{translate(shouldConfirmPersonalDetails ? 'common.next' : 'activateCardPage.activatePhysicalCard')}</Button.Text>
             </ButtonDisabledWhenOffline>
         </IllustratedHeaderPageLayout>
     );
