@@ -1,3 +1,4 @@
+import canPersistRequest from '@libs/canPersistRequest';
 import {getMicroSecondOnyxErrorWithMessage} from '@libs/ErrorUtils';
 import {clearExperienceCookie} from '@libs/ExperienceCookie';
 import Log from '@libs/Log';
@@ -15,7 +16,7 @@ import {isDelegateSessionSelector, isSupportalSessionSelector} from '@selectors/
 import Onyx from 'react-native-onyx';
 
 import {signOutFromOldDotAndRestartSignIn} from './HybridApp';
-import {canPersistRequest, getAllIncludingOngoing as getAllPersistedRequestsIncludingOngoing} from './PersistedRequests';
+import {getAllIncludingOngoing as getAllPersistedRequestsIncludingOngoing} from './PersistedRequests';
 
 let currentShouldForceOffline: boolean | undefined;
 let currentIsUsingImportedState: boolean | undefined;

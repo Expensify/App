@@ -216,7 +216,7 @@ index 8e3db51..e66d406 100644
      const [renderId, setRenderId] = React.useState(0);
      const containerLayout = getChildContainerLayout();
      const fixedContainerSize = horizontal
-@@ -72,9 +136,160 @@ export const ViewHolderCollection = (props) => {
+@@ -72,9 +136,232 @@ export const ViewHolderCollection = (props) => {
      //     return `${index} => ${reactKey}`;
      //   })
      // );
@@ -232,8 +232,31 @@ index 8e3db51..e66d406 100644
 +    // re-rendering between `mousedown` and `click` (which makes the browser
 +    // drop the click).
 +    const lastInputModalityRef = useRef("pointer");
-+    const [, bumpSortVersion] = useReducer((x) => x + 1, 0);
++    // A second sort uses insertBefore. That drops a selection whose anchor
++    // sits in a moved row, so hold it while the primary button is down.
++    const isPointerDownRef = useRef(false);
++    const pendingFocusRestoreRef = useRef(null);
++    const [sortVersion, bumpSortVersion] = useReducer((x) => x + 1, 0);
++    const scheduleSortRef = useRef(() => { });
++    const shouldHoldSort = useCallback(() => {
++        if (isPointerDownRef.current) {
++            return true;
++        }
++        if (typeof window === "undefined" || !window.getSelection) {
++            return false;
++        }
++        const selection = window.getSelection();
++        const container = containerRef.current;
++        if (!selection || selection.isCollapsed || !container || !selection.anchorNode) {
++            return false;
++        }
++        return container.contains(selection.anchorNode) || (!!selection.focusNode && container.contains(selection.focusNode));
++    }, []);
 +    const sortItems = useCallback(() => {
++        if (shouldHoldSort()) {
++            scheduleSortRef.current();
++            return;
++        }
 +        const entries = renderEntriesRef.current;
 +        const direction = inverted ? -1 : 1;
 +        const isSorted = entries.every((entry, i) => i === 0 || direction * (entries[i - 1][1].index - entry[1].index) <= 0);
@@ -241,9 +264,35 @@ index 8e3db51..e66d406 100644
 +            return;
 +        }
 +        entries.sort(([, a], [, b]) => direction * (a.index - b.index));
++        const container = containerRef.current;
++        const activeElement = typeof document !== "undefined" ? document.activeElement : null;
++        if (container && activeElement instanceof HTMLElement && container.contains(activeElement)) {
++            pendingFocusRestoreRef.current = activeElement;
++        }
++        if (container) {
++            const rowByIndex = new Map();
++            const markers = container.querySelectorAll("[data-flashlist-index]");
++            for (let i = 0; i < markers.length; i++) {
++                const row = markers[i].parentElement;
++                if (row && row.parentElement === container) {
++                    rowByIndex.set(Number(markers[i].getAttribute("data-flashlist-index")), row);
++                }
++            }
++            for (let i = 0; i < entries.length; i++) {
++                const row = rowByIndex.get(entries[i][1].index);
++                if (row) {
++                    container.appendChild(row);
++                }
++            }
++        }
++        // Pointer is up and no selection is inside the list, so sync React's
++        // child order now. Leaving it stale makes the next render move every
++        // row again and drop a selection the rescue listener no longer owns.
 +        bumpSortVersion();
-+    }, [inverted]);
-+    const [schedulePendingSort, clearPendingSort] = useDeferredCallback(sortItems, SORT_DELAY_MS, isScrolling);
++    }, [inverted, shouldHoldSort]);
++    const shouldDeferSort = useCallback(() => isScrolling() || shouldHoldSort(), [isScrolling, shouldHoldSort]);
++    const [schedulePendingSort, clearPendingSort] = useDeferredCallback(sortItems, SORT_DELAY_MS, shouldDeferSort);
++    scheduleSortRef.current = schedulePendingSort;
 +    const maybeDoSortOnFocus = useCallback(() => {
 +        clearPendingSort();
 +        if (isScrollingProgrammatically()) {
@@ -343,14 +392,28 @@ index 8e3db51..e66d406 100644
 +        container.addEventListener("focusin", onFocusIn);
 +        return () => container.removeEventListener("focusin", onFocusIn);
 +    }, [maybeDoSortOnFocus]);
-+    useEffect(() => {
++    useLayoutEffect(() => {
 +        if (Platform.OS !== "web") {
 +            return;
++        }
++        // Sort before paint so a drag right after load does not cross unsorted rows.
++        // A recycle while scrolling already appends rows out of order. Sorting here would run on every scroll frame, so leave that to the deferred scroll sort.
++        if (!shouldHoldSort() && !isScrolling()) {
++            sortItems();
 +        }
 +        maybeDoSortOnScroll();
 +        return clearPendingSort;
 +        // eslint-disable-next-line react-hooks/exhaustive-deps
 +    }, [renderStack, renderId]);
++    useLayoutEffect(() => {
++        const activeElement = pendingFocusRestoreRef.current;
++        pendingFocusRestoreRef.current = null;
++        if (Platform.OS !== "web" || !activeElement || !activeElement.isConnected || document.activeElement === activeElement) {
++            return;
++        }
++        // appendChild drops focus, and this commit runs after the row's useSyncFocus effect.
++        activeElement.focus({ preventScroll: true });
++    }, [sortVersion]);
 +    // Track input modality globally. Capture-phase document listeners so
 +    // we observe events before any handler can call `stopPropagation()`.
 +    // `pointerdown` covers mouse/touch/pen; `keydown` covers Tab and
@@ -364,14 +427,23 @@ index 8e3db51..e66d406 100644
 +        };
 +        const onDocPointerDown = () => {
 +            lastInputModalityRef.current = "pointer";
++            isPointerDownRef.current = true;
++        };
++        const onDocPointerUp = () => {
++            isPointerDownRef.current = false;
++            schedulePendingSort();
 +        };
 +        document.addEventListener("keydown", onDocKeyDown, true);
 +        document.addEventListener("pointerdown", onDocPointerDown, true);
++        document.addEventListener("pointerup", onDocPointerUp, true);
++        document.addEventListener("pointercancel", onDocPointerUp, true);
 +        return () => {
 +            document.removeEventListener("keydown", onDocKeyDown, true);
 +            document.removeEventListener("pointerdown", onDocPointerDown, true);
++            document.removeEventListener("pointerup", onDocPointerUp, true);
++            document.removeEventListener("pointercancel", onDocPointerUp, true);
 +        };
-+    }, []);
++    }, [schedulePendingSort]);
 +    return (React.createElement(CompatView, { ref: containerRef, style: hasData && containerStyle }, containerLayout &&
          hasData &&
 -        Array.from(renderStack.entries(), ([reactKey, { index }]) => {

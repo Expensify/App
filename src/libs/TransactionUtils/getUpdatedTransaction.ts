@@ -97,8 +97,7 @@ function getDistanceMerchantForTransaction({
 }
 
 /**
- * Build the distance merchant string (e.g. "5.00 mi @ $0.70 / mi") for a recalculated distance, using the
- * imperative locale accessors the optimistic update paths below have to rely on.
+ * Build the distance merchant string (e.g. "5.00 mi @ $0.70 / mi") using the caller's translation function.
  */
 function getRecalculatedDistanceMerchant(
     transaction: OnyxEntry<Transaction>,
@@ -107,6 +106,7 @@ function getRecalculatedDistanceMerchant(
     rate: number | undefined,
     currency: string,
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'],
+    translate: LocaleContextProps['translate'],
     commuterExclusionData?: CommuterExclusionData | null,
 ): string {
     return getDistanceMerchantForTransaction({
@@ -115,7 +115,7 @@ function getRecalculatedDistanceMerchant(
         unit,
         rate,
         currency,
-        translate: translateLocal,
+        translate,
         getCurrencySymbol,
         commuterExclusionData,
     });
@@ -125,6 +125,7 @@ function getRecalculatedDistanceMerchant(
  * Given the edit made to the expense, return an updated transaction object.
  */
 function getUpdatedTransaction({
+    translate = translateLocal,
     transaction,
     transactionChanges,
     isFromExpenseReport,
@@ -137,6 +138,7 @@ function getUpdatedTransaction({
     getCurrencyDecimals,
     rules,
 }: {
+    translate?: LocaleContextProps['translate'];
     transaction: Transaction;
     transactionChanges: TransactionChanges;
     isFromExpenseReport: boolean;
@@ -207,7 +209,7 @@ function getUpdatedTransaction({
             // The waypoints were changed, but there is no route – it is pending from the BE and we should mark the fields as pending
             updatedTransaction.amount = CONST.IOU.DEFAULT_AMOUNT;
             updatedTransaction.modifiedAmount = CONST.IOU.DEFAULT_AMOUNT;
-            updatedTransaction.modifiedMerchant = translateLocal('iou.fieldPending');
+            updatedTransaction.modifiedMerchant = translate('iou.fieldPending');
         } else if (transactionChanges.routes?.route0?.geometry?.coordinates) {
             const mileageRate = DistanceRequestUtils.getRate({transaction: updatedTransaction, policy, personalPolicyOutputCurrency});
             const {unit, rate} = mileageRate;
@@ -260,6 +262,7 @@ function getUpdatedTransaction({
                 rate,
                 updatedCurrency,
                 getCurrencySymbol,
+                translate,
                 DistanceRequestUtils.getCommuterExclusionDisplayData(commuterExclusionTransactionData?.customUnit, unit),
             );
 
@@ -371,6 +374,7 @@ function getUpdatedTransaction({
                 rate,
                 updatedCurrency,
                 getCurrencySymbol,
+                translate,
                 DistanceRequestUtils.getCommuterExclusionDisplayData(commuterExclusionTransactionData?.customUnit, unit),
             );
 
@@ -483,6 +487,7 @@ function getUpdatedTransaction({
             rate,
             updatedCurrency,
             getCurrencySymbol,
+            translate,
             DistanceRequestUtils.getCommuterExclusionDisplayData(commuterExclusionTransactionData?.customUnit, unit),
         );
 
@@ -551,6 +556,7 @@ function getUpdatedTransaction({
                 rate,
                 updatedCurrency,
                 getCurrencySymbol,
+                translate,
                 DistanceRequestUtils.getCommuterExclusionDisplayData(commuterExclusionTransactionData?.customUnit, unit),
             );
 
@@ -581,6 +587,17 @@ function getUpdatedTransaction({
         updatedTransaction.modifiedMerchant = transactionChanges.merchant;
         lodashSet(updatedTransaction, 'comment.customUnit.quantity', transactionChanges.quantity ?? updatedTransaction?.comment?.customUnit?.quantity);
         lodashSet(updatedTransaction, 'comment.customUnit.customUnitRateID', transactionChanges.customUnitRateID ?? updatedTransaction?.comment?.customUnit?.customUnitRateID);
+    }
+
+    // Only Search returns the workspace amount, so an edit that changes the amount, currency or report clears it until the next search
+    if (
+        updatedTransaction.amount !== transaction.amount ||
+        updatedTransaction.modifiedAmount !== transaction.modifiedAmount ||
+        updatedTransaction.currency !== transaction.currency ||
+        updatedTransaction.modifiedCurrency !== transaction.modifiedCurrency ||
+        updatedTransaction.reportID !== transaction.reportID
+    ) {
+        updatedTransaction.policyConvertedAmount = null;
     }
 
     updatedTransaction.pendingFields = {

@@ -22,7 +22,7 @@ function SearchEditMultipleCategoryPage() {
     const {translate} = useLocalize();
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID}`);
 
-    const {policyID, isEverySelectedExpenseOwn} = useSearchBulkEditSelection();
+    const {policyID, ownerAccountID, isEverySelectedExpenseOwn} = useSearchBulkEditSelection();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const currentCategory = draftTransaction?.category ?? '';
@@ -47,6 +47,8 @@ function SearchEditMultipleCategoryPage() {
                 selectedCategory={currentCategory}
                 onSubmit={saveCategory}
                 ownerAccountID={isEverySelectedExpenseOwn ? currentUserAccountID : undefined}
+                // When every selected expense belongs to one other member, the list is split by what that member can use
+                submitterAccountID={isEverySelectedExpenseOwn ? undefined : ownerAccountID}
             />
         </ScreenWrapper>
     );

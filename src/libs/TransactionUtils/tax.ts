@@ -11,6 +11,7 @@ import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getCategoryOnlyExpenseDefaultTaxID, hasCategoryExpenseDefaultTaxRule} from '@libs/ExpenseDefaultRuleUtils';
 import {getDistanceRateCustomUnit, getDistanceRateCustomUnitRate} from '@libs/PolicyUtils/customUnits';
+import {isPolicyFeatureEnabled} from '@libs/PolicyUtils/features';
 import {formatTaxRateName, isSelectableTaxCode, isTaxCodeCustomized, resolveCurrentTaxCode} from '@libs/PolicyUtils/tax';
 
 import CONST from '@src/CONST';
@@ -84,7 +85,11 @@ function getDistanceCategoryTaxCode(
 ): string | undefined {
     // Tax tracking being off for distance rates hides the Tax field, so a value written there would be invisible, and a
     // rate carrying its own tax rate outranks the rule.
-    if (!getDistanceRateCustomUnit(policy)?.attributes?.taxEnabled || hasSelectableRateTaxCode(policy, customUnitRateID)) {
+    if (
+        !isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED) ||
+        !getDistanceRateCustomUnit(policy)?.attributes?.taxEnabled ||
+        hasSelectableRateTaxCode(policy, customUnitRateID)
+    ) {
         return undefined;
     }
     return getSelectableCategoryTaxCode(policy, rules, category, defaultTaxCode);
@@ -276,6 +281,10 @@ function getTaxRateTitle(
  * rule can apply.
  */
 function getCategoryTaxCode(category: string, transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Policy>, rules: OnyxCollection<Rule>, currency?: string): string | undefined {
+    if (!isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED)) {
+        return undefined;
+    }
+
     if (isDistanceRequest(transaction)) {
         const customUnitRateID = getRateID(transaction);
         return getDistanceCategoryTaxCode(policy, rules, customUnitRateID, category, getDefaultTaxCode(policy, transaction, undefined, customUnitRateID));
@@ -299,6 +308,9 @@ function getCategoryTaxDetails(
     currency?: string,
 ) {
     const unresolvedTaxDetails = {categoryTaxCode: undefined, categoryTaxAmount: undefined, categoryTaxValue: undefined};
+    if (!isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED)) {
+        return unresolvedTaxDetails;
+    }
 
     // Both branches fall back to the workspace default, which keeps a category with no rule from carrying the rate
     // its predecessor set, the way the confirmation page does for every other expense. A policy with no tax rule at

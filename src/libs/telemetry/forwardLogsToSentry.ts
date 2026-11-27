@@ -68,6 +68,8 @@ const PREFIX_SCOPED_PARAMETERS_WHITELIST = new Map<ForwardedLogPrefix, ReadonlyA
             'platform',
             'snapshotID',
             'isSourceInDurableFolder',
+            'sourceKind',
+            'step',
             'msSinceEnqueued',
             'pendingReceiptCount',
             'isOffline',

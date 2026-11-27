@@ -12,10 +12,14 @@ import type {OnyxUpdate} from 'react-native-onyx';
 import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 
-function requestValidationCodeForAccountMerge(email: string, validateCodeResent = false, countryCode: number = CONST.DEFAULT_COUNTRY_CODE) {
-    const parsedPhoneNumber = parsePhoneNumber(appendCountryCode(Str.removeSMSDomain(email), countryCode));
-    const normalizedEmail = parsedPhoneNumber.possible && parsedPhoneNumber.number?.e164 ? parsedPhoneNumber.number.e164 : email.toLowerCase();
+/** Keep code requests and merge submissions pointed at the same account. */
+function normalizeMergeAccountLogin(email: string, countryCode: number): string {
+    const trimmedEmail = email.trim();
+    const parsedPhoneNumber = parsePhoneNumber(appendCountryCode(Str.removeSMSDomain(trimmedEmail), countryCode));
+    return parsedPhoneNumber.possible && parsedPhoneNumber.number?.e164 ? parsedPhoneNumber.number.e164 : trimmedEmail.toLowerCase();
+}
 
+function requestValidationCodeForAccountMerge(email: string, validateCodeResent = false, countryCode: number = CONST.DEFAULT_COUNTRY_CODE) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -61,7 +65,7 @@ function requestValidationCodeForAccountMerge(email: string, validateCodeResent 
     ];
 
     const parameters: GetValidateCodeForAccountMergeParams = {
-        email: normalizedEmail,
+        email: normalizeMergeAccountLogin(email, countryCode),
     };
 
     API.write(WRITE_COMMANDS.GET_VALIDATE_CODE_FOR_ACCOUNT_MERGE, parameters, {optimisticData, successData, failureData});
@@ -78,7 +82,7 @@ function clearGetValidateCodeForAccountMerge() {
     });
 }
 
-function mergeWithValidateCode(email: string, validateCode: string) {
+function mergeWithValidateCode(email: string, validateCode: string, countryCode: number = CONST.DEFAULT_COUNTRY_CODE) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -121,7 +125,7 @@ function mergeWithValidateCode(email: string, validateCode: string) {
     ];
 
     const parameters: MergeWithValidateCodeParams = {
-        email,
+        email: normalizeMergeAccountLogin(email, countryCode),
         validateCode,
     };
 

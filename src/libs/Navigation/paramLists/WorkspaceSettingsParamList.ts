@@ -64,6 +64,9 @@ type WorkspaceSettingsParamList = {
     [SCREENS.WORKSPACE.MEMBERS_CHANGE_OFFICE_LOCATION]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.MEMBERS_BULK_CATEGORY_VISIBILITY]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.MEMBERS_CHANGE_WORK_ARRANGEMENT]: {
         policyID: string;
     };
@@ -86,6 +89,9 @@ type WorkspaceSettingsParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_INVITE_MESSAGE_ROLE]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_INVITE_MESSAGE_CATEGORY_VISIBILITY]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.INVITE_MESSAGE_APPROVER]: {
@@ -124,6 +130,9 @@ type WorkspaceSettingsParamList = {
     [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_VISIBLE_TO]: {
         policyID: string;
         categoryName: string;
+    };
+    [SCREENS.WORKSPACE.DYNAMIC_CATEGORIES_BULK_VISIBLE_TO]: {
+        policyID: string;
     };
     [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_GL_CODE]: {
         policyID: string;
@@ -1312,6 +1321,24 @@ type WorkspaceSettingsParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.DIGITS_COMPANY_CARD_ACCOUNT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.DIGITS_ADVANCED]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.DIGITS_EXPORT_METHOD]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.DIGITS_BILL_PAYMENT_ACCOUNT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.DIGITS_EXPENSIFY_CARD_SETTLEMENT_ACCOUNT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.DIGITS_TRAVEL_BILLING_SETTLEMENT_ACCOUNT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.DIGITS_TRAVEL_BILLING_PAYABLE_ACCOUNT]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_PREREQUISITES]: {

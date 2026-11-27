@@ -11,12 +11,13 @@ import React from 'react';
 
 // Capture what the picker hands the list instead of asserting on rendered rows: `currentColumns` IS the
 // seed under test, and the real list adds drag handles and Onyx-backed labels that are irrelevant here.
-const capturedProps: {currentColumns?: SearchCustomColumnIds[]; allColumns?: SearchCustomColumnIds[]; isLoadingIndicatorShown?: boolean} = {};
+const capturedProps: {currentColumns?: SearchCustomColumnIds[]; allColumns?: SearchCustomColumnIds[]; groupColumns?: SearchCustomColumnIds[]; isLoadingIndicatorShown?: boolean} = {};
 jest.mock('@components/ColumnsSettingsList', () => ({
     __esModule: true,
-    default: (props: {currentColumns: SearchCustomColumnIds[]; allColumns: SearchCustomColumnIds[]}) => {
+    default: (props: {currentColumns: SearchCustomColumnIds[]; allColumns: SearchCustomColumnIds[]; groupColumns: SearchCustomColumnIds[]}) => {
         capturedProps.currentColumns = props.currentColumns;
         capturedProps.allColumns = props.allColumns;
+        capturedProps.groupColumns = props.groupColumns;
         return null;
     },
 }));
@@ -128,6 +129,7 @@ describe('SearchColumnsPage seeding (Part A)', () => {
     beforeEach(() => {
         capturedProps.currentColumns = undefined;
         capturedProps.allColumns = undefined;
+        capturedProps.groupColumns = undefined;
         capturedProps.isLoadingIndicatorShown = undefined;
         mockIsOffline = false;
         for (const key of Object.keys(onyxData)) {
@@ -190,6 +192,19 @@ describe('SearchColumnsPage seeding (Part A)', () => {
 
         // Then nothing is seeded, leaving ColumnsSettingsList on its own group-defaults fallback
         expect(capturedProps.currentColumns).toEqual([]);
+    });
+
+    test.each([CONST.SEARCH.GROUP_BY.PAID_BY, CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE])('does not offer group columns for the unsupported %s grouping', (groupBy) => {
+        // Given an Insights grouping that Search displays as an ungrouped table
+        mockQueryContext = {currentSearchKey: undefined, currentSearchQueryJSON: buildGroupedQueryJSON(groupBy)};
+        onyxData[ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM] = {type: CONST.SEARCH.DATA_TYPES.EXPENSE, groupBy};
+        mockResultsContext = {currentSearchResults: buildSnapshot(true), shouldUseLiveData: false};
+
+        // When the column picker renders
+        render(<SearchColumnsPage />);
+
+        // Then no aggregate columns are offered that would have no effect on the table
+        expect(capturedProps.groupColumns).toEqual([]);
     });
 
     test('waits for the snapshot while a sort is in flight instead of seeding the static defaults', () => {

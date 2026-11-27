@@ -328,6 +328,157 @@ describe('getDynamicFieldErrors', () => {
         expect(errors).toEqual({[addressKeys.city]: required, [addressKeys.state]: required, [addressKeys.zipCode]: required, [addressKeys.country]: required});
     });
 
+    it('takes the states and countries from the field when the schema lists them', () => {
+        // Given an address whose schema lists two countries and the states of the picked one, which the App has no list of
+        const homeAddress: DynamicFormField = {
+            key: 'homeAddress',
+            type: 'address',
+            required: true,
+            countries: [CONST.COUNTRY.GB, CONST.COUNTRY.MX],
+            states: [{key: 'JAL', label: 'Jalisco'}],
+        };
+        const addressKeys = getAddressInputKeys(homeAddress.key);
+        const mexicanAddress = {homeAddress: '1 Main Street', [addressKeys.city]: 'Guadalajara', [addressKeys.zipCode]: '44100', [addressKeys.country]: CONST.COUNTRY.MX};
+
+        // When it is validated without a state, with a listed state, with a state outside the list, and in a country outside the list
+        const missingStateErrors = getDynamicFieldErrors([homeAddress], mexicanAddress, translateLocal);
+        const listedStateErrors = getDynamicFieldErrors([homeAddress], {...mexicanAddress, [addressKeys.state]: 'JAL'}, translateLocal);
+        const unlistedStateErrors = getDynamicFieldErrors([homeAddress], {...mexicanAddress, [addressKeys.state]: 'Jalisco'}, translateLocal);
+        const unlistedCountryErrors = getDynamicFieldErrors([homeAddress], {...mexicanAddress, [addressKeys.state]: 'JAL', [addressKeys.country]: CONST.COUNTRY.US}, translateLocal);
+
+        // Then only a listed state in a listed country passes, since the pickers show nothing else
+        const required = translateLocal('common.error.fieldRequired');
+        expect(missingStateErrors).toEqual({[addressKeys.state]: required});
+        expect(listedStateErrors).toEqual({});
+        expect(unlistedStateErrors).toEqual({[addressKeys.state]: required});
+        expect(unlistedCountryErrors).toEqual({[addressKeys.country]: required});
+    });
+
+    it('asks for no US state before a country is picked when the field does not take US addresses', () => {
+        // Given a required address with no country picked yet, under a schema that takes Georgia only and one that takes every country
+        const addressKeys = getAddressInputKeys('homeAddress');
+        const georgianOnly: DynamicFormField = {key: 'homeAddress', type: 'address', required: true, countries: ['GE']};
+        const anyCountry: DynamicFormField = {key: 'homeAddress', type: 'address', required: true};
+        const values = {homeAddress: '1 Main Street', [addressKeys.city]: 'Tbilisi', [addressKeys.zipCode]: '0105'};
+
+        // When each is validated
+        const georgianOnlyErrors = getDynamicFieldErrors([georgianOnly], values, translateLocal);
+        const anyCountryErrors = getDynamicFieldErrors([anyCountry], values, translateLocal);
+
+        // Then only the country is asked where the US is not allowed, since a US state could never be right there
+        const required = translateLocal('common.error.fieldRequired');
+        expect(georgianOnlyErrors).toEqual({[addressKeys.country]: required});
+        expect(anyCountryErrors).toEqual({[addressKeys.state]: required, [addressKeys.country]: required});
+    });
+
+    it('takes every country when the schema sends an empty country list', () => {
+        // Given a complete British address under a schema whose country list is empty
+        const addressKeys = getAddressInputKeys('homeAddress');
+        const homeAddress: DynamicFormField = {key: 'homeAddress', type: 'address', required: true, countries: []};
+        const values = {homeAddress: '1 High Street', [addressKeys.city]: 'London', [addressKeys.zipCode]: 'SW1W 9SR', [addressKeys.country]: CONST.COUNTRY.GB};
+
+        // When it is validated
+        const errors = getDynamicFieldErrors([homeAddress], values, translateLocal);
+
+        // Then the country passes, since an empty list would otherwise leave no country to pick and the form could never be sent
+        expect(errors).toEqual({});
+    });
+
+    it('flags a street longer than the field takes', () => {
+        // Given a British address under a schema whose street takes 20 characters, with a longer street as an address search pick can fill in
+        const addressKeys = getAddressInputKeys('homeAddress');
+        const homeAddress: DynamicFormField = {key: 'homeAddress', type: 'address', required: true, maxLength: 20};
+        const street = '123 Buckingham Palace Road';
+        const values = {homeAddress: street, [addressKeys.city]: 'London', [addressKeys.zipCode]: 'SW1W 9SR', [addressKeys.country]: CONST.COUNTRY.GB};
+
+        // When it is validated
+        const errors = getDynamicFieldErrors([homeAddress], values, translateLocal);
+
+        // Then the street is flagged before the form is sent, since typing could never have made it that long
+        expect(errors).toEqual({homeAddress: translateLocal('common.error.characterLimitExceedCounter', street.length, 20)});
+    });
+
+    it('checks a filled-in city against the format the schema sends', () => {
+        // Given a British address under a schema whose city takes 10 characters, with a longer city
+        const addressKeys = getAddressInputKeys('homeAddress');
+        const homeAddress: DynamicFormField = {key: 'homeAddress', type: 'address', required: true, cityFormat: {maxLength: 10}};
+        const city = 'Stoke-on-Trent';
+        const values = {homeAddress: '1 High Street', [addressKeys.city]: city, [addressKeys.zipCode]: 'ST1 1AA', [addressKeys.country]: CONST.COUNTRY.GB};
+
+        // When it is validated
+        const errors = getDynamicFieldErrors([homeAddress], values, translateLocal);
+
+        // Then the city is flagged on its own input before the form is sent
+        expect(errors).toEqual({[addressKeys.city]: translateLocal('common.error.characterLimitExceedCounter', city.length, 10)});
+    });
+
+    it('checks a filled-in zip against the format the schema sends', () => {
+        // Given a US address under a schema that sends the zip's pattern and longest length
+        const addressKeys = getAddressInputKeys('homeAddress');
+        const homeAddress: DynamicFormField = {
+            key: 'homeAddress',
+            type: 'address',
+            required: true,
+            zipCodeFormat: {regex: String.raw`^(?:\d{5}(-\d{4})?)$`, maxLength: 32, example: '10118'},
+        };
+        const values = {homeAddress: '350 5th Avenue', [addressKeys.city]: 'New York', [addressKeys.state]: 'NY', [addressKeys.country]: CONST.COUNTRY.US};
+
+        // When it is validated with a zip that fits the pattern and one that does not
+        const validErrors = getDynamicFieldErrors([homeAddress], {...values, [addressKeys.zipCode]: '10118'}, translateLocal);
+        const invalidErrors = getDynamicFieldErrors([homeAddress], {...values, [addressKeys.zipCode]: '1011'}, translateLocal);
+
+        // Then the wrong zip is flagged on its own input before the form is sent, with the schema's example
+        expect(validErrors).toEqual({});
+        expect(invalidErrors).toEqual({[addressKeys.zipCode]: translateLocal('dynamicForm.error.invalidFormat', {example: '10118'})});
+    });
+
+    it('does not treat a hidden zip as a started address', () => {
+        // Given an optional address with nothing typed, whose draft still holds a zip from an earlier pick, under a schema that asks for no zip
+        const addressKeys = getAddressInputKeys('homeAddress');
+        const homeAddress: DynamicFormField = {key: 'homeAddress', type: 'address', required: false, isZipCodeAsked: false};
+
+        // When it is validated
+        const errors = getDynamicFieldErrors([homeAddress], {[addressKeys.zipCode]: 'SW1W 9SR'}, translateLocal);
+
+        // Then nothing is asked, since the user cannot see or clear the zip that would make the address look started
+        expect(errors).toEqual({});
+    });
+
+    it('requires the zip only where the schema asks for one', () => {
+        // Given an address in El Salvador, where the App does not require a zip, and one in Great Britain, where it does
+        const addressKeys = getAddressInputKeys('homeAddress');
+        const withZip: DynamicFormField = {key: 'homeAddress', type: 'address', required: true, rule: 'zipCode', isZipCodeAsked: true};
+        const withoutZip: DynamicFormField = {key: 'homeAddress', type: 'address', required: true, rule: 'zipCode', isZipCodeAsked: false};
+        const salvadoranAddress = {homeAddress: '1 Main Street', [addressKeys.city]: 'San Salvador', [addressKeys.country]: 'SV'};
+        const britishAddress = {homeAddress: '1 High Street', [addressKeys.city]: 'London', [addressKeys.country]: CONST.COUNTRY.GB};
+
+        // When each is validated under a schema that asks for the zip and under one that does not
+        const askedErrors = getDynamicFieldErrors([withZip], salvadoranAddress, translateLocal);
+        const skippedZipErrors = getDynamicFieldErrors([withoutZip], britishAddress, translateLocal);
+        const hiddenZipErrors = getDynamicFieldErrors([withoutZip], {...britishAddress, [addressKeys.zipCode]: '10001'}, translateLocal);
+
+        // Then the schema decides, and a zip left in the draft of a hidden input is not checked, since the user cannot fix it
+        expect(askedErrors).toEqual({[addressKeys.zipCode]: translateLocal('common.error.fieldRequired')});
+        expect(skippedZipErrors).toEqual({});
+        expect(hiddenZipErrors).toEqual({});
+    });
+
+    it('asks for no state when the schema lists none, even in a country the App has states for', () => {
+        // Given a US address whose schema sends an empty state list
+        const homeAddress: DynamicFormField = {key: 'homeAddress', type: 'address', required: true, states: []};
+        const addressKeys = getAddressInputKeys(homeAddress.key);
+
+        // When it is validated without a state
+        const errors = getDynamicFieldErrors(
+            [homeAddress],
+            {homeAddress: '350 5th Avenue', [addressKeys.city]: 'New York', [addressKeys.zipCode]: '10118', [addressKeys.country]: CONST.COUNTRY.US},
+            translateLocal,
+        );
+
+        // Then nothing is flagged, since the schema decides which states exist
+        expect(errors).toEqual({});
+    });
+
     it('checks an optional address like a required one once the user starts filling it in', () => {
         // Given an optional address
         const homeAddress: DynamicFormField = {key: 'homeAddress', type: 'address', required: false};

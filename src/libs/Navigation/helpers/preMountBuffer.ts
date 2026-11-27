@@ -340,6 +340,17 @@ function removePreInsertedFullscreenIfNeeded() {
         if (originalTabName) {
             requestAnimationFrame(() => {
                 const currentState = navigationRef.getRootState();
+
+                // Jumping to the tab the user started on is a no-op that leaves the pre-inserted screen on top, so restore it instead
+                const tabNavIndex = currentState?.routes.findIndex((r) => r.key === originalTabRoute.key) ?? -1;
+                const tabNavState = tabNavIndex >= 0 ? currentState?.routes.at(tabNavIndex)?.state : undefined;
+                const currentTabName = tabNavState?.routes.at(tabNavState.index ?? 0)?.name;
+                if (currentState && currentTabName === originalTabName) {
+                    const newRoutes = currentState.routes.map((r, index) => (index === tabNavIndex ? originalTabRoute : r));
+                    navigationRef.current?.dispatch(CommonActions.reset({...currentState, routes: newRoutes, index: newRoutes.length - 1}));
+                    return;
+                }
+
                 const tabNavRoute = currentState?.routes.findLast((r) => r.name === NAVIGATORS.TAB_NAVIGATOR);
                 if (!tabNavRoute?.state?.key) {
                     return;
