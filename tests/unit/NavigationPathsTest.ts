@@ -32,27 +32,16 @@ const UNCLASSIFIED_ROUTES = new Set<string>([
     CONST.TAB.RECEIPT_PARTNERS.OUTSTANDING,
 ]);
 
-// Pages Expensify Classic serves at the root of its host: every top-level PHP file, which nginx serves without the extension, and every directory.
+// Pages Expensify Classic serves at the root of its host that a New Expensify route is most likely to share a name or a first segment with.
+// The experience router checks every Classic page against the same patterns.
 // `concierge` is left out, because only the directory `/concierge/` is Classic's.
 // cspell:disable
 const CLASSIC_PAGES = [
-    ...['accessibility', 'accountants', 'achAuthentication', 'achterms', 'activate', 'addcreditcard', 'admin', 'admin_companycards', 'admin_domains'],
-    ...['admin_groups', 'admin_members', 'admin_policies', 'admin_reconciliation', 'analytics', 'api', 'apiCommandTypes', 'approve'],
-    ...['bancorp-bank-wallet-terms-of-service', 'beta', 'browserupgrade', 'card', 'case', 'chart', 'chat', 'commercialcardagreement'],
-    ...['commercialcardprogramterms', 'confirm2', 'connections', 'csvExport', 'csvtojson', 'customers', 'dashboard', 'disable-reminders'],
-    ...['domain_admins', 'domain_companycards', 'domain_groups', 'domain_loadingDock', 'domain_members', 'domain_saml', 'domain_travelBilling'],
-    ...['domain_travelInvoicing', 'domain_travelreport', 'easy-money', 'ecardstatement', 'eeacardagreement', 'emailReportAction', 'esignagreement'],
-    ...['expenses', 'expensify-payments-wallet-terms-of-service', 'fees', 'help', 'help-search', 'home', 'iframe_addExpensifyCardDetails', 'inbox'],
-    ...['index', 'installmobileapp', 'integrateGusto', 'integrateZenefits', 'integrationServerProxy', 'intuit_subscription', 'invoice', 'invoices'],
-    ...['invoicing', 'join', 'jsontocsv', 'jsontoxls', 'jsontoxlsx', 'karmaprogramterms', 'mobile', 'newbankform', 'newdotreport', 'npsSurvey', 'old'],
-    ...['onsignin', 'onsignup', 'partnerSignin', 'paymentsentities', 'payrollterms', 'pdfmap3', 'pdfreport', 'ping', 'plans', 'policy', 'press'],
-    ...['price', 'pricing', 'printablemileage3', 'printablereport', 'printabletravelreport', 'privacy', 'receipt2', 'receipts', 'redirectToSpotnana'],
-    ...['report', 'reports', 'resetpassword', 'secure', 'setLocalValidateCode', 'settings', 'setup', 'signin', 'signout', 'signup', 'smartreports'],
-    ...['statement', 'terms', 'tplprivacy', 'tpmlprivacy', 'travel', 'TravelBillingStatement', 'travelterms', 'trips', 'twt', 'ukcardagreement'],
-    ...['ukeeacommercialcardprogramterms', 'uklaunch', 'unlimited', 'unlink-email', 'unsubscribe', 'upgrade', 'UrbanAirshipAPITest', 'user'],
-    ...['validate-email', 'verifyReceipt', 'wifiRedirect', 'wifiSuccess', 'www-dev-config', 'xero', 'xlstojson'],
-    ...['apiassets', 'authentication', 'build', 'cdn', 'errors', 'expensiworks', 'font', 'homepage', 'js', 'm', 'mcp', 'newjs'],
-    ...['newtemplates', 'notifications', 'oauth', 'openID', 'pages', 'partners', 'site', 'statements', 'v', 'u'],
+    ...['accessibility', 'accountants', 'activate', 'admin', 'admin_policies', 'analytics', 'api', 'approve', 'beta', 'card', 'case', 'chart', 'chat'],
+    ...['connections', 'customers', 'dashboard', 'domain_members', 'expenses', 'fees', 'help', 'home', 'inbox', 'index', 'invoice', 'invoices'],
+    ...['invoicing', 'join', 'mobile', 'notifications', 'partners', 'plans', 'policy', 'press', 'price', 'pricing', 'privacy', 'receipts', 'report'],
+    ...['reports', 'secure', 'settings', 'setup', 'signin', 'signout', 'signup', 'statement', 'statements', 'terms', 'travel', 'trips', 'u'],
+    ...['unlimited', 'upgrade', 'user', 'v', 'xero'],
 ];
 // cspell:enable
 
