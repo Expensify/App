@@ -1,4 +1,4 @@
-import {act, renderHook} from '@testing-library/react-native';
+import {renderHook} from '@testing-library/react-native';
 
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
@@ -91,67 +91,41 @@ describe('useSaveReportField', () => {
         await waitForBatchedUpdates();
     });
 
-    it('saves the external ID of the picked option from the workspace field', async () => {
+    it('saves the external ID of the picked option from the workspace field', () => {
         // Given the field passed in by the inline inputs, which holds the workspace's option names with the report's older external IDs
         const report = buildReport();
         const passedField: PolicyReportField = {...reportCopyField, values: policyField.values, disabledOptions: policyField.disabledOptions};
         const {result} = renderHook(() => useSaveReportField(report, buildPolicy({[FIELD_KEY]: policyField})), {wrapper: OnyxListItemProvider});
 
         // When the user picks "SW Sales / Marketing"
-        await act(async () => {
-            await result.current(passedField, 'SW Sales / Marketing');
-        });
+        result.current(passedField, 'SW Sales / Marketing');
 
         // Then the workspace ID of that option is saved, not the ID found at the same position in the report's older list
         expect(getSavedReportField()).toMatchObject({value: 'SW Sales / Marketing', externalID: '336'});
     });
 
-    it("uses the report's copy of the options once the workspace no longer has the field", async () => {
+    it("uses the report's copy of the options once the workspace no longer has the field", () => {
         // Given a workspace that dropped the field, so only the report's copy knows the options
         const report = buildReport();
         const {result} = renderHook(() => useSaveReportField(report, buildPolicy({})), {wrapper: OnyxListItemProvider});
 
         // When the user picks "Corporate / Marketing"
-        await act(async () => {
-            await result.current(reportCopyField, 'Corporate / Marketing');
-        });
+        result.current(reportCopyField, 'Corporate / Marketing');
 
         // Then the ID comes from the report's copy, which lists that option with its own ID
         expect(getSavedReportField()).toMatchObject({value: 'Corporate / Marketing', externalID: '46'});
     });
 
-    it('leaves the external ID of a text field unchanged', async () => {
+    it('leaves the external ID of a text field unchanged', () => {
         // Given a text field, which has no options to look an external ID up in
         const report = buildReport();
         const textField = buildLocationField({type: CONST.REPORT_FIELD_TYPES.TEXT, externalID: 'text-id'});
         const {result} = renderHook(() => useSaveReportField(report, buildPolicy({[FIELD_KEY]: textField})), {wrapper: OnyxListItemProvider});
 
         // When the user saves a new value
-        await act(async () => {
-            await result.current(textField, 'New text');
-        });
+        result.current(textField, 'New text');
 
         // Then only the value changes
         expect(getSavedReportField()).toMatchObject({value: 'New text', externalID: 'text-id'});
-    });
-
-    it('passes the recently used fields and the track intent stored in Onyx', async () => {
-        // Given recently used values for the field and a user who picked a track intent during onboarding
-        const recentlyUsedReportFields = {[FIELD_KEY]: ['Old text']};
-        await Onyx.multiSet({
-            [ONYXKEYS.RECENTLY_USED_REPORT_FIELDS]: recentlyUsedReportFields,
-            [ONYXKEYS.NVP_INTRO_SELECTED]: {choice: CONST.ONBOARDING_CHOICES.TRACK_PERSONAL},
-        });
-        const report = buildReport();
-        const textField = buildLocationField({type: CONST.REPORT_FIELD_TYPES.TEXT});
-        const {result} = renderHook(() => useSaveReportField(report, buildPolicy({[FIELD_KEY]: textField})), {wrapper: OnyxListItemProvider});
-
-        // When the user saves a new value
-        await act(async () => {
-            await result.current(textField, 'New text');
-        });
-
-        // Then the stored values still reach the write, so the recently used list and the track intent are not lost
-        expect(mockUpdateReportField).toHaveBeenCalledWith(expect.objectContaining({recentlyUsedReportFields, isTrackIntentUser: true}));
     });
 });

@@ -50,6 +50,8 @@ function useSignOut() {
     const [isActingAsDelegate = false] = useOnyx(ONYXKEYS.ACCOUNT, {
         selector: isActingAsDelegateSelector,
     });
+    const [stashedCredentials = CONST.EMPTY_OBJECT] = useOnyx(ONYXKEYS.STASHED_CREDENTIALS);
+    const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION);
 
     const showOfflineModal = () => {
         showConfirmModal({
@@ -174,7 +176,6 @@ function useSignOut() {
             return;
         }
 
-        const [stashedCredentials = CONST.EMPTY_OBJECT, stashedSession] = await Onyx.multiGet([ONYXKEYS.STASHED_CREDENTIALS, ONYXKEYS.STASHED_SESSION]);
         const leaveAction = () => disconnect({stashedCredentials, stashedSession});
 
         if (isTrackingGPS) {

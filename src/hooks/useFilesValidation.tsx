@@ -50,7 +50,7 @@ function discardRejectedReceiptFile(file: FileObject | undefined) {
     });
 }
 
-function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransferItems: DataTransferItem[]) => void | Promise<void>) {
+function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransferItems: DataTransferItem[]) => void) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
