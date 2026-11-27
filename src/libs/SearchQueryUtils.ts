@@ -97,7 +97,7 @@ import {temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {getCleanedTagName, getValidConnectedIntegration} from './PolicyUtils';
 import {getReportName} from './ReportNameUtils';
 import {parseAmountFilterValue, supportsAmountFilterCurrency} from './SearchAmountFilterUtils';
-import {getCustomColumns, getSortByForColumn} from './SearchColumnsUtils';
+import {getCustomColumns, getSortByForColumn, isColumnAvailableForViolationFilter} from './SearchColumnsUtils';
 import {TODO_SEARCH_KEYS} from './SearchKeyUtils';
 import {parse as parseSearchQuery} from './SearchParser/searchParser';
 import {getPinnedColumns, getPinsOnSavedColumns} from './SearchPinnedColumnsUtils';
@@ -1749,9 +1749,8 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     }
 
     if (columns?.length) {
-        // Violations is only meaningful with has:submitted-violation / has:approved-violation.
-        const shouldIncludeViolationsColumn = hasValuesIncludeViolationFilter(supportedFilterValues.has);
-        const filterValueArray = [...new Set<string>(columns)].filter((column) => shouldIncludeViolationsColumn || column !== CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
+        const hasViolationFilter = hasValuesIncludeViolationFilter(supportedFilterValues.has);
+        const filterValueArray = [...new Set<string>(columns)].filter((column) => isColumnAvailableForViolationFilter(column, hasViolationFilter));
         if (filterValueArray.length) {
             filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS}:${filterValueArray.map((value) => sanitizeSearchValue(value)).join(',')}`);
         }

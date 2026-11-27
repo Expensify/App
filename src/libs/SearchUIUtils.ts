@@ -5824,6 +5824,27 @@ function getValidGroupBy(groupBy: string | undefined): SearchGroupBy | undefined
     return groupBy && isGroupBySupportedBySearch(groupBy) && isSearchGroupBy(groupBy) ? groupBy : undefined;
 }
 
+/**
+ * Whether the table on screen can still sort and edit its columns for the search the user is on. While a new search loads, the page keeps
+ * the previous results on screen. When the new search has another type, grouping or view, its table has other columns and sort options
+ * (switching to a line chart, for example, resets the sort so time runs forward), so the column actions of the table on screen don't apply.
+ */
+function canEditShownSearchTable(shownQueryJSON: Readonly<SearchQueryJSON>, currentSearchQueryJSON: Readonly<SearchQueryJSON>): boolean {
+    return (
+        shownQueryJSON.type === currentSearchQueryJSON.type &&
+        getValidGroupBy(shownQueryJSON.groupBy) === getValidGroupBy(currentSearchQueryJSON.groupBy) &&
+        shownQueryJSON.view === currentSearchQueryJSON.view
+    );
+}
+
+/**
+ * Whether the results on screen are the results of the search the user is on. They aren't while a new search loads and the page keeps the
+ * previous results on screen. Changes that keep the same results, like column pins, are left out of the hash, so they don't count.
+ */
+function hasSameSearchResults(shownQueryJSON: Readonly<SearchQueryJSON>, currentSearchQueryJSON: Readonly<SearchQueryJSON>): boolean {
+    return shownQueryJSON.hash === currentSearchQueryJSON.hash;
+}
+
 function getStatusOptions(translate: LocalizedTranslate, type: SearchDataTypes, shouldReturnTripRooms = false) {
     switch (type) {
         case CONST.SEARCH.DATA_TYPES.INVOICE:
@@ -8722,6 +8743,8 @@ export {
     isSearchDataLoaded,
     isSearchPending,
     getValidGroupBy,
+    canEditShownSearchTable,
+    hasSameSearchResults,
     getTypeOptions,
     getSortByOptions,
     getSortOrderOptions,

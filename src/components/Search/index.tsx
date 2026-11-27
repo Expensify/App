@@ -53,10 +53,12 @@ import {getPinnedColumnOrder, getQueryWithPinnedColumns, NO_PINNED_COLUMNS} from
 import {buildCannedSearchQuery, buildSearchQueryString, getFilterFromQuery} from '@libs/SearchQueryUtils';
 import {
     canEditSearchColumns,
+    canEditShownSearchTable,
     createAndOpenSearchTransactionThread,
     doesSearchItemMatchSort,
     getValidGroupBy,
     getWideAmountIndicators,
+    hasSameSearchResults,
     isCashBackWithdrawalGroup,
     isCreatedDateType,
     isGroupedItemArray,
@@ -141,6 +143,11 @@ import TaskSearchView from './TaskSearchView';
 import TripSearchView from './TripSearchView';
 
 type SearchProps = {
+    /**
+     * The query whose results are on screen. While a new search loads, the page keeps showing the previous results, so until the new ones
+     * arrive this is the previous query, not the search the user is on. Actions that start another search, like sorting, build on the
+     * current search from `useSearchQueryContext()` instead.
+     */
     queryJSON: SearchQueryJSON;
     hasFilterBars?: boolean;
     onSearchListScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
@@ -183,7 +190,7 @@ function Search({
     const isFocused = useIsFocused();
 
     const {markReportRHPWidth} = useWideRHPActions();
-    const {currentSearchHash, currentSearchKey, shouldResetSearchQuery, suggestedSearches} = useSearchQueryContext();
+    const {currentSearchHash, currentSearchKey, currentSearchQueryJSON: contextSearchQueryJSON, shouldResetSearchQuery, suggestedSearches} = useSearchQueryContext();
     const {lastSearchType, shouldUseLiveData} = useSearchResultsContext();
 
     const {setShouldResetSearchQuery} = useSearchQueryActions();
@@ -1023,8 +1030,15 @@ function Search({
 
     const previousColumns = usePrevious(currentColumns);
     const [columnsToShow, setColumnsToShow] = useState<SearchColumnType[]>(getEmptyArray);
-    const columnEditing = useSearchColumnEditing(queryJSON, columnsToShow);
-    const pinSearchColumn = usePinSearchColumn(queryJSON, currentSearchKey);
+    // While a new search loads, the page keeps the previous results on screen, so `queryJSON` describes those results, not the search the
+    // user is on. Sorting and column changes build on `currentSearchQueryJSON` instead, so they don't undo what the new search changed.
+    const currentSearchQueryJSON = contextSearchQueryJSON ?? queryJSON;
+    const canEditShownTable = canEditShownSearchTable(queryJSON, currentSearchQueryJSON);
+    // A chart that still shows the previous results can't be drilled into, because a pressed bar's range could contradict the new search,
+    // like a March bar under a Last month date filter, and open an empty list.
+    const isShowingCurrentSearchResults = hasSameSearchResults(queryJSON, currentSearchQueryJSON);
+    const columnEditing = useSearchColumnEditing(queryJSON, currentSearchQueryJSON, columnsToShow);
+    const pinSearchColumn = usePinSearchColumn(queryJSON, currentSearchQueryJSON, currentSearchKey);
     // Only a table whose column menu offers pin items honors pins, so grouped tables and tables without the beta keep their own order.
     const shouldPinColumns = shouldShowColumnMenu && canEditColumns && pinSearchColumn.canPinColumns;
     // Pinning only moves columns the table already shows, so it reorders them at once instead of fading them like a column change.
@@ -1424,14 +1438,14 @@ function Search({
         (column: SearchSortBy, order: SortOrder) => {
             clearSelectedTransactions();
             const newQuery = buildSearchQueryString({
-                ...queryJSON,
+                ...currentSearchQueryJSON,
                 sortBy: column,
                 sortOrder: order,
             });
             onSortPressedCallback?.();
             navigation.setParams({q: newQuery, rawQuery: undefined});
         },
-        [clearSelectedTransactions, queryJSON, onSortPressedCallback, navigation],
+        [clearSelectedTransactions, currentSearchQueryJSON, onSortPressedCallback, navigation],
     );
 
     // When heavy work is deferred (e.g. during the RHP dismiss animation after
@@ -1609,6 +1623,7 @@ function Search({
                                 groupBy={validGroupBy}
                                 data={sortedData}
                                 isLoading={shouldShowLoadingState}
+                                shouldDrillDownOnPress={isShowingCurrentSearchResults}
                             />
                         </SearchChartWrapper>
                     </View>
@@ -1645,13 +1660,13 @@ function Search({
                 shouldShowYearWithdrawn={shouldShowYearWithdrawn}
                 isAmountColumnWide={shouldShowAmountInWideColumn}
                 isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}
-                shouldShowSorting
+                shouldShowSorting={canEditShownTable}
                 groupBy={validGroupBy}
                 // Trip rows share the expense report layout (Total without flex), so the header aligns the same way
                 isExpenseReportView={isExpenseReportType || shouldReturnTripRooms}
                 isActionColumnWide={isActionColumnWide}
             >
-                {shouldShowColumnMenu && (
+                {shouldShowColumnMenu && canEditShownTable && (
                     <SortableColumnMenu
                         columnEditing={canEditColumns ? columnEditing : undefined}
                         sentryLabel={CONST.SENTRY_LABEL.SEARCH.COLUMN_MENU}

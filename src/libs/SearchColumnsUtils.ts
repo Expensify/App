@@ -80,6 +80,14 @@ function getRequiredSearchColumns(shouldRequireViolationsColumn: boolean): Set<S
     return requiredColumns;
 }
 
+/**
+ * Whether a column can be saved and shown for a search. The Violations column only applies to a search that filters by violations, since
+ * only those searches return violation data, so it's left out of every other search.
+ */
+function isColumnAvailableForViolationFilter(column: string, hasViolationFilter: boolean): boolean {
+    return hasViolationFilter || column !== CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS;
+}
+
 function getSortByForColumn(column: SearchColumnType): SearchSortBy {
     // The trip columns sort by the trip search's own sort keys
     if (column === CONST.SEARCH.TABLE_COLUMNS.START_DATE) {
@@ -100,4 +108,4 @@ function getSortByForColumn(column: SearchColumnType): SearchSortBy {
     return column;
 }
 
-export {groupByRequiredColumns, getCustomColumns, getRequiredSearchColumns, getSortByForColumn};
+export {groupByRequiredColumns, getCustomColumns, getRequiredSearchColumns, getSortByForColumn, isColumnAvailableForViolationFilter};

@@ -11,7 +11,7 @@ import type {SearchListItem, TransactionListItemType, TransactionReportGroupList
 import SearchLoadingSkeleton from '@components/Search/SearchLoadingSkeleton';
 import type {CommonSearchViewProps} from '@components/Search/searchViewProps';
 import type * as SearchWriteActionsProviderModule from '@components/Search/SearchWriteActionsProvider';
-import type {SearchData, SearchSelectionActionsValue, SelectedTransactionInfo} from '@components/Search/types';
+import type {SearchData, SearchSelectionActionsValue, SearchSortBy, SelectedTransactionInfo, SortOrder} from '@components/Search/types';
 import {PlaybackContextProvider} from '@components/VideoPlayerContexts/PlaybackContext';
 import type * as PlaybackContextModule from '@components/VideoPlayerContexts/PlaybackContext';
 import type * as WideRHPContextProviderModule from '@components/WideRHPContextProvider';
@@ -30,6 +30,7 @@ import navigationRef from '@libs/Navigation/navigationRef';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
+import {markQueryAsRefinement} from '@libs/SearchQueryRefinement';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import {getSuggestedSearches} from '@libs/SearchUIUtils';
 
@@ -108,9 +109,10 @@ jest.mock('@libs/Navigation/helpers/wideTabPreMountRouteKey', () => ({
 }));
 
 const mockIsNavigationFocused = jest.fn(() => true);
+const mockNavigationSetParams = jest.fn<void, [{q?: string}]>();
 jest.mock('@react-navigation/core', () => ({
     ...jest.requireActual<typeof CoreNavigation>('@react-navigation/core'),
-    useNavigation: jest.fn(() => ({getState: jest.fn(() => undefined), isFocused: mockIsNavigationFocused})),
+    useNavigation: jest.fn(() => ({getState: jest.fn(() => undefined), isFocused: mockIsNavigationFocused, setParams: mockNavigationSetParams})),
 }));
 
 type ListProps = {
@@ -181,6 +183,18 @@ jest.mock('@components/Search/ExpenseReportSearchView', () => {
         return createElement(ExpenseReportSearchView, props);
     }
     return {__esModule: true, default: MockExpenseReportSearchView};
+});
+
+// The props <Search> hands the flat Expenses view, which carry the column order the table header and rows draw.
+const mockRenderExpenseFlatSearchView = jest.fn<void, [CommonSearchViewProps]>();
+jest.mock('@components/Search/ExpenseFlatSearchView', () => {
+    const {createElement} = jest.requireActual<typeof React>('react');
+    const {default: ExpenseFlatSearchView} = jest.requireActual<{default: (props: CommonSearchViewProps) => React.ReactNode}>('@components/Search/ExpenseFlatSearchView');
+    function MockExpenseFlatSearchView(props: CommonSearchViewProps) {
+        mockRenderExpenseFlatSearchView(props);
+        return createElement(ExpenseFlatSearchView, props);
+    }
+    return {__esModule: true, default: MockExpenseFlatSearchView};
 });
 
 // Spies on the shared video player reset, keeping the rest of the playback context real.
@@ -351,6 +365,62 @@ function getSearchPage(query = SearchQueryUtils.buildSearchQueryString(failedQue
 
 const renderPage = (query = SearchQueryUtils.buildSearchQueryString(failedQueryJSON), isInPreloadedTab = false) => render(getSearchPage(query, isInPreloadedTab));
 
+const PINNED_EXPENSE_QUERY = `${EXPENSE_QUERY} ${CONST.SEARCH.SYNTAX_ROOT_KEYS.LEFT_PINNED_COLUMNS}:${CONST.SEARCH.TABLE_COLUMNS.MERCHANT}`;
+
+/** Renders the wide Expenses table with cached results and the pinnable columns beta, then pins Merchant, which only swaps the route's query. */
+async function renderPinnedExpenseTable() {
+    mockUseResponsiveLayout.mockReturnValue(createMock<ReturnType<typeof useResponsiveLayout>>({shouldUseNarrowLayout: false, isSmallScreenWidth: false, isLargeScreenWidth: true}));
+    mockSearchQueryParam.mockReturnValue(EXPENSE_QUERY);
+    await act(async () => {
+        await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.PINNABLE_TABLE_COLUMNS]);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${expenseQueryJSON?.hash}`, getExpenseSnapshot(false));
+    });
+    const renderResult = renderPage(EXPENSE_QUERY);
+    await act(async () => {
+        jest.runAllTimers();
+    });
+
+    mockSearchQueryParam.mockReturnValue(PINNED_EXPENSE_QUERY);
+    await act(async () => {
+        navigationRef.dispatch({...CommonActions.setParams({q: PINNED_EXPENSE_QUERY}), source: navigationRef.getCurrentRoute()?.key});
+    });
+    renderResult.rerender(getSearchPage(PINNED_EXPENSE_QUERY));
+    await act(async () => {
+        jest.runAllTimers();
+    });
+    return renderResult;
+}
+
+/** Applies a refinement to the pinned Expenses query through the filters path, without letting its results arrive, so the table holds the previous ones. */
+async function applyRefinementThatKeepsLoading(rerender: ReturnType<typeof render>['rerender'], refinement: string) {
+    const refinedQuery = SearchQueryUtils.buildSearchQueryString(SearchQueryUtils.buildSearchQueryJSON(`${PINNED_EXPENSE_QUERY} ${refinement}`));
+    mockRenderExpenseFlatSearchView.mockClear();
+    markQueryAsRefinement(refinedQuery);
+    mockSearchQueryParam.mockReturnValue(refinedQuery);
+    await act(async () => {
+        navigationRef.dispatch({...CommonActions.setParams({q: refinedQuery}), source: navigationRef.getCurrentRoute()?.key});
+    });
+    rerender(getSearchPage(refinedQuery));
+    await act(async () => {
+        jest.advanceTimersByTime(0);
+    });
+}
+
+type TableHeaderProps = {
+    onSortPress: (column: SearchSortBy, order: SortOrder) => void;
+    shouldShowSorting: boolean;
+
+    /** The column menu, which <Search> passes as the header's children */
+    children?: React.ReactNode;
+};
+
+/** The props <Search> gives its table header, read off the element it hands the view, since the mocked list never renders the header. */
+function getTableHeaderProps(viewProps: CommonSearchViewProps | undefined): TableHeaderProps | undefined {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test-only: <Search> wraps its SearchTableHeader in a single View
+    const header = viewProps?.SearchTableHeader as React.ReactElement<{children: React.ReactElement<TableHeaderProps>}> | undefined;
+    return header?.props.children.props;
+}
+
 describe('SearchPageNarrow', () => {
     beforeAll(() => {
         Onyx.init({
@@ -370,6 +440,8 @@ describe('SearchPageNarrow', () => {
             await Onyx.clear();
         });
         jest.clearAllMocks();
+        // The refinement mark lives in a module, so a query one test marks would otherwise still count as a refinement in the next
+        markQueryAsRefinement('');
     });
 
     beforeEach(() => {
@@ -614,6 +686,57 @@ describe('SearchPageNarrow', () => {
 
         // Then no search goes out, because pins only reorder the columns already loaded
         expect(mockSearch).not.toHaveBeenCalled();
+    });
+
+    it('keeps a pinned column pinned while a filter refinement loads', async () => {
+        // Given the wide Expenses table with Merchant pinned
+        const {rerender} = await renderPinnedExpenseTable();
+
+        // Then Merchant leads the table, because the pin reorders the loaded columns without a new search
+        expect(mockRenderExpenseFlatSearchView.mock.lastCall?.[0].columns.at(0)).toBe(CONST.SEARCH.TABLE_COLUMNS.MERCHANT);
+
+        // When a Status filter is applied through the filters UI, whose results have not arrived yet
+        await applyRefinementThatKeepsLoading(rerender, `status:${CONST.SEARCH.STATUS.EXPENSE.DRAFTS}`);
+
+        // Then the table still shows the unfiltered results while the filtered ones load, with Merchant still pinned,
+        // since the pins come from the search the user is on, which the filter left them in
+        const heldRender = mockRenderExpenseFlatSearchView.mock.lastCall?.[0];
+        expect(heldRender?.queryJSON.hash).toBe(expenseQueryJSON?.hash);
+        expect(heldRender?.columns.at(0)).toBe(CONST.SEARCH.TABLE_COLUMNS.MERCHANT);
+    });
+
+    it('keeps a filter whose results are still loading when the table is sorted', async () => {
+        // Given the wide Expenses table with Merchant pinned, still showing the unfiltered results while a Draft filter loads
+        const {rerender} = await renderPinnedExpenseTable();
+        await applyRefinementThatKeepsLoading(rerender, `status:${CONST.SEARCH.STATUS.EXPENSE.DRAFTS}`);
+
+        // When the table is sorted by Merchant before the filtered results arrive
+        await act(async () => {
+            getTableHeaderProps(mockRenderExpenseFlatSearchView.mock.lastCall?.[0])?.onSortPress(CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.SORT_ORDER.ASC);
+        });
+
+        // Then the sorted search still has the Draft filter and the pin, because a sort must not undo a filter the user just applied
+        const sortedQueryJSON = SearchQueryUtils.buildSearchQueryJSON(mockNavigationSetParams.mock.lastCall?.[0].q ?? '');
+        expect(sortedQueryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.MERCHANT);
+        expect(SearchQueryUtils.getFilterFromQuery(sortedQueryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS).value).toEqual([CONST.SEARCH.STATUS.EXPENSE.DRAFTS]);
+        expect([sortedQueryJSON?.leftPinnedColumns ?? []].flat()).toEqual([CONST.SEARCH.TABLE_COLUMNS.MERCHANT]);
+    });
+
+    it('offers no column actions on the table on screen while a refinement that regroups it loads', async () => {
+        // Given the wide Expenses table with Merchant pinned, whose header offers the column menu and sorting
+        const {rerender} = await renderPinnedExpenseTable();
+        const loadedHeaderProps = getTableHeaderProps(mockRenderExpenseFlatSearchView.mock.lastCall?.[0]);
+        expect(loadedHeaderProps?.shouldShowSorting).toBe(true);
+        expect(loadedHeaderProps?.children).toBeTruthy();
+
+        // When it is grouped by category, whose results have not arrived yet
+        await applyRefinementThatKeepsLoading(rerender, `group-by:${CONST.SEARCH.GROUP_BY.CATEGORY}`);
+
+        // Then the expense table still on screen offers neither sorting nor the column menu, because its columns and sorts don't apply
+        // to the grouped search the user is on
+        const heldHeaderProps = getTableHeaderProps(mockRenderExpenseFlatSearchView.mock.lastCall?.[0]);
+        expect(heldHeaderProps?.shouldShowSorting).toBe(false);
+        expect(heldHeaderProps?.children).toBeFalsy();
     });
 
     it('does not request a query again when the persisted response marks it invalid', async () => {
