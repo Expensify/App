@@ -65,6 +65,7 @@ module.exports = {
     // Restarts a worker between suites once it holds this much memory, so long-lived CI workers don't get OOM killed.
     workerIdleMemoryLimit: '2GB',
     cacheDirectory: '<rootDir>/.jest-cache',
+    dependencyExtractor: '<rootDir>/jest/dependencyExtractor.js',
     coverageReporters: ['json', 'lcov', 'text-summary'],
     moduleNameMapper: {
         '\\.(lottie)$': '<rootDir>/__mocks__/fileMock.ts',
