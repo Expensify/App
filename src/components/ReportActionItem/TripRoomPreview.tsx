@@ -1,6 +1,8 @@
 import Button from '@components/Button';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import Icon from '@components/Icon';
+import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import {useSession} from '@components/OnyxListItemProvider';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import {showContextMenuForReport, useShowContextMenuActions, useShowContextMenuState} from '@components/ShowContextMenuContext';
 import StatusBadge from '@components/StatusBadge';
@@ -35,6 +37,8 @@ import {
 } from '@libs/TripReservationUtils';
 
 import variables from '@styles/variables';
+
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -71,6 +75,7 @@ function ReservationView({reservation, onPress, isCancelled}: ReservationViewPro
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const session = useSession();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plane', 'PlaneCircleSlash', 'Bed', 'BedCircleSlash', 'CarWithKey', 'CarCircleSlash', 'Train', 'TrainCircleSlash', 'Luggage']);
 
@@ -79,7 +84,7 @@ function ReservationView({reservation, onPress, isCancelled}: ReservationViewPro
 
     const description = translate(`travel.${reservation.type}`);
 
-    const titleStyle = [styles.mt1, isCancelled && styles.textSupporting];
+    const titleStyle = isCancelled ? styles.textSupporting : undefined;
 
     let titleComponent = (
         <Text
@@ -109,24 +114,30 @@ function ReservationView({reservation, onPress, isCancelled}: ReservationViewPro
     const displayDescription = formatCancelledDescription(translate('iou.canceled'), description, isCancelled);
 
     return (
-        <MenuItemWithTopDescription
+        <MenuItem.Root
             sentryLabel={CONST.SENTRY_LABEL.TRIP_ROOM_PREVIEW.RESERVATION}
-            description={displayDescription}
-            descriptionTextStyle={[styles.textLabelSupporting, styles.lh16]}
-            titleComponent={titleComponent}
-            accessibilityLabel={isCancelled ? displayDescription : undefined}
-            secondaryIcon={reservationIcon}
-            secondaryIconFill={theme.icon}
-            wrapperStyle={[styles.taskDescriptionMenuItem, styles.p0]}
-            shouldGreyOutWhenDisabled={false}
-            numberOfLinesTitle={0}
+            accessibilityLabel={displayDescription}
+            style={[styles.taskDescriptionMenuItem, styles.p0]}
             shouldRemoveBackground
-            onPress={onPress}
-            iconHeight={variables.iconSizeNormal}
-            iconWidth={variables.iconSizeNormal}
-            iconStyles={[StyleUtils.getTripReservationIconContainer(false), styles.mr3, styles.alignSelfCenter]}
-            isSmallAvatarSubscriptMenu
-        />
+            onPress={onPress ? callIfAuthenticated(onPress, session) : undefined}
+        >
+            <MenuItem.Row>
+                <MenuItem.Leading>
+                    <View style={StyleUtils.getTripReservationIconContainer(false)}>
+                        <Icon
+                            src={reservationIcon}
+                            width={variables.iconSizeNormal}
+                            height={variables.iconSizeNormal}
+                            fill={theme.icon}
+                        />
+                    </View>
+                </MenuItem.Leading>
+                <MenuItem.Content>
+                    <MenuItem.FieldName style={styles.lh16}>{displayDescription}</MenuItem.FieldName>
+                    {titleComponent}
+                </MenuItem.Content>
+            </MenuItem.Row>
+        </MenuItem.Root>
     );
 }
 
@@ -143,6 +154,7 @@ function BookingView({booking, bookingApproval, onPress}: BookingViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const session = useSession();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plane', 'PlaneCircleSlash', 'Bed', 'BedCircleSlash', 'CarWithKey', 'CarCircleSlash', 'Train', 'TrainCircleSlash', 'Luggage']);
 
@@ -150,39 +162,42 @@ function BookingView({booking, bookingApproval, onPress}: BookingViewProps) {
     const isCancelled = booking.reservations.every((reservation) => reservation.isCancelled);
     const statusBadge = getBookingStatusBadge(translate, theme.reportStatusBadge, bookingApproval);
     const description = formatCancelledDescription(translate('iou.canceled'), firstReservation ? translate(`travel.${firstReservation.type}`) : '', isCancelled);
+    const title = getBookingTitle(translate, booking.reservations);
 
     return (
-        // eslint-disable-next-line @typescript-eslint/no-deprecated -- Matches the reservation rows above; the compound MenuItem has no leaf for the trip reservation icon.
-        <MenuItemWithTopDescription
+        <MenuItem.Root
             sentryLabel={CONST.SENTRY_LABEL.TRIP_ROOM_PREVIEW.BOOKING}
-            description={description}
-            descriptionTextStyle={[styles.textLabelSupporting, styles.lh16]}
-            title={getBookingTitle(translate, booking.reservations)}
-            titleStyle={[styles.mt1, isCancelled && styles.textSupporting]}
-            numberOfLinesTitle={1}
             accessibilityLabel={isCancelled ? description : undefined}
-            secondaryIcon={getTripReservationIcon(expensifyIcons, firstReservation?.type, isCancelled)}
-            secondaryIconFill={theme.icon}
-            wrapperStyle={[styles.taskDescriptionMenuItem, styles.p0]}
-            shouldGreyOutWhenDisabled={false}
+            style={[styles.taskDescriptionMenuItem, styles.p0]}
             shouldRemoveBackground
-            onPress={onPress}
-            iconHeight={variables.iconSizeNormal}
-            iconWidth={variables.iconSizeNormal}
-            iconStyles={[StyleUtils.getTripReservationIconContainer(false), styles.mr3, styles.alignSelfCenter]}
-            isSmallAvatarSubscriptMenu
-            shouldShowRightComponent={!!statusBadge}
-            rightComponent={
-                !!statusBadge && (
-                    <StatusBadge
-                        text={statusBadge.text}
-                        backgroundColor={statusBadge.backgroundColor}
-                        textColor={statusBadge.textColor}
-                        badgeStyles={styles.ml3}
-                    />
-                )
-            }
-        />
+            onPress={callIfAuthenticated(onPress, session)}
+        >
+            <MenuItem.Row>
+                <MenuItem.Leading>
+                    <View style={StyleUtils.getTripReservationIconContainer(false)}>
+                        <Icon
+                            src={getTripReservationIcon(expensifyIcons, firstReservation?.type, isCancelled)}
+                            width={variables.iconSizeNormal}
+                            height={variables.iconSizeNormal}
+                            fill={theme.icon}
+                        />
+                    </View>
+                </MenuItem.Leading>
+                <MenuItem.Content>
+                    <MenuItem.FieldName style={styles.lh16}>{description}</MenuItem.FieldName>
+                    <MenuItem.FieldValue style={isCancelled && styles.textSupporting}>{title}</MenuItem.FieldValue>
+                </MenuItem.Content>
+                {!!statusBadge && (
+                    <MenuItem.Trailing>
+                        <StatusBadge
+                            text={statusBadge.text}
+                            backgroundColor={statusBadge.backgroundColor}
+                            textColor={statusBadge.textColor}
+                        />
+                    </MenuItem.Trailing>
+                )}
+            </MenuItem.Row>
+        </MenuItem.Root>
     );
 }
 

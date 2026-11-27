@@ -1,6 +1,7 @@
 import Icon from '@components/Icon';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import {useSession} from '@components/OnyxListItemProvider';
 import Section from '@components/Section';
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
@@ -20,6 +21,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import StringUtils from '@libs/StringUtils';
 
 import variables from '@styles/variables';
+
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import type {ReservationData} from '@src/libs/TripReservationUtils';
@@ -57,6 +60,7 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const session = useSession();
     const {translate, dateFnsLocale} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
@@ -110,7 +114,7 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
     const titleComponent = () => {
         if (reservation.type === CONST.RESERVATION_TYPE.FLIGHT || reservation.type === CONST.RESERVATION_TYPE.TRAIN) {
             return (
-                <View style={[styles.gap1, styles.mt1]}>
+                <View style={styles.gap1}>
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
                         {shouldShowArrowIcon ? (
                             <>
@@ -135,7 +139,7 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
         }
 
         return (
-            <View style={[styles.gap1, styles.mt1]}>
+            <View style={styles.gap1}>
                 <Text
                     numberOfLines={1}
                     style={[titleTextStyle, styles.lh20]}
@@ -157,27 +161,35 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
     const descriptionWithStatus = formatCancelledDescription(translate('iou.canceled'), formattedDate, isCancelled);
 
     return (
-        <MenuItemWithTopDescription
+        <MenuItem.Root
             sentryLabel={CONST.SENTRY_LABEL.TRIP_DETAILS.RESERVATION}
-            description={descriptionWithStatus}
-            descriptionTextStyle={[styles.textLabelSupporting, styles.lh16]}
-            titleComponent={titleComponent()}
-            accessibilityLabel={isCancelled ? descriptionWithStatus : undefined}
-            secondaryIcon={reservationIcon}
-            isSecondaryIconHoverable
-            shouldShowRightIcon
-            wrapperStyle={[styles.taskDescriptionMenuItem]}
-            shouldGreyOutWhenDisabled={false}
-            numberOfLinesTitle={0}
-            interactive
-            iconHeight={20}
-            iconWidth={20}
-            iconStyles={[StyleUtils.getTripReservationIconContainer(false), styles.mr3, shouldCenterIcon && styles.alignSelfCenter]}
-            secondaryIconFill={theme.icon}
-            onPress={() =>
-                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_TRIP_DETAILS.getRoute(tripRoomReportID, transactionID, String(reservation.reservationID), sequenceIndex)))
-            }
-        />
+            accessibilityLabel={descriptionWithStatus}
+            style={styles.taskDescriptionMenuItem}
+            onPress={callIfAuthenticated(
+                () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_TRIP_DETAILS.getRoute(tripRoomReportID, transactionID, String(reservation.reservationID), sequenceIndex))),
+                session,
+            )}
+        >
+            <MenuItem.Row>
+                <MenuItem.Leading>
+                    <View style={[StyleUtils.getTripReservationIconContainer(false), shouldCenterIcon && styles.alignSelfCenter]}>
+                        <Icon
+                            src={reservationIcon}
+                            width={variables.iconSizeNormal}
+                            height={variables.iconSizeNormal}
+                            fill={theme.icon}
+                        />
+                    </View>
+                </MenuItem.Leading>
+                <MenuItem.Content>
+                    <MenuItem.FieldName style={styles.lh16}>{descriptionWithStatus}</MenuItem.FieldName>
+                    {titleComponent()}
+                </MenuItem.Content>
+                <MenuItem.Trailing>
+                    <MenuItem.Chevron />
+                </MenuItem.Trailing>
+            </MenuItem.Row>
+        </MenuItem.Root>
     );
 }
 
