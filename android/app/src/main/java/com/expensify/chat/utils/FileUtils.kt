@@ -97,17 +97,31 @@ object FileUtils {
      * @return The absolute path of the image
      */
     fun copyUriToStorage(fileUri: Uri, context: Context): String? {
-        val fileName = getSafeFileName(getFileName(context, fileUri)) ?: return null
-        val destinationFile = File(getInternalStorageDirectory(context), fileName)
-
         return try {
-            saveFileFromProviderUri(fileUri, destinationFile, context)
-            destinationFile.absolutePath
-        } catch (ex: IOException) {
-            destinationFile.delete()
-            Log.e(tag, "Couldn't save file from intent", ex)
+            copyUriToInternalStorage(fileUri, context)
+        } catch (ex: Exception) {
+            // The URI belongs to the sending app, whose provider can fail with an IOException or throw instead, for example a SecurityException when read access wasn't granted.
+            Log.e(tag, "Couldn't save the shared file", ex)
             null
         }
+    }
+
+    private fun copyUriToInternalStorage(fileUri: Uri, context: Context): String? {
+        val fileName = getSafeFileName(getFileName(context, fileUri))
+        if (fileName == null) {
+            Log.w(tag, "Couldn't save the shared file because it has no usable name")
+            return null
+        }
+        val destinationFile = File(getInternalStorageDirectory(context), fileName)
+
+        try {
+            saveFileFromProviderUri(fileUri, destinationFile, context)
+        } catch (ex: Exception) {
+            // A copy that fails partway leaves part of the file behind, and the share must not point at it.
+            destinationFile.delete()
+            throw ex
+        }
+        return destinationFile.absolutePath
     }
 
     /** The sending app controls this name, so only its last segment is kept; otherwise `../shared_prefs/x.xml` would write outside the share folder. */

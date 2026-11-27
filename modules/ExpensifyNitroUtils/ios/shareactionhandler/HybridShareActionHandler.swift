@@ -9,9 +9,6 @@ final class HybridShareActionHandler: HybridShareActionHandlerSpec {
     /// Each host's Info.plist names the app group that its share extension writes to.
     private static let appGroupInfoPlistKey = "ShareExtensionAppGroup"
 
-    /// Used when the host's Info.plist names no app group. HybridApp's share extension writes to this group.
-    private static let defaultAppGroup = "group.com.expensify"
-
     private static let sharedFilesDirectoryName = "sharedFiles"
 
     /// The share extension saves shared text and URLs to a file with this name.
@@ -43,7 +40,9 @@ final class HybridShareActionHandler: HybridShareActionHandlerSpec {
     }
 
     private static func getSharedFileURLs() throws -> [URL] {
-        let appGroup = Bundle.main.object(forInfoDictionaryKey: appGroupInfoPlistKey) as? String ?? defaultAppGroup
+        guard let appGroup = Bundle.main.object(forInfoDictionaryKey: appGroupInfoPlistKey) as? String else {
+            throw RuntimeError.error(withMessage: "The Info.plist has no \(appGroupInfoPlistKey) key")
+        }
         guard let containerURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroup) else {
             throw RuntimeError.error(withMessage: "The app group \(appGroup) is not available")
         }

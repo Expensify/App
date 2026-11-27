@@ -2,6 +2,7 @@ import {act, render} from '@testing-library/react-native';
 
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 
+import {validateImageForCorruption} from '@libs/fileDownload/FileUtils';
 import ShareActionHandler from '@libs/ShareActionHandlerModule';
 
 import getFileSize from '@pages/Share/getFileSize';
@@ -172,6 +173,34 @@ describe('ShareRootPage', () => {
         // Then the user is told the attachment is missing rather than corrupted, because a read fails when the file or its folder is gone
         expect(Alert.alert).toHaveBeenCalledWith(translateLocal('attachmentPicker.attachmentError'), translateLocal('attachmentView.attachmentNotFound'), expect.any(Array));
         expect(await Onyx.get(ONYXKEYS.SHARE_TEMP_FILE)).toBeUndefined();
+    });
+
+    it('shows that a shared file is too large when it is over the size limit', async () => {
+        // Given a shared PDF that is larger than the API accepts
+        jest.mocked(getFileSize).mockResolvedValueOnce(CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE + 1);
+        jest.mocked(ShareActionHandler.processFiles).mockResolvedValue([SHARED_PDF]);
+
+        // When the Share screen opens
+        await renderShareRootPage();
+
+        // Then the user is told the file is too large before picking where to share it
+        expect(Alert.alert).toHaveBeenCalledWith(translateLocal('attachmentPicker.attachmentTooLarge'), translateLocal('attachmentPicker.sizeExceeded'), expect.any(Array));
+    });
+
+    it('shows that a shared image is corrupted when it cannot be read as an image', async () => {
+        // Given a shared JPEG whose image data can't be read
+        jest.mocked(validateImageForCorruption).mockRejectedValueOnce(new Error('The image is corrupted'));
+        jest.mocked(ShareActionHandler.processFiles).mockResolvedValue([SHARED_IMAGE]);
+
+        // When the Share screen opens
+        await renderShareRootPage();
+
+        // Then the user is told the attachment is corrupted before picking where to share it
+        expect(Alert.alert).toHaveBeenCalledWith(
+            translateLocal('attachmentPicker.attachmentError'),
+            translateLocal('attachmentPicker.errorWhileSelectingCorruptedAttachment'),
+            expect.any(Array),
+        );
     });
 
     it('treats a share without a MIME type as the wrong file type', async () => {

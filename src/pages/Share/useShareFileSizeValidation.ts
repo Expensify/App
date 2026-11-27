@@ -1,12 +1,14 @@
 import useLocalize from '@hooks/useLocalize';
 
-import CONST from '@src/CONST';
+import {getErrorMessage} from '@libs/ErrorUtils';
+import Log from '@libs/Log';
 
 import type {Dispatch, SetStateAction} from 'react';
 
 import {useEffect} from 'react';
 
 import getFileSize from './getFileSize';
+import getShareFileSizeError from './getShareFileSizeError';
 
 type SetState = Dispatch<SetStateAction<string | undefined>>;
 
@@ -19,20 +21,21 @@ function useShareFileSizeValidation(content: string | undefined, setErrorTitle: 
             return;
         }
         let ignore = false;
-        getFileSize(content).then((size) => {
-            if (ignore) {
-                return;
-            }
-            if (size > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
-                setErrorTitle(translate('attachmentPicker.attachmentTooLarge'));
-                setErrorMessage(translate('attachmentPicker.sizeExceeded'));
-            }
-
-            if (size < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
-                setErrorTitle(translate('attachmentPicker.attachmentTooSmall'));
-                setErrorMessage(translate('attachmentPicker.sizeNotMet'));
-            }
-        });
+        getFileSize(content)
+            .then((size) => {
+                if (ignore) {
+                    return;
+                }
+                const sizeError = getShareFileSizeError(size, translate);
+                if (!sizeError) {
+                    return;
+                }
+                setErrorTitle(sizeError.title);
+                setErrorMessage(sizeError.message);
+            })
+            .catch((error: unknown) => {
+                Log.warn('[useShareFileSizeValidation] Failed to get the shared file size', {error: getErrorMessage(error)});
+            });
         return () => {
             ignore = true;
         };
