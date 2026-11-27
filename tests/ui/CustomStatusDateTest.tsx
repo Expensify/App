@@ -14,7 +14,7 @@ import * as UserActions from '@userActions/User';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
+import type {CurrentUserPersonalDetails, SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 
 import type {NavigationProp, ParamListBase} from '@react-navigation/native';
 import type {ComponentType, PropsWithChildren} from 'react';
@@ -100,6 +100,27 @@ describe('Custom status dates', () => {
 
         // Then date order and separators are German, and a different year is not hidden
         expect(screen.getByText(expected)).toBeOnTheScreen();
+    });
+
+    it.each([
+        ['tomorrow', 'Atlantic/Reykjavik'],
+        ['2026-12-02 17:19:00', 'constructor'],
+    ])('renders the status without an expiry for the clear-after value %p in the timezone %p', async (clearAfter, timezone) => {
+        // Given a participant whose personal details hold a clear-after value or timezone that the server accepts but
+        // which can't be read as a date here
+        const optionItem = createMock<OptionData>({
+            isOneOnOneChat: true,
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- other users' personal details can hold a timezone that isn't in the app's list
+            timezone: {automatic: false, selected: timezone as SelectedTimezone},
+            status: {emojiCode: '😀', text: 'Invalid date check', clearAfter},
+        });
+
+        // When the chat list row renders their status
+        renderSurface(<Status optionItem={optionItem} />);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the status text is shown without an expiry instead of the formatting error crashing the chat list
+        expect(screen.getByText('Invalid date check')).toBeOnTheScreen();
     });
 
     it('localizes the status editor label without changing the saved expiry value', async () => {

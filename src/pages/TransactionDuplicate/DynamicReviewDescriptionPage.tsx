@@ -49,11 +49,11 @@ function DynamicReviewDescriptionPage() {
     const stepNames = Object.keys(compareResult.change ?? {}).map((key, index) => (index + 1).toString());
     const {currentScreenIndex, navigateToNextScreen} = useReviewDuplicatesNavigation(Object.keys(compareResult.change ?? {}), 'description', route.params.reportID, route.params.backTo);
     const options = compareResult.change.description?.map((description) =>
-        !description?.comment
+        description === ''
             ? {text: translate('violations.none'), value: ''}
             : {
-                  text: StringUtils.lineBreaksToSpaces(Parser.htmlToText(description.comment)),
-                  value: description.comment,
+                  text: StringUtils.lineBreaksToSpaces(Parser.htmlToText(description)),
+                  value: description,
               },
     );
     const setDescription = (data: FieldItemType<'description'>) => {

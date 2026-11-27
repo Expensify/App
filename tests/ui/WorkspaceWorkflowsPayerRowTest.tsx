@@ -125,7 +125,6 @@ describe('WorkspaceWorkflowsPageRevamp - Payer row visibility', () => {
         // Given saved, added and deleted countries remain pending in the same workspace.
         await TestHelper.signInWithTestUser();
         await act(async () => {
-            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.COLLECT_DEPOSIT_ACCOUNTS]);
             await Onyx.set(ONYXKEYS.NETWORK, {shouldForceOffline: true});
             await Onyx.merge(
                 `${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`,

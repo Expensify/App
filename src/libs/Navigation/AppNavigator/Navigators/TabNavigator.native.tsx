@@ -39,7 +39,6 @@ import isTabHostFullWidth from './NativeTabNavigator/isTabHostFullWidth';
 import MoreMenuStateContext, {isMoreItemSelectedByMenu} from './NativeTabNavigator/MoreMenuStateContext';
 import {findSearchTabRoute, getFlatNavTabHiddenRouteName, getFlatNavTabHostRouteName, getSearchTabSearchKey} from './NativeTabNavigator/nativeTabItemUtils';
 import NativeTabLayout from './NativeTabNavigator/NativeTabLayout';
-import TabRootRevealingContext from './NativeTabNavigator/TabRootRevealingContext';
 import tabScreenListeners from './NativeTabNavigator/tabScreenListeners';
 import useIsTabBarVertical from './NativeTabNavigator/useIsTabBarVertical';
 import useNativeFlatNavSearchSection from './NativeTabNavigator/useNativeFlatNavSearchSection';
@@ -113,7 +112,7 @@ type NativeTabNavigatorProps = {
 
 function NativeTabNavigator({isFlatNavTabBarEnabled = false}: NativeTabNavigatorProps) {
     const resolveSearchSectionID = useContext(FlatNavSearchSectionContext);
-    const {shouldShowNativeTabBar, dotColors, tabLabels, tabRouterOverride, isTabSelectionEnabled, setIsTabRootRevealing} = useNativeTabNavigator({isFlatNavTabBarEnabled});
+    const {shouldShowNativeTabBar, dotColors, tabLabels, tabRouterOverride, isTabSelectionEnabled} = useNativeTabNavigator({isFlatNavTabBarEnabled});
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const isTabBarVertical = useIsTabBarVertical();
     const {screenOptions, getTabOptions} = useNativeTabBarOptions({shouldShowNativeTabBar, isTabBarVertical, dotColors, tabLabels});
@@ -148,7 +147,7 @@ function NativeTabNavigator({isFlatNavTabBarEnabled = false}: NativeTabNavigator
               };
 
     const tabNavigator = (
-        <TabRootRevealingContext.Provider value={setIsTabRootRevealing}>
+        <>
             <TabRootGestureController />
             <Tab.Navigator
                 backBehavior="fullHistory"
@@ -202,7 +201,7 @@ function NativeTabNavigator({isFlatNavTabBarEnabled = false}: NativeTabNavigator
                     component={SettingsSplitNavigator}
                 />
             </Tab.Navigator>
-        </TabRootRevealingContext.Provider>
+        </>
     );
 
     return isTabHostFullWidth ? tabNavigator : <HorizontalSafeArea>{tabNavigator}</HorizontalSafeArea>;

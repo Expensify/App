@@ -107,7 +107,7 @@ function useUpdateTransactionTaxRate({transactionID, transaction, report, policy
 
         if (shouldClearTax && isEditingSplit) {
             if (currentTransaction) {
-                setDraftSplitTransaction(transactionID, currentTransaction, {taxAmount: 0, taxCode: '', taxValue: ''}, getCurrencyDecimals, getCurrencySymbol);
+                setDraftSplitTransaction(translate, transactionID, currentTransaction, {taxAmount: 0, taxCode: '', taxValue: ''}, getCurrencyDecimals, getCurrencySymbol);
             }
             return;
         }
@@ -125,6 +125,7 @@ function useUpdateTransactionTaxRate({transactionID, transaction, report, policy
 
         if (isEditingSplit) {
             setDraftSplitTransaction(
+                translate,
                 transactionID,
                 currentTransaction,
                 {taxAmount: convertToBackendAmount(taxAmount ?? 0), taxCode: taxes.code, taxValue},

@@ -4,6 +4,7 @@ import {
     compareByRBR,
     createTransactionPreviewConditionals,
     getReviewNavigationRoute,
+    getTransactionPreviewParticipantIDs,
     getTransactionPreviewTextAndTranslationPaths,
     getUniqueActionErrorsForTransaction,
     getViolationTranslatePath,
@@ -13,7 +14,7 @@ import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportActions, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Report, ReportAction, ReportActions, Transaction, TransactionViolation} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -1319,6 +1320,50 @@ describe('TransactionPreviewUtils', () => {
 
         it('should return 1 when only the second transaction has RBR', () => {
             expect(compareByRBR(cleanTransaction, rbrTransaction, undefined, cbrEmail, cbrAccountID, cbrReport, undefined, cbrPolicy)).toBe(1);
+        });
+    });
+
+    describe('getTransactionPreviewParticipantIDs', () => {
+        const reportPreviewAction = createMock<ReportAction>({childManagerAccountID: 3, childOwnerAccountID: 4});
+
+        it('reads the approver and submitter from the report', () => {
+            // Given a loaded report and a preview action that disagree, the report is the fresher source
+            const report = createMock<Report>({managerID: 1, ownerAccountID: 2});
+
+            // When the participants are resolved
+            const result = getTransactionPreviewParticipantIDs(report, reportPreviewAction);
+
+            // Then the report wins
+            expect(result).toEqual({managerID: 1, ownerAccountID: 2});
+        });
+
+        it('falls back to the preview action while the report is not loaded', () => {
+            // Given no report yet, which is the case for a preview in a chat that hasn't opened the report
+            // When the participants are resolved
+            const result = getTransactionPreviewParticipantIDs(undefined, reportPreviewAction);
+
+            // Then the child IDs from the preview action are used, so the card still subscribes to the right people
+            expect(result).toEqual({managerID: 3, ownerAccountID: 4});
+        });
+
+        it('resolves each participant from its own source', () => {
+            // Given a report that has an approver but no submitter yet
+            const report = createMock<Report>({managerID: 1});
+
+            // When the participants are resolved
+            const result = getTransactionPreviewParticipantIDs(report, reportPreviewAction);
+
+            // Then each one falls back on its own, not together
+            expect(result).toEqual({managerID: 1, ownerAccountID: 4});
+        });
+
+        it('returns the default ID when neither source has the participants', () => {
+            // Given neither a report nor a preview action
+            // When the participants are resolved
+            const result = getTransactionPreviewParticipantIDs(undefined, undefined);
+
+            // Then both are the default ID, which matches no personal detail
+            expect(result).toEqual({managerID: CONST.DEFAULT_NUMBER_ID, ownerAccountID: CONST.DEFAULT_NUMBER_ID});
         });
     });
 });

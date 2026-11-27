@@ -5,8 +5,8 @@ const NitroModules = {
         detectYuv: jest.fn(() => undefined),
         open: jest.fn(() => 1),
         release: jest.fn(),
-        edge: 'unspecified',
-        addEdgeListener: jest.fn(() => () => {}),
+        verticalBarEdge: 'unspecified',
+        addChangeListener: jest.fn(() => () => {}),
         processFiles: jest.fn(() => Promise.resolve([])),
     })),
 };
