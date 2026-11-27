@@ -252,7 +252,7 @@ If a Workspace has rates with effective dates and you manually select a rate tha
 
 What happens depends on whether you move individual expenses or a whole report.
 
-**If you move individual expenses to a report on another Workspace:** when the expense’s rate does not exist on the new Workspace, or is disabled there, the expense automatically switches to that Workspace’s default distance rate. The unit, distance, amount, and currency are recalculated to match.
+**If you move individual expenses to a report on another workspace:** Expensify uses an enabled rate with the same value, currency, and distance unit that is valid for the expense date, keeping the amount unchanged. If no equivalent rate is available, Expensify selects a rate based on the expense date, or the workspace's default rate if none applies, and recalculates the expense.
 
 **If you move a whole report to another Workspace:** the expenses keep their original unit and rate. If a rate isn’t valid in the new Workspace, the expense shows a “Rate not valid for this workspace” violation.
 
