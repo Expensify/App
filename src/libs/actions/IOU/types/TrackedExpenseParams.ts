@@ -80,6 +80,8 @@ type TrackedExpenseParams = {
     currentUser: CurrentUser;
     reportActionsList: OnyxCollection<OnyxTypes.ReportActions>;
     personalDetailsByLogins?: PersonalDetailsByLogin;
+    /** Defers instant auto-submit so earlier items in a batch do not close the report before remaining items arrive. */
+    shouldDeferAutoSubmit?: boolean;
 };
 
 export type {TrackedExpenseParams, TrackedExpensePolicyParams, TrackedExpenseTransactionParams, TrackedExpenseReportInformation, BuildOnyxDataForTrackExpenseKeys};

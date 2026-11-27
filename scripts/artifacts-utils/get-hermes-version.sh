@@ -1,9 +1,10 @@
 #!/bin/bash
 
-# Prints the Hermes version our prebuilt artifacts are compiled against (e.g. `250829098.0.14`), read from
+# Prints the Hermes version our prebuilt artifacts are compiled against (e.g. `260318099.0.4`), read from
 # `sdks/hermes-engine/version.properties` the way upstream's own prebuild workflow does (prebuild-ios-core.yml in
-# facebook/react-native). The publish workflows record it in the POM, and the artifacts resolver refuses an artifact
-# whose Hermes differs from the one the app links, so an artifact built against the wrong ABI is never used silently.
+# facebook/react-native). It is the version the app links: hermes-engine.podspec and the Gradle plugin read the same key.
+# The publish workflows record it in the POM, and the artifacts resolver reads it through this script too and refuses an
+# artifact whose Hermes differs, so an artifact built against the wrong ABI is never used silently.
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
 readonly SCRIPT_DIR
@@ -18,4 +19,13 @@ if [[ ! -f "$HERMES_VERSION_FILE" ]]; then
     exit 1
 fi
 
-sed -n 's/^HERMES_V1_VERSION_NAME=//p' "$HERMES_VERSION_FILE"
+HERMES_VERSION=$(sed -n 's/^HERMES_VERSION_NAME=//p' "$HERMES_VERSION_FILE" | tr -d '[:space:]')
+readonly HERMES_VERSION
+
+# An empty version would make the prebuild download a tarball URL without a version and fail with a 404.
+if [[ -z "$HERMES_VERSION" ]]; then
+    error "HERMES_VERSION_NAME not found in $HERMES_VERSION_FILE"
+    exit 1
+fi
+
+echo "$HERMES_VERSION"
