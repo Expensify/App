@@ -76,9 +76,9 @@ function NativeTabItemPlaceholder() {
 }
 
 /**
- * The Expenses and Reports items of the flat nav bar, which show Search rather than a screen of their own. Search is
- * not laid out under these items while it is on a search of the More menu, so a tap on one of them then shows this
- * skeleton until Search opens the search of the item.
+ * The Expenses and Reports items of the flat nav bar, which show Search rather than a screen of their own. While Search
+ * is on a search of the More menu, a tap on one of these items shows this skeleton until Search opens the search of the
+ * item, wherever the native tabs cannot show Search under the item at once, see patches/react-navigation/details.md.
  */
 function NativeTabSearchItemPlaceholder() {
     const styles = useThemeStyles();

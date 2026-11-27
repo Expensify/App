@@ -447,23 +447,26 @@ describe('NativeBottomTabView', () => {
         expect(mockLatestScreenProps.get('More')?.hostedContentSourceScreenKey).toBeUndefined();
     });
 
-    it('hides a hidden route on iOS under the items that do not open it', () => {
+    it('keeps a hidden route laid out on iOS in the tab whose item opens it while it names another host', () => {
         // Given Spend drawn in Expenses on iOS, then Workspaces focused in More while Spend names More, as a saved search does
         const navigation = buildNavigation();
         const screen = render(renderTabView(buildFlatNavTabState('Spend'), navigation, [], FLAT_NAV_OPTIONS));
         screen.rerender(renderTabView(buildFlatNavTabState('Workspaces'), navigation, [], getFlatNavOptionsWithSpendHost('More')));
 
         // When the views the hidden routes are drawn in are laid out
-        // Then Spend is not laid out, so a native tap on Expenses or Reports shows the placeholder of the tab instead
-        // of a search that belongs under More, until JS opens the search of the tapped item
-        expect(getHiddenRouteDisplay(screen, 'Spend-key')).toBe('none');
+        // Then Spend stays laid out in Expenses, whose item opens it and which native selects as soon as it is tapped,
+        // so the tap shows Spend at once rather than the placeholder of the tab while JS opens the search of the item
+        expect(mockLatestScreenProps.get('Expenses')?.preventNativeSelection).toBe(false);
+        expect(getHiddenRouteDisplay(screen, 'Spend-key')).toBeUndefined();
+        // And Reports, whose item opens Spend too, shows the view of Expenses
+        expect(mockLatestScreenProps.get('Reports')?.hostedContentSourceScreenKey).toBe('Expenses');
         // And More shows Workspaces, which is drawn in it, rather than the view of Expenses
         expect(mockLatestScreenProps.get('More')?.hostedContentSourceScreenKey).toBeUndefined();
     });
 
-    it('takes a press on iOS in JS while the tab a hidden route is drawn in shows a sibling of it', () => {
-        // Given Spend first drawn in More on iOS, as after a cold start on a saved search, and then Workspaces focused in
-        // More, so More draws Workspaces over Spend
+    it('shows a visited hidden route on iOS under a pressed placeholder while its tab shows a sibling of it', () => {
+        // Given Spend first drawn in More on iOS and visited there, as after a cold start on a saved search, and then
+        // Workspaces focused in More, so More draws Workspaces over Spend
         const navigation = buildNavigation();
         const screen = render(renderTabView(buildFlatNavTabState('Spend'), navigation, [], getFlatNavOptionsWithSpendHost('More')));
         expect(mockLatestScreenProps.get('Expenses')?.hostedContentSourceScreenKey).toBe('More');
@@ -479,10 +482,33 @@ describe('NativeBottomTabView', () => {
         // When the user taps Expenses
         pressPreventedTab('Expenses');
 
-        // Then the bar selects Expenses at once, which shows its own placeholder until JS opens the search, and the
-        // press reaches the Expenses listener in the next task
+        // Then the bar selects Expenses at once, and More draws Spend over Workspaces and lends its view to Expenses,
+        // so Expenses shows Spend rather than its placeholder while JS opens the search
+        expect(mockLatestHostProps?.navStateRequest.selectedScreenKey).toBe('Expenses');
+        expect(mockLatestScreenProps.get('Expenses')?.hostedContentSourceScreenKey).toBe('More');
+        expect(getHiddenRouteDisplay(screen, 'Spend-key')).toBeUndefined();
+        expect(getHiddenRouteDisplay(screen, 'Workspaces-key')).toBe('none');
+        // And the press reaches the Expenses listener in the next task
+        runPendingTabPress();
+        expect(navigation.emit).toHaveBeenCalledWith({type: 'tabPress', target: 'Expenses-key'});
+    });
+
+    it('shows the placeholder on iOS under a pressed placeholder whose hidden route was never visited', () => {
+        // Given Workspaces focused in More on iOS, and Spend mounted in More ahead of its first visit, as after a start
+        // on Workspaces with a saved search stored
+        const navigation = buildNavigation();
+        const screen = render(renderTabView(buildFlatNavTabState('Workspaces'), navigation, [], getFlatNavOptionsWithSpendHost('More')));
+
+        // When the user taps Expenses, which native does not select
+        expect(mockLatestScreenProps.get('Expenses')?.preventNativeSelection).toBe(true);
+        pressPreventedTab('Expenses');
+
+        // Then the bar selects Expenses at once, which shows its own placeholder, since Spend has drawn nothing yet,
+        // and More keeps Workspaces on top
         expect(mockLatestHostProps?.navStateRequest.selectedScreenKey).toBe('Expenses');
         expect(mockLatestScreenProps.get('Expenses')?.hostedContentSourceScreenKey).toBeUndefined();
+        expect(getHiddenRouteDisplay(screen, 'Workspaces-key')).toBeUndefined();
+        // And the press reaches the Expenses listener in the next task
         runPendingTabPress();
         expect(navigation.emit).toHaveBeenCalledWith({type: 'tabPress', target: 'Expenses-key'});
     });
