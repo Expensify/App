@@ -76,7 +76,7 @@ import useParentReportAction from './useParentReportAction';
 import useParticipantsPolicyTags, {getPolicyTagsSelector} from './useParticipantsPolicyTags';
 import usePermissions from './usePermissions';
 import {useGetPersonalDetailsByLogin} from './usePersonalDetailByLogin';
-import {useAllPersonalDetails} from './usePersonalDetails';
+import {usePersonalDetailsByIDs} from './usePersonalDetails';
 import usePersonalPolicy from './usePersonalPolicy';
 import useReportIsArchived from './useReportIsArchived';
 import useRestrictedActionPolicyID from './useRestrictedActionPolicyID';
@@ -148,7 +148,6 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     const [chatIOUReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(iouReport?.chatReportID)}`);
 
     // Global collections
-    const [personalDetails] = useAllPersonalDetails();
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
@@ -179,6 +178,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     // Archive checks
     const isArchivedReport = useReportIsArchived(moneyRequestReport?.reportID);
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
+    const isParentReportArchived = useReportIsArchived(moneyRequestReport?.parentReportID);
 
     // Default expense policy / chat
     const defaultExpensePolicy = useDefaultExpensePolicy();
@@ -273,6 +273,11 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     const policyTagList = useMoneyRequestPolicyTagsForReport({report: duplicateTargetReport, currentUserAccountID: accountID});
     const participants = getMoneyRequestParticipantsFromReport(duplicateTargetReport, accountID);
     const participantsPolicyTags = useParticipantsPolicyTags(participants);
+    const [personalDetails] = usePersonalDetailsByIDs([
+        participants.at(0)?.accountID,
+        getMoneyRequestParticipantsFromReport(chatReport, accountID).at(0)?.accountID,
+        getMoneyRequestParticipantsFromReport(activePolicyExpenseChat, accountID).at(0)?.accountID,
+    ]);
 
     const duplicateExpenseTransaction = (transactionList: OnyxTypes.Transaction[]) => {
         if (!transactionList.length) {
@@ -307,6 +312,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 recentWaypoints,
                 targetPolicyTags,
                 currentUser: {accountID: currentUserPersonalDetails?.accountID, email: currentUserPersonalDetails?.email ?? ''},
+                currentUserPersonalDetails,
                 currentUserLocalCurrency: currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD,
                 isTrackIntentUser,
                 delegateAccountID,
@@ -679,6 +685,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                                     bankAccountList,
                                     delegateAccountID,
                                     hash: currentSearchHash,
+                                    isChatReportArchived: isParentReportArchived,
                                 });
                             }, CONST.EXPENSE_REPORT_DELETE_DELAY_MS);
                         },

@@ -40,6 +40,7 @@ function SidePanel({navigation}: Pick<ExtraContentProps, 'navigation'>) {
             <SidePanelReport
                 navigation={navigation}
                 reportID={reportID}
+                reportActionID={sidePanelNVP.reportActionID}
             />
         </SidePanelModal>
     );

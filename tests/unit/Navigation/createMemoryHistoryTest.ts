@@ -5,6 +5,7 @@ type MemoryHistory = {
     push: (options: {path: string; state: NavigationState}) => void;
     go: (distance: number) => Promise<void> | undefined;
     listen: (listener: () => void) => () => void;
+    hasEntryForFocusedRoute: (state: NavigationState) => boolean;
     // Exposed by our `initial` patch on @react-navigation/native
     items: Array<{path: string; state: NavigationState; id: string}>;
 };
@@ -92,5 +93,25 @@ describe('createMemoryHistory', () => {
         expect(listener).toHaveBeenCalledTimes(1);
 
         stopListening();
+    });
+
+    it('reports whether an earlier entry exists for the focused route', () => {
+        // Given a report entry, then a confirmation and a participant step pushed in one go as one entry
+        const history = createMemoryHistory();
+        history.replace({path: '/r/1', state});
+        const rhpState: NavigationState = {
+            ...state,
+            index: 1,
+            routeNames: ['Report', 'Confirmation', 'Participants'],
+            routes: [...state.routes, {key: 'confirmation', name: 'Confirmation'}, {key: 'participants', name: 'Participants'}],
+        };
+        history.push({path: '/participants', state: {...rhpState, index: 2}});
+
+        // When the participant step is removed and the confirmation is focused
+        const confirmationState: NavigationState = {...rhpState, routes: rhpState.routes.slice(0, 2)};
+
+        // Then the confirmation has no earlier entry, so the current one gets replaced, while the report has one
+        expect(history.hasEntryForFocusedRoute(confirmationState)).toBe(false);
+        expect(history.hasEntryForFocusedRoute(state)).toBe(true);
     });
 });

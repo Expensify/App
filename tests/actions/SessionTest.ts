@@ -1301,23 +1301,24 @@ describe('Session', () => {
             writeSpy.mockRestore();
         });
 
-        test('includes hasSMSMarketingConsent when it is provided', async () => {
+        test('includes both SMS consents when they are provided', async () => {
             const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
-            SessionUtil.signUpUser('new-user@expensify.com', undefined, true, undefined, undefined);
+            SessionUtil.signUpUser('new-user@expensify.com', undefined, {hasSMSTransactionalConsent: true, hasSMSMarketingConsent: false}, undefined, undefined);
             await waitForBatchedUpdates();
 
-            expect(writeSpy.mock.calls.at(0)?.at(1)).toEqual(expect.objectContaining({hasSMSMarketingConsent: true}));
+            expect(writeSpy.mock.calls.at(0)?.at(1)).toEqual(expect.objectContaining({hasSMSTransactionalConsent: true, hasSMSMarketingConsent: false}));
 
             writeSpy.mockRestore();
         });
 
-        test('omits hasSMSMarketingConsent when it is undefined', async () => {
+        test('omits the SMS consents when they are undefined', async () => {
             const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
             SessionUtil.signUpUser('new-user@expensify.com', undefined, undefined, undefined, undefined);
             await waitForBatchedUpdates();
 
+            expect(writeSpy.mock.calls.at(0)?.at(1)).not.toHaveProperty('hasSMSTransactionalConsent');
             expect(writeSpy.mock.calls.at(0)?.at(1)).not.toHaveProperty('hasSMSMarketingConsent');
 
             writeSpy.mockRestore();

@@ -47,7 +47,7 @@ type RateAttributes = {
 };
 
 /** Model of policy subrate */
-type Subrate = {
+type Subrate = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Generated ID to identify the subrate */
     id: string;
 
@@ -56,7 +56,7 @@ type Subrate = {
 
     /** Amount to be reimbursed per unit */
     rate: number;
-};
+}>;
 
 /** Model of policy rate */
 type Rate = OnyxCommon.OnyxValueWithOfflineFeedback<
@@ -4370,9 +4370,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Indicates the Policy's SetWorkspaceReimbursement call loading state */
         isLoadingWorkspaceReimbursement?: boolean;
 
-        /** Indicates if the receipt partners page is loading */
-        isLoadingReceiptPartners?: boolean;
-
         /** Indicates if the Policy ownership change is successful */
         isChangeOwnerSuccessful?: boolean;
 
@@ -4489,6 +4486,7 @@ export type {
     CustomUnit,
     Attributes,
     Rate,
+    ReimbursementCountryInfo,
     RateAttributes,
     GovernmentRateSnapshot,
     TaxRate,

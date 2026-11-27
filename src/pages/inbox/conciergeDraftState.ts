@@ -1,8 +1,8 @@
 import {buildAccountIDToNameMap, getMentionedAccountIDs} from '@hooks/useAccountIDToNameMap';
-import {buildMentionedRoomPlaceholderMap} from '@hooks/useReportIDToNameMap';
 
 import Parser from '@libs/Parser';
 import type {ConciergeDraftEvent} from '@libs/Pusher/types';
+import {buildMentionedRoomPlaceholderMap} from '@libs/ReportIDToNameMapUtils';
 import {getParsedComment} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';

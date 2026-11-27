@@ -21,7 +21,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Transaction} from '@src/types/onyx';
+import type {PersonalDetailsList, Transaction} from '@src/types/onyx';
 
 import type {FlashListRef} from '@shopify/flash-list';
 
@@ -39,7 +39,7 @@ type UseSearchListViewStateParams = {
     isMobileSelectionModeEnabled: boolean;
 
     /** The navigation/thread-creation handler for a row tap (owned by the router). */
-    onSelectRow: (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => void;
+    onSelectRow: (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent, rowPersonalDetails?: PersonalDetailsList) => void;
 
     /** Whether long press is suppressed for this view (chat/task lists set this). */
     shouldPreventLongPressRow?: boolean;
@@ -86,7 +86,7 @@ function useSearchListViewState({data, listData = data, isMobileSelectionModeEna
     // In mobile selection mode a row tap toggles selection. This must live inside the providers (not in the
     // router) because the `toggle` it reads is the default no-op outside SearchWriteActionsProvider; here it
     // resolves to the real action.
-    const handleSelectRow = (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => {
+    const handleSelectRow = (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent, rowPersonalDetails?: PersonalDetailsList) => {
         if (isMobileSelectionModeEnabled) {
             if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                 return;
@@ -94,7 +94,7 @@ function useSearchListViewState({data, listData = data, isMobileSelectionModeEna
             toggle(item);
             return;
         }
-        onSelectRow(item, transactionPreviewData, event);
+        onSelectRow(item, transactionPreviewData, event, rowPersonalDetails);
     };
 
     const scrollToListIndex = (index: number, animated = true) => {

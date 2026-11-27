@@ -4,6 +4,7 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
@@ -13,6 +14,7 @@ import TextInput from '@components/TextInput';
 
 import useApprovalWorkflows from '@hooks/useApprovalWorkflows';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -22,8 +24,15 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearDraftValues} from '@libs/actions/FormActions';
 import {openExternalLink} from '@libs/actions/Link';
-import {addMembersToWorkspace, clearWorkspaceInviteApproverDraft, clearWorkspaceInviteRoleDraft, clearWorkspaceInviteWorkArrangementDraft} from '@libs/actions/Policy/Member';
+import {
+    addMembersToWorkspace,
+    clearWorkspaceInviteApproverDraft,
+    clearWorkspaceInviteCategoryVisibilityDraft,
+    clearWorkspaceInviteRoleDraft,
+    clearWorkspaceInviteWorkArrangementDraft,
+} from '@libs/actions/Policy/Member';
 import {setWorkspaceInviteMessageDraft} from '@libs/actions/Policy/Policy';
+import {callIfAuthenticated} from '@libs/actions/Session';
 import {saveFastEditApprovalWorkflow} from '@libs/actions/Workflow';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -32,6 +41,7 @@ import {getNewAccountIDsAndLogins, getPersonalDetailsForAccountIDs, getPersonalD
 import {
     canMemberAssignElevatedRole,
     canMemberAssignRole,
+    canSetInvitedMembersCategoryVisibility,
     getDefaultApprover,
     getMemberAccountIDsForWorkspace,
     goBackFromInvalidPolicy,
@@ -42,6 +52,7 @@ import {
     tryNavigateToSubmitWorkspaceUpgrade,
 } from '@libs/PolicyUtils';
 import {getAllPolicyExpenseChatReportActions} from '@libs/ReportUtils';
+import {startSpan} from '@libs/telemetry/activeSpans';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import {getSearchParamFromPath} from '@libs/Url';
 
@@ -60,6 +71,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {GestureResponderEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
 import React, {useEffect, useState} from 'react';
 import {Keyboard, View} from 'react-native';
@@ -89,6 +101,7 @@ function WorkspaceInviteMessageComponent({
 }: WorkspaceInviteMessageComponentProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
     const {isBetaEnabled} = usePermissions();
     const policyName = policy?.name;
 
@@ -123,6 +136,14 @@ function WorkspaceInviteMessageComponent({
     const defaultApprover = getDefaultApprover(policy);
     const [approverDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT}${policyID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const [categoryVisibilityDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_CATEGORY_VISIBILITY_DRAFT}${policyID}`);
+    const shouldShowCategoryVisibilityRow = canSetInvitedMembersCategoryVisibility(policy);
+    // Another admin can disable, rename or delete a chosen category while this page is open, and the invite can only
+    // limit the new members to enabled categories, so the row and the invite count only those.
+    const categoryVisibilityDraftNames = categoryVisibilityDraft?.filter((categoryName) => !!policyCategories?.[categoryName]?.enabled);
+    // A member needs at least one category, so once every chosen category is gone the row asks the admin to pick again
+    const hasNoChosenCategoryLeft = categoryVisibilityDraftNames?.length === 0;
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const workspaceInviteApproverDraft = approverDraft ?? defaultApprover;
     const approverDetails = usePersonalDetailByLogin(workspaceInviteApproverDraft);
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
@@ -151,6 +172,14 @@ function WorkspaceInviteMessageComponent({
 
     const navigateToWorkArrangementPage = () => {
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_INVITE_WORK_ARRANGEMENT.path));
+    };
+
+    const navigateToCategoryVisibilityPage = () => {
+        startSpan(CONST.TELEMETRY.SPAN_OPEN_INVITE_CATEGORY_VISIBILITY, {
+            name: CONST.TELEMETRY.SPAN_OPEN_INVITE_CATEGORY_VISIBILITY,
+            op: CONST.TELEMETRY.SPAN_OPEN_INVITE_CATEGORY_VISIBILITY,
+        });
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_INVITE_MESSAGE_CATEGORY_VISIBILITY.path));
     };
 
     const personalDetailsOfInvitedEmails = getPersonalDetailsForAccountIDs(Object.values(invitedEmailsToAccountIDsDraft ?? {}), allPersonalDetails ?? {});
@@ -199,8 +228,23 @@ function WorkspaceInviteMessageComponent({
 
     const sendInvitation = () => {
         Keyboard.dismiss();
+        const categoryNames = shouldShowCategoryVisibilityRow ? categoryVisibilityDraftNames : undefined;
+        // A member needs at least one category, so an invite whose chosen categories are all gone waits for the admin to pick again
+        if (categoryNames?.length === 0) {
+            showConfirmModal({
+                title: translate('workspace.people.categoryVisibilityRequiredModal.title'),
+                prompt: translate('workspace.people.categoryVisibilityRequiredModal.description'),
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+            });
+            return;
+        }
+
         const filteredReportActions = getAllPolicyExpenseChatReportActions(allReports, allReportActions);
         const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails, false, false));
+        // Unlike the announce room, category visibility includes members with errors, so limiting the invitees doesn't take
+        // a category away from them too.
+        const categoryVisibilityMemberAccountIDs = categoryNames ? Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails, true, false)) : undefined;
         const {newAccountIDs, newLogins} = getNewAccountIDsAndLogins(invitedEmailsToAccountIDsDraft, allPersonalDetails);
         // Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
         // See https://github.com/Expensify/App/blob/main/README.md#workspace, we set conditions about who can leave the workspace
@@ -222,6 +266,8 @@ function WorkspaceInviteMessageComponent({
                 approverEmail: shouldShowApproverRow ? validatedApprover : undefined,
                 hasOfficeWorkArrangement: shouldShowWorkArrangement ? selectedHasOfficeWorkArrangement : undefined,
                 policyCategories,
+                categoryNames,
+                categoryVisibilityMemberAccountIDs,
             },
         );
         setWorkspaceInviteMessageDraft(policyID, welcomeNote ?? null);
@@ -251,6 +297,7 @@ function WorkspaceInviteMessageComponent({
                             policy,
                             rules: rulesCollection,
                             shouldUseApprovalWorkflowRules,
+                            currentUserLogin,
                         }),
                 });
             } else {
@@ -306,6 +353,7 @@ function WorkspaceInviteMessageComponent({
         return () => {
             clearWorkspaceInviteRoleDraft(policyID);
             clearWorkspaceInviteApproverDraft(policyID);
+            clearWorkspaceInviteCategoryVisibilityDraft(policyID);
             clearWorkspaceInviteWorkArrangementDraft(policyID);
         };
     }, [policyID]);
@@ -397,6 +445,30 @@ function WorkspaceInviteMessageComponent({
                                     onPress={navigateToApproverPage}
                                     value={approverName}
                                 />
+                            )}
+                            {shouldShowCategoryVisibilityRow && (
+                                <MenuItem.Root
+                                    onPress={callIfAuthenticated(navigateToCategoryVisibilityPage, session)}
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.INVITE_MESSAGE_CATEGORY_VISIBILITY}
+                                >
+                                    <MenuItemField.Row
+                                        name={translate('workspace.people.categoryVisibility')}
+                                        value={
+                                            categoryVisibilityDraftNames
+                                                ? translate('workspace.people.categoriesCount', {count: categoryVisibilityDraftNames.length})
+                                                : translate('workspace.people.allCategories')
+                                        }
+                                    >
+                                        {hasNoChosenCategoryLeft && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                                        <MenuItem.Chevron />
+                                    </MenuItemField.Row>
+                                    {hasNoChosenCategoryLeft && (
+                                        <MenuItem.HelpText
+                                            isError
+                                            message={translate('workspace.people.categoryVisibilityRequiredModal.title')}
+                                        />
+                                    )}
+                                </MenuItem.Root>
                             )}
                             {shouldShowWorkArrangement && (
                                 <MenuItemField
