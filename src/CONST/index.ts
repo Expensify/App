@@ -10957,6 +10957,7 @@ const FRAUD_PROTECTION_EVENT = {
     REQUEST_NEW_VIRTUAL_EXPENSIFY_CARD: 'RequestNewVirtualExpensifyCard',
     MERGE_ACCOUNT: 'MergeAccount',
     TOGGLE_TWO_FACTOR_AUTH: 'ToggleTwoFactorAuth',
+    DISABLE_TWO_FACTOR_AUTH: 'DisableTwoFactorAuth',
     REPLACE_TWO_FACTOR_DEVICE: 'ReplaceTwoFactorDevice',
     ADD_SECONDARY_LOGIN: 'AddSecondaryLogin',
     REMOVE_SECONDARY_LOGIN: 'RemoveSecondaryLogin',

@@ -32,7 +32,7 @@ describe('FraudMonitoring middleware', () => {
     });
 
     it.each([
-        {command: WRITE_COMMANDS.DISABLE_TWO_FACTOR_AUTH, expectedEvent: FRAUD_PROTECTION_EVENT.TOGGLE_TWO_FACTOR_AUTH},
+        {command: WRITE_COMMANDS.DISABLE_TWO_FACTOR_AUTH, expectedEvent: FRAUD_PROTECTION_EVENT.DISABLE_TWO_FACTOR_AUTH},
         {command: WRITE_COMMANDS.DELETE_CONTACT_METHOD, expectedEvent: FRAUD_PROTECTION_EVENT.REMOVE_SECONDARY_LOGIN},
         {command: WRITE_COMMANDS.REVOKE_DEVICE, expectedEvent: FRAUD_PROTECTION_EVENT.REMOVE_DEVICE},
     ])('sends $expectedEvent when $command succeeds', async ({command, expectedEvent}) => {
