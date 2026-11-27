@@ -2,8 +2,11 @@ import {render} from '@testing-library/react-native';
 
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 
+import useRepairExperienceCookie from '@hooks/useRepairExperienceCookie';
+
 import {init as activeClientManagerInit, isClientTheLeader, isReady} from '@libs/ActiveClientManager';
 import {isQAServerActive} from '@libs/ApiUtils';
+import {isSharedProductHost} from '@libs/ExperienceCookie';
 import AuthScreensInitHandler from '@libs/Navigation/AppNavigator/AuthScreensInitHandler';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
@@ -125,6 +128,12 @@ jest.mock('@selectors/Onboarding', () => ({
     hasSeenTourSelector: () => false,
 }));
 
+jest.mock('@libs/ExperienceCookie', () => ({
+    isSharedProductHost: jest.fn(),
+}));
+
+jest.mock('@hooks/useRepairExperienceCookie', () => jest.fn());
+
 jest.mock('@src/components/ConfirmedRoute.tsx');
 
 const mockedPusherInit = jest.mocked(Pusher.init);
@@ -136,6 +145,8 @@ const mockedIsClientTheLeader = jest.mocked(isClientTheLeader);
 const mockedIsReady = jest.mocked(isReady);
 const mockedSubscribeToUserEvents = jest.mocked(subscribeToUserEvents);
 const mockedIsQAServerActive = jest.mocked(isQAServerActive);
+const mockedIsSharedProductHost = jest.mocked(isSharedProductHost);
+const mockedUseRepairExperienceCookie = jest.mocked(useRepairExperienceCookie);
 function renderAuthScreensInitHandler() {
     return render(
         <LocaleContextProvider>
@@ -169,6 +180,18 @@ describe('AuthScreensInitHandler', () => {
 
     afterEach(() => {
         jest.restoreAllMocks();
+    });
+
+    it.each([true, false])('runs the experience cookie repair only on the shared product host (isSharedProductHost: %s)', async (isSharedHost) => {
+        // Given the app runs on a host that does or does not use the experience cookie
+        mockedIsSharedProductHost.mockReturnValue(isSharedHost);
+
+        // When the handler mounts
+        renderAuthScreensInitHandler();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the repair hook runs only on the host that uses the cookie
+        expect(mockedUseRepairExperienceCookie.mock.calls.length > 0).toBe(isSharedHost);
     });
 
     it('calls subscribeToUserEvents with a getter function on mount', async () => {
