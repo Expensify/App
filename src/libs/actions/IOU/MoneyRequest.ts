@@ -814,6 +814,39 @@ function moveMoneyRequestDraftToSelfDM({
     setCustomUnitRateID(transaction.transactionID, selfDMRateID, transaction, policyForMovingExpenses, false, policyForMovingExpenses?.outputCurrency ?? personalPolicyOutputCurrency);
 }
 
+type SetMoneyRequestDistanceRateForWorkspaceParams = {
+    transaction: OnyxEntry<Transaction>;
+
+    /** Workspace the expense is headed to */
+    policy: OnyxEntry<Policy>;
+
+    /** Workspace chat the expense is headed to */
+    reportID: string | undefined;
+    lastSelectedDistanceRates: OnyxEntry<LastSelectedDistanceRates>;
+};
+
+/**
+ * Gives a draft distance expense a rate of the workspace it is headed to, unless its rate is already one of that
+ * workspace's. A rate from elsewhere does not exist on the workspace, and the form would show a rate error for it.
+ */
+function setMoneyRequestDistanceRateForWorkspace({transaction, policy, reportID, lastSelectedDistanceRates}: SetMoneyRequestDistanceRateForWorkspaceParams) {
+    if (!transaction?.transactionID) {
+        return;
+    }
+    const currentRateID = transaction.comment?.customUnit?.customUnitRateID;
+    if (currentRateID && DistanceRequestUtils.getMileageRates(policy)[currentRateID]) {
+        return;
+    }
+    const workspaceRateID = DistanceRequestUtils.getCustomUnitRateID({
+        reportID,
+        isPolicyExpenseChat: true,
+        policy,
+        lastSelectedDistanceRates,
+        expenseDate: transaction.created,
+    });
+    setCustomUnitRateID(transaction.transactionID, workspaceRateID, transaction, policy, false, policy?.outputCurrency);
+}
+
 /** Get report policy id of IOU request */
 function getIOURequestPolicyID(transaction: OnyxEntry<Transaction>, report: OnyxEntry<Report>): string | undefined {
     // Workspace sender will exist for invoices
@@ -1334,6 +1367,7 @@ export {
     getMoneyRequestParticipantsFromReport,
     setMoneyRequestParticipantsFromReport,
     moveMoneyRequestDraftToSelfDM,
+    setMoneyRequestDistanceRateForWorkspace,
     getIOURequestPolicyID,
     updateLastLocationPermissionPrompt,
     setMultipleMoneyRequestParticipantsFromReport,

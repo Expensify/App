@@ -13,9 +13,8 @@ import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 
-import {moveMoneyRequestDraftToSelfDM, setCustomUnitRateID} from '@libs/actions/IOU/MoneyRequest';
+import {moveMoneyRequestDraftToSelfDM, setMoneyRequestDistanceRateForWorkspace} from '@libs/actions/IOU/MoneyRequest';
 import {createNewReport} from '@libs/actions/Report';
-import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -217,6 +216,11 @@ function useReportPickerActions({
     const shouldKeepExpenseWorkspace = ownerAccountID !== session?.accountID || isPerDiemTransaction || (!isEditing && !!transactionPolicyID);
     const targetExpensePolicyID = shouldKeepExpenseWorkspace ? (selectedReport?.policyID ?? transactionPolicyID) : undefined;
 
+    // None left the expense with no workspace of its own, so a new report would go on the default workspace while
+    // the list still shows the reports of the chat the expense was started in. Make it on that chat's workspace.
+    const newReportPolicyID =
+        targetExpensePolicyID ?? (isCreateReport && isUnreported && !isFromGlobalCreate && isPolicyExpenseChat(reportOrDraftReport) ? reportOrDraftReport?.policyID : undefined);
+
     // We need to fall back to transactionPolicyID because for a new workspace there is no report created yet
     // and if we choose this workspace as participant we want to create a new report in the chosen workspace
     // A new expense with no report is saved on the user's self DM, the same as picking themselves as the recipient.
@@ -227,10 +231,7 @@ function useReportPickerActions({
         isPerDiemRequest: isPerDiemTransaction,
         isTimeRequest: isTimeTransaction,
         isUnreportedManagedCardTransaction,
-        // None left the expense with no workspace of its own, so a new report would go on the default workspace while
-        // the list still shows the reports of the chat the expense was started in. Make it on that chat's workspace.
-        expensePolicyID:
-            targetExpensePolicyID ?? (isCreateReport && isUnreported && !isFromGlobalCreate && isPolicyExpenseChat(reportOrDraftReport) ? reportOrDraftReport?.policyID : undefined),
+        expensePolicyID: newReportPolicyID,
     });
 
     // No violations exist for a report that hasn't been created yet — kept as a literal to avoid subscribing to the entire TRANSACTION_VIOLATIONS collection.
@@ -277,19 +278,12 @@ function useReportPickerActions({
         }
         // The self DM's rate comes from the default workspace. On another workspace it does not exist, and the form
         // would show a rate error unless that workspace happens to have a rate of the same amount.
-        const workspacePolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-        const currentRateID = transaction.comment?.customUnit?.customUnitRateID;
-        if (currentRateID && DistanceRequestUtils.getMileageRates(workspacePolicy)[currentRateID]) {
-            return;
-        }
-        const workspaceRateID = DistanceRequestUtils.getCustomUnitRateID({
+        setMoneyRequestDistanceRateForWorkspace({
+            transaction,
+            policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`],
             reportID: report?.chatReportID,
-            isPolicyExpenseChat: true,
-            policy: workspacePolicy,
             lastSelectedDistanceRates,
-            expenseDate: transaction.created,
         });
-        setCustomUnitRateID(transaction.transactionID, workspaceRateID, transaction, workspacePolicy, false, workspacePolicy?.outputCurrency);
     };
 
     const selectReport = (item: TransactionGroupListItem) => {
@@ -407,7 +401,9 @@ function useReportPickerActions({
             isDistanceRequest: transactions.some(isDistanceRequestUtil),
             selectedReportID,
             selectedPolicyID,
-            transactionPolicyID: targetExpensePolicyID,
+            // The list names the workspace on its new report row and checks it before making the report, so it gets the
+            // same one the report is made on.
+            transactionPolicyID: newReportPolicyID,
             removeFromReport,
             isEditing,
             isCreatingExpense: isCreateReport,

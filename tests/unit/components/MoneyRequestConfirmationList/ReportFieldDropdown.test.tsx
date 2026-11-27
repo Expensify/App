@@ -1,6 +1,7 @@
 import {act, render} from '@testing-library/react-native';
 
 import ConfirmationFieldsProvider from '@components/MoneyRequestConfirmationFields/Provider';
+import type {ProviderProps} from '@components/MoneyRequestConfirmationFields/Provider';
 import ReportFieldDropdown from '@components/MoneyRequestConfirmationList/sections/ReportFieldDropdown';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {ReportPickerModalProps} from '@components/ReportPicker/ReportPickerModal';
@@ -86,13 +87,10 @@ const CURRENT_USER_ACCOUNT_ID = 5;
 const SELF_DM_REPORT_ID = 'selfDM1';
 const selfDMReport: Report = {reportID: SELF_DM_REPORT_ID, chatType: CONST.REPORT.CHAT_TYPE.SELF_DM, type: CONST.REPORT.TYPE.CHAT, ownerAccountID: CURRENT_USER_ACCOUNT_ID};
 
-// The expense types a test renders the form with: a regular expense, or the tracked one None leaves behind.
-type FormIOUType = typeof CONST.IOU.TYPE.SUBMIT | typeof CONST.IOU.TYPE.TRACK;
-
 // The screen that owns the form's route switches its expense type, which a field inside a tab can't reach with `useRoute`.
 const mockIOUTypeChange = jest.fn();
 
-const getDropdown = (onClose: jest.Mock, isVisible = true, iouType: FormIOUType = CONST.IOU.TYPE.SUBMIT) => (
+const getDropdown = (onClose: jest.Mock, isVisible = true, iouType: ProviderProps['iouType'] = CONST.IOU.TYPE.SUBMIT) => (
     <OnyxListItemProvider>
         <ConfirmationFieldsProvider
             transactionID={TRANSACTION_ID}
@@ -117,7 +115,7 @@ const getDropdown = (onClose: jest.Mock, isVisible = true, iouType: FormIOUType 
     </OnyxListItemProvider>
 );
 
-const renderDropdown = (onClose: jest.Mock, isVisible = true, iouType?: FormIOUType) => render(getDropdown(onClose, isVisible, iouType));
+const renderDropdown = (onClose: jest.Mock, isVisible = true, iouType?: ProviderProps['iouType']) => render(getDropdown(onClose, isVisible, iouType));
 
 const setDraftExpense = async () => {
     await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {
@@ -275,6 +273,8 @@ describe('ReportFieldDropdown', () => {
         // the user's default workspace
         expect(mockModalProps?.selectedPolicyID).toBe(POLICY_ID);
         expect(mockExpensePolicyIDs).toContain(POLICY_ID);
+        // And the list is given that workspace too, so the new report row names the workspace the report is made on
+        expect(mockModalProps?.transactionPolicyID).toBe(POLICY_ID);
     });
 
     it("gives a distance expense a rate of the picked report's workspace after no report was picked", async () => {

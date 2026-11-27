@@ -4,7 +4,14 @@ import {isParticipantP2P} from '@libs/IOUUtils';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
 import {generateReportID, getReportOrDraftReport} from '@libs/ReportUtils';
 
-import {moveMoneyRequestDraftToSelfDM, setCustomUnitRateID, setMoneyRequestCategory, setMoneyRequestParticipants, setMoneyRequestTag} from '@userActions/IOU/MoneyRequest';
+import {
+    moveMoneyRequestDraftToSelfDM,
+    setCustomUnitRateID,
+    setMoneyRequestCategory,
+    setMoneyRequestDistanceRateForWorkspace,
+    setMoneyRequestParticipants,
+    setMoneyRequestTag,
+} from '@userActions/IOU/MoneyRequest';
 
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
@@ -139,18 +146,12 @@ function useConfirmationParticipantSelection({
                 } else {
                     const workspacePolicy = selectedPolicy;
                     if (isDistanceRequest) {
-                        const currentRateID = transactionToUpdate.comment?.customUnit?.customUnitRateID;
-                        const isCurrentRateFromWorkspace = !!currentRateID && !!DistanceRequestUtils.getMileageRates(workspacePolicy)[currentRateID];
-                        if (!isCurrentRateFromWorkspace) {
-                            const workspaceRateID = DistanceRequestUtils.getCustomUnitRateID({
-                                reportID: participantReportID,
-                                isPolicyExpenseChat: true,
-                                policy: workspacePolicy,
-                                lastSelectedDistanceRates,
-                                expenseDate: transactionToUpdate.created,
-                            });
-                            setCustomUnitRateID(transactionIDToUpdate, workspaceRateID, transactionToUpdate, workspacePolicy, false, workspacePolicy?.outputCurrency);
-                        }
+                        setMoneyRequestDistanceRateForWorkspace({
+                            transaction: transactionToUpdate,
+                            policy: workspacePolicy,
+                            reportID: participantReportID,
+                            lastSelectedDistanceRates,
+                        });
                     }
 
                     // The previous workspace's category and tag don't apply in the new one, so reset them. No policy is
