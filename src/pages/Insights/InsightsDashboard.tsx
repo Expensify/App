@@ -52,18 +52,11 @@ import InsightsChartWidget from './charts/InsightsChartWidget';
 import InsightsFutureExpensesNote from './charts/InsightsFutureExpensesNote';
 import InsightsPageControls from './controls/InsightsPageControls';
 import InsightsTagLevelControl from './controls/InsightsTagLevelControl';
-import INSIGHTS_DASHBOARD_SPECS, {
-    applyViolationStage,
-    getEnabledStages,
-    getPoliciesInScope,
-    getUpgradeablePolicyIDsInScope,
-    getViolationStage,
-    getVisibleCharts,
-    shouldUpsellControlPlan,
-} from './dashboardSpecs';
+import INSIGHTS_DASHBOARD_SPECS, {applyViolationStage, getControlPlanCoverage, getScopeEligibility, getViolationStage, shouldUpsellControlPlan} from './dashboardSpecs';
 import {getQueryGroupBy} from './insightsGroupByUtils';
 import buildInsightsJsonQuery from './insightsQueries';
 import InsightsTabSelector from './InsightsTabSelector';
+import {getInsightsTagPolicyIDs} from './insightsTagLevels';
 import InsightsTagPolicyLoader from './InsightsTagPolicyLoader';
 import {getDashboardState, hasDashboardResponse, INSIGHTS_DASHBOARD_STATE} from './resolveDashboardState';
 import InsightsEmptyState from './states/InsightsEmptyState';
@@ -395,14 +388,27 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
     const isDashboardVisible = useIsTabVisible(SCREENS.INSIGHTS);
     const wasFocusedRef = useRef(isFocused);
     const {login} = useCurrentUserPersonalDetails();
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const arePoliciesLoaded = policies !== undefined;
+    const isSpendDashboard = dashboardID === CONST.INSIGHTS.DASHBOARD.SPEND;
+    // Both policy selectors return IDs and chart keys rather than policies, so a policy write that changes none of them doesn't render the dashboard
+    const [policyIndex] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        selector: (policies) =>
+            policies && {
+                controlPlanCoverage: getControlPlanCoverage(dashboardID, policies, login),
+                tagEligiblePolicyIDs: isSpendDashboard ? getInsightsTagPolicyIDs(policies) : [],
+            },
+    });
+    const arePoliciesLoaded = policyIndex !== undefined;
     // Checked against the next filters, because a workspace change can turn the upsell on or off
     const {filters, defaultFilters, isResolved, setFilters, tagPolicyIDs, tagLevelOptions} = useInsightsFilters(
         dashboardID,
-        (next) => arePoliciesLoaded && shouldUpsellControlPlan(dashboardID, getPoliciesInScope(policies, next.policyIDs), next.policyIDs, login),
-        policies,
+        (next) => arePoliciesLoaded && shouldUpsellControlPlan(policyIndex.controlPlanCoverage, next.policyIDs),
+        policyIndex?.tagEligiblePolicyIDs,
     );
+    const [selectedScopeEligibility] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        selector: (policies) => getScopeEligibility(dashboardID, policies, filters.policyIDs, login),
+    });
+    // Until Onyx reads the policies, only the charts and stages that need no eligible workspace are shown
+    const scopeEligibility = selectedScopeEligibility ?? getScopeEligibility(dashboardID, undefined, filters.policyIDs, login);
     const {headerRef, controlsRef, contentRef, isExporting, isLoading: isChartLoading, exportDashboard, captureContext} = useInsightsExport(dashboardID, filters);
     const updateFilters = (update: Partial<InsightsFilters>) => {
         if (isExporting) {
@@ -413,11 +419,10 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
     // Kept on screen only, since GetInsights doesn't save it with the dashboard's filters. The dashboard's hash includes it, so each stage keeps its own entry.
     const [violationStages, setViolationStages] = useState<InsightsViolationStages>({});
     const {headlineChart: headlineSpec, supportingCharts: supportingSpecs, isPolicyEligible: isDashboardPolicyEligible, queryType} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
-    const policiesInScope = getPoliciesInScope(policies, filters.policyIDs);
-    const eligibleCharts = getVisibleCharts(supportingSpecs, policiesInScope, login, isDashboardPolicyEligible);
+    const eligibleCharts = supportingSpecs.filter(({graphKey}) => scopeEligibility.visibleGraphKeys.includes(graphKey));
     // Settled from the policies already in Onyx, so the charts are never requested for a dashboard the upsell stands in for
-    const shouldUpsell = arePoliciesLoaded && shouldUpsellControlPlan(dashboardID, policiesInScope, filters.policyIDs, login);
-    const upgradeablePolicyIDs = shouldUpsell ? getUpgradeablePolicyIDsInScope(policiesInScope, login) : [];
+    const shouldUpsell = arePoliciesLoaded && shouldUpsellControlPlan(policyIndex.controlPlanCoverage, filters.policyIDs);
+    const upgradeablePolicyIDs = shouldUpsell ? scopeEligibility.upgradeablePolicyIDs : [];
     const query = isResolved && arePoliciesLoaded && !shouldUpsell ? buildInsightsJsonQuery(dashboardID, filters, eligibleCharts, violationStages) : undefined;
     const hash = query?.hash;
     const snapshotHashes = query?.snapshotHashes.join(',');
@@ -479,7 +484,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
             },
             isDashboardLoaded: hasDashboardResponse(dashboard),
             eligiblePolicyIDs: graph?.eligiblePolicyIDs,
-            stages: getEnabledStages(chartQuery.chart, policiesInScope, login, isDashboardPolicyEligible),
+            stages: chartQuery.chart.stages?.filter(({workflowStage}) => scopeEligibility.enabledStages[chartQuery.chart.graphKey]?.includes(workflowStage)),
         };
     });
     const [headlineChart, ...supportingCharts] = charts;
@@ -567,7 +572,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
                                 policyIDs: filters.policyIDs,
                                 date: filters.date,
                                 groupCurrency: filters.groupCurrency,
-                                ...(dashboardID === CONST.INSIGHTS.DASHBOARD.SPEND && {tagLevel: filters.tagLevel}),
+                                ...(isSpendDashboard && {tagLevel: filters.tagLevel}),
                             }}
                             hasFailedToLoad={!!dashboard?.errors}
                             headlineChart={headlineChart}

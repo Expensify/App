@@ -337,6 +337,46 @@ describe('useInsightsFilters', () => {
         expect(result.current.filters.groupBy).toBe(CONST.SEARCH.GROUP_BY.QUARTER);
     });
 
+    it.each<[string, Partial<Policy>]>([
+        ['its name', {name: 'Renamed workspace'}],
+        ['a pending field', {pendingFields: {name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}}],
+    ])('does not render again when the default workspace changes %s', async (_field, update) => {
+        // Given resolved filters built from the default workspace
+        await setUpActivePolicy('PLN');
+        let renderCount = 0;
+        const {result} = renderHook(() => {
+            renderCount++;
+            return useInsightsFilters(CONST.INSIGHTS.DASHBOARD.SPEND);
+        });
+        await waitFor(() => expect(result.current.isResolved).toBe(true));
+        const settledRenderCount = renderCount;
+
+        // When that workspace changes a field the filters don't read
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, update);
+            await waitForBatchedUpdates();
+        });
+
+        // Then the hook doesn't render, because it runs inside the whole Insights dashboard and users edit this workspace most
+        expect(renderCount).toBe(settledRenderCount);
+    });
+
+    it('follows a currency change on the default workspace', async () => {
+        // Given filters that took their group currency from the default workspace
+        await setUpActivePolicy('PLN');
+        const {result} = renderHook(() => useInsightsFilters(CONST.INSIGHTS.DASHBOARD.SPEND));
+        await waitFor(() => expect(result.current.filters.groupCurrency).toBe('PLN'));
+
+        // When the workspace switches its output currency
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {outputCurrency: 'EUR'});
+            await waitForBatchedUpdates();
+        });
+
+        // Then the default group currency follows it
+        expect(result.current.filters.groupCurrency).toBe('EUR');
+    });
+
     describe('saving to the server', () => {
         let writeSpy: jest.SpyInstance;
 
@@ -349,14 +389,12 @@ describe('useInsightsFilters', () => {
         });
 
         it('waits for complete tag metadata before resetting and saving a removed level', async () => {
-            // Given a saved level two and only partial metadata for a tags-enabled workspace
+            // Given a saved level two and only partial metadata for a workspace whose tags the dashboard reads
             await setUpActivePolicy('USD');
             writeSpy.mockImplementation((_command, _params, onyxData: {optimisticData: Parameters<typeof Onyx.update>[0]}) => Onyx.update(onyxData.optimisticData));
-            const policy: Policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), id: POLICY_ID, role: CONST.POLICY.ROLE.ADMIN, areTagsEnabled: true};
-            const policies = {[`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`]: policy};
             await storeFilters({date: {preset: CONST.SEARCH.DATE_PRESETS.LAST_MONTH}, policyIDs: [POLICY_ID], groupBy: CONST.SEARCH.GROUP_BY.MONTH, groupCurrency: 'USD', tagLevel: 2});
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${POLICY_ID}`, {Department: {name: 'Department', orderWeight: 0, required: false, tags: {}}});
-            const {result} = renderHook(() => useInsightsFilters(CONST.INSIGHTS.DASHBOARD.SPEND, undefined, policies));
+            const {result} = renderHook(() => useInsightsFilters(CONST.INSIGHTS.DASHBOARD.SPEND, undefined, [POLICY_ID]));
             await waitFor(() => expect(result.current.isResolved).toBe(true));
             expect(result.current.filters.tagLevel).toBe(2);
             expect(writeSpy).not.toHaveBeenCalled();
@@ -377,8 +415,6 @@ describe('useInsightsFilters', () => {
         it('keeps a saved level when any selected workspace still has it', async () => {
             // Given one shallow workspace and another with two configured levels
             await setUpActivePolicy('USD');
-            const policy: Policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), id: POLICY_ID, role: CONST.POLICY.ROLE.ADMIN, areTagsEnabled: true};
-            const otherPolicy = {...policy, id: '2'};
             await storeFilters({date: {preset: CONST.SEARCH.DATE_PRESETS.LAST_MONTH}, policyIDs: [], groupBy: CONST.SEARCH.GROUP_BY.MONTH, groupCurrency: 'USD', tagLevel: 2});
             const first = {name: 'Department', orderWeight: 0, required: false, tags: {}};
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${POLICY_ID}`, {Department: first});
@@ -387,9 +423,7 @@ describe('useInsightsFilters', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_TAGS_LOADING_STATE}2`, {hasOnceLoaded: true, isLoading: false});
 
             // When the dashboard opens with both workspaces selected
-            const {result} = renderHook(() =>
-                useInsightsFilters(CONST.INSIGHTS.DASHBOARD.SPEND, undefined, {[`${ONYXKEYS.COLLECTION.POLICY}1`]: policy, [`${ONYXKEYS.COLLECTION.POLICY}2`]: otherPolicy}),
-            );
+            const {result} = renderHook(() => useInsightsFilters(CONST.INSIGHTS.DASHBOARD.SPEND, undefined, [POLICY_ID, '2']));
             await waitFor(() => expect(result.current.isResolved).toBe(true));
 
             // Then the second position stays available without a reset write

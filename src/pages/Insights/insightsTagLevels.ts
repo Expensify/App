@@ -10,9 +10,9 @@ import type {OnyxCollection} from 'react-native-onyx';
 
 type InsightsTagLevelOption = {value: number; label: string};
 
-function getInsightsTagPolicyIDs(policies: OnyxCollection<Policy>, selectedPolicyIDs: string[]): string[] {
-    const selected = new Set(selectedPolicyIDs);
-    return Object.values(policies ?? {}).flatMap((policy) => (policy && isPolicyEligibleForTopTags(policy) && (selected.size === 0 || selected.has(policy.id)) ? [policy.id] : []));
+/** Returns the workspaces whose tag lists can set the Spend dashboard's tag levels. The caller applies the workspace filter. */
+function getInsightsTagPolicyIDs(policies: OnyxCollection<Policy>): string[] {
+    return Object.values(policies ?? {}).flatMap((policy) => (policy && isPolicyEligibleForTopTags(policy) ? [policy.id] : []));
 }
 
 function getInsightsTagLevelNames(policyTags: OnyxCollection<PolicyTagLists>, policyIDs: string[]): string[][] {

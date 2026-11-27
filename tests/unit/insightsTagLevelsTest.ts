@@ -1,12 +1,31 @@
 import formatTagParentPath from '@libs/formatTagParentPath';
 
-import {getFittingTagLevel, getInsightsTagLevelNames, getInsightsTagLevelOptions} from '@pages/Insights/insightsTagLevels';
+import {getFittingTagLevel, getInsightsTagLevelNames, getInsightsTagLevelOptions, getInsightsTagPolicyIDs} from '@pages/Insights/insightsTagLevels';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy} from '@src/types/onyx';
+
+import createRandomPolicy from '../utils/collections/policies';
 
 const fallback = (level: number) => `Tag level ${level}`;
 
 describe('Insights tag levels', () => {
+    it('reads tag levels only from group workspaces with tags enabled', () => {
+        // Given a tagged Collect workspace, an untagged one, a tagged personal one and a workspace Onyx just removed
+        const buildPolicy = (id: string, type: Policy['type'], areTagsEnabled: boolean): Policy => ({...createRandomPolicy(Number(id), type), id, areTagsEnabled});
+        const policies = {
+            [`${ONYXKEYS.COLLECTION.POLICY}1`]: buildPolicy('1', CONST.POLICY.TYPE.TEAM, true),
+            [`${ONYXKEYS.COLLECTION.POLICY}2`]: buildPolicy('2', CONST.POLICY.TYPE.TEAM, false),
+            [`${ONYXKEYS.COLLECTION.POLICY}3`]: buildPolicy('3', CONST.POLICY.TYPE.PERSONAL, true),
+            [`${ONYXKEYS.COLLECTION.POLICY}4`]: undefined,
+        };
+
+        // When the dashboard picks the workspaces whose tag lists set the levels on offer
+        // Then only the tagged group workspace counts, since the others have no tag levels to chart
+        expect(getInsightsTagPolicyIDs(policies)).toEqual(['1']);
+    });
+
     it('uses positional names, falls back for conflicts, and keeps deeper levels from either workspace', () => {
         // Given different names at level two and a third level present in only one workspace
         const names = [
