@@ -1,5 +1,7 @@
 import ScrollView from '@components/ScrollView';
 import usePinnedScrollVariables from '@components/Search/hooks/usePinnedScrollVariables';
+import useTableScrollOffset from '@components/Search/hooks/useTableScrollOffset';
+import type HorizontalScrollOffsetStore from '@components/Search/hooks/useTableScrollOffset/types';
 import {PINNED_TABLE_SCROLLER_DATA_SET} from '@components/Search/pinnedCellStyles/pinnedScrollVariables';
 import type {SearchColumnType, SearchQueryJSON} from '@components/Search/types';
 import {TABLE_COLUMN_SCROLLER_DATA_SET} from '@components/Table/columnResize/columnWidthExpressions';
@@ -25,6 +27,13 @@ import SUPPORTS_TWO_AXIS_LIST from './supportsTwoAxisList';
 
 // Keep a ref to the horizontal scroll offset so we can restore it if users change the search query
 let savedHorizontalScrollOffset = 0;
+
+const savedHorizontalScrollOffsetStore: HorizontalScrollOffsetStore = {
+    get: () => savedHorizontalScrollOffset,
+    set: (offset) => {
+        savedHorizontalScrollOffset = offset;
+    },
+};
 
 /** A resizable table's scroller is also the one a column drag holds still. */
 const RESIZABLE_LIST_SCROLLER_DATA_SET = {...PINNED_TABLE_SCROLLER_DATA_SET, ...TABLE_COLUMN_SCROLLER_DATA_SET};
@@ -120,13 +129,15 @@ function HorizontalTableScroll({
     };
 
     // Restore horizontal scroll position synchronously before paint using useLayoutEffect to avoid a visible shift on the table
+    // A list that scrolls both ways restores its own scroller (see useTableScrollOffset).
     useLayoutEffect(() => {
-        if (!shouldScrollHorizontally || savedHorizontalScrollOffset <= 0) {
+        if (!shouldScrollHorizontally || isListScrollingBothAxes || savedHorizontalScrollOffset <= 0) {
             return;
         }
         horizontalScrollViewRef.current?.scrollTo({x: savedHorizontalScrollOffset, animated: false});
-    }, [dataKey, shouldScrollHorizontally]);
+    }, [dataKey, shouldScrollHorizontally, isListScrollingBothAxes]);
 
+    useTableScrollOffset(containerRef, isListScrollingBothAxes, savedHorizontalScrollOffsetStore, dataKey);
     usePinnedScrollVariables(containerRef, isListScrollingBothAxes);
 
     if (!shouldScrollHorizontally) {
