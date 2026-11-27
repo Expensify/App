@@ -53384,6 +53384,25 @@ function isProposal(body) {
 }
 var isProposal_default = isProposal;
 
+// .github/libs/isTeamMember.ts
+async function getTeamMembership(octokit, org, teamSlug, username) {
+  try {
+    await octokit.teams.getMembershipForUserInOrg({
+      org,
+      team_slug: teamSlug,
+      username
+    });
+    return true;
+  } catch (error2) {
+    if (error2 instanceof RequestError && error2.status === 404) {
+      return false;
+    }
+    const message2 = error2 instanceof Error ? error2.message : String(error2);
+    warning(`Could not verify ${teamSlug} membership for ${username}: ${message2}`);
+    return void 0;
+  }
+}
+
 // prompts/proposalPolice/input.ts
 function escapeForXMLWrapper(text) {
   return text.replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
@@ -64981,6 +65000,10 @@ function chunkArray(items, size) {
 
 // node_modules/@actions/github/lib/github.js
 var context2 = new Context();
+function getOctokit(token, options, ...additionalPlugins) {
+  const GitHubWithPlugins = GitHub.plugin(...additionalPlugins);
+  return new GitHubWithPlugins(getOctokitOptions(token, options));
+}
 
 // node_modules/date-fns/constants.js
 var daysInYear = 365.2425;
@@ -67055,6 +67078,73 @@ function toZonedTime(date, timeZone, options) {
 // .github/actions/javascript/proposalPoliceComment/proposalPoliceComment.ts
 var PROPOSAL_POLICE_MODEL = "gpt-5.6-luna";
 var DUPLICATE_SIMILARITY_THRESHOLD = 90;
+var TRUSTED_AUTHOR_ASSOCIATIONS = /* @__PURE__ */ new Set(["OWNER", "MEMBER", "COLLABORATOR"]);
+var TRUSTED_TEAM_SLUGS = ["expensify-expensify", "contributor-plus", "backend-contributors", "external-expert-contributors", "applause"];
+var PARTNER_AGENCY_PATTERN = /(^|\s)from\s+(Callstack|Margelo|Software\s?Mansion)([^A-Za-z0-9_]|$)/i;
+async function getTrustedTeamMembership(login) {
+  const orgToken = getInput("OS_BOTIFY_TOKEN");
+  if (!orgToken) {
+    return void 0;
+  }
+  const orgOctokit = getOctokit(orgToken);
+  let hasFailedCheck = false;
+  for (const teamSlug of TRUSTED_TEAM_SLUGS) {
+    const isMember = await getTeamMembership(orgOctokit.rest, CONST_default.GITHUB_OWNER, teamSlug, login);
+    if (isMember) {
+      return true;
+    }
+    hasFailedCheck ||= isMember === void 0;
+  }
+  return hasFailedCheck ? void 0 : false;
+}
+function hasHelpWantedLabel(labels) {
+  return labels.some((label) => (typeof label === "string" ? label : label.name) === CONST_default.LABELS.HELP_WANTED);
+}
+async function hasMergedAppPullRequest(login) {
+  const { data } = await GithubUtils_default.octokit.search.issuesAndPullRequests({
+    q: `repo:${CONST_default.GITHUB_OWNER}/${CONST_default.APP_REPO} is:pr is:merged author:${login}`,
+    // eslint-disable-next-line @typescript-eslint/naming-convention -- GitHub's REST API parameter name
+    per_page: 1
+  });
+  if (data.incomplete_results && data.total_count === 0) {
+    throw new Error(`The merged PR search for ${login} returned incomplete results`);
+  }
+  return data.total_count > 0;
+}
+async function hideCommentFromNewContributor(payload) {
+  const { comment, issue: issue2 } = payload;
+  const author = comment.user.login;
+  if (isBotUser_default(author, comment.user.type) || author === issue2.user.login || TRUSTED_AUTHOR_ASSOCIATIONS.has(comment.author_association)) {
+    console.log("Comment is from a bot, the issue author, or an org member, leaving it visible.", author);
+    return;
+  }
+  const isTrustedTeamMember = await getTrustedTeamMembership(author);
+  if (isTrustedTeamMember) {
+    console.log("Commenter is on a trusted team, leaving the comment visible.", author);
+    return;
+  }
+  if (isTrustedTeamMember === void 0) {
+    warning(`Could not verify ${author}'s team membership, leaving comment ${comment.id} visible.`);
+    return;
+  }
+  try {
+    const { data: currentIssue } = await GithubUtils_default.octokit.issues.get({ ...context2.repo, issue_number: issue2.number });
+    if (hasHelpWantedLabel(currentIssue.labels) || currentIssue.assignees?.some((assignee) => assignee.login === author)) {
+      console.log('Issue now has "Help Wanted" or the commenter is assigned, leaving the comment visible.', author);
+      return;
+    }
+    if (await hasMergedAppPullRequest(author)) {
+      console.log("Commenter has a merged App PR, leaving the comment visible.", author);
+      return;
+    }
+  } catch (error2) {
+    const message2 = error2 instanceof Error ? error2.message : String(error2);
+    warning(`Could not check whether ${author} can comment before "Help Wanted", leaving comment ${comment.id} visible: ${message2}`);
+    return;
+  }
+  notice(`ProposalPolice hid comment ${comment.id} by ${author}, who has no merged App PR, on an issue without "Help Wanted"`);
+  await GithubUtils_default.minimizeCommentAsSpam(comment.node_id);
+}
 function isCommentCreatedEvent(payload) {
   return payload.action === CONST_default.ACTIONS.CREATED;
 }
@@ -67086,6 +67176,10 @@ async function run() {
     throw new Error("ProposalPolice\u2122 only supports the issue_comment webhook event");
   }
   const payload = context2.payload;
+  if (isCommentCreatedEvent(payload) && payload.issue.state === CONST_default.STATE.OPEN && !payload.issue.pull_request && !hasHelpWantedLabel(payload.issue.labels)) {
+    await hideCommentFromNewContributor(payload);
+    return;
+  }
   if (payload.issue?.state !== CONST_default.STATE.OPEN || !payload.issue?.labels.some((issueLabel) => issueLabel.name === CONST_default.LABELS.HELP_WANTED)) {
     console.log('Issue is not open or does not have the "Help Wanted" label, skipping checks.');
     return;
@@ -67114,7 +67208,6 @@ async function run() {
     return;
   }
   const apiKey = getInput("PROPOSAL_POLICE_API_KEY", { required: true });
-  const isTrustedCommenter = getInput("IS_TRUSTED_COMMENTER") === "true";
   const openAI = new OpenAIUtils_default(apiKey);
   const issueNumber = payload.issue?.number ?? -1;
   const commentID = payload.comment?.id ?? -1;
@@ -67124,6 +67217,7 @@ async function run() {
     const newProposalAuthor = payload.comment.user.login;
     if (!isProposal_default(newProposalBody)) {
       console.log("Comment does not follow the proposal template. Classifying what it is trying to do...");
+      const isTrustedCommenter = PARTNER_AGENCY_PATTERN.test(newProposalBody) || !!await getTrustedTeamMembership(newProposalAuthor);
       const intentResponse = await openAI.promptResponses({
         instructions: buildCommentIntentInstructions(),
         input: buildCommentIntentInput(newProposalBody, isTrustedCommenter),

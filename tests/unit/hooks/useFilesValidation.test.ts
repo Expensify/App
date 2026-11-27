@@ -7,6 +7,7 @@ import useFilesValidation from '@hooks/useFilesValidation';
 import type * as FileUtilsModule from '@libs/fileDownload/FileUtils';
 import {resizeImageIfNeeded} from '@libs/fileDownload/FileUtils';
 import convertHeicImage from '@libs/fileDownload/heicConverter';
+import adoptDerivedFile from '@libs/ReceiptStorage/adoptDerivedFile';
 import validateAttachmentFile from '@libs/validateAttachmentFile';
 
 import CONST from '@src/CONST';
@@ -52,7 +53,11 @@ jest.mock('@libs/fileDownload/FileUtils', () => {
     };
 });
 
+// adoptDerivedFile has its own tests. Here we only check which files go into it and that validation passes its result on.
+jest.mock('@libs/ReceiptStorage/adoptDerivedFile', () => jest.fn());
+
 const mockValidateAttachmentFile = jest.mocked(validateAttachmentFile);
+const mockAdoptDerivedFile = jest.mocked(adoptDerivedFile);
 const mockConvertHeicImage = jest.mocked(convertHeicImage);
 const mockResizeImageIfNeeded = jest.mocked(resizeImageIfNeeded);
 
@@ -106,6 +111,7 @@ describe('useFilesValidation', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         resetMockConfirmModal();
+        mockAdoptDerivedFile.mockImplementation((input, output) => Promise.resolve(output));
     });
 
     describe('guard & edge cases', () => {
@@ -357,7 +363,88 @@ describe('useFilesValidation', () => {
             triggerValidation(result, [heicFile], [], {isValidatingReceipts: true});
 
             await waitFor(() => expect(onFilesValidated).toHaveBeenCalledWith([resizedFile], []));
-            expect(mockResizeImageIfNeeded).toHaveBeenCalledWith(oversizedConvertedFile);
+            expect(mockResizeImageIfNeeded).toHaveBeenCalledWith(oversizedConvertedFile, CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE);
+        });
+    });
+
+    describe('keeping converted and resized files', () => {
+        it('passes on the adopted copy of a converted HEIC', async () => {
+            // Given a HEIC whose JPEG lands in the image cache
+            const heicFile = createFile({uri: 'file:///receipts/photo.heic', name: 'photo.heic'});
+            const convertedFile = createFile({uri: 'file:///cache/ImageManipulator/photo.jpg', name: 'photo.jpg'});
+            const adoptedFile = createFile({uri: 'file:///receipts/photo_1.jpg', source: 'file:///receipts/photo_1.jpg', name: 'photo.jpg'});
+            mockInvalid(CONST.FILE_VALIDATION_ERRORS.HEIC_OR_HEIF_IMAGE);
+            mockConvertHeicImage.mockImplementation((file, callbacks) => callbacks?.onSuccess?.(convertedFile));
+            mockAdoptDerivedFile.mockResolvedValue(adoptedFile);
+
+            // When it is validated as a receipt
+            const {result, onFilesValidated} = setup();
+            triggerValidation(result, [heicFile], [], {isValidatingReceipts: true});
+
+            // Then the expense gets the copy in the receipts folder, which a cleared cache can't take away
+            await waitFor(() => expect(onFilesValidated).toHaveBeenCalledWith([adoptedFile], []));
+            expect(mockAdoptDerivedFile).toHaveBeenCalledWith(heicFile, convertedFile, 'convert');
+        });
+
+        it('adopts the converted file before resizing it', async () => {
+            // Given a HEIC that converts to a JPEG above the receipt limit
+            const heicFile = createFile({uri: 'file:///receipts/photo.heic', name: 'photo.heic'});
+            const convertedFile = createFile({uri: 'file:///cache/ImageManipulator/photo.jpg', name: 'photo.jpg', size: CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE + 1});
+            const adoptedConvertedFile = {...convertedFile, uri: 'file:///receipts/photo_1.jpg'};
+            const resizedFile = createFile({uri: 'file:///cache/ImageManipulator/resized.jpg', name: 'photo.jpg'});
+            const adoptedResizedFile = {...resizedFile, uri: 'file:///receipts/photo_2.jpg'};
+            mockInvalid(CONST.FILE_VALIDATION_ERRORS.HEIC_OR_HEIF_IMAGE);
+            mockConvertHeicImage.mockImplementation((file, callbacks) => callbacks?.onSuccess?.(convertedFile));
+            mockAdoptDerivedFile.mockImplementation((input, output) => Promise.resolve(output === convertedFile ? adoptedConvertedFile : adoptedResizedFile));
+            mockResizeImageIfNeeded.mockResolvedValue(resizedFile);
+
+            // When it is validated as a receipt
+            const {result, onFilesValidated} = setup();
+            triggerValidation(result, [heicFile], [], {isValidatingReceipts: true});
+
+            // Then the resize reads the adopted JPEG, so adopting the resized file can delete it
+            await waitFor(() => expect(onFilesValidated).toHaveBeenCalledWith([adoptedResizedFile], []));
+            expect(mockResizeImageIfNeeded).toHaveBeenCalledWith(adoptedConvertedFile, CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE);
+            expect(mockAdoptDerivedFile).toHaveBeenNthCalledWith(2, adoptedConvertedFile, resizedFile, 'resize');
+        });
+
+        it('keeps the selection order of a HEIC that was converted and resized', async () => {
+            // Given two JPEGs and then a HEIC that converts above the receipt limit. Before the fix the resized HEIC lost
+            // its position and sorted between the two JPEGs.
+            const firstFile = createFile({uri: 'file:///receipts/first.jpg', name: 'first.jpg'});
+            const secondFile = createFile({uri: 'file:///receipts/second.jpg', name: 'second.jpg'});
+            const heicFile = createFile({uri: 'file:///receipts/third.heic', name: 'third.heic'});
+            const convertedFile = createFile({uri: 'file:///cache/ImageManipulator/third.jpg', name: 'third.jpg', size: CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE + 1});
+            const resizedFile = createFile({uri: 'file:///cache/ImageManipulator/third-resized.jpg', name: 'third.jpg'});
+            mockValidateAttachmentFile
+                .mockResolvedValueOnce({isValid: true, file: firstFile})
+                .mockResolvedValueOnce({isValid: true, file: secondFile})
+                .mockResolvedValueOnce({isValid: false, error: CONST.FILE_VALIDATION_ERRORS.HEIC_OR_HEIF_IMAGE});
+            mockConvertHeicImage.mockImplementation((file, callbacks) => callbacks?.onSuccess?.(convertedFile));
+            mockResizeImageIfNeeded.mockResolvedValue(resizedFile);
+
+            // When all three are validated as receipts
+            const {result, onFilesValidated} = setup();
+            triggerValidation(result, [firstFile, secondFile, heicFile], [], {isValidatingReceipts: true});
+
+            // Then the HEIC stays last
+            await waitFor(() => expect(onFilesValidated).toHaveBeenCalledWith([firstFile, secondFile, resizedFile], []));
+        });
+
+        it('resizes a chat attachment against the attachment limit', async () => {
+            // Given an image too large for a chat attachment
+            const largeImage = createFile({uri: 'file-large', name: 'photo.jpg', size: CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE + 1});
+            const resizedFile = createFile({uri: 'file-resized', name: 'photo.jpg'});
+            mockInvalid(CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE);
+            mockResizeImageIfNeeded.mockResolvedValue(resizedFile);
+
+            // When it is validated as an attachment
+            const {result, onFilesValidated} = setup();
+            triggerValidation(result, [largeImage], [], {isValidatingReceipts: false});
+
+            // Then it is resized against the 24 MiB attachment limit, not the 10 MiB receipt limit
+            await waitFor(() => expect(onFilesValidated).toHaveBeenCalledWith([resizedFile], []));
+            expect(mockResizeImageIfNeeded).toHaveBeenCalledWith(largeImage, CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE);
         });
     });
 

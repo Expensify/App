@@ -30,7 +30,7 @@ import InsightsExplainButton from '@pages/Insights/ai/InsightsExplainButton';
 import buildInsightsChartCSV from '@pages/Insights/buildInsightsChartCSV';
 import InsightsGroupByDropdown from '@pages/Insights/controls/InsightsGroupByDropdown';
 import type {InsightsChartSpec, InsightsChartStage, InsightsViolationStage} from '@pages/Insights/dashboardSpecs';
-import {isStackedChart} from '@pages/Insights/dashboardSpecs';
+import INSIGHTS_DASHBOARD_SPECS, {isStackedChart} from '@pages/Insights/dashboardSpecs';
 import {getInsightsDetailsItemParams} from '@pages/Insights/details/insightsDetailsItem';
 import getInsightsLastDay from '@pages/Insights/getInsightsLastDay';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
@@ -219,14 +219,14 @@ function InsightsChartWidget({
     };
 
     const openDetails =
-        dashboardID === CONST.INSIGHTS.DASHBOARD.SPEND && queryJSON
+        INSIGHTS_DASHBOARD_SPECS[dashboardID].hasDetailsPanel && queryJSON
             ? (item: GroupedItem) => {
-                  const itemParams = getInsightsDetailsItemParams(item, queryJSON);
+                  const itemParams = getInsightsDetailsItemParams(item, queryJSON, chart.dateFilterKey);
                   if (!itemParams) {
                       return;
                   }
                   const detailsAsOfDate = asOfDate !== getInsightsLastDay(undefined) ? asOfDate : undefined;
-                  Navigation.navigate(ROUTES.INSIGHTS_DETAILS.getRoute({dashboardID, graphKey: chart.graphKey, ...itemParams, asOfDate: detailsAsOfDate}));
+                  Navigation.navigate(ROUTES.INSIGHTS_DETAILS.getRoute({dashboardID, graphKey: chart.graphKey, ...itemParams, asOfDate: detailsAsOfDate, violationStage}));
               }
             : undefined;
 
@@ -359,6 +359,7 @@ function InsightsChartWidget({
                             isComparingPreviousPeriod={filters.compare === CONST.SEARCH.COMPARE.PREVIOUS_PERIOD}
                             queryJSON={queryJSONForSearch}
                             isLoading={isLoading}
+                            onRowPress={openDetails}
                         />
                     ) : (
                         <View style={cardPaddingBottom}>
