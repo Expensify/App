@@ -102,7 +102,10 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
     const trimmedQuery = searchQuery.trim();
     const normalizedQuery = trimmedQuery.toLocaleLowerCase();
     const filteredOptions = options.filter((option) => `${option.name} ${option.aliases ?? ''}`.toLocaleLowerCase().includes(normalizedQuery));
-    const isSelectedOptionHidden = !!selectedAnswerIntegration && !filteredOptions.some((option) => option === selectedOption || option === customOption);
+    const selectedRow = selectedOption ?? customOption;
+    // Keep the saved choice visible so searching never silently prevents continuing with it.
+    const visibleOptions = selectedRow && !filteredOptions.includes(selectedRow) ? [selectedRow, ...filteredOptions] : filteredOptions;
+    const hasSelectedOption = !!selectedRow;
 
     const unsupportedTitle = translate('onboarding.accounting.unsupportedTitle', trimmedQuery);
     const unsupportedSubtitle = translate('onboarding.accounting.unsupportedSubtitle');
@@ -110,7 +113,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
     useDebouncedAccessibilityAnnouncement(unsupportedTitle, filteredOptions.length === 0 && !!trimmedQuery, trimmedQuery);
 
     const submitAccounting = async () => {
-        if (!selectedAnswerIntegration || isSelectedOptionHidden) {
+        if (!selectedAnswerIntegration || !hasSelectedOption) {
             setError(translate('onboarding.errorSelection'));
             return;
         }
@@ -147,7 +150,6 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 size={CONST.BUTTON_SIZE.LARGE}
                 onPress={submitAccounting}
-                isDisabled={isSelectedOptionHidden}
                 isLoading={isCompletingOnboarding}
                 sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.CONTINUE}
             >
@@ -187,9 +189,9 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                             style={[styles.mh0, styles.mb0, styles.w100, styles.mw100]}
                         />
                     </View>
-                    {filteredOptions.length > 0 ? (
+                    {visibleOptions.length > 0 && (
                         <View style={[styles.flexRow, styles.flexWrap, styles.gap2]}>
-                            {filteredOptions.map((option) => (
+                            {visibleOptions.map((option) => (
                                 <AccountingOptionRow
                                     key={option.connectionName ?? `${option.integration}-${option.name}`}
                                     option={option}
@@ -198,7 +200,8 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                                 />
                             ))}
                         </View>
-                    ) : (
+                    )}
+                    {filteredOptions.length === 0 && (
                         <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.pv8]}>
                             <Icon
                                 src={illustrations.Computer}

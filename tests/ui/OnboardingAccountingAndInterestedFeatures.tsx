@@ -186,15 +186,15 @@ describe('Onboarding interested features and accounting pages', () => {
         expect(await Onyx.get(ONYXKEYS.ONBOARDING_ACCOUNTING_DRAFT)).toBeUndefined();
     });
 
-    it('preserves the submission handler when search changes without hiding the selected integration', async () => {
+    it('preserves the submission handler when search changes around the selected integration', async () => {
         // Given a selected integration and its compiled submission handler
         await act(async () => Onyx.set(ONYXKEYS.ONBOARDING_ACCOUNTING_DRAFT, {integration: 'xero'}));
         const result = renderAccountingPage();
         await waitForBatchedUpdatesWithAct();
         const {onPress: submitAccounting}: Pick<ButtonProps, 'onPress'> = result.UNSAFE_getByType(ButtonDisabledWhenOffline).props;
 
-        // When search changes but the selected integration remains visible
-        searchFor('Xero');
+        // When search changes to a different product but the selected integration remains pinned
+        searchFor('QBO');
         await waitForBatchedUpdatesWithAct();
 
         // Then the footer can reuse its handler and still submits the selected answer
@@ -376,33 +376,25 @@ describe('Onboarding interested features and accounting pages', () => {
         );
     });
 
-    it('blocks a hidden selection on the unsupported screen and restores it when search is cleared', async () => {
+    it('keeps the selected choice visible and submittable alongside an unsupported search', async () => {
         // Given Xero is selected before searching for unsupported software
-        const result = renderAccountingPage();
+        renderAccountingPage();
         await waitForBatchedUpdatesWithAct();
         fireEvent.press(screen.getByText('Xero'));
         await waitForBatchedUpdatesWithAct();
 
-        // When the search hides Xero, neither a button press nor direct submission may send it
+        // When searching for unsupported software without confirming a replacement
         searchFor('Wave');
         expect(screen.getByText(TestHelper.translateLocal('onboarding.accounting.unsupportedTitle', 'Wave'))).toBeOnTheScreen();
-        expect(screen.getByRole(CONST.ROLE.BUTTON, {name: TestHelper.translateLocal('common.continue')})).toBeDisabled();
-        continueOnboarding();
-        const {onPress}: Pick<ButtonProps, 'onPress'> = result.UNSAFE_getByType(ButtonDisabledWhenOffline).props;
-        await act(async () => onPress?.());
-
-        // Then the draft is preserved without completing onboarding, and clearing search makes it usable again
-        expect(mockCompleteOnboardingFlow).not.toHaveBeenCalled();
-        expect(await Onyx.get(ONYXKEYS.ONBOARDING_ACCOUNTING_DRAFT)).toEqual({integration: 'xero'});
-        fireEvent.press(screen.getByLabelText(TestHelper.translateLocal('common.clear')));
+        // Then the current choice remains explicit and Continue still submits it
         expect(screen.getByRole(CONST.ROLE.RADIO, {name: 'Xero'})).toBeChecked();
         expect(screen.getByRole(CONST.ROLE.BUTTON, {name: TestHelper.translateLocal('common.continue')})).toBeEnabled();
         continueOnboarding();
         await waitFor(() => expect(mockCompleteOnboardingFlow).toHaveBeenCalledWith(expect.objectContaining({userReportedIntegration: 'xero'})));
     });
 
-    it('enables Continue for an explicitly confirmed replacement instead of submitting the hidden selection', async () => {
-        // Given Xero is selected but hidden by an unmatched search
+    it('submits an explicitly confirmed replacement instead of the pinned selection', async () => {
+        // Given Xero remains selected while an unmatched search is shown
         renderAccountingPage();
         await waitForBatchedUpdatesWithAct();
         fireEvent.press(screen.getByText('Xero'));
@@ -420,24 +412,30 @@ describe('Onboarding interested features and accounting pages', () => {
         await waitFor(() => expect(mockCompleteOnboardingFlow).toHaveBeenCalledWith(expect.objectContaining({userReportedIntegration: 'other', userReportedIntegrationName: 'Wave'})));
     });
 
-    it('also blocks hidden selections when the search matches other supported products', async () => {
-        // Given Xero is selected
+    it.each([
+        {integration: 'xero' as const, name: undefined, label: 'Xero'},
+        {integration: 'other' as const, name: 'Acme Books', label: 'Acme Books'},
+    ])('keeps $label selected while searching QBO and allows switching to the result', async ({integration, name, label}) => {
+        // Given a saved connector or custom choice
+        await act(async () => Onyx.set(ONYXKEYS.ONBOARDING_ACCOUNTING_DRAFT, {integration, name}));
         renderAccountingPage();
         await waitForBatchedUpdatesWithAct();
-        fireEvent.press(screen.getByText('Xero'));
-        await waitForBatchedUpdatesWithAct();
 
-        // When the results show other products but not the selected one
-        searchFor('QuickBooks');
+        // When searching for another product by alias
+        searchFor('QBO');
+        expect(screen.getAllByRole(CONST.ROLE.RADIO)).toHaveLength(2);
+        expect(screen.getByRole(CONST.ROLE.RADIO, {name: label})).toBeChecked();
+        expect(screen.getByRole(CONST.ROLE.RADIO, {name: 'QuickBooks Online'})).not.toBeChecked();
+        expect(screen.getByRole(CONST.ROLE.BUTTON, {name: TestHelper.translateLocal('common.continue')})).toBeEnabled();
         continueOnboarding();
+        await waitFor(() => expect(mockCompleteOnboardingFlow).toHaveBeenCalledWith(expect.objectContaining({userReportedIntegration: integration, userReportedIntegrationName: name})));
+        mockCompleteOnboardingFlow.mockClear();
 
-        // Then submission is blocked until a visible replacement is selected
-        expect(screen.getAllByRole(CONST.ROLE.RADIO).length).toBeGreaterThan(0);
-        expect(screen.getByRole(CONST.ROLE.BUTTON, {name: TestHelper.translateLocal('common.continue')})).toBeDisabled();
-        expect(mockCompleteOnboardingFlow).not.toHaveBeenCalled();
+        // Then selecting the search result replaces the pinned choice without duplicating rows
         fireEvent.press(screen.getByText('QuickBooks Online'));
         await waitForBatchedUpdatesWithAct();
         expect(screen.getByRole(CONST.ROLE.BUTTON, {name: TestHelper.translateLocal('common.continue')})).toBeEnabled();
+        expect(screen.getAllByRole(CONST.ROLE.RADIO)).toHaveLength(1);
         continueOnboarding();
         await waitFor(() => expect(mockCompleteOnboardingFlow).toHaveBeenCalledWith(expect.objectContaining({userReportedIntegration: 'quickbooksOnline'})));
     });
