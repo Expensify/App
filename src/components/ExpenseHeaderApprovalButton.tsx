@@ -80,15 +80,15 @@ type ApprovalOption = {
     value: string;
     text: string;
     icon: IconAsset;
-    onSelected: () => void;
+    onSelected: () => void | Promise<void>;
     keyForList: string;
     sentryLabel: SentryLabel;
 };
 
 type ApprovalDropdownOptionProps = {
     moneyRequestReport: OnyxEntry<Report>;
-    onPartialApprove: () => void;
-    onFullApprove: () => void;
+    onPartialApprove: () => void | Promise<void>;
+    onFullApprove: () => void | Promise<void>;
     translate: LocaleContextProps['translate'];
     illustrations: Record<'ThumbsUp' | 'DocumentCheck', IconAsset>;
     shouldShowPayButton: boolean;
