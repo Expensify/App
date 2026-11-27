@@ -231,6 +231,11 @@ function ReportNavigateAwayHandler() {
             return;
         }
 
+        // OpenApp leaves out read Concierge threads, so a full reload removes an open one. ReportFetchHandler fetches it again.
+        if (!!conciergeReportID && deletedReportParentID === conciergeReportID) {
+            return;
+        }
+
         // A report still pending creation was never created, so its removal is a failed create that the opener handles.
         if (isPendingCreationFromRoute) {
             return;
