@@ -957,8 +957,10 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         // The label lines up with the label of the destination row above the subnav.
+        // The link fills the rounded row, so it is rounded too, or the row would clip the corners of its focus ring.
         flatNavigationBarSubnavItemLink: {
             paddingLeft: flatNavigationBarSubnavIndent,
+            borderRadius: variables.componentBorderRadiusNormal,
         },
 
         // Whatever sits at the row's end, as a three-dot menu, keeps the row's padding after it.
