@@ -110,7 +110,7 @@ function InsightsBiggestChangeRow({change, groupBy, currency, asOfDate}: Insight
                 </Text>
             </View>
             <View style={[styles.alignItemsEnd, styles.gap1]}>
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gapHalf]}>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
                     {difference !== 0 && (
                         <Icon
                             src={isIncrease ? icons.ArrowUpLong : icons.ArrowDownLong}
