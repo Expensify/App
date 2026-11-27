@@ -164,7 +164,7 @@ import {
     getReimbursementChoice,
     getRuleApprovers,
     getSubmitToAccountID,
-    isSubmittingToSelf,
+    getSubmitToEmail,
     getTagGLCode,
     getVendorDisplayName,
     hasDependentTags as hasDependentTagsPolicyUtils,
@@ -186,6 +186,7 @@ import {
     isSubmitAndClose,
     isSubmitPolicy,
     isSubmitterApproveBlockedOnSubmitWorkspace,
+    isSubmittingToSelf,
     isWorkflowApprover,
     resolveCurrentTaxCode,
     shouldShowPolicy,
@@ -2180,6 +2181,7 @@ function isAwaitingFirstLevelApproval(
     report: OnyxEntry<Report>,
     rules: OnyxCollection<Rule>,
     reportOwnerLogin: string | undefined,
+    reportManagerLogin?: string,
     reportActions?: OnyxEntry<ReportActions> | ReportAction[],
 ): boolean {
     if (!report) {
@@ -2197,9 +2199,13 @@ function isAwaitingFirstLevelApproval(
     const providedOwnerLogin = reportOwnerLogin === '' ? undefined : reportOwnerLogin;
     // TODO: Callers are threaded in Parts 5 through 13. Remove this fallback in Part 13 once none of them pass undefined. See https://github.com/Expensify/App/issues/66413.
     const resolvedOwnerLogin = providedOwnerLogin ?? getLoginByAccountID(report.ownerAccountID, getAllPersonalDetails());
-    const submitsToAccountID = getSubmitToAccountID(policy, report, resolvedOwnerLogin, rules);
+    const providedManagerLogin = reportManagerLogin === '' ? undefined : reportManagerLogin;
+    // Callers that don't pass the manager login falls back to the personal details store for now.
+    const resolvedManagerLogin = providedManagerLogin ?? getLoginByAccountID(report.managerID, getAllPersonalDetails());
+    const submitToLogin = getSubmitToEmail(policy, report, resolvedOwnerLogin, rules);
 
-    return isProcessingReport(report) && submitsToAccountID === report.managerID && !hasReportBeenForwardedSinceLastSubmit(report, reportActions);
+    // Comparing logins means the login the report submits to never has to be turned into an account ID.
+    return isProcessingReport(report) && !!submitToLogin && submitToLogin === resolvedManagerLogin && !hasReportBeenForwardedSinceLastSubmit(report, reportActions);
 }
 
 type PolicyOptimisticOnyxData = OnyxData<
@@ -3263,7 +3269,7 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>, rules
     if (isProcessingReport(moneyRequestReport) && isExpenseReport(moneyRequestReport)) {
         // TODO: Pass reportOwnerLogin in Part 13, once canAddOrDeleteTransactions takes it first.
         // isAwaitingFirstLevelApproval falls back to the personal details store until then. See https://github.com/Expensify/App/issues/66413.
-        return isAwaitingFirstLevelApproval(moneyRequestReport, rules, undefined);
+        return isAwaitingFirstLevelApproval(moneyRequestReport, rules, undefined, undefined);
     }
 
     if (isReportApproved({report: moneyRequestReport}) || isClosedReport(moneyRequestReport) || isSettled(moneyRequestReport?.reportID)) {
@@ -4032,7 +4038,7 @@ function canDeleteMoneyRequestReport(
     }
 
     if (isExpenseReport(report)) {
-        if (!isOpenReport(report) && !(isProcessingReport(report) && isAwaitingFirstLevelApproval(report, rules, reportOwnerLogin, reportActions))) {
+        if (!isOpenReport(report) && !(isProcessingReport(report) && isAwaitingFirstLevelApproval(report, rules, reportOwnerLogin, undefined, reportActions))) {
             return false;
         }
 
@@ -5846,13 +5852,15 @@ function isReportFieldDisabled(
     policy: OnyxEntry<Policy>,
     rules: OnyxCollection<Rule>,
     reportOwnerLogin: string | undefined,
+    reportManagerLogin: string | undefined,
 ): boolean {
     const isReportSettled = isSettled(report?.reportID);
     const isReportClosed = isClosedReport(report);
     const isTitleField = isReportFieldOfTypeTitle(reportField);
     const isAdmin = isPolicyAdmin(policy);
     const isApproved = isReportApproved({report});
-    const isForwardedForSubmitter = isReportOwner(report) && isExpenseReport(report) && isProcessingReport(report) && !isAwaitingFirstLevelApproval(report, rules, reportOwnerLogin);
+    const isForwardedForSubmitter =
+        isReportOwner(report) && isExpenseReport(report) && isProcessingReport(report) && !isAwaitingFirstLevelApproval(report, rules, reportOwnerLogin, reportManagerLogin);
     if (!isAdmin && (isReportSettled || isReportClosed || isApproved || isForwardedForSubmitter)) {
         return true;
     }
@@ -5876,8 +5884,9 @@ function isReportFieldDisabledForUser(
     currentUserAccountID: number | undefined,
     rules: OnyxCollection<Rule>,
     reportOwnerLogin: string | undefined,
+    reportManagerLogin: string | undefined,
 ): boolean {
-    return isReportFieldDisabled(report, reportField, policy, rules, reportOwnerLogin) || !isAdminOwnerApproverOrReportOwner(report, policy, currentUserAccountID);
+    return isReportFieldDisabled(report, reportField, policy, rules, reportOwnerLogin, reportManagerLogin) || !isAdminOwnerApproverOrReportOwner(report, policy, currentUserAccountID);
 }
 
 /**
@@ -5896,10 +5905,11 @@ function canEditReportTitle(
     currentUserAccountID: number | undefined,
     rules: OnyxCollection<Rule>,
     reportOwnerLogin: string | undefined,
+    reportManagerLogin: string | undefined,
 ): boolean {
     const titleField =
         getAvailableReportFields(report, Object.values(policy?.fieldList ?? {})).find((reportField) => isReportFieldOfTypeTitle(reportField)) ?? getTitleFieldWithFallback(policy);
-    const isFieldDisabled = isReportFieldDisabled(report, titleField, policy, rules, reportOwnerLogin);
+    const isFieldDisabled = isReportFieldDisabled(report, titleField, policy, rules, reportOwnerLogin, reportManagerLogin);
 
     return !isFieldDisabled && isAdminOwnerApproverOrReportOwner(report, policy, currentUserAccountID) && isExpenseReport(report) && isGroupPolicyPolicyUtils(policy);
 }
@@ -11423,6 +11433,7 @@ function hasVisibleReportFieldViolations(
     currentUserAccountID: number | undefined,
     rules: OnyxCollection<Rule>,
     reportOwnerLogin: string | undefined,
+    reportManagerLogin: string | undefined,
     reportNameValuePairs: OnyxEntry<ReportNameValuePairs>,
 ): boolean {
     const areFieldsEnabledForReport = isInvoiceReport(report) ? policy?.areInvoiceFieldsEnabled : policy?.areReportFieldsEnabled;
@@ -11454,7 +11465,7 @@ function hasVisibleReportFieldViolations(
         if (shouldHideSingleReportField(field)) {
             return false;
         }
-        if (isReportFieldDisabledForUser(report, field, policy, currentUserAccountID, rules, reportOwnerLogin)) {
+        if (isReportFieldDisabledForUser(report, field, policy, currentUserAccountID, rules, reportOwnerLogin, reportManagerLogin)) {
             return false;
         }
         return !!getFieldViolation(field, report);
@@ -13509,17 +13520,17 @@ function isReportOwner(report: OnyxInputOrEntry<Report>, currentUserAccountID = 
     return report?.ownerAccountID === currentUserAccountID;
 }
 
+function isApproverAllowedToApprove(policy: OnyxEntry<Policy>, isApproverReportOwner: boolean): boolean {
+    return !isApproverReportOwner || (!isSubmitPolicy(policy) && !policy?.preventSelfApproval);
+}
+
 function isAllowedToApproveExpenseReport(report: OnyxEntry<Report>, approverAccountID?: number, reportPolicy?: OnyxEntry<Policy>): boolean {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     const policy = reportPolicy ?? getPolicy(report?.policyID);
     const accountID = approverAccountID ?? deprecatedCurrentUserAccountID;
     const isOwner = accountID === report?.ownerAccountID;
 
-    if (isSubmitterApproveBlockedOnSubmitWorkspace(policy, report?.ownerAccountID, accountID ?? CONST.DEFAULT_NUMBER_ID)) {
-        return false;
-    }
-
-    return !(policy?.preventSelfApproval && isOwner);
+    return isApproverAllowedToApprove(policy, isOwner);
 }
 
 function canReassignAsApprover({
@@ -13831,7 +13842,7 @@ function canLeaveChat(
 function isForwardedReport(report: OnyxEntry<Report>, rules: OnyxCollection<Rule>): boolean {
     // TODO: Pass reportOwnerLogin in Part 9, once isForwardedReport takes it first.
     // isAwaitingFirstLevelApproval falls back to the personal details store until then. See https://github.com/Expensify/App/issues/66413.
-    return isProcessingReport(report) && !isAwaitingFirstLevelApproval(report, rules, undefined);
+    return isProcessingReport(report) && !isAwaitingFirstLevelApproval(report, rules, undefined, undefined);
 }
 
 function isReportOutstanding(
@@ -16499,6 +16510,7 @@ export {
     isAllowedToApproveExpenseReport,
     isAllowedToComment,
     isAnnounceRoom,
+    isApproverAllowedToApprove,
     isArchivedNonExpenseReport,
     isArchivedReport,
     isClosedReport,

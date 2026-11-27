@@ -731,6 +731,7 @@ export default createOnyxDerivedValueConfig({
                     session?.accountID,
                     rules,
                     getLoginByAccountID(report.ownerAccountID, personalDetails),
+                    getLoginByAccountID(report.managerID, personalDetails),
                     reportNameValuePair,
                 );
 

@@ -2545,6 +2545,107 @@ describe('SearchUIUtils', () => {
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.SUBMIT);
         });
 
+        test.each([
+            ['open', CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATUS_NUM.OPEN],
+            ['processing', CONST.REPORT.STATE_NUM.SUBMITTED, CONST.REPORT.STATUS_NUM.SUBMITTED],
+        ])(
+            'Should offer neither `Approve` nor `Submit` when the report is %s on a Control workspace that prevents self approval when the owner submits to themselves',
+            (_, stateNum, statusNum) => {
+                // Given a Control workspace that prevents self approval, where the owner's submit-to route is the owner
+                const controlPolicyID = 'controlSelfApprovalPolicy';
+                const controlReportID = '6520936998330987';
+                const localSearchResults = {
+                    ...searchResults.data,
+                    [`policy_${controlPolicyID}`]: {
+                        ...policy,
+                        id: controlPolicyID,
+                        type: CONST.POLICY.TYPE.CORPORATE,
+                        approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                        preventSelfApproval: true,
+                        employeeList: {
+                            [adminEmail]: {
+                                email: adminEmail,
+                                role: CONST.POLICY.ROLE.ADMIN,
+                                submitsTo: adminEmail,
+                            },
+                        },
+                    },
+                    [`report_${controlReportID}`]: {
+                        ...report1,
+                        reportID: controlReportID,
+                        policyID: controlPolicyID,
+                        ownerAccountID: adminAccountID,
+                        managerID: adminAccountID,
+                        stateNum,
+                        statusNum,
+                    },
+                    [`transactions_${transactionID}`]: {
+                        ...searchResults.data[`transactions_${transactionID}`],
+                        reportID: controlReportID,
+                    },
+                };
+
+                // When the owner views the report's actions
+                const actions = SearchUIUtils.getActions(
+                    localSearchResults,
+                    {},
+                    `report_${controlReportID}`,
+                    CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+                    adminEmail,
+                    adminAccountID,
+                    {},
+                    {},
+                    undefined,
+                );
+
+                // Then the owner can't approve or submit to themselves, since the workspace forbids self approval
+                expect(actions).not.toContain(CONST.SEARCH.ACTION_TYPES.APPROVE);
+                expect(actions).not.toContain(CONST.SEARCH.ACTION_TYPES.SUBMIT);
+            },
+        );
+
+        test('Should not return `Submit` action for a viewer who is not the owner on a Submit workspace that prevents self approval when the owner submits to themselves', () => {
+            // Given a Submit workspace that prevents self approval, whose default approver is the submitter, so the submitter's
+            // report routes back to the submitter
+            const submitPolicyID = 'submitSelfApprovalPolicy';
+            const submitReportID = '6520936998330988';
+            const localSearchResults = {
+                ...searchResults.data,
+                [`policy_${submitPolicyID}`]: {
+                    ...policy,
+                    id: submitPolicyID,
+                    type: CONST.POLICY.TYPE.SUBMIT,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                    approver: submitterEmail,
+                    preventSelfApproval: true,
+                    employeeList: {
+                        [submitterEmail]: {
+                            email: submitterEmail,
+                            role: CONST.POLICY.ROLE.USER,
+                            submitsTo: submitterEmail,
+                        },
+                    },
+                },
+                [`report_${submitReportID}`]: {
+                    ...report1,
+                    reportID: submitReportID,
+                    policyID: submitPolicyID,
+                    ownerAccountID: submitterAccountID,
+                    managerID: submitterAccountID,
+                },
+                [`transactions_${transactionID}`]: {
+                    ...searchResults.data[`transactions_${transactionID}`],
+                    reportID: submitReportID,
+                },
+            };
+
+            // When an admin who doesn't own the report views its actions
+            const actions = SearchUIUtils.getActions(localSearchResults, {}, `report_${submitReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminEmail, adminAccountID, {}, {}, undefined);
+
+            // Then Submit is not offered, since submitting on the owner's behalf would send the report to the owner to approve
+            expect(actions).not.toContain(CONST.SEARCH.ACTION_TYPES.SUBMIT);
+        });
+
         test('Should return `View` action for transaction on policy with delayed submission and with violations when current user is submitter and the expense was submitted', async () => {
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: submitterAccountID});
             const localSearchResults = {
