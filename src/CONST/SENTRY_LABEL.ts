@@ -2739,6 +2739,8 @@ const SENTRY_LABEL = {
             MERGE_MENU_DISCONNECT: 'WorkspaceConnections-MergeMenuDisconnect',
             RECEIPT_PARTNERS_MENU_ENTER_CREDENTIALS: 'WorkspaceConnections-ReceiptPartnersMenuEnterCredentials',
             RECEIPT_PARTNERS_MENU_DISCONNECT: 'WorkspaceConnections-ReceiptPartnersMenuDisconnect',
+            GMAIL_MENU: 'WorkspaceConnections-GmailMenu',
+            GMAIL_MENU_REMOVE: 'WorkspaceConnections-GmailMenuRemove',
             MERGE_CONFIG_ROW: {
                 HR_GROUPS: 'WorkspaceConnections-MergeConfigRow-HRGroups',
                 HR_APPROVAL_MODE: 'WorkspaceConnections-MergeConfigRow-HRApprovalMode',

@@ -160,6 +160,7 @@ import type Modal from './Modal';
 import type Network from './Network';
 import type NewAgentTemplate from './NewAgentTemplate';
 import type NewGroupChatDraft from './NewGroupChatDraft';
+import type OAuthConnections from './OAuthConnections';
 import type OdometerDraft from './OdometerDraft';
 import type Onboarding from './Onboarding';
 import type OnboardingRHPVariant from './OnboardingRHPVariant';
@@ -484,6 +485,7 @@ export type {
     SearchTagFiltersPaginationState,
     ReviewDuplicates,
     PrivateSubscription,
+    OAuthConnections,
     PrivatePromoDiscount,
     BillingGraceEndPeriod,
     StripeCustomerID,

@@ -116,6 +116,8 @@ type GetWorkspaceMenuItemsParams = {
     previousPendingFields?: OnyxTypes.Policy['pendingFields'];
     /** Whether receipt partner credentials require attention. */
     shouldShowEnterCredentialsError?: boolean;
+    /** One of the current user's own Gmail connections is broken. It shows on every workspace because the Gmail card does. */
+    hasGmailConnectionError?: boolean;
     /** Whether the company cards row should show an error indicator. */
     shouldShowRBR?: boolean;
     /** Whether a workflow the user can fix has an approver who is no longer a workspace member, which shows an error on the Workflows row. */
@@ -140,6 +142,7 @@ function getWorkspaceMenuItems({
     hasMerchantRuleErrors,
     previousPendingFields,
     shouldShowEnterCredentialsError = false,
+    hasGmailConnectionError = false,
     shouldShowRBR = false,
     hasApprovalWorkflowWithNonMemberApprover = false,
     isVendorMatchingBetaEnabled = false,
@@ -171,7 +174,14 @@ function getWorkspaceMenuItems({
         !isEmptyObject(policy?.errorFields?.[CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED] ?? {}) ||
         !isEmptyObject(policy?.errorFields?.[CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED] ?? {});
     const getConnectionsBrickRoadIndicator = () => {
-        if (hasSyncError || shouldShowReimbursableExportDestinationAccountError(policy) || hasHRError || shouldShowEnterCredentialsError || hasConnectionFeatureError) {
+        if (
+            hasSyncError ||
+            shouldShowReimbursableExportDestinationAccountError(policy) ||
+            hasHRError ||
+            shouldShowEnterCredentialsError ||
+            hasGmailConnectionError ||
+            hasConnectionFeatureError
+        ) {
             return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
         }
         if (isMergeHRCompleteSetupNeeded(policy) || isQBORefreshTokenExpiringSoonSelector(policy)) {

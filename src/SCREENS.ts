@@ -1065,6 +1065,7 @@ const SCREENS = {
         CONNECTIONS_HR: 'Workspace_Connections_HR',
         CONNECTIONS_RECRUITING: 'Workspace_Connections_Recruiting',
         CONNECTIONS_RECEIPT_PARTNERS: 'Workspace_Connections_Receipt_Partners',
+        CONNECTIONS_GMAIL: 'Workspace_Connections_Gmail',
         RECEIPT_PARTNERS: 'Workspace_Receipt_Partners',
         DYNAMIC_RECEIPT_PARTNERS_INVITE: 'Dynamic_Workspace_Receipt_Partners_Invite',
         DYNAMIC_RECEIPT_PARTNERS_INVITE_EDIT: 'Dynamic_Workspace_Receipt_Partners_Invite_Edit',

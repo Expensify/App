@@ -3878,6 +3878,15 @@ const ROUTES = {
             return `workspaces/${policyID}/connections/receipt-partners` as const;
         },
     },
+    WORKSPACE_CONNECTIONS_GMAIL: {
+        route: 'workspaces/:policyID/connections/gmail',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_CONNECTIONS_GMAIL route');
+            }
+            return `workspaces/${policyID}/connections/gmail` as const;
+        },
+    },
     WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ADVANCED: {
         route: 'workspaces/:policyID/accounting/quickbooks-online/advanced',
         getRoute: (policyID: string | undefined) => {

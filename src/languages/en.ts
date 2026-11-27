@@ -5987,6 +5987,20 @@ const translations = {
             noResultsPrompt: '<muted-text><centered-text>Please adjust your search or <a href="#">suggest an integration</a>.</centered-text></muted-text>',
             allConnectedTitle: "You're all connected",
             allConnectedPrompt: '<muted-text><centered-text>Everything here is already connected. You can also <a href="#">suggest an integration</a>.</centered-text></muted-text>',
+            gmail: {
+                title: 'Gmail',
+                inactive: 'Inactive',
+                synced: (relativeTime: string) => `Synced ${relativeTime}`,
+                notSyncedYet: 'Not synced yet',
+                notSynced: 'Not synced',
+                removeConnection: 'Remove connection',
+                removeConnectionTitle: 'Remove Gmail connection?',
+                removeConnectionPrompt: (email: string) => `Receipts from ${email} will stop importing into Expensify.`,
+                error: {
+                    [CONST.OAUTH_CONNECTIONS.ERROR.INVALID_GRANT]: 'Gmail stopped sharing receipts with Expensify. Remove this connection and connect it again.',
+                    [CONST.OAUTH_CONNECTIONS.ERROR.ADMIN_RESTRICTED]: 'Your Google Workspace admin blocked this connection. Ask them to allow Expensify, since reconnecting won’t fix it.',
+                },
+            },
         },
         receiptPartners: {
             uber: {

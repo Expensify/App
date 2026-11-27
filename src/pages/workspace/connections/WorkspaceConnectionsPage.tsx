@@ -62,6 +62,7 @@ import type {ConnectionListing, ConnectionsTab} from './types';
 
 import ConnectionsGrid from './ConnectionsGrid';
 import useAccountingConnectionListings from './useAccountingConnectionListings';
+import useGmailConnectionListings from './useGmailConnectionListings';
 import useMCPConnectionListings from './useMCPConnectionListings';
 import useMergeConnectionListings from './useMergeConnectionListings';
 import useReceiptPartnerConnectionListings from './useReceiptPartnerConnectionListings';
@@ -145,8 +146,9 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
         setMergeSetupFlow({setupLink, category, key: Math.random()});
     });
     const receiptPartnerListings = useReceiptPartnerConnectionListings(policy);
+    const gmailListings = useGmailConnectionListings(policy);
     const mcpListings = useMCPConnectionListings(policy);
-    const listings: ConnectionListing[] = [...accountingListings, ...mergeListings, ...receiptPartnerListings, ...mcpListings];
+    const listings: ConnectionListing[] = [...accountingListings, ...mergeListings, ...gmailListings, ...receiptPartnerListings, ...mcpListings];
     const connectedListings = listings.filter((listing) => !!listing.status);
     const availableListings = listings.filter((listing) => !listing.status);
 
