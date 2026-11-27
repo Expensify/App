@@ -82,6 +82,7 @@ On the DualEntry integration, choose **Advanced** to configure:
 - **Export method** – Choose when reports are exported automatically. This option is only available when auto-sync is enabled and defaults to **Accrual**.
   - **Accrual** exports out-of-pocket expenses after final approval.
   - **Cash** exports out-of-pocket expenses after they are paid.
+- **Auto-create vendors** – Automatically create a vendor in DualEntry using the report submitter's name and email when no matching vendor exists during a reimbursable export. Defaults to off.
 - **Sync reimbursed reports** – Automatically create bill payments in DualEntry when exported out-of-pocket reports are reimbursed in Expensify. This is enabled by default.
 - **Bill payment account** – Select the DualEntry bank account used for bill payments. Expensify automatically selects an eligible bank account when possible.
 - **DualEntry currency conversion fee account** – Select the expense account where currency conversion fees are recorded. This setting appears when **Sync reimbursed reports** is enabled, you reimburse through Expensify, and a business bank account is connected. When **Workspaces > [workspace name] > Workflows > Payments > Currency conversion fees** is set to **Company pays**, a cross-border reimbursement exports an additional journal entry for the conversion cost to this account, alongside the bill payment. This account must be selected for the journal entry to export.
@@ -103,7 +104,7 @@ The initial chart of accounts arrives enabled. After that, **Enable newly import
 
 ## Why did my report fail to export to DualEntry?
 
-Out-of-pocket expenses export as vendor bills matched to the report submitter's email. If no DualEntry vendor matches that email, the export fails. Make sure the report submitter exists as a vendor in DualEntry with a matching email address.
+Out-of-pocket expenses export as vendor bills matched to the report submitter's email. If no DualEntry vendor matches that email and **Auto-create vendors** is off, the export fails. Create a vendor with the submitter's email in DualEntry, or enable **Auto-create vendors** under **Advanced** settings.
 
 ## Which DualEntry account does a company card use?
 

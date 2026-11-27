@@ -2468,6 +2468,7 @@ const SENTRY_LABEL = {
                 PREREQUISITES_FFA_BUNDLE_LINK: 'WorkspaceAccountingCertinia-PrerequisitesFFABundleLink',
             },
             DUAL_ENTRY: {
+                AUTO_CREATE_VENDOR_SWITCH: 'WorkspaceAccountingDualEntry-AutoCreateVendorSwitch',
                 AUTO_SYNC_SWITCH: 'WorkspaceAccountingDualEntry-AutoSyncSwitch',
                 ACCOUNTING_METHOD: 'WorkspaceAccountingDualEntry-AccountingMethod',
                 BILL_PAYMENT_ACCOUNT: 'WorkspaceAccountingDualEntry-BillPaymentAccount',

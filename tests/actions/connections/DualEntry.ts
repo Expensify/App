@@ -5,6 +5,7 @@ import CONST from '@src/CONST';
 import {
     clearDualEntryErrorField,
     connectToDualEntry,
+    updateDualEntryAutoCreateVendor,
     updateDualEntryCreditCardAccount,
     updateDualEntryDefaultVendor,
     updateDualEntryEnableNewCategories,
@@ -341,6 +342,59 @@ describe('actions/connections/DualEntry', () => {
             );
             expect(getFirstWriteOnyxData()).toMatchObject({
                 optimisticData: [{key: POLICY_KEY, value: {connections: {dualEntry: {config: {export: {[CONST.DUALENTRY_CONFIG.CREDIT_CARD_ACCOUNT_ID]: 'account-1'}}}}}}],
+            });
+        });
+    });
+
+    describe('updateDualEntryAutoCreateVendor', () => {
+        it('writes the command with the selected toggle state', () => {
+            // Given an admin enabling automatic vendor creation in DualEntry Advanced settings
+
+            // When the toggle is turned on
+            updateDualEntryAutoCreateVendor(MOCK_POLICY_ID, true, false);
+
+            // Then the backend receives the enabled flag
+            expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_DUALENTRY_AUTO_CREATE_VENDOR, {policyID: MOCK_POLICY_ID, enabled: true}, expect.anything());
+        });
+
+        it('updates export.autoCreateVendor optimistically and rolls back on failure', () => {
+            // Given Auto-create vendors is currently disabled
+
+            // When the admin enables the toggle
+            updateDualEntryAutoCreateVendor(MOCK_POLICY_ID, true, false);
+
+            // Then the new value is written optimistically and failure restores false with an error
+            expect(getFirstWriteOnyxData()).toMatchObject({
+                optimisticData: [
+                    {
+                        key: POLICY_KEY,
+                        value: {
+                            connections: {
+                                dualEntry: {
+                                    config: {
+                                        export: {[CONST.DUALENTRY_CONFIG.AUTO_CREATE_VENDOR]: true},
+                                        pendingFields: {[CONST.DUALENTRY_CONFIG.AUTO_CREATE_VENDOR]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                                    },
+                                },
+                            },
+                        },
+                    },
+                ],
+                failureData: [
+                    {
+                        key: POLICY_KEY,
+                        value: {
+                            connections: {
+                                dualEntry: {
+                                    config: {
+                                        export: {[CONST.DUALENTRY_CONFIG.AUTO_CREATE_VENDOR]: false},
+                                        errorFields: {[CONST.DUALENTRY_CONFIG.AUTO_CREATE_VENDOR]: ANY_VALUE},
+                                    },
+                                },
+                            },
+                        },
+                    },
+                ],
             });
         });
     });

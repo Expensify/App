@@ -14,6 +14,7 @@ import useTravelBillingFundID from '@hooks/useTravelBillingFundID';
 
 import {
     clearDualEntryErrorField,
+    updateDualEntryAutoCreateVendor,
     updateDualEntryAutoSync,
     updateDualEntrySyncExpensifyCardSettlements,
     updateDualEntrySyncReimbursedReports,
@@ -49,6 +50,7 @@ function DualEntryAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const dualentryData = policy?.connections?.dualEntry?.data;
     const autoSync = dualentryConfig?.autoSync?.enabled ?? false;
     const accountingMethod = dualentryConfig?.export?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL;
+    const autoCreateVendor = dualentryConfig?.export?.autoCreateVendor ?? false;
     const syncReimbursedReports = dualentryConfig?.sync?.syncReimbursedReports ?? true;
     const billPaymentAccount = dualentryData?.accounts?.find((account) => account.id === dualentryConfig?.sync?.billPaymentAccountID);
     const canConfigureCurrencyConversionFees = useCanConfigureCurrencyConversionFees(policy);
@@ -121,6 +123,20 @@ function DualEntryAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     </MenuItem.Root>
                 </OfflineWithFeedback>
             </Accordion>
+            <View style={[styles.mv3, styles.mh5, styles.borderTop]} />
+            <ToggleSettingOptionRow
+                title={translate('workspace.dualEntry.autoCreateVendor')}
+                subtitle={translate('workspace.dualEntry.autoCreateVendorDescription')}
+                switchAccessibilityLabel={translate('workspace.dualEntry.autoCreateVendor')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.DUAL_ENTRY.AUTO_CREATE_VENDOR_SWITCH}
+                shouldPlaceSubtitleBelowSwitch
+                wrapperStyle={[styles.mv3, styles.mh5]}
+                isActive={autoCreateVendor}
+                onToggle={() => policyID && updateDualEntryAutoCreateVendor(policyID, !autoCreateVendor, autoCreateVendor)}
+                pendingAction={settingsPendingAction([CONST.DUALENTRY_CONFIG.AUTO_CREATE_VENDOR], dualentryConfig?.pendingFields)}
+                errors={getLatestErrorField(dualentryConfig ?? {}, CONST.DUALENTRY_CONFIG.AUTO_CREATE_VENDOR)}
+                onCloseError={() => policyID && clearDualEntryErrorField(policyID, CONST.DUALENTRY_CONFIG.AUTO_CREATE_VENDOR)}
+            />
             <View style={[styles.mv3, styles.mh5, styles.borderTop]} />
             <ToggleSettingOptionRow
                 title={translate('workspace.dualEntry.syncReimbursedReports')}

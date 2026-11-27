@@ -4602,6 +4602,7 @@ const CONST = {
         DEFAULT_VENDORID: 'defaultVendorID',
         TRAVEL_BILLING_PAYABLE_ACCOUNT_ID: 'travelInvoicingPayableAccountID',
         ACCOUNTING_METHOD: 'accountingMethod',
+        AUTO_CREATE_VENDOR: 'autoCreateVendor',
         AUTO_SYNC: 'autoSync',
         SYNC_REIMBURSED_REPORTS: 'syncReimbursedReports',
         BILL_PAYMENT_ACCOUNT_ID: 'billPaymentAccountID',

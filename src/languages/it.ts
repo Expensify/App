@@ -6956,6 +6956,8 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Le spese anticipate verranno esportate al momento del pagamento',
                 },
             },
+            autoCreateVendor: 'Crea automaticamente i fornitori',
+            autoCreateVendorDescription: 'Expensify creerà automaticamente i fornitori in DualEntry se non esistono già.',
             syncReimbursedReports: 'Sincronizza i report rimborsati',
             syncReimbursedReportsDescription: 'Quando un report viene pagato tramite ACH, in questo conto verrà generato un pagamento di una fattura.',
             billPaymentAccount: {label: 'Conto per il pagamento delle fatture', description: 'Scegli da dove pagare le fatture e creeremo il pagamento in DualEntry.'},

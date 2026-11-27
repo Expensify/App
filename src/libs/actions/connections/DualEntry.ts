@@ -2,6 +2,7 @@ import {write} from '@libs/API';
 import type {
     ConnectPolicyToDualEntryParams,
     UpdateDualEntryAccountingMethodParams,
+    UpdateDualEntryAutoCreateVendorParams,
     UpdateDualEntryAutoSyncParams,
     UpdateDualEntryBillPaymentAccountParams,
     UpdateDualEntryCardProgramAccountParams,
@@ -690,6 +691,15 @@ function updateDualEntryAccountingMethod(policyID: string, accountingMethod: Dua
     write(WRITE_COMMANDS.UPDATE_DUALENTRY_ACCOUNTING_METHOD, parameters, onyxData);
 }
 
+function updateDualEntryAutoCreateVendor(policyID: string, enabled: DualEntryExport['autoCreateVendor'], oldEnabled?: DualEntryExport['autoCreateVendor']) {
+    const onyxData = prepareDualEntryExportOnyxData(policyID, CONST.DUALENTRY_CONFIG.AUTO_CREATE_VENDOR, enabled, oldEnabled ?? null);
+    const parameters: UpdateDualEntryAutoCreateVendorParams = {
+        policyID,
+        enabled,
+    };
+    write(WRITE_COMMANDS.UPDATE_DUALENTRY_AUTO_CREATE_VENDOR, parameters, onyxData);
+}
+
 function updateDualEntrySyncReimbursedReports(policyID: string, enabled: DualEntrySync['syncReimbursedReports'], oldEnabled?: DualEntrySync['syncReimbursedReports']) {
     const onyxData = prepareDualEntrySyncOnyxData(policyID, CONST.DUALENTRY_CONFIG.SYNC_REIMBURSED_REPORTS, enabled, oldEnabled ?? null);
     const parameters: UpdateDualEntrySyncReimbursedReportsParams = {
@@ -825,6 +835,7 @@ export {
     updateDualEntryCreditCardAccount,
     updateDualEntryAutoSync,
     updateDualEntryAccountingMethod,
+    updateDualEntryAutoCreateVendor,
     updateDualEntrySyncReimbursedReports,
     updateDualEntryBillPaymentAccount,
     updateDualEntryFxExpenseAccount,
