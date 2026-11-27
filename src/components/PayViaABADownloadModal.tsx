@@ -18,6 +18,8 @@ import type {ModalProps} from './Modal/Global/ModalContext';
 
 import FileDownloadModalWrapper from './Modal/Global/FileDownloadModalWrapper';
 
+const KNOWN_SKIPPED_REPORT_REASONS = new Set<string>(Object.values(CONST.ABA_SKIPPED_REPORT_REASON));
+
 type PayViaABADownloadModalProps = ModalProps & {
     abaFileRequest: Promise<PayViaABAResult>;
 
@@ -71,6 +73,10 @@ function PayViaABADownloadModal({abaFileRequest, getDownloadFailedMessage, close
         }
         if (skippedReportIDs?.[CONST.ABA_SKIPPED_REPORT_REASON.NOTHING_TO_PAY]?.length) {
             paragraphs.push(translate('iou.reportsWithNothingToPayViaABA'));
+        }
+        // Fall back to a generic message if there are skipped reports where we don't have the reason in App yet
+        if (Object.keys(skippedReportIDs ?? {}).some((reason) => !KNOWN_SKIPPED_REPORT_REASONS.has(reason))) {
+            paragraphs.push(translate('iou.reportsLeftOutOfABAFile'));
         }
         return paragraphs.join('\n\n');
     })();

@@ -89,6 +89,18 @@ describe('PayViaABADownloadModal', () => {
         expect(screen.getByText('iou.successABAFile\n\niou.submittersMissingABADepositAccount\n\niou.reportsWithNothingToPayViaABA')).toBeOnTheScreen();
     });
 
+    it("still tells the user about reports left out of the file for a reason the app doesn't know", async () => {
+        // Given an ABA file that is still being generated
+        const {promise, resolve} = Promise.withResolvers<PayViaABAResult>();
+        renderModal(promise);
+
+        // When it arrives without a report the backend skipped for a reason added after this version of the app
+        await act(async () => resolve({abaFile, skippedReportIDs: {someNewReason: ['456']}}));
+
+        // Then the user is still told some reports weren't included, since those reports stay unpaid
+        expect(screen.getByText('iou.successABAFile\n\niou.reportsLeftOutOfABAFile')).toBeOnTheScreen();
+    });
+
     it("tells the user why the ABA file couldn't be generated", async () => {
         // Given an ABA file the backend refuses to generate
         const {promise, reject} = Promise.withResolvers<PayViaABAResult>();
