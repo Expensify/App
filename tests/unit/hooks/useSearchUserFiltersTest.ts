@@ -175,49 +175,36 @@ describe('useSearchUserFilters', () => {
         expect(mockSetSearchUserFiltersState).not.toHaveBeenCalled();
     });
 
-    it('filters locally without server calls when the base cache is complete and keeps silent refresh running while typing', async () => {
-        // Given a cached complete base state (hasMore is false) and a slow silent refresh on remount
+    it('prunes stale scoped logins when a complete page-1 silent refresh returns fewer logins', async () => {
+        // Given a cached complete base state with an outdated scoped login
         onyxStore[getStateKey('policy-1')] = {
             hasLoadedBase: true,
             hasMore: false,
             nextCursor: '',
             scopedLogins: ['old@example.com'],
         };
-        const refreshDeferred = createDeferredResponse();
-        mockOpenSearchUserFiltersPage.mockReturnValueOnce(refreshDeferred.promise);
-
-        const {result, rerender} = renderHook(
-            ({searchTerm}: {searchTerm: string}) =>
-                useSearchUserFilters({
-                    policyIDs: 'policy-1',
-                    searchTerm,
-                }),
-            {initialProps: {searchTerm: ''}},
-        );
-
-        await waitFor(() => {
-            expect(mockOpenSearchUserFiltersPage).toHaveBeenCalledTimes(1);
-        });
-
-        // When the user types a search term before the silent refresh finishes
-        rerender({searchTerm: 'new'});
-
-        // Then no additional server search is issued and isSearching stays false
-        expect(result.current.isSearching).toBe(false);
-        expect(mockOpenSearchUserFiltersPage).toHaveBeenCalledTimes(1);
-
-        // When the silent refresh resolves with updated complete logins
-        await act(async () => {
-            refreshDeferred.resolve({hasMore: false, nextCursor: '', logins: ['new@example.com']});
-            await refreshDeferred.promise;
-        });
-
-        // Then the silent refresh was not canceled and stale logins were pruned
-        expect(onyxStore[getStateKey('policy-1')]).toEqual({
-            hasLoadedBase: true,
+        mockOpenSearchUserFiltersPage.mockResolvedValueOnce({
             hasMore: false,
             nextCursor: '',
-            scopedLogins: ['new@example.com'],
+            logins: ['new@example.com'],
+        });
+
+        // When the hook remounts and the silent refresh resolves with complete page-1 logins
+        const {result} = renderHook(() =>
+            useSearchUserFilters({
+                policyIDs: 'policy-1',
+                searchTerm: '',
+            }),
+        );
+
+        expect(result.current.isSearching).toBe(false);
+        await waitFor(() => {
+            expect(onyxStore[getStateKey('policy-1')]).toEqual({
+                hasLoadedBase: true,
+                hasMore: false,
+                nextCursor: '',
+                scopedLogins: ['new@example.com'],
+            });
         });
     });
 

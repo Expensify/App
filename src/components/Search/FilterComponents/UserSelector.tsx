@@ -22,7 +22,7 @@ import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, Policy, SearchUserFiltersState} from '@src/types/onyx';
+import type {SearchUserFiltersState} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -40,56 +40,15 @@ const scopedLoginsSelector = (state: OnyxEntry<SearchUserFiltersState>) => state
 
 const EMPTY_LOGINS: string[] = [];
 
-function getCanonicalPolicyIDs(selectedPolicies: Policy[] | undefined): string {
-    if (!selectedPolicies?.length) {
-        return '';
-    }
-    return selectedPolicies
-        .map((policy) => policy.id)
-        .sort()
-        .join(',');
-}
-
-function getWorkspaceMemberLogins(
-    selectedPolicies: Policy[] | undefined,
-    serverScopedLogins: string[],
-    initialSelectedValues: string[],
-    personalDetails: OnyxEntry<PersonalDetailsList>,
-): Set<string> | undefined {
-    if (!selectedPolicies) {
-        return undefined;
-    }
-
-    const logins = new Set<string>();
-    for (const policy of selectedPolicies) {
-        if (policy.employeeList) {
-            const employeeLogins = Object.keys(policy.employeeList);
-            for (const login of employeeLogins) {
-                const employee = policy.employeeList[login];
-                if (employee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(employee.errors)) {
-                    continue;
-                }
-                logins.add(login);
-            }
-        }
-        logins.add(policy.owner);
-    }
-    for (const login of serverScopedLogins) {
-        logins.add(login);
-    }
-    for (const accountID of initialSelectedValues) {
-        const login = personalDetails?.[accountID]?.login;
-        if (login) {
-            logins.add(login);
-        }
-    }
-    return logins.size ? logins : undefined;
-}
-
 function useSelectedPolicies(policyID: Filter | undefined) {
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const selectedPolicies = policyID?.value?.length ? getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY, policies) : undefined;
-    const policyIDs = getCanonicalPolicyIDs(selectedPolicies);
+    const policyIDs = selectedPolicies
+        ? selectedPolicies
+              .map((policy) => policy.id)
+              .sort()
+              .join(',')
+        : '';
 
     return {policies, selectedPolicies, policyIDs};
 }
@@ -127,7 +86,36 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
     // When the workspace filter is set, only suggest the members of the selected workspaces and people returned by
     // the server for those workspaces' reports (such as removed members). Users that were already selected when the
     // filter opened are kept in the list even when they aren't members, so they can still be deselected here.
-    const workspaceMemberLogins = getWorkspaceMemberLogins(selectedPolicies, serverScopedLogins, initialSelectedValues, personalDetails);
+    const workspaceMemberLogins = (() => {
+        if (!selectedPolicies) {
+            return undefined;
+        }
+
+        const logins = new Set<string>();
+        for (const policy of selectedPolicies) {
+            if (policy.employeeList) {
+                const employeeLogins = Object.keys(policy.employeeList);
+                for (const login of employeeLogins) {
+                    const employee = policy.employeeList[login];
+                    if (employee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(employee.errors)) {
+                        continue;
+                    }
+                    logins.add(login);
+                }
+            }
+            logins.add(policy.owner);
+        }
+        for (const login of serverScopedLogins) {
+            logins.add(login);
+        }
+        for (const accountID of initialSelectedValues) {
+            const login = personalDetails?.[accountID]?.login;
+            if (login) {
+                logins.add(login);
+            }
+        }
+        return logins.size ? logins : undefined;
+    })();
 
     const {searchTerm, debouncedSearchTerm, setSearchTerm, selectedOptions, availableOptions, toggleSelection, areOptionsInitialized} = usePersonalDetailSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,

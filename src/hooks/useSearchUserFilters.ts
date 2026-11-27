@@ -65,24 +65,12 @@ function areLoginListsEqual(prev: string[] | undefined, next: string[] | undefin
     return next.every((login) => prevSet.has(login));
 }
 
-function resolveScopedLogins(prev: string[] | undefined, incoming: string[], shouldReplace: boolean): string[] | undefined {
-    if (shouldReplace) {
-        const deduped = Array.from(new Set(incoming));
-        if (deduped.length === 0) {
-            return prev?.length ? undefined : prev;
-        }
-        return areLoginListsEqual(prev, deduped) ? prev : deduped;
+function mergeScopedLogins(prev: string[] | undefined, incoming: string[], shouldReplace: boolean): string[] | undefined {
+    const next = shouldReplace ? Array.from(new Set(incoming)) : Array.from(new Set([...(prev ?? []), ...incoming]));
+    if (next.length === 0) {
+        return prev?.length ? undefined : prev;
     }
-
-    if (incoming.length === 0) {
-        return prev;
-    }
-
-    const merged = Array.from(new Set([...(prev ?? []), ...incoming]));
-    if (prev && merged.length === prev.length) {
-        return prev;
-    }
-    return merged;
+    return areLoginListsEqual(prev, next) ? prev : next;
 }
 
 function useSearchUserFilters({policyIDs, searchTerm, ready = true}: UseSearchUserFiltersParams): UseSearchUserFiltersResult {
@@ -93,24 +81,20 @@ function useSearchUserFilters({policyIDs, searchTerm, ready = true}: UseSearchUs
     const [loadingMoreSearchKey, setLoadingMoreSearchKey] = useState<string | undefined>(undefined);
     const [failedSearchKey, setFailedSearchKey] = useState<string | undefined>(undefined);
 
-    const baseRequestSeqRef = useRef(0);
-    const queryRequestSeqRef = useRef(0);
+    const requestSeqRef = useRef(0);
     const refreshedPolicyIDsRef = useRef<string | undefined>(undefined);
     const cachedBaseRef = useRef(cachedBase);
 
     const trimmedSearchTerm = searchTerm.trim();
     const isEmptyQuery = trimmedSearchTerm === '';
-    const baseSearchKey = getSearchKey(policyIDs);
     const searchKey = getSearchKey(policyIDs, trimmedSearchTerm);
 
     const hasLoadedBase = !!cachedBase?.hasLoadedBase;
-    const hasCompleteBaseCache = hasLoadedBase && !cachedBase?.hasMore;
     const hasFailedCurrentSearch = failedSearchKey === searchKey;
-
-    const hasLoadedCurrentSearch = isEmptyQuery ? hasLoadedBase || hasFailedCurrentSearch : hasCompleteBaseCache || queryPagination.searchKey === searchKey || hasFailedCurrentSearch;
+    const hasLoadedCurrentSearch = (isEmptyQuery ? hasLoadedBase : queryPagination.searchKey === searchKey) || hasFailedCurrentSearch;
 
     const isSearching = ready && !isOffline && !hasLoadedCurrentSearch;
-    const hasMore = isEmptyQuery ? hasLoadedBase && !!cachedBase?.hasMore : !hasCompleteBaseCache && queryPagination.searchKey === searchKey && queryPagination.hasMore;
+    const hasMore = isEmptyQuery ? hasLoadedBase && !!cachedBase?.hasMore : queryPagination.searchKey === searchKey && queryPagination.hasMore;
     const nextCursor = isEmptyQuery ? (cachedBase?.nextCursor ?? '') : queryPagination.nextCursor;
     const isLoadingMore = loadingMoreSearchKey === searchKey;
 
@@ -128,149 +112,93 @@ function useSearchUserFilters({policyIDs, searchTerm, ready = true}: UseSearchUs
         setSearchUserFiltersState(policyIDs, nextState);
     };
 
-    const applyBaseResponse = (
+    const applyUserFiltersResponse = (
         requestSeq: number,
         isFirstPage: boolean,
         {hasMore: nextHasMore, nextCursor: responseCursor, logins}: {hasMore: boolean; nextCursor: string; logins: string[]},
     ) => {
-        if (requestSeq !== baseRequestSeqRef.current) {
+        if (requestSeq !== requestSeqRef.current) {
             return;
         }
 
         const prev = cachedBaseRef.current;
-        // Replace scoped logins only when page 1 holds the complete workspace result set so removed logins are pruned.
-        const nextScopedLogins = policyIDs ? resolveScopedLogins(prev?.scopedLogins, logins, isFirstPage && !nextHasMore) : prev?.scopedLogins;
+        setLoadingMoreSearchKey((current) => (current === searchKey ? undefined : current));
+        setFailedSearchKey((current) => (current === searchKey ? undefined : current));
 
-        refreshedPolicyIDsRef.current = policyIDs;
-        setLoadingMoreSearchKey((current) => (current === baseSearchKey ? undefined : current));
-        setFailedSearchKey((current) => (current === baseSearchKey ? undefined : current));
-        updateCachedBase({
-            hasLoadedBase: true,
-            hasMore: nextHasMore,
-            nextCursor: responseCursor,
-            scopedLogins: nextScopedLogins,
-        });
-    };
-
-    const applyQueryResponse = (
-        requestSeq: number,
-        activeSearchKey: string,
-        {hasMore: nextHasMore, nextCursor: responseCursor, logins}: {hasMore: boolean; nextCursor: string; logins: string[]},
-    ) => {
-        if (requestSeq !== queryRequestSeqRef.current) {
+        if (isEmptyQuery) {
+            // Replace scoped logins only when page 1 holds the complete workspace result set so removed logins are pruned.
+            const nextScopedLogins = policyIDs ? mergeScopedLogins(prev?.scopedLogins, logins, isFirstPage && !nextHasMore) : prev?.scopedLogins;
+            refreshedPolicyIDsRef.current = policyIDs;
+            updateCachedBase({hasLoadedBase: true, hasMore: nextHasMore, nextCursor: responseCursor, scopedLogins: nextScopedLogins});
             return;
         }
 
         if (policyIDs && logins.length > 0) {
-            const prev = cachedBaseRef.current;
-            const nextScopedLogins = resolveScopedLogins(prev?.scopedLogins, logins, false);
+            const nextScopedLogins = mergeScopedLogins(prev?.scopedLogins, logins, false);
             if (nextScopedLogins !== prev?.scopedLogins) {
-                updateCachedBase({
-                    ...prev,
-                    scopedLogins: nextScopedLogins,
-                });
+                updateCachedBase({...prev, scopedLogins: nextScopedLogins});
             }
         }
-
-        setLoadingMoreSearchKey((current) => (current === activeSearchKey ? undefined : current));
-        setFailedSearchKey((current) => (current === activeSearchKey ? undefined : current));
-        setQueryPagination({searchKey: activeSearchKey, hasMore: nextHasMore, nextCursor: responseCursor});
+        setQueryPagination({searchKey, hasMore: nextHasMore, nextCursor: responseCursor});
     };
 
     // An empty cursor starts a new search, so it cancels superseded in-flight requests.
-    const fetchUserFiltersPage = (query: string, cursor: string, requestSeq: number, isBaseQuery: boolean) => {
+    const fetchUserFiltersPage = (cursor: string, requestSeq: number) => {
         const isFirstPage = cursor === '';
-        const activeSearchKey = getSearchKey(policyIDs, query);
-        openSearchUserFiltersPage({searchQuery: query, cursor, limit: CONST.SEARCH.USER_FILTER_PAGE_SIZE, policyIDs: policyIDs || undefined}, isFirstPage)
-            .then((result) => {
-                if (isBaseQuery) {
-                    applyBaseResponse(requestSeq, isFirstPage, result);
-                } else {
-                    applyQueryResponse(requestSeq, activeSearchKey, result);
-                }
-            })
+        openSearchUserFiltersPage({searchQuery: trimmedSearchTerm, cursor, limit: CONST.SEARCH.USER_FILTER_PAGE_SIZE, policyIDs: policyIDs || undefined}, isFirstPage)
+            .then((result) => applyUserFiltersResponse(requestSeq, isFirstPage, result))
             .catch(() => {
-                const currentSeq = isBaseQuery ? baseRequestSeqRef.current : queryRequestSeqRef.current;
-                if (requestSeq !== currentSeq) {
+                if (requestSeq !== requestSeqRef.current) {
                     return;
                 }
                 if (isFirstPage) {
                     // Leave Onyx untouched on failure so reopening retries, and keep cached data if a silent refresh fails.
-                    if (!isBaseQuery || !cachedBaseRef.current?.hasLoadedBase) {
-                        setFailedSearchKey(activeSearchKey);
+                    if (!isEmptyQuery || !cachedBaseRef.current?.hasLoadedBase) {
+                        setFailedSearchKey(searchKey);
                     }
                 } else {
-                    setLoadingMoreSearchKey((current) => (current === activeSearchKey ? undefined : current));
+                    setLoadingMoreSearchKey((current) => (current === searchKey ? undefined : current));
                 }
             });
     };
 
-    const invalidateBaseRequests = () => {
-        baseRequestSeqRef.current++;
-    };
-
-    const invalidateQueryRequests = () => {
-        queryRequestSeqRef.current++;
-    };
-
-    const invalidateAllRequests = () => {
-        baseRequestSeqRef.current++;
-        queryRequestSeqRef.current++;
+    const invalidateInFlightRequests = () => {
+        requestSeqRef.current++;
     };
 
     useEffect(() => {
         cachedBaseRef.current = cachedBase;
     }, [cachedBase]);
 
-    useEffect(() => invalidateAllRequests, [invalidateAllRequests]);
-
-    // Keep silent base refresh running while local-only search filters a complete cache so new server users still land.
-    const shouldRunBaseLookup = ready && !isOffline && (isEmptyQuery || hasCompleteBaseCache);
+    useEffect(() => invalidateInFlightRequests, [invalidateInFlightRequests]);
 
     useEffect(() => {
         if (isOffline) {
             refreshedPolicyIDsRef.current = undefined;
-        }
-
-        if (!shouldRunBaseLookup) {
             return;
         }
 
-        if (refreshedPolicyIDsRef.current === policyIDs && cachedBaseRef.current?.hasLoadedBase) {
+        const shouldRefreshBase = isEmptyQuery && hasLoadedBase && refreshedPolicyIDsRef.current !== policyIDs;
+        if (!ready || (hasLoadedCurrentSearch && !shouldRefreshBase)) {
             return;
         }
 
-        const requestSeq = ++baseRequestSeqRef.current;
-        fetchUserFiltersPage('', '', requestSeq, true);
+        const requestSeq = ++requestSeqRef.current;
+        fetchUserFiltersPage('', requestSeq);
 
-        return invalidateBaseRequests;
-    }, [shouldRunBaseLookup, isOffline, policyIDs, fetchUserFiltersPage, invalidateBaseRequests]);
-
-    const shouldRunQueryLookup = ready && !isOffline && !isEmptyQuery && !hasCompleteBaseCache && !hasLoadedCurrentSearch;
-
-    useEffect(() => {
-        if (!shouldRunQueryLookup) {
-            return;
-        }
-
-        // Invalidate any in-flight base or load-more request because starting a new query cancels pending requests for the shared command.
-        invalidateBaseRequests();
-        const requestSeq = ++queryRequestSeqRef.current;
-        fetchUserFiltersPage(trimmedSearchTerm, '', requestSeq, false);
-
-        return invalidateQueryRequests;
-    }, [shouldRunQueryLookup, trimmedSearchTerm, fetchUserFiltersPage, invalidateBaseRequests, invalidateQueryRequests]);
+        return invalidateInFlightRequests;
+    }, [ready, isOffline, hasLoadedCurrentSearch, hasLoadedBase, isEmptyQuery, trimmedSearchTerm, policyIDs, fetchUserFiltersPage, invalidateInFlightRequests]);
 
     const loadMoreUsers = () => {
         if (isOffline || !hasMore || isLoadingMore || isSearching) {
             return;
         }
 
-        // Bumping the base sequence prevents an in-flight silent refresh from overwriting the next page cursor.
-        const requestSeq = isEmptyQuery ? ++baseRequestSeqRef.current : ++queryRequestSeqRef.current;
+        // Bumping the sequence prevents an in-flight silent refresh from overwriting the next page cursor.
+        const requestSeq = ++requestSeqRef.current;
         setLoadingMoreSearchKey(searchKey);
 
-        fetchUserFiltersPage(trimmedSearchTerm, nextCursor, requestSeq, isEmptyQuery);
+        fetchUserFiltersPage(nextCursor, requestSeq);
     };
 
     return {
