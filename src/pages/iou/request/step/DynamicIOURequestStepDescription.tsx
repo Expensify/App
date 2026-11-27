@@ -29,7 +29,7 @@ import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Parser from '@libs/Parser';
 import {arePolicyRulesEnabled} from '@libs/PolicyUtils';
 import shouldForceKeyboardIfAlreadyFocused from '@libs/shouldForceKeyboardIfAlreadyFocused';
-import {hasReceipt} from '@libs/TransactionUtils';
+import {getDescription, hasReceipt} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
 
@@ -91,7 +91,7 @@ function DynamicIOURequestStepDescription({
     const isEditingSplit = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE) && isEditing;
     const isTransactionDraft = shouldUseTransactionDraft(action, iouType);
 
-    const currentCommentHtml = isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? (splitDraftTransaction?.comment?.comment ?? '') : (transaction?.comment?.comment ?? '');
+    const currentCommentHtml = getDescription(isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction);
     const accountIDToName = useMentionedAccountIDToNameMap(currentCommentHtml);
 
     let currentDescriptionInMarkdown;
@@ -146,7 +146,7 @@ function DynamicIOURequestStepDescription({
         }
 
         if (isEditingSplit) {
-            setDraftSplitTransaction(transaction?.transactionID, splitDraftTransaction ?? transaction, {comment: newComment}, getCurrencyDecimals, getCurrencySymbol);
+            setDraftSplitTransaction(translate, transaction?.transactionID, splitDraftTransaction ?? transaction, {comment: newComment}, getCurrencyDecimals, getCurrencySymbol);
             setIsSaved(true);
             armNavigateBack();
             return;

@@ -7,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsByID from '@hooks/useTransactionsByID';
@@ -30,7 +31,7 @@ import React from 'react';
 
 import Button from './Button';
 import FormHelpMessage from './FormHelpMessage';
-import {usePersonalDetails, useSession} from './OnyxListItemProvider';
+import {useSession} from './OnyxListItemProvider';
 
 type AddExistingExpenseFooterProps = {
     /** Selected transaction IDs */
@@ -54,7 +55,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const session = useSession();
-    const personalDetails = usePersonalDetails();
+    const [personalDetails] = usePersonalDetailsByIDs(Object.keys(report?.participants ?? {}).map(Number));
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
     const personalPolicy = usePersonalPolicy();
@@ -70,6 +71,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [chatReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     const [transactions] = useTransactionsByID(selectedIds);
     const reports = useChangeTransactionsReportReports(transactions, reportToConfirm?.reportID);
@@ -115,6 +117,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
                         currentUserPersonalDetails,
                         newReport: reportToConfirm,
                         policy,
+                        policies,
                         policyCategories,
                         policyTagList,
                         transactions,

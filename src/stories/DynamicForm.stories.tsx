@@ -16,7 +16,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import styles from '@src/styles';
 import {defaultTheme} from '@src/styles/theme';
-import type {DynamicFormListItem, DynamicFormPage, DynamicFormSchema, DynamicFormSchemaField} from '@src/types/onyx';
+import type {DynamicFormContentItem, DynamicFormListItem, DynamicFormPage, DynamicFormSchema, DynamicFormSchemaField} from '@src/types/onyx';
 
 import type {Meta, StoryFn} from 'storybook-react-rsbuild';
 
@@ -610,6 +610,78 @@ const WiseBankAccountGB: StoryFn<WiseBankAccountStoryProps> = WiseBankAccountGBF
 WiseBankAccountGB.args = {layout: 'auto', confirmation: 'auto'};
 WiseBankAccountGB.argTypes = {layout: flowArgTypes.layout, confirmation: flowArgTypes.confirmation};
 
+type NoticePayoutType = 'japanese' | 'alipay' | 'malaysian';
+
+type WiseBankAccountNoticesStoryProps = WiseBankAccountStoryProps & {
+    /** The Wise payout type whose form is shown */
+    payoutType: NoticePayoutType;
+};
+
+/** The account details and holder content GetWiseBankAccountFields writes for each payout type that carries a notice or a hint */
+const WISE_NOTICE_CONTENT: Record<NoticePayoutType, {currency: string; account: DynamicFormContentItem[]; holder: DynamicFormContentItem[]}> = {
+    japanese: {
+        currency: 'JPY',
+        account: [
+            {key: 'bankCode', type: 'text', label: 'Bank code', required: true},
+            {key: 'branchCode', type: 'text', label: 'Branch code', required: true},
+            {key: 'accountNumber', type: 'text', label: 'Account number', required: true},
+        ],
+        holder: [{key: 'accountHolderName', type: 'text', label: 'Full name of the account holder', required: true, descriptionKey: 'addPersonalBankAccount.notices.katakanaName'}],
+    },
+    alipay: {
+        currency: 'CNY',
+        account: [
+            {key: 'addPersonalBankAccount.notices.alipayRecipients', presentation: 'notice', textKey: 'addPersonalBankAccount.notices.alipayRecipients'},
+            {key: 'addPersonalBankAccount.notices.alipayLimits', presentation: 'notice', textKey: 'addPersonalBankAccount.notices.alipayLimits'},
+            {key: 'accountNumber', type: 'text', label: 'Alipay ID (email or phone number)', required: true},
+        ],
+        holder: [{key: 'accountHolderName', type: 'text', label: 'Full name of the account holder', required: true}],
+    },
+    malaysian: {
+        currency: 'MYR',
+        account: [
+            {key: 'addPersonalBankAccount.notices.malaysianNonResidentLimit', presentation: 'notice', textKey: 'addPersonalBankAccount.notices.malaysianNonResidentLimit'},
+            {key: 'swiftCode', type: 'text', label: 'Bank code (BIC/SWIFT)', required: true},
+            {key: 'accountNumber', type: 'text', label: 'Account number', required: true},
+        ],
+        holder: [{key: 'accountHolderName', type: 'text', label: 'Full name of the account holder', required: true}],
+    },
+};
+
+/** The account notices GetWiseBankAccountFields adds for an Alipay or Malaysian account, and the name hint it adds for a Japanese one */
+function WiseBankAccountNoticesFlow({payoutType, layout, confirmation}: WiseBankAccountNoticesStoryProps) {
+    const {translate} = useLocalize();
+    const {currency, account, holder} = WISE_NOTICE_CONTENT[payoutType];
+    const schema: DynamicFormSchema = {
+        pages: [
+            {
+                key: 'accountDetails',
+                titleKey: 'addPersonalBankAccount.accountDetailsStepHeader',
+                content: [{key: 'currency', type: 'currency', labelKey: 'common.currency', required: true}, ...account],
+            },
+            {key: 'accountHolderDetails', titleKey: 'addPersonalBankAccount.accountHolderInformationStepHeader', content: holder},
+        ],
+    };
+    return (
+        <Flow
+            resetKey={`wiseBankAccountNotices-${payoutType}`}
+            schema={schema}
+            draftValues={{currency}}
+            confirmationTitle={translate('addPersonalBankAccount.confirmationStepHeader')}
+            layout={layout}
+            confirmation={confirmation}
+        />
+    );
+}
+
+const WiseBankAccountNotices: StoryFn<WiseBankAccountNoticesStoryProps> = WiseBankAccountNoticesFlow.bind({});
+WiseBankAccountNotices.args = {payoutType: 'japanese', layout: 'auto', confirmation: 'auto'};
+WiseBankAccountNotices.argTypes = {
+    payoutType: {options: Object.keys(WISE_NOTICE_CONTENT), control: {type: 'radio'}},
+    layout: flowArgTypes.layout,
+    confirmation: flowArgTypes.confirmation,
+};
+
 const FlowStory = presetFlowStory('originalBankAccount');
 FlowStory.storyName = 'Flow';
 
@@ -654,4 +726,5 @@ export {
     AmountWithCurrency,
     UnknownType,
     WiseBankAccountGB,
+    WiseBankAccountNotices,
 };

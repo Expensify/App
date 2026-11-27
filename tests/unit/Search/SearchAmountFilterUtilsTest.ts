@@ -77,15 +77,15 @@ describe('SearchAmountFilterUtils', () => {
         expect(label).toBe('11,99 GBP');
     });
 
-    it('only offers FX currencies for amount and purchase amount', () => {
+    it('only offers FX currencies for amount, converted amount, and purchase amount', () => {
         // Given every amount-like search field.
         const keys = CONST.SEARCH.SYNTAX_FILTER_KEYS;
 
         // When checking whether to show its currency picker.
-        const supported = [keys.AMOUNT, keys.PURCHASE_AMOUNT, keys.TOTAL, keys.AMOUNT_DEBITED, keys.AMOUNT_REIMBURSED].filter(supportsAmountFilterCurrency);
+        const supported = [keys.AMOUNT, keys.CONVERTED_AMOUNT, keys.PURCHASE_AMOUNT, keys.TOTAL, keys.AMOUNT_DEBITED, keys.AMOUNT_REIMBURSED].filter(supportsAmountFilterCurrency);
 
         // Then report totals and reimbursement fields keep their existing behavior.
-        expect(supported).toEqual([keys.AMOUNT, keys.PURCHASE_AMOUNT]);
+        expect(supported).toEqual([keys.AMOUNT, keys.CONVERTED_AMOUNT, keys.PURCHASE_AMOUNT]);
     });
 
     it('does not reinterpret malformed qualified amounts as numeric input', () => {

@@ -367,5 +367,18 @@ describe('AvatarUtils', () => {
             expect(getValidatedImageSource(prodImageFileUrl)).toBe(prodImageFileUrl);
             expect(getValidatedImageSource(encodedProdImageFileUrl)).toBe(prodImageFileUrl);
         });
+
+        it.each([
+            ['a lone percent sign', 'https://example.com/100%.png'],
+            ['an invalid escape', 'https://example.com/image%zz.png'],
+            ['a truncated multi-byte escape', 'https://example.com/price%E2%82.png'],
+        ])('should return the raw string source for %s instead of throwing', (_, source) => {
+            // Given a string source from a deep link whose percent-encoding cannot be decoded
+            // When it is validated
+            const validatedSource = getValidatedImageSource(source, false);
+
+            // Then the raw source is returned
+            expect(validatedSource).toBe(source);
+        });
     });
 });

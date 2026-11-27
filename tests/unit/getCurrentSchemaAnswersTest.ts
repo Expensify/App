@@ -59,6 +59,24 @@ describe('getCurrentSchemaAnswers', () => {
         logSpy.mockRestore();
     });
 
+    it('leaves out the address parts the form hides', () => {
+        // Given a Hong Kong address under a schema that asks for no zip or state, whose draft still holds both from an earlier country
+        const schema: DynamicFormSchema = {fields: [{key: 'address', type: 'address', required: true, states: [], isZipCodeAsked: false}]};
+        const draftValues = {
+            address: "1 Queen's Road Central",
+            [ADDRESS_KEYS.city]: 'Hong Kong',
+            [ADDRESS_KEYS.state]: 'ON',
+            [ADDRESS_KEYS.zipCode]: 'M5H 2N2',
+            [ADDRESS_KEYS.country]: 'HK',
+        };
+
+        // When the answers for a refresh are picked
+        const answers = getCurrentSchemaAnswers(schema, draftValues);
+
+        // Then the hidden zip and state are left out, since the user cannot see or clear them
+        expect(answers).toEqual({address: "1 Queen's Road Central", [ADDRESS_KEYS.city]: 'Hong Kong', [ADDRESS_KEYS.country]: 'HK'});
+    });
+
     it('returns no answers before a schema arrives', () => {
         // Given a draft but no schema yet
         const draftValues = {currency: 'GBP'};

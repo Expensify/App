@@ -1,5 +1,5 @@
 import Checkbox from '@components/Checkbox';
-import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
+import {useSession} from '@components/OnyxListItemProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import StatusBadge from '@components/StatusBadge';
@@ -11,6 +11,7 @@ import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -86,7 +87,6 @@ function SearchStaticList({
     const {translate, localeCompare, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
     const session = useSession();
-    const personalDetails = usePersonalDetails();
     const accountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const email = session?.email;
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
@@ -120,13 +120,14 @@ function SearchStaticList({
             conciergeReportID,
             convertToDisplayString,
             reportAttributesDerivedValue: undefined,
-            accountIDToName: buildAccountIDToNameMap(personalDetails ?? undefined),
+            accountIDToName: buildAccountIDToNameMap(searchData.personalDetailsList),
         });
 
         return getSortedSections(type, filteredData, localeCompare, translate, getEffectiveSortBy(queryJSON), sortOrder, validGroupBy)
             .filter((item): item is TransactionListItemType => 'transactionID' in item && item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
             .slice(0, STATIC_LIST_MAX_ITEMS);
     })();
+    const [personalDetails] = usePersonalDetailsByIDs([accountID, ...sortedData.flatMap((item) => [item.reportAction?.actorAccountID, item.report?.ownerAccountID])]);
 
     // Sync the pending-expense placeholder on focus and notify the parent that
     // the destination is visible (focus signal for the dual-gate span ending).

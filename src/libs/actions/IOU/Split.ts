@@ -1384,6 +1384,7 @@ function resetSplitShares(
  * its own, and passing `undefined` merges `null`, which clears the draft.
  */
 function setDraftSplitTransaction(
+    translate: LocaleContextProps['translate'],
     transactionID: string | undefined,
     splitTransactionDraft: OnyxEntry<OnyxTypes.Transaction>,
     transactionChanges: TransactionChanges,
@@ -1400,6 +1401,7 @@ function setDraftSplitTransaction(
 
     const updatedTransaction = splitTransactionDraft
         ? getUpdatedTransaction({
+              translate,
               transaction: splitTransactionDraft,
               transactionChanges,
               isFromExpenseReport: false,
@@ -2352,6 +2354,7 @@ function planDistanceRequest(distanceRequestInformation: CreateDistanceRequestIn
             // Refactor this call site to pass real report actions instead of undefined in https://github.com/Expensify/App/issues/66522
             parentChatReportActions: undefined,
             participantChatReportActions: undefined,
+            shouldDeferAutoSubmit,
         });
 
         onyxData = moneyRequestOnyxData;

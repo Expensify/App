@@ -29,7 +29,7 @@ fi
 # Pods that exist only when react-native is consumed prebuilt.
 readonly PREBUILT_MARKERS=(React-Core-prebuilt ReactNativeDependencies)
 
-# Pods that only a source build pulls in (mutually exclusive with the set above).
+# Pods that only a source build pulls in, unless they are the prebuilt facades checked by podIsFacade below.
 readonly SOURCE_MARKERS=(boost DoubleConversion fast_float fmt glog RCT-Folly SocketRocket)
 
 # Only PODS: records what actually resolved; DEPENDENCIES: just echoes the Podfile's intent.
@@ -41,9 +41,18 @@ if [[ -z "$PODS_SECTION" ]]; then
   exit 2
 fi
 
+# With prebuilt artifacts, react-native installs dependency-only facades under the source markers' names
+# (`RNDepsFacades` in react-native's rndeps_facades.rb), resolved from `:path: build/rndeps-facades/<name>`.
+EXTERNAL_SOURCES_SECTION=$(awk '/^EXTERNAL SOURCES:/{inSection = 1; next} /^[A-Z]/{inSection = 0} inSection' "$LOCKFILE")
+readonly EXTERNAL_SOURCES_SECTION
+
 # Anchoring on the trailing " (" keeps `React-Core` from matching `React-Core-prebuilt`.
 function podIsPresent {
   grep -qE "^  - $1 \(" <<< "$PODS_SECTION"
+}
+
+function podIsFacade {
+  grep -A1 -E "^  $1:$" <<< "$EXTERNAL_SOURCES_SECTION" | grep -qE "^    :path: \"?build/rndeps-facades/$1\"?$"
 }
 
 MISSING_PREBUILT=()
@@ -55,7 +64,7 @@ done
 
 FOUND_SOURCE=()
 for POD in "${SOURCE_MARKERS[@]}"; do
-  if podIsPresent "$POD"; then
+  if podIsPresent "$POD" && ! podIsFacade "$POD"; then
     FOUND_SOURCE+=("$POD")
   fi
 done

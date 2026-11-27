@@ -171,6 +171,8 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
             companyCardNumberSearch.setSearchValue(text);
         },
         shouldBeInsideList: true,
+        // The search takes full card numbers, so it's masked in FullStory.
+        forwardedFSClass: CONST.FULLSTORY.CLASS.MASK,
     };
 
     const customListHeader = (

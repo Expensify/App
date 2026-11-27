@@ -7,12 +7,14 @@ FullStory records sessions on web and native. Everything it records is readable 
 Masked:
 
 - Self DMs
-- DMs, groups and rooms that Concierge isn't a member of, including their composer and their message previews in the LHN (the chat name and avatar stay visible). Workspace chats, #admins, #announce, invoice rooms, threads of expenses, reports and invoices, and the user's DM with a custom agent stay unmasked. See `getChatFSClass` below.
+- DMs, groups and rooms that Concierge isn't a member of, including their composer and their message previews in the LHN (the chat name and avatar stay visible). Workspace chats, #admins, #announce, invoice rooms, threads of expenses, reports and invoices, the user's DM with a custom agent, and support tickets opened from Concierge (with the threads inside them) stay unmasked. See `getChatFSClass` below.
 - Bank account, wallet and payment card flows: the fields with sensitive or personal data, both the inputs and the screens that show the values back
 - Personal details: legal name, date of birth, phone number and address
 - Business and identity data: tax IDs, registration numbers, beneficial owners and signers, ID documents
 - 2FA, magic and validate codes, and card PINs
 - Passwords, API keys and other credentials, such as the accounting integration secrets
+- Searches that take sensitive data, such as the company card searches, which accept full card numbers. Pass `forwardedFSClass` to `Table.FilterBar` or in a `SelectionList`'s `textInputOptions`
+- Screen reader announcements on web, which can repeat what the user typed. Their hidden live region is always masked
 
 Unmasked: everything else, including expenses, reports, Search (apart from the chat items of masked chats) and workspace settings. Displays that only show the last 4 digits of a card or account stay unmasked.
 

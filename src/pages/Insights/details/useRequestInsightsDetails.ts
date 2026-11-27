@@ -14,8 +14,11 @@ import {useEffect, useEffectEvent, useRef} from 'react';
 
 import type {InsightsDetailsQuery} from './buildInsightsDetailsQuery';
 
-/** Fetches the Details panel's sections and returns a function to fetch them again. Without a Details request, only the Top expenses are fetched, using Search */
-function useRequestInsightsDetails(query: InsightsDetailsQuery | undefined, topExpensesQueryJSON: Readonly<SearchQueryJSON> | undefined): () => void {
+/**
+ * Fetches the Details panel's sections and returns a function to fetch them again. Without a Details request, only the Top expenses are fetched, using Search.
+ * With `shouldRequestOnEveryReturn`, they're also fetched every time the user returns to the panel.
+ */
+function useRequestInsightsDetails(query: InsightsDetailsQuery | undefined, topExpensesQueryJSON: Readonly<SearchQueryJSON> | undefined, shouldRequestOnEveryReturn: boolean): () => void {
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
     const [spendDataSignature] = useOnyx(ONYXKEYS.DERIVED.SPEND_DATA_SIGNATURE);
@@ -40,12 +43,12 @@ function useRequestInsightsDetails(query: InsightsDetailsQuery | undefined, topE
     const refreshKey = [query?.hash, topExpensesQueryJSON?.hash, isOffline, spendDataSignature?.expenses ?? 0].join('|');
     const lastRefreshKeyRef = useRef<string | undefined>(undefined);
     useEffect(() => {
-        if (!isFocused || refreshKey === lastRefreshKeyRef.current) {
+        if (!isFocused || (!shouldRequestOnEveryReturn && refreshKey === lastRefreshKeyRef.current)) {
             return;
         }
         lastRefreshKeyRef.current = refreshKey;
         onRefreshKeyChange();
-    }, [refreshKey, isFocused]);
+    }, [refreshKey, isFocused, shouldRequestOnEveryReturn]);
 
     return request;
 }
