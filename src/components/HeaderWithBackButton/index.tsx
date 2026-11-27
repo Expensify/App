@@ -23,6 +23,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
+import useTopInsetHeaderStyle from '@hooks/useTopInsetHeaderStyle';
 import useVerticalBarBackButton from '@hooks/useVerticalBarBackButton';
 
 import getButtonState from '@libs/getButtonState';
@@ -124,6 +125,15 @@ function HeaderWithBackButton({
     // The vertical bar of a foldable iPhone has the back button instead.
     const isBackButtonInVerticalBar = useVerticalBarBackButton(pressBackButton, shouldShowBackButton);
     const shouldShowHeaderBackButton = shouldShowBackButton && !isBackButtonInVerticalBar;
+    const headerStyle = [
+        styles.headerBar,
+        contentHeaderHeightStyle,
+        shouldShowBorderBottom && styles.borderBottom,
+        shouldShowHeaderBackButton && styles.pl2,
+        shouldOverlay && StyleSheet.absoluteFill,
+        style,
+    ];
+    const topInsetHeaderStyle = useTopInsetHeaderStyle(headerStyle);
 
     let middleContent;
     const stepCounterTranslation = stepCounter ? translate('stepCounter', stepCounter.step, stepCounter.total, stepCounter.text) : undefined;
@@ -196,14 +206,7 @@ function HeaderWithBackButton({
 
     return (
         <View
-            style={[
-                styles.headerBar,
-                contentHeaderHeightStyle,
-                shouldShowBorderBottom && styles.borderBottom,
-                shouldShowHeaderBackButton && [styles.pl2],
-                shouldOverlay && StyleSheet.absoluteFill,
-                style,
-            ]}
+            style={[headerStyle, topInsetHeaderStyle]}
             onTouchStart={isInLandscapeMode ? () => Keyboard.dismiss() : undefined}
         >
             <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden, styles.mr3]}>

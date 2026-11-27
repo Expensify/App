@@ -40,6 +40,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardList, Policy, PolicyCategories, PolicyTagLists, Report, TransactionViolations} from '@src/types/onyx';
 import type {Errors, TranslationKeyErrors} from '@src/types/onyx/OnyxCommon';
+import type {ReceiptError, ReceiptErrors} from '@src/types/onyx/Transaction';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -193,6 +194,12 @@ function MoneyRequestReportTransactionItemBody({
     const transactionErrors: Errors | TranslationKeyErrors = rejectErrorKey ? rejectError : getLatestErrorMessageField({errors: messageErrors});
     const hasTransactionErrors = Object.keys(transactionErrors).length > 0;
 
+    // The error row below already shows the message errors, so the row's own red line keeps only the receipt errors
+    const receiptErrors: ReceiptErrors = Object.fromEntries(
+        Object.entries(transaction.errors ?? {}).filter((entry): entry is [string, ReceiptError] => typeof entry[1] === 'object' && entry[1] !== null),
+    );
+    const rowTransaction = hasTransactionErrors && !rejectErrorKey ? {...transaction, errors: receiptErrors} : transaction;
+
     // The last row keeps its bottom border but hides it, so the row height stays the same when a row is added below it.
     // FlashList ignores size changes of 1px or less, so a border that appears later would be covered by the next row.
     const lastRowBorderStyle = isLastItem && styles.borderTransparent;
@@ -309,7 +316,7 @@ function MoneyRequestReportTransactionItemBody({
                 {({hovered}) => (
                     <>
                         <TransactionItemRow
-                            transactionItem={transaction}
+                            transactionItem={rowTransaction}
                             violations={violations}
                             report={report}
                             policy={policy}

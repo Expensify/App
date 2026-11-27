@@ -275,7 +275,14 @@ function AvatarWithDisplayName({
     const shouldShowReportTitleEditButton =
         shouldEnableDetailPageNavigation &&
         !isSmallScreenWidth &&
-        canEditReportTitle(report, policy, currentUserAccountID, rules, getLoginByAccountID(report?.ownerAccountID, personalDetails));
+        canEditReportTitle(
+            report,
+            policy,
+            currentUserAccountID,
+            rules,
+            getLoginByAccountID(report?.ownerAccountID, personalDetails),
+            getLoginByAccountID(report?.managerID, personalDetails),
+        );
     const humanAgentAccountID = getHumanAgentAccountIDFromReportAction(parentReportAction);
     const humanAgentName = getHumanAgentFirstName(parentReportAction, personalDetails);
 
