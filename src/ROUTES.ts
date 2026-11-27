@@ -1135,6 +1135,10 @@ const DYNAMIC_ROUTES = {
         path: 'visible-to',
         entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS, SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_SETTINGS],
     },
+    WORKSPACE_CATEGORIES_BULK_VISIBLE_TO: {
+        path: 'bulk-visible-to',
+        entryScreens: [SCREENS.WORKSPACE.CATEGORIES, SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_ROOT],
+    },
     WORKSPACE_CATEGORY_FLAG_AMOUNTS_OVER: {
         path: 'flag-amounts',
         entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS, SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_SETTINGS],
@@ -1501,6 +1505,14 @@ const DYNAMIC_ROUTES = {
     },
     WORKSPACE_INVITE_MESSAGE_ROLE: {
         path: 'role',
+        entryScreens: [
+            SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_INVITE_MESSAGE,
+            SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_INVITE_NEW_MEMBER,
+            SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW,
+        ],
+    },
+    WORKSPACE_INVITE_MESSAGE_CATEGORY_VISIBILITY: {
+        path: 'category-visibility',
         entryScreens: [
             SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_INVITE_MESSAGE,
             SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_INVITE_NEW_MEMBER,
@@ -2514,6 +2526,7 @@ const ROUTES = {
             tagLevel,
             parentTagPath,
             asOfDate,
+            violationStage,
         }: {
             dashboardID: ValueOf<typeof CONST.INSIGHTS.DASHBOARD>;
             graphKey: ValueOf<typeof CONST.INSIGHTS.GRAPH>;
@@ -2522,8 +2535,9 @@ const ROUTES = {
             tagLevel?: number;
             parentTagPath?: string;
             asOfDate?: string;
+            violationStage?: ValueOf<typeof CONST.INSIGHTS.VIOLATION_STAGE>;
         }) =>
-            `insights/${dashboardID}/details/${graphKey}?item=${encodeURIComponent(itemKey)}${periodEnd ? `&end=${periodEnd}` : ''}${tagLevel ? `&level=${tagLevel}` : ''}${parentTagPath ? `&parent=${encodeURIComponent(parentTagPath)}` : ''}${asOfDate ? `&asOf=${asOfDate}` : ''}` as const,
+            `insights/${dashboardID}/details/${graphKey}?item=${encodeURIComponent(itemKey)}${periodEnd ? `&end=${periodEnd}` : ''}${tagLevel ? `&level=${tagLevel}` : ''}${parentTagPath ? `&parent=${encodeURIComponent(parentTagPath)}` : ''}${asOfDate ? `&asOf=${asOfDate}` : ''}${violationStage ? `&stage=${violationStage}` : ''}` as const,
     },
 
     EXPENSE_REPORT_RHP: {
@@ -3773,6 +3787,10 @@ const ROUTES = {
     WORKSPACE_MEMBERS_CHANGE_OFFICE_LOCATION: {
         route: 'workspaces/:policyID/members/change-office-location',
         getRoute: (policyID: string) => `workspaces/${policyID}/members/change-office-location` as const,
+    },
+    WORKSPACE_MEMBERS_BULK_CATEGORY_VISIBILITY: {
+        route: 'workspaces/:policyID/members/category-visibility',
+        getRoute: (policyID: string) => `workspaces/${policyID}/members/category-visibility` as const,
     },
     WORKSPACE_MEMBERS_CHANGE_WORK_ARRANGEMENT: {
         route: 'workspaces/:policyID/members/change-work-arrangement',
@@ -5781,6 +5799,30 @@ const ROUTES = {
     POLICY_ACCOUNTING_DIGITS_COMPANY_CARD_ACCOUNT: {
         route: 'workspaces/:policyID/accounting/digits/export/company-card-account',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/digits/export/company-card-account` as const,
+    },
+    POLICY_ACCOUNTING_DIGITS_ADVANCED: {
+        route: 'workspaces/:policyID/accounting/digits/advanced',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/digits/advanced` as const,
+    },
+    POLICY_ACCOUNTING_DIGITS_EXPORT_METHOD: {
+        route: 'workspaces/:policyID/accounting/digits/advanced/export-method',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/digits/advanced/export-method` as const,
+    },
+    POLICY_ACCOUNTING_DIGITS_BILL_PAYMENT_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/digits/advanced/bill-payment-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/digits/advanced/bill-payment-account` as const,
+    },
+    POLICY_ACCOUNTING_DIGITS_EXPENSIFY_CARD_SETTLEMENT_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/digits/advanced/expensify-card-settlement-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/digits/advanced/expensify-card-settlement-account` as const,
+    },
+    POLICY_ACCOUNTING_DIGITS_TRAVEL_BILLING_SETTLEMENT_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/digits/advanced/travel-billing-settlement-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/digits/advanced/travel-billing-settlement-account` as const,
+    },
+    POLICY_ACCOUNTING_DIGITS_TRAVEL_BILLING_PAYABLE_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/digits/advanced/travel-billing-payable-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/digits/advanced/travel-billing-payable-account` as const,
     },
     POLICY_ACCOUNTING_BUSINESS_CENTRAL_PREREQUISITES: {
         route: 'workspaces/:policyID/accounting/business-central/prerequisites',

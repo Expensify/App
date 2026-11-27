@@ -1,5 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderCentralPane from '@components/Header/composed/HeaderCentralPane';
 import Icon from '@components/Icon';
 import KYCWall from '@components/KYCWall';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
@@ -34,6 +34,7 @@ import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useRefreshPendingDigitalWalletApproval from '@hooks/useRefreshPendingDigitalWalletApproval';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useRunWhenOnline from '@hooks/useRunWhenOnline';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -149,6 +150,7 @@ function WalletPage() {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const network = useNetwork();
+    const runWhenOnline = useRunWhenOnline();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {cardPaddingHorizontal, cardEdgeToEdge} = useLayoutSpacing();
     const {paymentMethod, setPaymentMethod, resetSelectedPaymentMethodData} = usePaymentMethodState();
@@ -467,15 +469,6 @@ function WalletPage() {
     // Determines whether or not the modal popup is mounted from the bottom of the screen instead of the side mount on Web screen
     const alertTextStyle = [styles.inlineSystemMessage, styles.flexShrink1];
     const alertViewStyle = [styles.flexRow, styles.alignItemsCenter, styles.w100];
-    const headerWithBackButton = (
-        <HeaderWithBackButton
-            title={translate('common.wallet')}
-            shouldUseHeadlineHeader
-            shouldShowBackButton={shouldUseNarrowLayout}
-            shouldDisplaySearchRouter
-            shouldDisplayHelpButton
-        />
-    );
 
     const bottomMountItem: PopoverMenuItem = {
         text: paymentMethod.formattedSelectedPaymentMethod.title,
@@ -545,7 +538,8 @@ function WalletPage() {
                                       Navigation.navigate(getWiseOnboardingStatusRoute(bankAccountID));
                                       return;
                                   }
-                                  Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.getRoute(bankAccountID)));
+                                  // The intro leads into a form that saves each page to the server, so it opens only online
+                                  runWhenOnline(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.getRoute(bankAccountID))));
                               });
                               return;
                           }
@@ -725,7 +719,10 @@ function WalletPage() {
                 testID="WalletPage"
                 shouldShowOfflineIndicatorInWideScreen
             >
-                {headerWithBackButton}
+                <HeaderCentralPane
+                    title={translate('common.wallet')}
+                    shouldDisplaySearchRouter
+                />
                 <View style={[styles.flex1, styles.fullScreenLoading]}>
                     <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                 </View>
@@ -738,7 +735,10 @@ function WalletPage() {
             testID="WalletPage"
             shouldShowOfflineIndicatorInWideScreen
         >
-            {headerWithBackButton}
+            <HeaderCentralPane
+                title={translate('common.wallet')}
+                shouldDisplaySearchRouter
+            />
             <ScrollView style={styles.pt3}>
                 <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     <OfflineWithFeedback

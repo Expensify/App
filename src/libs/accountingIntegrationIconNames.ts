@@ -20,6 +20,7 @@ const accountingIntegrationIconNames = {
     netsuite: 'NetSuiteSquare',
     intacct: 'IntacctSquare',
     financialforce: 'CertiniaSquare',
+    acumatica: 'AcumaticaSquare',
     rillet: 'RilletSquare',
     dualEntry: 'DualEntrySquare',
     campfire: 'CampfireSquare',

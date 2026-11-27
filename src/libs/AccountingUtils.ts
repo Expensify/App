@@ -61,7 +61,6 @@ const STANDARD_EXPORT_TEMPLATE_LABELS = new Set<string>(Object.values(STANDARD_E
 
 const ACCOUNTING_CONNECTION_BETAS = {
     [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: CONST.BETAS.BUSINESS_CENTRAL,
-    [CONST.POLICY.CONNECTIONS.NAME.DIGITS]: CONST.BETAS.DIGITS,
 } as const satisfies Partial<Record<ConnectionName, Beta>>;
 
 /** Keep onboarding choices and Connections listings behind the same connector beta gates. */

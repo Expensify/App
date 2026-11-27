@@ -193,7 +193,7 @@ describe('Onboarding interested features and accounting pages', () => {
         await waitForBatchedUpdatesWithAct();
         // Then the catalog contains connections, waitlist choices, the IES alias, and Other
         const radios = screen.getAllByRole(CONST.ROLE.RADIO);
-        expect(radios).toHaveLength(17);
+        expect(radios).toHaveLength(18);
         expect(accountingOptions.filter((option) => !option.isComingSoon && option.connectionName).map((option) => option.connectionName)).toEqual(
             CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES,
         );
@@ -202,7 +202,7 @@ describe('Onboarding interested features and accounting pages', () => {
                 .filter((option) => option.isComingSoon)
                 .map((option) => option.name)
                 .sort(),
-        ).toEqual(['Exact Online', 'Odoo', 'Sage Accounting']);
+        ).toEqual(['Acumatica', 'Exact Online', 'Odoo', 'Sage Accounting']);
         for (const [index, option] of accountingOptions.entries()) {
             expect(radios.at(index)).toHaveProp('accessibilityLabel', option.name);
         }
@@ -211,7 +211,7 @@ describe('Onboarding interested features and accounting pages', () => {
             const {option}: {option?: AccountingOption} = row.props;
             expect(within(row).UNSAFE_queryAllByType(RadioButton)).toHaveLength(option?.isComingSoon ? 0 : 1);
         }
-        expect(result.UNSAFE_getAllByType(Icon).filter((icon) => icon.props.width === 28 && icon.props.height === 28)).toHaveLength(17);
+        expect(result.UNSAFE_getAllByType(Icon).filter((icon) => icon.props.width === 28 && icon.props.height === 28)).toHaveLength(18);
         expect(screen.queryAllByRole(CONST.ROLE.TAB)).toHaveLength(0);
     });
 
@@ -302,7 +302,7 @@ describe('Onboarding interested features and accounting pages', () => {
         expect(screen.getAllByRole(CONST.ROLE.RADIO)).toHaveLength(1);
         expect(screen.getByText('Certinia')).toBeOnTheScreen();
         fireEvent.press(screen.getByLabelText(TestHelper.translateLocal('common.clear')));
-        expect(screen.getAllByRole(CONST.ROLE.RADIO)).toHaveLength(17);
+        expect(screen.getAllByRole(CONST.ROLE.RADIO)).toHaveLength(18);
     });
 
     it('retains a confirmed custom name independently of search and navigation', async () => {
@@ -336,7 +336,7 @@ describe('Onboarding interested features and accounting pages', () => {
         searchFor('   ');
         continueOnboarding();
         // Then validation prevents submission and whitespace does not hide the catalog
-        expect(screen.getAllByRole(CONST.ROLE.RADIO)).toHaveLength(17);
+        expect(screen.getAllByRole(CONST.ROLE.RADIO)).toHaveLength(18);
         expect(screen.getByText(TestHelper.translateLocal('onboarding.errorSelection'))).toBeOnTheScreen();
         expect(mockCompleteOnboardingFlow).not.toHaveBeenCalled();
         searchFor('Unconfirmed Books');
@@ -507,26 +507,24 @@ describe('Onboarding interested features and accounting pages', () => {
     });
 
     it('matches Connections beta visibility without marking released connectors coming soon', async () => {
-        // Given an account without the Digits or Business Central beta
+        // Given an account without the Business Central beta
         mockIsBetaEnabled.mockReturnValue(false);
         // When opening accounting onboarding
         renderAccountingPage();
         await waitForBatchedUpdatesWithAct();
-        // Then gated connectors are hidden, while the three waitlist choices remain available
-        expect(screen.queryByRole(CONST.ROLE.RADIO, {name: 'Digits'})).not.toBeOnTheScreen();
+        // Then Business Central is hidden, while released Digits and the four waitlist choices remain available
+        expect(screen.getByRole(CONST.ROLE.RADIO, {name: 'Digits'})).toBeOnTheScreen();
         expect(screen.queryByRole(CONST.ROLE.RADIO, {name: 'Dynamics 365 Business Central'})).not.toBeOnTheScreen();
-        expect(screen.getAllByRole(CONST.ROLE.RADIO)).toHaveLength(15);
-        expect(screen.getAllByText(TestHelper.translateLocal('workspace.accounting.integrationWaitlist.comingSoon'))).toHaveLength(3);
+        expect(screen.getAllByRole(CONST.ROLE.RADIO)).toHaveLength(17);
+        expect(screen.getAllByText(TestHelper.translateLocal('workspace.accounting.integrationWaitlist.comingSoon'))).toHaveLength(4);
     });
 
     it.each([
-        {betas: [], connected: undefined, digits: false, businessCentral: false},
-        {betas: [CONST.BETAS.DIGITS], connected: undefined, digits: true, businessCentral: false},
-        {betas: [CONST.BETAS.BUSINESS_CENTRAL], connected: undefined, digits: false, businessCentral: true},
-        {betas: [CONST.BETAS.DIGITS, CONST.BETAS.BUSINESS_CENTRAL], connected: undefined, digits: true, businessCentral: true},
+        {betas: [], connected: undefined, digits: true, businessCentral: false},
+        {betas: [CONST.BETAS.BUSINESS_CENTRAL], connected: undefined, digits: true, businessCentral: true},
         {betas: [], connected: CONST.POLICY.CONNECTIONS.NAME.DIGITS, digits: true, businessCentral: false},
-        {betas: [], connected: CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL, digits: false, businessCentral: true},
-        {betas: [CONST.BETAS.ODOO, CONST.BETAS.EXACT_ONLINE, CONST.BETAS.SAGE_ACCOUNTING], connected: undefined, digits: false, businessCentral: false},
+        {betas: [], connected: CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL, digits: true, businessCentral: true},
+        {betas: [CONST.BETAS.ODOO, CONST.BETAS.EXACT_ONLINE, CONST.BETAS.SAGE_ACCOUNTING], connected: undefined, digits: true, businessCentral: false},
     ])('matches every Connections listing and badge with betas $betas and connection $connected', async ({betas, connected, digits, businessCentral}) => {
         // Given both surfaces use the same workspace and beta enrollment, without any saved custom onboarding answer
         mockIsBetaEnabled.mockImplementation((beta) => betas.some((enabledBeta) => enabledBeta === beta));

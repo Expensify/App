@@ -90,6 +90,7 @@ function DynamicIOURequestStepAttendees({
                     ONYXKEYS.NVP_INTRO_SELECTED,
                 ]);
                 updateMoneyRequestAttendees({
+                    translate,
                     isVendorMatchingBetaEnabled,
                     transactionID,
                     transaction,

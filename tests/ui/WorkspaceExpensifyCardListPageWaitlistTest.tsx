@@ -42,7 +42,7 @@ jest.mock('@components/Button', () => {
 jest.mock('@components/ButtonWithDropdownMenu', () => () => null);
 jest.mock('@components/DelegateNoAccessModalProvider', () => ({useDelegateNoAccessActions: () => ({}), useDelegateNoAccessState: () => ({isDelegateAccessRestricted: false})}));
 jest.mock(
-    '@components/HeaderWithBackButton',
+    '@components/Header/composed/HeaderCentralPane',
     () =>
         ({children}: {children: React.ReactNode}) =>
             children,

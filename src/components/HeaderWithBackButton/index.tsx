@@ -23,6 +23,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
+import useTopInsetHeaderStyle from '@hooks/useTopInsetHeaderStyle';
 
 import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
@@ -107,6 +108,15 @@ function HeaderWithBackButton({
     const isInLandscapeMode = useIsInLandscapeMode();
     const reportAvatarSize = useHeaderAvatarSize();
     const {contentHeaderHeightStyle} = useContentHeaderHeight();
+    const headerStyle = [
+        styles.headerBar,
+        contentHeaderHeightStyle,
+        shouldShowBorderBottom && styles.borderBottom,
+        shouldShowBackButton && styles.pl2,
+        shouldOverlay && StyleSheet.absoluteFill,
+        style,
+    ];
+    const topInsetHeaderStyle = useTopInsetHeaderStyle(headerStyle);
     const setBackButtonRef = useInitialFocusRef({shouldSkip: shouldSkipFocusAfterTransition});
 
     let middleContent;
@@ -180,14 +190,7 @@ function HeaderWithBackButton({
 
     return (
         <View
-            style={[
-                styles.headerBar,
-                contentHeaderHeightStyle,
-                shouldShowBorderBottom && styles.borderBottom,
-                shouldShowBackButton && [styles.pl2],
-                shouldOverlay && StyleSheet.absoluteFill,
-                style,
-            ]}
+            style={[headerStyle, topInsetHeaderStyle]}
             onTouchStart={isInLandscapeMode ? () => Keyboard.dismiss() : undefined}
         >
             <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden, styles.mr3]}>

@@ -43,6 +43,7 @@ const defaultSearchResultsContext: SearchResultsContextValue = {
     currentSearchResults: undefined,
     currentSearchTransactionsByReportID: EMPTY_TRANSACTIONS_BY_REPORT_ID,
     currentSearchViolations: CONST.EMPTY_OBJECT,
+    approvalWorkflowRules: undefined,
     shouldUseLiveData: false,
     sortedReportIDs: CONST.EMPTY_ARRAY,
     shouldShowFiltersBarLoading: false,
