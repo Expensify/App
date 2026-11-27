@@ -137,13 +137,13 @@ type BookingViewProps = {
     /** The booking's approval state, which sets its status badge */
     bookingApproval?: BookingApproval;
 
-    /** The trip room the booking's approval state is stored on */
-    tripRoomReportID: string | undefined;
+    /** Called when the user dismisses the booking's error */
+    onClearErrors: () => void;
 
     onPress: () => void;
 };
 
-function BookingView({booking, bookingApproval, tripRoomReportID, onPress}: BookingViewProps) {
+function BookingView({booking, bookingApproval, onClearErrors, onPress}: BookingViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -160,7 +160,7 @@ function BookingView({booking, bookingApproval, tripRoomReportID, onPress}: Book
         <OfflineWithFeedback
             pendingAction={bookingApproval?.pendingAction}
             errors={bookingApproval?.errors}
-            onClose={() => clearTravelBookingErrors(tripRoomReportID, booking.pnrID)}
+            onClose={onClearErrors}
             shouldForceOpacity={!!bookingApproval?.pendingAction}
             errorRowStyles={styles.mt2}
         >
@@ -250,7 +250,7 @@ function TripRoomPreview({action, containerStyles, isHovered = false}: TripRoomP
         <BookingView
             booking={item}
             bookingApproval={reportNameValuePairs?.tripData?.bookingApprovalState?.[item.pnrID]}
-            tripRoomReportID={chatReportID}
+            onClearErrors={() => clearTravelBookingErrors(chatReportID, item.pnrID)}
             onPress={navigateToTrip}
         />
     );
