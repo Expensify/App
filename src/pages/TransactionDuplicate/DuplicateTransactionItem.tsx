@@ -6,10 +6,12 @@ import UserInfoAndActionButtonRow from '@components/Search/SearchList/ListItem/U
 import TransactionItemRow from '@components/TransactionItemRow';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getTransactionSelectionAccessibilityLabel} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
 
@@ -37,6 +39,7 @@ type DuplicateTransactionItemProps = {
 
 function DuplicateTransactionItem({transaction, isLastItem, isSelected, shouldShowSelection = true, onSelectTransaction, onPreviewPressed}: DuplicateTransactionItemProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const personalDetails = usePersonalDetails();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
@@ -138,7 +141,7 @@ function DuplicateTransactionItem({transaction, isLastItem, isSelected, shouldSh
                             <RadioButton
                                 isChecked={isSelected}
                                 onPress={() => onSelectTransaction(transaction.transactionID)}
-                                accessibilityLabel={CONST.ROLE.RADIO}
+                                accessibilityLabel={getTransactionSelectionAccessibilityLabel(transaction, translate)}
                                 shouldStopMouseDownPropagation
                                 style={[styles.justifyContentCenter, {width: variables.componentSizeMedium, height: variables.w44, paddingLeft: 10, paddingRight: 14}]}
                             />

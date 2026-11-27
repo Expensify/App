@@ -1704,7 +1704,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
                 jest.mocked(Navigation.preInsertFullscreenUnderRHP).mockClear();
 
                 // When the user moves on to the second receipt, the one whose workspace was changed
-                const [, nextReceiptButton] = screen.getAllByRole(CONST.ROLE.BUTTON, {name: CONST.ROLE.BUTTON});
+                const nextReceiptButton = screen.getByRole(CONST.ROLE.BUTTON, {name: translateLocal('common.next')});
                 fireEvent.press(nextReceiptButton);
                 await waitForBatchedUpdatesWithAct();
 
@@ -2645,7 +2645,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
             expect(screen.getAllByText(translateLocal('common.error.fieldRequired')).length).toBeGreaterThan(0);
 
             // And the user traverses to the second receipt
-            const [, nextButton] = screen.getAllByRole(CONST.ROLE.BUTTON, {name: CONST.ROLE.BUTTON});
+            const nextButton = screen.getByRole(CONST.ROLE.BUTTON, {name: translateLocal('common.next')});
             fireEvent.press(nextButton);
             expect(await screen.findByText(`2 ${of} 2`)).toBeOnTheScreen();
             await waitForBatchedUpdatesWithAct();
@@ -2655,7 +2655,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
             expect(screen.queryByLabelText(translateLocal('iou.amount'))).not.toBeOnTheScreen();
 
             // And coming back re-opens the first receipt's fields and shows the amount that was entered, reseeded from the transaction rather than left blank
-            const [prevButton] = screen.getAllByRole(CONST.ROLE.BUTTON, {name: CONST.ROLE.BUTTON});
+            const prevButton = screen.getByRole(CONST.ROLE.BUTTON, {name: translateLocal('common.previous')});
             fireEvent.press(prevButton);
             expect(await screen.findByText(`1 ${of} 2`)).toBeOnTheScreen();
             await waitForBatchedUpdatesWithAct();
@@ -2717,13 +2717,13 @@ describe('IOURequestStepConfirmationPageTest', () => {
             await waitForBatchedUpdatesWithAct();
 
             // And traverses to the second receipt, which has nothing filled in, so it opens collapsed as usual
-            const [, nextButton] = screen.getAllByRole(CONST.ROLE.BUTTON, {name: CONST.ROLE.BUTTON});
+            const nextButton = screen.getByRole(CONST.ROLE.BUTTON, {name: translateLocal('common.next')});
             fireEvent.press(nextButton);
             expect(await screen.findByText(`2 ${of} 2`)).toBeOnTheScreen();
             expect(screen.queryByLabelText(translateLocal('iou.amount'))).not.toBeOnTheScreen();
 
             // Then coming back to the first receipt shows its filled-in fields right away instead of hiding them behind "Show more"
-            const [prevButton] = screen.getAllByRole(CONST.ROLE.BUTTON, {name: CONST.ROLE.BUTTON});
+            const prevButton = screen.getByRole(CONST.ROLE.BUTTON, {name: translateLocal('common.previous')});
             fireEvent.press(prevButton);
             expect(await screen.findByText(`1 ${of} 2`)).toBeOnTheScreen();
             expect(screen.getByLabelText(translateLocal('iou.amount'))).toHaveDisplayValue('43.00');
@@ -2779,7 +2779,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
             expect(await screen.findByText(`1 ${of} 2`)).toBeOnTheScreen();
 
             // When the user moves to the second receipt and opens its fields without entering anything
-            const [, nextButton] = screen.getAllByRole(CONST.ROLE.BUTTON, {name: CONST.ROLE.BUTTON});
+            const nextButton = screen.getByRole(CONST.ROLE.BUTTON, {name: translateLocal('common.next')});
             fireEvent.press(nextButton);
             expect(await screen.findByText(`2 ${of} 2`)).toBeOnTheScreen();
             fireEvent.press(screen.getByText(translateLocal('common.showMore')));
@@ -2787,13 +2787,13 @@ describe('IOURequestStepConfirmationPageTest', () => {
             expect(screen.getByLabelText(translateLocal('iou.amount'))).toBeOnTheScreen();
 
             // And goes back to the first receipt, which they never opened, so it is still collapsed
-            const [prevButton] = screen.getAllByRole(CONST.ROLE.BUTTON, {name: CONST.ROLE.BUTTON});
+            const prevButton = screen.getByRole(CONST.ROLE.BUTTON, {name: translateLocal('common.previous')});
             fireEvent.press(prevButton);
             expect(await screen.findByText(`1 ${of} 2`)).toBeOnTheScreen();
             expect(screen.queryByLabelText(translateLocal('iou.amount'))).not.toBeOnTheScreen();
 
             // Then returning to the second receipt shows it still expanded, the way the user left it
-            const [, nextButtonAgain] = screen.getAllByRole(CONST.ROLE.BUTTON, {name: CONST.ROLE.BUTTON});
+            const nextButtonAgain = screen.getByRole(CONST.ROLE.BUTTON, {name: translateLocal('common.next')});
             fireEvent.press(nextButtonAgain);
             expect(await screen.findByText(`2 ${of} 2`)).toBeOnTheScreen();
             expect(screen.getByLabelText(translateLocal('iou.amount'))).toBeOnTheScreen();
@@ -2848,17 +2848,15 @@ describe('IOURequestStepConfirmationPageTest', () => {
             // The confirmation starts on the first of the two transactions
             expect(await screen.findByText(`1 ${of} 2`)).toBeOnTheScreen();
 
-            // When pressing the Next button (the second of the two prev/next nav buttons)
-            const navButtons = screen.getAllByRole(CONST.ROLE.BUTTON, {name: CONST.ROLE.BUTTON});
-            expect(navButtons).toHaveLength(2);
-            const [, nextButton] = navButtons;
+            // When pressing the Next button
+            const nextButton = screen.getByRole(CONST.ROLE.BUTTON, {name: translateLocal('common.next')});
             fireEvent.press(nextButton);
 
             // Then the second transaction is displayed (setCurrentTransactionID committed inside startTransition)
             expect(await screen.findByText(`2 ${of} 2`)).toBeOnTheScreen();
 
             // And pressing the Previous button returns to the first transaction
-            const [prevButton] = screen.getAllByRole(CONST.ROLE.BUTTON, {name: CONST.ROLE.BUTTON});
+            const prevButton = screen.getByRole(CONST.ROLE.BUTTON, {name: translateLocal('common.previous')});
             fireEvent.press(prevButton);
             expect(await screen.findByText(`1 ${of} 2`)).toBeOnTheScreen();
         });

@@ -13,6 +13,7 @@ import type {MachineDateFormat} from '@libs/DateUtils';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
+import Parser from '@libs/Parser';
 import {
     canSubmitPerDiemExpenseFromWorkspace,
     getCommaSeparatedTagNameWithSanitizedColons,
@@ -641,6 +642,15 @@ function getMerchantName(transaction: TransactionWithOptionalSearchFields, trans
 
     const merchantName = StringUtils.getFirstLine(merchant);
     return merchantName !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && merchantName !== CONST.TRANSACTION.DEFAULT_MERCHANT ? (merchantName ?? '') : '';
+}
+
+/** Names a transaction for its selection control. The description is stored as HTML, so it is read as plain text. */
+function getTransactionSelectionAccessibilityLabel(transaction: TransactionWithOptionalSearchFields, translate: (key: TranslationPaths) => string): string {
+    const merchant = getMerchantName(transaction, translate);
+    if (merchant) {
+        return merchant;
+    }
+    return StringUtils.lineBreaksToSpaces(Parser.htmlToText(getDescription(transaction))) || translate('common.select');
 }
 
 function getReportOwnerAsAttendee(creatorDetails: OnyxEntry<PersonalDetails>): Attendee | undefined {
@@ -1675,6 +1685,7 @@ export {
     getMerchantName,
     hasAnyTransactionWithoutRTERViolation,
     getMerchantOrDescription,
+    getTransactionSelectionAccessibilityLabel,
     getMCCGroup,
     getCreated,
     getFormattedCreated,

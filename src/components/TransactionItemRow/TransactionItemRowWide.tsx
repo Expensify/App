@@ -148,6 +148,7 @@ function TransactionItemRowWide({
     bgActiveStyles,
     merchant,
     description,
+    selectionAccessibilityLabel,
     missingFieldError,
     exchangeRateMessage,
     cardName,
@@ -798,7 +799,7 @@ function TransactionItemRowWide({
                             onPress={(event) => {
                                 onCheckboxPress(transactionItem.transactionID, getShiftKeyFromEvent(event));
                             }}
-                            accessibilityLabel={CONST.ROLE.CHECKBOX}
+                            accessibilityLabel={selectionAccessibilityLabel}
                             isChecked={isSelected}
                             containerStyle={styles.m0}
                             wrapperStyle={styles.justifyContentCenter}
@@ -812,7 +813,7 @@ function TransactionItemRowWide({
                                 isChecked={isSelected}
                                 disabled={isDisabled}
                                 onPress={() => onRadioButtonPress?.(transactionItem.transactionID)}
-                                accessibilityLabel={CONST.ROLE.RADIO}
+                                accessibilityLabel={selectionAccessibilityLabel}
                                 shouldStopMouseDownPropagation={shouldStopRadioButtonMouseDownPropagation}
                             />
                         </View>
@@ -823,7 +824,7 @@ function TransactionItemRowWide({
                             onPress={onArrowRightPress}
                             style={[styles.pv2, styles.justifyContentCenter, styles.alignItemsEnd]}
                             accessibilityRole={CONST.ROLE.BUTTON}
-                            accessibilityLabel={CONST.ROLE.BUTTON}
+                            accessibilityLabel={translate('iou.viewDetails')}
                             sentryLabel={CONST.SENTRY_LABEL.TRANSACTION_ITEM_ROW.ARROW_RIGHT}
                         >
                             <Icon
