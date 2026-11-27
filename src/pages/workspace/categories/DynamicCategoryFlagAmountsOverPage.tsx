@@ -1,4 +1,4 @@
-import AmountForm from '@components/AmountForm';
+import AmountFormInline from '@components/AmountFormAdapters/AmountFormInline';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -101,13 +101,11 @@ function DynamicCategoryFlagAmountsOverPage({
                         <Text style={styles.pb5}>{translate('workspace.rules.categoryRules.flagAmountsOverDescription', decodedCategoryName)}</Text>
                         <InputWrapper
                             label={translate('iou.amount')}
-                            InputComponent={AmountForm}
+                            InputComponent={AmountFormInline}
                             inputID={INPUT_IDS.MAX_EXPENSE_AMOUNT}
                             currency={policy?.outputCurrency ?? CONST.CURRENCY.USD}
                             defaultValue={defaultValue}
-                            isCurrencyPressable={false}
                             ref={inputCallbackRef}
-                            displayAsTextInput
                         />
                         <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('workspace.rules.categoryRules.flagAmountsOverSubtitle')}</Text>
                     </View>

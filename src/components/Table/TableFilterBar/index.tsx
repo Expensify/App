@@ -5,6 +5,8 @@ import {useTableContext} from '@components/Table/TableContext';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+
 import CONST from '@src/CONST';
 
 import type {PropsWithChildren} from 'react';
@@ -17,15 +19,17 @@ import TableFilterPopoverComponent from './TableFilterPopoverComponent';
 import TableFilterTrigger from './TableFilterTrigger';
 import TableSearchBar from './TableSearchBar';
 
-type TableFilterBarProps = PropsWithChildren<{
-    /** Label and accessibility label for the search input. */
-    label: string;
+type TableFilterBarProps = PropsWithChildren<
+    ForwardedFSClassProps & {
+        /** Label and accessibility label for the search input. */
+        label: string;
 
-    /** Whether to show a "Reset" button that resets all active filters. */
-    shouldShowResetFiltersButton?: boolean;
-}>;
+        /** Whether to show a "Reset" button that resets all active filters. */
+        shouldShowResetFiltersButton?: boolean;
+    }
+>;
 
-export default function TableFilterBar({label, shouldShowResetFiltersButton, children}: TableFilterBarProps) {
+export default function TableFilterBar({label, shouldShowResetFiltersButton, forwardedFSClass, children}: TableFilterBarProps) {
     const styles = useThemeStyles();
     const {pageGutter} = useLayoutSpacing();
     const {filterConfig, tableMethods, activeFilters, onSearchStringChange, columns, originalDataLength, shouldUseNarrowTableLayout} = useTableContext();
@@ -86,7 +90,10 @@ export default function TableFilterBar({label, shouldShowResetFiltersButton, chi
         <View style={[styles.w100, styles.gap3, styles.pb3, pageGutter]}>
             <View style={[styles.flexRow, styles.gap3, styles.justifyContentBetween, shouldUseNarrowTableLayout && styles.alignItemsCenter]}>
                 <View style={[styles.flex1, styles.flexRow, styles.flexWrap, styles.gap2, styles.alignItemsCenter]}>
-                    <TableSearchBar label={label} />
+                    <TableSearchBar
+                        label={label}
+                        forwardedFSClass={forwardedFSClass}
+                    />
                     {!shouldUseNarrowTableLayout && ActiveFilterChipsComponent}
                 </View>
 

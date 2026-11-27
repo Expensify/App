@@ -1,7 +1,7 @@
 import {act, render, screen} from '@testing-library/react-native';
 
 import AddressSearch from '@components/AddressSearch';
-import AmountForm from '@components/AmountForm';
+import AmountFormInline from '@components/AmountFormAdapters/AmountFormInline';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import DatePicker from '@components/DatePicker';
 import CurrencyDropdownAdapter from '@components/DynamicForm/adapters/CurrencyDropdownAdapter';
@@ -156,7 +156,7 @@ const EXPECTED_INPUT_BY_TYPE: Record<DynamicFormFieldType, ComponentType<never>>
     multiselect: MultiChoiceDropdownAdapter,
     countryMultiselect: MultiChoiceDropdownAdapter,
     file: FileUploadAdapter,
-    amount: AmountForm,
+    amount: AmountFormInline,
     percent: PercentageForm,
     list: ListFieldAdapter,
 };
@@ -591,12 +591,12 @@ describe('DynamicFormFields', () => {
 
         // Then the currency picker starts on the screen currency, so the form submits a currency even if the user never opens it, and the amount follows the pick
         expect(beforePick.get('expectedVolumeCurrency')).toMatchObject({InputComponent: CurrencyDropdownAdapter, defaultValue: CONST.CURRENCY.GBP});
-        expect(beforePick.get('expectedVolume')).toMatchObject({InputComponent: AmountForm, currency: CONST.CURRENCY.GBP});
+        expect(beforePick.get('expectedVolume')).toMatchObject({InputComponent: AmountFormInline, currency: CONST.CURRENCY.GBP});
         expect(afterPick.get('expectedVolume')?.currency).toBe(CONST.CURRENCY.EUR);
     });
 
     it('masks an amount in session recordings', () => {
-        // Given an amount, whose AmountForm input takes no FullStory class
+        // Given an amount, whose AmountFormInline input takes no FullStory class
         const expectedVolume: DynamicFormField = {key: 'expectedVolume', type: 'amount', required: true};
 
         // When it renders

@@ -1,6 +1,7 @@
 import type AddPlaidBankAccount from '@components/AddPlaidBankAccount';
 import type AddressSearch from '@components/AddressSearch';
-import type AmountForm from '@components/AmountForm';
+import type AmountFormInline from '@components/AmountFormAdapters/AmountFormInline';
+import type AmountFormKeypad from '@components/AmountFormAdapters/AmountFormKeypad';
 import type AmountTextInput from '@components/AmountTextInput';
 import type CheckboxWithLabel from '@components/CheckboxWithLabel';
 import type CountryPicker from '@components/CountryPicker';
@@ -78,7 +79,8 @@ type ValidInputs =
     | typeof CountrySelector
     | typeof CurrencySelector
     | typeof CurrencyPicker
-    | typeof AmountForm
+    | typeof AmountFormInline
+    | typeof AmountFormKeypad
     | typeof NumberWithSymbolForm
     | typeof PercentageForm
     | typeof BusinessTypePicker

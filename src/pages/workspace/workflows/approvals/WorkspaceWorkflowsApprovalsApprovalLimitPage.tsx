@@ -1,4 +1,4 @@
-import AmountForm from '@components/AmountForm';
+import AmountFormInline from '@components/AmountFormAdapters/AmountFormInline';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
@@ -276,13 +276,11 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
                                 ))}
                                 {isOverLimitApprover && (
                                     <View style={[styles.mh5, styles.mt3]}>
-                                        <AmountForm
+                                        <AmountFormInline
                                             label={translate('workflowsApprovalLimitPage.reportTotal')}
                                             currency={currency}
                                             value={overLimitAmount}
                                             onInputChange={handleAmountChange}
-                                            isCurrencyPressable={false}
-                                            displayAsTextInput
                                             errorText={amountError}
                                             onSubmitEditing={handleSubmit}
                                             // Only when the admin just picked the condition, so opening the page doesn't bring up the keyboard

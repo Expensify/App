@@ -349,27 +349,42 @@ describe('TransactionUtils', () => {
 
     describe('getCategoryTaxCode', () => {
         const POLICY_ID = '0';
+        const policyWithTaxTracking: Policy = {...createRandomPolicy(0), id: POLICY_ID, taxRates: CONST.DEFAULT_TAX, tax: {trackingEnabled: true}};
 
         it('should return the associated tax when the category matches a category rule', () => {
             // Given a policy with an expense default that sets a tax for a category
             const category = 'Advertising';
-            const fakePolicy: Policy = {...createRandomPolicy(0), id: POLICY_ID, taxRates: CONST.DEFAULT_TAX};
             const rules = createCategoryTaxRulesCollection(POLICY_ID, category, 'id_TAX_RATE_1');
 
             // When retrieving the tax from the associated category
-            const categoryTaxCode = TransactionUtils.getCategoryTaxCode(category, generateTransaction(), fakePolicy, rules);
+            const categoryTaxCode = TransactionUtils.getCategoryTaxCode(category, generateTransaction(), policyWithTaxTracking, rules);
 
             // Then it should return the tax code the rule sets
             expect(categoryTaxCode).toBe('id_TAX_RATE_1');
         });
 
+        it('leaves tax alone while workspace tax tracking is off', () => {
+            // Given an active rate and a matching category rule in a workspace with taxes turned off
+            const category = 'Advertising';
+            const policyWithoutTaxTracking = {...policyWithTaxTracking, tax: {trackingEnabled: false}};
+            const rules = createCategoryTaxRulesCollection(POLICY_ID, category, 'id_TAX_RATE_1');
+            const transaction = generateTransaction();
+
+            // When resolving tax for the confirmation preview or a category edit
+            const categoryTaxCode = TransactionUtils.getCategoryTaxCode(category, transaction, policyWithoutTaxTracking, rules);
+            const categoryTaxDetails = TransactionUtils.getCategoryTaxDetails(category, transaction, policyWithoutTaxTracking, rules, getCurrencyDecimalsLocal);
+
+            // Then neither the rule nor its workspace fallback writes a tax
+            expect(categoryTaxCode).toBeUndefined();
+            expect(categoryTaxDetails).toEqual({categoryTaxCode: undefined, categoryTaxAmount: undefined, categoryTaxValue: undefined});
+        });
+
         it("should return undefined when the category doesn't match any category rule", () => {
             // Given an expense default that sets a tax for a different category
-            const fakePolicy: Policy = {...createRandomPolicy(0), id: POLICY_ID, taxRates: CONST.DEFAULT_TAX};
             const rules = createCategoryTaxRulesCollection(POLICY_ID, 'Advertising', 'id_TAX_RATE_1');
 
             // When retrieving the tax for a category no rule matches
-            const categoryTaxCode = TransactionUtils.getCategoryTaxCode('Benefits', generateTransaction(), fakePolicy, rules);
+            const categoryTaxCode = TransactionUtils.getCategoryTaxCode('Benefits', generateTransaction(), policyWithTaxTracking, rules);
 
             // Then no rule applies, so the caller is left to fall back to the workspace default
             expect(categoryTaxCode).toBeUndefined();
@@ -378,11 +393,10 @@ describe('TransactionUtils', () => {
         it('should ignore a rule that also matches on a merchant', () => {
             // Given a rule matching on a category and a merchant, which is narrower than the category alone
             const category = 'Advertising';
-            const fakePolicy: Policy = {...createRandomPolicy(0), id: POLICY_ID, taxRates: CONST.DEFAULT_TAX};
             const rules = createCategoryTaxRulesCollection(POLICY_ID, category, 'id_TAX_RATE_1', 'Starbucks');
 
             // When retrieving the tax for that category
-            const categoryTaxCode = TransactionUtils.getCategoryTaxCode(category, generateTransaction(), fakePolicy, rules);
+            const categoryTaxCode = TransactionUtils.getCategoryTaxCode(category, generateTransaction(), policyWithTaxTracking, rules);
 
             // Then the rule is skipped, because applying it would tax every expense in the category rather than the ones it matches
             expect(categoryTaxCode).toBeUndefined();
@@ -393,8 +407,7 @@ describe('TransactionUtils', () => {
 
             function buildDistancePolicy(taxEnabled: boolean, rateTaxRateExternalID?: string, isRateTaxDisabled = false): Policy {
                 return {
-                    ...createRandomPolicy(0),
-                    id: POLICY_ID,
+                    ...policyWithTaxTracking,
                     taxRates: {
                         ...CONST.DEFAULT_TAX,
                         taxes: {
@@ -508,11 +521,9 @@ describe('TransactionUtils', () => {
         });
 
         it('should return undefined when the policy has no expense defaults', () => {
-            // Given a policy with no rules at all
-            const fakePolicy: Policy = {...createRandomPolicy(0), id: POLICY_ID, taxRates: CONST.DEFAULT_TAX};
-
-            // When retrieving the tax for a category
-            const categoryTaxCode = TransactionUtils.getCategoryTaxCode('Advertising', generateTransaction(), fakePolicy, {});
+            // Given taxes are on, so the only reason to skip a default is that no rule matches
+            // When resolving the category tax with no rules configured
+            const categoryTaxCode = TransactionUtils.getCategoryTaxCode('Advertising', generateTransaction(), policyWithTaxTracking, {});
 
             // Then no rule applies
             expect(categoryTaxCode).toBeUndefined();
@@ -533,6 +544,7 @@ describe('TransactionUtils', () => {
         }) =>
             ({
                 ...createRandomPolicy(0),
+                tax: {trackingEnabled: true},
                 taxRates: {
                     ...CONST.DEFAULT_TAX,
                     taxes: {
@@ -1731,7 +1743,7 @@ describe('TransactionUtils', () => {
         it("resolves the category rule's tax when an existing expense's category changes", () => {
             // Given an expense on a policy whose expense default sets a tax for the category being picked
             const transaction = generateTransaction({category: 'Meals', taxCode: 'id_TAX_EXEMPT', taxValue: '0%', taxAmount: 0});
-            const policy: Policy = {...createRandomPolicy(0), id: '0', taxRates: CONST.DEFAULT_TAX};
+            const policy: Policy = {...createRandomPolicy(0), id: '0', taxRates: CONST.DEFAULT_TAX, tax: {trackingEnabled: true}};
             const rules = createCategoryTaxRulesCollection('0', 'Advertising', 'id_TAX_RATE_1');
 
             // When the category is edited, which an existing expense does without passing through the confirmation page
@@ -1755,7 +1767,7 @@ describe('TransactionUtils', () => {
         it('leaves the tax alone when the category is cleared on a server backed edit', () => {
             // Given an expense carrying the tax its category rule set
             const transaction = generateTransaction({category: 'Advertising', taxCode: 'id_TAX_RATE_1', taxValue: '5%', taxAmount: 5});
-            const policy: Policy = {...createRandomPolicy(0), id: '0', taxRates: CONST.DEFAULT_TAX};
+            const policy: Policy = {...createRandomPolicy(0), id: '0', taxRates: CONST.DEFAULT_TAX, tax: {trackingEnabled: true}};
             const rules = createCategoryTaxRulesCollection('0', 'Advertising', 'id_TAX_RATE_1');
 
             // When the category is cleared
@@ -5189,6 +5201,46 @@ describe('TransactionUtils', () => {
         });
 
         describe('description field comparison', () => {
+            it('normalizes and deduplicates description choices before review', () => {
+                // Given API descriptions can contain numbers or missing text despite the declared string type
+                const descriptions = [12345, '12345', 0, '0', undefined, null, '', 'Lunch', 'Lunch'];
+                const [reviewingTransaction, ...duplicates] = descriptions.map((description): Transaction => Object.assign(generateTransaction(), {comment: {comment: description}}));
+                duplicates.push(generateTransaction({comment: {}}), generateTransaction({comment: undefined}));
+
+                // When different descriptions require a review step
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+
+                // Then each normalized value appears once, with zero distinct from an empty description
+                expect(result.change.description).toEqual(['12345', '0', '', 'Lunch']);
+                expect(result.keep.description).toBeUndefined();
+            });
+
+            it.each([12345, 0])('keeps a normalized string when numeric %s matches a string description', (description) => {
+                // Given the first transaction has a numeric API description and its duplicate has equivalent text
+                const reviewingTransaction = Object.assign(generateTransaction(), {comment: {comment: description}});
+                const duplicates = [generateTransaction({comment: {comment: description.toString()}})];
+
+                // When matching descriptions bypass the review screen
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+
+                // Then review state still receives a string rather than the raw number
+                expect(result.keep.description).toBe(description.toString());
+                expect(result.change.description).toBeUndefined();
+            });
+
+            it.each([undefined, {}, {comment: null}, {comment: ''}])('keeps an empty string for empty comment %j', (comment) => {
+                // Given empty API comment variants should all mean no description
+                const reviewingTransaction = Object.assign(generateTransaction(), {comment});
+                const duplicates = [generateTransaction({comment: {comment: ''}})];
+
+                // When the descriptions are compared
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+
+                // Then an empty comment object cannot leak into review state
+                expect(result.keep.description).toBe('');
+                expect(result.change.description).toBeUndefined();
+            });
+
             it('should keep description when all descriptions are the same', () => {
                 const reviewingTransaction = generateTransaction({
                     comment: {comment: 'Business meeting'},
@@ -5922,6 +5974,20 @@ describe('TransactionUtils', () => {
     });
 
     describe('buildNewTransactionAfterReviewingDuplicates', () => {
+        it.each(['0', ''])('preserves selected description %j through confirmation and merge', (description) => {
+            // Given a reviewed description must not fall back to the original text, even when it is empty
+            const transaction = generateTransaction({comment: {comment: 'Original', customUnit: {name: 'Distance'}}});
+            const reviewDuplicates = createMock<ReviewDuplicates>({description, comment: transaction.comment});
+
+            // When confirmation and the merge request are built
+            const updatedTransaction = buildNewTransactionAfterReviewingDuplicates(reviewDuplicates, transaction);
+            const params = buildMergeDuplicatesParams(reviewDuplicates, [], updatedTransaction, transaction);
+
+            // Then both retain the selected string without discarding comment metadata
+            expect(updatedTransaction.comment).toEqual({...transaction.comment, comment: description});
+            expect(params.comment).toBe(description);
+        });
+
         it('preserves the kept transaction tax amount when the selected tax code matches the existing tax code', () => {
             const duplicatedTransaction = generateTransaction({
                 transactionID: 'transaction1',

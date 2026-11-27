@@ -318,12 +318,10 @@ function getForwardsToFromRules(policy: OnyxEntry<Policy>, context: ApprovalWork
     return {forwardsTo: Object.values(matchedRule.actions ?? {}).find((action) => action.name === CONST.RULES.ACTIONS.FORWARD_TO)?.approver};
 }
 
-function getManagerAccountEmail(policy: OnyxEntry<Policy>, ownerLogin: string | undefined, rules: OnyxCollection<Rule>, reportTotal = 0): string {
-    const ruleMatch = getForwardsToFromRules(policy, {submitterEmail: ownerLogin ?? '', reportTotal}, rules);
-    if (ruleMatch) {
-        return ruleMatch.forwardsTo ?? '';
-    }
-
+/**
+ * The manager per the policy's workflow config alone (default approver or employee submitsTo), ignoring approval workflow rules.
+ */
+function getWorkflowManagerEmail(policy: OnyxEntry<Policy>, ownerLogin: string | undefined): string {
     const defaultApprover = getDefaultApprover(policy);
 
     // For policy using the optional or basic workflow, the manager is the policy default approver.
@@ -337,6 +335,15 @@ function getManagerAccountEmail(policy: OnyxEntry<Policy>, ownerLogin: string | 
     }
 
     return employee?.submitsTo ?? defaultApprover ?? '';
+}
+
+function getManagerAccountEmail(policy: OnyxEntry<Policy>, ownerLogin: string | undefined, rules: OnyxCollection<Rule>, reportTotal = 0): string {
+    const ruleMatch = getForwardsToFromRules(policy, {submitterEmail: ownerLogin ?? '', reportTotal}, rules);
+    if (ruleMatch) {
+        return ruleMatch.forwardsTo ?? '';
+    }
+
+    return getWorkflowManagerEmail(policy, ownerLogin);
 }
 
 /**
@@ -378,7 +385,7 @@ function getSubmitToEmail(
         return ruleMatch.forwardsTo ?? '';
     }
 
-    const managerEmail = getManagerAccountEmail(policy, ownerLogin, rules, expenseReport?.total ?? 0);
+    const managerEmail = getWorkflowManagerEmail(policy, ownerLogin);
 
     // Falls back to the default approver when the manager is unavailable.
     if (shouldFallBackWhenManagerIsNotMember && managerEmail && !policy?.employeeList?.[managerEmail] && !getHRAdvancedModeFinalApprover(policy)) {

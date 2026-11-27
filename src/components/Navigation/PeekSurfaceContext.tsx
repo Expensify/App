@@ -6,7 +6,7 @@ import {createContext} from 'react';
 type PeekSurfaceContextValue = {
     /**
      * Keeps the peek until the menu calls endPeekIfPointerLeft. A menu calls this when it starts opening, because it is portaled outside the surface:
-     * the pointer leaving the window from the menu's backdrop sends the surface a hover-out through the portal, and focus inside the menu reads as focus
+     * the pointer leaving the window from the menu's backdrop reads as the pointer leaving the surface, and focus inside the menu reads as focus
      * outside the surface.
      */
     holdPeekUntilMenuCloses: () => void;

@@ -1,5 +1,7 @@
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+
 import type CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
@@ -198,6 +200,9 @@ type TextInputOptions = {
     /** Whether the text input should intercept swipes */
     shouldInterceptSwipe?: boolean;
 
+    /** FullStory class for the text input, to mask searches that can hold sensitive data */
+    forwardedFSClass?: ForwardedFSClassProps['forwardedFSClass'];
+
     /** Styles for the text input */
     style?: {
         /** Styles for the text input container */
@@ -215,7 +220,7 @@ type ConfirmButtonOptions<TItem extends ListItem> = {
     showButton?: boolean;
 
     /** Confirms the current selection */
-    onConfirm?: (event?: GestureResponderEvent | KeyboardEvent) => void;
+    onConfirm?: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
 
     /** Confirms one row instead of the selection, for lists where confirming acts on a single item. Falls back to `onConfirm` */
     onConfirmFocusedOption?: (option: TItem) => void;

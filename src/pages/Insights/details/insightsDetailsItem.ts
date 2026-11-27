@@ -1,6 +1,6 @@
 /** Converts a clicked chart group to the URL params the Details panel names it by, and back to its title and Spend filter. */
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
-import CHART_GROUP_BY_CONFIG, {buildTagFilterQuery} from '@components/Search/chartGroupByConfig';
+import CHART_GROUP_BY_CONFIG, {buildCategoryFilterQuery, buildMerchantFilterQuery, buildTagFilterQuery} from '@components/Search/chartGroupByConfig';
 import type {GroupedItem, SearchDateFilterKeys, SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
 
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
@@ -51,22 +51,43 @@ type ResolveInsightsDetailsItemParams = InsightsDetailsItemParams & {
     translate: LocalizedTranslate;
 };
 
+/** Fields a ranking graph's group is named by, as the chart's snapshot and its grouped rows both hold them */
+type RankingGroup = {
+    accountID?: number | null;
+    merchant?: string;
+    category?: string;
+    violation?: string;
+};
+
+/** Returns the key the Details panel's URL names a ranking graph's group by, or undefined for a group that isn't ranked by a single value. */
+function getRankingItemKey(groupBy: SearchGroupBy, group: RankingGroup): string | undefined {
+    switch (groupBy) {
+        case CONST.SEARCH.GROUP_BY.FROM:
+        case CONST.SEARCH.GROUP_BY.APPROVER:
+            return group.accountID === undefined || group.accountID === null ? undefined : String(group.accountID);
+        case CONST.SEARCH.GROUP_BY.MERCHANT:
+            return group.merchant;
+        case CONST.SEARCH.GROUP_BY.CATEGORY:
+            return group.category;
+        case CONST.SEARCH.GROUP_BY.VIOLATION:
+            return group.violation;
+        default:
+            return undefined;
+    }
+}
+
 /** Returns the URL params the Details panel names a clicked group by. A period is trimmed to the chart's date range, as the chart labels it. */
 function getInsightsDetailsItemParams(
     item: GroupedItem,
     queryJSON: Readonly<SearchQueryJSON>,
     dateFilterKey: SearchDateFilterKeys = CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
 ): InsightsDetailsItemParams | undefined {
+    const rankingItemKey = getRankingItemKey(item.groupedBy, item);
+    if (rankingItemKey !== undefined) {
+        return {itemKey: rankingItemKey};
+    }
+
     switch (item.groupedBy) {
-        case CONST.SEARCH.GROUP_BY.FROM:
-        case CONST.SEARCH.GROUP_BY.APPROVER:
-            return {itemKey: String(item.accountID)};
-        case CONST.SEARCH.GROUP_BY.VIOLATION:
-            return {itemKey: item.violation};
-        case CONST.SEARCH.GROUP_BY.MERCHANT:
-            return {itemKey: item.merchant};
-        case CONST.SEARCH.GROUP_BY.CATEGORY:
-            return {itemKey: item.category};
         case CONST.SEARCH.GROUP_BY.TAG:
             return {itemKey: item.tag, tagLevel: item.tagLevel, parentTagPath: item.parentTagPath};
         default:
@@ -129,12 +150,12 @@ function resolveInsightsDetailsItem({
             return {title: getViolationDisplayName(itemKey, translate), filterQuery: `${CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION}:${itemKey}`};
         case CONST.SEARCH.GROUP_BY.MERCHANT: {
             const isEmptyMerchant = !itemKey || itemKey === CONST.SEARCH.MERCHANT_EMPTY_VALUE || itemKey === CONST.TRANSACTION.UNKNOWN_MERCHANT || isInvalidMerchantValue(itemKey);
-            return {title: isEmptyMerchant ? translate('search.noMerchant') : itemKey, filterQuery: `merchant="${itemKey}"`};
+            return {title: isEmptyMerchant ? translate('search.noMerchant') : itemKey, filterQuery: buildMerchantFilterQuery(itemKey)};
         }
         case CONST.SEARCH.GROUP_BY.CATEGORY:
             return {
                 title: !itemKey || itemKey === CONST.SEARCH.CATEGORY_EMPTY_VALUE ? itemKey : getDecodedCategoryName(itemKey),
-                filterQuery: `category:"${itemKey}"`,
+                filterQuery: buildCategoryFilterQuery(itemKey),
             };
         case CONST.SEARCH.GROUP_BY.TAG: {
             if (tagLevel !== undefined && (!Number.isSafeInteger(tagLevel) || tagLevel < 1)) {
@@ -153,4 +174,5 @@ function resolveInsightsDetailsItem({
     }
 }
 
-export {getInsightsDetailsItemParams, getPeriodTitle, resolveInsightsDetailsItem};
+export {getInsightsDetailsItemParams, getPeriodTitle, getRankingItemKey, resolveInsightsDetailsItem};
+export type {RankingGroup};

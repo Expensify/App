@@ -1,6 +1,6 @@
 /**
- * Owns when the amount, date and merchant errors of the money request confirmation become visible, and which of those
- * fields a blocked confirm brings into view.
+ * Owns when the field errors of the money request confirmation become visible, and which of those fields a blocked
+ * confirm brings into view.
  */
 import type {ConfirmationField, ConfirmationFieldErrors, SiblingFieldErrors} from '@components/MoneyRequestConfirmationList/getConfirmationFieldErrors';
 import {hasBlockingFieldErrors, hasFieldErrors, NO_FIELD_ERRORS} from '@components/MoneyRequestConfirmationList/getConfirmationFieldErrors';
@@ -8,13 +8,13 @@ import {hasBlockingFieldErrors, hasFieldErrors, NO_FIELD_ERRORS} from '@componen
 import {useState} from 'react';
 
 /** The order the fields appear in on every confirmation, so the first one flagged is the first one the user reaches */
-const FIELDS_IN_SCREEN_ORDER: ConfirmationField[] = ['amount', 'merchant', 'date'];
+const FIELDS_IN_SCREEN_ORDER: ConfirmationField[] = ['amount', 'merchant', 'date', 'taxAmount', 'attendees'];
 
 type UseConfirmationFieldErrorsParams = {
     /** The receipt on screen */
     transactionID: string | undefined;
 
-    /** The errors the amount, date and merchant fields would show now, from `useConfirmationValidation` */
+    /** The errors the fields would show now, from `useConfirmationValidation` */
     fieldErrors: ConfirmationFieldErrors;
 
     /** The first other receipt of a multi-scan with a field error, from `useConfirmationValidation` */

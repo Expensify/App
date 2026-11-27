@@ -92,7 +92,8 @@ function canSubmit(
     // Mirrors the header's isSubmitAction gate: prevented self-approval hides Submit from everyone EXCEPT the submitter,
     // who still gets the action so SubmitActionButton can mount and render it disabled. Dropping the !isSubmitter
     // qualifier here would hide the preview's Submit entirely while the header shows a disabled one for the same report.
-    if (isSubmittingToSelf(policy, report, ownerLogin, rules) && policy?.preventSelfApproval && !isSubmitter) {
+    // Only resolve approval rules when the cheap policy and submitter checks require it.
+    if (policy?.preventSelfApproval && !isSubmitter && isSubmittingToSelf(policy, report, ownerLogin, rules)) {
         return false;
     }
 

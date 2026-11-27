@@ -86,6 +86,19 @@ describe('buildConfirmAction', () => {
         expect(params.onConfirm).not.toHaveBeenCalled();
     });
 
+    it('marks an edited split as confirmed when a field error blocks it while its required fields are empty', () => {
+        // Given an edited split blocked by its amount field while its required fields are still empty
+        const params = makeBase({validate: jest.fn(() => ({isFieldError: true as const, shouldSetDidConfirmSplit: true}))});
+
+        // When the user saves the split
+        buildConfirmAction(params)({paymentType: undefined});
+
+        // Then the field errors are revealed and the split is marked as confirmed, so its missing-fields message shows on the same Save
+        expect(params.revealFieldErrors).toHaveBeenCalledTimes(1);
+        expect(params.setDidConfirmSplit).toHaveBeenCalledWith(true);
+        expect(params.setConfirmError).not.toHaveBeenCalled();
+    });
+
     it('sets didConfirmSplit when validation result has shouldSetDidConfirmSplit', () => {
         // Given an edited split whose SmartScan failed, so validation asks to remember that the split was confirmed
         const params = makeBase({

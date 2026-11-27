@@ -1309,6 +1309,13 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: '审批人',
             chartTitle: (title: string, stage: string) => `${title}（${stage}）`,
         },
+        recentHistory: {
+            title: '最近记录',
+            dayAverageFor: (count: number, item: string) => `${item} 的 ${count} 日平均值`,
+            weekAverageFor: (count: number, item: string) => `${item}的${count}周平均值`,
+            monthAverageFor: (count: number, item: string) => `${count} 个月平均值（${item}）`,
+            quarterAverageFor: (count: number, item: string) => `${count} 个季度内 ${item} 的平均值`,
+        },
         flaggedExpenses: '被标记的报销费用',
         noFlaggedExpensesInRange: '此范围内没有被标记的报销费用',
     },
@@ -2098,6 +2105,10 @@ const translations: TranslationDeepObject<typeof en> = {
         payViaABA: '通过 ABA 支付',
         missingABADepositAccount: ({name}: {name: string}) => `${name} 没有 AUD 银行账户。请让 TA 添加一个后再重试。`,
         submittersMissingABADepositAccount: '一个或多个提交人没有 AUD 银行账户。请让他们添加一个后再试一次。',
+        waitForABAFile: '正在生成 ABA 文件，请稍候。',
+        successABAFile: '您的 ABA 文件已生成！如果没有自动下载，请使用下方按钮。',
+        reportsWithNothingToPayViaABA: '一个或多个报销单没有可支付的金额，因此未包含在 ABA 文件中。',
+        reportsLeftOutOfABAFile: '一个或多个报表未包含在 ABA 文件中。请稍后重试。',
     },
     transactionMerge: {
         listPage: {
@@ -2637,6 +2648,7 @@ const translations: TranslationDeepObject<typeof en> = {
             reachOutForHelp: '<muted-text><centered-text>如果有任何问题，欢迎<concierge-link>联系 Concierge</concierge-link>！</centered-text></muted-text>',
             goToExpensifyClassic: '前往 Expensify 经典版',
         },
+        mergePendingDomainAdmin: {heading: '受限域电子邮箱', description: '<muted-text><centered-text>已通知域管理员来批准合并账户的请求。</centered-text></muted-text>', gotIt: '明白了'},
         mergeFailureSAMLDomainControlDescription: (email: string) =>
             `<muted-text><centered-text>您无法合并 <strong>${email}</strong>，因为它由 <strong>${email.split('@').at(1) ?? ''}</strong> 管理。请<concierge-link>联系 Concierge</concierge-link>获取帮助。</centered-text></muted-text>`,
         mergeFailureSAMLAccountDescription: (email: string) =>
@@ -4349,9 +4361,10 @@ ${amount}，商户：${merchant} - 日期：${date}`,
     },
     welcomeSignUpForm: {
         join: '加入',
-        transactionalSMSConsent: '提供我的电话号码即表示我同意接收来自 Expensify 的账户交易提醒。',
-        transactionalSMSConsentFinePrint: '可能会产生标准短信和数据费用。回复 STOP 退订。',
+        smsConsentIntro: '提供我的电话号码即表示：',
+        transactionalSMSConsent: '我同意接收来自 Expensify 的账户交易提醒。',
         marketingSMSConsent: '我同意接收来自 Expensify 的营销短信。',
+        termsWithSMSRates: `<muted-text-xs>登录即表示你同意<a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">服务条款</a>和<a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">隐私政策</a>。可能会产生标准短信和数据费用。消息频率不定。回复 HELP 获取帮助。回复 STOP 退订。</muted-text-xs>`,
     },
     detailsPage: {
         localTime: '本地时间',
@@ -6589,6 +6602,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             },
             fxExpenseAccount: {label: 'Rillet 货币转换手续费科目', description: '当您的公司承担一笔境外付款的货币兑换成本时，我们会在 Rillet 中将该成本作为一条日记账分录记入此科目。'},
             reimbursementAccount: {label: '报销账户', description: '选择可报销费用的导出位置。', accountRequiredError: '请选择一个 Rillet 报销账户。'},
+            autoCreateVendor: '自动创建供应商',
+            autoCreateVendorDescription: '如果供应商尚未在 Rillet 中存在，Expensify 将自动创建这些供应商。',
             achPaymentAccount: {label: 'ACH 付款账户', description: '请选择用于支付报表的来源，我们会在 Rillet 中创建付款。'},
         },
         dualEntry: {
@@ -7052,11 +7067,13 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 description: `由于您的工作区需要类别，必须至少保留一个已启用的类别。`,
             },
             visibleTo: '可见范围',
+            editVisibility: '编辑可见性',
             membersCount: ({count}: {count: number}) => ({
                 one: '1 名成员',
                 other: `${count} 名成员`,
             }),
             visibleToDescription: ({categoryName}: {categoryName: string}) => `选择哪些成员可以在提交报销时使用 ${categoryName} 类别。`,
+            bulkVisibleToDescription: '选择哪些成员可以在提交报销时使用这些类别。',
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `无法禁用 ${categoryName}`,
                 bulkTitle: '无法禁用这些类别',

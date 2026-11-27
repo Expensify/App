@@ -31,6 +31,7 @@ import type {StyleProp, ViewStyle} from 'react-native';
 
 import React, {useState} from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 type CardTypeSelection = CardFeedProvider | typeof CONST.COMPANY_CARD.FEED_BANK_NAME.VCF_MOCK;
 
@@ -129,7 +130,6 @@ function CardTypeStep({policyID, cardFeeds, workspaceAccountID}: CardTypeStepPro
     const styles = useThemeStyles();
     const companyCardBankIcons = useCompanyCardBankIcons();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
-    const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
     const {activeServer} = useActiveServer();
     const [localTypeSelected, setLocalTypeSelected] = useState<CardTypeSelection>();
     const typeSelected = localTypeSelected ?? addNewCard?.data?.feedType;
@@ -148,10 +148,11 @@ function CardTypeStep({policyID, cardFeeds, workspaceAccountID}: CardTypeStepPro
     const isNewCardTypeSelected = typeSelected !== feedType;
     const doesCountrySupportPlaid = isPlaidSupportedCountry(addNewCard?.data?.selectedCountry);
 
-    const submit = () => {
+    const submit = async () => {
         if (!typeSelected || (typeSelected === CONST.COMPANY_CARD.FEED_BANK_NAME.VCF_MOCK && !shouldShowMockFeed)) {
             setIsError(true);
         } else if (typeSelected === CONST.COMPANY_CARD.FEED_BANK_NAME.VCF_MOCK) {
+            const lastSelectedFeed = await Onyx.get(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
             addNewCompanyCardsFeed(policyID, workspaceAccountID, typeSelected, {}, cardFeeds, lastSelectedFeed);
             Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
         } else {

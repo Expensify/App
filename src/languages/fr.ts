@@ -1362,6 +1362,13 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: 'Approbateurs',
             chartTitle: (title: string, stage: string) => `${title} (${stage})`,
         },
+        recentHistory: {
+            title: 'Historique récent',
+            dayAverageFor: (count: number, item: string) => `Moyenne sur ${count} jour(s) pour ${item}`,
+            weekAverageFor: (count: number, item: string) => `Moyenne sur ${count} semaines pour ${item}`,
+            monthAverageFor: (count: number, item: string) => `Moyenne sur ${count} mois pour ${item}`,
+            quarterAverageFor: (count: number, item: string) => `Moyenne sur ${count} trimestres pour ${item}`,
+        },
         flaggedExpenses: 'Dépenses signalées',
         noFlaggedExpensesInRange: 'Aucune dépense signalée dans cet intervalle',
     },
@@ -2196,6 +2203,10 @@ const translations: TranslationDeepObject<typeof en> = {
         payViaABA: 'Payer via ABA',
         missingABADepositAccount: ({name}: {name: string}) => `${name} n’a pas de compte bancaire en AUD. Veuillez lui demander d’en ajouter un, puis réessayez.`,
         submittersMissingABADepositAccount: 'Un ou plusieurs déclarants n’ont pas de compte bancaire en AUD. Veuillez leur demander d’en ajouter un, puis réessayez.',
+        waitForABAFile: 'Veuillez patienter pendant que nous générons le fichier ABA.',
+        successABAFile: "Votre fichier ABA a été généré ! S'il ne s'est pas téléchargé automatiquement, utilisez le bouton ci-dessous.",
+        reportsWithNothingToPayViaABA: 'Une ou plusieurs notes de frais n’ont rien à payer et n’ont donc pas été incluses dans le fichier ABA.',
+        reportsLeftOutOfABAFile: 'Une ou plusieurs notes de frais n’ont pas été incluses dans le fichier ABA. Veuillez réessayer plus tard.',
     },
     transactionMerge: {
         listPage: {
@@ -2744,6 +2755,11 @@ const translations: TranslationDeepObject<typeof en> = {
             limitedSupport: 'Nous ne prenons pas encore en charge la fusion de comptes sur le nouveau Expensify. Veuillez effectuer cette action sur Expensify Classic à la place.',
             reachOutForHelp: "<muted-text><centered-text>N'hésitez pas à <concierge-link>contacter Concierge</concierge-link> si vous avez des questions&nbsp;!</centered-text></muted-text>",
             goToExpensifyClassic: 'Aller à Expensify Classic',
+        },
+        mergePendingDomainAdmin: {
+            heading: 'E-mail avec domaine restreint',
+            description: '<muted-text><centered-text>Un administrateur de domaine a été informé pour approuver la demande de fusion de comptes.</centered-text></muted-text>',
+            gotIt: 'Compris',
         },
         mergeFailureSAMLDomainControlDescription: (email: string) =>
             `<muted-text><centered-text>Vous ne pouvez pas fusionner <strong>${email}</strong> car il est géré par <strong>${email.split('@').at(1) ?? ''}</strong>. Veuillez <concierge-link>contacter Concierge</concierge-link> pour obtenir de l’aide.</centered-text></muted-text>`,
@@ -4520,9 +4536,10 @@ ${amount} pour ${merchant} - ${date}`,
     },
     welcomeSignUpForm: {
         join: 'Rejoindre',
-        transactionalSMSConsent: "En fournissant mon numéro de téléphone, j'accepte de recevoir des alertes transactionnelles concernant mon compte de la part d'Expensify.",
-        transactionalSMSConsentFinePrint: "Des frais standard de messagerie et de données peuvent s'appliquer. Répondez STOP pour vous désabonner.",
+        smsConsentIntro: 'En fournissant mon numéro de téléphone :',
+        transactionalSMSConsent: "J'accepte de recevoir des alertes transactionnelles concernant mon compte de la part d'Expensify.",
         marketingSMSConsent: "J'accepte de recevoir des SMS marketing d'Expensify.",
+        termsWithSMSRates: `<muted-text-xs>En vous connectant, vous acceptez les <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Conditions d'utilisation</a> et la <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Politique de confidentialité</a>. Des frais standard de messagerie et de données peuvent s'appliquer. La fréquence des messages varie. Répondez HELP pour obtenir de l'aide. Répondez STOP pour vous désabonner.</muted-text-xs>`,
     },
     detailsPage: {
         localTime: 'Heure locale',
@@ -6891,6 +6908,8 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 description: 'Choisissez où exporter les dépenses remboursables.',
                 accountRequiredError: 'Veuillez sélectionner un compte de remboursement Rillet.',
             },
+            autoCreateVendor: 'Créer automatiquement des fournisseurs',
+            autoCreateVendorDescription: "Expensify créera automatiquement des fournisseurs dans Rillet s'ils n'existent pas déjà.",
             achPaymentAccount: {label: 'Compte de paiement ACH', description: 'Choisissez l’origine de paiement des notes de frais et nous créerons le paiement dans Rillet.'},
         },
         dualEntry: {
@@ -7378,11 +7397,13 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 description: `Au moins une catégorie doit rester activée, car votre espace de travail exige des catégories.`,
             },
             visibleTo: 'Visible pour',
+            editVisibility: 'Modifier la visibilité',
             membersCount: ({count}: {count: number}) => ({
                 one: '1 membre',
                 other: `${count} membres`,
             }),
             visibleToDescription: ({categoryName}: {categoryName: string}) => `Choisissez quels membres peuvent utiliser la catégorie ${categoryName} lors de la soumission de dépenses.`,
+            bulkVisibleToDescription: 'Choisissez quels membres peuvent utiliser ces catégories lors de la soumission de dépenses.',
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `Impossible de désactiver ${categoryName}`,
                 bulkTitle: 'Impossible de désactiver ces catégories',

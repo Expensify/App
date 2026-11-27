@@ -32,7 +32,7 @@ type InsightsDashboardChart = InsightsChartQuery & {
     previousPeriodSnapshot?: OnyxEntry<SearchResults>;
     averageSnapshot?: OnyxEntry<SearchResults>;
     average?: ChartAverage;
-    isDashboardLoaded?: boolean;
+    isAverageLoaded?: boolean;
     eligiblePolicyIDs?: string[];
 
     /** The chart's stages some workspace in scope is eligible for, set when the chart declares stages */

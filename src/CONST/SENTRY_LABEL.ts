@@ -950,6 +950,7 @@ const SENTRY_LABEL = {
         },
         DETAILS_TOP_EXPENSE: 'Insights-DetailsTopExpense',
         DETAILS_TOP_EXPENSES_VIEW_ALL: 'Insights-DetailsTopExpensesViewAll',
+        DETAILS_RECENT_HISTORY_VIEW_ALL: 'Insights-DetailsRecentHistoryViewAll',
         FUTURE_EXPENSES_VIEW: 'Insights-FutureExpensesView',
     },
     EXPENSE_RULES: {
@@ -1954,6 +1955,8 @@ const SENTRY_LABEL = {
             IMPORTED_MEMBERS_ROLE: 'ImportedMembersConfirmation-Role',
             IMPORTED_MEMBERS_SUBMIT: 'ImportedMembersConfirmation-Submit',
             INVITE_MESSAGE_APPROVER: 'WorkspaceInviteMessage-Approver',
+            INVITE_MESSAGE_CATEGORY_VISIBILITY: 'WorkspaceInviteMessage-CategoryVisibility',
+            INVITE_MESSAGE_CATEGORY_VISIBILITY_SAVE: 'WorkspaceInviteMessage-CategoryVisibilitySave',
             INVITE_MESSAGE_MEMBERS: 'WorkspaceInviteMessage-Members',
             INVITE_MESSAGE_ROLE: 'WorkspaceInviteMessage-Role',
             INVITE_MESSAGE_WORK_ARRANGEMENT: 'WorkspaceInviteMessage-WorkArrangement',
@@ -1977,6 +1980,7 @@ const SENTRY_LABEL = {
                 ENABLE: 'WorkspaceCategories-BulkActions-Enable',
             },
             BULK_ACTIONS_DELETE: 'WorkspaceCategories-BulkActionsDelete',
+            BULK_ACTIONS_EDIT_VISIBILITY: 'WorkspaceCategories-BulkActionsEditVisibility',
             MORE_MENU_AUTO_CATEGORIZE: 'WorkspaceCategories-MoreMenuAutoCategorize',
             MORE_MENU_SHOW_GL_CODES: 'WorkspaceCategories-MoreMenuShowGLCodes',
             MORE_MENU_IMPORT_SPREADSHEET: 'WorkspaceCategories-MoreMenuImportSpreadsheet',
@@ -2642,6 +2646,7 @@ const SENTRY_LABEL = {
                 IMPORT_CUSTOM_FIELD_HELP_LINK: 'WorkspaceAccountingNetSuite-ImportCustomFieldHelpLink',
             },
             RILLET: {
+                AUTO_CREATE_VENDOR_SWITCH: 'WorkspaceAccountingRillet-AutoCreateVendorSwitch',
                 AUTO_SYNC_SWITCH: 'WorkspaceAccountingRillet-AutoSyncSwitch',
                 ACCOUNTING_METHOD: 'WorkspaceAccountingRillet-AccountingMethod',
                 ACH_PAYMENT_ACCOUNT: 'WorkspaceAccountingRillet-ACHPaymentAccount',

@@ -76,7 +76,7 @@ function StepScreenWrapper({
             shouldShowOfflineIndicator={shouldShowOfflineIndicator}
             shouldEnableKeyboardAvoidingView={shouldEnableKeyboardAvoidingView}
         >
-            {({insets, safeAreaPaddingBottomStyle, didScreenTransitionEnd}) => (
+            {({insets, safeAreaPaddingBottomStyle, didScreenTransitionEnd, isHeaderInTopInset}) => (
                 <FullPageNotFoundView shouldShow={shouldShowNotFoundPage}>
                     <View style={[styles.flex1]}>
                         <HeaderWithBackButton
@@ -88,7 +88,7 @@ function StepScreenWrapper({
                         />
                         {
                             // If props.children is a function, call it to provide the insets to the children
-                            callOrReturn(children, {insets, safeAreaPaddingBottomStyle, didScreenTransitionEnd})
+                            callOrReturn(children, {insets, safeAreaPaddingBottomStyle, didScreenTransitionEnd, isHeaderInTopInset})
                         }
                     </View>
                 </FullPageNotFoundView>

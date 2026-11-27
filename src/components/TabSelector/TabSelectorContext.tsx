@@ -26,8 +26,9 @@ function TabSelectorContextProvider({children, activeTabKey}: TabSelectorContext
         containerLayoutRef.current.containerWidth = event.nativeEvent.layout.width;
         containerLayoutRef.current.safeAreaReach = safeAreaReach;
 
-        // A tab row that remounts under this provider (like one rendered per tab) starts scrolled to the beginning,
-        // so it is put back where the previous row was before the active tab is scrolled into view.
+        // A tab row that remounts under this provider (like one rendered per tab) mounts at the previous row's offset
+        // through its initial `contentOffset`. Web ignores that prop and starts the row at the beginning, so the row is
+        // put back where the previous one was before the active tab is scrolled into view.
         if (containerRef.current !== laidOutContainerRef.current) {
             laidOutContainerRef.current = containerRef.current;
             containerRef.current?.scrollTo({x: containerLayoutRef.current.containerX, animated: false});
@@ -99,7 +100,7 @@ function TabSelectorContextProvider({children, activeTabKey}: TabSelectorContext
 
     // Because of the React Compiler we don't need to memoize it manually
     // eslint-disable-next-line react/jsx-no-constructed-context-values
-    const actionsValue: TabSelectorActionsContextType = {onContainerLayout, onContainerScroll, scrollToTab, onTabLayout};
+    const actionsValue: TabSelectorActionsContextType = {onContainerLayout, onContainerScroll, scrollToTab, onTabLayout, getContainerX: () => containerLayoutRef.current.containerX};
 
     return (
         <TabSelectorStateContext.Provider value={stateValue}>

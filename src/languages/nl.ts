@@ -1354,6 +1354,13 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: 'Fiatteurs',
             chartTitle: (title: string, stage: string) => `${title} (${stage})`,
         },
+        recentHistory: {
+            title: 'Recente geschiedenis',
+            dayAverageFor: (count: number, item: string) => `${count}-daags gemiddelde voor ${item}`,
+            weekAverageFor: (count: number, item: string) => `Gemiddelde over ${count} weken voor ${item}`,
+            monthAverageFor: (count: number, item: string) => `Gemiddelde over ${count} maanden voor ${item}`,
+            quarterAverageFor: (count: number, item: string) => `${count}-kwartaalgemiddelde voor ${item}`,
+        },
         flaggedExpenses: 'Gemarkeerde uitgaven',
         noFlaggedExpensesInRange: 'Geen gemarkeerde uitgaven in dit bereik',
     },
@@ -2178,6 +2185,10 @@ const translations: TranslationDeepObject<typeof en> = {
         payViaABA: 'Betalen via ABA',
         missingABADepositAccount: ({name}: {name: string}) => `${name} heeft geen AUD-bankrekening. Vraag hen om er een toe te voegen en probeer het opnieuw.`,
         submittersMissingABADepositAccount: 'Een of meer indieners hebben geen AUD-bankrekening. Vraag hen om er een toe te voegen en probeer het opnieuw.',
+        waitForABAFile: 'Even geduld terwijl we het ABA-bestand genereren.',
+        successABAFile: 'Je ABA-bestand is gegenereerd! Als het niet automatisch is gedownload, gebruik dan de knop hieronder.',
+        reportsWithNothingToPayViaABA: 'Een of meer rapporten hebben niets om uit te betalen en zijn daarom niet opgenomen in het ABA-bestand.',
+        reportsLeftOutOfABAFile: 'Een of meer rapporten zijn niet opgenomen in het ABA-bestand. Probeer het later opnieuw.',
     },
     transactionMerge: {
         listPage: {
@@ -2725,6 +2736,11 @@ const translations: TranslationDeepObject<typeof en> = {
             limitedSupport: 'We ondersteunen het samenvoegen van accounts nog niet in New Expensify. Voer deze actie in plaats daarvan uit in Expensify Classic.',
             reachOutForHelp: '<muted-text><centered-text>Neem gerust <concierge-link>contact op met Concierge</concierge-link> als je vragen hebt!</centered-text></muted-text>',
             goToExpensifyClassic: 'Ga naar Expensify Classic',
+        },
+        mergePendingDomainAdmin: {
+            heading: 'Domeinbeperkte e-mail',
+            description: '<muted-text><centered-text>Een domeinbeheerder is op de hoogte gebracht om het verzoek om accounts samen te voegen goed te keuren.</centered-text></muted-text>',
+            gotIt: 'Begrepen',
         },
         mergeFailureSAMLDomainControlDescription: (email: string) =>
             `<muted-text><centered-text>Je kunt <strong>${email}</strong> niet samenvoegen omdat het wordt beheerd door <strong>${email.split('@').at(1) ?? ''}</strong>. Neem contact op met <concierge-link>Concierge</concierge-link> voor hulp.</centered-text></muted-text>`,
@@ -4493,9 +4509,10 @@ ${amount} voor ${merchant} - ${date}`,
     },
     welcomeSignUpForm: {
         join: 'Deelnemen',
-        transactionalSMSConsent: 'Door mijn telefoonnummer op te geven, ga ik akkoord met het ontvangen van transactionele accountmeldingen van Expensify.',
-        transactionalSMSConsentFinePrint: 'Er kunnen standaardkosten voor berichten en data van toepassing zijn. Antwoord STOP om je af te melden.',
+        smsConsentIntro: 'Door mijn telefoonnummer op te geven:',
+        transactionalSMSConsent: 'Ik ga akkoord met het ontvangen van transactionele accountmeldingen van Expensify.',
         marketingSMSConsent: 'Ik ga akkoord met het ontvangen van marketing-sms van Expensify.',
+        termsWithSMSRates: `<muted-text-xs>Door in te loggen ga je akkoord met de <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Servicevoorwaarden</a> en het <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacybeleid</a>. Er kunnen standaardkosten voor berichten en data van toepassing zijn. De berichtfrequentie varieert. Antwoord HELP voor hulp. Antwoord STOP om je af te melden.</muted-text-xs>`,
     },
     detailsPage: {
         localTime: 'Lokale tijd',
@@ -6829,6 +6846,8 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 description: 'Kies waar je terugbetaalbare uitgaven wilt exporteren.',
                 accountRequiredError: 'Selecteer een Rillet-vergoedingsrekening.',
             },
+            autoCreateVendor: 'Leveranciers automatisch aanmaken',
+            autoCreateVendorDescription: 'Expensify maakt automatisch leveranciers aan in Rillet als ze nog niet bestaan.',
             achPaymentAccount: {label: 'ACH-betaalrekening', description: 'Kies vanwaar je rapporten wilt betalen en wij maken de betaling aan in Rillet.'},
         },
         dualEntry: {
@@ -7308,11 +7327,13 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 description: `Minstens één categorie moet ingeschakeld blijven, omdat je werkruimte categorieën vereist.`,
             },
             visibleTo: 'Zichtbaar voor',
+            editVisibility: 'Zichtbaarheid bewerken',
             membersCount: ({count}: {count: number}) => ({
                 one: '1 lid',
                 other: `${count} leden`,
             }),
             visibleToDescription: ({categoryName}: {categoryName: string}) => `Kies welke leden de categorie ${categoryName} kunnen gebruiken bij het indienen van uitgaven.`,
+            bulkVisibleToDescription: 'Kies welke leden deze categorieën kunnen gebruiken bij het indienen van declaraties.',
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `Kan ${categoryName} niet uitschakelen`,
                 bulkTitle: 'Deze categorieën kunnen niet worden uitgeschakeld',

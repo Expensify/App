@@ -139,7 +139,7 @@ function isSubmitAction(
     }
 
     const isExpenseReport = isExpenseReportUtils(report);
-    const isReportSubmitter = isCurrentUserSubmitter(report);
+    const isReportSubmitter = isCurrentUserSubmitter(report, currentUserAccountID);
     const isOpenReport = isOpenReportUtils(report);
 
     if (hasPendingDEWSubmit(reportMetadata, hasDynamicExternalWorkflow(policy))) {
@@ -158,7 +158,7 @@ function isSubmitAction(
         return false;
     }
 
-    if (isSubmittingToSelf(policy, report, ownerLogin, rules) && policy?.preventSelfApproval && !isReportSubmitter) {
+    if (policy?.preventSelfApproval && !isReportSubmitter && isSubmittingToSelf(policy, report, ownerLogin, rules)) {
         return false;
     }
 

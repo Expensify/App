@@ -1358,6 +1358,13 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: 'Approvatori',
             chartTitle: (title: string, stage: string) => `${title} (${stage})`,
         },
+        recentHistory: {
+            title: 'Cronologia recente',
+            dayAverageFor: (count: number, item: string) => `Media di ${count} giorni per ${item}`,
+            weekAverageFor: (count: number, item: string) => `Media di ${count} settimane per ${item}`,
+            monthAverageFor: (count: number, item: string) => `Media di ${count} mesi per ${item}`,
+            quarterAverageFor: (count: number, item: string) => `Media di ${count} trimestri per ${item}`,
+        },
         flaggedExpenses: 'Spese contrassegnate',
         noFlaggedExpensesInRange: 'Nessuna spesa contrassegnata in questo intervallo',
     },
@@ -2183,6 +2190,10 @@ const translations: TranslationDeepObject<typeof en> = {
         payViaABA: 'Paga tramite ABA',
         missingABADepositAccount: ({name}: {name: string}) => `${name} non ha un conto bancario in AUD. Chiedi loro di aggiungerne uno e riprova.`,
         submittersMissingABADepositAccount: 'Uno o più mittenti non hanno un conto bancario in AUD. Chiedi loro di aggiungerne uno e riprova.',
+        waitForABAFile: 'Attendi mentre generiamo il file ABA.',
+        successABAFile: 'Il tuo file ABA è stato generato! Se non è stato scaricato automaticamente, usa il pulsante qui sotto.',
+        reportsWithNothingToPayViaABA: 'Uno o più report non hanno nulla da pagare, quindi non sono stati inclusi nel file ABA.',
+        reportsLeftOutOfABAFile: 'Uno o più report non sono stati inclusi nel file ABA. Riprova più tardi.',
     },
     transactionMerge: {
         listPage: {
@@ -2727,6 +2738,11 @@ const translations: TranslationDeepObject<typeof en> = {
             limitedSupport: 'Al momento non supportiamo ancora l’unione degli account in New Expensify. Esegui questa operazione su Expensify Classic.',
             reachOutForHelp: '<muted-text><centered-text>Sentiti liberə di <concierge-link>contattare Concierge</concierge-link> se hai domande!</centered-text></muted-text>',
             goToExpensifyClassic: 'Vai a Expensify Classic',
+        },
+        mergePendingDomainAdmin: {
+            heading: 'Email con dominio limitato',
+            description: '<muted-text><centered-text>Un amministratore di dominio è stato avvisato per approvare la richiesta di unione degli account.</centered-text></muted-text>',
+            gotIt: 'Ricevuto',
         },
         mergeFailureSAMLDomainControlDescription: (email: string) =>
             `<muted-text><centered-text>Non puoi unire <strong>${email}</strong> perché è gestito da <strong>${email.split('@').at(1) ?? ''}</strong>. <concierge-link>Contatta Concierge</concierge-link> per ricevere assistenza.</centered-text></muted-text>`,
@@ -4495,9 +4511,10 @@ ${amount} per ${merchant} - ${date}`,
     },
     welcomeSignUpForm: {
         join: 'Partecipa',
-        transactionalSMSConsent: "Fornendo il mio numero di telefono, accetto di ricevere da Expensify avvisi transazionali relativi all'account.",
-        transactionalSMSConsentFinePrint: "Potrebbero essere applicate le tariffe standard per messaggi e dati. Rispondi STOP per annullare l'iscrizione.",
+        smsConsentIntro: 'Fornendo il mio numero di telefono:',
+        transactionalSMSConsent: "Accetto di ricevere da Expensify avvisi transazionali relativi all'account.",
         marketingSMSConsent: 'Accetto di ricevere SMS di marketing da Expensify.',
+        termsWithSMSRates: `<muted-text-xs>Accedendo, accetti i <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Termini di servizio</a> e l’<a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Informativa sulla privacy</a>. Potrebbero essere applicate le tariffe standard per messaggi e dati. La frequenza dei messaggi varia. Rispondi HELP per ricevere assistenza. Rispondi STOP per annullare l'iscrizione.</muted-text-xs>`,
     },
     detailsPage: {
         localTime: 'Ora locale',
@@ -6833,6 +6850,8 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                     'Quando la tua azienda copre il costo di conversione valutaria su un pagamento effettuato all’estero, registreremo tale costo su questo conto in Rillet come registrazione contabile.',
             },
             reimbursementAccount: {label: 'Conto di rimborso', description: 'Scegli dove esportare le spese rimborsabili.', accountRequiredError: 'Seleziona un conto di rimborso Rillet.'},
+            autoCreateVendor: 'Crea automaticamente i fornitori',
+            autoCreateVendorDescription: 'Expensify creerà automaticamente i fornitori in Rillet se non esistono già.',
             achPaymentAccount: {label: 'Conto di pagamento ACH', description: 'Scegli da dove pagare i report e creeremo il pagamento in Rillet.'},
         },
         dualEntry: {
@@ -7315,11 +7334,13 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 description: `Almeno una categoria deve rimanere abilitata perché il tuo spazio di lavoro richiede le categorie.`,
             },
             visibleTo: 'Visibile a',
+            editVisibility: 'Modifica visibilità',
             membersCount: ({count}: {count: number}) => ({
                 one: '1 membro',
                 other: `${count} membri`,
             }),
             visibleToDescription: ({categoryName}: {categoryName: string}) => `Scegli quali membri possono usare la categoria ${categoryName} quando inviano le spese.`,
+            bulkVisibleToDescription: 'Scegli quali membri possono usare queste categorie quando inviano le note spese.',
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `Impossibile disabilitare ${categoryName}`,
                 bulkTitle: 'Impossibile disattivare queste categorie',

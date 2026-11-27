@@ -2,7 +2,6 @@ import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWith
 import ScreenWrapper from '@components/ScreenWrapper';
 import WorkspaceMembersSelectionList from '@components/WorkspaceMembersSelectionList';
 
-import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -11,10 +10,9 @@ import Navigation from '@libs/Navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import type Policy from '@src/types/onyx/Policy';
-import type {PolicyConnectionSyncProgress, PolicyFeatureName} from '@src/types/onyx/Policy';
+import type {PolicyFeatureName} from '@src/types/onyx/Policy';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -29,7 +27,7 @@ type MergeFinalApproverProviderConfig = {
     getCurrentFinalApprover: (policy: OnyxEntry<Policy>) => string | null;
     getHeaderTitle: (providerName: string) => string;
     getProviderName: (policy: OnyxEntry<Policy>) => string;
-    handleSave: (params: {policyID: string; email: string; currentFinalApprover: string | null; connectionSyncProgress?: OnyxEntry<PolicyConnectionSyncProgress>}) => void;
+    handleSave: (params: {policyID: string; email: string; currentFinalApprover: string | null}) => void;
 };
 
 type MergeFinalApproverPageBaseProps = {
@@ -40,7 +38,6 @@ type MergeFinalApproverPageBaseProps = {
 function MergeFinalApproverPageBase({policyID, config}: MergeFinalApproverPageBaseProps) {
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
-    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
     const finalApprover = config.getCurrentFinalApprover(policy);
     const providerName = config.getProviderName(policy);
 
@@ -65,7 +62,7 @@ function MergeFinalApproverPageBase({policyID, config}: MergeFinalApproverPageBa
                     policyID={policyID}
                     selectedApprover={finalApprover ?? ''}
                     setApprover={(email) => {
-                        config.handleSave({policyID, email, currentFinalApprover: finalApprover, connectionSyncProgress});
+                        config.handleSave({policyID, email, currentFinalApprover: finalApprover});
                         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(config.backRoute));
                     }}
                 />

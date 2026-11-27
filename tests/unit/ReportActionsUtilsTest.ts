@@ -3550,8 +3550,8 @@ describe('ReportActionsUtils', () => {
             expect(actual).toBe(true);
         });
 
-        it('should return false for REIMBURSED action from NewDot', () => {
-            // Given a REIMBURSED action created from NewDot (isNewDot=true)
+        it('should return false for REIMBURSED action that Auth hides', () => {
+            // Given a REIMBURSED action created from NewDot, which Auth sends with shouldShow false
             const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSED> = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
                 reportActionID: '1',
@@ -3564,6 +3564,7 @@ describe('ReportActionsUtils', () => {
                     },
                 ],
                 originalMessage: {isNewDot: true},
+                shouldShow: false,
             };
 
             // Then the action should NOT be visible (IOU PAY action is shown instead)
@@ -3617,8 +3618,8 @@ describe('ReportActionsUtils', () => {
             expect(actual).toBe(true);
         });
 
-        it('should return false for MARKED_REIMBURSED action from NewDot', () => {
-            // Given a MARKED_REIMBURSED action created from NewDot (isNewDot=true)
+        it('should return false for MARKED_REIMBURSED action that Auth hides', () => {
+            // Given a MARKED_REIMBURSED action created from NewDot, which Auth sends with shouldShow false
             const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED> = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
                 reportActionID: '1',
@@ -3631,6 +3632,7 @@ describe('ReportActionsUtils', () => {
                     },
                 ],
                 originalMessage: {isNewDot: true},
+                shouldShow: false,
             };
 
             // Then the action should NOT be visible (IOU PAY action is shown instead)
@@ -3638,67 +3640,26 @@ describe('ReportActionsUtils', () => {
             expect(actual).toBe(false);
         });
 
-        it.each([
-            [CONST.REPORT.TYPE.INVOICE, true],
-            [CONST.REPORT.TYPE.EXPENSE, false],
-            [CONST.REPORT.TYPE.IOU, false],
-        ] as const)('shows a NewDot REIMBURSED action on a %s report: %s', async (reportType, isVisible) => {
-            // Given a NewDot payment action on a report. Paying a bill adds no IOU PAY action to its invoice.
-            const reportID = `newDotReimbursed-${reportType}`;
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-                reportID,
-                type: reportType,
-            });
-            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSED> = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
+        it.each([CONST.REPORT.ACTIONS.TYPE.REIMBURSED, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED] as const)('shows a NewDot %s action that Auth shows', (actionName) => {
+            // Given a NewDot payment action on an invoice. Auth sends it with shouldShow true, because paying a bill adds no IOU PAY action to its invoice.
+            const reportAction = {
+                actionName,
                 reportActionID: '1',
                 created: '2025-01-01',
                 message: [{type: 'TEXT', style: 'normal', text: 'paid this report'}],
                 originalMessage: {isNewDot: true},
-            };
+                shouldShow: true,
+            } as ReportAction;
 
-            // When the action's visibility is checked for its report
-            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true, undefined, reportID);
+            // When the action's visibility is checked
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
 
-            // Then only invoices show it, because other reports show their IOU PAY action instead
-            expect(actual).toBe(isVisible);
-        });
-
-        it.each([
-            [CONST.REPORT.TYPE.INVOICE, true],
-            [CONST.REPORT.TYPE.EXPENSE, false],
-            [CONST.REPORT.TYPE.IOU, false],
-        ] as const)('shows a NewDot MARKED_REIMBURSED action that Auth hides on a %s report: %s', async (reportType, isVisible) => {
-            // Given a report marked as paid from NewDot. Auth sets shouldShow to false on it, because expense reports show an IOU PAY action instead.
-            const reportID = `newDotMarkedReimbursed-${reportType}`;
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-                reportID,
-                type: reportType,
-            });
-            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED> = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
-                reportActionID: '2',
-                created: '2026-10-30 21:11:55.001',
-                message: [
-                    {
-                        type: 'TEXT',
-                        style: 'normal',
-                        text: 'marked this report as reimbursed',
-                    },
-                ],
-                originalMessage: {isNewDot: true, message: ''},
-                shouldShow: false,
-            };
-
-            // When the action's visibility is checked for its report
-            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true, undefined, reportID);
-
-            // Then only invoices show it, because marking a bill as paid adds no IOU PAY action to its invoice
-            expect(actual).toBe(isVisible);
+            // Then it shows, because App follows shouldShow instead of isNewDot
+            expect(actual).toBe(true);
         });
 
         it('hides a NewDot MARKED_REIMBURSED action on an invoice that has an IOU PAY action', async () => {
-            // Given an invoice paid in NewDot. PayInvoice adds a MARKED_REIMBURSED action and an IOU PAY action for the same payment.
+            // Given an invoice paid in NewDot. PayInvoice adds a MARKED_REIMBURSED action and an IOU PAY action for the same payment, and Auth shows payment actions on invoices.
             const reportID = 'paidInvoiceWithPaySibling';
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
                 reportID,
@@ -3717,7 +3678,7 @@ describe('ReportActionsUtils', () => {
                     },
                 ],
                 originalMessage: {isNewDot: true, message: ''},
-                shouldShow: false,
+                shouldShow: true,
             };
             const payAction = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
@@ -3742,26 +3703,6 @@ describe('ReportActionsUtils', () => {
 
             // Then it stays hidden, because the IOU PAY action already shows the payment
             expect(actual).toBe(false);
-        });
-
-        it("uses the action's reportID to find the invoice when no reportID is passed", async () => {
-            // Given a NewDot REIMBURSED action whose own reportID points to an invoice
-            const reportID = 'invoiceFromActionReportID';
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportID, type: CONST.REPORT.TYPE.INVOICE});
-            const reimbursedAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSED> = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
-                reportActionID: '1',
-                reportID,
-                created: '2025-01-01 00:00:00',
-                message: [{type: 'TEXT', style: 'normal', text: 'paid this report'}],
-                originalMessage: {isNewDot: true},
-            };
-
-            // When the action's visibility is checked without a reportID
-            const actual = ReportActionsUtils.shouldReportActionBeVisible(reimbursedAction, reimbursedAction.reportActionID, true);
-
-            // Then it shows, because the action's own reportID tells that it belongs to an invoice
-            expect(actual).toBe(true);
         });
 
         it('should return false for MARKED_REIMBURSED with stale flags when the report has a sibling IOU PAY action', async () => {
@@ -4026,18 +3967,7 @@ describe('ReportActionsUtils', () => {
             } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER>;
 
             // When checking visibility of the room creation whisper
-            const actual = ReportActionsUtils.shouldReportActionBeVisible(
-                reportAction,
-                reportAction.reportActionID,
-                true,
-                undefined,
-                reportID,
-                false,
-                undefined,
-                undefined,
-                policy,
-                'member@test.com',
-            );
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true, undefined, reportID, false, undefined, policy, 'member@test.com');
 
             // Then it is hidden because approve-only members cannot create policy rooms
             expect(actual).toBe(false);
@@ -4066,18 +3996,7 @@ describe('ReportActionsUtils', () => {
             } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER>;
 
             // When checking visibility of the room creation whisper
-            const actual = ReportActionsUtils.shouldReportActionBeVisible(
-                reportAction,
-                reportAction.reportActionID,
-                true,
-                undefined,
-                reportID,
-                false,
-                undefined,
-                undefined,
-                policy,
-                'member@test.com',
-            );
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true, undefined, reportID, false, undefined, policy, 'member@test.com');
 
             // Then it is visible because regular members can create policy rooms
             expect(actual).toBe(true);

@@ -20,7 +20,7 @@ type SwitchProps = {
     isOn: boolean;
 
     /** Callback to fire when the switch is toggled */
-    onToggle: (isOn: boolean) => void;
+    onToggle: (isOn: boolean) => void | Promise<void>;
 
     accessibilityLabel: string;
 

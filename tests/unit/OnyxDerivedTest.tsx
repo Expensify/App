@@ -3,6 +3,7 @@ import {act, renderHook} from '@testing-library/react-native';
 import useOnyx from '@hooks/useOnyx';
 
 import reportAttributes from '@libs/actions/OnyxDerived/configs/reportAttributes';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import {isReportActionVisible} from '@libs/ReportActionsUtils';
 import * as ActiveSpans from '@libs/telemetry/activeSpans';
 
@@ -386,14 +387,12 @@ describe('OnyxDerived', () => {
                     undefined,
                     undefined,
                     undefined,
-                    undefined,
                 ],
                 {},
             );
             const reportAttributesComputedValue = reportAttributes.compute(
                 [
                     reports,
-                    undefined,
                     undefined,
                     undefined,
                     undefined,
@@ -503,7 +502,7 @@ describe('OnyxDerived', () => {
         });
 
         it('should only recompute reports that reference the changed accountID when a display name changes', () => {
-            // Two reports: one owned by account 2, the other owned by account 3.
+            // Given two reports owned by different accounts and no saved names
             const reports: OnyxCollection<Report> = {
                 [`${ONYXKEYS.COLLECTION.REPORT}ref_report`]: {...mockReport, reportID: 'ref_report', ownerAccountID: 2},
                 [`${ONYXKEYS.COLLECTION.REPORT}unrelated_report`]: {...mockReport, reportID: 'unrelated_report', policyID: '456', ownerAccountID: 3},
@@ -522,30 +521,7 @@ describe('OnyxDerived', () => {
                 triggeredKeys: new Set([ONYXKEYS.PERSONAL_DETAILS_LIST]),
             } as unknown as Parameters<typeof reportAttributes.compute>[1];
 
-            // Reset the module-level diff baseline (no sourceValues clears it) so the seed below is deterministic.
-            reportAttributes.compute(
-                [
-                    reports,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    personalDetails,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                ],
-                {},
-            );
+            reportAttributes.onReset?.();
             // First personal-details compute computes both reports (no prior currentValue) and seeds the baseline.
             const initial = reportAttributes.compute(
                 [
@@ -566,11 +542,10 @@ describe('OnyxDerived', () => {
                     undefined,
                     undefined,
                     undefined,
-                    undefined,
                 ],
                 personalDetailsSource,
             );
-            // Changing only account 2's display name should recompute just its report, carrying the other by reference.
+            // When only account 2's display name changes
             const afterChange = reportAttributes.compute(
                 [
                     reports,
@@ -590,12 +565,11 @@ describe('OnyxDerived', () => {
                     undefined,
                     undefined,
                     undefined,
-                    undefined,
                 ],
                 {...personalDetailsSource, currentValue: initial},
             );
 
-            // A recomputed report gets a brand-new object; an untouched report is carried over by reference.
+            // Then only account 2's report is recomputed; the other is kept by reference
             expect(afterChange.reports.ref_report).not.toBe(initial.reports.ref_report);
             expect(afterChange.reports.unrelated_report).toBe(initial.reports.unrelated_report);
         });
@@ -838,6 +812,88 @@ describe('OnyxDerived', () => {
                 expect(derivedReportAttributes?.reports[parentReport.reportID].brickRoadStatus).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
             });
         });
+
+        describe('RBR for report field violations', () => {
+            const POLICY_ID = 'fieldViolationPolicy';
+            const SUBMITTER_ACCOUNT_ID = 31;
+            const SUBMITTER_LOGIN = 'submitter@example.com';
+            const FIRST_APPROVER_ACCOUNT_ID = 32;
+            const FIRST_APPROVER_LOGIN = 'first.approver@example.com';
+            const SECOND_APPROVER_ACCOUNT_ID = 33;
+            const SECOND_APPROVER_LOGIN = 'second.approver@example.com';
+
+            const requiredField = {
+                fieldID: 'requiredField',
+                name: 'Required field',
+                type: CONST.REPORT_FIELD_TYPES.TEXT,
+                defaultValue: '',
+                deletable: true,
+                target: CONST.REPORT.TYPE.EXPENSE,
+                values: [],
+                keys: [],
+                externalIDs: [],
+                disabledOptions: [],
+                orderWeight: 1,
+                isTax: false,
+            };
+
+            const expenseReport: Report = {
+                ...createRandomReport(5, undefined),
+                reportID: 'fieldViolationReport',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: POLICY_ID,
+                ownerAccountID: SUBMITTER_ACCOUNT_ID,
+                managerID: FIRST_APPROVER_ACCOUNT_ID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                errorFields: undefined,
+            };
+
+            beforeEach(async () => {
+                // The submitter sends reports to the first approver, who forwards them to the second
+                await Onyx.set(ONYXKEYS.SESSION, {accountID: SUBMITTER_ACCOUNT_ID, email: SUBMITTER_LOGIN});
+                await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [SUBMITTER_ACCOUNT_ID]: {accountID: SUBMITTER_ACCOUNT_ID, login: SUBMITTER_LOGIN},
+                    [FIRST_APPROVER_ACCOUNT_ID]: {accountID: FIRST_APPROVER_ACCOUNT_ID, login: FIRST_APPROVER_LOGIN},
+                    [SECOND_APPROVER_ACCOUNT_ID]: {accountID: SECOND_APPROVER_ACCOUNT_ID, login: SECOND_APPROVER_LOGIN},
+                });
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {
+                    id: POLICY_ID,
+                    name: 'Field violation policy',
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    role: CONST.POLICY.ROLE.USER,
+                    owner: SECOND_APPROVER_LOGIN,
+                    outputCurrency: CONST.CURRENCY.USD,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    approver: SECOND_APPROVER_LOGIN,
+                    areReportFieldsEnabled: true,
+                    employeeList: {
+                        [SUBMITTER_LOGIN]: {email: SUBMITTER_LOGIN, role: CONST.POLICY.ROLE.USER, submitsTo: FIRST_APPROVER_LOGIN},
+                        [FIRST_APPROVER_LOGIN]: {email: FIRST_APPROVER_LOGIN, role: CONST.POLICY.ROLE.USER, submitsTo: SECOND_APPROVER_LOGIN},
+                    },
+                    fieldList: {[`expensify_${requiredField.fieldID}`]: requiredField},
+                });
+                await waitForBatchedUpdates();
+            });
+
+            it('shows the RBR to the submitter while the report waits on its first approver, and hides it once the report is forwarded', async () => {
+                // Given a submitted report with an empty required field, held by the approver the submitter sends reports to
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+                await waitForBatchedUpdates();
+
+                // Then the submitter sees the RBR, since they can still fill the field in
+                let derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+                expect(derivedReportAttributes?.reports[expenseReport.reportID]?.brickRoadStatus).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+
+                // When the first approver forwards the report to the second approver
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, {managerID: SECOND_APPROVER_ACCOUNT_ID});
+                await waitForBatchedUpdates();
+
+                // Then the RBR is gone, since the submitter can no longer edit the field to fix it
+                derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+                expect(derivedReportAttributes?.reports[expenseReport.reportID]?.brickRoadStatus).toBeUndefined();
+            });
+        });
     });
 
     describe('reportTransactionsAndViolations', () => {
@@ -960,6 +1016,132 @@ describe('OnyxDerived', () => {
             derived = await OnyxUtils.get(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS);
             expect(derived?.lastActions?.[expenseReportID]?.reportActionID).toBe('201');
             expect(derived?.sortedActions?.[expenseReportID]?.at(0)?.reportActionID).toBe('201');
+        });
+
+        it('does not rebuild any derived value when only the network time skew changes', async () => {
+            // Given computed sorted report actions for a report
+            const reportID = '10';
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const]: createMockReport({reportID, type: CONST.REPORT.TYPE.CHAT}),
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}` as const]: {'1': getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT})},
+            });
+            await waitForBatchedUpdates();
+            const derivedBefore = await OnyxUtils.get(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS);
+            const startSpanSpy = jest.spyOn(ActiveSpans, 'startSpan');
+
+            // When a server response writes timeSkew
+            await Onyx.merge(ONYXKEYS.NETWORK, {timeSkew: 1234});
+            await waitForBatchedUpdates();
+
+            // Then only the sorted actions compute, and they keep the same value
+            const derivedComputeSpanIDs = startSpanSpy.mock.calls.map(([spanID]) => spanID).filter((spanID) => spanID.startsWith(CONST.TELEMETRY.SPAN_ONYX_DERIVED_COMPUTE));
+            expect(derivedComputeSpanIDs).toEqual([`${CONST.TELEMETRY.SPAN_ONYX_DERIVED_COMPUTE}_${ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS}`]);
+            expect(await OnyxUtils.get(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS)).toBe(derivedBefore);
+            startSpanSpy.mockRestore();
+        });
+
+        it('recomputes the one transaction thread when Force offline is toggled', async () => {
+            const expenseReportID = '20';
+            const parentChatReportID = '30';
+            const threadReportID = '40';
+            const liveExpense = getFakeReportAction(100, {
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                childReportID: threadReportID,
+                reportID: expenseReportID,
+                originalMessage: {IOUTransactionID: 'txn1', type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, amount: 100, currency: 'USD'},
+            });
+            const pendingDeleteExpense = getFakeReportAction(101, {
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                childReportID: '41',
+                reportID: expenseReportID,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: '', text: ''}],
+                originalMessage: {IOUTransactionID: 'txn2', type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, amount: 200, currency: 'USD'},
+            });
+
+            // Given an online report with one live expense and one pending deletion
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}` as const]: createMockReport({
+                    reportID: expenseReportID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    chatReportID: parentChatReportID,
+                }),
+                [`${ONYXKEYS.COLLECTION.REPORT}${parentChatReportID}` as const]: createMockReport({reportID: parentChatReportID, type: CONST.REPORT.TYPE.CHAT}),
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReportID}` as const]: {'100': liveExpense, '101': pendingDeleteExpense},
+            });
+            await waitForBatchedUpdates();
+            let derived = await OnyxUtils.get(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS);
+            expect(derived?.transactionThreadIDs?.[expenseReportID]).toBe(threadReportID);
+
+            // When Force offline is turned on in the same update as a comment on another report
+            const updates: Array<OnyxUpdate<typeof ONYXKEYS.NETWORK | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
+                {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NETWORK, value: {shouldForceOffline: true}},
+                {
+                    onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
+                    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                    value: {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentChatReportID}`]: {'1': getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT})}},
+                },
+            ];
+            await Onyx.update(updates);
+            await waitForBatchedUpdates();
+
+            // Then the pending deletion counts, so there is no one transaction thread
+            derived = await OnyxUtils.get(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS);
+            expect(derived?.transactionThreadIDs?.[expenseReportID]).toBeUndefined();
+
+            // When Force offline is turned off again
+            await Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: false});
+            await waitForBatchedUpdates();
+
+            // Then the live expense's thread is back
+            derived = await OnyxUtils.get(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS);
+            expect(derived?.transactionThreadIDs?.[expenseReportID]).toBe(threadReportID);
+        });
+
+        it('rebuilds on the next change when the rebuild for a Force offline toggle threw', async () => {
+            const expenseReportID = '20';
+            const parentChatReportID = '30';
+            const threadReportID = '40';
+            const liveExpense = getFakeReportAction(100, {
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                childReportID: threadReportID,
+                reportID: expenseReportID,
+                originalMessage: {IOUTransactionID: 'txn1', type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, amount: 100, currency: 'USD'},
+            });
+            const pendingDeleteExpense = getFakeReportAction(101, {
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                childReportID: '41',
+                reportID: expenseReportID,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: '', text: ''}],
+                originalMessage: {IOUTransactionID: 'txn2', type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, amount: 200, currency: 'USD'},
+            });
+
+            // Given an online report with one live expense and one pending deletion
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}` as const]: createMockReport({
+                    reportID: expenseReportID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    chatReportID: parentChatReportID,
+                }),
+                [`${ONYXKEYS.COLLECTION.REPORT}${parentChatReportID}` as const]: createMockReport({reportID: parentChatReportID, type: CONST.REPORT.TYPE.CHAT}),
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReportID}` as const]: {'100': liveExpense, '101': pendingDeleteExpense},
+            });
+            await waitForBatchedUpdates();
+
+            // When the rebuild for turning on Force offline throws, and a comment then lands on another report
+            const getSortedReportActionsSpy = jest.spyOn(ReportActionsUtils, 'getSortedReportActions').mockImplementationOnce(() => {
+                throw new Error('compute failed');
+            });
+            await Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: true});
+            await waitForBatchedUpdates();
+            getSortedReportActionsSpy.mockRestore();
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentChatReportID}`, {'1': getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT})});
+            await waitForBatchedUpdates();
+
+            // Then that change rebuilds offline, so there is no one transaction thread
+            const derived = await OnyxUtils.get(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS);
+            expect(derived?.transactionThreadIDs?.[expenseReportID]).toBeUndefined();
         });
     });
 
