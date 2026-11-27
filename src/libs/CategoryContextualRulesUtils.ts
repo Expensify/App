@@ -15,11 +15,13 @@ import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
+import {getCategoryFlagLimitsForPolicy} from '@selectors/Rule';
+
 import type {ExpenseDefaultConditionNames} from './MerchantTypeRulesUtils';
 
 import {getRuleDeletionPendingAction} from './CategoryTaxRulesUtils';
 import {getCategoryExpenseDefaultRules, getExpenseDefaultTaxID, isEditableExpenseDefaultRule} from './ExpenseDefaultRuleUtils';
-import {hasExplicitFlagAmount} from './FlagForReviewRulesUtils';
+import {getCategoryFlagLimit} from './FlagForReviewRulesUtils';
 import {getExpenseDefaultConditionText, getExpenseDefaultRuleDescription, getVisibleExpenseDefaultRuleSummaryFields} from './MerchantTypeRulesUtils';
 import {
     categoryHasAnyRequireFieldsRule,
@@ -42,26 +44,6 @@ type CategoryContextualRule = {
     isDisabled?: boolean;
 };
 
-function getFlagForReviewContextualSummary(
-    category: PolicyCategory,
-    translate: LocaleContextProps['translate'],
-    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
-    policyCurrency: string,
-): string | undefined {
-    if (!hasExplicitFlagAmount(category.maxExpenseAmount)) {
-        return undefined;
-    }
-
-    const amountDisplay = convertToDisplayString(category.maxExpenseAmount, policyCurrency);
-    const expenseLimitType = category.expenseLimitType ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE;
-
-    if (expenseLimitType === CONST.POLICY.EXPENSE_LIMIT_TYPES.DAILY) {
-        return translate('workspace.rules.categoryRules.contextualFlagForReviewDaily', amountDisplay);
-    }
-
-    return translate('workspace.rules.categoryRules.contextualFlagForReview', amountDisplay);
-}
-
 /**
  * Returns Rules Revamp rules scoped to a category for display in the category details RHP.
  * Each item navigates via a category dynamic edit route so refresh keeps Categories as the central pane.
@@ -78,8 +60,7 @@ function getCategoryContextualRules({
     conditionNames,
 }: {
     policy: Policy | undefined;
-    /** Read for the pending delete of the category a tax default depends on. */
-    /** Holds the rule that acts as this category's tax default. */
+    /** Holds the workspace's expense defaults and mirrored flag rules. */
     policyRules?: OnyxCollection<Rule>;
     category: PolicyCategory | undefined;
     categoryName: string;
@@ -100,12 +81,16 @@ function getCategoryContextualRules({
 
     const flagPendingAction = category.pendingFields?.maxExpenseAmount;
     const isFlagPendingDelete = flagPendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-    const flagSummary = getFlagForReviewContextualSummary(category, translate, convertToDisplayString, policyCurrency);
-    if (flagSummary && (isOffline || !isFlagPendingDelete)) {
+    const flagLimit = isOffline || !isFlagPendingDelete ? getCategoryFlagLimit(category, getCategoryFlagLimitsForPolicy(policyRules, policy.id, category), policyCurrency) : undefined;
+    if (flagLimit) {
+        const summaryKey =
+            flagLimit.expenseLimitType === CONST.POLICY.EXPENSE_LIMIT_TYPES.DAILY
+                ? 'workspace.rules.categoryRules.contextualFlagForReviewDaily'
+                : 'workspace.rules.categoryRules.contextualFlagForReview';
         rules.push({
             key: `flag-for-review-${categoryName}`,
             sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.SETTINGS_RULE_ROW.FLAG_FOR_REVIEW,
-            summary: flagSummary,
+            summary: translate(summaryKey, convertToDisplayString(flagLimit.amount, flagLimit.currency)),
             dynamicRoutePath: DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_FLAG_FOR_REVIEW_EDIT.path,
             pendingAction: flagPendingAction,
             isDisabled: isFlagPendingDelete,

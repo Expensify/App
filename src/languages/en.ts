@@ -10421,7 +10421,7 @@ const translations = {
                 findRule: 'Find rule',
                 typeLabel: 'Flag',
                 conditionCategoryAndAmount: (category: string, amount: string) => `Category is "${category}" and amount above ${amount}`,
-                conditionCategoryAndDailyAmount: (category: string, amount: string) => `Category is "${category}" and daily category total above ${amount}`,
+                conditionCategoryAndDailyAmount: (category: string, amount: string) => `"${category}" total over ${amount} per submitter per day across reports`,
                 flagForReview: 'Flag for review',
             },
             flagForReviewEmptyState: {
@@ -10469,7 +10469,7 @@ const translations = {
                     expenseSubtitle:
                         'Flag expense amounts by category. This rule overrides the general workspace rule for max expense amount. Multi-day reservations are evaluated using the per-night average.',
                     daily: 'Category total',
-                    dailySubtitle: 'Flag total daily category spend per expense report.',
+                    dailySubtitle: 'Flag a submitter’s total spend in this category on the same expense date across all workspace reports.',
                 },
                 requireReceiptsOver: 'Require receipts over',
                 requireReceiptsOverList: {
@@ -10487,7 +10487,7 @@ const translations = {
                 enableWorkflows: (moreFeaturesLink: string) => `Go to [More features](${moreFeaturesLink}) and enable workflows, then add approvals to unlock this feature.`,
                 createNewRule: 'Create new rule',
                 contextualFlagForReview: (amount: string) => `If amount is above ${amount}, flag for review`,
-                contextualFlagForReviewDaily: (amount: string) => `If daily category total is above ${amount}, flag for review`,
+                contextualFlagForReviewDaily: (amount: string) => `If a submitter’s daily category total across all workspace reports is above ${amount}, flag for review`,
             },
             customRules: {
                 title: 'Expense policy',

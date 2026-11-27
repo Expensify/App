@@ -31,9 +31,12 @@ import useRulesPrefetch from '@hooks/useRulesPrefetch';
 import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {getRules} from '@libs/actions/Policy/Rules';
 import getCategoryContextualRules from '@libs/CategoryContextualRulesUtils';
 import {getCategoryApproverRule, getDecodedCategoryName, getMembersWithoutVisibleCategories, isCategoryVisibleToMember} from '@libs/CategoryUtils';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
+import {hasExplicitFlagAmount} from '@libs/FlagForReviewRulesUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isDisablingOrDeletingLastEnabledCategory} from '@libs/OptionsListUtils';
@@ -73,7 +76,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
     const {isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Trashcan', 'Plus', 'Bolt']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Trashcan', 'Plus', 'Bolt', 'Sync']);
     const {showConfirmModal} = useConfirmModal();
     const {policyMemberAccountIDs, showMembersNeedCategoryModal} = useMembersNeedCategoryModal(policyID);
     const policyData = usePolicyData(policyID);
@@ -85,7 +88,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
     const {isOffline} = useNetwork();
     // Category rules come from the rules collection, which only a GetRules call fills. This page is reachable
     // without passing one that makes it, so without this the section reads empty on a fresh session.
-    useRulesPrefetch();
+    const {areRulesLoading, haveRulesLoaded} = useRulesPrefetch();
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const policyCategory = policyCategories?.[categoryName] ?? Object.values(policyCategories).find((category) => category.previousCategoryName === categoryName);
@@ -106,6 +109,12 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
               isOffline,
               conditionNames,
           });
+    const shouldRetryFlagRules =
+        !isOffline &&
+        !areRulesLoading &&
+        !haveRulesLoaded &&
+        hasExplicitFlagAmount(policyCategory?.maxExpenseAmount) &&
+        !contextualRules.some((rule) => rule.dynamicRoutePath === DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_FLAG_FOR_REVIEW_EDIT.path);
 
     const shouldPreventDisableOrDelete = isDisablingOrDeletingLastEnabledCategory(policy, policyData.categories, [policyCategory]);
     const isQuickSettingsFlow = name === SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_SETTINGS;
@@ -225,7 +234,10 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
 
     /** Collect sees this section but every destination is Control-only, so upgrade instead of hitting Not Found. */
     const navigateToCategoryRule = (dynamicRouteSuffix: string) => {
-        const ruleRoute = buildDynamicRoute(dynamicRouteSuffix);
+        const categoryRoute = isQuickSettingsFlow
+            ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(policyCategory.name), ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID, backTo))
+            : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyCategory.name), ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID));
+        const ruleRoute = createDynamicRoute(dynamicRouteSuffix, categoryRoute);
         if (tryNavigateToControlPolicyUpgrade(policy, CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.alias, ruleRoute)) {
             return;
         }
@@ -425,7 +437,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                         />
                     )}
 
-                    {categoryRulesEnabled && (contextualRules.length > 0 || canWriteRules) && (
+                    {categoryRulesEnabled && (contextualRules.length > 0 || canWriteRules || shouldRetryFlagRules) && (
                         <>
                             <View style={[styles.mh5, styles.pt3, styles.borderTop]}>
                                 <Text style={[styles.textNormal, styles.textStrong, styles.mv3]}>{translate('workspace.rules.categoryRules.title')}</Text>
@@ -462,6 +474,14 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                     </MenuItem.Root>
                                 </OfflineWithFeedback>
                             ))}
+                            {shouldRetryFlagRules && (
+                                <MenuItemAction
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.SETTINGS_RETRY_FLAG_RULES}
+                                    icon={expensifyIcons.Sync}
+                                    title={translate('common.tryAgain')}
+                                    onPress={getRules}
+                                />
+                            )}
                             {canWriteRules && (
                                 <MenuItemAction
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.SETTINGS_CREATE_RULE}

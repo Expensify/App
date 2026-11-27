@@ -8,7 +8,6 @@ import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Rule} from '@src/types/onyx';
-import type {ApprovalWorkflowAction} from '@src/types/onyx/ApprovalWorkflowRules';
 import type {
     ExpenseDefaultAction,
     ExpenseDefaultActionField,
@@ -223,16 +222,14 @@ function emptyToUndefined(value: string | undefined): string | undefined {
     return trimmed;
 }
 
-/** Lists a rule's actions keyed by their stringified index. Rules of other kinds (approval workflows) carry actions of a different shape. */
-function getRuleActionEntries(rule: Rule | ExpenseDefaultRule | undefined): Array<[string, ExpenseDefaultAction | ApprovalWorkflowAction]> {
-    const actions: Record<string, ExpenseDefaultAction | ApprovalWorkflowAction> | undefined = rule?.actions;
-    return Object.entries(actions ?? {});
+/** Lists a rule's actions keyed by their stringified index. */
+function getRuleActionEntries(rule: Rule | ExpenseDefaultRule | undefined): Array<[string, Rule['actions'][string]]> {
+    return Object.entries<Rule['actions'][string]>(rule?.actions ?? {});
 }
 
 /** Lists a rule's actions. See `getRuleActionEntries`. */
-function getRuleActions(rule: Rule | ExpenseDefaultRule | undefined): Array<ExpenseDefaultAction | ApprovalWorkflowAction> {
-    const actions: Record<string, ExpenseDefaultAction | ApprovalWorkflowAction> | undefined = rule?.actions;
-    return fromIndexMap(actions);
+function getRuleActions(rule: Rule | ExpenseDefaultRule | undefined): Array<Rule['actions'][string]> {
+    return fromIndexMap<Rule['actions'][string]>(rule?.actions);
 }
 
 /** `GetRules` returns every rule the user can see, so callers have to narrow the collection to one policy themselves. */

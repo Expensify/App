@@ -34,6 +34,7 @@ import ROUTES from '@src/ROUTES';
 
 import type {ValueOf} from 'type-fest';
 
+import {getCategoryFlagLimitsForPolicy} from '@selectors/Rule';
 import {useEffect, useRef} from 'react';
 
 const DEFAULT_SPEND_RULE_ID = 'default-rule';
@@ -177,14 +178,18 @@ function useRulesTableBulkActions({policyID, activeTab, selectedRuleKeysByTab, c
         onNavigate: Navigation.navigate,
     });
 
-    const flagForReviewTableData = getFlagForReviewTableData({
-        policy,
-        policyCategories: arePolicyCategoriesLoading ? undefined : policyData.categories,
-        translate,
-        convertToDisplayString,
-        isOffline,
-        onNavigate: Navigation.navigate,
-    });
+    const flagForReviewTableData =
+        canWriteRules && selectedRuleKeysByTab[RULES_TAB.FLAG_FOR_REVIEW]?.length
+            ? getFlagForReviewTableData({
+                  policy,
+                  policyCategories: arePolicyCategoriesLoading ? undefined : policyData.categories,
+                  categoryFlagLimits: getCategoryFlagLimitsForPolicy(rules, policyID),
+                  translate,
+                  convertToDisplayString,
+                  isOffline,
+                  onNavigate: Navigation.navigate,
+              })
+            : [];
 
     const validKeysByTab = {
         [RULES_TAB.CARD_RESTRICTIONS]: new Set(spendRulesTableData.filter((rule) => !rule.disabled).map((rule) => rule.keyForList)),

@@ -19,6 +19,20 @@ const policy = {
     outputCurrency: CONST.CURRENCY.USD,
 };
 
+const travelFlagRules: OnyxCollection<Rule> = {
+    [`${ONYXKEYS.COLLECTION.RULE}2`]: {
+        scope: CONST.RULES.SCOPE.POLICY,
+        scopeID: policy.id,
+        triggers: toIndexMap([CONST.RULES.TRIGGERS.CREATE_TRANSACTION, CONST.RULES.TRIGGERS.UPDATE_TRANSACTION]),
+        actions: toIndexMap([{name: CONST.RULES.ACTIONS.TRIGGER_VIOLATION}]),
+        filters: {
+            operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+            left: {left: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Travel'},
+            right: {left: CONST.RULES.DAILY_BUDGET_FILTER, operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN, right: '200 USD'},
+        },
+    },
+};
+
 describe('getCategoryContextualRules', () => {
     beforeEach(() => {
         IntlStore.load(CONST.LOCALES.EN);
@@ -42,16 +56,19 @@ describe('getCategoryContextualRules', () => {
     });
 
     it('returns flag-for-review and require-fields summaries with category dynamic edit routes', () => {
+        // Given a mirrored daily cap and a stale per-expense limit in the legacy category.
         const category: PolicyCategory = {
             name: 'Travel',
             enabled: true,
-            maxExpenseAmount: 20000,
+            maxExpenseAmount: 30000,
             expenseLimitType: CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE,
             areCommentsRequired: true,
         };
 
+        // When opening the category settings.
         const rules = getCategoryContextualRules({
             policy,
+            policyRules: travelFlagRules,
             category,
             categoryName: 'Travel',
             translate: translateLocal,
@@ -60,15 +77,18 @@ describe('getCategoryContextualRules', () => {
             isOffline: false,
         });
 
+        // Then the daily cap comes from the rule without affecting the legacy field requirement.
         expect(rules).toHaveLength(2);
         expect(rules.at(0)?.summary).toContain('flag for review');
         expect(rules.at(0)?.summary).toContain('200');
+        expect(rules.at(0)?.summary).toContain('across all workspace reports');
         expect(rules.at(0)?.dynamicRoutePath).toBe(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_FLAG_FOR_REVIEW_EDIT.path);
         expect(rules.at(1)?.summary).toContain('Require description');
         expect(rules.at(1)?.dynamicRoutePath).toBe(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_REQUIRE_FIELDS_EDIT.path);
     });
 
     it('keeps optimistically deleted rules listed and disabled while offline', () => {
+        // Given a legacy delete queued before the flag rule has reached the rules collection.
         const category: PolicyCategory = {
             name: 'Travel',
             enabled: true,
@@ -81,6 +101,7 @@ describe('getCategoryContextualRules', () => {
             },
         };
 
+        // When viewing category rules offline.
         const rules = getCategoryContextualRules({
             policy,
             category,
@@ -91,6 +112,7 @@ describe('getCategoryContextualRules', () => {
             isOffline: true,
         });
 
+        // Then both rows retain their pending delete feedback.
         expect(rules).toHaveLength(2);
         expect(rules.at(0)?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
         expect(rules.at(0)?.isDisabled).toBe(true);
@@ -101,6 +123,7 @@ describe('getCategoryContextualRules', () => {
     });
 
     it('drops optimistically deleted rules once back online', () => {
+        // Given pending deletes whose server data has not been removed yet.
         const category: PolicyCategory = {
             name: 'Travel',
             enabled: true,
@@ -113,17 +136,20 @@ describe('getCategoryContextualRules', () => {
             },
         };
 
-        expect(
-            getCategoryContextualRules({
-                policy,
-                category,
-                categoryName: 'Travel',
-                translate: translateLocal,
-                convertToDisplayString,
-                convertToDisplayStringWithoutCurrency,
-                isOffline: false,
-            }),
-        ).toEqual([]);
+        // When viewing the category rules online.
+        const rules = getCategoryContextualRules({
+            policy,
+            policyRules: travelFlagRules,
+            category,
+            categoryName: 'Travel',
+            translate: translateLocal,
+            convertToDisplayString,
+            convertToDisplayStringWithoutCurrency,
+            isOffline: false,
+        });
+
+        // Then pending deletes are hidden even while the old values are still present.
+        expect(rules).toEqual([]);
     });
 
     describe('category tax default', () => {

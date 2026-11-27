@@ -4,12 +4,15 @@ import type {TableData} from '@components/Table';
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {FlagForReviewRuleForm} from '@src/types/form/FlagForReviewRuleForm';
 import INPUT_IDS from '@src/types/form/FlagForReviewRuleForm';
 import type {Policy, PolicyCategories, PolicyCategory} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+
+import type {CategoryFlagLimit, CategoryFlagLimits} from '@selectors/Rule';
 
 import type {OnboardingTaskCompletionOnyxData} from './actions/Task';
 
@@ -52,17 +55,64 @@ function getFlagForReviewRuleNavigationRoute(policyID: string, categoryName: str
     return ROUTES.RULES_FLAG_FOR_REVIEW_RULE_EDIT.getRoute(policyID, categoryName);
 }
 
-function getFlagForReviewFormFromCategory(
-    category: PolicyCategory | undefined,
-    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
-    policyCurrency: string,
-): FlagForReviewRuleForm {
-    const maxExpenseAmount = category?.maxExpenseAmount;
+/** A cold category link can expose only its RHP suffix until the underlay mounts. */
+function qualifyCategoryFlagRulePath(policyID: string, path: string): string {
+    const suffix = path.replace(/^\//, '');
+    if (suffix.startsWith(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(''))) {
+        return `${ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID)}/${suffix}`;
+    }
+    if (suffix.startsWith(DYNAMIC_ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(''))) {
+        return `${ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID)}/${suffix}`;
+    }
+    return path;
+}
 
+function getMirroredCategoryFlagLimit(category: PolicyCategory, limits: CategoryFlagLimits | undefined): CategoryFlagLimit | undefined {
+    if (!limits || category.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+        return undefined;
+    }
+    const migrationID = category.maxExpenseAmountMigrationID;
+    // A queued rename changes the category name before Auth can send the updated rule.
+    if (category.pendingFields?.name) {
+        if (!migrationID) {
+            return undefined;
+        }
+        const ruleKey = `${ONYXKEYS.COLLECTION.RULE}${migrationID}`;
+        return Object.values(limits).find((limit) => limit?.ruleKey === ruleKey);
+    }
+    return Object.hasOwn(limits, category.name) ? limits[category.name] : undefined;
+}
+
+function getCategoryFlagLimit(category: PolicyCategory | undefined, limits: CategoryFlagLimits | undefined, policyCurrency: string): CategoryFlagLimit | undefined {
+    if (!category) {
+        return undefined;
+    }
+
+    const limit = getMirroredCategoryFlagLimit(category, limits);
+    const pendingAction = category.pendingFields?.maxExpenseAmount;
+    const {UPDATE, DELETE} = CONST.RED_BRICK_ROAD_PENDING_ACTION;
+    // Legacy writes only update the category until Auth mirrors the change into the rules collection.
+    if ((pendingAction === UPDATE || (pendingAction === DELETE && !limit)) && hasExplicitFlagAmount(category.maxExpenseAmount)) {
+        return {
+            amount: category.maxExpenseAmount,
+            currency: policyCurrency,
+            expenseLimitType: category.expenseLimitType ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE,
+        };
+    }
+
+    return limit;
+}
+
+function hasFlagForReviewRuleForLegacyWrite(category: PolicyCategory | undefined, limits: CategoryFlagLimits | undefined): boolean {
+    // The legacy write can overwrite a limit even when the rules collection has not synced yet.
+    return !!category && (hasExplicitFlagAmount(category.maxExpenseAmount) || !!getMirroredCategoryFlagLimit(category, limits));
+}
+
+function getFlagForReviewFormFromLimit(categoryName: string, limit: CategoryFlagLimit, getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals']): FlagForReviewRuleForm {
     return {
-        [INPUT_IDS.CATEGORY]: category?.name ?? '',
-        [INPUT_IDS.MAX_EXPENSE_AMOUNT]: hasExplicitFlagAmount(maxExpenseAmount) ? convertToFrontendAmountAsString(maxExpenseAmount, getCurrencyDecimals(policyCurrency)) : '',
-        [INPUT_IDS.EXPENSE_LIMIT_TYPE]: category?.expenseLimitType ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE,
+        [INPUT_IDS.CATEGORY]: categoryName,
+        [INPUT_IDS.MAX_EXPENSE_AMOUNT]: convertToFrontendAmountAsString(limit.amount, getCurrencyDecimals(limit.currency)),
+        [INPUT_IDS.EXPENSE_LIMIT_TYPE]: limit.expenseLimitType,
     };
 }
 
@@ -111,6 +161,7 @@ function deleteFlagForReviewRule(
 function getFlagForReviewTableData({
     policy,
     policyCategories,
+    categoryFlagLimits,
     translate,
     convertToDisplayString,
     isOffline,
@@ -118,6 +169,7 @@ function getFlagForReviewTableData({
 }: {
     policy: Policy | undefined;
     policyCategories: PolicyCategories | undefined;
+    categoryFlagLimits: CategoryFlagLimits | undefined;
     translate: LocaleContextProps['translate'];
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     isOffline: boolean;
@@ -138,23 +190,22 @@ function getFlagForReviewTableData({
             continue;
         }
 
-        const pendingFields = category.pendingFields;
-        const pendingAction = pendingFields?.maxExpenseAmount;
+        const pendingAction = category.pendingFields?.maxExpenseAmount;
         const isPendingDelete = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
         if (!isOffline && isPendingDelete) {
             continue;
         }
 
-        if (!hasExplicitFlagAmount(category.maxExpenseAmount) && !isPendingDelete) {
+        const limit = getCategoryFlagLimit(category, categoryFlagLimits, policyCurrency);
+        if (!limit) {
             continue;
         }
 
         const decodedCategoryName = getDecodedCategoryName(categoryName);
-        const amountDisplay = convertToDisplayString(category.maxExpenseAmount, policyCurrency);
-        const expenseLimitType = category.expenseLimitType ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE;
+        const amountDisplay = convertToDisplayString(limit.amount, limit.currency);
         const conditionText =
-            expenseLimitType === CONST.POLICY.EXPENSE_LIMIT_TYPES.DAILY
+            limit.expenseLimitType === CONST.POLICY.EXPENSE_LIMIT_TYPES.DAILY
                 ? translate('workspace.rules.flagForReviewTable.conditionCategoryAndDailyAmount', decodedCategoryName, amountDisplay)
                 : translate('workspace.rules.flagForReviewTable.conditionCategoryAndAmount', decodedCategoryName, amountDisplay);
 
@@ -166,8 +217,8 @@ function getFlagForReviewTableData({
             conditionText,
             ruleDescription,
             searchTokens: [decodedCategoryName, conditionText, ruleDescription, typeLabel],
-            pendingAction: pendingFields?.maxExpenseAmount,
-            disabled: pendingFields?.maxExpenseAmount === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            pendingAction,
+            disabled: isPendingDelete,
             action: () => onNavigate(getFlagForReviewRuleNavigationRoute(policyID, categoryName)),
         });
     }
@@ -175,5 +226,15 @@ function getFlagForReviewTableData({
     return rules;
 }
 
-export {deleteFlagForReviewRule, getFlagForReviewFormFromCategory, getFlagForReviewRuleAmountError, getFlagForReviewTableData, hasExplicitFlagAmount, saveFlagForReviewRule};
+export {
+    deleteFlagForReviewRule,
+    getCategoryFlagLimit,
+    getFlagForReviewFormFromLimit,
+    getFlagForReviewRuleAmountError,
+    getFlagForReviewTableData,
+    hasExplicitFlagAmount,
+    hasFlagForReviewRuleForLegacyWrite,
+    qualifyCategoryFlagRulePath,
+    saveFlagForReviewRule,
+};
 export type {FlagForReviewTableItem};
