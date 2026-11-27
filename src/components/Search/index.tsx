@@ -128,6 +128,7 @@ import usePinSearchColumn from './hooks/usePinSearchColumn';
 import useSearchColumnEditing from './hooks/useSearchColumnEditing';
 import useSearchSnapshot from './hooks/useSearchSnapshot';
 import useShouldShowBulkActionBar from './hooks/useShouldShowBulkActionBar';
+import {PinnedCellContainerView, PinnedColumnsProvider} from './PinnedColumnsContext';
 import SearchChartView from './SearchChartView';
 import SearchChartWrapper from './SearchChartWrapper';
 import SearchColumnPinItems from './SearchColumnPinItems';
@@ -1029,6 +1030,9 @@ function Search({
     const shouldPinColumns = shouldShowColumnMenu && canEditColumns && pinSearchColumn.canPinColumns;
     // Pinning only moves columns the table already shows, so it reorders them at once instead of fading them like a column change.
     const orderedColumns = useStableArrayReference(getPinnedColumnOrder(columnsToShow, shouldPinColumns ? pinSearchColumn.pinnedColumns : NO_PINNED_COLUMNS));
+    // Report rows don't hold pinned cells in place, so on Reports a pinned column only moves to the table's start.
+    const canHoldPinnedColumns = shouldPinColumns && !isExpenseReportType;
+    const leftPinnedColumns = useStableArrayReference(canHoldPinnedColumns ? pinSearchColumn.pinnedColumns.left.filter((column) => columnsToShow.includes(column)) : NO_PINNED_COLUMNS.left);
 
     // If columns have changed, trigger an animation before settings columnsToShow to prevent
     // new columns appearing before the fade out animation happens
@@ -1628,7 +1632,7 @@ function Search({
     }
     const searchTableHeader = !shouldShowTableHeader ? undefined : (
         // Match the rows' trailing arrow spacing so the header columns line up with them.
-        <View style={[searchTablePaddingRightStyle, styles.flex1, styles.alignSelfStretch]}>
+        <PinnedCellContainerView style={[searchTablePaddingRightStyle, styles.flex1, styles.alignSelfStretch]}>
             <SearchTableHeader
                 canSelectMultiple={canSelectMultiple}
                 columns={orderedColumns}
@@ -1666,7 +1670,7 @@ function Search({
                     </SortableColumnMenu>
                 )}
             </SearchTableHeader>
-        </View>
+        </PinnedCellContainerView>
     );
 
     // Single-row skeleton while the deferred write's optimistic data hasn't appeared in sortedData
@@ -1747,7 +1751,9 @@ function Search({
                 isExpenseReportType={isExpenseReportType}
                 isSearchResultsEmpty={isSearchResultsEmpty}
             >
-                <Animated.View style={[styles.flex1, animatedStyle]}>{searchListContent}</Animated.View>
+                <PinnedColumnsProvider leftPinned={leftPinnedColumns}>
+                    <Animated.View style={[styles.flex1, animatedStyle]}>{searchListContent}</Animated.View>
+                </PinnedColumnsProvider>
             </SearchWriteActionsProvider>
         </SearchScopeProvider>
     );
