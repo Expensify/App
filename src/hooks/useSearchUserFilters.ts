@@ -47,6 +47,13 @@ type QueryPaginationState = {
 // The query pagination state is always replaced wholesale, so every reset can share this object.
 const EMPTY_QUERY_PAGINATION: QueryPaginationState = {searchKey: undefined, hasMore: false, nextCursor: ''};
 
+// Use NUL so policy IDs and user queries cannot collide across the separator.
+const SEARCH_KEY_SEPARATOR = '\0';
+
+function getSearchKey(policyIDs: string, query = ''): string {
+    return `${policyIDs}${SEARCH_KEY_SEPARATOR}${query}`;
+}
+
 function areLoginListsEqual(prev: string[] | undefined, next: string[] | undefined): boolean {
     if (prev === next) {
         return true;
@@ -93,8 +100,8 @@ function useSearchUserFilters({policyIDs, searchTerm, ready = true}: UseSearchUs
 
     const trimmedSearchTerm = searchTerm.trim();
     const isEmptyQuery = trimmedSearchTerm === '';
-    const baseSearchKey = `${policyIDs}\0`;
-    const searchKey = `${policyIDs}\0${trimmedSearchTerm}`;
+    const baseSearchKey = getSearchKey(policyIDs);
+    const searchKey = getSearchKey(policyIDs, trimmedSearchTerm);
 
     const hasLoadedBase = !!cachedBase?.hasLoadedBase;
     const hasCompleteBaseCache = hasLoadedBase && !cachedBase?.hasMore;
@@ -173,7 +180,7 @@ function useSearchUserFilters({policyIDs, searchTerm, ready = true}: UseSearchUs
     // An empty cursor starts a new search, so it cancels superseded in-flight requests.
     const fetchUserFiltersPage = (query: string, cursor: string, requestSeq: number, isBaseQuery: boolean) => {
         const isFirstPage = cursor === '';
-        const activeSearchKey = `${policyIDs}\0${query}`;
+        const activeSearchKey = getSearchKey(policyIDs, query);
         openSearchUserFiltersPage({searchQuery: query, cursor, limit: CONST.SEARCH.USER_FILTER_PAGE_SIZE, policyIDs: policyIDs || undefined}, isFirstPage)
             .then((result) => {
                 if (isBaseQuery) {
@@ -246,12 +253,13 @@ function useSearchUserFilters({policyIDs, searchTerm, ready = true}: UseSearchUs
             return;
         }
 
-        baseRequestSeqRef.current++;
+        // Invalidate any in-flight base or load-more request because starting a new query cancels pending requests for the shared command.
+        invalidateBaseRequests();
         const requestSeq = ++queryRequestSeqRef.current;
         fetchUserFiltersPage(trimmedSearchTerm, '', requestSeq, false);
 
         return invalidateQueryRequests;
-    }, [shouldRunQueryLookup, trimmedSearchTerm, fetchUserFiltersPage, invalidateQueryRequests]);
+    }, [shouldRunQueryLookup, trimmedSearchTerm, fetchUserFiltersPage, invalidateBaseRequests, invalidateQueryRequests]);
 
     const loadMoreUsers = () => {
         if (isOffline || !hasMore || isLoadingMore || isSearching) {
