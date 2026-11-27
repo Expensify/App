@@ -971,8 +971,9 @@ const staticStyles = (theme: ThemeColors) =>
         // Absolute, so the label keeps its full width whether or not the accessory is shown, rather than reflowing when the row is hovered.
         flatNavigationBarSubnavItemAccessory: {
             position: 'absolute',
-            top: 0,
-            bottom: 0,
+            // Clear of the 1px focus ring web/index.html draws inside the link, so the backdrop never paints over it.
+            top: 1,
+            bottom: 1,
             right: variables.flatNavigationBarRowPadding,
             // Wider than the icon, so the fade behind it has room to ramp up before the icon itself.
             width: variables.flatNavigationBarSubnavItemAccessoryWidth,
