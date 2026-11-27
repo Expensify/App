@@ -24984,7 +24984,7 @@ describe('ReportUtils', () => {
                 const bankAccountList = createMock<BankAccountList>({7890001: {accountData: {accountNumber: 'XXXXXX7890'}}});
                 const englishTranslate: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
 
-                // When the preview is built with the caller's bankAccountList, since the lookup no longer reads Onyx itself
+                // When the preview is built with the caller's bankAccountList
                 const result = getReportPreviewMessage(
                     englishTranslate,
                     convertToDisplayString,
