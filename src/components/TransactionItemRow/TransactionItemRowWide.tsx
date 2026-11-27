@@ -163,7 +163,7 @@ function TransactionItemRowWide({
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
     const getSearchColumnStyles = useSearchColumnStyles();
-    const {cellContainerStyle: pinnedCellContainerStyle} = usePinnedColumnStyles();
+    const {leadingLineStyle: pinnedLeadingLineStyle, cellContainerStyle: pinnedCellContainerStyle} = usePinnedColumnStyles();
     const theme = useTheme();
     const [hasFilterValues] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: searchHasFilterSelector});
     const expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
@@ -851,7 +851,8 @@ function TransactionItemRowWide({
                         report={report}
                         missingFieldError={missingFieldError}
                         transactionThreadReportID={transactionThreadReportID}
-                        containerStyles={shouldUseFullHeightEditableCellHoverTarget ? [styles.pb2] : undefined}
+                        // Stays beside the checkbox and ends where the pins do.
+                        containerStyles={[shouldUseFullHeightEditableCellHoverTarget && styles.pb2, pinnedLeadingLineStyle]}
                     />
                 )}
             </View>

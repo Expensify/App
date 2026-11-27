@@ -6,6 +6,7 @@ import {
     PINNED_GUTTER_MASK_VISIBILITY_VARIABLE,
     PINNED_LEFT_EDGE_VARIABLE,
     PINNED_LEFT_LEAD_VARIABLE,
+    PINNED_LINE_WIDTH_VARIABLE,
     PINNED_SCROLLBAR_HEIGHT_VARIABLE,
     PINNED_START_EDGE_OPACITY_VARIABLE,
     PINNED_START_WIDTH_VARIABLE,
@@ -161,17 +162,28 @@ describe('usePinnedScrollVariables', () => {
         expect(readVariable(container, STICKY_HEADER_HEIGHT_VARIABLE)).toBe(`${HEADER_HEIGHT}px`);
     });
 
-    it("tells the page margin's mask how tall the horizontal scrollbar is, so it leaves the scrollbar visible", () => {
-        // Given a table with pins and a 12px horizontal scrollbar
-        const {container, scroller, containerRef} = buildTable();
-        setProperty(scroller, 'offsetHeight', 512);
-        setProperty(scroller, 'clientHeight', 500);
+    it('cuts the line under a row to the pinned region only while columns can pass beneath the pins', () => {
+        // Given one table wider than its scroller and one that fits, both with pins and a 12px horizontal scrollbar
+        const overflowing = buildTable();
+        const fitting = buildTable();
+        setProperty(overflowing.scroller, 'scrollWidth', 1400);
+        setProperty(fitting.scroller, 'scrollWidth', 900);
+        for (const {scroller} of [overflowing, fitting]) {
+            setProperty(scroller, 'offsetHeight', 512);
+            setProperty(scroller, 'clientHeight', 500);
+        }
 
-        // When the hook runs for it
-        renderHook(() => usePinnedScrollVariables(containerRef, true, PINNED_COLUMNS));
+        // When the hook runs for both
+        renderHook(() => usePinnedScrollVariables(overflowing.containerRef, true, PINNED_COLUMNS));
+        renderHook(() => usePinnedScrollVariables(fitting.containerRef, true, PINNED_COLUMNS));
 
-        // Then the scrollbar's height is published for the mask to stop above
-        expect(readVariable(container, PINNED_SCROLLBAR_HEIGHT_VARIABLE)).toBe('12px');
+        // Then only the overflowing table truncates its error lines at the divider, since nothing passes beneath the pins of one that
+        // fits, and both tell the page margin's mask to leave the scrollbar visible
+        const regionEnd = HEADINGS_START + DATE_WIDTH + COLUMN_GAP + MERCHANT_WIDTH + COLUMN_GAP;
+        expect(readVariable(overflowing.container, PINNED_LINE_WIDTH_VARIABLE)).toBe(`${regionEnd - ROW_EDGE}px`);
+        expect(readVariable(fitting.container, PINNED_LINE_WIDTH_VARIABLE)).toBe('');
+        expect(readVariable(overflowing.container, PINNED_SCROLLBAR_HEIGHT_VARIABLE)).toBe('12px');
+        expect(readVariable(fitting.container, PINNED_SCROLLBAR_HEIGHT_VARIABLE)).toBe('12px');
     });
 
     it('measures the same offsets while the table is scrolled, since it only measures boxes that never stick', () => {

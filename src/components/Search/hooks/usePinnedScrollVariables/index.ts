@@ -6,6 +6,7 @@ import {
     PINNED_HEADING_SELECTOR,
     PINNED_LEFT_EDGE_VARIABLE,
     PINNED_LEFT_LEAD_VARIABLE,
+    PINNED_LINE_WIDTH_VARIABLE,
     PINNED_SCROLLBAR_HEIGHT_VARIABLE,
     PINNED_START_EDGE_OPACITY_VARIABLE,
     PINNED_START_WIDTH_VARIABLE,
@@ -59,6 +60,13 @@ function writePinnedLayoutVariables(container: HTMLElement, scroller: HTMLElemen
     container.style.setProperty(PINNED_LEFT_EDGE_VARIABLE, `${edge}px`);
     container.style.setProperty(PINNED_LEFT_LEAD_VARIABLE, `${getContentLeft(headerRow, origin)}px`);
     container.style.setProperty(PINNED_START_WIDTH_VARIABLE, `${left - edge}px`);
+
+    // A table that fits has nothing passing beneath the pins, so the line keeps its full width.
+    if (scroller.scrollWidth > scroller.clientWidth) {
+        container.style.setProperty(PINNED_LINE_WIDTH_VARIABLE, `${left - edge}px`);
+    } else {
+        container.style.removeProperty(PINNED_LINE_WIDTH_VARIABLE);
+    }
 }
 
 /** @param leftPinned Changes whenever the pinned columns do, since pinning moves headings without resizing anything. */

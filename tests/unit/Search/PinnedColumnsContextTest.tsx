@@ -1,6 +1,6 @@
 import {renderHook} from '@testing-library/react-native';
 
-import {getPinnedLeftVariable, PINNED_LEFT_LEAD_VARIABLE} from '@components/Search/pinnedCellStyles/pinnedScrollVariables';
+import {getPinnedLeftVariable, PINNED_LEFT_LEAD_VARIABLE, PINNED_LINE_WIDTH_VARIABLE} from '@components/Search/pinnedCellStyles/pinnedScrollVariables';
 import {PinnedColumnsProvider, usePinnedColumnStyles} from '@components/Search/PinnedColumnsContext';
 import {ListScrollAxesContext} from '@components/Search/primitives/ListScrollAxesContext';
 import {useSearchColumnStyles} from '@components/Search/SearchColumnWidthsContext';
@@ -28,7 +28,7 @@ function renderWithLeftPins<Result>(leftPinned: SearchColumnType[], callback: ()
 }
 
 describe('usePinnedColumnStyles', () => {
-    it('leaves every column and heading alone without left pins', () => {
+    it('leaves every column, heading and line alone without left pins', () => {
         // Given a table outside any pinned columns provider, as every table other than the Spend table is
 
         // When its cells ask how to hold themselves in place
@@ -38,6 +38,7 @@ describe('usePinnedColumnStyles', () => {
         expect(pinnedStyles.getPinnedColumnStyle(MERCHANT)).toBeUndefined();
         expect(pinnedStyles.getPinnedHeadingDataSet(MERCHANT)).toBeUndefined();
         expect(pinnedStyles.leadingStyle).toBeUndefined();
+        expect(pinnedStyles.leadingLineStyle).toBeUndefined();
         expect(pinnedStyles.cellContainerStyle).toBeUndefined();
     });
 
@@ -70,7 +71,25 @@ describe('usePinnedColumnStyles', () => {
         // Then nothing sticks, so the pinned column scrolls with the table as it does on native, and its heading is still marked
         expect(merchantStyle).toBeUndefined();
         expect(pinnedStyles.leadingStyle).toBeUndefined();
+        expect(pinnedStyles.leadingLineStyle).toBeUndefined();
         expect(pinnedStyles.getPinnedHeadingDataSet(MERCHANT)).toEqual({pinnedHeading: 'true'});
+    });
+
+    it('ends the line under a row where the pinned region ends, so a long error is truncated at the divider', () => {
+        // Given a column pinned left, which design asked to truncate a row's error line at
+        const pinnedStyles = renderWithLeftPins([DATE], () => usePinnedColumnStyles());
+
+        // When the error line asks for its style
+        const lineStyle = pinnedStyles.leadingLineStyle;
+
+        // Then it sticks where the row's content starts and is capped at the region's width less the row's padding and the gap
+        // before the divider
+        expect(lineStyle).toMatchObject({
+            zIndex: 2,
+            position: 'sticky',
+            left: `calc(var(${PINNED_LEFT_LEAD_VARIABLE}, 0px))`,
+            maxWidth: `calc(var(${PINNED_LINE_WIDTH_VARIABLE}) - 24px)`,
+        });
     });
 
     it('sticks the checkbox where the row content starts', () => {
@@ -80,7 +99,7 @@ describe('usePinnedColumnStyles', () => {
         // When the checkbox asks for its style
         const checkboxStyle = pinnedStyles.leadingStyle;
 
-        // Then it sticks at the row content's resting offset
+        // Then it sticks at the row content's resting offset, the same one the error line uses
         expect(checkboxStyle).toMatchObject({zIndex: 2, position: 'sticky', left: `calc(var(${PINNED_LEFT_LEAD_VARIABLE}, 0px))`});
     });
 });

@@ -7,10 +7,14 @@ function getPinnedColumnStyle(): ViewStyle | undefined {
     return undefined;
 }
 
+function getPinnedStartLineStyle(): ViewStyle | undefined {
+    return undefined;
+}
+
 function getPinnedInset(): string | undefined {
     return undefined;
 }
 
 const PINNED_CELL_CONTAINER_STYLE: ViewStyle | undefined = undefined;
 
-export {PINNED_LEAD_STYLE, PINNED_CELL_CONTAINER_STYLE, getPinnedColumnStyle, getPinnedInset};
+export {PINNED_LEAD_STYLE, PINNED_CELL_CONTAINER_STYLE, getPinnedColumnStyle, getPinnedInset, getPinnedStartLineStyle};

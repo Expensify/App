@@ -25,7 +25,7 @@ import type {Report, TransactionViolation} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 
 import {accountIDSelector} from '@selectors/Session';
 import React from 'react';
@@ -37,7 +37,7 @@ type TransactionItemRowRBRInnerProps = {
     report?: Report;
 
     /** Styles for the RBR messages container */
-    containerStyles?: ViewStyle[];
+    containerStyles?: StyleProp<ViewStyle>;
 
     /** Error message for missing required fields in the transaction */
     missingFieldError?: string;
