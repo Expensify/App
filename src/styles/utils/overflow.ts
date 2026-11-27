@@ -1,9 +1,11 @@
 import type {ViewStyle} from 'react-native';
 
 import overflowAuto from './overflowAuto';
+import overflowClip from './overflowClip';
 import overflowXAuto from './overflowXAuto';
 import overflowXHidden from './overflowXHidden';
 import overscrollBehaviorContain from './overscrollBehaviorContain';
+import scrollbarGutterStable from './scrollbarGutterStable';
 
 /**
  * Overflow utility styles with Bootstrap inspired naming.
@@ -38,6 +40,10 @@ export default {
     overflowXHidden,
 
     overflowXAuto,
+
+    overflowClip,
+
+    scrollbarGutterStable,
 
     overscrollBehaviorContain,
 

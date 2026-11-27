@@ -1,9 +1,17 @@
 import ScrollView from '@components/ScrollView';
+import usePinnedScrollVariables from '@components/Search/hooks/usePinnedScrollVariables';
+import useTableScrollOffset from '@components/Search/hooks/useTableScrollOffset';
+import type HorizontalScrollOffsetStore from '@components/Search/hooks/useTableScrollOffset/types';
+import {PINNED_TABLE_SCROLLER_DATA_SET} from '@components/Search/pinnedCellStyles/pinnedScrollVariables';
+import {useLeftPinnedColumns} from '@components/Search/PinnedColumnsContext';
+import {PinnedGutterMask} from '@components/Search/PinnedCovers';
 import type {SearchColumnType, SearchQueryJSON} from '@components/Search/types';
 import {TABLE_COLUMN_SCROLLER_DATA_SET} from '@components/Table/columnResize/columnWidthExpressions';
 
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {ScrollableNodeHolder} from '@hooks/useVerticalScrollbarWidth/types';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {getTableMinWidth} from '@libs/SearchUIUtils';
@@ -15,9 +23,23 @@ import type {ComponentRef} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView} from 'react-native';
 
 import React, {useLayoutEffect, useRef} from 'react';
+import {View} from 'react-native';
+
+import {ListScrollAxesContext, ListScrollerContext} from './ListScrollAxesContext';
+import SUPPORTS_TWO_AXIS_LIST from './supportsTwoAxisList';
 
 // Keep a ref to the horizontal scroll offset so we can restore it if users change the search query
 let savedHorizontalScrollOffset = 0;
+
+const savedHorizontalScrollOffsetStore: HorizontalScrollOffsetStore = {
+    get: () => savedHorizontalScrollOffset,
+    set: (offset) => {
+        savedHorizontalScrollOffset = offset;
+    },
+};
+
+/** A resizable table's scroller is also the one a column drag holds still. */
+const RESIZABLE_LIST_SCROLLER_DATA_SET = {...PINNED_TABLE_SCROLLER_DATA_SET, ...TABLE_COLUMN_SCROLLER_DATA_SET};
 
 type HorizontalTableScrollProps = {
     /** The table/list content to wrap. */
@@ -60,6 +82,10 @@ type HorizontalTableScrollProps = {
      * When set the scroller stays mounted, since mounting it mid-drag would remount the rows under the pointer.
      */
     resizableScrollWidth?: string;
+
+    shouldListScrollBothAxes?: boolean;
+
+    measureScrollbarRef?: (instance: ScrollableNodeHolder | null) => void;
 };
 
 /**
@@ -78,8 +104,11 @@ function HorizontalTableScroll({
     columnContentWidths,
     availableWidth,
     resizableScrollWidth,
+    shouldListScrollBothAxes = false,
+    measureScrollbarRef,
 }: HorizontalTableScrollProps) {
     const styles = useThemeStyles();
+    const {pageGutter} = useLayoutSpacing().values;
     const StyleUtils = useStyleUtils();
     const {windowWidth} = useWindowDimensions();
     // The row chrome is counted only alongside real column widths, which is the same thing as saying only for a table
@@ -92,24 +121,54 @@ function HorizontalTableScroll({
     // scrolled content is then laid out from what the columns want, since there is no longer any room to save by
     // squeezing them, and never narrower than the space already available.
     const shouldScrollHorizontally = !!resizableScrollWidth || (isHeaderVisible && minTableWidth > tableWidth);
+    // The list takes over the sideways scroll only when the table needs one, the platform supports it, and the view asks for it.
+    const isListScrollingBothAxes = SUPPORTS_TWO_AXIS_LIST && shouldListScrollBothAxes && shouldScrollHorizontally;
     const contentTableWidth = Math.max(getTableMinWidth(columns, type, isActionColumnWide, columnContentWidths, isSizingColumns), minTableWidth, tableWidth);
 
     const horizontalScrollViewRef = useRef<ComponentRef<typeof RNScrollView>>(null);
+    const containerRef = useRef<View>(null);
+    const leftPinned = useLeftPinnedColumns();
 
     const handleHorizontalScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
         savedHorizontalScrollOffset = event.nativeEvent.contentOffset.x;
     };
 
     // Restore horizontal scroll position synchronously before paint using useLayoutEffect to avoid a visible shift on the table
+    // A list that scrolls both ways restores its own scroller (see useTableScrollOffset).
     useLayoutEffect(() => {
-        if (!shouldScrollHorizontally || savedHorizontalScrollOffset <= 0) {
+        if (!shouldScrollHorizontally || isListScrollingBothAxes || savedHorizontalScrollOffset <= 0) {
             return;
         }
         horizontalScrollViewRef.current?.scrollTo({x: savedHorizontalScrollOffset, animated: false});
-    }, [dataKey, shouldScrollHorizontally]);
+    }, [dataKey, shouldScrollHorizontally, isListScrollingBothAxes]);
+
+    // The kept offset is restored first, so the pinned variables are first written for it.
+    useTableScrollOffset(containerRef, isListScrollingBothAxes, savedHorizontalScrollOffsetStore, dataKey);
+    usePinnedScrollVariables(containerRef, isListScrollingBothAxes, leftPinned);
 
     if (!shouldScrollHorizontally) {
         return children;
+    }
+
+    const contentWidthStyle = StyleUtils.getWidthStyle(resizableScrollWidth ?? contentTableWidth);
+
+    if (isListScrollingBothAxes) {
+        return (
+            <ListScrollAxesContext.Provider value>
+                <ListScrollerContext.Provider
+                    value={{contentWidthStyle, scrollerDataSet: resizableScrollWidth ? RESIZABLE_LIST_SCROLLER_DATA_SET : PINNED_TABLE_SCROLLER_DATA_SET, measureScrollbarRef}}
+                >
+                    {/* Carries the table's variables to the rows and to the mask beside them. */}
+                    <View
+                        ref={containerRef}
+                        style={styles.flex1}
+                    >
+                        {children}
+                        <PinnedGutterMask gutterWidth={pageGutter} />
+                    </View>
+                </ListScrollerContext.Provider>
+            </ListScrollAxesContext.Provider>
+        );
     }
 
     return (
@@ -118,7 +177,7 @@ function HorizontalTableScroll({
             horizontal
             showsHorizontalScrollIndicator
             style={styles.flex1}
-            contentContainerStyle={resizableScrollWidth ? StyleUtils.getWidthStyle(resizableScrollWidth) : {width: contentTableWidth}}
+            contentContainerStyle={contentWidthStyle}
             contentOffset={{x: savedHorizontalScrollOffset, y: 0}}
             onScroll={handleHorizontalScroll}
             scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}

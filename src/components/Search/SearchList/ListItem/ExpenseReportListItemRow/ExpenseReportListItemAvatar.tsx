@@ -2,6 +2,7 @@ import DiagonalAvatars from '@components/Avatar/layouts/DiagonalAvatars';
 import getAvatarLayout from '@components/Avatar/layouts/getAvatarLayout';
 import SingleAvatar from '@components/Avatar/layouts/SingleAvatar';
 import SubscriptAvatar from '@components/Avatar/layouts/SubscriptAvatar';
+import {useSearchColumnStyles} from '@components/Search/SearchColumnWidthsContext';
 import type {ExpenseReportListItemType} from '@components/Search/SearchList/ListItem/types';
 import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import {useListItemContext, useListItemHovered} from '@components/SelectionList/ListItemContext';
@@ -24,6 +25,7 @@ function ExpenseReportListItemAvatar({item}: ExpenseReportListItemAvatarProps) {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
     const theme = useTheme();
+    const getSearchColumnStyles = useSearchColumnStyles();
 
     const {isSelected} = useRowSelection(item.keyForList);
     const {isFocusVisible} = useListItemContext();
@@ -70,7 +72,8 @@ function ExpenseReportListItemAvatar({item}: ExpenseReportListItemAvatarProps) {
 
     return (
         <View
-            style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AVATAR), styles.alignItemsStretch, styles.userSelectNone]}
+            // Through the table's column styles, so a pinned Avatar column holds its cells too.
+            style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AVATAR), styles.alignItemsStretch, styles.userSelectNone]}
             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
         >
             {avatarContent}

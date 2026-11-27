@@ -34,7 +34,8 @@ function AnimatedExitRow({shouldApplyAnimation, hasItemsBeingRemoved, isRowExiti
         <Animated.View
             exiting={shouldApplyAnimation && isRowExiting ? FadeOutUp.duration(CONST.SEARCH.EXITING_ANIMATION_DURATION).easing(easing) : undefined}
             entering={undefined}
-            style={styles.overflowHidden}
+            // `clip`, since `hidden` makes a scroller the pinned cells would stick to.
+            style={styles.overflowClip}
             layout={shouldApplyAnimation && hasItemsBeingRemoved ? LinearTransition.easing(easing).duration(CONST.SEARCH.EXITING_ANIMATION_DURATION) : undefined}
         >
             {children}

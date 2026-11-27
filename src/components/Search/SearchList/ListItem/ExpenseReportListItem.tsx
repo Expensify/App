@@ -9,8 +9,11 @@ import {
     useSearchSubmitPopoverGuard,
 } from '@components/ReportSubmitToPopoverAnchor';
 import useIsSearchRowFocused from '@components/Search/hooks/useIsSearchRowFocused';
+import {usePinnedColumnStyles} from '@components/Search/PinnedColumnsContext';
+import {PinnedRowCover} from '@components/Search/PinnedCovers';
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 import ListItemComposed from '@components/SelectionList/ListItemComposed';
+import {useListItemContext, useListItemHovered} from '@components/SelectionList/ListItemContext';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 
@@ -85,6 +88,29 @@ function ExpenseReportListItem<TItem extends ListItem>(props: ExpenseReportListI
     );
 }
 
+type ExpenseReportPinnedRowCoverProps = {
+    isSelected: boolean;
+
+    isDisabled: boolean;
+};
+
+/** Reads the row's hover and focus state, which only the list item's children can. */
+function ExpenseReportPinnedRowCover({isSelected, isDisabled}: ExpenseReportPinnedRowCoverProps) {
+    const styles = useThemeStyles();
+    const isPointerHovered = useListItemHovered();
+    const {isFocusVisible, isInteractive} = useListItemContext();
+
+    return (
+        <PinnedRowCover
+            // As in `ListItemPressable`, a selected row with keyboard focus shows its hover background unless the pointer is on it.
+            isSelected={isSelected && (isPointerHovered || !isFocusVisible || isDisabled)}
+            // The same states `ListItemPressable` paints its hover background for.
+            isHovered={!isDisabled && ((isPointerHovered && isInteractive) || isFocusVisible)}
+            inset={{horizontal: styles.ph3.paddingHorizontal, vertical: variables.tableRowPaddingVertical}}
+        />
+    );
+}
+
 function ExpenseReportListItemInner<TItem extends ListItem>({
     item,
     isLoading,
@@ -109,6 +135,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const {pageGutterMargin} = useLayoutSpacing();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
+    const {leadingLineStyle: pinnedLeadingLineStyle, leadingLineTextStyle: pinnedLeadingLineTextStyle, cellContainerStyle: pinnedCellContainerStyle} = usePinnedColumnStyles();
     /*
      * Selection for a non-empty expense report is keyed by child transaction ID, never by the report row key,
      * so the row's own key alone can never reflect it. A report is checked by its rows once it has them, and
@@ -381,7 +408,8 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     if (descriptionMessages.length > 0) {
         getDescription = (
             <View
-                style={[styles.flexRow, styles.alignItemsCenter, styles.mt2, styles.userSelectNone]}
+                // Stays beside the checkbox and ends where the pins do.
+                style={[styles.flexRow, styles.alignItemsCenter, styles.mt2, styles.userSelectNone, isLargeScreenWidth && pinnedLeadingLineStyle]}
                 dataSet={{
                     [CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true,
                 }}
@@ -393,16 +421,20 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
                     width={12}
                     height={12}
                 />
-                <Text
-                    style={[
-                        isLargeScreenWidth ? styles.textMicro : styles.mutedNormalTextLabel,
-                        {
-                            color: theme.textError,
-                        },
-                    ]}
-                >
-                    {descriptionMessages.join(' ')}
-                </Text>
+                {/* Shrinks so the text truncates on one line instead of wrapping under the pins. */}
+                <View style={styles.flexShrink1}>
+                    <Text
+                        style={[
+                            isLargeScreenWidth ? styles.textMicro : styles.mutedNormalTextLabel,
+                            {
+                                color: theme.textError,
+                            },
+                            isLargeScreenWidth && pinnedLeadingLineTextStyle,
+                        ]}
+                    >
+                        {descriptionMessages.join(' ')}
+                    </Text>
+                </View>
             </View>
         );
     }
@@ -437,7 +469,8 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
                 StyleUtils.getSearchRowBackgroundStyle(isSelected),
                 !isLargeScreenWidth && styles.br0,
                 isPendingDelete && styles.cursorDisabled,
-                isLargeScreenWidth && isLastItem && [styles.tableBottomRadius, styles.overflowHidden],
+                // `clip`, since `hidden` makes a scroller the pinned cells would stick to.
+                isLargeScreenWidth && isLastItem && [styles.tableBottomRadius, styles.overflowClip],
                 !isLargeScreenWidth && isFirstItem && styles.tableTopRadius,
                 !isLargeScreenWidth && isLastItem && styles.tableBottomRadius,
                 !isLargeScreenWidth && !isLastItem && StyleUtils.getSelectedBorderBottomStyle(isSelected),
@@ -445,7 +478,14 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             isDisabled={isPendingDelete}
             shouldDisableHoverStyle={isPendingDelete}
         >
-            <View style={[styles.flex1, styles.userSelectNone]}>
+            {/* Beside the content, since only the row stretches its children to its full height. */}
+            {isLargeScreenWidth && (
+                <ExpenseReportPinnedRowCover
+                    isSelected={isSelected}
+                    isDisabled={!!item.isDisabled}
+                />
+            )}
+            <View style={[styles.flex1, styles.userSelectNone, pinnedCellContainerStyle]}>
                 {!isLargeScreenWidth && (
                     <UserInfoAndActionButtonRow
                         item={liveReportItem}
