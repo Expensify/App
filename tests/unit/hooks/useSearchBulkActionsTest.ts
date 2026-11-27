@@ -12,6 +12,8 @@ import {
     exportSearchItemsToCSV,
     getExportTemplates,
     queueBulkApproveReports,
+    queueBulkDeleteExpenses,
+    queueBulkDeleteReports,
     queueBulkSubmitReports,
     queueBulkExpenseAction,
     queueExportSearchItemsToCSV,
@@ -20,7 +22,9 @@ import {
 } from '@libs/actions/Search';
 import type * as SearchActions from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
+import type * as NetworkState from '@libs/NetworkState';
 import {buildOptimisticExportIntegrationAction} from '@libs/ReportUtils';
+import type * as SearchUIUtils from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -55,6 +59,8 @@ jest.mock('@libs/actions/Search', () => ({
     queueBulkApproveReports: jest.fn(),
     queueBulkSubmitReports: jest.fn(),
     queueBulkExpenseAction: jest.fn(),
+    queueBulkDeleteExpenses: jest.fn(),
+    queueBulkDeleteReports: jest.fn(),
     getSearchApproveOnyxData: jest.fn(() => ({})),
     getSearchPayOnyxData: jest.fn(() => ({})),
     bulkDeleteReports: jest.fn(),
@@ -146,6 +152,12 @@ jest.mock('@hooks/useNetwork', () => ({
     default: () => ({isOffline: mockIsOffline}),
 }));
 
+let mockIsNetworkOffline = false;
+jest.mock('@libs/NetworkState', () => ({
+    ...jest.requireActual<typeof NetworkState>('@libs/NetworkState'),
+    getIsOffline: () => mockIsNetworkOffline,
+}));
+
 const mockShowDecisionModal = jest.fn();
 jest.mock('@hooks/useDecisionModal', () => ({
     __esModule: true,
@@ -165,6 +177,12 @@ const mockShowLockedAccountModal = jest.fn();
 jest.mock('@components/DelegateNoAccessModalProvider', () => ({
     useDelegateNoAccessState: () => ({isDelegateAccessRestricted: mockIsDelegateAccessRestricted}),
     useDelegateNoAccessActions: () => ({showDelegateNoAccessModal: mockShowDelegateNoAccessModal}),
+}));
+
+let mockCanDeleteAnyLoadedItem = true;
+jest.mock('@libs/SearchUIUtils', () => ({
+    ...jest.requireActual<typeof SearchUIUtils>('@libs/SearchUIUtils'),
+    canDeleteAnyLoadedItem: () => mockCanDeleteAnyLoadedItem,
 }));
 
 jest.mock('@components/LockedAccountModalProvider', () => ({
@@ -2157,5 +2175,175 @@ describe('useSearchBulkActions - Hold, Unhold and Reject under Select all', () =
         // Then neither is offered
         expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.HOLD)).toBe(false);
         expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD)).toBe(false);
+    });
+});
+
+async function pressDelete(result: {current: ReturnType<typeof useSearchBulkActions>}) {
+    await waitFor(() => {
+        expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.DELETE)).toBe(true);
+    });
+    await act(async () => {
+        await result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.DELETE)?.onSelected?.();
+    });
+}
+
+describe('useSearchBulkActions - Delete under Select all', () => {
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    beforeEach(async () => {
+        jest.clearAllMocks();
+        mockIsOffline = false;
+        mockIsNetworkOffline = false;
+        mockCanDeleteAnyLoadedItem = true;
+        mockAreAllMatchingItemsSelected = true;
+        await Onyx.clear();
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+        mockExcludedTransactions = {};
+        mockSelectedReports = [];
+        mockCurrentSearchResults = undefined;
+        mockGetExportTemplates.mockReturnValue({customTemplates: [], defaultTemplates: []});
+
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: 'test@example.com'});
+    });
+
+    afterEach(async () => {
+        await Onyx.clear();
+    });
+
+    it('queues a server-side delete of every matching report once the user confirms', async () => {
+        // Given "Select all" on a reports search and a user who confirms the delete
+        mockShowConfirmModal.mockResolvedValue({action: ModalActions.CONFIRM});
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        // When the user deletes the selection
+        await pressDelete(result);
+
+        // Then the search is handed to the backend to delete the reports, not looped per loaded report
+        expect(queueBulkDeleteReports).toHaveBeenCalledWith(expect.any(String));
+        expect(queueBulkDeleteExpenses).not.toHaveBeenCalled();
+        expect(mockClearSelectedTransactions).toHaveBeenCalled();
+    });
+
+    it('queues a server-side delete of every matching expense without the ones the user deselected', async () => {
+        // Given "Select all" on an expenses search with one expense deselected, and a user who confirms the delete
+        mockExcludedTransactions = {tx2: makeSelectedTransaction()};
+        mockShowConfirmModal.mockResolvedValue({action: ModalActions.CONFIRM});
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        // When the user deletes the selection
+        await pressDelete(result);
+
+        // Then the search is handed to the backend with the deselected expense listed, so it is kept
+        expect(queueBulkDeleteExpenses).toHaveBeenCalledWith(expect.any(String), ['tx2']);
+        expect(queueBulkDeleteReports).not.toHaveBeenCalled();
+    });
+
+    it('deletes nothing when the user goes offline while the confirmation is open', async () => {
+        // Given "Select all" while online, and a user who loses connection before confirming the delete
+        mockShowConfirmModal.mockImplementation(() => {
+            mockIsNetworkOffline = true;
+            return Promise.resolve({action: ModalActions.CONFIRM});
+        });
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        // When the user confirms
+        await pressDelete(result);
+
+        // Then nothing is queued, since the backend would delete whatever matches once the device reconnects
+        expect(queueBulkDeleteExpenses).not.toHaveBeenCalled();
+        expect(queueBulkDeleteReports).not.toHaveBeenCalled();
+        expect(mockShowDecisionModal).toHaveBeenCalled();
+    });
+
+    it('hides Delete when a deselected group cannot be left out of the query', async () => {
+        // Given "Select all" on a grouped expenses search, with a collapsed group deselected that has no filter to exclude it
+        mockExcludedTransactions = {[`${CONST.SEARCH.GROUP_PREFIX}123`]: makeSelectedTransaction()};
+
+        // When the bulk actions are built
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
+        });
+
+        // Then Delete isn't offered, since the backend would delete the deselected group too
+        expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.DELETE)).toBe(false);
+    });
+
+    it('hides Delete when an expense is checked again inside a group deselected after Select all', async () => {
+        // Given "Select all" on a merchant grouped search with the Airline group deselected, then one of its expenses checked again
+        const airlineGroupKey = `${CONST.SEARCH.GROUP_PREFIX}airline` as const;
+        mockSelectedTransactions = {tx1: makeSelectedTransaction(), tx3: makeSelectedTransaction({groupKey: airlineGroupKey})};
+        mockExcludedTransactions = {[airlineGroupKey]: makeSelectedTransaction()};
+        mockCurrentSearchResults = {
+            search: {type: CONST.SEARCH.DATA_TYPES.EXPENSE},
+            data: {[airlineGroupKey]: {merchant: 'Airline', count: 2, total: 200, currency: 'USD'}},
+        };
+
+        // When the bulk actions are built
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
+        });
+
+        // Then Delete isn't offered, since the backend would skip the expense checked again with the rest of its group
+        expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.DELETE)).toBe(false);
+    });
+
+    it('offers Delete when a loaded item can be deleted', async () => {
+        // Given "Select all" on an expenses search with a loaded expense the user can delete
+        mockCanDeleteAnyLoadedItem = true;
+
+        // When the bulk actions are built
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        // Then Delete is offered, since the backend skips the matches the user can't delete
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.DELETE)).toBe(true);
+        });
+    });
+
+    it('hides Delete when no loaded item can be deleted', async () => {
+        // Given "Select all" on an expenses search where none of the loaded expenses can be deleted
+        mockCanDeleteAnyLoadedItem = false;
+
+        // When the bulk actions are built
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}), {wrapper: OnyxListItemProvider});
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
+        });
+
+        // Then Delete isn't offered
+        expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.DELETE)).toBe(false);
+    });
+
+    it('leaves out a report the user deselected from the bulk delete', async () => {
+        // Given "Select all" on a reports search, with report2 deselected afterwards, and a user who confirms the delete
+        mockSelectedReports = [makeSelectedReport()];
+        mockExcludedTransactions = {tx2: makeSelectedTransaction({reportID: 'report2'})};
+        mockShowConfirmModal.mockResolvedValue({action: ModalActions.CONFIRM});
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        // When the user deletes the selection
+        await pressDelete(result);
+
+        // Then the query sent to the backend excludes report2, so it isn't deleted
+        expectQueryToExcludeReport(jest.mocked(queueBulkDeleteReports).mock.calls.at(-1)?.at(0), 'report2');
+    });
+
+    it('deletes nothing when the user cancels the confirmation', async () => {
+        // Given "Select all" and a user who cancels the delete confirmation
+        mockShowConfirmModal.mockResolvedValue({action: ModalActions.CLOSE});
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        // When the user backs out
+        await pressDelete(result);
+
+        // Then nothing is queued
+        expect(queueBulkDeleteExpenses).not.toHaveBeenCalled();
+        expect(queueBulkDeleteReports).not.toHaveBeenCalled();
     });
 });
