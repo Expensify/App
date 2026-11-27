@@ -12,7 +12,16 @@ import RNFS from 'react-native-fs';
 
 import type {FileDownload} from './types';
 
-import {appendTimeToFileName, getFileName, isErrorResponseForFileDownload, readBlobAsBase64, rejectWithFileDownloadError, showGeneralErrorAlert, showPermissionErrorAlert, showSuccessAlert} from './FileUtils';
+import {
+    appendTimeToFileName,
+    getFileName,
+    isErrorResponseForFileDownload,
+    readBlobAsBase64,
+    rejectWithFileDownloadError,
+    showGeneralErrorAlert,
+    showPermissionErrorAlert,
+    showSuccessAlert,
+} from './FileUtils';
 import hasGalleryWritePermission from './hasGalleryWritePermission';
 import saveLocalFileToGallery from './saveLocalFileToGallery';
 
