@@ -6,7 +6,7 @@ import useShouldShowRequire2FAPage from '@hooks/useShouldShowRequire2FAPage';
 import {dismissMarketingWindow} from '@libs/actions/User';
 import {getDeepestFocusedScreen, isTwoFactorSetupScreen} from '@libs/Navigation/Navigation';
 import openExternalLink from '@libs/openExternalLink';
-import {getActiveProductMarketingAnnouncement, isProductMarketingAnnouncementDismissed} from '@libs/ProductMarketingWindowUtils';
+import {getActiveProductMarketingAnnouncement, isProductMarketingAnnouncementDismissed, isProductMarketingAnnouncementEligibleByAccountAge} from '@libs/ProductMarketingWindowUtils';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -60,6 +60,7 @@ function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindo
     const [stashedAccountID, stashedAccountIDMetadata] = useOnyx(ONYXKEYS.STASHED_SESSION, {selector: accountIDSelector});
     const [isActingAsDelegate = false, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector});
     const [lastDismissedMarketingWindow, lastDismissedMarketingWindowMetadata] = useOnyx(ONYXKEYS.NVP_LAST_DISMISSED_MARKETING_WINDOW);
+    const [firstSignInDate, firstSignInDateMetadata] = useOnyx(ONYXKEYS.NVP_PRIVATE_FIRST_SIGN_IN_DATE);
     const [hasCompletedGuidedSetupFlow, onboardingMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasCompletedGuidedSetupFlowSelector});
     const [accountIDsWithObservedActiveOnboarding, setAccountIDsWithObservedActiveOnboarding] = useState<ReadonlySet<number>>(() => new Set());
     // OpenApp provides the dismissal data; wait for it to avoid a startup flash of an already-dismissed window.
@@ -85,6 +86,8 @@ function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindo
     const illustrationNames = announcement?.visual.type === 'illustration' ? [announcement.visual.name] : [];
     const illustrations = useMemoizedLazyIllustrations(illustrationNames);
     const isDismissed = isProductMarketingAnnouncementDismissed(announcement, lastDismissedMarketingWindow);
+
+    const isEligibleByAccountAge = isProductMarketingAnnouncementEligibleByAccountAge(announcement, firstSignInDate);
     const isCoveredByCenteredModalScreen = !!topmostRouteName && CENTERED_MODAL_SCREEN_NAVIGATORS.has(topmostRouteName);
     const isLoading =
         isLoadingOnyxValue(
@@ -96,6 +99,7 @@ function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindo
             onboardingMetadata,
             currentUserLoginMetadata,
             policiesMetadata,
+            firstSignInDateMetadata,
         ) || isLoadingApp;
     const shouldSuppressForOnboardingSession = hasCompletedGuidedSetupFlow === false || (currentAccountID !== undefined && accountIDsWithObservedActiveOnboarding.has(currentAccountID));
     const shouldShowRequire2FAPage = useShouldShowRequire2FAPage();
@@ -109,6 +113,7 @@ function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindo
     if (
         !announcement ||
         isDismissed ||
+        !isEligibleByAccountAge ||
         isLoading ||
         isProductMarketingWindowCovered ||
         isAnonymousSession ||

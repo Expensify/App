@@ -10,6 +10,10 @@ import type {SingleImageSource} from '@src/types/utils/ReactNativeCompat';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
+import {toDate} from 'date-fns-tz';
+
+const SEVEN_DAYS_IN_MS = 7 * 24 * 60 * 60 * 1000;
+
 type ProductMarketingAnnouncementVisual =
     | {
           type: 'image';
@@ -41,6 +45,13 @@ type ProductMarketingAnnouncement = {
 
     /** External page the primary CTA opens in a new tab. */
     ctaUrl: string;
+
+    /**
+     * UTC publication time of this announcement in `yyyy-MM-dd HH:mm:ss` format. Role variants of the same
+     * announcement share it. New accounts only see the announcement once seven days have passed since their
+     * first sign-in and this time has passed.
+     */
+    releasedAt: string;
 };
 
 /**
@@ -58,7 +69,48 @@ function getActiveProductMarketingAnnouncement(isAdmin: boolean): ProductMarketi
         body: isAdmin ? 'productMarketingWindow.admin.body' : 'productMarketingWindow.member.body',
         ctaLabel: 'common.learnMore',
         ctaUrl: isAdmin ? CONST.DISTANCE_RATES_AUTO_UPDATE_HELP_URL : CONST.DISTANCE_EXPENSES_FREQUENT_TRIPS_HELP_URL,
+        releasedAt: '2026-10-01 00:00:00',
     };
+}
+
+/**
+ * The instant the announcement becomes eligible to show based on the user's account age, in epoch milliseconds.
+ * Returns:
+ * - a number: eligibility starts at that instant (the later of seven days after first sign-in and the release time).
+ * - null: the announcement can never show for this user, because it was released before their first sign-in.
+ * - undefined: there is no usable first-sign-in marker yet, so callers should fall back to the existing behavior and
+ *   not gate on account age. New accounts get the marker at first sign-in, so this only affects existing accounts whose
+ *   marker has not been backfilled, which must not be regressed into hiding.
+ */
+function getProductMarketingAnnouncementEligibleAt(announcement: ProductMarketingAnnouncement | null, firstSignInDate: OnyxEntry<string>): number | null | undefined {
+    if (!announcement || !firstSignInDate) {
+        return undefined;
+    }
+
+    const firstSignInTime = toDate(firstSignInDate, {timeZone: 'UTC'}).getTime();
+    const releasedTime = toDate(announcement.releasedAt, {timeZone: 'UTC'}).getTime();
+    if (Number.isNaN(firstSignInTime) || Number.isNaN(releasedTime)) {
+        return undefined;
+    }
+
+    if (releasedTime < firstSignInTime) {
+        return null;
+    }
+
+    return Math.max(firstSignInTime + SEVEN_DAYS_IN_MS, releasedTime);
+}
+
+/**
+ * Whether the announcement currently passes the account-age gate. A missing or invalid first-sign-in marker falls back
+ * to eligible so existing accounts are not regressed. An announcement released before first sign-in is never eligible.
+ */
+function isProductMarketingAnnouncementEligibleByAccountAge(announcement: ProductMarketingAnnouncement | null, firstSignInDate: OnyxEntry<string>): boolean {
+    const eligibleAt = getProductMarketingAnnouncementEligibleAt(announcement, firstSignInDate);
+    if (eligibleAt === undefined) {
+        return true;
+    }
+
+    return eligibleAt !== null && Date.now() >= eligibleAt;
 }
 
 /**
@@ -72,5 +124,5 @@ function isProductMarketingAnnouncementDismissed(announcement: ProductMarketingA
     return isAnnouncementDismissed || isStale;
 }
 
-export {getActiveProductMarketingAnnouncement, isProductMarketingAnnouncementDismissed};
+export {getActiveProductMarketingAnnouncement, getProductMarketingAnnouncementEligibleAt, isProductMarketingAnnouncementDismissed, isProductMarketingAnnouncementEligibleByAccountAge};
 export type {ProductMarketingAnnouncement};
