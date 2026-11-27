@@ -747,6 +747,48 @@ describe('MoneyRequest', () => {
             const requestMoneyArg = jest.mocked(TrackExpense.requestMoney).mock.calls.at(0)?.at(0);
             expect(requestMoneyArg?.optimisticChatReportID).toBe('ui-resolved-chat');
         });
+
+        it('should defer auto-submit for non-final receipts and carry existingIOUReport across a multi-file batch', () => {
+            // Given a multi-file receipt batch on a workspace chat without ASAP Submit beta
+            const firstIOUReport = createRandomReport(50, undefined);
+            jest.mocked(TrackExpense.requestMoney).mockReturnValueOnce({iouReport: firstIOUReport, transactionID: 'tx-1'});
+            const files = [
+                {...fakeReceiptFile, transactionID: '111'},
+                {...fakeReceiptFile, transactionID: '222'},
+                {...fakeReceiptFile, transactionID: '333'},
+            ];
+
+            // When createTransaction processes the batch
+            createTransaction({getCurrencyDecimals: getCurrencyDecimalsLocal, ...baseParams, files, allTransactionDrafts: {}, delegateAccountID: undefined});
+
+            // Then earlier receipts defer auto-submit and reuse the report returned by the first receipt
+            expect(jest.mocked(TrackExpense.requestMoney).mock.calls.map(([params]) => params.shouldDeferAutoSubmit)).toEqual([true, true, false]);
+            expect(jest.mocked(TrackExpense.requestMoney).mock.calls.at(1)?.at(0)?.existingIOUReport).toBe(firstIOUReport);
+        });
+
+        it('should not defer auto-submit for multi-file scan batches on a chat report when ASAP Submit beta is enabled', () => {
+            // Given two scan transactions submitted on a chat report under ASAP Submit beta
+            const firstReceiptTransaction = {...createRandomTransaction(11), transactionID: '111', iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN};
+            const secondReceiptTransaction = {...createRandomTransaction(12), transactionID: '222', iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN};
+            const files = [
+                {...fakeReceiptFile, transactionID: '111'},
+                {...fakeReceiptFile, transactionID: '222'},
+            ];
+
+            // When createTransaction processes the batch
+            createTransaction({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                ...baseParams,
+                isASAPSubmitBetaEnabled: true,
+                transactions: [firstReceiptTransaction, secondReceiptTransaction],
+                files,
+                allTransactionDrafts: {},
+                delegateAccountID: undefined,
+            });
+
+            // Then neither receipt defers auto-submit because each scan creates its own report
+            expect(jest.mocked(TrackExpense.requestMoney).mock.calls.map(([params]) => params.shouldDeferAutoSubmit)).toEqual([false, false]);
+        });
     });
 
     describe('handleMoneyRequestStepDistanceNavigation', () => {

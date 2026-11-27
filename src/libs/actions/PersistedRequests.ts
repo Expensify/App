@@ -1,4 +1,6 @@
 import {isClientTheLeader} from '@libs/ActiveClientManager';
+import canPersistRequest from '@libs/canPersistRequest';
+import copyFileMetadataToOwnProperties from '@libs/copyFileMetadataToOwnProperties';
 import Log from '@libs/Log';
 import sanitizeLogParams from '@libs/sanitizeLogParams';
 
@@ -246,6 +248,14 @@ function save<TKey extends OnyxKey>(requestToPersist: Request<TKey>): Promise<vo
         ongoingRequest: ongoingRequest?.command ?? 'null',
         isInitialized,
     });
+
+    // A receipt that comes back from disk after a restart is uploaded from its name and type, so they must be stored with it
+    for (const value of Object.values(requestToPersist.data ?? {})) {
+        if (typeof Blob !== 'undefined' && value instanceof Blob) {
+            copyFileMetadataToOwnProperties(value);
+        }
+    }
+
     // If not initialized yet, queue the request for later processing
     if (!isInitialized) {
         Log.info('[PersistedRequests] Queueing request until initialization completes', false, {
@@ -387,18 +397,6 @@ function update<TKey extends OnyxKey>(oldRequestIndex: number, newRequest: Reque
     });
 }
 
-function canPersistRequest(request: AnyRequest | null): boolean {
-    if (!request?.data) {
-        return true;
-    }
-
-    return !Object.values(request.data).some((value) => {
-        const isFile = typeof File !== 'undefined' && value instanceof File;
-        const isBlob = typeof Blob !== 'undefined' && value instanceof Blob;
-        return isFile || isBlob;
-    });
-}
-
 function updateOngoingRequest<TKey extends OnyxKey>(newRequest: Request<TKey>) {
     Log.info('[PersistedRequests] Updating the ongoing request', false, {ongoingRequest: sanitizeLogParams(ongoingRequest), newRequest: sanitizeLogParams(newRequest)});
     ongoingRequest = newRequest as AnyRequest;
@@ -461,10 +459,7 @@ function processNextRequest(): AnyRequest | null {
     // Persist both the updated queue and the ongoing request to disk atomically.
     // This ensures that if the app crashes mid-flight, the ongoing request is not
     // lost (Bug #80759 Issue 3a) and the queue on disk matches memory (Issue 3c).
-    // Skip persisting ongoingRequest when it contains non-serializable values
-    // (e.g. File objects in data.file or data.receipt). IndexedDB cannot clone
-    // native File objects (DataCloneError). These requests cannot survive a crash
-    // anyway since File references are lost on restart.
+    // On web a request holding a File can't be stored, see canPersistRequest.
     if (canPersistRequest(ongoingRequest)) {
         trackOnyxWrite(
             Onyx.multiSet({
@@ -563,7 +558,6 @@ export {
     save,
     getAll,
     getAllIncludingOngoing,
-    canPersistRequest,
     getClientRequestIndex,
     getCommands,
     endRequestAndRemoveFromQueue,
