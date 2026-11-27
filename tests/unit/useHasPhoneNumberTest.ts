@@ -1,4 +1,4 @@
-import {renderHook, waitFor} from '@testing-library/react-native';
+import {renderHook} from '@testing-library/react-native';
 
 import useHasPhoneNumberLogin from '@hooks/useHasPhoneNumberLogin';
 
@@ -24,7 +24,6 @@ describe('useHasPhoneNumberLogin', () => {
 
         const {result} = renderHook(() => useHasPhoneNumberLogin());
 
-        await waitFor(() => expect(result.current.isPhoneNumberLoaded).toBe(true));
         expect(result.current.hasPhoneNumberLogin).toBe(false);
     });
 
@@ -35,7 +34,6 @@ describe('useHasPhoneNumberLogin', () => {
 
         const {result} = renderHook(() => useHasPhoneNumberLogin());
 
-        await waitFor(() => expect(result.current.isPhoneNumberLoaded).toBe(true));
         expect(result.current.hasPhoneNumberLogin).toBe(true);
     });
 
@@ -47,7 +45,6 @@ describe('useHasPhoneNumberLogin', () => {
 
         const {result} = renderHook(() => useHasPhoneNumberLogin());
 
-        await waitFor(() => expect(result.current.isPhoneNumberLoaded).toBe(true));
         expect(result.current.hasPhoneNumberLogin).toBe(true);
     });
 });

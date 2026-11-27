@@ -725,12 +725,13 @@ export default await buildOxlintConfig({
             ],
             rules: {'rulesdir/no-direct-personal-details-list': 'off'},
         },
-        // LocaleContextProvider and HybridAppHandler mount before `Onyx.init` finishes, so they keep relying on the startup
-        // loading status. Tests and mocks follow the code they cover and get cleaned up together with it.
+        // LocaleContextProvider, HybridAppHandler and useSaveMarketingAttribution run before `Onyx.init` finishes, so they keep
+        // relying on the startup loading status. Tests and mocks follow the code they cover and get cleaned up together with it.
         {
             files: [
                 'src/components/LocaleContextProvider.tsx',
                 'src/HybridAppHandler.tsx',
+                'src/hooks/useSaveMarketingAttribution.ts',
                 'tests/**/*.{ts,tsx}',
                 'jest/**/*.{ts,tsx}',
                 '__mocks__/**/*.{ts,tsx}',

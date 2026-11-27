@@ -461,7 +461,6 @@
 "../../src/CONST/runtimeConfigured.ts"	"import/no-named-as-default"	1
 "../../src/CONST/runtimeConfigured.ts"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/DeepLinkHandler.tsx"	"no-restricted-syntax"	1
-"../../src/DeepLinkHandler.tsx"	"rulesdir/no-onyx-loading-status"	8
 "../../src/Expensify.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/Expensify.tsx"	"no-restricted-syntax"	1
 "../../src/Expensify.tsx"	"react-hooks/refs"	1
@@ -495,8 +494,6 @@
 "../../src/hooks/useExpensifyCardRulesList.ts"	"rulesdir/no-onyx-loading-status"	1
 "../../src/hooks/useExportedToFilterOptions.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useGPSTripStateChecker/index.native.ts"	"rulesdir/no-onyx-loading-status"	3
-"../../src/hooks/useHasLoggedIntoMobileApp.ts"	"rulesdir/no-onyx-loading-status"	4
-"../../src/hooks/useHasPhoneNumberLogin.ts"	"rulesdir/no-onyx-loading-status"	2
 "../../src/hooks/useHasReportAwaitingApproval.ts"	"rulesdir/no-onyx-loading-status"	1
 "../../src/hooks/useHydrateReportsFromSnapshot.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useImportSpreadsheetConfirmModal.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -508,7 +505,6 @@
 "../../src/hooks/useIsBlockedToAddFeed.ts"	"react-hooks/set-state-in-effect"	1
 "../../src/hooks/useIsBlockedToAddFeed.ts"	"rulesdir/no-onyx-loading-status"	1
 "../../src/hooks/useIsDomainUsingCard.ts"	"rulesdir/no-onyx-loading-status"	1
-"../../src/hooks/useIsLoadingAppRecovery.ts"	"rulesdir/no-onyx-loading-status"	2
 "../../src/hooks/useIsOwnWorkspaceChatRef.ts"	"react-hooks/refs"	2
 "../../src/hooks/useIsPaidPolicyAdmin.ts"	"no-restricted-imports"	1
 "../../src/hooks/useKeyboardShortcut.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -517,7 +513,6 @@
 "../../src/hooks/useLoadDepositAccountSetup.ts"	"rulesdir/no-onyx-loading-status"	1
 "../../src/hooks/useMarkdownStyle.ts"	"rulesdir/no-raw-typography"	3
 "../../src/hooks/useMergeResultConfirmationConfig.tsx"	"rulesdir/no-onyx-loading-status"	1
-"../../src/hooks/useOnboardingFlow.ts"	"rulesdir/no-onyx-loading-status"	3
 "../../src/hooks/useOnyx.ts"	"@typescript-eslint/no-unsafe-type-assertion"	9
 "../../src/hooks/useOptimisticDraftTransactions.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useOtherFeedsForFeedSelector.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -544,7 +539,6 @@
 "../../src/hooks/useReviewDuplicatesNavigation.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useReviewDuplicatesNavigation.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/hooks/useRulesPrefetch.ts"	"rulesdir/no-onyx-loading-status"	1
-"../../src/hooks/useSaveMarketingAttribution.ts"	"rulesdir/no-onyx-loading-status"	1
 "../../src/hooks/useSearchBulkActions.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	2
 "../../src/hooks/useSearchBulkActions.ts"	"@typescript-eslint/no-unsafe-type-assertion"	9
 "../../src/hooks/useSearchFilterSync.ts"	"rulesdir/no-onyx-loading-status"	1
@@ -1156,7 +1150,6 @@
 "../../src/pages/iou/request/step/withWritableReportOrNotFound.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/LoadingPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/LogInWithShortLivedAuthTokenPage.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
-"../../src/pages/LogInWithShortLivedAuthTokenPage.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/LogOutPreviousUserPage.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/pages/media/AttachmentModalScreen/AttachmentModalBaseContent/index.tsx"	"no-restricted-imports"	1
 "../../src/pages/media/AttachmentModalScreen/AttachmentModalBaseContent/index.tsx"	"react-hooks/set-state-in-effect"	3
@@ -1164,7 +1157,6 @@
 "../../src/pages/media/AttachmentModalScreen/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	16
 "../../src/pages/media/AttachmentModalScreen/routes/hooks/useReportAttachmentModalType.ts"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/media/AttachmentModalScreen/routes/TransactionReceiptModalContent.tsx"	"react-hooks/set-state-in-effect"	2
-"../../src/pages/MissingPersonalDetails/index.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/MissingPersonalDetails/MissingPersonalDetailsContent.tsx"	"no-restricted-imports"	1
 "../../src/pages/MissingPersonalDetails/subPages/Address.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	2
 "../../src/pages/MissingPersonalDetails/subPages/Address.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	5
@@ -1181,7 +1173,6 @@
 "../../src/pages/OnboardingInterestedFeatures/BaseOnboardingInterestedFeatures.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/OnboardingPersonalTrackGoal/BaseOnboardingPersonalTrackGoal.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/pages/OnboardingPrivateDomain/BaseOnboardingPrivateDomain.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/OnboardingPurpose/BaseOnboardingPurpose.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/PrivateNotes/PrivateNotesEditPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/PrivateNotes/PrivateNotesEditPage.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/PrivateNotes/PrivateNotesListPage.tsx"	"no-restricted-imports"	1

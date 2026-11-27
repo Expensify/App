@@ -5,7 +5,6 @@ import {openApp} from '@userActions/App';
 import {getAll as getAllPersistedRequests, getOngoingRequest} from '@userActions/PersistedRequests';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {accountIDSelector} from '@selectors/Session';
 import {useEffect, useRef} from 'react';
@@ -31,13 +30,13 @@ function useIsLoadingAppRecovery() {
     const hasHandledStrandedIsLoadingAppRef = useRef(false);
 
     const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
-    const [isLoadingApp, isLoadingAppMetadata] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [sessionAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const {isOffline} = useNetwork();
 
     // Recovery: if isLoadingApp is missing after the app is ready, re-open the app
     useEffect(() => {
-        if (hasHandledMissingIsLoadingAppRef.current || !hasLoadedApp || isLoadingApp !== undefined || isOffline || isLoadingOnyxValue(isLoadingAppMetadata)) {
+        if (hasHandledMissingIsLoadingAppRef.current || !hasLoadedApp || isLoadingApp !== undefined || isOffline) {
             return;
         }
         hasHandledMissingIsLoadingAppRef.current = true;
@@ -46,12 +45,12 @@ function useIsLoadingAppRecovery() {
             hasLoadedApp: !!hasLoadedApp,
         });
         openApp();
-    }, [hasLoadedApp, isLoadingApp, isOffline, sessionAccountID, isLoadingAppMetadata]);
+    }, [hasLoadedApp, isLoadingApp, isOffline, sessionAccountID]);
 
     // Recovery: if isLoadingApp stays `true` while the app is loaded and online with no reconnect-family
     // request pending, the clearing finallyData was lost — re-open the app.
     useEffect(() => {
-        if (hasHandledStrandedIsLoadingAppRef.current || !hasLoadedApp || isLoadingApp !== true || isOffline || isLoadingOnyxValue(isLoadingAppMetadata)) {
+        if (hasHandledStrandedIsLoadingAppRef.current || !hasLoadedApp || isLoadingApp !== true || isOffline) {
             return;
         }
 
@@ -77,7 +76,7 @@ function useIsLoadingAppRecovery() {
         timeoutID = setTimeout(checkStranded, STRANDED_IS_LOADING_APP_RECOVERY_DELAY_MS);
 
         return () => clearTimeout(timeoutID);
-    }, [hasLoadedApp, isLoadingApp, isOffline, sessionAccountID, isLoadingAppMetadata]);
+    }, [hasLoadedApp, isLoadingApp, isOffline, sessionAccountID]);
 }
 
 export default useIsLoadingAppRecovery;

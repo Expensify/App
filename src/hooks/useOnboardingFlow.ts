@@ -13,7 +13,6 @@ import {buildOnboardingFlowParams, startOnboardingFlow} from '@userActions/Welco
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {isSingleNewDotEntrySelector} from '@selectors/HybridApp';
 import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector, wasInvitedToNewDotSelector} from '@selectors/Onboarding';
@@ -34,7 +33,7 @@ function useOnboardingFlowRouter() {
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const isValidateLoginFlow = useRootNavigationState(Navigation.isValidateLoginFlow);
     const shouldSuppressPromotionalUI = useShouldSuppressPromotionalUI();
-    const [onboardingValues, isOnboardingCompletedMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
+    const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const isLoggingInAsNewSessionUser = isLoggingInAsNewUser(currentUrl, sessionEmail);
@@ -45,13 +44,10 @@ function useOnboardingFlowRouter() {
     const {initialURL} = useInitialURLState();
     const getIsVisitingSecureLink = () => hasSecureLinkKey(getCurrentUrl()) || hasSecureLinkKey(Navigation.getActiveRoute()) || hasSecureLinkKey(initialURL);
     const isVisitingSecureLink = getIsVisitingSecureLink();
-    const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {
+    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {
         selector: tryNewDotOnyxSelector,
     });
     const {isHybridAppOnboardingCompleted, hasBeenAddedToNudgeMigration} = tryNewDot ?? {};
-    const isOnboardingLoading = isLoadingOnyxValue(isOnboardingCompletedMetadata, tryNewDotMetadata);
-
-    const [, dismissedProductTrainingMetadata] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
 
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
     const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE);
@@ -60,7 +56,7 @@ function useOnboardingFlowRouter() {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const wasInvitedToNewDot = wasInvitedToNewDotSelector(introSelected);
 
-    const [isSingleNewDotEntry, isSingleNewDotEntryMetadata] = useOnyx(ONYXKEYS.HYBRID_APP, {selector: isSingleNewDotEntrySelector});
+    const [isSingleNewDotEntry] = useOnyx(ONYXKEYS.HYBRID_APP, {selector: isSingleNewDotEntrySelector});
 
     const isOnboardingCompleted = hasCompletedGuidedSetupFlowSelector(onboardingValues);
 
@@ -81,21 +77,13 @@ function useOnboardingFlowRouter() {
                     return;
                 }
 
-                if (isLoadingApp !== false || isOnboardingLoading) {
+                if (isLoadingApp !== false) {
                     return;
                 }
 
                 // Keep the onboarding navigator registered throughout sign-in, but do not open it over Validate Login.
                 // This navigation-state subscription reruns the effect after Validate Login is dismissed.
                 if (isValidateLoginFlow) {
-                    return;
-                }
-
-                if (isLoadingOnyxValue(isOnboardingCompletedMetadata, tryNewDotMetadata, dismissedProductTrainingMetadata)) {
-                    return;
-                }
-
-                if (CONFIG.IS_HYBRID_APP && isLoadingOnyxValue(isSingleNewDotEntryMetadata)) {
                     return;
                 }
 
@@ -154,14 +142,9 @@ function useOnboardingFlowRouter() {
         isLoadingApp,
         isValidateLoginFlow,
         isHybridAppOnboardingCompleted,
-        isOnboardingCompletedMetadata,
-        tryNewDotMetadata,
-        isSingleNewDotEntryMetadata,
         isSingleNewDotEntry,
-        dismissedProductTrainingMetadata,
         currentUrl,
         isLoggingInAsNewSessionUser,
-        isOnboardingLoading,
         onboardingValues,
         account,
         onboardingCompanySize,

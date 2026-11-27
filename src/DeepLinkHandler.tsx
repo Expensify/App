@@ -17,7 +17,6 @@ import {hasSecureLinkKey} from './libs/Url';
 import ONYXKEYS from './ONYXKEYS';
 import {guidedSetupAndTourStatusSelector} from './selectors/Onboarding';
 import {isEmptyObject} from './types/utils/EmptyObject';
-import isLoadingOnyxValue from './types/utils/isLoadingOnyxValue';
 
 type DeepLinkHandlerProps = {
     /** Callback to set the initial URL resolved from deep linking */
@@ -35,16 +34,15 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
     const pendingPublicRoomReportID = useRef('');
     const hasRefetchedPublicRoom = useRef(false);
 
-    const [allReports, allReportsMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [reportNameValuePairs, reportNameValuePairsMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const reportNameValuePairsRef = useRef(reportNameValuePairs);
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-    const [session, sessionMetadata] = useOnyx(ONYXKEYS.SESSION);
-    const [conciergeReportID, conciergeReportIDMetadata] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
-    const [introSelected, introSelectedMetadata] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [guidedSetupAndTourStatus, guidedSetupAndTourStatusMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
-    const [, betasMetadata] = useOnyx(ONYXKEYS.BETAS);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     // Only Concierge's personal detail is needed to create the Concierge chat when a deep link points to a missing report.
     const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
     // Read through a ref so a Concierge personal detail update (e.g. OpenApp loading it) does not re-run deep link handling.
@@ -71,20 +69,6 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
     };
 
     useEffect(() => {
-        if (
-            isLoadingOnyxValue(
-                allReportsMetadata,
-                reportNameValuePairsMetadata,
-                sessionMetadata,
-                conciergeReportIDMetadata,
-                introSelectedMetadata,
-                guidedSetupAndTourStatusMetadata,
-                betasMetadata,
-            )
-        ) {
-            return;
-        }
-
         // Guard against stale closures: when deps change and the effect re-runs, the previous
         // getInitialURL() promise may still be in-flight. Without this guard, its .then() would
         // fire with stale conciergeReportID/introSelected values, causing a duplicate
@@ -201,17 +185,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
             linkingChangeListener.current?.remove();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally excluding allReports, isAuthenticated, and onInitialUrl to avoid re-triggering deep link handling on every report update
-    }, [
-        conciergeReportID,
-        introSelected,
-        allReportsMetadata.status,
-        reportNameValuePairsMetadata.status,
-        sessionMetadata.status,
-        conciergeReportIDMetadata.status,
-        introSelectedMetadata.status,
-        guidedSetupAndTourStatusMetadata.status,
-        betasMetadata.status,
-    ]);
+    }, [conciergeReportID, introSelected]);
 
     // Safety net: if getInitialURL() resolves before the session loads, hasAuthToken() may return false
     // for an authenticated user, causing openReportFromDeepLink to take the wrong path. Once isAuthenticated

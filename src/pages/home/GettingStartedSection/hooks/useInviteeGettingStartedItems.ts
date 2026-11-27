@@ -46,7 +46,7 @@ function useInviteeGettingStartedItems(): UseInviteeGettingStartedItemsResult {
         },
     });
     const [hasName] = usePersonalDetail(currentUserAccountID, (personalDetail) => !!personalDetail?.firstName?.trim() || !!personalDetail?.lastName?.trim());
-    const {hasLoggedIntoMobileApp, isLastMobileAppLoginLoaded} = useHasLoggedIntoMobileApp();
+    const {hasLoggedIntoMobileApp} = useHasLoggedIntoMobileApp();
     const {addFirstReceiptItem, isLoadingTransactions} = useAddFirstReceiptItem();
 
     const addNameItem: GettingStartedItem = {
@@ -66,7 +66,7 @@ function useInviteeGettingStartedItems(): UseInviteeGettingStartedItemsResult {
 
     // Wait for completion data so a user who finished every step doesn't see the section flash in on a cold start. The name
     // selector returns a boolean once personal details load, so undefined means they are still loading.
-    const isLoadingCompletion = !isLastMobileAppLoginLoaded || hasName === undefined || isLoadingTransactions;
+    const isLoadingCompletion = hasName === undefined || isLoadingTransactions;
     const areAllStepsComplete = addNameItem.isComplete && addFirstReceiptItem.isComplete && downloadAppItem.isComplete;
 
     return {
