@@ -3,6 +3,7 @@ import Log from '@libs/Log';
 import Pusher from '@libs/Pusher';
 import PusherUtils from '@libs/PusherUtils';
 import reconcileFailureDataWithServerErrors from '@libs/reconcileFailureDataWithServerErrors';
+import {endOperation, startOperation} from '@libs/telemetry/frameDrops/frameDropTimeline';
 import {logReceiptRolledBack} from '@libs/telemetry/ReceiptObservability';
 import {trackExpenseApiError} from '@libs/telemetry/trackExpenseCreationError';
 
@@ -184,7 +185,9 @@ function applyHTTPSOnyxUpdates<TKey extends OnyxKey>(
 }
 
 function applyPusherOnyxUpdates<TKey extends OnyxKey>(updates: Array<OnyxUpdateEvent<TKey>>, lastUpdateID: number) {
+    let frameDropOperationID: number | undefined;
     pusherEventsPromise = pusherEventsPromise.then(() => {
+        frameDropOperationID = startOperation(CONST.TELEMETRY.FRAME_DROPS.OPERATION_PUSHER);
         Log.info('[OnyxUpdateManager] Applying pusher update', false, {lastUpdateID});
     });
 
@@ -197,6 +200,10 @@ function applyPusherOnyxUpdates<TKey extends OnyxKey>(updates: Array<OnyxUpdateE
             notifySearchOfTransactionWrites(updates.flatMap((update) => (update.eventType === Pusher.TYPE.MULTIPLE_EVENT_TYPE.ONYX_API_UPDATE ? update.data : [])));
         });
     const applyPromise = hasServerClear ? appliedPromise.finally(() => signOutFromOldDotAfterServerClear(CONST.ONYX_UPDATE_TYPES.PUSHER)) : appliedPromise;
+
+    // Attached to applyPromise itself, so the operation ends before the caller's continuations run.
+    const endFrameDropOperation = () => endOperation(frameDropOperationID);
+    applyPromise.then(endFrameDropOperation, endFrameDropOperation);
 
     pusherEventsPromise = applyPromise.catch(() => {});
 

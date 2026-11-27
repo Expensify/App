@@ -11,6 +11,7 @@ import ScrollView from '@components/ScrollView';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
+import useRecordModalForFrameDrops from '@hooks/useRecordModalForFrameDrops';
 import useResizableSingleRHP from '@hooks/useResizableSingleRHP';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
@@ -200,6 +201,8 @@ function BaseModal({
     useEffect(() => {
         isVisibleRef.current = isVisible;
     }, [isVisible]);
+
+    useRecordModalForFrameDrops(isVisible, type);
 
     // The covering entry must not outlive the component, whatever path unmounts it.
     useEffect(() => () => setModalCovering(coveringModalID, false), [coveringModalID]);

@@ -6,12 +6,15 @@ import {SPAN_STATUS_OK, spanTimeInputToSeconds} from '@sentry/core';
 import * as Sentry from '@sentry/react-native';
 import {AppState} from 'react-native';
 
+import {endFlow, startFlow} from './frameDrops/frameDropTimeline';
 import logBenchmarkSpanEnd, {isBenchmarkSpanEnabled} from './logBenchmarkSpanEnd';
 
 type ActiveSpanEntry = {
     span: ReturnType<typeof Sentry.startInactiveSpan>;
     spanName: string;
     startTimeForLog: number;
+    /** Set for root spans of user flows, which frame drops are attributed to (see isUserFlowName). */
+    frameDropFlowID?: number;
     /** Set by cancelSpan. endSpan reads this instead of the span's canceled attribute, because it calls spanToJSON only in development builds. */
     isCanceled?: boolean;
 };
@@ -50,7 +53,10 @@ function startSpan(spanId: string, options: StartSpanOptions) {
 
     const startTimeForLog = getPerformanceStartTimeForLog(options.startTime);
 
-    activeSpans.set(spanId, {span, spanName: options.name, startTimeForLog});
+    // The op is the static span constant. The name is sometimes built at runtime, like the screen a report was opened from.
+    const frameDropFlowID = options.parentSpan || !options.op ? undefined : startFlow(options.op);
+
+    activeSpans.set(spanId, {span, spanName: options.name, startTimeForLog, frameDropFlowID});
 
     return span;
 }
@@ -61,7 +67,8 @@ function endSpan(spanId: string) {
     if (!entry) {
         return;
     }
-    const {span, spanName, startTimeForLog, isCanceled} = entry;
+    const {span, spanName, startTimeForLog, frameDropFlowID, isCanceled} = entry;
+    endFlow(frameDropFlowID);
     const performanceTimestamp = performance.now();
     const durationMs = Math.round(performanceTimestamp - startTimeForLog);
     if (__DEV__) {
