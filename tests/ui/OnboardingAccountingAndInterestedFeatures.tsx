@@ -186,6 +186,23 @@ describe('Onboarding interested features and accounting pages', () => {
         expect(await Onyx.get(ONYXKEYS.ONBOARDING_ACCOUNTING_DRAFT)).toBeUndefined();
     });
 
+    it('preserves the submission handler when search changes without hiding the selected integration', async () => {
+        // Given a selected integration and its compiled submission handler
+        await act(async () => Onyx.set(ONYXKEYS.ONBOARDING_ACCOUNTING_DRAFT, {integration: 'xero'}));
+        const result = renderAccountingPage();
+        await waitForBatchedUpdatesWithAct();
+        const {onPress: submitAccounting}: Pick<ButtonProps, 'onPress'> = result.UNSAFE_getByType(ButtonDisabledWhenOffline).props;
+
+        // When search changes but the selected integration remains visible
+        searchFor('Xero');
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the footer can reuse its handler and still submits the selected answer
+        expect(result.UNSAFE_getByType(ButtonDisabledWhenOffline).props.onPress).toBe(submitAccounting);
+        continueOnboarding();
+        await waitFor(() => expect(mockCompleteOnboardingFlow).toHaveBeenCalledWith(expect.objectContaining({userReportedIntegration: 'xero'})));
+    });
+
     it('renders the Connections catalog in order with 28px icons and no tabs', async () => {
         // Given access to all accounting connection betas
         const result = renderAccountingPage();

@@ -35,7 +35,7 @@ import {isGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 
 import variables from '@styles/variables';
 
-import type {OnboardingAccounting, OnboardingAccountingOption} from '@src/CONST';
+import type {OnboardingAccounting} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -81,21 +81,20 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
     const availableOptions = accountingOptions.filter((option) => !option.connectionName || isAccountingConnectionAvailable(option.connectionName, onboardingPolicy, isBetaEnabled));
 
     const savedIntegration = draft ? draft.integration : onboardingUserReportedIntegration;
-    const selectedAnswer: {integration: OnboardingAccountingOption; name?: string} | undefined = savedIntegration
-        ? {integration: isOnboardingAccountingOption(savedIntegration) ? savedIntegration : 'other', name: draft?.name}
-        : undefined;
+    const selectedAnswerIntegration = savedIntegration && (isOnboardingAccountingOption(savedIntegration) ? savedIntegration : 'other');
+    const selectedAnswerName = draft?.name;
     const selectedOption = availableOptions.find((option) => {
         if (option.integration === 'other') {
-            return selectedAnswer?.integration === 'other' && selectedAnswer.name === option.name;
+            return selectedAnswerIntegration === 'other' && selectedAnswerName === option.name;
         }
-        return selectedAnswer?.integration === option.integration;
+        return selectedAnswerIntegration === option.integration;
     });
     // Saved answers may refer to a legacy product or a connection whose beta is no longer enabled.
     const customOption: AccountingOption | undefined =
-        selectedAnswer?.integration && !selectedOption && (selectedAnswer.integration !== 'other' || selectedAnswer.name)
+        selectedAnswerIntegration && !selectedOption && (selectedAnswerIntegration !== 'other' || selectedAnswerName)
             ? {
-                  name: selectedAnswer.name ?? CONST.ONBOARDING_ACCOUNTING_MAPPING[selectedAnswer.integration],
-                  integration: selectedAnswer.integration,
+                  name: selectedAnswerName ?? CONST.ONBOARDING_ACCOUNTING_MAPPING[selectedAnswerIntegration],
+                  integration: selectedAnswerIntegration,
                   iconName: 'Building',
               }
             : undefined;
@@ -103,7 +102,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
     const trimmedQuery = searchQuery.trim();
     const normalizedQuery = trimmedQuery.toLocaleLowerCase();
     const filteredOptions = options.filter((option) => `${option.name} ${option.aliases ?? ''}`.toLocaleLowerCase().includes(normalizedQuery));
-    const isSelectedOptionHidden = !!selectedAnswer && !filteredOptions.some((option) => option === selectedOption || option === customOption);
+    const isSelectedOptionHidden = !!selectedAnswerIntegration && !filteredOptions.some((option) => option === selectedOption || option === customOption);
 
     const unsupportedTitle = translate('onboarding.accounting.unsupportedTitle', trimmedQuery);
     const unsupportedSubtitle = translate('onboarding.accounting.unsupportedSubtitle');
@@ -111,13 +110,13 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
     useDebouncedAccessibilityAnnouncement(unsupportedTitle, filteredOptions.length === 0 && !!trimmedQuery, trimmedQuery);
 
     const submitAccounting = async () => {
-        if (!selectedAnswer || isSelectedOptionHidden) {
+        if (!selectedAnswerIntegration || isSelectedOptionHidden) {
             setError(translate('onboarding.errorSelection'));
             return;
         }
 
-        const integrationValue: OnboardingAccounting = selectedAnswer.integration;
-        const integrationName = integrationValue === 'other' ? selectedAnswer.name?.trim() || undefined : undefined;
+        const integrationValue: OnboardingAccounting = selectedAnswerIntegration;
+        const integrationName = integrationValue === 'other' ? selectedAnswerName?.trim() || undefined : undefined;
         setOnboardingAccountingEnabled(true);
         setOnboardingUserReportedIntegration(integrationValue);
         await completeOnboardingFlow({
