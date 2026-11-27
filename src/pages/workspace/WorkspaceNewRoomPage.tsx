@@ -12,12 +12,11 @@ import TextInput from '@components/TextInput';
 import ValuePicker from '@components/ValuePicker';
 
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
-import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
+import useHeaderAreaHeight from '@hooks/useHeaderAreaHeight';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
-import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearRoomIDToHighlightOnRoomsPage, setRoomIDToHighlightOnRoomsPage} from '@libs/actions/Policy/Room';
@@ -102,8 +101,7 @@ function WorkspaceNewRoomPage({ref, policyID: lockedPolicyID}: WorkspaceNewRoomP
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to show offline indicator on small screen only
-    const {top} = useSafeAreaInsets();
-    const {contentHeaderHeight} = useContentHeaderHeight();
+    const headerAreaHeight = useHeaderAreaHeight();
     const [visibility, setVisibility] = useState<ValueOf<typeof CONST.REPORT.VISIBILITY>>(CONST.REPORT.VISIBILITY.RESTRICTED);
     const [writeCapability, setWriteCapability] = useState<ValueOf<typeof CONST.REPORT.WRITE_CAPABILITIES>>(CONST.REPORT.WRITE_CAPABILITIES.ALL);
     const visibilityDescription = translate(`newRoomPage.${visibility}Description`);
@@ -269,7 +267,7 @@ function WorkspaceNewRoomPage({ref, policyID: lockedPolicyID}: WorkspaceNewRoomP
                       shouldShowOfflineIndicator: true,
                       shouldEnablePickerAvoiding: false,
                       shouldEnableKeyboardAvoidingView: workspaceOptions.length !== 0,
-                      keyboardVerticalOffset: contentHeaderHeight + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding + top,
+                      keyboardVerticalOffset: headerAreaHeight + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding,
                       // Disable the focus trap of this page to activate the parent focus trap in `NewChatSelectorPage`.
                       focusTrapSettings: {active: false},
                   })}

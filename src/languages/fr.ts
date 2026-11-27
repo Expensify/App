@@ -2745,6 +2745,11 @@ const translations: TranslationDeepObject<typeof en> = {
             reachOutForHelp: "<muted-text><centered-text>N'hésitez pas à <concierge-link>contacter Concierge</concierge-link> si vous avez des questions&nbsp;!</centered-text></muted-text>",
             goToExpensifyClassic: 'Aller à Expensify Classic',
         },
+        mergePendingDomainAdmin: {
+            heading: 'E-mail avec domaine restreint',
+            description: '<muted-text><centered-text>Un administrateur de domaine a été informé pour approuver la demande de fusion de comptes.</centered-text></muted-text>',
+            gotIt: 'Compris',
+        },
         mergeFailureSAMLDomainControlDescription: (email: string) =>
             `<muted-text><centered-text>Vous ne pouvez pas fusionner <strong>${email}</strong> car il est géré par <strong>${email.split('@').at(1) ?? ''}</strong>. Veuillez <concierge-link>contacter Concierge</concierge-link> pour obtenir de l’aide.</centered-text></muted-text>`,
         mergeFailureSAMLAccountDescription: (email: string) =>
@@ -7378,11 +7383,13 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 description: `Au moins une catégorie doit rester activée, car votre espace de travail exige des catégories.`,
             },
             visibleTo: 'Visible pour',
+            editVisibility: 'Modifier la visibilité',
             membersCount: ({count}: {count: number}) => ({
                 one: '1 membre',
                 other: `${count} membres`,
             }),
             visibleToDescription: ({categoryName}: {categoryName: string}) => `Choisissez quels membres peuvent utiliser la catégorie ${categoryName} lors de la soumission de dépenses.`,
+            bulkVisibleToDescription: 'Choisissez quels membres peuvent utiliser ces catégories lors de la soumission de dépenses.',
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `Impossible de désactiver ${categoryName}`,
                 bulkTitle: 'Impossible de désactiver ces catégories',

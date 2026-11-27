@@ -4,6 +4,7 @@ import useSidePanelState from '@hooks/useSidePanelState';
 type OpenConciergeAnywhereOptions = {
     forceConcierge?: boolean;
     reportID?: string;
+    reportActionID?: string;
 };
 
 /**
@@ -18,7 +19,7 @@ function useOpenConciergeAnywhere() {
         if (!shouldHideSidePanel && !options?.forceConcierge && !options?.reportID) {
             return;
         }
-        openSidePanel({forceConcierge: options?.forceConcierge, reportID: options?.reportID});
+        openSidePanel({forceConcierge: options?.forceConcierge, reportID: options?.reportID, reportActionID: options?.reportActionID});
     };
 
     return {openConciergeAnywhere, isInSidePanel: true};

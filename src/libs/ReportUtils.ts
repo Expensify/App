@@ -164,7 +164,7 @@ import {
     getReimbursementChoice,
     getRuleApprovers,
     getSubmitToAccountID,
-    isSubmittingToSelf,
+    getSubmitToEmail,
     getTagGLCode,
     getVendorDisplayName,
     hasDependentTags as hasDependentTagsPolicyUtils,
@@ -186,6 +186,7 @@ import {
     isSubmitAndClose,
     isSubmitPolicy,
     isSubmitterApproveBlockedOnSubmitWorkspace,
+    isSubmittingToSelf,
     isWorkflowApprover,
     resolveCurrentTaxCode,
     shouldShowPolicy,
@@ -330,6 +331,7 @@ import {
     isTransactionSubmittable,
     isUnreportedTransactionOwnedByCurrentUser,
 } from './TransactionUtils';
+import hasCreateFailed from './TransactionUtils/hasCreateFailed';
 import addTrailingForwardSlash from './UrlUtils';
 import {getDefaultAvatarURL} from './UserAvatarUtils';
 import {generateAccountID} from './UserUtils';
@@ -1076,6 +1078,8 @@ type BuildOptimisticExpenseReportParams = {
     createdTimestamp?: string;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<Rule>;
+    /** Keeps the optimistic report open when auto-submit is deferred for an earlier item in a batch. */
+    shouldDeferAutoSubmit?: boolean;
 };
 
 type ReportByPolicyMap = Record<string, OnyxCollection<Report>>;
@@ -2180,6 +2184,7 @@ function isAwaitingFirstLevelApproval(
     report: OnyxEntry<Report>,
     rules: OnyxCollection<Rule>,
     reportOwnerLogin: string | undefined,
+    reportManagerLogin?: string,
     reportActions?: OnyxEntry<ReportActions> | ReportAction[],
 ): boolean {
     if (!report) {
@@ -2197,9 +2202,13 @@ function isAwaitingFirstLevelApproval(
     const providedOwnerLogin = reportOwnerLogin === '' ? undefined : reportOwnerLogin;
     // TODO: Callers are threaded in Parts 5 through 13. Remove this fallback in Part 13 once none of them pass undefined. See https://github.com/Expensify/App/issues/66413.
     const resolvedOwnerLogin = providedOwnerLogin ?? getLoginByAccountID(report.ownerAccountID, getAllPersonalDetails());
-    const submitsToAccountID = getSubmitToAccountID(policy, report, resolvedOwnerLogin, rules);
+    const providedManagerLogin = reportManagerLogin === '' ? undefined : reportManagerLogin;
+    // Callers that don't pass the manager login falls back to the personal details store for now.
+    const resolvedManagerLogin = providedManagerLogin ?? getLoginByAccountID(report.managerID, getAllPersonalDetails());
+    const submitToLogin = getSubmitToEmail(policy, report, resolvedOwnerLogin, rules);
 
-    return isProcessingReport(report) && submitsToAccountID === report.managerID && !hasReportBeenForwardedSinceLastSubmit(report, reportActions);
+    // Comparing logins means the login the report submits to never has to be turned into an account ID.
+    return isProcessingReport(report) && !!submitToLogin && submitToLogin === resolvedManagerLogin && !hasReportBeenForwardedSinceLastSubmit(report, reportActions);
 }
 
 type PolicyOptimisticOnyxData = OnyxData<
@@ -3263,7 +3272,7 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>, rules
     if (isProcessingReport(moneyRequestReport) && isExpenseReport(moneyRequestReport)) {
         // TODO: Pass reportOwnerLogin in Part 13, once canAddOrDeleteTransactions takes it first.
         // isAwaitingFirstLevelApproval falls back to the personal details store until then. See https://github.com/Expensify/App/issues/66413.
-        return isAwaitingFirstLevelApproval(moneyRequestReport, rules, undefined);
+        return isAwaitingFirstLevelApproval(moneyRequestReport, rules, undefined, undefined);
     }
 
     if (isReportApproved({report: moneyRequestReport}) || isClosedReport(moneyRequestReport) || isSettled(moneyRequestReport?.reportID)) {
@@ -4032,7 +4041,7 @@ function canDeleteMoneyRequestReport(
     }
 
     if (isExpenseReport(report)) {
-        if (!isOpenReport(report) && !(isProcessingReport(report) && isAwaitingFirstLevelApproval(report, rules, reportOwnerLogin, reportActions))) {
+        if (!isOpenReport(report) && !(isProcessingReport(report) && isAwaitingFirstLevelApproval(report, rules, reportOwnerLogin, undefined, reportActions))) {
             return false;
         }
 
@@ -5846,13 +5855,15 @@ function isReportFieldDisabled(
     policy: OnyxEntry<Policy>,
     rules: OnyxCollection<Rule>,
     reportOwnerLogin: string | undefined,
+    reportManagerLogin: string | undefined,
 ): boolean {
     const isReportSettled = isSettled(report?.reportID);
     const isReportClosed = isClosedReport(report);
     const isTitleField = isReportFieldOfTypeTitle(reportField);
     const isAdmin = isPolicyAdmin(policy);
     const isApproved = isReportApproved({report});
-    const isForwardedForSubmitter = isReportOwner(report) && isExpenseReport(report) && isProcessingReport(report) && !isAwaitingFirstLevelApproval(report, rules, reportOwnerLogin);
+    const isForwardedForSubmitter =
+        isReportOwner(report) && isExpenseReport(report) && isProcessingReport(report) && !isAwaitingFirstLevelApproval(report, rules, reportOwnerLogin, reportManagerLogin);
     if (!isAdmin && (isReportSettled || isReportClosed || isApproved || isForwardedForSubmitter)) {
         return true;
     }
@@ -5876,8 +5887,9 @@ function isReportFieldDisabledForUser(
     currentUserAccountID: number | undefined,
     rules: OnyxCollection<Rule>,
     reportOwnerLogin: string | undefined,
+    reportManagerLogin: string | undefined,
 ): boolean {
-    return isReportFieldDisabled(report, reportField, policy, rules, reportOwnerLogin) || !isAdminOwnerApproverOrReportOwner(report, policy, currentUserAccountID);
+    return isReportFieldDisabled(report, reportField, policy, rules, reportOwnerLogin, reportManagerLogin) || !isAdminOwnerApproverOrReportOwner(report, policy, currentUserAccountID);
 }
 
 /**
@@ -5896,10 +5908,11 @@ function canEditReportTitle(
     currentUserAccountID: number | undefined,
     rules: OnyxCollection<Rule>,
     reportOwnerLogin: string | undefined,
+    reportManagerLogin: string | undefined,
 ): boolean {
     const titleField =
         getAvailableReportFields(report, Object.values(policy?.fieldList ?? {})).find((reportField) => isReportFieldOfTypeTitle(reportField)) ?? getTitleFieldWithFallback(policy);
-    const isFieldDisabled = isReportFieldDisabled(report, titleField, policy, rules, reportOwnerLogin);
+    const isFieldDisabled = isReportFieldDisabled(report, titleField, policy, rules, reportOwnerLogin, reportManagerLogin);
 
     return !isFieldDisabled && isAdminOwnerApproverOrReportOwner(report, policy, currentUserAccountID) && isExpenseReport(report) && isGroupPolicyPolicyUtils(policy);
 }
@@ -6120,7 +6133,7 @@ function getTransactionDetails(
 function getTransactionCommentObject(transaction: OnyxEntry<Transaction>): Comment {
     return {
         ...transaction?.comment,
-        comment: Parser.htmlToMarkdown(transaction?.comment?.comment ?? ''),
+        comment: Parser.htmlToMarkdown(getDescription(transaction)),
         waypoints: getWaypoints(transaction),
     };
 }
@@ -6523,6 +6536,11 @@ function resolveCanEditFieldOfMoneyRequest({
         CONST.EDIT_REQUEST_FIELD.REIMBURSABLE,
         CONST.EDIT_REQUEST_FIELD.REPORT,
     ];
+
+    // Until its create goes through, the server has no such expense, so a move would only fail
+    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.REPORT && hasCreateFailed(transaction)) {
+        return false;
+    }
 
     // Legacy/imported unreported transactions may not have an IOU report action, so bypass the action guard and allow moving them to a report.
     const isUnreportedLegacyTransaction = !reportAction && (!transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID);
@@ -8641,8 +8659,8 @@ function computeOptimisticReportNameWithMetadata(
  * Returns the stateNum and statusNum for an expense report based on the policy settings
  * @param policy
  */
-function getExpenseReportStateAndStatus(policy: OnyxEntry<Policy>, isASAPSubmitBetaEnabled: boolean, isEmptyOptimisticReport = false) {
-    if (isASAPSubmitBetaEnabled) {
+function getExpenseReportStateAndStatus(policy: OnyxEntry<Policy>, isASAPSubmitBetaEnabled: boolean, isEmptyOptimisticReport = false, shouldDeferAutoSubmit = false) {
+    if (isASAPSubmitBetaEnabled || shouldDeferAutoSubmit) {
         return {
             stateNum: CONST.REPORT.STATE_NUM.OPEN,
             statusNum: CONST.REPORT.STATUS_NUM.OPEN,
@@ -8672,6 +8690,54 @@ function getExpenseReportStateAndStatus(policy: OnyxEntry<Policy>, isASAPSubmitB
     };
 }
 
+type ReportStateAndStatus = {
+    stateNum: ValueOf<typeof CONST.REPORT.STATE_NUM>;
+    statusNum: ValueOf<typeof CONST.REPORT.STATUS_NUM>;
+};
+
+/** Parameters used to finalize the optimistic report state on the last item of a deferred batch. */
+type GetFinalizedDeferredBatchReportStateParams = {
+    /** Optimistic report cloned for the current batch item. */
+    iouReport: Report;
+    /** True when this item reuses an in-memory report carried from an earlier batch item. */
+    hasExistingIOUReport: boolean;
+    /** Explicit false marks the final item of a deferred batch. Undefined means a non-batch request and true means still deferred. */
+    shouldDeferAutoSubmit?: boolean;
+    policy: OnyxEntry<Policy>;
+    isASAPSubmitBetaEnabled: boolean;
+};
+
+/**
+ * Resolves the final optimistic state for the last item of a deferred batch, along with the previous
+ * state so failureData can roll it back if that final request fails.
+ */
+function getFinalizedDeferredBatchReportState({
+    iouReport,
+    hasExistingIOUReport,
+    shouldDeferAutoSubmit,
+    policy,
+    isASAPSubmitBetaEnabled,
+}: GetFinalizedDeferredBatchReportStateParams): {nextState: ReportStateAndStatus; previousState: ReportStateAndStatus} | undefined {
+    // Finalize only on the last item of a deferred batch (false).
+    // Undefined means a single non-batch request that already has its final state, and true means an earlier item is still deferred.
+    if (!hasExistingIOUReport || shouldDeferAutoSubmit !== false || !isOpenExpenseReport(iouReport)) {
+        return undefined;
+    }
+
+    const nextState = getExpenseReportStateAndStatus(policy, isASAPSubmitBetaEnabled);
+    if (nextState.stateNum === iouReport.stateNum && nextState.statusNum === iouReport.statusNum) {
+        return undefined;
+    }
+
+    return {
+        nextState,
+        previousState: {
+            stateNum: iouReport.stateNum ?? CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: iouReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
+        },
+    };
+}
+
 /**
  * Builds an optimistic Expense report with a randomly generated reportID
  *
@@ -8698,6 +8764,7 @@ function buildOptimisticExpenseReport({
     createdTimestamp,
     getCurrencyDecimals,
     rules,
+    shouldDeferAutoSubmit = false,
 }: BuildOptimisticExpenseReportParams): OptimisticExpenseReport {
     // The amount for Expense reports are stored as negative value in the database
     const storedTotal = total * -1;
@@ -8711,7 +8778,7 @@ function buildOptimisticExpenseReport({
     const policyDraft = allPolicyDrafts?.[`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`];
     const policy = policyReal ?? policyDraft;
 
-    const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy, isASAPSubmitBetaEnabled);
+    const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy, isASAPSubmitBetaEnabled, false, shouldDeferAutoSubmit);
 
     const created = createdTimestamp ?? DateUtils.getDBTime();
 
@@ -11423,6 +11490,7 @@ function hasVisibleReportFieldViolations(
     currentUserAccountID: number | undefined,
     rules: OnyxCollection<Rule>,
     reportOwnerLogin: string | undefined,
+    reportManagerLogin: string | undefined,
     reportNameValuePairs: OnyxEntry<ReportNameValuePairs>,
 ): boolean {
     const areFieldsEnabledForReport = isInvoiceReport(report) ? policy?.areInvoiceFieldsEnabled : policy?.areReportFieldsEnabled;
@@ -11454,7 +11522,7 @@ function hasVisibleReportFieldViolations(
         if (shouldHideSingleReportField(field)) {
             return false;
         }
-        if (isReportFieldDisabledForUser(report, field, policy, currentUserAccountID, rules, reportOwnerLogin)) {
+        if (isReportFieldDisabledForUser(report, field, policy, currentUserAccountID, rules, reportOwnerLogin, reportManagerLogin)) {
             return false;
         }
         return !!getFieldViolation(field, report);
@@ -13509,17 +13577,17 @@ function isReportOwner(report: OnyxInputOrEntry<Report>, currentUserAccountID = 
     return report?.ownerAccountID === currentUserAccountID;
 }
 
+function isApproverAllowedToApprove(policy: OnyxEntry<Policy>, isApproverReportOwner: boolean): boolean {
+    return !isApproverReportOwner || (!isSubmitPolicy(policy) && !policy?.preventSelfApproval);
+}
+
 function isAllowedToApproveExpenseReport(report: OnyxEntry<Report>, approverAccountID?: number, reportPolicy?: OnyxEntry<Policy>): boolean {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     const policy = reportPolicy ?? getPolicy(report?.policyID);
     const accountID = approverAccountID ?? deprecatedCurrentUserAccountID;
     const isOwner = accountID === report?.ownerAccountID;
 
-    if (isSubmitterApproveBlockedOnSubmitWorkspace(policy, report?.ownerAccountID, accountID ?? CONST.DEFAULT_NUMBER_ID)) {
-        return false;
-    }
-
-    return !(policy?.preventSelfApproval && isOwner);
+    return isApproverAllowedToApprove(policy, isOwner);
 }
 
 function canReassignAsApprover({
@@ -13570,6 +13638,14 @@ function getIndicatedMissingPaymentMethod(
 }
 
 /**
+ * Whether a SmartScan expense creates a separate report under the ASAP Submit beta.
+ * Adding to an existing report or submitting a tracked expense stays on the target report instead.
+ */
+function willScanRequestCreateNewReport(isScanRequest: boolean, isASAPSubmitBetaEnabled: boolean, action?: IOUAction, isFromExistingReport?: boolean): boolean {
+    return !isFromExistingReport && action !== CONST.IOU.ACTION.SUBMIT && isScanRequest && isASAPSubmitBetaEnabled;
+}
+
+/**
  * Used from expense actions to decide if we need to build an optimistic expense report.
  * Create a new report if:
  * - we don't have an iouReport set in the chatReport
@@ -13595,7 +13671,7 @@ function shouldCreateNewMoneyRequestReport(
         isReportPendingDelete(existingIOUReport) ||
         hasIOUWaitingOnCurrentUserBankAccount(chatReport) ||
         !canAddTransaction(existingIOUReport, rules) ||
-        (!isFromExistingReport && action !== CONST.IOU.ACTION.SUBMIT && isScanRequest && isASAPSubmitBetaEnabled)
+        willScanRequestCreateNewReport(isScanRequest, isASAPSubmitBetaEnabled, action, isFromExistingReport)
     );
 }
 
@@ -13831,7 +13907,7 @@ function canLeaveChat(
 function isForwardedReport(report: OnyxEntry<Report>, rules: OnyxCollection<Rule>): boolean {
     // TODO: Pass reportOwnerLogin in Part 9, once isForwardedReport takes it first.
     // isAwaitingFirstLevelApproval falls back to the personal details store until then. See https://github.com/Expensify/App/issues/66413.
-    return isProcessingReport(report) && !isAwaitingFirstLevelApproval(report, rules, undefined);
+    return isProcessingReport(report) && !isAwaitingFirstLevelApproval(report, rules, undefined, undefined);
 }
 
 function isReportOutstanding(
@@ -16068,7 +16144,7 @@ function getTransactionSortValue(
         case CONST.SEARCH.TABLE_COLUMNS.TOTAL:
             return Math.abs(transaction.convertedAmount ?? 0);
         case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
-            return Parser.htmlToText(transaction.comment?.comment ?? '');
+            return Parser.htmlToText(getDescription(transaction));
         case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE:
             return getReimbursable(transaction) ? 1 : 0;
         case CONST.SEARCH.TABLE_COLUMNS.BILLABLE:
@@ -16382,6 +16458,7 @@ export {
     findSelfDMReportID,
     formatReportLastMessageText,
     generateReportID,
+    getFinalizedDeferredBatchReportState,
     getCreationReportErrors,
     getAllHeldTransactions,
     getAllPolicyReports,
@@ -16499,6 +16576,7 @@ export {
     isAllowedToApproveExpenseReport,
     isAllowedToComment,
     isAnnounceRoom,
+    isApproverAllowedToApprove,
     isArchivedNonExpenseReport,
     isArchivedReport,
     isClosedReport,
@@ -16597,6 +16675,7 @@ export {
     selectFilteredReportActionsForReports,
     shouldAutoFocusOnKeyPress,
     shouldCreateNewMoneyRequestReport,
+    willScanRequestCreateNewReport,
     shouldDisableDetailPage,
     shouldDisableRename,
     shouldDisableThread,
@@ -16756,6 +16835,7 @@ export type {
     OptimisticIOUReportAction,
     OptimisticTaskReportAction,
     OptionData,
+    ReportStateAndStatus,
     TransactionDetails,
     PartialReportAction,
     SelfDMParameters,

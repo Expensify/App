@@ -2728,6 +2728,11 @@ const translations: TranslationDeepObject<typeof en> = {
             reachOutForHelp: '<muted-text><centered-text>Sentiti liberə di <concierge-link>contattare Concierge</concierge-link> se hai domande!</centered-text></muted-text>',
             goToExpensifyClassic: 'Vai a Expensify Classic',
         },
+        mergePendingDomainAdmin: {
+            heading: 'Email con dominio limitato',
+            description: '<muted-text><centered-text>Un amministratore di dominio è stato avvisato per approvare la richiesta di unione degli account.</centered-text></muted-text>',
+            gotIt: 'Ricevuto',
+        },
         mergeFailureSAMLDomainControlDescription: (email: string) =>
             `<muted-text><centered-text>Non puoi unire <strong>${email}</strong> perché è gestito da <strong>${email.split('@').at(1) ?? ''}</strong>. <concierge-link>Contatta Concierge</concierge-link> per ricevere assistenza.</centered-text></muted-text>`,
         mergeFailureSAMLAccountDescription: (email: string) =>
@@ -7315,11 +7320,13 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 description: `Almeno una categoria deve rimanere abilitata perché il tuo spazio di lavoro richiede le categorie.`,
             },
             visibleTo: 'Visibile a',
+            editVisibility: 'Modifica visibilità',
             membersCount: ({count}: {count: number}) => ({
                 one: '1 membro',
                 other: `${count} membri`,
             }),
             visibleToDescription: ({categoryName}: {categoryName: string}) => `Scegli quali membri possono usare la categoria ${categoryName} quando inviano le spese.`,
+            bulkVisibleToDescription: 'Scegli quali membri possono usare queste categorie quando inviano le note spese.',
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `Impossibile disabilitare ${categoryName}`,
                 bulkTitle: 'Impossibile disattivare queste categorie',
