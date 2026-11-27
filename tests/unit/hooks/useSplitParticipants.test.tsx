@@ -204,8 +204,7 @@ describe('useSplitParticipants', () => {
         // Then the prompt keeps every amount input from taking the focus iOS restores after a cancelled back swipe
         expect(result.current.splitParticipants).toHaveLength(2);
         for (const row of result.current.splitParticipants) {
-            const rightElement = (row as {rightElement?: React.ReactElement<{readOnly?: boolean}>}).rightElement;
-            expect(rightElement?.props.readOnly).toBe(isDiscardModalVisible);
+            expect(row).toHaveProperty('rightElement.props.readOnly', isDiscardModalVisible);
         }
     });
 });
