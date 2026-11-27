@@ -115,7 +115,7 @@ function isQuickbooksDesktopVendorMatchingActive(policy: OnyxEntry<Policy>): boo
  * the field.
  *
  * The `vendorMatching` beta only gates the integrations that haven't reached GA yet, so
- * `isVendorMatchingBetaEnabled` is consulted on every branch but QBO, Sage Intacct, Xero, Rillet, DualEntry, Campfire, Zoho Books, and Digits:
+ * `isVendorMatchingBetaEnabled` is consulted on every branch but QBO, Sage Intacct, Xero, Rillet, DualEntry, Campfire, Zoho Books, Digits and Certinia:
  *   - QBO (R1) with non-reimbursable export = Credit Card or Debit Card. GA, so no beta required
  *   - Sage Intacct (R2) with non-reimbursable export = Credit Card Charge. GA, so no beta required
  *   - Xero (R3) has no export destination enum, so a configured connection is enough. GA, so no beta required
@@ -125,7 +125,7 @@ function isQuickbooksDesktopVendorMatchingActive(policy: OnyxEntry<Policy>): boo
  *   - Campfire has no export destination enum, so a configured connection is enough. GA, so no beta required
  *   - Zoho Books has a single company card export type, so a configured connection is enough. GA, so no beta required
  *   - Digits only exports company cards as transactions, so a configured connection is enough. GA, so no beta required
- *   - Certinia FFA configured connection. Beta required
+ *   - Certinia FFA configured connection. GA, so no beta required
  *   - QBD Codat + CREDIT_CARD_CHARGE export mode. Beta required
  */
 function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled: boolean): boolean {
@@ -140,11 +140,12 @@ function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled
         isDualEntryVendorMatchingActive(policy) ||
         isCampfireVendorMatchingActive(policy) ||
         isZohoBooksVendorMatchingActive(policy) ||
-        isDigitsVendorMatchingActive(policy)
+        isDigitsVendorMatchingActive(policy) ||
+        isCertiniaVendorMatchingActive(policy)
     ) {
         return true;
     }
-    return isVendorMatchingBetaEnabled && (isBusinessCentralVendorMatchingActive(policy) || isCertiniaVendorMatchingActive(policy) || isQuickbooksDesktopVendorMatchingActive(policy));
+    return isVendorMatchingBetaEnabled && (isBusinessCentralVendorMatchingActive(policy) || isQuickbooksDesktopVendorMatchingActive(policy));
 }
 
 /**
@@ -219,11 +220,11 @@ function getActiveVendorMatchingIntegration(policy: OnyxEntry<Policy>): Connecti
     if (isDigitsVendorMatchingActive(policy)) {
         return CONST.POLICY.CONNECTIONS.NAME.DIGITS;
     }
-    if (isBusinessCentralVendorMatchingActive(policy)) {
-        return CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL;
-    }
     if (isCertiniaVendorMatchingActive(policy)) {
         return CONST.POLICY.CONNECTIONS.NAME.CERTINIA;
+    }
+    if (isBusinessCentralVendorMatchingActive(policy)) {
+        return CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL;
     }
     if (isQuickbooksDesktopVendorMatchingActive(policy)) {
         return CONST.POLICY.CONNECTIONS.NAME.QBD;
@@ -281,6 +282,9 @@ function getActiveVendorMatchingVendors(policy: OnyxEntry<Policy>): Vendor[] | u
     if (isDigitsVendorMatchingActive(policy)) {
         return policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.DIGITS]?.data?.vendors === undefined ? undefined : getDigitsVendors(policy);
     }
+    if (isCertiniaVendorMatchingActive(policy)) {
+        return policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.CERTINIA]?.data?.vendors === undefined ? undefined : getCertiniaVendors(policy);
+    }
     if (isBusinessCentralVendorMatchingActive(policy)) {
         const businessCentralVendors = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]?.data?.vendors;
         if (businessCentralVendors === undefined) {
@@ -298,9 +302,6 @@ function getActiveVendorMatchingVendors(policy: OnyxEntry<Policy>): Vendor[] | u
                 currency: '',
                 email: vendor.email,
             }));
-    }
-    if (isCertiniaVendorMatchingActive(policy)) {
-        return policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.CERTINIA]?.data?.vendors === undefined ? undefined : getCertiniaVendors(policy);
     }
     if (isQuickbooksDesktopVendorMatchingActive(policy)) {
         const vendors = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.QBD]?.data?.vendors;

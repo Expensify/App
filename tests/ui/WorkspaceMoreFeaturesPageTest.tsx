@@ -622,7 +622,7 @@ describe('WorkspaceMoreFeaturesPage', () => {
             expect(vendorsSwitchQuery()).toBeNull();
         });
 
-        // Certinia FFA is beta-gated, so the row follows the vendorMatching beta.
+        // Certinia FFA is GA, so the row shows regardless of the vendorMatching beta while PSA stays hidden.
         it('shows the Vendors row for a configured Certinia FFA connection when the beta is enabled', async () => {
             // Given a configured Certinia FFA connection and vendor matching beta enabled
             const connections = {[CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {config: {isConfigured: true, hasPSA: false}}};
@@ -634,15 +634,15 @@ describe('WorkspaceMoreFeaturesPage', () => {
             await expect(findLockedSwitch('workspace.moreFeatures.vendors.subtitle')).resolves.toBeOnTheScreen();
         });
 
-        it('hides the Vendors row for a configured Certinia FFA connection when the beta is disabled', async () => {
+        it('shows the Vendors row for a configured Certinia FFA connection when the beta is disabled', async () => {
             // Given a configured Certinia FFA connection with vendor matching beta disabled
             const connections = {[CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {config: {isConfigured: true, hasPSA: false}}};
 
             // When the More features page renders
             await renderWithVendorMatching(connections, false);
 
-            // Then the Vendors row should be hidden
-            expect(vendorsSwitchQuery()).toBeNull();
+            // Then the Vendors row should still be visible because Certinia FFA is GA
+            await expect(findLockedSwitch('workspace.moreFeatures.vendors.subtitle')).resolves.toBeOnTheScreen();
         });
 
         it('hides the Vendors row for a Certinia PSA connection even when the beta is enabled', async () => {
