@@ -36,7 +36,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {InsightsBiggestChangesGroupBy} from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {getYear, parseISO} from 'date-fns';
 import React from 'react';
@@ -49,7 +48,7 @@ import getInsightsItemColor from './getInsightsItemColor';
 import InsightsBiggestChanges from './InsightsBiggestChanges';
 import {resolveInsightsDetailsItem} from './insightsDetailsItem';
 import InsightsDetailsSectionError from './InsightsDetailsSectionError';
-import {getInsightsDetailsSectionState} from './insightsDetailsSectionState';
+import {getInsightsDetailsSectionStates} from './insightsDetailsSectionState';
 import InsightsRecentHistory from './InsightsRecentHistory';
 import InsightsSummary from './InsightsSummary';
 import InsightsTopExpenses from './InsightsTopExpenses';
@@ -143,28 +142,9 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
                   details?.eligiblePolicyIDs,
               )
             : undefined;
-    const hasDetailsErrors = !isEmptyObject(details?.errors);
-    const summaryState = getInsightsDetailsSectionState({
-        isOffline,
-        isLoaded: !!details?.summary,
-        hasErrors: hasDetailsErrors,
-        responseJsonCode: details?.responseJsonCode,
-    });
-    const recentHistoryState = getInsightsDetailsSectionState({
-        isOffline,
-        isLoaded: details?.recentHistory !== undefined,
-        hasErrors: hasDetailsErrors,
-        responseJsonCode: details?.responseJsonCode,
-    });
-    const hasDetailsFailed = !!detailsQuery && !isOffline && hasDetailsErrors;
-
+    const sectionStates = getInsightsDetailsSectionStates(details, isOffline, biggestChangesGroupBy);
     const biggestChanges = details?.biggestChanges?.[biggestChangesGroupBy];
-    const biggestChangesState = getInsightsDetailsSectionState({
-        isOffline,
-        isLoaded: !!biggestChanges,
-        hasErrors: hasDetailsErrors,
-        responseJsonCode: details?.responseJsonCode,
-    });
+    const hasDetailsFailed = !!detailsQuery && !isOffline && sectionStates.hasErrors;
     const comparison = details?.summary ? getInsightsAverageComparison(details.summary) : undefined;
     const shouldShowBiggestChanges =
         !!detailsQuery &&
@@ -225,7 +205,7 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
                                     graphKey={chartSpec.graphKey}
                                     currency={filters.groupCurrency}
                                     summary={details?.summary}
-                                    state={summaryState}
+                                    state={sectionStates.summary}
                                 />
                             )}
                             {!!detailsQuery && !!chartSpec.detailsSections?.includes(CONST.INSIGHTS.DETAILS_SECTION.RECENT_HISTORY) && (
@@ -233,7 +213,7 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
                                     query={detailsQuery}
                                     history={details?.recentHistory}
                                     summary={details?.summary}
-                                    state={recentHistoryState}
+                                    state={sectionStates.recentHistory}
                                     currency={filters.groupCurrency}
                                     color={itemColor}
                                     itemTitle={item.title}
@@ -247,7 +227,7 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
                                     groupBy={biggestChangesGroupBy}
                                     groupByOptions={biggestChangesGroupByOptions}
                                     onGroupByChange={setInsightsBiggestChangesGroupBy}
-                                    state={biggestChangesState}
+                                    state={sectionStates.biggestChanges}
                                     currency={filters.groupCurrency}
                                     asOfDate={asOf}
                                 />
