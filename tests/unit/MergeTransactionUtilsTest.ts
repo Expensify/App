@@ -9,6 +9,7 @@ import {
     getMergeFieldValue,
     getRateFromMerchant,
     isEmptyMergeValue,
+    isMergeSourceDeleted,
     selectTargetAndSourceTransactionsForMerge,
     shouldNavigateToReceiptReview,
     willReportBecomeOneTransactionReportAfterMerge,
@@ -30,6 +31,7 @@ import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction, {createRandomDistanceRequestTransaction} from '../utils/collections/transaction';
+import createMock from '../utils/createMock';
 import {convertToDisplayString, formatPhoneNumber, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -41,6 +43,51 @@ describe('MergeTransactionUtils', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
         return waitForBatchedUpdates();
+    });
+
+    describe('isMergeSourceDeleted', () => {
+        const SOURCE_TRANSACTION_ID = '123';
+        const buildIOUAction = (deleted?: string): ReportAction =>
+            createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>({
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                message: {IOUTransactionID: SOURCE_TRANSACTION_ID, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, html: 'expense', ...(deleted && {deleted})},
+            });
+
+        it('flags a source whose IOU action was deleted', () => {
+            // Given the source expense was deleted elsewhere and the delete isn't confirmed yet, so its IOU action is marked as deleted
+            const sourceReportActions = [buildIOUAction('2026-11-26 10:00:00.000')];
+
+            // When checking the source, which has no delete waiting to be sent on this device
+            const isDeleted = isMergeSourceDeleted(SOURCE_TRANSACTION_ID, false, sourceReportActions);
+
+            // Then it is flagged, because Auth rejects merging a deleted expense
+            expect(isDeleted).toBe(true);
+        });
+
+        it('flags a source whose delete was already confirmed', () => {
+            // Given the delete was confirmed, so the IOU action is gone and a DELETED_TRANSACTION action names the source
+            const deletedTransactionAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION>>({
+                reportActionID: '2',
+                actionName: CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION,
+                message: {transactionID: SOURCE_TRANSACTION_ID},
+            });
+
+            // When checking the source before the merge is sent
+            const isDeleted = isMergeSourceDeleted(SOURCE_TRANSACTION_ID, false, [deletedTransactionAction]);
+
+            // Then it is flagged, because that action is all that is left of the deleted expense
+            expect(isDeleted).toBe(true);
+        });
+
+        it('does not flag a source that is not loaded', () => {
+            // Given none of the source's report actions are in Onyx, because its report was never opened
+            // When checking the source before the merge is sent
+            const isDeleted = isMergeSourceDeleted(SOURCE_TRANSACTION_ID, false, []);
+
+            // Then it is not flagged, because missing data doesn't mean the expense was deleted
+            expect(isDeleted).toBe(false);
+        });
     });
 
     describe('shouldNavigateToReceiptReview', () => {

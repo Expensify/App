@@ -11,6 +11,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {getExistingTransactionID} from '@libs/IOUUtils';
+import {translate as translateWithLocale} from '@libs/Localize';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import * as NumberUtils from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
@@ -54,6 +55,7 @@ import type {CurrentUser} from '@userActions/Policy/Policy';
 import {createNewReport} from '@userActions/Report';
 
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
@@ -246,6 +248,25 @@ function mergeDuplicates({
 
     const failureTransactionData = buildFailureTransactionData(originalSelectedTransaction.transactionID, originalSelectedTransaction);
 
+    // The server never clears this client-side error, so a successful retry would keep the red dot unless it is removed here
+    const mergeFailureMessage = translateWithLocale(IntlStore.getCurrentLocale(), 'iou.error.genericMergeDuplicatesFailureMessage');
+    const staleMergeErrors = Object.fromEntries(
+        Object.entries(originalSelectedTransaction.errors ?? {})
+            .filter(([, message]) => message === mergeFailureMessage)
+            .map(([errorKey]) => [errorKey, null]),
+    );
+    const optimisticClearTransactionErrorData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION> = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${originalSelectedTransaction.transactionID}`,
+        value: {errors: staleMergeErrors},
+    };
+
+    const failureTransactionErrorData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION> = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${originalSelectedTransaction.transactionID}`,
+        value: {errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericMergeDuplicatesFailureMessage')},
+    };
+
     const optimisticTransactionDuplicatesData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION>> = transactionList.map((txn) => ({
         onyxMethod: Onyx.METHOD.SET,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${txn.transactionID}`,
@@ -386,6 +407,7 @@ function mergeDuplicates({
 
     optimisticData.push(
         optimisticTransactionData,
+        optimisticClearTransactionErrorData,
         ...optimisticTransactionDuplicatesData,
         ...optimisticTransactionViolations,
         ...expenseReportOptimisticData,
@@ -396,6 +418,7 @@ function mergeDuplicates({
     successData.push(...cleanUpTransactionThreadReportsSuccessData);
     failureData.push(
         failureTransactionData,
+        failureTransactionErrorData,
         ...failureTransactionDuplicatesData,
         ...failureTransactionViolations,
         ...expenseReportFailureData,

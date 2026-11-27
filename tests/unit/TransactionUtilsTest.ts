@@ -31,7 +31,13 @@ import type {Routes, TransactionCustomUnit} from '../../src/types/onyx/Transacti
 import type {TransactionViolation} from '../../src/types/onyx/TransactionViolation';
 
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
-import {buildMergeDuplicatesParams, buildNewTransactionAfterReviewingDuplicates, canMergeDuplicates, compareDuplicateTransactionFields} from '../../src/libs/TransactionUtils/duplicates';
+import {
+    buildMergeDuplicatesParams,
+    buildNewTransactionAfterReviewingDuplicates,
+    canMergeDuplicates,
+    compareDuplicateTransactionFields,
+    hasMultipleCardImports,
+} from '../../src/libs/TransactionUtils/duplicates';
 import createRandomPolicy, {createCategoryTaxRulesCollection} from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
@@ -5913,6 +5919,39 @@ describe('TransactionUtils', () => {
 
             // Then only the unreported duplicate is sent, so Auth never receives a transaction it would reject
             expect(params.transactionList.map((transaction) => transaction.transactionID)).toEqual([unreportedDuplicate.transactionID]);
+        });
+    });
+
+    describe('hasMultipleCardImports', () => {
+        const buildCardTransaction = (id: number): Transaction => ({...createRandomTransaction(id), managedCard: true, bank: 'vcf', cardName: 'Visa'});
+        const buildCashTransaction = (id: number): Transaction => ({
+            ...createRandomTransaction(id),
+            managedCard: false,
+            bank: '',
+            cardNumber: '',
+            cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
+        });
+
+        it('flags two card expenses', () => {
+            // Given two expenses imported from a card
+            const transactions = [buildCardTransaction(1), buildCardTransaction(2)];
+
+            // When checking whether the duplicates can be merged
+            const isBlocked = hasMultipleCardImports(transactions);
+
+            // Then the merge is flagged, because Auth rejects merging two card expenses
+            expect(isBlocked).toBe(true);
+        });
+
+        it('does not flag a single card expense among cash duplicates', () => {
+            // Given one card expense and two cash expenses
+            const transactions = [buildCardTransaction(1), buildCashTransaction(2), buildCashTransaction(3)];
+
+            // When checking whether the duplicates can be merged
+            const isBlocked = hasMultipleCardImports(transactions);
+
+            // Then the merge is allowed, because Auth accepts merging cash expenses into a card expense
+            expect(isBlocked).toBe(false);
         });
     });
 

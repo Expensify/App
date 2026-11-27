@@ -1835,6 +1835,7 @@ const translations: TranslationDeepObject<typeof en> = {
             genericCreateFailureMessage: 'この経費の送信中に予期しないエラーが発生しました。後でもう一度お試しください。',
             genericCreateInvoiceFailureMessage: 'この請求書の送信中に予期しないエラーが発生しました。後でもう一度お試しください。',
             genericHoldExpenseFailureMessage: 'この経費を保留中に予期しないエラーが発生しました。後でもう一度お試しください。',
+            genericMergeDuplicatesFailureMessage: 'これらの経費を統合中に予期しないエラーが発生しました。後でもう一度お試しください。',
             genericUnholdExpenseFailureMessage: 'この経費の保留解除中に予期しないエラーが発生しました。後でもう一度お試しください。',
             receiptDeleteFailureError: 'このレシートの削除中に予期しないエラーが発生しました。後でもう一度お試しください。',
             receiptFailureMessage:
@@ -1917,6 +1918,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expenseDuplicate: 'この経費は別の経費と詳細がよく似ています。続行するには重複しているものを確認してください。',
         someDuplicatesArePaid: 'これらの重複の一部は、すでに承認または支払い済みです。',
         someDuplicatesAreUnavailable: 'これらの重複の一部を読み込めなかったため、すべてを保持することしかできません。',
+        cardDuplicatesCannotBeMerged: 'カード経費同士は統合できないため、すべてを保持することしかできません。',
         reviewDuplicates: '重複を確認',
         keepAll: 'すべて保持',
         keepSelected: '選択したものを保持',
@@ -2190,6 +2192,7 @@ const translations: TranslationDeepObject<typeof en> = {
             header: '詳細を確認',
             pageTitle: '保持する詳細を確認してください。保持しない詳細は削除されます。',
             confirmButton: '経費を統合',
+            sourceExpenseDeleted: 'これらの経費のいずれかが削除されたため、統合できません。',
         },
     },
     share: {
@@ -12177,6 +12180,7 @@ ${reportName}`,
         customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `料金は${startDate}からのみ有効です`,
         customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `料金は${endDate}までのみ有効です`,
         cannotMergeDuplicates: '経費を統合できるのは、下書きまたは未清算のレポートのみです。レポートを取り下げて、もう一度お試しください。',
+        cannotMergeCardDuplicates: 'カード経費同士は統合できません。戻って「すべて保持」を選択してください。',
         overCategoryLimitPerNight: (formattedLimit: string) => `1人あたりのカテゴリ上限額 ${formattedLimit} を超える宿泊単価`,
         shortName: {
             allTagLevelsRequired: 'すべてのタグが必須です',

@@ -24,7 +24,7 @@ import {getAllNonDeletedTransactions} from './MoneyRequestReportUtils';
 import Parser from './Parser';
 import {getCommaSeparatedTagNameWithSanitizedColons} from './PolicyUtils';
 import {constructReceiptSourceFromFilename} from './ReceiptUtils';
-import {getIOUActionForReportID} from './ReportActionsUtils';
+import {getIOUActionForReportID, getIOUActionForTransactionID, getOriginalMessage, isActionOfType, isDeletedAction} from './ReportActionsUtils';
 import {getReportName} from './ReportNameUtils';
 import {findSelfDMReportID, getReportOrDraftReport, getTransactionDetails, isIOUReport} from './ReportUtils';
 import StringUtils from './StringUtils';
@@ -531,6 +531,30 @@ function areTransactionsEligibleForMerge(transaction1: OnyxEntry<Transaction>, t
 }
 
 /**
+ * A transaction missing from Onyx doesn't count as deleted, because merge candidates can be on reports that were never
+ * loaded. A delete made elsewhere is caught through report actions instead: the IOU action is marked deleted until the
+ * delete is confirmed, and after that it is removed and a DELETED_TRANSACTION action names the transaction.
+ *
+ * @param isSourcePendingDelete - whether the live source transaction has a delete waiting to be sent
+ * @param sourceReportActions - actions of the source expense's report, and of the self DM for an unreported expense
+ */
+function isMergeSourceDeleted(sourceTransactionID: string, isSourcePendingDelete: boolean, sourceReportActions: ReportAction[]): boolean {
+    if (isSourcePendingDelete) {
+        return true;
+    }
+
+    // A live IOU action wins, so an expense that was deleted and then restored can still be merged
+    const sourceIOUAction = getIOUActionForTransactionID(sourceReportActions, sourceTransactionID, true);
+    if (sourceIOUAction) {
+        return isDeletedAction(sourceIOUAction);
+    }
+
+    return sourceReportActions.some(
+        (reportAction) => isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION) && getOriginalMessage(reportAction)?.transactionID === sourceTransactionID,
+    );
+}
+
+/**
  * Determines the correct target and source transactions for merging based on transaction types.
  *
  * Rules:
@@ -944,6 +968,7 @@ export {
     getMergeFieldUpdatedValues,
     getMergeFieldErrorText,
     areTransactionsEligibleForMerge,
+    isMergeSourceDeleted,
     DERIVED_MERGE_FIELDS,
     getRateFromMerchant,
     getTransactionsAndReportsFromSearch,

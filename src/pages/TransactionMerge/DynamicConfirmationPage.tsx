@@ -1,6 +1,7 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
+import FormHelpMessage from '@components/FormHelpMessage';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MoneyRequestView from '@components/ReportActionItem/MoneyRequestView';
@@ -25,13 +26,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {mergeTransactionRequest} from '@libs/actions/MergeTransaction';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {buildMergedTransactionData, getTransactionThreadReportID, willReportBecomeOneTransactionReportAfterMerge} from '@libs/MergeTransactionUtils';
+import {buildMergedTransactionData, getTransactionThreadReportID, isMergeSourceDeleted, willReportBecomeOneTransactionReportAfterMerge} from '@libs/MergeTransactionUtils';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
 import {getFilteredReportActionsForReportView, getIOUActionForTransactionID, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {findSelfDMReportID} from '@libs/ReportUtils';
+import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -55,6 +57,7 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const [isMergingExpenses, setIsMergingExpenses] = useState(false);
+    const [mergeErrorMessage, setMergeErrorMessage] = useState('');
 
     const {transactionID, isOnSearch} = route.params;
     const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
@@ -91,6 +94,10 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
     const selfDMReport = useSelfDMReport();
     const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReport?.reportID)}`);
 
+    // sourceTransaction can be the copy saved when the merge started, so it can't show a later delete
+    const [isSourcePendingDelete = false] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(sourceTransaction?.transactionID)}`, {
+        selector: isTransactionPendingDelete,
+    });
     const [sourceReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(sourceTransaction?.reportID)}`);
     const sourceReportTransactionsCollection = useReportTransactionsCollection(sourceTransaction?.reportID);
     const sourceIOUAction = sourceTransaction ? getIOUActionForTransactionID(Object.values(sourceReportActions ?? {}), sourceTransaction.transactionID) : undefined;
@@ -112,6 +119,12 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
         if (!targetTransaction || !mergeTransaction || !sourceTransaction) {
             return;
         }
+        const sourceActionsForDeleteCheck = [...Object.values(sourceReportActions ?? {}), ...Object.values(selfDMReportActions ?? {})];
+        if (isMergeSourceDeleted(sourceTransaction.transactionID, isSourcePendingDelete, sourceActionsForDeleteCheck)) {
+            setMergeErrorMessage(translate('transactionMerge.confirmationPage.sourceExpenseDeleted'));
+            return;
+        }
+        setMergeErrorMessage('');
         const reportID = mergeTransaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? (findSelfDMReportID() ?? CONST.REPORT.UNREPORTED_REPORT_ID) : mergeTransaction.reportID;
 
         // When the surviving expense is moved off its original report and that report held only this one expense,
@@ -253,6 +266,12 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
                     />
                 </ScrollView>
                 <FixedFooter style={styles.ph5}>
+                    {!!mergeErrorMessage && (
+                        <FormHelpMessage
+                            message={mergeErrorMessage}
+                            style={styles.mb3}
+                        />
+                    )}
                     <Button
                         sentryLabel={CONST.SENTRY_LABEL.MERGE_EXPENSE.CONFIRM_BUTTON}
                         variant={CONST.BUTTON_VARIANT.SUCCESS}

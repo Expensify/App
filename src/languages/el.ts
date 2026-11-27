@@ -1923,6 +1923,7 @@ const translations: TranslationDeepObject<typeof en> = {
             genericCreateFailureMessage: 'Μη αναμενόμενο σφάλμα κατά την αποστολή αυτής της δαπάνης. Παρακαλούμε δοκιμάστε ξανά αργότερα.',
             genericCreateInvoiceFailureMessage: 'Προέκυψε απροσδόκητο σφάλμα κατά την αποστολή αυτού του τιμολογίου. Παρακαλούμε προσπαθήστε ξανά αργότερα.',
             genericHoldExpenseFailureMessage: 'Προέκυψε απρόσμενο σφάλμα κατά την κράτηση αυτής της δαπάνης. Δοκιμάστε ξανά αργότερα.',
+            genericMergeDuplicatesFailureMessage: 'Προέκυψε απρόσμενο σφάλμα κατά τη συγχώνευση αυτών των δαπανών. Δοκιμάστε ξανά αργότερα.',
             genericUnholdExpenseFailureMessage: 'Προέκυψε απρόσμενο σφάλμα κατά την αφαίρεση αυτής της δαπάνης από την αναμονή. Παρακαλούμε δοκιμάστε ξανά αργότερα.',
             receiptDeleteFailureError: 'Μη αναμενόμενο σφάλμα κατά τη διαγραφή αυτής της απόδειξης. Παρακαλούμε δοκιμάστε ξανά αργότερα.',
             receiptFailureMessage:
@@ -1994,6 +1995,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expenseDuplicate: 'Αυτή η δαπάνη έχει παρόμοιες λεπτομέρειες με μία άλλη. Παρακαλούμε ελέγξτε τα διπλότυπα για να συνεχίσετε.',
         someDuplicatesArePaid: 'Κάποια από αυτά τα διπλότυπα έχουν ήδη εγκριθεί ή πληρωθεί.',
         someDuplicatesAreUnavailable: 'Δεν ήταν δυνατή η φόρτωση ορισμένων από αυτά τα διπλότυπα, οπότε μπορείτε μόνο να τα κρατήσετε όλα.',
+        cardDuplicatesCannotBeMerged: 'Οι δαπάνες κάρτας δεν μπορούν να συγχωνευθούν μεταξύ τους, οπότε μπορείτε μόνο να τις κρατήσετε όλες.',
         reviewDuplicates: 'Ελέγξτε τα διπλότυπα',
         keepAll: 'Διατήρηση όλων',
         keepSelected: 'Διατήρηση επιλογής',
@@ -2262,6 +2264,7 @@ const translations: TranslationDeepObject<typeof en> = {
             header: 'Επιβεβαιώστε τα στοιχεία',
             pageTitle: 'Επιβεβαιώστε τα στοιχεία που θα διατηρήσετε. Τα στοιχεία που δεν θα διατηρήσετε θα διαγραφούν.',
             confirmButton: 'Συγχωνεύστε δαπάνες',
+            sourceExpenseDeleted: 'Μία από αυτές τις δαπάνες διαγράφηκε, οπότε δεν μπορούν να συγχωνευθούν.',
         },
     },
     share: {
@@ -12642,6 +12645,7 @@ ${reportName}`,
         companyCardRequired: 'Απαιτούνται αγορές με εταιρική κάρτα',
         noRoute: 'Παρακαλούμε επιλέξτε μια έγκυρη διεύθυνση',
         cannotMergeDuplicates: 'Μπορείτε να συγχωνεύετε έξοδα μόνο σε πρόχειρες ή εκκρεμείς αναφορές. Ανακαλέστε την και δοκιμάστε ξανά.',
+        cannotMergeCardDuplicates: 'Οι δαπάνες κάρτας δεν μπορούν να συγχωνευθούν μεταξύ τους. Επιστρέψτε και επιλέξτε «Διατήρηση όλων».',
         overCategoryLimitPerNight: (formattedLimit: string) => `Νυχτερινή τιμή πάνω από το όριο κατηγορίας ${formattedLimit}/άτομο`,
         shortName: {
             allTagLevelsRequired: 'Απαιτούνται όλες οι ετικέτες',

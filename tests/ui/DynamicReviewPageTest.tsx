@@ -17,7 +17,7 @@ import DynamicReviewPage from '@pages/TransactionDuplicate/DynamicReviewPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
-import type {Report} from '@src/types/onyx';
+import type {Report, Transaction} from '@src/types/onyx';
 
 import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
@@ -59,7 +59,10 @@ const Stack = createPlatformStackNavigator<Record<string, {reportID: string}>>()
 
 TestHelper.setupGlobalFetchMock();
 
-const buildExpense = (transactionID: string, reportID: string) => ({
+const OTHER_ACCOUNT_ID = 2;
+const CARD_FIELDS: Partial<Transaction> = {managedCard: true, bank: 'vcf', cardName: 'Visa'};
+
+const buildExpense = (transactionID: string, reportID: string, overrides: Partial<Transaction> = {}) => ({
     transactionID,
     reportID,
     amount: -1000,
@@ -67,6 +70,7 @@ const buildExpense = (transactionID: string, reportID: string) => ({
     created: '2026-10-01',
     merchant: 'Ramen',
     comment: {},
+    ...overrides,
 });
 
 const buildExpenseReport = (reportID: string, reportState: Pick<Report, 'stateNum' | 'statusNum'>) => ({
@@ -108,6 +112,27 @@ const renderPage = async () => {
 const keepAllLabel = () => TestHelper.translateLocal('iou.keepAll');
 const keepSelectedLabel = () => TestHelper.translateLocal('iou.keepSelected');
 const unavailableMessage = () => TestHelper.translateLocal('iou.someDuplicatesAreUnavailable');
+const cardDuplicatesMessage = () => TestHelper.translateLocal('iou.cardDuplicatesCannotBeMerged');
+
+// Loads both duplicates on open reports, so the card rule is the only thing that can hide Keep selected
+const loadDuplicatePair = async ({
+    draftExpense,
+    otherExpense,
+    ownerAccountID = ACCOUNT_ID,
+}: {
+    draftExpense: Partial<Transaction>;
+    otherExpense: Partial<Transaction>;
+    ownerAccountID?: number;
+}) => {
+    await act(async () => {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${DRAFT_TRANSACTION_ID}`, draftExpense);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${DRAFT_REPORT_ID}`, {ownerAccountID});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${OTHER_TRANSACTION_ID}`, buildExpense(OTHER_TRANSACTION_ID, OTHER_REPORT_ID, otherExpense));
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${OTHER_REPORT_ID}`, {...buildExpenseReport(OTHER_REPORT_ID, OPEN_REPORT_STATE), ownerAccountID});
+        await Onyx.set(LOADING_FLAG_KEY, false);
+    });
+    await waitForBatchedUpdatesWithAct();
+};
 
 describe('Reviewing duplicates that load late', () => {
     beforeAll(() => {
@@ -276,5 +301,32 @@ describe('Reviewing duplicates that load late', () => {
 
         // Then the duplicates are fetched, so the loader that now shows has a request that will end it
         expect(getDuplicateTransactionDetails).toHaveBeenCalledWith(DRAFT_TRANSACTION_ID);
+    });
+
+    it('hides Keep selected when the owner reviews two card duplicates', async () => {
+        // Given the owner's two duplicates were both imported from a card
+        await loadDuplicatePair({draftExpense: CARD_FIELDS, otherExpense: CARD_FIELDS});
+
+        // When the review opens
+        await renderPage();
+
+        // Then only Keep all is offered with the card reason, because Auth rejects merging two card expenses. The
+        // unloaded-duplicates message stays hidden because both duplicates did load.
+        expect(screen.getByText(keepAllLabel())).toBeOnTheScreen();
+        expect(screen.queryByText(keepSelectedLabel())).not.toBeOnTheScreen();
+        expect(screen.getByText(cardDuplicatesMessage())).toBeOnTheScreen();
+        expect(screen.queryByText(unavailableMessage())).not.toBeOnTheScreen();
+    });
+
+    it('offers Keep selected to a non-owner reviewing two card duplicates', async () => {
+        // Given two card duplicates on reports owned by someone else, as an approver or admin sees them
+        await loadDuplicatePair({draftExpense: CARD_FIELDS, otherExpense: CARD_FIELDS, ownerAccountID: OTHER_ACCOUNT_ID});
+
+        // When the review opens
+        await renderPage();
+
+        // Then Keep selected is offered, because for a non-owner it holds the other expenses instead of merging them
+        expect(screen.getByText(keepSelectedLabel())).toBeOnTheScreen();
+        expect(screen.queryByText(cardDuplicatesMessage())).not.toBeOnTheScreen();
     });
 });

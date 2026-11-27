@@ -1220,6 +1220,9 @@ type UpdateOperationType = {
 
 /** Model of the `deleted transaction` report action */
 type OriginalMessageDeletedTransaction = {
+    /** The deleted transaction. Its IOU action is removed once the delete is confirmed, so this is what still names it. */
+    transactionID?: string;
+
     /** The merchant of the transaction */
     merchant?: string;
 

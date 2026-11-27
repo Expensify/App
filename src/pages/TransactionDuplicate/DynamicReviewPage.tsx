@@ -32,9 +32,11 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {getLinkedTransactionID} from '@libs/ReportActionsUtils';
+import {isReportOwner} from '@libs/ReportUtils';
 import {doesDeleteNavigateBackUrlIncludeSpecificDuplicatesReview, getParentReportActionDeletionStatus, hasLoadedReportActions, isThreadReportDeleted} from '@libs/TransactionNavigationUtils';
 import {getReviewNavigationRoute} from '@libs/TransactionPreviewUtils';
 import type {TransactionThreadNavigationDescriptor} from '@libs/TransactionThreadNavigationUtils';
+import {hasMultipleCardImports} from '@libs/TransactionUtils/duplicates';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -123,12 +125,24 @@ function DynamicReviewPage() {
     const {hasSettledOrApprovedReport: hasSettledOrApprovedTransaction, hasUnloadedReport} = useDuplicateReportsStatus(transactions);
     // A duplicate that isn't loaded yet, or whose report isn't, may be approved or paid, and merging it fails server-side.
     const hasUnloadedTransaction = transactions.length < transactionIDs.length;
-    const canKeepSelected = !hasSettledOrApprovedTransaction && !hasUnloadedReport && !hasUnloadedTransaction;
+    const canKeepSelectedIfLoaded = !hasSettledOrApprovedTransaction && !hasUnloadedReport && !hasUnloadedTransaction;
+    // When the owner presses Keep selected, the expenses are merged. When anyone else presses it, the other expenses are
+    // put on hold instead, which works for card expenses too. The owner comes from the reviewed expense's report, so the
+    // button doesn't disappear while the user picks a row.
+    const isCurrentUserReportOwner = isReportOwner(expenseReport, currentPersonalDetails.accountID);
+    // Only checked once Keep selected would otherwise show, so the card message never stacks on the paid or unavailable one
+    const isCardMergeBlocked = canKeepSelectedIfLoaded && isCurrentUserReportOwner && hasMultipleCardImports(transactions);
+    const canKeepSelected = canKeepSelectedIfLoaded && !isCardMergeBlocked;
     const [isLoadingDuplicateDetails] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_IS_LOADING_DUPLICATE_TRANSACTION_DETAILS}${transactionID}`);
     // Undefined means the fetch hasn't started yet, so a partial list isn't rendered for the first frame.
     const isLoadingDuplicates = !isOffline && (hasUnloadedTransaction || hasUnloadedReport) && isLoadingDuplicateDetails !== false;
-    const shouldShowUnavailableMessage = !hasSettledOrApprovedTransaction && !canKeepSelected;
+    const shouldShowUnavailableMessage = !hasSettledOrApprovedTransaction && !canKeepSelectedIfLoaded;
     useAccessibilityAnnouncement(translate('iou.someDuplicatesAreUnavailable'), shouldShowUnavailableMessage && !isLoadingDuplicates, {
+        shouldAnnounceOnNative: true,
+        shouldAnnounceOnWeb: true,
+        politeness: 'polite',
+    });
+    useAccessibilityAnnouncement(translate('iou.cardDuplicatesCannotBeMerged'), isCardMergeBlocked, {
         shouldAnnounceOnNative: true,
         shouldAnnounceOnWeb: true,
         politeness: 'polite',
@@ -336,6 +350,7 @@ function DynamicReviewPage() {
                     >
                         {!!hasSettledOrApprovedTransaction && <Text style={[styles.textNormal, styles.colorMuted, styles.mb5]}>{translate('iou.someDuplicatesArePaid')}</Text>}
                         {shouldShowUnavailableMessage && <Text style={[styles.textNormal, styles.colorMuted, styles.mb5]}>{translate('iou.someDuplicatesAreUnavailable')}</Text>}
+                        {isCardMergeBlocked && <Text style={[styles.textNormal, styles.colorMuted, styles.mb5]}>{translate('iou.cardDuplicatesCannotBeMerged')}</Text>}
                         <DuplicateTransactionsList
                             transactions={transactions}
                             selectedTransactionID={effectiveSelectedTransactionID}
@@ -347,7 +362,7 @@ function DynamicReviewPage() {
                     <FixedFooter style={[styles.mtAuto, styles.gap3]}>
                         <Button
                             sentryLabel={CONST.SENTRY_LABEL.TRANSACTION_DUPLICATE.KEEP_ALL_BUTTON}
-                            variant={hasSettledOrApprovedTransaction ? CONST.BUTTON_VARIANT.SUCCESS : undefined}
+                            variant={hasSettledOrApprovedTransaction || isCardMergeBlocked ? CONST.BUTTON_VARIANT.SUCCESS : undefined}
                             size={CONST.BUTTON_SIZE.LARGE}
                             onPress={keepAll}
                         >

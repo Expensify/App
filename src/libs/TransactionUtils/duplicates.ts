@@ -23,6 +23,7 @@ import {deepEqual} from 'fast-equals';
 import Onyx from 'react-native-onyx';
 
 import {getAmount, getCurrency, getDescription, getFormattedCreated, getMerchant, isCardTransactionReimbursableEditable, isExpensifyCardTransaction} from './fields';
+import {isFromCreditCardImport} from './index';
 
 type FieldsToCompare = Record<string, Array<keyof Transaction>>;
 type FieldsToChange = {
@@ -226,6 +227,11 @@ function removeSettledAndApprovedTransactions(transactions: Array<OnyxEntry<Tran
  */
 function canMergeDuplicates(keptReport: OnyxEntry<Report>, keptReportID: string | undefined, transactionIDList: string[]): boolean {
     return isReportMergeableForDuplicates(keptReport, keptReportID) && transactionIDList.length > 0;
+}
+
+/** Auth rejects a duplicate merge that contains two or more card expenses. */
+function hasMultipleCardImports(transactions: Array<OnyxEntry<Transaction>>): boolean {
+    return transactions.filter((transaction) => isFromCreditCardImport(transaction)).length >= 2;
 }
 
 /**
@@ -482,6 +488,7 @@ export {
     buildMergeDuplicatesParams,
     buildNewTransactionAfterReviewingDuplicates,
     canMergeDuplicates,
+    hasMultipleCardImports,
     compareDuplicateTransactionFields,
     removeSettledAndApprovedTransactions,
     removeTransactionFromDuplicateTransactionViolation,

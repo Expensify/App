@@ -1855,6 +1855,7 @@ const translations: TranslationDeepObject<typeof en> = {
             genericCreateFailureMessage: 'Unerwarteter Fehler beim Einreichen dieser Ausgabe. Bitte versuche es später noch einmal.',
             genericCreateInvoiceFailureMessage: 'Unerwarteter Fehler beim Senden dieser Rechnung. Bitte versuche es später noch einmal.',
             genericHoldExpenseFailureMessage: 'Unerwarteter Fehler beim Zurückhalten dieser Ausgabe. Bitte versuche es später erneut.',
+            genericMergeDuplicatesFailureMessage: 'Unerwarteter Fehler beim Zusammenführen dieser Ausgaben. Bitte versuche es später erneut.',
             genericUnholdExpenseFailureMessage: 'Unerwarteter Fehler beim Aufheben der Sperre für diese Ausgabe. Bitte versuche es später noch einmal.',
             receiptDeleteFailureError: 'Unerwarteter Fehler beim Löschen dieses Belegs. Bitte versuche es später noch einmal.',
             receiptFailureMessage:
@@ -1940,6 +1941,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expenseDuplicate: 'Diese Ausgabe hat ähnliche Details wie eine andere. Bitte überprüfe die Duplikate, um fortzufahren.',
         someDuplicatesArePaid: 'Einige dieser Duplikate wurden bereits genehmigt oder bezahlt.',
         someDuplicatesAreUnavailable: 'Einige dieser Duplikate konnten nicht geladen werden, daher kannst du nur alle behalten.',
+        cardDuplicatesCannotBeMerged: 'Kartenausgaben können nicht miteinander zusammengeführt werden, daher kannst du nur alle behalten.',
         reviewDuplicates: 'Duplikate prüfen',
         keepAll: 'Alle behalten',
         keepSelected: 'Auswahl behalten',
@@ -2216,6 +2218,7 @@ const translations: TranslationDeepObject<typeof en> = {
             header: 'Details bestätigen',
             pageTitle: 'Bestätige die Details, die du behältst. Die Details, die du nicht behältst, werden gelöscht.',
             confirmButton: 'Ausgaben zusammenführen',
+            sourceExpenseDeleted: 'Eine dieser Ausgaben wurde gelöscht, daher können sie nicht zusammengeführt werden.',
         },
     },
     share: {
@@ -12434,6 +12437,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `Der Satz gilt erst ab dem ${startDate}`,
         customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `Satz gilt nur bis ${endDate}`,
         cannotMergeDuplicates: 'Sie können Ausgaben nur in Entwürfen oder offenen Berichten zusammenführen. Ziehen Sie den Bericht zurück und versuchen Sie es erneut.',
+        cannotMergeCardDuplicates: 'Kartenausgaben können nicht miteinander zusammengeführt werden. Geh zurück und wähle „Alle behalten“.',
         overCategoryLimitPerNight: (formattedLimit: string) => `Nächtlicher Satz über dem Kategorienlimit von ${formattedLimit}/Person`,
         shortName: {
             allTagLevelsRequired: 'Alle Tags erforderlich',

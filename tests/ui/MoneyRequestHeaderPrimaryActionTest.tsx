@@ -1,11 +1,12 @@
 import {act, render, screen} from '@testing-library/react-native';
 
+import {CurrentUserPersonalDetailsContext} from '@components/CurrentUserPersonalDetailsProvider';
 import MoneyRequestHeaderPrimaryAction from '@components/MoneyRequestHeaderPrimaryAction';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
+import type {Report, Transaction} from '@src/types/onyx';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -35,7 +36,9 @@ jest.mock('@libs/ReportPrimaryActionUtils', () => ({
     getTransactionThreadPrimaryAction: jest.fn(() => jest.requireActual<{default: typeof CONST}>('@src/CONST').default.REPORT.TRANSACTION_PRIMARY_ACTIONS.KEEP_THIS_ONE),
 }));
 
-const buildExpense = (transactionID: string, reportID: string) => ({
+const CARD_FIELDS: Partial<Transaction> = {managedCard: true, bank: 'vcf', cardName: 'Visa'};
+
+const buildExpense = (transactionID: string, reportID: string, overrides: Partial<Transaction> = {}) => ({
     transactionID,
     reportID,
     amount: -1000,
@@ -43,6 +46,7 @@ const buildExpense = (transactionID: string, reportID: string) => ({
     created: '2026-10-01',
     merchant: 'Ramen',
     comment: {},
+    ...overrides,
 });
 
 const buildOpenExpenseReport = (reportID: string) => ({
@@ -53,9 +57,9 @@ const buildOpenExpenseReport = (reportID: string) => ({
     statusNum: CONST.REPORT.STATUS_NUM.OPEN,
 });
 
-const loadDuplicate = async (report: Partial<Report>) => {
+const loadDuplicate = async (report: Partial<Report>, duplicateOverrides: Partial<Transaction> = {}) => {
     await act(async () => {
-        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${DUPLICATE_TRANSACTION_ID}`, buildExpense(DUPLICATE_TRANSACTION_ID, OTHER_REPORT_ID));
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${DUPLICATE_TRANSACTION_ID}`, buildExpense(DUPLICATE_TRANSACTION_ID, OTHER_REPORT_ID, duplicateOverrides));
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${OTHER_REPORT_ID}`, report);
     });
 };
@@ -63,7 +67,9 @@ const loadDuplicate = async (report: Partial<Report>) => {
 const renderHeader = async () => {
     render(
         <OnyxListItemProvider>
-            <MoneyRequestHeaderPrimaryAction reportID={THREAD_REPORT_ID} />
+            <CurrentUserPersonalDetailsContext.Provider value={{accountID: ACCOUNT_ID}}>
+                <MoneyRequestHeaderPrimaryAction reportID={THREAD_REPORT_ID} />
+            </CurrentUserPersonalDetailsContext.Provider>
         </OnyxListItemProvider>,
     );
     await waitForBatchedUpdatesWithAct();
@@ -172,6 +178,20 @@ describe('MoneyRequestHeaderPrimaryAction Keep this one', () => {
         await renderHeader();
 
         // Then Keep this one is hidden, because the paid duplicate is filtered out of the merge and Confirm would fail
+        expect(screen.queryByText('violations.keepThisOne')).not.toBeOnTheScreen();
+    });
+
+    it('is not offered to the owner when both expenses are card expenses', async () => {
+        // Given the owner's expense and its duplicate were both imported from a card
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, CARD_FIELDS);
+        });
+        await loadDuplicate(buildOpenExpenseReport(OTHER_REPORT_ID), CARD_FIELDS);
+
+        // When the header renders
+        await renderHeader();
+
+        // Then Keep this one is hidden, because Auth rejects merging two card expenses, same as Keep selected on the review page
         expect(screen.queryByText('violations.keepThisOne')).not.toBeOnTheScreen();
     });
 });
