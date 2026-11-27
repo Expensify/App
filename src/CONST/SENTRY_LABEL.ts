@@ -1731,6 +1731,7 @@ const SENTRY_LABEL = {
         EDIT_REPORT_CREATE_REPORT: 'IOURequestStep-EditReportCreateReport',
         EDIT_REPORT_AUTO_REPORT: 'IOURequestStep-EditReportAutoReport',
         EDIT_REPORT_REMOVE_FROM_REPORT: 'IOURequestStep-EditReportRemoveFromReport',
+        EDIT_REPORT_NO_REPORT: 'IOURequestStep-EditReportNoReport',
     },
     TAB_SELECTOR: {
         MANUAL_TAB: 'TabSelector-ManualTab',

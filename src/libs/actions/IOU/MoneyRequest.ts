@@ -44,7 +44,7 @@ import {isInvalidMerchantValue} from '@libs/ValidationUtils';
 
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 
-import {getDefaultP2PMileageRate} from '@userActions/Transaction';
+import {getDefaultP2PMileageRate, setTransactionReport} from '@userActions/Transaction';
 import {getRemoveDraftTransactionsByIDsData, removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
 
 import type {IOURequestType} from '@src/CONST';
@@ -771,6 +771,82 @@ function setMoneyRequestParticipantsFromReport(transactionID: string, report: On
     });
 }
 
+type MoveMoneyRequestDraftToSelfDMParams = {
+    transaction: OnyxEntry<Transaction>;
+    selfDMReport: OnyxEntry<Report>;
+    currentUserAccountID: number;
+
+    /** Workspace whose distance rates the self DM uses */
+    policyForMovingExpenses: OnyxEntry<Policy>;
+    lastSelectedDistanceRates: OnyxEntry<LastSelectedDistanceRates>;
+    personalPolicyOutputCurrency: string | undefined;
+};
+
+/** Puts a draft expense on the current user's self DM, where it is saved without a report. */
+function moveMoneyRequestDraftToSelfDM({
+    transaction,
+    selfDMReport,
+    currentUserAccountID,
+    policyForMovingExpenses,
+    lastSelectedDistanceRates,
+    personalPolicyOutputCurrency,
+}: MoveMoneyRequestDraftToSelfDMParams) {
+    if (!transaction?.transactionID) {
+        return;
+    }
+    setMoneyRequestParticipantsFromReport(transaction.transactionID, selfDMReport, currentUserAccountID);
+    setTransactionReport(transaction.transactionID, {reportID: CONST.REPORT.UNREPORTED_REPORT_ID}, true);
+
+    if (!isDistanceRequest(transaction)) {
+        return;
+    }
+    // The rate the expense picked up from a workspace does not exist outside it, so leaving it in place makes the Rate
+    // field read "Pending..." and the amount go blank once the expense is on the self DM. Re-resolve the rate the self
+    // DM itself uses, the same way starting a track distance expense does.
+    const selfDMRateID = DistanceRequestUtils.getCustomUnitRateID({
+        reportID: selfDMReport?.reportID,
+        isPolicyExpenseChat: false,
+        isTrackDistanceExpense: true,
+        policy: policyForMovingExpenses,
+        lastSelectedDistanceRates,
+        expenseDate: transaction.created,
+    });
+    setCustomUnitRateID(transaction.transactionID, selfDMRateID, transaction, policyForMovingExpenses, false, policyForMovingExpenses?.outputCurrency ?? personalPolicyOutputCurrency);
+}
+
+type SetMoneyRequestDistanceRateForWorkspaceParams = {
+    transaction: OnyxEntry<Transaction>;
+
+    /** Workspace the expense is headed to */
+    policy: OnyxEntry<Policy>;
+
+    /** Workspace chat the expense is headed to */
+    reportID: string | undefined;
+    lastSelectedDistanceRates: OnyxEntry<LastSelectedDistanceRates>;
+};
+
+/**
+ * Gives a draft distance expense a rate of the workspace it is headed to, unless its rate is already one of that
+ * workspace's. A rate from elsewhere does not exist on the workspace, and the form would show a rate error for it.
+ */
+function setMoneyRequestDistanceRateForWorkspace({transaction, policy, reportID, lastSelectedDistanceRates}: SetMoneyRequestDistanceRateForWorkspaceParams) {
+    if (!transaction?.transactionID) {
+        return;
+    }
+    const currentRateID = transaction.comment?.customUnit?.customUnitRateID;
+    if (currentRateID && DistanceRequestUtils.getMileageRates(policy)[currentRateID]) {
+        return;
+    }
+    const workspaceRateID = DistanceRequestUtils.getCustomUnitRateID({
+        reportID,
+        isPolicyExpenseChat: true,
+        policy,
+        lastSelectedDistanceRates,
+        expenseDate: transaction.created,
+    });
+    setCustomUnitRateID(transaction.transactionID, workspaceRateID, transaction, policy, false, policy?.outputCurrency);
+}
+
 /** Get report policy id of IOU request */
 function getIOURequestPolicyID(transaction: OnyxEntry<Transaction>, report: OnyxEntry<Report>): string | undefined {
     // Workspace sender will exist for invoices
@@ -1290,6 +1366,8 @@ export {
     setMoneyRequestParticipantsSyncedAccountIDs,
     getMoneyRequestParticipantsFromReport,
     setMoneyRequestParticipantsFromReport,
+    moveMoneyRequestDraftToSelfDM,
+    setMoneyRequestDistanceRateForWorkspace,
     getIOURequestPolicyID,
     updateLastLocationPermissionPrompt,
     setMultipleMoneyRequestParticipantsFromReport,

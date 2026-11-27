@@ -9,6 +9,7 @@ import {SearchResultsContext} from '@components/Search/SearchContext';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {fetchOutstandingReports} from '@libs/actions/OutstandingReports';
 import {setTransactionReport} from '@libs/actions/Transaction';
+import Navigation from '@libs/Navigation/Navigation';
 
 import DynamicIOURequestEditReportWithWritableReportOrNotFound from '@pages/iou/request/step/DynamicIOURequestEditReport';
 import DynamicIOURequestStepReportWithWritableReportOrNotFound from '@pages/iou/request/step/DynamicIOURequestStepReport';
@@ -18,6 +19,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchResults} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
 
+import type {NavigationState} from '@react-navigation/native';
+
+import {useNavigationState} from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
@@ -53,6 +57,7 @@ jest.mock('@libs/Navigation/Navigation', () => {
     return {
         navigate: jest.fn(),
         goBack: jest.fn(),
+        setParams: jest.fn(),
         navigationRef: mockRef,
         getActiveRoute: () => '',
         getActiveRouteWithoutParams: jest.fn(() => ''),
@@ -75,6 +80,7 @@ jest.mock('@react-navigation/native', () => {
         useNavigation: () => ({navigate: jest.fn(), addListener: jest.fn()}),
         useFocusEffect: jest.fn(),
         usePreventRemove: jest.fn(),
+        useNavigationState: jest.fn(),
     };
 });
 
@@ -226,6 +232,75 @@ describe('IOURequestStepReport', () => {
         const [[, {reportID: reportID1}], [, {reportID: reportID2}]] = jest.mocked(setTransactionReport).mock.calls;
         expect(reportID1).toEqual(REPORT_ID_2);
         expect(reportID2).toEqual(REPORT_ID_2);
+    });
+
+    it('switches the form the picker was opened from to a track expense when None is picked', async () => {
+        // Given a new expense in a workspace chat whose report is picked on the full-page picker, opened from the form below it
+        await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
+        const fakePolicy = {...createRandomPolicy(Number(POLICY_ID_1)), role: CONST.POLICY.ROLE.ADMIN, type: CONST.POLICY.TYPE.TEAM};
+        const fakePolicyExpenseChat = {...createPolicyExpenseChat(3, true), policyName: fakePolicy.name, policyID: fakePolicy.id};
+        const fakeReport = {
+            ...createRandomReport(Number(REPORT_ID_1), undefined),
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            policyName: fakePolicy.name,
+            policyID: fakePolicy.id,
+            chatReportID: fakePolicyExpenseChat.reportID,
+            ownerAccountID: ACCOUNT_ID,
+        };
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, DEFAULT_SPLIT_TRANSACTION);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${fakePolicyExpenseChat.reportID}`, fakePolicyExpenseChat);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`, fakeReport);
+
+        const formRouteKey = 'Money_Request_Step_Confirmation--form';
+        const pageRouteKey = 'Dynamic_Money_Request_Report--picker';
+        const stackState: NavigationState = {
+            key: 'stack',
+            index: 1,
+            routeNames: ['Money_Request_Step_Confirmation', 'Dynamic_Money_Request_Report'],
+            routes: [
+                {key: formRouteKey, name: 'Money_Request_Step_Confirmation'},
+                {key: pageRouteKey, name: 'Dynamic_Money_Request_Report'},
+            ],
+            type: 'stack',
+            stale: false,
+        };
+        jest.mocked(useNavigationState).mockImplementation((selector: (state: NavigationState) => unknown) => selector(stackState));
+
+        render(
+            <OnyxListItemProvider>
+                <HTMLProviderWrapper>
+                    <CurrentUserPersonalDetailsProvider>
+                        <LocaleContextProvider>
+                            <DynamicIOURequestStepReportWithWritableReportOrNotFound
+                                route={{
+                                    key: pageRouteKey,
+                                    name: 'Dynamic_Money_Request_Report',
+                                    params: {
+                                        action: 'create',
+                                        iouType: 'submit',
+                                        transactionID: TRANSACTION_ID,
+                                        reportID: REPORT_ID_1,
+                                    },
+                                }}
+                                // @ts-expect-error we don't need navigation param here.
+                                navigation={undefined}
+                            />
+                        </LocaleContextProvider>
+                    </CurrentUserPersonalDetailsProvider>
+                </HTMLProviderWrapper>
+            </OnyxListItemProvider>,
+        );
+
+        // When the user picks None, which goes back before it switches the form's type
+        fireEvent.press(await screen.findByText('None'), {});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the form below the picker, not the picker itself, becomes a track expense, so its category and tax fields match
+        expect(Navigation.goBack).toHaveBeenCalled();
+        expect(Navigation.setParams).toHaveBeenCalledWith({iouType: CONST.IOU.TYPE.TRACK}, formRouteKey);
     });
 
     it('should list a report that is only in the search results when changing the report by the report field', async () => {

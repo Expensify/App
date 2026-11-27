@@ -47,8 +47,8 @@ type ComputeFieldVisibilityParams = {
     shouldShowReimbursable: boolean;
     /** Whether the billable toggle should be displayed */
     shouldShowBillable: boolean;
-    /** Whether the surface is in a policy-expense chat (drives Report mount) */
-    isPolicyExpenseChat: boolean;
+    /** Whether the Report row is mounted, which it is for an expense that started in a workspace chat */
+    shouldShowReportField: boolean;
 };
 
 /**
@@ -108,7 +108,7 @@ function computeFieldVisibility({
     shouldShowAttendees,
     shouldShowReimbursable,
     shouldShowBillable,
-    isPolicyExpenseChat,
+    shouldShowReportField,
 }: ComputeFieldVisibilityParams): FieldVisibility {
     const tagsRequired: TagEntry[] = [];
     const tagsOptional: TagEntry[] = [];
@@ -137,7 +137,7 @@ function computeFieldVisibility({
         tax: shouldShowTax,
         attendees: shouldShowAttendees,
         toggles: shouldShowReimbursable || shouldShowBillable,
-        report: isPolicyExpenseChat,
+        report: shouldShowReportField,
     };
 }
 

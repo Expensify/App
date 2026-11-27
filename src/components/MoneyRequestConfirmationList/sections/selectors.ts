@@ -12,6 +12,8 @@ import {
     isMerchantMissing,
     isScanRequest,
     isScanning,
+    isTimeRequest,
+    isUnreportedManagedCardTransaction,
     willFieldBeAutomaticallyFilled,
 } from '@libs/TransactionUtils';
 
@@ -357,6 +359,8 @@ type ReportFieldTransactionState = {
     isFromGlobalCreate: boolean;
     participantReportID: string | undefined;
     isScanRequest: boolean;
+    isTimeRequest: boolean;
+    isUnreportedManagedCardTransaction: boolean;
 };
 
 const reportFieldTransactionStateSelector = (t: OnyxEntry<Transaction>): ReportFieldTransactionState | undefined => {
@@ -368,6 +372,8 @@ const reportFieldTransactionStateSelector = (t: OnyxEntry<Transaction>): ReportF
         isFromGlobalCreate: !!t.isFromGlobalCreate,
         participantReportID: t.participants?.at(0)?.reportID,
         isScanRequest: isScanRequest(t),
+        isTimeRequest: isTimeRequest(t),
+        isUnreportedManagedCardTransaction: isUnreportedManagedCardTransaction(t),
     };
 };
 

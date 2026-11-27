@@ -5,9 +5,11 @@ import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
+import type {IOUType} from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
+import {useNavigationState} from '@react-navigation/native';
 import React from 'react';
 
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
@@ -36,7 +38,21 @@ function DynamicIOURequestStepReport({route, transaction}: DynamicIOURequestStep
         }
     };
 
-    const {listProps, reportOrDraftReport} = useReportPickerActions({transaction, transactionID, action, iouType, reportIDFromRoute, goBack: handleGoBack});
+    // The form this page was opened from sits right below it in the stack and reads the expense type from its own route.
+    // Its key is kept from render: None sets the type after going back, when this page is no longer in the stack.
+    const formRouteKey = useNavigationState((state) => {
+        const pageIndex = state.routes.findIndex((stackRoute) => stackRoute.key === route.key);
+        // A page missing from the stack, or at its bottom, has no form below it to update.
+        return pageIndex > 0 ? state.routes.at(pageIndex - 1)?.key : undefined;
+    });
+    const setFormIOUType = (formIOUType: IOUType) => {
+        if (!formRouteKey) {
+            return;
+        }
+        Navigation.setParams({iouType: formIOUType}, formRouteKey);
+    };
+
+    const {listProps, reportOrDraftReport} = useReportPickerActions({transaction, transactionID, action, iouType, reportIDFromRoute, goBack: handleGoBack, setFormIOUType});
 
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, reportOrDraftReport, transaction);
 

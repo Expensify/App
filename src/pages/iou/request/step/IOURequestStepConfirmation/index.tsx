@@ -642,6 +642,8 @@ function IOURequestStepConfirmationContent({
         transaction,
         selectedParticipants: participants,
         onOpenParticipantPicker: openParticipantPicker,
+        // `navigation` is this screen's own even when it renders as a tab of the start page, which the fields can't reach themselves
+        onIOUTypeChange: (nextIOUType) => navigation.setParams({iouType: nextIOUType}),
         onToggleBillable: setBillable,
         showRemoveExpenseConfirmModal: () => {
             confirmRemoveCurrentTransaction();

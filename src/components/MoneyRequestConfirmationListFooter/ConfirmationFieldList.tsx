@@ -76,7 +76,8 @@ function ConfirmationFieldList({
     const theme = useTheme();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Sparkles', 'DownArrow']);
-    const {action, iouType, transactionID, isReadOnly, isPolicyExpenseChat, isDistanceRequest, isPerDiemRequest, isTimeRequest, isTypeInvoice} = useConfirmationFields();
+    const {action, iouType, transactionID, isReadOnly, isPolicyExpenseChat, shouldShowReportField, isDistanceRequest, isPerDiemRequest, isTimeRequest, isTypeInvoice} =
+        useConfirmationFields();
     const {shouldUseDropdownRows} = useExpenseFormLayout();
     const policyTagLists = getTagLists(policyTags);
     const hasDependentTagLists = hasDependentTags(policy, policyTags);
@@ -118,7 +119,7 @@ function ConfirmationFieldList({
         shouldShowAttendees: flags.shouldShowAttendees,
         shouldShowReimbursable: flags.shouldShowReimbursable,
         shouldShowBillable: flags.shouldShowBillable,
-        isPolicyExpenseChat,
+        shouldShowReportField,
     });
     const shouldShowMoreButton = hasBelowShowMore(fieldVisibility);
 

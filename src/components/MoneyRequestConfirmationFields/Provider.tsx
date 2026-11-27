@@ -44,6 +44,9 @@ type ProviderProps = {
     /** Whether the surface is in a policy-expense chat */
     isPolicyExpenseChat?: boolean;
 
+    /** Whether the Report row is shown. Defaults to `isPolicyExpenseChat`. */
+    shouldShowReportField?: boolean;
+
     /** Whether the active transaction is a scan request */
     isScanRequest?: boolean;
 
@@ -80,6 +83,9 @@ type ProviderProps = {
     /** Reports whether the inline tax amount field is currently empty, so submission can be blocked when it is left empty */
     onTaxAmountEmptyChange?: (isEmpty: boolean) => void;
 
+    /** Switches the form to another expense type, e.g. to a track expense once the report list moves it off any report. Given by the screen that owns the form's route, which a field inside a tab can't reach with `useRoute` */
+    onIOUTypeChange?: (iouType: IOUType) => void;
+
     /** Reports whether the inline amount field holds input the draft can't show as the user's: a sign with no digits, or a currency the user picked */
     onUnsavedAmountInputChange?: (hasUnsavedInput: boolean) => void;
 
@@ -99,6 +105,7 @@ function Provider({
     isEditingSplitBill = false,
     canEnterScanFieldsManually = false,
     isPolicyExpenseChat = false,
+    shouldShowReportField = isPolicyExpenseChat,
     isScanRequest = false,
     isDistanceRequest = false,
     isPerDiemRequest = false,
@@ -111,6 +118,7 @@ function Provider({
     fieldViewRefs,
     onSubmitForm,
     onTaxAmountEmptyChange,
+    onIOUTypeChange,
     onUnsavedAmountInputChange,
     children,
 }: ProviderProps) {
@@ -126,6 +134,7 @@ function Provider({
         isEditingSplitBill,
         canEnterScanFieldsManually,
         isPolicyExpenseChat,
+        shouldShowReportField,
         isScanRequest,
         isDistanceRequest,
         isPerDiemRequest,
@@ -138,6 +147,7 @@ function Provider({
         fieldViewRefs,
         onSubmitForm,
         onTaxAmountEmptyChange,
+        onIOUTypeChange,
         onUnsavedAmountInputChange,
     };
     return <ConfirmationFieldsContext.Provider value={value}>{children}</ConfirmationFieldsContext.Provider>;

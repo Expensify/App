@@ -20,6 +20,9 @@ type MoneyRequestConfirmationListProps = {
     /** Opens the participant picker owned by the page. */
     onOpenParticipantPicker: () => void;
 
+    /** Switches the form to another expense type, e.g. to a track expense once the report list moves it off any report. Given by the screen that owns the form's route, which a field inside a tab can't reach with `useRoute` */
+    onIOUTypeChange?: (iouType: IOUType) => void;
+
     /** The payment method the SettlementButton chose. */
     onSendMoney?: (paymentMethod: PaymentMethodType | undefined) => Promise<void>;
 
@@ -82,6 +85,12 @@ type MoneyRequestConfirmationListProps = {
 
     /** Whether the current report is a sub-report of an expense chat */
     isPolicyExpenseChat?: boolean;
+
+    /**
+     * Whether the Report row is shown. Defaults to `isPolicyExpenseChat`. A form that has no recipient row sets it from
+     * the chat it was opened for, so the row stays once None moves the expense to the self DM.
+     */
+    shouldShowReportField?: boolean;
 
     /** Whether smartscan failed on this receipt. */
     hasSmartScanFailed?: boolean;

@@ -1635,3 +1635,57 @@ describe('calculateDefaultReimbursable', () => {
         expect(result).toBe(true);
     });
 });
+
+describe('canLeaveExpenseUnreported', () => {
+    it.each([CONST.IOU.TYPE.SUBMIT, CONST.IOU.TYPE.CREATE, CONST.IOU.TYPE.TRACK])('offers None while creating a %s expense', (iouType) => {
+        // Given an expense being created, which can start without a report
+        // When the report list asks whether to offer None
+        const canLeaveUnreported = IOUUtils.canLeaveExpenseUnreported(CONST.IOU.ACTION.CREATE, iouType, false, false);
+
+        // Then it is offered
+        expect(canLeaveUnreported).toBe(true);
+    });
+
+    it.each([
+        ['an expense being edited', CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.SUBMIT, false, false],
+        ['a tracked expense being submitted', CONST.IOU.ACTION.SUBMIT, CONST.IOU.TYPE.SUBMIT, false, false],
+        ['a split', CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SPLIT, false, false],
+        ['an invoice', CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.INVOICE, false, false],
+        ['a per diem expense', CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, true, false],
+        ['a time expense', CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, false, true],
+    ] as const)('does not offer None for %s', (_label, action, iouType, isPerDiemRequest, isTimeRequest) => {
+        // Given an expense that can't be left off a report: it already exists, needs a report or only lives on a workspace
+        // When the report list asks whether to offer None
+        const canLeaveUnreported = IOUUtils.canLeaveExpenseUnreported(action, iouType, isPerDiemRequest, isTimeRequest);
+
+        // Then it isn't offered, so the list never shows a choice that would fail
+        expect(canLeaveUnreported).toBe(false);
+    });
+});
+
+describe('canCreateReportForExpense', () => {
+    const noWorkspace = {policyForMovingExpensesID: undefined, shouldSelectPolicy: false, isPerDiemRequest: false, isUnreportedManagedCardTransaction: false};
+
+    it('offers no new report without a workspace to make it on', () => {
+        // Given someone with no workspace the expense could go to
+        // When the report list asks whether to offer a new report
+        const canCreateReport = IOUUtils.canCreateReportForExpense(noWorkspace);
+
+        // Then it isn't offered, since there is nowhere to make it
+        expect(canCreateReport).toBe(false);
+    });
+
+    it.each([
+        ['a workspace to make it on', {policyForMovingExpensesID: 'policy1'}],
+        ['several workspaces to pick from', {shouldSelectPolicy: true}],
+        ['a per diem expense, which uses its own workspace', {isPerDiemRequest: true}],
+        ['a managed card expense, whose workspace the server picks', {isUnreportedManagedCardTransaction: true}],
+    ])('offers a new report with %s', (_label, overrides) => {
+        // Given a workspace for the new report, or one that is found later
+        // When the report list asks whether to offer a new report
+        const canCreateReport = IOUUtils.canCreateReportForExpense({...noWorkspace, ...overrides});
+
+        // Then it is offered
+        expect(canCreateReport).toBe(true);
+    });
+});

@@ -4,6 +4,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
+import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
+
 import {readFileAsync} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
@@ -357,6 +359,113 @@ describe('SubmitDetailsPage', () => {
         expect(typeof requestMoneyArg?.optimisticTransactionID).toBe('string');
         expect(requestMoneyArg?.optimisticTransactionID).not.toBe(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
         expect(cleanupArg?.transactionID).toBe(requestMoneyArg?.optimisticTransactionID);
+    });
+
+    it('tracks the expense on the self DM once Report > None moved the draft there, and keeps it there', async () => {
+        // Given a receipt shared to a chat, whose Report row was set to None, which moves the draft to the self DM
+        const selfDMReportID = 'self-dm-1';
+        const defaultReportLookup = jest.mocked(useReportOrReportDraft).getMockImplementation();
+        jest.mocked(useReportOrReportDraft).mockImplementation((reportID?: string) =>
+            reportID === selfDMReportID ? {reportID, chatType: CONST.REPORT.CHAT_TYPE.SELF_DM, type: CONST.REPORT.TYPE.CHAT} : defaultReportLookup?.(reportID),
+        );
+        renderSubmitDetailsPage();
+        await waitForBatchedUpdatesWithAct();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                participants: [{reportID: selfDMReportID, isSelfDM: true, selected: true}],
+            });
+            // Typing an amount re-runs the draft setup, which used to put the draft back on the chat
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {isAmountSet: true, amount: 1000, currency: CONST.CURRENCY.USD});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user confirms
+        fireEvent.press(screen.getByTestId('mock-confirm-button'));
+        await waitForBatchedUpdatesWithAct();
+        jest.mocked(useReportOrReportDraft).mockImplementation(defaultReportLookup);
+
+        // Then it's tracked on the self DM instead of submitted to the chat, and the user lands on the self DM
+        expect(TrackExpense.trackExpense).toHaveBeenCalledWith(expect.objectContaining({report: expect.objectContaining({reportID: selfDMReportID})}));
+        expect(TrackExpense.requestMoney).not.toHaveBeenCalled();
+        expect(cleanupAndNavigateAfterExpenseCreate).toHaveBeenCalledWith(expect.objectContaining({isSelfDMDestination: true, navigationReportID: selfDMReportID}));
+    });
+
+    it('keeps the Report row once Report > None moved a receipt shared to a workspace chat to the self DM', async () => {
+        // Given a receipt shared to a workspace chat, on a page with no recipient row to pick the workspace again
+        const selfDMReportID = 'self-dm-1';
+        const defaultReportLookup = jest.mocked(useReportOrReportDraft).getMockImplementation();
+        jest.mocked(useReportOrReportDraft).mockImplementation((reportID?: string) => {
+            if (reportID === selfDMReportID) {
+                return {reportID, chatType: CONST.REPORT.CHAT_TYPE.SELF_DM, type: CONST.REPORT.TYPE.CHAT};
+            }
+            return reportID ? {reportID, chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, type: CONST.REPORT.TYPE.CHAT, policyID: 'policy-1'} : undefined;
+        });
+        renderSubmitDetailsPage();
+        await waitForBatchedUpdatesWithAct();
+        expect(mockConfirmationListProps.shouldShowReportField).toBe(true);
+
+        // When the Report row is set to None, which moves the draft to the self DM
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                participants: [{reportID: selfDMReportID, isSelfDM: true, selected: true}],
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+        jest.mocked(useReportOrReportDraft).mockImplementation(defaultReportLookup);
+
+        // Then the form is a self DM one, but the Report row stays, since it is the only way back to a report
+        expect(mockConfirmationListProps.isPolicyExpenseChat).toBe(false);
+        expect(mockConfirmationListProps.shouldShowReportField).toBe(true);
+    });
+
+    it('creates the self DM when Report > None moved the draft to one the account does not have yet', async () => {
+        // Given an account with no self DM stored, so None moved the draft to the one the Report picker built under a new ID
+        const selfDMReportID = 'unsaved-self-dm';
+        const defaultReportLookup = jest.mocked(useReportOrReportDraft).getMockImplementation();
+        jest.mocked(useReportOrReportDraft).mockImplementation((reportID?: string) => (reportID === selfDMReportID ? undefined : defaultReportLookup?.(reportID)));
+        renderSubmitDetailsPage();
+        await waitForBatchedUpdatesWithAct();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                participants: [{reportID: selfDMReportID, isSelfDM: true, selected: true}],
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user confirms
+        fireEvent.press(screen.getByTestId('mock-confirm-button'));
+        await waitForBatchedUpdatesWithAct();
+        jest.mocked(useReportOrReportDraft).mockImplementation(defaultReportLookup);
+
+        // Then it's tracked with no report, which makes trackExpense create the self DM under that ID, and the user lands there
+        expect(TrackExpense.trackExpense).toHaveBeenCalledWith(expect.objectContaining({report: undefined, optimisticChatReportID: selfDMReportID}));
+        expect(TrackExpense.requestMoney).not.toHaveBeenCalled();
+        expect(cleanupAndNavigateAfterExpenseCreate).toHaveBeenCalledWith(expect.objectContaining({isSelfDMDestination: true, navigationReportID: selfDMReportID}));
+    });
+
+    it('submits to the shared-to chat when another create flow left the draft on the self DM', async () => {
+        // Given the draft, which other create flows share, still on the self DM from a track expense the user abandoned
+        const selfDMReportID = 'self-dm-1';
+        const defaultReportLookup = jest.mocked(useReportOrReportDraft).getMockImplementation();
+        jest.mocked(useReportOrReportDraft).mockImplementation((reportID?: string) =>
+            reportID === selfDMReportID ? {reportID, chatType: CONST.REPORT.CHAT_TYPE.SELF_DM, type: CONST.REPORT.TYPE.CHAT} : defaultReportLookup?.(reportID),
+        );
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {
+                participants: [{reportID: selfDMReportID, isSelfDM: true, selected: true}],
+            });
+        });
+
+        // When a receipt is shared to a chat and confirmed
+        await renderAndConfirm();
+        jest.mocked(useReportOrReportDraft).mockImplementation(defaultReportLookup);
+
+        // Then the page sets the draft up for that chat first, so the expense is submitted there and not tracked
+        expect(TrackExpense.requestMoney).toHaveBeenCalled();
+        expect(TrackExpense.trackExpense).not.toHaveBeenCalled();
     });
 
     // Error #2 — share receipts must carry a trace id and log captured/submitted milestones so receipt
