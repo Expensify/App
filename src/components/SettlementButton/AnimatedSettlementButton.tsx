@@ -35,6 +35,9 @@ type AnimatedSettlementButtonProps = SettlementButtonProps & {
     /** Whether this is a DEW approval that needs backend validation before showing "Approved" */
     isDEWApproval?: boolean;
 
+    /** Defaults to false. Shows the "Approved" or "Payment complete" animation in grey, for when another action is the green button beside it. */
+    isSecondary?: boolean;
+
     reportID?: string;
 };
 
@@ -51,6 +54,7 @@ function AnimatedSettlementButton({
     wrapperStyle,
     sentryLabel,
     isDEWApproval,
+    isSecondary = false,
     reportID,
     ...settlementButtonProps
 }: AnimatedSettlementButtonProps) {
@@ -173,8 +177,9 @@ function AnimatedSettlementButton({
                     exiting={buttonAnimation}
                 >
                     <Button
-                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        variant={isSecondary ? undefined : CONST.BUTTON_VARIANT.SUCCESS}
                         isLoading={isDEWApprovalLoading}
+                        sentryLabel={sentryLabel}
                     >
                         {!!icon && <Button.Icon src={icon} />}
                         <Button.Text>{isApprovedAnimationRunning ? translate('iou.approved') : translate('iou.paymentComplete')}</Button.Text>
