@@ -1949,6 +1949,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 one: '1 件のレポート',
                 other: `${count} 件のレポート`,
             }),
+            amountAboveWiseMaximum: ({limit}: {limit: string}) => `Wise で支払える上限は ${limit} です。別の方法で支払い、レポートに支払済みとしてマークしてください。`,
+            amountBelowWiseMinimum: ({limit}: {limit: string}) => `Wise で支払える最低金額は ${limit} です。別の方法で支払い、このレポートを支払済みにしてください。`,
+            amountTooSmallForWise: 'この金額は Wise で支払うには小さすぎます。別の方法で支払い、このレポートを支払済みにしてください。',
+            paymentUnavailable: ({currency}: {currency: string}) =>
+                `この支払いを設定できませんでした。現在、決済パートナーが${currency}の銀行口座に送金できないため、当社に通知が届いています。今すぐ支払うには、別の方法で支払いを行い、レポートに支払い済みとしてマークしてください。`,
         },
         confirmPayAmount: '保留されていない金額のみ支払うか、レポート全額を支払ってください。',
         confirmPayAllHoldAmount: () => ({

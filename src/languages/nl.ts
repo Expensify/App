@@ -1965,6 +1965,13 @@ const translations: TranslationDeepObject<typeof en> = {
                 one: '1 rapport',
                 other: `${count} rapporten`,
             }),
+            amountAboveWiseMaximum: ({limit}: {limit: string}) =>
+                `Het hoogste bedrag dat je via Wise kunt betalen is ${limit}. Betaal op een andere manier en markeer het rapport als betaald.`,
+            amountBelowWiseMinimum: ({limit}: {limit: string}) =>
+                `Het minimumbedrag dat je via Wise kunt betalen is ${limit}. Betaal op een andere manier en markeer het rapport als betaald.`,
+            amountTooSmallForWise: 'Dit bedrag is te klein om via Wise te betalen. Betaal op een andere manier en markeer het rapport als betaald.',
+            paymentUnavailable: ({currency}: {currency: string}) =>
+                `We konden deze betaling niet instellen. Onze betalingspartner kan op dit moment geen geld overmaken naar een bankrekening in ${currency}, en we zijn op de hoogte gesteld. Als je nu wilt betalen, betaal dan op een andere manier en markeer het rapport als betaald.`,
         },
         confirmPayAmount: 'Betaal wat niet in de wacht staat, of betaal het volledige rapport.',
         confirmPayAllHoldAmount: () => ({

@@ -2010,6 +2010,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 many: `${count} raportów`,
                 other: `${count} raportu`,
             }),
+            amountAboveWiseMaximum: ({limit}: {limit: string}) => `Najwięcej, ile możesz zapłacić przez Wise, to ${limit}. Zapłać w inny sposób i oznacz raport jako opłacony.`,
+            amountBelowWiseMinimum: ({limit}: {limit: string}) => `Minimalna kwota płatności przez Wise to ${limit}. Zapłać w inny sposób i oznacz raport jako opłacony.`,
+            amountTooSmallForWise: 'Ta kwota jest za mała, żeby zapłacić przez Wise. Zapłać w inny sposób i oznacz raport jako opłacony.',
+            paymentUnavailable: ({currency}: {currency: string}) =>
+                `Nie udało się skonfigurować tej płatności. Nasz partner płatniczy nie może w tej chwili wysłać pieniędzy na konto bankowe w ${currency}; otrzymaliśmy już powiadomienie. Aby zapłacić teraz, użyj innej metody płatności i oznacz raport jako opłacony.`,
         },
         confirmPayAmount: 'Zapłać to, co nie jest wstrzymane, lub zapłać cały raport.',
         confirmPayAllHoldAmount: () => ({
