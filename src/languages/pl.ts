@@ -5769,6 +5769,13 @@ ${amount} dla ${merchant} - ${date}`,
             allConnectedPrompt: '<muted-text><centered-text>Wszystko tutaj jest już połączone. Możesz też <a href="#">zaproponować integrację</a>.</centered-text></muted-text>',
         },
         receiptPartners: {
+            lyft: {title: 'Lyft'},
+            instacart: {title: 'Instacart'},
+            doordash: {title: 'DoorDash'},
+            americanAirlines: {title: 'American Airlines'},
+            united: {title: 'United'},
+            delta: {title: 'Delta'},
+            kayak: {title: 'KAYAK'},
             uber: {
                 subtitle: (organizationName: string) =>
                     organizationName ? `Połączono z ${organizationName}` : 'Automatyzuj wydatki na podróże i dostawy posiłków w całej swojej organizacji.',

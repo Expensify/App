@@ -5722,6 +5722,13 @@ ${amount} voor ${merchant} - ${date}`,
             allConnectedPrompt: '<muted-text><centered-text>Alles hier is al verbonden. Je kunt ook <a href="#">een integratie voorstellen</a>.</centered-text></muted-text>',
         },
         receiptPartners: {
+            lyft: {title: 'Lyft'},
+            instacart: {title: 'Instacart'},
+            doordash: {title: 'DoorDash'},
+            americanAirlines: {title: 'American Airlines'},
+            united: {title: 'United'},
+            delta: {title: 'Delta'},
+            kayak: {title: 'KAYAK'},
             uber: {
                 subtitle: (organizationName: string) => (organizationName ? `Verbonden met ${organizationName}` : 'Automatiseer reis- en maaltijdbezorgingskosten in uw hele organisatie.'),
                 sendInvites: 'Uitnodigingen versturen',
