@@ -3,6 +3,8 @@ import Icon from '@components/Icon';
 import {useSession} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import RadioButton from '@components/RadioButton';
+import {PinnedLeadingView, usePinnedColumnStyles, usePinnedRow} from '@components/Search/PinnedColumnsContext';
+import {PinnedRowCover} from '@components/Search/PinnedCovers';
 import {useSearchColumnStyles} from '@components/Search/SearchColumnWidthsContext';
 import DeferredActionCell from '@components/Search/SearchList/ListItem/ActionCell/DeferredActionCell';
 import AttendeesCell from '@components/Search/SearchList/ListItem/AttendeesCell';
@@ -162,6 +164,8 @@ function TransactionItemRowWide({
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
     const getSearchColumnStyles = useSearchColumnStyles();
+    const {leadingStyle: pinnedLeadingStyle, cellContainerStyle: pinnedCellContainerStyle} = usePinnedColumnStyles();
+    const pinnedRow = usePinnedRow();
     const theme = useTheme();
     const [hasFilterValues] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: searchHasFilterSelector});
     const expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
@@ -791,19 +795,25 @@ function TransactionItemRowWide({
                 dataSet={{...dataSet, ...TABLE_ROW_DATA_SET}}
                 testID="transaction-item-row"
             >
-                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, fullHeightMainRowStyle]}>
+                <PinnedRowCover
+                    isSelected={pinnedRow.isSelected}
+                    isHovered={pinnedRow.isHovered}
+                />
+                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, fullHeightMainRowStyle, pinnedCellContainerStyle]}>
                     {!shouldShowRadioButton && (
-                        <Checkbox
-                            disabled={isDisabled}
-                            onPress={(event) => {
-                                onCheckboxPress(transactionItem.transactionID, getShiftKeyFromEvent(event));
-                            }}
-                            accessibilityLabel={CONST.ROLE.CHECKBOX}
-                            isChecked={isSelected}
-                            containerStyle={styles.m0}
-                            wrapperStyle={styles.justifyContentCenter}
-                            sentryLabel={checkboxSentryLabel}
-                        />
+                        <PinnedLeadingView style={styles.justifyContentCenter}>
+                            <Checkbox
+                                disabled={isDisabled}
+                                onPress={(event) => {
+                                    onCheckboxPress(transactionItem.transactionID, getShiftKeyFromEvent(event));
+                                }}
+                                accessibilityLabel={CONST.ROLE.CHECKBOX}
+                                isChecked={isSelected}
+                                containerStyle={styles.m0}
+                                wrapperStyle={styles.justifyContentCenter}
+                                sentryLabel={checkboxSentryLabel}
+                            />
+                        </PinnedLeadingView>
                     )}
                     {columns?.map(renderColumn)}
                     {shouldShowRadioButton && (
@@ -846,7 +856,8 @@ function TransactionItemRowWide({
                         report={report}
                         missingFieldError={missingFieldError}
                         transactionThreadReportID={transactionThreadReportID}
-                        containerStyles={shouldUseFullHeightEditableCellHoverTarget ? [styles.pb2] : undefined}
+                        // Stays beside the checkbox it belongs to while the columns scroll beneath the left pins.
+                        containerStyles={[shouldUseFullHeightEditableCellHoverTarget && styles.pb2, pinnedLeadingStyle]}
                     />
                 )}
             </View>

@@ -1,4 +1,7 @@
 import ScrollView from '@components/ScrollView';
+import usePinnedScrollVariables from '@components/Search/hooks/usePinnedScrollVariables';
+import {useLeftPinnedColumns} from '@components/Search/PinnedColumnsContext';
+import {PinnedGutterMask} from '@components/Search/PinnedCovers';
 import type {SearchColumnType, SearchQueryJSON} from '@components/Search/types';
 import {TABLE_COLUMN_SCROLLER_DATA_SET} from '@components/Table/columnResize/columnWidthExpressions';
 
@@ -15,6 +18,7 @@ import type {ComponentRef} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView} from 'react-native';
 
 import React, {useLayoutEffect, useRef} from 'react';
+import {View} from 'react-native';
 
 // Keep a ref to the horizontal scroll offset so we can restore it if users change the search query
 let savedHorizontalScrollOffset = 0;
@@ -95,12 +99,11 @@ function HorizontalTableScroll({
     const contentTableWidth = Math.max(getTableMinWidth(columns, type, isActionColumnWide, columnContentWidths, isSizingColumns), minTableWidth, tableWidth);
 
     const horizontalScrollViewRef = useRef<ComponentRef<typeof RNScrollView>>(null);
+    const containerRef = useRef<View>(null);
+    const leftPinned = useLeftPinnedColumns();
 
-    const handleHorizontalScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-        savedHorizontalScrollOffset = event.nativeEvent.contentOffset.x;
-    };
-
-    // Restore horizontal scroll position synchronously before paint using useLayoutEffect to avoid a visible shift on the table
+    // Restore horizontal scroll position synchronously before paint using useLayoutEffect to avoid a visible shift on the table.
+    // Runs before the pinned variables are written, so they start from the restored offset.
     useLayoutEffect(() => {
         if (!shouldScrollHorizontally || savedHorizontalScrollOffset <= 0) {
             return;
@@ -108,25 +111,39 @@ function HorizontalTableScroll({
         horizontalScrollViewRef.current?.scrollTo({x: savedHorizontalScrollOffset, animated: false});
     }, [dataKey, shouldScrollHorizontally]);
 
+    const syncPinnedScrollVariables = usePinnedScrollVariables(containerRef, horizontalScrollViewRef, shouldScrollHorizontally, leftPinned);
+
+    const handleHorizontalScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+        savedHorizontalScrollOffset = event.nativeEvent.contentOffset.x;
+        syncPinnedScrollVariables();
+    };
+
     if (!shouldScrollHorizontally) {
         return children;
     }
 
     return (
-        <ScrollView
-            ref={horizontalScrollViewRef}
-            horizontal
-            showsHorizontalScrollIndicator
+        // Carries the pinned region's variables, so the mask beside the scroller reads them along with every row inside it.
+        <View
+            ref={containerRef}
             style={styles.flex1}
-            contentContainerStyle={resizableScrollWidth ? StyleUtils.getWidthStyle(resizableScrollWidth) : {width: contentTableWidth}}
-            contentOffset={{x: savedHorizontalScrollOffset, y: 0}}
-            onScroll={handleHorizontalScroll}
-            scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
-            // Marks the scroller whose position a drag pins, so shrinking a column doesn't pull it sideways.
-            dataSet={resizableScrollWidth ? TABLE_COLUMN_SCROLLER_DATA_SET : undefined}
         >
-            {children}
-        </ScrollView>
+            <ScrollView
+                ref={horizontalScrollViewRef}
+                horizontal
+                showsHorizontalScrollIndicator
+                style={styles.flex1}
+                contentContainerStyle={resizableScrollWidth ? StyleUtils.getWidthStyle(resizableScrollWidth) : {width: contentTableWidth}}
+                contentOffset={{x: savedHorizontalScrollOffset, y: 0}}
+                onScroll={handleHorizontalScroll}
+                scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
+                // Marks the scroller whose position a drag pins, so shrinking a column doesn't pull it sideways.
+                dataSet={resizableScrollWidth ? TABLE_COLUMN_SCROLLER_DATA_SET : undefined}
+            >
+                {children}
+            </ScrollView>
+            <PinnedGutterMask gutterWidth={styles.mh5.marginHorizontal} />
+        </View>
     );
 }
 

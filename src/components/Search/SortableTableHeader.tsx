@@ -18,6 +18,7 @@ import {View} from 'react-native';
 
 import type {SearchColumnType, SearchSortBy, SortOrder, TableColumnSize} from './types';
 
+import {usePinnedColumnStyles} from './PinnedColumnsContext';
 import {useSearchColumnStyles} from './SearchColumnWidthsContext';
 import {SortableColumnProvider} from './SortableColumnContext';
 import SortableHeaderText from './SortableHeaderText';
@@ -87,10 +88,11 @@ function SortableTableHeader({
     const getSearchColumnStyles = useSearchColumnStyles();
     const {translate} = useLocalize();
     const columnResize = useColumnResizeController();
+    const {getPinnedHeadingDataSet, cellContainerStyle} = usePinnedColumnStyles();
 
     return (
-        <View style={[styles.flex1, styles.alignSelfStretch]}>
-            <View style={[styles.flex1, styles.flexRow, styles.gap3, containerStyles]}>
+        <View style={[styles.flex1, styles.alignSelfStretch, cellContainerStyle]}>
+            <View style={[styles.flex1, styles.flexRow, styles.gap3, containerStyles, cellContainerStyle]}>
                 {columns.map(({columnName, translationKey, icon, isColumnSortable, sortColumnName, canEdit}) => {
                     if (!shouldShowColumn(columnName)) {
                         return null;
@@ -147,6 +149,7 @@ function SortableTableHeader({
                             <View
                                 key={columnName}
                                 style={containerStyle}
+                                dataSet={getPinnedHeadingDataSet(columnName)}
                             >
                                 <SortableColumnProvider
                                     columnName={columnName}

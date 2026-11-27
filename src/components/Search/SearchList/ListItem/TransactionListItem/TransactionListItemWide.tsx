@@ -1,6 +1,7 @@
 import {useEditingCellState} from '@components/EditableCell';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import {PinnedRowProvider} from '@components/Search/PinnedColumnsContext';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import type {ListItem} from '@components/SelectionList/types';
@@ -156,6 +157,8 @@ function TransactionListItemWide<TItem extends ListItem>({
         },
     ];
 
+    const canShowHoverStyle = !item.isDisabled && !shouldDisableHoverStyle;
+
     return (
         <OfflineWithFeedback pendingAction={item.pendingAction}>
             <PressableWithFeedback
@@ -177,7 +180,7 @@ function TransactionListItemWide<TItem extends ListItem>({
                     markTouchStartOnCopyableText(event, isPressStartOnCopyableText(event));
                 }}
                 onHoverIn={handleOnHoverIn}
-                hoverStyle={[!item.isDisabled && !shouldDisableHoverStyle && styles.hoveredComponentBG, isSelected && styles.activeComponentBG]}
+                hoverStyle={[canShowHoverStyle && styles.hoveredComponentBG, isSelected && styles.activeComponentBG]}
                 dataSet={{...COPYABLE_ROW_DATA_SET, [CONST.INNER_BOX_SHADOW_ELEMENT]: true}}
                 id={item.keyForList ?? ''}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_LIST_ITEM}
@@ -201,56 +204,62 @@ function TransactionListItemWide<TItem extends ListItem>({
                 ]}
             >
                 {({hovered}) => (
-                    <TransactionItemRow
-                        transactionItem={transactionItem}
-                        report={transactionItem.report}
-                        chatReport={chatReport}
-                        policy={rowPolicy ?? transactionItem.policy}
-                        policyCategories={policyCategories}
-                        policyTagLists={policyTagLists}
-                        shouldShowTooltip={showTooltip}
-                        onButtonPress={handleActionButtonPress}
-                        onCheckboxPress={(_transactionID, shiftKey) => onCheckboxPress?.(item, undefined, shiftKey)}
-                        shouldUseNarrowLayout={false}
-                        shouldUseFullHeightEditableCellHoverTarget
-                        shouldSkipDeferRBR
-                        isLargeScreenWidth
-                        columns={columns}
-                        isActionLoading={isLoading ?? isActionLoading}
+                    <PinnedRowProvider
                         isSelected={isSelected}
-                        isDisabled={!!isDisabled}
-                        shouldDisableActionPointerEvents={shouldDisableActionPointerEvents}
-                        dateColumnSize={dateColumnSize}
-                        submittedColumnSize={submittedColumnSize}
-                        approvedColumnSize={approvedColumnSize}
-                        paidColumnSize={paidColumnSize}
-                        postedColumnSize={postedColumnSize}
-                        exportedColumnSize={exportedColumnSize}
-                        amountColumnSize={amountColumnSize}
-                        taxAmountColumnSize={taxAmountColumnSize}
-                        isActionColumnWide={transactionItem.isActionColumnWide}
-                        shouldShowCheckbox={!!canSelectMultiple}
-                        checkboxSentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_LIST_ITEM_CHECKBOX}
-                        style={[styles.ph3, isLastItem ? styles.tableBottomRadius : styles.noBorderRadius]}
-                        violations={transactionViolations}
-                        onArrowRightPress={isDeletedTransaction ? undefined : (event) => onSelectRow(item, transactionPreviewData, event)}
-                        isHover={hovered}
-                        nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
-                        reportActions={reportActions}
-                        isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
-                        onEditDate={onEditDate}
-                        onEditMerchant={onEditMerchant}
-                        onEditDescription={onEditDescription}
-                        onEditCategory={onEditCategory}
-                        onEditAmount={onEditAmount}
-                        onEditTag={onEditTag}
-                        canEditDate={canEditDate}
-                        canEditMerchant={canEditMerchant}
-                        canEditDescription={canEditDescription}
-                        canEditCategory={canEditCategory}
-                        canEditAmount={canEditAmount}
-                        canEditTag={canEditTag}
-                    />
+                        // The same states the row's own hover background shows for.
+                        isHovered={isFocused || (hovered && canShowHoverStyle)}
+                    >
+                        <TransactionItemRow
+                            transactionItem={transactionItem}
+                            report={transactionItem.report}
+                            chatReport={chatReport}
+                            policy={rowPolicy ?? transactionItem.policy}
+                            policyCategories={policyCategories}
+                            policyTagLists={policyTagLists}
+                            shouldShowTooltip={showTooltip}
+                            onButtonPress={handleActionButtonPress}
+                            onCheckboxPress={(_transactionID, shiftKey) => onCheckboxPress?.(item, undefined, shiftKey)}
+                            shouldUseNarrowLayout={false}
+                            shouldUseFullHeightEditableCellHoverTarget
+                            shouldSkipDeferRBR
+                            isLargeScreenWidth
+                            columns={columns}
+                            isActionLoading={isLoading ?? isActionLoading}
+                            isSelected={isSelected}
+                            isDisabled={!!isDisabled}
+                            shouldDisableActionPointerEvents={shouldDisableActionPointerEvents}
+                            dateColumnSize={dateColumnSize}
+                            submittedColumnSize={submittedColumnSize}
+                            approvedColumnSize={approvedColumnSize}
+                            paidColumnSize={paidColumnSize}
+                            postedColumnSize={postedColumnSize}
+                            exportedColumnSize={exportedColumnSize}
+                            amountColumnSize={amountColumnSize}
+                            taxAmountColumnSize={taxAmountColumnSize}
+                            isActionColumnWide={transactionItem.isActionColumnWide}
+                            shouldShowCheckbox={!!canSelectMultiple}
+                            checkboxSentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_LIST_ITEM_CHECKBOX}
+                            style={[styles.ph3, isLastItem ? styles.tableBottomRadius : styles.noBorderRadius]}
+                            violations={transactionViolations}
+                            onArrowRightPress={isDeletedTransaction ? undefined : (event) => onSelectRow(item, transactionPreviewData, event)}
+                            isHover={hovered}
+                            nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
+                            reportActions={reportActions}
+                            isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
+                            onEditDate={onEditDate}
+                            onEditMerchant={onEditMerchant}
+                            onEditDescription={onEditDescription}
+                            onEditCategory={onEditCategory}
+                            onEditAmount={onEditAmount}
+                            onEditTag={onEditTag}
+                            canEditDate={canEditDate}
+                            canEditMerchant={canEditMerchant}
+                            canEditDescription={canEditDescription}
+                            canEditCategory={canEditCategory}
+                            canEditAmount={canEditAmount}
+                            canEditTag={canEditTag}
+                        />
+                    </PinnedRowProvider>
                 )}
             </PressableWithFeedback>
         </OfflineWithFeedback>

@@ -123,6 +123,17 @@
             transition: transform var(--label-transition-duration);
         }
 
+        /* Hold a table's left-pinned columns in place, driven by its scroll timeline so they move in the same frame as the scroll */
+        @keyframes pinned-start-translate {
+            from { transform: translateX(0); }
+            to { transform: translateX(var(--table-scroll-x-max, 0px)); }
+        }
+        /* Covers show only while columns are scrolled beneath them */
+        @keyframes pinned-start-cover {
+            0% { opacity: 0; }
+            0.1%, 100% { opacity: 1; }
+        }
+
         /* Hold a table's columns still while the pointer is on the filter bar pinned inside their scroller */
         [data-table-column-scroller='true']:has([data-table-page-header='true']:hover) {
             overflow-x: hidden !important;
