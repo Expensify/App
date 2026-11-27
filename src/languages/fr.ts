@@ -405,6 +405,7 @@ const translations: TranslationDeepObject<typeof en> = {
         reportID: 'ID de note de frais',
         longReportID: 'ID de note de frais longue',
         withdrawalID: 'ID de retrait',
+        transactionID: 'ID de transaction',
         internationalReimbursementIDs: 'ID de remboursement international',
         amountDebited: 'Montant débité',
         amountReimbursed: 'Montant remboursé',
@@ -503,6 +504,7 @@ const translations: TranslationDeepObject<typeof en> = {
         corpayPayModalPrompt:
             "Cette personne a un compte bancaire qui n'est pas en USD. Activez les remboursements globaux pour payer la note de frais, ou demandez-lui d'ajouter un compte bancaire en USD.",
         purchaseAmount: "Montant de l'achat",
+        convertedAmount: 'Montant converti',
         originalAmount: 'Montant initial',
         frequency: 'Fréquence',
         link: 'Lien',
@@ -809,6 +811,11 @@ const translations: TranslationDeepObject<typeof en> = {
         setPin: {didNotShipCard: 'Nous n’avons pas envoyé votre carte. Veuillez réessayer.'},
         revealPin: {couldNotReveal: "Nous n'avons pas pu afficher votre code PIN. Veuillez réessayer."},
         changePin: {didNotChange: "Nous n'avons pas modifié votre code PIN. Veuillez réessayer."},
+        addToWallet: {
+            failedHeader: "Impossible d'ajouter la carte",
+            failedTitle: "Nous n'avons pas pu ajouter votre carte à votre portefeuille",
+            failedSubtitle: "Une erreur s'est produite lors de l'ajout de la carte. Si elle se trouve déjà dans votre portefeuille, vous pouvez l'y utiliser.",
+        },
         revealCardDetail: {couldNotReveal: 'Nous n’avons pas pu afficher les détails de votre carte. Veuillez réessayer.'},
     },
     validateCodeModal: {
@@ -1353,7 +1360,10 @@ const translations: TranslationDeepObject<typeof en> = {
             label: 'Infractions de',
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Déclarants',
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: 'Approbateurs',
+            chartTitle: (title: string, stage: string) => `${title} (${stage})`,
         },
+        flaggedExpenses: 'Dépenses signalées',
+        noFlaggedExpensesInRange: 'Aucune dépense signalée dans cet intervalle',
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -1950,14 +1960,15 @@ const translations: TranslationDeepObject<typeof en> = {
         wisePaymentSummary: {
             confirmPayment: 'Confirmer le paiement',
             reportTotal: 'Total de la note de frais',
-            unheldAmountBeingPaid: 'Montant non retenu à payer',
-            debitAmount: 'Montant débité',
             employeeWillReceive: 'L’employé recevra',
+            companyWillPay: 'L’entreprise paiera',
             totalFees: 'Frais totaux',
             fxRate: 'Taux de change',
             paymentDetails: 'Détails du paiement',
             debitedAmount: 'Montant débité',
             employeeReceived: "L'employé a reçu",
+            paymentDisclosure: ({buttonText}: {buttonText: string}) =>
+                `<muted-text-micro>Le destinataire peut recevoir moins en raison des frais facturés par sa banque et des taxes étrangères. En cliquant sur ${buttonText}, j’accepte les <a href="${CONST.WISE.TERMS_URL}">Conditions d’utilisation</a> et la <a href="${CONST.WISE.PRIVACY_URL}">Politique de confidentialité</a> de Wise.</muted-text-micro>`,
             payAll: 'Tout payer',
             fxRateExpiredTitle: 'Taux de change expiré',
             fxRatesExpiredTitle: 'Taux de change expirés',
@@ -2733,6 +2744,11 @@ const translations: TranslationDeepObject<typeof en> = {
             limitedSupport: 'Nous ne prenons pas encore en charge la fusion de comptes sur le nouveau Expensify. Veuillez effectuer cette action sur Expensify Classic à la place.',
             reachOutForHelp: "<muted-text><centered-text>N'hésitez pas à <concierge-link>contacter Concierge</concierge-link> si vous avez des questions&nbsp;!</centered-text></muted-text>",
             goToExpensifyClassic: 'Aller à Expensify Classic',
+        },
+        mergePendingDomainAdmin: {
+            heading: 'E-mail avec domaine restreint',
+            description: '<muted-text><centered-text>Un administrateur de domaine a été informé pour approuver la demande de fusion de comptes.</centered-text></muted-text>',
+            gotIt: 'Compris',
         },
         mergeFailureSAMLDomainControlDescription: (email: string) =>
             `<muted-text><centered-text>Vous ne pouvez pas fusionner <strong>${email}</strong> car il est géré par <strong>${email.split('@').at(1) ?? ''}</strong>. Veuillez <concierge-link>contacter Concierge</concierge-link> pour obtenir de l’aide.</centered-text></muted-text>`,
@@ -4509,7 +4525,10 @@ ${amount} pour ${merchant} - ${date}`,
     },
     welcomeSignUpForm: {
         join: 'Rejoindre',
-        marketingSMSConsent: "J'accepte de recevoir des SMS marketing d'Expensify",
+        smsConsentIntro: 'En fournissant mon numéro de téléphone :',
+        transactionalSMSConsent: "J'accepte de recevoir des alertes transactionnelles concernant mon compte de la part d'Expensify.",
+        marketingSMSConsent: "J'accepte de recevoir des SMS marketing d'Expensify.",
+        termsWithSMSRates: `<muted-text-xs>En vous connectant, vous acceptez les <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Conditions d'utilisation</a> et la <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Politique de confidentialité</a>. Des frais standard de messagerie et de données peuvent s'appliquer. La fréquence des messages varie. Répondez HELP pour obtenir de l'aide. Répondez STOP pour vous désabonner.</muted-text-xs>`,
     },
     detailsPage: {
         localTime: 'Heure locale',
@@ -4700,6 +4719,14 @@ ${amount} pour ${merchant} - ${date}`,
         numberedItem: ({item, number}: {item: string; number: number}) => `${item} ${number}`,
         questionsChanged: 'Les questions de cette page ont changé',
         onFile: 'Enregistré',
+        continueOffline: {
+            title: 'Vous ne pouvez pas continuer hors ligne',
+            prompt: 'Une connexion internet est nécessaire pour remplir ce formulaire. Ne vous inquiétez pas, nous enregistrerons votre progression et vous pourrez continuer lorsque vous serez de nouveau en ligne.',
+            saveForLater: 'Enregistrer et remplir plus tard',
+            progressSaved: 'Votre progression a été enregistrée',
+            promptWithSensitiveAnswers:
+                'Une connexion Internet est nécessaire pour remplir ce formulaire. Nous enregistrerons votre progression afin que vous puissiez continuer lorsque vous serez de nouveau en ligne. Pour votre sécurité, les informations sensibles ne sont pas enregistrées et devront être saisies à nouveau.',
+        },
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'Le code SWIFT/BIC doit comporter 8 ou 11 caractères, avec 6 lettres suivies de 2 ou 5 lettres ou chiffres.',
@@ -4720,6 +4747,15 @@ ${amount} pour ${merchant} - ${date}`,
         updateSuccessMessage: 'Félicitations, votre compte bancaire est configuré et prêt à recevoir des remboursements.',
         bankDetails: 'Coordonnées bancaires',
         accountHolderDetails: 'Détails du titulaire du compte',
+        notices: {
+            katakanaName:
+                'Saisissez votre nom exactement tel qu’il apparaît sur votre compte bancaire japonais. Il est généralement écrit en カタカナ (katakana). Toute différence peut retarder ou entraîner le rejet de votre paiement.',
+            alipayRecipients: 'Seuls les destinataires résidant en Chine continentale, à Hong Kong ou à Macao peuvent être payés via Alipay.',
+            alipayLimits:
+                'Alipay peut recevoir jusqu’à 50 000 CNY par paiement et entre 300 000 et 600 000 CNY par an. Des limites mensuelles sur le nombre de paiements peuvent également s’appliquer, selon l’objectif du paiement.',
+            malaysianNonResidentLimit:
+                'Les non-résidents disposant d’un compte bancaire en Malaisie ne peuvent recevoir que 10 000 ringgits malaisiens par jour. Un paiement dépassant cette limite peut conduire votre banque à fermer votre compte.',
+        },
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Saisissez le mot de passe Expensify',
@@ -6861,6 +6897,8 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 description: 'Choisissez où exporter les dépenses remboursables.',
                 accountRequiredError: 'Veuillez sélectionner un compte de remboursement Rillet.',
             },
+            autoCreateVendor: 'Créer automatiquement des fournisseurs',
+            autoCreateVendorDescription: "Expensify créera automatiquement des fournisseurs dans Rillet s'ils n'existent pas déjà.",
             achPaymentAccount: {label: 'Compte de paiement ACH', description: 'Choisissez l’origine de paiement des notes de frais et nous créerons le paiement dans Rillet.'},
         },
         dualEntry: {
@@ -7329,6 +7367,8 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             createFailureMessage: 'Une erreur s’est produite lors de la création de la catégorie, veuillez réessayer.',
             addCategory: 'Ajouter une catégorie',
             createCategoryFromSearch: (categoryName: string) => `Créer la catégorie « ${categoryName} »`,
+            availableToMember: (memberName: string) => `Disponible pour ${memberName}`,
+            notAvailableToMember: (memberName: string) => `Non disponible pour ${memberName}`,
             editCategory: 'Modifier la catégorie',
             editCategories: 'Modifier les catégories',
             findCategory: 'Rechercher une catégorie',
@@ -7346,11 +7386,13 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 description: `Au moins une catégorie doit rester activée, car votre espace de travail exige des catégories.`,
             },
             visibleTo: 'Visible pour',
+            editVisibility: 'Modifier la visibilité',
             membersCount: ({count}: {count: number}) => ({
                 one: '1 membre',
                 other: `${count} membres`,
             }),
             visibleToDescription: ({categoryName}: {categoryName: string}) => `Choisissez quels membres peuvent utiliser la catégorie ${categoryName} lors de la soumission de dépenses.`,
+            bulkVisibleToDescription: 'Choisissez quels membres peuvent utiliser ces catégories lors de la soumission de dépenses.',
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `Impossible de désactiver ${categoryName}`,
                 bulkTitle: 'Impossible de désactiver ces catégories',
@@ -8102,6 +8144,9 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             categoryVisibilityRequiredModal: {title: 'Les membres doivent avoir au moins une catégorie', description: 'Sélectionnez au moins une catégorie que ce membre peut utiliser.'},
             changeOfficeLocation: 'Modifier le lieu de travail',
             changeWorkArrangement: 'Modifier l’organisation du travail',
+            editCategoryVisibility: 'Modifier la visibilité des catégories',
+            bulkCategoryVisibilitySaved: ({categoryCount, memberCount}: {categoryCount: string; memberCount: string}) =>
+                `Définir ${categoryCount} pour ${memberCount}. Cela remplace la visibilité de catégorie actuelle.`,
             changeRole: 'Modifier le rôle',
             newRolesBanner: {
                 title: 'Nouveaux rôles disponibles',
@@ -8140,7 +8185,6 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                 willBeReadyToUse: 'Cette carte sera prête à être utilisée immédiatement.',
                 willBeReadyToShip: 'Cette carte sera prête à être expédiée immédiatement.',
                 cardholder: 'Titulaire de la carte',
-                cardholderEmail: 'Adresse e-mail du titulaire de la carte',
                 cardType: 'Type de carte',
                 limit: 'Limite',
                 limitType: 'Type de limite',

@@ -69,7 +69,12 @@ function mockOpenTransitionWait() {
     let transitionCallback: (() => void) | undefined;
     const cancel = jest.fn();
 
-    jest.mocked(TransitionTracker.runAfterTransitions).mockImplementation(({callback}) => {
+    jest.mocked(TransitionTracker.runAfterTransitions).mockImplementation(({callback, waitForUpcomingTransition}) => {
+        // Only the open-transition wait is held back; the check for an active transition runs at once, since none is active here
+        if (!waitForUpcomingTransition) {
+            callback();
+            return {cancel};
+        }
         transitionCallback = () => {
             callback();
         };
@@ -117,6 +122,55 @@ describe('usePreMountDestination', () => {
     });
 
     describe('pre-insert scheduling', () => {
+        it('waits for a transition that is already running when the idle pre-insert fires', () => {
+            // Given the open-transition wait resolves early (a zero-length transition can end it before the RHP slide starts)
+            const {finishOpenTransition} = mockOpenTransitionWait();
+            let finishActiveTransition: (() => void) | undefined;
+            renderHook(() => usePreMountDestination(route));
+            act(() => {
+                finishOpenTransition();
+            });
+
+            // When the idle pre-insert fires while the RHP open is still sliding
+            jest.mocked(TransitionTracker.runAfterTransitions).mockImplementation(({callback}) => {
+                finishActiveTransition = () => {
+                    callback();
+                };
+                return {cancel: jest.fn()};
+            });
+            act(() => {
+                flushPendingIdlePreInserts();
+            });
+
+            // Then the destination is not inserted under the sliding RHP, where it would show behind it, but once the slide ends
+            expect(Navigation.preInsertFullscreenUnderRHP).not.toHaveBeenCalled();
+            act(() => {
+                finishActiveTransition?.();
+            });
+            expect(Navigation.preInsertFullscreenUnderRHP).toHaveBeenCalledWith(route);
+        });
+
+        it('cancels the wait for a running transition when the confirmation page unmounts first', () => {
+            // Given the idle pre-insert is waiting for the RHP open that is still sliding
+            const {finishOpenTransition} = mockOpenTransitionWait();
+            const {unmount} = renderHook(() => usePreMountDestination(route));
+            act(() => {
+                finishOpenTransition();
+            });
+            const cancelActiveWait = jest.fn();
+            jest.mocked(TransitionTracker.runAfterTransitions).mockImplementation(() => ({cancel: cancelActiveWait}));
+            act(() => {
+                flushPendingIdlePreInserts();
+            });
+
+            // When the user closes the page before that transition ends
+            unmount();
+
+            // Then the wait is cancelled, so the destination is never inserted under a closed RHP
+            expect(cancelActiveWait).toHaveBeenCalled();
+            expect(Navigation.preInsertFullscreenUnderRHP).not.toHaveBeenCalled();
+        });
+
         it('waits for the open transition before scheduling pre-insert on React idle queue by default', () => {
             const {finishOpenTransition} = mockOpenTransitionWait();
 

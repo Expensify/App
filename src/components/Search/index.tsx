@@ -1,7 +1,6 @@
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/useTabRootScrollProps';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 
@@ -16,6 +15,7 @@ import useMarkPreloadedTabContentReady from '@hooks/useMarkPreloadedTabContentRe
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -44,6 +44,7 @@ import openInternalRouteInNewTab, {isModifiedMousePress} from '@libs/Navigation/
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
+import type {CancelHandle} from '@libs/Navigation/TransitionTracker';
 import {flushPendingSearchWrite, hasPendingSearchWrite} from '@libs/pendingSearchWrite';
 import {isCreatedTaskReportAction} from '@libs/ReportActionsUtils';
 import {isOneTransactionReport} from '@libs/ReportUtils';
@@ -98,7 +99,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {hasCompletedGuidedSetupFlowSelector, hasSeenTourSelector} from '@src/selectors/Onboarding';
 import {createMemberCustomFieldsSelector, fullPolicySnapshotLastModifiedByPolicyIDSelector} from '@src/selectors/Policy';
-import type {SaveSearch} from '@src/types/onyx';
+import type {PersonalDetailsList, SaveSearch} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
@@ -109,7 +110,7 @@ import type {ValueOf} from 'type-fest';
 
 import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
 import * as Sentry from '@sentry/react-native';
-import React, {startTransition, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Onyx from 'react-native-onyx';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
@@ -213,7 +214,6 @@ function Search({
     const previousTransactions = usePrevious(transactions);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const {accountID, email} = useCurrentUserPersonalDetails();
-    const personalDetails = usePersonalDetails();
     const isActionLoadingSet = useActionLoadingReportIDs();
     const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
 
@@ -640,6 +640,13 @@ function Search({
     );
 
     const areItemsGrouped = !!validGroupBy || isExpenseReportType;
+    const [personalDetails] = usePersonalDetailsByIDs([
+        accountID,
+        ...(filteredData as SearchListItem[]).flatMap((item) => {
+            const transaction = isTransactionGroupListItemType(item) ? item.transactions.at(0) : item;
+            return transaction && isTransactionListItemType(transaction) ? [transaction.reportAction?.actorAccountID, transaction.report?.ownerAccountID] : [];
+        }),
+    ]);
     const totalSelectableItemsCount = useMemo(() => {
         if (!areItemsGrouped) {
             return filteredData.length;
@@ -702,7 +709,7 @@ function Search({
     }, [carouselSource, hash]);
 
     const selectRow = useCallback(
-        async (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => {
+        async (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent, rowPersonalDetails?: PersonalDetailsList) => {
             const readConciergeChat = async () => {
                 const conciergeReportID = await Onyx.get(ONYXKEYS.CONCIERGE_REPORT_ID);
                 return Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
@@ -743,7 +750,7 @@ function Search({
                     backTo,
                     currentUserLogin: email ?? '',
                     currentUserAccountID: accountID,
-                    personalDetails,
+                    personalDetails: rowPersonalDetails ?? personalDetails,
                     isSelfTourViewed,
                     hasCompletedGuidedSetupFlow,
                     delegateAccountID,
@@ -930,8 +937,8 @@ function Search({
     );
 
     const onSelectRow = useCallback(
-        (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => {
-            selectRow(item, transactionPreviewData, event);
+        (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent, rowPersonalDetails?: PersonalDetailsList) => {
+            selectRow(item, transactionPreviewData, event, rowPersonalDetails);
         },
         [selectRow],
     );
@@ -1289,21 +1296,18 @@ function Search({
                 return;
             }
 
-            // Re-arm pending expense skeleton for subsequent creations while Search
+            let rearmAfterRevealHandle: CancelHandle | undefined;
+
+            // Re-arm pending expense tracking for subsequent creations while Search
             // stays mounted (the original hasPendingWriteOnMountRef only covers the first).
             if (hasPendingSearchWrite() && !showPendingExpensePlaceholder) {
                 wasRearmedRef.current = true;
-                const rearm = () => {
+                if (Navigation.getIsRevealingPreMountedFullscreen()) {
+                    // Re-arming mid-slide re-renders the list and stalls it, and the held write lands right after, so no skeleton row
+                    rearmAfterRevealHandle = TransitionTracker.runAfterTransitions({callback: () => rearmTracking(false), waitForUpcomingTransition: true});
+                } else {
                     rearmTracking();
                     setSkeletonWasDisplayed(true);
-                };
-
-                // On a wide pre-mount reveal Search focuses while the RHP is sliding out. Re-arming re-renders the whole list,
-                // so a transition keeps that render from blocking the slide.
-                if (Navigation.getIsRevealingPreMountedFullscreen()) {
-                    startTransition(rearm);
-                } else {
-                    rearm();
                 }
             }
 
@@ -1315,6 +1319,8 @@ function Search({
             endNavigateToReportsContentLoad();
             // On re-focus (e.g. DISMISS_MODAL_ONLY) onLayout won't re-fire — flush here.
             flushPendingSearchWrite();
+
+            return () => rearmAfterRevealHandle?.cancel();
         }, [shouldShowLoadingState, onDestinationVisible, showPendingExpensePlaceholder, rearmTracking]),
     );
 

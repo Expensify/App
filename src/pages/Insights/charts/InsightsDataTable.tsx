@@ -96,7 +96,6 @@ function InsightsDataTable({rows, formatValue, isLoading, skeletonRowCount = SKE
                 const changePercentage = hasChange ? formatChangePercentage(primaryValue, comparedValue, preferredLocale) : undefined;
                 const isIncrease = hasChange && primaryValue > comparedValue;
                 const isNewSpend = comparedValue === 0;
-                const changeColor = StyleUtils.getSpendChangeColor(isIncrease);
                 const isLevelTag = item.groupedBy === CONST.SEARCH.GROUP_BY.TAG && item.tagLevel !== undefined;
                 const parentLabel = isLevelTag ? formatTagParentPath(item.parentTagPath) : '';
 
@@ -144,11 +143,11 @@ function InsightsDataTable({rows, formatValue, isLoading, skeletonRowCount = SKE
                                 >
                                     <Icon
                                         src={isIncrease ? icons.ArrowUpLong : icons.ArrowDownLong}
-                                        fill={changeColor}
+                                        fill={StyleUtils.getSpendChangeIconColor(isIncrease)}
                                         width={variables.iconSizeXXSmall}
                                         height={variables.iconSizeXXSmall}
                                     />
-                                    <Text style={[styles.textLabel, StyleUtils.getColorStyle(changeColor)]}>{changePercentage}</Text>
+                                    <Text style={[styles.textLabel, StyleUtils.getColorStyle(StyleUtils.getSpendChangeTextColor(isIncrease))]}>{changePercentage}</Text>
                                 </View>
                             )}
                         </View>

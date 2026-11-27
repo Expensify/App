@@ -1,6 +1,6 @@
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CardFeeds, Domain, DomainErrors, DomainPendingActions, DomainSecurityGroup, DomainSettings, SamlMetadata} from '@src/types/onyx';
+import type {CardFeeds, Domain, DomainAccountMergeRequest, DomainErrors, DomainPendingActions, DomainSecurityGroup, DomainSettings, SamlMetadata} from '@src/types/onyx';
 import type {SecurityGroupKey, UserSecurityGroupData} from '@src/types/onyx/Domain';
 import type {DomainSecurityGroupErrors} from '@src/types/onyx/DomainErrors';
 import type {DomainSecurityGroupPendingActions} from '@src/types/onyx/DomainPendingActions';
@@ -322,7 +322,12 @@ function isSecurityGroupPendingDeleteSelector(groupID?: string) {
     };
 }
 
+/** Finds the current user's own pending domain-account-merge request within the collection, so subscribers only re-render when their own request changes. */
+const pendingMergeRequestByRequesterSelector = (requesterAccountID: number) => (pendingMergeRequests: OnyxCollection<DomainAccountMergeRequest>) =>
+    Object.values(pendingMergeRequests ?? {}).find((requested) => requested?.requesterAccountID === requesterAccountID);
+
 export {
+    pendingMergeRequestByRequesterSelector,
     domainMemberSettingsSelector,
     selectRestrictedPrimaryPolicyID,
     domainSettingsPrimaryContactSelector,

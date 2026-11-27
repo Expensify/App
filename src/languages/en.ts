@@ -497,6 +497,7 @@ const translations = {
         reportID: 'Report ID',
         longReportID: 'Long Report ID',
         withdrawalID: 'Withdrawal ID',
+        transactionID: 'Transaction ID',
         internationalReimbursementIDs: 'International reimbursement IDs',
         amountDebited: 'Amount debited',
         amountReimbursed: 'Amount reimbursed',
@@ -614,6 +615,7 @@ const translations = {
         corpayPayModalTitle: 'Pay report',
         corpayPayModalPrompt: 'This submitter has a non-USD bank account. Enable global reimbursements to pay the report, or ask them to add a USD bank account.',
         purchaseAmount: 'Purchase amount',
+        convertedAmount: 'Converted amount',
         originalAmount: 'Original amount',
         frequency: 'Frequency',
         link: 'Link',
@@ -902,6 +904,11 @@ const translations = {
         },
         changePin: {
             didNotChange: "We didn't change your PIN. Please try again.",
+        },
+        addToWallet: {
+            failedHeader: "Couldn't add card",
+            failedTitle: "We couldn't add your card to your wallet",
+            failedSubtitle: "Something went wrong while adding the card. If it's already in your wallet, you can use it there.",
         },
         revealCardDetail: {
             couldNotReveal: "We couldn't reveal your card details. Please try again.",
@@ -1411,6 +1418,8 @@ const translations = {
         viewDetails: 'View details',
         viewAll: 'View all',
         topExpenses: 'Top expenses',
+        flaggedExpenses: 'Flagged expenses',
+        noFlaggedExpensesInRange: 'No flagged expenses in this range',
         summary: {
             title: 'Summary',
             over: (percentage: string) => `${percentage} over`,
@@ -1455,6 +1464,7 @@ const translations = {
             label: 'Violations by',
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Submitters',
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: 'Approvers',
+            chartTitle: (title: string, stage: string) => `${title} (${stage})`,
         },
         compare: {
             label: 'Compare',
@@ -2096,14 +2106,15 @@ const translations = {
         wisePaymentSummary: {
             confirmPayment: 'Confirm payment',
             reportTotal: 'Report total',
-            unheldAmountBeingPaid: 'Unheld amount being paid',
-            debitAmount: 'Debit amount',
             employeeWillReceive: 'Employee will receive',
+            companyWillPay: 'Company will pay',
             totalFees: 'Total fees',
             fxRate: 'FX rate',
             paymentDetails: 'Payment details',
             debitedAmount: 'Debited amount',
             employeeReceived: 'Employee received',
+            paymentDisclosure: ({buttonText}: {buttonText: string}) =>
+                `<muted-text-micro>Recipient may receive less due to fees charged by the recipient’s bank and foreign taxes. By clicking ${buttonText}, I accept Wise’s <a href="${CONST.WISE.TERMS_URL}">Terms of Use</a> and <a href="${CONST.WISE.PRIVACY_URL}">Privacy Policy</a>.</muted-text-micro>`,
             payAll: 'Pay all',
             fxRateExpiredTitle: 'FX rate expired',
             fxRatesExpiredTitle: 'FX rates expired',
@@ -2881,6 +2892,11 @@ const translations = {
             limitedSupport: 'We don’t yet support merging accounts on New Expensify. Please take this action on Expensify Classic instead.',
             reachOutForHelp: '<muted-text><centered-text>Feel free to <concierge-link>reach out to Concierge</concierge-link> if you have any questions!</centered-text></muted-text>',
             goToExpensifyClassic: 'Go to Expensify Classic',
+        },
+        mergePendingDomainAdmin: {
+            heading: 'Domain restricted email',
+            description: '<muted-text><centered-text>A domain admin has been notified to approve the request to merge accounts.</centered-text></muted-text>',
+            gotIt: 'Got it',
         },
         mergeFailureSAMLDomainControlDescription: (email: string) =>
             `<muted-text><centered-text>You can’t merge <strong>${email}</strong> because it’s controlled by <strong>${email.split('@').at(1) ?? ''}</strong>. Please <concierge-link>reach out to Concierge</concierge-link> for assistance.</centered-text></muted-text>`,
@@ -4714,7 +4730,10 @@ const translations = {
     },
     welcomeSignUpForm: {
         join: 'Join',
-        marketingSMSConsent: 'I agree to receive marketing texts from Expensify',
+        smsConsentIntro: 'By providing my phone number:',
+        transactionalSMSConsent: 'I agree to receive transactional account alerts from Expensify.',
+        marketingSMSConsent: 'I agree to receive marketing texts from Expensify.',
+        termsWithSMSRates: `<muted-text-xs>By logging in, you agree to the <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Terms of Service</a> and <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacy</a>. Standard message and data rates may apply. Message frequency varies. Reply HELP for help. Reply STOP to opt out.</muted-text-xs>`,
     },
     detailsPage: {
         localTime: 'Local time',
@@ -4909,6 +4928,14 @@ const translations = {
         maskedValueLabel: ({label, ending}: {label: string; ending: string}) => `${label} ending in ${ending}`,
         numberedItem: ({item, number}: {item: string; number: number}) => `${item} ${number}`,
         questionsChanged: 'The questions on this page changed',
+        continueOffline: {
+            title: "You can't continue offline",
+            prompt: "An internet connection is needed to fill out this form. Don't worry, we'll save your progress and you can continue when you're back online.",
+            promptWithSensitiveAnswers:
+                "An internet connection is needed to fill out this form. We'll save your progress so you can continue when you're back online. For your security, sensitive details aren't saved and will need to be entered again.",
+            saveForLater: 'Save and fill out later',
+            progressSaved: 'Your progress has been saved',
+        },
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'SWIFT/BIC must be 8 or 11 characters long, with 6 letters followed by 2 or 5 letters or numbers.',
@@ -4920,6 +4947,14 @@ const translations = {
         bankDetails: 'Bank details',
         accountHolderDetails: 'Account holder details',
         howDoWeProtectYourData: 'How do we protect your data?',
+        notices: {
+            katakanaName: 'Enter your name exactly as it appears on your Japanese bank account. It is usually written in カタカナ (katakana). A mismatch may delay or reject your payment.',
+            alipayRecipients: 'Only mainland Chinese, Hong Kong, or Macao recipients can be paid through Alipay.',
+            alipayLimits:
+                'Alipay can receive up to 50,000 CNY per payment and between 300,000 and 600,000 CNY per year. Monthly limits on the number of payments may also apply, depending on the purpose of the payment.',
+            malaysianNonResidentLimit:
+                'Non-residents with a bank account in Malaysia can only receive 10,000 Malaysian ringgit per day. A payment above this limit may lead your bank to close your account.',
+        },
         currencyHeader: "What's your bank account's currency?",
         confirmationStepHeader: 'Check your info.',
         confirmationStepSubHeader: 'Double check the details below, and check the terms box to confirm.',
@@ -7042,6 +7077,8 @@ const translations = {
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Out-of-pocket expenses will export when paid',
                 },
             },
+            autoCreateVendor: 'Auto-create vendors',
+            autoCreateVendorDescription: "Expensify will automatically create vendors in Rillet if they don't exist already.",
             syncReimbursedReports: 'Sync reimbursed reports',
             syncReimbursedReportsDescription: 'When a report is paid via ACH, a payment will be generated in this account.',
             achPaymentAccount: {
@@ -7985,6 +8022,8 @@ const translations = {
             createFailureMessage: 'An error occurred while creating the category, please try again',
             addCategory: 'Add category',
             createCategoryFromSearch: (categoryName: string) => `Create “${categoryName}” category`,
+            availableToMember: (memberName: string) => `Available to ${memberName}`,
+            notAvailableToMember: (memberName: string) => `Not available to ${memberName}`,
             editCategory: 'Edit category',
             editCategories: 'Edit categories',
             findCategory: 'Find category',
@@ -8002,11 +8041,13 @@ const translations = {
                 description: `At least one category must remain enabled because your workspace requires categories.`,
             },
             visibleTo: 'Visible to',
+            editVisibility: 'Edit visibility',
             membersCount: ({count}: {count: number}) => ({
                 one: '1 member',
                 other: `${count} members`,
             }),
             visibleToDescription: ({categoryName}: {categoryName: string}) => `Choose which members can use the ${categoryName} category when submitting expenses.`,
+            bulkVisibleToDescription: 'Choose which members can use these categories when submitting expenses.',
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `Can’t disable ${categoryName}`,
                 bulkTitle: 'Can’t disable these categories',
@@ -8676,6 +8717,9 @@ const translations = {
             },
             changeOfficeLocation: 'Change office location',
             changeWorkArrangement: 'Change work arrangement',
+            editCategoryVisibility: 'Edit category visibility',
+            bulkCategoryVisibilitySaved: ({categoryCount, memberCount}: {categoryCount: string; memberCount: string}) =>
+                `Set ${categoryCount} for ${memberCount}. This replaces their current category visibility.`,
             removeWorkspaceMemberButtonTitle: 'Remove from workspace',
             removeGroupMemberButtonTitle: 'Remove from group',
             removeRoomMemberButtonTitle: 'Remove from chat',
@@ -8797,7 +8841,6 @@ const translations = {
                 willBeReadyToUse: 'This card will be ready to use immediately.',
                 willBeReadyToShip: 'This card will be ready to ship immediately.',
                 cardholder: 'Cardholder',
-                cardholderEmail: 'Cardholder email',
                 cardType: 'Card type',
                 limit: 'Limit',
                 limitType: 'Limit type',

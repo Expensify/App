@@ -24,3 +24,30 @@
 - Upstream PR/issue: -
 - E/App issue: https://github.com/Expensify/App/issues/87757
 - PR introducing patch: https://github.com/Expensify/App/pull/88534
+
+### [react-native-plaid-link-sdk+12.5.3+002+rn088-kotlin-currentActivity.patch](react-native-plaid-link-sdk+12.5.3+002+rn088-kotlin-currentActivity.patch)
+
+- Reason:
+
+    ```
+    In React Native 0.88 `ReactContextBaseJavaModule.getCurrentActivity()` is a plain Kotlin `fun`, so the bare
+    `currentActivity` property reads in `PlaidModule.kt` fail to compile. Read `reactApplicationContext.currentActivity`.
+    ```
+
+- Upstream PR/issue: Fixed upstream from 12.7.0 (12.6.0 is still broken). Drop this patch when bumping to >= 12.7.0.
+- E/App issue: https://github.com/Expensify/App/issues/106110
+- PR introducing patch: https://github.com/Expensify/App/pull/101739
+
+### [react-native-plaid-link-sdk+12.5.3+003+rn088-ios-event-emitter-import.patch](react-native-plaid-link-sdk+12.5.3+003+rn088-ios-event-emitter-import.patch)
+
+- Reason:
+
+    ```
+    The React Native 0.88 prebuilt React framework exposes RCTEventEmitter.h
+    through the React namespace. Import it as <React/RCTEventEmitter.h> so
+    both standalone and HybridApp iOS builds can compile the Plaid module.
+    ```
+
+- Upstream PR/issue: Not fixed in v12 (the unqualified import is still present in `12.8.9`). [Issue #675](https://github.com/plaid/react-native-plaid-link-sdk/issues/675#issuecomment-2273991782) was closed without an upstream patch; Plaid suggested the qualified import as a workaround. [Version `13.0.0`](https://github.com/plaid/react-native-plaid-link-sdk/releases/tag/v13.0.0) rewrote the SDK on Expo Modules and removed `RNLinksdk.h` entirely. Keep this patch on v12 and drop it when migrating to v13 or later.
+- E/App issue: https://github.com/Expensify/App/issues/108096
+- PR introducing patch: https://github.com/Expensify/App/pull/108111

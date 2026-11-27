@@ -47,27 +47,26 @@ function getOptionLabel(option: DynamicFormFieldOption, translate: LocalizedTran
     return getLocalizedText(translate, option.labelKey, option.label) ?? option.key;
 }
 
-function getChoices(options: DynamicFormFieldOption[], translate: LocalizedTranslate, isCountryList: boolean): DynamicFormChoice[] {
+function getChoices(options: DynamicFormFieldOption[], translate: LocalizedTranslate): DynamicFormChoice[] {
     return options.map((option) => {
         const label = getOptionLabel(option, translate);
         return {
             value: option.key,
             label,
-            searchValue: isCountryList ? StringUtils.sanitizeString(`${option.key}${label}`) : undefined,
+            // A `select` field can list countries keyed by country codes. Each option is checked on its own,
+            // so a code we don't list loses only its own code search instead of turning it off for the whole list
+            searchValue: isCountryCode(option.key) ? StringUtils.sanitizeString(`${option.key}${label}`) : undefined,
         };
     });
 }
 
 function getFieldChoices(field: DynamicFormOptionField, values: DynamicFormValues, translate: LocalizedTranslate): DynamicFormChoice[] {
-    const options = getFieldOptions(field, values);
-    // Wise sends some country lists, like the account holder's address country, as a `select` of country codes, so those search by code too
-    const isCountryField = field.type === 'country' || field.type === 'countryMultiselect' || (options.length > 0 && options.every((option) => isCountryCode(option.key)));
-    return getChoices(options, translate, isCountryField);
+    return getChoices(getFieldOptions(field, values), translate);
 }
 
 /** Every country, listed and searched the way a country field lists them, for the country of an address */
 function getCountryChoices(translate: LocalizedTranslate): DynamicFormChoice[] {
-    return getChoices(COUNTRY_OPTIONS, translate, true);
+    return getChoices(COUNTRY_OPTIONS, translate);
 }
 
 export default getFieldOptions;
