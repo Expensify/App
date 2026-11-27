@@ -14,6 +14,7 @@ import ROUTES from '@src/ROUTES';
 import type {ValueOf} from 'type-fest';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import Onyx from 'react-native-onyx';
 
 import type {RejectModalAction} from './useHoldRejectEducationalModal';
 
@@ -58,10 +59,6 @@ function useHoldRejectActions({reportID, onHoldEducationalOpen, onRejectModalOpe
     const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(iouTransactionID)}`);
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
     const [requestParentReportActionChildReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(requestParentReportAction?.childReportID)}`);
-    const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION);
-    const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION);
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const shouldSuppressPromotionalUI = useShouldSuppressPromotionalUI();
 
     const isReportSubmitter = isCurrentUserSubmitter(chatIOUReport);
@@ -73,7 +70,7 @@ function useHoldRejectActions({reportID, onHoldEducationalOpen, onRejectModalOpe
             icon: expensifyIcons.Stopwatch,
             value: CONST.REPORT.SECONDARY_ACTIONS.HOLD,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.HOLD,
-            onSelected: () => {
+            onSelected: async () => {
                 if (!requestParentReportAction) {
                     throw new Error('Parent action does not exist');
                 }
@@ -83,6 +80,12 @@ function useHoldRejectActions({reportID, onHoldEducationalOpen, onRejectModalOpe
                     return;
                 }
 
+                const [dismissedHoldUseExplanation, dismissedRejectUseExplanation, introSelected, rules] = await Onyx.multiGet([
+                    ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION,
+                    ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION,
+                    ONYXKEYS.NVP_INTRO_SELECTED,
+                    ONYXKEYS.COLLECTION.RULE,
+                ]);
                 const shouldShowHoldEducationalModal = isReportSubmitter || isChatReportDM;
                 const isDismissed = shouldShowHoldEducationalModal ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
 
@@ -97,7 +100,7 @@ function useHoldRejectActions({reportID, onHoldEducationalOpen, onRejectModalOpe
                         currentUserLogin: currentUserLogin ?? '',
                         currentUserAccountID,
                         transactionViolations,
-                        isTrackIntentUser,
+                        isTrackIntentUser: isTrackIntentUserSelector(introSelected),
                         delegateAccountID,
                         rules,
                     });
@@ -113,7 +116,7 @@ function useHoldRejectActions({reportID, onHoldEducationalOpen, onRejectModalOpe
             icon: expensifyIcons.Stopwatch,
             value: CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.REMOVE_HOLD,
-            onSelected: () => {
+            onSelected: async () => {
                 if (!requestParentReportAction) {
                     throw new Error('Parent action does not exist');
                 }
@@ -123,6 +126,7 @@ function useHoldRejectActions({reportID, onHoldEducationalOpen, onRejectModalOpe
                     return;
                 }
 
+                const [introSelected, rules] = await Onyx.multiGet([ONYXKEYS.NVP_INTRO_SELECTED, ONYXKEYS.COLLECTION.RULE]);
                 changeMoneyRequestHoldStatus({
                     reportAction: requestParentReportAction,
                     iouTransaction: transaction,
@@ -133,7 +137,7 @@ function useHoldRejectActions({reportID, onHoldEducationalOpen, onRejectModalOpe
                     currentUserLogin: currentUserLogin ?? '',
                     currentUserAccountID,
                     transactionViolations,
-                    isTrackIntentUser,
+                    isTrackIntentUser: isTrackIntentUserSelector(introSelected),
                     delegateAccountID,
                     rules,
                 });
@@ -144,7 +148,7 @@ function useHoldRejectActions({reportID, onHoldEducationalOpen, onRejectModalOpe
             icon: expensifyIcons.ThumbsDown,
             value: CONST.REPORT.SECONDARY_ACTIONS.REJECT,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.REJECT,
-            onSelected: () => {
+            onSelected: async () => {
                 if (isDelegateAccessRestricted) {
                     showDelegateNoAccessModal();
                     return;
@@ -153,6 +157,8 @@ function useHoldRejectActions({reportID, onHoldEducationalOpen, onRejectModalOpe
                 if (!moneyRequestReport?.reportID) {
                     return;
                 }
+
+                const dismissedRejectUseExplanation = await Onyx.get(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION);
 
                 if (dismissedRejectUseExplanation || shouldSuppressPromotionalUI) {
                     Navigation.navigate(ROUTES.REJECT_EXPENSE_REPORT.getRoute(moneyRequestReport.reportID));
