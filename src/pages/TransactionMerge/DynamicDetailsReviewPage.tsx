@@ -2,7 +2,6 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -41,7 +40,6 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React, {useState} from 'react';
 import {View} from 'react-native';
@@ -57,7 +55,7 @@ function DynamicDetailsReviewPage({route}: DynamicDetailsReviewPageProps) {
     const {transactionID, isOnSearch} = route.params;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MERGE_TRANSACTION_DETAILS.path);
 
-    const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
+    const [mergeTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const {targetTransaction, sourceTransaction, targetTransactionReport, sourceTransactionReport, targetTransactionPolicy, sourceTransactionPolicy} = useMergeTransactions({
         mergeTransaction,
     });
@@ -171,10 +169,6 @@ function DynamicDetailsReviewPage({route}: DynamicDetailsReviewPageProps) {
 
     // If this screen has multiple "selection cards" on it and the user skips one or more, show an error above the footer button
     const shouldShowSubmitError = conflictFields.length > 1 && !isEmptyObject(hasErrors);
-
-    if (isLoadingOnyxValue(mergeTransactionMetadata)) {
-        return <FullScreenLoadingIndicator />;
-    }
 
     return (
         <ScreenWrapper
