@@ -16,9 +16,11 @@ import useTransactionViolationOfWorkspace from '@hooks/useTransactionViolationOf
 
 import {close as closeVisibleModal} from '@libs/actions/Modal';
 import {calculateBillNewDot, deleteWorkspace, dismissWorkspaceError} from '@libs/actions/Policy/Policy';
+import type {DeleteWorkspaceBlockedErrorKey} from '@libs/actions/Policy/Policy';
 import {filterInactiveCards, getCardSettings, isCard} from '@libs/CardUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {getIsOffline} from '@libs/NetworkState';
 import {isPendingDeletePolicy, shouldBlockWorkspaceDeletionForInvoicifyUser} from '@libs/PolicyUtils';
 import {isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
 import {getIsTravelBillingEnabled, getTravelBillingCardSettingsKey, getTravelBillingFeedID} from '@libs/TravelBillingUtils';
@@ -100,8 +102,13 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
     const hasTravelCards = Object.values(travelCardsList ?? {}).some(isCard);
     const isBlockedByExpensifyCards = hasExpensifyCardsEnabledOnWorkspace && hasExpensifyCards;
     const isBlockedByTravelBilling = hasTravelBillingEnabledOnWorkspace && hasTravelCards;
-    // While offline we can't get the real rejection reason from the backend, so if we already know locally that the workspace has active Expensify Cards, block the delete up front instead of queuing one that will fail on reconnect.
-    const hasDeleteWorkspaceExpensifyCardsError = isBlockedByExpensifyCards && !!isOffline;
+    let deleteWorkspaceBlockedErrorKey: DeleteWorkspaceBlockedErrorKey | undefined;
+    if (isBlockedByExpensifyCards) {
+        deleteWorkspaceBlockedErrorKey = 'workspace.common.deleteOpenExpensifyCardsError';
+    } else if (isBlockedByTravelBilling) {
+        deleteWorkspaceBlockedErrorKey = 'workspace.common.deleteTravelBillingError';
+    }
+    const isDeleteBlocked = !!deleteWorkspaceBlockedErrorKey;
 
     const policyLatestErrorMessage = getLatestErrorMessage(policy);
     const isPendingDelete = isPendingDeletePolicy(policy);
@@ -120,7 +127,7 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
     };
 
     const showDeleteWorkspaceErrorModal = () => {
-        if (!isFocused) {
+        if (!deleteWorkspaceBlockedErrorKey || !isFocused) {
             dismissDeleteWorkspaceFlow();
             return;
         }
@@ -130,8 +137,7 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
             prompt: (
                 <View style={[styles.renderHTML, styles.flexRow]}>
                     <RenderHTML
-                        // This modal is only shown when one of the two blockers applies, and Expensify Cards take priority when both do.
-                        html={translate(isBlockedByExpensifyCards ? 'workspace.common.deleteOpenExpensifyCardsError' : 'workspace.common.deleteTravelBillingError')}
+                        html={translate(deleteWorkspaceBlockedErrorKey)}
                         onConciergeLinkPress={() => {
                             closeModal();
                             dismissDeleteWorkspaceFlow();
@@ -189,12 +195,17 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
             buttonVariant: CONST.BUTTON_VARIANT.DANGER,
-            ...(hasDeleteWorkspaceExpensifyCardsError ? {} : {isConfirmLoading: isPendingDelete}),
+            isConfirmLoading: isPendingDelete,
         }).then((result) => {
             if (!policyName || result.action !== ModalActions.CONFIRM) {
                 onDismiss();
                 return;
             }
+
+            // The confirmation can stay open while the connection drops or comes back, so read the connection when Delete is pressed instead of using the value from when it opened.
+            const isOfflineOnConfirm = getIsOffline();
+            // While offline we can't get the real rejection reason from the backend, so if we already know locally that the workspace has active Expensify Cards or Consolidated Travel Billing, block the delete up front instead of queuing one that will fail on reconnect.
+            const hasDeleteWorkspaceBlockedError = isDeleteBlocked && isOfflineOnConfirm;
 
             deleteWorkspace({
                 policies,
@@ -211,14 +222,15 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
                 lastUsedPaymentMethods: lastPaymentMethod,
                 localeCompare,
                 personalPolicyID,
-                hasDeleteWorkspaceExpensifyCardsError,
+                deleteWorkspaceBlockedErrorKey: hasDeleteWorkspaceBlockedError ? deleteWorkspaceBlockedErrorKey : undefined,
                 currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                 accountIDToLogin: accountIDToLogin ?? {},
             });
 
-            if (hasDeleteWorkspaceExpensifyCardsError) {
-                showDeleteWorkspaceErrorModal();
-            } else if (isOffline) {
+            if (hasDeleteWorkspaceBlockedError) {
+                // Delete leaves the confirmation open in its loading state, so close it first or it comes back once the error is dismissed.
+                closeVisibleModal(() => showDeleteWorkspaceErrorModal(), false);
+            } else if (isOfflineOnConfirm) {
                 closeModal();
                 onDeleteComplete?.();
                 onDismiss();
@@ -273,7 +285,7 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
         }
 
         closeVisibleModal(() => {
-            if (isBlockedByExpensifyCards || isBlockedByTravelBilling) {
+            if (isDeleteBlocked) {
                 showDeleteWorkspaceErrorModal();
                 return;
             }
@@ -285,8 +297,7 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
         isPendingDelete,
         prevIsPendingDelete,
         policyLatestErrorMessage,
-        isBlockedByExpensifyCards,
-        isBlockedByTravelBilling,
+        isDeleteBlocked,
         closeModal,
         onDeleteComplete,
         onDismiss,
