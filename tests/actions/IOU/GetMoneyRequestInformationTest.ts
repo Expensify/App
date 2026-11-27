@@ -3,10 +3,11 @@ import {isRecord} from '@libs/ObjectUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PolicyTagLists, Report, ReportAction, Transaction} from '@src/types/onyx';
+import type {Policy, PolicyTagLists, Report, ReportAction, Transaction} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
+import createRandomPolicy from '../../utils/collections/policies';
 import {formatPhoneNumber, getCurrencyDecimalsLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -51,6 +52,7 @@ const policyTagListA: PolicyTagLists = {
 };
 
 const baseParams = {
+    personalDetailsByLogins: {},
     isVendorMatchingBetaEnabled: false,
     shouldFlagNewTransactionForReportTable: true,
     parentChatReport,
@@ -583,6 +585,51 @@ describe('getMoneyRequestInformation', () => {
             const result = getMoneyRequestInformation({...baseParams, getCurrencyDecimals: getCurrencyDecimalsLocal});
 
             expect(result.iouReport.reportID).not.toBe(SUBMITTED_REPORT_ID);
+        });
+    });
+
+    describe('next step', () => {
+        const APPROVER_ACCOUNT_ID = 300;
+        const APPROVER_EMAIL = 'approver@example.com';
+
+        // Submits expenses as soon as they're added, so the new report waits on its approver right away
+        const instantSubmitPolicy: Policy = {
+            ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+            id: POLICY_ID,
+            role: CONST.POLICY.ROLE.USER,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+            approver: APPROVER_EMAIL,
+            owner: APPROVER_EMAIL,
+            autoReporting: true,
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+        };
+
+        beforeEach(async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: PAYEE_ACCOUNT_ID, email: 'payee@example.com'});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, instantSubmitPolicy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, parentChatReport);
+            await waitForBatchedUpdates();
+        });
+
+        it('waits on the approver when the expense is submitted right away', () => {
+            // Given an expense on a workspace that submits instantly to an approver
+            // When the expense is built
+            const result = getMoneyRequestInformation({
+                ...baseParams,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                policyParams: {policy: instantSubmitPolicy},
+                personalDetailsByLogins: {[APPROVER_EMAIL]: {accountID: APPROVER_ACCOUNT_ID, login: APPROVER_EMAIL}},
+            });
+
+            // Then the new report is submitted and its next step waits on the approver
+            expect(result.iouReport.statusNum).toBe(CONST.REPORT.STATUS_NUM.SUBMITTED);
+            const nextStepUpdate = result.onyxData.optimisticData?.find(
+                (update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${result.iouReport.reportID}` && !!update.value && typeof update.value === 'object' && 'nextStep' in update.value,
+            );
+            expect(nextStepUpdate?.value).toMatchObject({
+                nextStep: {actorAccountID: APPROVER_ACCOUNT_ID, messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE},
+            });
         });
     });
 

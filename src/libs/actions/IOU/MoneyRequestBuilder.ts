@@ -280,7 +280,7 @@ type MoneyRequestInformationParams = {
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<OnyxTypes.Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
-    personalDetailsByLogins?: PersonalDetailsByLogin;
+    personalDetailsByLogins: PersonalDetailsByLogin | undefined;
     /** Report actions of `parentChatReport` */
     parentChatReportActions?: OnyxEntry<OnyxTypes.ReportActions>;
     /** Report actions of the participant's existing chat, which is their policy expense chat or the 1:1 chat found by `getChatByParticipants` */
@@ -344,7 +344,7 @@ type BuildOnyxDataForMoneyRequestParams = {
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<OnyxTypes.Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
-    personalDetailsByLogins?: PersonalDetailsByLogin;
+    personalDetailsByLogins: PersonalDetailsByLogin | undefined;
     /** Restores the report state in failureData when the final batch item transitions it out of OPEN and fails. */
     previousIOUReportState?: ReportStateAndStatus;
 };

@@ -1,4 +1,5 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 import type {SearchActionsContextValue, SearchGroupBy, SearchStateContextValue} from '@components/Search/types';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
@@ -122,6 +123,7 @@ type UpdateSplitTransactionsData = {
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
     rules: OnyxCollection<OnyxTypes.Rule>;
+    personalDetailsByLogins: PersonalDetailsByLogin;
     isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
@@ -351,6 +353,7 @@ function updateSplitTransactions({
     getCurrencyDecimals,
     getCurrencySymbol,
     rules,
+    personalDetailsByLogins,
     isVendorMatchingBetaEnabled,
 }: UpdateSplitTransactionsParams) {
     const parentTransactionReport = getReportOrDraftReport({
@@ -1054,6 +1057,7 @@ function updateSplitTransactions({
             formatPhoneNumber,
             getCurrencyDecimals,
             rules,
+            personalDetailsByLogins,
             parentChatReportActions: allReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentChatReport?.reportID}`],
             participantChatReportActions: allReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${participantChatReportID}`],
         });
