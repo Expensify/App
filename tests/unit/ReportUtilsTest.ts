@@ -4469,7 +4469,7 @@ describe('ReportUtils', () => {
     describe('getWhisperDisplayNames', () => {
         it('returns the "you" label from the provided translate function when the current user is the only participant', () => {
             const translateWithYouMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.youAfterPreposition' ? 'YouMarker' : translateLocal(path, ...parameters));
-            const result = getWhisperDisplayNames(translateWithYouMarker, formatPhoneNumber, [currentUserAccountID]);
+            const result = getWhisperDisplayNames(translateWithYouMarker, formatPhoneNumber, [currentUserAccountID], currentUserAccountID);
             expect(result).toBe('YouMarker');
         });
 
@@ -4483,9 +4483,28 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
             const translateWithHiddenMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.hidden' ? 'HiddenMarker' : translateLocal(path, ...parameters));
 
-            const result = getWhisperDisplayNames(translateWithHiddenMarker, formatPhoneNumber, [namedAccountID, hiddenAccountID]);
+            const result = getWhisperDisplayNames(translateWithHiddenMarker, formatPhoneNumber, [namedAccountID, hiddenAccountID], currentUserAccountID);
             expect(result).toContain('HiddenMarker');
             expect(result).toContain('Named User');
+        });
+
+        it('lists the participant instead of "you" when the only participant is not the passed current user', async () => {
+            // Given a whisper only visible to another user, who is the signed-in session user
+            const otherAccountID = 780003;
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: otherAccountID});
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[otherAccountID]: {accountID: otherAccountID, login: 'other@test.com', displayName: 'Other User'}});
+            await waitForBatchedUpdates();
+            const translateWithYouMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.youAfterPreposition' ? 'YouMarker' : translateLocal(path, ...parameters));
+
+            // When the names are built for the current user passed by the caller
+            const result = getWhisperDisplayNames(translateWithYouMarker, formatPhoneNumber, [otherAccountID], currentUserAccountID);
+
+            // Then the session is not read, so the whisper names the other user instead of saying "you"
+            expect(result).not.toBe('YouMarker');
+            expect(result).toContain('Other');
+
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: currentUserEmail});
+            await waitForBatchedUpdates();
         });
     });
 
@@ -16761,8 +16780,18 @@ describe('ReportUtils', () => {
             expect(isCurrentUserTheOnlyParticipant([42, 7], 42)).toBe(false);
         });
 
-        it('should fall back to the module-level current user when no account is passed', () => {
-            expect(isCurrentUserTheOnlyParticipant([currentUserAccountID])).toBe(true);
+        it('should return false when the current user is unknown, without falling back to the session user', () => {
+            // Given the only participant is the signed-in session user
+            // When the current user is not passed
+            // Then the session is not read, so the participant is not treated as the current user
+            expect(isCurrentUserTheOnlyParticipant([currentUserAccountID], undefined)).toBe(false);
+        });
+
+        it('should return false when there are no participants', () => {
+            // Given an action with no whisper participants
+            // When it is checked for a known current user
+            // Then there is nobody to match, so the current user is not the only participant
+            expect(isCurrentUserTheOnlyParticipant(undefined, 42)).toBe(false);
         });
     });
 
@@ -18273,6 +18302,34 @@ describe('ReportUtils', () => {
             };
 
             expect(canLeaveChat(report, reportPolicy, currentUserAccountID, false, false)).toBe(true);
+        });
+
+        it.each([
+            {description: 'the passed user is the invoice receiver', isPassedUserReceiver: true, expected: false},
+            {description: 'the session user is the invoice receiver but the passed user is not', isPassedUserReceiver: false, expected: true},
+        ])('uses the passed current user for an individual invoice receiver when $description', async ({isPassedUserReceiver, expected}) => {
+            // Given an invoice room sent to an individual, and a session user that differs from the user passed in
+            const sessionAccountID = 5678;
+            const report: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.INVOICE),
+                invoiceReceiver: {
+                    type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL,
+                    accountID: isPassedUserReceiver ? currentUserAccountID : sessionAccountID,
+                },
+                policyID: '1',
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, sessionAccountID]),
+            };
+            await Onyx.set(ONYXKEYS.SESSION, {email: 'session@test.com', accountID: sessionAccountID});
+            const reportPolicy: Policy = {
+                ...createRandomPolicy(1),
+                role: CONST.POLICY.ROLE.USER,
+            };
+
+            // When the passed user checks whether they can leave
+            const canLeave = canLeaveChat(report, reportPolicy, currentUserAccountID, false, false);
+
+            // Then only the passed user is compared with the receiver, because the receiver must stay in the room
+            expect(canLeave).toBe(expected);
         });
 
         it('should return true for chat thread if the user is joined', async () => {

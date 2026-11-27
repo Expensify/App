@@ -12514,8 +12514,7 @@ function temporary_getMoneyRequestOptions(
 /**
  * Invoice sender, invoice receiver and auto-invited admins cannot leave
  */
-// TODO: currentUserAccountID will be required eventually so this becomes a pure function. Subscribe the data via useOnyx and pass it from the component. Refactor issue: https://github.com/Expensify/App/issues/66412
-function canLeaveInvoiceRoom(report: OnyxEntry<Report>, currentUserAccountID?: number): boolean {
+function canLeaveInvoiceRoom(report: OnyxEntry<Report>, currentUserAccountID: number | undefined): boolean {
     if (!report?.invoiceReceiver) {
         return false;
     }
@@ -12531,7 +12530,7 @@ function canLeaveInvoiceRoom(report: OnyxEntry<Report>, currentUserAccountID?: n
     }
 
     if (report.invoiceReceiver.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
-        return report?.invoiceReceiver?.accountID !== (currentUserAccountID ?? deprecatedCurrentUserAccountID);
+        return report?.invoiceReceiver?.accountID !== currentUserAccountID;
     }
 
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
@@ -12544,17 +12543,21 @@ function canLeaveInvoiceRoom(report: OnyxEntry<Report>, currentUserAccountID?: n
     return true;
 }
 
-// TODO: currentUserAccountID will be required eventually so this becomes a pure function. Subscribe the data via useOnyx and pass it from the component. Refactor issue: https://github.com/Expensify/App/issues/66412
-function isCurrentUserTheOnlyParticipant(participantAccountIDs?: number[], currentUserAccountID?: number): boolean {
-    return !!(participantAccountIDs?.length === 1 && participantAccountIDs?.at(0) === (currentUserAccountID ?? deprecatedCurrentUserAccountID));
+function isCurrentUserTheOnlyParticipant(participantAccountIDs: number[] | undefined, currentUserAccountID: number | undefined): boolean {
+    return !!currentUserAccountID && participantAccountIDs?.length === 1 && participantAccountIDs.at(0) === currentUserAccountID;
 }
 
 /**
  * Returns display names for those that can see the whisper.
  * However, it returns "you" if the current user is the only one who can see it besides the person that sent it.
  */
-function getWhisperDisplayNames(translate: LocalizedTranslate, formatPhoneNumber: LocaleContextProps['formatPhoneNumber'], participantAccountIDs?: number[]): string | undefined {
-    const isWhisperOnlyVisibleToCurrentUser = isCurrentUserTheOnlyParticipant(participantAccountIDs);
+function getWhisperDisplayNames(
+    translate: LocalizedTranslate,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    participantAccountIDs: number[] | undefined,
+    currentUserAccountID: number | undefined,
+): string | undefined {
+    const isWhisperOnlyVisibleToCurrentUser = isCurrentUserTheOnlyParticipant(participantAccountIDs, currentUserAccountID);
 
     // When the current user is the only participant, the display name needs to be "you" because that's the only person reading it
     if (isWhisperOnlyVisibleToCurrentUser) {
@@ -13889,7 +13892,7 @@ function canLeaveChat(
     }
 
     if (isInvoiceRoom(report)) {
-        return canLeaveInvoiceRoom(report);
+        return canLeaveInvoiceRoom(report, currentUserAccountID);
     }
 
     return (

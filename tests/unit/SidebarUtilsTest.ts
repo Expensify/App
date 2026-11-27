@@ -1871,14 +1871,17 @@ describe('SidebarUtils', () => {
             {description: 'owned by the current user', isOwnedByCurrentUser: true},
             {description: 'owned by another user', isOwnedByCurrentUser: false},
         ])('sets isIOUReportOwner from the passed current user when the expense report is $description', async ({isOwnedByCurrentUser}) => {
-            // Given an expense report whose owner is or isn't the current user passed to the LHN row
+            // Given an expense report whose owner is or isn't the current user passed to the LHN row, while the
+            // signed-in session belongs to another account, so a session fallback would give the opposite result
+            const sessionAccountID = CURRENT_USER_ACCOUNT_ID + 1;
             const report: Report = {
                 ...createRandomReport(7110, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 iouReportID: undefined,
-                ownerAccountID: isOwnedByCurrentUser ? CURRENT_USER_ACCOUNT_ID : CURRENT_USER_ACCOUNT_ID + 1,
+                ownerAccountID: isOwnedByCurrentUser ? CURRENT_USER_ACCOUNT_ID : sessionAccountID,
             };
             await act(async () => {
+                await Onyx.set(ONYXKEYS.SESSION, {accountID: sessionAccountID});
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
             });
 
@@ -1912,6 +1915,10 @@ describe('SidebarUtils', () => {
 
             // Then the row marks the owner using the current user passed in, not the session
             expect(result?.isIOUReportOwner).toBe(isOwnedByCurrentUser);
+
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: CURRENT_USER_LOGIN});
+            });
         });
 
         it('builds the thread row avatar from the parent report action passed by the caller', async () => {
