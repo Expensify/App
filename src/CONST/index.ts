@@ -5296,13 +5296,10 @@ const CONST = {
     },
 
     /**
-     * Timings of a Home to-do review moving from one report to the next, in ms. They depend on each other:
-     * RESULT_HOLD_DURATION must exceed RESULT_POP_DURATION so the result icon finishes popping in before the report
-     * leaves, and RESULT_FALLBACK_DURATION must exceed RESULT_HOLD_DURATION + EXIT_DURATION so the fallback only
-     * restores the action button when the review did not move on.
+     * Timings of a Home to-do review moving from one report to the next, in ms. RESULT_FALLBACK_DURATION must exceed
+     * RESULT_HOLD_DURATION + EXIT_DURATION so the fallback only restores the action button when the review did not move on.
      */
     HOME_TODO_REVIEW_ANIMATION: {
-        RESULT_POP_DURATION: 300,
         RESULT_HOLD_DURATION: 550,
         RESULT_FALLBACK_DURATION: 3000,
         EXIT_DURATION: 150,

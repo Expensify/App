@@ -168,8 +168,8 @@ function GrowlNotificationContent({bodyText, type, duration, action, position, t
                                     illustrationStyle={styles.growlNotificationCelebrationAnimation}
                                     initialFrame={CELEBRATION_FIREWORKS_START_FRAME}
                                 />
-                                {!!title && <Text style={[styles.growlNotificationText, styles.textStrong, styles.textAlignCenter, styles.flexGrow0]}>{title}</Text>}
-                                <Text style={[styles.growlNotificationText, styles.growlNotificationSupportingText, styles.textAlignCenter, styles.flexGrow0]}>{bodyText}</Text>
+                                {!!title && <Text style={[styles.growlNotificationText, styles.textStrong, styles.textAlignCenter, styles.flex0]}>{title}</Text>}
+                                <Text style={[styles.growlNotificationText, styles.growlNotificationSupportingText, styles.textAlignCenter, styles.flex0]}>{bodyText}</Text>
                             </PressableWithoutFeedback>
                         ) : (
                             <View style={[styles.growlNotificationBox, action ? styles.growlNotificationBoxWithAction : styles.growlNotificationBoxWithoutAction]}>

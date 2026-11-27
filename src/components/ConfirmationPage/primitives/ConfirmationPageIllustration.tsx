@@ -22,7 +22,7 @@ type ConfirmationPageIllustrationProps = {
     illustration?: DotLottieAnimation | IconAsset;
     illustrationStyle?: StyleProp<ViewStyle>;
 
-    /** The frame a Lottie illustration starts playing from, to skip a slow opening */
+    /** The frame a Lottie illustration jumps to once it loads, to skip a slow opening. Native players start from the first frame. */
     initialFrame?: number;
 };
 
@@ -57,7 +57,8 @@ function ConfirmationPageIllustration({illustration = LottieAnimations.Fireworks
             <Lottie
                 ref={animationRef}
                 source={illustration}
-                autoPlay={initialFrame === undefined}
+                autoPlay
+                // iOS never reports a loaded .lottie file and native players ignore a start frame, so this only skips ahead on web
                 onAnimationLoaded={initialFrame === undefined || isReduceMotionEnabled ? undefined : () => animationRef.current?.play(initialFrame)}
                 loop
                 style={[styles.confirmationAnimation, illustrationStyle]}

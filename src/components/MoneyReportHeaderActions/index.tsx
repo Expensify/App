@@ -24,7 +24,7 @@ import {View} from 'react-native';
 
 import type {MoneyReportHeaderActionsProps} from './types';
 
-import HomeTodoActionResultIcon from './HomeTodoActionResultIcon';
+import HomeTodoActionResultButton from './HomeTodoActionResultButton';
 import MoneyReportHeaderSecondaryActions from './MoneyReportHeaderSecondaryActions';
 import MoneyReportHeaderSelectionDropdown from './MoneyReportHeaderSelectionDropdown';
 
@@ -71,7 +71,7 @@ function MoneyReportHeaderActions({reportID, primaryAction, isReportInSearch, ba
 
     const narrowedPrimaryAction = narrowPrimaryAction(primaryAction);
 
-    // A Home to-do review shows the action's result as an icon in place of the button, right before it moves on.
+    // A Home to-do review shows the action's result in place of the button, right before it moves on.
     const {isInHomeTodoReview} = useHomeTodoReview(reportID, backTo);
     const {isApprovedAnimationRunning, isPaidAnimationRunning, isSubmittingAnimationRunning} = usePaymentAnimationsContext();
     const shouldShowHomeTodoResult = isInHomeTodoReview && (isApprovedAnimationRunning || isPaidAnimationRunning || isSubmittingAnimationRunning);
@@ -105,7 +105,7 @@ function MoneyReportHeaderActions({reportID, primaryAction, isReportInSearch, ba
                     }}
                 >
                     {shouldShowHomeTodoResult ? (
-                        <HomeTodoActionResultIcon
+                        <HomeTodoActionResultButton
                             reportID={reportID}
                             minWidth={primaryActionWidth}
                         />
