@@ -19,7 +19,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearInviteDraft, setWorkspaceInviteMembersDraft} from '@libs/actions/Policy/Member';
 import {searchInServer} from '@libs/actions/Report';
-import {clearApprovalWorkflow, saveFastEditApprovalWorkflow, setApprovalWorkflowMembers} from '@libs/actions/Workflow';
+import {clearApprovalWorkflow, saveFastEditApprovalWorkflow, setApprovalWorkflowMembers, setApprovalWorkflowPendingInviteMembers} from '@libs/actions/Workflow';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -49,10 +49,15 @@ import type {Member} from '@src/types/onyx/ApprovalWorkflow';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {Str} from 'expensify-common';
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 
 type DynamicWorkspaceWorkflowsApprovalsExpensesFromPageProps = WithPolicyAndFullscreenLoadingProps &
     PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKFLOWS_APPROVALS_EXPENSES_FROM>;
+
+type MemberSelection = {
+    members: Member[];
+    inviteDraft: Record<string, number>;
+};
 
 // A user invited by phone is stored in the workflow with the raw login the admin typed, but the workspace
 // keys its members by the canonical SMS login (e164@expensify.sms). Normalize before any membership or
@@ -70,15 +75,16 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
     const [rulesCollection] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [personalDetails] = useAllPersonalDetails();
     const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID}`);
+    // Follow the shared draft until the first toggle, including when it loads after mount.
+    const [selectionOverride, setSelectionOverride] = useState<MemberSelection>();
+    const workflowMembers = selectionOverride?.members ?? approvalWorkflow?.members;
+    const inviteDraft = selectionOverride?.inviteDraft ?? invitedEmailsToAccountIDsDraft;
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const {showConfirmModal} = useConfirmModal();
     const shouldUseApprovalWorkflowRules = useShouldUseApprovalWorkflowRules(policy);
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const firstApprover = approvalWorkflow?.originalApprovers?.[0]?.email ?? '';
-    const employeeAndApprovalMembersPersonalDetails = usePersonalDetailsByLogins([
-        ...Object.keys(policy?.employeeList ?? {}),
-        ...(approvalWorkflow?.members ?? []).map((member) => member.email),
-    ]);
+    const employeeAndApprovalMembersPersonalDetails = usePersonalDetailsByLogins([...Object.keys(policy?.employeeList ?? {}), ...(workflowMembers ?? []).map((member) => member.email)]);
 
     const shouldInitializeSearch = useRunAfterTransitions(true);
 
@@ -89,6 +95,13 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
     // Tracks whether we're still on the very first step of the create flow
     const isInitialCreationFlowRef = useRef(false);
     const isFastEditRef = useRef(false);
+
+    useEffect(() => {
+        if (approvalWorkflow?.pendingInviteMembers) {
+            return;
+        }
+        isHandingOffToInviteRef.current = false;
+    }, [approvalWorkflow?.pendingInviteMembers]);
 
     const excludedUsers = getExcludedUsers(policy?.employeeList);
 
@@ -154,17 +167,17 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
     const currentWorkflowKey = getApproverChainKey(approvalWorkflow?.originalApprovers ?? []);
 
     const selectedMembers = ((): SelectionListApprover[] => {
-        if (!approvalWorkflow?.members) {
+        if (!workflowMembers) {
             return [];
         }
 
-        return approvalWorkflow.members
+        return workflowMembers
             .filter((member) => {
                 const isPolicyMember = !!policy?.employeeList?.[normalizeLogin(member.email)];
                 // Keep policy members. For non-policy members, only keep if they're
                 // in the invite draft (meaning an invite flow is actively in progress).
                 // This mirrors the card flow's handleBackButtonPress cleanup pattern.
-                return isPolicyMember || invitedEmailsToAccountIDsDraft?.[member.email] != null;
+                return isPolicyMember || inviteDraft?.[member.email] != null;
             })
             .map((member) => {
                 let accountID = Number(policyMemberEmailsToAccountIDs[normalizeLogin(member.email)] ?? '');
@@ -178,7 +191,7 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
                 // the avatar renders the FallbackAvatar instead of the default avatar
                 // assigned to that account.
                 if (!accountID) {
-                    const draftAccountID = invitedEmailsToAccountIDsDraft?.[member.email];
+                    const draftAccountID = inviteDraft?.[member.email];
                     if (personalDetail?.accountID) {
                         accountID = personalDetail.accountID;
                     } else if (draftAccountID) {
@@ -390,10 +403,10 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
                 avatar: typeof user.avatar === 'string' ? user.avatar : undefined,
             })),
         ];
-        setApprovalWorkflowMembers(allMembers);
-
         // If there are users to invite, navigate to invite flow first
         if (usersToInvite.length > 0) {
+            // The invitation screen accepts these members only when the admin sends the invitations.
+            setApprovalWorkflowPendingInviteMembers(allMembers);
             const invitedEmailsToAccountIDs: Record<string, number> = {};
             for (const user of usersToInvite) {
                 if (!user.email) {
@@ -414,6 +427,7 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
             return;
         }
 
+        setApprovalWorkflowMembers(allMembers);
         if (isInitialCreationFlow) {
             Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(route.params.policyID, 0));
         } else if (approvalWorkflow?.isFastEdit) {
@@ -476,20 +490,15 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
 
     const toggleMember = (members: SelectionListApprover[]) => {
         const applySelection = (nextMembers: SelectionListApprover[]) => {
-            // Persist non-policy members to the invite draft AND to approvalWorkflow.members
-            // so they survive re-renders triggered by Onyx updates (e.g. personalDetails
-            // changes from search results). selectedMembers is derived from
-            // approvalWorkflow.members and only keeps non-policy members that are also in the
-            // invite draft, so both stores must stay in sync to avoid dropping the newly
-            // selected member.
+            // Retain invitee details locally across search updates without changing the parent before Save.
             const nextDraft: Record<string, number> = {};
-            const workflowMembers: Member[] = [];
+            const nextWorkflowMembers: Member[] = [];
             for (const member of nextMembers) {
                 if (!member.login) {
                     continue;
                 }
                 const iconSource = member.icons?.at(0)?.source;
-                workflowMembers.push({
+                nextWorkflowMembers.push({
                     displayName: member.text ?? member.login,
                     email: member.login,
                     avatar: typeof iconSource === 'string' ? iconSource : undefined,
@@ -498,10 +507,9 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
                     continue;
                 }
                 const iconId = member.icons?.at(0)?.id;
-                nextDraft[member.login] = typeof iconId === 'number' ? iconId : (invitedEmailsToAccountIDsDraft?.[member.login] ?? CONST.DEFAULT_NUMBER_ID);
+                nextDraft[member.login] = typeof iconId === 'number' ? iconId : (inviteDraft?.[member.login] ?? CONST.DEFAULT_NUMBER_ID);
             }
-            setWorkspaceInviteMembersDraft(route.params.policyID, nextDraft);
-            setApprovalWorkflowMembers(workflowMembers);
+            setSelectionOverride({members: nextWorkflowMembers, inviteDraft: nextDraft});
         };
 
         // Warn when selecting the last unselected workspace member: that moves everyone into this workflow,

@@ -14,6 +14,7 @@ import TextInput from '@components/TextInput';
 
 import useApprovalWorkflows from '@hooks/useApprovalWorkflows';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useBeforeRemove from '@hooks/useBeforeRemove';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -30,10 +31,11 @@ import {
     clearWorkspaceInviteCategoryVisibilityDraft,
     clearWorkspaceInviteRoleDraft,
     clearWorkspaceInviteWorkArrangementDraft,
+    setWorkspaceInviteMembersDraft,
 } from '@libs/actions/Policy/Member';
 import {setWorkspaceInviteMessageDraft} from '@libs/actions/Policy/Policy';
 import {callIfAuthenticated} from '@libs/actions/Session';
-import {saveFastEditApprovalWorkflow} from '@libs/actions/Workflow';
+import {saveFastEditApprovalWorkflow, setApprovalWorkflowMembers, setApprovalWorkflowPendingInviteMembers} from '@libs/actions/Workflow';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAssignableOfficeLocations, getMemberOfficeLocation} from '@libs/OfficeLocationUtils';
@@ -114,8 +116,20 @@ function WorkspaceInviteMessageComponent({
     const [allPersonalDetails] = useAllPersonalDetails();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
-    // Only used when this page finishes a "+N more" workflow edit, which has no edit page behind it to save the workflow.
-    const [approvalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
+    const [approvalWorkflowDraft] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
+    const approvalWorkflow =
+        isWorkflowApprovalExpensesFromRoute && approvalWorkflowDraft?.pendingInviteMembers
+            ? {...approvalWorkflowDraft, members: approvalWorkflowDraft.pendingInviteMembers}
+            : approvalWorkflowDraft;
+
+    useBeforeRemove(() => {
+        if (!isWorkflowApprovalExpensesFromRoute) {
+            return;
+        }
+        // Removal also covers dismissing the entire modal, without returning to the member picker.
+        setApprovalWorkflowPendingInviteMembers(null);
+        setWorkspaceInviteMembersDraft(policyID, {});
+    });
 
     const [welcomeNote, setWelcomeNote] = useState<string>();
     const {inputCallbackRef, inputRef} = useAutoFocusInput();
@@ -280,6 +294,9 @@ function WorkspaceInviteMessageComponent({
         }
 
         if (isWorkflowApprovalExpensesFromRoute) {
+            if (approvalWorkflow) {
+                setApprovalWorkflowMembers(approvalWorkflow.members);
+            }
             const nestedBackTo = getSearchParamFromPath(backTo?.toString() ?? '', 'backTo');
             if (nestedBackTo) {
                 Navigation.goBack(nestedBackTo as Routes);

@@ -660,7 +660,12 @@ function importApprovalWorkflowRules({policy, rules, members, addedMemberEmails,
 
 /** Set the members of the approval workflow that is currently edited */
 function setApprovalWorkflowMembers(members: Member[]) {
-    Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {members, errors: null});
+    Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {members, pendingInviteMembers: null, errors: null});
+}
+
+/** Stage a selection for invitation confirmation without changing the parent editor's accepted members. */
+function setApprovalWorkflowPendingInviteMembers(members: Member[] | null) {
+    Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {pendingInviteMembers: members});
 }
 
 /**
@@ -897,6 +902,7 @@ export {
     updateApprovalWorkflowRules,
     removeApprovalWorkflow,
     setApprovalWorkflowMembers,
+    setApprovalWorkflowPendingInviteMembers,
     setApprovalWorkflowApprover,
     setApprovalWorkflow,
     selectApprovalWorkflowForEdit,

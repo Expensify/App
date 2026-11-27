@@ -4,6 +4,8 @@ import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
+import useBeforeRemove from '@hooks/useBeforeRemove';
+
 import {addMembersToWorkspace} from '@libs/actions/Policy/Member';
 import {saveFastEditApprovalWorkflow} from '@libs/actions/Workflow';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -24,6 +26,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import getOnyxValue from '../utils/getOnyxValue';
 import {buildPersonalDetails} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -42,6 +45,8 @@ const DANA_ACCOUNT_ID = 4;
 const DIRECT_EXPENSES_FROM_ROUTE = `workspaces/${POLICY_ID}/workflows/approvals/expenses-from` as Route;
 const EDIT_PAGE_ROUTE = `workspaces/${POLICY_ID}/workflows/approvals/edit`;
 const EDIT_PAGE_EXPENSES_FROM_ROUTE = createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.path, EDIT_PAGE_ROUTE);
+
+jest.mock('@hooks/useBeforeRemove', () => jest.fn());
 
 jest.mock('@react-navigation/native', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -123,14 +128,15 @@ const currentUserPersonalDetails = {
     displayName: 'alice',
 } as CurrentUserPersonalDetails;
 
-/** Seeds what the expenses-from page hands off: Dana is in the draft's members and in the invite draft, but not in the workspace yet. */
+/** Seeds a provisional invitation without changing the parent editor's accepted members. */
 async function seedHandOff(overrides: Partial<ApprovalWorkflowOnyx>) {
     const seededWorkflow: ApprovalWorkflowOnyx = {
         action: CONST.APPROVAL_WORKFLOW.ACTION.EDIT,
         approvers: [CAROL_APPROVER],
         originalApprovers: [CAROL_APPROVER],
         originalMembers: [ALICE_MEMBER, BOB_MEMBER],
-        members: [ALICE_MEMBER, BOB_MEMBER, DANA_MEMBER],
+        members: [ALICE_MEMBER, BOB_MEMBER],
+        pendingInviteMembers: [ALICE_MEMBER, BOB_MEMBER, DANA_MEMBER],
         availableMembers: [ALICE_MEMBER, BOB_MEMBER],
         usedApproverEmails: [],
         isDefault: false,
@@ -164,6 +170,18 @@ async function renderInviteMessage(backTo: Route, policy = buildPolicy()) {
 async function renderAndPressInvite(backTo: Route) {
     await renderInviteMessage(backTo);
     fireEvent.press(screen.getByText('Invite'));
+    await waitForBatchedUpdatesWithAct();
+}
+
+async function removeInvitationScreen(actionType: string) {
+    await act(async () => {
+        jest.mocked(useBeforeRemove).mock.lastCall?.[0]({
+            type: 'beforeRemove',
+            data: {action: {type: actionType}},
+            preventDefault: jest.fn(),
+            defaultPrevented: false,
+        });
+    });
     await waitForBatchedUpdatesWithAct();
 }
 
@@ -243,6 +261,39 @@ describe('WorkspaceInviteMessageComponent - "+N more" workflow edit', () => {
         expect(saveFastEditApprovalWorkflowMock).toHaveBeenCalledTimes(1);
         const [params] = saveFastEditApprovalWorkflowMock.mock.calls.at(0) ?? [];
         expect(params?.approvalWorkflow.members.map((member) => member.email)).toEqual([ALICE_EMAIL, BOB_EMAIL]);
+    });
+
+    it.each(['GO_BACK', 'DISMISS_MODAL'])('discards the provisional selection on %s without requiring picker focus', async (actionType) => {
+        // Given a candidate selection that also removes Bob from the accepted workflow
+        await seedHandOff({isFastEdit: false, pendingInviteMembers: [ALICE_MEMBER, DANA_MEMBER]});
+        await renderInviteMessage(EDIT_PAGE_EXPENSES_FROM_ROUTE);
+
+        // When the invitation screen is removed without submitting, including whole-modal dismissal
+        await removeInvitationScreen(actionType);
+
+        // Then the accepted members are untouched and no candidate can leak into the next editor session
+        const draft = await getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW);
+        expect(draft?.members.map((member) => member.email)).toEqual([ALICE_EMAIL, BOB_EMAIL]);
+        expect(draft?.pendingInviteMembers).toBeFalsy();
+        expect(addMembersToWorkspaceMock).not.toHaveBeenCalled();
+        expect(saveFastEditApprovalWorkflowMock).not.toHaveBeenCalled();
+        await expect(getOnyxValue(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${POLICY_ID}`)).resolves.toEqual({});
+    });
+
+    it('accepts candidate members on Invite and keeps them after the invitation screen is removed', async () => {
+        // Given a nested workflow edit where the invitation candidate removes Bob and adds Dana
+        await seedHandOff({isFastEdit: false, pendingInviteMembers: [ALICE_MEMBER, DANA_MEMBER]});
+
+        // When the admin confirms the invitation and the screen is removed
+        await renderAndPressInvite(EDIT_PAGE_EXPENSES_FROM_ROUTE);
+        await removeInvitationScreen('GO_BACK');
+
+        // Then the parent receives the accepted selection, without saving the workflow prematurely
+        const draft = await getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW);
+        expect(draft?.members.map((member) => member.email)).toEqual([ALICE_EMAIL, DANA_EMAIL]);
+        expect(draft?.pendingInviteMembers).toBeFalsy();
+        expect(addMembersToWorkspaceMock).toHaveBeenCalledTimes(1);
+        expect(saveFastEditApprovalWorkflowMock).not.toHaveBeenCalled();
     });
 
     it('replaces the invite page with the Approver step without saving when the invite came from the Edit page', async () => {
