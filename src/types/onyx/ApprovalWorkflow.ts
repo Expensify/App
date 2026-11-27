@@ -161,6 +161,9 @@ type ApprovalWorkflowOnyx = Omit<ApprovalWorkflow, 'approvers'> & {
      */
     originalMembers?: Member[];
 
+    /** Candidate selection passed to invitation confirmation; not accepted into members until invitations are sent. */
+    pendingInviteMembers?: Member[];
+
     /**
      * The policy's default workflow, where members taken out of this workflow go back to
      */
