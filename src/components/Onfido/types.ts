@@ -1,9 +1,26 @@
-import type {OnfidoResult} from '@onfido/react-native-sdk';
+import type CONST from '@src/CONST';
+
 import type {CompleteData} from 'onfido-sdk-ui/types/shared/SdkParameters';
 import type {ForwardedRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
-type OnfidoData = CompleteData | OnfidoResult;
+/**
+ * The result shape the native Onfido SDK used to return. The Entrust IDV SDK that replaced it returns a different shape,
+ * so we map its result back to this one to keep the payload sent to the backend unchanged.
+ */
+type NativeOnfidoResult = {
+    document?: {
+        front: {id: string};
+        back?: {id: string};
+    };
+    face?: {
+        id: string;
+        variant: ValueOf<typeof CONST.ONFIDO.NATIVE_FACE_VARIANT>;
+    };
+};
+
+type OnfidoData = CompleteData | NativeOnfidoResult;
 
 type OnfidoDataWithApplicantID = OnfidoData & {
     applicantID: OnyxEntry<string>;
@@ -27,8 +44,4 @@ type OnfidoProps = {
     ref?: ForwardedRef<OnfidoElement>;
 };
 
-type OnfidoError = Error & {
-    type?: string;
-};
-
-export type {OnfidoProps, OnfidoElement, OnfidoData, OnfidoDataWithApplicantID, OnfidoError};
+export type {OnfidoProps, OnfidoElement, OnfidoData, OnfidoDataWithApplicantID, NativeOnfidoResult};

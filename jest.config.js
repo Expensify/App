@@ -70,6 +70,7 @@ module.exports = {
         '\\.(lottie)$': '<rootDir>/__mocks__/fileMock.ts',
         '^@lottiefiles/dotlottie-react$': '<rootDir>/__mocks__/@lottiefiles/dotlottie-react.tsx',
         '^group-ib-fp$': '<rootDir>/__mocks__/group-ib-fp.ts',
+        '^@entrust\\.corporation/idvsdk-reactnative(/.*)?$': '<rootDir>/__mocks__/@entrust.corporation/idvsdk-reactnative.ts',
         '^parse-imports-exports$': '<rootDir>/node_modules/parse-imports-exports/index.cjs',
     },
 };
