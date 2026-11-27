@@ -288,7 +288,7 @@ Deleted distance rates are permanently removed from the workspace and cannot be 
 
 No. Editing a distance rate only affects future distance expenses. Existing expenses keep the rate that was applied when the expense was created.
 
-Moving an expense or report to another workspace is the one exception: the original workspace's rates don't exist in the destination, so Expensify selects a rate from the destination workspace and recalculates the amount. [Learn what happens to a distance expense that moves to another workspace](/articles/new-expensify/reports-and-expenses/Distance-Expenses).
+Moving an individual distance expense to another workspace can recalculate its amount if no equivalent rate is available in the destination workspace. [Learn what happens to a distance expense that moves to another workspace](/articles/new-expensify/reports-and-expenses/Distance-Expenses).
 
 ## Do I need at least one distance rate?
 
