@@ -10,7 +10,7 @@ import type {OptionData} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, ReportAction} from '@src/types/onyx';
+import type {BankAccountList, PersonalDetails, ReportAction} from '@src/types/onyx';
 import type {SortedReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
 
 import type {OnyxMultiSetInput} from 'react-native-onyx';
@@ -175,6 +175,29 @@ describe('useSearchSelector sortedActions integration', () => {
         const lastCall = mockGetValidOptions.mock.calls.at(-1);
         const config = lastCall?.[7];
         expect(config?.sortedActions).toEqual(mockData.sortedActions);
+    });
+
+    it('passes bankAccountList to getValidOptions for SHARE_DESTINATION context', async () => {
+        // Given a bank account list in Onyx, which the share destination preview line needs to show the last 4 digits of a paid-with-bank-account action
+        const bankAccountID = 7;
+        const bankAccountList = createMock<BankAccountList>({[bankAccountID]: {methodID: bankAccountID, accountData: {bankAccountID, accountNumber: 'XXXX7890'}}});
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, bankAccountList);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // When the share destination selector builds its options
+        renderHook(() =>
+            useSearchSelectorBase({
+                selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
+                searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SHARE_DESTINATION,
+            }),
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the list reaches getValidOptions so the preview line can look the account up
+        const config = mockGetValidOptions.mock.calls.at(-1)?.[7];
+        expect(config?.bankAccountList).toEqual(bankAccountList);
     });
 
     it('passes sortedActions to getValidOptions for ATTENDEES context', async () => {

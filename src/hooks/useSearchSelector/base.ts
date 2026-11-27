@@ -329,7 +329,6 @@ function useSearchSelectorBase<TSelected extends Option = OptionData>({
                     translate,
                     getReportByID,
                     rules,
-                    bankAccountList,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL:
                 return getValidOptions(
@@ -369,7 +368,6 @@ function useSearchSelectorBase<TSelected extends Option = OptionData>({
                         formatPhoneNumber,
                         isTrackIntentUser,
                         getReportByID,
-                        bankAccountList,
                         ...appliedGetValidOptionsConfig,
                     },
                     {translate, formatPhoneNumber},
@@ -460,7 +458,6 @@ function useSearchSelectorBase<TSelected extends Option = OptionData>({
                         formatPhoneNumber,
                         isTrackIntentUser,
                         getReportByID,
-                        bankAccountList,
                         ...appliedGetValidOptionsConfig,
                     },
                     {translate, formatPhoneNumber},
