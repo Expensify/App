@@ -8,7 +8,7 @@ import type {getCredentials} from '@scripts/artifacts-utils/lib/githubCLI';
 import * as childProcess from 'child_process';
 import {fs as memfsFs, vol} from 'memfs';
 
-const mockExecFileSync = jest.fn<(command: string) => string>();
+const mockExecFileSync = jest.fn<(command: string, args: string[]) => string>();
 const mockGetCredentials = jest.fn<typeof getCredentials>();
 const mockPaginate = jest.fn<() => Promise<Array<{name: string}>>>();
 const mockInitGithubClient = jest.fn<typeof GithubUtils.initOctokitWithToken>();
@@ -34,10 +34,8 @@ const {default: resolveArtifacts, ARTIFACT_IDS} = await import('@scripts/artifac
 
 const NEW_DOT_ROOT = '/repo';
 const LOCAL_HASH = 'abc123hash';
-const HERMES_V1_VERSION = '250829098.0.14';
-const HERMES_LEGACY_VERSION = '0.17.0';
-const HERMES_V1_FILE = `${NEW_DOT_ROOT}/node_modules/react-native/sdks/.hermesv1version`;
-const HERMES_LEGACY_FILE = `${NEW_DOT_ROOT}/node_modules/react-native/sdks/.hermesversion`;
+const HERMES_VERSION = '260318099.0.4';
+const OTHER_HERMES_VERSION = '260318099.0.2';
 const TOKEN = 'tok';
 const USERNAME = 'me';
 
@@ -67,13 +65,20 @@ function mockVersions(names: string[]) {
     mockPaginate.mockResolvedValue(names.map((name) => ({name})));
 }
 
-/** Mocks the local patches hash, package.json and react-native's Hermes tag files (tagged `hermes-v…`, no trailing newline, like upstream's). */
-function mockLocalRepo() {
-    mockExecFileSync.mockImplementation((command: string) => (command === 'bash' ? LOCAL_HASH : ''));
+/** Mocks package.json and the output of the local scripts: the patches hash and the Hermes version (with a trailing newline, like `echo`). */
+function mockLocalRepo(hermesVersionOutput = `${HERMES_VERSION}\n`) {
+    mockExecFileSync.mockImplementation((command: string, args: string[]) => {
+        const script = command === 'bash' ? args.at(0) : undefined;
+        if (script?.endsWith('compute-patches-hash.sh')) {
+            return LOCAL_HASH;
+        }
+        if (script?.endsWith('get-hermes-version.sh')) {
+            return hermesVersionOutput;
+        }
+        return '';
+    });
     vol.fromJSON({
         [`${NEW_DOT_ROOT}/package.json`]: '{"dependencies":{"react-native":"0.85.3"}}',
-        [HERMES_V1_FILE]: `hermes-v${HERMES_V1_VERSION}`,
-        [HERMES_LEGACY_FILE]: `hermes-v${HERMES_LEGACY_VERSION}`,
     });
 }
 
@@ -115,7 +120,7 @@ describe('artifactsResolver', () => {
                 throw new Error('No GitHub CLI found. For setup instructions, refer to: https://example.com');
             });
 
-            const result = await resolveArtifacts({platform: 'ios', packageName: 'react-hybrid', newDotRoot: NEW_DOT_ROOT, isHybrid: true, hermesVersionFile: HERMES_V1_FILE});
+            const result = await resolveArtifacts({platform: 'ios', packageName: 'react-hybrid', newDotRoot: NEW_DOT_ROOT, isHybrid: true});
 
             expect(result).toStrictEqual({buildFromSource: true, version: null, packageName: 'react-hybrid', artifactId: 'react-native-artifacts'});
             expect(mockInitGithubClient).not.toHaveBeenCalled();
@@ -124,9 +129,9 @@ describe('artifactsResolver', () => {
         it('resolves a matching version and does not build from source', async () => {
             mockLocalRepo();
             mockVersions(['0.85.3-nomatch', '0.85.3-match']);
-            mockFetchBodies([pomBody('differentHash', HERMES_V1_VERSION), pomBody(LOCAL_HASH, HERMES_V1_VERSION)]);
+            mockFetchBodies([pomBody('differentHash', HERMES_VERSION), pomBody(LOCAL_HASH, HERMES_VERSION)]);
 
-            const result = await resolveArtifacts({platform: 'ios', packageName: 'react-hybrid', newDotRoot: NEW_DOT_ROOT, isHybrid: true, hermesVersionFile: HERMES_V1_FILE});
+            const result = await resolveArtifacts({platform: 'ios', packageName: 'react-hybrid', newDotRoot: NEW_DOT_ROOT, isHybrid: true});
 
             expect(mockInitGithubClient).toHaveBeenCalledWith(TOKEN);
             expect(result.buildFromSource).toBe(false);
@@ -144,9 +149,9 @@ describe('artifactsResolver', () => {
         it('returns the username alongside the token for a matching Android artifact', async () => {
             mockLocalRepo();
             mockVersions(['0.85.3-match']);
-            mockFetchBodies([pomBody(LOCAL_HASH, HERMES_V1_VERSION)]);
+            mockFetchBodies([pomBody(LOCAL_HASH, HERMES_VERSION)]);
 
-            const result = await resolveArtifacts({platform: 'android', packageName: 'react-standalone', newDotRoot: NEW_DOT_ROOT, isHybrid: false, hermesVersionFile: HERMES_V1_FILE});
+            const result = await resolveArtifacts({platform: 'android', packageName: 'react-standalone', newDotRoot: NEW_DOT_ROOT, isHybrid: false});
 
             expect(result.buildFromSource).toBe(false);
             if (!result.buildFromSource) {
@@ -159,9 +164,9 @@ describe('artifactsResolver', () => {
         it('falls back to source build when no candidate matches the local patches hash', async () => {
             mockLocalRepo();
             mockVersions(['0.85.3-other']);
-            mockFetchBodies([pomBody('nomatch', HERMES_V1_VERSION)]);
+            mockFetchBodies([pomBody('nomatch', HERMES_VERSION)]);
 
-            const result = await resolveArtifacts({platform: 'android', packageName: 'react-standalone', newDotRoot: NEW_DOT_ROOT, isHybrid: false, hermesVersionFile: HERMES_V1_FILE});
+            const result = await resolveArtifacts({platform: 'android', packageName: 'react-standalone', newDotRoot: NEW_DOT_ROOT, isHybrid: false});
 
             expect(result.buildFromSource).toBe(true);
             expect(result.version).toBeNull();
@@ -173,16 +178,16 @@ describe('artifactsResolver', () => {
             mockLocalRepo();
             const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
             mockVersions(['0.85.3-otherHermes', '0.85.3-match']);
-            mockFetchBodies([pomBody(LOCAL_HASH, HERMES_LEGACY_VERSION), pomBody(LOCAL_HASH, HERMES_V1_VERSION)]);
+            mockFetchBodies([pomBody(LOCAL_HASH, OTHER_HERMES_VERSION), pomBody(LOCAL_HASH, HERMES_VERSION)]);
 
-            // When resolving for a Hermes V1 build.
-            const result = await resolveArtifacts({platform: 'ios', packageName: 'react-standalone', newDotRoot: NEW_DOT_ROOT, isHybrid: false, hermesVersionFile: HERMES_V1_FILE});
+            // When resolving.
+            const result = await resolveArtifacts({platform: 'ios', packageName: 'react-standalone', newDotRoot: NEW_DOT_ROOT, isHybrid: false});
 
             // Then the artifact compiled against this build's Hermes wins, and the skipped one is named with both versions
             // so the reason is visible in the build log instead of hiding behind a generic "no match".
             expect(result.version).toBe('0.85.3-match');
             expect(loggedLines(consoleError)).toContain(
-                `Skipping react-standalone:0.85.3-otherHermes: built against Hermes ${HERMES_LEGACY_VERSION}, but this build links Hermes ${HERMES_V1_VERSION}.`,
+                `Skipping react-standalone:0.85.3-otherHermes: built against Hermes ${OTHER_HERMES_VERSION}, but this build links Hermes ${HERMES_VERSION}.`,
             );
         });
 
@@ -195,33 +200,47 @@ describe('artifactsResolver', () => {
             mockFetchBodies([pomBody(LOCAL_HASH)]);
 
             // When resolving.
-            const result = await resolveArtifacts({platform: 'android', packageName: 'react-standalone', newDotRoot: NEW_DOT_ROOT, isHybrid: false, hermesVersionFile: HERMES_V1_FILE});
+            const result = await resolveArtifacts({platform: 'android', packageName: 'react-standalone', newDotRoot: NEW_DOT_ROOT, isHybrid: false});
 
             // Then it is not trusted, because an unknown Hermes is exactly the mismatch the tag exists to catch, and it is
             // logged like any other mismatch rather than through a special case.
             expect(result.buildFromSource).toBe(true);
-            expect(loggedLines(consoleError)).toContain(`Skipping react-standalone:0.85.3-untagged: built against Hermes unknown, but this build links Hermes ${HERMES_V1_VERSION}.`);
+            expect(loggedLines(consoleError)).toContain(`Skipping react-standalone:0.85.3-untagged: built against Hermes unknown, but this build links Hermes ${HERMES_VERSION}.`);
         });
 
-        it('derives the Hermes version from whichever tag file the native caller picks', async () => {
-            // Given one artifact per Hermes flavour, both built from the local patches, and a caller that disabled
-            // Hermes V1 (so it hands over `.hermesversion` instead of `.hermesv1version`).
+        it('reads the local Hermes version with the same script the publish workflows record it with', async () => {
+            // Given an artifact built from the local patches against the Hermes that get-hermes-version.sh prints.
             mockLocalRepo();
-            mockVersions(['0.85.3-v1', '0.85.3-legacy']);
-            mockFetchBodies([pomBody(LOCAL_HASH, HERMES_V1_VERSION), pomBody(LOCAL_HASH, HERMES_LEGACY_VERSION)]);
+            mockVersions(['0.85.3-match']);
+            mockFetchBodies([pomBody(LOCAL_HASH, HERMES_VERSION)]);
 
             // When resolving.
-            const result = await resolveArtifacts({platform: 'ios', packageName: 'react-standalone', newDotRoot: NEW_DOT_ROOT, isHybrid: false, hermesVersionFile: HERMES_LEGACY_FILE});
+            const result = await resolveArtifacts({platform: 'ios', packageName: 'react-standalone', newDotRoot: NEW_DOT_ROOT, isHybrid: false});
 
-            // Then the legacy artifact is chosen: the tag file decides, and its `hermes-v` prefix is stripped before comparing.
-            expect(result.version).toBe('0.85.3-legacy');
+            // Then the artifact matches, because both sides read the version through one script and so cannot drift apart,
+            // and the script gets the root to read react-native's version.properties from.
+            expect(result.version).toBe('0.85.3-match');
+            expect(mockExecFileSync).toHaveBeenCalledWith('bash', [`${NEW_DOT_ROOT}/scripts/artifacts-utils/get-hermes-version.sh`, NEW_DOT_ROOT], expect.anything());
+        });
+
+        it('falls back to source build when the local Hermes version cannot be read', async () => {
+            // Given a matching artifact, but a get-hermes-version.sh that prints nothing
+            mockLocalRepo('');
+            mockVersions(['0.85.3-match']);
+            mockFetchBodies([pomBody(LOCAL_HASH, HERMES_VERSION)]);
+
+            // When resolving.
+            const result = await resolveArtifacts({platform: 'ios', packageName: 'react-standalone', newDotRoot: NEW_DOT_ROOT, isHybrid: false});
+
+            // Then it builds from source instead of comparing against an empty version.
+            expect(result.buildFromSource).toBe(true);
         });
 
         it('falls back to source build when the packages API fails', async () => {
             mockLocalRepo();
             mockPaginate.mockRejectedValue(new Error('403 Forbidden'));
 
-            const result = await resolveArtifacts({platform: 'ios', packageName: 'react-hybrid', newDotRoot: NEW_DOT_ROOT, isHybrid: true, hermesVersionFile: HERMES_V1_FILE});
+            const result = await resolveArtifacts({platform: 'ios', packageName: 'react-hybrid', newDotRoot: NEW_DOT_ROOT, isHybrid: true});
 
             expect(result.buildFromSource).toBe(true);
         });
@@ -232,9 +251,9 @@ describe('artifactsResolver', () => {
             process.env.GITHUB_ACTOR = 'ciActor';
             mockLocalRepo();
             mockVersions(['0.85.3-match']);
-            mockFetchBodies([pomBody(LOCAL_HASH, HERMES_V1_VERSION)]);
+            mockFetchBodies([pomBody(LOCAL_HASH, HERMES_VERSION)]);
 
-            const result = await resolveArtifacts({platform: 'android', packageName: 'react-standalone', newDotRoot: NEW_DOT_ROOT, isHybrid: false, hermesVersionFile: HERMES_V1_FILE});
+            const result = await resolveArtifacts({platform: 'android', packageName: 'react-standalone', newDotRoot: NEW_DOT_ROOT, isHybrid: false});
 
             expect(mockGetCredentials).not.toHaveBeenCalled();
             if (!result.buildFromSource) {

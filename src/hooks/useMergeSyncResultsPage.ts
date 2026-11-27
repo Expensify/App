@@ -83,6 +83,12 @@ function useMergeSyncResultsPage(policyID: string, connectionName?: HRConnection
             didWatchSyncRunRef.current = false;
         }
 
+        // Returning later should not open a result that may have been replaced by another sync.
+        if (!isFocused) {
+            pendingSyncResultRef.current = null;
+            return;
+        }
+
         const pendingSyncResult = pendingSyncResultRef.current;
         if (!pendingSyncResult || isModalOpenOnTop) {
             return;

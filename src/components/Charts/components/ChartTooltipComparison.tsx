@@ -27,7 +27,7 @@ function ChartTooltipComparison({rows, change}: ChartTooltipComparisonProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowUpLong', 'ArrowDownLong']);
-    const changeColor = StyleUtils.getSpendChangeColor(!!change?.isIncrease);
+    const isIncrease = !!change?.isIncrease;
 
     return (
         <>
@@ -40,12 +40,12 @@ function ChartTooltipComparison({rows, change}: ChartTooltipComparisonProps) {
             {!!change && (
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
                     <Icon
-                        src={change.isIncrease ? icons.ArrowUpLong : icons.ArrowDownLong}
-                        fill={changeColor}
+                        src={isIncrease ? icons.ArrowUpLong : icons.ArrowDownLong}
+                        fill={StyleUtils.getSpendChangeIconColor(isIncrease)}
                         width={variables.iconSizeXXSmall}
                         height={variables.iconSizeXXSmall}
                     />
-                    <Text style={[styles.chartTooltipText, StyleUtils.getColorStyle(changeColor)]}>{formatTooltipValue(change)}</Text>
+                    <Text style={[styles.chartTooltipText, StyleUtils.getColorStyle(StyleUtils.getSpendChangeTextColor(isIncrease))]}>{formatTooltipValue(change)}</Text>
                 </View>
             )}
         </>

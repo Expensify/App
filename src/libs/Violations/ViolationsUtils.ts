@@ -227,7 +227,7 @@ function getTagViolationForIndependentTags(policyTagList: PolicyTagLists, transa
                 continue;
             }
             const tags = policyTagList[policyTagKeys[i]].tags;
-            const isTagInPolicy = !!tags[selectedTag]?.enabled;
+            const isTagInPolicy = !!tags?.[selectedTag]?.enabled;
             if (!isTagInPolicy) {
                 newTransactionViolations.push({
                     name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
