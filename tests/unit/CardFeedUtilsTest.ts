@@ -9,6 +9,9 @@ import {
     getPolicyIDsNamedByCardFeeds,
     getVisibleCompanyCardFeedsForSelector,
 } from '@libs/CardFeedUtils';
+import type {CompanyCardFeedIcons} from '@libs/CardUtils';
+
+import type IllustrationsType from '@styles/theme/illustrations/types';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -737,10 +740,10 @@ describe('getAssignedCardFeedAccess', () => {
 });
 
 describe('buildCardsData', () => {
-    const emptyIllustrations = createMock({});
-    const emptyCompanyCardIcons = createMock({});
+    const emptyIllustrations = createMock<IllustrationsType>({});
+    const emptyCompanyCardIcons = createMock<CompanyCardFeedIcons>({});
 
-    it('uses card.cardName as the subtitle identifier even when cardTitle is set', () => {
+    it('uses cardTitle as the subtitle identifier when cardTitle is set', () => {
         // Given a company card with both a user-defined cardTitle and a masked cardName
         const card = createTestCard({
             cardID: 1,
@@ -755,8 +758,8 @@ describe('buildCardsData', () => {
         // When building the card filter items
         const items = buildCardsData({}, cardList, {}, [], emptyIllustrations, emptyCompanyCardIcons);
 
-        // Then the subtitle (cardName) uses the original card identifier, not the edited title
-        expect(items[0].cardName).toBe('480801XXXXXX2554');
+        // Then the subtitle (cardName) uses the authoritative cardTitle
+        expect(items[0].cardName).toBe('My Business Card');
     });
 
     it('uses cardTitle as the list item title (text) when set', () => {

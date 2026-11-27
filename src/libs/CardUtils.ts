@@ -487,14 +487,14 @@ function lastFourNumbersFromCardName(cardName: string | undefined): string {
 }
 
 /**
- * Returns the user-defined cardTitle if set, otherwise the card name for personal and CSV import cards
- * or a masked card number for company card feeds.
+ * Returns the user-defined cardTitle if set, otherwise a masked card number.
+ * CSV import cards and fundID=0 personal cards store human-readable display names, so they are returned as-is.
  */
 function getAssignedCardTitle(card: Card): string | undefined {
     if (card.nameValuePairs?.cardTitle) {
         return card.nameValuePairs.cardTitle;
     }
-    if (isPersonalCard(card) || card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD) {
+    if (card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD || card.fundID === '0') {
         return card.cardName;
     }
     return maskCardNumber(card.cardName, card.bank);

@@ -83,7 +83,7 @@ function createCardFilterItem(
     const isSelected = selectedCards.includes(card.cardID.toString());
     const icon = getCardFeedIcon(card?.bank, illustrations, companyCardIcons);
     const cardTitle = card?.nameValuePairs?.cardTitle;
-    const cardName = card?.cardName;
+    const cardName = cardTitle ?? card?.cardName;
     const text = cardTitle ?? personalDetails?.displayName ?? card?.cardName;
     const plaidUrl = getPlaidInstitutionIconUrl(card?.bank);
     const isCSVImportCard = card?.bank === CONST.PERSONAL_CARDS.BANK_NAME.CSV;
