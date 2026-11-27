@@ -136,7 +136,6 @@ type UnofferedOnboardingAccountingConnection =
     // Covered by the Microsoft Dynamics option, and still behind the BUSINESS_CENTRAL beta.
     | typeof CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL
     | typeof CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS
-    // Still behind the DIGITS beta.
     | typeof CONST.POLICY.CONNECTIONS.NAME.DIGITS;
 
 type UnhandledAccountingConnection = Exclude<TupleToUnion<typeof CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES>, OnboardingAccountingOption | UnofferedOnboardingAccountingConnection>;
@@ -1611,7 +1610,6 @@ const CONST = {
         VENDOR_MATCHING: 'vendorMatching',
         INDIRECT_TAG_UPLOADS: 'indirectTagUploads',
         BUSINESS_CENTRAL: 'businessCentral',
-        DIGITS: 'digits',
         EXACT_ONLINE: 'exactOnline2026',
         ODOO: 'odoo2026',
         SAGE_ACCOUNTING: 'sageAccounting',
@@ -1627,7 +1625,6 @@ const CONST = {
         SUPPORT_TICKET: 'supportTicket',
         RESIZABLE_TABLE_COLUMNS: 'resizableTableColumns',
         PINNABLE_TABLE_COLUMNS: 'pinnableTableColumns',
-        COLLECT_DEPOSIT_ACCOUNTS: 'collectDepositAccounts',
         RESIZABLE_SIDE_PANEL: 'resizableSidePanel',
         TRAVEL_APPROVAL: 'travelApproval',
         FLAT_NAV: 'flatNav',
@@ -3035,6 +3032,7 @@ const CONST = {
         SPAN_OPEN_CREATE_EXPENSE: 'ManualOpenCreateExpense',
         SPAN_OPEN_MEMBER_CATEGORY_VISIBILITY: 'ManualOpenMemberCategoryVisibility',
         SPAN_OPEN_CATEGORY_VISIBLE_TO: 'ManualOpenCategoryVisibleTo',
+        SPAN_OPEN_INVITE_CATEGORY_VISIBILITY: 'ManualOpenInviteCategoryVisibility',
         SPAN_OPEN_CATEGORY_PICKER: 'ManualOpenCategoryPicker',
         SPAN_SHARE_EXTENSION_OPEN_SUBMIT_FLOW: 'ShareExtensionOpenSubmitFlow',
         SPAN_CAMERA_INIT: 'ManualCameraInit',
@@ -5531,6 +5529,7 @@ const CONST = {
             ENABLE: 'enable',
             REQUIRE: 'require',
             NOT_REQUIRED: 'notRequired',
+            EDIT_VISIBILITY: 'editVisibility',
         },
         MORE_FEATURES: {
             ARE_CATEGORIES_ENABLED: 'areCategoriesEnabled',
@@ -7771,6 +7770,7 @@ const CONST = {
     },
     MERGE_ACCOUNT_RESULTS: {
         SUCCESS: 'success',
+        PENDING_DOMAIN_APPROVAL: 'pending_domain_approval',
         ERR_2FA: 'err_2fa',
         ERR_NO_EXIST: 'err_no_exist',
         ERR_SMART_SCANNER: 'err_smart_scanner',

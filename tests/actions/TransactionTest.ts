@@ -690,6 +690,38 @@ describe('actions/Transaction', () => {
                 expect(carouselTransactionIDs).toEqual(transactionIDs.slice(1));
             });
 
+            it('shows an error on the expense when the move fails', async () => {
+                // Given the server will reject the move, as it does for an expense it never received
+                const mockFetch = getGlobalFetchMock();
+                mockFetch.fail();
+                global.fetch = mockFetch;
+
+                // When one of the report's expenses is moved to another report
+                await moveFirstTransactionToDestination();
+
+                // Then the expense goes back to its report with an error, so the user sees that it didn't sync instead of the move just undoing itself
+                const movedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDs.at(0)}`);
+                expect(movedTransaction?.reportID).toBe(sourceReport.reportID);
+                expect(Object.values(movedTransaction?.errors ?? {})).toEqual(['Unexpected error editing this expense. Please try again later.']);
+            });
+
+            it('clears the move error when a later move of the expense works', async () => {
+                // Given a move the server rejected, which left an error on the expense
+                const mockFetch = getGlobalFetchMock();
+                mockFetch.fail();
+                global.fetch = mockFetch;
+                await moveFirstTransactionToDestination();
+
+                // When the user moves the expense again without dismissing the error, and this time the server accepts it
+                mockFetch.succeed();
+                await moveFirstTransactionToDestination();
+
+                // Then the expense is on the new report with no error, so it doesn't still look like it failed to sync
+                const movedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDs.at(0)}`);
+                expect(movedTransaction?.reportID).toBe(destinationReport.reportID);
+                expect(movedTransaction?.errors).toBeUndefined();
+            });
+
             it('leaves a carousel seeded from another source untouched', async () => {
                 // Given a carousel seeded from search results, which legitimately spans several reports
                 await setActiveTransactionIDs(transactionIDs, {source: CAROUSEL_SOURCE.search(12345)});

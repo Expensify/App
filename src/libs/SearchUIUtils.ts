@@ -155,7 +155,7 @@ import {
     canSendInvoice,
     getCleanedTagName,
     getCommaSeparatedTagNameWithSanitizedColons,
-    getSubmitToAccountID,
+    isSubmittingToSelf,
     getTagGLCode,
     getValidConnectedIntegration,
     getVendorDisplayName,
@@ -217,6 +217,7 @@ import {
     hasInvoiceReports,
     hasReportBeenRejectedToSubmitter,
     isAllowedToApproveExpenseReport as isAllowedToApproveExpenseReportUtils,
+    isApproverAllowedToApprove,
     isArchivedReport,
     isClosedReport,
     isExpenseReport as isExpenseReportUtil,
@@ -2481,21 +2482,23 @@ function getActions(
     }
 
     const ownerLogin = getLoginByAccountID(report.ownerAccountID, data.personalDetailsList);
+
     const canApprove = canApproveIOU(report, policy, reportMetadata, currentUserAccountID, allReportTransactions);
     const canSubmit =
         isGroupPolicy(policy) &&
         canSubmitReport(report, ownerLogin, policy, allReportTransactions, allViolations, isArchivedOrPendingDeletePolicy(policy), currentUserLogin, currentUserAccountID);
 
     // Resolving the submit-to route scans the workspace approval rules, so skip it when neither action can apply.
-    const submitToAccountID = canApprove || canSubmit ? getSubmitToAccountID(policy, report, ownerLogin, rules) : CONST.DEFAULT_NUMBER_ID;
+    const isSubmittedToOwner = canApprove || canSubmit ? isSubmittingToSelf(policy, report, ownerLogin, rules) : false;
+    const isAllowedToApproveExpenseReport = isApproverAllowedToApprove(policy, isSubmittedToOwner);
 
-    if (canApprove && isAllowedToApproveExpenseReportUtils(report, submitToAccountID, policy)) {
+    if (canApprove && isAllowedToApproveExpenseReport) {
         allActions.push(CONST.SEARCH.ACTION_TYPES.APPROVE);
     }
 
     // We check submit eligibility separately from approve: on Submit workspaces the popover picks
     // the manager, so don't block Submit when the default submit-to route is the owner.
-    if (canSubmit && isSubmitActionAllowedForSearch(report, policy, submitToAccountID, currentUserAccountID)) {
+    if (canSubmit && isSubmitActionAllowedForSearch(report, policy, isSubmittedToOwner, currentUserAccountID)) {
         allActions.push(CONST.SEARCH.ACTION_TYPES.SUBMIT);
     }
 
@@ -2525,16 +2528,16 @@ function getSubmitExclusion(ownerAccountID: number | undefined, currentAccountID
  * should not be blocked by `isSubmitterApproveBlockedOnSubmitWorkspace` on the default submit-to
  * route (that guard is for Approve). Non-submit workspaces keep the preventSelfApproval gate.
  */
-function isSubmitActionAllowedForSearch(report: OnyxEntry<OnyxTypes.Report>, policy: OnyxEntry<OnyxTypes.Policy>, submitToAccountID: number, currentUserAccountID: number): boolean {
+function isSubmitActionAllowedForSearch(report: OnyxEntry<OnyxTypes.Report>, policy: OnyxEntry<OnyxTypes.Policy>, isSubmittedToOwner: boolean, currentUserAccountID: number): boolean {
     if (isSubmitPolicy(policy)) {
         const isReportSubmitter = report?.ownerAccountID === currentUserAccountID;
-        if (submitToAccountID === report?.ownerAccountID && policy?.preventSelfApproval && !isReportSubmitter) {
+        if (isSubmittedToOwner && policy?.preventSelfApproval && !isReportSubmitter) {
             return false;
         }
         return true;
     }
 
-    return isAllowedToApproveExpenseReportUtils(report, submitToAccountID, policy);
+    return isApproverAllowedToApprove(policy, isSubmittedToOwner);
 }
 
 /**
@@ -7816,22 +7819,22 @@ function getColumnsToShow({
         const result: SearchColumnType[] = [];
         const addedColumns = new Set<SearchColumnType>();
 
+        for (const col of filteredVisibleColumns) {
+            result.push(col);
+            addedColumns.add(col);
+        }
+
+        // Keep Type in its default position so saving column visibility does not move it ahead of Receipt.
+        if (!addedColumns.has(CONST.SEARCH.TABLE_COLUMNS.TYPE)) {
+            const isReceiptFirst = result.at(0) === CONST.SEARCH.TABLE_COLUMNS.RECEIPT;
+            if (isReceiptFirst) {
+                result.splice(1, 0, CONST.SEARCH.TABLE_COLUMNS.TYPE);
+            } else {
+                result.unshift(CONST.SEARCH.TABLE_COLUMNS.TYPE);
+            }
+        }
+
         if (isExpenseReportView) {
-            // If RECEIPT is first, TYPE goes second; otherwise TYPE goes first
-            for (const col of filteredVisibleColumns) {
-                result.push(col);
-                addedColumns.add(col);
-            }
-
-            if (!addedColumns.has(CONST.SEARCH.TABLE_COLUMNS.TYPE)) {
-                const isReceiptFirst = result.at(0) === CONST.SEARCH.TABLE_COLUMNS.RECEIPT;
-                if (isReceiptFirst) {
-                    result.splice(1, 0, CONST.SEARCH.TABLE_COLUMNS.TYPE);
-                } else {
-                    result.unshift(CONST.SEARCH.TABLE_COLUMNS.TYPE);
-                }
-            }
-
             if (shouldShowCommentsColumn && !addedColumns.has(CONST.SEARCH.TABLE_COLUMNS.COMMENTS)) {
                 const totalAmountIndex = result.indexOf(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT);
                 if (totalAmountIndex === -1) {
@@ -7840,24 +7843,10 @@ function getColumnsToShow({
                     result.splice(totalAmountIndex, 0, CONST.SEARCH.TABLE_COLUMNS.COMMENTS);
                 }
             }
-
-            // Don't return early — fall through to updateColumns to detect empty columns
-            customResult = result;
-        } else {
-            // Search page: prepend TYPE
-            result.push(CONST.SEARCH.TABLE_COLUMNS.TYPE);
-            addedColumns.add(CONST.SEARCH.TABLE_COLUMNS.TYPE);
-
-            // Add remaining visible columns that weren't already added
-            for (const col of filteredVisibleColumns) {
-                if (!addedColumns.has(col)) {
-                    result.push(col);
-                }
-            }
-
-            // Don't return early — fall through to updateColumns to detect empty columns
-            customResult = result;
         }
+
+        // Don't return early — fall through to updateColumns to detect empty columns
+        customResult = result;
     }
 
     const {moneyRequestReportActionsByTransactionID} = Array.isArray(data) ? {} : createReportActionsLookupMaps(data);

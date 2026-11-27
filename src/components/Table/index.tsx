@@ -45,6 +45,7 @@ import TableHeader from './TableHeader';
 import TableListHeader from './TableListHeader';
 import TableLoadingState from './TableLoadingState';
 import TableRow from './TableRow';
+import TableSectionHeader from './TableSectionHeader';
 
 /**
  * Table compound component with attached sub-components.
@@ -56,6 +57,7 @@ import TableRow from './TableRow';
  * - `Table.Body` - Data rows using FlashList
  * - `Table.FilterBar` - Search input & filter bar
  * - `Table.Row` - A single row in the table
+ * - `Table.SectionHeader` - A decorative label between groups of data rows
  * - `Table.EmptyState` - Renders when the table has no rows
  * - `Table.NoResultsState` - Renders when the table has rows, but the user has filtered all of them out
  * - `Table.LoadingState` - Renders a loading indicator when the table is loading its data
@@ -76,6 +78,9 @@ const Table = Object.assign(TableComponent, {
 
     /** Renders a row in the table */
     Row: TableRow,
+
+    /** A non-selectable section label that follows the row geometry. */
+    SectionHeader: TableSectionHeader,
 
     /** The filter bar with a searchbar/filters menu */
     FilterBar: TableFilterBar,

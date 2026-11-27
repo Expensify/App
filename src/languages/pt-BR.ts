@@ -2731,6 +2731,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 '<muted-text><centered-text>Fique à vontade para <concierge-link>entrar em contato com o Concierge</concierge-link> se tiver alguma dúvida!</centered-text></muted-text>',
             goToExpensifyClassic: 'Ir para o Expensify Clássico',
         },
+        mergePendingDomainAdmin: {
+            heading: 'E-mail com domínio restrito',
+            description: '<muted-text><centered-text>Um administrador de domínio foi notificado para aprovar a solicitação de mesclagem de contas.</centered-text></muted-text>',
+            gotIt: 'Entendi',
+        },
         mergeFailureSAMLDomainControlDescription: (email: string) =>
             `<muted-text><centered-text>Você não pode mesclar <strong>${email}</strong> porque ele é controlado por <strong>${email.split('@').at(1) ?? ''}</strong>. Por favor, <concierge-link>entre em contato com o Concierge</concierge-link> para obter ajuda.</centered-text></muted-text>`,
         mergeFailureSAMLAccountDescription: (email: string) =>
@@ -7318,11 +7323,13 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 description: `Pelo menos uma categoria deve permanecer ativada porque seu workspace exige categorias.`,
             },
             visibleTo: 'Visível para',
+            editVisibility: 'Editar visibilidade',
             membersCount: ({count}: {count: number}) => ({
                 one: '1 membro',
                 other: `${count} membros`,
             }),
             visibleToDescription: ({categoryName}: {categoryName: string}) => `Escolha quais membros podem usar a categoria ${categoryName} ao enviar despesas.`,
+            bulkVisibleToDescription: 'Escolha quais membros podem usar essas categorias ao enviar despesas.',
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `Não é possível desativar ${categoryName}`,
                 bulkTitle: 'Não é possível desativar estas categorias',
