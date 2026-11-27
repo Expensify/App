@@ -4730,9 +4730,10 @@ const translations = {
     },
     welcomeSignUpForm: {
         join: 'Join',
-        transactionalSMSConsent: 'By providing my phone number, I agree to receive transactional account alerts from Expensify.',
-        transactionalSMSConsentFinePrint: 'Standard message and data rates may apply. Reply STOP to opt out.',
+        smsConsentIntro: 'By providing my phone number:',
+        transactionalSMSConsent: 'I agree to receive transactional account alerts from Expensify.',
         marketingSMSConsent: 'I agree to receive marketing texts from Expensify.',
+        termsWithSMSRates: `<muted-text-xs>By logging in, you agree to the <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Terms of Service</a> and <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacy</a>. Standard message and data rates may apply. Message frequency varies. Reply HELP for help. Reply STOP to opt out.</muted-text-xs>`,
     },
     detailsPage: {
         localTime: 'Local time',

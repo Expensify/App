@@ -4484,9 +4484,10 @@ ${amount} para ${merchant} - ${date}`,
     },
     welcomeSignUpForm: {
         join: 'Unirse',
-        transactionalSMSConsent: 'Al proporcionar mi número de teléfono, acepto recibir alertas transaccionales de mi cuenta de Expensify.',
-        transactionalSMSConsentFinePrint: 'Pueden aplicarse tarifas estándar de mensajes y datos. Responde STOP para darte de baja.',
+        smsConsentIntro: 'Al proporcionar mi número de teléfono:',
+        transactionalSMSConsent: 'Acepto recibir alertas transaccionales de mi cuenta de Expensify.',
         marketingSMSConsent: 'Acepto recibir mensajes de texto de marketing de Expensify.',
+        termsWithSMSRates: `<muted-text-xs>Al iniciar sesión, estás accediendo a los <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Términos de Servicio</a> y <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacidad</a>. Pueden aplicarse tarifas estándar de mensajes y datos. La frecuencia de los mensajes varía. Responde HELP para obtener ayuda. Responde STOP para darte de baja.</muted-text-xs>`,
     },
     detailsPage: {
         localTime: 'Hora local',

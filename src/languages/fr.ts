@@ -4525,9 +4525,10 @@ ${amount} pour ${merchant} - ${date}`,
     },
     welcomeSignUpForm: {
         join: 'Rejoindre',
-        transactionalSMSConsent: "En fournissant mon numéro de téléphone, j'accepte de recevoir des alertes transactionnelles concernant mon compte de la part d'Expensify.",
-        transactionalSMSConsentFinePrint: "Des frais standard de messagerie et de données peuvent s'appliquer. Répondez STOP pour vous désabonner.",
+        smsConsentIntro: 'En fournissant mon numéro de téléphone :',
+        transactionalSMSConsent: "J'accepte de recevoir des alertes transactionnelles concernant mon compte de la part d'Expensify.",
         marketingSMSConsent: "J'accepte de recevoir des SMS marketing d'Expensify.",
+        termsWithSMSRates: `<muted-text-xs>En vous connectant, vous acceptez les <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Conditions d'utilisation</a> et la <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Politique de confidentialité</a>. Des frais standard de messagerie et de données peuvent s'appliquer. La fréquence des messages varie. Répondez HELP pour obtenir de l'aide. Répondez STOP pour vous désabonner.</muted-text-xs>`,
     },
     detailsPage: {
         localTime: 'Heure locale',
