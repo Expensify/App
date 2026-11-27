@@ -25,6 +25,7 @@ import type {ValueOf} from 'type-fest';
 
 import {rand64} from './NumberUtils';
 import Parser from './Parser';
+import {resolveCurrentTaxCode} from './PolicyUtils/tax';
 import {fromIndexMap, getRuleFilterLeaves, isExpenseDefaultRule, isRuleFilterComparison, isRuleFilterNode, toIndexMap} from './RuleUtils';
 
 /** The form shape the merchant rule editor round-trips a rule through. */
@@ -308,13 +309,15 @@ function buildTaxActionValue(taxKey: string | undefined, policy: Policy | undefi
         return undefined;
     }
 
-    const tax = policy?.taxRates?.taxes?.[taxKey];
+    // A rate is keyed by its code, so renaming the code leaves a rule setting a key no rate answers to.
+    const externalID = resolveCurrentTaxCode(policy, taxKey);
+    const tax = policy?.taxRates?.taxes?.[externalID];
 
     return {
         // field_id_TAX is the name the rules engine gives this key, so it can't follow our casing convention
         // eslint-disable-next-line @typescript-eslint/naming-convention
         field_id_TAX: {
-            externalID: taxKey,
+            externalID,
             ...(tax ? {value: tax.value, name: tax.name} : {}),
         },
     };
@@ -543,7 +546,11 @@ function buildExpenseDefaultActions(formValues: Partial<ExpenseDefaultFormValues
  * Returns undefined when the form has nothing to match on or nothing to set, which the API rejects.
  */
 function buildExpenseDefaultRule(formValues: Partial<ExpenseDefaultFormValues>, policy: Policy | undefined, existingTriggers?: Rule['triggers']): BuiltExpenseDefaultRule | undefined {
-    const filters = buildExpenseDefaultFilters(formValues);
+    // A rate is keyed by its code, so changing the code leaves a rule saved earlier matching on a key no rate
+    // answers to any more. Saving the rule moves it onto the key the rate has now.
+    const taxRatesToMatch = formValues.taxRatesToMatch?.map((taxRateKey) => resolveCurrentTaxCode(policy, taxRateKey));
+
+    const filters = buildExpenseDefaultFilters(taxRatesToMatch ? {...formValues, taxRatesToMatch} : formValues);
     const actions = buildExpenseDefaultActions(formValues, policy);
 
     if (!filters || Object.keys(actions).length === 0) {

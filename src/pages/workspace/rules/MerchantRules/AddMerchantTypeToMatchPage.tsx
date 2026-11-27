@@ -40,7 +40,7 @@ function AddMerchantTypeToMatchPage({route}: AddMerchantTypeToMatchPageProps) {
             backToRoute={backToRoute}
             items={merchantTypeItems}
             onSave={(merchantTypesToMatch) => updateDraftMerchantRule({merchantTypesToMatch})}
-            getFallbackText={(merchantType) => getMerchantTypeLabel(merchantType, translate)}
+            getFallbackItem={(merchantType) => ({text: getMerchantTypeLabel(merchantType, translate)})}
         />
     );
 }

@@ -6913,6 +6913,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             },
             deletedCard: '已删除的卡片',
             assignNewCards: {title: '分配新卡', description: '从您的银行获取可分配的最新银行卡'},
+            unavailableCard: '不可用的卡片',
         },
         expensifyCard: {
             issueAndManageCards: '发放并管理您的 Expensify 卡',

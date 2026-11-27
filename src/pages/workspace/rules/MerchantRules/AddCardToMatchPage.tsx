@@ -3,6 +3,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicyCards from '@hooks/usePolicyCards';
 
 import {updateDraftMerchantRule} from '@libs/actions/User';
+import {getCardConditionName} from '@libs/MerchantTypeRulesUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
@@ -25,7 +26,7 @@ function AddCardToMatchPage({route}: AddCardToMatchPageProps) {
     const {translate} = useLocalize();
     const {cards: policyCards, isLoadingCards} = usePolicyCards(policyID);
     // `usePolicyCards` already asks for every card, so a second loader here would send the same request twice.
-    const {cards: cardNames, areCardsLoaded} = useExpenseDefaultCardNames(false);
+    const cardNames = useExpenseDefaultCardNames(false);
 
     // Stored as card IDs, which is what the `cardID` filter carries.
     const cardItems: RuleConditionItem[] = policyCards.map((card) => ({
@@ -41,8 +42,10 @@ function AddCardToMatchPage({route}: AddCardToMatchPageProps) {
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_CARD_TO_MATCH_SAVE}
             backToRoute={backToRoute}
             items={cardItems}
-            onSave={(cardsToMatch) => updateDraftMerchantRule({cardsToMatch})}
-            getFallbackText={(cardID) => cardNames[cardID] ?? (areCardsLoaded ? translate('workspace.companyCards.deletedCard') : cardID)}
+            // An amount default cannot apply to a card expense, so picking a card drops one the rule already carries
+            // rather than leaving it saved out of sight.
+            onSave={(cardsToMatch) => updateDraftMerchantRule({cardsToMatch, ...(cardsToMatch.length > 0 && {amount: ''})})}
+            getFallbackItem={(cardID) => ({text: getCardConditionName(cardID, cardNames, translate)})}
             isLoading={isLoadingCards}
         />
     );

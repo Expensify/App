@@ -8,7 +8,7 @@ import {hasUsableTaxRates, isSelectableTaxRate} from '@libs/CategoryTaxRulesUtil
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {formatTaxRateName} from '@libs/PolicyUtils';
+import {formatTaxRateName, resolveCurrentTaxCode} from '@libs/PolicyUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -31,18 +31,22 @@ function AddTaxPage({route}: AddTaxPageProps) {
     // showing an empty picker.
     const areTaxesEnabled = hasUsableTaxRates(policy);
 
+    // A rate is keyed by its code, so renaming the code leaves the rule holding a key the rate no longer answers
+    // to. The picker works in current keys throughout, so the rate stays ticked and saving moves the rule onto it.
+    const selectedTaxKey = form?.tax ? resolveCurrentTaxCode(policy, form.tax) : undefined;
+
     const taxes = policy?.taxRates?.taxes ?? {};
     const taxItems = Object.entries(taxes)
         // The rate the rule already holds always stays listed, whatever state it is in now. A rate can be disabled,
         // or become the workspace default, after a rule chose it, and dropping it here left the picker with nothing
         // marked selected, so the admin couldn't tell what the rule applies, only that it wasn't any of the options.
-        .filter(([taxKey, tax]) => taxKey === form?.tax || isSelectableTaxRate(tax))
+        .filter(([taxKey, tax]) => taxKey === selectedTaxKey || isSelectableTaxRate(tax))
         .map(([taxKey, tax]) => ({
             name: formatTaxRateName(tax.name, tax.value),
             value: taxKey,
         }));
 
-    const selectedTaxItem = form?.tax ? taxItems.find(({value}) => value === form.tax) : undefined;
+    const selectedTaxItem = selectedTaxKey ? taxItems.find(({value}) => value === selectedTaxKey) : undefined;
 
     const onSave = (value?: string) => {
         updateDraftMerchantRule({tax: value});

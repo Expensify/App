@@ -48,11 +48,11 @@ import {
     haveSameConditions,
 } from '@libs/ExpenseDefaultRuleUtils';
 import type {ExpenseDefaultFormValues} from '@libs/ExpenseDefaultRuleUtils';
-import {getAmountComparisonText, getDateComparisonText, getHasConditionText, getHasConditionValueText} from '@libs/MerchantTypeRulesUtils';
+import {getAmountComparisonText, getCardConditionName, getDateComparisonText, getHasConditionText, getHasConditionValueText, getSubmitterConditionName} from '@libs/MerchantTypeRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
-import {findPolicyTagAtLevel, getCleanedTagName, getTagLists, getTaxByID, getVendorRuleDisplayValue, hasVendorFeature} from '@libs/PolicyUtils';
+import {findPolicyTagAtLevel, getCleanedTagName, getTagLists, getTaxByID, getVendorRuleDisplayValue, hasVendorFeature, resolveCurrentTaxCode} from '@libs/PolicyUtils';
 import {getEnabledTags} from '@libs/TagsOptionsListUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
 
@@ -181,7 +181,7 @@ function ExpenseDefaultRulePageBase({
     const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const policy = usePolicy(policyID);
     const {canWrite: canWriteRules} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
-    const {submitters: submitterNamesByAccountID, cards: cardDescriptionsByID, areCardsLoaded} = useExpenseDefaultConditionNames(policy);
+    const {submitters: submitterNamesByAccountID, cards: cardDescriptionsByID} = useExpenseDefaultConditionNames(policy);
     // The page is on its way out, so the rule it was editing no longer being there is expected rather than an
     // error worth showing.
     const [isClosing, setIsClosing] = useState(false);
@@ -247,7 +247,9 @@ function ExpenseDefaultRulePageBase({
         if (!formValues) {
             return;
         }
-        setDraftMerchantRule(formValues);
+        // A rule saved before cards could be matched on, or saved from elsewhere, can carry an amount default it
+        // will never apply. The editor has no row for it, so the draft drops it rather than saving it back unseen.
+        setDraftMerchantRule(formValues.cardsToMatch?.length ? {...formValues, amount: ''} : formValues);
     }, [isEditing, existingRule, initialCategoryName, initialCategoryToMatch]);
 
     // Clear the form on unmount
@@ -337,9 +339,10 @@ function ExpenseDefaultRulePageBase({
     const currenciesToMatch = form?.currenciesToMatch ?? [];
     const currenciesToMatchDisplayName = currenciesToMatch.length > 0 ? currenciesToMatch.join(', ') : undefined;
     const submittersToMatch = form?.submittersToMatch ?? [];
-    // An account this user holds no details for, such as one a copied rule names, reads as hidden rather than as the stored ID.
     const submittersToMatchDisplayName =
-        submittersToMatch.length > 0 ? submittersToMatch.map((submitterAccountID) => submitterNamesByAccountID?.[submitterAccountID] ?? translate('common.hidden')).join(', ') : undefined;
+        submittersToMatch.length > 0
+            ? submittersToMatch.map((submitterAccountID) => getSubmitterConditionName(submitterAccountID, submitterNamesByAccountID, translate)).join(', ')
+            : undefined;
     const merchantTypesToMatch = form?.merchantTypesToMatch ?? [];
     const merchantTypesToMatchDisplayName =
         merchantTypesToMatch.length > 0 ? merchantTypesToMatch.map((merchantType) => getMerchantTypeLabel(merchantType, translate)).join(', ') : undefined;
@@ -350,11 +353,7 @@ function ExpenseDefaultRulePageBase({
     const amountMatchType = form?.amountMatchType ?? getDefaultMatchType('amountMatchType');
     const getAmountToMatchDisplayName = () => (amountToMatch ? getAmountComparisonText(amountToMatch, amountMatchType, translate, convertToDisplayStringWithoutCurrency) : undefined);
     const cardsToMatch = form?.cardsToMatch ?? [];
-    // A card that has been deactivated or closed drops out of the card lists, so the row names it as deleted once every card has arrived.
-    const cardsToMatchDisplayName =
-        cardsToMatch.length > 0
-            ? cardsToMatch.map((cardID) => cardDescriptionsByID?.[cardID] ?? (areCardsLoaded ? translate('workspace.companyCards.deletedCard') : cardID)).join(', ')
-            : undefined;
+    const cardsToMatchDisplayName = cardsToMatch.length > 0 ? cardsToMatch.map((cardID) => getCardConditionName(cardID, cardDescriptionsByID, translate)).join(', ') : undefined;
     const hasToMatch = form?.hasToMatch ?? [];
     const hasMatchType = form?.hasMatchType ?? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO;
     const getHasToMatchDisplayName = () => {
@@ -370,7 +369,9 @@ function ExpenseDefaultRulePageBase({
     const amountDisplayName = form?.amount ? convertToDisplayString(Number(form.amount), policy?.outputCurrency) : undefined;
     const categoryDisplayName = form?.category ? getDecodedCategoryName(form.category) : undefined;
     // Blank rather than the raw ID once the rate is gone from the workspace.
-    const taxDisplayName = (form?.tax && getTaxByID(policy, form.tax) ? getTaxRateDisplayName(policy, form.tax) : '') || undefined;
+    // The row shows nothing rather than a raw code for a rate the workspace no longer has, and a renamed rate is
+    // still a rate the workspace has, so the check resolves the code the way the label does.
+    const taxDisplayName = (form?.tax && getTaxByID(policy, resolveCurrentTaxCode(policy, form.tax)) ? getTaxRateDisplayName(policy, form.tax) : '') || undefined;
 
     /**
      * Checks if another rule already matches on the same conditions.
@@ -634,13 +635,17 @@ function ExpenseDefaultRulePageBase({
         {
             titleTranslationKey: 'workspace.rules.merchantRules.applyUpdates',
             items: [
-                {
-                    key: 'amount',
-                    description: translate('iou.amount'),
-                    title: amountDisplayName,
-                    onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_AMOUNT_FROM_EXPENSE.path, ROUTES.RULES_MERCHANT_AMOUNT.getRoute(policyID, ruleID))),
-                    icon: icons.Cash,
-                },
+                // The amount of a card expense comes from the card, so a rule that matches on one has no amount to
+                // set and the row is left out rather than offering a default that never applies.
+                cardsToMatch.length === 0
+                    ? {
+                          key: 'amount',
+                          description: translate('iou.amount'),
+                          title: amountDisplayName,
+                          onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_AMOUNT_FROM_EXPENSE.path, ROUTES.RULES_MERCHANT_AMOUNT.getRoute(policyID, ruleID))),
+                          icon: icons.Cash,
+                      }
+                    : undefined,
                 {
                     key: 'merchant',
                     description: translate('common.merchant'),

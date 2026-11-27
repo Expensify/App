@@ -7157,6 +7157,7 @@ ${amount} para ${merchant} - ${date}`,
                 title: 'Asignar nuevas tarjetas',
                 description: 'Obtén las últimas tarjetas para asignar desde tu banco',
             },
+            unavailableCard: 'Tarjeta no disponible',
         },
         expensifyCard: {
             issueAndManageCards: 'Emitir y gestionar Tarjetas Expensify',

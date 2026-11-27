@@ -92,6 +92,9 @@ function AddDateToMatchPage({route}: AddDateToMatchPageProps) {
                         label={translate('common.date')}
                         defaultValue={currentValue}
                         maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
+                        // The date is picked from the calendar, so the field never takes typed input. Leaving the
+                        // input focused lets the keyboard come back when the calendar closes or the next row opens.
+                        shouldDismissKeyboardBeforeShow
                     />
                 </View>
                 <MenuItemField

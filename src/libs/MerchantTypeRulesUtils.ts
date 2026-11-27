@@ -281,10 +281,22 @@ type ExpenseDefaultConditionNames = {
 
     /** Card descriptions, keyed by card ID */
     cards?: Record<string, string>;
-
-    /** Whether every card this account can see has arrived, so a card with no name is gone rather than pending */
-    areCardsLoaded?: boolean;
 };
+
+/**
+ * What a card condition calls a card.
+ *
+ * A card ID says nothing to an admin, and the reason a name is missing is not knowable from the client: the card
+ * may be deleted, suspended, or simply still on its way. One neutral label covers all three.
+ */
+function getCardConditionName(cardID: string, cards: Record<string, string> | undefined, translate: LocaleContextProps['translate']): string {
+    return cards?.[cardID] ?? translate('workspace.companyCards.unavailableCard');
+}
+
+/** What a submitter condition calls a member, which reads the way the rest of the app reads an account it cannot resolve. */
+function getSubmitterConditionName(accountID: string, submitters: Record<string, string> | undefined, translate: LocaleContextProps['translate']): string {
+    return submitters?.[accountID] ?? translate('common.hidden');
+}
 
 /**
  * Lowercases a phrase's first letter so it reads on from "Date is" or "Amount is".
@@ -392,10 +404,7 @@ function getOtherConditionText(
         if (!isEqualityMatch) {
             return '';
         }
-        return translate(
-            'workspace.rules.expenseDefaultsTable.cardIs',
-            values.map((cardID) => conditionNames.cards?.[cardID] ?? (conditionNames.areCardsLoaded ? translate('workspace.companyCards.deletedCard') : cardID)).join(', '),
-        );
+        return translate('workspace.rules.expenseDefaultsTable.cardIs', values.map((cardID) => getCardConditionName(cardID, conditionNames.cards, translate)).join(', '));
     }
 
     if (field === CONDITION.TAX_RATE) {
@@ -409,7 +418,10 @@ function getOtherConditionText(
         if (!isEqualityMatch) {
             return '';
         }
-        return translate('workspace.rules.expenseDefaultsTable.submitterIs', values.map((accountID) => conditionNames.submitters?.[accountID] ?? translate('common.hidden')).join(', '));
+        return translate(
+            'workspace.rules.expenseDefaultsTable.submitterIs',
+            values.map((accountID) => getSubmitterConditionName(accountID, conditionNames.submitters, translate)).join(', '),
+        );
     }
 
     if (field === CONDITION.MERCHANT_TYPE) {
@@ -572,6 +584,7 @@ function getExpenseDefaultsTableData({
 
 export {
     getAmountComparisonText,
+    getCardConditionName,
     getDateComparisonText,
     getDefaultMccGroupCategory,
     getExpenseDefaultConditionText,
@@ -581,6 +594,7 @@ export {
     getExpenseDefaultsTableData,
     getMerchantRulesTableData,
     getMerchantTypeRuleFormFromMccGroup,
+    getSubmitterConditionName,
     getVisibleExpenseDefaultRuleSummaryFields,
     isDefaultMccGroupID,
     isMerchantTypeRuleKey,

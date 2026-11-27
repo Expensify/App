@@ -10,9 +10,9 @@ import useExpenseDefaultSubmitterNames from './useExpenseDefaultSubmitterNames';
 /** The names every condition of an expense default rule reads as, for the places that list a whole rule. */
 function useExpenseDefaultConditionNames(policy: OnyxEntry<Policy>): ExpenseDefaultConditionNames {
     const submitters = useExpenseDefaultSubmitterNames(policy);
-    const {cards, areCardsLoaded} = useExpenseDefaultCardNames();
+    const cards = useExpenseDefaultCardNames();
 
-    return {submitters, cards, areCardsLoaded};
+    return {submitters, cards};
 }
 
 export default useExpenseDefaultConditionNames;

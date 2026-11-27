@@ -7853,6 +7853,7 @@ const translations = {
             feedName: (feedName: string) => `${feedName} cards`,
             deletedFeed: 'Deleted feed',
             deletedCard: 'Deleted card',
+            unavailableCard: 'Unavailable card',
             directFeed: 'Direct feed',
             whoNeedsCardAssigned: 'Who needs a card assigned?',
             chooseTheCardholder: 'Choose the cardholder',
