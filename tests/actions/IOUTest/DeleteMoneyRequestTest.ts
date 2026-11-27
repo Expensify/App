@@ -2108,12 +2108,18 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
         const TEST_USER_ACCOUNT_ID = 1;
         const TEST_USER_LOGIN = 'test@email.com';
 
-        let writeSpy: jest.SpyInstance<ReturnType<typeof API.write>, Parameters<typeof API.write>> | undefined;
+        // eslint-disable-next-line rulesdir/no-multiple-api-calls -- This is a spy type, not an API command call.
+        let writeSpy: jest.SpiedFunction<typeof API.write> | undefined;
 
         afterEach(() => {
             writeSpy?.mockRestore();
             writeSpy = undefined;
         });
+
+        function spyOnWrite() {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Installing a test spy blocks the request; it does not execute an API command.
+            writeSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+        }
 
         function buildDeleteFixtures(id: number) {
             const expenseReport: Report = {
@@ -2183,7 +2189,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${fixtures.expenseReport.reportID}`, fixtures.expenseReport);
             await Onyx.set(fixtures.violationsKey, onyxViolations);
             await waitForBatchedUpdates();
-            writeSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+            spyOnWrite();
 
             // When the expense is deleted with the caller's violations collection
             callDeleteMoneyRequest(fixtures, {[fixtures.violationsKey]: paramViolations});
@@ -2202,7 +2208,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${fixtures.expenseReport.reportID}`, fixtures.expenseReport);
             await Onyx.set(fixtures.violationsKey, [{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION}]);
             await waitForBatchedUpdates();
-            writeSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+            spyOnWrite();
 
             // When the expense is deleted
             callDeleteMoneyRequest(fixtures, {[otherTransactionViolationsKey]: [{name: CONST.VIOLATIONS.MISSING_TAG, type: CONST.VIOLATION_TYPES.VIOLATION}]});
@@ -2220,7 +2226,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${fixtures.expenseReport.reportID}`, fixtures.expenseReport);
             await Onyx.set(fixtures.violationsKey, [{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION}]);
             await waitForBatchedUpdates();
-            writeSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+            spyOnWrite();
 
             // When the expense is deleted without a violations collection
             callDeleteMoneyRequest(fixtures, undefined);
