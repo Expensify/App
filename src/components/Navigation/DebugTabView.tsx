@@ -156,9 +156,12 @@ function getSettingsRoute(status: IndicatorStatus | undefined, reimbursementAcco
 
 type Props = {
     selectedTab: ValueOf<typeof NAVIGATION_TABS>;
+
+    /** Renders an invisible copy that only takes the banner's space, so a screen the banner is drawn over can end above it */
+    isPlaceholder?: boolean;
 };
 
-function DebugTabView({selectedTab}: Props) {
+function DebugTabView({selectedTab, isPlaceholder = false}: Props) {
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -248,16 +251,18 @@ function DebugTabView({selectedTab}: Props) {
     // and the DebugTabView's own placement.
     return (
         <View
-            testID="DebugTabViewContainer"
+            testID={isPlaceholder ? undefined : 'DebugTabViewContainer'}
             style={[
                 shouldUseNarrowLayout ? positionStyle : {...styles.pAbsolute, ...positionStyle},
                 // Native keeps its floating buttons above a full-width bar, so only the mobile web bar needs this.
                 isMobileWebLandscape && styles.debugTabViewMobileWebLandscape,
+                isPlaceholder && styles.visibilityHidden,
             ]}
-            pointerEvents="box-none"
+            pointerEvents={isPlaceholder ? 'none' : 'box-none'}
+            aria-hidden={isPlaceholder}
         >
             <View
-                testID="DebugTabView"
+                testID={isPlaceholder ? undefined : 'DebugTabView'}
                 style={[
                     StyleUtils.getBackgroundColorStyle(theme.cardBG),
                     styles.p3,
