@@ -104,6 +104,58 @@ describe('OnboardingFlow', () => {
             expect(path).toBe('/onboarding/employees');
         });
 
+        it('should resume a later team step for VSB once a company size is picked', () => {
+            // Given a VSB signup who reached Interested Features and picked a company size, then reopened the app
+            const params: GetOnboardingInitialPathParamsType = {
+                isUserFromPublicDomain: false,
+                hasAccessiblePolicies: false,
+                onboardingValuesParam: {
+                    hasCompletedGuidedSetupFlow: false,
+                    shouldRedirectToClassicAfterMerge: false,
+                    shouldValidate: false,
+                    isMergingAccountBlocked: false,
+                    isMergeAccountStepCompleted: false,
+                    signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB,
+                },
+                currentOnboardingPurposeSelected: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                currentOnboardingCompanySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
+                onboardingInitialPath: `/${ROUTES.ONBOARDING_INTERESTED_FEATURES.route}`,
+                onboardingValues: undefined,
+            };
+
+            // When the onboarding flow picks where to resume
+            const path = getOnboardingInitialPath(params);
+
+            // Then the saved step is kept, because the reopened app no longer restores the onboarding screen itself
+            expect(path).toBe(`/${ROUTES.ONBOARDING_INTERESTED_FEATURES.route}`);
+        });
+
+        it('should send VSB back to Employees when a later step is saved without a company size', () => {
+            // Given a VSB signup whose saved step is Accounting but who has no company size yet
+            const params: GetOnboardingInitialPathParamsType = {
+                isUserFromPublicDomain: false,
+                hasAccessiblePolicies: false,
+                onboardingValuesParam: {
+                    hasCompletedGuidedSetupFlow: false,
+                    shouldRedirectToClassicAfterMerge: false,
+                    shouldValidate: false,
+                    isMergingAccountBlocked: false,
+                    isMergeAccountStepCompleted: false,
+                    signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB,
+                },
+                currentOnboardingPurposeSelected: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                currentOnboardingCompanySize: undefined,
+                onboardingInitialPath: `/${ROUTES.ONBOARDING_ACCOUNTING.route}`,
+                onboardingValues: undefined,
+            };
+
+            // When the onboarding flow picks where to resume
+            const path = getOnboardingInitialPath(params);
+
+            // Then the user starts at Employees, because the later steps depend on the company size picked there
+            expect(path).toBe(`/${ROUTES.ONBOARDING_EMPLOYEES.route}`);
+        });
+
         it('should return the correct path for SMB and is not from public domain', () => {
             const params: GetOnboardingInitialPathParamsType = {
                 isUserFromPublicDomain: false,

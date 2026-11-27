@@ -42,7 +42,7 @@ import getActiveTabName from './helpers/getActiveTabName';
 import getAdaptedStateFromPath from './helpers/getAdaptedStateFromPath';
 import getPathFromState from './helpers/getPathFromState';
 import getStateToResetAfterLogout from './helpers/getStateToResetAfterLogout';
-import isJoinWorkspaceTaskPath, {isOnboardingPath} from './helpers/isJoinWorkspaceTaskPath';
+import isJoinWorkspaceTaskPath, {hasJoinWorkspaceTaskParam, isOnboardingPath} from './helpers/isJoinWorkspaceTaskPath';
 import {isSplitNavigatorName} from './helpers/isNavigatorName';
 import {saveSettingsTabPathToSessionStorage, saveWorkspacesTabPathToSessionStorage} from './helpers/lastVisitedTabPathUtils';
 import {linkingConfig} from './linkingConfig';
@@ -192,7 +192,8 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
             const isSpecificDeepLink = path && !isRootPath;
 
             // useOnboardingFlowRouter resumes onboarding from ONBOARDING_LAST_VISITED_PATH once it knows the user still needs it
-            const isSavedOnboardingPath = isOnboardingPath(lastVisitedPath) && !isJoinWorkspaceTaskPath(lastVisitedPath);
+            // Join-workspace task pages (including private-domain) are still restored, since the router only resumes core onboarding
+            const isSavedOnboardingPath = isOnboardingPath(lastVisitedPath) && !hasJoinWorkspaceTaskParam(lastVisitedPath);
             if (!isSpecificDeepLink && !isSavedOnboardingPath) {
                 Log.info('Restoring last visited path on app startup', false, {lastVisitedPath, initialUrl, path});
                 return getAdaptedStateFromPath(lastVisitedPath);

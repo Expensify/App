@@ -14,6 +14,12 @@ import Onyx from 'react-native-onyx';
 import waitForBatchedUpdates from '../../../utils/waitForBatchedUpdates';
 
 let mockSkipOnboarding = false;
+let mockIsServerDataReady = true;
+
+jest.mock('@libs/actions/Welcome', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@libs/actions/Welcome'),
+    isServerDataReady: () => mockIsServerDataReady,
+}));
 
 jest.mock('@src/CONFIG', () => {
     const actualConfig = jest.requireActual<{default: Record<string, unknown>}>('@src/CONFIG').default;
@@ -90,6 +96,7 @@ describe('OnboardingGuard', () => {
 
     beforeEach(async () => {
         mockSkipOnboarding = false;
+        mockIsServerDataReady = true;
         await Onyx.clear();
         await waitForBatchedUpdates();
     });
@@ -648,6 +655,24 @@ describe('OnboardingGuard', () => {
             if (result.type === 'REDIRECT') {
                 expect(result.route).toContain('onboarding');
             }
+        });
+
+        it('should not redirect on a reopened app until the first sync of this session finishes', async () => {
+            // Given a reopened app whose cache says the user still needs onboarding, before OpenApp or ReconnectApp has returned
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+            });
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {
+                isFromPublicDomain: true,
+            });
+            await waitForBatchedUpdates();
+            mockIsServerDataReady = false;
+
+            // When the guard evaluates a navigation action with IS_LOADING_APP still cached as false
+            const result = OnboardingGuard.evaluate(mockState, mockAction, authenticatedContext);
+
+            // Then navigation is allowed, because the cache may be from before the user was invited to a workspace
+            expect(result.type).toBe('ALLOW');
         });
 
         it('should skip onboarding for invited or group members even when they have not completed onboarding', async () => {

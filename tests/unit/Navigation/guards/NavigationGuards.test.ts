@@ -1,16 +1,12 @@
 import {clearGuards, createGuardContext, evaluateGuards, getRegisteredGuards, registerGuard} from '@libs/Navigation/guards';
 import type {GuardContext, NavigationGuard} from '@libs/Navigation/guards/types';
 
-import {resetAllChecks} from '@userActions/Welcome';
-
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 import type {NavigationState} from '@react-navigation/native';
 
 import Onyx from 'react-native-onyx';
-
-import waitForBatchedUpdates from '../../../utils/waitForBatchedUpdates';
 
 describe('Navigation Guard System', () => {
     beforeAll(() => {
@@ -80,36 +76,6 @@ describe('Navigation Guard System', () => {
             expect(typeof context.isAuthenticated).toBe('boolean');
             expect(typeof context.isLoading).toBe('boolean');
             expect(typeof context.currentUrl).toBe('string');
-        });
-
-        it('reports loading on a reopened app until the first sync of this session finishes', async () => {
-            // Given a reopened app whose cache still says the app finished loading in the previous session
-            resetAllChecks();
-            await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
-            await Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, false);
-            await waitForBatchedUpdates();
-
-            // When a guard builds its context before OpenApp or ReconnectApp has run
-            const context = createGuardContext();
-
-            // Then the context is still loading, so OnboardingGuard doesn't redirect based on data from before the user joined a workspace
-            expect(context.isLoading).toBe(true);
-        });
-
-        it('stops reporting loading once the first sync of this session finishes', async () => {
-            // Given a reopened app that has started its first OpenApp or ReconnectApp
-            resetAllChecks();
-            await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
-            await Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, true);
-            await waitForBatchedUpdates();
-
-            // When the server response arrives and report data finishes loading
-            await Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, false);
-            await waitForBatchedUpdates();
-            const context = createGuardContext();
-
-            // Then the context is no longer loading, so guards can act on the fresh server data
-            expect(context.isLoading).toBe(false);
         });
     });
 

@@ -22,8 +22,11 @@ describe('isServerDataReady', () => {
         await Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, false);
         await waitForBatchedUpdates();
 
+        // When readiness is checked before this session's OpenApp or ReconnectApp has started
+        const isReady = isServerDataReady();
+
         // Then the first sync of this session hasn't happened yet, so onboarding decisions must keep waiting
-        expect(isServerDataReady()).toBe(false);
+        expect(isReady).toBe(false);
     });
 
     it('turns true when the first sync finishes and stays true during a later reconnect', async () => {
