@@ -26,7 +26,7 @@ import type {SearchFooterCount, SearchFooterTotal, SelectedTransactionInfo, Sele
 
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionContext} from './SearchContext';
 import SearchPageFooter from './SearchPageFooter';
-import {getRowsCheckedInExcludedGroups, mergeRowsIntoPartlyLoadedGroups} from './selectionBuilders';
+import {getClaimedGroupKeys, getRowsCheckedInExcludedGroups, mergeRowsIntoPartlyLoadedGroups} from './selectionBuilders';
 import {useSharedGroupSelectionTotal} from './SharedGroupSelectionTotalProvider';
 
 type SearchSelectionFooterProps = {
@@ -388,7 +388,8 @@ function SearchSelectionFooter({searchResults, style}: SearchSelectionFooterProp
     // A group row selected as a whole is out of scope for now, pending the backend returning breakdowns per group. It
     // reaches the selection one of two ways: as a single group entry when its expenses are not loaded, or as those
     // expenses each flagged `isSelectedViaGroup` when they are. The flag is cleared as soon as one of them is toggled
-    // off, so a part-deselected group counts as an individual selection again and keeps both selectors.
+    // off, so a part-deselected group counts as an individual selection again and keeps both selectors. Where groups share
+    // expenses, a group's header check can be recorded only among the other groups an expense stored elsewhere lists.
     //
     // Only a grouped search is affected. A Reports search carries the same flag, because a report row is a group row
     // there, but a report is that search's natural unit and its expenses are exactly what the selection holds.
@@ -396,8 +397,8 @@ function SearchSelectionFooter({searchResults, style}: SearchSelectionFooterProp
         isGroupedSearch &&
         (selectedTransactionsKeys.some(isGroupEntry) ||
             excludedTransactionsKeys.some(isGroupEntry) ||
-            selectedTransactionsKeys.some((key) => selectedTransactions[key]?.isSelectedViaGroup) ||
-            excludedTransactionsKeys.some((key) => excludedTransactions[key]?.isSelectedViaGroup));
+            selectedTransactionsKeys.some((key) => getClaimedGroupKeys(selectedTransactions[key]).length > 0) ||
+            excludedTransactionsKeys.some((key) => getClaimedGroupKeys(excludedTransactions[key]).length > 0));
 
     // The other case with no answer to give: the whole-search report count comes from the server, and a search that
     // returned none of it (a grouped search, or a to-do search counting live Onyx data) has nothing to switch to.

@@ -939,6 +939,16 @@ function applyShiftRangeBatchToSelection(
         updated = spellOutGroupSelection(updated, transaction.keyForList, areAllMatchingItemsSelected, lookups);
         const [key, info] = lookups.buildSelectedEntry(transaction);
         const parentGroupKey = blockGroupKey ?? lookups.groupKeyByChildKey.get(transaction.keyForList);
+        // A row stored under another group can already be covered by this group's header, so re-covering it leaves the row and both claims as they are.
+        if (
+            lookups.canGroupsShareExpenses &&
+            !blockGroupKey &&
+            !!parentGroupKey &&
+            updated[key]?.groupKey !== parentGroupKey &&
+            !!updated[key]?.otherClaimedGroupKeys?.includes(parentGroupKey)
+        ) {
+            return;
+        }
         // A row the range only re-covers keeps its group claim. Only a row the range gives back makes the group partial.
         const isAlreadySelectedViaGroup = !!parentGroupKey && updated[key]?.groupKey === parentGroupKey && !!updated[key]?.isSelectedViaGroup;
         // A row another header already covers stays covered by it when this range checks the row through a group of its own.

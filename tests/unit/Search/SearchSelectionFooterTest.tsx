@@ -569,6 +569,22 @@ describe('SearchSelectionFooter', () => {
             expect(filterKeys).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION);
         });
 
+        it('drops the breakdown when a group is checked through its header only as another group listed on an expense', async () => {
+            // Given a query on the reimbursable breakdown, and two expenses each checked on its own and stored under one group, while the other group's header covers it
+            setSearchQuery(`type:expense group-by:${CONST.SEARCH.GROUP_BY.VIOLATION} footerTotal:${CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE}`);
+            mockSelectedTransactions.current = {
+                transaction1: {...buildSelectedTransaction(CONST.CURRENCY.USD), groupKey: missingCategoryKey, otherClaimedGroupKeys: [receiptRequiredKey]},
+                transaction2: {...buildSelectedTransaction(CONST.CURRENCY.USD), groupKey: receiptRequiredKey, otherClaimedGroupKeys: [missingCategoryKey]},
+            };
+
+            // When the footer shows that selection
+            renderFooter(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 1, 300)} />);
+            await waitForBatchedUpdates();
+
+            // Then it treats the selection as a group selection, so it offers no breakdown and names none, as the union it shows is the whole total
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({shouldShowTotalSelector: false, totalType: undefined}));
+        });
+
         it('shows a single group from its own figures without asking for a union', async () => {
             // Given one group checked through its header, which can't count an expense twice
             mockSelectedTransactions.current = {[missingCategoryKey]: buildSelectedTransaction(CONST.CURRENCY.USD)};

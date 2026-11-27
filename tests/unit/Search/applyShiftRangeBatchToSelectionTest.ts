@@ -283,6 +283,34 @@ describe('applyShiftRangeBatchToSelection', () => {
         expect(updated.c2?.isSelectedViaGroup).toBe(true);
     });
 
+    it('keeps the claim of a group whose header covers a shared row stored under another group when a range only re-covers it', () => {
+        // Given groups A and B both checked through their headers, with the shared row stored under A and listed last under B
+        const groupA = `${CONST.SEARCH.GROUP_PREFIX}A`;
+        const groupB = `${CONST.SEARCH.GROUP_PREFIX}B`;
+        const shared = makeChild(1, 's1');
+        const own = makeChild(2, 'b2');
+        const selection: SelectedTransactions = {
+            s1: {...buildEntry(shared)[1], groupKey: groupA, isSelectedViaGroup: true, otherClaimedGroupKeys: [groupB]},
+            b2: {...buildEntry(own)[1], groupKey: groupB, isSelectedViaGroup: true},
+        };
+        const lookups = {
+            ...lookupsFor(
+                new Map([
+                    ['s1', groupB],
+                    ['b2', groupB],
+                ]),
+                new Map([[groupB, [shared, own]]]),
+            ),
+            canGroupsShareExpenses: true,
+        };
+
+        // When a range covers the shared row again and gives nothing back
+        const updated = applyShiftRangeBatchToSelection(batchOf([shared]), selection, false, lookups);
+
+        // Then nothing changes, so B's header claim still reaches its unloaded expenses and Hold or Edit can't act on its loaded ones only
+        expect(updated).toBe(selection);
+    });
+
     it('keeps the count a header check recorded on rows a range only re-covers', () => {
         // Given a row selected through its group's header while the group held five expenses
         const first = makeChild(1, 'c1');
