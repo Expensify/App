@@ -71,7 +71,7 @@ function BulkLeaveWorkspacesFlow({selectedRows, policyIDs, onConfirm, onDismiss}
                 translate,
             );
             showConfirmModal({
-                title: translate('workspace.common.leaveWorkspacesTitle', {count: selectedRows.length}),
+                title: translate('workspace.common.leaveWorkspacesTitle', {count: rowsToLeave.length}),
                 prompt: (
                     <BulkActionConfirmationPrompt
                         message={translate('common.leaveWorkspacesConfirmation')}

@@ -308,6 +308,7 @@ function WorkspacesListPage() {
     const getBulkActionOption = ({type, policyIDs}: WorkspacesBulkAction): DropdownOption<WorkspacesBulkActionType> => {
         const [firstPolicyID = ''] = policyIDs;
         const isSingleSelection = selectedRows.length === 1;
+        const isLoadingBillForFirstPolicy = !!isLoadingBill && policyIDToDelete === firstPolicyID;
 
         switch (type) {
             case CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.SET_AS_DEFAULT:
@@ -398,15 +399,15 @@ function WorkspacesListPage() {
                     sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.LIST.BULK_ACTIONS_DELETE,
                     shouldSkipFocusRestore: true,
                     onSelected: () => {
-                        if (isLoadingBill) {
+                        if (isLoadingBillForFirstPolicy) {
                             return;
                         }
 
                         // All the pre-deletion checks and the confirmation modal are handled by DeleteWorkspaceFlow, mounted below.
                         setPolicyIDToDelete(firstPolicyID);
                     },
-                    disabled: !!isLoadingBill,
-                    shouldShowLoadingSpinnerIcon: !!isLoadingBill,
+                    disabled: isLoadingBillForFirstPolicy,
+                    shouldShowLoadingSpinnerIcon: isLoadingBillForFirstPolicy,
                     shouldCloseModalOnSelect: !shouldCalculateBillNewDot || wouldBlockDeletion,
                 };
             case CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.UNARCHIVE:
@@ -467,12 +468,12 @@ function WorkspacesListPage() {
                     ref={bulkActionsDropdownRef}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     shouldAlwaysShowDropdownMenu
-                    customText={translate('workspace.common.selected', {count: selectedPolicyIDs.length})}
+                    customText={translate('workspace.common.selected', {count: selectedRows.length})}
                     size={CONST.BUTTON_SIZE.MEDIUM}
                     onPress={() => null}
                     options={bulkActionOptions}
                     isSplitButton={false}
-                    isDisabled={!selectedPolicyIDs.length}
+                    isDisabled={!selectedRows.length}
                     style={[styles.w100, pageGutter]}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.LIST.BULK_ACTIONS_DROPDOWN}
                 />

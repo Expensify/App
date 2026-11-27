@@ -75,7 +75,7 @@ function BulkArchiveWorkspacesFlow({selectedRows, policyIDs, onConfirm, onDismis
             );
 
             showConfirmModal({
-                title: translate('workspace.common.archiveWorkspacesTitle', {count: selectedRows.length}),
+                title: translate('workspace.common.archiveWorkspacesTitle', {count: rowsToArchive.length}),
                 prompt: (
                     <BulkActionConfirmationPrompt
                         message={translate(consequences.length > 0 ? 'workspace.common.archiveWorkspacesConfirmationWithConsequences' : 'workspace.common.archiveWorkspacesConfirmation')}
