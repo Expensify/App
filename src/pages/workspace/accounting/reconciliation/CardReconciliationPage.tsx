@@ -1,6 +1,6 @@
 import CardFeedIcon from '@components/CardFeedIcon';
 import FeedSelector from '@components/FeedSelector';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
@@ -150,7 +150,7 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
                 shouldEnableMaxHeight
                 testID="CardReconciliationPage"
             >
-                <HeaderWithBackButton title={translate('workspace.accounting.cardReconciliation')} />
+                <HeaderWithBackButtonAndTitle title={translate('workspace.accounting.cardReconciliation')} />
                 <ScrollView
                     contentContainerStyle={styles.pb5}
                     addBottomSafeAreaPadding
