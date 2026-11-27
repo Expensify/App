@@ -982,6 +982,11 @@ function applyShiftRangeBatchToSelection(
                     partialGroupKeys.add(claimedGroupKey);
                     touchGroup(claimedGroupKey, lookups.childrenByGroupKey.get(claimedGroupKey) ?? []);
                 }
+                // A group whose expenses were all checked one by one reads as wholly selected with no header claim, so the group the row is stored under is recounted too.
+                const storedGroupKey = updated[row.keyForList]?.groupKey;
+                if (storedGroupKey && isGroupEntry(storedGroupKey)) {
+                    touchGroup(storedGroupKey, lookups.childrenByGroupKey.get(storedGroupKey) ?? []);
+                }
                 updated = spellOutGroupSelection(updated, row.keyForList, areAllMatchingItemsSelected, lookups);
                 dropKey(row.keyForList);
             }

@@ -521,13 +521,19 @@ function useReconcileSelectionWithData({
 
             // A group a refresh dropped is never read above, so its claims are ended here. Left in, they would keep it in
             // the selection, and an export of the selected groups would fail on a group the results no longer hold.
-            // A group whose header selection ended is dropped the same way, so an export or the union no longer takes it whole.
+            // A group whose header selection ended is dropped the same way, so an export or the union no longer takes it whole. That includes
+            // the claim of the group a row is stored under, which a row loaded only under another group carries over unchanged.
             for (const [key, entry] of Object.entries(newTransactionList)) {
                 const goneGroupKeys = new Set(
                     entry.otherClaimedGroupKeys?.filter((groupKey) => endedGroupKeys.has(groupKey) || (!!searchResultsData && (!isGroupEntry(groupKey) || !searchResultsData[groupKey]))),
                 );
-                if (goneGroupKeys.size > 0) {
-                    newTransactionList[key] = removeOtherGroupClaims(entry, goneGroupKeys);
+                let nextEntry = goneGroupKeys.size > 0 ? removeOtherGroupClaims(entry, goneGroupKeys) : entry;
+                if (nextEntry.isSelectedViaGroup && nextEntry.groupKey && endedGroupKeys.has(nextEntry.groupKey)) {
+                    const {claimedGroupCount, ...rest} = nextEntry;
+                    nextEntry = {...rest, isSelectedViaGroup: false};
+                }
+                if (nextEntry !== entry) {
+                    newTransactionList[key] = nextEntry;
                 }
             }
         } else {
@@ -1001,12 +1007,15 @@ function SearchWriteActionsProvider({
                         groupCount: groupKey ? lookups.getGroupCount(groupKey, parentGroup) : undefined,
                         loadedRows: loadedChildren,
                     });
-                    // The other groups the expense sits in are recounted too
-                    return recountGroupCoverage(
-                        stampedTransactions,
-                        [...releasedGroupKeys].filter((releasedGroupKey) => releasedGroupKey !== groupKey),
-                        lookups,
-                    );
+                    // The other groups the expense sits in are recounted too. That includes the group it is stored under when it was clicked in another one,
+                    // since a group whose expenses were all checked one by one reads as wholly selected without any header claim to release.
+                    const storedGroupKey = baseSelection[item.keyForList]?.groupKey;
+                    const recountedGroupKeys = new Set(releasedGroupKeys);
+                    if (storedGroupKey && isGroupEntry(storedGroupKey)) {
+                        recountedGroupKeys.add(storedGroupKey);
+                    }
+                    recountedGroupKeys.delete(groupKey ?? '');
+                    return recountGroupCoverage(stampedTransactions, [...recountedGroupKeys], lookups);
                 }
 
                 return updatedTransactions;

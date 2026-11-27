@@ -229,6 +229,55 @@ describe('Selecting groups that share expenses', () => {
         expect(getGroupKeysSelectedViaGroup(result.current.selectedTransactions)).toEqual([MISSING_CATEGORY_KEY]);
     });
 
+    it('recounts a group checked expense by expense when one of its expenses is unchecked under another group', async () => {
+        // Given Over limit expanded with both its expenses checked one by one, so they read as the whole group without a header claim
+        buildGroups([buildRow(1, OVER_LIMIT_KEY), buildRow(2, OVER_LIMIT_KEY)]);
+        const {result} = renderSelection();
+        for (const row of overLimitGroup.transactions) {
+            await act(async () => {
+                result.current.toggle(row);
+                await waitForBatchedUpdatesWithAct();
+            });
+        }
+        expect(result.current.selectedTransactions['1']).toEqual(expect.objectContaining({groupKey: OVER_LIMIT_KEY, isEntireGroupSelected: true}));
+        const sharedRow = missingCategoryGroup.transactions.at(1);
+        if (!sharedRow) {
+            throw new Error('Expected Missing category to list the shared expenses');
+        }
+
+        // When the second expense is unchecked where Missing category lists it
+        await act(async () => {
+            result.current.toggle(sharedRow);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the expense left in Over limit no longer reads as the whole group, so deleting it can't hide a group that still holds the unchecked one
+        expect(result.current.selectedTransactions['2']).toBeUndefined();
+        expect(result.current.selectedTransactions['1']).toEqual(expect.objectContaining({isSelected: true, groupKey: OVER_LIMIT_KEY}));
+        expect(result.current.selectedTransactions['1']?.isEntireGroupSelected).toBe(false);
+    });
+
+    it('ends the header claim of the group a shared expense is stored under once that group grows, though only another group lists the expense now', async () => {
+        // Given both groups checked through their headers, with the shared expenses stored under Missing category
+        const {result, rerender} = renderSelection();
+        await checkBothGroups(result, rerender);
+        expect(result.current.selectedTransactions['2']).toEqual(expect.objectContaining({groupKey: MISSING_CATEGORY_KEY, isSelectedViaGroup: true}));
+
+        // When a refresh of Missing category's first page brings a new, unchecked expense and no longer shows the second shared expense, which Over limit still lists
+        missingCategoryGroup = {
+            ...buildCategoryGroup(MISSING_CATEGORY_KEY, [buildRow(1, MISSING_CATEGORY_KEY), buildRow(5, MISSING_CATEGORY_KEY)]),
+            count: 5,
+            hasMoreTransactions: true,
+        };
+        rerender({});
+        await act(async () => waitForBatchedUpdatesWithAct());
+
+        // Then no expense claims Missing category through its header any more, so an export and the union leave out the new expense
+        expect(result.current.selectedTransactions['2']).toEqual(expect.objectContaining({isSelected: true, groupKey: MISSING_CATEGORY_KEY, isSelectedViaGroup: false}));
+        expect(result.current.selectedTransactions['5']).toBeUndefined();
+        expect(getGroupKeysSelectedViaGroup(result.current.selectedTransactions)).toEqual([OVER_LIMIT_KEY]);
+    });
+
     it('ends the claims of a group a refresh drops', async () => {
         // Given both groups checked through their headers over the expenses they share
         const {result, rerender} = renderSelection();
