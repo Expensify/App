@@ -456,7 +456,7 @@ function TransactionItemRowWide({
                 return (
                     <View
                         key={column}
-                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION), styles.editableCellColumn]}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION), styles.editableCellColumn, styles.mv1]}
                     >
                         <MerchantOrDescriptionCell
                             merchantOrDescription={description}
