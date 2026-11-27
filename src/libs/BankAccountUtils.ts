@@ -254,7 +254,12 @@ type WiseQuotePaymentParams = {
     wiseQuoteID?: string;
 };
 
-/** The business bank account a payment debits, for admins in the Wise beta. Without a chosen account the backend pays from the workspace account */
+/** Without a chosen account the backend pays from the workspace account */
+function getBankAccountIDForPayment({methodID, policy}: Pick<WiseQuotePaymentParams, 'methodID' | 'policy'>): number | undefined {
+    return methodID ?? policy?.achAccount?.bankAccountID;
+}
+
+/** The business bank account a payment debits, for admins in the Wise beta */
 function getBusinessBankAccountForPayment({
     paymentType,
     methodID,
@@ -262,7 +267,7 @@ function getBusinessBankAccountForPayment({
     isWiseReimbursementsBetaEnabled,
     policy,
 }: Pick<WiseQuotePaymentParams, 'paymentType' | 'methodID' | 'bankAccountList' | 'isWiseReimbursementsBetaEnabled' | 'policy'>): OnyxTypes.BankAccount | undefined {
-    const bankAccountID = methodID ?? policy?.achAccount?.bankAccountID;
+    const bankAccountID = getBankAccountIDForPayment({methodID, policy});
     if (!isWiseReimbursementsBetaEnabled || paymentType !== CONST.IOU.PAYMENT_TYPE.VBBA || !bankAccountID) {
         return undefined;
     }
@@ -276,20 +281,30 @@ function getWiseBankAccountForPayment(params: WiseQuotePaymentParams): OnyxTypes
     return isWiseAccount ? bankAccount : undefined;
 }
 
-/** Whether Wise sends this report to the employee through a global provider, which it prices with a quote */
+/** Whether the submitter is paid in another currency than the bank account holds */
+function isPaidInDifferentCurrency(bankAccount: OnyxTypes.BankAccount, depositCurrency: string | undefined): boolean {
+    // `||` instead of `??`, because bankCurrency can be an empty string, which falls through to additionalData
+    const bankCurrency = bankAccount.bankCurrency || bankAccount.accountData?.additionalData?.currency;
+    return !!depositCurrency && depositCurrency !== bankCurrency;
+}
+
+/**
+ * Whether to ask Wise for a quote, which happens when the submitter is paid in another currency than the bank account, or the backend flags the report.
+ * The backend flags reports only when the workspace account pays them, and names the deposit currency for domestic reports too.
+ */
 function shouldGetWiseQuote(params: WiseQuotePaymentParams): boolean {
-    return !!params.iouReport?.nextStep?.requiresGlobalReimbursement && !!getWiseBankAccountForPayment(params);
+    const bankAccount = getWiseBankAccountForPayment(params);
+    if (!bankAccount) {
+        return false;
+    }
+    const isWorkspaceAccount = getBankAccountIDForPayment(params) === params.policy?.achAccount?.bankAccountID;
+    return (isWorkspaceAccount && !!params.iouReport?.nextStep?.requiresGlobalReimbursement) || isPaidInDifferentCurrency(bankAccount, params.iouReport?.nextStep?.depositCurrency);
 }
 
 /** Whether the admin confirms the Wise quote before paying, which happens when the submitter is paid in another currency than the bank account */
 function shouldConfirmWiseQuoteBeforePaying(params: WiseQuotePaymentParams): boolean {
     const bankAccount = getWiseBankAccountForPayment(params);
-    if (params.wiseQuoteID || !params.iouReport?.nextStep?.requiresGlobalReimbursement || !bankAccount) {
-        return false;
-    }
-    // `||` not `??`: bankCurrency can be an empty string, which falls through to additionalData
-    const bankCurrency = bankAccount.bankCurrency || bankAccount.accountData?.additionalData?.currency;
-    return params.iouReport.nextStep.depositCurrency !== bankCurrency;
+    return !params.wiseQuoteID && !!bankAccount && isPaidInDifferentCurrency(bankAccount, params.iouReport?.nextStep?.depositCurrency);
 }
 
 /**
@@ -573,6 +588,7 @@ function showUnlockAlreadyRequestedModal(showConfirmModal: ReturnType<typeof use
 }
 
 export {
+    getBankAccountIDForPayment,
     getBusinessBankAccountForPayment,
     getBankAccountSearchLabel,
     isFilterableBankAccount,

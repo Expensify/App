@@ -608,6 +608,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
             return validateObject<ObjectElement<Report, 'wiseQuoteRequest'>>(value, {
                 full: 'boolean',
                 amount: 'number',
+                bankAccountID: 'number',
                 isFXCostPaidByCompany: 'boolean',
             });
         case 'nextStep':

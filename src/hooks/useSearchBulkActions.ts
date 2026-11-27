@@ -53,7 +53,7 @@ import initSplitExpense from '@libs/actions/SplitExpenses';
 import {setNameValuePair} from '@libs/actions/User';
 import {getWiseQuote} from '@libs/actions/Wise';
 import {isClientTheLeader} from '@libs/ActiveClientManager';
-import {shouldConfirmWiseQuoteBeforePaying, shouldGetWiseQuote} from '@libs/BankAccountUtils';
+import {getBankAccountIDForPayment, shouldConfirmWiseQuoteBeforePaying, shouldGetWiseQuote} from '@libs/BankAccountUtils';
 import {canResolveTransactionCard} from '@libs/CardUtils';
 import {getConnectionCompanyID} from '@libs/CopyPolicySettingsUtils';
 import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentationAfterPopoverDismiss';
@@ -2155,18 +2155,20 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             }
 
             const reports = expensePayments.flatMap((params) => (params.iouReport?.reportID ? [params.iouReport] : []));
-            const quotedPayments = expensePayments.filter((params) => !!params.iouReport?.reportID && shouldGetWiseQuote(params));
-            const quotedReportIDs = quotedPayments.flatMap((params) => (params.iouReport?.reportID ? [params.iouReport.reportID] : []));
+            const quotedPayments = expensePayments.flatMap((params) => {
+                const bankAccountID = getBankAccountIDForPayment(params);
+                return params.iouReport?.reportID && bankAccountID && shouldGetWiseQuote(params)
+                    ? [{report: params.iouReport, bankAccountID, isFXCostPaidByCompany: params.policy?.globalReimbursementFXPreferCompany}]
+                    : [];
+            });
             const getQuotes = () => {
-                for (const {iouReport: report, policy} of quotedPayments) {
-                    if (!report) {
-                        continue;
-                    }
+                for (const {report, bankAccountID, isFXCostPaidByCompany} of quotedPayments) {
                     // Search results don't hold the quote, which the server merges into the report in Onyx
-                    getWiseQuote({...report, ...allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]}, true, policy?.globalReimbursementFXPreferCompany);
+                    getWiseQuote({...report, ...allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]}, true, bankAccountID, isFXCostPaidByCompany);
                 }
             };
             getQuotes();
+            const quotedReportIDs = quotedPayments.map(({report}) => report.reportID);
             // Bulk pay runs while the pay popover is still dismissing, and iOS can't present a modal until it's gone
             deferModalPresentationAfterPopoverDismiss(() => {
                 showWiseQuoteCarouselModal({

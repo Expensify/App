@@ -5,10 +5,11 @@ import useWiseQuoteConfirmModal from '@hooks/useWiseQuoteConfirmModal';
 
 import {payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
 import type {PayMoneyRequestFunctionParams} from '@libs/actions/IOU/PayMoneyRequest';
+import {getWiseQuote} from '@libs/actions/Wise';
 import {shouldConfirmWiseQuoteBeforePaying} from '@libs/BankAccountUtils';
 
 import CONST from '@src/CONST';
-import type {Report} from '@src/types/onyx';
+import type {Policy, Report} from '@src/types/onyx';
 
 import createMock from '../../utils/createMock';
 
@@ -19,6 +20,7 @@ jest.mock('@libs/actions/Wise', () => ({
     getWiseQuote: jest.fn(),
 }));
 jest.mock('@libs/BankAccountUtils', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@libs/BankAccountUtils'),
     shouldConfirmWiseQuoteBeforePaying: jest.fn(),
 }));
 jest.mock('@hooks/useWiseQuoteConfirmModal', () => jest.fn());
@@ -30,11 +32,15 @@ const mockShowWiseQuoteConfirmModal = jest.fn<ReturnType<ShowWiseQuoteConfirmMod
 jest.mocked(useWiseQuoteConfirmModal).mockReturnValue({showWiseQuoteConfirmModal: mockShowWiseQuoteConfirmModal, showWiseQuoteCarouselModal: jest.fn()});
 
 const WISE_QUOTE_ID = 'quote1';
+const PAYING_BANK_ACCOUNT_ID = 1;
+const WORKSPACE_BANK_ACCOUNT_ID = 2;
 
 function buildParams(onPaymentSent: () => void) {
     return {
         ...createMock<PayMoneyRequestFunctionParams>({
             paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+            methodID: PAYING_BANK_ACCOUNT_ID,
+            policy: createMock<Policy>({achAccount: {bankAccountID: WORKSPACE_BANK_ACCOUNT_ID}}),
             iouReport: createMock<Report>({reportID: '1'}),
         }),
         onPaymentSent,
@@ -65,13 +71,16 @@ describe('usePayWithWiseQuote', () => {
     });
 
     it('waits for the quote to be confirmed before paying and running onPaymentSent', () => {
-        // Given a report with an expense in another currency than the bank account
+        // Given a report with an expense in another currency than the bank account, paid from an account that is not the workspace account
         mockShouldConfirmWiseQuoteBeforePaying.mockReturnValue(true);
         const onPaymentSent = jest.fn();
         const {result} = renderHook(() => usePayWithWiseQuote());
 
         // When the admin pays, which only opens the quote modal
         result.current.payWithWiseQuote(buildParams(onPaymentSent));
+
+        // Then the quote prices the transfer from the account the admin pays from
+        expect(getWiseQuote).toHaveBeenCalledWith(expect.objectContaining({reportID: '1'}), true, PAYING_BANK_ACCOUNT_ID, undefined);
 
         // Then nothing is paid or refreshed while the quote is on screen, which also covers the admin cancelling it
         expect(mockShowWiseQuoteConfirmModal).toHaveBeenCalledTimes(1);

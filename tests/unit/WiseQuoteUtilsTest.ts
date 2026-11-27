@@ -4,6 +4,8 @@ import CONST from '@src/CONST';
 import type {Report, WiseQuote} from '@src/types/onyx';
 
 const NOW = new Date('2026-11-06T16:00:00Z').getTime();
+const QUOTED_BANK_ACCOUNT_ID = 1;
+const OTHER_BANK_ACCOUNT_ID = 2;
 
 const wiseQuote: WiseQuote = {
     wiseQuoteID: 'quote',
@@ -25,7 +27,7 @@ const report: Report = {
     nonReimbursableTotal: 0,
     unheldReimbursableTotal: -400,
     wiseQuote,
-    wiseQuoteRequest: {full: true, amount: 1000, isFXCostPaidByCompany: true},
+    wiseQuoteRequest: {full: true, amount: 1000, bankAccountID: QUOTED_BANK_ACCOUNT_ID, isFXCostPaidByCompany: true},
 };
 
 describe('WiseQuoteUtils', () => {
@@ -34,8 +36,8 @@ describe('WiseQuoteUtils', () => {
             // Given a report with $10.00 reimbursable, of which $4.00 is not on hold
             // When the request is built for a full payment and for the unheld part
             // Then each asks for the amount that payment sends
-            expect(getWiseQuoteRequest(report, true, true)).toEqual({full: true, amount: 1000, isFXCostPaidByCompany: true});
-            expect(getWiseQuoteRequest(report, false, true)).toEqual({full: false, amount: 400, isFXCostPaidByCompany: true});
+            expect(getWiseQuoteRequest(report, true, QUOTED_BANK_ACCOUNT_ID, true)).toEqual({full: true, amount: 1000, bankAccountID: QUOTED_BANK_ACCOUNT_ID, isFXCostPaidByCompany: true});
+            expect(getWiseQuoteRequest(report, false, QUOTED_BANK_ACCOUNT_ID, true)).toEqual({full: false, amount: 400, bankAccountID: QUOTED_BANK_ACCOUNT_ID, isFXCostPaidByCompany: true});
         });
     });
 
@@ -44,7 +46,7 @@ describe('WiseQuoteUtils', () => {
             // Given a quote for paying the whole report, valid for 20 more minutes
             // When the admin pays the whole report again
             // Then the saved quote is shown right away instead of asking Wise for a new one
-            expect(canReuseWiseQuote(report, getWiseQuoteRequest(report, true, true), NOW)).toBe(true);
+            expect(canReuseWiseQuote(report, getWiseQuoteRequest(report, true, QUOTED_BANK_ACCOUNT_ID, true), NOW)).toBe(true);
         });
 
         it('asks for a new quote when the saved one expires within 5 minutes', () => {
@@ -53,14 +55,21 @@ describe('WiseQuoteUtils', () => {
 
             // When the admin pays the report
             // Then a new quote is fetched, so the shown price doesn't expire while the admin reviews it
-            expect(canReuseWiseQuote(expiringReport, getWiseQuoteRequest(expiringReport, true, true), NOW)).toBe(false);
+            expect(canReuseWiseQuote(expiringReport, getWiseQuoteRequest(expiringReport, true, QUOTED_BANK_ACCOUNT_ID, true), NOW)).toBe(false);
         });
 
         it('asks for a new quote when the admin pays only the expenses not on hold', () => {
             // Given a quote for paying the whole report
             // When the admin pays only the part not on hold
             // Then a new quote is fetched, since Wise priced a different amount
-            expect(canReuseWiseQuote(report, getWiseQuoteRequest(report, false, true), NOW)).toBe(false);
+            expect(canReuseWiseQuote(report, getWiseQuoteRequest(report, false, QUOTED_BANK_ACCOUNT_ID, true), NOW)).toBe(false);
+        });
+
+        it('asks for a new quote when the admin pays from another bank account', () => {
+            // Given a quote for paying the whole report from one bank account
+            // When the admin pays the whole report from another bank account
+            // Then a new quote is fetched, since Wise priced the transfer from the first account
+            expect(canReuseWiseQuote(report, getWiseQuoteRequest(report, true, OTHER_BANK_ACCOUNT_ID, true), NOW)).toBe(false);
         });
 
         it('asks for a new quote when the report total changed after the quote', () => {
@@ -69,14 +78,14 @@ describe('WiseQuoteUtils', () => {
 
             // When the admin pays the report
             // Then a new quote is fetched, since the saved one prices the old amount
-            expect(canReuseWiseQuote(editedReport, getWiseQuoteRequest(editedReport, true, true), NOW)).toBe(false);
+            expect(canReuseWiseQuote(editedReport, getWiseQuoteRequest(editedReport, true, QUOTED_BANK_ACCOUNT_ID, true), NOW)).toBe(false);
         });
 
         it('asks for a new quote when the workspace changed who pays the FX costs after the quote', () => {
             // Given a quote asked while the company paid the FX costs
             // When the admin pays the report after switching the workspace so the employee pays them
             // Then a new quote is fetched, since the saved one has the other side paying the fees
-            expect(canReuseWiseQuote(report, getWiseQuoteRequest(report, true, false), NOW)).toBe(false);
+            expect(canReuseWiseQuote(report, getWiseQuoteRequest(report, true, QUOTED_BANK_ACCOUNT_ID, false), NOW)).toBe(false);
         });
 
         it('asks for a new quote when the last request failed', () => {
@@ -85,7 +94,7 @@ describe('WiseQuoteUtils', () => {
 
             // When the admin pays the report
             // Then a new quote is fetched instead of showing the error again
-            expect(canReuseWiseQuote(failedReport, getWiseQuoteRequest(failedReport, true, true), NOW)).toBe(false);
+            expect(canReuseWiseQuote(failedReport, getWiseQuoteRequest(failedReport, true, QUOTED_BANK_ACCOUNT_ID, true), NOW)).toBe(false);
         });
     });
 

@@ -43,8 +43,8 @@ function getWiseKYCReviewEmbeddedLink(bankAccountID: number, redirectURL: string
  * Asks Wise for a price for paying the report, unless the report holds a valid one for the same payment.
  * The server merges the new quote into `report.wiseQuote`, so the old quote is dropped first.
  */
-function getWiseQuote(report: Report, full: boolean, isFXCostPaidByCompany: boolean | undefined) {
-    const request = getWiseQuoteRequest(report, full, isFXCostPaidByCompany);
+function getWiseQuote(report: Report, full: boolean, bankAccountID: number, isFXCostPaidByCompany: boolean | undefined) {
+    const request = getWiseQuoteRequest(report, full, bankAccountID, isFXCostPaidByCompany);
     if (canReuseWiseQuote(report, request)) {
         return;
     }
@@ -67,7 +67,7 @@ function getWiseQuote(report: Report, full: boolean, isFXCostPaidByCompany: bool
         ],
     };
 
-    read(READ_COMMANDS.GET_WISE_QUOTE, {reportID: report.reportID, full}, onyxData);
+    read(READ_COMMANDS.GET_WISE_QUOTE, {reportID: report.reportID, full, bankAccountID}, onyxData);
 }
 
 /** Drops the link, which carries a token */

@@ -9,10 +9,10 @@ const MIN_REUSED_QUOTE_VALIDITY_MS = 5 * 60 * 1000;
 /** A quote counts as expired this long before its expiry time, since the device clock can differ from the server's */
 const QUOTE_EXPIRY_MARGIN_MS = 30 * 1000;
 
-/** The payment a quote is asked for: the whole reimbursable amount, or only the part not on hold, and who pays the FX costs */
-function getWiseQuoteRequest(report: Report, full: boolean, isFXCostPaidByCompany: boolean | undefined): WiseQuoteRequest {
+/** The payment a quote is asked for, covering the whole reimbursable amount or only the part not on hold, the account paying it and who pays the FX costs */
+function getWiseQuoteRequest(report: Report, full: boolean, bankAccountID: number, isFXCostPaidByCompany: boolean | undefined): WiseQuoteRequest {
     // Expense report totals are stored as negative numbers
-    return {full, amount: Math.abs(full ? getReimbursableTotal(report) : getUnheldReimbursableTotal(report)), isFXCostPaidByCompany};
+    return {full, amount: Math.abs(full ? getReimbursableTotal(report) : getUnheldReimbursableTotal(report)), bankAccountID, isFXCostPaidByCompany};
 }
 
 /** Whether the report holds a quote for this same payment that stays valid long enough for the admin to review it */
@@ -22,7 +22,11 @@ function canReuseWiseQuote(report: Report, request: WiseQuoteRequest, now = Date
         return false;
     }
 
-    const isSamePayment = wiseQuoteRequest.full === request.full && wiseQuoteRequest.amount === request.amount && wiseQuoteRequest.isFXCostPaidByCompany === request.isFXCostPaidByCompany;
+    const isSamePayment =
+        wiseQuoteRequest.full === request.full &&
+        wiseQuoteRequest.amount === request.amount &&
+        wiseQuoteRequest.bankAccountID === request.bankAccountID &&
+        wiseQuoteRequest.isFXCostPaidByCompany === request.isFXCostPaidByCompany;
     const validityLeft = new Date(wiseQuote.expiresAt).getTime() - now;
     return isSamePayment && validityLeft > MIN_REUSED_QUOTE_VALIDITY_MS;
 }

@@ -75,10 +75,12 @@ jest.mock('@libs/ActiveClientManager', () => ({
 }));
 
 let mockShouldConfirmWiseQuote = false;
+// Bulk pay asks for quotes report by report, so a test can leave some reports out
+let mockReportIDsWithoutQuote = new Set<string>();
 jest.mock('@libs/BankAccountUtils', () => ({
     ...jest.requireActual<Record<string, unknown>>('@libs/BankAccountUtils'),
     shouldConfirmWiseQuoteBeforePaying: () => mockShouldConfirmWiseQuote,
-    shouldGetWiseQuote: () => mockShouldConfirmWiseQuote,
+    shouldGetWiseQuote: ({iouReport}: {iouReport?: {reportID: string}}) => mockShouldConfirmWiseQuote && !(iouReport && mockReportIDsWithoutQuote.has(iouReport.reportID)),
 }));
 
 jest.mock('@libs/actions/Search', () => {
@@ -1181,6 +1183,7 @@ describe('useSearchBulkActions - bulk pay Wise quote', () => {
 
     afterEach(async () => {
         mockShouldConfirmWiseQuote = false;
+        mockReportIDsWithoutQuote = new Set();
         await Onyx.clear();
     });
 
@@ -1210,6 +1213,46 @@ describe('useSearchBulkActions - bulk pay Wise quote', () => {
         expect(mockShowWiseQuoteCarouselModal).toHaveBeenCalledWith(expect.objectContaining({quotedReportIDs: ['1']}));
     });
 
+    it('asks for a quote only for the report paid in another currency, and still lists the domestic report', async () => {
+        // Given a selected report paid in another currency than the bank account, and a domestic report that Wise gives no quote for
+        mockReportIDsWithoutQuote = new Set(['3']);
+        mockSelectedReports = [makeSelectedReport({chatReportID: '2'}), makeSelectedReport({reportID: '3', chatReportID: '4'})];
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}3`, {reportID: '3', type: CONST.REPORT.TYPE.EXPENSE, chatReportID: '4', policyID: 'policy1'});
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+        await waitFor(() => {
+            expect(getPayOptionFromResult(result.current.headerButtonsOptions)).toBeDefined();
+        });
+
+        // When the user pays both with the business bank account
+        act(() => result.current.confirmPayment(CONST.IOU.PAYMENT_TYPE.VBBA, {bankAccountID: 999}));
+
+        // Then the carousel shows both reports but waits for the quote of the first one only, so Pay all doesn't wait for a quote that never comes
+        await waitFor(() =>
+            expect(mockShowWiseQuoteCarouselModal).toHaveBeenCalledWith(
+                expect.objectContaining({reports: [expect.objectContaining({reportID: '1'}), expect.objectContaining({reportID: '3'})], quotedReportIDs: ['1']}),
+            ),
+        );
+        expect(getWiseQuote).toHaveBeenCalledTimes(1);
+        expect(getWiseQuote).toHaveBeenCalledWith(expect.objectContaining({reportID: '1'}), true, 999, undefined);
+    });
+
+    it('asks Wise for a quote from the bank account picked in the pay popover', async () => {
+        // Given a selected report whose expenses need a Wise quote, on a workspace that pays from another account
+        const PICKED_BANK_ACCOUNT_ID = 999;
+        const WORKSPACE_BANK_ACCOUNT_ID = 888;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy1`, {achAccount: {bankAccountID: WORKSPACE_BANK_ACCOUNT_ID}});
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+        await waitFor(() => {
+            expect(getPayOptionFromResult(result.current.headerButtonsOptions)).toBeDefined();
+        });
+
+        // When the user picks a bank account that is not set as the workspace account
+        act(() => result.current.confirmPayment(CONST.IOU.PAYMENT_TYPE.VBBA, {bankAccountID: PICKED_BANK_ACCOUNT_ID}));
+
+        // Then Wise prices the transfer from that account, the same one the payment debits
+        await waitFor(() => expect(getWiseQuote).toHaveBeenCalledWith(expect.objectContaining({reportID: '1'}), true, PICKED_BANK_ACCOUNT_ID, undefined));
+    });
+
     it('asks for each quote with who pays the FX costs in the report workspace', async () => {
         // Given a selected report in a workspace where the employee pays the FX costs
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy1`, {globalReimbursementFXPreferCompany: false});
@@ -1222,7 +1265,7 @@ describe('useSearchBulkActions - bulk pay Wise quote', () => {
         act(() => result.current.confirmPayment(CONST.IOU.PAYMENT_TYPE.VBBA, {bankAccountID: 999}));
 
         // Then the quote is asked with the employee paying the FX costs, so a quote saved for the company paying them isn't reused
-        await waitFor(() => expect(getWiseQuote).toHaveBeenCalledWith(expect.objectContaining({reportID: '1'}), true, false));
+        await waitFor(() => expect(getWiseQuote).toHaveBeenCalledWith(expect.objectContaining({reportID: '1'}), true, 999, false));
     });
 });
 
