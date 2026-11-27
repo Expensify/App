@@ -1843,6 +1843,7 @@ const translations: TranslationDeepObject<typeof en> = {
             genericCreateFailureMessage: 'Errore imprevisto durante l’invio di questa nota spese. Riprova più tardi.',
             genericCreateInvoiceFailureMessage: 'Errore imprevisto nell’invio di questa fattura. Riprova più tardi.',
             genericHoldExpenseFailureMessage: 'Errore imprevisto durante il blocco di questa spesa. Riprova più tardi.',
+            genericMergeDuplicatesFailureMessage: "Errore imprevisto durante l'unione di queste spese. Riprova più tardi.",
             genericUnholdExpenseFailureMessage: 'Errore imprevisto durante la rimozione della sospensione di questa spesa. Riprova più tardi.',
             receiptDeleteFailureError: 'Errore imprevisto durante l’eliminazione di questa ricevuta. Riprova più tardi.',
             receiptFailureMessage:
@@ -1927,6 +1928,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expenseDuplicate: 'Questa spesa ha dettagli simili a un’altra. Controlla i duplicati per continuare.',
         someDuplicatesArePaid: 'Alcuni di questi duplicati sono già stati approvati o pagati.',
         someDuplicatesAreUnavailable: 'Non è stato possibile caricare alcuni di questi duplicati, quindi puoi solo conservarli tutti.',
+        cardDuplicatesCannotBeMerged: 'Le spese con carta non possono essere unite tra loro, quindi puoi solo conservarle tutte.',
         reviewDuplicates: 'Controlla duplicati',
         keepAll: 'Mantieni tutto',
         keepSelected: 'Mantieni selezionati',
@@ -2200,6 +2202,7 @@ const translations: TranslationDeepObject<typeof en> = {
             header: 'Conferma i dettagli',
             pageTitle: 'Conferma i dettagli che vuoi mantenere. I dettagli che non mantieni verranno eliminati.',
             confirmButton: 'Unisci spese',
+            sourceExpenseDeleted: 'Una di queste spese è stata eliminata, quindi non possono essere unite.',
         },
     },
     share: {
@@ -12338,6 +12341,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `La tariffa è valida solo a partire dal ${startDate}`,
         customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `La tariffa è valida solo fino al ${endDate}`,
         cannotMergeDuplicates: 'Puoi unire le spese solo nei report in bozza o in sospeso. Revoca il report e riprova.',
+        cannotMergeCardDuplicates: 'Le spese con carta non possono essere unite tra loro. Torna indietro e scegli Mantieni tutto.',
         overCategoryLimitPerNight: (formattedLimit: string) => `Tariffa notturna oltre il limite di categoria di ${formattedLimit}/persona`,
         shortName: {
             allTagLevelsRequired: 'Tutti i tag obbligatori',

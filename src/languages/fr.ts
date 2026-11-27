@@ -1853,6 +1853,7 @@ const translations: TranslationDeepObject<typeof en> = {
             genericCreateFailureMessage: 'Erreur inattendue lors de la soumission de cette dépense. Veuillez réessayer plus tard.',
             genericCreateInvoiceFailureMessage: 'Erreur inattendue lors de l’envoi de cette facture. Veuillez réessayer plus tard.',
             genericHoldExpenseFailureMessage: 'Erreur inattendue lors de la mise en attente de cette dépense. Veuillez réessayer ultérieurement.',
+            genericMergeDuplicatesFailureMessage: 'Erreur inattendue lors de la fusion de ces dépenses. Veuillez réessayer ultérieurement.',
             genericUnholdExpenseFailureMessage: 'Erreur inattendue lors de la levée de la mise en attente de cette dépense. Veuillez réessayer plus tard.',
             receiptDeleteFailureError: 'Erreur inattendue lors de la suppression de ce reçu. Veuillez réessayer plus tard.',
             receiptFailureMessage:
@@ -1938,6 +1939,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expenseDuplicate: 'Cette dépense présente des détails similaires à une autre. Veuillez examiner les doublons pour continuer.',
         someDuplicatesArePaid: 'Certains de ces doublons ont déjà été approuvés ou payés.',
         someDuplicatesAreUnavailable: "Certains de ces doublons n'ont pas pu être chargés, vous pouvez donc uniquement tous les conserver.",
+        cardDuplicatesCannotBeMerged: 'Les dépenses par carte ne peuvent pas être fusionnées entre elles, vous pouvez donc uniquement toutes les conserver.',
         reviewDuplicates: 'Examiner les doublons',
         keepAll: 'Tout garder',
         keepSelected: 'Garder la sélection',
@@ -2213,6 +2215,7 @@ const translations: TranslationDeepObject<typeof en> = {
             header: 'Confirmer les détails',
             pageTitle: 'Confirmez les informations que vous conservez. Les informations que vous ne conservez pas seront supprimées.',
             confirmButton: 'Fusionner les dépenses',
+            sourceExpenseDeleted: "L'une de ces dépenses a été supprimée, elles ne peuvent donc pas être fusionnées.",
         },
     },
     share: {
@@ -12421,6 +12424,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `Le taux n’est valable qu’à partir du ${startDate}`,
         customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `Le taux n’est valable que jusqu’au ${endDate}`,
         cannotMergeDuplicates: 'Vous ne pouvez fusionner des dépenses que sur des notes de frais à l’état de brouillon ou en circulation. Retirez-la puis réessayez.',
+        cannotMergeCardDuplicates: 'Les dépenses par carte ne peuvent pas être fusionnées entre elles. Revenez en arrière et choisissez Tout garder.',
         overCategoryLimitPerNight: (formattedLimit: string) => `Tarif de nuit supérieur à la limite de catégorie de ${formattedLimit}/personne`,
         shortName: {
             allTagLevelsRequired: 'Tous les tags sont obligatoires',

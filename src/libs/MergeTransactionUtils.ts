@@ -24,7 +24,7 @@ import {getAllNonDeletedTransactions} from './MoneyRequestReportUtils';
 import Parser from './Parser';
 import {getCommaSeparatedTagNameWithSanitizedColons} from './PolicyUtils';
 import {constructReceiptSourceFromFilename} from './ReceiptUtils';
-import {getIOUActionForReportID} from './ReportActionsUtils';
+import {getIOUActionForReportID, isDeletedAction} from './ReportActionsUtils';
 import {getReportName} from './ReportNameUtils';
 import {findSelfDMReportID, getReportOrDraftReport, getTransactionDetails, isIOUReport} from './ReportUtils';
 import StringUtils from './StringUtils';
@@ -531,6 +531,16 @@ function areTransactionsEligibleForMerge(transaction1: OnyxEntry<Transaction>, t
 }
 
 /**
+ * A transaction missing from Onyx doesn't count as deleted, because merge candidates can be on reports that were never
+ * loaded. A delete made elsewhere is caught through the IOU action instead, which stays in Onyx marked as deleted.
+ *
+ * @param isSourcePendingDelete - whether the live source transaction has a delete waiting to be sent
+ */
+function isMergeSourceDeleted(isSourcePendingDelete: boolean, sourceIOUAction: OnyxEntry<ReportAction>): boolean {
+    return isSourcePendingDelete || (!!sourceIOUAction && isDeletedAction(sourceIOUAction));
+}
+
+/**
  * Determines the correct target and source transactions for merging based on transaction types.
  *
  * Rules:
@@ -944,6 +954,7 @@ export {
     getMergeFieldUpdatedValues,
     getMergeFieldErrorText,
     areTransactionsEligibleForMerge,
+    isMergeSourceDeleted,
     DERIVED_MERGE_FIELDS,
     getRateFromMerchant,
     getTransactionsAndReportsFromSearch,

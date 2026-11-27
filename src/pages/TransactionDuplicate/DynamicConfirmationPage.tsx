@@ -28,7 +28,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
 import {resolveCurrentTaxCode} from '@libs/PolicyUtils';
-import {buildMergeDuplicatesParams, buildNewTransactionAfterReviewingDuplicates, canMergeDuplicates} from '@libs/TransactionUtils/duplicates';
+import {buildMergeDuplicatesParams, buildNewTransactionAfterReviewingDuplicates, canMergeDuplicates, hasMultipleCardImports} from '@libs/TransactionUtils/duplicates';
 
 import {fontScale} from '@styles/typography';
 
@@ -248,6 +248,11 @@ function DynamicConfirmationPage() {
                                     setMergeErrorMessage('');
                                     isDismissingRef.current = true;
                                     handleResolveDuplicates();
+                                    return;
+                                }
+                                // The review page already hides this merge, but a deep link can open this page directly
+                                if (hasMultipleCardImports([duplicatedTransaction, ...transactionsMergeParams.transactionList])) {
+                                    setMergeErrorMessage(translate('violations.cannotMergeCardDuplicates'));
                                     return;
                                 }
                                 // Auth's MergeTransactions also rejects a merge when the kept expense's report is no
