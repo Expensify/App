@@ -3984,6 +3984,24 @@ const translations = {
             updateAvatar: "There was a problem updating this agent's avatar",
         },
     },
+    connectionsPage: {
+        title: 'Connections',
+        gmail: {
+            title: 'Gmail',
+            description: 'Pull email receipts directly from your inbox.',
+            active: 'Active',
+            inactive: 'Inactive',
+            notSyncedYet: 'Never synced',
+            notSynced: 'Not synced',
+            removeConnection: 'Remove connection',
+            removeConnectionTitle: 'Remove Gmail connection',
+            removeConnectionPrompt: (email: string) => `Are you sure you want to stop importing receipts for ${email}? This action cannot be undone.`,
+            error: {
+                [CONST.OAUTH_CONNECTIONS.ERROR.INVALID_GRANT]: "Couldn't connect to Gmail due to incorrect credentials.",
+                [CONST.OAUTH_CONNECTIONS.ERROR.ADMIN_RESTRICTED]: 'Your Google Workspace admin needs to approve Expensify.',
+            },
+        },
+    },
     agentPromptUpdated: ({updatedBy, previousPrompt, newPrompt}: {updatedBy: string; previousPrompt: string; newPrompt: string}) =>
         `${updatedBy} updated this agent's instructions.\nPrevious instructions:\n${previousPrompt}\nNew instructions:\n${newPrompt}`,
     newAgentPage: {
@@ -5987,20 +6005,6 @@ const translations = {
             noResultsPrompt: '<muted-text><centered-text>Please adjust your search or <a href="#">suggest an integration</a>.</centered-text></muted-text>',
             allConnectedTitle: "You're all connected",
             allConnectedPrompt: '<muted-text><centered-text>Everything here is already connected. You can also <a href="#">suggest an integration</a>.</centered-text></muted-text>',
-            gmail: {
-                title: 'Gmail',
-                inactive: 'Inactive',
-                synced: (relativeTime: string) => `Synced ${relativeTime}`,
-                notSyncedYet: 'Never synced',
-                notSynced: 'Not synced',
-                removeConnection: 'Remove connection',
-                removeConnectionTitle: 'Remove Gmail connection',
-                removeConnectionPrompt: (email: string) => `Are you sure you want to stop importing receipts for ${email}? This action cannot be undone.`,
-                error: {
-                    [CONST.OAUTH_CONNECTIONS.ERROR.INVALID_GRANT]: "Couldn't connect to Gmail due to incorrect credentials.",
-                    [CONST.OAUTH_CONNECTIONS.ERROR.ADMIN_RESTRICTED]: 'Your Google Workspace admin needs to approve Expensify.',
-                },
-            },
         },
         receiptPartners: {
             uber: {
@@ -13433,6 +13437,7 @@ const translations = {
             completeHrSetup: 'Complete HR setup',
             theresAProblemWithAnHRConnection: "There's a problem with an HR connection",
             theresAProblemWithYourAgent: "There's a problem with your agent(s)",
+            theresAProblemWithAGmailConnection: "There's a problem with a Gmail connection",
         },
     },
     emptySearchView: {

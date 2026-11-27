@@ -10276,6 +10276,7 @@ const CONST = {
         HAS_HR_CONNECTION_ERROR: 'hasHRConnectionError',
         HAS_APPROVAL_WORKFLOW_NON_MEMBER_APPROVER: 'hasApprovalWorkflowNonMemberApprover',
         HAS_AGENT_ERRORS: 'hasAgentErrors',
+        HAS_GMAIL_CONNECTION_ERRORS: 'hasGmailConnectionErrors',
     },
 
     DEBUG: {

@@ -529,7 +529,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.CONNECTIONS_HR]: {path: ROUTES.WORKSPACE_CONNECTIONS_HR.route},
                         [SCREENS.WORKSPACE.CONNECTIONS_RECRUITING]: {path: ROUTES.WORKSPACE_CONNECTIONS_RECRUITING.route},
                         [SCREENS.WORKSPACE.CONNECTIONS_RECEIPT_PARTNERS]: {path: ROUTES.WORKSPACE_CONNECTIONS_RECEIPT_PARTNERS.route},
-                        [SCREENS.WORKSPACE.CONNECTIONS_GMAIL]: {path: ROUTES.WORKSPACE_CONNECTIONS_GMAIL.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_IMPORT]: {path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_IMPORT.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS]: {path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_CLASSES]: {path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CLASSES.route},
@@ -2538,6 +2537,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.AGENTS.ROOT]: {
                             path: ROUTES.SETTINGS_AGENTS,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.CONNECTIONS.ROOT]: {
+                            path: ROUTES.SETTINGS_CONNECTIONS,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.RULES.ROOT]: {

@@ -39,7 +39,6 @@ import goBackFromWorkspaceSettingPages from '@libs/Navigation/helpers/goBackFrom
 import WorkspaceCreationReveal from '@libs/Navigation/helpers/WorkspaceCreationReveal';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {hasGmailConnectionErrorSelector} from '@libs/OAuthConnectionUtils';
 import {canMemberRead, shouldShowPolicy as checkIfShouldShowPolicy, goBackFromInvalidPolicy, isPendingDeletePolicy} from '@libs/PolicyUtils';
 
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
@@ -105,7 +104,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
 
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${routePolicyID}`);
-    const [hasGmailConnectionError] = useOnyx(ONYXKEYS.NVP_PRIVATE_OAUTH_CONNECTIONS, {selector: hasGmailConnectionErrorSelector});
     const [hasMerchantRuleErrors] = useOnyx(ONYXKEYS.COLLECTION.RULE, {selector: createHasExpenseDefaultRuleErrorsSelector(policyID)});
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const {shouldShowEnterCredentialsError} = useGetReceiptPartnersIntegrationData(policyID);
@@ -215,7 +213,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         hasMerchantRuleErrors,
         previousPendingFields: prevPendingFields,
         shouldShowEnterCredentialsError,
-        hasGmailConnectionError: isBetaEnabled(CONST.BETAS.RECEIPT_SYNC) && !!hasGmailConnectionError,
         shouldShowRBR,
         hasApprovalWorkflowWithNonMemberApprover,
         isVendorMatchingBetaEnabled: isBetaEnabled(CONST.BETAS.VENDOR_MATCHING),

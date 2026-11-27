@@ -109,6 +109,8 @@ function getSettingsMessage(status: IndicatorStatus | undefined): TranslationPat
             return 'debug.indicatorStatus.theresAProblemWithAnHRConnection';
         case CONST.INDICATOR_STATUS.HAS_AGENT_ERRORS:
             return 'debug.indicatorStatus.theresAProblemWithYourAgent';
+        case CONST.INDICATOR_STATUS.HAS_GMAIL_CONNECTION_ERRORS:
+            return 'debug.indicatorStatus.theresAProblemWithAGmailConnection';
         default:
             return undefined;
     }
@@ -149,6 +151,8 @@ function getSettingsRoute(status: IndicatorStatus | undefined, reimbursementAcco
             return ROUTES.WORKSPACE_CONNECTIONS_HR.getRoute(indicatorPolicyID);
         case CONST.INDICATOR_STATUS.HAS_AGENT_ERRORS:
             return ROUTES.SETTINGS_AGENTS;
+        case CONST.INDICATOR_STATUS.HAS_GMAIL_CONNECTION_ERRORS:
+            return ROUTES.SETTINGS_CONNECTIONS;
         default:
             return undefined;
     }

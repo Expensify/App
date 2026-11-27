@@ -5,6 +5,7 @@
 import useIsAgentAccount from '@hooks/useIsAgentAccount';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -96,10 +97,11 @@ type MenuSection = {
 };
 
 function useSettingsNavigationMenuData(): {accountMenuItemsData: MenuSection; generalMenuItemsData: MenuSection} {
-    const icons = useMemoizedLazyExpensifyIcons(['Bot', 'Gear', 'Profile', 'Heart', 'Info', 'QuestionMark', 'Lightbulb', 'Lock', 'Users', 'CreditCard', 'Wallet', 'Bolt']);
+    const icons = useMemoizedLazyExpensifyIcons(['Bot', 'Gear', 'Profile', 'Heart', 'Info', 'QuestionMark', 'Lightbulb', 'Lock', 'Users', 'CreditCard', 'Wallet', 'Bolt', 'Link']);
     const [amountOwed = 0] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const subscriptionPlan = useSubscriptionPlan();
     const isAgentAccount = useIsAgentAccount();
+    const {isBetaEnabled} = usePermissions();
 
     const accountItems: MenuData[] = [
         {
@@ -154,6 +156,18 @@ function useSettingsNavigationMenuData(): {accountMenuItemsData: MenuSection; ge
             screenName: SCREENS.SETTINGS.AGENTS.ROOT,
             sentryLabel: CONST.SENTRY_LABEL.ACCOUNT.AGENTS,
             action: () => Navigation.navigate(ROUTES.SETTINGS_AGENTS),
+        });
+    }
+
+    if (isBetaEnabled(CONST.BETAS.RECEIPT_SYNC)) {
+        const agentsIndex = accountItems.findIndex((item) => item.screenName === SCREENS.SETTINGS.AGENTS.ROOT);
+        const previousIndex = agentsIndex === -1 ? accountItems.findIndex((item) => item.screenName === SCREENS.SETTINGS.RULES.ROOT) : agentsIndex;
+        accountItems.splice(previousIndex + 1, 0, {
+            translationKey: 'connectionsPage.title',
+            icon: icons.Link,
+            screenName: SCREENS.SETTINGS.CONNECTIONS.ROOT,
+            sentryLabel: CONST.SENTRY_LABEL.ACCOUNT.CONNECTIONS,
+            action: () => Navigation.navigate(ROUTES.SETTINGS_CONNECTIONS),
         });
     }
 

@@ -456,7 +456,6 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.CONNECTIONS_HR]: () => require<ReactComponentModule>('../../../../pages/workspace/connections/ConnectionsHRPage').default,
     [SCREENS.WORKSPACE.CONNECTIONS_RECRUITING]: () => require<ReactComponentModule>('../../../../pages/workspace/connections/ConnectionsRecruitingPage').default,
     [SCREENS.WORKSPACE.CONNECTIONS_RECEIPT_PARTNERS]: () => require<ReactComponentModule>('../../../../pages/workspace/connections/ConnectionsReceiptPartnersPage').default,
-    [SCREENS.WORKSPACE.CONNECTIONS_GMAIL]: () => require<ReactComponentModule>('../../../../pages/workspace/connections/ConnectionsGmailPage').default,
     [SCREENS.SETTINGS.PREFERENCES.LANGUAGE]: () => require<ReactComponentModule>('../../../../pages/settings/Preferences/LanguagePage').default,
     [SCREENS.SETTINGS.PREFERENCES.THEME]: () => require<ReactComponentModule>('../../../../pages/settings/Preferences/ThemePage').default,
     [SCREENS.SETTINGS.TROUBLESHOOT_SERVER]: () => require<ReactComponentModule>('../../../../pages/settings/Troubleshoot/ServerPage').default,

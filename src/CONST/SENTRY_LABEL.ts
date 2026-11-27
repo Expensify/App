@@ -1440,6 +1440,7 @@ const SENTRY_LABEL = {
         PROFILE: 'Account-Profile',
         WALLET: 'Account-Wallet',
         AGENTS: 'Account-Agents',
+        CONNECTIONS: 'Account-Connections',
         RULES: 'Account-Rules',
         PREFERENCES: 'Account-Preferences',
         COPILOT: 'Account-Copilot',
@@ -2739,8 +2740,6 @@ const SENTRY_LABEL = {
             MERGE_MENU_DISCONNECT: 'WorkspaceConnections-MergeMenuDisconnect',
             RECEIPT_PARTNERS_MENU_ENTER_CREDENTIALS: 'WorkspaceConnections-ReceiptPartnersMenuEnterCredentials',
             RECEIPT_PARTNERS_MENU_DISCONNECT: 'WorkspaceConnections-ReceiptPartnersMenuDisconnect',
-            GMAIL_MENU: 'WorkspaceConnections-GmailMenu',
-            GMAIL_MENU_REMOVE: 'WorkspaceConnections-GmailMenuRemove',
             MERGE_CONFIG_ROW: {
                 HR_GROUPS: 'WorkspaceConnections-MergeConfigRow-HRGroups',
                 HR_APPROVAL_MODE: 'WorkspaceConnections-MergeConfigRow-HRApprovalMode',
@@ -3517,6 +3516,10 @@ const SENTRY_LABEL = {
         NEW_RULE: 'SettingsRules-NewRule',
         CREATE_REPORT_SWITCH: 'SettingsRules-CreateReportSwitch',
         APPLY_TO_EXISTING_EXPENSES_SWITCH: 'SettingsRules-ApplyToExistingExpensesSwitch',
+    },
+    SETTINGS_CONNECTIONS: {
+        GMAIL_MENU: 'SettingsConnections-GmailMenu',
+        GMAIL_MENU_REMOVE: 'SettingsConnections-GmailMenuRemove',
     },
     SETTINGS_TEACHERS_UNITE: {
         I_KNOW_A_TEACHER: 'SettingsTeachersUnite-IKnowATeacher',

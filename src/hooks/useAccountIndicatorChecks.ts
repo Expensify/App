@@ -2,6 +2,7 @@ import {hasPaymentMethodError} from '@libs/actions/PaymentMethods';
 import {hasAgentErrorsSelector} from '@libs/AgentUtils';
 import {hasPartiallySetupBankAccount, hasPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
 import {hasCardPendingDigitalWalletApproval, hasPendingExpensifyCardAction} from '@libs/CardUtils';
+import {hasGmailConnectionErrorSelector} from '@libs/OAuthConnectionUtils';
 import {hasSubscriptionGreenDotInfo, hasSubscriptionRedDotError} from '@libs/SubscriptionUtils';
 import {expensifyLoginsSelector, hasDeviceManagementError, hasIntegrationServerLoginError, hasLoginListError, hasLoginListInfo} from '@libs/UserUtils';
 
@@ -14,6 +15,7 @@ import type IndicatorStatus from '@src/types/utils/IndicatorStatus';
 
 import useCardFeedErrors from './useCardFeedErrors';
 import useOnyx from './useOnyx';
+import usePermissions from './usePermissions';
 import usePoliciesWithCardFeedErrors from './usePoliciesWithCardFeedErrors';
 
 type AccountIndicatorChecksResult = {
@@ -48,6 +50,8 @@ function useAccountIndicatorChecks(): AccountIndicatorChecksResult {
     const [hasDeviceManagementErrorValue] = useOnyx(ONYXKEYS.LOGINS, {selector: hasDeviceManagementError});
     const [hasIntegrationServerError] = useOnyx(ONYXKEYS.LOGINS, {selector: hasIntegrationServerLoginError});
     const [hasAgentError] = useOnyx(ONYXKEYS.COLLECTION.AGENT, {selector: hasAgentErrorsSelector});
+    const [hasGmailConnectionError] = useOnyx(ONYXKEYS.NVP_PRIVATE_OAUTH_CONNECTIONS, {selector: hasGmailConnectionErrorSelector});
+    const {isBetaEnabled} = usePermissions();
 
     const {
         companyCards: {shouldShowRBR: hasCompanyCardFeedErrors},
@@ -82,6 +86,7 @@ function useAccountIndicatorChecks(): AccountIndicatorChecksResult {
         [CONST.INDICATOR_STATUS.HAS_LOCKED_BANK_ACCOUNT, Object.values(bankAccountList ?? {}).some((bankAccount) => bankAccount?.accountData?.state === CONST.BANK_ACCOUNT.STATE.LOCKED)],
         [CONST.INDICATOR_STATUS.HAS_DEVICE_MANAGEMENT_ERROR, hasDeviceManagementErrorValue],
         [CONST.INDICATOR_STATUS.HAS_AGENT_ERRORS, !!hasAgentError],
+        [CONST.INDICATOR_STATUS.HAS_GMAIL_CONNECTION_ERRORS, isBetaEnabled(CONST.BETAS.RECEIPT_SYNC) && !!hasGmailConnectionError],
     ];
 
     const infoChecks: Array<[IndicatorStatus, boolean]> = [

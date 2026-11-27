@@ -2902,6 +2902,7 @@ const ROUTES = {
         route: 'settings/agents/r/:reportID',
         getRoute: (reportID: string) => `settings/agents/r/${reportID}` as const,
     },
+    SETTINGS_CONNECTIONS: 'settings/connections',
     SETTINGS_RULES: 'settings/rules',
     SETTINGS_RULES_ADD: {
         route: 'settings/rules/new/:field?/:index?',
@@ -3876,15 +3877,6 @@ const ROUTES = {
                 Log.warn('Invalid policyID is used to build the WORKSPACE_CONNECTIONS_RECEIPT_PARTNERS route');
             }
             return `workspaces/${policyID}/connections/receipt-partners` as const;
-        },
-    },
-    WORKSPACE_CONNECTIONS_GMAIL: {
-        route: 'workspaces/:policyID/connections/gmail',
-        getRoute: (policyID: string | undefined) => {
-            if (!policyID) {
-                Log.warn('Invalid policyID is used to build the WORKSPACE_CONNECTIONS_GMAIL route');
-            }
-            return `workspaces/${policyID}/connections/gmail` as const;
         },
     },
     WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ADVANCED: {
