@@ -3432,6 +3432,7 @@ const CONST = {
     },
     HTTP_HEADER_NAMES: {
         AUTH_TOKEN: 'authToken',
+        AUTHORIZATION: 'Authorization',
     },
     ERROR: {
         XHR_FAILED: 'xhrFailed',

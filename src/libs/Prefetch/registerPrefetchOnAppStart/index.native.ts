@@ -75,6 +75,10 @@ function removeAppVersionFromPrefetchBody(body: RequestInit['body']): RequestIni
     return prefetchBody;
 }
 
+/**
+ * Nitro maps the refreshed token without checking its format, and Auth can switch it between hex and JWT when the beta flips. So the header mapping is
+ * registered for every token: the server prefers the body parameter and ignores a Bearer header that isn't a JWT.
+ */
 function registerPrefetchTokenRefresh(): void {
     const credentials = getCredentials();
 
@@ -95,6 +99,7 @@ function registerPrefetchTokenRefresh(): void {
         },
         body: buildAuthenticateBody(credentials),
         responseType: 'json',
+        mappings: [{jsonPath: CONST.HTTP_HEADER_NAMES.AUTH_TOKEN, header: CONST.HTTP_HEADER_NAMES.AUTHORIZATION, valueTemplate: 'Bearer {{value}}'}],
         formDataMappings: [{jsonPath: CONST.HTTP_HEADER_NAMES.AUTH_TOKEN, field: CONST.HTTP_HEADER_NAMES.AUTH_TOKEN}],
         onFailure: 'useStoredHeaders',
     });

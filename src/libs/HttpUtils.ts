@@ -16,6 +16,7 @@ import {alertUser} from './actions/UpdateRequired';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from './API/types';
 import {getCommandURL} from './ApiUtils';
 import HttpsError from './Errors/HttpsError';
+import getJWTAuthorizationHeader from './Network/getJWTAuthorizationHeader';
 import {setLoadTestParameters} from './Network/LoadTestState';
 import preparePrefetchRequest from './Prefetch/preparePrefetchRequest';
 import registerPrefetchOnAppStart from './Prefetch/registerPrefetchOnAppStart';
@@ -87,6 +88,7 @@ function processHTTPRequest<TKey extends OnyxKey>(
     body: FormData | null = null,
     abortSignal: AbortSignal | undefined = undefined,
     shouldSkipPrefetch = false,
+    authorizationHeaders: Record<string, string> | undefined = undefined,
 ): Promise<Response<TKey>> {
     const startTime = new Date().valueOf();
 
@@ -94,13 +96,14 @@ function processHTTPRequest<TKey extends OnyxKey>(
 
     const {prefetchKey, prefetchHeaders} = shouldSkipPrefetch ? {prefetchKey: undefined, prefetchHeaders: undefined} : preparePrefetchRequest(command);
     let isPrefetchedResponse = false;
+    const headers = authorizationHeaders || prefetchHeaders ? {...authorizationHeaders, ...prefetchHeaders} : undefined;
 
     const fetchParams: NonNullable<Parameters<typeof nitroFetch>[1]> = {
         // We hook requests to the same Controller signal, so we can cancel them all at once
         signal: abortSignal,
         method,
         body,
-        headers: prefetchHeaders,
+        headers,
         // On Web fetch already defaults to 'omit' for credentials, but it seems that this is not the case for the ReactNative implementation
         // so to avoid sending cookies with the request we set it to 'omit' explicitly
         // this avoids us sending specially the expensifyWeb cookie, which makes a CSRF token required
@@ -249,7 +252,7 @@ function processHTTPRequest<TKey extends OnyxKey>(
                 // https://github.com/Expensify/App/pull/103842 leaves appversion out of saved bodies, but bodies saved by older builds still have it.
                 // Retry without the prefetchKey, because nitro-fetch can serve the same cached response again for a few seconds.
                 if (isPrefetchedResponse) {
-                    return processHTTPRequest<TKey>(url, method, body, abortSignal, true);
+                    return processHTTPRequest<TKey>(url, method, body, abortSignal, true, authorizationHeaders);
                 }
 
                 // Trigger a modal and disable the app as the user needs to upgrade to the latest minimum version to continue
@@ -284,7 +287,8 @@ function xhr<TKey extends OnyxKey>(
         const url = getCommandURL({shouldUseSecure, command});
         const abortSignalController = data.canCancel ? (abortControllerMap.get(command as AbortCommand) ?? abortControllerMap.get(ABORT_COMMANDS.All)) : undefined;
 
-        return processHTTPRequest(url, type, formData, abortSignalController?.signal);
+        // The header carries the same token as the authToken parameter, which callers can override (e.g. for LogOut or 2FA)
+        return processHTTPRequest(url, type, formData, abortSignalController?.signal, false, getJWTAuthorizationHeader(url, data.authToken));
     });
 }
 
