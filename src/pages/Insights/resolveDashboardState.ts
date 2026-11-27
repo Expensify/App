@@ -37,6 +37,9 @@ type InsightsDashboardChart = InsightsChartQuery & {
 
     /** The chart's stages some workspace in scope is eligible for, set when the chart declares stages */
     stages?: InsightsChartStage[];
+
+    /** Whether new data is on its way, so the chart shows its loading state instead of an empty one, while still showing any data it already has */
+    isAwaitingData?: boolean;
 };
 
 /** Checks whether GetInsights has responded for the dashboard's filters, since only its response sets `inputQuery`. */

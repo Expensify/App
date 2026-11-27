@@ -1,6 +1,6 @@
 import formatTagParentPath from '@libs/formatTagParentPath';
 
-import {getFittingTagLevel, getInsightsTagLevelOptions, getStoredTagLevels, isTagLevelFallbackPending} from '@pages/Insights/insightsTagLevels';
+import {getCachedTagLevels, getFittingTagLevel, getInsightsTagLevelOptions, getStoredTagLevels, isTagLevelFallbackPending} from '@pages/Insights/insightsTagLevels';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -78,6 +78,34 @@ describe('Insights tag levels', () => {
             {value: 1, label: 'Region'},
             {value: 3, label: 'Tag level 3'},
         ]);
+    });
+
+    describe('getCachedTagLevels', () => {
+        const tagList = (name: string, orderWeight: number) => ({name, orderWeight, required: false, tags: {}});
+
+        it('builds levels from the tag lists on the device, in list order, across workspaces', () => {
+            // Given two workspaces with tag lists on the device, one stored out of order
+            const policyTags = {
+                [`${ONYXKEYS.COLLECTION.POLICY_TAGS}A`]: {Project: tagList('Project', 1), Department: tagList('Department', 0)},
+                [`${ONYXKEYS.COLLECTION.POLICY_TAGS}B`]: {Region: tagList('Region', 0)},
+            };
+
+            // When levels are built for both
+            // Then each position collects the names the workspaces give it
+            expect(getCachedTagLevels(policyTags, ['A', 'B'])).toEqual([
+                {level: 1, names: ['Department', 'Region']},
+                {level: 2, names: ['Project']},
+            ]);
+        });
+
+        it('has nothing to offer when no workspace in scope has tag lists on the device', () => {
+            // Given tag lists only for a workspace outside the scope
+            const policyTags = {[`${ONYXKEYS.COLLECTION.POLICY_TAGS}A`]: {Department: tagList('Department', 0)}};
+
+            // When levels are built for another workspace
+            // Then there are none, so the menu falls back to its default
+            expect(getCachedTagLevels(policyTags, ['B'])).toBeUndefined();
+        });
     });
 
     describe('isTagLevelFallbackPending', () => {

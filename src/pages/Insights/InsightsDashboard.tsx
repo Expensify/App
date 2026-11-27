@@ -25,6 +25,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getInsights} from '@libs/actions/Insights';
 import {rand64} from '@libs/NumberUtils';
+import {isPolicyEligibleForTopTags} from '@libs/SearchUIUtils';
 
 import variables from '@styles/variables';
 
@@ -473,14 +474,13 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
             [queryJSON, previousPeriodQueryJSON, averageQueryJSON].flatMap((chartQueryJSON) => (chartQueryJSON ? [String(chartQueryJSON.hash)] : [])),
         ),
     );
-    // The response for a level no workspace in scope has holds no tagged expenses, so Top tags shows its loading state instead of an empty chart until the level falls back and its data arrives
+    // The response for a level no workspace in scope has holds no tagged expenses, so Top tags shows its loading state instead of an empty chart until the level falls back and its data arrives. A stored response can be older than the chart's cached data, so data the chart already has stays on screen.
     const isTopTagsWaitingForLevel = isTagLevelFallbackPending(dashboard, filters.tagLevel, isOffline);
     const charts = visibleChartQueries.map((chartQuery): InsightsDashboardChart => {
         const graph = dashboard?.graphs?.[chartQuery.chart.graphKey];
-        const isWaitingForData = isTopTagsWaitingForLevel && chartQuery.chart.graphKey === CONST.INSIGHTS.GRAPH.TOP_TAGS;
         return {
             ...chartQuery,
-            snapshot: chartQuery.queryJSON && !isWaitingForData ? snapshots[chartQuery.queryJSON.hash] : undefined,
+            snapshot: chartQuery.queryJSON ? snapshots[chartQuery.queryJSON.hash] : undefined,
             previousPeriodSnapshot: chartQuery.previousPeriodQueryJSON ? snapshots[chartQuery.previousPeriodQueryJSON.hash] : undefined,
             averageSnapshot: chartQuery.averageQueryJSON ? snapshots[chartQuery.averageQueryJSON.hash] : undefined,
             average: {
@@ -491,11 +491,13 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
             isDashboardLoaded: hasDashboardResponse(dashboard),
             eligiblePolicyIDs: graph?.eligiblePolicyIDs,
             stages: getEnabledStages(chartQuery.chart, policiesInScope, login, isDashboardPolicyEligible),
+            isAwaitingData: isTopTagsWaitingForLevel && chartQuery.chart.graphKey === CONST.INSIGHTS.GRAPH.TOP_TAGS,
         };
     });
     const tagLevelOptions = useInsightsTagLevelOptions({
         respondedTagLevels: hasLatestResponse ? dashboard?.tagLevels : undefined,
         policyIDs: filters.policyIDs,
+        tagPolicyIDs: dashboardID === CONST.INSIGHTS.DASHBOARD.SPEND ? policiesInScope.filter(isPolicyEligibleForTopTags).map(({id}) => id) : [],
         selectedTagLevel: filters.tagLevel,
         canChangeFilters: !isExporting,
         setFilters,

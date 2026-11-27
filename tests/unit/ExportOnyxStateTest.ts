@@ -15,6 +15,17 @@ describe('maskOnyxState', () => {
         creationDate: '2024-01-01',
     };
 
+    it('masks the tag level names stored with an Insights dashboard', () => {
+        // Given a Spend dashboard whose tag levels are named after a client
+        const input = {[`${ONYXKEYS.COLLECTION.INSIGHTS}${CONST.INSIGHTS.DASHBOARD.SPEND}_1`]: {tagLevels: [{level: 1, names: ['Private client', 'Region']}]}};
+
+        // When the state is exported with masking on
+        const result = maskOnyxState(input, true);
+
+        // Then the names are masked like tag-list names, while the level positions stay readable
+        expect(result).toEqual({[`${ONYXKEYS.COLLECTION.INSIGHTS}${CONST.INSIGHTS.DASHBOARD.SPEND}_1`]: {tagLevels: [{level: 1, names: ['***', '***']}]}});
+    });
+
     it('preserves recursive categories and redacts private values in mutable and readonly arrays', () => {
         // Given exported state with unknown nested values, both array categories and masked-key arrays
         const readonlyItems: readonly unknown[] = [null, undefined, 7, {merchant: 'Private merchant', nested: ['user@example.com', {authToken: 'Private token'}]}];

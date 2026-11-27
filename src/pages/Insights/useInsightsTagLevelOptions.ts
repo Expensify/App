@@ -11,7 +11,7 @@ import {useEffect, useEffectEvent} from 'react';
 import type {InsightsFilters} from './insightsFilters';
 import type {InsightsTagLevelOption} from './insightsTagLevels';
 
-import {getFittingTagLevel, getInsightsTagLevelOptions, getStoredTagLevels} from './insightsTagLevels';
+import {getCachedTagLevels, getFittingTagLevel, getInsightsTagLevelOptions, getStoredTagLevels} from './insightsTagLevels';
 
 type UseInsightsTagLevelOptionsParams = {
     /** Levels from a response for the current filters that arrived while the dashboard is open, the only ones a reset can trust */
@@ -19,6 +19,9 @@ type UseInsightsTagLevelOptionsParams = {
 
     /** Workspaces the dashboard is scoped to, which are what the levels depend on */
     policyIDs: string[];
+
+    /** Workspaces in scope whose tags Top tags groups by, whose tag lists on the device stand in until a GetInsights response lists the levels */
+    tagPolicyIDs: string[];
 
     /** Level the dashboard filters by, undefined outside Spend */
     selectedTagLevel: number | undefined;
@@ -28,11 +31,20 @@ type UseInsightsTagLevelOptionsParams = {
     setFilters: (update: Partial<InsightsFilters>) => void;
 };
 
-function useInsightsTagLevelOptions({respondedTagLevels, policyIDs, selectedTagLevel, canChangeFilters, setFilters}: UseInsightsTagLevelOptionsParams): InsightsTagLevelOption[] {
+function useInsightsTagLevelOptions({
+    respondedTagLevels,
+    policyIDs,
+    tagPolicyIDs,
+    selectedTagLevel,
+    canChangeFilters,
+    setFilters,
+}: UseInsightsTagLevelOptionsParams): InsightsTagLevelOption[] {
     const {translate, numberFormat} = useLocalize();
     // Each filter change reads a new response, so the newest levels stored for the same workspaces keep the menu up until it arrives, including offline and after a reload.
     const [storedTagLevels] = useOnyx(ONYXKEYS.COLLECTION.INSIGHTS, {selector: (dashboards) => getStoredTagLevels(dashboards, policyIDs)});
-    const options = getInsightsTagLevelOptions(storedTagLevels, selectedTagLevel, (level) => translate('insightsPage.tagLevel', numberFormat(level)));
+    // Responses stored before GetInsights listed tag levels have none, so the tag lists on the device stand in until one does
+    const [cachedTagLevels] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: (policyTags) => (storedTagLevels ? undefined : getCachedTagLevels(policyTags, tagPolicyIDs))});
+    const options = getInsightsTagLevelOptions(storedTagLevels ?? cachedTagLevels, selectedTagLevel, (level) => translate('insightsPage.tagLevel', numberFormat(level)));
 
     const resetUnavailableTagLevel = useEffectEvent((loadedTagLevels: InsightsTagLevel[]) => {
         const tagLevel = selectedTagLevel ?? CONST.INSIGHTS.DEFAULT_TAG_LEVEL;

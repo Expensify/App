@@ -668,6 +668,7 @@ const keysToMask = new Set([
     'merchant',
     'modifiedMerchant',
     'name',
+    'names',
     'netSuiteTokenID',
     'netSuiteTokenSecret',
     'oldAccessToken',

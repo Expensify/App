@@ -13,6 +13,7 @@ import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 type HookProps = {
     respondedTagLevels?: InsightsTagLevel[];
     policyIDs?: string[];
+    tagPolicyIDs?: string[];
     selectedTagLevel: number;
     canChangeFilters?: boolean;
 };
@@ -37,8 +38,8 @@ async function storeSpendResponse(tagLevels: InsightsTagLevel[]) {
 function renderOptionsHook(initialProps: HookProps) {
     const setFilters = jest.fn();
     const hook = renderHook(
-        ({respondedTagLevels, policyIDs = [], selectedTagLevel, canChangeFilters = true}: HookProps) =>
-            useInsightsTagLevelOptions({respondedTagLevels, policyIDs, selectedTagLevel, canChangeFilters, setFilters}),
+        ({respondedTagLevels, policyIDs = [], tagPolicyIDs = policyIDs, selectedTagLevel, canChangeFilters = true}: HookProps) =>
+            useInsightsTagLevelOptions({respondedTagLevels, policyIDs, tagPolicyIDs, selectedTagLevel, canChangeFilters, setFilters}),
         {initialProps},
     );
     return {...hook, setFilters};
@@ -109,6 +110,27 @@ describe('useInsightsTagLevelOptions', () => {
         rerender({policyIDs: ['B'], selectedTagLevel: 1});
 
         // Then the levels of the other workspaces are not offered
+        await waitFor(() => expect(result.current).toHaveLength(1));
+    });
+
+    it('uses the tag lists on the device until a stored response lists the levels', async () => {
+        // Given workspace A's two tag lists on the device and no stored response that lists tag levels, as right after an update
+        const tagList = {required: false, tags: {}};
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}A`, {Department: {...tagList, name: 'Department', orderWeight: 0}, Project: {...tagList, name: 'Project', orderWeight: 1}});
+            await waitForBatchedUpdates();
+        });
+
+        // When the dashboard for workspace A opens
+        const {result} = renderOptionsHook({policyIDs: ['A'], selectedTagLevel: 1});
+
+        // Then the menu offers both levels from the tag lists
+        await waitFor(() => expect(result.current).toEqual(expect.arrayContaining([{value: 2, label: 'Project'}])));
+
+        // When a response that lists the levels is stored
+        await storeSpendResponse([{level: 1, names: ['Department']}]);
+
+        // Then the stored response takes over
         await waitFor(() => expect(result.current).toHaveLength(1));
     });
 
