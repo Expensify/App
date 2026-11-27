@@ -18,9 +18,12 @@ import {View} from 'react-native';
 type UseScrollableWrapperOptions = {
     shouldUseScrollView?: boolean;
     width?: number;
+
+    /** Whether the parent modal runs in edge-to-edge mode and leaves the bottom safe area inset to the content */
+    enableEdgeToEdgeBottomSafeAreaPadding: boolean;
 };
 
-function useScrollableWrapper({shouldUseScrollView: shouldUseScrollViewProp = false, width}: UseScrollableWrapperOptions) {
+function useScrollableWrapper({shouldUseScrollView: shouldUseScrollViewProp = false, width, enableEdgeToEdgeBottomSafeAreaPadding}: UseScrollableWrapperOptions) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {onboardingIsMediumOrLargerScreenWidth, isInLandscapeMode} = useResponsiveLayout();
@@ -29,12 +32,12 @@ function useScrollableWrapper({shouldUseScrollView: shouldUseScrollViewProp = fa
 
     const shouldUseScrollView = shouldUseScrollViewProp || isInLandscapeMode;
 
-    // The modal runs in edge-to-edge mode, so the bottom inset belongs on the content. It is only needed while the modal is
-    // bottom-docked, which is exactly when `onboardingIsMediumOrLargerScreenWidth` is false, and it must be dropped while the
-    // keyboard is up, otherwise a gap appears above it.
+    // The bottom inset is only needed while the modal is bottom-docked, which is exactly when `onboardingIsMediumOrLargerScreenWidth`
+    // is false, and it must be dropped while the keyboard is up, otherwise a gap appears above it.
     const shouldAddBottomSafeAreaPadding = !onboardingIsMediumOrLargerScreenWidth && !isKeyboardActive;
+    // Without a ScrollView, the inset is only added for edge-to-edge modals. Other parents (e.g. `CenteredModalLayout`) already apply it.
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({
-        addBottomSafeAreaPadding: !shouldUseScrollView && shouldAddBottomSafeAreaPadding,
+        addBottomSafeAreaPadding: enableEdgeToEdgeBottomSafeAreaPadding && !shouldUseScrollView && shouldAddBottomSafeAreaPadding,
         addOfflineIndicatorBottomSafeAreaPadding: false,
     });
 

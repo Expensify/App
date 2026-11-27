@@ -129,6 +129,7 @@ function FeatureTrainingModal({
                 }}
                 onClose={closeModal}
                 width={width}
+                enableEdgeToEdgeBottomSafeAreaPadding
             >
                 {children}
             </FeatureTraining>

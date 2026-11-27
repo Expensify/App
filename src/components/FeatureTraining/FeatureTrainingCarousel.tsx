@@ -76,7 +76,15 @@ function splitPageChildren(pageChildren: ReactNode): SplitPage {
     return {illustration, body, bodyText};
 }
 
-function FeatureTrainingCarousel({onConfirm, onClose, onPageChange, shouldUseScrollView = false, width = variables.featureTrainingModalWidth, children}: FeatureTrainingCarouselProps) {
+function FeatureTrainingCarousel({
+    onConfirm,
+    onClose,
+    onPageChange,
+    shouldUseScrollView = false,
+    width = variables.featureTrainingModalWidth,
+    enableEdgeToEdgeBottomSafeAreaPadding = false,
+    children,
+}: FeatureTrainingCarouselProps) {
     const [currentPage, setCurrentPage] = useState(0);
     const [carouselViewportWidth, setCarouselViewportWidth] = useState(0);
     const horizontalListRef = useRef<RNFlatList<SplitPage>>(null);
@@ -85,7 +93,13 @@ function FeatureTrainingCarousel({onConfirm, onClose, onPageChange, shouldUseScr
     const [contentMinHeight, setContentMinHeight] = useState<number | undefined>(undefined);
     const measuredHeightsRef = useRef<Record<number, number>>({});
 
-    const {Wrapper, wrapperProps, setContainerHeight, shouldUseScrollView: usingScrollView, isInLandscapeMode} = useScrollableWrapper({shouldUseScrollView, width});
+    const {
+        Wrapper,
+        wrapperProps,
+        setContainerHeight,
+        shouldUseScrollView: usingScrollView,
+        isInLandscapeMode,
+    } = useScrollableWrapper({shouldUseScrollView, width, enableEdgeToEdgeBottomSafeAreaPadding});
 
     const pageList: SplitPage[] = [];
     React.Children.forEach(children, (child) => {
