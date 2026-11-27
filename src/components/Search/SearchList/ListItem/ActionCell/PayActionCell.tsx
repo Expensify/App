@@ -11,6 +11,7 @@ import {useReportPaymentContext} from '@hooks/usePaymentContext';
 import usePayViaABA from '@hooks/usePayViaABA';
 import usePayWithWiseQuote from '@hooks/usePayWithWiseQuote';
 import usePolicy from '@hooks/usePolicy';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -18,7 +19,7 @@ import {payInvoice} from '@libs/actions/IOU/PayMoneyRequest';
 import {getChatReportWithFallback, getSearchPayOnyxData} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
-import {canIOUBePaid, getReimbursableTotal, isArchivedReport, isIndividualInvoiceRoom, isInvoiceReport} from '@libs/ReportUtils';
+import {canIOUBePaid, getReimbursableTotal, isIndividualInvoiceRoom, isInvoiceReport} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -52,9 +53,6 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
     const policy = usePolicy(policyID);
     const {payReportsViaABA, isDownloadingABAFile} = usePayViaABA();
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
-    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
 
     const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
     const invoiceReceiverPolicy = usePolicy(invoiceReceiverPolicyID);
@@ -74,7 +72,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
         chatReportPolicyID: chatReport?.policyID,
     });
 
-    const isChatReportArchived = isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReport?.reportID}`]);
+    const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
     const canBePaid = canIOUBePaid(
         iouReport,
         chatReport,
@@ -140,6 +138,8 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
                 Log.info('[SearchPay] Dropping invoice row pay: chat report is not loaded', false, {reportID});
                 return;
             }
+            // eslint-disable-next-line rulesdir/no-onyx-get-snapshot-key -- deliberately live, not the Search snapshot the old useOnyx read outside to-do lists: payInvoice builds optimistic data against live keys, so reports and name-value pairs must be live to find the existing invoice room
+            const [allReports, reportNameValuePairs] = await Onyx.multiGet([ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS]);
             const existingB2BInvoiceReport = getParticipantsInvoiceReport(
                 allReports,
                 reportNameValuePairs,
@@ -152,8 +152,9 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
             // when paying an individual invoice room as a business. `payAsBusiness` is only known at click time, so pick
             // the right report's actions here in the function scope.
             const shouldUseB2BInvoiceReport = !!payAsBusiness && !!existingB2BInvoiceReport && isIndividualInvoiceRoom(chatReport);
-            const chatReportActions =
-                allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(shouldUseB2BInvoiceReport ? existingB2BInvoiceReport?.reportID : chatReport?.reportID)}`];
+            const chatReportActionsID = getNonEmptyStringOnyxID(shouldUseB2BInvoiceReport ? existingB2BInvoiceReport?.reportID : chatReport?.reportID);
+            // eslint-disable-next-line rulesdir/no-onyx-get-snapshot-key -- deliberately live, not the Search snapshot the old useOnyx read outside to-do lists: the payment updates the report preview in live report actions, so it must find it there
+            const chatReportActions = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportActionsID}`);
 
             const {conciergeChat, rules, introSelected, isTrackIntentUser, isSelfTourViewed} = await readPaymentInputs();
             payInvoice({
@@ -201,6 +202,8 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
         }
 
         const {conciergeChat, rules, introSelected, userBillingGracePeriodEnds, amountOwed, ownerBillingGracePeriodEnd, isTrackIntentUser, isSelfTourViewed} = await readPaymentInputs();
+        // eslint-disable-next-line rulesdir/no-onyx-get-snapshot-key -- deliberately live, not the Search snapshot the old useOnyx read outside to-do lists: the payment updates the report preview in live report actions, so it must find it there
+        const chatReportActions = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(chatReport?.reportID)}`);
         payWithWiseQuote({
             bankAccountList,
             isASAPSubmitBetaEnabled,
@@ -223,7 +226,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
             methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
             isWiseReimbursementsBetaEnabled,
             additionalOnyxData,
-            chatReportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(chatReport?.reportID)}`],
+            chatReportActions,
             delegateAccountID,
             isTrackIntentUser,
             conciergeChat,

@@ -42,6 +42,7 @@ import type {EmitterSubscription, View} from 'react-native';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {Dimensions} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 import type {AnchorPosition, ContinueActionParams, DomRect, KYCWallProps, PaymentMethod} from './types';
 
@@ -95,8 +96,6 @@ function KYCWall({
     const localCurrency = currentUserDetails.localCurrencyCode ?? CONST.CURRENCY.USD;
     const reportPreviewAction = useParentReportAction(iouReport);
     const reportTransactions = useReportTransactions(iouReport?.reportID);
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const anchorRef = useRef<ComponentRef<typeof View>>(null);
     const transferBalanceButtonRef = useRef<unknown>(null);
 
@@ -150,7 +149,7 @@ function KYCWall({
     }, [getAnchorPosition]);
 
     const selectPaymentMethod = useCallback(
-        (paymentMethod?: PaymentMethod, policy?: Policy, personalBankAccountOnSuccessFallbackRoute?: Route) => {
+        async (paymentMethod?: PaymentMethod, policy?: Policy, personalBankAccountOnSuccessFallbackRoute?: Route) => {
             const canLinkExistingBusinessBankAccount = getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency, true).length > 0;
 
             if (paymentMethod) {
@@ -167,8 +166,10 @@ function KYCWall({
             } else if (paymentMethod === CONST.PAYMENT_METHODS.DEBIT_CARD) {
                 Navigation.navigate(addDebitCardRoute ?? ROUTES.INBOX);
             } else if (paymentMethod === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT || policy) {
-                const filteredReportActions = getAllPolicyExpenseChatReportActions(allReports, allReportActions);
                 if (iouReport && isIOUReport(iouReport)) {
+                    // eslint-disable-next-line rulesdir/no-onyx-get-snapshot-key -- deliberately live, not the Search snapshot the old useOnyx read on Search chat previews: moving the IOU report writes optimistic data to live keys, so reports and report actions must be live to find the workspace chat
+                    const [allReports, allReportActions] = await Onyx.multiGet([ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.COLLECTION.REPORT_ACTIONS]);
+                    const filteredReportActions = getAllPolicyExpenseChatReportActions(allReports, allReportActions);
                     const adminPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`];
                     if (adminPolicy) {
                         const inviteResult = moveIOUReportToPolicyAndInviteSubmitter(
@@ -323,8 +324,6 @@ function KYCWall({
             introSelected,
             translate,
             reportTransactions,
-            allReports,
-            allReportActions,
             lastPaymentMethod,
             isSelfTourViewed,
             conciergeChat,
