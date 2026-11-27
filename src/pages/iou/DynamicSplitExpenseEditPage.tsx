@@ -296,8 +296,14 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
         personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
     });
     const distance = getDistanceInMeters(splitExpenseDraftTransaction, unit);
+    // A $0 rate's distance * rate is always 0, which would clobber a manually-edited nonzero amount on a split
+    // whose distance and rate haven't actually changed in this editing session
+    const isUneditedZeroRateSplit =
+        rate === 0 &&
+        getRateID(splitExpenseDraftTransaction) === splitExpenseItem?.customUnit?.customUnitRateID &&
+        splitExpenseDraftTransaction?.comment?.customUnit?.quantity === splitExpenseItem?.customUnit?.quantity;
     const currentAmount =
-        isDistance && distance && rate !== undefined
+        isDistance && distance && rate !== undefined && !isUneditedZeroRateSplit
             ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate) * originalSign
             : Math.abs(Number(splitExpenseDraftTransaction?.amount)) * originalSign;
     const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(true, distance, unit, translate, false, isManualDistance);

@@ -1014,7 +1014,7 @@ function updateSplitExpenseField(
 
                 const hasDistanceOrRateChanged =
                     quantity !== item.customUnit?.quantity || splitExpenseDraftTransaction?.comment?.customUnit?.customUnitRateID !== item.customUnit?.customUnitRateID;
-                if (hasDistanceOrRateChanged && rate && rate > 0) {
+                if (hasDistanceOrRateChanged && rate !== undefined) {
                     // Calculate amount from the same distance `quantity` resolved to, so the amount and merchant can't
                     // drift from the stored distance: amount = distance * rate.
                     // Both amount and rate are in cents, distance is in units
