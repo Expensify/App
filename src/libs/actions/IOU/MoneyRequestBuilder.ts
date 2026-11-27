@@ -56,6 +56,7 @@ import {
     hasSubmissionBlockingViolationInReport,
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
+    isOdometerDistanceRequest as isOdometerDistanceRequestTransactionUtils,
     isPerDiemRequest as isPerDiemRequestTransactionUtils,
     isScanRequest as isScanRequestTransactionUtils,
     isTimeRequest as isTimeRequestTransactionUtils,
@@ -1590,6 +1591,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     // STEP 3: Build an optimistic transaction with the receipt
     const isDistanceRequest = existingTransaction && isDistanceRequestTransactionUtils(existingTransaction);
     const isManualDistanceRequest = existingTransaction && isManualDistanceRequestTransactionUtils(existingTransaction);
+    const isOdometerDistanceRequest = existingTransaction && isOdometerDistanceRequestTransactionUtils(existingTransaction);
     let optimisticTransaction = buildOptimisticTransaction({
         existingTransactionID: optimisticTransactionID,
         existingTransaction,
@@ -1616,7 +1618,9 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             taxValue,
             billable,
             pendingAction,
-            pendingFields: isDistanceRequest && !isManualDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, ...pendingFields} : pendingFields,
+            // Odometer distance is computed locally, so there is no route for the server to fetch.
+            pendingFields:
+                isDistanceRequest && !isManualDistanceRequest && !isOdometerDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, ...pendingFields} : pendingFields,
             reimbursable: isPolicyExpenseChat ? reimbursable : true,
             type,
             count,

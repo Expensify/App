@@ -41,6 +41,25 @@ import Onyx from 'react-native-onyx';
 import {getAllTransactions} from './index';
 
 /**
+ * Whether a resolved mileage rate can be used to calculate split amounts and distances. A $0 rate is valid.
+ */
+function isUsableSplitRate(rate: number | undefined): rate is number {
+    return rate !== undefined && rate >= 0;
+}
+
+/**
+ * The distance of one of `splitCount` even splits of `totalQuantity`, rounded to the distance precision,
+ * with whatever the rounding leaves over added to the split at `remainderIndex`.
+ */
+function getEvenSplitQuantity(totalQuantity: number, splitCount: number, index: number, remainderIndex: number): number {
+    const precision = 10 ** CONST.DISTANCE_DECIMAL_PLACES;
+    const totalUnits = Math.round(totalQuantity * precision);
+    const baseUnits = Math.floor(totalUnits / splitCount);
+    const remainderUnits = totalUnits - baseUnits * splitCount;
+    return (baseUnits + (index === remainderIndex ? remainderUnits : 0)) / precision;
+}
+
+/**
  * Calculate merchant for distance transactions based on distance and rate
  */
 function getDistanceMerchantFromDistance(
@@ -50,7 +69,7 @@ function getDistanceMerchantFromDistance(
     currency: string,
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'],
 ): string {
-    if (!rate || rate <= 0 || !unit) {
+    if (!isUsableSplitRate(rate) || !unit) {
         return '';
     }
 
@@ -94,6 +113,74 @@ function getSplitReimbursable(policy: OnyxEntry<OnyxTypes.Policy>, parentReimbur
         return policy.defaultReimbursable;
     }
     return parentReimbursable;
+}
+
+/**
+ * Whether the splits divide the expense's distance evenly instead of deriving it from their amounts. A $0 rate can't turn an
+ * amount into a distance.
+ */
+function shouldSplitByDistance(rate: number | undefined): boolean {
+    return rate === 0;
+}
+
+/**
+ * The distance a distance expense is billed for, which leaves out any commuter exclusion.
+ */
+function getBilledDistance(transaction: OnyxEntry<OnyxTypes.Transaction>): number | undefined {
+    const customUnit = transaction?.comment?.customUnit;
+    if (typeof customUnit?.reimbursableDistance === 'number') {
+        return customUnit.reimbursableDistance;
+    }
+    const quantity = customUnit?.quantity ?? undefined;
+    const commuterExclusion = customUnit?.commuterExclusion;
+    // The reimbursable distance isn't always stored, so derive it the same way the expense displays it
+    if (quantity !== undefined && typeof commuterExclusion === 'number' && commuterExclusion > 0) {
+        return Math.max(0, quantity - commuterExclusion);
+    }
+    return quantity;
+}
+
+/**
+ * The expense's billed distance in `unit`. A split can be moved to a rate that bills in the other unit, and an
+ * expense isn't re-expressed when that happens, so its stored quantity can't be divided as it is.
+ */
+function getBilledDistanceInUnit(transaction: OnyxEntry<OnyxTypes.Transaction>, unit: Unit | undefined): number {
+    const distance = getBilledDistance(transaction) ?? 0;
+    const transactionUnit = transaction?.comment?.customUnit?.distanceUnit;
+    if (!unit || !transactionUnit || unit === transactionUnit || distance === 0) {
+        return distance;
+    }
+    return roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(DistanceRequestUtils.convertToDistanceInMeters(distance, transactionUnit), unit));
+}
+
+/**
+ * One of `splitCount` even shares of the expense's distance, with the remainder on the first share, and its merchant.
+ */
+function getEvenDistanceSplit({
+    transaction,
+    splitCount,
+    index,
+    rate,
+    unit,
+    customUnit,
+    currency,
+    getCurrencySymbol,
+}: {
+    transaction: OnyxEntry<OnyxTypes.Transaction>;
+    splitCount: number;
+    index: number;
+    rate: number | undefined;
+    unit: Unit | undefined;
+    customUnit: TransactionCustomUnit;
+    currency: string;
+    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
+}): {customUnit: TransactionCustomUnit; merchant: string} {
+    const splitUnit = unit ?? customUnit.distanceUnit;
+    const quantity = getEvenSplitQuantity(getBilledDistanceInUnit(transaction, splitUnit), splitCount, index, 0);
+    return {
+        customUnit: {...customUnit, quantity, distanceUnit: splitUnit},
+        merchant: getDistanceMerchantFromDistance(quantity, unit, rate, currency, getCurrencySymbol),
+    };
 }
 
 /**
@@ -163,7 +250,10 @@ function resolveSplitMileageRate({
         (!rawPolicyRate || rawPolicyRate.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || rawPolicyRate.enabled === false);
 
     const baseMileageRate = DistanceRequestUtils.getRate({transaction, policy: policy ?? undefined, personalPolicyOutputCurrency});
-    if (baseMileageRate.rate && !isOriginalRateDeleted) {
+    // The expense's own rate can be $0, but `getRate` also falls back to the workspace's default rate when the expense's rate no longer
+    // exists, and that one is only used when it's nonzero
+    const isExpenseRate = isP2PRate || baseMileageRate.customUnitRateID === customUnitRateID;
+    if ((baseMileageRate.rate || (isExpenseRate && baseMileageRate.rate === 0)) && !isOriginalRateDeleted) {
         return baseMileageRate;
     }
     // Policy is present but the originally-stored rate was deleted/disabled — pick the policy's
@@ -219,7 +309,7 @@ function resolveSplitItemRate({
     }
 
     const selectedRate = DistanceRequestUtils.getRateByCustomUnitRateIDAcrossPolicies({policy, customUnitRateID, policies});
-    if (!selectedRate?.rate || selectedRate.rate <= 0 || selectedRate.enabled === false) {
+    if (!selectedRate || !isUsableSplitRate(selectedRate.rate) || selectedRate.enabled === false) {
         return {rate: fallbackMileageRate.rate, unit};
     }
 
@@ -547,6 +637,9 @@ function addSplitExpenseField(
             );
             customUnit = updatedCustomUnit;
             merchant = calculatedMerchant;
+        } else if (rate === 0 && customUnit) {
+            // A $0 rate can't turn the amount into a distance, so the merchant is built straight from the new split's 0 distance
+            merchant = getDistanceMerchantFromDistance(0, unit, rate, transaction.currency ?? mileageRate.currency ?? CONST.CURRENCY.USD, getCurrencySymbol);
         }
     }
 
@@ -649,9 +742,21 @@ function evenlyDistributeSplitExpenseAmounts(
         };
 
         // Update distance for distance transactions based on new amount and rate
-        if (isDistanceRequest && transaction && splitExpense.customUnit && amount !== 0) {
+        if (isDistanceRequest && transaction && splitExpense.customUnit) {
             const {unit, rate} = resolveSplitItemRate({customUnit: splitExpense.customUnit, fallbackMileageRate: mileageRate, policy, policies});
-            if (rate && rate > 0) {
+            if (shouldSplitByDistance(rate)) {
+                const evenDistanceSplit = getEvenDistanceSplit({
+                    transaction,
+                    splitCount,
+                    index,
+                    rate,
+                    unit,
+                    customUnit: splitExpense.customUnit,
+                    currency: transaction.currency ?? mileageRate.currency ?? CONST.CURRENCY.USD,
+                    getCurrencySymbol,
+                });
+                updatedSplitExpense = {...updatedSplitExpense, ...evenDistanceSplit};
+            } else if (amount !== 0 && rate && rate > 0) {
                 const {customUnit: updatedCustomUnit, merchant} = updateSplitExpenseDistanceFromAmount(
                     amount,
                     rate,
@@ -766,9 +871,23 @@ function resetSplitExpensesByDateRange({
         });
 
         // Update distance for distance transactions based on new amount and rate
-        if (isDistanceRequest && splitExpense.customUnit && amount !== 0) {
+        if (isDistanceRequest && splitExpense.customUnit) {
             const {unit, rate} = resolveSplitItemRate({customUnit: splitExpense.customUnit, fallbackMileageRate: mileageRate, policy, policies});
-            if (rate && rate > 0) {
+            if (shouldSplitByDistance(rate)) {
+                splitExpense = {
+                    ...splitExpense,
+                    ...getEvenDistanceSplit({
+                        transaction,
+                        splitCount: dates.length,
+                        index,
+                        rate,
+                        unit,
+                        customUnit: splitExpense.customUnit,
+                        currency: transaction.currency ?? mileageRate.currency ?? CONST.CURRENCY.USD,
+                        getCurrencySymbol,
+                    }),
+                };
+            } else if (amount !== 0 && rate && rate > 0) {
                 const {customUnit: updatedCustomUnit, merchant} = updateSplitExpenseDistanceFromAmount(
                     amount,
                     rate,
@@ -909,14 +1028,18 @@ function updateSplitExpenseField(
                 const mileageRate = resolveSplitMileageRate({transaction: splitExpenseDraftTransaction, policy, isSelfDMSplit, personalPolicyOutputCurrency});
                 const {unit, rate} = resolveSplitItemRate({customUnit: splitExpenseDraftTransaction?.comment?.customUnit, fallbackMileageRate: mileageRate, policy, policies});
 
-                if (rate && rate > 0) {
+                const hasDistanceOrRateChanged =
+                    quantity !== item.customUnit?.quantity || splitExpenseDraftTransaction?.comment?.customUnit?.customUnitRateID !== item.customUnit?.customUnitRateID;
+                if (hasDistanceOrRateChanged && rate !== undefined) {
                     // Calculate amount from the same distance `quantity` resolved to, so the amount and merchant can't
                     // drift from the stored distance: amount = distance * rate.
                     // Both amount and rate are in cents, distance is in units
                     const sign = item.amount < 0 ? -1 : 1;
                     updatedItem.amount = quantity > 0 ? Math.round(quantity * rate) * sign : 0;
+                }
 
-                    // Update merchant for distance transactions
+                // A $0 rate keeps the split's amount but its merchant still follows the edited distance
+                if (isUsableSplitRate(rate)) {
                     const currency = originalTransaction.currency ?? mileageRate?.currency ?? CONST.CURRENCY.USD;
                     updatedItem.merchant = getDistanceMerchantFromDistance(quantity, unit, rate, currency, getCurrencySymbol);
                 }
@@ -1038,6 +1161,10 @@ function updateSplitExpenseDraftField(fields: Partial<OnyxTypes.Transaction>) {
 }
 
 export {
+    getEvenDistanceSplit,
+    getEvenSplitQuantity,
+    isUsableSplitRate,
+    shouldSplitByDistance,
     updateSplitExpenseDistanceFromAmount,
     initSplitExpenseItemData,
     getSplitReimbursable,

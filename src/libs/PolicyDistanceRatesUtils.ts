@@ -87,7 +87,7 @@ function getDistanceRateNameErrorMessage(translate: LocalizedTranslate, error: D
 }
 
 /**
- * Validates a distance rate amount against the same rules as the RHP edit form (format and > 0).
+ * Validates a distance rate amount against the same rules as the RHP edit form (format and >= 0).
  * Returns an error code, or undefined when the value is valid.
  */
 function getDistanceRateValueError(rate: string, toLocaleDigit: (arg: string) => string): DistanceRateValueError | undefined {
@@ -95,11 +95,12 @@ function getDistanceRateValueError(rate: string, toLocaleDigit: (arg: string) =>
     const decimalSeparator = toLocaleDigit('.');
     // Allow one more decimal place for accuracy
     const rateValueRegex = RegExp(String.raw`^-?\d{0,${CONST.IOU.AMOUNT_MAX_LENGTH}}([${getPermittedDecimalSeparator(decimalSeparator)}]\d{0,${CONST.MAX_TAX_RATE_DECIMAL_PLACES}})?$`, 'i');
+    const rateValue = parseFloatAnyLocale(parsedRate);
 
-    if (!rateValueRegex.test(parsedRate) || parsedRate === '') {
+    if (!rateValueRegex.test(parsedRate) || parsedRate === '' || Number.isNaN(rateValue)) {
         return CONST.INPUT_VALIDATION_ERRORS.INVALID;
     }
-    if (parseFloatAnyLocale(parsedRate) <= 0) {
+    if (rateValue < 0) {
         return CONST.INPUT_VALIDATION_ERRORS.TOO_LOW;
     }
 
@@ -131,7 +132,8 @@ function validateRateValue(values: FormOnyxValues<RateValueForm>, toLocaleDigit:
 function validateTaxClaimableValue(values: FormOnyxValues<TaxReclaimableForm>, rate: Rate | undefined, translate: LocalizedTranslate): FormInputErrors<TaxReclaimableForm> {
     const errors: FormInputErrors<TaxReclaimableForm> = {};
 
-    if (rate?.rate && Number(values.taxClaimableValue) >= rate.rate / 100) {
+    // A $0 rate is a real rate with nothing to reclaim, so any value has to be rejected rather than silently dropped on save
+    if (rate?.rate !== undefined && Number(values.taxClaimableValue) >= rate.rate / 100) {
         errors.taxClaimableValue = translate('workspace.taxes.error.updateTaxClaimableFailureMessage');
     }
     return errors;
