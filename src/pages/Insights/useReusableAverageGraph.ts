@@ -62,9 +62,16 @@ function useReusableAverageGraph({dashboardID, hash, isCurrentDashboardLoaded, f
         setLastLoadedEntry({dashboardID, hash, filters, violationStages});
     }
 
-    const [lastLoadedGraphs] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS}${lastLoadedEntry?.dashboardID}_${lastLoadedEntry?.hash}`, {selector: (entry) => entry?.graphs});
+    const lastLoadedKey = `${ONYXKEYS.COLLECTION.INSIGHTS}${lastLoadedEntry?.dashboardID}_${lastLoadedEntry?.hash}` as const;
+    const [lastLoadedEntryData] = useOnyx(lastLoadedKey, {selector: (entry) => ({graphs: entry?.graphs, asOfDate: entry?.asOfDate})});
+    // The charts that reuse an average show the loaded entry's data, so their links count expenses through the same day
+    const canReuseAsOfDate = !!lastLoadedEntry && lastLoadedEntry.dashboardID === dashboardID && haveSameAverageFilters(lastLoadedEntry.filters, filters);
 
-    return (chart: InsightsChartSpec) => (canReuseAverage(lastLoadedEntry, dashboardID, filters, violationStages, chart) ? lastLoadedGraphs?.[chart.graphKey] : undefined);
+    return {
+        getReusableAverageGraph: (chart: InsightsChartSpec) =>
+            canReuseAverage(lastLoadedEntry, dashboardID, filters, violationStages, chart) ? lastLoadedEntryData?.graphs?.[chart.graphKey] : undefined,
+        reusableAsOfDate: canReuseAsOfDate ? lastLoadedEntryData?.asOfDate : undefined,
+    };
 }
 
 export default useReusableAverageGraph;

@@ -94,7 +94,7 @@ describe('useReusableAverageGraph', () => {
         await waitForBatchedUpdatesWithAct();
 
         // When a chart asks for its average graph
-        const graph = result.current(TOP_SPENDERS);
+        const graph = result.current.getReusableAverageGraph(TOP_SPENDERS);
 
         // Then there is nothing to reuse, so the chart waits for the response
         expect(graph).toBeUndefined();
@@ -108,8 +108,8 @@ describe('useReusableAverageGraph', () => {
         const {result} = await renderWithLoadedEntry(SPEND_LOADED_PROPS, {filters: {...FILTERS, groupBy: CONST.SEARCH.GROUP_BY.QUARTER}});
 
         // Then Top spenders keeps its average, because its grouping doesn't follow the date grouping, while the headline chart grouped by date waits for the new one
-        expect(result.current(TOP_SPENDERS)).toEqual(GRAPH);
-        expect(result.current(SPEND_HEADLINE)).toBeUndefined();
+        expect(result.current.getReusableAverageGraph(TOP_SPENDERS)).toEqual(GRAPH);
+        expect(result.current.getReusableAverageGraph(SPEND_HEADLINE)).toBeUndefined();
     });
 
     it('reuses the headline average when a new grouping queries the same date bucket', async () => {
@@ -120,7 +120,7 @@ describe('useReusableAverageGraph', () => {
         const {result} = await renderWithLoadedEntry(SPEND_LOADED_PROPS, {filters: {...FILTERS, groupBy: INSIGHTS_RUNNING_TOTAL_GROUP_BY}});
 
         // Then the headline chart keeps its average, because the queried bucket didn't change
-        expect(result.current(SPEND_HEADLINE)).toEqual(GRAPH);
+        expect(result.current.getReusableAverageGraph(SPEND_HEADLINE)).toEqual(GRAPH);
     });
 
     it('reuses the averages when only the compare mode changes', async () => {
@@ -131,8 +131,8 @@ describe('useReusableAverageGraph', () => {
         const {result} = await renderWithLoadedEntry(SPEND_LOADED_PROPS, {filters: {...FILTERS, compare: CONST.SEARCH.COMPARE.PREVIOUS_PERIOD}});
 
         // Then every chart keeps its average, because the compare mode doesn't change it
-        expect(result.current(SPEND_HEADLINE)).toEqual(GRAPH);
-        expect(result.current(TOP_SPENDERS)).toEqual(GRAPH);
+        expect(result.current.getReusableAverageGraph(SPEND_HEADLINE)).toEqual(GRAPH);
+        expect(result.current.getReusableAverageGraph(TOP_SPENDERS)).toEqual(GRAPH);
     });
 
     it('does not reuse the averages when the date range changes', async () => {
@@ -143,8 +143,8 @@ describe('useReusableAverageGraph', () => {
         const {result} = await renderWithLoadedEntry(SPEND_LOADED_PROPS, {filters: {...FILTERS, date: {from: '2025-01-01', to: '2025-12-31'}}});
 
         // Then no chart reuses the old average, because it was computed for another period
-        expect(result.current(SPEND_HEADLINE)).toBeUndefined();
-        expect(result.current(TOP_SPENDERS)).toBeUndefined();
+        expect(result.current.getReusableAverageGraph(SPEND_HEADLINE)).toBeUndefined();
+        expect(result.current.getReusableAverageGraph(TOP_SPENDERS)).toBeUndefined();
     });
 
     it('does not reuse the averages when the workspaces change', async () => {
@@ -155,7 +155,7 @@ describe('useReusableAverageGraph', () => {
         const {result} = await renderWithLoadedEntry(SPEND_LOADED_PROPS, {filters: {...FILTERS, policyIDs: ['policy2']}});
 
         // Then the old average isn't reused, because it covers other workspaces
-        expect(result.current(TOP_SPENDERS)).toBeUndefined();
+        expect(result.current.getReusableAverageGraph(TOP_SPENDERS)).toBeUndefined();
     });
 
     it('reuses the averages on a tag level change except for the chart grouped by tag', async () => {
@@ -166,8 +166,8 @@ describe('useReusableAverageGraph', () => {
         const {result} = await renderWithLoadedEntry(SPEND_LOADED_PROPS, {filters: {...FILTERS, tagLevel: 2}});
 
         // Then Top categories keeps its average, while Top tags waits for the average of the new level
-        expect(result.current(TOP_CATEGORIES)).toEqual(GRAPH);
-        expect(result.current(TOP_TAGS)).toBeUndefined();
+        expect(result.current.getReusableAverageGraph(TOP_CATEGORIES)).toEqual(GRAPH);
+        expect(result.current.getReusableAverageGraph(TOP_TAGS)).toBeUndefined();
     });
 
     it('reuses the averages on a violation stage change except for the charts that show that stage', async () => {
@@ -181,8 +181,8 @@ describe('useReusableAverageGraph', () => {
         });
 
         // Then the headline chart waits for the average of the new stage, while Violations by submitter keeps its own
-        expect(result.current(COMPLIANCE_HEADLINE)).toBeUndefined();
-        expect(result.current(VIOLATIONS_BY_SUBMITTER)).toEqual(GRAPH);
+        expect(result.current.getReusableAverageGraph(COMPLIANCE_HEADLINE)).toBeUndefined();
+        expect(result.current.getReusableAverageGraph(VIOLATIONS_BY_SUBMITTER)).toEqual(GRAPH);
     });
 
     it('does not reuse the averages of another dashboard', async () => {
@@ -193,7 +193,7 @@ describe('useReusableAverageGraph', () => {
         const {result} = await renderWithLoadedEntry(SPEND_LOADED_PROPS, {dashboardID: CONST.INSIGHTS.DASHBOARD.COMPLIANCE});
 
         // Then Compliance charts don't read the Spend averages
-        expect(result.current(COMPLIANCE_HEADLINE)).toBeUndefined();
+        expect(result.current.getReusableAverageGraph(COMPLIANCE_HEADLINE)).toBeUndefined();
     });
 
     it('reuses the averages of the most recently loaded entry', async () => {
@@ -212,6 +212,6 @@ describe('useReusableAverageGraph', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then Top spenders shows the average of the second entry, not the first one
-        expect(result.current(TOP_SPENDERS)).toEqual(secondGraph);
+        expect(result.current.getReusableAverageGraph(TOP_SPENDERS)).toEqual(secondGraph);
     });
 });
