@@ -14,7 +14,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {getCustomAgentParticipantAccountID, getReportParticipantAccountIDs} from '@selectors/AgentZeroChat';
 import {getReportChatType, getReportParentReportID} from '@selectors/Report';
-import {getNewestReportActionSelector} from '@selectors/ReportAction';
+import {getNewestCommentActionSelector, getNewestReportActionSelector} from '@selectors/ReportAction';
 import {agentZeroProcessingAgentIDsSelector} from '@selectors/ReportNameValuePairs';
 import {accountIDSelector} from '@selectors/Session';
 import React, {createContext, useContext, useEffect} from 'react';
@@ -39,6 +39,7 @@ type ReportMeta = {
     isDM: boolean;
     parentReportID: Report['parentReportID'];
     participantAccountIDs: number[];
+    hasThreadCreationError: boolean;
 };
 
 function reportMetaSelector(report: OnyxEntry<Report>): ReportMeta {
@@ -47,6 +48,7 @@ function reportMetaSelector(report: OnyxEntry<Report>): ReportMeta {
         isDM: isDM(report),
         parentReportID: getReportParentReportID(report),
         participantAccountIDs: getReportParticipantAccountIDs(report),
+        hasThreadCreationError: !!report?.errorFields?.createChatThread,
     };
 }
 
@@ -82,7 +84,7 @@ const AgentZeroStatusActionsContext = createContext<AgentZeroStatusActions>(defa
  */
 function AgentZeroStatusProvider({reportID, children}: React.PropsWithChildren<{reportID: string | undefined}>) {
     const [reportMeta] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: reportMetaSelector});
-    const {chatType, isDM: isDMReport = false, parentReportID, participantAccountIDs} = reportMeta ?? {};
+    const {chatType, isDM: isDMReport = false, parentReportID, participantAccountIDs, hasThreadCreationError} = reportMeta ?? {};
     const [agentParticipantAccountID] = usePersonalDetailsByIDs(participantAccountIDs, getCustomAgentParticipantAccountID(participantAccountIDs));
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
@@ -93,7 +95,8 @@ function AgentZeroStatusProvider({reportID, children}: React.PropsWithChildren<{
     const [serverAgentIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {selector: agentZeroProcessingAgentIDsSelector});
 
     // Concierge answers each question in a thread off the Concierge DM, so those threads carry its indicator too.
-    const isConciergeChat = !!conciergeReportID && (reportID === conciergeReportID || parentReportID === conciergeReportID);
+    const isConciergeThread = !!conciergeReportID && parentReportID === conciergeReportID;
+    const isConciergeChat = (!!conciergeReportID && reportID === conciergeReportID) || isConciergeThread;
     const isAdmin = chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS;
     const isCustomAgentChat = agentParticipantAccountID !== undefined;
     const otherParticipantCount = currentUserAccountID === undefined ? 0 : (participantAccountIDs ?? []).filter((accountID) => accountID !== currentUserAccountID).length;
@@ -107,7 +110,8 @@ function AgentZeroStatusProvider({reportID, children}: React.PropsWithChildren<{
         <AgentZeroStatusGate
             key={reportID}
             reportID={reportID}
-            isActive={!!reportID && isAgentZeroChat}
+            isActive={!!reportID && isAgentZeroChat && !(isConciergeThread && hasThreadCreationError)}
+            isConciergeThread={isConciergeThread}
             serverAgentIDs={serverAgentIDs}
             includeConcierge={isConciergeChat || isAdmin}
             customAgentDMAccountID={customAgentDMAccountID}
@@ -120,11 +124,19 @@ function AgentZeroStatusProvider({reportID, children}: React.PropsWithChildren<{
 function AgentZeroStatusGate({
     reportID,
     isActive,
+    isConciergeThread,
     serverAgentIDs,
     includeConcierge,
     customAgentDMAccountID,
     children,
-}: React.PropsWithChildren<{reportID: string | undefined; isActive: boolean; serverAgentIDs: number[] | undefined; includeConcierge: boolean; customAgentDMAccountID?: number}>) {
+}: React.PropsWithChildren<{
+    reportID: string | undefined;
+    isActive: boolean;
+    isConciergeThread: boolean;
+    serverAgentIDs: number[] | undefined;
+    includeConcierge: boolean;
+    customAgentDMAccountID?: number;
+}>) {
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
 
     // When the agent's reply (ADDCOMMENT) lands before the server's indicator-clear NVP update,
@@ -133,7 +145,19 @@ function AgentZeroStatusGate({
     //
     // Keyed on the report only while an agent responds here: the gate mounts for every report, and
     // this selector re-runs on every report-action change.
-    const [newestReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${isActive ? reportID : undefined}`, {selector: getNewestReportActionSelector});
+    // A thread's server-created action can be newer than its already visible preloaded reply.
+    const [newestReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${isActive ? reportID : undefined}`, {
+        selector: isConciergeThread ? getNewestCommentActionSelector : getNewestReportActionSelector,
+    });
+    const newestActorAccountID = newestReportAction?.actorAccountID;
+
+    // Streaming and completed replies hide the bubble, so clean up the optimistic state even when the bubble is unmounted.
+    useEffect(() => {
+        if (!isConciergeThread || !reportID || (isActive && newestActorAccountID !== CONST.ACCOUNT_ID.CONCIERGE)) {
+            return;
+        }
+        AgentZeroOptimisticStore.clear(reportID, CONST.ACCOUNT_ID.CONCIERGE);
+    }, [isConciergeThread, reportID, isActive, newestActorAccountID]);
 
     // One reasoning Pusher subscription per report (not per agent). The handler in Report
     // actions routes each event to the right agent's reasoning history by its actorAccountID.

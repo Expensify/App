@@ -131,6 +131,7 @@ describe('useUpdateTransactionTaxRate', () => {
         // Then only the split draft is written
         expect(setDraftSplitTransaction).toHaveBeenCalledTimes(1);
         expect(setDraftSplitTransaction).toHaveBeenCalledWith(
+            mockTranslate,
             TRANSACTION_ID,
             transaction,
             {taxCode: REDUCED_TAX_CODE, taxValue: '10%', taxAmount: REDUCED_TAX_AMOUNT},
@@ -163,7 +164,14 @@ describe('useUpdateTransactionTaxRate', () => {
 
         // Then the split draft is cleared, not the saved expense, so the stale tax is not kept on save
         expect(setDraftSplitTransaction).toHaveBeenCalledTimes(1);
-        expect(setDraftSplitTransaction).toHaveBeenCalledWith(TRANSACTION_ID, transaction, {taxAmount: 0, taxCode: '', taxValue: ''}, expect.any(Function), expect.any(Function));
+        expect(setDraftSplitTransaction).toHaveBeenCalledWith(
+            mockTranslate,
+            TRANSACTION_ID,
+            transaction,
+            {taxAmount: 0, taxCode: '', taxValue: ''},
+            expect.any(Function),
+            expect.any(Function),
+        );
         expect(updateMoneyRequestTaxRate).not.toHaveBeenCalled();
     });
 

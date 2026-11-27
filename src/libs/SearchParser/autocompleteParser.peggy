@@ -130,6 +130,7 @@ autocompleteKey "key"
       / has
       / is
       / purchaseCurrency
+      / convertedAmount
       / purchaseAmount
       // Both must precede `amount`, which would otherwise match their prefix.
       / amountDebited
@@ -138,6 +139,7 @@ autocompleteKey "key"
       / merchant
       / description
       / reportID
+      / transactionID
       / withdrawalID
       / title
       / submitterUserID
