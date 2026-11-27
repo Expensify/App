@@ -92,12 +92,11 @@ function HRApprovalModePageBase<T extends ApprovalModeValue>({policyID, config}:
     ];
     const selectedApprovalModeKey = approvalModeOptions.find((option) => option.isSelected)?.keyForList;
 
-    const saveApprovalMode = async () => {
+    const saveApprovalMode = (rules: OnyxCollection<Rule>) => {
         if (!draftApprovalMode) {
             return;
         }
 
-        const rules = await Onyx.get(ONYXKEYS.COLLECTION.RULE);
         config.handleSave({policyID, draftApprovalMode, currentApprovalMode, rules});
         Navigation.goBack();
     };
@@ -126,7 +125,7 @@ function HRApprovalModePageBase<T extends ApprovalModeValue>({policyID, config}:
             if (result?.action !== ModalActions.CONFIRM) {
                 return;
             }
-            saveApprovalMode();
+            saveApprovalMode(rules);
         });
     };
 

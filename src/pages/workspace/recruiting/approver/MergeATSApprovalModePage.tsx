@@ -32,6 +32,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {MergeApprovalMode} from '@src/types/onyx/Policy';
+import type Rule from '@src/types/onyx/Rule';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -89,12 +92,11 @@ function MergeATSApprovalModePage({
         },
     ];
 
-    const saveApprovalMode = async () => {
+    const saveApprovalMode = (rules: OnyxCollection<Rule>) => {
         if (!selectedApprovalMode) {
             return;
         }
 
-        const rules = await Onyx.get(ONYXKEYS.COLLECTION.RULE);
         updateMergeApprovalMode({
             policyID,
             connectionName: CONST.POLICY.CONNECTIONS.NAME.MERGE_ATS,
@@ -119,7 +121,7 @@ function MergeATSApprovalModePage({
             hasApprovalWorkflowRules(rules, policyID) && selectedApprovalMode !== currentApprovalMode && selectedApprovalMode !== CONST.MERGE.APPROVAL_MODE.CUSTOM;
         const shouldConfirm = shouldDeleteApprovalWorkflowRules || (currentApprovalMode === CONST.MERGE.APPROVAL_MODE.CUSTOM && selectedApprovalMode !== CONST.MERGE.APPROVAL_MODE.CUSTOM);
         if (!shouldConfirm) {
-            saveApprovalMode();
+            saveApprovalMode(rules);
             return;
         }
 
@@ -143,7 +145,7 @@ function MergeATSApprovalModePage({
             if (result?.action !== ModalActions.CONFIRM) {
                 return;
             }
-            saveApprovalMode();
+            saveApprovalMode(rules);
         });
     };
 

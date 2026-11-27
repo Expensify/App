@@ -217,8 +217,8 @@ describe('WorkspaceInviteMessageComponent - Approver row on Dynamic External Wor
     });
 
     it('sends the invitation with the workspace categories and the welcome note', async () => {
-        // Given a workspace with categories, which addMembersToWorkspace merges into when it adds the new member
-        const policyCategories = {Food: {name: 'Food', enabled: true}};
+        // Given a workspace with a category limited to some members, which the invite adds the new member to
+        const policyCategories = {Food: {name: 'Food', enabled: true, visibleTo: {[ADMIN_ACCOUNT_ID]: true}}};
         await act(async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}`, policyCategories);
             await waitForBatchedUpdatesWithAct();
@@ -228,7 +228,7 @@ describe('WorkspaceInviteMessageComponent - Approver row on Dynamic External Wor
         // When the admin sends the invite
         await pressInvite();
 
-        // Then the categories read at press time reach the action, and the note starts with the inviter and workspace subject
+        // Then the categories reach the action with the fields it needs to limit the new member, and the note starts with the inviter and workspace subject
         expect(addMembersToWorkspaceMock).toHaveBeenCalledTimes(1);
         expect(addMembersToWorkspaceMock).toHaveBeenCalledWith(
             expect.anything(),
