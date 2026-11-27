@@ -2,6 +2,7 @@ import DropdownFieldRow from '@components/DropdownFieldRow';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
+import {recordFocusedConfirmationField, useRestoreConfirmationFieldFocus} from '@components/MoneyRequestConfirmationList/focusManager';
 import TextInput from '@components/TextInput';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -17,7 +18,9 @@ import {setDraftSplitTransaction} from '@userActions/IOU/Split';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
-import React, {useState} from 'react';
+import type {ComponentRef} from 'react';
+
+import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import AutomaticFieldHint from './AutomaticFieldHint';
@@ -52,6 +55,8 @@ function MerchantField({isMerchantRequired, shouldDisplayFieldError, fieldError}
     // Mirror the persisted merchant in local state so the controlled input updates synchronously as the user types;
     // feeding the async Onyx value straight to `value` snaps the caret to the end on every keystroke (see #98647).
     const [isMerchantInputFocused, setIsMerchantInputFocused] = useState(false);
+    const merchantInputRef = useRef<ComponentRef<typeof TextInput>>(null);
+    const shouldRestoreMerchantFocus = useRestoreConfirmationFieldFocus(transactionID, 'merchant', merchantInputRef);
     const [merchantInput, setMerchantInput] = useState(displayMerchantValue);
     const [prevDisplayValue, setPrevDisplayValue] = useState(displayMerchantValue);
     const [prevTransactionID, setPrevTransactionID] = useState(transactionID);
@@ -127,10 +132,12 @@ function MerchantField({isMerchantRequired, shouldDisplayFieldError, fieldError}
                 style={[styles.mh4, styles.mv2]}
             >
                 <TextInput
+                    ref={merchantInputRef}
                     value={merchantInput}
                     readOnly={didConfirm}
                     onChangeText={handleMerchantInputChange}
                     onFocus={() => {
+                        recordFocusedConfirmationField(transactionID, 'merchant');
                         setIsMerchantInputFocused(true);
                     }}
                     onBlur={() => {
@@ -141,6 +148,7 @@ function MerchantField({isMerchantRequired, shouldDisplayFieldError, fieldError}
                     errorText={merchantErrorText}
                     rightHandSideComponent={shouldShowAutomaticHint ? <AutomaticFieldHint /> : undefined}
                     sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.MERCHANT_FIELD}
+                    shouldAllowFocusInLandscapeMode={shouldRestoreMerchantFocus}
                 />
             </View>
         );

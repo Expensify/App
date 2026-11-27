@@ -1,4 +1,5 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {clearConfirmationFocusState} from '@components/MoneyRequestConfirmationList/focusManager';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabNavigatorSkeleton from '@components/Skeletons/TabNavigatorSkeleton';
 import TabSelector from '@components/TabSelector/TabSelector';
@@ -191,11 +192,13 @@ function ShareRootPage() {
     }, [handleProcessFiles]);
 
     useEffect(() => {
+        clearConfirmationFocusState();
         clearShareData();
         handleProcessFiles();
 
         return () => {
             latestShareReadIDRef.current += 1;
+            clearConfirmationFocusState();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
