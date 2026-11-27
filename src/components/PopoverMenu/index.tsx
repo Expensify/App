@@ -16,11 +16,11 @@ import useActiveElementRole from '@hooks/useActiveElementRole';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
-import useKeyboardState from '@hooks/useKeyboardState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useShouldAddBottomSafeAreaPadding from '@hooks/useShouldAddBottomSafeAreaPadding';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -273,10 +273,8 @@ function PopoverMenuContent({
     onLayout,
     onScroll,
 }: PopoverMenuContentProps): React.JSX.Element {
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- must match Popover's own dock decision (bottom-docked only when isSmallScreenWidth)
-    const {isSmallScreenWidth} = useResponsiveLayout();
-    const {isKeyboardActive} = useKeyboardState();
-    const shouldAddBottomSafeAreaPadding = addBottomSafeAreaPadding && isSmallScreenWidth && !isKeyboardActive;
+    const shouldAddBottomSafeAreaPaddingForLayout = useShouldAddBottomSafeAreaPadding();
+    const shouldAddBottomSafeAreaPadding = addBottomSafeAreaPadding && shouldAddBottomSafeAreaPaddingForLayout;
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding: shouldAddBottomSafeAreaPadding,
         style: contentContainerStyle,

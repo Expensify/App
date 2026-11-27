@@ -2,6 +2,7 @@ import {useRootVisibility} from '@components/PopoverMenu/v2/root/RootContext';
 
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useShouldAddBottomSafeAreaPadding from '@hooks/useShouldAddBottomSafeAreaPadding';
 import useSuppressSpaceScroll from '@hooks/useSuppressSpaceScroll';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -11,7 +12,6 @@ import type {BasePopoverProps} from './BaseContent';
 
 import BaseContent from './BaseContent';
 import useMaxHeightStyle from './useMaxHeightStyle';
-import useShouldAddBottomSafeAreaPadding from './useShouldAddBottomSafeAreaPadding';
 
 type ContentProps = BasePopoverProps;
 

@@ -1,9 +1,9 @@
-import useKeyboardState from '@hooks/useKeyboardState';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useKeyboardState from './useKeyboardState';
+import useResponsiveLayout from './useResponsiveLayout';
 
 /**
- * Whether the popover content should apply bottom safe area padding itself.
- * `<BaseContent>` runs in edge-to-edge mode, so the modal no longer pads the bottom inset.
+ * Whether the content of an edge-to-edge popover should apply bottom safe area padding itself.
+ * With `enableEdgeToEdgeBottomSafeAreaPadding`, the modal no longer pads the bottom inset.
  * The padding only belongs on the content when the popover is bottom-docked (small screens),
  * and it must be dropped while the keyboard is up, otherwise a gap appears above the keyboard.
  */

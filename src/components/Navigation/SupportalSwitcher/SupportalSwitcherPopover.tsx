@@ -4,10 +4,9 @@ import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import TextInput from '@components/TextInput';
 
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
-import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useShouldAddBottomSafeAreaPadding from '@hooks/useShouldAddBottomSafeAreaPadding';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {openExternalLink} from '@libs/actions/Link';
@@ -46,11 +45,9 @@ function SupportalSwitcherPopover({isVisible, anchorRef, anchorPosition, onClose
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- must match PopoverWithMeasuredContent's dock decision (bottom-docked only when isSmallScreenWidth)
-    const {isSmallScreenWidth} = useResponsiveLayout();
-    const {isKeyboardActive} = useKeyboardState();
+    const shouldAddBottomSafeAreaPadding = useShouldAddBottomSafeAreaPadding();
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({
-        addBottomSafeAreaPadding: isSmallScreenWidth && !isKeyboardActive,
+        addBottomSafeAreaPadding: shouldAddBottomSafeAreaPadding,
         addOfflineIndicatorBottomSafeAreaPadding: false,
         style: [styles.createMenuContainer, styles.ph5],
         additionalPaddingBottom: variables.componentBorderRadiusLarge,

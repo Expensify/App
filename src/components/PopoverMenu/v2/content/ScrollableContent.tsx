@@ -2,6 +2,7 @@ import {useRootVisibility} from '@components/PopoverMenu/v2/root/RootContext';
 import ScrollView from '@components/ScrollView';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useShouldAddBottomSafeAreaPadding from '@hooks/useShouldAddBottomSafeAreaPadding';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
@@ -19,7 +20,6 @@ import type {BasePopoverProps} from './BaseContent';
 
 import BaseContent from './BaseContent';
 import useMaxHeightStyle from './useMaxHeightStyle';
-import useShouldAddBottomSafeAreaPadding from './useShouldAddBottomSafeAreaPadding';
 
 type ScrollableContentProps = BasePopoverProps & {
     contentContainerStyle?: StyleProp<ViewStyle>;
