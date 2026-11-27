@@ -12,6 +12,8 @@ import ThumbnailImage from '@components/ThumbnailImage';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import getImageRecyclingKey from '@libs/getImageRecyclingKey';
+
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
 import type {ReceiptSource} from '@src/types/onyx/Transaction';
@@ -229,15 +231,19 @@ function ReceiptImage({
         );
     }
 
+    const imageSource = typeof source === 'string' ? {uri: source} : source;
+
     return (
         <DeferredImageWithLoading
+            // Remount on a new source so the next receipt in the same pane doesn't inherit the old load state
+            key={getImageRecyclingKey(imageSource)}
             onLayout={(e) => {
                 if (e.nativeEvent.layout.width !== receiptImageWidth && e.timeStamp - lastUpdateWidthTimestampRef.current > MIN_UPDATE_WIDTH_DIFF) {
                     setReceiptImageWidth(e.nativeEvent.layout.width);
                 }
                 lastUpdateWidthTimestampRef.current = e.timeStamp;
             }}
-            source={typeof source === 'string' ? {uri: source} : source}
+            source={imageSource}
             style={[style, styles.overflowHidden]}
             isAuthTokenRequired={!!isAuthTokenRequired}
             loadingIconSize={loadingIconSize}
