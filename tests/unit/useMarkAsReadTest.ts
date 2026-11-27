@@ -557,6 +557,33 @@ describe('useMarkAsRead', () => {
         expect(readNewestAction).not.toHaveBeenCalled();
     });
 
+    it('should hold the mark-as-read on mount while the screen is unfocused and focus is required, and mark read once it is focused', () => {
+        // Given an unread report whose list mounts in an RHP that sits under another screen, e.g. after Clear cache and restart
+        mockIsFocused = false;
+        const {rerender} = renderMarkAsRead({isScrolledToEnd: true, scopeKey: 'unfocusedScreen', shouldRequireScreenFocus: true});
+
+        // Then it isn't marked read, because the user can't see it
+        expect(readNewestAction).not.toHaveBeenCalled();
+
+        // When the user goes back to that screen
+        mockIsFocused = true;
+        rerender(undefined);
+
+        // Then it's marked read
+        expect(readNewestAction).toHaveBeenCalledWith(REPORT_ID, false);
+    });
+
+    it('should still mark the report as read on mount while unfocused when focus is not required', () => {
+        // Given an unread report in the central pane, which stays visible while an RHP covers its navigation focus
+        mockIsFocused = false;
+
+        // When its list mounts
+        renderMarkAsRead({isScrolledToEnd: true});
+
+        // Then it's marked read as before
+        expect(readNewestAction).toHaveBeenCalledWith(REPORT_ID, false);
+    });
+
     it('does not mark the report as read when the window regains focus while newer actions are still unloaded', () => {
         const readReport = {reportID: REPORT_ID, lastReadTime: '2023-01-01 10:00:00.000', lastVisibleActionCreated: '2023-01-01 10:00:00.000'} as OnyxTypes.Report;
         const reportWithNewMessage = {...readReport, lastVisibleActionCreated: '2023-01-01 11:00:00.000'} as OnyxTypes.Report;
