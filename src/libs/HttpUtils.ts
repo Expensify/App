@@ -11,6 +11,8 @@ import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 
+import type {Server} from './ApiUtils';
+
 import {setTimeSkew} from './actions/Network';
 import {alertUser} from './actions/UpdateRequired';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from './API/types';
@@ -272,6 +274,7 @@ function processHTTPRequest<TKey extends OnyxKey>(
  * @param data parameters for the API command
  * @param type HTTP request type (get/post)
  * @param shouldUseSecure should we use the secure server
+ * @param server the server to send the request to instead of the active one
  */
 function xhr<TKey extends OnyxKey>(
     command: string,
@@ -279,9 +282,10 @@ function xhr<TKey extends OnyxKey>(
     type: RequestType = CONST.NETWORK.METHOD.POST,
     shouldUseSecure = false,
     initiatedOffline = false,
+    server?: Server,
 ): Promise<Response<TKey>> {
     return prepareRequestPayload(command, data, initiatedOffline).then((formData) => {
-        const url = getCommandURL({shouldUseSecure, command});
+        const url = getCommandURL({shouldUseSecure, command, server});
         const abortSignalController = data.canCancel ? (abortControllerMap.get(command as AbortCommand) ?? abortControllerMap.get(ABORT_COMMANDS.All)) : undefined;
 
         return processHTTPRequest(url, type, formData, abortSignalController?.signal);

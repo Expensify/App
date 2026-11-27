@@ -1,7 +1,9 @@
+import type CONST from '@src/CONST';
 import type {OnyxCollectionKey} from '@src/ONYXKEYS';
 
 import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import type OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
+import type {ValueOf} from 'type-fest';
 
 import type Response from './Response';
 
@@ -82,6 +84,9 @@ type RequestDataBase<TKey extends OnyxKey> = {
 
     /** Command name for logging purposes */
     commandName?: string;
+
+    /** Server the request is sent to in place of the active one, for a request that must reach a server the app may have switched away from by the time it is sent. A request pinned to another server is not reauthenticated on a 407 */
+    server?: ValueOf<typeof CONST.SERVER>;
 
     /** Additional parameters that can be sent with the request */
     data?: Record<string, unknown>;

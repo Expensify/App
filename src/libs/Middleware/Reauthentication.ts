@@ -1,5 +1,6 @@
 import {reconnect} from '@libs/actions/Reconnect';
 import redirectToSignIn from '@libs/actions/SignInRedirect';
+import {getActiveServer} from '@libs/ApiUtils';
 import HttpsError from '@libs/Errors/HttpsError';
 import Log from '@libs/Log';
 import {replay as replayMainQueue} from '@libs/Network/MainQueue';
@@ -109,7 +110,11 @@ function handleExpiredSession<TKey extends OnyxKey>(
     // and credentials are still empty at this time, which causes reauthenticate to throw an error (requireParameters),
     // and the subsequent SaveResponseInOnyx also cannot be executed, so we need this parameter to skip the reauthentication logic.
     const skipReauthentication = request?.data?.skipReauthentication;
-    if ((!shouldRetry && !apiRequestType) || skipReauthentication) {
+
+    // Reauthentication signs in on the active server, so the token it gets can't work on another server the request is
+    // pinned to, and the replay would only get another 407. A pin to the active server is reauthenticated as usual.
+    const isPinnedToOtherServer = !!request.server && request.server !== getActiveServer();
+    if ((!shouldRetry && !apiRequestType) || skipReauthentication || isPinnedToOtherServer) {
         if (isFromSequentialQueue) {
             return Promise.resolve(data);
         }
