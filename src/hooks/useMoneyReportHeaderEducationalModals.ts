@@ -14,7 +14,6 @@ import ROUTES from '@src/ROUTES';
 
 import {shouldFailAllRequestsSelector} from '@selectors/Network';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import Onyx from 'react-native-onyx';
 
 import type {RejectModalAction} from './useHoldRejectEducationalModal';
 
@@ -41,11 +40,12 @@ function useMoneyReportHeaderEducationalModals(reportID: string | undefined) {
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
     const [requestParentReportActionChildReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(requestParentReportAction?.childReportID)}`);
     const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(iouTransactionID)}`);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
-    const dismissModalAndUpdateUseHold = async () => {
+    const dismissModalAndUpdateUseHold = () => {
         setNameValuePair(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, true, false, !shouldFailAllRequests);
         if (requestParentReportAction) {
-            const [introSelected, rules] = await Onyx.multiGet([ONYXKEYS.NVP_INTRO_SELECTED, ONYXKEYS.COLLECTION.RULE]);
             changeMoneyRequestHoldStatus({
                 reportAction: requestParentReportAction,
                 iouTransaction: transaction,
@@ -56,18 +56,17 @@ function useMoneyReportHeaderEducationalModals(reportID: string | undefined) {
                 currentUserLogin: currentUserLogin ?? '',
                 currentUserAccountID,
                 transactionViolations,
-                isTrackIntentUser: isTrackIntentUserSelector(introSelected),
+                isTrackIntentUser,
                 delegateAccountID,
                 rules,
             });
         }
     };
 
-    const dismissRejectModalBasedOnAction = async (rejectModalAction: RejectModalAction) => {
+    const dismissRejectModalBasedOnAction = (rejectModalAction: RejectModalAction) => {
         if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD) {
             dismissRejectUseExplanation();
             if (requestParentReportAction) {
-                const [introSelected, rules] = await Onyx.multiGet([ONYXKEYS.NVP_INTRO_SELECTED, ONYXKEYS.COLLECTION.RULE]);
                 changeMoneyRequestHoldStatus({
                     reportAction: requestParentReportAction,
                     iouTransaction: transaction,
@@ -78,7 +77,7 @@ function useMoneyReportHeaderEducationalModals(reportID: string | undefined) {
                     currentUserLogin: currentUserLogin ?? '',
                     currentUserAccountID,
                     transactionViolations,
-                    isTrackIntentUser: isTrackIntentUserSelector(introSelected),
+                    isTrackIntentUser,
                     delegateAccountID,
                     rules,
                 });
@@ -109,14 +108,8 @@ function useMoneyReportHeaderEducationalModals(reportID: string | undefined) {
     const {showHoldSubmitterEducationalModal} = useHoldSubmitterEducationalModal();
 
     return {
-        openHoldEducational: () =>
-            showHoldSubmitterEducationalModal({isDM: isDM(chatReport)}).finally(() => {
-                dismissModalAndUpdateUseHold();
-            }),
-        openRejectModal: (action: RejectModalAction) =>
-            showHoldOrRejectEducationalModal().finally(() => {
-                dismissRejectModalBasedOnAction(action);
-            }),
+        openHoldEducational: () => showHoldSubmitterEducationalModal({isDM: isDM(chatReport)}).finally(dismissModalAndUpdateUseHold),
+        openRejectModal: (action: RejectModalAction) => showHoldOrRejectEducationalModal().finally(() => dismissRejectModalBasedOnAction(action)),
     };
 }
 

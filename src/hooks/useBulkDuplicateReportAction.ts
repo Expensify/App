@@ -13,7 +13,6 @@ import type {OnyxCollection} from 'react-native-onyx';
 
 import {hasSeenTourSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {policyExpenseChatSelector} from '@selectors/Report';
-import Onyx from 'react-native-onyx';
 
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
@@ -44,8 +43,15 @@ function useBulkDuplicateReportAction({selectedReports, allReports, allTransacti
     const {translate, formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
 
+    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
+    const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
+    const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
+    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [activePolicyExpenseChat] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: policyExpenseChatSelector(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id)});
     const [personalDetails] = usePersonalDetailsByIDs(
         [
@@ -54,20 +60,10 @@ function useBulkDuplicateReportAction({selectedReports, allReports, allTransacti
         ].map((chatReport) => getMoneyRequestParticipantsFromReport(chatReport, currentUserPersonalDetails.accountID).at(0)?.accountID),
     );
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
-    const duplicateSelectedReports = async () => {
-        const [quickAction, policyRecentlyUsedCurrencies, onboarding, recentWaypoints, allPolicyCategories, allPolicyTags, introSelected, conciergeChat, rules] = await Onyx.multiGet([
-            ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
-            ONYXKEYS.RECENTLY_USED_CURRENCIES,
-            ONYXKEYS.NVP_ONBOARDING,
-            ONYXKEYS.NVP_RECENT_WAYPOINTS,
-            ONYXKEYS.COLLECTION.POLICY_CATEGORIES,
-            ONYXKEYS.COLLECTION.POLICY_TAGS,
-            ONYXKEYS.NVP_INTRO_SELECTED,
-            `${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`,
-            ONYXKEYS.COLLECTION.RULE,
-        ]);
-
+    const handleDuplicateReports = () => {
         bulkDuplicateReports({
             isVendorMatchingBetaEnabled,
             personalDetailsByLogins: getPersonalDetailsByLogin(),
@@ -85,13 +81,13 @@ function useBulkDuplicateReportAction({selectedReports, allReports, allTransacti
             personalDetails,
             quickAction,
             policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
-            isSelfTourViewed: hasSeenTourSelector(onboarding),
+            isSelfTourViewed,
             transactionViolations: allTransactionViolations,
             translate,
             recentWaypoints,
             currentUserLogin: currentUserPersonalDetails.login ?? '',
             currentUserAccountID: currentUserPersonalDetails?.accountID,
-            isTrackIntentUser: isTrackIntentUserSelector(introSelected),
+            isTrackIntentUser,
             delegateAccountID,
             formatPhoneNumber,
             getCurrencyDecimals,
@@ -104,7 +100,7 @@ function useBulkDuplicateReportAction({selectedReports, allReports, allTransacti
         clearSelectedTransactions(undefined, true);
     };
 
-    return duplicateSelectedReports;
+    return handleDuplicateReports;
 }
 
 export default useBulkDuplicateReportAction;

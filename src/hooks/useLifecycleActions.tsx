@@ -37,7 +37,6 @@ import {delegateEmailSelector} from '@selectors/Account';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {getArchiveReason} from '@selectors/Report';
 import React, {useEffect, useRef} from 'react';
-import Onyx from 'react-native-onyx';
 
 import type {ActionHandledType} from './useHoldMenuSubmit';
 
@@ -74,7 +73,7 @@ type UseLifecycleActionsParams = {
 type UseLifecycleActionsResult = {
     actions: Record<string, SecondaryActionEntry>;
     confirmApproval: (skipAnimation?: boolean) => void;
-    handleSubmitReport: (skipAnimation?: boolean) => void | Promise<void>;
+    handleSubmitReport: (skipAnimation?: boolean) => void;
     shouldBlockSubmit: boolean;
     isBlockSubmitDueToPreventSelfApproval: boolean;
     /** Approve submenu options (partial/full) for selection-mode dropdowns when the report has held expenses; undefined otherwise */
@@ -107,6 +106,9 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
     useEffect(() => {
         allTransactionViolationsRef.current = allTransactionViolations;
     }, [allTransactionViolations]);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {
@@ -202,7 +204,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
 
     const confirmApproveReportViolations = useConfirmApproveReportViolations({report: moneyRequestReport, policy, transactions, violationsCollection: violations});
 
-    const approveExpenseReport = async (isFullApproval: boolean, skipAnimation = false) => {
+    const onApprove = (isFullApproval: boolean, skipAnimation = false) => {
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
             return;
@@ -211,11 +213,6 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
             showLockedAccountModal();
             return;
         }
-        const [userBillingGracePeriodEnds, amountOwed, ownerBillingGracePeriodEnd] = await Onyx.multiGet([
-            ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END,
-            ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED,
-            ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END,
-        ]);
         confirmApproveReportViolations(() => {
             if (!skipAnimation && !isSubmitPolicy(policy)) {
                 startApprovedAnimation();
@@ -263,8 +260,8 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
         ? getApprovalDropdownOptions({
               moneyRequestReport,
               hasOnlyHeldExpenses,
-              onPartialApprove: () => approveExpenseReport(false),
-              onFullApprove: () => approveExpenseReport(true),
+              onPartialApprove: () => onApprove(false),
+              onFullApprove: () => onApprove(true),
               translate,
               shouldShowPayButton,
               illustrations: expensifyIcons,
@@ -280,8 +277,8 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
         ? getApprovalDropdownOptions({
               moneyRequestReport,
               hasOnlyHeldExpenses,
-              onPartialApprove: () => approveExpenseReport(false, true),
-              onFullApprove: () => approveExpenseReport(true, true),
+              onPartialApprove: () => onApprove(false, true),
+              onFullApprove: () => onApprove(true, true),
               translate,
               shouldShowPayButton,
               illustrations: expensifyIcons,
@@ -293,10 +290,10 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
     // Approve the full report. When there are held expenses the partial/full choice is surfaced up front via the
     // approve submenu instead, so this path always approves everything (used for the non-held case and as a safe fallback).
     const confirmApproval = (skipAnimation = false) => {
-        approveExpenseReport(true, skipAnimation);
+        onApprove(true, skipAnimation);
     };
 
-    const submitExpenseReport = async (skipAnimation = false) => {
+    const handleSubmitReport = (skipAnimation = false) => {
         if (!moneyRequestReport || shouldBlockSubmit) {
             return;
         }
@@ -327,11 +324,6 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
             return;
         }
 
-        const [userBillingGracePeriodEnds, amountOwed, ownerBillingGracePeriodEnd] = await Onyx.multiGet([
-            ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END,
-            ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED,
-            ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END,
-        ]);
         confirmSubmitReportViolations((shouldResolveAcknowledgedViolations) => {
             submitReport({
                 getCurrencyDecimals,
@@ -380,7 +372,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
             text: shouldShowMarkAsDoneCopy ? translate('common.markAsDone') : translate('common.submit'),
             icon: expensifyIcons.Send,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.SUBMIT,
-            onSelected: () => submitExpenseReport(),
+            onSelected: () => handleSubmitReport(),
         },
         [CONST.REPORT.SECONDARY_ACTIONS.APPROVE]: {
             value: CONST.REPORT.SECONDARY_ACTIONS.APPROVE,
@@ -593,7 +585,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
     return {
         actions,
         confirmApproval,
-        handleSubmitReport: submitExpenseReport,
+        handleSubmitReport,
         shouldBlockSubmit,
         isBlockSubmitDueToPreventSelfApproval,
         approveSubMenuItems,

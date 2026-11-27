@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {act, renderHook, waitFor} from '@testing-library/react-native';
+import {renderHook, waitFor} from '@testing-library/react-native';
 
 import type {SelectedReports} from '@components/Search/types';
 
@@ -122,9 +122,7 @@ describe('useBulkDuplicateReportAction', () => {
             expect(result.current).toBeInstanceOf(Function);
         });
 
-        await act(async () => {
-            await result.current();
-        });
+        result.current();
 
         expect(bulkDuplicateReports).toHaveBeenCalledTimes(1);
         expect(bulkDuplicateReports).toHaveBeenCalledWith(
@@ -157,9 +155,7 @@ describe('useBulkDuplicateReportAction', () => {
             expect(result.current).toBeInstanceOf(Function);
         });
 
-        await act(async () => {
-            await result.current();
-        });
+        result.current();
 
         expect(bulkDuplicateReports).toHaveBeenCalledWith(
             expect.objectContaining({
@@ -190,9 +186,7 @@ describe('useBulkDuplicateReportAction', () => {
             expect(result.current).toBeInstanceOf(Function);
         });
 
-        await act(async () => {
-            await result.current();
-        });
+        result.current();
 
         expect(mockClearSelectedTransactions).toHaveBeenCalledWith(undefined, true);
     });
@@ -219,9 +213,7 @@ describe('useBulkDuplicateReportAction', () => {
             expect(result.current).toBeInstanceOf(Function);
         });
 
-        await act(async () => {
-            await result.current();
-        });
+        result.current();
 
         expect(bulkDuplicateReports).toHaveBeenCalledWith(
             expect.objectContaining({
@@ -260,9 +252,7 @@ describe('useBulkDuplicateReportAction', () => {
             expect(result.current).toBeInstanceOf(Function);
         });
 
-        await act(async () => {
-            await result.current();
-        });
+        result.current();
 
         expect(bulkDuplicateReports).toHaveBeenCalledWith(
             expect.objectContaining({
@@ -305,9 +295,7 @@ describe('useBulkDuplicateReportAction', () => {
             expect(result.current).toBeInstanceOf(Function);
         });
 
-        await act(async () => {
-            await result.current();
-        });
+        result.current();
 
         expect(bulkDuplicateReports).toHaveBeenCalledWith(
             expect.objectContaining({
@@ -338,9 +326,7 @@ describe('useBulkDuplicateReportAction', () => {
             expect(result.current).toBeInstanceOf(Function);
         });
 
-        await act(async () => {
-            await result.current();
-        });
+        result.current();
 
         expect(bulkDuplicateReports).toHaveBeenCalledWith(
             expect.objectContaining({
@@ -365,9 +351,7 @@ describe('useBulkDuplicateReportAction', () => {
             expect(result.current).toBeInstanceOf(Function);
         });
 
-        await act(async () => {
-            await result.current();
-        });
+        result.current();
 
         expect(bulkDuplicateReports).toHaveBeenCalledWith(expect.objectContaining({allReports: {}}));
     });

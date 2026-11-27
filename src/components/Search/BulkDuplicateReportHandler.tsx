@@ -13,7 +13,7 @@ type BulkDuplicateReportHandlerProps = {
     allReports: OnyxCollection<Report> | undefined;
     allTransactions: OnyxCollection<Transaction>;
     searchData: Record<string, unknown> | undefined;
-    onHandlerReady: (handler: () => void | Promise<void>) => void;
+    onHandlerReady: (handler: () => void) => void;
 };
 
 /**

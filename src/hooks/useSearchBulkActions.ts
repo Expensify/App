@@ -2269,8 +2269,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         );
     }, [selectedTransactionReportIDs, currentSearchResults?.data, allReports]);
 
-    const duplicateHandlerRef = useRef<() => void | Promise<void>>(() => {});
-    const setDuplicateHandler = useCallback((handler: () => void | Promise<void>) => {
+    const duplicateHandlerRef = useRef<() => void>(() => {});
+    const setDuplicateHandler = useCallback((handler: () => void) => {
         duplicateHandlerRef.current = handler;
     }, []);
     const invokeDuplicateHandler = useCallback(() => {
@@ -2321,8 +2321,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         ],
     );
 
-    const duplicateReportHandlerRef = useRef<() => void | Promise<void>>(() => {});
-    const setDuplicateReportHandler = useCallback((handler: () => void | Promise<void>) => {
+    const duplicateReportHandlerRef = useRef<() => void>(() => {});
+    const setDuplicateReportHandler = useCallback((handler: () => void) => {
         duplicateReportHandlerRef.current = handler;
     }, []);
     const invokeDuplicateReportHandler = useCallback(() => {

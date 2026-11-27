@@ -11,7 +11,7 @@ type BulkDuplicateHandlerProps = {
     allTransactions: OnyxCollection<Transaction>;
     allReports: OnyxCollection<Report> | undefined;
     searchData: Record<string, unknown> | undefined;
-    onHandlerReady: (handler: () => void | Promise<void>) => void;
+    onHandlerReady: (handler: () => void) => void;
     onAfterDuplicate?: () => void;
 
     /** The expense report the selection was made on, so the copies can stay on it when it can accept them */
