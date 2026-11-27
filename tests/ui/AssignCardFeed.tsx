@@ -1,7 +1,6 @@
 import {act, fireEvent, render, screen, userEvent, waitFor} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
-import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
@@ -138,7 +137,7 @@ const renderAssigneeStep = (initialParams: SettingsNavigatorParamList[typeof SCR
 // Renders the ConfirmationStep inside a navigation container with necessary providers.
 const renderConfirmationStep = (initialParams: SettingsNavigatorParamList[typeof SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION]) => {
     return render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider, CurrentUserPersonalDetailsProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <PortalProvider>
                 <NavigationContainer>
                     <Stack.Navigator initialRouteName={SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION}>

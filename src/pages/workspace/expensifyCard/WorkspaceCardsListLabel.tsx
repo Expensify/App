@@ -116,9 +116,7 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
             ONYXKEYS.SESSION,
         ]);
         const currentUserAccountID = accountIDSelector(session) ?? CONST.DEFAULT_NUMBER_ID;
-        const guidedSetupAndTourStatus = guidedSetupAndTourStatusSelector(onboarding);
-        const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
-        const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
+        const {isSelfTourViewed, hasCompletedGuidedSetupFlow} = guidedSetupAndTourStatusSelector(onboarding);
 
         // Mirror ReportFetchHandler's onboarding-pending logic so we can detect when Concierge still has a pending guided
         // setup (welcome message + tasks) that OpenReport will create. See https://github.com/Expensify/App/issues/99396.

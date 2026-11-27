@@ -1,7 +1,6 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
-import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
@@ -195,7 +194,7 @@ describe('WorkspaceCardsListLabel', () => {
             await waitForBatchedUpdatesWithAct();
         });
         render(
-            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentUserPersonalDetailsProvider]}>
+            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
                 <WorkspaceCardsListLabel
                     type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.REMAINING_LIMIT}
                     value={100000}
@@ -232,11 +231,19 @@ describe('WorkspaceCardsListLabel', () => {
     });
 
     it('creates the Concierge chat instead of calling OpenReport when none exists yet', async () => {
-        // Given pending onboarding and no Concierge chat
+        // Given pending onboarding, no Concierge chat, and a chat creation that has not finished yet
+        let finishCreatingChat = () => {};
+        mockNavigateToConciergeChat.mockImplementationOnce(
+            () =>
+                new Promise<void>((resolve) => {
+                    finishCreatingChat = resolve;
+                }),
+        );
+
         // When the admin requests a limit increase
         await requestLimitIncreaseWithPendingOnboarding({});
 
-        // Then the chat is created with the onboarding data, and the limit increase is requested after it
+        // Then the chat is created with the onboarding data, and the limit increase waits for it
         expect(mockNavigateToConciergeChat).toHaveBeenCalledWith(
             expect.objectContaining({
                 introSelected: INTRO_SELECTED,
@@ -246,6 +253,12 @@ describe('WorkspaceCardsListLabel', () => {
             }),
         );
         expect(mockOpenReport).not.toHaveBeenCalled();
+        expect(mockRequestExpensifyCardLimitIncrease).not.toHaveBeenCalled();
+
+        await act(async () => {
+            finishCreatingChat();
+            await waitForBatchedUpdatesWithAct();
+        });
         expect(mockRequestExpensifyCardLimitIncrease).toHaveBeenCalledTimes(1);
     });
 
