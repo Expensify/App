@@ -5555,6 +5555,10 @@ ${amount} για ${merchant} - ${date}`,
             hotelBlockCard:
                 'Γνωρίζατε ότι μπορείτε να κλείνετε και να διαχειρίζεστε ομαδικά ταξίδια όπως αυτό απευθείας στο Expensify; Γλιτώστε ταλαιπωρία την επόμενη φορά και δοκιμάστε το εργαλείο μας <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a>.',
         },
+        memberAccessDisabledModal: {
+            title: 'Τα ταξίδια δεν έχουν ενεργοποιηθεί ακόμη για εσάς',
+            message: 'Ο διαχειριστής του χώρου εργασίας σας δεν έχει ενεργοποιήσει ακόμη το Expensify Travel για εσάς. Επικοινωνήστε με τον διαχειριστή σας για να αποκτήσετε πρόσβαση.',
+        },
         defaultWorkspaceTravelDisabled: {
             title: 'Δεν μπορείτε ακόμη να κάνετε κράτηση ταξιδιού',
             message:

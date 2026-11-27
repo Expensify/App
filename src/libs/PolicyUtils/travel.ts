@@ -30,6 +30,19 @@ function hasAcceptedTravelTerms(policy: OnyxEntry<Policy>, accountTravelSettings
     return !!(policy?.travelSettings?.hasAcceptedTerms ?? (accountTravelSettings?.hasAcceptedTerms && isPolicyProvisionedForTravel(policy)));
 }
 
+/**
+ * Whether an admin turned travel off for a member of a workspace. Only false is ever stored, so a member without a value
+ * can book travel.
+ */
+function isMemberTravelAccessTurnedOff(policy: OnyxEntry<Policy>, login: string | undefined): boolean {
+    return !!login && policy?.employeeList?.[login]?.canUseTravel === false;
+}
+
+/** Whether a member can book trips with a workspace, which is every member an admin didn't turn travel off for. */
+function canMemberUseTravel(policy: OnyxEntry<Policy>, login: string | undefined): boolean {
+    return !isMemberTravelAccessTurnedOff(policy, login);
+}
+
 function isNonUSDPolicy(policy: OnyxEntry<Policy>): boolean {
     return !!policy?.outputCurrency && policy.outputCurrency !== CONST.CURRENCY.USD;
 }
@@ -60,4 +73,12 @@ function getTravelStep(
     return CONST.TRAVEL.STEPS.GET_STARTED_TRAVEL;
 }
 
-export {isWorkspaceProvisionedForTravel, isPolicyProvisionedForTravel, hasAcceptedTravelTerms, isNonUSDPolicy, getTravelStep};
+export {
+    isWorkspaceProvisionedForTravel,
+    isPolicyProvisionedForTravel,
+    hasAcceptedTravelTerms,
+    canMemberUseTravel,
+    isMemberTravelAccessTurnedOff,
+    isNonUSDPolicy,
+    getTravelStep,
+};

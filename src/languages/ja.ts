@@ -5409,6 +5409,10 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             hotelBlockCard:
                 'Expensify では、このようなグループ旅行の予約と管理を直接行えることをご存じでしたか？次回は面倒を省くために、ぜひ <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a> ツールをお試しください。',
         },
+        memberAccessDisabledModal: {
+            title: 'まだ出張機能が有効になっていません',
+            message: 'ワークスペース管理者があなたのExpensify Travelをまだ有効にしていません。アクセスするには管理者にお問い合わせください。',
+        },
         defaultWorkspaceTravelDisabled: {
             title: 'まだ旅行を予約できません',
             message:

@@ -5649,6 +5649,10 @@ const translations = {
             title: 'Expensify Travel has been disabled',
             message: `Your admin has turned off Expensify Travel. Please follow your company's booking policy for travel arrangements.`,
         },
+        memberAccessDisabledModal: {
+            title: "Travel isn't turned on for you yet",
+            message: "Your workspace admin hasn't turned on Expensify Travel for you. Reach out to your admin to get access.",
+        },
         defaultWorkspaceTravelDisabled: {
             title: "You can't book travel yet",
             message:
