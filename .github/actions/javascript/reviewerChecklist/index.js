@@ -26542,7 +26542,7 @@ var GithubUtils = class {
 var GithubUtils_default = GithubUtils;
 
 // .github/libs/isTeamMember.ts
-async function isTeamMember(octokit, org, teamSlug, username) {
+async function getTeamMembership(octokit, org, teamSlug, username) {
   try {
     await octokit.teams.getMembershipForUserInOrg({
       org,
@@ -26555,9 +26555,12 @@ async function isTeamMember(octokit, org, teamSlug, username) {
       return false;
     }
     const message = error2 instanceof Error ? error2.message : String(error2);
-    warning(`Could not verify ${teamSlug} membership for ${username}. Assuming they are not a member: ${message}`);
-    return false;
+    warning(`Could not verify ${teamSlug} membership for ${username}: ${message}`);
+    return void 0;
   }
+}
+async function isTeamMember(octokit, org, teamSlug, username) {
+  return await getTeamMembership(octokit, org, teamSlug, username) ?? false;
 }
 var isTeamMember_default = isTeamMember;
 

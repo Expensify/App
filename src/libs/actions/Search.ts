@@ -15,7 +15,7 @@ import type {
     SelectedTransactions,
 } from '@components/Search/types';
 
-import type {ConfirmSubmitReportViolationsOnProceed} from '@hooks/useConfirmSubmitReportViolations';
+import type {ConfirmSubmitReportViolationsOnProceed} from '@hooks/useConfirmSubmitViolations';
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import type {ReportSubmitToPopoverOpenOptions} from '@hooks/useReportSubmitToPopover';
 

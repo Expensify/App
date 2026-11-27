@@ -344,6 +344,7 @@ key "key"
       / has
       / is
       / purchaseCurrency
+      / convertedAmount
       / purchaseAmount
       / policyID
       / status

@@ -1,7 +1,7 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
     ext {
-        buildToolsVersion = "36.0.0"
+        buildToolsVersion = "37.0.0"
         minSdkVersion = 24
         compileSdkVersion = 37
         targetSdkVersion = 36
@@ -38,6 +38,14 @@ buildscript {
     }
 }
 
+
+// RN088: unify ndkVersion. AGP 9 defaults libraries without their own ndkVersion to NDK 28.x, whose libc++ needs
+// __cxa_init_primary_exception, while React Native (and this app) build with NDK 27.1 and ship that libc++_shared.so.
+subprojects { sp ->
+    sp.plugins.withId('com.android.library') {
+        sp.android.ndkVersion = rootProject.ext.ndkVersion
+    }
+}
 
 allprojects {
     configurations.all {

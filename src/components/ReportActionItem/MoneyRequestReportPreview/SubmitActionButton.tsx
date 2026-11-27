@@ -2,7 +2,7 @@ import AnimatedSubmitButton from '@components/AnimatedSubmitButton';
 import {ReportSubmitToPopoverAnchor, useOpenReportSubmitToPopover} from '@components/ReportSubmitToPopoverAnchor';
 
 import useConfirmModal from '@hooks/useConfirmModal';
-import useConfirmSubmitReportViolations from '@hooks/useConfirmSubmitReportViolations';
+import useConfirmSubmitViolations from '@hooks/useConfirmSubmitViolations';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -116,8 +116,7 @@ function SubmitActionButtonContent() {
         rules,
     });
 
-    const confirmSubmitReportViolations = useConfirmSubmitReportViolations({
-        reportID: iouReportID,
+    const confirmSubmitReportViolations = useConfirmSubmitViolations({
         report: iouReport,
         policy,
         shouldShowMarkAsDoneCopy,

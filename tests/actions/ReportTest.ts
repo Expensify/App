@@ -8,13 +8,13 @@ import type handleWalletStatementNavigationDefault from '@components/WalletState
 
 import {buildAccountIDToNameMap, getMentionedAccountIDs} from '@hooks/useAccountIDToNameMap';
 import useAncestors from '@hooks/useAncestors';
-import {buildReportIDToNameMap, getMentionedReportIDs} from '@hooks/useReportIDToNameMap';
 
 import type {GuidedSetupData, TaskForParameters} from '@libs/actions/Report';
 import markAllMessagesAsRead from '@libs/actions/Report/MarkAllMessageAsRead';
 import {CONCIERGE_RESPONSE_DELAY_MS, resolveSuggestedFollowup} from '@libs/actions/Report/SuggestedFollowup';
 import {onServerDataReady} from '@libs/actions/Welcome';
 import {getOnboardingMessages} from '@libs/actions/Welcome/OnboardingFlow';
+import AgentZeroOptimisticStore from '@libs/AgentZeroOptimisticStore';
 import * as API from '@libs/API';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import trackConciergeResponse from '@libs/ConciergeResponseIndicator';
@@ -26,6 +26,7 @@ import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
 import {getOriginalMessage, getReportActionMessage, isActionOfType, isDeletedAction} from '@libs/ReportActionsUtils';
+import {buildReportIDToNameMap, getMentionedReportIDs} from '@libs/ReportIDToNameMapUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {appendParam} from '@libs/Url';
 
@@ -2459,6 +2460,77 @@ describe('actions/Report', () => {
         expect(playSoundMock).toHaveBeenCalledWith(SOUNDS.DONE);
         expect(relevant.at(0)?.command).toBe(WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT);
         expect(relevant.slice(1).every((r) => r.command === WRITE_COMMANDS.ADD_ATTACHMENT)).toBe(true);
+    });
+
+    it('shows a preloaded Concierge answer in the new thread and rolls it back if the question fails', async () => {
+        // Given a Concierge chat while offline so the optimistic question and answer remain in the queue.
+        setHasRadio(false);
+        await waitForBatchedUpdates();
+        const report = {...createRandomReport(1, undefined), reportID: '100'};
+        const replyReportID = '9002';
+        const answer = '<strong>Travel</strong> increased <em>about</em> 20%.<ul><li>Flights</li></ul><ol><li>Review</li></ol><table><tr><td>£200</td></tr></table>';
+
+        // When Explain posts a question with an answer that was preloaded.
+        const initialReportActionID = Report.addComment({
+            report,
+            notifyReportID: report.reportID,
+            ancestors: [],
+            text: 'Explain this insight',
+            preloadedResponse: answer,
+            timezoneParam: CONST.DEFAULT_TIME_ZONE,
+            currentUserAccountID: 1,
+            delegateAccountID: undefined,
+            conciergeReportID: report.reportID,
+            conciergeThreadReportID: replyReportID,
+            shouldNavigateToConciergeThread: false,
+        });
+        await waitForBatchedUpdates();
+        const request = PersistedRequests.getAll().find((item) => item.command === WRITE_COMMANDS.ADD_COMMENT);
+        const answerID = String(request?.data?.optimisticConciergeReportActionID);
+        expect(initialReportActionID).toBe(answerID);
+        const questionActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}` as const);
+        const replyActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${replyReportID}` as const);
+        const question = questionActions?.[String(request?.data?.reportActionID)];
+
+        // Then the reply is visible immediately in the thread, after its question, using the server's reserved identity.
+        expect(replyActions?.[answerID]).toMatchObject({actorAccountID: CONST.ACCOUNT_ID.CONCIERGE, reportID: replyReportID});
+        expect(replyActions?.[answerID]?.created).toBe(request?.data?.optimisticConciergeCreated);
+        expect((replyActions?.[answerID]?.created ?? '') > (question?.created ?? '')).toBe(true);
+        expect(questionActions?.[answerID]).toBeUndefined();
+        expect(request?.data?.pregeneratedResponse).toBe(answer);
+        expect(replyActions?.[answerID]?.message).toEqual([expect.objectContaining({html: answer})]);
+        expect(replyActions?.[answerID]?.originalMessage).toMatchObject({html: answer});
+
+        // When sending the question fails, then remove its optimistic reply from the thread as well.
+        await Onyx.update(request?.failureData ?? []);
+        const failedReplyActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${replyReportID}` as const);
+        expect(failedReplyActions?.[answerID]).toBeFalsy();
+    });
+
+    it('starts the thinking indicator in the new thread when an Insights question has no cached answer', () => {
+        // Given an online user with an Insights question that still needs a live answer.
+        const report = {...createRandomReport(1, undefined), reportID: '100'};
+        const replyReportID = '9003';
+
+        // When Explain opens a fresh Concierge thread.
+        Report.addComment({
+            report,
+            notifyReportID: report.reportID,
+            ancestors: [],
+            text: 'Explain this insight',
+            sidePanelContext: {insightsScope: {searchKey: CONST.INSIGHTS.SEARCH_KEY.SPEND, policyIDs: [], date: {preset: 'this-month'}, groupCurrency: CONST.CURRENCY.USD}},
+            timezoneParam: CONST.DEFAULT_TIME_ZONE,
+            currentUserAccountID: 1,
+            delegateAccountID: undefined,
+            conciergeReportID: report.reportID,
+            conciergeThreadReportID: replyReportID,
+            shouldNavigateToConciergeThread: false,
+        });
+
+        // Then thinking starts immediately in the new thread, not the parent chat.
+        expect(AgentZeroOptimisticStore.getEntry(replyReportID, CONST.ACCOUNT_ID.CONCIERGE)?.count).toBe(1);
+        expect(AgentZeroOptimisticStore.getEntry(report.reportID, CONST.ACCOUNT_ID.CONCIERGE)).toBeUndefined();
+        AgentZeroOptimisticStore.clear(replyReportID, CONST.ACCOUNT_ID.CONCIERGE);
     });
 
     it('should post several attachments as one action when Concierge answers in a thread', async () => {
@@ -6228,6 +6300,47 @@ describe('actions/Report', () => {
                 await Onyx.update(result.optimisticData);
                 const convertedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`);
                 expect(ReportUtils.getMoneyRequestSpendBreakdown(convertedReport).totalDisplaySpend).toBe(10000);
+            });
+
+            it('should reopen an IOU report that was paid elsewhere when its manager does not change', async () => {
+                // Given an IOU report that the payer already paid elsewhere, with the payer as its manager
+                const policyID = '305';
+                const payerAccountID = 5;
+                const policy: OnyxTypes.Policy = {
+                    ...createRandomPolicy(Number(policyID)),
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    fieldList: {},
+                    name: 'Test Policy',
+                };
+
+                const iouReport: OnyxTypes.Report = {
+                    ...createRandomReport(6, undefined),
+                    reportID: 'iouReport305',
+                    type: CONST.REPORT.TYPE.IOU,
+                    ownerAccountID: 6,
+                    managerID: payerAccountID,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                };
+
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+
+                // When converting the IOU report to an expense report
+                const result = Report.convertIOUReportToExpenseReport(iouReport, policy, policyID, 'expenseChat305', undefined, TestHelper.getCurrencyDecimalsLocal, undefined, []);
+
+                // Then the expense report is open, because Auth always reopens a moved IOU so the workspace's approval workflow can run on it
+                const reportUpdate = result.optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`);
+                const expenseReport = isReportMergeUpdate(reportUpdate) ? reportUpdate.value : undefined;
+                expect(expenseReport?.managerID).toBe(payerAccountID);
+                expect(expenseReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.OPEN);
+                expect(expenseReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.OPEN);
+
+                // And a failed request restores the paid state
+                const reportFailureUpdate = result.failureData.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`);
+                const restoredReport = isReportMergeUpdate(reportFailureUpdate) ? reportFailureUpdate.value : undefined;
+                expect(restoredReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.APPROVED);
+                expect(restoredReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.REIMBURSED);
             });
 
             it('should flip the unheld columns independently of `total` when an expense is on hold', async () => {
