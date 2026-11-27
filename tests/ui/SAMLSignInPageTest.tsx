@@ -166,6 +166,78 @@ describe('SAMLSignInPage', () => {
         );
     });
 
+    it('logs the same attempt and login when the in-app browser opens and closes', async () => {
+        // Given an in-app browser that iOS closes without a result
+        const infoSpy = jest.spyOn(Log, 'info');
+        const hmmmSpy = jest.spyOn(Log, 'hmmm');
+        mockedOpenAuthSessionAsync.mockResolvedValue({type: WebBrowserResultType.CANCEL});
+
+        // When the page opens it
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then both lines carry the login, which matches them to the server's SAML logs, and one attempt ID
+        expect(infoSpy).toHaveBeenCalledWith('SAMLSignInPage - Opening the auth session', true, expect.objectContaining({login: 'user@saml.example.com'}));
+        const openParams = infoSpy.mock.calls.find(([message]) => message === 'SAMLSignInPage - Opening the auth session')?.[2];
+        const attemptID = openParams && typeof openParams === 'object' && 'attemptID' in openParams ? openParams.attemptID : undefined;
+        expect(attemptID).toEqual(expect.any(String));
+        expect(attemptID).not.toBe('');
+        expect(hmmmSpy).toHaveBeenCalledWith('SAMLSignInPage - Auth session closed without a successful result', expect.objectContaining({attemptID, login: 'user@saml.example.com'}));
+    });
+
+    it('logs whether the app was in the background when the in-app browser closed', async () => {
+        // Given an in-app browser that is still open while the person switches to another app
+        const hmmmSpy = jest.spyOn(Log, 'hmmm');
+        const appStateListeners: Array<(state: AppStateStatus) => void> = [];
+        const addEventListenerSpy = jest.spyOn(AppState, 'addEventListener').mockImplementation((type, listener) => {
+            appStateListeners.push(listener);
+            return {remove: jest.fn()};
+        });
+        let closeAuthSession: (result: {type: typeof WebBrowserResultType.CANCEL}) => void = () => {};
+        mockedOpenAuthSessionAsync.mockReturnValue(
+            new Promise((resolve) => {
+                closeAuthSession = resolve;
+            }),
+        );
+        const setAppState = (state: AppStateStatus) => {
+            act(() => {
+                for (const listener of appStateListeners) {
+                    listener(state);
+                }
+            });
+        };
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // When the app goes to the background, comes back once, goes to the background again and the sheet closes there
+        setAppState(CONST.APP_STATE.BACKGROUND);
+        setAppState(CONST.APP_STATE.ACTIVE);
+        setAppState(CONST.APP_STATE.BACKGROUND);
+        await act(async () => {
+            closeAuthSession({type: WebBrowserResultType.CANCEL});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the log shows the sheet closed in the background after one trip away, which a person tapping Cancel can't do
+        expect(hmmmSpy).toHaveBeenCalledWith('SAMLSignInPage - Auth session closed without a successful result', expect.objectContaining({isInBackground: true, backgroundCount: 1}));
+
+        addEventListenerSpy.mockRestore();
+    });
+
+    it('logs why the page closed the in-app browser itself', async () => {
+        // Given an in-app browser that opened and never returned a result
+        const infoSpy = jest.spyOn(Log, 'info');
+        mockedOpenAuthSessionAsync.mockReturnValue(new Promise(() => {}));
+        const {unmount} = renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // When the page unmounts
+        unmount();
+
+        // Then the log says the page closed the sheet, which iOS would otherwise report as a dismiss with no reason
+        expect(infoSpy).toHaveBeenCalledWith('SAMLSignInPage - Closing the auth session', false, expect.objectContaining({reason: 'unmount', login: 'user@saml.example.com'}));
+    });
+
     it('does not try to close the in-app browser on Android', async () => {
         // Given an in-app browser on Android that opened and never returned a result
         mockedGetPlatform.mockReturnValue(CONST.PLATFORM.ANDROID);
