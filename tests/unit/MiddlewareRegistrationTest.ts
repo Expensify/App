@@ -17,6 +17,7 @@ import {
     RecordFullReconnectTime,
     ReconcileBulkEditReportAction,
     ReplaceOptimisticAgentAccountID,
+    ReplaceOptimisticMemberAccountID,
     SaveResponseInOnyx,
     SentryServerTiming,
     SupportalPermission,
@@ -44,6 +45,7 @@ const EXPECTED_ORDER: RequestModule.Middleware[] = [
     MembersNeedCategoryError,
     HandleUnusedOptimisticID,
     ReplaceOptimisticAgentAccountID,
+    ReplaceOptimisticMemberAccountID,
     Pagination,
     SentryServerTiming,
     RecordFullReconnectTime,
@@ -68,9 +70,9 @@ describe('Middleware registration', () => {
         expect(registered).toEqual(EXPECTED_ORDER);
     });
 
-    it('registers all 21 middlewares with no duplicates', () => {
-        expect(registered).toHaveLength(21);
-        expect(new Set(registered).size).toBe(21);
+    it('registers all 22 middlewares with no duplicates', () => {
+        expect(registered).toHaveLength(22);
+        expect(new Set(registered).size).toBe(22);
     });
 
     it('keeps SaveResponseInOnyx after every other Onyx-writing middleware and before FraudMonitoring', () => {

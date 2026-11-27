@@ -26,6 +26,7 @@ import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useSearchResults from '@hooks/useSearchResults';
+import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearWorkspaceCategoriesSelectedForBulkEdit, setPolicyCategoryMemberVisibility} from '@libs/actions/Policy/Category';
@@ -76,6 +77,7 @@ function DynamicCategoryVisibleToPage({route}: DynamicCategoryVisibleToPageProps
     const {policyMemberAccountIDs: memberAccountIDs, policyMemberAccountIDsByLogin: memberAccountIDsByLogin, showMembersNeedCategoryModal} = useMembersNeedCategoryModal(policyID);
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
     const backPath = useDynamicBackPath(isBulkEdit ? DYNAMIC_ROUTES.WORKSPACE_CATEGORIES_BULK_VISIBLE_TO.path : DYNAMIC_ROUTES.WORKSPACE_CATEGORY_VISIBLE_TO.path);
+    const shouldFooterBeInsideList = useShouldFooterBeInsideList();
     const [bulkEditSelection] = useOnyx(ONYXKEYS.RAM_ONLY_WORKSPACE_CATEGORIES_SELECTED_FOR_BULK_EDIT);
 
     // Categories picked on another workspace's list are left out. The selection only lives in memory, so a bulk edit
@@ -255,6 +257,7 @@ function DynamicCategoryVisibleToPage({route}: DynamicCategoryVisibleToPageProps
                         listHeaderWrapperStyle: [styles.pt5, styles.pb2],
                         listHeaderSelectAllTextStyle: [styles.textLabelSupporting],
                     }}
+                    shouldFooterBeInsideList={shouldFooterBeInsideList}
                     footerContent={
                         <FormAlertWithSubmitButton
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.VISIBLE_TO_SAVE}

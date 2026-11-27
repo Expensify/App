@@ -16,6 +16,7 @@ import ReceiptTelemetry from './ReceiptTelemetry';
 import ReconcileBulkEditReportAction from './ReconcileBulkEditReportAction';
 import RecordFullReconnectTime from './RecordFullReconnectTime';
 import ReplaceOptimisticAgentAccountID from './ReplaceOptimisticAgentAccountID';
+import ReplaceOptimisticMemberAccountID from './ReplaceOptimisticMemberAccountID';
 import SaveResponseInOnyx from './SaveResponseInOnyx';
 import SentryServerTiming from './SentryServerTiming';
 import SupportalPermission from './SupportalPermission';
@@ -23,6 +24,7 @@ import SupportalPermission from './SupportalPermission';
 export {
     DiscardStaleSearchSnapshot,
     ReplaceOptimisticAgentAccountID,
+    ReplaceOptimisticMemberAccountID,
     HandleMovedScanFailedExpenses,
     HandleUnusedOptimisticID,
     LoadTest,

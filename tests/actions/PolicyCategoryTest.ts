@@ -291,6 +291,56 @@ describe('actions/PolicyCategory', () => {
             await mockFetch?.resume?.();
         });
 
+        it('opens a restricted category to everyone right away when unchecking every member disables it', async () => {
+            // Given Fees restricted to member 1, and a request that hasn't reached the server yet, like when offline
+            mockFetch?.pause?.();
+            const policyCategories: PolicyCategories = {
+                Fees: {name: 'Fees', enabled: true, visibleTo: buildVisibleTo(1)},
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, policyCategories);
+
+            // When the admin unchecks every member
+            setPolicyCategoryMemberVisibility(policyID, ['Fees'], [], [1, 2, 3], buildPolicyData(policyCategories), false);
+            await waitForBatchedUpdates();
+
+            // Then the old restriction is cleared along with disabling Fees, so the Visible to row shows Everyone instead of 1 member
+            let updatedCategories = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+            expect(updatedCategories?.Fees?.enabled).toBe(false);
+            expect(updatedCategories?.Fees?.visibleTo).toBeUndefined();
+            expect(updatedCategories?.Fees?.pendingFields?.visibleTo).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+            // When the request succeeds
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+
+            // Then neither change is pending anymore
+            updatedCategories = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+            expect(updatedCategories?.Fees?.pendingFields?.enabled).toBeFalsy();
+            expect(updatedCategories?.Fees?.pendingFields?.visibleTo).toBeFalsy();
+        });
+
+        it('puts the restriction back and re-enables the category when unchecking every member fails', async () => {
+            // Given Fees restricted to members 1 and 2, and a request that will fail
+            mockFetch?.fail?.();
+            const policyCategories: PolicyCategories = {
+                Fees: {name: 'Fees', enabled: true, visibleTo: buildVisibleTo(1, 2)},
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, policyCategories);
+
+            // When the admin unchecks every member
+            setPolicyCategoryMemberVisibility(policyID, ['Fees'], [], [1, 2, 3], buildPolicyData(policyCategories), false);
+            await waitForBatchedUpdates();
+
+            // Then Fees is enabled for members 1 and 2 again, since the server kept it that way, and shows the error
+            const updatedCategories = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+            expect(updatedCategories?.Fees?.enabled).toBe(true);
+            expect(updatedCategories?.Fees?.visibleTo).toEqual(buildVisibleTo(1, 2));
+            expect(updatedCategories?.Fees?.pendingFields?.enabled).toBeFalsy();
+            expect(updatedCategories?.Fees?.pendingFields?.visibleTo).toBeFalsy();
+            expect(updatedCategories?.Fees?.errors).toBeTruthy();
+            mockFetch?.succeed?.();
+        });
+
         it('puts the previous members back and shows an error on the category on failure', async () => {
             // Given Fees restricted to members 1 and 2, and a request that will fail
             mockFetch?.fail?.();

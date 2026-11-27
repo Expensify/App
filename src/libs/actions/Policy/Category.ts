@@ -1986,20 +1986,22 @@ function setPolicyCategoryMemberVisibility(
         const previousVisibleTo = category?.visibleTo ?? null;
 
         if (isEveryMemberDeselected) {
-            // The server also puts the category back in every member's row, so visibleTo is left for its MERGE and the
-            // category is open to everyone again if an admin re-enables it.
+            // The server also clears visibleTo, so the category is open to everyone if an admin re-enables it. Clearing it
+            // here too keeps the Visible to row from showing the old members until the request goes through.
             optimisticCategories[categoryName] = {
                 enabled: false,
+                visibleTo: null,
                 errors: null,
-                pendingFields: {enabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                pendingFields: {enabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE, visibleTo: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
             };
             successCategories[categoryName] = {
-                pendingFields: {enabled: null},
+                pendingFields: {enabled: null, visibleTo: null},
             };
             failureCategories[categoryName] = {
                 enabled: category?.enabled,
+                visibleTo: previousVisibleTo,
                 errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.categories.updateFailureMessage'),
-                pendingFields: {enabled: null},
+                pendingFields: {enabled: null, visibleTo: null},
             };
             continue;
         }
