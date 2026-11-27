@@ -142,6 +142,7 @@ function ExpenseReportSearchView({
 
     return (
         <SearchListViewLayout
+            shouldListScrollBothAxes
             columns={columns}
             type={type}
             isActionColumnWide={isActionColumnWide}

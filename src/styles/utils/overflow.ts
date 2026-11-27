@@ -4,6 +4,7 @@ import overflowAuto from './overflowAuto';
 import overflowXAuto from './overflowXAuto';
 import overflowXHidden from './overflowXHidden';
 import overscrollBehaviorContain from './overscrollBehaviorContain';
+import scrollbarGutterStable from './scrollbarGutterStable';
 
 /**
  * Overflow utility styles with Bootstrap inspired naming.
@@ -38,6 +39,8 @@ export default {
     overflowXHidden,
 
     overflowXAuto,
+
+    scrollbarGutterStable,
 
     overscrollBehaviorContain,
 

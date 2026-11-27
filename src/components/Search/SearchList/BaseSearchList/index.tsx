@@ -1,5 +1,6 @@
 import {useEditingCellState} from '@components/EditableCell';
 import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/useTabRootScrollProps';
+import {useIsListScrollingBothAxes, useListScroller} from '@components/Search/primitives/ListScrollAxesContext';
 import type {SearchListItem} from '@components/Search/SearchList/ListItem/types';
 import SearchListScrollLockContext, {useSearchListScrollLockStyle} from '@components/Search/SearchListScrollLockContext';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
@@ -13,12 +14,15 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import setSearchRowFocused from '@libs/actions/SearchRowFocus';
 import {isMobileChrome} from '@libs/Browser';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
+import mergeRefs from '@libs/mergeRefs';
 import {isFocusRestoreInProgress} from '@libs/NavigationFocusReturn';
+import {toViewStyle} from '@libs/WebOnlyStyleUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isModalActiveSelector} from '@src/selectors/Modal';
 
+import type {FlashListRef} from '@shopify/flash-list';
 import type {ComponentRef} from 'react';
 import type {GestureResponderEvent, LayoutChangeEvent, NativeSyntheticEvent, StyleProp, ViewProps, ViewStyle} from 'react-native';
 
@@ -31,6 +35,9 @@ import Animated from 'react-native-reanimated';
 import type BaseSearchListProps from './types';
 
 const AnimatedFlashListComponent = Animated.createAnimatedComponent(FlashList<SearchListItem>);
+
+/** Sticks the column header above the rows in their shared scroller. */
+const STICKY_COLUMN_HEADER_STYLE = toViewStyle({position: 'sticky', top: 0, zIndex: 1});
 
 type CellRendererComponentProps = ViewProps & {
     ref?: React.Ref<ComponentRef<typeof View>>;
@@ -78,7 +85,10 @@ function BaseSearchList({
     disabledIndexes,
     overrideItemLayout,
 }: BaseSearchListProps) {
+    const styles = useThemeStyles();
     const tabRootScrollProps = useTabRootScrollProps(contentContainerStyle);
+    const isScrollingBothAxes = useIsListScrollingBothAxes();
+    const {contentWidthStyle, scrollerDataSet, measureScrollbarRef} = useListScroller();
     // Chrome ends a drag at the first scroller with `overscroll-behavior` set even when that scroller can't move,
     // so a list shorter than its viewport would keep a pull on its rows from reaching the outer scroller that brings the header back.
     const isUnderScrollAwayHeader = useContext(SearchListScrollLockContext) !== undefined;
@@ -197,21 +207,34 @@ function BaseSearchList({
 
     const extraData = [columns, newTransactions, nonPersonalAndWorkspaceCards, isAttendeesEnabledForMovingPolicy];
 
+    // Where the page header scrolls away, the select-all bar scrolls with the rows too, rather than staying pinned above them. Where the
+    // list scrolls both ways, the bar holds the column header, which sticks inside the list's scroller.
+    const isTopBarInList = isUnderScrollAwayHeader || isScrollingBothAxes;
+
+    const getOverrideProps = () => {
+        if (isScrollingBothAxes) {
+            // Reserves the scrollbar's width up front, before the columns are sized.
+            return {style: [scrollLockStyle, styles.overflowXAuto, styles.scrollbarGutterStable], dataSet: scrollerDataSet};
+        }
+        return scrollLockStyle ? {style: scrollLockStyle} : undefined;
+    };
+
     return (
         <>
-            {/* Where the page header scrolls away, the select-all bar scrolls with the rows too, rather than staying pinned above them. */}
-            {!isUnderScrollAwayHeader && selectionTopBar}
+            {!isTopBarInList && selectionTopBar}
             <AnimatedFlashListComponent
                 data={data}
                 renderItem={renderItemWithKeyboardFocus}
                 keyExtractor={keyExtractor}
                 onScroll={onScroll}
-                showsVerticalScrollIndicator={false}
-                ref={ref}
+                // react-native-web hides both of a scroller's scrollbars when either indicator is off, and the table's sideways one has to stay.
+                showsVerticalScrollIndicator={isScrollingBothAxes}
+                ref={mergeRefs<FlashListRef<SearchListItem> | null>(ref, measureScrollbarRef)}
                 extraData={extraData}
                 onEndReached={onEndReached}
                 onEndReachedThreshold={onEndReachedThreshold}
-                ListHeaderComponent={isUnderScrollAwayHeader ? selectionTopBar : undefined}
+                ListHeaderComponent={isTopBarInList ? selectionTopBar : undefined}
+                ListHeaderComponentStyle={isScrollingBothAxes ? [STICKY_COLUMN_HEADER_STYLE, styles.appBG] : undefined}
                 ListFooterComponent={ListFooterComponent}
                 onViewableItemsChanged={onViewableItemsChanged}
                 onLayout={handleLayout}
@@ -220,12 +243,14 @@ function BaseSearchList({
                 removeClippedSubviews
                 drawDistance={250}
                 {...tabRootScrollProps}
+                // Absolutely positioned rows don't widen the scroller's content, so it's held at the table's width.
+                contentContainerStyle={isScrollingBothAxes ? [tabRootScrollProps.contentContainerStyle, contentWidthStyle] : tabRootScrollProps.contentContainerStyle}
                 maintainVisibleContentPosition={{disabled: true}}
                 stickyHeaderIndices={stickyHeaderIndices}
                 stickyHeaderConfig={stickyHeaderConfig}
                 getItemType={getItemType}
                 overrideItemLayout={overrideItemLayout}
-                overrideProps={scrollLockStyle ? {style: scrollLockStyle} : undefined}
+                overrideProps={getOverrideProps()}
             />
         </>
     );

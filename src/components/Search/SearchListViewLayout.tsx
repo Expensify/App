@@ -7,6 +7,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useVerticalScrollbarWidth from '@hooks/useVerticalScrollbarWidth';
 
 import {canMeasureText} from '@libs/measureTextWidth';
 import {getSearchColumnResizingID} from '@libs/SearchKeyUtils';
@@ -74,6 +75,8 @@ type SearchListViewLayoutProps = {
 
     /** The list and any header/modal blocks, composed by the view (e.g. SelectionTopBar, BaseSearchList, long-press menu). */
     children: React.ReactNode;
+
+    shouldListScrollBothAxes?: boolean;
 };
 
 type SearchListViewLayoutContentProps = SearchListViewLayoutProps & {
@@ -101,12 +104,16 @@ function SearchListViewLayoutContent({
     columnResizingID,
     storedTableColumnWidths,
     children,
+    shouldListScrollBothAxes,
 }: SearchListViewLayoutContentProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
 
-    const {tableWidthRef, tableWidth, onTableLayout} = useSearchTableWidth();
+    const {tableWidthRef, tableWidth: measuredTableWidth, onTableLayout} = useSearchTableWidth();
+    // A classic vertical scrollbar takes width from the table, so the columns are sized without it (0 for overlay bars).
+    const {scrollbarWidth, measureScrollbarRef} = useVerticalScrollbarWidth();
+    const tableWidth = Math.max(measuredTableWidth - scrollbarWidth, 0);
 
     const {columnWidths, resizableLayout} = useSearchColumnWidths({
         columns,
@@ -203,6 +210,8 @@ function SearchListViewLayoutContent({
                             columnContentWidths={isSizingColumns ? columnContentWidths : undefined}
                             availableWidth={isSizingColumns ? tableWidth : undefined}
                             resizableScrollWidth={resizableLayout?.scrollWidth}
+                            shouldListScrollBothAxes={shouldListScrollBothAxes}
+                            measureScrollbarRef={measureScrollbarRef}
                         >
                             <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>{children}</View>
                         </HorizontalTableScroll>
@@ -237,11 +246,15 @@ function SearchListViewLayout(props: SearchListViewLayoutProps) {
     // The header is left out so crossing the wide breakpoint doesn't remount the list.
     const canResizeColumns = !!props.data && canMeasureText() && isBetaEnabled(CONST.BETAS.RESIZABLE_TABLE_COLUMNS);
 
+    // Only for the pinned columns' beta, so nobody else gets the new structure until pinning ships.
+    const shouldListScrollBothAxes = !!props.shouldListScrollBothAxes && isBetaEnabled(CONST.BETAS.PINNABLE_TABLE_COLUMNS);
+
     // Only tables that can resize subscribe to stored widths.
     if (!canResizeColumns) {
         return (
             <SearchListViewLayoutContent
                 {...props}
+                shouldListScrollBothAxes={shouldListScrollBothAxes}
                 columnResizingID={undefined}
                 storedTableColumnWidths={undefined}
             />
@@ -251,6 +264,7 @@ function SearchListViewLayout(props: SearchListViewLayoutProps) {
     return (
         <SearchListViewLayoutWithStoredColumnWidths
             {...props}
+            shouldListScrollBothAxes={shouldListScrollBothAxes}
             columnResizingID={getSearchColumnResizingID(props.type, currentSearchKey)}
         />
     );
