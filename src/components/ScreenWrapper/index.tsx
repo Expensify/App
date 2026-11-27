@@ -52,6 +52,8 @@ import ScreenWrapperContainer from './ScreenWrapperContainer';
 import ScreenWrapperOfflineIndicatorContext from './ScreenWrapperOfflineIndicatorContext';
 import ScreenWrapperOfflineIndicators from './ScreenWrapperOfflineIndicators';
 import ScreenWrapperStatusContext from './ScreenWrapperStatusContext';
+import ScreenWrapperTopInsetHeaderContext from './ScreenWrapperTopInsetHeaderContext';
+import useTopInsetHeaderContextValue from './useTopInsetHeaderContextValue';
 
 type ScreenWrapperChildrenProps = {
     insets: EdgeInsets;
@@ -59,6 +61,9 @@ type ScreenWrapperChildrenProps = {
         paddingBottom?: ViewStyle['paddingBottom'];
     };
     didScreenTransitionEnd: boolean;
+
+    /** Whether a header placed itself in the top inset, so the screen left the top inset out of its padding */
+    isHeaderInTopInset: boolean;
 };
 
 type ScreenWrapperProps = Omit<ScreenWrapperContainerProps, 'children'> &
@@ -145,6 +150,8 @@ function ScreenWrapper({
     // We disable legacy bottom safe area padding handling, if we are using edge-to-edge mode.
     const includeSafeAreaPaddingBottom = isUsingEdgeToEdgeMode ? false : includeSafeAreaPaddingBottomProp;
     const isSafeAreaTopPaddingApplied = includePaddingTop;
+    // A header that places itself in the top inset (see useTopInsetHeaderStyle) takes the top inset over from the screen.
+    const {isHeaderInTopInset, topInsetHeaderContextValue} = useTopInsetHeaderContextValue(includePaddingTop);
     const isMaxHeightEnabled = restContainerProps.shouldEnableMaxHeight ?? false;
     const statusContextValue = {
         didScreenTransitionEnd,
@@ -283,7 +290,7 @@ function ScreenWrapper({
         }, [navigation]),
     );
 
-    const ChildrenContent = typeof children === 'function' ? children({insets, safeAreaPaddingBottomStyle, didScreenTransitionEnd}) : children;
+    const ChildrenContent = typeof children === 'function' ? children({insets, safeAreaPaddingBottomStyle, didScreenTransitionEnd, isHeaderInTopInset}) : children;
 
     return (
         <FocusTrapForScreen focusTrapSettings={focusTrapSettings}>
@@ -294,7 +301,7 @@ function ScreenWrapper({
                 didScreenTransitionEnd={didScreenTransitionEnd}
                 shouldKeyboardOffsetBottomSafeAreaPadding={shouldKeyboardOffsetBottomSafeAreaPadding || shouldOffsetMobileOfflineIndicator}
                 enableEdgeToEdgeBottomSafeAreaPadding={enableEdgeToEdgeBottomSafeAreaPaddingProp}
-                includePaddingTop={includePaddingTop}
+                includePaddingTop={includePaddingTop && !isHeaderInTopInset}
                 includeSafeAreaPaddingBottom={includeSafeAreaPaddingBottom}
                 isFocused={isFocused}
                 shouldHideFromAccessibility={shouldHideFromAccessibility}
@@ -304,7 +311,7 @@ function ScreenWrapper({
                 <ScreenWrapperStatusContext.Provider value={statusContextValue}>
                     <ScreenVisibilityProvider isVisible={isScreenVisible}>
                         <ScreenWrapperOfflineIndicatorContext.Provider value={offlineIndicatorContextValue}>
-                            {ChildrenContent}
+                            <ScreenWrapperTopInsetHeaderContext.Provider value={topInsetHeaderContextValue}>{ChildrenContent}</ScreenWrapperTopInsetHeaderContext.Provider>
 
                             <ScreenWrapperOfflineIndicators
                                 offlineIndicatorStyle={offlineIndicatorStyle}

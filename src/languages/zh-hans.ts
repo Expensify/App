@@ -499,6 +499,7 @@ const translations: TranslationDeepObject<typeof en> = {
         corpayPayModalTitle: '支付报告',
         corpayPayModalPrompt: '此提交者使用的是非美元银行账户。请启用全球报销以支付该报告，或请其添加美元银行账户。',
         purchaseAmount: '购买金额',
+        convertedAmount: '换算金额',
         originalAmount: '原始金额',
         frequency: '频率',
         link: '链接',
@@ -790,6 +791,11 @@ const translations: TranslationDeepObject<typeof en> = {
         setPin: {didNotShipCard: '我们未能寄出您的卡。请重试。'},
         revealPin: {couldNotReveal: '我们无法显示您的 PIN。请重试。'},
         changePin: {didNotChange: '我们未更改您的 PIN。请重试。'},
+        addToWallet: {
+            failedHeader: '无法添加银行卡',
+            failedTitle: '我们无法将您的银行卡添加到您的钱包',
+            failedSubtitle: '添加银行卡时出了问题。如果银行卡已在您的钱包中，您可以直接在那里使用。',
+        },
         revealCardDetail: {couldNotReveal: '我们无法显示您的卡片详情。请重试。'},
     },
     validateCodeModal: {
@@ -1301,7 +1307,10 @@ const translations: TranslationDeepObject<typeof en> = {
             label: '违规事项',
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: '提交人',
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: '审批人',
+            chartTitle: (title: string, stage: string) => `${title}（${stage}）`,
         },
+        flaggedExpenses: '被标记的报销费用',
+        noFlaggedExpensesInRange: '此范围内没有被标记的报销费用',
     },
     allSettingsScreen: {
         subscription: '订阅',
@@ -2628,6 +2637,7 @@ const translations: TranslationDeepObject<typeof en> = {
             reachOutForHelp: '<muted-text><centered-text>如果有任何问题，欢迎<concierge-link>联系 Concierge</concierge-link>！</centered-text></muted-text>',
             goToExpensifyClassic: '前往 Expensify 经典版',
         },
+        mergePendingDomainAdmin: {heading: '受限域电子邮箱', description: '<muted-text><centered-text>已通知域管理员来批准合并账户的请求。</centered-text></muted-text>', gotIt: '明白了'},
         mergeFailureSAMLDomainControlDescription: (email: string) =>
             `<muted-text><centered-text>您无法合并 <strong>${email}</strong>，因为它由 <strong>${email.split('@').at(1) ?? ''}</strong> 管理。请<concierge-link>联系 Concierge</concierge-link>获取帮助。</centered-text></muted-text>`,
         mergeFailureSAMLAccountDescription: (email: string) =>
@@ -4524,6 +4534,13 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         numberedItem: ({item, number}: {item: string; number: number}) => `${item}${number}`,
         questionsChanged: '此页面上的问题已更改',
         onFile: '已备案',
+        continueOffline: {
+            title: '你无法在离线状态下继续',
+            prompt: '需要连接互联网才能填写此表单。别担心，我们会保存你的进度，你重新联网后即可继续。',
+            saveForLater: '保存并稍后填写',
+            progressSaved: '您的进度已保存',
+            promptWithSensitiveAnswers: '填写此表单需要互联网连接。我们会保存你的进度，这样你在恢复联网后可以继续填写。出于安全考虑，敏感信息不会被保存，需要重新输入。',
+        },
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'SWIFT/BIC 必须为 8 或 11 个字符长度，由 6 个字母后接 2 或 5 个字母或数字组成。',
@@ -7036,11 +7053,13 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 description: `由于您的工作区需要类别，必须至少保留一个已启用的类别。`,
             },
             visibleTo: '可见范围',
+            editVisibility: '编辑可见性',
             membersCount: ({count}: {count: number}) => ({
                 one: '1 名成员',
                 other: `${count} 名成员`,
             }),
             visibleToDescription: ({categoryName}: {categoryName: string}) => `选择哪些成员可以在提交报销时使用 ${categoryName} 类别。`,
+            bulkVisibleToDescription: '选择哪些成员可以在提交报销时使用这些类别。',
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `无法禁用 ${categoryName}`,
                 bulkTitle: '无法禁用这些类别',

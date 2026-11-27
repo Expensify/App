@@ -132,6 +132,7 @@ import type InsightsDashboard from './InsightsDashboard';
 import type {AIInsight, AIInsightChip, InsightsDashboardID, InsightsFutureExpenses, InsightsGraphKey, InsightsSearchKey} from './InsightsDashboard';
 import type InsightsDetails from './InsightsDetails';
 import type {InsightsDetailsSummary} from './InsightsDetails';
+import type InsightsExplanation from './InsightsExplanation';
 import type IntroSelected from './IntroSelected';
 import type InvitedEmailsToAccountIDs from './InvitedEmailsToAccountIDs';
 import type JoinablePolicies from './JoinablePolicies';
@@ -273,7 +274,9 @@ import type WalletTerms from './WalletTerms';
 import type WalletTransfer from './WalletTransfer';
 import type WiseBankAccountFields from './WiseBankAccountFields';
 import type {WiseKYCReviewEmbeddedLink} from './WiseKYCReview';
+import type WiseOnboardingUnsavedPages from './WiseOnboardingUnsavedPages';
 import type WiseQuote from './WiseQuote';
+import type WorkspaceCategoriesSelectedForBulkEdit from './WorkspaceCategoriesSelectedForBulkEdit';
 import type WorkspaceMembersSelectedForBulkEdit from './WorkspaceMembersSelectedForBulkEdit';
 import type WorkspaceMembersSelectedForRoleChange from './WorkspaceMembersSelectedForRoleChange';
 
@@ -313,6 +316,7 @@ export type {
     UnshareBankAccount,
     DismissedReferralBanners,
     Domain,
+    DomainAccountMergeRequest,
     Download,
     ExportDownload,
     BulkAction,
@@ -340,6 +344,7 @@ export type {
     InsightsDashboardID,
     InsightsDetails,
     InsightsDetailsSummary,
+    InsightsExplanation,
     InsightsFutureExpenses,
     InsightsGraphKey,
     InsightsSearchKey,
@@ -446,6 +451,7 @@ export type {
     TravelSettings,
     WorkspaceTravelSettings,
     WorkspaceMembersSelectedForBulkEdit,
+    WorkspaceCategoriesSelectedForBulkEdit,
     UserLocation,
     UserMetadata,
     UserWallet,
@@ -510,6 +516,7 @@ export type {
     CorpayFields,
     WiseBankAccountFields,
     WiseKYCReviewEmbeddedLink,
+    WiseOnboardingUnsavedPages,
     WiseQuote,
     CorpayFormField,
     DynamicFormAddressField,
@@ -565,7 +572,6 @@ export type {
     AppReview,
     AppReviewLastPrompt,
     SamlMetadata,
-    DomainAccountMergeRequest,
     DomainErrors,
     DomainHighlightItems,
     DomainPendingActions,
