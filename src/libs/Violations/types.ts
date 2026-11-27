@@ -11,6 +11,10 @@ type ViolationFixParams = {
     policyCategories: PolicyCategories | undefined;
     policyTagLists: PolicyTagLists | undefined;
     policyTaxRates: TaxRates | undefined;
+
+    /** Whether the expense still needs attendees it doesn't have. The caller works it out with the same rule that raised the violation. */
+    isMissingAttendees: boolean;
+
     mileageRate?: MileageRate;
     expenseDate?: string;
 };

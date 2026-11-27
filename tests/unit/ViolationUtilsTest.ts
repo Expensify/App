@@ -5316,6 +5316,7 @@ describe('getIsViolationFixed', () => {
         policyCategories: undefined,
         policyTagLists: undefined,
         policyTaxRates: undefined,
+        isMissingAttendees: false,
     };
 
     const createPolicyTagList = (tagName: string, enabled: boolean) => ({
@@ -5494,6 +5495,30 @@ describe('getIsViolationFixed', () => {
                 mileageRate: {unit: 'mi', startDate: '2025-01-01', endDate: '2025-12-31'},
             });
             expect(result).toBe(false);
+        });
+    });
+
+    describe('violations.missingAttendees', () => {
+        it('should return false while the expense still needs attendees', () => {
+            // Given an expense whose category still needs attendees it doesn't have
+            const params = {...defaultParams, isMissingAttendees: true};
+
+            // When checking whether the missing-attendees violation is fixed
+            const result = getIsViolationFixed('violations.missingAttendees', params);
+
+            // Then it stays, so the confirmation keeps saying why it is blocked
+            expect(result).toBe(false);
+        });
+
+        it('should return true once the expense no longer needs attendees', () => {
+            // Given an expense whose attendees were added or whose category no longer needs them
+            const params = {...defaultParams, isMissingAttendees: false};
+
+            // When checking whether the missing-attendees violation is fixed
+            const result = getIsViolationFixed('violations.missingAttendees', params);
+
+            // Then it is fixed, so the confirmation clears the error
+            expect(result).toBe(true);
         });
     });
 

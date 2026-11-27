@@ -1,5 +1,10 @@
 import type {GetConfirmationFieldErrorsParams} from '@components/MoneyRequestConfirmationList/getConfirmationFieldErrors';
-import getConfirmationFieldErrors, {getSiblingFieldErrors, hasFieldErrors, NO_FIELD_ERRORS} from '@components/MoneyRequestConfirmationList/getConfirmationFieldErrors';
+import getConfirmationFieldErrors, {
+    getSiblingFieldErrors,
+    hasFieldErrors,
+    isMissingRequiredAttendees,
+    NO_FIELD_ERRORS,
+} from '@components/MoneyRequestConfirmationList/getConfirmationFieldErrors';
 
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -30,6 +35,7 @@ const baseParams: GetConfirmationFieldErrorsParams = {
     policyCategories: undefined,
     shouldShowTax: false,
     isTaxAmountEmpty: false,
+    shouldShowAttendees: true,
     reportOwnerAsAttendee: REPORT_OWNER,
     currentUserLogin: OWNER_LOGIN,
     getCurrencyDecimals: () => 2,
@@ -304,6 +310,18 @@ describe('getConfirmationFieldErrors', () => {
 
         // Then nothing is flagged, since an invoice isn't an expense report with attendees to track
         expect(fieldErrors).toBe(NO_FIELD_ERRORS);
+    });
+
+    it('does not flag the attendees of a form without the attendees field', () => {
+        // Given a split, whose form has no attendees field, in a category whose attendees are required, with no attendees
+        const transaction = createManualTransaction({category: 'Meals'});
+
+        // When its field errors are computed
+        const fieldErrors = getConfirmationFieldErrors(transaction, {...baseParams, ...attendeeRuleParams, iouType: CONST.IOU.TYPE.SPLIT, shouldShowAttendees: false});
+
+        // Then no field is flagged, since a blocked confirm would scroll to a field that isn't there, and the attendees still count as missing for the footer
+        expect(fieldErrors).toBe(NO_FIELD_ERRORS);
+        expect(isMissingRequiredAttendees(transaction, {...baseParams, ...attendeeRuleParams, iouType: CONST.IOU.TYPE.SPLIT})).toBe(true);
     });
 });
 

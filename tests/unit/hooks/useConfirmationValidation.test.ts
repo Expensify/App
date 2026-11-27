@@ -1,5 +1,6 @@
 import {renderHook} from '@testing-library/react-native';
 
+import {NO_FIELD_ERRORS} from '@components/MoneyRequestConfirmationList/getConfirmationFieldErrors';
 import type {UseConfirmationValidationParams} from '@components/MoneyRequestConfirmationList/hooks/useConfirmationValidation';
 import useConfirmationValidation from '@components/MoneyRequestConfirmationList/hooks/useConfirmationValidation';
 
@@ -89,6 +90,7 @@ const baseParams = {
     policyCategories: undefined,
     selectedParticipants: [P2P_PARTICIPANT],
     currentUserPersonalDetails: {accountID: 1} as CurrentUserPersonalDetails,
+    currentUserLogin: undefined,
     isEditingSplitBill: false,
     isMerchantRequired: false,
     shouldShowTax: false,
@@ -103,6 +105,7 @@ const baseParams = {
     isReadOnly: false,
     shouldShowDate: true,
     isTaxAmountEmpty: false,
+    shouldShowAttendees: true,
 } satisfies UseConfirmationValidationParams;
 
 function createValidationParamsForParticipant(
@@ -1268,18 +1271,19 @@ describe('useConfirmationValidation', () => {
             expect(result.current.siblingFieldErrors).toEqual({transactionID: 'other-txn', fieldErrors: {merchant: 'iou.error.invalidMerchant'}});
         });
 
+        // A Control workspace whose "Meals" category requires attendees besides the owner
+        const attendeeRuleOverrides: ValidationParamsOverrides = {
+            iouAmount: 1000,
+            iouMerchant: 'Starbucks',
+            iouCategory: 'Meals',
+            policy: {...createRandomPolicy(1), type: CONST.POLICY.TYPE.CORPORATE, isAttendeeTrackingEnabled: true},
+            policyCategories: {Meals: createMock<OnyxTypes.PolicyCategory>({name: 'Meals', enabled: true, areAttendeesRequired: true})},
+            currentUserLogin: 'owner@example.com',
+        };
+        const GUEST_ATTENDEES = [{email: 'guest@example.com', displayName: 'Guest', avatarUrl: ''}];
+
         it('blocks on the attendees field while a category that needs attendees has none, and passes once one is added', () => {
             // Given a scan on a Control workspace in a category that requires attendees, with nobody but the owner attending
-            const controlPolicy: OnyxTypes.Policy = {...createRandomPolicy(1), type: CONST.POLICY.TYPE.CORPORATE, isAttendeeTrackingEnabled: true};
-            const policyCategories = {Meals: createMock<OnyxTypes.PolicyCategory>({name: 'Meals', enabled: true, areAttendeesRequired: true})};
-            const attendeeRuleOverrides: ValidationParamsOverrides = {
-                iouAmount: 1000,
-                iouMerchant: 'Starbucks',
-                iouCategory: 'Meals',
-                policy: controlPolicy,
-                policyCategories,
-                currentUserPersonalDetails: createMock<CurrentUserPersonalDetails>({accountID: 1, email: 'owner@example.com'}),
-            };
             const {result, rerender} = renderHook((props: UseConfirmationValidationParams) => useConfirmationValidation(props), {
                 initialProps: createScanValidationParams({...COMPLETE_SCAN_FIELDS, category: 'Meals'}, attendeeRuleOverrides),
             });
@@ -1290,14 +1294,28 @@ describe('useConfirmationValidation', () => {
             expect(result.current.fieldErrors).toEqual({attendees: 'violations.missingAttendees'});
 
             // When a guest is added and the user confirms again
-            rerender(
-                createScanValidationParams(
-                    {...COMPLETE_SCAN_FIELDS, category: 'Meals', comment: {attendees: [{email: 'guest@example.com', displayName: 'Guest', avatarUrl: ''}]}},
-                    attendeeRuleOverrides,
-                ),
-            );
+            rerender(createScanValidationParams({...COMPLETE_SCAN_FIELDS, category: 'Meals', comment: {attendees: GUEST_ATTENDEES}}, attendeeRuleOverrides));
 
             // Then nothing blocks, since the error is worked out from the expense's attendees
+            expect(result.current.validate()).toEqual({errorKey: null});
+        });
+
+        it('blocks a split with the missing-attendees error in the footer, since a split has no attendees field', () => {
+            // Given a split on a Control workspace in a category that requires attendees, with nobody but the owner attending
+            const splitOverrides: ValidationParamsOverrides = {...attendeeRuleOverrides, iouType: CONST.IOU.TYPE.SPLIT, shouldShowAttendees: false};
+            const {result, rerender} = renderHook((props: UseConfirmationValidationParams) => useConfirmationValidation(props), {
+                initialProps: createScanValidationParams({...COMPLETE_SCAN_FIELDS, category: 'Meals'}, splitOverrides),
+            });
+
+            // When the user confirms
+            // Then no field is flagged, so nothing scrolls toward a field that isn't there, and the footer says why the split is blocked
+            expect(result.current.fieldErrors).toBe(NO_FIELD_ERRORS);
+            expect(result.current.validate()).toEqual({errorKey: 'violations.missingAttendees'});
+
+            // When the expense gets a guest and the user confirms again
+            rerender(createScanValidationParams({...COMPLETE_SCAN_FIELDS, category: 'Meals', comment: {attendees: GUEST_ATTENDEES}}, splitOverrides));
+
+            // Then nothing blocks
             expect(result.current.validate()).toEqual({errorKey: null});
         });
 

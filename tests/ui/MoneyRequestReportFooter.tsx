@@ -119,6 +119,7 @@ const renderMoneyRequestConfirmationListFooter = async (transaction: Transaction
             shouldShowMerchant: false,
             shouldShowCategories: false,
             shouldShowTax: false,
+            shouldShowAttendees: false,
             hasParticipantSection: false,
         },
         errorState: {shouldDisplayFieldError: false, formError: '' as const, fieldErrors: {}},

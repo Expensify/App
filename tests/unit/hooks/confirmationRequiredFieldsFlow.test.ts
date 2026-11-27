@@ -65,6 +65,7 @@ function useManualWorkspaceConfirmation(
         routeError: undefined,
         isTypeSplit: false,
         shouldShowReadOnlySplits: true,
+        isMissingAttendees: false,
     });
     const {validate, fieldErrors, siblingFieldErrors} = useConfirmationValidation({
         transaction,
@@ -82,6 +83,7 @@ function useManualWorkspaceConfirmation(
         policyCategories: undefined,
         selectedParticipants: [WORKSPACE_PARTICIPANT],
         currentUserPersonalDetails: CURRENT_USER,
+        currentUserLogin: undefined,
         isEditingSplitBill: false,
         isMerchantRequired,
         shouldShowTax: true,
@@ -96,6 +98,7 @@ function useManualWorkspaceConfirmation(
         isReadOnly: false,
         shouldShowDate: true,
         isTaxAmountEmpty,
+        shouldShowAttendees: true,
         siblingTransactions,
     });
     const {visibleFieldErrors, revealFieldErrors} = useConfirmationFieldErrors({

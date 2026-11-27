@@ -49,6 +49,9 @@ type UseFormErrorManagementParams = {
 
     /** Whether splits are rendered read-only (suppresses some field errors) */
     shouldShowReadOnlySplits: boolean;
+
+    /** Whether the expense needs attendees it doesn't have, so a missing-attendees error in the footer clears once they are added or the category changes */
+    isMissingAttendees: boolean;
 };
 
 type UseFormErrorManagementResult = {
@@ -103,6 +106,7 @@ function useFormErrorManagement({
     routeError,
     isTypeSplit,
     shouldShowReadOnlySplits,
+    isMissingAttendees,
 }: UseFormErrorManagementParams): UseFormErrorManagementResult {
     const isFocused = useIsFocused();
     const {translate} = useLocalize();
@@ -145,6 +149,7 @@ function useFormErrorManagement({
         policyCategories,
         policyTagLists: policyTags,
         policyTaxRates: policy?.taxRates?.taxes,
+        isMissingAttendees,
     });
 
     // Mirror formError into a ref so the effect below can read the current value without listing

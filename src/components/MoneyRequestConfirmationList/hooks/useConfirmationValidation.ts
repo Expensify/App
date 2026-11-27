@@ -1,5 +1,5 @@
 import type {ConfirmationFieldErrors, SiblingFieldErrors} from '@components/MoneyRequestConfirmationList/getConfirmationFieldErrors';
-import getConfirmationFieldErrors, {getSiblingFieldErrors, hasFieldErrors} from '@components/MoneyRequestConfirmationList/getConfirmationFieldErrors';
+import getConfirmationFieldErrors, {getSiblingFieldErrors, hasFieldErrors, isMissingRequiredAttendees} from '@components/MoneyRequestConfirmationList/getConfirmationFieldErrors';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 
@@ -89,6 +89,9 @@ type UseConfirmationValidationParams = {
 
     currentUserPersonalDetails: CurrentUserPersonalDetails;
 
+    /** The current user's login. A category that needs attendees needs someone other than them. */
+    currentUserLogin: string | undefined;
+
     /** Whether we are editing an existing split bill */
     isEditingSplitBill: boolean | undefined;
 
@@ -133,6 +136,9 @@ type UseConfirmationValidationParams = {
 
     /** Whether the inline tax amount field is currently left empty (new manual expense flow) */
     isTaxAmountEmpty: boolean;
+
+    /** Whether the footer renders the attendees field. Without it, missing attendees block with an error in the footer instead. */
+    shouldShowAttendees: boolean;
 };
 
 /**
@@ -168,6 +174,7 @@ function useConfirmationValidation({
     policyCategories,
     selectedParticipants,
     currentUserPersonalDetails,
+    currentUserLogin,
     isEditingSplitBill,
     isMerchantRequired,
     shouldShowTax,
@@ -183,6 +190,7 @@ function useConfirmationValidation({
     isReadOnly,
     shouldShowDate,
     isTaxAmountEmpty,
+    shouldShowAttendees,
 }: UseConfirmationValidationParams): UseConfirmationValidationResult {
     const {getCurrencyDecimals} = useCurrencyListActions();
     const selectedParticipantsCount = selectedParticipants.length;
@@ -200,8 +208,9 @@ function useConfirmationValidation({
         policy,
         policyCategories,
         shouldShowTax,
+        shouldShowAttendees,
         reportOwnerAsAttendee,
-        currentUserLogin: currentUserPersonalDetails.email ?? currentUserPersonalDetails.login,
+        currentUserLogin,
         getCurrencyDecimals,
     };
     const fieldErrors = getConfirmationFieldErrors(transaction, {...fieldErrorParams, iouAmount, iouMerchant, isTaxAmountEmpty});
@@ -242,6 +251,11 @@ function useConfirmationValidation({
 
         if (transactionTag && hasEnabledTags(policyTagLists) && !hasMatchingTag(policyTags, transactionTag)) {
             return {errorKey: 'violations.tagOutOfPolicy'};
+        }
+
+        // A form without the attendees field, such as a split's, has no field to flag, so the footer says why it is blocked.
+        if (!shouldShowAttendees && isMissingRequiredAttendees(transaction, fieldErrorParams)) {
+            return {errorKey: 'violations.missingAttendees'};
         }
 
         if (shouldShowTax && !!transaction?.taxCode && !hasTaxRateWithMatchingValue(policy, transaction)) {

@@ -1,5 +1,6 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import buildConfirmAction from '@components/MoneyRequestConfirmationList/confirmAction';
+import {isMissingRequiredAttendees} from '@components/MoneyRequestConfirmationList/getConfirmationFieldErrors';
 import type {MoneyRequestConfirmationListProps} from '@components/MoneyRequestConfirmationList/types';
 import type {MeasurableInput, SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 
@@ -12,7 +13,15 @@ import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpen
 import {getConfirmationAmount, isConfirmationMerchantRequired, shouldShowConfirmationDate} from '@libs/MoneyRequestUtils';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {arePolicyRulesEnabled, isTaxTrackingEnabled} from '@libs/PolicyUtils';
-import {getAttendees, getCategory, getCurrency, getMerchant, getRateID, isScanRequest as isScanRequestUtil} from '@libs/TransactionUtils';
+import {
+    getAttendees,
+    getCategory,
+    getCurrency,
+    getMerchant,
+    getRateID,
+    isScanRequest as isScanRequestUtil,
+    shouldShowAttendees as shouldShowAttendeesTransactionUtils,
+} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 
@@ -125,6 +134,8 @@ function useConfirmationListDataWithPolicy({
 
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat || isTrackExpense, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest);
 
+    const shouldShowAttendees = shouldShowAttendeesTransactionUtils(iouType, policy);
+
     // In the share flow, the caller knows it is a scan before the draft is initialized.
     const isScanRequest = isScanRequestProp || isScanRequestUtil(transaction);
     const isMerchantRequired = isConfirmationMerchantRequired({isPolicyExpenseChat, isScanRequest, isEditingSplitBill, shouldShowMerchant});
@@ -162,6 +173,11 @@ function useConfirmationListDataWithPolicy({
     // The date field is rendered under the same condition, so a hidden date is never reported missing.
     const shouldShowDate = shouldShowConfirmationDate(shouldShowSmartScanFields, isDistanceRequest);
 
+    const currentUserLogin = currentUserPersonalDetails.email ?? currentUserPersonalDetails.login;
+
+    // `validate` raises the footer's missing-attendees error with this same rule, so the error clears as soon as the rule passes.
+    const isMissingAttendees = isMissingRequiredAttendees(transaction, {iouType, policy, policyCategories, reportOwnerAsAttendee, currentUserLogin});
+
     const {formError, setFormError, clearFormErrors, setConfirmError, clearConfirmError, shouldDisplayFieldError, errorMessage} = useFormErrorManagement({
         transaction,
         transactionReport,
@@ -175,6 +191,7 @@ function useConfirmationListDataWithPolicy({
         routeError,
         isTypeSplit,
         shouldShowReadOnlySplits,
+        isMissingAttendees,
     });
 
     const isCategoryRequired = !!policy?.requiresCategory && !isTypeInvoice;
@@ -231,6 +248,7 @@ function useConfirmationListDataWithPolicy({
         policyCategories,
         selectedParticipants,
         currentUserPersonalDetails,
+        currentUserLogin,
         isEditingSplitBill,
         isMerchantRequired,
         shouldShowTax,
@@ -246,6 +264,7 @@ function useConfirmationListDataWithPolicy({
         isReadOnly,
         shouldShowDate,
         isTaxAmountEmpty,
+        shouldShowAttendees,
     });
 
     const {visibleFieldErrors, revealFieldErrors} = useConfirmationFieldErrors({
@@ -291,6 +310,7 @@ function useConfirmationListDataWithPolicy({
         shouldShowMerchant,
         shouldShowCategories,
         shouldShowTax,
+        shouldShowAttendees,
         hasParticipantSection: sections.length > 0,
     };
     const errorState = {shouldDisplayFieldError, formError, fieldErrors: visibleFieldErrors};

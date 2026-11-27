@@ -45,6 +45,9 @@ type VisibilityFlags = {
     shouldShowCategories: boolean;
     shouldShowTax: boolean;
 
+    /** Whether the attendees field renders. The confirmation's validation reads the same value, so it never flags attendees on a form without them. */
+    shouldShowAttendees: boolean;
+
     /**
      * Whether the list renders a participant section ("To" / "Paid by") above the footer. The manual form draws a
      * divider under it so the workspace row reads as its own section rather than as the first expense detail.

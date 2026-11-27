@@ -79,6 +79,9 @@ type GetConfirmationFieldErrorsParams = {
     /** Whether the tax amount input was emptied. The draft stores an emptied input as 0, so only the input can tell. */
     isTaxAmountEmpty: boolean;
 
+    /** Whether the attendees field is rendered. A form without it can't take attendees, so `validate` reports missing ones in the footer instead. */
+    shouldShowAttendees: boolean;
+
     /** The report owner, who counts as the attendee while none were picked */
     reportOwnerAsAttendee: Attendee | undefined;
 
@@ -97,6 +100,8 @@ type SiblingFieldErrors = {
     transactionID: string;
     fieldErrors: ConfirmationFieldErrors;
 };
+
+type AttendeeRuleParams = Pick<GetConfirmationFieldErrorsParams, 'iouType' | 'policy' | 'policyCategories' | 'reportOwnerAsAttendee' | 'currentUserLogin'>;
 
 /** Returned whenever no field error is shown, so the error state passed down the footer keeps its identity while nothing is flagged. */
 const NO_FIELD_ERRORS: Readonly<ConfirmationFieldErrors> = Object.freeze({});
@@ -190,21 +195,22 @@ function getTaxAmountFieldError(transaction: OnyxEntry<OnyxTypes.Transaction>, p
     return isTaxAmountInvalid(taxAmount, maxTaxAmount, decimals) ? 'iou.error.invalidTaxAmount' : undefined;
 }
 
-function getAttendeesFieldError(transaction: OnyxEntry<OnyxTypes.Transaction>, params: GetConfirmationFieldErrorsParams): TranslationPaths | undefined {
+/** Whether the expense's category needs attendees it doesn't have, whether or not the form shows the attendees field */
+function isMissingRequiredAttendees(transaction: OnyxEntry<OnyxTypes.Transaction>, params: AttendeeRuleParams): boolean {
     const {iouType, policy, policyCategories, reportOwnerAsAttendee, currentUserLogin} = params;
 
     // An invoice isn't an expense report, so its attendees aren't tracked.
     if (iouType === CONST.IOU.TYPE.INVOICE) {
-        return undefined;
+        return false;
     }
 
     // A disabled category is reported as out of policy instead, and the user has to change it, so its attendee rule no longer applies.
     const category = getCategory(transaction);
     if (!policyCategories?.[category]?.enabled) {
-        return undefined;
+        return false;
     }
 
-    const isMissingAttendees = getIsMissingAttendeesViolation(
+    return getIsMissingAttendeesViolation(
         policyCategories,
         category,
         getAttendees(transaction, reportOwnerAsAttendee),
@@ -212,7 +218,13 @@ function getAttendeesFieldError(transaction: OnyxEntry<OnyxTypes.Transaction>, p
         isAttendeeTrackingEnabled(policy),
         policy?.type === CONST.POLICY.TYPE.CORPORATE,
     );
-    return isMissingAttendees ? 'violations.missingAttendees' : undefined;
+}
+
+function getAttendeesFieldError(transaction: OnyxEntry<OnyxTypes.Transaction>, params: GetConfirmationFieldErrorsParams): TranslationPaths | undefined {
+    if (!params.shouldShowAttendees) {
+        return undefined;
+    }
+    return isMissingRequiredAttendees(transaction, params) ? 'violations.missingAttendees' : undefined;
 }
 
 /** Returns the error each field of the confirmation would show right now, keyed by field. Empty when nothing blocks. */
@@ -267,5 +279,5 @@ function hasBlockingFieldErrors(fieldErrors: ConfirmationFieldErrors, siblingFie
 }
 
 export default getConfirmationFieldErrors;
-export {NO_FIELD_ERRORS, getSiblingFieldErrors, hasBlockingFieldErrors, hasFieldErrors};
+export {NO_FIELD_ERRORS, getSiblingFieldErrors, hasBlockingFieldErrors, hasFieldErrors, isMissingRequiredAttendees};
 export type {ConfirmationField, ConfirmationFieldErrors, GetConfirmationFieldErrorsParams, SiblingFieldErrors};

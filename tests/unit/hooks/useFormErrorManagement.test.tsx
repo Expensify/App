@@ -38,6 +38,7 @@ const baseParams: Params = {
     routeError: undefined,
     isTypeSplit: false,
     shouldShowReadOnlySplits: false,
+    isMissingAttendees: false,
 };
 
 function Wrapper({children}: {children: React.ReactNode}) {
@@ -137,6 +138,27 @@ describe('useFormErrorManagement', () => {
 
         // Then the footer shows it under the button
         expect(result.current.errorMessage).toBeDefined();
+    });
+
+    it('keeps the missing-attendees error while attendees are missing and clears it once they are not', () => {
+        // Given a workspace split blocked in the footer because its category needs attendees it doesn't have
+        const {result, rerender} = renderHook((props: Params) => useFormErrorManagement(props), {
+            wrapper: Wrapper,
+            initialProps: {...baseParams, shouldShowReadOnlySplits: true, isMissingAttendees: true},
+        });
+        act(() => result.current.setConfirmError('violations.missingAttendees'));
+
+        // When the expense still misses attendees
+        rerender({...baseParams, shouldShowReadOnlySplits: true, isMissingAttendees: true});
+
+        // Then the footer keeps saying why the split is blocked
+        expect(result.current.formError).toBe('violations.missingAttendees');
+
+        // When a guest is added or the category changes, so no attendees are missing any more
+        rerender({...baseParams, shouldShowReadOnlySplits: true, isMissingAttendees: false});
+
+        // Then the error clears without another confirm
+        expect(result.current.formError).toBe('');
     });
 
     const splitParams: Params = {...baseParams, isTypeSplit: true, shouldShowReadOnlySplits: false};
