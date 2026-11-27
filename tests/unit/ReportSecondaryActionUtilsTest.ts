@@ -6550,6 +6550,59 @@ describe('getSecondaryTransactionThreadActions', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(true);
     });
 
+    it('includes Customize fields for an unreported expense when its effective workspace policy is available', () => {
+        // Given an unreported self-DM expense whose fields use the single eligible workspace's preferences.
+        const selfDMReport = createMock<Report>({
+            reportID: REPORT_ID,
+            chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+        });
+
+        // When the thread's own policy is empty but the effective report-details policy is present.
+        const result = getSecondaryTransactionThreadActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            parentReport: selfDMReport,
+            parentReportActions: undefined,
+            reportTransaction: createMock<Transaction>({transactionID: ORIGINAL_TRANSACTION_ID}),
+            reportAction: undefined,
+            originalTransaction: undefined,
+            policy: undefined,
+            reportDetailsPolicy: createMock<Policy>({id: POLICY_ID}),
+            isChatReportArchived: false,
+            rules: undefined,
+            cardList: undefined,
+        });
+
+        // Then the menu exposes the selector for the same workspace whose configured fields are shown in the expense.
+        expect(result).toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.CUSTOMIZE_FIELDS);
+    });
+
+    it('does not include Customize fields for a personal IOU without an effective workspace policy', () => {
+        // Given a personal self-DM expense that has no workspace whose column preferences can be edited.
+        const selfDMReport = createMock<Report>({
+            reportID: REPORT_ID,
+            chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+        });
+
+        // When building the expense menu without either a thread policy or a report-details policy.
+        const result = getSecondaryTransactionThreadActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            parentReport: selfDMReport,
+            parentReportActions: undefined,
+            reportTransaction: createMock<Transaction>({transactionID: ORIGINAL_TRANSACTION_ID}),
+            reportAction: undefined,
+            originalTransaction: undefined,
+            policy: undefined,
+            isChatReportArchived: false,
+            rules: undefined,
+            cardList: undefined,
+        });
+
+        // Then the personal expense does not expose a selector for preferences it cannot use.
+        expect(result).not.toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.CUSTOMIZE_FIELDS);
+    });
+
     describe('self-DM convert-from-track actions gate (SEND_TO_SOMEONE / SEND_TO_EMPLOYER)', () => {
         // These cases install persistent spies (mockReturnValue); the enclosing beforeEach only clears call data, not
         // implementations, so restore them here to avoid leaking into later getSecondaryTransactionThreadActions tests.

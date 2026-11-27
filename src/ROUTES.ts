@@ -3056,7 +3056,16 @@ const ROUTES = {
     },
     REPORT_SETTINGS_COLUMNS: {
         route: 'r/:reportID/settings/columns',
-        getRoute: (reportID: string) => `r/${reportID}/settings/columns` as const,
+        getRoute: (reportID: string, isCustomizeFields?: boolean, context?: {policyID?: string; transactionID?: string}) => {
+            const queryParams = isCustomizeFields ? ['isCustomizeFields=true'] : [];
+            if (context?.policyID) {
+                queryParams.push(`policyID=${context.policyID}`);
+            }
+            if (context?.transactionID) {
+                queryParams.push(`transactionID=${context.transactionID}`);
+            }
+            return `r/${reportID}/settings/columns${queryParams.length ? `?${queryParams.join('&')}` : ''}` as const;
+        },
     },
     CHRONOS_SCHEDULE_OOO: {
         route: 'r/:reportID/chronos/schedule-ooo',

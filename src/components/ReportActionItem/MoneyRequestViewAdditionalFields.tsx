@@ -68,7 +68,15 @@ function MoneyRequestViewAdditionalFields({
     // The other expenses can affect the table's default columns. A saved selection only needs this expense.
     const reportTransactions = useReportTransactionsCollection(configuredColumns.length ? undefined : report.reportID);
     const transactions = configuredColumns.length ? [transaction] : getMoneyRequestReportTransactions(reportTransactions, Object.values(reportActions ?? {}), isOffline).transactions;
-    const columns = getReportDetailsColumns({report, policy, transactions: transactions.length ? transactions : [transaction], columns: configuredColumns, isVendorColumnAvailable});
+    const columns = getReportDetailsColumns({
+        report,
+        policy,
+        transactions: transactions.length ? transactions : [transaction],
+        columns: configuredColumns,
+        isVendorColumnAvailable,
+        shouldUseWorkspaceColumnPreferences: !!policy?.id,
+        fallbackPolicyID: policy?.id,
+    });
     const fields = getMoneyRequestAdditionalFields({
         columns,
         transaction,

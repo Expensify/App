@@ -1557,6 +1557,7 @@ const translations: TranslationDeepObject<typeof en> = {
         cancelPayment: '取消付款',
         cancelPaymentConfirmation: '你确定要取消此付款吗？',
         viewDetails: '查看详情',
+        customizeFields: '自定义字段',
         pending: '待处理',
         canceled: '已取消',
         posted: '已发布',

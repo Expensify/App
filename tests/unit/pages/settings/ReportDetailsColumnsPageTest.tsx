@@ -25,6 +25,7 @@ jest.mock('@libs/actions/ReportLayout', () => ({setReportDetailsColumns: jest.fn
 jest.mock('@libs/Navigation/Navigation', () => ({goBack: jest.fn()}));
 jest.mock('@react-navigation/native', () => ({...jest.requireActual<typeof ReactNavigation>('@react-navigation/native'), useRoute: jest.fn()}));
 let mockSavedColumns: string[] | undefined;
+let mockIsCustomizeFields = false;
 function renderColumns(savedColumns: string[] | undefined) {
     mockSavedColumns = savedColumns;
     render(<ReportDetailsColumnsPage />);
@@ -34,7 +35,7 @@ function renderColumns(savedColumns: string[] | undefined) {
     }
     return props;
 }
-jest.mocked(useRoute).mockReturnValue({key: 'columns', name: 'columns', params: {reportID: 'report-1'}});
+jest.mocked(useRoute).mockImplementation(() => ({key: 'columns', name: 'columns', params: {reportID: 'report-1', isCustomizeFields: mockIsCustomizeFields}}));
 jest.mocked(useOnyx).mockImplementation((key) => {
     switch (key) {
         case ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS:
@@ -57,4 +58,88 @@ it('filters unsupported saved columns, defaults invalid-only storage, and preser
     props.onSave([CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]);
     expect(jest.mocked(setReportDetailsColumns)).toHaveBeenCalledWith([CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT], mockSavedColumns);
     expect(jest.mocked(Navigation.goBack)).toHaveBeenCalledTimes(2);
+});
+
+it('does not overwrite a hidden workspace column when saving unchanged required fields', () => {
+    // Given an account-wide preference that includes Vendor, while this workspace cannot offer Vendor in its picker.
+    mockIsCustomizeFields = true;
+    mockSavedColumns = [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.VENDOR];
+    jest.mocked(setReportDetailsColumns).mockClear();
+
+    // When Customize fields saves its unchanged selection, including required fields absent from the saved preference.
+    const props = renderColumns(mockSavedColumns);
+    props.onSave([CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]);
+
+    // Then the shared preference is left untouched so the other workspace's Vendor column is preserved.
+    expect(jest.mocked(setReportDetailsColumns)).not.toHaveBeenCalled();
+    mockIsCustomizeFields = false;
+});
+
+it('preserves a hidden workspace column when another field is changed', () => {
+    // Given an account-wide preference that includes Vendor, while this workspace cannot offer Vendor in its picker.
+    mockIsCustomizeFields = true;
+    const savedColumns = [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.VENDOR];
+    jest.mocked(setReportDetailsColumns).mockClear();
+
+    // When the user adds MCC and saves Customize fields with its required fields selected.
+    const props = renderColumns(savedColumns);
+    props.onSave([CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.MCC]);
+
+    // Then the new selection is saved without losing Vendor from the shared preference.
+    expect(jest.mocked(setReportDetailsColumns)).toHaveBeenCalledWith(
+        [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.VENDOR, CONST.SEARCH.TABLE_COLUMNS.MCC],
+        savedColumns,
+    );
+    mockIsCustomizeFields = false;
+});
+
+it('preserves one receipt column and an unavailable workspace column when saving', () => {
+    // Given a shared preference with Receipt and Vendor, neither of which can be selected in this workspace's picker.
+    mockIsCustomizeFields = true;
+    const savedColumns = [CONST.SEARCH.TABLE_COLUMNS.VENDOR, CONST.SEARCH.TABLE_COLUMNS.RECEIPT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
+    jest.mocked(setReportDetailsColumns).mockClear();
+
+    // When the user adds MCC and saves Customize fields.
+    const props = renderColumns(savedColumns);
+    props.onSave([CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.MCC]);
+
+    // Then Receipt and Vendor each remain exactly once in the shared preference.
+    expect(jest.mocked(setReportDetailsColumns)).toHaveBeenCalledWith(
+        [CONST.SEARCH.TABLE_COLUMNS.VENDOR, CONST.SEARCH.TABLE_COLUMNS.RECEIPT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.MCC],
+        savedColumns,
+    );
+    mockIsCustomizeFields = false;
+});
+
+it('keeps Receipt at the beginning when saving the first custom field selection', () => {
+    // Given the default report columns and no saved customization.
+    mockIsCustomizeFields = true;
+    mockSavedColumns = undefined;
+    jest.mocked(setReportDetailsColumns).mockClear();
+
+    // When the user adds MCC and saves Customize fields for the first time.
+    const props = renderColumns(undefined);
+    props.onSave([
+        CONST.SEARCH.TABLE_COLUMNS.DATE,
+        CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
+        CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
+        CONST.SEARCH.TABLE_COLUMNS.TAG,
+        CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
+        CONST.SEARCH.TABLE_COLUMNS.MCC,
+    ]);
+
+    // Then Receipt stays in its default first position in the shared preference.
+    expect(jest.mocked(setReportDetailsColumns)).toHaveBeenCalledWith(
+        [
+            CONST.SEARCH.TABLE_COLUMNS.RECEIPT,
+            CONST.SEARCH.TABLE_COLUMNS.DATE,
+            CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
+            CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
+            CONST.SEARCH.TABLE_COLUMNS.TAG,
+            CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
+            CONST.SEARCH.TABLE_COLUMNS.MCC,
+        ],
+        undefined,
+    );
+    mockIsCustomizeFields = false;
 });

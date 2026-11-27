@@ -1616,6 +1616,7 @@ const translations: TranslationDeepObject<typeof en> = {
         cancelPayment: 'Annulla pagamento',
         cancelPaymentConfirmation: 'Sei sicuro di voler annullare questo pagamento?',
         viewDetails: 'Visualizza dettagli',
+        customizeFields: 'Personalizza campi',
         pending: 'In sospeso',
         canceled: 'Annullato',
         posted: 'Pubblicato',

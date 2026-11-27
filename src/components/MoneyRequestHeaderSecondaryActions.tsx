@@ -51,6 +51,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
+import {getPolicyByCustomUnitID} from '@libs/PolicyUtils';
 import {sortAndSectionPopoverMenuItems, TRANSACTION_MORE_MENU_SECTIONS} from '@libs/PopoverMenuSections';
 import {getOriginalMessage, getTrackExpenseActionableWhisper, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {getTransactionThreadPrimaryAction} from '@libs/ReportPrimaryActionUtils';
@@ -138,6 +139,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
         'Checkmark',
         'DocumentMerge',
         'ExpenseCopy',
+        'Columns',
         'Info',
         'Send',
         'Stopwatch',
@@ -191,6 +193,8 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const splitEffectivePolicy = useSplitEffectivePolicy(report, undefined, transaction);
+    const [perDiemPolicyID] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (policies) => (isPerDiemRequest(transaction) ? getPolicyByCustomUnitID(transaction, policies)?.id : undefined)});
+    const [perDiemPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(perDiemPolicyID)}`);
     const personalPolicy = usePersonalPolicy();
     const restrictedActionPolicyID = useRestrictedActionPolicyID(policy);
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
@@ -206,7 +210,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
 
     // Custom hooks
     const defaultExpensePolicy = useDefaultExpensePolicy();
-    const {shouldNavigateToUpgradePath} = usePolicyForMovingExpenses(isPerDiemRequest(transaction));
+    const {policyForMovingExpenses, shouldNavigateToUpgradePath} = usePolicyForMovingExpenses(isPerDiemRequest(transaction));
     const {deleteTransactions, shouldOpenSplitExpenseEditFlowOnDelete} = useDeleteTransactions({report: parentReport, reportActions: parentReportAction ? [parentReportAction] : [], policy});
     const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(parentReportAction);
     const [iouPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
@@ -397,6 +401,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             reportAction: parentReportAction,
             originalTransaction,
             policy,
+            reportDetailsPolicy: isPerDiemRequest(transaction) ? perDiemPolicy : policyForMovingExpenses,
             transactionThreadReport: report,
             outstandingReportsByPolicyID,
             reportNameValuePairs,
@@ -587,6 +592,26 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             icon: expensifyIcons.Info,
             onSelected: () => {
                 navigateToDetailsPage(report, isInSidePanel);
+            },
+        },
+        [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.CUSTOMIZE_FIELDS]: {
+            value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.CUSTOMIZE_FIELDS,
+            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.CUSTOMIZE_FIELDS,
+            text: translate('iou.customizeFields'),
+            icon: expensifyIcons.Columns,
+            onSelected: () => {
+                if (!parentReport?.reportID) {
+                    return;
+                }
+
+                const isPersonalExpense = isSelfDM(parentReport);
+                const context = isPersonalExpense
+                    ? {
+                          policyID: (isPerDiemRequest(transaction) ? perDiemPolicyID : policyForMovingExpenses?.id) ?? policy?.id,
+                          transactionID: transaction?.transactionID,
+                      }
+                    : undefined;
+                Navigation.navigate(ROUTES.REPORT_SETTINGS_COLUMNS.getRoute(parentReport.reportID, true, context));
             },
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DELETE]: {

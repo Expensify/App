@@ -11,6 +11,7 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import {useSearchResultsContext} from '@components/Search/SearchContext';
+import type {SearchCustomColumnIds} from '@components/Search/types';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import UserPills from '@components/UserPills';
@@ -58,6 +59,7 @@ import {getBrokenConnectionUrlToFixPersonalCard, getCommercialFeedCardDescriptio
 import {getDecodedLeafCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {getConfiguredReportDetailsColumns} from '@libs/getReportDetailsColumns';
 import {insertTagIntoTransactionTagsString} from '@libs/IOUUtils';
 import {getRateFromMerchant} from '@libs/MergeTransactionUtils';
 import {isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
@@ -210,6 +212,19 @@ const perDiemPoliciesSelector = (policies: OnyxCollection<OnyxTypes.Policy>) => 
     );
 };
 
+type ReportDetailsFieldVisibilityProps = {
+    isVisible: boolean;
+    children: React.ReactNode;
+};
+
+function ReportDetailsFieldVisibility({isVisible, children}: ReportDetailsFieldVisibilityProps) {
+    if (!isVisible) {
+        return null;
+    }
+
+    return children;
+}
+
 function MoneyRequestView({
     transactionThreadReport,
     parentReportID,
@@ -286,7 +301,7 @@ function MoneyRequestView({
 
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`);
     const [policyVendors] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_VENDORS}${getNonEmptyStringOnyxID(policyID)}`);
-    const targetPolicyID = updatedTransaction?.reportID ? parentReport?.policyID : policyID;
+    const targetPolicyID = isExpenseUnreported ? policyID : parentReport?.policyID;
     const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(targetPolicyID)}`);
     const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
     const transactionCard = transaction?.cardID ? nonPersonalAndWorkspaceCards?.[transaction.cardID] : undefined;
@@ -298,6 +313,7 @@ function MoneyRequestView({
     const transactionViolations = useTransactionViolations(transaction?.transactionID, false, distanceOriginalPolicy ?? policy);
     const allTransactionViolations = useAllTransactionViolations(transaction?.transactionID);
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
+    const [reportDetailsColumns] = useOnyx(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
     const personalDetailsList = usePersonalDetails();
@@ -1291,6 +1307,20 @@ function MoneyRequestView({
     // receipt panel already shows it. Instances mounted on other screens (e.g. the central report pane behind
     // the RHP) must keep their inline receipt, so the check is scoped to this view's own route key.
     const isInWideRHP = wideRHPRouteKeys.includes(route.key);
+    const configuredReportDetailsColumns = getConfiguredReportDetailsColumns(reportDetailsColumns, hasVendorFeature(policy, isVendorMatchingBetaEnabled ?? false));
+    // Merge and duplicate confirmations must keep the values the user selected visible until they are saved.
+    const shouldApplyReportDetailsColumns = !!parentReport && (isExpenseReport(parentReport) || (isExpenseUnreported && !!policy?.id)) && !isFromMergeTransaction && !isFromReviewDuplicates;
+    const shouldShowReportDetailsColumn = (column: SearchCustomColumnIds) => {
+        if (!shouldApplyReportDetailsColumns || !configuredReportDetailsColumns.length) {
+            return true;
+        }
+
+        if (column === CONST.SEARCH.TABLE_COLUMNS.MERCHANT || column === CONST.SEARCH.TABLE_COLUMNS.DATE || column === CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT) {
+            return true;
+        }
+
+        return configuredReportDetailsColumns.includes(column);
+    };
 
     // If the view is readonly, we don't need the transactionThread dependency
     if ((!readonly && !transactionThreadReport?.reportID) || !transaction?.transactionID) {
@@ -1384,7 +1414,7 @@ function MoneyRequestView({
                         isTitleSelectable={!!amountCopyValue}
                     />
                 </OfflineWithFeedback>
-                {!shouldHideEmptyDescription && (
+                <ReportDetailsFieldVisibility isVisible={!shouldHideEmptyDescription && shouldShowReportDetailsColumn(CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION)}>
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('comment')}>
                         <MenuItemWithTopDescription
                             sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.DESCRIPTION_FIELD}
@@ -1412,22 +1442,79 @@ function MoneyRequestView({
                             isTitleSelectable={!!descriptionCopyValue}
                         />
                     </OfflineWithFeedback>
-                )}
+                </ReportDetailsFieldVisibility>
                 {isManualDistanceRequest || isGPSDistanceRequest || isOdometerDistanceRequest || (isMapDistanceRequest && transaction?.comment?.waypoints) ? (
                     distanceRequestFields
                 ) : (
-                    <OfflineWithFeedback pendingAction={getPendingFieldAction('merchant')}>
+                    <ReportDetailsFieldVisibility isVisible={shouldShowReportDetailsColumn(CONST.SEARCH.TABLE_COLUMNS.MERCHANT)}>
+                        <OfflineWithFeedback pendingAction={getPendingFieldAction('merchant')}>
+                            <MenuItem.Root
+                                sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.MERCHANT_FIELD}
+                                shouldAllowTextSelection={!!merchantCopyValue}
+                                shouldBeAccessible={canEditMerchant || !shouldShowGoogleMerchantSearchLink}
+                                style={styles.taskDescriptionMenuItem}
+                                onPress={
+                                    canEditMerchant
+                                        ? callIfAuthenticated(() => {
+                                              Navigation.navigate(
+                                                  createDynamicRoute(
+                                                      DYNAMIC_ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(
+                                                          CONST.IOU.ACTION.EDIT,
+                                                          iouType,
+                                                          transaction.transactionID,
+                                                          transactionThreadReport?.reportID,
+                                                      ),
+                                                  ),
+                                              );
+                                          }, session)
+                                        : undefined
+                                }
+                            >
+                                <MenuItem.Row>
+                                    <MenuItem.Content>
+                                        {updatedMerchantTitle ? (
+                                            <>
+                                                <MenuItem.FieldName>{translate('common.merchant')}</MenuItem.FieldName>
+                                                <MenuItem.FieldValue
+                                                    numberOfLines={0}
+                                                    isSelectable={!!merchantCopyValue}
+                                                    style={styles.flex1}
+                                                >
+                                                    {updatedMerchantTitle}
+                                                </MenuItem.FieldValue>
+                                            </>
+                                        ) : (
+                                            <MenuItem.FieldNamePlaceholder>{translate('common.merchant')}</MenuItem.FieldNamePlaceholder>
+                                        )}
+                                        {shouldShowGoogleMerchantSearchLink && renderGoogleMerchantSearchLink()}
+                                    </MenuItem.Content>
+                                    <MenuItem.Trailing>
+                                        {!!getErrorForField('merchant') && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                                        {canEditMerchant && <MenuItem.Chevron />}
+                                        {!canEditMerchant && !!merchantCopyValue && <MenuItem.Copy value={merchantCopyValue} />}
+                                    </MenuItem.Trailing>
+                                </MenuItem.Row>
+                                {!!getErrorForField('merchant') && (
+                                    <MenuItem.HelpText
+                                        isError
+                                        message={getErrorForField('merchant')}
+                                    />
+                                )}
+                            </MenuItem.Root>
+                        </OfflineWithFeedback>
+                    </ReportDetailsFieldVisibility>
+                )}
+                <ReportDetailsFieldVisibility isVisible={shouldShowReportDetailsColumn(CONST.SEARCH.TABLE_COLUMNS.DATE)}>
+                    <OfflineWithFeedback pendingAction={getPendingFieldAction('created')}>
                         <MenuItem.Root
-                            sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.MERCHANT_FIELD}
-                            shouldAllowTextSelection={!!merchantCopyValue}
-                            shouldBeAccessible={canEditMerchant || !shouldShowGoogleMerchantSearchLink}
-                            style={styles.taskDescriptionMenuItem}
+                            sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.DATE_FIELD}
+                            shouldAllowTextSelection={!!dateCopyValue}
                             onPress={
-                                canEditMerchant
+                                canEditDate
                                     ? callIfAuthenticated(() => {
                                           Navigation.navigate(
                                               createDynamicRoute(
-                                                  DYNAMIC_ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(
+                                                  DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(
                                                       CONST.IOU.ACTION.EDIT,
                                                       iouType,
                                                       transaction.transactionID,
@@ -1439,74 +1526,26 @@ function MoneyRequestView({
                                     : undefined
                             }
                         >
-                            <MenuItem.Row>
-                                <MenuItem.Content>
-                                    {updatedMerchantTitle ? (
-                                        <>
-                                            <MenuItem.FieldName>{translate('common.merchant')}</MenuItem.FieldName>
-                                            <MenuItem.FieldValue
-                                                numberOfLines={0}
-                                                isSelectable={!!merchantCopyValue}
-                                                style={styles.flex1}
-                                            >
-                                                {updatedMerchantTitle}
-                                            </MenuItem.FieldValue>
-                                        </>
-                                    ) : (
-                                        <MenuItem.FieldNamePlaceholder>{translate('common.merchant')}</MenuItem.FieldNamePlaceholder>
-                                    )}
-                                    {shouldShowGoogleMerchantSearchLink && renderGoogleMerchantSearchLink()}
-                                </MenuItem.Content>
-                                <MenuItem.Trailing>
-                                    {!!getErrorForField('merchant') && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
-                                    {canEditMerchant && <MenuItem.Chevron />}
-                                    {!canEditMerchant && !!merchantCopyValue && <MenuItem.Copy value={merchantCopyValue} />}
-                                </MenuItem.Trailing>
-                            </MenuItem.Row>
-                            {!!getErrorForField('merchant') && (
+                            <MenuItemField.Row
+                                name={dateDescription}
+                                value={actualTransactionDate}
+                                numberOfLinesValue={2}
+                                isValueSelectable={!!dateCopyValue}
+                            >
+                                {!!dateError && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                                {canEditDate && <MenuItem.Chevron />}
+                                {!canEditDate && !!dateCopyValue && <MenuItem.Copy value={dateCopyValue} />}
+                            </MenuItemField.Row>
+                            {!!dateError && (
                                 <MenuItem.HelpText
                                     isError
-                                    message={getErrorForField('merchant')}
+                                    message={dateError}
                                 />
                             )}
                         </MenuItem.Root>
                     </OfflineWithFeedback>
-                )}
-                <OfflineWithFeedback pendingAction={getPendingFieldAction('created')}>
-                    <MenuItem.Root
-                        sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.DATE_FIELD}
-                        shouldAllowTextSelection={!!dateCopyValue}
-                        onPress={
-                            canEditDate
-                                ? callIfAuthenticated(() => {
-                                      Navigation.navigate(
-                                          createDynamicRoute(
-                                              DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport?.reportID),
-                                          ),
-                                      );
-                                  }, session)
-                                : undefined
-                        }
-                    >
-                        <MenuItemField.Row
-                            name={dateDescription}
-                            value={actualTransactionDate}
-                            numberOfLinesValue={2}
-                            isValueSelectable={!!dateCopyValue}
-                        >
-                            {!!dateError && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
-                            {canEditDate && <MenuItem.Chevron />}
-                            {!canEditDate && !!dateCopyValue && <MenuItem.Copy value={dateCopyValue} />}
-                        </MenuItemField.Row>
-                        {!!dateError && (
-                            <MenuItem.HelpText
-                                isError
-                                message={dateError}
-                            />
-                        )}
-                    </MenuItem.Root>
-                </OfflineWithFeedback>
-                {!!shouldShowCategory && (
+                </ReportDetailsFieldVisibility>
+                <ReportDetailsFieldVisibility isVisible={!!shouldShowCategory && shouldShowReportDetailsColumn(CONST.SEARCH.TABLE_COLUMNS.CATEGORY)}>
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('category')}>
                         <MenuItem.Root
                             sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.CATEGORY_FIELD}
@@ -1588,8 +1627,8 @@ function MoneyRequestView({
                             {!!reservationNightsHintText && <MenuItem.HelpText message={reservationNightsHintText} />}
                         </MenuItem.Root>
                     </OfflineWithFeedback>
-                )}
-                {shouldShowVendor && (
+                </ReportDetailsFieldVisibility>
+                <ReportDetailsFieldVisibility isVisible={shouldShowVendor && shouldShowReportDetailsColumn(CONST.SEARCH.TABLE_COLUMNS.VENDOR)}>
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('vendor')}>
                         <MenuItem.Root
                             sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.VENDOR_FIELD}
@@ -1631,9 +1670,9 @@ function MoneyRequestView({
                             )}
                         </MenuItem.Root>
                     </OfflineWithFeedback>
-                )}
-                {shouldShowTag && tagList}
-                {!!shouldShowCard && (
+                </ReportDetailsFieldVisibility>
+                <ReportDetailsFieldVisibility isVisible={!!shouldShowTag && shouldShowReportDetailsColumn(CONST.SEARCH.TABLE_COLUMNS.TAG)}>{tagList}</ReportDetailsFieldVisibility>
+                <ReportDetailsFieldVisibility isVisible={!!shouldShowCard && shouldShowReportDetailsColumn(CONST.SEARCH.TABLE_COLUMNS.CARD)}>
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('cardID')}>
                         <MenuItem.Root shouldAllowTextSelection={!!cardCopyValue}>
                             <MenuItemField.Row
@@ -1646,8 +1685,8 @@ function MoneyRequestView({
                             </MenuItemField.Row>
                         </MenuItem.Root>
                     </OfflineWithFeedback>
-                )}
-                {shouldShowTax && (
+                </ReportDetailsFieldVisibility>
+                <ReportDetailsFieldVisibility isVisible={shouldShowTax && shouldShowReportDetailsColumn(CONST.SEARCH.TABLE_COLUMNS.TAX_RATE)}>
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('taxCode')}>
                         <MenuItem.Root
                             sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.TAX_RATE_FIELD}
@@ -1692,8 +1731,8 @@ function MoneyRequestView({
                             )}
                         </MenuItem.Root>
                     </OfflineWithFeedback>
-                )}
-                {shouldShowTax && (
+                </ReportDetailsFieldVisibility>
+                <ReportDetailsFieldVisibility isVisible={shouldShowTax && shouldShowReportDetailsColumn(CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT)}>
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('taxAmount')}>
                         <MenuItem.Root
                             sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.TAX_AMOUNT_FIELD}
@@ -1731,8 +1770,8 @@ function MoneyRequestView({
                             </MenuItemField.Row>
                         </MenuItem.Root>
                     </OfflineWithFeedback>
-                )}
-                {shouldShowAttendees && (
+                </ReportDetailsFieldVisibility>
+                <ReportDetailsFieldVisibility isVisible={shouldShowAttendees && shouldShowReportDetailsColumn(CONST.SEARCH.TABLE_COLUMNS.ATTENDEES)}>
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('attendees')}>
                         <MenuItemWithTopDescription
                             sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.ATTENDEES_FIELD}
@@ -1777,8 +1816,8 @@ function MoneyRequestView({
                             isTitleSelectable={areAttendeesCopyable}
                         />
                     </OfflineWithFeedback>
-                )}
-                {shouldShowReimbursable && (
+                </ReportDetailsFieldVisibility>
+                <ReportDetailsFieldVisibility isVisible={shouldShowReimbursable && shouldShowReportDetailsColumn(CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE)}>
                     <OfflineWithFeedback
                         pendingAction={getPendingFieldAction('reimbursable')}
                         contentContainerStyle={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.mh5]}
@@ -1818,8 +1857,8 @@ function MoneyRequestView({
                             disabled={!canEditReimbursable}
                         />
                     </OfflineWithFeedback>
-                )}
-                {shouldShowBillable && (
+                </ReportDetailsFieldVisibility>
+                <ReportDetailsFieldVisibility isVisible={shouldShowBillable && shouldShowReportDetailsColumn(CONST.SEARCH.TABLE_COLUMNS.BILLABLE)}>
                     <OfflineWithFeedback
                         pendingAction={getPendingFieldAction('billable')}
                         contentContainerStyle={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.mh5]}
@@ -1859,7 +1898,7 @@ function MoneyRequestView({
                             disabled={!canEdit}
                         />
                     </OfflineWithFeedback>
-                )}
+                </ReportDetailsFieldVisibility>
                 {shouldShowReport && (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('reportID')}>
                         <MenuItemWithTopDescription
@@ -1902,14 +1941,14 @@ function MoneyRequestView({
                         />
                     </OfflineWithFeedback>
                 )}
-                {!!parentReport && isExpenseReport(parentReport) && !isFromReviewDuplicates && !isFromMergeTransaction && (
+                {!!parentReport && (isExpenseReport(parentReport) || (isExpenseUnreported && !!policy?.id)) && !isFromReviewDuplicates && !isFromMergeTransaction && (
                     <MoneyRequestViewAdditionalFields
                         transaction={transaction}
                         report={parentReport}
                         reportActions={parentReportActions}
                         policy={policy}
                         policyCategories={policyCategories}
-                        policyTags={reportPolicyTags}
+                        policyTags={policyTagList}
                         visibleAttendeeCount={shouldShowAttendees ? transactionAttendees.length : 0}
                         isVendorColumnAvailable={hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING))}
                     />

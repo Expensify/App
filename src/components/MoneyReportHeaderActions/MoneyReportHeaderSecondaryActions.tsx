@@ -51,6 +51,7 @@ import {search} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {getIsOffline} from '@libs/NetworkState';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
@@ -68,6 +69,8 @@ import {
     isAllowedToApproveExpenseReport,
     isInvoiceReport as isInvoiceReportUtil,
     isIOUReport as isIOUReportUtil,
+    isExpenseReport as isExpenseReportUtil,
+    isSelfDM as isSelfDMReportUtil,
     navigateToDetailsPage,
 } from '@libs/ReportUtils';
 import {isPending} from '@libs/TransactionUtils';
@@ -77,6 +80,7 @@ import {openPaymentMethods} from '@userActions/PaymentMethods';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import {loginSelector} from '@src/selectors/PersonalDetails';
 import {createMoveExpenseReportNVPSelector} from '@src/selectors/Report';
@@ -348,7 +352,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
             ? sortPoliciesByName(activeAdminPolicies, localeCompare)
             : [];
 
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Info', 'Cash', 'ArrowRight', 'Building']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Info', 'Cash', 'ArrowRight', 'Building', 'Columns']);
 
     // Build PAY action sub-items. Workspace-policy entries carry the policy as data and have no onSelected;
     // MoneyReportHeaderKYCDropdown picks them up via onSubItemSelected where triggerKYCFlow is in scope.
@@ -456,8 +460,30 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
           })
         : [];
 
+    // Report-level field preferences belong to a single expense; Self-DM reports need a workspace policy to provide those fields.
+    if (moneyRequestReport && nonPendingDeleteTransactions.length === 1 && (isExpenseReportUtil(moneyRequestReport) || (isSelfDMReportUtil(moneyRequestReport) && !!policy?.id))) {
+        const viewDetailsIndex = secondaryActions.indexOf(CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS);
+        if (viewDetailsIndex >= 0) {
+            // The menu sorter preserves source order within a section, so insert this before View details to match the menu design.
+            secondaryActions.splice(viewDetailsIndex, 0, CONST.REPORT.SECONDARY_ACTIONS.CUSTOMIZE_FIELDS);
+        }
+    }
+
     // Merge all action implementations
     const secondaryActionsImplementation: Record<string, (typeof lifecycleActionEntries)[string]> = {
+        [CONST.REPORT.SECONDARY_ACTIONS.CUSTOMIZE_FIELDS]: {
+            value: CONST.REPORT.SECONDARY_ACTIONS.CUSTOMIZE_FIELDS,
+            text: translate('iou.customizeFields'),
+            icon: expensifyIcons.Columns,
+            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.CUSTOMIZE_FIELDS,
+            onSelected: () => {
+                if (!moneyRequestReport?.reportID) {
+                    return;
+                }
+
+                Navigation.navigate(ROUTES.REPORT_SETTINGS_COLUMNS.getRoute(moneyRequestReport.reportID, true));
+            },
+        },
         [CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS]: {
             value: CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS,
             text: translate('iou.viewDetails'),

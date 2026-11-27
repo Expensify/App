@@ -6,10 +6,12 @@ import type * as OnyxListItemProvider from '@components/OnyxListItemProvider';
 import useOnyx from '@hooks/useOnyx';
 
 import {deleteTrackExpense} from '@libs/actions/IOU/TrackExpense';
+import Navigation from '@libs/Navigation/Navigation';
 import {getSecondaryTransactionThreadActions} from '@libs/ReportSecondaryActionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {Report, ReportAction, Transaction} from '@src/types/onyx';
 
 import type * as ReactNavigationNative from '@react-navigation/native';
@@ -119,6 +121,7 @@ const mockedGetSecondaryTransactionThreadActions = jest.mocked(getSecondaryTrans
 describe('MoneyRequestHeaderSecondaryActions', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        parentReport.reportID = TEST_PARENT_REPORT_ID;
         mockCapturedDropdownOptions = [];
         mockedGetSecondaryTransactionThreadActions.mockReturnValue([CONST.REPORT.SECONDARY_ACTIONS.DELETE]);
         mockedUseOnyx.mockImplementation((key: string) => {
@@ -141,6 +144,10 @@ describe('MoneyRequestHeaderSecondaryActions', () => {
         });
     });
 
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
     it('passes the iouReport transactions from useReportTransactionsCollection to deleteTrackExpense on delete', () => {
         render(
             <MoneyRequestHeaderSecondaryActions
@@ -159,5 +166,50 @@ describe('MoneyRequestHeaderSecondaryActions', () => {
         }).then(() => {
             expect(mockedDeleteTrackExpense).toHaveBeenCalledWith(expect.objectContaining({iouReportTransactions: Object.values(mockIouReportTransactionsByKey)}));
         });
+    });
+
+    it('opens the parent report field selector when customize fields is selected', () => {
+        // Given an expense menu with Customize fields, the selector should use the parent report's preferences.
+        mockedGetSecondaryTransactionThreadActions.mockReturnValue([CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.CUSTOMIZE_FIELDS]);
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+
+        render(
+            <MoneyRequestHeaderSecondaryActions
+                reportID={TEST_REPORT_ID}
+                onBackButtonPress={() => {}}
+            />,
+        );
+
+        const customizeFieldsOption = mockCapturedDropdownOptions.find((option) => option.value === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.CUSTOMIZE_FIELDS);
+        expect(customizeFieldsOption).toBeTruthy();
+
+        // When the user selects Customize fields, the expense should open its parent report's field selector.
+        customizeFieldsOption?.onSelected();
+
+        // Then the selector should receive the parent report ID and customize mode so it shares report field preferences.
+        expect(navigateSpy).toHaveBeenCalledWith(ROUTES.REPORT_SETTINGS_COLUMNS.getRoute(TEST_PARENT_REPORT_ID, true));
+    });
+
+    it('does not navigate to the field selector when the parent report has no ID', () => {
+        // Given an expense whose parent report record has no ID, the route builder has no valid report context.
+        parentReport.reportID = '';
+        mockedGetSecondaryTransactionThreadActions.mockReturnValue([CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.CUSTOMIZE_FIELDS]);
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+
+        render(
+            <MoneyRequestHeaderSecondaryActions
+                reportID={TEST_REPORT_ID}
+                onBackButtonPress={() => {}}
+            />,
+        );
+
+        const customizeFieldsOption = mockCapturedDropdownOptions.find((option) => option.value === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.CUSTOMIZE_FIELDS);
+        expect(customizeFieldsOption).toBeTruthy();
+
+        // When the user selects the option without a parent report, the navigation callback should safely stop.
+        customizeFieldsOption?.onSelected();
+
+        // Then navigation should remain untouched because no report ID is available for the selector.
+        expect(navigateSpy).not.toHaveBeenCalled();
     });
 });
