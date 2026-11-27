@@ -1,5 +1,6 @@
 import {act, render} from '@testing-library/react-native';
 
+import Button from '@components/Button';
 import Header from '@components/Header';
 import PersonalDetailsByLoginProvider from '@components/PersonalDetailsByLoginProvider';
 import SelectionList from '@components/SelectionList';
@@ -32,6 +33,13 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 let mockIsWorkArrangementBetaEnabled = true;
 
+jest.mock('@components/Button', () =>
+    Object.assign(
+        jest.fn(() => null),
+        {Text: () => null, KeyboardShortcut: () => null},
+    ),
+);
+jest.mock('@components/FixedFooter', () => jest.fn(({children}: PropsWithChildren) => children));
 jest.mock('@components/Header', () => {
     const ComposedHeader = jest.fn(({children}: PropsWithChildren) => children);
     const BackButton = jest.fn(() => null);
@@ -69,10 +77,6 @@ type MockSelectionListProps = {
     onSelectRow?: (item: MockWorkArrangementOption) => void;
 };
 
-type MockHeaderBackButtonProps = {
-    onPress?: () => void;
-};
-
 type WorkArrangementPageTestProps = React.ComponentProps<typeof WorkArrangementPage> & {policy: Policy};
 
 describe('WorkArrangementPage', () => {
@@ -89,6 +93,10 @@ describe('WorkArrangementPage', () => {
     const mockedSelectionList = jest.mocked(SelectionList);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- narrows props captured from the mocked SelectionList
     const getSelectionListProps = () => mockedSelectionList.mock.lastCall?.[0] as MockSelectionListProps | undefined;
+    const confirmArrangement = () => {
+        const buttonProps = jest.mocked(Button).mock.lastCall?.[0];
+        buttonProps?.onPress?.();
+    };
 
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
@@ -125,18 +133,78 @@ describe('WorkArrangementPage', () => {
 
     const renderPage = (routeAccountID = accountID, pagePolicy?: Policy) => render(getPage(routeAccountID, pagePolicy));
 
-    it('does nothing when the selected arrangement is already active', () => {
+    it('preserves the workspace default when confirming the active arrangement', () => {
         // Given the workspace default is no regular workspace
         renderPage();
 
-        // When the user selects that already active arrangement
+        // When the user confirms that already active arrangement
+        act(() => {
+            confirmArrangement();
+        });
+
+        // Then no explicit member override is created and the page closes
+        expect(setEmployeeWorkArrangement).not.toHaveBeenCalled();
+        expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
+    });
+
+    it.each([false, true])('discards unconfirmed changes when going back (invite flow: %s)', async (isInviteFlow) => {
+        // Given an editor inheriting the workspace's remote arrangement
+        render(getPage(accountID, createMock<Policy>(policy), isInviteFlow));
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user selects office-based but goes back without confirming
+        act(() => {
+            getSelectionListProps()?.onSelectRow?.({value: true});
+        });
+        act(() => {
+            const headerProps = mockedHeaderBackButton.mock.lastCall?.[0];
+            headerProps?.onPress?.();
+        });
+
+        // Then neither the member nor the invitation draft is changed
+        expect(setEmployeeWorkArrangement).not.toHaveBeenCalled();
+        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_WORK_ARRANGEMENT_DRAFT}${policyID}`)).toBeUndefined();
+        expect(Navigation.goBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('allows changing the selection back before confirming without creating an override', () => {
+        // Given a member inheriting the workspace's remote arrangement
+        renderPage();
+
+        // When the user selects office-based, then returns to remote and confirms
+        act(() => {
+            getSelectionListProps()?.onSelectRow?.({value: true});
+        });
         act(() => {
             getSelectionListProps()?.onSelectRow?.({value: false});
         });
+        act(() => {
+            confirmArrangement();
+        });
 
-        // Then the action is not sent and the page stays open
+        // Then the final selection is remote and the member keeps following the workspace default
+        expect(getSelectionListProps()?.data.find((option) => !option.value)?.isSelected).toBe(true);
         expect(setEmployeeWorkArrangement).not.toHaveBeenCalled();
-        expect(Navigation.goBack).not.toHaveBeenCalled();
+        expect(Navigation.goBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('confirms a remote selection for a member with an explicit office-based arrangement', () => {
+        // Given a member whose override differs from the workspace default
+        const memberPolicy = createMock<Policy>({...policy, employeeList: {[memberLogin]: {email: memberLogin, hasOfficeWorkArrangement: true}}});
+        renderPage(accountID, memberPolicy);
+
+        // When the user chooses remote and confirms
+        act(() => {
+            getSelectionListProps()?.onSelectRow?.({value: false});
+        });
+        act(() => {
+            confirmArrangement();
+        });
+
+        // Then false is saved as the member's chosen arrangement
+        expect(setEmployeeWorkArrangement).toHaveBeenCalledTimes(1);
+        expect(setEmployeeWorkArrangement).toHaveBeenCalledWith(memberPolicy, [accountID], false, personalDetails);
+        expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
     });
 
     it('does nothing when the current user cannot access the work arrangement page', () => {
@@ -165,7 +233,7 @@ describe('WorkArrangementPage', () => {
         expect(mockedSelectionList).not.toHaveBeenCalled();
     });
 
-    it('updates the arrangement and returns to member details when a different option is selected', () => {
+    it('updates the arrangement and returns to member details only after confirmation', () => {
         // Given the page is open for a member whose current arrangement is no regular workspace
         renderPage();
 
@@ -174,12 +242,22 @@ describe('WorkArrangementPage', () => {
             getSelectionListProps()?.onSelectRow?.({value: true});
         });
 
+        // Then the selection changes locally without saving or navigating
+        expect(getSelectionListProps()?.data.find((option) => option.value)?.isSelected).toBe(true);
+        expect(setEmployeeWorkArrangement).not.toHaveBeenCalled();
+        expect(Navigation.goBack).not.toHaveBeenCalled();
+
+        // When the user confirms the selected arrangement
+        act(() => {
+            confirmArrangement();
+        });
+
         // Then the update is requested and the member details page is shown
         expect(setEmployeeWorkArrangement).toHaveBeenCalledWith(policy, [accountID], true, personalDetails);
         expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
     });
 
-    it('updates the invite draft and returns to invite confirmation when a different option is selected', async () => {
+    it('updates the invite draft only after the selected arrangement is confirmed', async () => {
         // Given the work arrangement editor was opened from invite confirmation for an unsent invitee
         const inviteAccountID = 23456;
         const invitePolicy = createMock<Policy>({...policy, employeeList: {}});
@@ -192,6 +270,16 @@ describe('WorkArrangementPage', () => {
         // When the admin selects office-based
         await act(async () => {
             getSelectionListProps()?.onSelectRow?.({value: true});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then selecting alone leaves the invite draft and navigation unchanged
+        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_WORK_ARRANGEMENT_DRAFT}${policyID}`)).toBeUndefined();
+        expect(Navigation.goBack).not.toHaveBeenCalled();
+
+        // When the admin confirms the choice
+        await act(async () => {
+            confirmArrangement();
         });
         await waitForBatchedUpdatesWithAct();
 
@@ -247,6 +335,9 @@ describe('WorkArrangementPage', () => {
         act(() => {
             getSelectionListProps()?.onSelectRow?.({value: true});
         });
+        act(() => {
+            confirmArrangement();
+        });
 
         // Then the workflow's invite confirmation stays as the return destination
         expect(Navigation.goBack).toHaveBeenCalledWith(workflowInviteConfirmationPath);
@@ -281,6 +372,9 @@ describe('WorkArrangementPage', () => {
         act(() => {
             getSelectionListProps()?.onSelectRow?.({value: true});
         });
+        act(() => {
+            confirmArrangement();
+        });
 
         // Then the update uses the synced account ID and the current personal details
         expect(setEmployeeWorkArrangement).toHaveBeenCalledWith(syncedPolicy, [syncedAccountID], true, syncedPersonalDetails);
@@ -314,7 +408,7 @@ describe('WorkArrangementPage', () => {
         expect(getSelectionListProps()).toBeDefined();
 
         // And the admin presses back
-        const headerProps = mockedHeaderBackButton.mock.lastCall?.[0] as MockHeaderBackButtonProps | undefined;
+        const headerProps = mockedHeaderBackButton.mock.lastCall?.[0];
         act(() => {
             headerProps?.onPress?.();
         });

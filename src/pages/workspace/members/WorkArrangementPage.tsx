@@ -1,3 +1,5 @@
+import Button from '@components/Button';
+import FixedFooter from '@components/FixedFooter';
 import Header from '@components/Header';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -32,7 +34,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {loginSelector} from '@src/selectors/PersonalDetails';
 
-import React from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 type WorkArrangementOption = ListItem & {
@@ -78,6 +80,8 @@ function WorkArrangementPage({policy, route}: WorkArrangementPageProps) {
 
     // The member-level setting wins; otherwise use the workspace default and the server's office-based fallback.
     const currentIsOffice = getEffectiveWorkArrangement(isInviteFlow ? inviteWorkArrangementDraft : member?.hasOfficeWorkArrangement, policy?.commuterExclusions?.isOfficeWorkArrangement);
+    const [chosenIsOffice, setChosenIsOffice] = useState<boolean>();
+    const isOffice = chosenIsOffice ?? currentIsOffice;
 
     const navigateBackToDetails = () => {
         if (isInviteFlow) {
@@ -87,16 +91,18 @@ function WorkArrangementPage({policy, route}: WorkArrangementPageProps) {
         Navigation.goBack(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, memberAccountID));
     };
 
-    const changeWorkArrangement = ({value}: WorkArrangementOption) => {
-        if (value === currentIsOffice || !canAccessWorkArrangementPage) {
+    const changeWorkArrangement = () => {
+        if (!canAccessWorkArrangementPage) {
             return;
         }
-        if (isInviteFlow) {
-            setWorkspaceInviteWorkArrangementDraft(policyID, value);
-            navigateBackToDetails();
-            return;
+        // Preserve inheritance from the workspace default when the effective arrangement is unchanged.
+        if (isOffice !== currentIsOffice) {
+            if (isInviteFlow) {
+                setWorkspaceInviteWorkArrangementDraft(policyID, isOffice);
+            } else {
+                setEmployeeWorkArrangement(policy, [memberAccountID], isOffice, personalDetails);
+            }
         }
-        setEmployeeWorkArrangement(policy, [memberAccountID], value, personalDetails);
         navigateBackToDetails();
     };
 
@@ -105,14 +111,14 @@ function WorkArrangementPage({policy, route}: WorkArrangementPageProps) {
             value: true,
             text: getWorkArrangementLabel(translate, true),
             alternateText: translate('workspace.people.workArrangementPage.optionOfficeBasedHelp'),
-            isSelected: currentIsOffice,
+            isSelected: isOffice,
             keyForList: 'office-based',
         },
         {
             value: false,
             text: getWorkArrangementLabel(translate, false),
             alternateText: translate('workspace.people.workArrangementPage.optionNoRegularWorkspaceHelp'),
-            isSelected: !currentIsOffice,
+            isSelected: !isOffice,
             keyForList: 'no-regular-workspace',
         },
     ];
@@ -136,8 +142,7 @@ function WorkArrangementPage({policy, route}: WorkArrangementPageProps) {
                     <SelectionList
                         ListItem={SingleSelectListItem}
                         data={options}
-                        onSelectRow={changeWorkArrangement}
-                        shouldSingleExecuteRowSelect
+                        onSelectRow={({value}) => setChosenIsOffice(value)}
                         shouldUpdateFocusedIndex
                         alternateNumberOfSupportedLines={2}
                         disableKeyboardShortcuts
@@ -146,6 +151,17 @@ function WorkArrangementPage({policy, route}: WorkArrangementPageProps) {
                         <Text style={[styles.textLabelSupporting]}>{translate('workspace.people.workArrangementPage.futureOnlyNote')}</Text>
                     </View>
                 </View>
+                <FixedFooter addBottomSafeAreaPadding>
+                    <Button
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.DETAILS_WORK_ARRANGEMENT_CONFIRM}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        size={CONST.BUTTON_SIZE.LARGE}
+                        onPress={changeWorkArrangement}
+                    >
+                        <Button.KeyboardShortcut />
+                        <Button.Text>{translate('common.confirm')}</Button.Text>
+                    </Button>
+                </FixedFooter>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
