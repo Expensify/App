@@ -24,6 +24,7 @@ let mockSidePanelReportID: string | undefined;
 let mockIsInSidePanel = false;
 const mockOpenConciergeAnywhere = jest.fn();
 const mockSetShowFullHistory = jest.fn();
+const mockUseConciergeChatHistoryActions = jest.fn<{setShowFullHistory: jest.Mock}, [boolean | undefined]>(() => ({setShowFullHistory: mockSetShowFullHistory}));
 
 jest.mock('@hooks/useSidePanelReportID', () => ({
     __esModule: true,
@@ -36,7 +37,7 @@ jest.mock('@hooks/useOpenConciergeAnywhere', () => ({
 }));
 
 jest.mock('@pages/inbox/ConciergeChatHistoryContext', () => ({
-    useConciergeChatHistoryActions: () => ({setShowFullHistory: mockSetShowFullHistory}),
+    useConciergeChatHistoryActions: (isInSidePanel?: boolean) => mockUseConciergeChatHistoryActions(isInSidePanel),
 }));
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
@@ -221,7 +222,8 @@ describe('useAskConcierge', () => {
         });
 
         it('creates a task instead of a comment when the message uses the `[] task` shorthand', async () => {
-            // Given a loaded Concierge report and text that the markdown task detection claims
+            // Given web, where Concierge opens in the side panel, with a loaded Concierge report and text that the markdown task detection claims
+            mockIsInSidePanel = true;
             await seedReports();
             mockCreateTaskFromMarkdown.mockReturnValueOnce(true);
             const {result} = renderAskConcierge({forceConcierge: true});
@@ -231,11 +233,28 @@ describe('useAskConcierge', () => {
             result.current.askConcierge('  [] Buy milk  ');
 
             // Then Concierge is still opened with its history expanded so the task shows, the detection gets the
-            // trimmed text and the target report, and the text is not also posted as a plain comment
+            // trimmed text and the target report, and the text is not also posted as a plain comment.
+            // The history is expanded in the side panel because that is where Concierge opens on web.
             expect(mockOpenConciergeAnywhere).toHaveBeenCalledWith({forceConcierge: true});
+            expect(mockUseConciergeChatHistoryActions).toHaveBeenLastCalledWith(true);
             expect(mockSetShowFullHistory).toHaveBeenCalledWith(true);
             expect(mockCreateTaskFromMarkdown).toHaveBeenCalledWith(expect.objectContaining({text: '[] Buy milk', parentReport: CONCIERGE_REPORT}));
             expect(mockAddComment).not.toHaveBeenCalled();
+        });
+
+        it('expands the main pane history for a `[] task` on native, where Concierge opens in the main pane', async () => {
+            // Given native, where Concierge opens as its own page instead of in the side panel
+            mockIsInSidePanel = false;
+            await seedReports();
+            mockCreateTaskFromMarkdown.mockReturnValueOnce(true);
+            const {result} = renderAskConcierge({forceConcierge: true});
+
+            // When the shorthand is sent
+            result.current.askConcierge('[] Buy milk');
+
+            // Then the main pane history is expanded so the task shows where Concierge opens
+            expect(mockUseConciergeChatHistoryActions).toHaveBeenLastCalledWith(false);
+            expect(mockSetShowFullHistory).toHaveBeenCalledWith(true);
         });
 
         it('falls back to a comment when the text is not the task shorthand', async () => {

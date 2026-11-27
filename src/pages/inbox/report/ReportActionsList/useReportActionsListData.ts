@@ -14,11 +14,10 @@ import type {UseReportActionsListDataParams} from './types';
 import getReportActionsWithStreamedReply from './getReportActionsWithStreamedReply';
 
 /** Prepares the rendered report rows, including streamed Concierge drafts and collapsed system messages. */
-function useReportActionsListData({sortedVisibleReportActions, sessionStartTime, linkedReportActionID, unreadMarkerReportActionID}: UseReportActionsListDataParams) {
-    const {report, sortedAllReportActions, parentReportAction, isConciergeHiddenHistory, showFullHistory} = useReportActionsListState();
+function useReportActionsListData({sortedVisibleReportActions, linkedReportActionID, unreadMarkerReportActionID}: UseReportActionsListDataParams) {
+    const {report, sortedAllReportActions, parentReportAction} = useReportActionsListState();
     const {draftReportAction, isDraftPendingCompletion} = useConciergeDraft();
     const {clearDraft, revealDraftFromReportAction} = useConciergeDraftActions();
-    const showHiddenHistory = isConciergeHiddenHistory && !showFullHistory;
 
     const persistedDraftReportAction = draftReportAction
         ? (sortedAllReportActions ?? sortedVisibleReportActions).find(
@@ -26,13 +25,11 @@ function useReportActionsListData({sortedVisibleReportActions, sessionStartTime,
           )
         : undefined;
 
-    const shouldHideDraft = !!(showHiddenHistory && sessionStartTime && draftReportAction && draftReportAction.created < sessionStartTime);
     const {reportActionsWithStreamedReply: renderedVisibleReportActions, isSyntheticDraftVisible} = getReportActionsWithStreamedReply({
         sortedVisibleReportActions,
         draftReportAction,
         isDraftPendingCompletion,
         hasPersistedDraft: !!persistedDraftReportAction,
-        shouldHideDraft,
     });
 
     const shouldCollapseSystemMessages = isExpenseReport(report) || isIOUReport(report) || isInvoiceReport(report) || isTransactionThread(parentReportAction);

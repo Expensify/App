@@ -33,10 +33,6 @@ type ShouldDisplayNewMarkerOnReportActionParams = {
     manuallyMarkedUnreadReportActionID?: string | null;
     /** Whether the app window is focused */
     hasWindowFocus?: boolean;
-
-    /** Actions created before this time cannot have "just arrived" (e.g. Concierge history revealed via "Show history"),
-     * so the live auto-read suppression for new-to-list messages does not apply to them */
-    newMessageBoundaryTime?: string | null;
 };
 
 /**
@@ -56,7 +52,6 @@ const shouldDisplayNewMarkerOnReportAction = ({
     isPrevUnreadMarkerReportActionPresent = false,
     manuallyMarkedUnreadReportActionID,
     hasWindowFocus = true,
-    newMessageBoundaryTime,
 }: ShouldDisplayNewMarkerOnReportActionParams): boolean => {
     // While a manual mark is active, the marked action is the sole anchor: every other action is suppressed.
     // We anchor by reportActionID rather than timestamp because `created` shifts on the optimistic->confirmed
@@ -116,11 +111,7 @@ const shouldDisplayNewMarkerOnReportAction = ({
         return false;
     }
 
-    // An action created before the session boundary was revealed or loaded from history, not received live,
-    // so it is never treated as read-on-arrival.
-    const isRevealedHistoryMessage = !!newMessageBoundaryTime && message.created < newMessageBoundaryTime;
-
-    const result = !isNewMessage || isRevealedHistoryMessage || isScrolledOverThreshold || !hasWindowFocus;
+    const result = !isNewMessage || isScrolledOverThreshold || !hasWindowFocus;
     return result;
 };
 
@@ -159,10 +150,6 @@ type GetUnreadMarkerReportActionParams = {
     manuallyMarkedUnreadReportActionID?: string | null;
     /** Whether the app window is focused */
     hasWindowFocus?: boolean;
-
-    /** Actions created before this time cannot have "just arrived" (e.g. Concierge history revealed via "Show history"),
-     * so the live auto-read suppression for new-to-list messages does not apply to them */
-    newMessageBoundaryTime?: string | null;
 };
 
 /**
@@ -182,7 +169,6 @@ const getUnreadMarkerReportAction = ({
     prevUnreadMarkerReportActionID,
     manuallyMarkedUnreadReportActionID,
     hasWindowFocus = true,
-    newMessageBoundaryTime,
 }: GetUnreadMarkerReportActionParams): [string | null, number] => {
     if (isAnonymousUser) {
         return [null, -1];
@@ -210,11 +196,7 @@ const getUnreadMarkerReportAction = ({
     for (let index = startIndex; isReversed ? index >= endIndex : index < endIndex; index += step) {
         const reportAction = visibleReportActions.at(index);
 
-        if (
-            !reportAction ||
-            (!isReversed && reportAction.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID) ||
-            (!activeManuallyMarkedUnreadReportActionID && !canReportActionTriggerUnreadMarker(reportAction, currentUserAccountID))
-        ) {
+        if (!reportAction || (!activeManuallyMarkedUnreadReportActionID && !canReportActionTriggerUnreadMarker(reportAction, currentUserAccountID))) {
             continue;
         }
 
@@ -222,7 +204,7 @@ const getUnreadMarkerReportAction = ({
         // Informational messages must not hide a real unread message beside them.
         for (let nextIndex = index + step; isReversed ? nextIndex >= endIndex : nextIndex < endIndex; nextIndex += step) {
             const candidate = visibleReportActions.at(nextIndex);
-            if (candidate && (isReversed || candidate.reportActionID !== CONST.CONCIERGE_GREETING_ACTION_ID) && canReportActionTriggerUnreadMarker(candidate, currentUserAccountID)) {
+            if (candidate && canReportActionTriggerUnreadMarker(candidate, currentUserAccountID)) {
                 nextAction = candidate;
                 break;
             }
@@ -245,7 +227,6 @@ const getUnreadMarkerReportAction = ({
                 isPrevUnreadMarkerReportActionPresent,
                 manuallyMarkedUnreadReportActionID: activeManuallyMarkedUnreadReportActionID,
                 hasWindowFocus,
-                newMessageBoundaryTime,
             });
 
         if (shouldShowMarker) {

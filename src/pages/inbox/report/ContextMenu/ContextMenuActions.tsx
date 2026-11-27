@@ -228,6 +228,7 @@ import {setDownload} from '@userActions/Download';
 import toggleEmojiReaction from '@userActions/EmojiReactions';
 import {openOldDotLink} from '@userActions/Link';
 import {
+    createChildReport,
     explain,
     markCommentAsUnread,
     navigateToAndOpenChildReport,
@@ -425,6 +426,10 @@ type ContextMenuActionPayload = {
 
     /** Whether the action is shown at the top of its own thread, where some messages show more detail */
     isThreadReportParentAction?: boolean;
+
+    /** Whether the action is shown in the side panel, where threads open in the side panel instead of the main pane */
+    isInSidePanel?: boolean;
+    openSidePanel?: (options?: {reportID?: string}) => void;
 };
 
 type OnPress = (closePopover: boolean, payload: ContextMenuActionPayload, selection?: string, reportID?: string) => void;
@@ -566,26 +571,28 @@ const ContextMenuActions: ContextMenuAction[] = [
             }
             return !isSupportTicket(report) && !isCreatedSupportTicketReportAction(reportAction) && !shouldDisableThread(reportAction, isThreadReportParentAction, isArchivedRoom);
         },
-        onPress: (closePopover, {reportAction, childReport, originalReport, currentUserAccountID, introSelected, isSelfTourViewed, personalDetails, conciergeChat}) => {
+        onPress: (
+            closePopover,
+            {reportAction, childReport, originalReport, currentUserAccountID, introSelected, isSelfTourViewed, personalDetails, conciergeChat, isInSidePanel, openSidePanel},
+        ) => {
             const participantsPersonalDetails = getParticipantsPersonalDetails([currentUserAccountID, Number(reportAction.actorAccountID)], personalDetails);
+            const openThread = () => {
+                if (isInSidePanel) {
+                    const threadReport =
+                        childReport ??
+                        createChildReport(childReport, reportAction, originalReport, currentUserAccountID, introSelected, isSelfTourViewed, participantsPersonalDetails, conciergeChat);
+                    openSidePanel?.({reportID: threadReport.reportID});
+                    return;
+                }
+                navigateToAndOpenChildReport(childReport, reportAction, originalReport, currentUserAccountID, introSelected, participantsPersonalDetails, isSelfTourViewed, conciergeChat);
+            };
             if (closePopover) {
                 hideContextMenu(false, () => {
-                    KeyboardUtils.dismiss().then(() => {
-                        navigateToAndOpenChildReport(
-                            childReport,
-                            reportAction,
-                            originalReport,
-                            currentUserAccountID,
-                            introSelected,
-                            participantsPersonalDetails,
-                            isSelfTourViewed,
-                            conciergeChat,
-                        );
-                    });
+                    KeyboardUtils.dismiss().then(openThread);
                 });
                 return;
             }
-            navigateToAndOpenChildReport(childReport, reportAction, originalReport, currentUserAccountID, introSelected, participantsPersonalDetails, isSelfTourViewed, conciergeChat);
+            openThread();
         },
         getDescription: () => {},
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.REPLY_IN_THREAD,
@@ -621,48 +628,54 @@ const ContextMenuActions: ContextMenuAction[] = [
         },
         onPress: (
             closePopover,
-            {reportAction, childReport, originalReport, translate, currentUserPersonalDetails, introSelected, isSelfTourViewed, delegateAccountID, personalDetails, conciergeChat},
+            {
+                reportAction,
+                childReport,
+                originalReport,
+                translate,
+                currentUserPersonalDetails,
+                introSelected,
+                isSelfTourViewed,
+                delegateAccountID,
+                personalDetails,
+                conciergeChat,
+                isInSidePanel,
+                openSidePanel,
+            },
         ) => {
             if (!originalReport?.reportID) {
                 return;
             }
 
             const participantsPersonalDetails = getParticipantsPersonalDetails([currentUserPersonalDetails.accountID, Number(reportAction?.actorAccountID)], personalDetails);
+            const openExplanation = () => {
+                const threadReportID = explain({
+                    childReport,
+                    originalReport,
+                    reportAction,
+                    translate,
+                    currentUserAccountID: currentUserPersonalDetails.accountID,
+                    introSelected,
+                    conciergeChat,
+                    isSelfTourViewed,
+                    delegateAccountID,
+                    participantsPersonalDetails,
+                    timezone: currentUserPersonalDetails?.timezone,
+                    shouldNavigateToThread: !isInSidePanel,
+                });
+                if (isInSidePanel && threadReportID) {
+                    openSidePanel?.({reportID: threadReportID});
+                }
+            };
 
             if (closePopover) {
                 hideContextMenu(false, () => {
-                    KeyboardUtils.dismiss().then(() => {
-                        explain({
-                            childReport,
-                            originalReport,
-                            reportAction,
-                            translate,
-                            currentUserAccountID: currentUserPersonalDetails.accountID,
-                            introSelected,
-                            conciergeChat,
-                            isSelfTourViewed,
-                            delegateAccountID,
-                            participantsPersonalDetails,
-                            timezone: currentUserPersonalDetails?.timezone,
-                        });
-                    });
+                    KeyboardUtils.dismiss().then(openExplanation);
                 });
                 return;
             }
 
-            explain({
-                childReport,
-                originalReport,
-                reportAction,
-                translate,
-                currentUserAccountID: currentUserPersonalDetails.accountID,
-                introSelected,
-                conciergeChat,
-                isSelfTourViewed,
-                delegateAccountID,
-                participantsPersonalDetails,
-                timezone: currentUserPersonalDetails?.timezone,
-            });
+            openExplanation();
         },
         getDescription: () => {},
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.EXPLAIN,

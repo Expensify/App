@@ -1,9 +1,11 @@
 import useHover from '@hooks/useHover';
+import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRootNavigationState from '@hooks/useRootNavigationState';
+import useSidePanelActions from '@hooks/useSidePanelActions';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -91,6 +93,8 @@ function ParentNavigationSubtitle({
     // true whenever this component renders inside an RHP, which would always block the super-wide path below.
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
+    const isInSidePanel = useIsInSidePanel();
+    const {openSidePanel} = useSidePanelActions();
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -152,6 +156,11 @@ function ParentNavigationSubtitle({
 
         const parentAction = getReportAction(parentReportID, parentReportActionID);
         const isVisibleAction = isReportActionVisible(parentAction, parentReportID, canUserPerformWriteAction, visibleReportActionsData);
+
+        if (isInSidePanel) {
+            openSidePanel({reportID: parentReportID, reportActionID: isVisibleAction ? parentReportActionID : undefined});
+            return;
+        }
 
         const focusedNavigatorState = currentFocusedNavigator?.state;
         const currentReportIndex = focusedNavigatorState?.index;

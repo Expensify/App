@@ -8,7 +8,6 @@ import CollapsedSystemMessages from '@pages/inbox/report/CollapsedSystemMessages
 import {ReportActionPositionContextProvider} from '@pages/inbox/report/ReportActionIndexContext';
 import ReportActionsListItemRenderer from '@pages/inbox/report/ReportActionsListItemRenderer';
 import type {ReportActionsListItemRendererProps} from '@pages/inbox/report/ReportActionsListItemRenderer';
-import ShowPreviousMessagesButton from '@pages/inbox/report/ShowPreviousMessagesButton';
 
 import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
@@ -28,9 +27,6 @@ type ReportActionsListRowProps = Omit<ReportActionsListItemRendererProps, 'onExp
 
     /** Passed only to the row whose action has focus requested */
     onExpandedSystemMessageReady?: (reportActionID: string, target: ComponentRef<typeof View> | null) => void;
-    hasPreviousMessages: boolean;
-    showFullHistory: boolean;
-    onShowPreviousMessages: () => void;
 };
 
 function ReportActionsListRow({
@@ -39,9 +35,6 @@ function ReportActionsListRow({
     collapsedSystemMessageRunUnreadMarkerReportActionID,
     expandSystemMessageRun,
     onExpandedSystemMessageReady,
-    hasPreviousMessages,
-    showFullHistory,
-    onShowPreviousMessages,
     reportAction,
     parentReportAction,
     parentReportActionForTransactionThread,
@@ -93,15 +86,6 @@ function ReportActionsListRow({
                     shouldUseThreadDividerLine={shouldUseThreadDividerLine}
                     isHarvestCreatedExpenseReport={isHarvestCreatedExpenseReport}
                     shouldDisableContextMenuForConciergeDraft={shouldDisableContextMenuForConciergeDraft}
-                />
-            )}
-            {!!report?.reportID && (
-                <ShowPreviousMessagesButton
-                    reportID={report.reportID}
-                    actionType={reportAction.actionName}
-                    hasPreviousMessages={hasPreviousMessages}
-                    showFullHistory={showFullHistory}
-                    onPress={onShowPreviousMessages}
                 />
             )}
         </ReportActionPositionContextProvider>

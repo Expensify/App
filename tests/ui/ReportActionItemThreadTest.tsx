@@ -4,6 +4,8 @@ import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
+import {IsInSidePanelContext} from '@hooks/useIsInSidePanel';
+
 import Navigation from '@libs/Navigation/Navigation';
 
 import ReportActionItemThread from '@pages/inbox/report/ReportActionItemThread';
@@ -42,6 +44,9 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     getActiveRoute: jest.fn(() => ''),
 }));
 
+const mockOpenSidePanel = jest.fn();
+jest.mock('@hooks/useSidePanelActions', () => () => ({openSidePanel: mockOpenSidePanel}));
+
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn(() => false));
 
 const mockNavigate = jest.mocked(Navigation.navigate);
@@ -67,18 +72,20 @@ function buildSupportTicketAction(childReportID: string | undefined): ReportActi
     };
 }
 
-function renderThread(reportAction: ReportAction, processingAgentIDs?: number[]) {
+function renderThread(reportAction: ReportAction, processingAgentIDs?: number[], isInSidePanel = false) {
     return render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-            <ReportActionItemThread
-                report={undefined}
-                reportAction={reportAction}
-                isHovered={false}
-                onSecondaryInteraction={jest.fn()}
-                isEditingInline={false}
-                processingAgentIDs={processingAgentIDs}
-            />
-        </ComposeProviders>,
+        <IsInSidePanelContext.Provider value={isInSidePanel}>
+            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+                <ReportActionItemThread
+                    report={undefined}
+                    reportAction={reportAction}
+                    isHovered={false}
+                    onSecondaryInteraction={jest.fn()}
+                    isEditingInline={false}
+                    processingAgentIDs={processingAgentIDs}
+                />
+            </ComposeProviders>
+        </IsInSidePanelContext.Provider>,
     );
 }
 
@@ -120,6 +127,23 @@ describe('ReportActionItemThread', () => {
 
         // Then no account IDs are passed, so the avatar stack draws its own single placeholder
         expect(mockCapturedAccountIDs).toEqual([]);
+    });
+
+    it('should open the thread in the side panel when the replies row is pressed there', async () => {
+        // Given a thread row rendered in the side panel, whose thread report is already loaded
+        mockNavigate.mockClear();
+        const reportAction = buildReportAction(`${FIRST_COMMENTER_ACCOUNT_ID}`);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`, {reportID: reportAction.childReportID});
+        renderThread(reportAction, undefined, true);
+        await waitForBatchedUpdatesWithAct();
+
+        // When the replies row is pressed
+        fireEvent.press(screen.getByRole(CONST.ROLE.BUTTON));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the side panel switches to the thread, and the main pane does not navigate
+        expect(mockOpenSidePanel).toHaveBeenCalledWith({reportID: reportAction.childReportID});
+        expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     describe('support ticket replies', () => {

@@ -43,6 +43,9 @@ type ShowContextMenuParams = {
     shouldCloseOnTarget?: boolean;
     isOverflowMenu?: boolean;
     withoutOverlay?: boolean;
+
+    /** Whether the report action is shown in the side panel. The popover is mounted outside it, so it cannot read the side panel context. */
+    isInSidePanel?: boolean;
 };
 
 type ShowContextMenu = (params: ShowContextMenuParams) => void;

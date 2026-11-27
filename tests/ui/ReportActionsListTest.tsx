@@ -1,4 +1,4 @@
-import {act, render, screen, waitFor} from '@testing-library/react-native';
+import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 
@@ -21,7 +21,6 @@ import useSidePanelState from '@hooks/useSidePanelState';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import type useUnreadMarker from '@hooks/useUnreadMarker';
 
-import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import Visibility from '@libs/Visibility';
@@ -57,13 +56,14 @@ import {buildSystemAction} from '../utils/ReportTestUtils';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const mockUseIsFocused = jest.fn().mockReturnValue(false);
+let mockRouteParams: Record<string, string> = {};
 jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual<typeof ReactNavigation>('@react-navigation/native');
     return {
         ...actualNav,
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         useIsFocused: () => mockUseIsFocused(),
-        useRoute: () => ({key: 'Report-test', name: 'Report', params: {}}),
+        useRoute: () => ({key: 'Report-test', name: 'Report', params: mockRouteParams}),
         useNavigationState: jest.fn(),
         createNavigationContainerRef: () => ({
             getState: () => jest.fn(),
@@ -92,6 +92,8 @@ jest.mock('@hooks/useTransactionsAndViolationsForReport', () => jest.fn());
 jest.mock('@hooks/usePaginatedReportActions', () => jest.fn());
 jest.mock('@hooks/useParentReportAction', () => jest.fn());
 jest.mock('@hooks/useIsInSidePanel', () => jest.fn());
+const mockOpenSidePanel = jest.fn();
+jest.mock('@hooks/useSidePanelActions', () => () => ({openSidePanel: mockOpenSidePanel}));
 jest.mock('@hooks/useSidePanelState', () => jest.fn());
 jest.mock('@hooks/useReportTransactionsCollection', () => jest.fn());
 jest.mock('@pages/inbox/ConciergeChatHistoryContext', () => ({
@@ -140,7 +142,6 @@ const defaultPaginatedReportActionsResult: ReturnType<typeof usePaginatedReportA
 };
 
 const defaultSidePanelState: ReturnType<typeof useSidePanelState> = {
-    sessionStartTime: null,
     isSidePanelTransitionEnded: false,
     isSidePanelHiddenOrLargeScreen: true,
     shouldHideSidePanel: true,
@@ -199,7 +200,6 @@ jest.mock('@pages/inbox/report/UserTypingEventListener', () => jest.fn(() => nul
 jest.mock('@pages/inbox/report/ReportActionItemCreated', () => jest.fn(() => null));
 jest.mock('@pages/inbox/report/ReportActionsListItemRenderer', () => jest.fn(() => null));
 jest.mock('@pages/inbox/report/CollapsedSystemMessages', () => jest.fn(() => null));
-jest.mock('@pages/inbox/report/ShowPreviousMessagesButton', () => jest.fn(() => null));
 
 type MockInvertedFlashListProps = {
     data?: OnyxTypes.ReportAction[];
@@ -207,10 +207,10 @@ type MockInvertedFlashListProps = {
     renderItem?: (info: {item: OnyxTypes.ReportAction; index: number}) => React.ReactElement | null;
     onContentSizeChange?: () => void;
     ListFooterComponent?: React.ReactNode;
+    ListHeaderComponent?: React.ReactElement;
 };
 
 const mockInvertedFlashList: jest.MockedFunction<(props: MockInvertedFlashListProps) => null> = jest.requireMock('@components/FlashList/InvertedFlashList');
-const mockReportActionItemCreated: jest.Mock = jest.requireMock('@pages/inbox/report/ReportActionItemCreated');
 
 /** Returns the report actions the body fed into the (mocked) inverted list on its latest render. */
 const getCapturedVisibleActions = (): OnyxTypes.ReportAction[] | undefined => mockInvertedFlashList.mock.calls.at(-1)?.at(0)?.data;
@@ -331,6 +331,7 @@ describe('ReportActionsList (body)', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        mockRouteParams = {};
         mockUseIsReportLoadPending.mockReturnValue(false);
         mockUseUnreadMarker.mockReturnValue({unreadMarkerReportActionID: null, unreadMarkerReportActionIndex: -1});
 
@@ -1576,150 +1577,6 @@ describe('ReportActionsList (body)', () => {
         });
     });
 
-    describe('Concierge Side Panel', () => {
-        const CONCIERGE_REPORT_ID = '123';
-        const CURRENT_USER_ACCOUNT_ID = 100;
-
-        // Actions created before the current session
-        const oldReportActions: OnyxTypes.ReportAction[] = [
-            {
-                reportActionID: 'created-1',
-                actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
-                created: '2023-01-01 00:00:00.000',
-                actorAccountID: 123,
-                message: [{type: 'COMMENT', html: '', text: ''}],
-                originalMessage: {},
-                shouldShow: true,
-                person: [{type: 'TEXT', style: 'strong', text: 'System'}],
-                pendingAction: null,
-                errors: {},
-            },
-            {
-                reportActionID: 'old-msg-1',
-                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                created: '2023-06-15 10:00:00.000',
-                actorAccountID: CURRENT_USER_ACCOUNT_ID,
-                message: [{type: 'COMMENT', html: 'Old message', text: 'Old message'}],
-                originalMessage: {},
-                shouldShow: true,
-                person: [{type: 'TEXT', style: 'strong', text: 'Test User'}],
-                pendingAction: null,
-                errors: {},
-            },
-        ];
-
-        const setupConciergeMocks = () => {
-            jest.spyOn(ReportActionsUtils, 'shouldReportActionBeVisible').mockReturnValue(true);
-            mockUseNetwork.mockReturnValue({isOffline: false});
-            mockUseOnyx.mockImplementation((key: string, options) => {
-                if (key === ONYXKEYS.CONCIERGE_REPORT_ID) {
-                    return [CONCIERGE_REPORT_ID, {status: 'loaded'}];
-                }
-                if (key === ONYXKEYS.IS_LOADING_APP || key === ONYXKEYS.PERSISTED_REQUESTS || key === ONYXKEYS.PERSISTED_ONGOING_REQUESTS) {
-                    return [false, {status: 'loaded'}];
-                }
-                if (key === ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING) {
-                    return [false, {status: 'loaded'}];
-                }
-                if (key.includes('reportLoadingState')) {
-                    return [getMockReportLoadingState(options?.selector), {status: 'loaded'}];
-                }
-                if (key.includes('reportActions')) {
-                    return [[], {status: 'loaded'}];
-                }
-                if (key === `${ONYXKEYS.COLLECTION.REPORT}${CONCIERGE_REPORT_ID}`) {
-                    return [{...mockReport, reportID: CONCIERGE_REPORT_ID}, {status: 'loaded'}];
-                }
-                if (key.includes('report')) {
-                    return [undefined, {status: 'loaded'}];
-                }
-                return [undefined, {status: 'loaded'}];
-            });
-        };
-
-        it('should show only greeting and created action when opened in side panel with no user messages', () => {
-            setupConciergeMocks();
-
-            mockUsePaginatedReportActions.mockReturnValue({
-                ...defaultPaginatedReportActionsResult,
-                reportActions: oldReportActions,
-            });
-            mockUseIsInSidePanel.mockReturnValue(true);
-            mockUseSidePanelState.mockReturnValue({...defaultSidePanelState, sessionStartTime: DateUtils.getDBTime()});
-
-            renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
-
-            expect(mockInvertedFlashList).toHaveBeenCalled();
-            const passedActions = getCapturedVisibleActions();
-            expect(passedActions?.length).toBeGreaterThanOrEqual(1);
-            expect(passedActions?.at(0)?.reportActionID).toBe(CONST.CONCIERGE_GREETING_ACTION_ID);
-        });
-
-        it('should not show welcome state when not in side panel', () => {
-            setupConciergeMocks();
-
-            mockUsePaginatedReportActions.mockReturnValue({
-                ...defaultPaginatedReportActionsResult,
-                reportActions: oldReportActions,
-            });
-            mockUseIsInSidePanel.mockReturnValue(false);
-
-            renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
-
-            expect(mockReportActionItemCreated).not.toHaveBeenCalled();
-        });
-
-        it('should not show welcome state for non-concierge reports in side panel', () => {
-            setupConciergeMocks();
-
-            mockUsePaginatedReportActions.mockReturnValue({
-                ...defaultPaginatedReportActionsResult,
-                reportActions: oldReportActions,
-            });
-            mockUseIsInSidePanel.mockReturnValue(false);
-
-            renderReportActionsList({reportID: 'non-concierge-999'});
-
-            expect(mockReportActionItemCreated).not.toHaveBeenCalled();
-        });
-
-        it('should hide welcome and show filtered actions when user sends a message', () => {
-            setupConciergeMocks();
-
-            const sessionStart = DateUtils.getDBTime();
-
-            const actionsWithNewMessage: OnyxTypes.ReportAction[] = [
-                ...oldReportActions,
-                {
-                    reportActionID: 'new-msg-1',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    created: DateUtils.getDBTime(),
-                    actorAccountID: CURRENT_USER_ACCOUNT_ID,
-                    message: [{type: 'COMMENT', html: 'New message', text: 'New message'}],
-                    originalMessage: {},
-                    shouldShow: true,
-                    person: [{type: 'TEXT', style: 'strong', text: 'Test User'}],
-                    pendingAction: null,
-                    errors: {},
-                },
-            ];
-
-            mockUsePaginatedReportActions.mockReturnValue({
-                ...defaultPaginatedReportActionsResult,
-                reportActions: actionsWithNewMessage,
-            });
-            mockUseIsInSidePanel.mockReturnValue(true);
-            mockUseSidePanelState.mockReturnValue({...defaultSidePanelState, sessionStartTime: sessionStart});
-
-            renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
-
-            // Welcome should not be shown since user has sent a message
-            expect(mockReportActionItemCreated).not.toHaveBeenCalled();
-            // ReportActionsList should be rendered with filtered actions
-            expect(mockInvertedFlashList).toHaveBeenCalled();
-        });
-    });
-
     describe('Concierge Main DM', () => {
         const CONCIERGE_REPORT_ID = '123';
         const CURRENT_USER_ACCOUNT_ID = 100;
@@ -1763,10 +1620,10 @@ describe('ReportActionsList (body)', () => {
             },
         ];
 
-        const setupMainDMConciergeMocks = (showFullHistory = false) => {
+        const setupMainDMConciergeMocks = (showFullHistory = false, isInSidePanel = false) => {
             jest.spyOn(ReportActionsUtils, 'shouldReportActionBeVisible').mockReturnValue(true);
             mockUseNetwork.mockReturnValue({isOffline: false});
-            mockUseIsInSidePanel.mockReturnValue(false);
+            mockUseIsInSidePanel.mockReturnValue(isInSidePanel);
             mockUseSidePanelState.mockReturnValue(defaultSidePanelState);
             mockUseConciergeChatHistoryState.mockReturnValue({showFullHistory, isHistoryCollapsedByUser: false});
             mockUseConciergeChatHistoryActions.mockReturnValue({setShowFullHistory: jest.fn(), collapseHistory: jest.fn()});
@@ -1805,9 +1662,12 @@ describe('ReportActionsList (body)', () => {
             });
         };
 
-        it('should show the welcome screen in place of the conversation by default', () => {
-            // Given the main Concierge chat where the user asked before, with its history collapsed
-            setupMainDMConciergeMocks();
+        it.each([
+            {surface: 'the main pane', isInSidePanel: false},
+            {surface: 'the side panel', isInSidePanel: true},
+        ])('should show the welcome screen in place of the conversation by default in $surface', ({isInSidePanel}) => {
+            // Given the Concierge chat where the user asked before, with its history collapsed, opened from either surface
+            setupMainDMConciergeMocks(false, isInSidePanel);
             mockUsePaginatedReportActions.mockReturnValue({
                 ...defaultPaginatedReportActionsResult,
                 reportActions: oldReportActions,
@@ -1822,7 +1682,41 @@ describe('ReportActionsList (body)', () => {
             expect(mockInvertedFlashList).not.toHaveBeenCalled();
         });
 
-        it('should show the whole conversation without a greeting once the history is expanded', () => {
+        it.each([
+            {surface: 'the main pane', isInSidePanel: false},
+            {surface: 'the side panel', isInSidePanel: true},
+        ])('should drop the linked message when the history is hidden in $surface', ({isInSidePanel}) => {
+            // Given the Concierge chat opened at a linked message, which shows the history even though the user never expanded it
+            mockRouteParams = {reportID: CONCIERGE_REPORT_ID, reportActionID: 'old-concierge-msg'};
+            setupMainDMConciergeMocks(false, isInSidePanel);
+            const collapseHistory = jest.fn();
+            mockUseConciergeChatHistoryActions.mockReturnValue({setShowFullHistory: jest.fn(), collapseHistory});
+            const setParamsSpy = jest.spyOn(Navigation, 'setParams').mockImplementation(() => {});
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: oldReportActions,
+                hasOlderActions: false,
+            });
+            renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
+            const listHeader = mockInvertedFlashList.mock.calls.at(-1)?.at(0)?.ListHeaderComponent;
+            render(<LocaleContextProvider>{listHeader}</LocaleContextProvider>);
+
+            // When the user presses Hide chat history
+            fireEvent.press(screen.getByRole(CONST.ROLE.BUTTON));
+
+            // Then the linked message is dropped where the surface keeps it, so the history can collapse
+            expect(collapseHistory).toHaveBeenCalled();
+            if (isInSidePanel) {
+                expect(mockOpenSidePanel).toHaveBeenCalledWith({reportID: CONCIERGE_REPORT_ID});
+                expect(setParamsSpy).not.toHaveBeenCalled();
+            } else {
+                expect(setParamsSpy).toHaveBeenCalledWith({reportActionID: ''}, 'Report-test');
+                expect(mockOpenSidePanel).not.toHaveBeenCalled();
+            }
+            setParamsSpy.mockRestore();
+        });
+
+        it('should show the whole conversation once the history is expanded', () => {
             // Given the user expanded the main Concierge chat history
             setupMainDMConciergeMocks(true);
             mockUsePaginatedReportActions.mockReturnValue({
@@ -1834,10 +1728,9 @@ describe('ReportActionsList (body)', () => {
             // When the list renders
             renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
 
-            // Then every earlier message shows, because only the side panel collapses its history
+            // Then every earlier message shows
             expect(mockInvertedFlashList).toHaveBeenCalled();
             const passedActions = getCapturedVisibleActions();
-            expect(passedActions?.some((a) => a.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID)).toBe(false);
             expect(passedActions?.some((a) => a.reportActionID === 'old-user-msg')).toBe(true);
             expect(passedActions?.some((a) => a.reportActionID === 'old-concierge-msg')).toBe(true);
         });

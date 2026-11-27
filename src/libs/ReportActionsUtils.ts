@@ -437,11 +437,6 @@ function isCreatedAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean 
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
 }
 
-/** The current user's optimistic, not-yet-synced comment — a message just sent in the current session. */
-function isCurrentUserPendingAddAction(reportAction: OnyxInputOrEntry<ReportAction>, currentUserAccountID?: number): boolean {
-    return !!currentUserAccountID && reportAction?.actorAccountID === currentUserAccountID && reportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
-}
-
 function hasDeletedMessage(reportAction: OnyxInputOrEntry<ReportAction | OptimisticIOUReportAction>): boolean {
     const message = reportAction?.message ?? [];
 
@@ -2248,7 +2243,7 @@ function isOlderReportAction(a: ReportAction, b: ReportAction): boolean {
 
 /**
  * Returns the ID of the author's newest comment that can show the feedback prompt.
- * The comment has to be in Onyx because the Concierge greeting and the streaming draft are built on the client and cannot hold a reaction.
+ * The comment has to be in Onyx because the streaming draft is built on the client and cannot hold a reaction.
  *
  * @param sortedVisibleReportActions - visible report actions sorted newest first
  * @param persistedReportActionIDs - IDs of the report actions stored in Onyx
@@ -6467,7 +6462,6 @@ export {
     isExportedToIntegrationAction,
     hasNextActionMadeBySameActor,
     isCreatedAction,
-    isCurrentUserPendingAddAction,
     isCreatedTaskReportAction,
     isCreatedSupportTicketReportAction,
     isCurrentActionUnread,

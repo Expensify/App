@@ -24,7 +24,7 @@ jest.mock('@hooks/useResponsiveLayout', () => () => ({shouldUseNarrowLayout: fal
 
 const mockUseSidePanelDisplayStatus = jest.mocked(useSidePanelDisplayStatus);
 
-/** Drives the only input the provider's session logic reacts to, so the test needs no navigator and no viewport. */
+/** Drives the only input the provider's Help visibility logic reacts to, so the test needs no navigator and no viewport. */
 function setSidePanelHidden(shouldHideSidePanel: boolean, shouldHideHelpButton = !shouldHideSidePanel) {
     mockUseSidePanelDisplayStatus.mockReturnValue({
         sidePanelNVP: {open: !shouldHideSidePanel, openNarrowScreen: false, forceConcierge: false},
@@ -71,7 +71,7 @@ function wrapper({children}: PropsWithChildren) {
     return <SidePanelContextProvider>{children}</SidePanelContextProvider>;
 }
 
-describe('SidePanelContextProvider (Concierge session lifetime and Help visibility)', () => {
+describe('SidePanelContextProvider (Help visibility)', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
     });
@@ -82,56 +82,6 @@ describe('SidePanelContextProvider (Concierge session lifetime and Help visibili
         jest.restoreAllMocks();
         mockIsExtraLargeScreenWidth = false;
         setSidePanelHidden(true);
-    });
-
-    it('keeps the session alive for the whole close animation, then clears it once the panel unmounts', () => {
-        // Given an open Side Panel with an established Concierge session
-        const takeLatestSlide = mockSlideAnimation();
-        const {result, rerender} = renderHook(() => useSidePanelState(), {wrapper});
-        setSidePanelHidden(false);
-        rerender({});
-        takeLatestSlide()(true);
-        const openSessionStartTime = result.current.sessionStartTime;
-        expect(openSessionStartTime).not.toBeNull();
-
-        // When the panel starts closing
-        setSidePanelHidden(true);
-        rerender({});
-        const finishClose = takeLatestSlide();
-
-        // Then the session survives while the panel is still mounted and sliding out. Clearing it here is what made
-        // the Concierge message list filter every action out mid-animation, collapsing the panel content.
-        expect(result.current.isSidePanelTransitionEnded).toBe(false);
-        expect(result.current.sessionStartTime).toBe(openSessionStartTime);
-
-        // And it is cleared once the animation completes, in the same commit that unmounts the panel
-        finishClose(true);
-        expect(result.current.isSidePanelTransitionEnded).toBe(true);
-        expect(result.current.sessionStartTime).toBeNull();
-    });
-
-    it('does not let an interrupted close wipe the session when the panel is reopened mid-animation', () => {
-        // Given an open Side Panel with an established Concierge session
-        const takeLatestSlide = mockSlideAnimation();
-        const {result, rerender} = renderHook(() => useSidePanelState(), {wrapper});
-        setSidePanelHidden(false);
-        rerender({});
-        takeLatestSlide()(true);
-        const openSessionStartTime = result.current.sessionStartTime;
-        expect(openSessionStartTime).not.toBeNull();
-
-        // When the panel is closed, its close callback is captured, and the panel is reopened before that close
-        // animation gets to finish. Capturing it first is what keeps the reopen from taking its place.
-        setSidePanelHidden(true);
-        rerender({});
-        const finishInterruptedClose = takeLatestSlide();
-        setSidePanelHidden(false);
-        rerender({});
-
-        // Then the superseded close reports back unfinished and leaves the reopened session intact. Without the
-        // `finished` guard this stale callback would wipe the session the reopen just established.
-        finishInterruptedClose(false);
-        expect(result.current.sessionStartTime).toBe(openSessionStartTime);
     });
 
     it('keeps Help visible on initial mount while the hidden panel runs its initial animation', () => {

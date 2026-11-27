@@ -15,6 +15,7 @@ import UnreadActionIndicator from '@components/UnreadActionIndicator';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -244,8 +245,6 @@ function ReportActionItem({
 
     const {editingMessage, editingReportAction} = useReportActionActiveEdit();
 
-    const isConciergeGreeting = action.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID;
-    const shouldDisplayContextMenuValue = shouldDisplayContextMenu && !isConciergeGreeting;
     const {transitionActionSheetState} = ActionSheetAwareScrollView.useActionSheetAwareScrollViewActions();
     const {translate, datetimeToCalendarTime, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
@@ -255,6 +254,7 @@ function ReportActionItem({
     const shouldEditInComposer = useShouldEditInComposer();
     const theme = useTheme();
     const styles = useThemeStyles();
+    const isInSidePanel = useIsInSidePanel();
     const StyleUtils = useStyleUtils();
     const [isContextMenuActive, setIsContextMenuActive] = useReportActionItemState(() => isActiveReportAction(action.reportActionID));
     const [isEmojiPickerActive, setIsEmojiPickerActive] = useReportActionItemState<boolean | undefined>(undefined);
@@ -439,7 +439,7 @@ function ReportActionItem({
     // Receipt upload errors should still allow the context menu so the user can access "Delete expense"
     const hasOnlyReceiptErrors = hasActionErrors && Object.values(visibleActionErrors ?? {}).every((error) => error === null || isReceiptError(error));
 
-    const isContextMenuDisabled = hasDraft || (hasActionErrors && !hasOnlyReceiptErrors) || !shouldDisplayContextMenuValue;
+    const isContextMenuDisabled = hasDraft || (hasActionErrors && !hasOnlyReceiptErrors) || !shouldDisplayContextMenu;
 
     /**
      * Show the ReportActionContextMenu modal popover.
@@ -474,6 +474,7 @@ function ReportActionItem({
                     setIsEmojiPickerActive: setIsEmojiPickerActive as () => void,
                 },
                 disabledOptions: disabledActions,
+                isInSidePanel,
             });
         });
     };
@@ -484,7 +485,7 @@ function ReportActionItem({
         action,
         transactionThreadReport,
         isDisabled: false,
-        shouldDisplayContextMenu: shouldDisplayContextMenuValue,
+        shouldDisplayContextMenu,
         originalReportID,
     };
 
@@ -611,7 +612,7 @@ function ReportActionItem({
                                         {shouldDisplayNewMarker && (!shouldUseThreadDividerLine || !isFirstVisibleReportAction) && (
                                             <UnreadActionIndicator reportActionID={action.reportActionID} />
                                         )}
-                                        {shouldDisplayContextMenuValue && (hovered || !!isEmojiPickerActive || isContextMenuActive) && !hasDraft && !hasActionErrors && (
+                                        {shouldDisplayContextMenu && (hovered || !!isEmojiPickerActive || isContextMenuActive) && !hasDraft && !hasActionErrors && (
                                             <MiniReportActionContextMenu
                                                 reportID={reportID}
                                                 reportActionID={action.reportActionID}
@@ -621,6 +622,7 @@ function ReportActionItem({
                                                 disabledActions={disabledActions}
                                                 isVisible={hovered}
                                                 isThreadReportParentAction={isThreadReportParentAction}
+                                                isInSidePanel={isInSidePanel}
                                                 checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                                                 setIsEmojiPickerActive={setIsEmojiPickerActive}
                                             />

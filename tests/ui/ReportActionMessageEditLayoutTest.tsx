@@ -89,7 +89,7 @@ jest.mock('@hooks/usePaginatedReportActions', () => jest.fn(() => ({reportAction
 jest.mock('@hooks/useParentReportAction', () => jest.fn(() => null));
 jest.mock('@hooks/useReportTransactionsCollection', () => jest.fn(() => ({})));
 jest.mock('@hooks/useShortMentionsList', () => jest.fn(() => ({availableLoginsList: []})));
-jest.mock('@hooks/useSidePanelState', () => jest.fn(() => ({sessionStartTime: null})));
+jest.mock('@hooks/useSidePanelState', () => jest.fn(() => ({})));
 jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
 
 jest.mock('@libs/actions/Report', () => {

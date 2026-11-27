@@ -10,7 +10,6 @@ import React from 'react';
 
 jest.mock('@pages/inbox/report/ReportActionsListItemRenderer', () => jest.fn(() => null));
 jest.mock('@pages/inbox/report/CollapsedSystemMessages', () => jest.fn(() => null));
-jest.mock('@pages/inbox/report/ShowPreviousMessagesButton', () => jest.fn(() => null));
 
 const mockReportActionsListItemRenderer: jest.MockedFunction<typeof ReportActionsListItemRenderer> = jest.requireMock('@pages/inbox/report/ReportActionsListItemRenderer');
 
@@ -24,7 +23,6 @@ const buildReportAction = (reportActionID: string): ReportAction => ({
 });
 
 const expandSystemMessageRun = () => {};
-const onShowPreviousMessages = () => {};
 
 const buildRow = (index: number, reportAction: ReportAction) => (
     <ReportActionsListRow
@@ -41,9 +39,6 @@ const buildRow = (index: number, reportAction: ReportAction) => (
         isFirstVisibleReportAction={false}
         reportsParentHierarchy={undefined}
         expandSystemMessageRun={expandSystemMessageRun}
-        hasPreviousMessages={false}
-        showFullHistory
-        onShowPreviousMessages={onShowPreviousMessages}
     />
 );
 

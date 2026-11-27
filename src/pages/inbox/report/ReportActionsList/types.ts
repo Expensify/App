@@ -18,7 +18,6 @@ type ReportActionsListProps = {
 
 type UseReportActionsListDataParams = {
     sortedVisibleReportActions: OnyxTypes.ReportAction[];
-    sessionStartTime: string | null;
     linkedReportActionID: string | undefined;
     unreadMarkerReportActionID: string | null;
 };
@@ -62,7 +61,6 @@ type UseReportActionsListRenderItemParams = Pick<
         isReportArchived: boolean;
         isOffline: boolean;
         sortedReportActions: OnyxTypes.ReportAction[];
-        onShowPreviousMessages: () => void;
     };
 
 type UseReportActionsListTelemetryParams = Pick<ReportActionsListProps, 'reportID' | 'onLayout'>;

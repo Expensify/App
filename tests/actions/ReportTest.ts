@@ -8931,6 +8931,41 @@ describe('actions/Report', () => {
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(EXISTING_CHILD_REPORT.reportID));
         });
 
+        it('should leave navigation to the caller and return the thread reportID when shouldNavigateToThread is false', async () => {
+            // Given an action that already has an explanation thread, explained from the side panel
+            const PARENT_REPORT = createRandomReport(1, undefined);
+            const EXISTING_CHILD_REPORT = createRandomReport(2, undefined);
+            const REPORT_ACTION: OnyxTypes.ReportAction = {
+                ...createRandomReportAction(REPORT_ACTION_ID),
+                reportActionID: '1',
+                actorAccountID: TEST_USER_ACCOUNT_ID,
+                childReportID: CHILD_REPORT_ID,
+            };
+            await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
+            jest.mocked(Navigation.navigate).mockClear();
+
+            // When the explanation is requested without navigating
+            const threadReportID = Report.explain({
+                childReport: EXISTING_CHILD_REPORT,
+                originalReport: PARENT_REPORT,
+                reportAction: REPORT_ACTION,
+                translate: TestHelper.translateLocal,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                introSelected: INTRO_SELECTED,
+                conciergeChat: undefined,
+                isSelfTourViewed: undefined,
+                delegateAccountID: undefined,
+                participantsPersonalDetails: undefined,
+                timezone: CONST.DEFAULT_TIME_ZONE,
+                shouldNavigateToThread: false,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the main pane stays put, and the caller gets the thread to open in the side panel
+            expect(Navigation.navigate).not.toHaveBeenCalled();
+            expect(threadReportID).toBe(EXISTING_CHILD_REPORT.reportID);
+        });
+
         it('should bump the explained action reply count so the parent shows the Replies link', async () => {
             const PARENT_REPORT = createRandomReport(1, undefined);
             const EXISTING_CHILD_REPORT = {...createRandomReport(2, undefined), parentReportID: PARENT_REPORT.reportID, parentReportActionID: '1'};
