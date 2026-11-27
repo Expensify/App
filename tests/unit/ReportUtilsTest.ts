@@ -26135,6 +26135,20 @@ describe('ReportUtils', () => {
     });
 
     describe('shouldHideSingleReportField', () => {
+        it.each([
+            {values: ['A', 'B'], hidden: false},
+            {values: [], hidden: true},
+        ])('handles missing disabledOptions with values $values', ({values, hidden}) => {
+            // Given a list field whose payload omits disabled flags
+            const reportField = createMock<PolicyReportField>({type: CONST.REPORT_FIELD_TYPES.LIST, values});
+
+            // When checking visibility
+            const isHidden = shouldHideSingleReportField(reportField);
+
+            // Then missing flags enable existing values, but cannot create options for an empty list
+            expect(isHidden).toBe(hidden);
+        });
+
         it('should return true if report field has title type', () => {
             const reportField = createMock<PolicyReportField>({
                 fieldID: CONST.REPORT_FIELD_TITLE_FIELD_ID,
