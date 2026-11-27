@@ -1,3 +1,4 @@
+/** "Processing receipt..." pill shown while a capture is being cropped. It waits 300 ms first, so a fast crop never shows it. */
 import ActivityIndicator from '@components/ActivityIndicator';
 
 import useLocalize from '@hooks/useLocalize';

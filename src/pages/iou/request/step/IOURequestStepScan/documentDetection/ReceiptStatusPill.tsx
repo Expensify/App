@@ -1,3 +1,4 @@
+/** Short dark pill at the bottom of the camera viewfinder that shows a status message after an icon or spinner. */
 import Text from '@components/Text';
 
 import useThemeStyles from '@hooks/useThemeStyles';
