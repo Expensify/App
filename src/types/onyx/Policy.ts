@@ -3620,6 +3620,122 @@ type QBDConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
     keyof QBDExportConfig
 >;
 
+/**
+ * A company in the connected Odoo database that the connection can sync with.
+ */
+type OdooSubsidiary = {
+    /** Unique identifier of the company. Company IDs repeat across Odoo databases, so it's only unique within one. */
+    id: string;
+
+    name: string;
+
+    /** ISO 4217 code of the currency the company operates in. */
+    currency: string;
+};
+
+/**
+ * General ledger account retrieved from Odoo's chart of accounts.
+ */
+type OdooAccount = {
+    id: string;
+
+    code?: string;
+
+    name: string;
+
+    /** Odoo account type, such as expense or asset_current. */
+    accountType: string;
+
+    isActive: boolean;
+};
+
+/**
+ * Analytic account retrieved from Odoo, for tracking costs by project, department or similar.
+ */
+type OdooAnalyticAccount = {
+    id: string;
+
+    name: string;
+
+    isActive: boolean;
+};
+
+/**
+ * Analytic plan retrieved from Odoo. A plan groups analytic accounts, and can import into Expensify as a tag list.
+ */
+type OdooAnalyticPlan = {
+    id: string;
+
+    /** Name of the analytic plan, such as Department or Project. */
+    name: string;
+
+    accounts: OdooAnalyticAccount[];
+};
+
+/**
+ * Tax retrieved from Odoo.
+ */
+type OdooTax = {
+    id: string;
+
+    name: string;
+
+    /** Tax rate as a percentage. */
+    rate: number;
+
+    isActive: boolean;
+};
+
+/**
+ * Connection data retrieved from Odoo.
+ */
+type OdooConnectionData = {
+    /** Companies in the connected Odoo database. */
+    subsidiaries?: OdooSubsidiary[];
+
+    /** Chart of accounts of the selected company. */
+    accounts?: OdooAccount[];
+
+    /** Analytic plans, with their analytic accounts. */
+    analyticPlans?: OdooAnalyticPlan[];
+
+    /** Taxes of the selected company. */
+    taxes?: OdooTax[];
+};
+
+/**
+ * Automatic synchronization settings for Odoo.
+ */
+type OdooAutoSync = {
+    enabled: boolean;
+
+    jobID?: string | null;
+};
+
+/**
+ * Connection config for Odoo.
+ */
+type OdooConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
+    {
+        /** URL of the connected Odoo database, for example https://acme.odoo.com */
+        url: string;
+
+        /** The ID of the selected company in Odoo */
+        subsidiaryID: string;
+
+        isConfigured: boolean;
+
+        /** Auto-sync settings, which the Advanced page adds in a later release */
+        autoSync?: OdooAutoSync;
+
+        /** Collection of errors coming from BE */
+        errors?: OnyxCommon.Errors;
+
+        errorFields?: OnyxCommon.ErrorFields;
+    },
+    typeof CONST.ODOO_CONFIG.SUBSIDIARY_ID
+>;
+
 /** State of integration connection */
 type Connection<ConnectionData, ConnectionConfig, TLastSync extends ConnectionLastSync = ConnectionLastSync> = {
     lastSync?: TLastSync;
@@ -3667,6 +3783,8 @@ type Connections = {
 
     /** Business Central integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: Connection<BusinessCentralConnectionData, BusinessCentralConnectionsConfig>;
+
+    [CONST.POLICY.CONNECTIONS.NAME.ODOO]: Connection<OdooConnectionData, OdooConnectionsConfig>;
 
     /** Gusto integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.GUSTO]: Connection<GustoConnectionData, GustoConnectionConfig>;
@@ -4618,3 +4736,10 @@ export type {ZohoBooksAutoSync, ZohoBooksCoding, ZohoBooksConnectionsConfig, Zoh
  * @public
  */
 export type {DigitsAutoSync, DigitsCoding, DigitsConnectionsConfig, DigitsExport, DigitsSync};
+
+/**
+ * The Odoo action module and the company selector are the only importers of these types, and the selector arrives in a later release.
+ *
+ * @public
+ */
+export type {OdooConnectionsConfig, OdooSubsidiary};

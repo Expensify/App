@@ -606,6 +606,8 @@ const WRITE_COMMANDS = {
     UPDATE_DUALENTRY_SYNC_TRAVEL_BILLING_SETTLEMENTS: 'UpdateDualEntrySyncTravelBillingSettlements',
     UPDATE_DUALENTRY_TRAVEL_BILLING_SETTLEMENTS_ACCOUNT: 'UpdateDualEntryTravelBillingSettlementsAccount',
     UPDATE_DUALENTRY_TRAVEL_BILLING_PAYABLE_ACCOUNT: 'UpdateDualEntryTravelBillingPayableAccount',
+    CONNECT_POLICY_TO_ODOO: 'ConnectPolicyToOdoo',
+    UPDATE_ODOO_SUBSIDIARY: 'UpdateOdooSubsidiary',
     CONNECT_POLICY_TO_BUSINESS_CENTRAL: 'ConnectPolicyToBusinessCentral',
     UPDATE_BUSINESS_CENTRAL_COMPANY: 'UpdateBusinessCentralCompany',
     UPDATE_BUSINESS_CENTRAL_CUSTOMERS_MAPPING: 'UpdateBusinessCentralCustomersMapping',
@@ -1425,6 +1427,8 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_DUALENTRY_SYNC_TRAVEL_BILLING_SETTLEMENTS]: Parameters.UpdateDualEntrySyncTravelBillingSettlementsParams;
     [WRITE_COMMANDS.UPDATE_DUALENTRY_TRAVEL_BILLING_SETTLEMENTS_ACCOUNT]: Parameters.UpdateDualEntryTravelBillingSettlementsAccountParams;
     [WRITE_COMMANDS.UPDATE_DUALENTRY_TRAVEL_BILLING_PAYABLE_ACCOUNT]: Parameters.UpdateDualEntryTravelBillingPayableAccountParams;
+    [WRITE_COMMANDS.CONNECT_POLICY_TO_ODOO]: Parameters.ConnectPolicyToOdooParams;
+    [WRITE_COMMANDS.UPDATE_ODOO_SUBSIDIARY]: Parameters.UpdateOdooSubsidiaryParams;
     [WRITE_COMMANDS.CONNECT_POLICY_TO_BUSINESS_CENTRAL]: Parameters.ConnectPolicyToBusinessCentralParams;
     [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_COMPANY]: Parameters.UpdateBusinessCentralCompanyParams;
     [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_CUSTOMERS_MAPPING]: Parameters.UpdateBusinessCentralCustomerMappingParams;
@@ -1746,6 +1750,7 @@ const READ_COMMANDS = {
     SYNC_POLICY_TO_ZOHO_BOOKS: 'SyncPolicyToZohoBooks',
     CONNECT_POLICY_TO_ZOHO_BOOKS: 'ConnectPolicyToZohoBooks',
     SYNC_POLICY_TO_BUSINESS_CENTRAL: 'SyncPolicyToBusinessCentral',
+    SYNC_POLICY_TO_ODOO: 'SyncPolicyToOdoo',
     CONNECT_POLICY_TO_FINANCIAL_FORCE: 'ConnectPolicyToFinancialForce',
     OPEN_REIMBURSEMENT_ACCOUNT_PAGE: 'OpenReimbursementAccountPage',
     OPEN_WORKSPACE_VIEW: 'OpenWorkspaceView',
@@ -1880,6 +1885,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.SYNC_POLICY_TO_ZOHO_BOOKS]: Parameters.SyncPolicyToZohoBooksParams;
     [READ_COMMANDS.CONNECT_POLICY_TO_ZOHO_BOOKS]: Parameters.ConnectPolicyToZohoBooksParams;
     [READ_COMMANDS.SYNC_POLICY_TO_BUSINESS_CENTRAL]: Parameters.SyncPolicyToBusinessCentralParams;
+    [READ_COMMANDS.SYNC_POLICY_TO_ODOO]: Parameters.SyncPolicyToOdooParams;
     [READ_COMMANDS.OPEN_REIMBURSEMENT_ACCOUNT_PAGE]: Parameters.OpenReimbursementAccountPageParams;
     [READ_COMMANDS.OPEN_WORKSPACE_VIEW]: Parameters.OpenWorkspaceViewParams;
     [READ_COMMANDS.GET_MAPBOX_ACCESS_TOKEN]: null;

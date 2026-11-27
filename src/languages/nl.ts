@@ -8177,6 +8177,8 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                         return 'Zoho Books';
                     case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
                         return 'Dynamics 365 Business Central';
+                    case CONST.POLICY.CONNECTIONS.NAME.ODOO:
+                        return 'Odoo';
                     default: {
                         return '';
                     }
@@ -8411,6 +8413,16 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                             return 'Zoho Books-gegevens synchroniseren';
                         case 'zohoBooksSyncConnection':
                             return 'Verbinding met Zoho Books initialiseren';
+                        case 'odooSyncSubsidiaries':
+                            return 'Bedrijven synchroniseren';
+                        case 'odooSyncAccounts':
+                            return 'Rekeningschema synchroniseren';
+                        case 'odooSyncAnalyticPlans':
+                            return 'Analytische plannen synchroniseren';
+                        case 'odooSyncTaxRates':
+                            return 'Belastingspercentages synchroniseren';
+                        case 'odooSyncConnection':
+                            return 'Verbinding met Odoo initialiseren';
                         case 'campfireSyncImportData':
                             return 'Gegevens laden';
                         case 'campfireSyncPayments':
@@ -8484,6 +8496,7 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             continuousReconciliationFeedSelection:
                 '<muted-text-label>Doorlopende afstemming wordt per kaartfeed geconfigureerd. Selecteer een feed om te wijzigen welke je configureert.</muted-text-label>',
             businessCentral: 'Dynamics 365 Business Central',
+            odoo: 'Odoo',
             qboConnectionExpiring: ({date}: {date: string}) => `Je QuickBooks Online-verbinding verloopt op ${date}.`,
             qboConnectionExpired: ({date}: {date: string}) => `Je QuickBooks Online-verbinding is op ${date} verlopen.`,
             netSuiteOAuthMigrationRequired: 'Upgrade je NetSuite-verbinding naar OAuth 2.0 vóór februari 2027.',
@@ -10105,6 +10118,17 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             travelBillingSettlementAccount: {label: 'Verzamelafrekeningrekening voor zakelijke reizen', description: 'Kies je afwikkelingsrekening en wij maken de betaling aan in Digits.'},
             travelBillingPayableAccount: {label: 'Te betalen rekening voor geconsolideerde reiskosten'},
             missingSettlementAccount: (accountName: string) => `Afrekeningen worden niet gesynchroniseerd totdat je de ${accountName} kiest.`,
+        },
+        odoo: {
+            odooSetup: 'Odoo instellen',
+            enterCredentials: 'Voer je Odoo-URL en API-sleutel in',
+            howToFindAPIKey:
+                '<strong>Je API-sleutel vinden.</strong><ol><li>Log in bij Odoo</li><li>Ga naar Mijn profiel -> Accountbeveiliging</li><li>Klik op Nieuwe API-sleutel</li><li>Bevestig je wachtwoord, geef de sleutel een duidelijke naam en stel Duur in op Permanente sleutel. Als Odoo om een bereik vraagt, kies dan RPC</li><li>Kopieer de API-sleutel uit Odoo en plak die hieronder</li></ol>',
+            persistentKeyNote:
+                'Alleen Odoo-beheerders kunnen Permanente sleutel kiezen. Andere gebruikers kunnen maximaal 3 maanden kiezen, dus hun sleutel verloopt en ze moeten opnieuw verbinden met een nieuwe sleutel.',
+            odooURL: 'Odoo-URL',
+            odooURLHint: 'Bijvoorbeeld https://acme.odoo.com',
+            invalidURL: 'Voer een geldige Odoo-URL in, bijvoorbeeld https://acme.odoo.com',
         },
         zohoBooks: {
             organization: 'Zoho Books-organisatie',

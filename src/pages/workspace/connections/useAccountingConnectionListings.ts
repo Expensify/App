@@ -64,6 +64,7 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
         'DigitsSquare',
         'BusinessCentralSquare',
         'ZohoBooksSquare',
+        'OdooSquare',
     ]);
 
     if (!policyID) {
@@ -71,9 +72,13 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
     }
 
     const canUseBusinessCentralIntegration = isBetaEnabled(CONST.BETAS.BUSINESS_CENTRAL) || !!policy?.connections?.businessCentral;
+    const canUseOdooIntegration = isBetaEnabled(CONST.BETAS.ODOO) || !!policy?.connections?.odoo;
     const accountingIntegrations = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.filter((name) => {
         if (name === CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL) {
             return canUseBusinessCentralIntegration;
+        }
+        if (name === CONST.POLICY.CONNECTIONS.NAME.ODOO) {
+            return canUseOdooIntegration;
         }
         return true;
     });
@@ -174,7 +179,7 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
                 listing,
                 // Sage Accounting shares the Sage logo with Sage Intacct
                 getWaitlistListing(CONST.POLICY.CONNECTIONS.NAME.SAGE_ACCOUNTING, accountingIcons.IntacctSquare),
-                getWaitlistListing(CONST.POLICY.CONNECTIONS.NAME.ODOO),
+                ...(canUseOdooIntegration ? [] : [getWaitlistListing(CONST.POLICY.CONNECTIONS.NAME.ODOO)]),
             ];
         }
         if (name === CONST.POLICY.CONNECTIONS.NAME.CERTINIA) {

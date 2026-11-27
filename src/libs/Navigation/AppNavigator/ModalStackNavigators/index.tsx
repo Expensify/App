@@ -1136,6 +1136,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_PREREQUISITES]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/businessCentral/BusinessCentralPrerequisitesPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_SETUP]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/businessCentral/BusinessCentralSetupPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.ODOO_SETUP]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/odoo/OdooSetupPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_COMPANY_SELECTOR]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/businessCentral/BusinessCentralCompanySelector').default,
     [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_IMPORT]: () =>

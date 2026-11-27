@@ -136,7 +136,9 @@ type UnofferedOnboardingAccountingConnection =
     // Covered by the Microsoft Dynamics option, and still behind the BUSINESS_CENTRAL beta.
     | typeof CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL
     | typeof CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS
-    | typeof CONST.POLICY.CONNECTIONS.NAME.DIGITS;
+    | typeof CONST.POLICY.CONNECTIONS.NAME.DIGITS
+    // Still behind the ODOO beta.
+    | typeof CONST.POLICY.CONNECTIONS.NAME.ODOO;
 
 type UnhandledAccountingConnection = Exclude<TupleToUnion<typeof CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES>, OnboardingAccountingOption | UnofferedOnboardingAccountingConnection>;
 
@@ -4763,6 +4765,10 @@ const CONST = {
         OTHER_CURRENT_LIABILITIES: 'OtherCurrentLiabilities',
     },
 
+    ODOO_CONFIG: {
+        SUBSIDIARY_ID: 'subsidiaryID',
+    },
+
     ZOHO_BOOKS_CONFIG: {
         SUBSIDIARY_ID: 'subsidiaryID',
         ENABLE_NEW_CATEGORIES: 'enableNewCategories',
@@ -5772,6 +5778,7 @@ const CONST = {
                 DIGITS: 'digits',
                 ZOHO_BOOKS: 'zoho-books',
                 BUSINESS_CENTRAL: 'business-central',
+                ODOO: 'odoo',
                 GUSTO: 'gusto',
                 ZENEFITS: 'zenefits',
                 MERGE_HR: 'merge-hr',
@@ -5815,6 +5822,7 @@ const CONST = {
                     this.NAME.XERO,
                     this.NAME.NETSUITE,
                     this.NAME.SAGE_INTACCT,
+                    this.NAME.ODOO,
                     this.NAME.CERTINIA,
                     this.NAME.RILLET,
                     this.NAME.DUALENTRY,
@@ -5844,6 +5852,8 @@ const CONST = {
                     [this.NAME.DIGITS]: 'digits',
                     [this.NAME.ZOHO_BOOKS]: 'zohoBooks',
                     [this.NAME.BUSINESS_CENTRAL]: 'businessCentral',
+                    // Odoo doesn't import report fields, so nothing is stamped with this origin yet
+                    [this.NAME.ODOO]: 'odoo',
                 } as const;
             },
             get HR_CONNECTION_NAMES() {
@@ -5976,6 +5986,11 @@ const CONST = {
                 BUSINESS_CENTRAL_SYNC_TITLE: 'businessCentralSyncTitle',
                 BUSINESS_CENTRAL_SYNC_CONNECTION: 'businessCentralSyncConnection',
                 BUSINESS_CENTRAL_SYNC_IMPORT_DATA: 'businessCentralSyncImportData',
+                ODOO_SYNC_SUBSIDIARIES: 'odooSyncSubsidiaries',
+                ODOO_SYNC_ACCOUNTS: 'odooSyncAccounts',
+                ODOO_SYNC_ANALYTIC_PLANS: 'odooSyncAnalyticPlans',
+                ODOO_SYNC_TAX_RATES: 'odooSyncTaxRates',
+                ODOO_SYNC_CONNECTION: 'odooSyncConnection',
             },
             SYNC_STAGE_TIMEOUT_MINUTES: 20,
             /** How many days before a QuickBooks Online refresh token expires the workspace starts warning admins to reconnect */
@@ -6798,6 +6813,7 @@ const CONST = {
         CARD_EXPIRATION_DATE: /^(0[1-9]|1[0-2])([^0-9])?([0-9]{4}|([0-9]{2}))$/,
         ROOM_NAME: /^#[\p{Ll}0-9-]{1,100}$/u,
         ROOM_NAME_WITHOUT_LIMIT: /^#[\p{Ll}0-9-]+$/u,
+        ODOO_ONLINE_URL: /^https:\/\/[a-z0-9-]+\.odoo\.com\/?$/i,
         DOMAIN_BASE: '^(?:https?:\\/\\/)?(?:www\\.)?([^\\/]+)',
         ALPHANUMERIC_WITH_SPACE_AND_HYPHEN: /^[A-Za-z0-9 -]+$/,
         ISO_8601_UTC_OFFSET_SUFFIX: /([+-]\d{2}:\d{2})$/,

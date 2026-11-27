@@ -8245,6 +8245,8 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                         return 'Zoho Books';
                     case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
                         return 'Dynamics 365 Business Central';
+                    case CONST.POLICY.CONNECTIONS.NAME.ODOO:
+                        return 'Odoo';
                     default: {
                         return '';
                     }
@@ -8479,6 +8481,16 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                             return 'Zoho Books-Daten werden synchronisiert';
                         case 'zohoBooksSyncConnection':
                             return 'Verbindung zu Zoho Books wird initialisiert';
+                        case 'odooSyncSubsidiaries':
+                            return 'Unternehmen werden synchronisiert';
+                        case 'odooSyncAccounts':
+                            return 'Kontenplan wird synchronisiert';
+                        case 'odooSyncAnalyticPlans':
+                            return 'Analysepläne werden synchronisiert';
+                        case 'odooSyncTaxRates':
+                            return 'Steuersätze werden synchronisiert';
+                        case 'odooSyncConnection':
+                            return 'Verbindung zu Odoo wird initialisiert';
                         case 'campfireSyncImportData':
                             return 'Daten werden geladen';
                         case 'campfireSyncPayments':
@@ -8552,6 +8564,7 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             continuousReconciliationFeedSelection:
                 '<muted-text-label>Die fortlaufende Abstimmung wird pro Kartenfeed konfiguriert. Wählen Sie einen Feed aus, um zu ändern, welchen Sie konfigurieren.</muted-text-label>',
             businessCentral: 'Dynamics 365 Business Central',
+            odoo: 'Odoo',
             qboConnectionExpiring: ({date}: {date: string}) => `Ihre QuickBooks Online-Verbindung läuft am ${date} ab.`,
             qboConnectionExpired: ({date}: {date: string}) => `Ihre QuickBooks Online-Verbindung ist am ${date} abgelaufen.`,
             netSuiteOAuthMigrationRequired: 'Aktualisieren Sie Ihre NetSuite-Verbindung bis Februar 2027 auf OAuth 2.0.',
@@ -10194,6 +10207,17 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             },
             travelBillingPayableAccount: {label: 'Konto für konsolidierte Reisekostenverbindlichkeiten'},
             missingSettlementAccount: (accountName: string) => `Abrechnungen werden nicht synchronisiert, bis Sie ${accountName} auswählen.`,
+        },
+        odoo: {
+            odooSetup: 'Odoo-Einrichtung',
+            enterCredentials: 'Geben Sie Ihre Odoo-URL und Ihren API-Schlüssel ein',
+            howToFindAPIKey:
+                '<strong>So finden Sie Ihren API-Schlüssel.</strong><ol><li>Melden Sie sich bei Odoo an</li><li>Gehen Sie zu Mein Profil -> Kontosicherheit</li><li>Klicken Sie auf Neuer API-Schlüssel</li><li>Bestätigen Sie Ihr Passwort, geben Sie dem Schlüssel einen aussagekräftigen Namen und setzen Sie die Dauer auf Dauerhafter Schlüssel. Wenn Odoo nach einem Bereich fragt, wählen Sie RPC</li><li>Kopieren Sie den API-Schlüssel aus Odoo und fügen Sie ihn unten ein</li></ol>',
+            persistentKeyNote:
+                'Nur Odoo-Administratoren können Dauerhafter Schlüssel wählen. Andere Benutzer können höchstens 3 Monate wählen, sodass ihr Schlüssel abläuft und sie sich mit einem neuen Schlüssel erneut verbinden müssen.',
+            odooURL: 'Odoo-URL',
+            odooURLHint: 'Zum Beispiel https://acme.odoo.com',
+            invalidURL: 'Bitte geben Sie eine gültige Odoo-URL ein, zum Beispiel https://acme.odoo.com',
         },
         zohoBooks: {
             organization: 'Zoho Books-Organisation',

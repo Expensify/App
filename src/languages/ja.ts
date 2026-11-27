@@ -8082,6 +8082,8 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                         return 'Zoho Books';
                     case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
                         return 'Dynamics 365 Business Central';
+                    case CONST.POLICY.CONNECTIONS.NAME.ODOO:
+                        return 'Odoo';
                     default: {
                         return '';
                     }
@@ -8317,6 +8319,16 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                             return 'Zoho Books データを同期しています';
                         case 'zohoBooksSyncConnection':
                             return 'Zoho Books への接続を初期化しています';
+                        case 'odooSyncSubsidiaries':
+                            return '会社を同期しています';
+                        case 'odooSyncAccounts':
+                            return '勘定科目表を同期しています';
+                        case 'odooSyncAnalyticPlans':
+                            return '分析プランを同期しています';
+                        case 'odooSyncTaxRates':
+                            return '税率を同期しています';
+                        case 'odooSyncConnection':
+                            return 'Odoo への接続を初期化しています';
                         case 'campfireSyncImportData':
                             return 'データを読み込んでいます';
                         case 'campfireSyncPayments':
@@ -8389,6 +8401,7 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             continuousReconciliationFeedSelection:
                 '<muted-text-label>継続的な照合はカードフィードごとに設定されます。設定するフィードを変更するには、フィードを選択してください。</muted-text-label>',
             businessCentral: 'Dynamics 365 Business Central',
+            odoo: 'Odoo',
             qboConnectionExpiring: ({date}: {date: string}) => `QuickBooks Online との接続は ${date} に有効期限が切れます。`,
             qboConnectionExpired: ({date}: {date: string}) => `QuickBooks Online との接続は ${date} に期限切れになりました。`,
             netSuiteOAuthMigrationRequired: '2027年2月までに、NetSuite 接続を OAuth 2.0 にアップグレードしてください。',
@@ -9977,6 +9990,17 @@ ${reportName}`,
             travelBillingSettlementAccount: {label: '集中管理された出張請求の決済口座', description: '清算口座を選択すると、Digits で支払いを作成します。'},
             travelBillingPayableAccount: {label: '統合旅行請求支払勘定'},
             missingSettlementAccount: (accountName: string) => `${accountName} を選択するまで決済は同期されません。`,
+        },
+        odoo: {
+            odooSetup: 'Odoo の設定',
+            enterCredentials: 'Odoo の URL と API キーを入力してください',
+            howToFindAPIKey:
+                '<strong>API キーの確認方法</strong><ol><li>Odoo にログインします</li><li>マイプロフィール -> アカウントセキュリティに移動します</li><li>新しい API キーをクリックします</li><li>パスワードを確認し、キーにわかりやすい名前を付け、期間を永続キーに設定します。Odoo からスコープを求められた場合は RPC を選択します</li><li>Odoo から API キーをコピーして、下に貼り付けます</li></ol>',
+            persistentKeyNote:
+                '永続キーを選択できるのは Odoo の管理者のみです。その他のユーザーは最長 3 か月までしか選択できないため、キーの期限が切れると新しいキーで再接続する必要があります。',
+            odooURL: 'Odoo の URL',
+            odooURLHint: '例: https://acme.odoo.com',
+            invalidURL: '有効な Odoo の URL を入力してください（例: https://acme.odoo.com）',
         },
         zohoBooks: {
             organization: 'Zoho Books 組織',
