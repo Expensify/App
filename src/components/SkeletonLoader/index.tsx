@@ -61,4 +61,3 @@ function SkeletonLoader({
 }
 
 export default SkeletonLoader;
-export type {SkeletonLoaderProps} from './types';
