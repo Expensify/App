@@ -1,4 +1,4 @@
-import {act, render} from '@testing-library/react-native';
+import {act, render, waitFor} from '@testing-library/react-native';
 
 import PayActionCell from '@components/Search/SearchList/ListItem/ActionCell/PayActionCell';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
@@ -12,12 +12,15 @@ import {isInvoiceReport} from '@libs/ReportUtils';
 import {payInvoice, payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
 
 import CONST from '@src/CONST';
-import type {Report} from '@src/types/onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Report, ReportActions} from '@src/types/onyx';
 
 import type {UseOnyxResult} from 'react-native-onyx';
 
 import React from 'react';
+import Onyx from 'react-native-onyx';
 
+import createRandomReportAction from '../../utils/collections/reportActions';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const TEST_INVOICE_REPORT_ID = '1001';
@@ -137,10 +140,22 @@ const expenseReport = {
     total: -5000,
 } as Report;
 
+const reportPreviewAction = {...createRandomReportAction(1), actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW};
+const chatReportActions: ReportActions = {[reportPreviewAction.reportActionID]: reportPreviewAction};
+
 describe('PayActionCell', () => {
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    afterEach(async () => {
+        await Onyx.clear();
+    });
+
     beforeEach(() => {
         jest.clearAllMocks();
         mockOnPressHolder.current = undefined;
+        mockedIsInvoiceReport.mockReturnValue(true);
         mockedUseReportWithTransactionsAndViolations.mockReturnValue([invoiceReport, [], undefined]);
         mockedUseOnyx.mockImplementation(() => createOnyxResult(undefined));
     });
@@ -328,5 +343,60 @@ describe('PayActionCell', () => {
         // Then no payment should happen and the drop should be logged because there is no way to resolve any chat report
         expect(mockedPayMoneyRequest).not.toHaveBeenCalled();
         expect(mockLogInfo).toHaveBeenCalledWith('[SearchPay] Dropping row pay: chat report is not loaded and no chatReportID is available', false, {reportID: TEST_EXPENSE_REPORT_ID});
+    });
+
+    it('should pass the chat report actions stored at press time to payInvoice', async () => {
+        // Given an invoice report row whose chat report actions land in Onyx after the row rendered
+        render(
+            <PayActionCell
+                isLoading={false}
+                policyID="policy1"
+                reportID={TEST_INVOICE_REPORT_ID}
+                hash={TEST_HASH}
+                amount={5000}
+                chatReport={chatReport}
+            />,
+        );
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${TEST_CHAT_REPORT_ID}`, chatReportActions);
+
+        // When the user confirms the payment from the cell's settlement button
+        act(() => {
+            mockOnPressHolder.current?.({
+                paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                payAsBusiness: false,
+            });
+        });
+
+        // Then the payment should get those actions, because the row reads them only when paying so it can update the live report preview
+        await waitFor(() => expect(mockedPayInvoice).toHaveBeenCalledWith(expect.objectContaining({chatReportActions})));
+    });
+
+    it('should pass the chat report actions stored at press time to a money request payment', async () => {
+        // Given an expense report row whose chat report actions land in Onyx after the row rendered
+        mockedIsInvoiceReport.mockReturnValue(false);
+        mockedUseReportWithTransactionsAndViolations.mockReturnValue([expenseReport, [], undefined]);
+
+        render(
+            <PayActionCell
+                isLoading={false}
+                policyID="policy1"
+                reportID={TEST_EXPENSE_REPORT_ID}
+                hash={TEST_HASH}
+                amount={5000}
+                chatReport={chatReport}
+            />,
+        );
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${TEST_CHAT_REPORT_ID}`, chatReportActions);
+
+        // When the user confirms the payment from the cell's settlement button
+        act(() => {
+            mockOnPressHolder.current?.({
+                paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                payAsBusiness: false,
+            });
+        });
+
+        // Then the payment should get those actions, because the row reads them only when paying so it can update the live report preview
+        await waitFor(() => expect(mockedPayMoneyRequest).toHaveBeenCalledWith(expect.objectContaining({chatReportActions})));
     });
 });
