@@ -215,4 +215,31 @@ describe('WorkspaceInviteMessageComponent - Approver row on Dynamic External Wor
         // Then the row stays hidden, because per-member approvers are a Control-only feature
         expect(queryApproverRow()).not.toBeOnTheScreen();
     });
+
+    it('sends the invitation with the workspace categories and the welcome note', async () => {
+        // Given a workspace with categories, which addMembersToWorkspace merges into when it adds the new member
+        const policyCategories = {Food: {name: 'Food', enabled: true}};
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}`, policyCategories);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await renderPage(buildPolicy({approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC}));
+
+        // When the admin sends the invite
+        await pressInvite();
+
+        // Then the categories read at press time reach the action, and the note starts with the inviter and workspace subject
+        expect(addMembersToWorkspaceMock).toHaveBeenCalledTimes(1);
+        expect(addMembersToWorkspaceMock).toHaveBeenCalledWith(
+            expect.anything(),
+            expect.anything(),
+            expect.stringMatching(/^# admin invited you to Test Workspace\n\n/),
+            expect.anything(),
+            expect.anything(),
+            expect.anything(),
+            expect.anything(),
+            expect.anything(),
+            expect.objectContaining({policyCategories}),
+        );
+    });
 });

@@ -59,6 +59,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {TupleToUnion} from 'type-fest';
 
+import {primaryLoginSelector} from '@selectors/Account';
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
@@ -85,12 +86,12 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
 
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [primaryLogin] = useOnyx(ONYXKEYS.ACCOUNT, {selector: primaryLoginSelector});
     const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
 
     const delegateAccountID = useDelegateAccountID();
     const {accountID: currentUserAccountID, login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
-    const isUserReimburser = account?.primaryLogin !== undefined && (policy?.achAccount?.reimburser ?? policy?.owner) === account?.primaryLogin;
+    const isUserReimburser = primaryLogin !== undefined && (policy?.achAccount?.reimburser ?? policy?.owner) === primaryLogin;
     const {
         canWrite: canWritePayments,
         showReadOnlyModal,
@@ -142,12 +143,9 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
     const bankTitle = addressName.includes(CONST.MASKED_PAN_PREFIX) ? bankName : addressName;
     const bankAccountID = isBankAccountFullySetup ? policy?.achAccount?.bankAccountID : bankAccountConnectedToWorkspace?.methodID;
     const state = isBankAccountFullySetup ? (policy?.achAccount?.state ?? '') : (bankAccountConnectedToWorkspace?.accountData?.state ?? '');
-    // eslint-disable-next-line rulesdir/no-default-id-values
-    const [unlockRequestedAt] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_LOCKED_VBA_UNLOCK_REQUESTED}${bankAccountID ?? CONST.DEFAULT_NUMBER_ID}`);
     const isAccountInSetupState = isBankAccountPartiallySetup(state);
     const isBusinessBankAccountLocked = state === CONST.BANK_ACCOUNT.STATE.LOCKED;
     const canChangePayer = canWritePayments && !isAccountInSetupState;
-    const hasOtherEligibleExistingAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency, true, bankAccountID).length > 0;
 
     const shouldShowBankAccount = (!!isBankAccountFullySetup || !!bankAccountConnectedToWorkspace) && getReimbursementChoice(policy) !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
     const shouldShowPayer = shouldShowBankAccount || getReimbursementChoice(policy) !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
@@ -231,16 +229,17 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
         }
         // User who is reimburser can initiate unlocking process
         if (state === CONST.BANK_ACCOUNT.STATE.LOCKED && bankAccountID && isUserReimburser) {
-            if (unlockRequestedAt) {
-                showUnlockAlreadyRequestedModal(showConfirmModal, translate);
-                return;
-            }
-            const [conciergeReportID, initiatingBankAccountUnlock, introSelected, onboarding] = await Onyx.multiGet([
+            const [unlockRequestedAt, conciergeReportID, initiatingBankAccountUnlock, introSelected, onboarding] = await Onyx.multiGet([
+                `${ONYXKEYS.COLLECTION.NVP_LOCKED_VBA_UNLOCK_REQUESTED}${bankAccountID}`,
                 ONYXKEYS.CONCIERGE_REPORT_ID,
                 ONYXKEYS.INITIATING_BANK_ACCOUNT_UNLOCK,
                 ONYXKEYS.NVP_INTRO_SELECTED,
                 ONYXKEYS.NVP_ONBOARDING,
             ]);
+            if (unlockRequestedAt) {
+                showUnlockAlreadyRequestedModal(showConfirmModal, translate);
+                return;
+            }
             pressLockedBankAccount(bankAccountID, translate, conciergeReportID ?? undefined, delegateAccountID, initiatingBankAccountUnlock);
             const {isSelfTourViewed, hasCompletedGuidedSetupFlow} = guidedSetupAndTourStatusSelector(onboarding);
             navigateToConciergeChat({
@@ -254,6 +253,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
             return;
         }
 
+        const hasOtherEligibleExistingAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency, true, bankAccountID).length > 0;
         // A non-reimburser can't edit or unlock the workspace's connected account, so if they have another
         // eligible existing account and no setup in progress, let them link it (change the workspace's account).
         if (!isUserReimburser && hasOtherEligibleExistingAccounts && !shouldShowContinueModal) {
