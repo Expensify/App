@@ -811,6 +811,11 @@ const translations: TranslationDeepObject<typeof en> = {
         setPin: {didNotShipCard: 'Non abbiamo spedito la tua carta. Riprova.'},
         revealPin: {couldNotReveal: 'Non siamo riusciti a mostrare il tuo PIN. Riprova.'},
         changePin: {didNotChange: 'Non abbiamo modificato il tuo PIN. Riprova.'},
+        addToWallet: {
+            failedHeader: 'Impossibile aggiungere la carta',
+            failedTitle: 'Non siamo riusciti ad aggiungere la tua carta al tuo portafoglio',
+            failedSubtitle: "Qualcosa è andato storto durante l'aggiunta della carta. Se è già nel tuo portafoglio, puoi usarla da lì.",
+        },
         revealCardDetail: {couldNotReveal: 'Non siamo riusciti a mostrare i dettagli della tua carta. Riprova.'},
     },
     validateCodeModal: {
@@ -2729,6 +2734,11 @@ const translations: TranslationDeepObject<typeof en> = {
             limitedSupport: 'Al momento non supportiamo ancora l’unione degli account in New Expensify. Esegui questa operazione su Expensify Classic.',
             reachOutForHelp: '<muted-text><centered-text>Sentiti liberə di <concierge-link>contattare Concierge</concierge-link> se hai domande!</centered-text></muted-text>',
             goToExpensifyClassic: 'Vai a Expensify Classic',
+        },
+        mergePendingDomainAdmin: {
+            heading: 'Email con dominio limitato',
+            description: '<muted-text><centered-text>Un amministratore di dominio è stato avvisato per approvare la richiesta di unione degli account.</centered-text></muted-text>',
+            gotIt: 'Ricevuto',
         },
         mergeFailureSAMLDomainControlDescription: (email: string) =>
             `<muted-text><centered-text>Non puoi unire <strong>${email}</strong> perché è gestito da <strong>${email.split('@').at(1) ?? ''}</strong>. <concierge-link>Contatta Concierge</concierge-link> per ricevere assistenza.</centered-text></muted-text>`,
@@ -7317,11 +7327,13 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 description: `Almeno una categoria deve rimanere abilitata perché il tuo spazio di lavoro richiede le categorie.`,
             },
             visibleTo: 'Visibile a',
+            editVisibility: 'Modifica visibilità',
             membersCount: ({count}: {count: number}) => ({
                 one: '1 membro',
                 other: `${count} membri`,
             }),
             visibleToDescription: ({categoryName}: {categoryName: string}) => `Scegli quali membri possono usare la categoria ${categoryName} quando inviano le spese.`,
+            bulkVisibleToDescription: 'Scegli quali membri possono usare queste categorie quando inviano le note spese.',
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `Impossibile disabilitare ${categoryName}`,
                 bulkTitle: 'Impossibile disattivare queste categorie',

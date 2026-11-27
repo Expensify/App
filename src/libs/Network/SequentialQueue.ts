@@ -20,6 +20,7 @@ import {getIsOffline as isOfflineNetwork, subscribe as subscribeToNetworkState} 
 import {processWithMiddleware} from '@libs/Request';
 import RequestThrottle from '@libs/RequestThrottle';
 import {logReceiptEnqueued, logReceiptGaveUp, logReceiptRolledBack, RECEIPT_BEARING_COMMANDS} from '@libs/telemetry/ReceiptObservability';
+import type {QueuedReceipt} from '@libs/telemetry/ReceiptObservability';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -871,12 +872,12 @@ async function push<TKey extends OnyxKey>(newRequest: OnyxRequest<TKey>): Promis
     if (RECEIPT_BEARING_COMMANDS.has(newRequest.command)) {
         const data = (newRequest.data ?? {}) as {
             transactionID?: string;
-            receipt?: {receiptTraceId?: string; receiptEnqueuedAt?: number};
+            receipt?: QueuedReceipt;
         };
         if (data.receipt) {
             data.receipt.receiptEnqueuedAt = Date.now();
             logReceiptEnqueued({
-                receiptTraceId: data.receipt.receiptTraceId,
+                receipt: data.receipt,
                 transactionID: data.transactionID,
                 command: newRequest.command,
                 persistedQueueLength: currentRequests.length,

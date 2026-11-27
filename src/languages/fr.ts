@@ -811,6 +811,11 @@ const translations: TranslationDeepObject<typeof en> = {
         setPin: {didNotShipCard: 'Nous n’avons pas envoyé votre carte. Veuillez réessayer.'},
         revealPin: {couldNotReveal: "Nous n'avons pas pu afficher votre code PIN. Veuillez réessayer."},
         changePin: {didNotChange: "Nous n'avons pas modifié votre code PIN. Veuillez réessayer."},
+        addToWallet: {
+            failedHeader: "Impossible d'ajouter la carte",
+            failedTitle: "Nous n'avons pas pu ajouter votre carte à votre portefeuille",
+            failedSubtitle: "Une erreur s'est produite lors de l'ajout de la carte. Si elle se trouve déjà dans votre portefeuille, vous pouvez l'y utiliser.",
+        },
         revealCardDetail: {couldNotReveal: 'Nous n’avons pas pu afficher les détails de votre carte. Veuillez réessayer.'},
     },
     validateCodeModal: {
@@ -2746,6 +2751,11 @@ const translations: TranslationDeepObject<typeof en> = {
             limitedSupport: 'Nous ne prenons pas encore en charge la fusion de comptes sur le nouveau Expensify. Veuillez effectuer cette action sur Expensify Classic à la place.',
             reachOutForHelp: "<muted-text><centered-text>N'hésitez pas à <concierge-link>contacter Concierge</concierge-link> si vous avez des questions&nbsp;!</centered-text></muted-text>",
             goToExpensifyClassic: 'Aller à Expensify Classic',
+        },
+        mergePendingDomainAdmin: {
+            heading: 'E-mail avec domaine restreint',
+            description: '<muted-text><centered-text>Un administrateur de domaine a été informé pour approuver la demande de fusion de comptes.</centered-text></muted-text>',
+            gotIt: 'Compris',
         },
         mergeFailureSAMLDomainControlDescription: (email: string) =>
             `<muted-text><centered-text>Vous ne pouvez pas fusionner <strong>${email}</strong> car il est géré par <strong>${email.split('@').at(1) ?? ''}</strong>. Veuillez <concierge-link>contacter Concierge</concierge-link> pour obtenir de l’aide.</centered-text></muted-text>`,
@@ -7380,11 +7390,13 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 description: `Au moins une catégorie doit rester activée, car votre espace de travail exige des catégories.`,
             },
             visibleTo: 'Visible pour',
+            editVisibility: 'Modifier la visibilité',
             membersCount: ({count}: {count: number}) => ({
                 one: '1 membre',
                 other: `${count} membres`,
             }),
             visibleToDescription: ({categoryName}: {categoryName: string}) => `Choisissez quels membres peuvent utiliser la catégorie ${categoryName} lors de la soumission de dépenses.`,
+            bulkVisibleToDescription: 'Choisissez quels membres peuvent utiliser ces catégories lors de la soumission de dépenses.',
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `Impossible de désactiver ${categoryName}`,
                 bulkTitle: 'Impossible de désactiver ces catégories',

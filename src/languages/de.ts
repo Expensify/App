@@ -811,6 +811,11 @@ const translations: TranslationDeepObject<typeof en> = {
         setPin: {didNotShipCard: 'Wir haben Ihre Karte nicht versendet. Bitte versuchen Sie es erneut.'},
         revealPin: {couldNotReveal: 'Wir konnten Ihre PIN nicht anzeigen. Bitte versuchen Sie es erneut.'},
         changePin: {didNotChange: 'Wir haben Ihre PIN nicht geändert. Bitte versuchen Sie es erneut.'},
+        addToWallet: {
+            failedHeader: 'Karte konnte nicht hinzugefügt werden',
+            failedTitle: 'Wir konnten Ihre Karte nicht zu Ihrer Wallet hinzufügen',
+            failedSubtitle: 'Beim Hinzufügen der Karte ist etwas schiefgelaufen. Wenn sie bereits in Ihrer Wallet ist, können Sie sie dort verwenden.',
+        },
         revealCardDetail: {couldNotReveal: 'Wir konnten Ihre Kartendaten nicht anzeigen. Bitte versuchen Sie es noch einmal.'},
     },
     validateCodeModal: {
@@ -2738,6 +2743,12 @@ const translations: TranslationDeepObject<typeof en> = {
             limitedSupport: 'Wir unterstützen das Zusammenführen von Konten in New Expensify noch nicht. Bitte führe diese Aktion stattdessen in Expensify Classic aus.',
             reachOutForHelp: '<muted-text><centered-text>Wende dich bei Fragen gerne an den <concierge-link>Concierge</concierge-link>!</centered-text></muted-text>',
             goToExpensifyClassic: 'Zu Expensify Classic wechseln',
+        },
+        mergePendingDomainAdmin: {
+            heading: 'Domainbeschränkte E-Mail',
+            description:
+                '<muted-text><centered-text>Ein Domain-Administrator wurde benachrichtigt, um die Anfrage zur Zusammenführung von Konten zu genehmigen.</centered-text></muted-text>',
+            gotIt: 'Verstanden',
         },
         mergeFailureSAMLDomainControlDescription: (email: string) =>
             `<muted-text><centered-text>Du kannst <strong>${email}</strong> nicht zusammenführen, da es von <strong>${email.split('@').at(1) ?? ''}</strong> verwaltet wird. Bitte <concierge-link>wende dich für Unterstützung an Concierge</concierge-link>.</centered-text></muted-text>`,
@@ -7369,12 +7380,14 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 description: `Mindestens eine Kategorie muss aktiviert bleiben, da dein Workspace Kategorien erfordert.`,
             },
             visibleTo: 'Sichtbar für',
+            editVisibility: 'Sichtbarkeit bearbeiten',
             membersCount: ({count}: {count: number}) => ({
                 one: '1 Mitglied',
                 other: `${count} Mitglieder`,
             }),
             visibleToDescription: ({categoryName}: {categoryName: string}) =>
                 `Wählen Sie aus, welche Mitglieder die Kategorie ${categoryName} beim Einreichen von Ausgaben verwenden können.`,
+            bulkVisibleToDescription: 'Wählen Sie aus, welche Mitglieder diese Kategorien beim Einreichen von Ausgaben verwenden können.',
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `${categoryName} kann nicht deaktiviert werden`,
                 bulkTitle: 'Diese Kategorien können nicht deaktiviert werden',

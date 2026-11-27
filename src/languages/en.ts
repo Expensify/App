@@ -905,6 +905,11 @@ const translations = {
         changePin: {
             didNotChange: "We didn't change your PIN. Please try again.",
         },
+        addToWallet: {
+            failedHeader: "Couldn't add card",
+            failedTitle: "We couldn't add your card to your wallet",
+            failedSubtitle: "Something went wrong while adding the card. If it's already in your wallet, you can use it there.",
+        },
         revealCardDetail: {
             couldNotReveal: "We couldn't reveal your card details. Please try again.",
         },
@@ -2894,6 +2899,11 @@ const translations = {
             limitedSupport: 'We don’t yet support merging accounts on New Expensify. Please take this action on Expensify Classic instead.',
             reachOutForHelp: '<muted-text><centered-text>Feel free to <concierge-link>reach out to Concierge</concierge-link> if you have any questions!</centered-text></muted-text>',
             goToExpensifyClassic: 'Go to Expensify Classic',
+        },
+        mergePendingDomainAdmin: {
+            heading: 'Domain restricted email',
+            description: '<muted-text><centered-text>A domain admin has been notified to approve the request to merge accounts.</centered-text></muted-text>',
+            gotIt: 'Got it',
         },
         mergeFailureSAMLDomainControlDescription: (email: string) =>
             `<muted-text><centered-text>You can’t merge <strong>${email}</strong> because it’s controlled by <strong>${email.split('@').at(1) ?? ''}</strong>. Please <concierge-link>reach out to Concierge</concierge-link> for assistance.</centered-text></muted-text>`,
@@ -8035,11 +8045,13 @@ const translations = {
                 description: `At least one category must remain enabled because your workspace requires categories.`,
             },
             visibleTo: 'Visible to',
+            editVisibility: 'Edit visibility',
             membersCount: ({count}: {count: number}) => ({
                 one: '1 member',
                 other: `${count} members`,
             }),
             visibleToDescription: ({categoryName}: {categoryName: string}) => `Choose which members can use the ${categoryName} category when submitting expenses.`,
+            bulkVisibleToDescription: 'Choose which members can use these categories when submitting expenses.',
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `Can’t disable ${categoryName}`,
                 bulkTitle: 'Can’t disable these categories',

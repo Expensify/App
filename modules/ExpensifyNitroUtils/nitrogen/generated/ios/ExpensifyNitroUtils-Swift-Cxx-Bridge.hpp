@@ -24,14 +24,14 @@ namespace margelo::nitro::utils { class HybridContactsModuleSpec; }
 namespace margelo::nitro::utils { class HybridDocumentDetectorModuleSpec; }
 // Forward declaration of `HybridShareActionHandlerSpec` to properly resolve imports.
 namespace margelo::nitro::utils { class HybridShareActionHandlerSpec; }
-// Forward declaration of `HybridVerticalBarModuleSpec` to properly resolve imports.
-namespace margelo::nitro::utils { class HybridVerticalBarModuleSpec; }
+// Forward declaration of `HybridWindowBarsModuleSpec` to properly resolve imports.
+namespace margelo::nitro::utils { class HybridWindowBarsModuleSpec; }
 // Forward declaration of `SharedFile` to properly resolve imports.
 namespace margelo::nitro::utils { struct SharedFile; }
 // Forward declaration of `StringHolder` to properly resolve imports.
 namespace margelo::nitro::utils { struct StringHolder; }
-// Forward declaration of `VerticalBarEdge` to properly resolve imports.
-namespace margelo::nitro::utils { enum class VerticalBarEdge; }
+// Forward declaration of `TopBarRegion` to properly resolve imports.
+namespace margelo::nitro::utils { struct TopBarRegion; }
 
 // Forward declarations of Swift defined types
 // Forward declaration of `HybridAppStartTimeModuleSpec_cxx` to properly resolve imports.
@@ -42,8 +42,8 @@ namespace ExpensifyNitroUtils { class HybridContactsModuleSpec_cxx; }
 namespace ExpensifyNitroUtils { class HybridDocumentDetectorModuleSpec_cxx; }
 // Forward declaration of `HybridShareActionHandlerSpec_cxx` to properly resolve imports.
 namespace ExpensifyNitroUtils { class HybridShareActionHandlerSpec_cxx; }
-// Forward declaration of `HybridVerticalBarModuleSpec_cxx` to properly resolve imports.
-namespace ExpensifyNitroUtils { class HybridVerticalBarModuleSpec_cxx; }
+// Forward declaration of `HybridWindowBarsModuleSpec_cxx` to properly resolve imports.
+namespace ExpensifyNitroUtils { class HybridWindowBarsModuleSpec_cxx; }
 
 // Include C++ defined types
 #include "Contact.hpp"
@@ -54,10 +54,10 @@ namespace ExpensifyNitroUtils { class HybridVerticalBarModuleSpec_cxx; }
 #include "HybridContactsModuleSpec.hpp"
 #include "HybridDocumentDetectorModuleSpec.hpp"
 #include "HybridShareActionHandlerSpec.hpp"
-#include "HybridVerticalBarModuleSpec.hpp"
+#include "HybridWindowBarsModuleSpec.hpp"
 #include "SharedFile.hpp"
 #include "StringHolder.hpp"
-#include "VerticalBarEdge.hpp"
+#include "TopBarRegion.hpp"
 #include <NitroModules/Promise.hpp>
 #include <NitroModules/PromiseHolder.hpp>
 #include <NitroModules/Result.hpp>
@@ -398,6 +398,21 @@ namespace margelo::nitro::utils::bridge::swift {
     return Result<std::shared_ptr<Promise<std::vector<SharedFile>>>>::withError(error);
   }
   
+  // pragma MARK: std::optional<TopBarRegion>
+  /**
+   * Specialized version of `std::optional<TopBarRegion>`.
+   */
+  using std__optional_TopBarRegion_ = std::optional<TopBarRegion>;
+  inline std::optional<TopBarRegion> create_std__optional_TopBarRegion_(const TopBarRegion& value) noexcept {
+    return std::optional<TopBarRegion>(value);
+  }
+  inline bool has_value_std__optional_TopBarRegion_(const std::optional<TopBarRegion>& optional) noexcept {
+    return optional.has_value();
+  }
+  inline TopBarRegion get_std__optional_TopBarRegion_(const std::optional<TopBarRegion>& optional) noexcept {
+    return optional.value();
+  }
+  
   // pragma MARK: std::function<void()>
   /**
    * Specialized version of `std::function<void()>`.
@@ -420,39 +435,17 @@ namespace margelo::nitro::utils::bridge::swift {
     return Func_void_Wrapper(std::move(value));
   }
   
-  // pragma MARK: std::function<void(VerticalBarEdge /* edge */)>
+  // pragma MARK: std::shared_ptr<HybridWindowBarsModuleSpec>
   /**
-   * Specialized version of `std::function<void(VerticalBarEdge)>`.
+   * Specialized version of `std::shared_ptr<HybridWindowBarsModuleSpec>`.
    */
-  using Func_void_VerticalBarEdge = std::function<void(VerticalBarEdge /* edge */)>;
-  /**
-   * Wrapper class for a `std::function<void(VerticalBarEdge / * edge * /)>`, this can be used from Swift.
-   */
-  class Func_void_VerticalBarEdge_Wrapper final {
-  public:
-    explicit Func_void_VerticalBarEdge_Wrapper(std::function<void(VerticalBarEdge /* edge */)>&& func): _function(std::make_unique<std::function<void(VerticalBarEdge /* edge */)>>(std::move(func))) {}
-    inline void call(int edge) const noexcept {
-      _function->operator()(static_cast<VerticalBarEdge>(edge));
-    }
-  private:
-    std::unique_ptr<std::function<void(VerticalBarEdge /* edge */)>> _function;
-  } SWIFT_NONCOPYABLE;
-  Func_void_VerticalBarEdge create_Func_void_VerticalBarEdge(void* NON_NULL swiftClosureWrapper) noexcept;
-  inline Func_void_VerticalBarEdge_Wrapper wrap_Func_void_VerticalBarEdge(Func_void_VerticalBarEdge value) noexcept {
-    return Func_void_VerticalBarEdge_Wrapper(std::move(value));
-  }
+  using std__shared_ptr_HybridWindowBarsModuleSpec_ = std::shared_ptr<HybridWindowBarsModuleSpec>;
+  std::shared_ptr<HybridWindowBarsModuleSpec> create_std__shared_ptr_HybridWindowBarsModuleSpec_(void* NON_NULL swiftUnsafePointer) noexcept;
+  void* NON_NULL get_std__shared_ptr_HybridWindowBarsModuleSpec_(std__shared_ptr_HybridWindowBarsModuleSpec_ cppType);
   
-  // pragma MARK: std::shared_ptr<HybridVerticalBarModuleSpec>
-  /**
-   * Specialized version of `std::shared_ptr<HybridVerticalBarModuleSpec>`.
-   */
-  using std__shared_ptr_HybridVerticalBarModuleSpec_ = std::shared_ptr<HybridVerticalBarModuleSpec>;
-  std::shared_ptr<HybridVerticalBarModuleSpec> create_std__shared_ptr_HybridVerticalBarModuleSpec_(void* NON_NULL swiftUnsafePointer) noexcept;
-  void* NON_NULL get_std__shared_ptr_HybridVerticalBarModuleSpec_(std__shared_ptr_HybridVerticalBarModuleSpec_ cppType);
-  
-  // pragma MARK: std::weak_ptr<HybridVerticalBarModuleSpec>
-  using std__weak_ptr_HybridVerticalBarModuleSpec_ = std::weak_ptr<HybridVerticalBarModuleSpec>;
-  inline std__weak_ptr_HybridVerticalBarModuleSpec_ weakify_std__shared_ptr_HybridVerticalBarModuleSpec_(const std::shared_ptr<HybridVerticalBarModuleSpec>& strong) noexcept { return strong; }
+  // pragma MARK: std::weak_ptr<HybridWindowBarsModuleSpec>
+  using std__weak_ptr_HybridWindowBarsModuleSpec_ = std::weak_ptr<HybridWindowBarsModuleSpec>;
+  inline std__weak_ptr_HybridWindowBarsModuleSpec_ weakify_std__shared_ptr_HybridWindowBarsModuleSpec_(const std::shared_ptr<HybridWindowBarsModuleSpec>& strong) noexcept { return strong; }
   
   // pragma MARK: Result<std::function<void()>>
   using Result_std__function_void____ = Result<std::function<void()>>;
