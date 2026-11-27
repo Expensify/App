@@ -56,7 +56,6 @@ import {CommonActions, NavigationContainer} from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
-import getOnyxValue from '../utils/getOnyxValue';
 
 registerMiddlewares();
 
@@ -1506,32 +1505,6 @@ describe('SearchPageNarrow', () => {
             // Then that end retries the page again
             expect(mockSearch).toHaveBeenCalledTimes(2);
             expect(mockSearch).toHaveBeenLastCalledWith(expect.objectContaining({offset: CONST.SEARCH.RESULTS_PAGE_SIZE}));
-        });
-
-        it('saves the page it has for report navigation to page on from', async () => {
-            await seedTodoReports(CONST.SEARCH.RESULTS_PAGE_SIZE + 10);
-            await seedTodoSnapshot(true);
-
-            renderPage(TODO_QUERY);
-            await act(async () => {
-                jest.advanceTimersByTime(0);
-            });
-            await act(async () => {
-                listProps.onEndReached?.();
-            });
-            await act(async () => {
-                jest.advanceTimersByTime(0);
-            });
-
-            const report = lastWriteActionsRender()?.filteredData.at(0);
-            await act(async () => {
-                if (!report) {
-                    return;
-                }
-                listProps.onSelectRow?.(report);
-            });
-
-            expect(await getOnyxValue(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY)).toEqual(expect.objectContaining({offset: CONST.SEARCH.RESULTS_PAGE_SIZE}));
         });
 
         describe('the panel width a row press marks for the screen it opens', () => {

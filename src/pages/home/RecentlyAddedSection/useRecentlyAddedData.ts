@@ -134,7 +134,6 @@ function useRecentlyAddedData(): RecentlyAddedData {
             offset: 0,
             isLoading: false,
             shouldCalculateTotals: false,
-            shouldUpdateLastSearchParams: false,
             // The query only filters on the current accountID, which is available before OpenApp responds. Don't sit behind it.
             skipWaitForWrites: true,
         });

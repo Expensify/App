@@ -53,7 +53,6 @@ function useInsightData(config: SearchTypeMenuItem | undefined, isConfigResolved
             // The backend only returns each group's share of the total when it calculates totals.
             shouldCalculateTotals: true,
             isLoading: false,
-            shouldUpdateLastSearchParams: false,
             // The query is a static canned search, so it doesn't need anything OpenApp delivers. Don't sit behind it.
             skipWaitForWrites: true,
         });

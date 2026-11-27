@@ -572,7 +572,6 @@ function useYourSpendData(): UseYourSpendDataReturn {
             offset: 0,
             isLoading: false,
             shouldCalculateTotals: true,
-            shouldUpdateLastSearchParams: false,
         });
     };
 
@@ -586,7 +585,6 @@ function useYourSpendData(): UseYourSpendDataReturn {
             offset: 0,
             isLoading: false,
             shouldCalculateTotals: true,
-            shouldUpdateLastSearchParams: false,
         });
     };
 
@@ -600,7 +598,6 @@ function useYourSpendData(): UseYourSpendDataReturn {
             offset: 0,
             isLoading: false,
             shouldCalculateTotals: true,
-            shouldUpdateLastSearchParams: false,
         });
     };
 

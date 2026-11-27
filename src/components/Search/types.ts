@@ -493,7 +493,6 @@ type SearchParams = {
     queryJSON: Readonly<SearchQueryJSON>;
     searchKey: SearchKey | undefined;
     offset: number;
-    prevReportsLength?: number;
     shouldCalculateTotals: boolean;
     isLoading: boolean;
     shouldSaveRecentSearch?: boolean;

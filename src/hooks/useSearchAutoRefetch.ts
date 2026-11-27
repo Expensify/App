@@ -12,6 +12,7 @@ import {getValidGroupBy, isReportActionEntry} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MemberCustomFieldsByPolicyID} from '@src/selectors/Policy';
+import {isSplitContainerTransactionSelector} from '@src/selectors/Transaction';
 import type {ReportActions, SearchResults, Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -230,7 +231,9 @@ function useSearchAutoRefetch({
                 if (!transactionID) {
                     continue;
                 }
-                if (!previousTransactionsIDsSet.has(key)) {
+                // Opening a report loads the originals of its split expenses. They are never Search rows, and a first page
+                // refetch for them would drop the pages the report navigation loaded.
+                if (!previousTransactionsIDsSet.has(key) && !isSplitContainerTransactionSelector(transaction)) {
                     addedTransactionIDs.push(transactionID);
                 }
             }

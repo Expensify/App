@@ -329,7 +329,6 @@ describe('useInsightData — refresh gating', () => {
             offset: 0,
             shouldCalculateTotals: true,
             isLoading: false,
-            shouldUpdateLastSearchParams: false,
             skipWaitForWrites: true,
         });
     });

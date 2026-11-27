@@ -749,6 +749,36 @@ describe('useSearchAutoRefetch', () => {
         expect(search).not.toHaveBeenCalled();
     });
 
+    it('should not trigger search when opening a report loads the original of a split expense', () => {
+        // Given Search showing an expense
+        const transaction = createMock<Transaction>({transactionID: '1'});
+        const {rerender} = renderWithResults({transactions_1: row('1')}, {transactions_1: transaction});
+
+        // When opening a report with a split expense loads the split's original, which lives on the split placeholder report
+        rerender({transactions: {transactions_1: transaction, transactions_2: createMock<Transaction>({transactionID: '2', reportID: CONST.REPORT.SPLIT_REPORT_ID})}});
+
+        // Then Search does not refetch, because a split original is never a Search row, and a first page refetch would drop the pages the report navigation loaded
+        expect(search).not.toHaveBeenCalled();
+    });
+
+    it('should trigger search when splitting an expense adds the split expenses', () => {
+        // Given Search showing an expense
+        const transaction = createMock<Transaction>({transactionID: '1'});
+        const {rerender} = renderWithResults({transactions_1: row('1')}, {transactions_1: transaction});
+
+        // When the user splits it, which moves the original to the split placeholder report and adds the split expenses
+        rerender({
+            transactions: {
+                transactions_1: createMock<Transaction>({transactionID: '1', reportID: CONST.REPORT.SPLIT_REPORT_ID}),
+                transactions_2: createMock<Transaction>({transactionID: '2', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}),
+                transactions_3: createMock<Transaction>({transactionID: '3', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}),
+            },
+        });
+
+        // Then Search requests the results again, because the split expenses are new rows
+        expect(search).toHaveBeenCalledTimes(1);
+    });
+
     it('should trigger search when a transaction the results show is deleted', () => {
         // Given Search showing two loaded expenses and one that was never loaded
         const transaction1 = createMock<Transaction>({transactionID: '1'});

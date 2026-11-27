@@ -1,17 +1,19 @@
 import PrevNextButtons from '@components/PrevNextButtons';
+import useLiveRowLimit from '@components/Search/hooks/useLiveRowLimit';
 import {useSearchResultsContext} from '@components/Search/SearchContext';
 
 import useFilterPendingDeleteReports from '@hooks/useFilterPendingDeleteReports';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useSearchSections from '@hooks/useSearchSections';
 import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {isSearchPending} from '@libs/SearchUIUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
 
 import Navigation from '@navigation/Navigation';
 
-import {saveLastSearchParams} from '@userActions/ReportNavigation';
 import {search} from '@userActions/Search';
 
 import CONST from '@src/CONST';
@@ -21,11 +23,11 @@ import type LastSearchParams from '@src/types/onyx/ReportNavigation';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {useIsFocused} from '@react-navigation/native';
-import React, {startTransition, useEffect, useState} from 'react';
+import React, {startTransition, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import MoneyRequestReportNavigationCounter from './MoneyRequestReportNavigationCounter';
+import {useMoneyRequestReportNavigationSession, useSaveMoneyRequestReportNavigationSession} from './MoneyRequestReportNavigationSessionContext';
 
 type MoneyRequestReportNavigationProps = {
     reportID?: string;
@@ -40,9 +42,39 @@ type MoneyRequestReportNavigationStandaloneProps = {
     onReportsChange: (updater: (previousReports: Array<string | undefined>) => Array<string | undefined>) => void;
 };
 
+type NextPageWait = {
+    reportID: string;
+
+    hasRequestStarted: boolean;
+};
+
 type SnapshotGuard = {
     hasMultiple: boolean;
     includesReport: boolean;
+};
+
+/** Paging state of the search snapshot the navigation pages through */
+type SnapshotPaging = {
+    isLoading: boolean;
+
+    hasMoreResults: boolean;
+
+    /** Offset of the last page requested, written when the request goes out rather than when it answers */
+    offset: number;
+
+    /** Whether a search on this snapshot is still running, including the ones that don't set `isLoading` */
+    isPending: boolean;
+
+    /** Whether the last search on this snapshot failed. Its rows stay in place, but `offset` already moved to the failed page */
+    didFail: boolean;
+};
+
+const EMPTY_PAGING: SnapshotPaging = {
+    isLoading: false,
+    hasMoreResults: false,
+    offset: 0,
+    isPending: false,
+    didFail: false,
 };
 
 const EMPTY_GUARD: SnapshotGuard = {
@@ -54,7 +86,14 @@ const selectIsExpenseReportSearch = (lastSearchQuery: OnyxEntry<LastSearchParams
 
 const selectQueryHash = (lastSearchQuery: OnyxEntry<LastSearchParams>): number | undefined => lastSearchQuery?.queryJSON?.hash;
 
-const searchLoadingSelector = (snapshot: OnyxEntry<SearchResults>): boolean => !!snapshot?.search?.isLoading;
+const selectSnapshotPaging = (snapshot: OnyxEntry<SearchResults>): SnapshotPaging => ({
+    isLoading: !!snapshot?.search?.isLoading,
+    hasMoreResults: !!snapshot?.search?.hasMoreResults,
+    offset: snapshot?.search?.offset ?? 0,
+    isPending: isSearchPending(snapshot),
+    // Live results drop `errors`, so the response code is the only failure signal both kinds of search keep
+    didFail: typeof snapshot?.search?.responseJsonCode === 'number',
+});
 
 /**
  * Search sections can yield entries that aren't openable reports. An unreported (self-DM) expense is grouped under
@@ -76,6 +115,33 @@ const isSameReportList = (a: Array<string | undefined>, b: Array<string | undefi
         }
     }
     return true;
+};
+
+/**
+ * Puts the open report back into a live list that dropped it, right after the report that came before it in the
+ * last list that held it. When the live list holds none of the reports past the open one (or before it, when it was the last
+ * one), the last list is returned instead.
+ */
+const keepReportInPlace = (liveReports: Array<string | undefined>, previousReports: Array<string | undefined>, reportID: string | undefined): Array<string | undefined> => {
+    const previousIndex = previousReports.indexOf(reportID);
+    if (!reportID || previousIndex === -1) {
+        return liveReports;
+    }
+    // A first page refetch replaces the results with page 1, and the standalone list is empty until it is computed.
+    // Neither one reaches the open report, and placing the open report in them would end the list there.
+    const liveReportIDs = new Set(liveReports);
+    const isLastReport = previousIndex === previousReports.length - 1;
+    const reportsToMatch = isLastReport ? previousReports.slice(0, previousIndex) : previousReports.slice(previousIndex + 1);
+    if (!reportsToMatch.some((id) => liveReportIDs.has(id))) {
+        return previousReports;
+    }
+    for (let i = previousIndex - 1; i >= 0; i--) {
+        const liveIndex = liveReports.indexOf(previousReports.at(i));
+        if (liveIndex !== -1) {
+            return [...liveReports.slice(0, liveIndex + 1), reportID, ...liveReports.slice(liveIndex + 1)];
+        }
+    }
+    return [reportID, ...liveReports];
 };
 
 const buildSnapshotGuardSelector =
@@ -124,13 +190,34 @@ function MoneyRequestReportNavigationStandalone({onReportsChange}: MoneyRequestR
 
 function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersion, contextReports}: MoneyRequestReportNavigationContentProps) {
     const styles = useThemeStyles();
-    const isFocused = useIsFocused();
+    const {isOffline} = useNetwork();
+    const {shouldUseLiveData} = useSearchResultsContext();
 
-    // Lightweight subscriptions only: the current search query and its loading flag. These never mount
+    // Lightweight subscriptions only: the current search query and its paging state. These never mount
     // the heavy useSearchSections subscription set, so the fast context path stays cheap.
     const [lastSearchQuery] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
+    const queryHash = lastSearchQuery?.queryJSON?.hash;
+    const session = useMoneyRequestReportNavigationSession(queryHash);
+    const saveSession = useSaveMoneyRequestReportNavigationSession();
     const shouldReturnTripRooms = useShouldReturnTripRooms(lastSearchQuery?.queryJSON?.type);
-    const [isSearchLoading = false] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${lastSearchQuery?.queryJSON?.hash}`, {selector: searchLoadingSelector});
+    const [paging = EMPTY_PAGING] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryHash}`, {selector: selectSnapshotPaging});
+    // Other searches on this query, like a refetch carrying the Search list's offset, also mark the snapshot pending,
+    // so only the page this component asked for holds Next back
+    const [requestedPageOffset, setRequestedPageOffset] = useState<number | undefined>(session?.requestedPageOffset);
+    const isOwnPageRequestPending = paging.isPending && paging.offset === requestedPageOffset;
+    const isFirstPageRefreshing = paging.isPending && paging.offset === 0;
+    const isSearchLoading = paging.isLoading || isOwnPageRequestPending;
+
+    const hasUnconfirmedPage = paging.isPending || paging.didFail;
+    const {answeredOffset: answeredLiveOffset, confirmedOffset: confirmedSnapshotOffset} = useLiveRowLimit(paging.offset, hasUnconfirmedPage, session?.answeredLiveOffset);
+    // A failed first page refetch leaves `offset` at 0 while the pages after it are still loaded, so the snapshot
+    // cursor only follows a search that answered
+    const [settledSnapshotOffset, setSettledSnapshotOffset] = useState(session?.settledSnapshotOffset ?? confirmedSnapshotOffset);
+    if (!hasUnconfirmedPage && settledSnapshotOffset !== confirmedSnapshotOffset) {
+        setSettledSnapshotOffset(confirmedSnapshotOffset);
+    }
+    // A refresh rewinds the offset of a to-do search while its loaded rows stay in Onyx, so it pages on from the pages that answered
+    const nextPageOffset = (shouldUseLiveData ? answeredLiveOffset : settledSnapshotOffset) + CONST.SEARCH.RESULTS_PAGE_SIZE;
 
     // Fast path: use the pre-computed IDs from the search context when they are usable and no page is in
     // flight. Otherwise fall back to the standalone list, which is produced by the child below that mounts
@@ -143,62 +230,43 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
 
     const liveCurrentIndex = allReports.indexOf(reportID);
 
-    // Cache the last list where the current report was still present. When the search snapshot
-    // is refreshed and the current report drops out (e.g. after approving from Spend > Needs
-    // Approval), keep using the cached list so the carousel stays populated and the user can
-    // navigate to the next report instead of the arrows disappearing. setState during render is
-    // the React-recommended pattern for storing information from previous renders. We compare
-    // by content rather than reference because useSearchSections rebuilds allReports via
-    // filter/map each render, so identity comparison would refire the setState every render and
-    // trigger an infinite update loop.
-    const [lastValidReports, setLastValidReports] = useState<Array<string | undefined> | null>(null);
+    // A refresh can drop the open report from the results, for example after approving it from Spend > Approve.
+    // The last list that still held it tells us which report came before it, so the report goes back right after
+    // that one in the live list. That keeps the arrows visible and lets Next continue with the reports that are
+    // live now, instead of a cached list that ends where the old results ended.
+    // The cache is compared by content, because useSearchSections rebuilds allReports on every render and a
+    // reference check would set state on every render and loop.
+    const [lastValidReports, setLastValidReports] = useState<Array<string | undefined> | null>(session?.reports ?? null);
     if (liveCurrentIndex !== -1 && !isSameReportList(allReports, lastValidReports)) {
         setLastValidReports(allReports);
     }
-    const effectiveAllReports = liveCurrentIndex === -1 && lastValidReports ? lastValidReports : allReports;
+    const effectiveAllReports = liveCurrentIndex === -1 && lastValidReports ? keepReportInPlace(allReports, lastValidReports, reportID) : allReports;
     const currentIndex = effectiveAllReports.indexOf(reportID);
+    const nextReportID = effectiveAllReports.at(currentIndex + 1);
 
-    const allReportsCount = lastSearchQuery?.previousLengthOfResults ?? 0;
-    const hideNextButton = !lastSearchQuery?.hasMoreResults && currentIndex === effectiveAllReports.length - 1;
+    // A first page response that lands after the next page would replace the snapshot and drop that page, and offline the
+    // request could only fail
+    const canRequestNextPage = paging.hasMoreResults && !isOwnPageRequestPending && !isFirstPageRefreshing && !isOffline;
+    const hideNextButton = !canRequestNextPage && currentIndex === effectiveAllReports.length - 1;
     const hidePrevButton = currentIndex === 0;
     const shouldDisplayNavigationArrows = effectiveAllReports.length > 1 && currentIndex !== -1 && !!lastSearchQuery?.queryJSON;
 
-    useEffect(() => {
-        if (!isFocused || !lastSearchQuery?.queryJSON) {
-            return;
-        }
+    const [nextPageWait, setNextPageWait] = useState<NextPageWait>();
+    const isWaitingForNextPage = !!reportID && nextPageWait?.reportID === reportID;
+    if (isWaitingForNextPage && isOwnPageRequestPending && !nextPageWait.hasRequestStarted) {
+        setNextPageWait({reportID: nextPageWait.reportID, hasRequestStarted: true});
+    }
+    if (isWaitingForNextPage && nextPageWait.hasRequestStarted && !isOwnPageRequestPending && paging.didFail && paging.offset === requestedPageOffset) {
+        setNextPageWait(undefined);
+    }
+    const answeredNextPageWaitRef = useRef<NextPageWait | undefined>(undefined);
 
-        if (lastSearchQuery.allowPostSearchRecount) {
-            saveLastSearchParams({
-                ...lastSearchQuery,
-                allowPostSearchRecount: false,
-                previousLengthOfResults: effectiveAllReports.length,
-            });
-            return;
-        }
-
-        // Update count when reports are added or removed (e.g., created offline)
-        if (effectiveAllReports.length !== allReportsCount) {
-            saveLastSearchParams({
-                ...lastSearchQuery,
-                previousLengthOfResults: effectiveAllReports.length,
-            });
-            return;
-        }
-
-        if (currentIndex < allReportsCount - 1) {
-            return;
-        }
-
-        saveLastSearchParams({
-            ...lastSearchQuery,
-            previousLengthOfResults: effectiveAllReports.length,
-        });
-    }, [isFocused, currentIndex, allReportsCount, effectiveAllReports.length, lastSearchQuery?.queryJSON, lastSearchQuery]);
-
-    const goToReportId = (reportId?: string) => {
+    const goToReportId = (reportId: string | undefined, pageOffset = requestedPageOffset) => {
         if (!reportId) {
             return;
+        }
+        if (queryHash !== undefined) {
+            saveSession({queryHash, reports: effectiveAllReports, requestedPageOffset: pageOffset, answeredLiveOffset, settledSnapshotOffset});
         }
         startSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportId}`, {
             name: 'ReportNavigation',
@@ -218,26 +286,37 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
             return;
         }
         const threshold = Math.min(effectiveAllReports.length * 0.75, effectiveAllReports.length - 2);
+        const shouldRequestNextPage = currentIndex + 1 >= threshold && canRequestNextPage;
+        const pageOffset = shouldRequestNextPage ? nextPageOffset : requestedPageOffset;
 
-        if (currentIndex + 1 >= threshold && lastSearchQuery?.hasMoreResults) {
-            const newOffset = (lastSearchQuery.offset ?? 0) + CONST.SEARCH.RESULTS_PAGE_SIZE;
+        if (shouldRequestNextPage) {
             const queryJSON = lastSearchQuery.queryJSON;
+            const searchKey = lastSearchQuery.searchKey;
+            const offset = nextPageOffset;
+            setRequestedPageOffset(offset);
+            // Each Next press queues an OpenReport write, so waiting for writes would hold the page back. A refetch for an
+            // expense created meanwhile returns early while `isLoading` is set and is never retried, so the request leaves it unset.
             requestAnimationFrame(() => {
                 search({
                     queryJSON,
-                    offset: newOffset,
-                    prevReportsLength: effectiveAllReports.length,
+                    offset,
                     shouldCalculateTotals: false,
-                    searchKey: lastSearchQuery.searchKey,
-                    isLoading: isSearchLoading,
-                    shouldUpdateLastSearchParams: true,
+                    searchKey,
+                    isLoading: false,
+                    skipWaitForWrites: true,
+                    shouldShowLoading: false,
                     shouldReturnTripRooms,
                 });
             });
         }
 
-        const nextIndex = (currentIndex + 1) % effectiveAllReports.length;
-        goToReportId(effectiveAllReports.at(nextIndex));
+        if (!nextReportID) {
+            if (shouldRequestNextPage && reportID) {
+                setNextPageWait({reportID, hasRequestStarted: false});
+            }
+            return;
+        }
+        goToReportId(nextReportID, pageOffset);
     };
 
     const goToPrevReport = () => {
@@ -245,9 +324,18 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
             return;
         }
 
+        setNextPageWait(undefined);
         const prevIndex = (currentIndex - 1) % effectiveAllReports.length;
         goToReportId(effectiveAllReports.at(prevIndex));
     };
+
+    useEffect(() => {
+        if (!isWaitingForNextPage || !nextReportID || answeredNextPageWaitRef.current === nextPageWait) {
+            return;
+        }
+        answeredNextPageWaitRef.current = nextPageWait;
+        goToReportId(nextReportID);
+    }, [isWaitingForNextPage, nextPageWait, nextReportID, goToReportId]);
 
     return (
         <>
@@ -259,7 +347,7 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
                     {!shouldDisplayNarrowVersion && (
                         <MoneyRequestReportNavigationCounter
                             current={currentIndex + 1}
-                            total={allReportsCount}
+                            total={effectiveAllReports.length}
                         />
                     )}
                     <PrevNextButtons
@@ -275,7 +363,7 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
 }
 
 function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: MoneyRequestReportNavigationProps) {
-    // Guard: only mount inner tree when snapshot confirms multiple expense reports
+    // Guard: only mount inner tree when the snapshot, the live list or the saved session confirms the report among multiple expense reports
     const [isExpenseReportSearch] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY, {selector: selectIsExpenseReportSearch});
     const [hash] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY, {
         selector: selectQueryHash,
@@ -289,7 +377,10 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
     const {sortedReportIDs} = useSearchResultsContext();
     const contextReports = useFilterPendingDeleteReports(sortedReportIDs).filter(isNavigableReportID);
 
-    const isLiveGuardSatisfied = isExpenseReportSearch && snapshotGuard.hasMultiple && snapshotGuard.includesReport;
+    const session = useMoneyRequestReportNavigationSession(hash);
+    const isReportInContextList = !!reportID && contextReports.length > 1 && contextReports.includes(reportID);
+    const isReportInSession = !!reportID && !!session?.reports.includes(reportID);
+    const isLiveGuardSatisfied = isExpenseReportSearch && ((snapshotGuard.hasMultiple && snapshotGuard.includesReport) || isReportInContextList || isReportInSession);
 
     // Once the live snapshot has satisfied the guard during this mount, keep the inner component
     // mounted even if the guard later flips false (e.g. the current report is removed from the
@@ -305,9 +396,9 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
     }
 
     // A single, stable content instance owns the fast-path vs. standalone source selection and the
-    // lastValidReports cache. Because it is never unmounted while the carousel is visible, the search
-    // refresh that submitting a report triggers can no longer destroy that cache, so the navigation
-    // arrows stay visible after the current report drops out of the live list.
+    // lastValidReports cache. Because a search refresh doesn't unmount it, the refresh that submitting a
+    // report triggers can no longer destroy that cache, so the navigation arrows stay visible after the
+    // current report drops out of the live list.
     return (
         <MoneyRequestReportNavigationContent
             reportID={reportID}
