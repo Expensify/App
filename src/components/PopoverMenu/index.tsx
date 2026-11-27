@@ -865,10 +865,11 @@ function BasePopoverMenu({
         ...restContainerStyles
     } = StyleSheet.flatten(containerStyles) ?? {};
 
+    // Resolve the vertical padding into explicit top/bottom values, so the bottom safe area padding is added on top of the base bottom padding instead of replacing it.
+    const resolvedPaddingVertical = paddingVertical ?? containerPaddingVertical ?? menuContainerPaddingVertical ?? 0;
     const scrollViewPaddingStyles = {
-        paddingTop: paddingTop ?? containerPaddingTop ?? menuContainerPaddingTop,
-        paddingBottom: paddingBottom ?? containerPaddingBottom ?? menuContainerPaddingBottom,
-        paddingVertical: paddingVertical ?? containerPaddingVertical ?? menuContainerPaddingVertical ?? 0,
+        paddingTop: paddingTop ?? containerPaddingTop ?? menuContainerPaddingTop ?? resolvedPaddingVertical,
+        paddingBottom: paddingBottom ?? containerPaddingBottom ?? menuContainerPaddingBottom ?? resolvedPaddingVertical,
     };
 
     return (
