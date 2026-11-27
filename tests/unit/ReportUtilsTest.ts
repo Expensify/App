@@ -213,6 +213,7 @@ import {
     isExportInProgress,
     isGroupPolicyExpenseReport,
     isHarvestCreatedExpenseReport,
+    isIOUOwnedByCurrentUser,
     isJoinRequestInAdminRoom,
     isMoneyRequestReportEligibleForMerge,
     isOneOnOneChat,
@@ -20800,6 +20801,70 @@ describe('ReportUtils', () => {
                 // Even if group policy + CREATE iouType, SPLIT should still exclude
                 expect(shouldEnableNegative(chatReport, teamPolicy, CONST.IOU.TYPE.SPLIT)).toBe(false);
             });
+        });
+    });
+
+    describe('isIOUOwnedByCurrentUser', () => {
+        const ownerAccountID = 101;
+        const otherAccountID = 202;
+
+        it('returns true when the report is owned by the passed current user', () => {
+            // Given an expense report owned by the user
+            const report: Report = {...createExpenseReport(7201), ownerAccountID, iouReportID: undefined};
+
+            // When the ownership is checked for that user
+            const result = isIOUOwnedByCurrentUser(report, ownerAccountID, {});
+
+            // Then the user is the owner
+            expect(result).toBe(true);
+        });
+
+        it('does not fall back to the signed-in session user', async () => {
+            // Given an expense report owned by the signed-in session user
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: currentUserEmail});
+            await waitForBatchedUpdates();
+            const report: Report = {...createExpenseReport(7202), ownerAccountID: currentUserAccountID, iouReportID: undefined};
+
+            // When the ownership is checked without a current user, or for a different user
+            const resultWithoutUser = isIOUOwnedByCurrentUser(report, undefined, {});
+            const resultForOtherUser = isIOUOwnedByCurrentUser(report, otherAccountID, {});
+
+            // Then only the passed user is compared, so the session owner is never picked up
+            expect(resultWithoutUser).toBe(false);
+            expect(resultForOtherUser).toBe(false);
+        });
+
+        it('checks the owner of the linked IOU report when the report has an iouReportID', () => {
+            // Given a chat whose linked IOU report is owned by the user, while the chat itself is owned by someone else
+            const iouReport: Report = {...createExpenseReport(7203), ownerAccountID};
+            const chatReport: Report = {...createRandomReport(7204, undefined), ownerAccountID: otherAccountID, iouReportID: iouReport.reportID};
+            const reports: OnyxCollection<Report> = {[`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`]: iouReport};
+
+            // When the ownership of the chat is checked for the user
+            const result = isIOUOwnedByCurrentUser(chatReport, ownerAccountID, reports);
+
+            // Then the IOU report's owner decides it, because that is the report the user would pay or be paid on
+            expect(result).toBe(true);
+        });
+
+        it('returns false when the current user is unknown, even if the report has no owner', () => {
+            // Given an expense report without an owner
+            const report: Report = {...createExpenseReport(7205), ownerAccountID: undefined, iouReportID: undefined};
+
+            // When the ownership is checked before the current user is known
+            const result = isIOUOwnedByCurrentUser(report, undefined, {});
+
+            // Then the missing owner and the missing user don't match each other
+            expect(result).toBe(false);
+        });
+
+        it('returns false when there is no report', () => {
+            // Given no report
+            // When the ownership is checked
+            const result = isIOUOwnedByCurrentUser(undefined, ownerAccountID, {});
+
+            // Then nothing is owned
+            expect(result).toBe(false);
         });
     });
 

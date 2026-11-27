@@ -1036,7 +1036,7 @@ function getOptionData({
         lastActionTransaction,
     });
 
-    result.isIOUReportOwner = isIOUOwnedByCurrentUser(result as Report);
+    result.isIOUReportOwner = isIOUOwnedByCurrentUser(result as Report, currentUserAccountID);
 
     if (isJoinRequestInAdminRoom(report, currentUserLogin, hasPendingJoinRequest)) {
         result.isUnread = true;
