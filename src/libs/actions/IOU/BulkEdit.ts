@@ -128,6 +128,10 @@ function removeUnchangedBulkEditFields(
 
     let filteredChanges: TransactionChanges = {};
 
+    // The server gives a currency change sent without a tax rate the new currency's default rate, so a picked rate is
+    // sent along with the currency even when the expense already has it.
+    const isTaxRatePickedWithNewCurrency = !!transactionChanges.taxCode && !!transactionChanges.currency && transactionChanges.currency !== currentDetails.currency;
+
     for (const field of changeKeys) {
         const nextValue = transactionChanges[field];
         const currentValue = currentDetails[field as keyof TransactionDetails];
@@ -137,8 +141,9 @@ function removeUnchangedBulkEditFields(
         // displayed value (e.g. re-entering 0) still submits and clears the scan-failure error, mirroring the
         // no-op bypass already used in IOUAmountSubmission.ts and TotalCell.tsx.
         const isFailedScanAmountEdit = field === 'amount' && isFailedScanAmountPlaceholder(transaction);
+        const isPickedTaxRateField = isTaxRatePickedWithNewCurrency && (field === 'taxCode' || field === 'taxValue' || field === 'taxAmount');
 
-        if (isFailedScanAmountEdit || hasChanged) {
+        if (isFailedScanAmountEdit || isPickedTaxRateField || hasChanged) {
             filteredChanges = {
                 ...filteredChanges,
                 [field]: nextValue,
