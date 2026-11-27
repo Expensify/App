@@ -178,7 +178,7 @@ describe('Card details "Break connection" visibility', () => {
                 // When the personal card details page renders
                 const isBreakConnectionShown = renderPersonalCardDetailsPage();
 
-                // Then "Break connection" follows the server useActiveServer resolves, so a stored QA on production stays hidden
+                // Then "Break connection" shows only on a non-production server or local web
                 expect(isBreakConnectionShown).toBe(shouldShowBreakConnection);
             },
         );
@@ -208,7 +208,7 @@ describe('Card details "Break connection" visibility', () => {
                 // When the workspace card details page renders
                 const isBreakConnectionShown = renderWorkspaceCompanyCardDetailsPage(MOCK_BANK);
 
-                // Then "Break connection" follows the server useActiveServer resolves, so a stored QA on production stays hidden
+                // Then "Break connection" shows only on a non-production server or local web
                 expect(isBreakConnectionShown).toBe(shouldShowBreakConnection);
             },
         );

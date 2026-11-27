@@ -77,8 +77,8 @@ function resolveActiveServer(value: Server | undefined, environment: ValueOf<typ
 }
 
 /**
- * Whether API requests go somewhere other than production. The resolver reports production on local web, but
- * requests there reach a local backend, so local web counts as non-production.
+ * Whether API requests go somewhere other than production. Local web counts, since resolveActiveServer reports
+ * production there but requests reach a local backend.
  */
 function isUsingNonProductionAPI(activeServer: Server): boolean {
     return activeServer !== CONST.SERVER.PRODUCTION || CONFIG.IS_USING_LOCAL_WEB;
