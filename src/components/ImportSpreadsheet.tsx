@@ -164,11 +164,12 @@ function ImportSpreadsheet({
                     }
                     // cellDates is only set on the binary read: it turns date-formatted cells into Date objects instead of Excel serial
                     // numbers. The text read above keeps raw: true so CSV values are passed through untouched.
+                    // Only the first worksheet is imported, so avoid parsing unused worksheets in large workbooks.
                     return fetch(fileURI)
                         .then((data) => {
                             return data.arrayBuffer();
                         })
-                        .then((arrayBuffer) => XLSX.read(new Uint8Array(arrayBuffer), {type: 'buffer', raw: true, cellDates: true}));
+                        .then((arrayBuffer) => XLSX.read(new Uint8Array(arrayBuffer), {type: 'buffer', raw: true, cellDates: true, sheets: 0}));
                 };
                 readWorkbook()
                     .then((workbook) => {
