@@ -224,6 +224,47 @@ describe('SAMLSignInPage', () => {
         addEventListenerSpy.mockRestore();
     });
 
+    it('counts the trip to an authenticator app when the token comes back while the app is in the background', async () => {
+        // Given an open in-app browser and a person who leaves for their authenticator app
+        const infoSpy = jest.spyOn(Log, 'info');
+        const appStateListeners: Array<(state: AppStateStatus) => void> = [];
+        const currentStateSpy = jest.spyOn(AppState, 'currentState', 'get').mockReturnValue(CONST.APP_STATE.ACTIVE);
+        const addEventListenerSpy = jest.spyOn(AppState, 'addEventListener').mockImplementation((type, listener) => {
+            appStateListeners.push(listener);
+            return {remove: jest.fn()};
+        });
+        let returnFromAuthSession: (result: {type: 'success'; url: string}) => void = () => {};
+        mockedOpenAuthSessionAsync.mockReturnValue(
+            new Promise((resolve) => {
+                returnFromAuthSession = resolve;
+            }),
+        );
+        const setAppState = (state: AppStateStatus) => {
+            currentStateSpy.mockReturnValue(state);
+            act(() => {
+                for (const listener of appStateListeners) {
+                    listener(state);
+                }
+            });
+        };
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+        setAppState(CONST.APP_STATE.BACKGROUND);
+
+        // When the token comes back before the app is active again, and the app then comes back
+        await act(async () => {
+            returnFromAuthSession({type: 'success', url: callbackURL});
+        });
+        await waitForBatchedUpdatesWithAct();
+        setAppState(CONST.APP_STATE.ACTIVE);
+
+        // Then the success log counts that trip, since this is the authenticator app case the logs are for
+        expect(infoSpy).toHaveBeenCalledWith('SAMLSignInPage - Successfully received shortLivedAuthToken. Signing in...', false, expect.objectContaining({backgroundCount: 1}));
+
+        currentStateSpy.mockRestore();
+        addEventListenerSpy.mockRestore();
+    });
+
     it('logs why the page closed the in-app browser itself', async () => {
         // Given an in-app browser that opened and never returned a result
         const infoSpy = jest.spyOn(Log, 'info');
