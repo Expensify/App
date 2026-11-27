@@ -6855,6 +6855,16 @@ const staticStyles = (theme: ThemeColors) =>
             width: 12,
             zIndex: 10,
         },
+        searchDisplayIndicator: {
+            right: -5,
+            top: -5,
+        },
+        searchDisplayIndicatorSmall: {
+            height: 10,
+            width: 10,
+            right: -4,
+            top: -4,
+        },
         navigationTabBarStatusIndicator: {
             borderColor: theme.sidebar,
             borderRadius: 8,

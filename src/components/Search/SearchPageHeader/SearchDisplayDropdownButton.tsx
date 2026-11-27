@@ -10,6 +10,7 @@ import type {SearchQueryJSON} from '@components/Search/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -21,6 +22,7 @@ import type {SearchResults} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
+import {View} from 'react-native';
 
 import getSearchHeaderIconSize from './getSearchHeaderIconSize';
 
@@ -41,6 +43,7 @@ function SearchDisplayDropdownButton({queryJSON, searchResults, onSort}: SearchD
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Eye']);
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {currentDefaultSearchQueryJSON} = useSearchQueryContext();
 
     if (queryJSON.type === CONST.SEARCH.DATA_TYPES.CHAT) {
@@ -57,6 +60,8 @@ function SearchDisplayDropdownButton({queryJSON, searchResults, onSort}: SearchD
             />
         </ListFilterHeightContextProvider>
     );
+
+    const changedDisplayOptionsCount = getChangedDisplayOptionsCount(queryJSON, currentDefaultSearchQueryJSON);
 
     if (shouldUseNarrowLayout || isMediumScreenWidth) {
         const iconSize = getSearchHeaderIconSize(isMediumScreenWidth, shouldUseNarrowLayout);
@@ -75,11 +80,24 @@ function SearchDisplayDropdownButton({queryJSON, searchResults, onSort}: SearchD
                         sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_DISPLAY}
                         onPress={onPress}
                     >
-                        <Icon
-                            src={expensifyIcons.Eye}
-                            fill={theme.icon}
-                            size={iconSize}
-                        />
+                        <View>
+                            <Icon
+                                src={expensifyIcons.Eye}
+                                fill={theme.icon}
+                                size={iconSize}
+                            />
+                            {changedDisplayOptionsCount > 0 && (
+                                <View
+                                    testID="SearchDisplayChangedIndicator"
+                                    style={[
+                                        styles.statusIndicator,
+                                        isMediumScreenWidth ? styles.searchDisplayIndicatorSmall : styles.searchDisplayIndicator,
+                                        styles.statusIndicatorColor(theme.success),
+                                        !shouldUseNarrowLayout && StyleUtils.getBorderColorStyle(theme.buttonDefaultBG),
+                                    ]}
+                                />
+                            )}
+                        </View>
                     </PressableWithFeedback>
                 )}
             />
@@ -88,7 +106,7 @@ function SearchDisplayDropdownButton({queryJSON, searchResults, onSort}: SearchD
 
     return (
         <DropdownButton
-            label={translate('search.display.labelWithCount', {count: getChangedDisplayOptionsCount(queryJSON, currentDefaultSearchQueryJSON)})}
+            label={translate('search.display.labelWithCount', {count: changedDisplayOptionsCount})}
             sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_DISPLAY}
             value={null}
             PopoverComponent={displayPopup}
