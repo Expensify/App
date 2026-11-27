@@ -93,6 +93,24 @@ Onyx.connectWithoutView({
     },
 });
 
+// Only the leader tab processes OpenApp and ReconnectApp, and RAM-only keys do not sync across tabs, so each tab watches the synced
+// IS_LOADING_REPORT_DATA turn true then false instead. It never renders, so Onyx.connectWithoutView is appropriate.
+let hasStartedLoadingReportData = false;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+    callback: (isLoadingReportData) => {
+        if (isLoadingReportData) {
+            hasStartedLoadingReportData = true;
+            return;
+        }
+        if (!hasStartedLoadingReportData) {
+            return;
+        }
+        hasStartedLoadingReportData = false;
+        Onyx.merge(ONYXKEYS.RAM_ONLY_HAS_RECEIVED_APP_DATA, true);
+    },
+});
+
 // allReports and allPolicies are used in the "ForOpenOrReconnect" functions and are not directly associated with the View,
 // so retrieving them using Onyx.connectWithoutView is correct.
 let allReports: OnyxCollection<OnyxTypes.Report>;

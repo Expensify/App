@@ -226,7 +226,7 @@ import {
 import {isAnonymousUser} from '@userActions/Session';
 import {getChangeTransactionsReportOnyxData} from '@userActions/Transaction';
 import {onServerDataReady} from '@userActions/Welcome';
-import {getIntroSelectedCompanySize, getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
+import {getIntroSelectedCompanySize, getOnboardingMessages, markOnboardingCompletedByThisClient} from '@userActions/Welcome/OnboardingFlow';
 import type {OnboardingCompanySize, OnboardingMessage} from '@userActions/Welcome/OnboardingFlow';
 
 import CONFIG from '@src/CONFIG';
@@ -6695,6 +6695,8 @@ async function completeOnboarding({
         selectedInterestedFeatures: selectedInterestedFeatures && selectedInterestedFeatures.length > 0 ? JSON.stringify(selectedInterestedFeatures) : undefined,
         personalTrackGoal,
     };
+
+    markOnboardingCompletedByThisClient();
 
     // Side-effect requests are never queued or retried, so offline we fall through to API.write.
     // Checked twice because waitForWrites also resolves when the connection drops mid-wait.

@@ -30,7 +30,12 @@ import type {GuardResult, NavigationGuard} from './types';
 type OnboardingCompanySize = ValueOf<typeof CONST.ONBOARDING_COMPANY_SIZE>;
 type OnboardingPurpose = ValueOf<typeof CONST.ONBOARDING_CHOICES>;
 
-const JOIN_WORKSPACE_TASK_SCREENS = new Set<string>([SCREENS.ONBOARDING.WORK_EMAIL, SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, SCREENS.ONBOARDING.WORKSPACES]);
+const JOIN_WORKSPACE_TASK_SCREENS = new Set<string>([
+    SCREENS.ONBOARDING.WORK_EMAIL,
+    SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION,
+    SCREENS.ONBOARDING.PRIVATE_DOMAIN,
+    SCREENS.ONBOARDING.WORKSPACES,
+]);
 
 /**
  * Module-level Onyx subscriptions for OnboardingGuard
@@ -45,6 +50,7 @@ let onboardingCompanySize: OnyxEntry<OnboardingCompanySize>;
 let onboardingInitialPath: OnyxEntry<string>;
 let hasNonPersonalPolicy: OnyxEntry<boolean>;
 let wasInvitedToNewDot: boolean | undefined;
+let hasReceivedAppData = false;
 
 Onyx.connectWithoutView({
     key: ONYXKEYS.NVP_ONBOARDING,
@@ -92,6 +98,13 @@ Onyx.connectWithoutView({
     key: ONYXKEYS.ONBOARDING_LAST_VISITED_PATH,
     callback: (value) => {
         onboardingInitialPath = value;
+    },
+});
+
+Onyx.connectWithoutView({
+    key: ONYXKEYS.RAM_ONLY_HAS_RECEIVED_APP_DATA,
+    callback: (value) => {
+        hasReceivedAppData = !!value;
     },
 });
 
@@ -213,7 +226,7 @@ function isNavigatingToOnboardingFlow(action: NavigationAction): boolean {
 }
 
 function isNavigatingToJoinWorkspaceTask(action: NavigationAction): boolean {
-    if (!isNavigatingToOnboardingFlow(action)) {
+    if (!isNavigatingToOnboardingFlow(action) && !isNavigatingToOnboardingFlowWithReplaceAction(action)) {
         return false;
     }
 
@@ -271,8 +284,9 @@ const OnboardingGuard: NavigationGuard = {
         const isNavigatingToJoinWorkspaceTaskRoute = isNavigatingToJoinWorkspaceTask(action);
 
         // Redirect completed users who try to navigate to onboarding routes (e.g. via deep link), since onboarding
-        // is not something they should be able to re-enter once it is done.
-        if (onboarding && isOnboardingCompleted && isNavigatingToOnboardingFlow(action) && !isNavigatingToJoinWorkspaceTaskRoute) {
+        // is not something they should be able to re-enter once it is done. REPLACE is included because onboarding
+        // steps advance with forceReplace, so a flow left open when completion arrives would otherwise keep moving forward.
+        if (onboarding && isOnboardingCompleted && (isNavigatingToOnboardingFlow(action) || isNavigatingToOnboardingFlowWithReplaceAction(action)) && !isNavigatingToJoinWorkspaceTaskRoute) {
             Log.info('[OnboardingGuard] Redirecting user away from onboarding route to home');
             return {type: 'REDIRECT', route: ROUTES.HOME};
         }
@@ -301,7 +315,8 @@ const OnboardingGuard: NavigationGuard = {
         }
 
         const skipOnboardingConfig = CONFIG.SKIP_ONBOARDING;
-        const isLoading = context.isLoading;
+        // context.isLoading comes from IS_LOADING_APP, which persists as false across reloads, so the cached onboarding NVP can be stale until this page load's own OpenApp or ReconnectApp lands
+        const isLoading = context.isLoading || !hasReceivedAppData;
 
         const shouldSkipOnboarding =
             skipOnboardingConfig ||

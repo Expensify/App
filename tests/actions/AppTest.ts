@@ -315,6 +315,21 @@ describe('actions/App', () => {
         await expect(onServerDataReady()).resolves.toBeUndefined();
     });
 
+    test('marks app data as received when another tab finishes loading it', async () => {
+        // Given this tab has not received app data yet, and the leader tab starts processing an OpenApp or ReconnectApp
+        expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_HAS_RECEIVED_APP_DATA)).toBeFalsy();
+        await Onyx.merge(ONYXKEYS.IS_LOADING_REPORT_DATA, true);
+        await waitForBatchedUpdates();
+        expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_HAS_RECEIVED_APP_DATA)).toBeFalsy();
+
+        // When the leader tab finishes and the synced loading flag turns false here
+        await Onyx.merge(ONYXKEYS.IS_LOADING_REPORT_DATA, false);
+        await waitForBatchedUpdates();
+
+        // Then this tab knows fresh app data has arrived, even though it never received the response itself
+        expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_HAS_RECEIVED_APP_DATA)).toBe(true);
+    });
+
     describe('getNonOptimisticPolicyIDs', () => {
         it('should return empty array when policies is empty object', () => {
             const result = App.getNonOptimisticPolicyIDs({});

@@ -3,6 +3,7 @@ import {buildOnboardingMessages} from '@libs/buildOnboardingMessages';
 import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
 import {config as linkingConfig} from '@libs/Navigation/linkingConfig/config';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import {registerSessionCleanupCallback} from '@libs/SessionCleanup';
 
 import {openApp} from '@userActions/App';
 
@@ -43,6 +44,21 @@ Onyx.connectWithoutView({
         onboardingData = value;
     },
 });
+
+/** In memory so it resets on reload. Once this client sends CompleteGuidedSetup itself, its caller decides where to go next, so the router must not also dismiss onboarding. */
+let hasCompletedOnboardingOnThisClient = false;
+
+registerSessionCleanupCallback(() => {
+    hasCompletedOnboardingOnThisClient = false;
+});
+
+function markOnboardingCompletedByThisClient() {
+    hasCompletedOnboardingOnThisClient = true;
+}
+
+function wasOnboardingCompletedByThisClient() {
+    return hasCompletedOnboardingOnThisClient;
+}
 
 /**
  * Start a new onboarding flow or continue from the last visited onboarding page.
@@ -226,4 +242,6 @@ export {
     resumeOnboardingAfterRequired2FASetup,
     startOnboardingFlow,
     getOnboardingMessages,
+    markOnboardingCompletedByThisClient,
+    wasOnboardingCompletedByThisClient,
 };

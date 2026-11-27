@@ -163,9 +163,10 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
 
     const [initialState] = useState(() => {
         const path = initialUrl ? getPathFromURL(initialUrl) : null;
-        const shouldRedirectCompletedUser = !!path && isOnboardingPath(path) && !isJoinWorkspaceTaskPath(path);
-        // An initial state skips OnboardingGuard, so copilot and supportal sessions are kept out of onboarding here too
-        if ((isOnboardingCompleted || shouldSuppressPromotionalUI) && shouldRedirectCompletedUser) {
+        const isOnboardingURL = !!path && isOnboardingPath(path) && !isJoinWorkspaceTaskPath(path);
+        // An initial state skips OnboardingGuard, so copilot and supportal sessions are kept out of onboarding here too.
+        // A signed-in user's cached onboarding NVP can be stale, so useOnboardingFlowRouter opens onboarding once fresh app data confirms it.
+        if ((authenticated || isOnboardingCompleted || shouldSuppressPromotionalUI) && isOnboardingURL) {
             return getAdaptedStateFromPath(ROUTES.HOME);
         }
 
@@ -185,7 +186,9 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
             return undefined;
         }
 
-        if (shouldOpenLastVisitedPath(lastVisitedPath) && authenticated) {
+        const isStaleOnboardingPath = !!lastVisitedPath && isOnboardingPath(lastVisitedPath) && !isJoinWorkspaceTaskPath(lastVisitedPath);
+
+        if (shouldOpenLastVisitedPath(lastVisitedPath) && authenticated && !isStaleOnboardingPath) {
             // Only skip restoration if there's a specific deep link that's not the root
             // This allows restoration when app is killed and reopened without a deep link
             const isRootPath = !path || path === '' || path === '/';

@@ -5,7 +5,12 @@ import {getSearchParamFromPath} from '@libs/Url';
 
 import ROUTES from '@src/ROUTES';
 
-const JOIN_WORKSPACE_TASK_PATHS = new Set<string>([ROUTES.ONBOARDING_WORK_EMAIL.route, ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.route, ROUTES.ONBOARDING_WORKSPACES.route]);
+const JOIN_WORKSPACE_TASK_PATHS = new Set<string>([
+    ROUTES.ONBOARDING_WORK_EMAIL.route,
+    ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.route,
+    ROUTES.ONBOARDING_PRIVATE_DOMAIN.route,
+    ROUTES.ONBOARDING_WORKSPACES.route,
+]);
 
 function getPathname(path: string) {
     return path.replace(/^\//, '').split(/[?#]/, 1).at(0) ?? '';

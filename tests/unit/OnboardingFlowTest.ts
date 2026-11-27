@@ -1,7 +1,16 @@
-import {getIntroSelectedCompanySize, getOnboardingInitialPath, getOnboardingMessages, getRequired2FAOnboardingResumePath, startOnboardingFlow} from '@libs/actions/Welcome/OnboardingFlow';
+import {
+    getIntroSelectedCompanySize,
+    getOnboardingInitialPath,
+    getOnboardingMessages,
+    getRequired2FAOnboardingResumePath,
+    markOnboardingCompletedByThisClient,
+    startOnboardingFlow,
+    wasOnboardingCompletedByThisClient,
+} from '@libs/actions/Welcome/OnboardingFlow';
 import type {GetOnboardingInitialPathParamsType} from '@libs/actions/Welcome/OnboardingFlow';
 import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
 import navigationRef from '@libs/Navigation/navigationRef';
+import {runSessionCleanupCallbacks} from '@libs/SessionCleanup';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -439,6 +448,22 @@ describe('OnboardingFlow', () => {
             startOnboardingFlow(params);
 
             expect(mockedResetRoot).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe('wasOnboardingCompletedByThisClient', () => {
+        it('stays set for the page load and resets on sign-out', () => {
+            // Given this client sends the onboarding completion
+            markOnboardingCompletedByThisClient();
+
+            // Then the router can tell the completion came from here and leaves navigation to the caller
+            expect(wasOnboardingCompletedByThisClient()).toBe(true);
+
+            // When the user signs out
+            runSessionCleanupCallbacks();
+
+            // Then the flag is cleared, so a different account signing in on this client is not treated as the one who completed
+            expect(wasOnboardingCompletedByThisClient()).toBe(false);
         });
     });
 });

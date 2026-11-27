@@ -801,24 +801,24 @@ describe('OnboardingWorkEmail Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should skip Onboarding private domain for a validated public-domain user after guided setup is complete', async () => {
+    it('should not move a completed user forward from work-email', async () => {
+        // Given a validated user whose guided setup was completed elsewhere while this onboarding step was open
         await TestHelper.signInWithTestUser();
 
         await act(async () => {
             await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
                 hasCompletedGuidedSetupFlow: true,
             });
-            // Validated public-domain user (original bug case): PRIVATE_DOMAIN would say "people on gmail.com" — skip to PURPOSE.
             await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: true, isFromPublicDomain: true});
         });
 
+        // When the work-email page renders
         const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, undefined);
 
         await waitForBatchedUpdatesWithAct();
 
-        await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PURPOSE.getRoute(), {forceReplace: true});
-        });
+        // Then it does not advance to another onboarding step, leaving the onboarding router to dismiss the finished flow
+        expect(navigate).not.toHaveBeenCalled();
 
         unmount();
         await waitForBatchedUpdatesWithAct();

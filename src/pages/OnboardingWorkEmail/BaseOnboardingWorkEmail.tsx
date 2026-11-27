@@ -70,7 +70,6 @@ type Item = {
 
 const accountSelector = (account: OnyxEntry<Account>) => ({
     validated: account?.validated,
-    isFromPublicDomain: account?.isFromPublicDomain,
 });
 
 function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingWorkEmailProps) {
@@ -140,14 +139,14 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
     }, [isConciergeTaskFlow, onboardingValues?.isMergingAccountBlocked]);
 
     useEffect(() => {
-        const navigateToNextStep = (shouldSkipPrivateDomain = false) => {
+        const navigateToNextStep = () => {
             if (isVsb || isSmb) {
                 Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(), {
                     forceReplace: true,
                 });
                 return;
             }
-            if (!shouldSkipPrivateDomain && !onboardingValues?.isMergeAccountStepSkipped) {
+            if (!onboardingValues?.isMergeAccountStepSkipped) {
                 Navigation.navigate(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(), {
                     forceReplace: true,
                 });
@@ -200,11 +199,9 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
             return;
         }
 
-        // A validated account has no reason to be on the onboarding "add work email" screen. For a public-domain primary the
-        // PRIVATE_DOMAIN screen would reference gmail.com (etc.) so skip it.
-        // During incomplete guided setup (e.g. required-2FA handoff), stay on work-email even if the account is validated.
-        if (isCurrentPrimaryValidated && hasCompletedGuidedSetupFlow) {
-            navigateToNextStep(account?.isFromPublicDomain);
+        // Outside the join-workspace flows above, a completed user only lands here when completion arrives while the flow
+        // is already open. Leave them in place for the onboarding router to dismiss instead of moving them to the next step.
+        if (hasCompletedGuidedSetupFlow) {
             return;
         }
 
@@ -224,7 +221,6 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
         // joinable workspaces for its domain.
         navigateToNextStep();
     }, [
-        account?.isFromPublicDomain,
         isCurrentPrimaryValidated,
         isCurrentPrimaryPublicDomain,
         hasCompletedGuidedSetupFlow,
