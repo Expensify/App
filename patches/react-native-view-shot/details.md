@@ -14,4 +14,4 @@
 
 - Upstream PR/issue: https://github.com/gre/react-native-view-shot/pull/777
 - E/App issue: https://github.com/Expensify/App/issues/96908
-- PR introducing patch: 🛑 TODO
+- PR introducing patch: https://github.com/Expensify/App/pull/108233
