@@ -115,6 +115,7 @@ describe('insightsQueries', () => {
                 filters: queryJSON?.filters,
                 insightsHashes: buildExpectedHashes(filters),
                 numberOfPeriods: 1,
+                includeExplanationContext: true,
             });
         });
 

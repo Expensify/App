@@ -76,11 +76,6 @@ const DotLottieAnimations = {
         h: 120,
         backgroundColor: colors.blue700,
     },
-    Plane: {
-        file: require<LottieViewProps['source']>('@assets/animations/Plane.lottie'),
-        w: 180,
-        h: 200,
-    },
     TripsEmptyState: {
         file: require<LottieViewProps['source']>('@assets/animations/TripsEmptyState.lottie'),
         w: 375,

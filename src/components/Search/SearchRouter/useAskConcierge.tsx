@@ -45,7 +45,7 @@ function useAskConcierge({forceConcierge = false}: {forceConcierge?: boolean} = 
 
     const shouldRespondInThread = targetReportID === conciergeReportID;
 
-    const askConcierge = (searchQuery: string, sidePanelContext?: SidePanelContext) => {
+    const askConcierge = (searchQuery: string, sidePanelContext?: SidePanelContext, preloadedResponse?: string) => {
         const trimmedQuery = searchQuery.trim();
         if (!trimmedQuery || !shouldShowAskConcierge) {
             return;
@@ -59,7 +59,7 @@ function useAskConcierge({forceConcierge = false}: {forceConcierge?: boolean} = 
             return;
         }
         const conciergeThreadReportID = shouldRespondInThread ? generateReportID() : undefined;
-        addComment({
+        const reportActionID = addComment({
             report: targetReport,
             notifyReportID: targetReportID,
             ancestors: [],
@@ -69,13 +69,14 @@ function useAskConcierge({forceConcierge = false}: {forceConcierge?: boolean} = 
             shouldPlaySound: true,
             isInSidePanel,
             sidePanelContext,
+            preloadedResponse,
             delegateAccountID,
             conciergeReportID,
             conciergeThreadReportID,
             shouldNavigateToConciergeThread: !isInSidePanel,
         });
         if (!conciergeThreadReportID || isInSidePanel) {
-            openConciergeAnywhere({forceConcierge, reportID: conciergeThreadReportID});
+            openConciergeAnywhere({forceConcierge, reportID: conciergeThreadReportID, ...(reportActionID && {reportActionID})});
         }
     };
 

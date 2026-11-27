@@ -18,7 +18,17 @@ import type {
 } from '@components/Search/SearchList/ListItem/types';
 import {GROUP_ITEM_TYPES} from '@components/Search/SearchList/ListItem/types';
 import {getExpenseHeaders} from '@components/Search/SearchTableHeader';
-import type {ASTNode, SearchColumnType, SearchDatePreset, SearchFilterKey, SearchQueryJSON, SelectedReports, SelectedTransactionInfo, SortOrder} from '@components/Search/types';
+import type {
+    ASTNode,
+    SearchColumnType,
+    SearchCustomColumnIds,
+    SearchDatePreset,
+    SearchFilterKey,
+    SearchQueryJSON,
+    SelectedReports,
+    SelectedTransactionInfo,
+    SortOrder,
+} from '@components/Search/types';
 import type {ListItem} from '@components/SelectionList/types';
 
 import type interceptAnonymousUser from '@libs/interceptAnonymousUser';
@@ -2543,6 +2553,107 @@ describe('SearchUIUtils', () => {
                 0,
             );
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.SUBMIT);
+        });
+
+        test.each([
+            ['open', CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATUS_NUM.OPEN],
+            ['processing', CONST.REPORT.STATE_NUM.SUBMITTED, CONST.REPORT.STATUS_NUM.SUBMITTED],
+        ])(
+            'Should offer neither `Approve` nor `Submit` when the report is %s on a Control workspace that prevents self approval when the owner submits to themselves',
+            (_, stateNum, statusNum) => {
+                // Given a Control workspace that prevents self approval, where the owner's submit-to route is the owner
+                const controlPolicyID = 'controlSelfApprovalPolicy';
+                const controlReportID = '6520936998330987';
+                const localSearchResults = {
+                    ...searchResults.data,
+                    [`policy_${controlPolicyID}`]: {
+                        ...policy,
+                        id: controlPolicyID,
+                        type: CONST.POLICY.TYPE.CORPORATE,
+                        approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                        preventSelfApproval: true,
+                        employeeList: {
+                            [adminEmail]: {
+                                email: adminEmail,
+                                role: CONST.POLICY.ROLE.ADMIN,
+                                submitsTo: adminEmail,
+                            },
+                        },
+                    },
+                    [`report_${controlReportID}`]: {
+                        ...report1,
+                        reportID: controlReportID,
+                        policyID: controlPolicyID,
+                        ownerAccountID: adminAccountID,
+                        managerID: adminAccountID,
+                        stateNum,
+                        statusNum,
+                    },
+                    [`transactions_${transactionID}`]: {
+                        ...searchResults.data[`transactions_${transactionID}`],
+                        reportID: controlReportID,
+                    },
+                };
+
+                // When the owner views the report's actions
+                const actions = SearchUIUtils.getActions(
+                    localSearchResults,
+                    {},
+                    `report_${controlReportID}`,
+                    CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+                    adminEmail,
+                    adminAccountID,
+                    {},
+                    {},
+                    undefined,
+                );
+
+                // Then the owner can't approve or submit to themselves, since the workspace forbids self approval
+                expect(actions).not.toContain(CONST.SEARCH.ACTION_TYPES.APPROVE);
+                expect(actions).not.toContain(CONST.SEARCH.ACTION_TYPES.SUBMIT);
+            },
+        );
+
+        test('Should not return `Submit` action for a viewer who is not the owner on a Submit workspace that prevents self approval when the owner submits to themselves', () => {
+            // Given a Submit workspace that prevents self approval, whose default approver is the submitter, so the submitter's
+            // report routes back to the submitter
+            const submitPolicyID = 'submitSelfApprovalPolicy';
+            const submitReportID = '6520936998330988';
+            const localSearchResults = {
+                ...searchResults.data,
+                [`policy_${submitPolicyID}`]: {
+                    ...policy,
+                    id: submitPolicyID,
+                    type: CONST.POLICY.TYPE.SUBMIT,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                    approver: submitterEmail,
+                    preventSelfApproval: true,
+                    employeeList: {
+                        [submitterEmail]: {
+                            email: submitterEmail,
+                            role: CONST.POLICY.ROLE.USER,
+                            submitsTo: submitterEmail,
+                        },
+                    },
+                },
+                [`report_${submitReportID}`]: {
+                    ...report1,
+                    reportID: submitReportID,
+                    policyID: submitPolicyID,
+                    ownerAccountID: submitterAccountID,
+                    managerID: submitterAccountID,
+                },
+                [`transactions_${transactionID}`]: {
+                    ...searchResults.data[`transactions_${transactionID}`],
+                    reportID: submitReportID,
+                },
+            };
+
+            // When an admin who doesn't own the report views its actions
+            const actions = SearchUIUtils.getActions(localSearchResults, {}, `report_${submitReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminEmail, adminAccountID, {}, {}, undefined);
+
+            // Then Submit is not offered, since submitting on the owner's behalf would send the report to the owner to approve
+            expect(actions).not.toContain(CONST.SEARCH.ACTION_TYPES.SUBMIT);
         });
 
         test('Should return `View` action for transaction on policy with delayed submission and with violations when current user is submitter and the expense was submitted', async () => {
@@ -9457,6 +9568,62 @@ describe('SearchUIUtils', () => {
             expect(descendingResult.map((item) => ('transactionID' in item ? item.transactionID : undefined))).toEqual(['gl-code-6200', 'gl-code-6100', 'gl-code-1010', 'without-gl-code']);
         });
 
+        it('should sort expense data by the converted amount shown in the column', () => {
+            // Given expenses whose workspace amounts rank in the opposite order to their own amounts, and an expense created
+            // offline that has no workspace amount yet, so its column shows its own amount
+            const baseTransaction = transactionsListItems.at(0);
+            if (!baseTransaction) {
+                throw new Error('Missing transaction fixture');
+            }
+            const smallConverted: TransactionListItemType = {
+                ...baseTransaction,
+                transactionID: 'small-converted',
+                keyForList: 'small-converted',
+                amount: -900,
+                modifiedAmount: -900,
+                policyConvertedAmount: -100,
+            };
+            const largeConverted: TransactionListItemType = {
+                ...baseTransaction,
+                transactionID: 'large-converted',
+                keyForList: 'large-converted',
+                amount: -100,
+                modifiedAmount: -100,
+                policyConvertedAmount: -900,
+            };
+            const createdOffline: TransactionListItemType = {
+                ...baseTransaction,
+                transactionID: 'created-offline',
+                keyForList: 'created-offline',
+                amount: -500,
+                modifiedAmount: -500,
+                policyConvertedAmount: undefined,
+            };
+            const unorderedTransactions = [largeConverted, createdOffline, smallConverted];
+
+            // When the expenses are sorted by converted amount in both directions
+            const ascendingResult = SearchUIUtils.getSortedSections(
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                [...unorderedTransactions],
+                localeCompare,
+                translateLocal,
+                CONST.SEARCH.TABLE_COLUMNS.CONVERTED_AMOUNT,
+                CONST.SEARCH.SORT_ORDER.ASC,
+            );
+            const descendingResult = SearchUIUtils.getSortedSections(
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                [...unorderedTransactions],
+                localeCompare,
+                translateLocal,
+                CONST.SEARCH.TABLE_COLUMNS.CONVERTED_AMOUNT,
+                CONST.SEARCH.SORT_ORDER.DESC,
+            );
+
+            // Then they are ordered by the workspace amount, falling back to the expense's own amount when it has none
+            expect(ascendingResult.map((item) => ('transactionID' in item ? item.transactionID : undefined))).toEqual(['small-converted', 'created-offline', 'large-converted']);
+            expect(descendingResult.map((item) => ('transactionID' in item ? item.transactionID : undefined))).toEqual(['large-converted', 'created-offline', 'small-converted']);
+        });
+
         it('should sort expenses by Transaction ID as whole numbers without losing digits', () => {
             // Given transaction IDs of different lengths, where text order differs from number order, and two IDs that a
             // double can't tell apart because they differ past its 15 to 17 significant digits
@@ -13562,6 +13729,40 @@ describe('SearchUIUtils', () => {
     });
 
     describe('Test getColumnsToShow', () => {
+        test.each(['unchanged', 'enabled', 'disabled'])('Should keep Receipt before Type when column visibility is %s', (change) => {
+            // Given the default expense layout, with Receipt before Type
+            const defaultColumns = SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: [], type: CONST.SEARCH.DATA_TYPES.EXPENSE});
+            const selectableColumns = getCustomColumns(CONST.SEARCH.DATA_TYPES.EXPENSE);
+            const visibleColumns = defaultColumns.filter((column): column is SearchCustomColumnIds => selectableColumns.some((selectableColumn) => selectableColumn === column));
+            let expectedColumns = defaultColumns;
+            if (change === 'enabled') {
+                visibleColumns.push(CONST.SEARCH.TABLE_COLUMNS.MCC);
+                expectedColumns = [...defaultColumns, CONST.SEARCH.TABLE_COLUMNS.MCC];
+            } else if (change === 'disabled') {
+                visibleColumns.splice(visibleColumns.indexOf(CONST.SEARCH.TABLE_COLUMNS.STATUS), 1);
+                expectedColumns = defaultColumns.filter((column) => column !== CONST.SEARCH.TABLE_COLUMNS.STATUS);
+            }
+
+            // When the editor saves without reordering columns, Type is omitted because it is not selectable
+            const columns = SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: [], visibleColumns, type: CONST.SEARCH.DATA_TYPES.EXPENSE});
+
+            // Then changing visibility or saving an unchanged selection leaves every other column in place
+            expect(columns).toEqual(expectedColumns);
+            expect(columns.slice(0, 2)).toEqual([CONST.SEARCH.TABLE_COLUMNS.RECEIPT, CONST.SEARCH.TABLE_COLUMNS.TYPE]);
+        });
+
+        test.each([
+            [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT],
+            [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.RECEIPT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT],
+        ])('Should keep Type first when Receipt is hidden or reordered: %j', (...visibleColumns) => {
+            // Given a saved layout where Receipt is not the first column
+            // When the expense columns are resolved
+            const columns = SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: [], visibleColumns, type: CONST.SEARCH.DATA_TYPES.EXPENSE});
+
+            // Then Type stays first without moving any of the user's selected columns
+            expect(columns).toEqual([CONST.SEARCH.TABLE_COLUMNS.TYPE, ...visibleColumns]);
+        });
+
         test('Should only return default expense columns that the table header renders', () => {
             // Given the column headings the expense table renders
             const headerColumns = new Set(getExpenseHeaders().map((header) => header.columnName));
@@ -17412,14 +17613,30 @@ describe('SearchUIUtils', () => {
     });
 
     describe('getDisplayValue', () => {
+        const convertToDisplayStringWithoutCurrency = jest.fn((amount = 0) => String(amount));
+
         test('returns translated has option labels from getHasOptions', () => {
-            const result = SearchUIUtils.getDisplayValue('has', {has: [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION]}, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal, localeCompare);
+            const result = SearchUIUtils.getDisplayValue(
+                'has',
+                {has: [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION]},
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                translateLocal,
+                localeCompare,
+                convertToDisplayStringWithoutCurrency,
+            );
 
             expect(result).toBe(translateLocal('search.filters.has.submittedViolation'));
         });
 
         test('returns translated approved violation has option label', () => {
-            const result = SearchUIUtils.getDisplayValue('has', {has: [CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION]}, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal, localeCompare);
+            const result = SearchUIUtils.getDisplayValue(
+                'has',
+                {has: [CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION]},
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                translateLocal,
+                localeCompare,
+                convertToDisplayStringWithoutCurrency,
+            );
 
             expect(result).toBe(translateLocal('search.filters.has.approvedViolation'));
         });
@@ -17431,13 +17648,21 @@ describe('SearchUIUtils', () => {
                 CONST.SEARCH.DATA_TYPES.EXPENSE,
                 translateLocal,
                 localeCompare,
+                convertToDisplayStringWithoutCurrency,
             );
 
             expect(result).toBe(`${translateLocal('common.receipt')}, ${translateLocal('search.filters.has.submittedViolation')}`);
         });
 
         test('continues to use common translations for is filter values', () => {
-            const result = SearchUIUtils.getDisplayValue('is', {is: [CONST.SEARCH.IS_VALUES.READ]}, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal, localeCompare);
+            const result = SearchUIUtils.getDisplayValue(
+                'is',
+                {is: [CONST.SEARCH.IS_VALUES.READ]},
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                translateLocal,
+                localeCompare,
+                convertToDisplayStringWithoutCurrency,
+            );
 
             expect(result).toBe(translateLocal('common.read'));
         });
@@ -17451,7 +17676,7 @@ describe('SearchUIUtils', () => {
             const form = {[FILTER_KEYS.MERCHANT]: 'I', [FILTER_KEYS.MERCHANT_OPERATOR]: merchantOperator};
 
             // When the filter label is built
-            const result = SearchUIUtils.getDisplayValue(FILTER_KEYS.MERCHANT, form, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal, localeCompare);
+            const result = SearchUIUtils.getDisplayValue(FILTER_KEYS.MERCHANT, form, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal, localeCompare, convertToDisplayStringWithoutCurrency);
 
             // Then the match type is part of the translated label, so a missing operator reads as contains
             expect(result).toBe(translateLocal(translationKey, 'I'));
@@ -17462,7 +17687,7 @@ describe('SearchUIUtils', () => {
             const form = {[key]: CONST.SEARCH.BOOLEAN.YES};
 
             // When the filter label is built
-            const result = SearchUIUtils.getDisplayValue(key, form, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal, localeCompare);
+            const result = SearchUIUtils.getDisplayValue(key, form, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal, localeCompare, convertToDisplayStringWithoutCurrency);
 
             // Then the label uses the localized value instead of the raw query token, matching the non-negated filter
             expect(result).toBe(translateLocal('common.yes'));
@@ -17704,6 +17929,22 @@ describe('SearchUIUtils', () => {
             // Then bounds share the Amount chip and keep their comparison currency.
             expect(chips).toHaveLength(1);
             expect(chips.at(0)).toMatchObject({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, value: expected});
+        });
+
+        it.each([
+            {form: {[FILTER_KEYS.CONVERTED_AMOUNT_NOT]: '1069'}, key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CONVERTED_AMOUNT, expected: '10.69'},
+            {form: {[FILTER_KEYS.PURCHASE_AMOUNT_NOT]: '1069'}, key: CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT, expected: '10.69'},
+            {form: {[FILTER_KEYS.AMOUNT_NOT]: '50.00 AUD'}, key: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, expected: '50.00 AUD'},
+        ])('formats a negated $key amount like the other amount chips', ({form, key, expected}) => {
+            // Given a negated amount filter such as `-convertedAmount:10.69`, which the form stores in hundredths
+            const formatAmount = (amount: number) => (amount / 100).toFixed(2);
+
+            // When the form is mapped to filter chips
+            const chips = SearchUIUtils.mapFiltersFormToLabelValueList(form, new Set(), new Set(), translateLocal, undefined, localeCompare, formatAmount);
+
+            // Then the chip shows the amount the user typed instead of the stored hundredths
+            expect(chips).toHaveLength(1);
+            expect(chips.at(0)).toMatchObject({key, value: expected});
         });
 
         it('places default filters before non-default filters', () => {

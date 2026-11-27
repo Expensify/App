@@ -18,9 +18,9 @@ import type {OnyxCollection} from 'react-native-onyx';
 import type {ExpenseDefaultConditionNames} from './MerchantTypeRulesUtils';
 
 import {getRuleDeletionPendingAction} from './CategoryTaxRulesUtils';
-import {getCategoryExpenseDefaultRules, getExpenseDefaultRuleSummaryFields, getExpenseDefaultTaxID, isEditableExpenseDefaultRule} from './ExpenseDefaultRuleUtils';
+import {getCategoryExpenseDefaultRules, getExpenseDefaultTaxID, isEditableExpenseDefaultRule} from './ExpenseDefaultRuleUtils';
 import {hasExplicitFlagAmount} from './FlagForReviewRulesUtils';
-import {getExpenseDefaultConditionText, getExpenseDefaultRuleDescription} from './MerchantTypeRulesUtils';
+import {getExpenseDefaultConditionText, getExpenseDefaultRuleDescription, getVisibleExpenseDefaultRuleSummaryFields} from './MerchantTypeRulesUtils';
 import {
     categoryHasAnyRequireFieldsRule,
     formatRequireFieldsRuleDescriptions,
@@ -136,7 +136,7 @@ function getCategoryContextualRules({
     // An expense default is an ordinary rule rather than something stored on the category, so it is looked up by
     // what it matches on. The summary is the table's, so a rule reads the same in both places.
     for (const {ruleID, rule} of getCategoryExpenseDefaultRules(policyRules, policy.id, categoryName)) {
-        const summary = getExpenseDefaultRuleDescription(getExpenseDefaultRuleSummaryFields(rule), policy, translate, convertToDisplayString);
+        const summary = getExpenseDefaultRuleDescription(getVisibleExpenseDefaultRuleSummaryFields(rule, policy), policy, translate, convertToDisplayString);
         if (!summary) {
             continue;
         }

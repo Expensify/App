@@ -164,6 +164,16 @@ describe('DateUtils', () => {
         expect(localDate.getTime()).not.toBeNaN();
     });
 
+    it.each(['constructor', '__proto__', 'toString'])('should fallback to current date for the timezone %p instead of throwing', (objectKeyTimezone) => {
+        // Given another user's timezone that matches a property every object has, which date-fns-tz finds in its caches
+        // and calls as a formatter
+        // When their current local time is read
+        const localDate = DateUtils.getLocalDateFromDatetime(LOCALE, objectKeyTimezone, undefined);
+
+        // Then a valid date is returned instead of a TypeError crashing the profile and the chat composer
+        expect(localDate.getTime()).not.toBeNaN();
+    });
+
     it('should return the date in calendar time when calling datetimeToCalendarTime', () => {
         const today = setMinutes(setHours(new Date(), 14), 32).toString();
         // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
@@ -685,6 +695,37 @@ describe('DateUtils', () => {
 
         it('returns empty string when input date is empty', () => {
             expect(DateUtils.getStatusUntilDate(translateLocal, undefined, '', inputTimeZoneNY, currentTimeZone)).toBe('');
+        });
+
+        it.each(['tomorrow', '+1 day', 'not a date', '2025-13-45 99:99:99'])('returns empty string for the clear-after value %p', (clearAfter) => {
+            // Given a clear-after value the server accepts because PHP can parse it, but which is not a date here
+            // When another user's status with that value is shown
+            // Then nothing is shown instead of `format` throwing a RangeError that crashes the chat list
+            expect(DateUtils.getStatusUntilDate(translateLocal, undefined, clearAfter, inputTimeZoneNY, currentTimeZone)).toBe('');
+        });
+
+        it.each(['Not/AZone', '', 'constructor'])('returns empty string for the timezone %p', (unknownTimezone) => {
+            // Given a valid clear-after date and a timezone this platform doesn't know under any name, which another
+            // user's personal details can hold
+            const clearAfter = '2025-10-19 15:34:00';
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- other users' personal details can hold a timezone that isn't in the app's list
+            const statusTimezone = unknownTimezone as SelectedTimezone;
+
+            // When the status is shown with that timezone as the status owner's or the viewer's timezone
+            // Then no expiry is shown, since there is no reliable time to show, instead of the error crashing the chat list
+            expect(DateUtils.getStatusUntilDate(translateLocal, undefined, clearAfter, statusTimezone, currentTimeZone)).toBe('');
+            expect(DateUtils.getStatusUntilDate(translateLocal, undefined, clearAfter, inputTimeZoneNY, statusTimezone)).toBe('');
+        });
+
+        it('reads the UTC offset timezone "Z" as UTC', () => {
+            // Given a timezone that isn't in the app's list but that date-fns-tz reads as a UTC offset
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- other users' personal details can hold a timezone that isn't in the app's list
+            const utcOffsetTimezone = 'Z' as SelectedTimezone;
+
+            // When the status is shown with it as the status owner's or the viewer's timezone
+            // Then the expiry is converted from or to UTC, such as 15:34 UTC being 8:34 AM in Los Angeles in October
+            expect(DateUtils.getStatusUntilDate(translateLocal, undefined, '2025-10-19 15:34:00', utcOffsetTimezone, currentTimeZone)).toBe('Until 8:34 AM');
+            expect(DateUtils.getStatusUntilDate(translateLocal, undefined, '2025-10-19 15:34:00', inputTimeZoneNY, utcOffsetTimezone)).toBe('Until 7:34 PM');
         });
 
         it('returns "Until h:mm a" when input and current timezone are same', () => {
@@ -1647,6 +1688,21 @@ describe('DateUtils', () => {
             // Berlin in German and `JST` for Tokyo in Japanese
             expect(DateUtils.getZoneAbbreviation(SUMMER_INSTANT, BERLIN, de)).toBe('MESZ');
             expect(DateUtils.getZoneAbbreviation(SUMMER_INSTANT, TOKYO, ja)).toBe('JST');
+        });
+
+        it.each(['Not/AZone', 'Z', '', 'constructor'])('returns empty string for the timezone %p', (unknownTimezone) => {
+            // Given a timezone `Intl` doesn't know, which another user's personal details can hold
+            // When its abbreviation is shown on that user's profile
+            // Then nothing is shown, rather than the viewer's own abbreviation or a RangeError crashing the page
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- other users' personal details can hold a timezone that isn't in the app's list
+            expect(DateUtils.getZoneAbbreviation(SUMMER_INSTANT, unknownTimezone as SelectedTimezone, enUS)).toBe('');
+        });
+
+        it('returns empty string for a datetime that is not a date', () => {
+            // Given a datetime that cannot be parsed
+            // When its zone is named
+            // Then nothing is shown instead of a RangeError
+            expect(DateUtils.getZoneAbbreviation('tomorrow', NEW_YORK, enUS)).toBe('');
         });
     });
 
