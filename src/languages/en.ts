@@ -3910,6 +3910,11 @@ const translations = {
         error: {
             thatDidNotMatch: "That didn't match the last 4 digits on your card. Please try again.",
         },
+        success: {
+            title: 'Your card is activated!',
+            description: 'You can start using your Expensify Card right away for in-store and online purchases.',
+            viewCard: 'View card',
+        },
     },
     getPhysicalCard: {
         header: 'Get physical card',

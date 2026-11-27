@@ -3655,6 +3655,7 @@ const SENTRY_LABEL = {
     EXPENSIFY_CARD_PAGE: {
         ACTIVATE_PHYSICAL_CARD: 'ExpensifyCardPage-ActivatePhysicalCard',
         ACTIVATE_PHYSICAL_CARD_SUBMIT: 'ExpensifyCardPage-ActivatePhysicalCardSubmit',
+        ACTIVATION_SUCCESS_VIEW_CARD: 'ExpensifyCardPage-ActivationSuccessViewCard',
         CARD_ADDED_TO_WALLET_CONTINUE: 'ExpensifyCardPage-CardAddedToWalletContinue',
         CHANGE_PIN: {
             ATM: 'ExpensifyCardPage-ChangePIN-ATM',

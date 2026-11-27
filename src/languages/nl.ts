@@ -3740,6 +3740,11 @@ ${amount} voor ${merchant} - ${date}`,
         error: {
             thatDidNotMatch: 'Dat komt niet overeen met de laatste 4 cijfers van je kaart. Probeer het opnieuw.',
         },
+        success: {
+            title: 'Je kaart is geactiveerd!',
+            description: 'Je kunt je Expensify Kaart meteen gebruiken voor aankopen in de winkel en online.',
+            viewCard: 'Kaart bekijken',
+        },
     },
     getPhysicalCard: {
         header: 'Fysieke kaart aanvragen',

@@ -195,6 +195,7 @@ const SCREENS = {
             ENABLE_PAYMENTS_CONFIRM_VALIDATE_CODE: 'Settings_Wallet_EnablePayments_ConfirmValidateCode',
             DYNAMIC_ENABLE_PAYMENTS_CONFIRM_VALIDATE_CODE: 'Dynamic_Settings_Wallet_EnablePayments_ConfirmValidateCode',
             DYNAMIC_CARD_ACTIVATE: 'Dynamic_Settings_Wallet_Card_Activate',
+            DYNAMIC_CARD_ACTIVATION_SUCCESS: 'Dynamic_Settings_Wallet_Card_Activation_Success',
             CARD_ADD_TO_DIGITAL_WALLET: 'Settings_Wallet_Card_Add_To_Digital_Wallet',
             CARD_ADDED_TO_WALLET: 'Settings_Wallet_Card_Added_To_Wallet',
             DYNAMIC_CARD_CHANGE_PIN: 'Dynamic_Settings_Wallet_Card_Change_PIN',

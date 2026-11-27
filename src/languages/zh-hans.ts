@@ -3603,6 +3603,11 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         error: {
             thatDidNotMatch: '这与您卡片的最后 4 位数字不匹配。请重试。',
         },
+        success: {
+            title: '您的卡已激活！',
+            description: '您现在即可使用 Expensify 卡进行店内和在线购物。',
+            viewCard: '查看卡片',
+        },
     },
     getPhysicalCard: {
         header: '获取实体卡',
