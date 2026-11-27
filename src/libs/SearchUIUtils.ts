@@ -7819,22 +7819,22 @@ function getColumnsToShow({
         const result: SearchColumnType[] = [];
         const addedColumns = new Set<SearchColumnType>();
 
+        for (const col of filteredVisibleColumns) {
+            result.push(col);
+            addedColumns.add(col);
+        }
+
+        // Keep Type in its default position so saving column visibility does not move it ahead of Receipt.
+        if (!addedColumns.has(CONST.SEARCH.TABLE_COLUMNS.TYPE)) {
+            const isReceiptFirst = result.at(0) === CONST.SEARCH.TABLE_COLUMNS.RECEIPT;
+            if (isReceiptFirst) {
+                result.splice(1, 0, CONST.SEARCH.TABLE_COLUMNS.TYPE);
+            } else {
+                result.unshift(CONST.SEARCH.TABLE_COLUMNS.TYPE);
+            }
+        }
+
         if (isExpenseReportView) {
-            // If RECEIPT is first, TYPE goes second; otherwise TYPE goes first
-            for (const col of filteredVisibleColumns) {
-                result.push(col);
-                addedColumns.add(col);
-            }
-
-            if (!addedColumns.has(CONST.SEARCH.TABLE_COLUMNS.TYPE)) {
-                const isReceiptFirst = result.at(0) === CONST.SEARCH.TABLE_COLUMNS.RECEIPT;
-                if (isReceiptFirst) {
-                    result.splice(1, 0, CONST.SEARCH.TABLE_COLUMNS.TYPE);
-                } else {
-                    result.unshift(CONST.SEARCH.TABLE_COLUMNS.TYPE);
-                }
-            }
-
             if (shouldShowCommentsColumn && !addedColumns.has(CONST.SEARCH.TABLE_COLUMNS.COMMENTS)) {
                 const totalAmountIndex = result.indexOf(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT);
                 if (totalAmountIndex === -1) {
@@ -7843,24 +7843,10 @@ function getColumnsToShow({
                     result.splice(totalAmountIndex, 0, CONST.SEARCH.TABLE_COLUMNS.COMMENTS);
                 }
             }
-
-            // Don't return early — fall through to updateColumns to detect empty columns
-            customResult = result;
-        } else {
-            // Search page: prepend TYPE
-            result.push(CONST.SEARCH.TABLE_COLUMNS.TYPE);
-            addedColumns.add(CONST.SEARCH.TABLE_COLUMNS.TYPE);
-
-            // Add remaining visible columns that weren't already added
-            for (const col of filteredVisibleColumns) {
-                if (!addedColumns.has(col)) {
-                    result.push(col);
-                }
-            }
-
-            // Don't return early — fall through to updateColumns to detect empty columns
-            customResult = result;
         }
+
+        // Don't return early — fall through to updateColumns to detect empty columns
+        customResult = result;
     }
 
     const {moneyRequestReportActionsByTransactionID} = Array.isArray(data) ? {} : createReportActionsLookupMaps(data);
