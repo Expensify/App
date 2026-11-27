@@ -68,6 +68,11 @@ const heldTransaction: Transaction = {...createRandomTransaction(2), transaction
 const violation = {name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION, type: CONST.VIOLATION_TYPES.WARNING};
 const violations = {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${unheldTransaction.transactionID}`]: [violation]};
 const mockedApproveMoneyRequest = jest.mocked(approveMoneyRequest);
+const STORED_OWNER_BILLING_GRACE_PERIOD_END = 1700000000;
+const STORED_AMOUNT_OWED = 1500;
+const STORED_USER_BILLING_GRACE_PERIOD_END_KEY = `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}42` as const;
+const STORED_USER_BILLING_GRACE_PERIOD_END = {value: 1700000001};
+const STORED_DELEGATE_EMAIL = 'copilot@test.com';
 
 beforeAll(() => {
     Onyx.init({keys: ONYXKEYS});
@@ -145,6 +150,45 @@ describe('useLifecycleActions approval confirmation', () => {
             expect(onCleanup).toHaveBeenCalledTimes(skipAnimation ? 1 : 0);
         });
     });
+    it('passes the stored billing data to the approval', async () => {
+        // Given a report with no warnings, and stored billing data with non-default values, which the approval's billing check uses
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${unheldTransaction.transactionID}`, []);
+        await Onyx.multiSet({
+            [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: STORED_OWNER_BILLING_GRACE_PERIOD_END,
+            [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: STORED_AMOUNT_OWED,
+            [STORED_USER_BILLING_GRACE_PERIOD_END_KEY]: STORED_USER_BILLING_GRACE_PERIOD_END,
+        });
+        jest.mocked(useTransactionsAndViolationsForReport).mockReturnValue({
+            transactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${unheldTransaction.transactionID}`]: unheldTransaction},
+            violations: {},
+            isLoaded: true,
+        });
+        const {result} = renderHook(() =>
+            useLifecycleActions({
+                reportID: REPORT_ID,
+                startApprovedAnimation: jest.fn(),
+                startAnimation: jest.fn(),
+                startSubmittingAnimation: jest.fn(),
+                onHoldMenuOpen: jest.fn(),
+            }),
+        );
+        await act(waitForBatchedUpdates);
+
+        // When the user approves the report
+        await act(async () => {
+            result.current.confirmApproval();
+            await waitForBatchedUpdates();
+        });
+
+        // Then the stored billing data still reaches the approval
+        expect(mockedApproveMoneyRequest).toHaveBeenCalledWith(
+            expect.objectContaining({
+                ownerBillingGracePeriodEnd: STORED_OWNER_BILLING_GRACE_PERIOD_END,
+                amountOwed: STORED_AMOUNT_OWED,
+                userBillingGracePeriodEnds: {[STORED_USER_BILLING_GRACE_PERIOD_END_KEY]: STORED_USER_BILLING_GRACE_PERIOD_END},
+            }),
+        );
+    });
 });
 
 describe('useHoldMenuSubmit approval confirmation', () => {
@@ -205,5 +249,21 @@ describe('useHoldMenuSubmit approval confirmation', () => {
                 expect(mockedApproveMoneyRequest).toHaveBeenCalledWith(expect.objectContaining({full: false}));
             }
         });
+    });
+
+    it('passes the stored delegate email to the approval', async () => {
+        // Given a report with no warnings, approved by a copilot whose stored account holds the delegate email the approval records
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${unheldTransaction.transactionID}`, []);
+        await Onyx.set(ONYXKEYS.ACCOUNT, {delegatedAccess: {delegate: STORED_DELEGATE_EMAIL}});
+        const {result} = renderHook(() => useHoldMenuSubmit({moneyRequestReport: report, chatReport: undefined, requestType: CONST.IOU.REPORT_ACTION_TYPE.APPROVE, onClose: jest.fn()}));
+        await act(waitForBatchedUpdates);
+
+        // When the user approves only the expenses that aren't on hold
+        await act(async () => {
+            await result.current.onSubmit(false);
+        });
+
+        // Then the stored delegate email still reaches the approval
+        expect(mockedApproveMoneyRequest).toHaveBeenCalledWith(expect.objectContaining({delegateEmail: STORED_DELEGATE_EMAIL}));
     });
 });

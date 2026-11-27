@@ -37,6 +37,16 @@ const policy: Policy = {...createRandomPolicy(1), id: 'ABAPolicy'};
 const chatReport = {reportID: '200', type: CONST.REPORT.TYPE.CHAT, policyID: policy.id} as Report;
 const expenseReport = {reportID: '100', chatReportID: chatReport.reportID, type: CONST.REPORT.TYPE.EXPENSE, policyID: policy.id} as Report;
 
+const STORED_BANK_ACCOUNT_ID = 12345;
+const STORED_BANK_ACCOUNT_LIST = {[STORED_BANK_ACCOUNT_ID]: {methodID: STORED_BANK_ACCOUNT_ID, accountData: {bankAccountID: STORED_BANK_ACCOUNT_ID}}};
+const STORED_OWNER_BILLING_GRACE_PERIOD_END = 1700000000;
+const STORED_AMOUNT_OWED = 1500;
+const STORED_USER_BILLING_GRACE_PERIOD_END_KEY = `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}42` as const;
+const STORED_USER_BILLING_GRACE_PERIOD_END = {value: 1700000001};
+const STORED_INTRO_SELECTED = {choice: CONST.ONBOARDING_CHOICES.TRACK_PERSONAL};
+const STORED_CONCIERGE_REPORT_ID = 'concierge1';
+const STORED_CONCIERGE_CHAT = {reportID: STORED_CONCIERGE_REPORT_ID, reportName: 'Concierge'};
+
 function Wrapper({children}: {children: React.ReactNode}) {
     return <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentUserPersonalDetailsProvider]}>{children}</ComposeProviders>;
 }
@@ -91,6 +101,53 @@ describe('useHoldMenuSubmit', () => {
         expect(onConfirm).not.toHaveBeenCalled();
         act(() => mockPayReportsViaABA.mock.calls.at(0)?.[2]?.onPaid?.());
         expect(onConfirm).toHaveBeenCalledWith(full);
+    });
+
+    it('passes the stored bank accounts, billing data, onboarding state, intent and Concierge chat to the payment', async () => {
+        // Given a report marked as paid elsewhere, and stored bank accounts, billing data, onboarding state, intent and Concierge chat with non-default values, which the payment's optimistic data is built from
+        await act(async () => {
+            await Onyx.multiSet({
+                [ONYXKEYS.BANK_ACCOUNT_LIST]: STORED_BANK_ACCOUNT_LIST,
+                [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: STORED_OWNER_BILLING_GRACE_PERIOD_END,
+                [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: STORED_AMOUNT_OWED,
+                [STORED_USER_BILLING_GRACE_PERIOD_END_KEY]: STORED_USER_BILLING_GRACE_PERIOD_END,
+                [ONYXKEYS.NVP_INTRO_SELECTED]: STORED_INTRO_SELECTED,
+                [ONYXKEYS.NVP_ONBOARDING]: {hasCompletedGuidedSetupFlow: true, selfTourViewed: true},
+                [ONYXKEYS.CONCIERGE_REPORT_ID]: STORED_CONCIERGE_REPORT_ID,
+                [`${ONYXKEYS.COLLECTION.REPORT}${STORED_CONCIERGE_REPORT_ID}` as const]: STORED_CONCIERGE_CHAT,
+            });
+        });
+        const {result} = renderHook(
+            () =>
+                useHoldMenuSubmit({
+                    moneyRequestReport: expenseReport,
+                    chatReport,
+                    requestType: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                    paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                    onClose: jest.fn(),
+                }),
+            {wrapper: Wrapper},
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user pays only the expenses that aren't on hold
+        await act(async () => {
+            await result.current.onSubmit(false);
+        });
+
+        // Then the stored bank accounts, billing data, onboarding state, intent and Concierge chat still reach the payment
+        expect(payMoneyRequest).toHaveBeenCalledWith(
+            expect.objectContaining({
+                bankAccountList: STORED_BANK_ACCOUNT_LIST,
+                ownerBillingGracePeriodEnd: STORED_OWNER_BILLING_GRACE_PERIOD_END,
+                amountOwed: STORED_AMOUNT_OWED,
+                userBillingGracePeriodEnds: {[STORED_USER_BILLING_GRACE_PERIOD_END_KEY]: STORED_USER_BILLING_GRACE_PERIOD_END},
+                introSelected: STORED_INTRO_SELECTED,
+                isSelfTourViewed: true,
+                isTrackIntentUser: true,
+                conciergeChat: STORED_CONCIERGE_CHAT,
+            }),
+        );
     });
 
     it('marks the report as paid elsewhere when it is not paid via ABA', async () => {
