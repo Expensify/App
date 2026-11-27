@@ -86,6 +86,9 @@ export type {default as UpdateDualEntryBillPaymentAccountParams} from './UpdateD
 export type {default as UpdateDualEntryFxExpenseAccountParams} from './UpdateDualEntryFxExpenseAccountParams';
 export type {default as UpdateDualEntrySyncExpensifyCardSettlementsParams} from './UpdateDualEntrySyncExpensifyCardSettlementsParams';
 export type {default as UpdateDualEntrySettlementsAccountParams} from './UpdateDualEntrySettlementsAccountParams';
+export type {default as UpdateDualEntrySettlementStreamEnabledParams} from './UpdateDualEntrySettlementStreamEnabledParams';
+export type {default as UpdateDualEntrySettlementStreamBankAccountParams} from './UpdateDualEntrySettlementStreamBankAccountParams';
+export type {default as UpdateDualEntrySettlementStreamCardAccountParams} from './UpdateDualEntrySettlementStreamCardAccountParams';
 export type {default as UpdateDualEntrySyncTravelBillingSettlementsParams} from './UpdateDualEntrySyncTravelBillingSettlementsParams';
 export type {default as UpdateDualEntryTravelBillingSettlementsAccountParams} from './UpdateDualEntryTravelBillingSettlementsAccountParams';
 export type {default as UpdateDualEntryTravelBillingPayableAccountParams} from './UpdateDualEntryTravelBillingPayableAccountParams';

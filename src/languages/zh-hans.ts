@@ -6714,6 +6714,19 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             fxExpenseAccount: {label: 'DualEntry 货币转换手续费科目', description: '当您的公司承担一笔境外付款的货币兑换成本时，我们会在 DualEntry 中将该成本作为一条日记账分录记入此科目。'},
             syncExpensifyCardSettlements: '同步 Expensify 卡结算',
             settlementAccount: {label: 'Expensify 卡结算账户', description: '选择您的结算账户，我们会在 DualEntry 中创建这笔付款。'},
+            settlementStream: {
+                sync: (currency: string) => `同步 ${currency} 的 Expensify 卡结算`,
+                description: (currency: string) => `我们会在 DualEntry 中将每笔 ${currency} 结算创建为以下两个账户之间的转账。`,
+                selectAccountsFirst: '请选择两个账户以启用此功能。',
+                bankAccount: {
+                    label: (currency: string) => `${currency} 结算账户`,
+                    description: (currency: string) => `选择用于支付 Expensify 卡结算的 ${currency} 银行账户。`,
+                },
+                cardAccount: {
+                    label: (currency: string) => `${currency} Expensify 卡账户`,
+                    description: (currency: string) => `选择在 DualEntry 中记录 Expensify 卡余额的 ${currency} 账户。`,
+                },
+            },
             syncTravelBillingSettlements: '同步合并差旅结算',
             travelBillingSettlementAccount: {label: '合并差旅账单结算账户', description: '选择您的结算账户，我们会在 DualEntry 中创建这笔付款。'},
             travelBillingPayableAccount: {label: '合并差旅账单应付账户'},

@@ -14,6 +14,9 @@ import type {
     UpdateDualEntryFieldMappingParams,
     UpdateDualEntryFxExpenseAccountParams,
     UpdateDualEntrySettlementsAccountParams,
+    UpdateDualEntrySettlementStreamBankAccountParams,
+    UpdateDualEntrySettlementStreamCardAccountParams,
+    UpdateDualEntrySettlementStreamEnabledParams,
     UpdateDualEntrySubsidiaryParams,
     UpdateDualEntrySyncExpensifyCardSettlementsParams,
     UpdateDualEntrySyncReimbursedReportsParams,
@@ -23,11 +26,21 @@ import type {
     UpdateDualEntryTravelBillingSettlementsAccountParams,
 } from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import {getDualEntrySettlementStreamFeedbackKey} from '@libs/DualEntryUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {DualEntryAccount, DualEntryAutoSync, DualEntryCoding, DualEntryConnectionsConfig, DualEntryExport, DualEntrySync} from '@src/types/onyx/Policy';
+import type {
+    DualEntryAccount,
+    DualEntryAutoSync,
+    DualEntryCoding,
+    DualEntryConnectionsConfig,
+    DualEntryExport,
+    DualEntrySettlementStream,
+    DualEntrySettlementStreamKey,
+    DualEntrySync,
+} from '@src/types/onyx/Policy';
 
 import type {OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -512,6 +525,92 @@ function prepareDualEntrySyncOnyxData<TSettingName extends keyof DualEntrySync>(
     return {optimisticData, successData, failureData};
 }
 
+function prepareDualEntrySettlementStreamOnyxData<TSettingName extends keyof DualEntrySettlementStream>(
+    policyID: string,
+    streamKey: DualEntrySettlementStreamKey,
+    settingName: TSettingName,
+    settingValue: DualEntrySettlementStream[TSettingName],
+    oldSettingValue: DualEntrySettlementStream[TSettingName] | null,
+) {
+    const offlineFeedbackKey = getDualEntrySettlementStreamFeedbackKey(streamKey, settingName);
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    dualEntry: {
+                        config: {
+                            sync: {
+                                settlementStreams: {
+                                    [streamKey]: {
+                                        [settingName]: settingValue ?? null,
+                                    },
+                                },
+                            },
+                            pendingFields: {
+                                [offlineFeedbackKey]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            },
+                            errorFields: {
+                                [offlineFeedbackKey]: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    dualEntry: {
+                        config: {
+                            pendingFields: {
+                                [offlineFeedbackKey]: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    dualEntry: {
+                        config: {
+                            sync: {
+                                settlementStreams: {
+                                    [streamKey]: {
+                                        [settingName]: oldSettingValue ?? null,
+                                    },
+                                },
+                            },
+                            pendingFields: {
+                                [offlineFeedbackKey]: null,
+                            },
+                            errorFields: {
+                                [offlineFeedbackKey]: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    return {optimisticData, successData, failureData};
+}
+
 function prepareDualEntryCardProgramAccountOnyxData(
     policyID: string,
     feedKey: keyof DualEntryExport['cardProgramAccounts'],
@@ -739,6 +838,46 @@ function updateDualEntrySettlementsAccount(
     write(WRITE_COMMANDS.UPDATE_DUALENTRY_SETTLEMENTS_ACCOUNT, parameters, onyxData);
 }
 
+function updateDualEntrySettlementStreamEnabled(policyID: string, streamKey: DualEntrySettlementStreamKey, enabled: boolean, oldEnabled?: boolean) {
+    const onyxData = prepareDualEntrySettlementStreamOnyxData(policyID, streamKey, CONST.DUALENTRY_SETTLEMENT_STREAM_SETTING.ENABLED, enabled, oldEnabled ?? null);
+    const parameters: UpdateDualEntrySettlementStreamEnabledParams = {
+        policyID,
+        settlementStream: streamKey,
+        enabled,
+    };
+    write(WRITE_COMMANDS.UPDATE_DUALENTRY_SETTLEMENT_STREAM_ENABLED, parameters, onyxData);
+}
+
+function updateDualEntrySettlementStreamBankAccount(
+    policyID: string,
+    streamKey: DualEntrySettlementStreamKey,
+    bankAccountID: DualEntryAccount['id'],
+    oldBankAccountID?: DualEntryAccount['id'],
+) {
+    const onyxData = prepareDualEntrySettlementStreamOnyxData(policyID, streamKey, CONST.DUALENTRY_SETTLEMENT_STREAM_SETTING.BANK_ACCOUNT_ID, bankAccountID, oldBankAccountID ?? null);
+    const parameters: UpdateDualEntrySettlementStreamBankAccountParams = {
+        policyID,
+        settlementStream: streamKey,
+        settlementsBankAccountID: bankAccountID,
+    };
+    write(WRITE_COMMANDS.UPDATE_DUALENTRY_SETTLEMENT_STREAM_BANK_ACCOUNT, parameters, onyxData);
+}
+
+function updateDualEntrySettlementStreamCardAccount(
+    policyID: string,
+    streamKey: DualEntrySettlementStreamKey,
+    cardAccountID: DualEntryAccount['id'],
+    oldCardAccountID?: DualEntryAccount['id'],
+) {
+    const onyxData = prepareDualEntrySettlementStreamOnyxData(policyID, streamKey, CONST.DUALENTRY_SETTLEMENT_STREAM_SETTING.CARD_ACCOUNT_ID, cardAccountID, oldCardAccountID ?? null);
+    const parameters: UpdateDualEntrySettlementStreamCardAccountParams = {
+        policyID,
+        settlementStream: streamKey,
+        settlementsCardAccountID: cardAccountID,
+    };
+    write(WRITE_COMMANDS.UPDATE_DUALENTRY_SETTLEMENT_STREAM_CARD_ACCOUNT, parameters, onyxData);
+}
+
 function updateDualEntrySyncTravelBillingSettlements(
     policyID: string,
     enabled: DualEntrySync['syncTravelInvoicingSettlements'],
@@ -830,6 +969,9 @@ export {
     updateDualEntryFxExpenseAccount,
     updateDualEntrySyncExpensifyCardSettlements,
     updateDualEntrySettlementsAccount,
+    updateDualEntrySettlementStreamEnabled,
+    updateDualEntrySettlementStreamBankAccount,
+    updateDualEntrySettlementStreamCardAccount,
     updateDualEntrySyncTravelBillingSettlements,
     updateDualEntryTravelBillingSettlementsAccount,
     updateDualEntryTravelBillingPayableAccount,

@@ -6962,6 +6962,19 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             },
             syncExpensifyCardSettlements: 'Expensify Kaart-afrekeningen synchroniseren',
             settlementAccount: {label: 'Rekening voor afwikkeling van Expensify Kaart', description: 'Kies je afwikkelingsrekening en wij maken de betaling aan in DualEntry.'},
+            settlementStream: {
+                sync: (currency: string) => `Expensify Kaart-afrekeningen in ${currency} synchroniseren`,
+                description: (currency: string) => `We maken elke afrekening in ${currency} in DualEntry aan als overboeking tussen de twee onderstaande rekeningen.`,
+                selectAccountsFirst: 'Selecteer beide rekeningen om dit in te schakelen.',
+                bankAccount: {
+                    label: (currency: string) => `Afwikkelingsrekening in ${currency}`,
+                    description: (currency: string) => `Kies de bankrekening in ${currency} waarvan je Expensify Kaart-afrekeningen worden betaald.`,
+                },
+                cardAccount: {
+                    label: (currency: string) => `Rekening voor Expensify Kaart in ${currency}`,
+                    description: (currency: string) => `Kies de rekening in ${currency} die het saldo van je Expensify Kaart in DualEntry bijhoudt.`,
+                },
+            },
             syncTravelBillingSettlements: 'Geconsolideerde reisfactureringsafrekeningen synchroniseren',
             travelBillingSettlementAccount: {
                 label: 'Rekening voor afwikkeling van geconsolideerde reisfacturatie',

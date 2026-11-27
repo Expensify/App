@@ -3,6 +3,9 @@ import {
     connectToDualEntry,
     updateDualEntryEnableNewCategories,
     updateDualEntryFieldMapping,
+    updateDualEntrySettlementStreamBankAccount,
+    updateDualEntrySettlementStreamCardAccount,
+    updateDualEntrySettlementStreamEnabled,
     updateDualEntrySubsidiary,
     updateDualEntrySyncTaxRates,
 } from '@libs/actions/connections/DualEntry';
@@ -162,5 +165,93 @@ describe('DualEntry setting updates', () => {
                 },
             },
         ]);
+    });
+});
+
+describe('DualEntry settlement stream updates', () => {
+    const streamKey = CONST.DUALENTRY_SETTLEMENT_STREAM.GBP;
+
+    function expectStreamUpdates(settingName: string, newValue: unknown, oldValue: unknown) {
+        const feedbackKey = `${CONST.DUALENTRY_CONFIG.SETTLEMENT_STREAM_PREFIX}${streamKey}_${settingName}`;
+        const {optimisticData, successData, failureData} = getOnyxData();
+
+        expect(optimisticData).toEqual([
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    connections: {
+                        dualEntry: {
+                            config: {
+                                sync: {settlementStreams: {[streamKey]: {[settingName]: newValue}}},
+                                pendingFields: {[feedbackKey]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                                errorFields: {[feedbackKey]: null},
+                            },
+                        },
+                    },
+                },
+            },
+        ]);
+        expect(successData).toEqual([{onyxMethod: Onyx.METHOD.MERGE, key: policyKey, value: {connections: {dualEntry: {config: {pendingFields: {[feedbackKey]: null}}}}}}]);
+        expect(failureData).toEqual([
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    connections: {
+                        dualEntry: {
+                            config: {
+                                sync: {settlementStreams: {[streamKey]: {[settingName]: oldValue}}},
+                                pendingFields: {[feedbackKey]: null},
+                                errorFields: {[feedbackKey]: error},
+                            },
+                        },
+                    },
+                },
+            },
+        ]);
+    }
+
+    it('turns a stream on under its own key and rolls it back if the backend refuses', () => {
+        // Given a GBP stream that is off
+
+        // When the admin turns it on
+        updateDualEntrySettlementStreamEnabled(policyID, streamKey, true, false);
+
+        // Then the request names the stream, and only that stream's switch is updated, marked pending, and restored on failure,
+        // because the backend rejects the change when the stream's accounts aren't valid
+        expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_DUALENTRY_SETTLEMENT_STREAM_ENABLED, {policyID, settlementStream: streamKey, enabled: true}, expect.any(Object));
+        expectStreamUpdates(CONST.DUALENTRY_SETTLEMENT_STREAM_SETTING.ENABLED, true, false);
+    });
+
+    it('sets the bank account of a stream without touching the US settlement account', () => {
+        // Given a GBP stream that already pays from another bank account
+
+        // When the admin picks a new bank account
+        updateDualEntrySettlementStreamBankAccount(policyID, streamKey, 'newBank', 'oldBank');
+
+        // Then the account is sent under the parameter name the backend validates, and the optimistic data stays inside the stream
+        // so the US settlementsBankAccountID is never overwritten
+        expect(mockWrite).toHaveBeenCalledWith(
+            WRITE_COMMANDS.UPDATE_DUALENTRY_SETTLEMENT_STREAM_BANK_ACCOUNT,
+            {policyID, settlementStream: streamKey, settlementsBankAccountID: 'newBank'},
+            expect.any(Object),
+        );
+        expectStreamUpdates(CONST.DUALENTRY_SETTLEMENT_STREAM_SETTING.BANK_ACCOUNT_ID, 'newBank', 'oldBank');
+    });
+
+    it('sets the card account of a stream and clears it again on failure when there was none', () => {
+        // Given a GBP stream with no Expensify Card account yet
+
+        // When the admin picks one
+        updateDualEntrySettlementStreamCardAccount(policyID, streamKey, 'newCard');
+
+        // Then a failed request puts the setting back to empty instead of leaving the rejected account selected
+        expect(mockWrite).toHaveBeenCalledWith(
+            WRITE_COMMANDS.UPDATE_DUALENTRY_SETTLEMENT_STREAM_CARD_ACCOUNT,
+            {policyID, settlementStream: streamKey, settlementsCardAccountID: 'newCard'},
+            expect.any(Object),
+        );
+        expectStreamUpdates(CONST.DUALENTRY_SETTLEMENT_STREAM_SETTING.CARD_ACCOUNT_ID, 'newCard', null);
     });
 });

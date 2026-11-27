@@ -6882,6 +6882,19 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             },
             syncExpensifyCardSettlements: 'Expensify カードの清算を同期',
             settlementAccount: {label: 'Expensify カードの決済口座', description: '精算口座を選択すると、DualEntry で支払いを作成します。'},
+            settlementStream: {
+                sync: (currency: string) => `${currency} の Expensify カードの清算を同期`,
+                description: (currency: string) => `${currency} の各清算を、以下の 2 つの口座間の振替として DualEntry に作成します。`,
+                selectAccountsFirst: '有効にするには、両方の口座を選択してください。',
+                bankAccount: {
+                    label: (currency: string) => `${currency} の決済口座`,
+                    description: (currency: string) => `Expensify カードの清算の支払い元となる ${currency} の銀行口座を選択してください。`,
+                },
+                cardAccount: {
+                    label: (currency: string) => `${currency} の Expensify カード口座`,
+                    description: (currency: string) => `DualEntry で Expensify カードの残高を管理する ${currency} の口座を選択してください。`,
+                },
+            },
             syncTravelBillingSettlements: '一括旅行請求の精算を同期',
             travelBillingSettlementAccount: {label: '統合トラベル請求の決済口座', description: '精算口座を選択すると、DualEntry で支払いを作成します。'},
             travelBillingPayableAccount: {label: '統合トラベル請求買掛金勘定'},

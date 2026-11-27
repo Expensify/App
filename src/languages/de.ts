@@ -7015,6 +7015,19 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             },
             syncExpensifyCardSettlements: 'Expensify Karten-Abrechnungen synchronisieren',
             settlementAccount: {label: 'Expensify Karte Verrechnungskonto', description: 'Wählen Sie Ihr Verrechnungskonto, und wir erstellen die Zahlung in DualEntry.'},
+            settlementStream: {
+                sync: (currency: string) => `${currency}-Abrechnungen der Expensify Karte synchronisieren`,
+                description: (currency: string) => `Wir erstellen jede ${currency}-Abrechnung in DualEntry als Umbuchung zwischen den beiden folgenden Konten.`,
+                selectAccountsFirst: 'Wählen Sie beide Konten aus, um dies zu aktivieren.',
+                bankAccount: {
+                    label: (currency: string) => `${currency}-Verrechnungskonto`,
+                    description: (currency: string) => `Wählen Sie das ${currency}-Bankkonto, von dem Ihre Expensify Karten-Abrechnungen bezahlt werden.`,
+                },
+                cardAccount: {
+                    label: (currency: string) => `${currency}-Konto der Expensify Karte`,
+                    description: (currency: string) => `Wählen Sie das ${currency}-Konto, das den Saldo Ihrer Expensify Karte in DualEntry führt.`,
+                },
+            },
             syncTravelBillingSettlements: 'Abgerechnete konsolidierte Reisekosten synchronisieren',
             travelBillingSettlementAccount: {
                 label: 'Abrechnungskonto für konsolidierte Reiseabrechnung',
