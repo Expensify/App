@@ -2023,7 +2023,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - react-native-document-picker (12.0.3):
+  - react-native-document-picker (12.1.0):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -4186,7 +4186,7 @@ SPEC CHECKSUMS:
   react-native-blob-util: 13d949591d518214a68e3daa57045c499a0dbd2a
   react-native-cameraroll: 2b19ddd5ff316c20d4ed9533b077318318f8448c
   react-native-config: eb6701f1dedce0fdd239789584c4194203787b76
-  react-native-document-picker: 0e19e3476259c7db349c80cdf3a58cc87ed20d65
+  react-native-document-picker: 2d4358affe7cd049ad8d042958d27d9ff781366f
   react-native-image-picker: d0f7a66456b149d286f0a2053f098a259c582dcb
   react-native-key-command: 417e67b936c57b74d598c3daef68db9a7473bee3
   react-native-keyboard-controller: b065d606021ad41fa9b4beb69dd3192f5c164f31
