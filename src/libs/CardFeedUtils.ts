@@ -575,12 +575,14 @@ function getCombinedCardFeedsFromAllFeeds(
                 }
             }
 
-            // Use the local reimbursable value during pending or failed saves. The OAuth value may be stale.
+            // Use local settings during pending or failed saves. The OAuth values may be stale.
             const hasLocalReimbursableChange = !!feedSettings?.pendingFields?.forceReimbursable || !!feedSettings?.errorFields?.forceReimbursable;
-            const reimbursableOverrides: Partial<CombinedCardFeed> =
-                oAuthAccountDetails && hasLocalReimbursableChange
+            const hasLocalLiabilityChange = !!feedSettings?.pendingFields?.liabilityType || !!feedSettings?.errorFields?.liabilityType;
+            const localSettingsOverrides: Partial<CombinedCardFeed> =
+                oAuthAccountDetails && (hasLocalReimbursableChange || hasLocalLiabilityChange)
                     ? {
-                          forceReimbursable: feedSettings?.forceReimbursable ?? oAuthAccountDetails.forceReimbursable,
+                          ...(hasLocalReimbursableChange ? {forceReimbursable: feedSettings?.forceReimbursable ?? oAuthAccountDetails.forceReimbursable} : {}),
+                          ...(hasLocalLiabilityChange ? {liabilityType: feedSettings?.liabilityType ?? oAuthAccountDetails.liabilityType} : {}),
                           pendingFields: {...oAuthAccountDetails.pendingFields, ...feedSettings?.pendingFields},
                           errorFields: {...oAuthAccountDetails.errorFields, ...feedSettings?.errorFields},
                       }
@@ -589,7 +591,7 @@ function getCombinedCardFeedsFromAllFeeds(
             const combinedCardFeed: CombinedCardFeed = {
                 ...feedSettings,
                 ...oAuthAccountDetails,
-                ...reimbursableOverrides,
+                ...localSettingsOverrides,
                 // An empty nickname means the feed has no custom name, so `||` lets it fall back to the CSV layout name
                 customFeedName: customFeedName || feedSettings?.uploadLayoutSettings?.layoutName,
                 domainID,

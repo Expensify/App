@@ -352,9 +352,19 @@ function setWorkspaceCompanyCardFeedName(policyID: string, domainOrWorkspaceAcco
     API.write(WRITE_COMMANDS.SET_COMPANY_CARD_FEED_NAME, parameters, onyxData);
 }
 
-function setWorkspaceCompanyCardTransactionLiability(domainOrWorkspaceAccountID: number, policyID: string, bankName: CompanyCardFeedWithNumber, liabilityType: string) {
+function setWorkspaceCompanyCardTransactionLiability(
+    domainOrWorkspaceAccountID: number,
+    policyID: string,
+    bankName: CompanyCardFeedWithNumber,
+    liabilityType: string,
+    oldLiabilityType: string | undefined,
+) {
     const feedUpdates = {
-        [bankName]: {liabilityType},
+        [bankName]: {
+            liabilityType,
+            pendingFields: {liabilityType: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+            errorFields: {liabilityType: null},
+        },
     };
 
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER> = {
@@ -364,6 +374,36 @@ function setWorkspaceCompanyCardTransactionLiability(domainOrWorkspaceAccountID:
                 key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainOrWorkspaceAccountID}`,
                 value: {
                     settings: {companyCards: feedUpdates},
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainOrWorkspaceAccountID}`,
+                value: {
+                    settings: {
+                        companyCards: {
+                            [bankName]: {pendingFields: {liabilityType: null}},
+                        },
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainOrWorkspaceAccountID}`,
+                value: {
+                    settings: {
+                        companyCards: {
+                            [bankName]: {
+                                liabilityType: oldLiabilityType ?? null,
+                                pendingFields: {liabilityType: null},
+                                errorFields: {liabilityType: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                            },
+                        },
+                    },
                 },
             },
         ],

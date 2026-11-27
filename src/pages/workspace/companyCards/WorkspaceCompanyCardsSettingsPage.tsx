@@ -19,7 +19,7 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useVerifyAccountAndResume from '@hooks/useVerifyAccountAndResume';
 
-import {deleteWorkspaceCompanyCardFeed, setAddNewCompanyCardStepAndData, setWorkspaceCompanyCardTransactionLiability} from '@libs/actions/CompanyCards';
+import {clearErrorField, deleteWorkspaceCompanyCardFeed, setAddNewCompanyCardStepAndData, setWorkspaceCompanyCardTransactionLiability} from '@libs/actions/CompanyCards';
 import {
     getCompanyCardFeed,
     getCompanyFeeds,
@@ -139,6 +139,7 @@ function WorkspaceCompanyCardsSettingsPage({
             policyID,
             feed,
             isOn ? CONST.COMPANY_CARDS.DELETE_TRANSACTIONS.ALLOW : CONST.COMPANY_CARDS.DELETE_TRANSACTIONS.RESTRICT,
+            liabilityType,
         );
     };
 
@@ -194,6 +195,14 @@ function WorkspaceCompanyCardsSettingsPage({
                                 onToggle={onToggleLiability}
                                 isActive={isPersonal}
                                 disabled={isPending}
+                                pendingAction={selectedFeedData?.pendingFields?.liabilityType}
+                                errors={selectedFeedData?.errorFields?.liabilityType ?? undefined}
+                                onCloseError={() => {
+                                    if (!feed) {
+                                        return;
+                                    }
+                                    clearErrorField(feed, domainOrWorkspaceAccountID, 'liabilityType');
+                                }}
                             />
                             <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('workspace.moreFeatures.companyCards.setTransactionLiabilityDescription')}</Text>
                         </View>
