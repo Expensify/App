@@ -1,5 +1,5 @@
 import AnchoredSelectionListPopover from '@components/AnchoredSelectionListPopover';
-import type {ExpenseFieldDropdownRenderProps} from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown';
+import type {DropdownFieldRenderProps} from '@components/DropdownField';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
@@ -15,7 +15,7 @@ type BooleanOption = ListItem & {
     value: boolean;
 };
 
-type SearchEditMultipleBooleanDropdownProps = ExpenseFieldDropdownRenderProps & {
+type SearchEditMultipleBooleanDropdownProps = DropdownFieldRenderProps & {
     /** Name of the field, which heads the list */
     title: string;
 

@@ -3,11 +3,11 @@ import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginPro
 
 import {getAccountIDToNameMapForMentionsInMarkdown} from '@hooks/useAccountIDToNameMap';
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
-import {buildReportIDToNameMap, getMentionedReportIDs, getReportIDToNameMapForRoomsInMarkdown} from '@hooks/useReportIDToNameMap';
 
 import {getExportLabelForConnection} from '@libs/AccountingUtils';
 import {isClientTheLeader} from '@libs/ActiveClientManager';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
+import AgentZeroOptimisticStore from '@libs/AgentZeroOptimisticStore';
 import AgentZeroReasoningStore from '@libs/AgentZeroReasoningStore';
 import {waitForWrites} from '@libs/API';
 import * as API from '@libs/API';
@@ -96,7 +96,7 @@ import capturePageHTML from '@libs/PageHTMLCapture';
 import {prunePagesToNewestWindow} from '@libs/PaginationUtils';
 import Parser from '@libs/Parser';
 import {getParsedMessageWithShortMentions} from '@libs/ParsingUtils';
-import {getAllPersonalDetails, getPersonalDetail} from '@libs/PersonalDetailsStore';
+import {getAccountIDToNameMap, getAllPersonalDetailLogins, getPersonalDetail} from '@libs/PersonalDetailsStore';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {isMapOrGPSRequired} from '@libs/PolicyDistanceRatesUtils';
@@ -115,6 +115,7 @@ import Pusher from '@libs/Pusher';
 import type {UserIsLeavingRoomEvent, UserIsTypingEvent} from '@libs/Pusher/types';
 import * as ReportActionsFollowupUtils from '@libs/ReportActionFollowupUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import {buildReportIDToNameMap, getMentionedReportIDs, getReportIDToNameMapForRoomsInMarkdown} from '@libs/ReportIDToNameMapUtils';
 import {updateTitleFieldToMatchPolicy} from '@libs/ReportTitleUtils';
 import type {Ancestor, OptimisticAddCommentReportAction, OptimisticChatReport, SelfDMParameters} from '@libs/ReportUtils';
 import {
@@ -449,6 +450,8 @@ type AddCommentParams = {
     isInSidePanel?: boolean;
     sidePanelContext?: SidePanelContext;
     pregeneratedResponseParams?: PregeneratedResponseParams;
+    /** Sanitized HTML answer to show immediately in the Concierge reply thread. */
+    preloadedResponse?: string;
     reportActionID?: string;
     delegateAccountID: number | undefined;
     conciergeReportID: string | undefined;
@@ -468,6 +471,8 @@ type AddActionsParams = {
     isInSidePanel?: boolean;
     sidePanelContext?: SidePanelContext;
     pregeneratedResponseParams?: PregeneratedResponseParams;
+    /** Sanitized HTML answer to show immediately in the Concierge reply thread. */
+    preloadedResponse?: string;
     reportActionID?: string;
     delegateAccountID: number | undefined;
     conciergeReportID: string | undefined;
@@ -516,6 +521,7 @@ type MergeReportsProps = {
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
     isVendorMatchingBetaEnabled: boolean | undefined;
+    isChatReportArchived: boolean;
     currentUserPersonalDetails: CurrentUserPersonalDetails;
     personalDetailsByLogins: PersonalDetailsByLogin;
 };
@@ -923,6 +929,7 @@ function addActions({
     isInSidePanel = false,
     sidePanelContext,
     pregeneratedResponseParams,
+    preloadedResponse,
     reportActionID,
     delegateAccountID,
     conciergeReportID,
@@ -999,6 +1006,28 @@ function addActions({
         // And the API command needs to go to the new API which supports combining both text and attachments in a single report action
         commandName = WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT;
     }
+
+    const replyReportID = conciergeThreadReportID ?? reportID;
+    const preloadedConciergeAction =
+        preloadedResponse && isConciergeChat && !file
+            ? buildOptimisticAddCommentReportAction({
+                  text: preloadedResponse,
+                  isHTML: true,
+                  actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+                  reportID: replyReportID,
+                  currentUserAccountID,
+                  delegateAccountIDParam: delegateAccountID,
+                  anchorCreatedToServer: true,
+                  lastActionCreated: reportCommentAction?.created,
+              })
+            : undefined;
+    const resolvedPregeneratedResponseParams = preloadedConciergeAction
+        ? {
+              optimisticConciergeReportActionID: preloadedConciergeAction.reportAction.reportActionID,
+              optimisticConciergeCreated: preloadedConciergeAction.reportAction.created,
+              pregeneratedResponse: preloadedConciergeAction.commentText,
+          }
+        : pregeneratedResponseParams;
 
     // Store all markdown text attachments i.e `![](https://images.unsplash.com/...)`
     const resolvedReportActionID = file ? attachmentAction?.reportActionID : reportCommentAction?.reportActionID;
@@ -1115,7 +1144,7 @@ function addActions({
     // Reserve a reply identity for questions the user explicitly sends to Concierge. The
     // server reuses it for both draft events and the final action, excluding unsolicited replies.
     const isConciergeConversation = isConciergeChat || (!!conciergeReportID && reportForAction.parentReportID === conciergeReportID) || isAdminRoom(reportForAction);
-    if (isConciergeConversation && !pregeneratedResponseParams && resolvedReportActionID) {
+    if (isConciergeConversation && !resolvedPregeneratedResponseParams && resolvedReportActionID) {
         parameters.optimisticConciergeReportActionID = rand64();
         trackConciergeResponse({
             accountID: currentUserAccountID,
@@ -1126,10 +1155,10 @@ function addActions({
     }
 
     // Add pregenerated params
-    if (pregeneratedResponseParams) {
-        parameters.optimisticConciergeReportActionID = pregeneratedResponseParams.optimisticConciergeReportActionID;
-        parameters.optimisticConciergeCreated = pregeneratedResponseParams.optimisticConciergeCreated;
-        parameters.pregeneratedResponse = pregeneratedResponseParams.pregeneratedResponse;
+    if (resolvedPregeneratedResponseParams) {
+        parameters.optimisticConciergeReportActionID = resolvedPregeneratedResponseParams.optimisticConciergeReportActionID;
+        parameters.optimisticConciergeCreated = resolvedPregeneratedResponseParams.optimisticConciergeCreated;
+        parameters.pregeneratedResponse = resolvedPregeneratedResponseParams.pregeneratedResponse;
     }
 
     const optimisticData: Array<
@@ -1198,8 +1227,8 @@ function addActions({
     }
 
     // In case of error, remove the optimistic Concierge response
-    if (pregeneratedResponseParams) {
-        failureReportActions[pregeneratedResponseParams.optimisticConciergeReportActionID] = null;
+    if (resolvedPregeneratedResponseParams && !preloadedConciergeAction) {
+        failureReportActions[resolvedPregeneratedResponseParams.optimisticConciergeReportActionID] = null;
     }
 
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT_METADATA>> = [
@@ -1260,7 +1289,10 @@ function addActions({
             {
                 onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeThreadReportID}`,
-                value: {[optimisticThreadCreatedAction.reportActionID]: optimisticThreadCreatedAction},
+                value: {
+                    [optimisticThreadCreatedAction.reportActionID]: optimisticThreadCreatedAction,
+                    ...(preloadedConciergeAction && {[preloadedConciergeAction.reportAction.reportActionID]: preloadedConciergeAction.reportAction}),
+                },
             },
             {
                 onyxMethod: Onyx.METHOD.SET,
@@ -1324,6 +1356,26 @@ function addActions({
         );
     }
 
+    if (preloadedConciergeAction) {
+        // Keep the answer in the same optimistic write as its question and thread, so failures roll them back together.
+        if (!conciergeThreadReportID) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${replyReportID}`,
+                value: {[preloadedConciergeAction.reportAction.reportActionID]: preloadedConciergeAction.reportAction},
+            });
+        }
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${replyReportID}`,
+            value: {[preloadedConciergeAction.reportAction.reportActionID]: null},
+        });
+        snapshotDataToStore[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${replyReportID}`] = {
+            ...snapshotDataToStore[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${replyReportID}`],
+            [preloadedConciergeAction.reportAction.reportActionID]: preloadedConciergeAction.reportAction,
+        };
+    }
+
     const optimisticSnapshotUpdate = buildOptimisticSnapshotData(CONST.SEARCH.DATA_TYPES.CHAT, snapshotDataToStore);
     if (optimisticSnapshotUpdate) {
         optimisticData.push(optimisticSnapshotUpdate);
@@ -1337,14 +1389,18 @@ function addActions({
     startSendMessagePhase(reportActionID, CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.PROPAGATE);
 
     if (conciergeThreadReportID && resolvedReportActionID) {
+        if (isConciergeChat && sidePanelContext?.insightsScope && !resolvedPregeneratedResponseParams && !isOfflineNetwork()) {
+            AgentZeroOptimisticStore.increment(conciergeThreadReportID, CONST.ACCOUNT_ID.CONCIERGE, null);
+        }
         Onyx.update(conciergeThreadOnyxData).then(() => {
             if (!shouldNavigateToConciergeThread) {
                 return;
             }
-            Navigation.navigate(getReportRouteForCurrentContext({reportID: conciergeThreadReportID}));
+            Navigation.navigate(getReportRouteForCurrentContext({reportID: conciergeThreadReportID, reportActionID: preloadedConciergeAction?.reportAction.reportActionID}));
         });
     }
     notifyNewAction(resolvedNotifyReportID, lastAction, lastAction?.actorAccountID === currentUserAccountID);
+    return preloadedConciergeAction?.reportAction.reportActionID;
 }
 
 /** Add an attachment with an optional comment to a report */
@@ -1444,6 +1500,7 @@ function addComment({
     isInSidePanel,
     sidePanelContext,
     pregeneratedResponseParams,
+    preloadedResponse,
     reportActionID,
     delegateAccountID,
     conciergeReportID,
@@ -1453,7 +1510,7 @@ function addComment({
     if (shouldPlaySound) {
         playSound(SOUNDS.DONE);
     }
-    addActions({
+    return addActions({
         report,
         notifyReportID,
         ancestors,
@@ -1462,6 +1519,7 @@ function addComment({
         text,
         isInSidePanel,
         pregeneratedResponseParams,
+        preloadedResponse,
         reportActionID,
         delegateAccountID,
         sidePanelContext,
@@ -2542,6 +2600,9 @@ type CreateTransactionThreadReportParams = {
 
     /** The self DM holding the expense, used instead of the current user's when set */
     selfDMReportID?: string;
+
+    /** Whether the expense belongs to the current user. Read from the IOU action's actor when not set, so pass it for a legacy expense that has no IOU action */
+    isOwnedByCurrentUser?: boolean;
 };
 
 function createTransactionThreadReport(params: CreateTransactionThreadReportParams): OptimisticChatReport | undefined {
@@ -2564,7 +2625,7 @@ function createTransactionThreadReport(params: CreateTransactionThreadReportPara
     const isTrackExpense = !iouReport && ReportActionsUtils.isTrackExpenseAction(iouReportAction);
     const isUnreportedTransaction = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const shouldUseSelfDM = isTrackExpense || isUnreportedTransaction;
-    const isOwnedByCurrentUser = iouReportAction?.actorAccountID === currentUserAccountID;
+    const isOwnedByCurrentUser = params.isOwnedByCurrentUser ?? iouReportAction?.actorAccountID === currentUserAccountID;
     if (shouldUseSelfDM && !isOwnedByCurrentUser && !params.selfDMReportID) {
         Log.warn('Cannot build transaction thread in the current user self DM for an expense owned by another user', {
             transactionID: transaction?.transactionID,
@@ -3816,13 +3877,14 @@ function removeLinksFromHtml(html: string, links: string[]): string {
  *
  * @param newCommentText text of the comment after editing.
  * @param originalCommentMarkdown original markdown of the comment before editing.
+ * @param availableMentionLogins logins that short mentions such as `@john` resolve against.
  * @param videoAttributeCache cache of video attributes ([videoSource]: videoAttributes)
  */
 function handleUserDeletedLinksInHtml(
     newCommentText: string,
     originalCommentMarkdown: string,
     currentUserLogin: string,
-    personalDetails: OnyxEntry<PersonalDetailsList>,
+    availableMentionLogins: string[] | undefined,
     videoAttributeCache?: Record<string, string>,
 ): string {
     if (newCommentText.length > CONST.MAX_MARKUP_LENGTH) {
@@ -3830,12 +3892,11 @@ function handleUserDeletedLinksInHtml(
     }
 
     const userEmailDomain = isEmailPublicDomain(currentUserLogin) ? '' : Str.extractEmailDomain(currentUserLogin);
-    const allPersonalDetailLogins = Object.values(personalDetails ?? {}).map((personalDetail) => personalDetail?.login ?? '');
 
     const htmlForNewComment = getParsedMessageWithShortMentions({
         text: newCommentText,
         userEmailDomain,
-        availableMentionLogins: allPersonalDetailLogins,
+        availableMentionLogins: availableMentionLogins ?? [],
         parserOptions: {
             extras: {videoAttributeCache},
         },
@@ -3861,7 +3922,7 @@ startDeferredAttachmentEditReplays((deferredEdit, syncedAction) => {
             textForNewComment,
             isOriginalReportArchived,
             currentUserLogin,
-            getAllPersonalDetails(),
+            getAllPersonalDetailLogins(),
             currentUserAccountID,
             videoAttributeCache,
             reportIDToName,
@@ -3878,7 +3939,7 @@ function editReportComment(
     textForNewComment: string,
     isOriginalReportArchived: boolean | undefined,
     currentUserLogin: string,
-    personalDetails: OnyxEntry<PersonalDetailsList>,
+    availableMentionLogins: string[] | undefined,
     currentUserAccountID: number,
     videoAttributeCache?: Record<string, string>,
     reportIDToName?: Record<string, string>,
@@ -3905,7 +3966,7 @@ function editReportComment(
     }
     const htmlForNewComment = restoreAttachmentAnchorLabels(
         restoreAttachmentAnchorAttributes(
-            handleUserDeletedLinksInHtml(draftForNewComment, originalCommentMarkdown, currentUserLogin, personalDetails, videoAttributeCache),
+            handleUserDeletedLinksInHtml(draftForNewComment, originalCommentMarkdown, currentUserLogin, availableMentionLogins, videoAttributeCache),
             originalCommentHTML,
         ),
         draftForNewComment,
@@ -4043,8 +4104,10 @@ function editReportComment(
             currentUserAccountID,
             isOriginalReportArchived,
             videoAttributeCache,
-            reportIDToName: getReportIDToNameMapForRoomsInMarkdown(reportIDToName, textForNewComment),
-            accountIDToName: getAccountIDToNameMapForMentionsInMarkdown(accountIDToName, textForNewComment),
+            // The caller's maps only have the rooms and users the original HTML mentions by ID. An offline message mentions
+            // them by name, and the synced copy this edit is compared against mentions them by ID, so look them up here.
+            reportIDToName: getReportIDToNameMapForRoomsInMarkdown(buildReportIDToNameMap(allReports), textForNewComment),
+            accountIDToName: getAccountIDToNameMapForMentionsInMarkdown(getAccountIDToNameMap(), textForNewComment),
         };
         deferAttachmentEdit(reportActionID, deferredEdit);
         return;
@@ -4847,6 +4910,7 @@ type BuildNewReportOptimisticDataParams = {
     isTrackIntentUser: boolean | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<Rule>;
+    personalDetailsByLogins: PersonalDetailsByLogin;
     reportName?: string;
 };
 
@@ -4861,23 +4925,25 @@ function buildNewReportOptimisticData({
     isTrackIntentUser,
     getCurrencyDecimals,
     rules,
+    personalDetailsByLogins,
     reportName,
 }: BuildNewReportOptimisticDataParams) {
     const {accountID, login, email} = ownerPersonalDetails;
     const timeOfCreation = DateUtils.getDBTime();
     const parentReport = getPolicyExpenseChat(accountID, policy?.id);
-    const optimisticReportData = buildOptimisticEmptyReport(
+    const optimisticReportData = buildOptimisticEmptyReport({
         reportID,
         accountID,
         login,
         parentReport,
-        reportPreviewReportActionID,
+        parentReportActionID: reportPreviewReportActionID,
         policy,
         timeOfCreation,
         isASAPSubmitBetaEnabled,
         getCurrencyDecimals,
         rules,
-    );
+        personalDetailsByLogins,
+    });
 
     if (reportName) {
         optimisticReportData.reportName = reportName;
@@ -5099,20 +5165,35 @@ function buildNewReportOptimisticData({
     };
 }
 
-// Refactoring this to a params object would touch every call site and is out of scope here.
-function createNewReport(
-    ownerPersonalDetails: CurrentUserPersonalDetails,
-    hasViolationsParam: boolean,
-    isASAPSubmitBetaEnabled: boolean,
-    policy: OnyxEntry<Policy>,
-    isTrackIntentUser: boolean | undefined,
-    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
-    rules: OnyxCollection<Rule>,
+type CreateNewReportParams = {
+    ownerPersonalDetails: CurrentUserPersonalDetails;
+    hasViolations: boolean;
+    isASAPSubmitBetaEnabled: boolean;
+    policy: OnyxEntry<Policy>;
+    isTrackIntentUser: boolean | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    rules: OnyxCollection<Rule>;
+    personalDetailsByLogins: PersonalDetailsByLogin;
+    shouldNotifyNewAction?: boolean;
+    shouldDismissEmptyReportsConfirmation?: boolean;
+    managedCardTransactionID?: string;
+    reportName?: string;
+};
+
+function createNewReport({
+    ownerPersonalDetails,
+    hasViolations,
+    isASAPSubmitBetaEnabled,
+    policy,
+    isTrackIntentUser,
+    getCurrencyDecimals,
+    rules,
+    personalDetailsByLogins,
     shouldNotifyNewAction = false,
-    shouldDismissEmptyReportsConfirmation?: boolean,
-    options: {managedCardTransactionID?: string; reportName?: string} = {},
-) {
-    const {managedCardTransactionID, reportName} = options;
+    shouldDismissEmptyReportsConfirmation,
+    managedCardTransactionID,
+    reportName,
+}: CreateNewReportParams) {
     const optimisticReportID = generateReportID();
     const reportActionID = rand64();
     const reportPreviewReportActionID = rand64();
@@ -5123,11 +5204,12 @@ function createNewReport(
         reportActionID,
         ownerPersonalDetails,
         reportPreviewReportActionID,
-        hasViolationsParam,
+        hasViolationsParam: hasViolations,
         isASAPSubmitBetaEnabled,
         isTrackIntentUser,
         getCurrencyDecimals,
         rules,
+        personalDetailsByLogins,
         reportName,
     });
 
@@ -7481,6 +7563,7 @@ type DeleteAppReportProps = {
     bankAccountList: OnyxEntry<BankAccountList>;
     delegateAccountID: number | undefined;
     hash?: number;
+    isChatReportArchived: boolean;
 };
 
 function buildOptimisticDeleteParentReportAction(
@@ -7556,6 +7639,7 @@ function clearChatIOUReportID(
     currentUserAccountIDParam: number,
     allTransactionViolations: OnyxCollection<TransactionViolations>,
     bankAccountList: OnyxEntry<BankAccountList>,
+    isChatReportArchived: boolean,
 ) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = [];
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
@@ -7571,7 +7655,15 @@ function clearChatIOUReportID(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
             value: {
-                hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, reports, currentUserEmailParam, currentUserAccountIDParam, allTransactionViolations, bankAccountList),
+                hasOutstandingChildRequest: hasOutstandingChildRequest(
+                    chatReport,
+                    reports,
+                    currentUserEmailParam,
+                    currentUserAccountIDParam,
+                    allTransactionViolations,
+                    bankAccountList,
+                    isChatReportArchived,
+                ),
                 ...(shouldClearChatIOUReportID ? {iouReportID: null} : {}),
             },
         });
@@ -7602,6 +7694,7 @@ function deleteAppReport({
     bankAccountList,
     delegateAccountID,
     hash,
+    isChatReportArchived,
 }: DeleteAppReportProps) {
     if (!report?.reportID) {
         Log.warn('[Report] deleteAppReport called with no reportID');
@@ -7963,6 +8056,7 @@ function deleteAppReport({
         currentUserAccountIDParam,
         allTransactionViolations,
         bankAccountList,
+        isChatReportArchived,
     );
     optimisticData.push(...clearChatIOUOptimisticData);
     failureData.push(...clearChatIOUFailureData);
@@ -8224,13 +8318,14 @@ function convertIOUReportToExpenseReport(
         parentReportID: optimisticPolicyExpenseChatReportID,
         type: CONST.REPORT.TYPE.EXPENSE,
         ...getNegatedReportTotals(iouReport),
+        // The server always reopens a moved IOU, even one that was already paid, so the workspace's coding and approval workflow can run on it
+        stateNum: CONST.REPORT.STATE_NUM.OPEN,
+        statusNum: CONST.REPORT.STATUS_NUM.OPEN,
     };
 
     // isUnapproved returns before the lookup by login, so personalDetailsByLogins isn't needed.
     const nextApproverAccountID = getNextApproverAccountID(iouReport, rules, true);
     if (iouReport.managerID !== nextApproverAccountID) {
-        expenseReport.stateNum = CONST.REPORT.STATE_NUM.OPEN;
-        expenseReport.statusNum = CONST.REPORT.STATUS_NUM.OPEN;
         expenseReport.managerID = nextApproverAccountID;
     }
 
@@ -8526,7 +8621,7 @@ function buildOptimisticChangePolicyData({
     const reportIDToThreadsReportIDsMap = buildReportIDToThreadsReportIDsMap();
     updatePolicyIdForReportAndThreads(reportID, policy.id, reportIDToThreadsReportIDsMap, optimisticData, failureData);
 
-    const newManagerAccountID = getSubmitToAccountID(policy, report, ownerLogin, rules);
+    const newManagerAccountID = getSubmitToAccountID(policy, report, ownerLogin, rules, personalDetailsByLogins);
     const shouldResetApprovalChain = isProcessingReport(report) && newManagerAccountID !== report.managerID && managerLogin && isPolicyMember(policy, managerLogin);
     if (shouldResetApprovalChain) {
         optimisticData.push({
@@ -9350,6 +9445,7 @@ function mergeReports({
     getCurrencyDecimals,
     getCurrencySymbol,
     isVendorMatchingBetaEnabled,
+    isChatReportArchived,
     currentUserPersonalDetails,
     personalDetailsByLogins,
 }: MergeReportsProps) {
@@ -9478,6 +9574,7 @@ function mergeReports({
         accountID,
         allTransactionViolation,
         bankAccountList,
+        isChatReportArchived,
     );
     deleteOptimisticData.push(...clearChatIOUOptimisticData);
     deleteFailureData.push(...clearChatIOUFailureData);

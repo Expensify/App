@@ -24,7 +24,7 @@ import CONST from '@src/CONST';
 import type {ListRenderItemInfo} from 'react-native';
 import type {PanGesture} from 'react-native-gesture-handler';
 
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useInsertionEffect, useRef, useState} from 'react';
 import {Keyboard, PixelRatio, View} from 'react-native';
 import {GestureDetector, usePanGesture} from 'react-native-gesture-handler';
 import Animated, {scrollTo, useAnimatedRef, useSharedValue} from 'react-native-reanimated';
@@ -76,6 +76,8 @@ function AttachmentCarouselView({
     const {handleTap, handleScaleChange, isScrollEnabled} = useCarouselContextEvents(setShouldShowArrows);
 
     const [activeAttachmentID, setActiveAttachmentID] = useState<AttachmentSource | null>(attachmentID ?? source);
+    // Track focused state rather than incoming props: deletion can replace the attachment at the same index.
+    const activeAttachmentIDRef = useRef(activeAttachmentID);
 
     const scrollRef = useAnimatedRef<Animated.FlatList<Attachment>>();
 
@@ -85,26 +87,43 @@ function AttachmentCarouselView({
 
     const cellWidth = PixelRatio.roundToNearestPixel(windowWidth - (modalStyles.marginHorizontal + modalStyles.borderWidth) * 2);
 
+    // FlatList does not accept a new onViewableItemsChanged after it has mounted, so the current page is read from a
+    // ref instead of making the callback depend on it.
+    const currentPageRef = useRef(page);
+    useInsertionEffect(() => {
+        currentPageRef.current = page;
+    }, [page]);
+
     /** Updates the page state when the user navigates between attachments */
     const updatePage = ({viewableItems}: UpdatePageProps) => {
         if (isFullScreenRef.current) {
             return;
         }
 
-        Keyboard.dismiss();
-
-        // Since we can have only one item in view at a time, we can use the first item in the array
-        // to get the index of the current page
-        const entry = viewableItems.at(0);
-        if (!entry) {
-            setActiveAttachmentID(null);
+        // No viewable item, or several of them, means the list sits between two cells while it is being resized.
+        // That is not a navigation, so it must not dismiss the keyboard or change the focused attachment.
+        if (viewableItems.length !== 1) {
             return;
         }
 
-        const item = entry.item;
+        const entry = viewableItems.at(0);
+        const item = entry?.item;
+        if (!entry || !item) {
+            return;
+        }
+        const itemID = item.attachmentID ?? item.source;
+        if (entry.index === currentPageRef.current && itemID === activeAttachmentIDRef.current) {
+            return;
+        }
+
+        // Only a real change of selection dismisses the keyboard, otherwise rotating the device would close the
+        // password field of a protected PDF.
+        Keyboard.dismiss();
+
         if (entry.index != null) {
             setPage(entry.index);
-            setActiveAttachmentID(item.attachmentID ?? item.source);
+            activeAttachmentIDRef.current = itemID;
+            setActiveAttachmentID(itemID);
         }
 
         if (onNavigate) {

@@ -121,6 +121,7 @@ const translations = {
         approve: 'Approve',
         deny: 'Deny',
         dontChange: 'Don’t change',
+        submitter: 'Submitter',
         // @context Universal confirmation button. Keep the UI-standard term “OK” unless the locale strongly prefers an alternative.
         ok: 'OK',
         notNow: 'Not now',
@@ -496,6 +497,7 @@ const translations = {
         reportID: 'Report ID',
         longReportID: 'Long Report ID',
         withdrawalID: 'Withdrawal ID',
+        transactionID: 'Transaction ID',
         internationalReimbursementIDs: 'International reimbursement IDs',
         amountDebited: 'Amount debited',
         amountReimbursed: 'Amount reimbursed',
@@ -613,6 +615,7 @@ const translations = {
         corpayPayModalTitle: 'Pay report',
         corpayPayModalPrompt: 'This submitter has a non-USD bank account. Enable global reimbursements to pay the report, or ask them to add a USD bank account.',
         purchaseAmount: 'Purchase amount',
+        convertedAmount: 'Converted amount',
         originalAmount: 'Original amount',
         frequency: 'Frequency',
         link: 'Link',
@@ -784,6 +787,14 @@ const translations = {
         launching: 'Launching Expensify',
         expired: 'Your session has expired.',
         signIn: 'Please sign in again.',
+        notValid: 'Invalid link.',
+        sessionMismatch: "The link you clicked isn't valid for your current session.",
+        switchAccount: {
+            title: 'Switch accounts?',
+            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) => `You're signed in as ${currentEmail}. This action will sign you in as ${newEmail} instead.`,
+            confirm: 'Switch accounts',
+            staySignedIn: "Don't switch accounts",
+        },
     },
     multifactorAuthentication: {
         reviewTransaction: {
@@ -893,6 +904,11 @@ const translations = {
         },
         changePin: {
             didNotChange: "We didn't change your PIN. Please try again.",
+        },
+        addToWallet: {
+            failedHeader: "Couldn't add card",
+            failedTitle: "We couldn't add your card to your wallet",
+            failedSubtitle: "Something went wrong while adding the card. If it's already in your wallet, you can use it there.",
         },
         revealCardDetail: {
             couldNotReveal: "We couldn't reveal your card details. Please try again.",
@@ -1115,6 +1131,7 @@ const translations = {
     },
     supportalSwitcher: {
         title: 'Supportal into another account',
+        navigationLabel: 'Supportal',
         emailLabel: 'Email address',
         reasonLabel: 'Support login reason',
         reasonHint: 'No recent tickets found for this account.',
@@ -1390,6 +1407,9 @@ const translations = {
         writingYourInsights: 'Writing your insights',
         tagLevel: (level: string) => `Tag level ${level}`,
         tagLevelLabel: 'Tag level',
+        noTaggedExpenses: 'No tagged expenses',
+        // @context The selected tag list name can be a custom name like Department or a fallback like Tag level 2.
+        noExpensesForTagLevel: (tagLevelName: string) => `No expenses for ${tagLevelName} in this date range.`,
         parent: 'Parent',
         shareOfTotal: 'Share of total (%)',
         viewOnSpend: 'View on Spend',
@@ -1398,7 +1418,31 @@ const translations = {
         viewDetails: 'View details',
         viewAll: 'View all',
         topExpenses: 'Top expenses',
-        noExpensesInRange: 'No expenses in this range',
+        flaggedExpenses: 'Flagged expenses',
+        noFlaggedExpensesInRange: 'No flagged expenses in this range',
+        summary: {
+            title: 'Summary',
+            over: (percentage: string) => `${percentage} over`,
+            under: (percentage: string) => `${percentage} under`,
+            versusMerchantAverage: (amount: string) => `${amount} vs this merchant's average`,
+            versusMemberAverage: (amount: string) => `${amount} vs this member's average`,
+            versusCategoryAverage: (amount: string) => `${amount} vs this category's average`,
+            versusAverageDay: (amount: string) => `${amount} vs average day`,
+            versusAverageWeek: (amount: string) => `${amount} vs average week`,
+            versusAverageMonth: (amount: string) => `${amount} vs average month`,
+            versusAverageQuarter: (amount: string) => `${amount} vs average quarter`,
+            moreHistoryNeeded: 'More history needed:',
+            daysOfHistoryNeeded: (count: number) => `Average comparison will show after ${count} complete days of history`,
+            weeksOfHistoryNeeded: (count: number) => `Average comparison will show after ${count} complete weeks of history`,
+            monthsOfHistoryNeeded: (count: number) => `Average comparison will show after ${count} complete months of history`,
+            quartersOfHistoryNeeded: (count: number) => `Average comparison will show after ${count} complete quarters of history`,
+            periodSpend: (period: string) => `${period} spend`,
+            dayAverage: (count: number) => `${count} day average`,
+            weekAverage: (count: number) => `${count} week average`,
+            monthAverage: (count: number) => `${count} month average`,
+            quarterAverage: (count: number) => `${count} quarter average`,
+            shareOfTotal: 'Share of total',
+        },
         compliance: 'Compliance',
         violationsOverTime: 'Violations over time',
         topViolations: 'Top violations',
@@ -1420,6 +1464,7 @@ const translations = {
             label: 'Violations by',
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Submitters',
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: 'Approvers',
+            chartTitle: (title: string, stage: string) => `${title} (${stage})`,
         },
         compare: {
             label: 'Compare',
@@ -1606,6 +1651,8 @@ const translations = {
         flash: 'flash',
         flipCamera: 'flip camera',
         multiScan: 'multi-scan',
+        receiptEnhancements: 'Receipt enhancements',
+        receiptEnhancementsEnabled: 'Receipt enhancements enabled',
         shutter: 'shutter',
         gallery: 'gallery',
         deleteReceipt: 'Delete receipt',
@@ -2059,15 +2106,22 @@ const translations = {
         wisePaymentSummary: {
             confirmPayment: 'Confirm payment',
             reportTotal: 'Report total',
-            unheldAmountBeingPaid: 'Unheld amount being paid',
-            debitAmount: 'Debit amount',
             employeeWillReceive: 'Employee will receive',
+            companyWillPay: 'Company will pay',
             totalFees: 'Total fees',
             fxRate: 'FX rate',
             paymentDetails: 'Payment details',
             debitedAmount: 'Debited amount',
             employeeReceived: 'Employee received',
+            paymentDisclosure: ({buttonText}: {buttonText: string}) =>
+                `<muted-text-micro>Recipient may receive less due to fees charged by the recipient’s bank and foreign taxes. By clicking ${buttonText}, I accept Wise’s <a href="${CONST.WISE.TERMS_URL}">Terms of Use</a> and <a href="${CONST.WISE.PRIVACY_URL}">Privacy Policy</a>.</muted-text-micro>`,
             payAll: 'Pay all',
+            fxRateExpiredTitle: 'FX rate expired',
+            fxRatesExpiredTitle: 'FX rates expired',
+            fxRateExpiredPrompt: 'Review the latest rate before you pay.',
+            fxRatesExpiredPrompt: 'Review the latest rates before you pay.',
+            getLatestRate: 'Get latest rate',
+            getLatestRates: 'Get latest rates',
             reportCount: ({count}: {count: number}) => ({
                 one: '1 report',
                 other: `${count} reports`,
@@ -2474,6 +2528,9 @@ const translations = {
                 }
                 return `Waiting for the cancelled payment to finish processing${formattedETA}.`;
             },
+            // Every next step message takes the same params, and this one shows none of them
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT_REVIEW]: (params: ReportNextStepMessageParams) => `Payment on hold, look for another update.`,
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (params: ReportNextStepMessageParams) =>
                 `Oops! Looks like you're submitting to <strong>yourself</strong>. Approving your own reports is <strong>forbidden</strong> by your workspace. Please submit this report to someone else or contact your admin to change the person you submit to.`,
@@ -2726,6 +2783,7 @@ const translations = {
             usingImportedState: 'You are using imported state. Press here to clear it.',
             debugMode: 'Debug mode',
             showBranchNameInTitle: 'Show branch name in browser title',
+            hideEnvironmentBadge: 'Hide environment badge',
             betaOverrides: 'Beta overrides',
             betaOverridesDescription:
                 'Overrides are local to this device and only affect frontend checks. A beta keeps an override only while it differs from your account betas, so toggling it back removes the override. “Reset all overrides” restores the values from your account. Some betas are gated on the backend too, so those can still fail at the request level.',
@@ -2737,6 +2795,8 @@ const translations = {
             leftHandNavCache: 'Left Hand Nav cache',
             clearleftHandNavCache: 'Clear',
             softKillTheApp: 'Soft kill the app',
+            testBusinessBankAccount: 'Test USD business bank account',
+            testPersonalBankAccount: 'Test USD personal bank account',
             kill: 'Kill',
             sentryDebug: 'Sentry debug',
             sentrySendDescription: 'Send data to Sentry',
@@ -2832,6 +2892,11 @@ const translations = {
             limitedSupport: 'We don’t yet support merging accounts on New Expensify. Please take this action on Expensify Classic instead.',
             reachOutForHelp: '<muted-text><centered-text>Feel free to <concierge-link>reach out to Concierge</concierge-link> if you have any questions!</centered-text></muted-text>',
             goToExpensifyClassic: 'Go to Expensify Classic',
+        },
+        mergePendingDomainAdmin: {
+            heading: 'Domain restricted email',
+            description: '<muted-text><centered-text>A domain admin has been notified to approve the request to merge accounts.</centered-text></muted-text>',
+            gotIt: 'Got it',
         },
         mergeFailureSAMLDomainControlDescription: (email: string) =>
             `<muted-text><centered-text>You can’t merge <strong>${email}</strong> because it’s controlled by <strong>${email.split('@').at(1) ?? ''}</strong>. Please <concierge-link>reach out to Concierge</concierge-link> for assistance.</centered-text></muted-text>`,
@@ -3098,16 +3163,6 @@ const translations = {
             business: {
                 title: 'Enter your business info',
                 legalName: 'Legal business name',
-                companyType: 'Company type',
-                companyTypeLimitedLiabilityCompany: 'Limited liability company (LLC)',
-                companyTypeForProfitCorporation: 'For-profit corporation',
-                companyTypeNonProfitCorporation: 'Nonprofit corporation',
-                companyTypeSoleProprietorship: 'Sole proprietorship',
-                companyTypeGeneralPartnership: 'General partnership',
-                companyTypeLimitedPartnership: 'Limited partnership',
-                companyTypeLimitedLiabilityPartnership: 'Limited liability partnership (LLP)',
-                companyTypeTrust: 'Trust',
-                companyTypeOther: 'Other',
                 companyRole: 'Your role at the company',
                 companyRoleOwner: 'Owner',
                 companyRoleDirector: 'Director',
@@ -3361,8 +3416,9 @@ const translations = {
                 certify: "I certify that the information I've provided is true and accurate.",
                 expensifyTerms: `I agree to the Expensify <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">terms and conditions</a> and <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">privacy policy</a>.`,
                 expensifyTermsAccessibilityLabel: 'I agree to the Expensify terms and conditions and privacy policy.',
-                wiseTerms: `I agree to the Wise <a href="${CONST.WISE.TERMS_URL}">terms and conditions</a> and <a href="${CONST.WISE.PRIVACY_URL}">privacy policy</a>.`,
-                wiseTermsAccessibilityLabel: 'I agree to the Wise terms and conditions and privacy policy.',
+                wiseTerms: `By clicking Confirm, I accept Wise’s <a href="${CONST.WISE.TERMS_URL}">Terms of Use</a>, consent to receive electronic records as outlined in Wise’s <a href="${CONST.WISE.ELECTRONIC_COMMUNICATIONS_POLICY_URL}">Electronic Communications Policy</a>, and <a href="${CONST.WISE.PRIVACY_URL}">Privacy Policy</a>.`,
+                wiseTermsAccessibilityLabel:
+                    'By clicking Confirm, I accept Wise’s Terms of Use, consent to receive electronic records as outlined in Wise’s Electronic Communications Policy, and Privacy Policy.',
                 error: 'Please accept all of the terms to continue.',
             },
             moreInfoNeeded: {
@@ -3387,7 +3443,10 @@ const translations = {
                 description: 'Chat with Concierge for more information.',
             },
         },
-        wiseSetupInProgress: {message: 'Global reimbursements setup in progress.', continue: 'Continue.'},
+        wiseSetupRow: {
+            inProgress: {message: 'Global reimbursements setup in progress.'},
+            inReview: {message: 'Global reimbursements setup in review.', action: 'Check status'},
+        },
         wiseGlobalReimbursementsIntro: {
             headerTitle: 'Global reimbursements',
             title: 'Set up global reimbursements?',
@@ -4080,6 +4139,7 @@ const translations = {
         approved: 'approved',
         paid: 'paid',
         receivedPayment: 'received payment',
+        markedAsManuallyExported: (label: string) => `marked this report as manually exported to ${label}`,
         toSubmit: 'to submit',
         toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
             if (!eta) {
@@ -4670,7 +4730,9 @@ const translations = {
     },
     welcomeSignUpForm: {
         join: 'Join',
-        marketingSMSConsent: 'I agree to receive marketing texts from Expensify',
+        transactionalSMSConsent: 'By providing my phone number, I agree to receive transactional account alerts from Expensify.',
+        transactionalSMSConsentFinePrint: 'Standard message and data rates may apply. Reply STOP to opt out.',
+        marketingSMSConsent: 'I agree to receive marketing texts from Expensify.',
     },
     detailsPage: {
         localTime: 'Local time',
@@ -4865,6 +4927,14 @@ const translations = {
         maskedValueLabel: ({label, ending}: {label: string; ending: string}) => `${label} ending in ${ending}`,
         numberedItem: ({item, number}: {item: string; number: number}) => `${item} ${number}`,
         questionsChanged: 'The questions on this page changed',
+        continueOffline: {
+            title: "You can't continue offline",
+            prompt: "An internet connection is needed to fill out this form. Don't worry, we'll save your progress and you can continue when you're back online.",
+            promptWithSensitiveAnswers:
+                "An internet connection is needed to fill out this form. We'll save your progress so you can continue when you're back online. For your security, sensitive details aren't saved and will need to be entered again.",
+            saveForLater: 'Save and fill out later',
+            progressSaved: 'Your progress has been saved',
+        },
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'SWIFT/BIC must be 8 or 11 characters long, with 6 letters followed by 2 or 5 letters or numbers.',
@@ -4876,6 +4946,14 @@ const translations = {
         bankDetails: 'Bank details',
         accountHolderDetails: 'Account holder details',
         howDoWeProtectYourData: 'How do we protect your data?',
+        notices: {
+            katakanaName: 'Enter your name exactly as it appears on your Japanese bank account. It is usually written in カタカナ (katakana). A mismatch may delay or reject your payment.',
+            alipayRecipients: 'Only mainland Chinese, Hong Kong, or Macao recipients can be paid through Alipay.',
+            alipayLimits:
+                'Alipay can receive up to 50,000 CNY per payment and between 300,000 and 600,000 CNY per year. Monthly limits on the number of payments may also apply, depending on the purpose of the payment.',
+            malaysianNonResidentLimit:
+                'Non-residents with a bank account in Malaysia can only receive 10,000 Malaysian ringgit per day. A payment above this limit may lead your bank to close your account.',
+        },
         currencyHeader: "What's your bank account's currency?",
         confirmationStepHeader: 'Check your info.',
         confirmationStepSubHeader: 'Double check the details below, and check the terms box to confirm.',
@@ -5609,6 +5687,10 @@ const translations = {
             railTicketExchange: (origin: string, destination: string, startDate: string) => `Your rail ticket for ${origin} → ${destination} on ${startDate} has been exchanged.`,
             railTicketUpdate: (origin: string, destination: string, startDate: string) => `Your rail ticket for ${origin} → ${destination} on ${startDate} has been updated.`,
             defaultUpdate: (type: string) => `Your ${type} reservation was updated.`,
+            hotelBooked: (hotelName: string, startDate: string) => `Your hotel reservation at ${hotelName} (check-in ${startDate}) has been booked.`,
+            carBooked: (vendor: string, startDate: string) => `Your ${vendor} car rental (pick-up ${startDate}) has been booked.`,
+            railTicketBooked: (origin: string, destination: string, startDate: string) => `Your rail ticket for ${origin} → ${destination} on ${startDate} has been booked.`,
+            defaultBooked: (type: string) => `Your ${type} reservation has been booked.`,
         },
         nudge: {
             airfareManual:
@@ -5876,6 +5958,9 @@ const translations = {
             },
             chatgpt: {
                 title: 'ChatGPT',
+            },
+            grok: {
+                title: 'Grok',
             },
         },
         connections: {
@@ -7317,6 +7402,41 @@ const translations = {
             noVendorsFoundDescription: 'Please add vendors in Digits and sync the connection again',
             noAccountsFound: 'No accounts found',
             noAccountsFoundDescription: 'Please add bank or credit card accounts in Digits and sync the connection again',
+            noBankAccountsFoundDescription: 'Please add bank accounts in Digits and sync the connection again',
+            noPayableAccountsFoundDescription: 'Please add credit card or current liability accounts in Digits and sync the connection again',
+            autoSyncDescription: 'Sync Digits and Expensify automatically, every day. Reports sync in realtime.',
+            accountingMethods: {
+                label: 'Export method',
+                description: 'Choose when to export expenses.',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Accrual',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Cash',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Out-of-pocket expenses will export when final approved',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Out-of-pocket expenses will export when paid',
+                },
+            },
+            syncReimbursedReports: 'Sync reimbursed reports',
+            syncReimbursedReportsDescription: 'When a report is paid via ACH, a bill payment will be generated in this account.',
+            billPaymentAccount: {
+                label: 'Bill payment account',
+                description: "Choose where to pay bills from and we'll create the payment in Digits.",
+            },
+            syncExpensifyCardSettlements: 'Sync Expensify Card settlements',
+            settlementAccount: {
+                label: 'Expensify Card settlement account',
+                description: "Choose your settlement account and we'll create the payment in Digits.",
+            },
+            syncTravelBillingSettlements: 'Sync Consolidated Travel Billing settlements',
+            travelBillingSettlementAccount: {
+                label: 'Consolidated Travel Billing settlement account',
+                description: "Choose your settlement account and we'll create the payment in Digits.",
+            },
+            travelBillingPayableAccount: {
+                label: 'Consolidated Travel Billing payable account',
+            },
+            missingSettlementAccount: (accountName: string) => `Settlements won't sync until you choose the ${accountName}.`,
         },
         zohoBooks: {
             organization: 'Zoho Books organization',
@@ -7899,6 +8019,8 @@ const translations = {
             createFailureMessage: 'An error occurred while creating the category, please try again',
             addCategory: 'Add category',
             createCategoryFromSearch: (categoryName: string) => `Create “${categoryName}” category`,
+            availableToMember: (memberName: string) => `Available to ${memberName}`,
+            notAvailableToMember: (memberName: string) => `Not available to ${memberName}`,
             editCategory: 'Edit category',
             editCategories: 'Edit categories',
             findCategory: 'Find category',
@@ -7916,11 +8038,13 @@ const translations = {
                 description: `At least one category must remain enabled because your workspace requires categories.`,
             },
             visibleTo: 'Visible to',
+            editVisibility: 'Edit visibility',
             membersCount: ({count}: {count: number}) => ({
                 one: '1 member',
                 other: `${count} members`,
             }),
             visibleToDescription: ({categoryName}: {categoryName: string}) => `Choose which members can use the ${categoryName} category when submitting expenses.`,
+            bulkVisibleToDescription: 'Choose which members can use these categories when submitting expenses.',
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `Can’t disable ${categoryName}`,
                 bulkTitle: 'Can’t disable these categories',
@@ -8590,6 +8714,9 @@ const translations = {
             },
             changeOfficeLocation: 'Change office location',
             changeWorkArrangement: 'Change work arrangement',
+            editCategoryVisibility: 'Edit category visibility',
+            bulkCategoryVisibilitySaved: ({categoryCount, memberCount}: {categoryCount: string; memberCount: string}) =>
+                `Set ${categoryCount} for ${memberCount}. This replaces their current category visibility.`,
             removeWorkspaceMemberButtonTitle: 'Remove from workspace',
             removeGroupMemberButtonTitle: 'Remove from group',
             removeRoomMemberButtonTitle: 'Remove from chat',
@@ -9390,6 +9517,7 @@ const translations = {
             startDate: 'Start date',
             endDate: 'End date',
             autoGeneratedRateTooltip: 'This rate is auto-generated.',
+            taxReclaimableOnAmount: (amount: string) => `Tax reclaimable on ${amount}`,
             automaticRates: 'Automatic rates',
             autoUpdateGovernmentRate: 'Auto-update government rate',
             autoUpdateGovernmentRateDescription: (countryPhrase: string) => `Automatically create new rates when ${countryPhrase} publishes new guidance. Doesn't modify existing rates.`,
@@ -10135,6 +10263,36 @@ const translations = {
                 matchType: 'Match type',
                 matchTypeContains: 'Contains',
                 matchTypeExact: 'Exactly matches',
+                merchantTypes: {
+                    [CONST.RULES.MERCHANT_TYPE.AIRLINES]: 'Airlines',
+                    [CONST.RULES.MERCHANT_TYPE.ALCOHOL_AND_BARS]: 'Alcohol and bars',
+                    [CONST.RULES.MERCHANT_TYPE.AMAZON_AND_BOOKSTORES]: 'Amazon and bookstores',
+                    [CONST.RULES.MERCHANT_TYPE.AUTOMOTIVE]: 'Automotive',
+                    [CONST.RULES.MERCHANT_TYPE.CAR_RENTALS]: 'Car rentals',
+                    [CONST.RULES.MERCHANT_TYPE.DINING]: 'Dining',
+                    [CONST.RULES.MERCHANT_TYPE.FUEL_AND_GAS]: 'Fuel and gas',
+                    [CONST.RULES.MERCHANT_TYPE.GOVERNMENT_AND_NON_PROFITS]: 'Government and non-profits',
+                    [CONST.RULES.MERCHANT_TYPE.GROCERIES]: 'Groceries',
+                    [CONST.RULES.MERCHANT_TYPE.GYMS_AND_FITNESS]: 'Gyms and fitness',
+                    [CONST.RULES.MERCHANT_TYPE.HEALTHCARE]: 'Healthcare',
+                    [CONST.RULES.MERCHANT_TYPE.HOTELS]: 'Hotels',
+                    [CONST.RULES.MERCHANT_TYPE.INTERNET_AND_PHONE]: 'Internet and phone',
+                    [CONST.RULES.MERCHANT_TYPE.OFFICE_SUPPLIES]: 'Office supplies',
+                    [CONST.RULES.MERCHANT_TYPE.PARKING_AND_TOLLS]: 'Parking and tolls',
+                    [CONST.RULES.MERCHANT_TYPE.PROFESSIONAL_SERVICES]: 'Professional services',
+                    [CONST.RULES.MERCHANT_TYPE.RETAIL]: 'Retail',
+                    [CONST.RULES.MERCHANT_TYPE.SHIPPING_AND_DELIVERY]: 'Shipping and delivery',
+                    [CONST.RULES.MERCHANT_TYPE.SOFTWARE]: 'Software',
+                    [CONST.RULES.MERCHANT_TYPE.TRANSIT_AND_RIDESHARE]: 'Transit and rideshare',
+                    [CONST.RULES.MERCHANT_TYPE.TRAVEL_AGENCIES]: 'Travel agencies',
+                },
+                dateMatchTypeOn: 'On',
+                dateMatchTypeBefore: 'Before',
+                dateMatchTypeAfter: 'After',
+                hasOrDoesNotHave: "Has/Doesn't have",
+                amountMatchTypeEqualTo: 'Equal to',
+                amountMatchTypeGreaterThan: 'Greater than',
+                amountMatchTypeLessThan: 'Less than',
                 duplicateRuleTitle: 'Similar rule already exists',
                 duplicateRulePrompt: (conditionName: string) => `Your existing rule for "${conditionName}" will take priority over this one. Save anyway?`,
                 saveAnyway: 'Save anyway',
@@ -10195,6 +10353,18 @@ const translations = {
                 merchantExactlyMatches: (merchant: string) => `Merchant exactly matches "${merchant}"`,
                 tagIs: (tag: string) => `Tag is "${tag}"`,
                 merchantTypeIs: (merchantType: string) => `Merchant type is "${merchantType}"`,
+                currencyIs: (currency: string) => `Currency is "${currency}"`,
+                cardIs: (card: string) => `Card is "${card}"`,
+                taxRateIs: (taxRate: string) => `Tax rate is "${taxRate}"`,
+                submitterIs: (submitter: string) => `Submitter is "${submitter}"`,
+                reimbursableIs: (reimbursable: string) => `Reimbursable is "${reimbursable}"`,
+                billableIs: (billable: string) => `Billable is "${billable}"`,
+                // @context The comparison already reads as a phrase, such as "on 2026-01-01" or "before 2026-01-01".
+                dateIs: (comparison: string) => `Date is ${comparison}`,
+                // @context The comparison already reads as a phrase, such as "greater than $30.00".
+                amountIs: (comparison: string) => `Amount is ${comparison}`,
+                hasValue: (value: string) => `Has "${value}"`,
+                doesNotHaveValue: (value: string) => `Doesn't have "${value}"`,
             },
             merchantTypeRule: {
                 merchantType: 'Merchant type',
@@ -11492,6 +11662,9 @@ const translations = {
             openMenu: ({columnName}: {columnName: string}) => `${columnName} column options`,
             sortAscending: 'Sort ascending',
             sortDescending: 'Sort descending',
+            pinLeft: 'Pin left',
+            pinRight: 'Pin right',
+            unpin: 'Unpin',
             hideColumn: 'Hide column',
             resetColumnSizes: 'Reset column sizes',
         },
@@ -11957,7 +12130,8 @@ const translations = {
                 reimbursementRefunded: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Funds were returned to bank account ${bankAccountLastFour}. You can retry the payment.`,
                 reimbursementRefundedWithoutBankAccount: 'Funds were returned. You can retry the payment.',
                 reimbursementHeld: 'Payment on hold while our partner completes a review. Look for another update. Chat with <concierge-link>Concierge</concierge-link>.',
-                reimbursementReleased: 'The review is complete and your payment is on its way. The final FX rate may change the amount.',
+                reimbursementReleased: ({expectedDate}: {expectedDate: string}) => `Payment released, funds are expected to arrive by ${expectedDate}.`,
+                reimbursementReleasedWithoutDate: 'Payment released.',
                 selectedForRandomAudit: `randomly selected for review`,
                 selectedForRandomAuditMarkdown: `[randomly selected](https://help.expensify.com/articles/expensify-classic/reports/Set-a-random-report-audit-schedule) for review`,
                 share: (to: string) => `invited member ${to}`,
@@ -11995,7 +12169,9 @@ const translations = {
                     mentionedAccountID?: number;
                 }) => {
                     let warningTime = 'soon';
-                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_MONTH) {
+                        warningTime = 'in one month';
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
                         warningTime = 'in two weeks';
                     } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
                         warningTime = 'in one week';

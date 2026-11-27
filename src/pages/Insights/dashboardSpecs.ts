@@ -13,7 +13,7 @@ import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {HasFilterValues} from '@src/types/form/SearchAdvancedFiltersForm';
-import type {Beta, InsightsDashboardID, InsightsGraphKey, InsightsSearchKey, Policy} from '@src/types/onyx';
+import type {InsightsDashboardID, InsightsGraphKey, InsightsSearchKey, Policy} from '@src/types/onyx';
 import type {SearchDataTypes, SearchWorkflowStageDurations} from '@src/types/onyx/SearchResults';
 
 import type {OnyxCollection} from 'react-native-onyx';
@@ -129,9 +129,6 @@ type InsightsDashboardSpec = {
     /** Label of the dashboard's tab in the segmented control */
     labelKey: TranslationPaths;
 
-    /** The dashboard is hidden unless this beta is enabled */
-    beta?: Beta;
-
     /** The dashboard is shown when any workspace in scope passes this. A dashboard that declares none is always shown. */
     isPolicyEligible?: PolicyEligibilityCheck;
 
@@ -143,6 +140,9 @@ type InsightsDashboardSpec = {
 
     /** Whether the charts link to the Spend page, from their menus and from a pressed point that has no Details panel to open. Defaults to true. */
     supportsDrillIn?: boolean;
+
+    /** Whether a pressed point opens the Details panel */
+    hasDetailsPanel: boolean;
 
     /** The dashboard's charts are replaced by the Control upsell when no workspace in scope is on Control */
     requiresControlPlan?: boolean;
@@ -159,6 +159,7 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
         searchKey: CONST.INSIGHTS.SEARCH_KEY.SPEND,
         labelKey: 'common.spend',
         queryType: CONST.SEARCH.DATA_TYPES.EXPENSE,
+        hasDetailsPanel: true,
         headlineChart: {
             graphKey: CONST.INSIGHTS.GRAPH.SPEND_OVER_TIME,
             titleKey: 'search.spendOverTime',
@@ -209,11 +210,11 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
     [CONST.INSIGHTS.DASHBOARD.EFFICIENCY]: {
         searchKey: CONST.INSIGHTS.SEARCH_KEY.EFFICIENCY,
         labelKey: 'insightsPage.efficiency',
-        beta: CONST.BETAS.INSIGHTS_EFFICIENCY,
         isPolicyEligible: canViewAllPolicyData,
         queryType: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
         countDimension: CONST.SEARCH.CHART_COUNT_DIMENSION.REPORT,
         supportsDrillIn: false,
+        hasDetailsPanel: false,
         headlineChart: {
             graphKey: CONST.INSIGHTS.GRAPH.WORKFLOW_EFFICIENCY,
             titleKey: 'insightsPage.workflowEfficiency',
@@ -272,10 +273,10 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
     [CONST.INSIGHTS.DASHBOARD.COMPLIANCE]: {
         searchKey: CONST.INSIGHTS.SEARCH_KEY.COMPLIANCE,
         labelKey: 'insightsPage.compliance',
-        beta: CONST.BETAS.INSIGHTS_COMPLIANCE,
         isPolicyEligible: canViewAllPolicyData,
         queryType: CONST.SEARCH.DATA_TYPES.EXPENSE,
         requiresControlPlan: true,
+        hasDetailsPanel: true,
         headlineChart: {
             graphKey: CONST.INSIGHTS.GRAPH.VIOLATIONS_OVER_TIME,
             titleKey: 'insightsPage.violationsOverTime',
@@ -406,11 +407,11 @@ function getUpgradeablePolicyIDsInScope(policiesInScope: Policy[], login: string
  * Returns the dashboards the user can open, ignoring the workspace filter.
  * Workspaces deleted offline stay in Onyx until the server confirms, so they don't count, or a dashboard would vanish only on reconnect.
  */
-function getAccessibleDashboards(policies: OnyxCollection<Policy>, login: string | undefined, isBetaEnabled: (beta: Beta) => boolean): InsightsDashboardID[] {
+function getAccessibleDashboards(policies: OnyxCollection<Policy>, login: string | undefined): InsightsDashboardID[] {
     const activePolicies = Object.values(policies ?? {}).filter((policy): policy is Policy => !!policy && !isArchivedOrPendingDeletePolicy(policy));
     return Object.values(CONST.INSIGHTS.DASHBOARD).filter((dashboardID) => {
-        const {beta, isPolicyEligible} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
-        return (!beta || isBetaEnabled(beta)) && (!isPolicyEligible || activePolicies.some((policy) => isPolicyEligible(policy, login)));
+        const {isPolicyEligible} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
+        return !isPolicyEligible || activePolicies.some((policy) => isPolicyEligible(policy, login));
     });
 }
 
@@ -420,6 +421,16 @@ function applyViolationStage(chart: InsightsChartSpec, stage: InsightsViolationS
         return chart;
     }
     return {...chart, ...VIOLATION_STAGE_FILTERS[stage]};
+}
+
+/** Returns the dashboard's chart with the given graph key, pointed at the given violation stage. */
+function getChartSpec(dashboardID: InsightsDashboardID, graphKey: string, stage: InsightsViolationStage | undefined): InsightsChartSpec | undefined {
+    const {headlineChart, supportingCharts} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
+    const chart = [headlineChart, ...supportingCharts].find((spec) => spec.graphKey === graphKey);
+    if (!chart) {
+        return undefined;
+    }
+    return applyViolationStage(chart, stage);
 }
 
 /** Returns the stage a chart with a violation stage control counts, the submitters' until the user picks one. Other charts have none. */
@@ -433,6 +444,7 @@ function getViolationStage(chart: InsightsChartSpec, violationStages: InsightsVi
 export {
     applyViolationStage,
     getAccessibleDashboards,
+    getChartSpec,
     getEnabledStages,
     getPoliciesInScope,
     getUpgradeablePolicyIDsInScope,

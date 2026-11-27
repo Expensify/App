@@ -1,6 +1,6 @@
 import type CONST from '@src/CONST';
 
-import type {ValueOf} from 'type-fest';
+import type {JsonObject, ValueOf} from 'type-fest';
 
 import type {Errors} from './OnyxCommon';
 
@@ -24,6 +24,9 @@ type InsightsGraph = {
     /** Hash of the snapshot holding the data for the "Average" compare mode */
     averageSnapshotHash?: number;
 
+    /** Workspaces in the Top spenders ranking that its Spend link must keep in scope */
+    eligiblePolicyIDs?: string[];
+
     /** Average group total over the selected period, in the same units as the snapshot's totals, which the "Average" compare mode draws on amount charts */
     averageAmount?: number;
 
@@ -37,7 +40,7 @@ type InsightsGraph = {
 /** Kind of signal an AI insight was detected from */
 type AIInsightSignal = ValueOf<typeof CONST.INSIGHTS.AI_INSIGHT.SIGNAL>;
 
-/** A chip's value, either a whole-number percentage or an amount */
+/** Values that can represent a change or an observed statistic */
 type AIInsightChipValue =
     | {
           unit: typeof CONST.INSIGHTS.AI_INSIGHT.CHIP_UNIT.PERCENT;
@@ -49,6 +52,12 @@ type AIInsightChipValue =
           /** Amount in cents */
           value: number;
           currency: string;
+      }
+    | {
+          unit: typeof CONST.INSIGHTS.AI_INSIGHT.CHIP_UNIT.DURATION;
+
+          /** Duration in seconds */
+          value: number;
       };
 
 /** Chip showing how much an item changed */
@@ -64,18 +73,25 @@ type AIInsightNeutralChip = (
           unit: typeof CONST.INSIGHTS.AI_INSIGHT.CHIP_UNIT.COUNT;
           value: number;
       }
-    | {
-          unit: typeof CONST.INSIGHTS.AI_INSIGHT.CHIP_UNIT.DURATION;
-
-          /** Average processing duration in seconds */
-          value: number;
-      }
 ) & {
     type: typeof CONST.INSIGHTS.AI_INSIGHT.CHIP_TYPE.NEUTRAL;
 };
 
 /** An AI insight's statistic: a change or an observed value */
 type AIInsightChip = AIInsightChangeChip | AIInsightNeutralChip;
+
+/** Source facts kept intact for Concierge; App does not interpret the graph-specific evidence. */
+type InsightsExplanationContext = {
+    graphKey: InsightsGraphKey;
+    groupBy:
+        | typeof CONST.SEARCH.GROUP_BY.DAY
+        | typeof CONST.SEARCH.GROUP_BY.WEEK
+        | typeof CONST.SEARCH.GROUP_BY.MONTH
+        | typeof CONST.SEARCH.GROUP_BY.QUARTER
+        | typeof CONST.SEARCH.GROUP_BY.YEAR;
+    signal: AIInsightSignal;
+    evidence: JsonObject;
+};
 
 /** AI-written insight about the dashboard's data */
 type AIInsight = {
@@ -93,6 +109,9 @@ type AIInsight = {
 
     /** Encoded ancestors for this tag; an empty string selects independent tags */
     parentTagPath?: string;
+
+    /** Missing on cards cached before structured Explain context was introduced. */
+    explainContext?: InsightsExplanationContext;
 };
 
 /** Expenses dated after the day the dashboard counts through, which every graph leaves out */
@@ -133,5 +152,5 @@ type InsightsDashboard = {
     responseJsonCode?: number;
 };
 
-export type {AIInsight, AIInsightChip, InsightsDashboardID, InsightsFutureExpenses, InsightsGraphKey, InsightsSearchKey};
+export type {AIInsight, AIInsightChip, InsightsDashboardID, InsightsExplanationContext, InsightsFutureExpenses, InsightsGraphKey, InsightsSearchKey};
 export default InsightsDashboard;

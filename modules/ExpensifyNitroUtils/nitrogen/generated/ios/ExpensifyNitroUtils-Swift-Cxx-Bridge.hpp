@@ -12,41 +12,52 @@
 namespace margelo::nitro::utils { enum class ContactFields; }
 // Forward declaration of `Contact` to properly resolve imports.
 namespace margelo::nitro::utils { struct Contact; }
+// Forward declaration of `DetectedDocument` to properly resolve imports.
+namespace margelo::nitro::utils { struct DetectedDocument; }
+// Forward declaration of `DocumentCorner` to properly resolve imports.
+namespace margelo::nitro::utils { struct DocumentCorner; }
 // Forward declaration of `HybridAppStartTimeModuleSpec` to properly resolve imports.
 namespace margelo::nitro::utils { class HybridAppStartTimeModuleSpec; }
 // Forward declaration of `HybridContactsModuleSpec` to properly resolve imports.
 namespace margelo::nitro::utils { class HybridContactsModuleSpec; }
+// Forward declaration of `HybridDocumentDetectorModuleSpec` to properly resolve imports.
+namespace margelo::nitro::utils { class HybridDocumentDetectorModuleSpec; }
 // Forward declaration of `HybridShareActionHandlerSpec` to properly resolve imports.
 namespace margelo::nitro::utils { class HybridShareActionHandlerSpec; }
-// Forward declaration of `HybridVerticalBarModuleSpec` to properly resolve imports.
-namespace margelo::nitro::utils { class HybridVerticalBarModuleSpec; }
+// Forward declaration of `HybridWindowBarsModuleSpec` to properly resolve imports.
+namespace margelo::nitro::utils { class HybridWindowBarsModuleSpec; }
 // Forward declaration of `SharedFile` to properly resolve imports.
 namespace margelo::nitro::utils { struct SharedFile; }
 // Forward declaration of `StringHolder` to properly resolve imports.
 namespace margelo::nitro::utils { struct StringHolder; }
-// Forward declaration of `VerticalBarEdge` to properly resolve imports.
-namespace margelo::nitro::utils { enum class VerticalBarEdge; }
+// Forward declaration of `TopBarRegion` to properly resolve imports.
+namespace margelo::nitro::utils { struct TopBarRegion; }
 
 // Forward declarations of Swift defined types
 // Forward declaration of `HybridAppStartTimeModuleSpec_cxx` to properly resolve imports.
 namespace ExpensifyNitroUtils { class HybridAppStartTimeModuleSpec_cxx; }
 // Forward declaration of `HybridContactsModuleSpec_cxx` to properly resolve imports.
 namespace ExpensifyNitroUtils { class HybridContactsModuleSpec_cxx; }
+// Forward declaration of `HybridDocumentDetectorModuleSpec_cxx` to properly resolve imports.
+namespace ExpensifyNitroUtils { class HybridDocumentDetectorModuleSpec_cxx; }
 // Forward declaration of `HybridShareActionHandlerSpec_cxx` to properly resolve imports.
 namespace ExpensifyNitroUtils { class HybridShareActionHandlerSpec_cxx; }
-// Forward declaration of `HybridVerticalBarModuleSpec_cxx` to properly resolve imports.
-namespace ExpensifyNitroUtils { class HybridVerticalBarModuleSpec_cxx; }
+// Forward declaration of `HybridWindowBarsModuleSpec_cxx` to properly resolve imports.
+namespace ExpensifyNitroUtils { class HybridWindowBarsModuleSpec_cxx; }
 
 // Include C++ defined types
 #include "Contact.hpp"
 #include "ContactFields.hpp"
+#include "DetectedDocument.hpp"
+#include "DocumentCorner.hpp"
 #include "HybridAppStartTimeModuleSpec.hpp"
 #include "HybridContactsModuleSpec.hpp"
+#include "HybridDocumentDetectorModuleSpec.hpp"
 #include "HybridShareActionHandlerSpec.hpp"
-#include "HybridVerticalBarModuleSpec.hpp"
+#include "HybridWindowBarsModuleSpec.hpp"
 #include "SharedFile.hpp"
 #include "StringHolder.hpp"
-#include "VerticalBarEdge.hpp"
+#include "TopBarRegion.hpp"
 #include <NitroModules/Promise.hpp>
 #include <NitroModules/PromiseHolder.hpp>
 #include <NitroModules/Result.hpp>
@@ -241,6 +252,86 @@ namespace margelo::nitro::utils::bridge::swift {
     return Result<std::shared_ptr<Promise<std::vector<Contact>>>>::withError(error);
   }
   
+  // pragma MARK: std::vector<DocumentCorner>
+  /**
+   * Specialized version of `std::vector<DocumentCorner>`.
+   */
+  using std__vector_DocumentCorner_ = std::vector<DocumentCorner>;
+  inline std::vector<DocumentCorner> create_std__vector_DocumentCorner_(size_t size) noexcept {
+    std::vector<DocumentCorner> vector;
+    vector.reserve(size);
+    return vector;
+  }
+  
+  // pragma MARK: std::optional<std::vector<DocumentCorner>>
+  /**
+   * Specialized version of `std::optional<std::vector<DocumentCorner>>`.
+   */
+  using std__optional_std__vector_DocumentCorner__ = std::optional<std::vector<DocumentCorner>>;
+  inline std::optional<std::vector<DocumentCorner>> create_std__optional_std__vector_DocumentCorner__(const std::vector<DocumentCorner>& value) noexcept {
+    return std::optional<std::vector<DocumentCorner>>(value);
+  }
+  inline bool has_value_std__optional_std__vector_DocumentCorner__(const std::optional<std::vector<DocumentCorner>>& optional) noexcept {
+    return optional.has_value();
+  }
+  inline std::vector<DocumentCorner> get_std__optional_std__vector_DocumentCorner__(const std::optional<std::vector<DocumentCorner>>& optional) noexcept {
+    return optional.value();
+  }
+  
+  // pragma MARK: std::optional<DetectedDocument>
+  /**
+   * Specialized version of `std::optional<DetectedDocument>`.
+   */
+  using std__optional_DetectedDocument_ = std::optional<DetectedDocument>;
+  inline std::optional<DetectedDocument> create_std__optional_DetectedDocument_(const DetectedDocument& value) noexcept {
+    return std::optional<DetectedDocument>(value);
+  }
+  inline bool has_value_std__optional_DetectedDocument_(const std::optional<DetectedDocument>& optional) noexcept {
+    return optional.has_value();
+  }
+  inline DetectedDocument get_std__optional_DetectedDocument_(const std::optional<DetectedDocument>& optional) noexcept {
+    return optional.value();
+  }
+  
+  // pragma MARK: std::shared_ptr<HybridDocumentDetectorModuleSpec>
+  /**
+   * Specialized version of `std::shared_ptr<HybridDocumentDetectorModuleSpec>`.
+   */
+  using std__shared_ptr_HybridDocumentDetectorModuleSpec_ = std::shared_ptr<HybridDocumentDetectorModuleSpec>;
+  std::shared_ptr<HybridDocumentDetectorModuleSpec> create_std__shared_ptr_HybridDocumentDetectorModuleSpec_(void* NON_NULL swiftUnsafePointer) noexcept;
+  void* NON_NULL get_std__shared_ptr_HybridDocumentDetectorModuleSpec_(std__shared_ptr_HybridDocumentDetectorModuleSpec_ cppType);
+  
+  // pragma MARK: std::weak_ptr<HybridDocumentDetectorModuleSpec>
+  using std__weak_ptr_HybridDocumentDetectorModuleSpec_ = std::weak_ptr<HybridDocumentDetectorModuleSpec>;
+  inline std__weak_ptr_HybridDocumentDetectorModuleSpec_ weakify_std__shared_ptr_HybridDocumentDetectorModuleSpec_(const std::shared_ptr<HybridDocumentDetectorModuleSpec>& strong) noexcept { return strong; }
+  
+  // pragma MARK: Result<std::optional<DetectedDocument>>
+  using Result_std__optional_DetectedDocument__ = Result<std::optional<DetectedDocument>>;
+  inline Result_std__optional_DetectedDocument__ create_Result_std__optional_DetectedDocument__(const std::optional<DetectedDocument>& value) noexcept {
+    return Result<std::optional<DetectedDocument>>::withValue(value);
+  }
+  inline Result_std__optional_DetectedDocument__ create_Result_std__optional_DetectedDocument__(const std::exception_ptr& error) noexcept {
+    return Result<std::optional<DetectedDocument>>::withError(error);
+  }
+  
+  // pragma MARK: Result<double>
+  using Result_double_ = Result<double>;
+  inline Result_double_ create_Result_double_(double value) noexcept {
+    return Result<double>::withValue(std::move(value));
+  }
+  inline Result_double_ create_Result_double_(const std::exception_ptr& error) noexcept {
+    return Result<double>::withError(error);
+  }
+  
+  // pragma MARK: Result<void>
+  using Result_void_ = Result<void>;
+  inline Result_void_ create_Result_void_() noexcept {
+    return Result<void>::withValue();
+  }
+  inline Result_void_ create_Result_void_(const std::exception_ptr& error) noexcept {
+    return Result<void>::withError(error);
+  }
+  
   // pragma MARK: std::vector<SharedFile>
   /**
    * Specialized version of `std::vector<SharedFile>`.
@@ -307,6 +398,21 @@ namespace margelo::nitro::utils::bridge::swift {
     return Result<std::shared_ptr<Promise<std::vector<SharedFile>>>>::withError(error);
   }
   
+  // pragma MARK: std::optional<TopBarRegion>
+  /**
+   * Specialized version of `std::optional<TopBarRegion>`.
+   */
+  using std__optional_TopBarRegion_ = std::optional<TopBarRegion>;
+  inline std::optional<TopBarRegion> create_std__optional_TopBarRegion_(const TopBarRegion& value) noexcept {
+    return std::optional<TopBarRegion>(value);
+  }
+  inline bool has_value_std__optional_TopBarRegion_(const std::optional<TopBarRegion>& optional) noexcept {
+    return optional.has_value();
+  }
+  inline TopBarRegion get_std__optional_TopBarRegion_(const std::optional<TopBarRegion>& optional) noexcept {
+    return optional.value();
+  }
+  
   // pragma MARK: std::function<void()>
   /**
    * Specialized version of `std::function<void()>`.
@@ -329,39 +435,17 @@ namespace margelo::nitro::utils::bridge::swift {
     return Func_void_Wrapper(std::move(value));
   }
   
-  // pragma MARK: std::function<void(VerticalBarEdge /* edge */)>
+  // pragma MARK: std::shared_ptr<HybridWindowBarsModuleSpec>
   /**
-   * Specialized version of `std::function<void(VerticalBarEdge)>`.
+   * Specialized version of `std::shared_ptr<HybridWindowBarsModuleSpec>`.
    */
-  using Func_void_VerticalBarEdge = std::function<void(VerticalBarEdge /* edge */)>;
-  /**
-   * Wrapper class for a `std::function<void(VerticalBarEdge / * edge * /)>`, this can be used from Swift.
-   */
-  class Func_void_VerticalBarEdge_Wrapper final {
-  public:
-    explicit Func_void_VerticalBarEdge_Wrapper(std::function<void(VerticalBarEdge /* edge */)>&& func): _function(std::make_unique<std::function<void(VerticalBarEdge /* edge */)>>(std::move(func))) {}
-    inline void call(int edge) const noexcept {
-      _function->operator()(static_cast<VerticalBarEdge>(edge));
-    }
-  private:
-    std::unique_ptr<std::function<void(VerticalBarEdge /* edge */)>> _function;
-  } SWIFT_NONCOPYABLE;
-  Func_void_VerticalBarEdge create_Func_void_VerticalBarEdge(void* NON_NULL swiftClosureWrapper) noexcept;
-  inline Func_void_VerticalBarEdge_Wrapper wrap_Func_void_VerticalBarEdge(Func_void_VerticalBarEdge value) noexcept {
-    return Func_void_VerticalBarEdge_Wrapper(std::move(value));
-  }
+  using std__shared_ptr_HybridWindowBarsModuleSpec_ = std::shared_ptr<HybridWindowBarsModuleSpec>;
+  std::shared_ptr<HybridWindowBarsModuleSpec> create_std__shared_ptr_HybridWindowBarsModuleSpec_(void* NON_NULL swiftUnsafePointer) noexcept;
+  void* NON_NULL get_std__shared_ptr_HybridWindowBarsModuleSpec_(std__shared_ptr_HybridWindowBarsModuleSpec_ cppType);
   
-  // pragma MARK: std::shared_ptr<HybridVerticalBarModuleSpec>
-  /**
-   * Specialized version of `std::shared_ptr<HybridVerticalBarModuleSpec>`.
-   */
-  using std__shared_ptr_HybridVerticalBarModuleSpec_ = std::shared_ptr<HybridVerticalBarModuleSpec>;
-  std::shared_ptr<HybridVerticalBarModuleSpec> create_std__shared_ptr_HybridVerticalBarModuleSpec_(void* NON_NULL swiftUnsafePointer) noexcept;
-  void* NON_NULL get_std__shared_ptr_HybridVerticalBarModuleSpec_(std__shared_ptr_HybridVerticalBarModuleSpec_ cppType);
-  
-  // pragma MARK: std::weak_ptr<HybridVerticalBarModuleSpec>
-  using std__weak_ptr_HybridVerticalBarModuleSpec_ = std::weak_ptr<HybridVerticalBarModuleSpec>;
-  inline std__weak_ptr_HybridVerticalBarModuleSpec_ weakify_std__shared_ptr_HybridVerticalBarModuleSpec_(const std::shared_ptr<HybridVerticalBarModuleSpec>& strong) noexcept { return strong; }
+  // pragma MARK: std::weak_ptr<HybridWindowBarsModuleSpec>
+  using std__weak_ptr_HybridWindowBarsModuleSpec_ = std::weak_ptr<HybridWindowBarsModuleSpec>;
+  inline std__weak_ptr_HybridWindowBarsModuleSpec_ weakify_std__shared_ptr_HybridWindowBarsModuleSpec_(const std::shared_ptr<HybridWindowBarsModuleSpec>& strong) noexcept { return strong; }
   
   // pragma MARK: Result<std::function<void()>>
   using Result_std__function_void____ = Result<std::function<void()>>;
