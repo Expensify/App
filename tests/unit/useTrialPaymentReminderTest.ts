@@ -62,8 +62,8 @@ async function setUpTrialUser(accountID: number, trialAgeMs: number, onboarding:
         [ONYXKEYS.NVP_ONBOARDING]: onboarding,
         [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: toTrialDate(new Date(now - trialAgeMs)),
         [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: toTrialDate(new Date(now - trialAgeMs + 30 * DAY_MS)),
-        [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: policy,
     });
+    await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
     await waitForBatchedUpdatesWithAct();
 }
 
