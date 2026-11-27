@@ -1,6 +1,6 @@
 import type {DynamicFormValues} from '@components/DynamicForm/types';
+import type {DropdownChoice} from '@components/FormDropdownField/DropdownChoiceAdapter';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
-import type {Choice} from '@components/RadioButtons';
 
 import StringUtils from '@libs/StringUtils';
 
@@ -11,11 +11,6 @@ import getLocalizedText from './getLocalizedText';
 import isCountryCode from './isCountryCode';
 
 type DynamicFormOptionField = DynamicFormChoiceField | DynamicFormMultiChoiceField | DynamicFormCountryField;
-
-type DynamicFormChoice = Choice & {
-    /** Text a list's search matches instead of the label. Countries list their ISO code and name, as the country selector searches them. */
-    searchValue?: string;
-};
 
 const COUNTRY_OPTIONS: DynamicFormFieldOption[] = Object.keys(CONST.ALL_COUNTRIES)
     .filter(isCountryCode)
@@ -47,7 +42,7 @@ function getOptionLabel(option: DynamicFormFieldOption, translate: LocalizedTran
     return getLocalizedText(translate, option.labelKey, option.label) ?? option.key;
 }
 
-function getChoices(options: DynamicFormFieldOption[], translate: LocalizedTranslate): DynamicFormChoice[] {
+function getChoices(options: DynamicFormFieldOption[], translate: LocalizedTranslate): DropdownChoice[] {
     return options.map((option) => {
         const label = getOptionLabel(option, translate);
         return {
@@ -60,15 +55,14 @@ function getChoices(options: DynamicFormFieldOption[], translate: LocalizedTrans
     });
 }
 
-function getFieldChoices(field: DynamicFormOptionField, values: DynamicFormValues, translate: LocalizedTranslate): DynamicFormChoice[] {
+function getFieldChoices(field: DynamicFormOptionField, values: DynamicFormValues, translate: LocalizedTranslate): DropdownChoice[] {
     return getChoices(getFieldOptions(field, values), translate);
 }
 
 /** Every country, listed and searched the way a country field lists them, for the country of an address */
-function getCountryChoices(translate: LocalizedTranslate): DynamicFormChoice[] {
+function getCountryChoices(translate: LocalizedTranslate): DropdownChoice[] {
     return getChoices(COUNTRY_OPTIONS, translate);
 }
 
 export default getFieldOptions;
 export {getCountryChoices, getFieldChoices, getOptionLabel};
-export type {DynamicFormChoice};

@@ -1,15 +1,15 @@
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
-import CurrencyDropdownAdapter from '@components/DynamicForm/adapters/CurrencyDropdownAdapter';
 import CurrencyInlineListAdapter from '@components/DynamicForm/adapters/CurrencyInlineListAdapter';
-import DropdownChoiceAdapter from '@components/DynamicForm/adapters/DropdownChoiceAdapter';
 import InlineSelectionListAdapter from '@components/DynamicForm/adapters/InlineSelectionListAdapter';
-import MultiChoiceDropdownAdapter from '@components/DynamicForm/adapters/MultiChoiceDropdownAdapter';
 import TabsAdapter from '@components/DynamicForm/adapters/TabsAdapter';
 import ToggleLinkAdapter from '@components/DynamicForm/adapters/ToggleLinkAdapter';
 import YesNoAdapter from '@components/DynamicForm/adapters/YesNoAdapter';
 import {getFieldChoices} from '@components/DynamicForm/utils/getFieldOptions';
 import getLocalizedText, {getFieldLabel, getInputLabel} from '@components/DynamicForm/utils/getLocalizedText';
 import InputWrapper from '@components/Form/InputWrapper';
+import CurrencyDropdownAdapter from '@components/FormDropdownField/CurrencyDropdownAdapter';
+import DropdownChoiceAdapter from '@components/FormDropdownField/DropdownChoiceAdapter';
+import MultiChoiceDropdownAdapter from '@components/FormDropdownField/MultiChoiceDropdownAdapter';
 import type {Choice} from '@components/RadioButtons';
 import RadioButtons from '@components/RadioButtons';
 
@@ -73,6 +73,9 @@ const renderMultiChoice: DynamicFieldRenderer<'multiselect' | 'countryMultiselec
         input: (
             <InputWrapper
                 InputComponent={MultiChoiceDropdownAdapter}
+                sentryLabel={CONST.SENTRY_LABEL.DYNAMIC_FORM.CHOICE_FIELD}
+                backButtonSentryLabel={CONST.SENTRY_LABEL.DYNAMIC_FORM.CHOICE_FIELD_BACK}
+                applyButtonSentryLabel={CONST.SENTRY_LABEL.DYNAMIC_FORM.CHOICE_FIELD_APPLY}
                 {...inputProps}
                 valueType="stringList"
                 label={getInputLabel(field, translate)}
@@ -100,6 +103,8 @@ const CHOICE_RENDERERS: Pick<DynamicFieldRendererMap, 'select' | 'radio' | 'mult
             input: (
                 <InputWrapper
                     InputComponent={DropdownChoiceAdapter}
+                    sentryLabel={CONST.SENTRY_LABEL.DYNAMIC_FORM.CHOICE_FIELD}
+                    backButtonSentryLabel={CONST.SENTRY_LABEL.DYNAMIC_FORM.CHOICE_FIELD_BACK}
                     {...inputProps}
                     label={label}
                     title={title}
@@ -139,6 +144,8 @@ const CHOICE_RENDERERS: Pick<DynamicFieldRendererMap, 'select' | 'radio' | 'mult
             input: (
                 <InputWrapper
                     InputComponent={DropdownChoiceAdapter}
+                    sentryLabel={CONST.SENTRY_LABEL.DYNAMIC_FORM.CHOICE_FIELD}
+                    backButtonSentryLabel={CONST.SENTRY_LABEL.DYNAMIC_FORM.CHOICE_FIELD_BACK}
                     {...inputProps}
                     label={label}
                     title={getFieldLabel(field, translate)}
@@ -166,6 +173,8 @@ const CHOICE_RENDERERS: Pick<DynamicFieldRendererMap, 'select' | 'radio' | 'mult
             input: (
                 <InputWrapper
                     InputComponent={CurrencyDropdownAdapter}
+                    sentryLabel={CONST.SENTRY_LABEL.DYNAMIC_FORM.CHOICE_FIELD}
+                    backButtonSentryLabel={CONST.SENTRY_LABEL.DYNAMIC_FORM.CHOICE_FIELD_BACK}
                     {...inputProps}
                     label={getInputLabel(field, translate)}
                     title={getFieldLabel(field, translate)}

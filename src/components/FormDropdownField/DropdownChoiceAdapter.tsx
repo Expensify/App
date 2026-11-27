@@ -1,51 +1,23 @@
 /** Form input for a single choice field, drawn as the expense form's dropdown row */
-import DynamicFormDropdownField from '@components/DynamicForm/components/DynamicFormDropdownField';
-import type {DynamicFormChoice} from '@components/DynamicForm/utils/getFieldOptions';
+import type {ValuePickerItem} from '@components/ValuePicker/types';
 import ValuePickerPopover from '@components/ValuePicker/ValuePickerPopover';
 import ValueSelectionList from '@components/ValuePicker/ValueSelectionList';
 
-import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
-
-import CONST from '@src/CONST';
-
-import type {ComponentRef, Ref} from 'react';
-import type {View} from 'react-native';
-
 import React, {useRef} from 'react';
 
-type DropdownChoiceAdapterProps = ForwardedFSClassProps & {
+import type {DropdownRowInputProps} from '.';
+
+import FormDropdownField from '.';
+
+/** An option of a dropdown row. `searchValue` is the text the list's search matches instead of the label */
+type DropdownChoice = Required<Pick<ValuePickerItem, 'label' | 'value'>> & Pick<ValuePickerItem, 'searchValue'>;
+
+type DropdownChoiceAdapterProps = DropdownRowInputProps<string> & {
     /** Options, one row each */
-    items: DynamicFormChoice[];
+    items: DropdownChoice[];
 
-    /** Name of the field, shown in the row and read with its value */
-    label: string;
-
-    /** Heading of the list once it opens */
-    title: string;
-
-    /** Key of the picked option */
-    value?: string;
-
-    /**
-     * Called with the key of a newly picked option, then with '' and `stateInputIDToReset` to clear that input.
-     * Picking the option the field already holds does not call it.
-     */
-    onInputChange?: (value: string, inputID?: string) => void;
-
-    /** Input cleared on each new pick, like the state of an address whose country changes, since the old state does not belong to the new country */
+    /** Input cleared on each new pick by calling `onInputChange` with '' and this ID, like the state of an address whose country changes, since the old state does not belong to the new country */
     stateInputIDToReset?: string;
-
-    /** Validation error shown under the row */
-    errorText?: string;
-
-    /** Dims the row and stops it opening, e.g. while the form waits on the server for new requirements */
-    disabled?: boolean;
-
-    /** Lets FormProvider scroll to and focus the row when the user asks to fix the errors */
-    ref?: Ref<ComponentRef<typeof View>>;
-
-    /** Called when the list closes without a pick, so FormProvider validates a field closed without an answer */
-    onBlur?: () => void;
 };
 
 /**
@@ -62,11 +34,13 @@ function DropdownChoiceAdapter({
     value,
     onInputChange,
     stateInputIDToReset,
-    errorText = '',
-    disabled = false,
+    errorText,
+    disabled,
     forwardedFSClass,
     ref,
     onBlur,
+    sentryLabel,
+    backButtonSentryLabel,
 }: DropdownChoiceAdapterProps) {
     const selectedItem = items.find((item) => item.value === value);
     const hasPickedRef = useRef(false);
@@ -90,7 +64,7 @@ function DropdownChoiceAdapter({
     };
 
     return (
-        <DynamicFormDropdownField
+        <FormDropdownField
             label={label}
             value={selectedItem?.label}
             title={title}
@@ -99,13 +73,15 @@ function DropdownChoiceAdapter({
             rowRef={ref}
             onBlur={blurUnlessPicked}
             forwardedFSClass={forwardedFSClass}
+            sentryLabel={sentryLabel}
+            backButtonSentryLabel={backButtonSentryLabel}
             renderDropdown={(dropdownProps) => (
                 <ValuePickerPopover
                     {...dropdownProps}
                     shouldFitContentHeight
                     shouldShowHeader
                     title={title}
-                    backButtonSentryLabel={CONST.SENTRY_LABEL.DYNAMIC_FORM.CHOICE_FIELD_BACK}
+                    backButtonSentryLabel={backButtonSentryLabel}
                     items={items}
                     selectedItem={selectedItem}
                     onItemSelected={(item) => selectValue(item.value)}
@@ -128,4 +104,4 @@ function DropdownChoiceAdapter({
 }
 
 export default DropdownChoiceAdapter;
-export type {DropdownChoiceAdapterProps};
+export type {DropdownChoice, DropdownChoiceAdapterProps};

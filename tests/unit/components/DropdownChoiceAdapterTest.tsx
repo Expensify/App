@@ -1,7 +1,7 @@
 import {act, fireEvent, render, renderHook, screen} from '@testing-library/react-native';
 
-import DropdownChoiceAdapter from '@components/DynamicForm/adapters/DropdownChoiceAdapter';
-import type {DropdownChoiceAdapterProps} from '@components/DynamicForm/adapters/DropdownChoiceAdapter';
+import DropdownChoiceAdapter from '@components/FormDropdownField/DropdownChoiceAdapter';
+import type {DropdownChoiceAdapterProps} from '@components/FormDropdownField/DropdownChoiceAdapter';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import ValuePickerPopover from '@components/ValuePicker/ValuePickerPopover';
 import type {ValuePickerPopoverProps} from '@components/ValuePicker/ValuePickerPopover';
@@ -17,7 +17,7 @@ import React, {createRef} from 'react';
 import {View} from 'react-native';
 import Onyx from 'react-native-onyx';
 
-import waitForBatchedUpdates from '../../../../utils/waitForBatchedUpdates';
+import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@components/ValuePicker/ValuePickerPopover', () =>
     jest.fn(({isVisible}: ValuePickerPopoverProps) => {
@@ -61,6 +61,8 @@ describe('DropdownChoiceAdapter', () => {
                     items={ITEMS}
                     label={LABEL}
                     title={LABEL}
+                    sentryLabel={CONST.SENTRY_LABEL.DYNAMIC_FORM.CHOICE_FIELD}
+                    backButtonSentryLabel={CONST.SENTRY_LABEL.DYNAMIC_FORM.CHOICE_FIELD_BACK}
                     {...props}
                 />
             </LocaleContextProvider>,

@@ -1,10 +1,12 @@
-import DropdownChoiceAdapter from '@components/DynamicForm/adapters/DropdownChoiceAdapter';
 import InputWrapper from '@components/Form/InputWrapper';
+import DropdownChoiceAdapter from '@components/FormDropdownField/DropdownChoiceAdapter';
 
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {useAddressFields} from '@pages/ReimbursementAccount/AddressFormFields/AddressFields';
+
+import CONST from '@src/CONST';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -29,6 +31,8 @@ function DynamicFormAddressStateDropdown({stateOptions, label}: DynamicFormAddre
         <View style={styles.mt4}>
             <InputWrapper
                 InputComponent={DropdownChoiceAdapter}
+                sentryLabel={CONST.SENTRY_LABEL.DYNAMIC_FORM.CHOICE_FIELD}
+                backButtonSentryLabel={CONST.SENTRY_LABEL.DYNAMIC_FORM.CHOICE_FIELD_BACK}
                 inputID={inputKeys.state ?? 'stateInput'}
                 shouldSaveDraft={shouldSaveDraft}
                 items={Object.entries(stateOptions).map(([value, stateName]) => ({value, label: stateName}))}

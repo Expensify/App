@@ -1,10 +1,11 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
-import type {MultiChoiceDropdownAdapterProps} from '@components/DynamicForm/adapters/MultiChoiceDropdownAdapter';
-import MultiChoiceDropdownAdapter from '@components/DynamicForm/adapters/MultiChoiceDropdownAdapter';
+import type {MultiChoiceDropdownAdapterProps} from '@components/FormDropdownField/MultiChoiceDropdownAdapter';
+import MultiChoiceDropdownAdapter from '@components/FormDropdownField/MultiChoiceDropdownAdapter';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import MultiValuePickerPopover from '@components/ValuePicker/MultiValuePickerPopover';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {ComponentRef} from 'react';
@@ -13,7 +14,7 @@ import React from 'react';
 import {View} from 'react-native';
 import Onyx from 'react-native-onyx';
 
-import waitForBatchedUpdates from '../../../../utils/waitForBatchedUpdates';
+import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@components/ValuePicker/MultiValuePickerPopover', () => jest.fn(() => null));
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn(() => ({isSmallScreenWidth: false, shouldUseNarrowLayout: false})));
@@ -50,6 +51,9 @@ describe('MultiChoiceDropdownAdapter', () => {
                     items={ITEMS}
                     label={LABEL}
                     title={LABEL}
+                    sentryLabel={CONST.SENTRY_LABEL.DYNAMIC_FORM.CHOICE_FIELD}
+                    backButtonSentryLabel={CONST.SENTRY_LABEL.DYNAMIC_FORM.CHOICE_FIELD_BACK}
+                    applyButtonSentryLabel={CONST.SENTRY_LABEL.DYNAMIC_FORM.CHOICE_FIELD_APPLY}
                     {...props}
                 />
             </LocaleContextProvider>,

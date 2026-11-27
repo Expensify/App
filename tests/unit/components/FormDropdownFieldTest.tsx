@@ -1,10 +1,11 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
-import DynamicFormDropdownField from '@components/DynamicForm/components/DynamicFormDropdownField';
-import type {DynamicFormDropdownFieldRenderProps} from '@components/DynamicForm/components/DynamicFormDropdownField';
+import FormDropdownField from '@components/FormDropdownField';
+import type {FormDropdownFieldRenderProps} from '@components/FormDropdownField';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import ModalContext from '@components/Modal/ModalContext';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {ComponentRef} from 'react';
@@ -13,11 +14,11 @@ import React from 'react';
 import {View} from 'react-native';
 import Onyx from 'react-native-onyx';
 
-import waitForBatchedUpdates from '../../../utils/waitForBatchedUpdates';
+import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 // The full page is a modal, which a bare render cannot open, so it shows its list straight away
 jest.mock(
-    '@components/DynamicForm/components/DynamicFormFullPageList',
+    '@components/FormDropdownField/FormDropdownFullPageList',
     () =>
         ({children}: {children: React.ReactNode}) =>
             children,
@@ -27,8 +28,8 @@ jest.mock('@hooks/useWindowDimensions', () => jest.fn(() => ({windowWidth: 1280,
 
 const LABEL = 'Country of residence';
 
-describe('DynamicFormDropdownField', () => {
-    let fullPageListProps: DynamicFormDropdownFieldRenderProps | undefined;
+describe('FormDropdownField', () => {
+    let fullPageListProps: FormDropdownFieldRenderProps | undefined;
     const renderDropdown = jest.fn(() => null);
 
     beforeAll(() => {
@@ -51,11 +52,13 @@ describe('DynamicFormDropdownField', () => {
         render(
             <LocaleContextProvider>
                 <ModalContext.Provider value={{default: !isInsideModal}}>
-                    <DynamicFormDropdownField
+                    <FormDropdownField
                         label={LABEL}
                         title={LABEL}
                         errorText=""
                         disabled={false}
+                        sentryLabel={CONST.SENTRY_LABEL.DYNAMIC_FORM.CHOICE_FIELD}
+                        backButtonSentryLabel={CONST.SENTRY_LABEL.DYNAMIC_FORM.CHOICE_FIELD_BACK}
                         renderDropdown={renderDropdown}
                         renderFullPageList={(props) => {
                             fullPageListProps = props;

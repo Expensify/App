@@ -1,10 +1,11 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import CurrencyPickerPopover from '@components/CurrencyPickerPopover';
-import type {CurrencyDropdownAdapterProps} from '@components/DynamicForm/adapters/CurrencyDropdownAdapter';
-import CurrencyDropdownAdapter from '@components/DynamicForm/adapters/CurrencyDropdownAdapter';
+import type {CurrencyDropdownAdapterProps} from '@components/FormDropdownField/CurrencyDropdownAdapter';
+import CurrencyDropdownAdapter from '@components/FormDropdownField/CurrencyDropdownAdapter';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {ComponentRef} from 'react';
@@ -13,7 +14,7 @@ import React from 'react';
 import {View} from 'react-native';
 import Onyx from 'react-native-onyx';
 
-import waitForBatchedUpdates from '../../../../utils/waitForBatchedUpdates';
+import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@components/CurrencyPickerPopover', () => jest.fn(() => null));
 jest.mock('@hooks/useCurrencyList', () => ({
@@ -50,6 +51,8 @@ describe('CurrencyDropdownAdapter', () => {
                 <CurrencyDropdownAdapter
                     label={LABEL}
                     title={LABEL}
+                    sentryLabel={CONST.SENTRY_LABEL.DYNAMIC_FORM.CHOICE_FIELD}
+                    backButtonSentryLabel={CONST.SENTRY_LABEL.DYNAMIC_FORM.CHOICE_FIELD_BACK}
                     {...props}
                 />
             </LocaleContextProvider>,

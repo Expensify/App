@@ -4,13 +4,10 @@ import AddressSearch from '@components/AddressSearch';
 import AmountFormInline from '@components/AmountFormAdapters/AmountFormInline';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import DatePicker from '@components/DatePicker';
-import CurrencyDropdownAdapter from '@components/DynamicForm/adapters/CurrencyDropdownAdapter';
 import CurrencyInlineListAdapter from '@components/DynamicForm/adapters/CurrencyInlineListAdapter';
-import DropdownChoiceAdapter from '@components/DynamicForm/adapters/DropdownChoiceAdapter';
 import FileUploadAdapter from '@components/DynamicForm/adapters/FileUploadAdapter';
 import InlineSelectionListAdapter from '@components/DynamicForm/adapters/InlineSelectionListAdapter';
 import ListFieldAdapter from '@components/DynamicForm/adapters/ListFieldAdapter';
-import MultiChoiceDropdownAdapter from '@components/DynamicForm/adapters/MultiChoiceDropdownAdapter';
 import TabsAdapter from '@components/DynamicForm/adapters/TabsAdapter';
 import ToggleLinkAdapter from '@components/DynamicForm/adapters/ToggleLinkAdapter';
 import YesNoAdapter from '@components/DynamicForm/adapters/YesNoAdapter';
@@ -19,6 +16,9 @@ import type {DynamicFormValues} from '@components/DynamicForm/types';
 import getAddressInputKeys from '@components/DynamicForm/utils/getAddressInputKeys';
 import {getAllFields, getPages} from '@components/DynamicForm/utils/paginate';
 import type {FormValue} from '@components/Form/types';
+import CurrencyDropdownAdapter from '@components/FormDropdownField/CurrencyDropdownAdapter';
+import DropdownChoiceAdapter from '@components/FormDropdownField/DropdownChoiceAdapter';
+import MultiChoiceDropdownAdapter from '@components/FormDropdownField/MultiChoiceDropdownAdapter';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import PercentageForm from '@components/PercentageForm';
 import RadioButtons from '@components/RadioButtons';
@@ -64,6 +64,9 @@ type CapturedInputProps = {
     disabled?: boolean;
     shouldAllowChange?: boolean;
     stateInputIDToReset?: string;
+    sentryLabel?: string;
+    backButtonSentryLabel?: string;
+    applyButtonSentryLabel?: string;
 };
 
 const mockNetwork = {isOffline: false};
@@ -257,6 +260,55 @@ describe('DynamicFormFields', () => {
 
         // Then the input gets no default of its own, so the draft stays the one source of its answer
         expect(rendered.get('nationality')?.defaultValue).toBeUndefined();
+    });
+
+    it.each<{name: string; field: DynamicFormField; inputID: string}>([
+        {name: 'select', field: {key: 'answer', type: 'select', required: false, values: [{key: 'A', label: 'A'}]}, inputID: 'answer'},
+        {name: 'country', field: {key: 'answer', type: 'country', required: false}, inputID: 'answer'},
+        {name: 'currency', field: {key: 'answer', type: 'currency', required: false}, inputID: 'answer'},
+        {name: 'amount currency', field: {key: 'answer', type: 'amount', required: false, currencyKey: 'answerCurrency'}, inputID: 'answerCurrency'},
+        {name: 'address country', field: {key: 'answer', type: 'address', required: false}, inputID: getAddressInputKeys('answer').country},
+    ])('labels the $name dropdown row with the shared DynamicForm Sentry labels', ({field, inputID}) => {
+        // Given a field drawn as a single choice dropdown row, whose adapter takes its Sentry labels from the form
+
+        // When it renders
+        const rendered = renderFields([field, otherQuestion]);
+
+        // Then it keeps the labels it had before the adapters moved out of DynamicForm, so its Sentry history carries on
+        expect(rendered.get(inputID)).toMatchObject({
+            sentryLabel: CONST.SENTRY_LABEL.DYNAMIC_FORM.CHOICE_FIELD,
+            backButtonSentryLabel: CONST.SENTRY_LABEL.DYNAMIC_FORM.CHOICE_FIELD_BACK,
+        });
+    });
+
+    it('labels the address state dropdown row with the shared DynamicForm Sentry labels', () => {
+        // Given a US address, which asks for its state in a dropdown row
+        const homeAddress: DynamicFormField = {key: 'homeAddress', type: 'address', required: false};
+        const keys = getAddressInputKeys('homeAddress');
+
+        // When it renders
+        const rendered = renderFields([homeAddress], {[keys.country]: CONST.COUNTRY.US});
+
+        // Then the state row keeps the labels it had before the adapters moved out of DynamicForm
+        expect(rendered.get(keys.state)).toMatchObject({
+            sentryLabel: CONST.SENTRY_LABEL.DYNAMIC_FORM.CHOICE_FIELD,
+            backButtonSentryLabel: CONST.SENTRY_LABEL.DYNAMIC_FORM.CHOICE_FIELD_BACK,
+        });
+    });
+
+    it.each(['multiselect', 'countryMultiselect'] as const)('labels the %s dropdown row and its Apply button with the shared DynamicForm Sentry labels', (type) => {
+        // Given a field drawn as a multi choice dropdown row, which also has an Apply button
+        const field: DynamicFormField = {key: 'answer', type, required: false, values: [{key: 'A', label: 'A'}]};
+
+        // When it renders
+        const rendered = renderFields([field, otherQuestion]);
+
+        // Then the row, its back button and its Apply button keep the labels they had before the adapters moved out of DynamicForm
+        expect(rendered.get('answer')).toMatchObject({
+            sentryLabel: CONST.SENTRY_LABEL.DYNAMIC_FORM.CHOICE_FIELD,
+            backButtonSentryLabel: CONST.SENTRY_LABEL.DYNAMIC_FORM.CHOICE_FIELD_BACK,
+            applyButtonSentryLabel: CONST.SENTRY_LABEL.DYNAMIC_FORM.CHOICE_FIELD_APPLY,
+        });
     });
 
     it('refills every part of a sensitive address from memory', () => {

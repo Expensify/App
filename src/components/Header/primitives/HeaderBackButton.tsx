@@ -8,6 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import {Keyboard} from 'react-native';
 
@@ -19,9 +20,12 @@ type HeaderBackButtonProps = {
 
     /** Optional fill color for the icon. */
     iconFill?: string;
+
+    /** Sentry label for the button, for a back button whose presses belong to its own area. Defaults to the generic header back button label. */
+    sentryLabel?: SentryLabel;
 };
 
-function HeaderBackButton({onPress = () => Navigation.goBack(), iconFill}: HeaderBackButtonProps) {
+function HeaderBackButton({onPress = () => Navigation.goBack(), iconFill, sentryLabel = CONST.SENTRY_LABEL.HEADER.BACK_BUTTON}: HeaderBackButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['BackArrow']);
@@ -43,7 +47,7 @@ function HeaderBackButton({onPress = () => Navigation.goBack(), iconFill}: Heade
             // Header makes the space for this button with the padding, so we need to add negative margin to fill the space - instead of reducing the padding from pl5 to pl2
             style={styles.mln3}
             id={CONST.BACK_BUTTON_NATIVE_ID}
-            sentryLabel={CONST.SENTRY_LABEL.HEADER.BACK_BUTTON}
+            sentryLabel={sentryLabel}
         />
     );
 }
