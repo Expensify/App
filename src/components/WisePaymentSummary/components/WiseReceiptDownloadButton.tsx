@@ -1,13 +1,15 @@
 /**
  * Downloads the receipt of a report's Wise transfer. It shows only once Wise provides the receipt, which happens after the payment leaves Wise.
  */
-import LinkButton from '@components/Button/composed/LinkButton';
+import Button from '@components/Button';
 import {isLatestWiseReceiptAvailable} from '@components/WisePaymentSummary/utils/getPaidWisePaymentAmounts';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import {showGeneralErrorAlert} from '@libs/fileDownload/FileUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -25,6 +27,8 @@ type WiseReceiptDownloadButtonProps = {
 
 function WiseReceiptDownloadButton({reportID}: WiseReceiptDownloadButtonProps) {
     const {translate} = useLocalize();
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const icons = useMemoizedLazyExpensifyIcons(['Download']);
     const [isReceiptAvailable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportID)}`, {selector: isLatestWiseReceiptAvailable});
@@ -45,15 +49,21 @@ function WiseReceiptDownloadButton({reportID}: WiseReceiptDownloadButtonProps) {
     }
 
     return (
-        <LinkButton
+        <Button
             onPress={downloadReceipt}
             isLoading={isDownloading}
             size={CONST.BUTTON_SIZE.SMALL}
+            innerStyles={styles.bgTransparent}
+            hoverStyles={styles.hoveredComponentBG}
             sentryLabel={CONST.SENTRY_LABEL.WISE_PAYMENT_DETAILS.DOWNLOAD_RECEIPT}
         >
-            <LinkButton.Icon src={icons.Download} />
-            <LinkButton.Text>{translate('iou.wisePaymentSummary.downloadReceipt')}</LinkButton.Text>
-        </LinkButton>
+            <Button.Icon
+                src={icons.Download}
+                fill={theme.icon}
+                hoverFill={theme.icon}
+            />
+            <Button.Text style={styles.textSupporting}>{translate('iou.wisePaymentSummary.downloadReceipt')}</Button.Text>
+        </Button>
     );
 }
 
