@@ -1,8 +1,8 @@
 diff --git a/node_modules/@legendapp/list/react-native.js b/node_modules/@legendapp/list/react-native.js
-index 90f3866..0ce10f1 100644
+index b401a93..283781b 100644
 --- a/node_modules/@legendapp/list/react-native.js
 +++ b/node_modules/@legendapp/list/react-native.js
-@@ -549,6 +549,7 @@ function cancelImperativeScroll(state) {
+@@ -551,6 +551,7 @@ function cancelImperativeScroll(state) {
  }
  
  // src/core/clampScrollOffset.ts
@@ -10,7 +10,7 @@ index 90f3866..0ce10f1 100644
  function getContentInsetTop(ctx) {
    var _a3, _b, _c, _d;
    const state = ctx.state;
-@@ -561,6 +562,20 @@ function getContentInsetTop(ctx) {
+@@ -563,6 +564,20 @@ function getContentInsetTop(ctx) {
  function getScrollRangeEnd(ctx, contentSize = getContentSize(ctx)) {
    return Math.max(0 - getContentInsetTop(ctx), contentSize - ctx.state.scrollLength);
  }
@@ -31,7 +31,7 @@ index 90f3866..0ce10f1 100644
  function clampScrollOffset(ctx, offset, scrollTarget) {
    var _a3;
    const state = ctx.state;
-@@ -2055,14 +2070,8 @@ function prepareMVCP(ctx, dataChanged, adjustmentSource) {
+@@ -2097,14 +2112,8 @@ function prepareMVCP(ctx, dataChanged, adjustmentSource) {
          }
          positionDiff = endOffset - state.scroll;
        }
@@ -48,7 +48,7 @@ index 90f3866..0ce10f1 100644
        }
        if (shouldQueueNativeMVCPAdjust(dataChanged, state, positionDiff, prevTotalSize, prevScroll, scrollTarget)) {
          state.pendingNativeMVCPAdjust = {
-@@ -6926,7 +6935,7 @@ function shouldAdjustForHeaderSizeChange(ctx, previousHeaderSize, nextHeaderSize
+@@ -6978,7 +6987,7 @@ function shouldAdjustForHeaderSizeChange(ctx, previousHeaderSize, nextHeaderSize
    const sizeDiff = nextHeaderSize - previousHeaderSize;
    const leadingPadding = props.horizontal ? props.stylePaddingLeft : props.stylePaddingTop;
    const previousHeaderEnd = (leadingPadding || 0) + previousHeaderSize;
@@ -57,7 +57,7 @@ index 90f3866..0ce10f1 100644
  }
  function setHeaderSize(ctx, size) {
    const { state } = ctx;
-@@ -6937,7 +6946,7 @@ function setHeaderSize(ctx, size) {
+@@ -6989,7 +6998,7 @@ function setHeaderSize(ctx, size) {
      set$(ctx, "headerSize", size);
      updateContentMetricsState(ctx);
      if (hasMeasuredOrEstimatedHeaderBaseline && shouldAdjustForHeaderSizeChange(ctx, previousHeaderSize, size)) {
@@ -67,10 +67,10 @@ index 90f3866..0ce10f1 100644
    }
    state.didMeasureHeader = true;
 diff --git a/node_modules/@legendapp/list/react-native.mjs b/node_modules/@legendapp/list/react-native.mjs
-index 21e92a7..7834854 100644
+index 265e08c..fd3899d 100644
 --- a/node_modules/@legendapp/list/react-native.mjs
 +++ b/node_modules/@legendapp/list/react-native.mjs
-@@ -528,6 +528,7 @@ function cancelImperativeScroll(state) {
+@@ -530,6 +530,7 @@ function cancelImperativeScroll(state) {
  }
  
  // src/core/clampScrollOffset.ts
@@ -78,7 +78,7 @@ index 21e92a7..7834854 100644
  function getContentInsetTop(ctx) {
    var _a3, _b, _c, _d;
    const state = ctx.state;
-@@ -540,6 +541,20 @@ function getContentInsetTop(ctx) {
+@@ -542,6 +543,20 @@ function getContentInsetTop(ctx) {
  function getScrollRangeEnd(ctx, contentSize = getContentSize(ctx)) {
    return Math.max(0 - getContentInsetTop(ctx), contentSize - ctx.state.scrollLength);
  }
@@ -99,7 +99,7 @@ index 21e92a7..7834854 100644
  function clampScrollOffset(ctx, offset, scrollTarget) {
    var _a3;
    const state = ctx.state;
-@@ -2034,14 +2049,8 @@ function prepareMVCP(ctx, dataChanged, adjustmentSource) {
+@@ -2076,14 +2091,8 @@ function prepareMVCP(ctx, dataChanged, adjustmentSource) {
          }
          positionDiff = endOffset - state.scroll;
        }
@@ -116,7 +116,7 @@ index 21e92a7..7834854 100644
        }
        if (shouldQueueNativeMVCPAdjust(dataChanged, state, positionDiff, prevTotalSize, prevScroll, scrollTarget)) {
          state.pendingNativeMVCPAdjust = {
-@@ -6905,7 +6914,7 @@ function shouldAdjustForHeaderSizeChange(ctx, previousHeaderSize, nextHeaderSize
+@@ -6957,7 +6966,7 @@ function shouldAdjustForHeaderSizeChange(ctx, previousHeaderSize, nextHeaderSize
    const sizeDiff = nextHeaderSize - previousHeaderSize;
    const leadingPadding = props.horizontal ? props.stylePaddingLeft : props.stylePaddingTop;
    const previousHeaderEnd = (leadingPadding || 0) + previousHeaderSize;
@@ -125,7 +125,7 @@ index 21e92a7..7834854 100644
  }
  function setHeaderSize(ctx, size) {
    const { state } = ctx;
-@@ -6916,7 +6925,7 @@ function setHeaderSize(ctx, size) {
+@@ -6968,7 +6977,7 @@ function setHeaderSize(ctx, size) {
      set$(ctx, "headerSize", size);
      updateContentMetricsState(ctx);
      if (hasMeasuredOrEstimatedHeaderBaseline && shouldAdjustForHeaderSizeChange(ctx, previousHeaderSize, size)) {
@@ -135,10 +135,10 @@ index 21e92a7..7834854 100644
    }
    state.didMeasureHeader = true;
 diff --git a/node_modules/@legendapp/list/react-native.web.js b/node_modules/@legendapp/list/react-native.web.js
-index a353a79..d2294be 100644
+index a904512..87e43fd 100644
 --- a/node_modules/@legendapp/list/react-native.web.js
 +++ b/node_modules/@legendapp/list/react-native.web.js
-@@ -488,8 +488,6 @@ function cancelImperativeScroll(state) {
+@@ -490,8 +490,6 @@ function cancelImperativeScroll(state) {
    state.scrollTargetPinnedRange = void 0;
    settlePendingImperativeScroll(state);
  }
@@ -147,7 +147,7 @@ index a353a79..d2294be 100644
  function getContentInsetTop(ctx) {
    ctx.state;
    {
-@@ -499,6 +497,12 @@ function getContentInsetTop(ctx) {
+@@ -501,6 +499,12 @@ function getContentInsetTop(ctx) {
  function getScrollRangeEnd(ctx, contentSize = getContentSize(ctx)) {
    return Math.max(0 - getContentInsetTop(ctx), contentSize - ctx.state.scrollLength);
  }
@@ -160,7 +160,7 @@ index a353a79..d2294be 100644
  function clampScrollOffset(ctx, offset, scrollTarget) {
    var _a3;
    const state = ctx.state;
-@@ -1997,6 +2001,9 @@ function prepareMVCP(ctx, dataChanged, adjustmentSource) {
+@@ -2047,6 +2051,9 @@ function prepareMVCP(ctx, dataChanged, adjustmentSource) {
          }
          positionDiff = endOffset - state.scroll;
        }
@@ -170,7 +170,7 @@ index a353a79..d2294be 100644
        if (shouldQueueNativeMVCPAdjust()) {
          state.pendingNativeMVCPAdjust = {
            amount: positionDiff,
-@@ -7831,7 +7838,7 @@ function setHeaderSize(ctx, size) {
+@@ -7893,7 +7900,7 @@ function setHeaderSize(ctx, size) {
      set$(ctx, "headerSize", size);
      updateContentMetricsState(ctx);
      if (hasMeasuredOrEstimatedHeaderBaseline && shouldAdjustForHeaderSizeChange(ctx, previousHeaderSize, size)) {
@@ -180,10 +180,10 @@ index a353a79..d2294be 100644
    }
    state.didMeasureHeader = true;
 diff --git a/node_modules/@legendapp/list/react-native.web.mjs b/node_modules/@legendapp/list/react-native.web.mjs
-index 5415ee0..b029f89 100644
+index 61f52ce..bcc0d18 100644
 --- a/node_modules/@legendapp/list/react-native.web.mjs
 +++ b/node_modules/@legendapp/list/react-native.web.mjs
-@@ -467,8 +467,6 @@ function cancelImperativeScroll(state) {
+@@ -469,8 +469,6 @@ function cancelImperativeScroll(state) {
    state.scrollTargetPinnedRange = void 0;
    settlePendingImperativeScroll(state);
  }
@@ -192,7 +192,7 @@ index 5415ee0..b029f89 100644
  function getContentInsetTop(ctx) {
    ctx.state;
    {
-@@ -478,6 +476,12 @@ function getContentInsetTop(ctx) {
+@@ -480,6 +478,12 @@ function getContentInsetTop(ctx) {
  function getScrollRangeEnd(ctx, contentSize = getContentSize(ctx)) {
    return Math.max(0 - getContentInsetTop(ctx), contentSize - ctx.state.scrollLength);
  }
@@ -205,7 +205,7 @@ index 5415ee0..b029f89 100644
  function clampScrollOffset(ctx, offset, scrollTarget) {
    var _a3;
    const state = ctx.state;
-@@ -1976,6 +1980,9 @@ function prepareMVCP(ctx, dataChanged, adjustmentSource) {
+@@ -2026,6 +2030,9 @@ function prepareMVCP(ctx, dataChanged, adjustmentSource) {
          }
          positionDiff = endOffset - state.scroll;
        }
@@ -215,7 +215,7 @@ index 5415ee0..b029f89 100644
        if (shouldQueueNativeMVCPAdjust()) {
          state.pendingNativeMVCPAdjust = {
            amount: positionDiff,
-@@ -7810,7 +7817,7 @@ function setHeaderSize(ctx, size) {
+@@ -7872,7 +7879,7 @@ function setHeaderSize(ctx, size) {
      set$(ctx, "headerSize", size);
      updateContentMetricsState(ctx);
      if (hasMeasuredOrEstimatedHeaderBaseline && shouldAdjustForHeaderSizeChange(ctx, previousHeaderSize, size)) {
@@ -225,10 +225,10 @@ index 5415ee0..b029f89 100644
    }
    state.didMeasureHeader = true;
 diff --git a/node_modules/@legendapp/list/react.js b/node_modules/@legendapp/list/react.js
-index a353a79..d2294be 100644
+index a904512..87e43fd 100644
 --- a/node_modules/@legendapp/list/react.js
 +++ b/node_modules/@legendapp/list/react.js
-@@ -488,8 +488,6 @@ function cancelImperativeScroll(state) {
+@@ -490,8 +490,6 @@ function cancelImperativeScroll(state) {
    state.scrollTargetPinnedRange = void 0;
    settlePendingImperativeScroll(state);
  }
@@ -237,7 +237,7 @@ index a353a79..d2294be 100644
  function getContentInsetTop(ctx) {
    ctx.state;
    {
-@@ -499,6 +497,12 @@ function getContentInsetTop(ctx) {
+@@ -501,6 +499,12 @@ function getContentInsetTop(ctx) {
  function getScrollRangeEnd(ctx, contentSize = getContentSize(ctx)) {
    return Math.max(0 - getContentInsetTop(ctx), contentSize - ctx.state.scrollLength);
  }
@@ -250,7 +250,7 @@ index a353a79..d2294be 100644
  function clampScrollOffset(ctx, offset, scrollTarget) {
    var _a3;
    const state = ctx.state;
-@@ -1997,6 +2001,9 @@ function prepareMVCP(ctx, dataChanged, adjustmentSource) {
+@@ -2047,6 +2051,9 @@ function prepareMVCP(ctx, dataChanged, adjustmentSource) {
          }
          positionDiff = endOffset - state.scroll;
        }
@@ -260,7 +260,7 @@ index a353a79..d2294be 100644
        if (shouldQueueNativeMVCPAdjust()) {
          state.pendingNativeMVCPAdjust = {
            amount: positionDiff,
-@@ -7831,7 +7838,7 @@ function setHeaderSize(ctx, size) {
+@@ -7893,7 +7900,7 @@ function setHeaderSize(ctx, size) {
      set$(ctx, "headerSize", size);
      updateContentMetricsState(ctx);
      if (hasMeasuredOrEstimatedHeaderBaseline && shouldAdjustForHeaderSizeChange(ctx, previousHeaderSize, size)) {
@@ -270,10 +270,10 @@ index a353a79..d2294be 100644
    }
    state.didMeasureHeader = true;
 diff --git a/node_modules/@legendapp/list/react.mjs b/node_modules/@legendapp/list/react.mjs
-index 5415ee0..b029f89 100644
+index 61f52ce..bcc0d18 100644
 --- a/node_modules/@legendapp/list/react.mjs
 +++ b/node_modules/@legendapp/list/react.mjs
-@@ -467,8 +467,6 @@ function cancelImperativeScroll(state) {
+@@ -469,8 +469,6 @@ function cancelImperativeScroll(state) {
    state.scrollTargetPinnedRange = void 0;
    settlePendingImperativeScroll(state);
  }
@@ -282,7 +282,7 @@ index 5415ee0..b029f89 100644
  function getContentInsetTop(ctx) {
    ctx.state;
    {
-@@ -478,6 +476,12 @@ function getContentInsetTop(ctx) {
+@@ -480,6 +478,12 @@ function getContentInsetTop(ctx) {
  function getScrollRangeEnd(ctx, contentSize = getContentSize(ctx)) {
    return Math.max(0 - getContentInsetTop(ctx), contentSize - ctx.state.scrollLength);
  }
@@ -295,7 +295,7 @@ index 5415ee0..b029f89 100644
  function clampScrollOffset(ctx, offset, scrollTarget) {
    var _a3;
    const state = ctx.state;
-@@ -1976,6 +1980,9 @@ function prepareMVCP(ctx, dataChanged, adjustmentSource) {
+@@ -2026,6 +2030,9 @@ function prepareMVCP(ctx, dataChanged, adjustmentSource) {
          }
          positionDiff = endOffset - state.scroll;
        }
@@ -305,7 +305,7 @@ index 5415ee0..b029f89 100644
        if (shouldQueueNativeMVCPAdjust()) {
          state.pendingNativeMVCPAdjust = {
            amount: positionDiff,
-@@ -7810,7 +7817,7 @@ function setHeaderSize(ctx, size) {
+@@ -7872,7 +7879,7 @@ function setHeaderSize(ctx, size) {
      set$(ctx, "headerSize", size);
      updateContentMetricsState(ctx);
      if (hasMeasuredOrEstimatedHeaderBaseline && shouldAdjustForHeaderSizeChange(ctx, previousHeaderSize, size)) {

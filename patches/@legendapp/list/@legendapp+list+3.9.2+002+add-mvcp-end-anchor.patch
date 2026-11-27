@@ -1,0 +1,436 @@
+diff --git a/node_modules/@legendapp/list/animated.d.ts b/node_modules/@legendapp/list/animated.d.ts
+index 30517af..1846f2c 100644
+--- a/node_modules/@legendapp/list/animated.d.ts
++++ b/node_modules/@legendapp/list/animated.d.ts
+@@ -3,6 +3,7 @@ import { Key } from 'react';
+ import { ScrollViewProps, NativeSyntheticEvent as NativeSyntheticEvent$1, NativeScrollEvent as NativeScrollEvent$1, ScrollView, StyleProp as StyleProp$1, ViewStyle as ViewStyle$1, ScrollViewComponent, ScrollResponderMixin, Insets as Insets$1, Animated } from 'react-native';
+ 
+ interface MaintainVisibleContentPositionNormalized<ItemT = any> {
++    anchor?: MaintainVisibleContentPositionConfig<ItemT>["anchor"];
+     autoscrollToTopThreshold?: number;
+     data: boolean;
+     size: boolean;
+@@ -293,6 +294,7 @@ interface LegendListSpecificProps<ItemT, TItemType extends string | undefined> {
+      * Maintains visibility of content.
+      * - size (default: true) stabilizes during size/layout changes while scrolling.
+      * - data (default: false) stabilizes when the data array changes.
++     * - anchor picks the first ("start") or last ("end") visible item to keep in place.
+      * - shouldRestorePosition can opt out specific items from data-change anchoring.
+      * - autoscrollToTopThreshold animates to the start after anchoring near the start.
+      * - undefined (default) enables scroll stabilization but skips data-change anchoring.
+@@ -502,6 +504,11 @@ interface LegendListSpecificProps<ItemT, TItemType extends string | undefined> {
+ }
+ type LegendListPropsBase<ItemT, TScrollViewProps = Record<string, any>, TItemType extends string | undefined = string | undefined> = BaseScrollViewProps<TScrollViewProps> & LegendListSpecificProps<ItemT, TItemType> & (DataModeProps<ItemT, TItemType> | ChildrenModeProps);
+ interface MaintainVisibleContentPositionConfig<ItemT = any> {
++    /**
++     * Which visible item stays in place when sizes or data change.
++     * When omitted, lists aligned to and kept at the end use "end". Other lists use "start".
++     */
++    anchor?: "start" | "end";
+     /**
+      * After anchoring, animates to the start if the pre-adjustment offset was at or within this threshold.
+      * Use with `data: true` to animate after prepending rows.
+diff --git a/node_modules/@legendapp/list/keyboard-legacy.d.ts b/node_modules/@legendapp/list/keyboard-legacy.d.ts
+index d77f38d..bd21cbc 100644
+--- a/node_modules/@legendapp/list/keyboard-legacy.d.ts
++++ b/node_modules/@legendapp/list/keyboard-legacy.d.ts
+@@ -5,6 +5,7 @@ import { ScrollEvent, ScrollHandlerProcessed } from 'react-native-reanimated';
+ import { AnimatedLegendListProps } from '@legendapp/list/reanimated';
+ 
+ interface MaintainVisibleContentPositionNormalized<ItemT = any> {
++    anchor?: MaintainVisibleContentPositionConfig<ItemT>["anchor"];
+     autoscrollToTopThreshold?: number;
+     data: boolean;
+     size: boolean;
+@@ -81,6 +82,21 @@ interface LayoutRectangle {
+     width: number;
+     height: number;
+ }
++interface MaintainVisibleContentPositionConfig<ItemT = any> {
++    /**
++     * Which visible item stays in place when sizes or data change.
++     * When omitted, lists aligned to and kept at the end use "end". Other lists use "start".
++     */
++    anchor?: "start" | "end";
++    /**
++     * After anchoring, animates to the start if the pre-adjustment offset was at or within this threshold.
++     * Use with `data: true` to animate after prepending rows.
++     */
++    autoscrollToTopThreshold?: number;
++    data?: boolean;
++    size?: boolean;
++    shouldRestorePosition?: (item: ItemT, index: number, data: readonly ItemT[]) => boolean;
++}
+ interface ScrollToEndOptions {
+     animated?: boolean;
+     viewOffset?: number;
+diff --git a/node_modules/@legendapp/list/keyboard.d.ts b/node_modules/@legendapp/list/keyboard.d.ts
+index 4e52743..186fcfa 100644
+--- a/node_modules/@legendapp/list/keyboard.d.ts
++++ b/node_modules/@legendapp/list/keyboard.d.ts
+@@ -6,6 +6,7 @@ import { SharedValue } from 'react-native-reanimated';
+ import { AnimatedLegendListProps } from '@legendapp/list/reanimated';
+ 
+ interface MaintainVisibleContentPositionNormalized<ItemT = any> {
++    anchor?: MaintainVisibleContentPositionConfig<ItemT>["anchor"];
+     autoscrollToTopThreshold?: number;
+     data: boolean;
+     size: boolean;
+@@ -82,6 +83,21 @@ interface LayoutRectangle {
+     width: number;
+     height: number;
+ }
++interface MaintainVisibleContentPositionConfig<ItemT = any> {
++    /**
++     * Which visible item stays in place when sizes or data change.
++     * When omitted, lists aligned to and kept at the end use "end". Other lists use "start".
++     */
++    anchor?: "start" | "end";
++    /**
++     * After anchoring, animates to the start if the pre-adjustment offset was at or within this threshold.
++     * Use with `data: true` to animate after prepending rows.
++     */
++    autoscrollToTopThreshold?: number;
++    data?: boolean;
++    size?: boolean;
++    shouldRestorePosition?: (item: ItemT, index: number, data: readonly ItemT[]) => boolean;
++}
+ interface AnchoredEndSpaceReadyInfo {
+     anchorIndex: number | undefined;
+     anchorKey: string | undefined;
+diff --git a/node_modules/@legendapp/list/react-native.d.ts b/node_modules/@legendapp/list/react-native.d.ts
+index 4c3bc01..873f322 100644
+--- a/node_modules/@legendapp/list/react-native.d.ts
++++ b/node_modules/@legendapp/list/react-native.d.ts
+@@ -3,6 +3,7 @@ import { Key, Dispatch, SetStateAction } from 'react';
+ import { ScrollViewProps, NativeSyntheticEvent as NativeSyntheticEvent$1, NativeScrollEvent as NativeScrollEvent$1, ScrollView, StyleProp as StyleProp$1, ViewStyle as ViewStyle$1, ScrollViewComponent, ScrollResponderMixin, Insets as Insets$1, View } from 'react-native';
+ 
+ interface MaintainVisibleContentPositionNormalized<ItemT = any> {
++    anchor?: MaintainVisibleContentPositionConfig<ItemT>["anchor"];
+     autoscrollToTopThreshold?: number;
+     data: boolean;
+     size: boolean;
+@@ -293,6 +294,7 @@ interface LegendListSpecificProps<ItemT, TItemType extends string | undefined> {
+      * Maintains visibility of content.
+      * - size (default: true) stabilizes during size/layout changes while scrolling.
+      * - data (default: false) stabilizes when the data array changes.
++     * - anchor picks the first ("start") or last ("end") visible item to keep in place.
+      * - shouldRestorePosition can opt out specific items from data-change anchoring.
+      * - autoscrollToTopThreshold animates to the start after anchoring near the start.
+      * - undefined (default) enables scroll stabilization but skips data-change anchoring.
+@@ -502,6 +504,11 @@ interface LegendListSpecificProps<ItemT, TItemType extends string | undefined> {
+ }
+ type LegendListPropsBase<ItemT, TScrollViewProps = Record<string, any>, TItemType extends string | undefined = string | undefined> = BaseScrollViewProps<TScrollViewProps> & LegendListSpecificProps<ItemT, TItemType> & (DataModeProps<ItemT, TItemType> | ChildrenModeProps);
+ interface MaintainVisibleContentPositionConfig<ItemT = any> {
++    /**
++     * Which visible item stays in place when sizes or data change.
++     * When omitted, lists aligned to and kept at the end use "end". Other lists use "start".
++     */
++    anchor?: "start" | "end";
+     /**
+      * After anchoring, animates to the start if the pre-adjustment offset was at or within this threshold.
+      * Use with `data: true` to animate after prepending rows.
+diff --git a/node_modules/@legendapp/list/react-native.js b/node_modules/@legendapp/list/react-native.js
+index 87720de..36da356 100644
+--- a/node_modules/@legendapp/list/react-native.js
++++ b/node_modules/@legendapp/list/react-native.js
+@@ -1914,6 +1914,7 @@ function prepareMVCP(ctx, dataChanged, adjustmentSource) {
+   const { idsInView, positions, props } = state;
+   const {
+     maintainVisibleContentPosition: {
++      anchor,
+       autoscrollToTopThreshold,
+       data: mvcpData,
+       size: mvcpScroll,
+@@ -1921,7 +1922,8 @@ function prepareMVCP(ctx, dataChanged, adjustmentSource) {
+     }
+   } = props;
+   const isWeb = Platform.OS === "web";
+-  const anchorCandidateIds = props.alignItemsAtEnd && props.maintainScrollAtEnd ? [...idsInView].reverse() : idsInView;
++  const isEndAnchor = anchor === void 0 ? props.alignItemsAtEnd && props.maintainScrollAtEnd : anchor === "end";
++  const anchorCandidateIds = isEndAnchor ? [...idsInView].reverse() : idsInView;
+   const now = Date.now();
+   const enableMVCPAnchorLock = isWeb && (!!dataChanged || !!state.mvcpAnchorLock);
+   const scrollingTo = state.scrollingTo;
+@@ -8659,6 +8661,7 @@ function normalizeMaintainVisibleContentPosition(value) {
+   }
+   if (value && typeof value === "object") {
+     return {
++      anchor: value.anchor,
+       autoscrollToTopThreshold: value.autoscrollToTopThreshold,
+       data: (_a3 = value.data) != null ? _a3 : false,
+       shouldRestorePosition: value.shouldRestorePosition,
+diff --git a/node_modules/@legendapp/list/react-native.mjs b/node_modules/@legendapp/list/react-native.mjs
+index 90faccd..da05645 100644
+--- a/node_modules/@legendapp/list/react-native.mjs
++++ b/node_modules/@legendapp/list/react-native.mjs
+@@ -1893,6 +1893,7 @@ function prepareMVCP(ctx, dataChanged, adjustmentSource) {
+   const { idsInView, positions, props } = state;
+   const {
+     maintainVisibleContentPosition: {
++      anchor,
+       autoscrollToTopThreshold,
+       data: mvcpData,
+       size: mvcpScroll,
+@@ -1900,7 +1901,8 @@ function prepareMVCP(ctx, dataChanged, adjustmentSource) {
+     }
+   } = props;
+   const isWeb = Platform.OS === "web";
+-  const anchorCandidateIds = props.alignItemsAtEnd && props.maintainScrollAtEnd ? [...idsInView].reverse() : idsInView;
++  const isEndAnchor = anchor === void 0 ? props.alignItemsAtEnd && props.maintainScrollAtEnd : anchor === "end";
++  const anchorCandidateIds = isEndAnchor ? [...idsInView].reverse() : idsInView;
+   const now = Date.now();
+   const enableMVCPAnchorLock = isWeb && (!!dataChanged || !!state.mvcpAnchorLock);
+   const scrollingTo = state.scrollingTo;
+@@ -8638,6 +8640,7 @@ function normalizeMaintainVisibleContentPosition(value) {
+   }
+   if (value && typeof value === "object") {
+     return {
++      anchor: value.anchor,
+       autoscrollToTopThreshold: value.autoscrollToTopThreshold,
+       data: (_a3 = value.data) != null ? _a3 : false,
+       shouldRestorePosition: value.shouldRestorePosition,
+diff --git a/node_modules/@legendapp/list/react-native.web.d.ts b/node_modules/@legendapp/list/react-native.web.d.ts
+index b639519..02bbf3f 100644
+--- a/node_modules/@legendapp/list/react-native.web.d.ts
++++ b/node_modules/@legendapp/list/react-native.web.d.ts
+@@ -30,6 +30,7 @@ interface ScrollViewMethods {
+ }
+ 
+ interface MaintainVisibleContentPositionNormalized<ItemT = any> {
++    anchor?: MaintainVisibleContentPositionConfig<ItemT>["anchor"];
+     autoscrollToTopThreshold?: number;
+     data: boolean;
+     size: boolean;
+@@ -320,6 +321,7 @@ interface LegendListSpecificProps<ItemT, TItemType extends string | undefined> {
+      * Maintains visibility of content.
+      * - size (default: true) stabilizes during size/layout changes while scrolling.
+      * - data (default: false) stabilizes when the data array changes.
++     * - anchor picks the first ("start") or last ("end") visible item to keep in place.
+      * - shouldRestorePosition can opt out specific items from data-change anchoring.
+      * - autoscrollToTopThreshold animates to the start after anchoring near the start.
+      * - undefined (default) enables scroll stabilization but skips data-change anchoring.
+@@ -529,6 +531,11 @@ interface LegendListSpecificProps<ItemT, TItemType extends string | undefined> {
+ }
+ type LegendListPropsBase<ItemT, TScrollViewProps = Record<string, any>, TItemType extends string | undefined = string | undefined> = BaseScrollViewProps<TScrollViewProps> & LegendListSpecificProps<ItemT, TItemType> & (DataModeProps<ItemT, TItemType> | ChildrenModeProps);
+ interface MaintainVisibleContentPositionConfig<ItemT = any> {
++    /**
++     * Which visible item stays in place when sizes or data change.
++     * When omitted, lists aligned to and kept at the end use "end". Other lists use "start".
++     */
++    anchor?: "start" | "end";
+     /**
+      * After anchoring, animates to the start if the pre-adjustment offset was at or within this threshold.
+      * Use with `data: true` to animate after prepending rows.
+diff --git a/node_modules/@legendapp/list/react-native.web.js b/node_modules/@legendapp/list/react-native.web.js
+index 973e31b..a904512 100644
+--- a/node_modules/@legendapp/list/react-native.web.js
++++ b/node_modules/@legendapp/list/react-native.web.js
+@@ -1872,13 +1872,15 @@ function prepareMVCP(ctx, dataChanged, adjustmentSource) {
+   const { idsInView, positions, props } = state;
+   const {
+     maintainVisibleContentPosition: {
++      anchor,
+       autoscrollToTopThreshold,
+       data: mvcpData,
+       size: mvcpScroll,
+       shouldRestorePosition
+     }
+   } = props;
+-  const anchorCandidateIds = props.alignItemsAtEnd && props.maintainScrollAtEnd ? [...idsInView].reverse() : idsInView;
++  const isEndAnchor = anchor === void 0 ? props.alignItemsAtEnd && props.maintainScrollAtEnd : anchor === "end";
++  const anchorCandidateIds = isEndAnchor ? [...idsInView].reverse() : idsInView;
+   const now = Date.now();
+   const enableMVCPAnchorLock = (!!dataChanged || !!state.mvcpAnchorLock);
+   const scrollingTo = state.scrollingTo;
+@@ -9388,6 +9390,7 @@ function normalizeMaintainVisibleContentPosition(value) {
+   }
+   if (value && typeof value === "object") {
+     return {
++      anchor: value.anchor,
+       autoscrollToTopThreshold: value.autoscrollToTopThreshold,
+       data: (_a3 = value.data) != null ? _a3 : false,
+       shouldRestorePosition: value.shouldRestorePosition,
+diff --git a/node_modules/@legendapp/list/react-native.web.mjs b/node_modules/@legendapp/list/react-native.web.mjs
+index e323567..61f52ce 100644
+--- a/node_modules/@legendapp/list/react-native.web.mjs
++++ b/node_modules/@legendapp/list/react-native.web.mjs
+@@ -1851,13 +1851,15 @@ function prepareMVCP(ctx, dataChanged, adjustmentSource) {
+   const { idsInView, positions, props } = state;
+   const {
+     maintainVisibleContentPosition: {
++      anchor,
+       autoscrollToTopThreshold,
+       data: mvcpData,
+       size: mvcpScroll,
+       shouldRestorePosition
+     }
+   } = props;
+-  const anchorCandidateIds = props.alignItemsAtEnd && props.maintainScrollAtEnd ? [...idsInView].reverse() : idsInView;
++  const isEndAnchor = anchor === void 0 ? props.alignItemsAtEnd && props.maintainScrollAtEnd : anchor === "end";
++  const anchorCandidateIds = isEndAnchor ? [...idsInView].reverse() : idsInView;
+   const now = Date.now();
+   const enableMVCPAnchorLock = (!!dataChanged || !!state.mvcpAnchorLock);
+   const scrollingTo = state.scrollingTo;
+@@ -9367,6 +9369,7 @@ function normalizeMaintainVisibleContentPosition(value) {
+   }
+   if (value && typeof value === "object") {
+     return {
++      anchor: value.anchor,
+       autoscrollToTopThreshold: value.autoscrollToTopThreshold,
+       data: (_a3 = value.data) != null ? _a3 : false,
+       shouldRestorePosition: value.shouldRestorePosition,
+diff --git a/node_modules/@legendapp/list/react.d.ts b/node_modules/@legendapp/list/react.d.ts
+index b639519..02bbf3f 100644
+--- a/node_modules/@legendapp/list/react.d.ts
++++ b/node_modules/@legendapp/list/react.d.ts
+@@ -30,6 +30,7 @@ interface ScrollViewMethods {
+ }
+ 
+ interface MaintainVisibleContentPositionNormalized<ItemT = any> {
++    anchor?: MaintainVisibleContentPositionConfig<ItemT>["anchor"];
+     autoscrollToTopThreshold?: number;
+     data: boolean;
+     size: boolean;
+@@ -320,6 +321,7 @@ interface LegendListSpecificProps<ItemT, TItemType extends string | undefined> {
+      * Maintains visibility of content.
+      * - size (default: true) stabilizes during size/layout changes while scrolling.
+      * - data (default: false) stabilizes when the data array changes.
++     * - anchor picks the first ("start") or last ("end") visible item to keep in place.
+      * - shouldRestorePosition can opt out specific items from data-change anchoring.
+      * - autoscrollToTopThreshold animates to the start after anchoring near the start.
+      * - undefined (default) enables scroll stabilization but skips data-change anchoring.
+@@ -529,6 +531,11 @@ interface LegendListSpecificProps<ItemT, TItemType extends string | undefined> {
+ }
+ type LegendListPropsBase<ItemT, TScrollViewProps = Record<string, any>, TItemType extends string | undefined = string | undefined> = BaseScrollViewProps<TScrollViewProps> & LegendListSpecificProps<ItemT, TItemType> & (DataModeProps<ItemT, TItemType> | ChildrenModeProps);
+ interface MaintainVisibleContentPositionConfig<ItemT = any> {
++    /**
++     * Which visible item stays in place when sizes or data change.
++     * When omitted, lists aligned to and kept at the end use "end". Other lists use "start".
++     */
++    anchor?: "start" | "end";
+     /**
+      * After anchoring, animates to the start if the pre-adjustment offset was at or within this threshold.
+      * Use with `data: true` to animate after prepending rows.
+diff --git a/node_modules/@legendapp/list/react.js b/node_modules/@legendapp/list/react.js
+index 973e31b..a904512 100644
+--- a/node_modules/@legendapp/list/react.js
++++ b/node_modules/@legendapp/list/react.js
+@@ -1872,13 +1872,15 @@ function prepareMVCP(ctx, dataChanged, adjustmentSource) {
+   const { idsInView, positions, props } = state;
+   const {
+     maintainVisibleContentPosition: {
++      anchor,
+       autoscrollToTopThreshold,
+       data: mvcpData,
+       size: mvcpScroll,
+       shouldRestorePosition
+     }
+   } = props;
+-  const anchorCandidateIds = props.alignItemsAtEnd && props.maintainScrollAtEnd ? [...idsInView].reverse() : idsInView;
++  const isEndAnchor = anchor === void 0 ? props.alignItemsAtEnd && props.maintainScrollAtEnd : anchor === "end";
++  const anchorCandidateIds = isEndAnchor ? [...idsInView].reverse() : idsInView;
+   const now = Date.now();
+   const enableMVCPAnchorLock = (!!dataChanged || !!state.mvcpAnchorLock);
+   const scrollingTo = state.scrollingTo;
+@@ -9388,6 +9390,7 @@ function normalizeMaintainVisibleContentPosition(value) {
+   }
+   if (value && typeof value === "object") {
+     return {
++      anchor: value.anchor,
+       autoscrollToTopThreshold: value.autoscrollToTopThreshold,
+       data: (_a3 = value.data) != null ? _a3 : false,
+       shouldRestorePosition: value.shouldRestorePosition,
+diff --git a/node_modules/@legendapp/list/react.mjs b/node_modules/@legendapp/list/react.mjs
+index e323567..61f52ce 100644
+--- a/node_modules/@legendapp/list/react.mjs
++++ b/node_modules/@legendapp/list/react.mjs
+@@ -1851,13 +1851,15 @@ function prepareMVCP(ctx, dataChanged, adjustmentSource) {
+   const { idsInView, positions, props } = state;
+   const {
+     maintainVisibleContentPosition: {
++      anchor,
+       autoscrollToTopThreshold,
+       data: mvcpData,
+       size: mvcpScroll,
+       shouldRestorePosition
+     }
+   } = props;
+-  const anchorCandidateIds = props.alignItemsAtEnd && props.maintainScrollAtEnd ? [...idsInView].reverse() : idsInView;
++  const isEndAnchor = anchor === void 0 ? props.alignItemsAtEnd && props.maintainScrollAtEnd : anchor === "end";
++  const anchorCandidateIds = isEndAnchor ? [...idsInView].reverse() : idsInView;
+   const now = Date.now();
+   const enableMVCPAnchorLock = (!!dataChanged || !!state.mvcpAnchorLock);
+   const scrollingTo = state.scrollingTo;
+@@ -9367,6 +9369,7 @@ function normalizeMaintainVisibleContentPosition(value) {
+   }
+   if (value && typeof value === "object") {
+     return {
++      anchor: value.anchor,
+       autoscrollToTopThreshold: value.autoscrollToTopThreshold,
+       data: (_a3 = value.data) != null ? _a3 : false,
+       shouldRestorePosition: value.shouldRestorePosition,
+diff --git a/node_modules/@legendapp/list/reanimated.d.ts b/node_modules/@legendapp/list/reanimated.d.ts
+index 2b2cde9..e5d7f29 100644
+--- a/node_modules/@legendapp/list/reanimated.d.ts
++++ b/node_modules/@legendapp/list/reanimated.d.ts
+@@ -4,6 +4,7 @@ import Reanimated, { SharedValue } from 'react-native-reanimated';
+ import { ScrollViewProps, NativeSyntheticEvent as NativeSyntheticEvent$1, NativeScrollEvent as NativeScrollEvent$1, ScrollView, StyleProp as StyleProp$1, ViewStyle as ViewStyle$1, ScrollViewComponent, ScrollResponderMixin, Insets as Insets$1 } from 'react-native';
+ 
+ interface MaintainVisibleContentPositionNormalized<ItemT = any> {
++    anchor?: MaintainVisibleContentPositionConfig<ItemT>["anchor"];
+     autoscrollToTopThreshold?: number;
+     data: boolean;
+     size: boolean;
+@@ -294,6 +295,7 @@ interface LegendListSpecificProps<ItemT, TItemType extends string | undefined> {
+      * Maintains visibility of content.
+      * - size (default: true) stabilizes during size/layout changes while scrolling.
+      * - data (default: false) stabilizes when the data array changes.
++     * - anchor picks the first ("start") or last ("end") visible item to keep in place.
+      * - shouldRestorePosition can opt out specific items from data-change anchoring.
+      * - autoscrollToTopThreshold animates to the start after anchoring near the start.
+      * - undefined (default) enables scroll stabilization but skips data-change anchoring.
+@@ -503,6 +505,11 @@ interface LegendListSpecificProps<ItemT, TItemType extends string | undefined> {
+ }
+ type LegendListPropsBase<ItemT, TScrollViewProps = Record<string, any>, TItemType extends string | undefined = string | undefined> = BaseScrollViewProps<TScrollViewProps> & LegendListSpecificProps<ItemT, TItemType> & (DataModeProps<ItemT, TItemType> | ChildrenModeProps);
+ interface MaintainVisibleContentPositionConfig<ItemT = any> {
++    /**
++     * Which visible item stays in place when sizes or data change.
++     * When omitted, lists aligned to and kept at the end use "end". Other lists use "start".
++     */
++    anchor?: "start" | "end";
+     /**
+      * After anchoring, animates to the start if the pre-adjustment offset was at or within this threshold.
+      * Use with `data: true` to animate after prepending rows.
+diff --git a/node_modules/@legendapp/list/section-list.d.ts b/node_modules/@legendapp/list/section-list.d.ts
+index bf53128..cf89285 100644
+--- a/node_modules/@legendapp/list/section-list.d.ts
++++ b/node_modules/@legendapp/list/section-list.d.ts
+@@ -60,6 +60,7 @@ type BuildSectionListDataResult<ItemT, SectionT> = {
+ };
+ 
+ interface MaintainVisibleContentPositionNormalized<ItemT = any> {
++    anchor?: MaintainVisibleContentPositionConfig<ItemT>["anchor"];
+     autoscrollToTopThreshold?: number;
+     data: boolean;
+     size: boolean;
+@@ -350,6 +351,7 @@ interface LegendListSpecificProps<ItemT, TItemType extends string | undefined> {
+      * Maintains visibility of content.
+      * - size (default: true) stabilizes during size/layout changes while scrolling.
+      * - data (default: false) stabilizes when the data array changes.
++     * - anchor picks the first ("start") or last ("end") visible item to keep in place.
+      * - shouldRestorePosition can opt out specific items from data-change anchoring.
+      * - autoscrollToTopThreshold animates to the start after anchoring near the start.
+      * - undefined (default) enables scroll stabilization but skips data-change anchoring.
+@@ -559,6 +561,11 @@ interface LegendListSpecificProps<ItemT, TItemType extends string | undefined> {
+ }
+ type LegendListPropsBase<ItemT, TScrollViewProps = Record<string, any>, TItemType extends string | undefined = string | undefined> = BaseScrollViewProps<TScrollViewProps> & LegendListSpecificProps<ItemT, TItemType> & (DataModeProps<ItemT, TItemType> | ChildrenModeProps);
+ interface MaintainVisibleContentPositionConfig<ItemT = any> {
++    /**
++     * Which visible item stays in place when sizes or data change.
++     * When omitted, lists aligned to and kept at the end use "end". Other lists use "start".
++     */
++    anchor?: "start" | "end";
+     /**
+      * After anchoring, animates to the start if the pre-adjustment offset was at or within this threshold.
+      * Use with `data: true` to animate after prepending rows.
