@@ -3,17 +3,17 @@ import shouldFollowActionBadgeTarget from '@pages/inbox/report/shouldFollowActio
 const BASE_PARAMS = {
     actionTargetReportActionID: '200',
     prevActionTargetReportActionID: '100',
-    actionBadgeTargetIndex: 2,
+    actionBadgeTargetIndex: 7,
     prevActionBadgeTargetIndex: 5,
 };
 
 describe('shouldFollowActionBadgeTarget', () => {
-    it('follows the target when it advances to a newer (lower-index) preview', () => {
+    it('follows the target when it advances to a newer (higher-index) preview', () => {
         expect(shouldFollowActionBadgeTarget(BASE_PARAMS)).toBe(true);
     });
 
-    it('does not follow when the target moves to an older (higher-index) preview, e.g. while paginating', () => {
-        expect(shouldFollowActionBadgeTarget({...BASE_PARAMS, actionBadgeTargetIndex: 7})).toBe(false);
+    it('does not follow when the target moves to an older (lower-index) preview, e.g. while paginating', () => {
+        expect(shouldFollowActionBadgeTarget({...BASE_PARAMS, actionBadgeTargetIndex: 2})).toBe(false);
     });
 
     it('does not follow when the target index is unchanged', () => {

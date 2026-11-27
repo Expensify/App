@@ -339,3 +339,11 @@
 - E/App issue: https://github.com/Expensify/App/issues/101427
 - PR introducing patch: https://github.com/Expensify/App/pull/101739
 - Removal: drop this patch once the adopted React Native release contains `f754dbd20a` and `eb90a8d251`.
+
+### [react-native+0.88.0+040+fix-mvcp-one-frame-jump-android.patch](react-native+0.88.0+040+fix-mvcp-one-frame-jump-android.patch)
+
+- Reason: Returning from a thread can briefly move the linked message when rows above it finish measuring. Android moves the rows and corrects the scroll offset in the same mount, but `View.scrollTo` schedules the scroll view redraw for the next frame. This backports the upstream fix by invalidating the scroll view after either horizontal or vertical anchoring, so the current frame uses the corrected offset.
+- Upstream PR/issue: https://github.com/react/react-native/pull/58187, fixes https://github.com/react/react-native/issues/58186.
+- E/App issue: Tracked in https://github.com/Expensify/App/pull/100733.
+- PR introducing patch: https://github.com/Expensify/App/pull/100733.
+- Removal: Remove once the adopted React Native release includes the upstream fix. React Native 0.88.0 still needs both invalidations.

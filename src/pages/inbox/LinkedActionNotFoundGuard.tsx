@@ -116,7 +116,7 @@ function LinkedActionNotFoundGate({reportActionIDFromRoute}: LinkedActionNotFoun
         if (!isActionGone) {
             return;
         }
-        Navigation.setParams({reportActionID: undefined}, route.key, navigatorKey);
+        Navigation.setParams({reportActionID: undefined, reportActionAlignment: undefined}, route.key, navigatorKey);
         // Also strip the stale reportActionID from any `backTo` params on sibling routes
         // (e.g. the IOU report screen that was navigated to FROM this deep link).
         if (reportIDFromRoute) {
@@ -134,7 +134,7 @@ function LinkedActionNotFoundGate({reportActionIDFromRoute}: LinkedActionNotFoun
             if (ignore) {
                 return;
             }
-            Navigation.setParams({reportActionID: undefined}, route.key, navigatorKey);
+            Navigation.setParams({reportActionID: undefined, reportActionAlignment: undefined}, route.key, navigatorKey);
         });
         return () => {
             ignore = true;
@@ -142,7 +142,7 @@ function LinkedActionNotFoundGate({reportActionIDFromRoute}: LinkedActionNotFoun
     }, [isLinkedActionInaccessibleWhisper, route.key, navigatorKey]);
 
     const navigateToEndOfReport = () => {
-        Navigation.setParams({reportActionID: undefined}, route.key, navigatorKey);
+        Navigation.setParams({reportActionID: undefined, reportActionAlignment: undefined}, route.key, navigatorKey);
     };
 
     useAutoNavigateForDeletedLinkedAction(isLinkedActionUnavailable, navigateToEndOfReport);

@@ -1,11 +1,13 @@
+import {getQueuedCollectionMember} from '@libs/actions/QueuedOnyxUpdates';
 import type {ApiCommand} from '@libs/API/types';
 import Log from '@libs/Log';
+import {isRecord} from '@libs/ObjectUtils';
 import {mergeAndSortContinuousPages, mergePagesByIDOverlap} from '@libs/PaginationUtils';
 
 import CONST from '@src/CONST';
 import type {OnyxCollectionKey, OnyxPagesKey, OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Request} from '@src/types/onyx';
+import type {ReportPaginationState, Request} from '@src/types/onyx';
 import type Pages from '@src/types/onyx/Pages';
 import type {AnyOnyxUpdate, PaginatedRequest} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
@@ -98,6 +100,10 @@ function isPaginatedRequest<TKey extends OnyxKey>(request: Request<TKey> | Pagin
     return 'isPaginated' in request && request.isPaginated;
 }
 
+function isPageList(value: unknown): value is Pages {
+    return Array.isArray(value) && value.every((page: unknown) => Array.isArray(page) && page.every((id: unknown) => typeof id === 'string'));
+}
+
 function processResponse<TKey extends OnyxKey>(requestResponse: Promise<Response<TKey> | void>, request: PaginatedRequest<TKey>, paginationConfig: PaginationConfigMapValue) {
     const {resourceCollectionKey, pageCollectionKey, sortItems, getItemID, type} = paginationConfig;
     const {resourceID, cursorID} = request;
@@ -130,23 +136,33 @@ function processResponse<TKey extends OnyxKey>(requestResponse: Promise<Response
         }
 
         const resourceCollections = resources.get(resourceCollectionKey) ?? {};
-        const existingItems = (resourceCollections[resourceKey] ?? {}) as PaginatedResourceCollection;
-        const allItems = fastMerge(existingItems, pageItems, true);
-        const sortedAllItems = sortItems(allItems, resourceID);
-
         const pagesCollections = pages.get(pageCollectionKey) ?? {};
-        const existingPages: Pages = pagesCollections[pageKey] ?? [];
+        const existingItems = getQueuedCollectionMember(resourceCollectionKey, resourceID, (resourceCollections[resourceKey] ?? {}) as PaginatedResourceCollection, isRecord);
+        const bufferedPages = getQueuedCollectionMember(pageCollectionKey, resourceID, pagesCollections[pageKey] ?? [], isPageList);
+        if (existingItems === null || bufferedPages === null) {
+            // Keep the server items. End can retry after the replacement commits without acknowledging an unverified page.
+            Log.hmmm('[Pagination] Skipping page metadata during a buffered collection replacement', {resourceCollectionKey, pageCollectionKey});
+            return response;
+        }
+        const existingPages = bufferedPages ?? [];
 
+        const allItems = fastMerge(existingItems ?? {}, pageItems, true);
+        const sortedAllItems = sortItems(allItems, resourceID);
         const isMiddleInitialSlice = type === 'initial' && !cursorID && response.hasNewerActions === true && response.hasOlderActions === true;
 
-        // Only strip PAGINATION_START_ID from cached pages when the server explicitly confirms newer actions exist.
-        // Some commands (e.g. GetOlderActions) don't return hasNewerActions at all — in that case, preserve the existing boundary.
-        const shouldStripStartMarker = response.hasNewerActions === true;
+        // A historical slice has newer actions by definition. It can only invalidate a known newest page if it reaches that page.
+        const isHistoricalSlice = type === 'initial' && !!cursorID && response.hasNewerActions === true;
+        const newestKnownID = isHistoricalSlice ? existingPages.find((page) => page.at(0) === CONST.PAGINATION_START_ID)?.at(1) : undefined;
+        const newestKnownIndex = newestKnownID ? sortedAllItems.findIndex((item) => getItemID(item) === newestKnownID) : -1;
+        const incomingNewestID = newPage.at(0);
+        const isBeforeKnownNewest = newestKnownIndex >= 0 && newestKnownIndex < sortedAllItems.findIndex((item) => getItemID(item) === incomingNewestID);
+        const shouldStripStartMarker = response.hasNewerActions === true && !isBeforeKnownNewest;
         const sanitizedExistingPages = shouldStripStartMarker ? existingPages.map((page) => page.filter((id) => id !== CONST.PAGINATION_START_ID)) : existingPages;
 
-        const mergedPages: Pages = isMiddleInitialSlice
-            ? mergePagesByIDOverlap(sortedAllItems, [...sanitizedExistingPages, newPage], getItemID)
-            : mergeAndSortContinuousPages(sortedAllItems, [...sanitizedExistingPages, newPage], getItemID);
+        const mergedPages: Pages =
+            isMiddleInitialSlice || isBeforeKnownNewest
+                ? mergePagesByIDOverlap(sortedAllItems, [...sanitizedExistingPages, newPage], getItemID)
+                : mergeAndSortContinuousPages(sortedAllItems, [...sanitizedExistingPages, newPage], getItemID);
 
         const paginationUpdates: AnyOnyxUpdate[] = [
             {
@@ -163,9 +179,13 @@ function processResponse<TKey extends OnyxKey>(requestResponse: Promise<Response
             const newestFetchedID = newPage.find((id) => id !== CONST.PAGINATION_START_ID && id !== CONST.PAGINATION_END_ID && Object.hasOwn(pageItems, id));
             const oldestFetchedID = newPage.findLast((id) => id !== CONST.PAGINATION_START_ID && id !== CONST.PAGINATION_END_ID);
             const isOlderDirection = type === 'previous';
-            const value: Record<string, string> = {};
+            const value: ReportPaginationState = {};
             if (newestFetchedID && !isOlderDirection) {
                 value.newestFetchedReportActionID = newestFetchedID;
+            }
+            if (request.liveTailRequestID && newestFetchedID && shouldMarkNoNewerActions && response.jsonCode === 200) {
+                // The update manager discards this receipt together with the page if the response is stale.
+                value.liveTailRequestResults = {[request.liveTailRequestID]: {newestActionID: newestFetchedID}};
             }
             if (oldestFetchedID && isOlderDirection) {
                 value.oldestFetchedReportActionID = oldestFetchedID;

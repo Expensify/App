@@ -2,7 +2,7 @@ import useFindLastAccessedReport from '@hooks/useFindLastAccessedReport';
 
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackNavigationProp, PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isNumeric} from '@libs/ValidationUtils';
 
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@navigation/types';
@@ -22,7 +22,7 @@ type ReportScreenRoute =
  */
 function ReportRouteParamHandler() {
     const route = useRoute<ReportScreenRoute>();
-    const navigation = useNavigation();
+    const navigation = useNavigation<PlatformStackNavigationProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const shouldResolveReportID = !route.params.reportID;
     const shouldOpenOnAdminRoom = 'openOnAdminRoom' in route.params && !!route.params.openOnAdminRoom;
 
@@ -41,7 +41,7 @@ function ReportRouteParamHandler() {
             const reportActionID = route?.params?.reportActionID;
             const isValidReportActionID = reportActionID && isNumeric(reportActionID);
             if (reportActionID && !isValidReportActionID) {
-                Navigation.isNavigationReady().then(() => navigation.setParams({reportActionID: ''}));
+                Navigation.isNavigationReady().then(() => navigation.setParams({reportActionID: '', reportActionAlignment: undefined}));
             }
             return;
         }

@@ -966,6 +966,8 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: {
         reportID: string;
         reportActionID?: string;
+        /** Preloaded answers open at their beginning; ordinary final-message links retain bottom alignment. */
+        reportActionAlignment?: 'start';
         anchorTransactionID?: string;
         shouldReplaceWithExpenseReportRHP?: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
@@ -1016,6 +1018,8 @@ type ReportsSplitNavigatorParamList = {
     [SCREENS.REPORT]: {
         reportID: string;
         reportActionID?: string;
+        /** Preloaded answers open at their beginning; ordinary final-message links retain bottom alignment. */
+        reportActionAlignment?: 'start';
         openOnAdminRoom?: boolean;
         referrer?: string;
         /** Submit-via-PDF secure access link key. When present, the viewer is validated and joined to the report. */

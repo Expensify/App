@@ -21,7 +21,11 @@ function SidePanelReport({navigation, reportID, reportActionID}: SidePanelReport
     // A failed optimistic question removes its reply. Never leave this synthetic route anchored to that missing action.
     const [hasAnchor] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {selector: (actions) => !!reportActionID && !!actions?.[reportActionID]});
     // eslint-disable-next-line react/jsx-no-constructed-context-values
-    const route = {name: SCREENS.REPORT, params: {reportID, reportActionID: hasAnchor ? reportActionID : undefined}, key: `Report-SidePanel-${reportID}`} as const;
+    const route = {
+        name: SCREENS.REPORT,
+        params: {reportID, reportActionID: hasAnchor ? reportActionID : undefined, reportActionAlignment: hasAnchor ? 'start' : undefined},
+        key: `Report-SidePanel-${reportID}`,
+    } as const;
 
     return (
         <IsInSidePanelContext.Provider value>

@@ -29,6 +29,7 @@ const onShowPreviousMessages = () => {};
 const buildRow = (index: number, reportAction: ReportAction) => (
     <ReportActionsListRow
         index={index}
+        isNewest={false}
         reportAction={reportAction}
         parentReportAction={undefined}
         parentReportActionForTransactionThread={undefined}

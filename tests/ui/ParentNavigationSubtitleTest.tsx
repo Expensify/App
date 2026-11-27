@@ -2,6 +2,7 @@ import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import type * as Localize from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
+import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {isReportActionVisible} from '@libs/ReportActionsUtils';
 
 import CONST from '@src/CONST';
@@ -249,18 +250,22 @@ describe('ParentNavigationSubtitle', () => {
         expect(Navigation.setParams).not.toHaveBeenCalled();
     });
 
-    it('sets reportActionID on the previous route then goes back when the parent action is visible', () => {
+    it('clears preloaded-answer alignment when reusing the parent route for an ordinary link', () => {
         const parentReportID = 'parent-report';
         const expenseReportID = 'expense-report';
         const parentReportActionID = 'action-999';
         const reportName = 'Parent chat';
         const workspaceName = 'Workspace';
 
+        // Given the previous report route still carries its preloaded answer's alignment.
+        const parentParams: ReportsSplitNavigatorParamList[typeof SCREENS.REPORT] = {reportID: parentReportID, reportActionID: 'cached-answer', reportActionAlignment: 'start'};
+        jest.mocked(Navigation.setParams).mockImplementation((params) => Object.assign(parentParams, params));
         jest.mocked(isReportActionVisible).mockReturnValue(true);
 
         mockUseRoute.mockReturnValue(createMock<AnyRoute>({name: SCREENS.REPORT}));
         mockUseRootNavigationState.mockImplementation((selector?: (state: unknown) => unknown) => {
             const mockState = getMockRootStateWithReportsSplitStack(parentReportID, expenseReportID);
+            mockState.routes[0].state.routes[0].state.routes[0].params = parentParams;
             if (selector) {
                 return selector(mockState);
             }
@@ -276,13 +281,16 @@ describe('ParentNavigationSubtitle', () => {
             />,
         );
 
+        // When the subtitle reuses that route to link to an ordinary parent action.
         fireEvent(screen.getByTestId('parent-navigation-subtitle-link'), 'press', {
             preventDefault: jest.fn(),
             stopPropagation: jest.fn(),
             nativeEvent: {},
         });
 
-        expect(Navigation.setParams).toHaveBeenCalledWith({reportActionID: parentReportActionID}, 'route-parent-key', 'reports-split-state-key');
+        // Then the new link does not inherit the preloaded answer's start alignment.
+        expect(parentParams).toEqual({reportID: parentReportID, reportActionID: parentReportActionID, reportActionAlignment: undefined});
+        expect(Navigation.setParams).toHaveBeenCalledWith({reportActionID: parentReportActionID, reportActionAlignment: undefined}, 'route-parent-key', 'reports-split-state-key');
         expect(Navigation.goBack).toHaveBeenCalled();
         expect(Navigation.navigate).not.toHaveBeenCalled();
     });

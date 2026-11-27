@@ -403,7 +403,11 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, shouldD
 
         markReportRHPWidth(targetReportID, 'wide');
         // Wait for the next frame to ensure Onyx has processed any optimistic thread data before navigating
-        requestAnimationFrame(() => startTransition(() => Navigation.setParams({reportID: targetReportID, reportActionID: undefined, anchorTransactionID: siblingTransactionID, backTo})));
+        requestAnimationFrame(() =>
+            startTransition(() =>
+                Navigation.setParams({reportID: targetReportID, reportActionID: undefined, reportActionAlignment: undefined, anchorTransactionID: siblingTransactionID, backTo}),
+            ),
+        );
     };
 
     const onNext = (e: GestureResponderEvent | KeyboardEvent | undefined) =>

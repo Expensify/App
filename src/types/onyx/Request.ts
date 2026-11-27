@@ -57,6 +57,9 @@ type OnyxDataBase<TOnyxUpdate> = {
     /** Onyx instructions that are executed when Onyx queue is flushed */
     queueFlushedData?: TOnyxUpdate[];
 
+    /** A caller is waiting for this OpenReport result, so the queue must preserve it. */
+    liveTailRequestID?: string;
+
     /** Client-only details retained with a queued bulk-edit request for response reconciliation. */
     bulkEditActionContext?: BulkEditActionContext;
 };

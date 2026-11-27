@@ -1,0 +1,48 @@
+diff --git a/node_modules/@legendapp/list/react-native.web.js b/node_modules/@legendapp/list/react-native.web.js
+index 87e43fd..3e8b571 100644
+--- a/node_modules/@legendapp/list/react-native.web.js
++++ b/node_modules/@legendapp/list/react-native.web.js
+@@ -5970,6 +5970,7 @@ function measureContainersInLayoutEffect(ctx, targetContainerIds = null) {
+     if (itemKey !== void 0 && element && isContainerItemCurrent(ctx, containerId, itemKey)) {
+       const generation = (_b = ctx.state.containerItemGenerations[containerId]) != null ? _b : 0;
+       const size = measureContainerLayoutSize(element);
++      if (size.width === 0 && size.height === 0) continue;
+       setContainerLayoutBaseline(element, size);
+       measurements.push({
+         containerId,
+diff --git a/node_modules/@legendapp/list/react-native.web.mjs b/node_modules/@legendapp/list/react-native.web.mjs
+index bcc0d18..42e5f08 100644
+--- a/node_modules/@legendapp/list/react-native.web.mjs
++++ b/node_modules/@legendapp/list/react-native.web.mjs
+@@ -5949,6 +5949,7 @@ function measureContainersInLayoutEffect(ctx, targetContainerIds = null) {
+     if (itemKey !== void 0 && element && isContainerItemCurrent(ctx, containerId, itemKey)) {
+       const generation = (_b = ctx.state.containerItemGenerations[containerId]) != null ? _b : 0;
+       const size = measureContainerLayoutSize(element);
++      if (size.width === 0 && size.height === 0) continue;
+       setContainerLayoutBaseline(element, size);
+       measurements.push({
+         containerId,
+diff --git a/node_modules/@legendapp/list/react.js b/node_modules/@legendapp/list/react.js
+index 87e43fd..3e8b571 100644
+--- a/node_modules/@legendapp/list/react.js
++++ b/node_modules/@legendapp/list/react.js
+@@ -5970,6 +5970,7 @@ function measureContainersInLayoutEffect(ctx, targetContainerIds = null) {
+     if (itemKey !== void 0 && element && isContainerItemCurrent(ctx, containerId, itemKey)) {
+       const generation = (_b = ctx.state.containerItemGenerations[containerId]) != null ? _b : 0;
+       const size = measureContainerLayoutSize(element);
++      if (size.width === 0 && size.height === 0) continue;
+       setContainerLayoutBaseline(element, size);
+       measurements.push({
+         containerId,
+diff --git a/node_modules/@legendapp/list/react.mjs b/node_modules/@legendapp/list/react.mjs
+index bcc0d18..42e5f08 100644
+--- a/node_modules/@legendapp/list/react.mjs
++++ b/node_modules/@legendapp/list/react.mjs
+@@ -5949,6 +5949,7 @@ function measureContainersInLayoutEffect(ctx, targetContainerIds = null) {
+     if (itemKey !== void 0 && element && isContainerItemCurrent(ctx, containerId, itemKey)) {
+       const generation = (_b = ctx.state.containerItemGenerations[containerId]) != null ? _b : 0;
+       const size = measureContainerLayoutSize(element);
++      if (size.width === 0 && size.height === 0) continue;
+       setContainerLayoutBaseline(element, size);
+       measurements.push({
+         containerId,

@@ -390,6 +390,17 @@ describe('RequestConflictUtils', () => {
             expect(result).toEqual({conflictAction: {type: 'push'}});
         });
 
+        it('preserves a queued latest-page request when another screen opens the same report', () => {
+            // Given the chat is waiting for its explicit request to finish.
+            const queuedJump = {command: WRITE_COMMANDS.OPEN_REPORT, data: {reportID: '1'}, liveTailRequestID: 'jump'};
+
+            // When an ordinary OpenReport is queued for a linked action in the same report.
+            const result = resolveOpenReportDuplicationConflictAction<OnyxKey>([queuedJump], {reportID: '1', reportActionID: 'old'});
+
+            // Then the linked request runs separately and the jump keeps its completion data.
+            expect(result.conflictAction.type).toBe('push');
+        });
+
         it('returns noAction when the queued OpenReport carries guidedSetupData', () => {
             const persistedRequests = [{command: WRITE_COMMANDS.OPEN_REPORT, data: {reportID: '1', guidedSetupData: '[{}]'}}];
             const result = resolveOpenReportDuplicationConflictAction<OnyxKey>(persistedRequests, {reportID: '1'});

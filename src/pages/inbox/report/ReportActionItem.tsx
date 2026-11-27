@@ -107,7 +107,7 @@ import {RestrictedReadOnlyContextMenuActions} from './ContextMenu/ContextMenuAct
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
 import {hideContextMenu, hideDeleteModal, isActiveReportAction, showContextMenu} from './ContextMenu/ReportActionContextMenu';
 import {useReportActionActiveEdit} from './ReportActionEditMessageContext';
-import {useReportActionItemState} from './ReportActionIndexContext';
+import {ReportActionAllowOverflowContext, useReportActionItemState} from './ReportActionIndexContext';
 import ReportActionItemContentCreated from './ReportActionItemContentCreated';
 import ReportActionItemFrame from './ReportActionItemFrame';
 import ReportActionItemThread from './ReportActionItemThread';
@@ -262,6 +262,7 @@ function ReportActionItem({
     const [isHidden, setIsHidden] = useReportActionItemState(false);
     const {isActiveReportAction: isActiveReactionListReportAction, hideReactionList} = useContext(ReactionListContext);
     const {updateHiddenAttachments} = useContext(AttachmentModalContext);
+    const allowOverflow = useContext(ReportActionAllowOverflowContext);
     const popoverAnchorRef = useRef<ComponentRef<typeof View>>(null);
 
     useExpandedSystemMessageFocus(action.reportActionID, popoverAnchorRef, onExpandedSystemMessageReady);
@@ -323,7 +324,7 @@ function ReportActionItem({
             return;
         }
         if (action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && isReportActionLinked) {
-            navigation.setParams({reportActionID: ''});
+            navigation.setParams({reportActionID: '', reportActionAlignment: undefined});
         }
         if (transactionIDToDismiss) {
             clearErrorWithOriginalTransactionError(transactionIDToDismiss, originalTransactionID, isOriginalTransactionSplitContainer);
@@ -597,6 +598,8 @@ function ReportActionItem({
                             isDisabled={hasDraft}
                             shouldFreezeCapture={isPaymentMethodPopoverActive}
                             onHoverIn={() => {
+                                // The mini context menu renders above the row, outside its list item container.
+                                allowOverflow?.(action);
                                 setIsReportActionActive(false);
                             }}
                             onHoverOut={() => {

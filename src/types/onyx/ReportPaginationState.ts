@@ -11,6 +11,9 @@ type ReportPaginationState = {
 
     /** The oldest report action ID from the last pagination response, used as advancing cursor for backfill */
     oldestFetchedReportActionID?: string;
+
+    /** Results of explicit newest-page requests, shared with the tab that requested the jump. */
+    liveTailRequestResults?: Record<string, {settled?: boolean; newestActionID?: string; expiresAt?: number}>;
 };
 
 export default ReportPaginationState;

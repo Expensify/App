@@ -1,3 +1,5 @@
+import type {ReportAction} from '@src/types/onyx';
+
 import type {Dispatch, PropsWithChildren, SetStateAction} from 'react';
 
 import {useRecyclingState} from '@legendapp/list/react-native';
@@ -28,6 +30,9 @@ const ReportActionRecyclingContext = createContext(false);
 /** Lets shared list implementations provide their own reliable way to reach the newest action. */
 const ReportActionScrollToNewestContext = createContext<(() => void) | undefined>(undefined);
 
+/** Lets a list whose rows clip their content allow the hovered action's inline menu to overflow its row. */
+const ReportActionAllowOverflowContext = createContext<((reportAction: ReportAction) => void) | undefined>(undefined);
+
 /**
  * Each list passes the index from its row renderer and marks the last action as newest. The
  * LegendList caller also sets isRecycling because it can reuse a mounted row for another action.
@@ -50,5 +55,5 @@ function useReportActionItemState<State>(initialState: State | (() => State)): [
     return isRecycling ? [...recyclingState] : state;
 }
 
-export {ReportActionPositionContextProvider, ReportActionScrollToNewestContext, useReportActionItemState};
+export {ReportActionAllowOverflowContext, ReportActionPositionContextProvider, ReportActionScrollToNewestContext, useReportActionItemState};
 export default ReportActionIndexContext;

@@ -1,20 +1,24 @@
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {Pagination} from '@libs/Middleware/Pagination';
+import {isRecord} from '@libs/ObjectUtils';
 import Pusher from '@libs/Pusher';
 import PusherUtils from '@libs/PusherUtils';
+import registerReportActionsPagination from '@libs/registerReportActionsPagination';
 
 import CONST from '@src/CONST';
 import * as OnyxUpdates from '@src/libs/actions/OnyxUpdates';
-import {flushQueue} from '@src/libs/actions/QueuedOnyxUpdates';
+import {flushQueue, getQueuedCollectionMember, queueOnyxUpdates} from '@src/libs/actions/QueuedOnyxUpdates';
 import DateUtils from '@src/libs/DateUtils';
 import * as NumberUtils from '@src/libs/NumberUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxUpdatesFromServer} from '@src/types/onyx';
 import type {OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
 
-import type {OnyxKey} from 'react-native-onyx';
+import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
+import createMock from '../utils/createMock';
 import getOnyxValue from '../utils/getOnyxValue';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -41,6 +45,62 @@ describe('OnyxUpdatesTest', () => {
     afterEach(() => {
         releaseHeldApply?.();
         releaseHeldApply = undefined;
+    });
+
+    it('projects buffered collection and multi-key writes used by pagination until the queue flushes', async () => {
+        // Given a cached report action and two buffered writes for its collection.
+        const collection = ONYXKEYS.COLLECTION.REPORT_ACTIONS;
+        const key = `${collection}1` as const;
+        const otherKey = `${collection}2` as const;
+        const cached = {old: {reportActionID: 'old'}};
+        await Onyx.merge(key, cached);
+        await queueOnyxUpdates([
+            {onyxMethod: Onyx.METHOD.MULTI_SET, key, value: {[key]: {first: {reportActionID: 'first'}}, [otherKey]: {}}},
+            {onyxMethod: Onyx.METHOD.MERGE_COLLECTION, key: collection, value: {[key]: {first: null, second: {reportActionID: 'second'}}}},
+        ]);
+
+        // When a second response calculates its page before these items reach Onyx.
+        const projected = getQueuedCollectionMember(collection, '1', cached, isRecord);
+        expect(projected).toEqual({second: {reportActionID: 'second'}});
+        await flushQueue();
+
+        // Then it saw the same actions that the real queue committed.
+        expect(await getOnyxValue(key)).toEqual(projected);
+
+        // When the server omits the merge value, Onyx keeps the stored actions.
+        await queueOnyxUpdates([createMock<OnyxUpdate<typeof key>>({onyxMethod: Onyx.METHOD.MERGE, key})]);
+        expect(getQueuedCollectionMember(collection, '1', projected ?? {}, isRecord)).toEqual(projected);
+        await flushQueue();
+        expect(await getOnyxValue(key)).toEqual(projected);
+    });
+
+    it.each([false, true])('keeps End retryable across a collection replacement affecting a second member: %s', async (alsoSetSecondMember) => {
+        // Given a collection replacement removes this report in the same flush as a multi-key write that restores it.
+        await registerReportActionsPagination();
+        const collection = ONYXKEYS.COLLECTION.REPORT_ACTIONS;
+        const key = `${collection}1` as const;
+        const otherKey = `${collection}2` as const;
+        const action = {reportActionID: '5', actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: '2026-08-21 12:00:00.000'};
+        const items = {[action.reportActionID]: action};
+        await Onyx.merge(key, {old: {reportActionID: 'old'}});
+        await queueOnyxUpdates([
+            {onyxMethod: Onyx.METHOD.SET_COLLECTION, key: collection, value: {}},
+            {onyxMethod: Onyx.METHOD.MULTI_SET, key, value: alsoSetSecondMember ? {[key]: items, [otherKey]: items} : {[key]: items}},
+        ]);
+
+        // When End's response arrives, the final value depends on how Onyx batches these two operations.
+        const request = {command: WRITE_COMMANDS.OPEN_REPORT, resourceID: '1', isPaginated: true as const, liveTailRequestID: 'jump', data: {apiRequestType: CONST.API_REQUEST_TYPE.WRITE}};
+        const response = {jsonCode: 200, hasNewerActions: false, onyxData: [{onyxMethod: Onyx.METHOD.MERGE, key, value: items}]};
+        const beforeFlush = await Pagination(Promise.resolve(response), request, true);
+
+        // Then it keeps the server data without claiming a page that might disappear.
+        expect(beforeFlush?.onyxData).toEqual([{onyxMethod: Onyx.METHOD.MERGE, key, value: items}]);
+        await flushQueue();
+        expect(await getOnyxValue(key)).toEqual(alsoSetSecondMember ? items : undefined);
+
+        // When End retries after that flush, it can publish a receipt for the actual newest action.
+        const retry = await Pagination(Promise.resolve(response), request, true);
+        expect(retry?.onyxData).toContainEqual(expect.objectContaining({value: expect.objectContaining({liveTailRequestResults: {jump: {newestActionID: action.reportActionID}}})}));
     });
 
     it('applies Airship Onyx updates correctly', () => {

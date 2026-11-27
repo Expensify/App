@@ -1,12 +1,15 @@
 import Log from '@libs/Log';
+import {isRecord} from '@libs/ObjectUtils';
 
 import CONFIG from '@src/CONFIG';
+import type {OnyxCollectionKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 
 import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
+import onyxValueUtils from 'react-native-onyx/dist/utils';
 
 // In this file we manage a queue of Onyx updates while the SequentialQueue is processing. There are functions to get the updates and clear the queue after saving the updates in Onyx.
 
@@ -98,8 +101,46 @@ function flushQueue(): Promise<void> {
         });
 }
 
+/** Read a buffered pagination value. A deletion returns undefined. A whole-collection replacement makes the result indeterminate (null). */
+function getQueuedCollectionMember<T extends Record<string, unknown> | unknown[]>(
+    collectionKey: OnyxCollectionKey,
+    id: string,
+    cached: T,
+    isValue: (value: unknown) => value is T,
+): T | null | undefined {
+    if (!queuedOnyxUpdates.length) {
+        return cached;
+    }
+
+    const key = `${collectionKey}${id}`;
+    let current: T | undefined = queuedOnyxUpdates.some((update) => update.onyxMethod === Onyx.METHOD.CLEAR) ? undefined : cached;
+    for (const update of queuedOnyxUpdates) {
+        // Onyx batches writes differently for one member and several. A whole-collection replacement can win over a later member set.
+        if (update.onyxMethod === Onyx.METHOD.SET_COLLECTION && update.key === collectionKey) {
+            return null;
+        }
+        const isMultiSet = update.onyxMethod === Onyx.METHOD.MULTI_SET;
+        const isCollectionMerge = update.onyxMethod === Onyx.METHOD.MERGE_COLLECTION && update.key === collectionKey;
+        let value: unknown = update.value;
+        if (isMultiSet || isCollectionMerge) {
+            value = isRecord(value) ? value[key] : undefined;
+        } else if (update.key !== key || (update.onyxMethod !== Onyx.METHOD.MERGE && update.onyxMethod !== Onyx.METHOD.SET)) {
+            continue;
+        }
+        if (value === null) {
+            current = undefined;
+        } else if (isValue(value)) {
+            const shouldMerge = isCollectionMerge || update.onyxMethod === Onyx.METHOD.MERGE;
+            current = onyxValueUtils.fastMerge<T | undefined>(shouldMerge ? current : undefined, value, {shouldRemoveNestedNulls: true, objectRemovalMode: 'replace'}).result;
+        } else if (value !== undefined) {
+            Log.hmmm('[Pagination] Ignoring a buffered value with an unexpected shape', {collectionKey, method: update.onyxMethod});
+        }
+    }
+    return current;
+}
+
 function isEmpty() {
     return queuedOnyxUpdates.length === 0;
 }
 
-export {queueOnyxUpdates, flushQueue, getCurrentFlushPromise, isEmpty};
+export {queueOnyxUpdates, flushQueue, getCurrentFlushPromise, getQueuedCollectionMember, isEmpty};

@@ -17,8 +17,12 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 jest.mock('@pages/inbox/ReportScreen', () => {
     const {Text: MockText} = jest.requireActual<typeof ReactNative>('react-native');
-    function MockReportScreen({route}: {route: {params: {reportActionID?: string}}}) {
-        return <MockText testID="anchor">{route.params.reportActionID ?? 'no anchor'}</MockText>;
+    function MockReportScreen({route}: {route: {params: {reportActionID?: string; reportActionAlignment?: string}}}) {
+        return (
+            <MockText testID="anchor">
+                {route.params.reportActionID ?? 'no anchor'}:{route.params.reportActionAlignment ?? 'default'}
+            </MockText>
+        );
     }
     return {__esModule: true, default: MockReportScreen};
 });
@@ -40,7 +44,7 @@ describe('SidePanelReport anchor', () => {
             />,
         );
         await waitForBatchedUpdatesWithAct();
-        expect(screen.getByText('901')).toBeOnTheScreen();
+        expect(screen.getByText('901:start')).toBeOnTheScreen();
 
         // When sending the question fails and its optimistic reply is removed.
         await act(async () => {
@@ -49,6 +53,6 @@ describe('SidePanelReport anchor', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then the synthetic route no longer points pagination at a missing action.
-        expect(screen.getByText('no anchor')).toBeOnTheScreen();
+        expect(screen.getByText('no anchor:default')).toBeOnTheScreen();
     });
 });

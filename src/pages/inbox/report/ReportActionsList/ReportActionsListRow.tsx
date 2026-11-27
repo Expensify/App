@@ -18,6 +18,9 @@ import React from 'react';
 type ReportActionsListRowProps = Omit<ReportActionsListItemRendererProps, 'onExpandedSystemMessageReady'> & {
     index: number;
 
+    /** Whether this row shows the newest action, which is the last row in the chronological list */
+    isNewest: boolean;
+
     /** Set only when this row anchors a collapsed run of system messages. The row then renders the run instead of the action. */
     collapsedSystemMessageRun?: SystemMessageRun;
 
@@ -35,6 +38,7 @@ type ReportActionsListRowProps = Omit<ReportActionsListItemRendererProps, 'onExp
 
 function ReportActionsListRow({
     index,
+    isNewest,
     collapsedSystemMessageRun,
     collapsedSystemMessageRunUnreadMarkerReportActionID,
     expandSystemMessageRun,
@@ -63,7 +67,8 @@ function ReportActionsListRow({
     return (
         <ReportActionPositionContextProvider
             index={index}
-            isNewest={index === 0}
+            isNewest={isNewest}
+            isRecycling
         >
             {collapsedSystemMessageRun ? (
                 <CollapsedSystemMessages

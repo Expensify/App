@@ -18,7 +18,6 @@ type ReportScrollManagerData = {
      */
     scrollToIndex: (index: number, options?: ScrollToIndexOptions) => void;
     scrollToBottom: () => void;
-    scrollToEnd: () => void;
     scrollToOffset: (offset: number) => void;
 };
 

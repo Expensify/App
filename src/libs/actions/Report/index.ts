@@ -259,6 +259,7 @@ import type {
     RecentlyUsedReportFields,
     Report,
     ReportAction,
+    ReportPaginationState,
     ReportUserIsTyping,
     Rule,
     Session,
@@ -285,6 +286,7 @@ import type {NullishDeep, OnyxCollection, OnyxCollectionInputValue, OnyxEntry, O
 import type {PartialDeep, ValueOf} from 'type-fest';
 
 /* eslint-disable max-lines */
+import {millisecondsInWeek} from 'date-fns/constants';
 import {Str} from 'expensify-common';
 import cloneDeep from 'lodash/cloneDeep';
 import isEmpty from 'lodash/isEmpty';
@@ -354,6 +356,9 @@ type OpenReportActionBaseParams = {
 
     /** The ID used to fetch a specific range of report actions related to the current reportActionID when opening a chat */
     reportActionID?: string;
+
+    /** Identifies the caller waiting for the newest page. */
+    liveTailRequestID?: string;
 
     participants?: ParticipantInfo[];
 
@@ -1396,7 +1401,8 @@ function addActions({
             if (!shouldNavigateToConciergeThread) {
                 return;
             }
-            Navigation.navigate(getReportRouteForCurrentContext({reportID: conciergeThreadReportID, reportActionID: preloadedConciergeAction?.reportAction.reportActionID}));
+            const threadRoute = getReportRouteForCurrentContext({reportID: conciergeThreadReportID, reportActionID: preloadedConciergeAction?.reportAction.reportActionID});
+            Navigation.navigate(preloadedConciergeAction ? appendParam(threadRoute, REPORT_LINK_ROUTE_PARAMS.REPORT_ACTION_ALIGNMENT, 'start') : threadRoute);
         });
     }
     notifyNewAction(resolvedNotifyReportID, lastAction, lastAction?.actorAccountID === currentUserAccountID);
@@ -1817,6 +1823,7 @@ function openReport(params: OpenReportActionParams) {
         reportID,
         introSelected,
         reportActionID,
+        liveTailRequestID,
         participants = [],
         newReportObject,
         parentReportActionID,
@@ -1947,6 +1954,7 @@ function openReport(params: OpenReportActionParams) {
               | typeof ONYXKEYS.NVP_ONBOARDING
               | typeof ONYXKEYS.COLLECTION.POLICY
               | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+              | typeof ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE
               | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
           >
         | PersonalDetailsUtils.PersonalDetailsOnyxUpdate
@@ -1968,7 +1976,18 @@ function openReport(params: OpenReportActionParams) {
         });
     }
 
-    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM>> = [];
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM | typeof ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE>> = [];
+    if (liveTailRequestID) {
+        // The queue can run in another tab. A settled request can still have had its page discarded as stale.
+        const settlement: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE> = {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE}${reportID}`,
+            value: {liveTailRequestResults: {[liveTailRequestID]: {settled: true}}},
+        };
+        // Transport retry exhaustion only applies failureData, while a discarded HTTP response still applies finallyData.
+        failureData.push(settlement);
+        finallyData.push(settlement);
+    }
 
     const parameters: OpenReportParams = {
         reportID,
@@ -1978,7 +1997,7 @@ function openReport(params: OpenReportActionParams) {
         parentReportActionID,
         transactionID: transaction?.transactionID,
         includePartiallySetupBankAccounts: true,
-        useLastUnreadReportAction: shouldMarkAsRead ? true : undefined,
+        useLastUnreadReportAction: shouldMarkAsRead && !liveTailRequestID ? true : undefined,
         includeLockedBankAccounts: true,
         fullPolicySnapshotPolicyID: fullPolicySnapshot?.policyID,
         fullPolicySnapshotLastModified: fullPolicySnapshot?.lastModified,
@@ -2263,14 +2282,38 @@ function openReport(params: OpenReportActionParams) {
             key: ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM,
             value: false,
         });
-
-        API.paginate(CONST.API_REQUEST_TYPE.WRITE, WRITE_COMMANDS.OPEN_REPORT, parameters, {optimisticData, successData, failureData, finallyData}, paginationConfig);
-    } else {
-        // eslint-disable-next-line rulesdir/no-multiple-api-calls
-        API.paginate(CONST.API_REQUEST_TYPE.WRITE, WRITE_COMMANDS.OPEN_REPORT, parameters, {optimisticData, successData, failureData, finallyData}, paginationConfig, {
-            checkAndFixConflictingRequest: (persistedRequests) => resolveOpenReportDuplicationConflictAction(persistedRequests, parameters),
-        });
     }
+
+    API.paginate(
+        CONST.API_REQUEST_TYPE.WRITE,
+        WRITE_COMMANDS.OPEN_REPORT,
+        parameters,
+        {optimisticData, successData, failureData, finallyData, liveTailRequestID},
+        paginationConfig,
+        isFromDeepLink || liveTailRequestID ? undefined : {checkAndFixConflictingRequest: (persistedRequests) => resolveOpenReportDuplicationConflictAction(persistedRequests, parameters)},
+    );
+}
+
+/** Start retention after a result settles. An offline request can wait in the queue longer than a week. */
+function pruneExpiredLiveTailResults(reportID: string, results: ReportPaginationState['liveTailRequestResults'], now: number) {
+    if (!results) {
+        return;
+    }
+    const updates: Record<string, {expiresAt: number} | null> = {};
+    for (const [id, result] of Object.entries(results)) {
+        if (result.expiresAt !== undefined && result.expiresAt <= now) {
+            updates[id] = null;
+        } else if (result.settled && result.expiresAt === undefined) {
+            updates[id] = {expiresAt: now + millisecondsInWeek};
+        }
+    }
+    if (Object.keys(updates).length > 0) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE}${reportID}`, {liveTailRequestResults: updates});
+    }
+}
+
+function clearLiveTailRequestResult(reportID: string, requestID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE}${reportID}`, {liveTailRequestResults: {[requestID]: null}});
 }
 
 /**
@@ -9786,6 +9829,8 @@ export {
     optimisticReportLastData,
     setOptimisticTransactionThread,
     prepareOnyxDataForCleanUpOptimisticParticipants,
+    clearLiveTailRequestResult,
+    pruneExpiredLiveTailResults,
     pruneReportActionPagesToNewestWindow,
     getGuidedSetupDataForOpenReport,
     getReportChannelName,

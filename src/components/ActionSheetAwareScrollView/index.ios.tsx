@@ -12,8 +12,11 @@ function ActionSheetAwareScrollView({style, children, ref, ...restProps}: Action
     const {onRef, animatedRef} = useActionSheetAwareScrollViewRef(ref);
 
     const spacing = useActionSheetKeyboardSpacing(animatedRef);
+    // The spacing lifts the content while a popover is open, for example to cancel the keyboard closing under it.
+    // The report-actions list is chronological, so a top padding would push its rows down instead. Translating
+    // keeps the list's layout and scroll offset unchanged; the parent clips the rows that move above it.
     const animatedStyle = useAnimatedStyle(() => ({
-        paddingTop: spacing.get(),
+        transform: [{translateY: -spacing.get()}],
     }));
 
     usePreventScrollOnKeyboardInteraction({scrollViewRef: animatedRef});

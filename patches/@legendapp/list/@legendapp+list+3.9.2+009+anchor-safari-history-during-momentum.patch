@@ -1,0 +1,288 @@
+diff --git a/node_modules/@legendapp/list/react-native.web.js b/node_modules/@legendapp/list/react-native.web.js
+index 3e8b571..f30f58f 100644
+--- a/node_modules/@legendapp/list/react-native.web.js
++++ b/node_modules/@legendapp/list/react-native.web.js
+@@ -1100,9 +1100,12 @@ function requestAdjust(ctx, positionDiff, source) {
+   }
+   if (Math.abs(positionDiff) > 0.1) {
+     state.layoutAdjustmentEpoch = ((_h = state.layoutAdjustmentEpoch) != null ? _h : 0) + 1;
++    const dataChanged = source === "data";
+     const doit = () => {
+       if (preservesOffsetTarget(ctx, source)) return;
+-      {
++      if (dataChanged) {
++        state.scrollAdjustHandler.requestAdjust(scrollCorrection, source);
++      } else {
+         state.scrollAdjustHandler.requestAdjust(scrollCorrection);
+       }
+     };
+@@ -7769,8 +7772,20 @@ function getScrollAdjustTarget(ctx, contentNode) {
+   }
+   return scrollElement ? { contentNode: resolvedContentNode, scrollElement } : null;
+ }
+-function scrollAdjustBy(el, left, top) {
+-  el.scrollBy({ behavior: "auto", left, top });
++function scrollAdjustBy(el, left, top, interruptMomentum = false) {
++  if (!interruptMomentum) {
++    el.scrollBy({ behavior: "auto", left, top });
++    return;
++  }
++  const before = el.scrollTop;
++  const previousOverflow = el.style.overflowY;
++  el.style.overflowY = "hidden";
++  try {
++    el.scrollBy({ behavior: "auto", left, top: top + before - el.scrollTop });
++    void el.offsetHeight;
++  } finally {
++    el.style.overflowY = previousOverflow;
++  }
+ }
+ function ScrollAdjust() {
+   const ctx = useStateContext();
+@@ -7811,7 +7826,9 @@ function ScrollAdjust() {
+         const shouldScroll = !isOutsideList && Math.abs(scrollDelta) > 0.01;
+         const scrollBy = () => {
+           var _a4, _b2, _c2, _d2;
+-          scrollAdjustBy(el, axis.x * scrollDelta, axis.y * scrollDelta);
++          const isVerticalPrepend = isRelative && userOffsetDelta === 0 && ctx.state.scrollAdjustHandler.webAdjustSource === "data" && !horizontal && !isExternal && scrollDelta > 0;
++          const interruptMomentum = isVerticalPrepend && typeof CSS !== "undefined" && CSS.supports("-webkit-touch-callout", "none");
++          scrollAdjustBy(el, axis.x * scrollDelta, axis.y * scrollDelta, interruptMomentum);
+           const after = (_b2 = isExternal ? (_a4 = scroller == null ? void 0 : scroller.getCurrentScrollOffset) == null ? void 0 : _a4.call(scroller) : void 0) != null ? _b2 : horizontal ? el.scrollLeft : el.scrollTop;
+           (_d2 = (_c2 = ctx.state.scrollAdjustHandler).recordWebAdjust) == null ? void 0 : _d2.call(_c2, intendedScroll, after);
+         };
+@@ -8745,14 +8762,17 @@ var ScrollAdjustHandler = class {
+   recordWebAdjust(expected, observed) {
+     this.webAdjustment = { expected: Math.abs(expected - observed) < 1 ? expected : observed, observed };
+   }
+-  requestAdjust(add) {
++  requestAdjust(add, source) {
+     const scrollingTo = this.ctx.state.scrollingTo;
+     if ((scrollingTo == null ? void 0 : scrollingTo.animated) && !scrollingTo.isInitialScroll) {
+       this.pendingAdjust += add;
+       set$(this.ctx, "scrollAdjustPending", this.pendingAdjust);
+     } else {
+       this.appliedAdjust += add;
+-      this.webAdjustSignal = this.appliedAdjust;
++      {
++        this.webAdjustSignal = this.appliedAdjust;
++        this.webAdjustSource = source;
++      }
+       set$(this.ctx, "scrollAdjust", this.appliedAdjust);
+     }
+     if (this.ctx.state.scrollingTo) {
+diff --git a/node_modules/@legendapp/list/react-native.web.mjs b/node_modules/@legendapp/list/react-native.web.mjs
+index 42e5f08..1705bf0 100644
+--- a/node_modules/@legendapp/list/react-native.web.mjs
++++ b/node_modules/@legendapp/list/react-native.web.mjs
+@@ -1079,9 +1079,12 @@ function requestAdjust(ctx, positionDiff, source) {
+   }
+   if (Math.abs(positionDiff) > 0.1) {
+     state.layoutAdjustmentEpoch = ((_h = state.layoutAdjustmentEpoch) != null ? _h : 0) + 1;
++    const dataChanged = source === "data";
+     const doit = () => {
+       if (preservesOffsetTarget(ctx, source)) return;
+-      {
++      if (dataChanged) {
++        state.scrollAdjustHandler.requestAdjust(scrollCorrection, source);
++      } else {
+         state.scrollAdjustHandler.requestAdjust(scrollCorrection);
+       }
+     };
+@@ -7748,8 +7751,20 @@ function getScrollAdjustTarget(ctx, contentNode) {
+   }
+   return scrollElement ? { contentNode: resolvedContentNode, scrollElement } : null;
+ }
+-function scrollAdjustBy(el, left, top) {
+-  el.scrollBy({ behavior: "auto", left, top });
++function scrollAdjustBy(el, left, top, interruptMomentum = false) {
++  if (!interruptMomentum) {
++    el.scrollBy({ behavior: "auto", left, top });
++    return;
++  }
++  const before = el.scrollTop;
++  const previousOverflow = el.style.overflowY;
++  el.style.overflowY = "hidden";
++  try {
++    el.scrollBy({ behavior: "auto", left, top: top + before - el.scrollTop });
++    void el.offsetHeight;
++  } finally {
++    el.style.overflowY = previousOverflow;
++  }
+ }
+ function ScrollAdjust() {
+   const ctx = useStateContext();
+@@ -7790,7 +7805,9 @@ function ScrollAdjust() {
+         const shouldScroll = !isOutsideList && Math.abs(scrollDelta) > 0.01;
+         const scrollBy = () => {
+           var _a4, _b2, _c2, _d2;
+-          scrollAdjustBy(el, axis.x * scrollDelta, axis.y * scrollDelta);
++          const isVerticalPrepend = isRelative && userOffsetDelta === 0 && ctx.state.scrollAdjustHandler.webAdjustSource === "data" && !horizontal && !isExternal && scrollDelta > 0;
++          const interruptMomentum = isVerticalPrepend && typeof CSS !== "undefined" && CSS.supports("-webkit-touch-callout", "none");
++          scrollAdjustBy(el, axis.x * scrollDelta, axis.y * scrollDelta, interruptMomentum);
+           const after = (_b2 = isExternal ? (_a4 = scroller == null ? void 0 : scroller.getCurrentScrollOffset) == null ? void 0 : _a4.call(scroller) : void 0) != null ? _b2 : horizontal ? el.scrollLeft : el.scrollTop;
+           (_d2 = (_c2 = ctx.state.scrollAdjustHandler).recordWebAdjust) == null ? void 0 : _d2.call(_c2, intendedScroll, after);
+         };
+@@ -8724,14 +8741,17 @@ var ScrollAdjustHandler = class {
+   recordWebAdjust(expected, observed) {
+     this.webAdjustment = { expected: Math.abs(expected - observed) < 1 ? expected : observed, observed };
+   }
+-  requestAdjust(add) {
++  requestAdjust(add, source) {
+     const scrollingTo = this.ctx.state.scrollingTo;
+     if ((scrollingTo == null ? void 0 : scrollingTo.animated) && !scrollingTo.isInitialScroll) {
+       this.pendingAdjust += add;
+       set$(this.ctx, "scrollAdjustPending", this.pendingAdjust);
+     } else {
+       this.appliedAdjust += add;
+-      this.webAdjustSignal = this.appliedAdjust;
++      {
++        this.webAdjustSignal = this.appliedAdjust;
++        this.webAdjustSource = source;
++      }
+       set$(this.ctx, "scrollAdjust", this.appliedAdjust);
+     }
+     if (this.ctx.state.scrollingTo) {
+diff --git a/node_modules/@legendapp/list/react.js b/node_modules/@legendapp/list/react.js
+index 3e8b571..f30f58f 100644
+--- a/node_modules/@legendapp/list/react.js
++++ b/node_modules/@legendapp/list/react.js
+@@ -1100,9 +1100,12 @@ function requestAdjust(ctx, positionDiff, source) {
+   }
+   if (Math.abs(positionDiff) > 0.1) {
+     state.layoutAdjustmentEpoch = ((_h = state.layoutAdjustmentEpoch) != null ? _h : 0) + 1;
++    const dataChanged = source === "data";
+     const doit = () => {
+       if (preservesOffsetTarget(ctx, source)) return;
+-      {
++      if (dataChanged) {
++        state.scrollAdjustHandler.requestAdjust(scrollCorrection, source);
++      } else {
+         state.scrollAdjustHandler.requestAdjust(scrollCorrection);
+       }
+     };
+@@ -7769,8 +7772,20 @@ function getScrollAdjustTarget(ctx, contentNode) {
+   }
+   return scrollElement ? { contentNode: resolvedContentNode, scrollElement } : null;
+ }
+-function scrollAdjustBy(el, left, top) {
+-  el.scrollBy({ behavior: "auto", left, top });
++function scrollAdjustBy(el, left, top, interruptMomentum = false) {
++  if (!interruptMomentum) {
++    el.scrollBy({ behavior: "auto", left, top });
++    return;
++  }
++  const before = el.scrollTop;
++  const previousOverflow = el.style.overflowY;
++  el.style.overflowY = "hidden";
++  try {
++    el.scrollBy({ behavior: "auto", left, top: top + before - el.scrollTop });
++    void el.offsetHeight;
++  } finally {
++    el.style.overflowY = previousOverflow;
++  }
+ }
+ function ScrollAdjust() {
+   const ctx = useStateContext();
+@@ -7811,7 +7826,9 @@ function ScrollAdjust() {
+         const shouldScroll = !isOutsideList && Math.abs(scrollDelta) > 0.01;
+         const scrollBy = () => {
+           var _a4, _b2, _c2, _d2;
+-          scrollAdjustBy(el, axis.x * scrollDelta, axis.y * scrollDelta);
++          const isVerticalPrepend = isRelative && userOffsetDelta === 0 && ctx.state.scrollAdjustHandler.webAdjustSource === "data" && !horizontal && !isExternal && scrollDelta > 0;
++          const interruptMomentum = isVerticalPrepend && typeof CSS !== "undefined" && CSS.supports("-webkit-touch-callout", "none");
++          scrollAdjustBy(el, axis.x * scrollDelta, axis.y * scrollDelta, interruptMomentum);
+           const after = (_b2 = isExternal ? (_a4 = scroller == null ? void 0 : scroller.getCurrentScrollOffset) == null ? void 0 : _a4.call(scroller) : void 0) != null ? _b2 : horizontal ? el.scrollLeft : el.scrollTop;
+           (_d2 = (_c2 = ctx.state.scrollAdjustHandler).recordWebAdjust) == null ? void 0 : _d2.call(_c2, intendedScroll, after);
+         };
+@@ -8745,14 +8762,17 @@ var ScrollAdjustHandler = class {
+   recordWebAdjust(expected, observed) {
+     this.webAdjustment = { expected: Math.abs(expected - observed) < 1 ? expected : observed, observed };
+   }
+-  requestAdjust(add) {
++  requestAdjust(add, source) {
+     const scrollingTo = this.ctx.state.scrollingTo;
+     if ((scrollingTo == null ? void 0 : scrollingTo.animated) && !scrollingTo.isInitialScroll) {
+       this.pendingAdjust += add;
+       set$(this.ctx, "scrollAdjustPending", this.pendingAdjust);
+     } else {
+       this.appliedAdjust += add;
+-      this.webAdjustSignal = this.appliedAdjust;
++      {
++        this.webAdjustSignal = this.appliedAdjust;
++        this.webAdjustSource = source;
++      }
+       set$(this.ctx, "scrollAdjust", this.appliedAdjust);
+     }
+     if (this.ctx.state.scrollingTo) {
+diff --git a/node_modules/@legendapp/list/react.mjs b/node_modules/@legendapp/list/react.mjs
+index 42e5f08..1705bf0 100644
+--- a/node_modules/@legendapp/list/react.mjs
++++ b/node_modules/@legendapp/list/react.mjs
+@@ -1079,9 +1079,12 @@ function requestAdjust(ctx, positionDiff, source) {
+   }
+   if (Math.abs(positionDiff) > 0.1) {
+     state.layoutAdjustmentEpoch = ((_h = state.layoutAdjustmentEpoch) != null ? _h : 0) + 1;
++    const dataChanged = source === "data";
+     const doit = () => {
+       if (preservesOffsetTarget(ctx, source)) return;
+-      {
++      if (dataChanged) {
++        state.scrollAdjustHandler.requestAdjust(scrollCorrection, source);
++      } else {
+         state.scrollAdjustHandler.requestAdjust(scrollCorrection);
+       }
+     };
+@@ -7748,8 +7751,20 @@ function getScrollAdjustTarget(ctx, contentNode) {
+   }
+   return scrollElement ? { contentNode: resolvedContentNode, scrollElement } : null;
+ }
+-function scrollAdjustBy(el, left, top) {
+-  el.scrollBy({ behavior: "auto", left, top });
++function scrollAdjustBy(el, left, top, interruptMomentum = false) {
++  if (!interruptMomentum) {
++    el.scrollBy({ behavior: "auto", left, top });
++    return;
++  }
++  const before = el.scrollTop;
++  const previousOverflow = el.style.overflowY;
++  el.style.overflowY = "hidden";
++  try {
++    el.scrollBy({ behavior: "auto", left, top: top + before - el.scrollTop });
++    void el.offsetHeight;
++  } finally {
++    el.style.overflowY = previousOverflow;
++  }
+ }
+ function ScrollAdjust() {
+   const ctx = useStateContext();
+@@ -7790,7 +7805,9 @@ function ScrollAdjust() {
+         const shouldScroll = !isOutsideList && Math.abs(scrollDelta) > 0.01;
+         const scrollBy = () => {
+           var _a4, _b2, _c2, _d2;
+-          scrollAdjustBy(el, axis.x * scrollDelta, axis.y * scrollDelta);
++          const isVerticalPrepend = isRelative && userOffsetDelta === 0 && ctx.state.scrollAdjustHandler.webAdjustSource === "data" && !horizontal && !isExternal && scrollDelta > 0;
++          const interruptMomentum = isVerticalPrepend && typeof CSS !== "undefined" && CSS.supports("-webkit-touch-callout", "none");
++          scrollAdjustBy(el, axis.x * scrollDelta, axis.y * scrollDelta, interruptMomentum);
+           const after = (_b2 = isExternal ? (_a4 = scroller == null ? void 0 : scroller.getCurrentScrollOffset) == null ? void 0 : _a4.call(scroller) : void 0) != null ? _b2 : horizontal ? el.scrollLeft : el.scrollTop;
+           (_d2 = (_c2 = ctx.state.scrollAdjustHandler).recordWebAdjust) == null ? void 0 : _d2.call(_c2, intendedScroll, after);
+         };
+@@ -8724,14 +8741,17 @@ var ScrollAdjustHandler = class {
+   recordWebAdjust(expected, observed) {
+     this.webAdjustment = { expected: Math.abs(expected - observed) < 1 ? expected : observed, observed };
+   }
+-  requestAdjust(add) {
++  requestAdjust(add, source) {
+     const scrollingTo = this.ctx.state.scrollingTo;
+     if ((scrollingTo == null ? void 0 : scrollingTo.animated) && !scrollingTo.isInitialScroll) {
+       this.pendingAdjust += add;
+       set$(this.ctx, "scrollAdjustPending", this.pendingAdjust);
+     } else {
+       this.appliedAdjust += add;
+-      this.webAdjustSignal = this.appliedAdjust;
++      {
++        this.webAdjustSignal = this.appliedAdjust;
++        this.webAdjustSource = source;
++      }
+       set$(this.ctx, "scrollAdjust", this.appliedAdjust);
+     }
+     if (this.ctx.state.scrollingTo) {

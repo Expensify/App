@@ -1,5 +1,6 @@
 import ReportActionsSkeletonGuard from '@pages/inbox/report/ReportActionsSkeletonGuard';
 
+/** Keeps the report-data readiness guard outside the scrollable message list. */
 import React from 'react';
 
 import type {ReportActionsListProps} from './types';
@@ -12,7 +13,10 @@ import ReportActionsListContent from './ReportActionsListContent';
  */
 function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
     return (
-        <ReportActionsSkeletonGuard reportID={reportID}>
+        <ReportActionsSkeletonGuard
+            key={reportID}
+            reportID={reportID}
+        >
             <ReportActionsListContent
                 key={reportID}
                 reportID={reportID}

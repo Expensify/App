@@ -122,6 +122,7 @@ describe('Pagination middleware registration readiness', () => {
 
     it('registers the report actions pagination config only once', async () => {
         const {default: registerReportActionsPaginationConfig} = await import('@libs/registerReportActionsPagination');
+        mockConnectWithoutView.mockClear();
 
         const firstReadyPromise = registerReportActionsPaginationConfig();
         const secondReadyPromise = registerReportActionsPaginationConfig();

@@ -310,7 +310,11 @@ describe('Link.openLink', () => {
 
         openLink(`${CONST.NEW_EXPENSIFY_URL}/r/regular-report/987654321`, environmentURL, false, TEST_SESSION);
 
-        expect(Navigation.setParams).toHaveBeenCalledWith({reportActionID: '987654321'}, `${SCREENS.RIGHT_MODAL.SEARCH_REPORT}-rhp-report`, `${NAVIGATORS.RIGHT_MODAL_NAVIGATOR}-state`);
+        expect(Navigation.setParams).toHaveBeenCalledWith(
+            {reportActionID: '987654321', reportActionAlignment: undefined},
+            `${SCREENS.RIGHT_MODAL.SEARCH_REPORT}-rhp-report`,
+            `${NAVIGATORS.RIGHT_MODAL_NAVIGATOR}-state`,
+        );
         expect(Navigation.closeRHPFlow).not.toHaveBeenCalled();
         expect(Navigation.navigate).not.toHaveBeenCalled();
     });
