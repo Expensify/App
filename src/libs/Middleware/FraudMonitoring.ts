@@ -36,7 +36,7 @@ const revealedCardFraudSignal: FraudSignalFactory = (_, responseData) => ({
 });
 
 // Some of these commands only take a magic code in some flows, e.g. UpdateDelegateRole after the user has already validated, so the event is only sent when a code was used.
-const magicCodeUsedSignal: FraudSignalFactory = (requestData) => {
+const getMagicCodeUsedSignal: FraudSignalFactory = (requestData) => {
     const validateCode = requestData?.validateCode;
     if (typeof validateCode !== 'string' || !validateCode) {
         return undefined;
@@ -45,13 +45,13 @@ const magicCodeUsedSignal: FraudSignalFactory = (requestData) => {
 };
 
 // The 2FA step of sign in sends the same magic code again with the 2FA code, so only the first step counts as using it.
-const signInWithMagicCodeSignal: FraudSignalFactory = (requestData, responseData) => (requestData?.twoFactorAuthCode ? undefined : magicCodeUsedSignal(requestData, responseData));
+const getSignInMagicCodeSignal: FraudSignalFactory = (requestData, responseData) => (requestData?.twoFactorAuthCode ? undefined : getMagicCodeUsedSignal(requestData, responseData));
 
 // BeginSignIn doesn't send a code to SAML accounts, so the backend tells us whether it sent one.
-const beginSignInSignal: FraudSignalFactory = (_, responseData) => (responseData?.validateCodeSent === true ? {event: FRAUD_PROTECTION_EVENT.REQUEST_MAGIC_CODE} : undefined);
+const getBeginSignInSignal: FraudSignalFactory = (_, responseData) => (responseData?.validateCodeSent === true ? {event: FRAUD_PROTECTION_EVENT.REQUEST_MAGIC_CODE} : undefined);
 
 // The first step only checks the old device, the device is replaced once the code from the new one is verified.
-const twoFactorDeviceReplacedSignal: FraudSignalFactory = (requestData) => (requestData?.step === 'verify_new' ? {event: FRAUD_PROTECTION_EVENT.REPLACE_TWO_FACTOR_DEVICE} : undefined);
+const getTwoFactorDeviceReplacedSignal: FraudSignalFactory = (requestData) => (requestData?.step === 'verify_new' ? {event: FRAUD_PROTECTION_EVENT.REPLACE_TWO_FACTOR_DEVICE} : undefined);
 
 const hasPolicyAdmin = (employees: unknown): boolean => {
     if (typeof employees !== 'string') {
@@ -71,12 +71,12 @@ const hasPolicyAdmin = (employees: unknown): boolean => {
 };
 
 // One request can add members and admins together, so it counts as adding an admin when any of them is one, since that's the riskier action.
-const policyMembersAddedSignal: FraudSignalFactory = (requestData) => ({
+const getPolicyMembersAddedSignal: FraudSignalFactory = (requestData) => ({
     event: hasPolicyAdmin(requestData?.employees) ? FRAUD_PROTECTION_EVENT.ADD_POLICY_ADMIN : FRAUD_PROTECTION_EVENT.ADD_POLICY_MEMBER,
 });
 
 // Only promotions to admin are tracked, other role changes don't give more access to the workspace.
-const policyAdminPromotedSignal: FraudSignalFactory = (requestData) => (hasPolicyAdmin(requestData?.employees) ? {event: FRAUD_PROTECTION_EVENT.ADD_POLICY_ADMIN} : undefined);
+const getPolicyAdminPromotedSignal: FraudSignalFactory = (requestData) => (hasPolicyAdmin(requestData?.employees) ? {event: FRAUD_PROTECTION_EVENT.ADD_POLICY_ADMIN} : undefined);
 
 const fraudSignalFactoryByApiCommand: Record<string, FraudSignalFactory> = {
     [READ_COMMANDS.SIGN_IN_WITH_SUPPORT_AUTH_TOKEN]: () => ({event: FRAUD_PROTECTION_EVENT.START_SUPPORT_SESSION}),
@@ -89,24 +89,24 @@ const fraudSignalFactoryByApiCommand: Record<string, FraudSignalFactory> = {
     [WRITE_COMMANDS.MERGE_WITH_VALIDATE_CODE]: () => ({event: FRAUD_PROTECTION_EVENT.MERGE_ACCOUNT}),
     [WRITE_COMMANDS.ENABLE_TWO_FACTOR_AUTH]: () => ({event: FRAUD_PROTECTION_EVENT.TOGGLE_TWO_FACTOR_AUTH}),
     [WRITE_COMMANDS.DISABLE_TWO_FACTOR_AUTH]: () => ({event: FRAUD_PROTECTION_EVENT.DISABLE_TWO_FACTOR_AUTH}),
-    [WRITE_COMMANDS.REPLACE_TWO_FACTOR_DEVICE]: twoFactorDeviceReplacedSignal,
+    [WRITE_COMMANDS.REPLACE_TWO_FACTOR_DEVICE]: getTwoFactorDeviceReplacedSignal,
     [WRITE_COMMANDS.ADD_NEW_CONTACT_METHOD]: () => ({event: FRAUD_PROTECTION_EVENT.ADD_SECONDARY_LOGIN}),
     [WRITE_COMMANDS.DELETE_CONTACT_METHOD]: () => ({event: FRAUD_PROTECTION_EVENT.REMOVE_SECONDARY_LOGIN}),
     [WRITE_COMMANDS.REVOKE_DEVICE]: () => ({event: FRAUD_PROTECTION_EVENT.REMOVE_DEVICE}),
     [WRITE_COMMANDS.SET_CONTACT_METHOD_AS_DEFAULT]: () => ({event: FRAUD_PROTECTION_EVENT.CHANGE_PRIMARY_LOGIN}),
-    [READ_COMMANDS.BEGIN_SIGNIN]: beginSignInSignal,
+    [READ_COMMANDS.BEGIN_SIGNIN]: getBeginSignInSignal,
     [WRITE_COMMANDS.REQUEST_NEW_VALIDATE_CODE]: () => ({event: FRAUD_PROTECTION_EVENT.REQUEST_MAGIC_CODE}),
     [WRITE_COMMANDS.RESEND_VALIDATE_CODE]: () => ({event: FRAUD_PROTECTION_EVENT.REQUEST_MAGIC_CODE}),
     [WRITE_COMMANDS.REQUEST_CONTACT_METHOD_VALIDATE_CODE]: () => ({event: FRAUD_PROTECTION_EVENT.REQUEST_MAGIC_CODE}),
-    [WRITE_COMMANDS.SIGN_IN_USER]: signInWithMagicCodeSignal,
-    [WRITE_COMMANDS.SIGN_IN_USER_WITH_LINK]: signInWithMagicCodeSignal,
-    [WRITE_COMMANDS.VALIDATE_SECONDARY_LOGIN]: magicCodeUsedSignal,
-    [WRITE_COMMANDS.VERIFY_ADD_SECONDARY_LOGIN_CODE]: magicCodeUsedSignal,
-    [WRITE_COMMANDS.UPDATE_DELEGATE_ROLE]: magicCodeUsedSignal,
-    [WRITE_COMMANDS.UPDATE_PRIVATE_PERSONAL_DETAILS]: magicCodeUsedSignal,
-    [WRITE_COMMANDS.UPDATE_PERSONAL_DETAILS_FOR_WALLET]: magicCodeUsedSignal,
-    [WRITE_COMMANDS.SET_PERSONAL_DETAILS_AND_SHIP_EXPENSIFY_CARDS]: magicCodeUsedSignal,
-    [WRITE_COMMANDS.APPROVE_DIGITAL_WALLET_CARD_ADDITION]: magicCodeUsedSignal,
+    [WRITE_COMMANDS.SIGN_IN_USER]: getSignInMagicCodeSignal,
+    [WRITE_COMMANDS.SIGN_IN_USER_WITH_LINK]: getSignInMagicCodeSignal,
+    [WRITE_COMMANDS.VALIDATE_SECONDARY_LOGIN]: getMagicCodeUsedSignal,
+    [WRITE_COMMANDS.VERIFY_ADD_SECONDARY_LOGIN_CODE]: getMagicCodeUsedSignal,
+    [WRITE_COMMANDS.UPDATE_DELEGATE_ROLE]: getMagicCodeUsedSignal,
+    [WRITE_COMMANDS.UPDATE_PRIVATE_PERSONAL_DETAILS]: getMagicCodeUsedSignal,
+    [WRITE_COMMANDS.UPDATE_PERSONAL_DETAILS_FOR_WALLET]: getMagicCodeUsedSignal,
+    [WRITE_COMMANDS.SET_PERSONAL_DETAILS_AND_SHIP_EXPENSIFY_CARDS]: getMagicCodeUsedSignal,
+    [WRITE_COMMANDS.APPROVE_DIGITAL_WALLET_CARD_ADDITION]: getMagicCodeUsedSignal,
     [WRITE_COMMANDS.ADD_DELEGATE]: () => ({event: FRAUD_PROTECTION_EVENT.ADD_DELEGATE}),
     [WRITE_COMMANDS.REMOVE_DELEGATE]: () => ({event: FRAUD_PROTECTION_EVENT.REMOVE_DELEGATE}),
     [WRITE_COMMANDS.RESOLVE_FRAUD_ALERT]: () => ({event: FRAUD_PROTECTION_EVENT.RESOLVE_FRAUD_ALERT}),
@@ -114,9 +114,8 @@ const fraudSignalFactoryByApiCommand: Record<string, FraudSignalFactory> = {
     [WRITE_COMMANDS.UNFREEZE_CARD]: () => ({event: FRAUD_PROTECTION_EVENT.UNFREEZE_CARD}),
     [SIDE_EFFECT_REQUEST_COMMANDS.REVEAL_CARD_PIN]: () => ({event: FRAUD_PROTECTION_EVENT.REVEAL_CARD_PIN}),
     [SIDE_EFFECT_REQUEST_COMMANDS.CHANGE_CARD_PIN]: () => ({event: FRAUD_PROTECTION_EVENT.CHANGE_CARD_PIN}),
-    [WRITE_COMMANDS.ADD_MEMBERS_TO_WORKSPACE]: policyMembersAddedSignal,
-    [SIDE_EFFECT_REQUEST_COMMANDS.IMPORT_MEMBERS_SPREADSHEET]: policyMembersAddedSignal,
-    [WRITE_COMMANDS.UPDATE_WORKSPACE_MEMBERS_ROLE]: policyAdminPromotedSignal,
+    [WRITE_COMMANDS.ADD_MEMBERS_TO_WORKSPACE]: getPolicyMembersAddedSignal,
+    [WRITE_COMMANDS.UPDATE_WORKSPACE_MEMBERS_ROLE]: getPolicyAdminPromotedSignal,
     [WRITE_COMMANDS.ADD_DOMAIN_MEMBER]: () => ({event: FRAUD_PROTECTION_EVENT.ADD_DOMAIN_MEMBER}),
     [WRITE_COMMANDS.ADD_DOMAIN_ADMIN]: () => ({event: FRAUD_PROTECTION_EVENT.ADD_DOMAIN_ADMIN}),
     [WRITE_COMMANDS.UPDATE_EXPENSIFY_CARD_LIMIT]: (requestData) =>

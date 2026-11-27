@@ -141,24 +141,21 @@ describe('FraudMonitoring middleware', () => {
         expect(mockSendEvent).not.toHaveBeenCalled();
     });
 
-    it.each([WRITE_COMMANDS.ADD_MEMBERS_TO_WORKSPACE, SIDE_EFFECT_REQUEST_COMMANDS.IMPORT_MEMBERS_SPREADSHEET])(
-        'sends AddPolicyMember or AddPolicyAdmin when %s succeeds',
-        async (command) => {
-            // Given workspace members added without an admin
-            // When the middleware processes it
-            await runMiddleware(command, {policyID: '1', employees: buildEmployees(CONST.POLICY.ROLE.USER, CONST.POLICY.ROLE.AUDITOR)});
+    it('sends AddPolicyMember or AddPolicyAdmin when AddMembersToWorkspace succeeds', async () => {
+        // Given workspace members added without an admin
+        // When the middleware processes it
+        await runMiddleware(WRITE_COMMANDS.ADD_MEMBERS_TO_WORKSPACE, {policyID: '1', employees: buildEmployees(CONST.POLICY.ROLE.USER, CONST.POLICY.ROLE.AUDITOR)});
 
-            // Then AddPolicyMember is sent
-            expect(mockSendEvent).toHaveBeenLastCalledWith(FRAUD_PROTECTION_EVENT.ADD_POLICY_MEMBER);
+        // Then AddPolicyMember is sent
+        expect(mockSendEvent).toHaveBeenLastCalledWith(FRAUD_PROTECTION_EVENT.ADD_POLICY_MEMBER);
 
-            // When the same request also adds an admin
-            await runMiddleware(command, {policyID: '1', employees: buildEmployees(CONST.POLICY.ROLE.USER, CONST.POLICY.ROLE.ADMIN)});
+        // When the same request also adds an admin
+        await runMiddleware(WRITE_COMMANDS.ADD_MEMBERS_TO_WORKSPACE, {policyID: '1', employees: buildEmployees(CONST.POLICY.ROLE.USER, CONST.POLICY.ROLE.ADMIN)});
 
-            // Then AddPolicyAdmin is sent instead, because adding an admin is the riskier action
-            expect(mockSendEvent).toHaveBeenLastCalledWith(FRAUD_PROTECTION_EVENT.ADD_POLICY_ADMIN);
-            expect(mockSendEvent).toHaveBeenCalledTimes(2);
-        },
-    );
+        // Then AddPolicyAdmin is sent instead, because adding an admin is the riskier action
+        expect(mockSendEvent).toHaveBeenLastCalledWith(FRAUD_PROTECTION_EVENT.ADD_POLICY_ADMIN);
+        expect(mockSendEvent).toHaveBeenCalledTimes(2);
+    });
 
     it('sends AddPolicyAdmin only when a workspace member is promoted to admin', async () => {
         // Given a role change that doesn't make anyone an admin
