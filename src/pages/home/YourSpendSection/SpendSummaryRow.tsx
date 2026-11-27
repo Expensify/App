@@ -1,7 +1,7 @@
 import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import SkeletonRect from '@components/SkeletonRect';
+import {SkeletonViewRect as SkeletonRect} from '@components/SkeletonRect';
 import ItemListSkeletonView from '@components/Skeletons/ItemListSkeletonView';
 import {BAR_HEIGHT} from '@components/Skeletons/SkeletonTextLine';
 
@@ -80,7 +80,8 @@ function SpendSummaryRow({state, testIDPrefix, description, totals, iconSrc, onP
                                 rowHeight={rowHeight}
                             />
                             <SkeletonRect
-                                transform={[{translateX: titleX}, {translateY: (rowHeight - BAR_HEIGHT) / 2}]}
+                                x={titleX}
+                                y={(rowHeight - BAR_HEIGHT) / 2}
                                 width={titleWidth}
                                 height={BAR_HEIGHT}
                             />

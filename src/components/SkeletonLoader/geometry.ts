@@ -1,12 +1,17 @@
-/** Resolve SVG-like dimensions without interpreting percentage strings as pixels. */
+import type {DimensionValue} from 'react-native';
+
 import type {SkeletonViewRectProps} from './types';
 
 const SMALL_RADIUS = 2;
 const LARGE_RADIUS = 4;
 const SMALL_BAR_HEIGHT = 8;
 
-function resolveSkeletonDimension(value: SkeletonViewRectProps['width'], parentSize: number): number {
-    const resolved = typeof value === 'string' && value.endsWith('%') ? (Number.parseFloat(value) / 100) * parentSize : Number(value);
+function resolveSkeletonDimension(value: SkeletonViewRectProps['width']): DimensionValue {
+    if (typeof value === 'string' && value.endsWith('%')) {
+        return `${Number.parseFloat(value)}%`;
+    }
+
+    const resolved = Number(value);
     return Number.isFinite(resolved) ? Math.max(0, resolved) : 0;
 }
 

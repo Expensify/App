@@ -1,6 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import {getCartesianChartHeight} from '@components/Charts/utils/chartHeights';
-import SkeletonRect from '@components/SkeletonRect';
+import {SkeletonViewRect as SkeletonRect} from '@components/SkeletonRect';
 import ItemListSkeletonView from '@components/Skeletons/ItemListSkeletonView';
 import SkeletonTextLine, {BAR_HEIGHT} from '@components/Skeletons/SkeletonTextLine';
 import WidgetContainer from '@components/WidgetContainer';
@@ -75,12 +75,14 @@ function renderIconTwoBarRow({itemIndex, horizontalPadding, rowHeight, iconTextG
                 rowHeight={rowHeight}
             />
             <SkeletonRect
-                transform={[{translateX: textX}, {translateY: upperBarY}]}
+                x={textX}
+                y={upperBarY}
                 width={TWO_BAR_ROW_BAR_WIDTHS[itemIndex % TWO_BAR_ROW_BAR_WIDTHS.length]}
                 height={BAR_HEIGHT}
             />
             <SkeletonRect
-                transform={[{translateX: textX}, {translateY: lowerBarY}]}
+                x={textX}
+                y={lowerBarY}
                 width={LOWER_BAR_WIDTH}
                 height={BAR_HEIGHT}
             />
@@ -96,12 +98,14 @@ function renderIconTwoBarWithTrailingRow(args: TrailingSkeletonRowArgs) {
         <>
             {renderIconTwoBarRow(args)}
             <SkeletonRect
-                transform={[{translateX: width - horizontalPadding - TRAILING_BAR_WIDTH}, {translateY: upperBarY}]}
+                x={width - horizontalPadding - TRAILING_BAR_WIDTH}
+                y={upperBarY}
                 width={TRAILING_BAR_WIDTH}
                 height={BAR_HEIGHT}
             />
             <SkeletonRect
-                transform={[{translateX: width - horizontalPadding - TRAILING_SUB_BAR_WIDTH}, {translateY: lowerBarY}]}
+                x={width - horizontalPadding - TRAILING_SUB_BAR_WIDTH}
+                y={lowerBarY}
                 width={TRAILING_SUB_BAR_WIDTH}
                 height={BAR_HEIGHT}
             />
@@ -169,7 +173,7 @@ function HomePageSkeletonTableCard() {
                 shouldAnimate
                 fixedNumItems={ROWS_PER_TABLE_CARD}
                 itemViewHeight={rowHeight}
-                // The default `mr5` on each row would shrink the SVG below the card width and pull the right-aligned bars inward.
+                // The default `mr5` on each row would shrink the canvas below the card width and pull the right-aligned bars inward.
                 itemViewStyle={styles.mr0}
                 // The rows this stands in for are separated.
                 itemContainerStyle={styles.borderBottom}

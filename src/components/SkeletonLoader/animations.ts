@@ -1,4 +1,3 @@
-/** CSS loops never use JavaScript completion callbacks to start another cycle. */
 import {css} from 'react-native-reanimated';
 
 const DEFAULT_SPEED_SECONDS = 1.2;

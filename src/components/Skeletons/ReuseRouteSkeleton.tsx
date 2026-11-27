@@ -1,7 +1,4 @@
-/**
- * Skeleton cards for the "reuse prior route" list.
- */
-import SkeletonRect from '@components/SkeletonRect';
+import {SkeletonViewRect as SkeletonRect} from '@components/SkeletonRect';
 
 import useContainerWidth from '@hooks/useContainerWidth';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -38,18 +35,21 @@ function ReuseRouteSkeleton({fixedNumItems = 3}: ReuseRouteSkeletonProps) {
         return (
             <>
                 <SkeletonRect
-                    transform={[{translateX: rowPaddingHorizontal}, {translateY: rowTop + (rowHeight - iconSize) / 2}]}
+                    x={rowPaddingHorizontal}
+                    y={rowTop + (rowHeight - iconSize) / 2}
                     width={iconSize}
                     height={iconSize}
                     borderRadius={iconSize / 2}
                 />
                 <SkeletonRect
-                    transform={[{translateX: barX}, {translateY: rowTop + 16}]}
+                    x={barX}
+                    y={rowTop + 16}
                     width={36}
                     height={labelBarHeight}
                 />
                 <SkeletonRect
-                    transform={[{translateX: barX}, {translateY: rowTop + 37}]}
+                    x={barX}
+                    y={rowTop + 37}
                     width={valueBarWidth}
                     height={valueBarHeight}
                 />
@@ -60,7 +60,8 @@ function ReuseRouteSkeleton({fixedNumItems = 3}: ReuseRouteSkeletonProps) {
     const skeletonItem = () => (
         <>
             <SkeletonRect
-                transform={[{translateX: cardPadding}, {translateY: cardPadding}]}
+                x={cardPadding}
+                y={cardPadding}
                 width={cardWidth - cardPadding * 2}
                 height={thumbnailHeight}
                 borderRadius={12}

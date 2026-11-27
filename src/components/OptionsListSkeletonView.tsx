@@ -3,12 +3,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {LayoutChangeEvent} from 'react-native';
 
 import React from 'react';
-import {Circle} from 'react-native-svg';
 
-import SkeletonRect from './SkeletonRect';
+import {SkeletonViewRect as SkeletonRect} from './SkeletonRect';
 import ItemListSkeletonView from './Skeletons/ItemListSkeletonView';
 
-function getLinedWidth(index: number): string {
+function getLinedWidth(index: number): `${number}%` {
     const step = index % 3;
     if (step === 0) {
         return '100%';
@@ -48,18 +47,22 @@ function OptionsListSkeletonView({shouldAnimate = true, shouldStyleAsTable = fal
 
                 return (
                     <>
-                        <Circle
-                            cx={shouldStyleAsTable ? '36' : '40'}
-                            cy="32"
-                            r="20"
+                        <SkeletonRect
+                            x={shouldStyleAsTable ? 16 : 20}
+                            y={12}
+                            width={40}
+                            height={40}
+                            borderRadius={20}
                         />
                         <SkeletonRect
-                            transform={[{translateX: textStartX}, {translateY: 18}]}
+                            x={textStartX}
+                            y={18}
                             width="20%"
                             height="8"
                         />
                         <SkeletonRect
-                            transform={[{translateX: textStartX}, {translateY: 38}]}
+                            x={textStartX}
+                            y={38}
                             width={shouldStyleAsTable ? '10%' : lineWidth}
                             height="8"
                         />

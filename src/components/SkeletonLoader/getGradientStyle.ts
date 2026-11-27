@@ -1,4 +1,3 @@
-/** React Native Web uses the standard CSS property, not RN's experimental alias. */
 import type {ViewStyle} from 'react-native';
 
 function getGradientStyle(backgroundColor: string, foregroundColor: string): ViewStyle {

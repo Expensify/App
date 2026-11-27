@@ -1,9 +1,8 @@
-/** Matched, persistent list fixtures: profile one story at a time to avoid competing animations. */
 import AvatarSkeleton from '@components/AvatarSkeleton';
 import SkeletonLoader from '@components/SkeletonLoader';
 import type {SkeletonAnimation} from '@components/SkeletonLoader/types';
 import SkeletonRect, {SkeletonViewRect} from '@components/SkeletonRect';
-import ItemListSkeletonView from '@components/Skeletons/ItemListSkeletonView';
+import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
 
 import useTheme from '@hooks/useTheme';
 
@@ -80,27 +79,35 @@ function ViewRow() {
 }
 
 function Comparison({candidate}: ComparisonProps) {
+    const theme = useTheme();
     return (
         <View style={{width: ROW_WIDTH, height: ROW_COUNT * ROW_HEIGHT}}>
-            {candidate === 'legacy' ? (
-                <ItemListSkeletonView
-                    fixedNumItems={ROW_COUNT}
-                    itemViewHeight={ROW_HEIGHT}
-                    itemViewStyle={{marginRight: 0, width: ROW_WIDTH}}
-                    speed={SPEED_SECONDS}
-                    renderSkeletonItem={() => <LegacyRow />}
-                />
-            ) : (
-                <ItemListSkeletonView
-                    key={candidate}
-                    fixedNumItems={ROW_COUNT}
-                    itemViewHeight={ROW_HEIGHT}
-                    itemViewStyle={{marginRight: 0, width: ROW_WIDTH}}
-                    speed={SPEED_SECONDS}
-                    shouldAnimate={candidate !== 'static'}
-                    animation={candidate === 'pulse' ? 'pulse' : 'shimmer'}
-                    renderViewSkeletonItem={() => <ViewRow />}
-                />
+            {Array.from({length: ROW_COUNT}, (_, index) =>
+                candidate === 'legacy' ? (
+                    <SkeletonViewContentLoader
+                        key={index}
+                        width={ROW_WIDTH}
+                        height={ROW_HEIGHT}
+                        speed={SPEED_SECONDS}
+                        backgroundColor={theme.skeletonLHNIn}
+                        foregroundColor={theme.skeletonLHNOut}
+                    >
+                        <LegacyRow />
+                    </SkeletonViewContentLoader>
+                ) : (
+                    <SkeletonLoader
+                        key={index}
+                        width={ROW_WIDTH}
+                        height={ROW_HEIGHT}
+                        speed={SPEED_SECONDS}
+                        animate={candidate !== 'static'}
+                        animation={candidate === 'pulse' ? 'pulse' : 'shimmer'}
+                        backgroundColor={theme.skeletonLHNIn}
+                        foregroundColor={theme.skeletonLHNOut}
+                    >
+                        <ViewRow />
+                    </SkeletonLoader>
+                ),
             )}
         </View>
     );

@@ -1,4 +1,4 @@
-import SkeletonRect from '@components/SkeletonRect';
+import {SkeletonViewRect as SkeletonRect} from '@components/SkeletonRect';
 import ItemListSkeletonView from '@components/Skeletons/ItemListSkeletonView';
 import {BAR_HEIGHT} from '@components/Skeletons/SkeletonTextLine';
 
@@ -40,7 +40,7 @@ const TYPE_WIDTH = 40;
 const DATE_WIDTH = 64;
 const separatorsSpacerStyle = {height: SEPARATORS_HEIGHT};
 
-// ItemListSkeletonView adds `mr5` to every row, so without this offset the right-aligned bars land past the svg and clip.
+// ItemListSkeletonView adds `mr5` to every row, so without this offset the right-aligned bars land past the canvas and clip.
 const ROW_RIGHT_MARGIN = 20;
 
 /** Varying the merchant width per row keeps the shimmer from reading as a rigid block. */
@@ -77,18 +77,21 @@ function RecentlyAddedPlaceholder({shouldShowSkeleton}: RecentlyAddedPlaceholder
         return (
             <>
                 <SkeletonRect
-                    transform={[{translateX: 0}, {translateY: (ITEM_HEIGHT - RECEIPT_HEIGHT) / 2}]}
+                    x={0}
+                    y={(ITEM_HEIGHT - RECEIPT_HEIGHT) / 2}
                     width={RECEIPT_WIDTH}
                     height={RECEIPT_HEIGHT}
                     borderRadius={4}
                 />
                 <SkeletonRect
-                    transform={[{translateX: textX}, {translateY: firstLineY}]}
+                    x={textX}
+                    y={firstLineY}
                     width={merchantWidth}
                     height={BAR_HEIGHT}
                 />
                 <SkeletonRect
-                    transform={[{translateX: textX}, {translateY: secondLineY}]}
+                    x={textX}
+                    y={secondLineY}
                     width={DATE_WIDTH}
                     height={BAR_HEIGHT}
                 />
@@ -96,12 +99,14 @@ function RecentlyAddedPlaceholder({shouldShowSkeleton}: RecentlyAddedPlaceholder
                 {containerWidth > 0 && (
                     <>
                         <SkeletonRect
-                            transform={[{translateX: containerWidth - AMOUNT_WIDTH}, {translateY: firstLineY}]}
+                            x={containerWidth - AMOUNT_WIDTH}
+                            y={firstLineY}
                             width={AMOUNT_WIDTH}
                             height={BAR_HEIGHT}
                         />
                         <SkeletonRect
-                            transform={[{translateX: containerWidth - TYPE_WIDTH}, {translateY: secondLineY}]}
+                            x={containerWidth - TYPE_WIDTH}
+                            y={secondLineY}
                             width={TYPE_WIDTH}
                             height={BAR_HEIGHT}
                         />
@@ -120,7 +125,7 @@ function RecentlyAddedPlaceholder({shouldShowSkeleton}: RecentlyAddedPlaceholder
             testID="recentlyAddedSkeleton"
             style={cardPaddingHorizontal}
         >
-            {/* Measured without padding: the padded parent's width includes the inset, which pushes the right-aligned bars off the svg. */}
+            {/* Measured without padding: the padded parent's width includes the inset, which pushes the right-aligned bars off the canvas. */}
             <View
                 style={styles.flex1}
                 onLayout={onLayout}

@@ -1,4 +1,3 @@
-/** Geometry and motion contracts for View-based skeletons, independent of SVG. */
 import type {ReactNode} from 'react';
 import type {DimensionValue, StyleProp, ViewStyle} from 'react-native';
 

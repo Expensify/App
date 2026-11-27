@@ -1,4 +1,3 @@
-/** View geometry is explicit so legacy SVG children never need runtime conversion. */
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import React, {useContext} from 'react';
@@ -19,8 +18,8 @@ function SkeletonViewRect({x = 0, y = 0, width, height, borderRadius, testID}: S
         throw new Error('SkeletonViewRect must be rendered inside SkeletonLoader');
     }
 
-    const shapeWidth = resolveSkeletonDimension(width, loader.width);
-    const shapeHeight = resolveSkeletonDimension(height, loader.height);
+    const shapeWidth = resolveSkeletonDimension(width);
+    const shapeHeight = resolveSkeletonDimension(height);
     const shapeStyle = {
         left: x,
         top: y,
@@ -35,12 +34,12 @@ function SkeletonViewRect({x = 0, y = 0, width, height, borderRadius, testID}: S
             testID={loader.isForegroundLayer ? undefined : testID}
             style={[styles.pAbsolute, styles.overflowHidden, shapeStyle]}
         >
-            {loader.isAnimating && loader.animation === 'shimmer' && (
+            {loader.isAnimating && loader.animation === 'shimmer' && loader.width > 0 && (
                 <Animated.View
                     testID={testID ? `${testID}-shimmer` : undefined}
                     style={[
                         styles.pAbsolute,
-                        {left: -x, top: 0, width: loader.width, height: shapeHeight},
+                        {left: -x, top: 0, width: loader.width, height: '100%'},
                         getGradientStyle(loader.backgroundColor, loader.foregroundColor),
                         getSkeletonAnimation('shimmer', loader.speed),
                     ]}
