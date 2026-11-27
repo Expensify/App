@@ -225,7 +225,7 @@
     "react-native-svg": "15.15.5",
     "react-native-tab-view": "^4.3.0",
     "react-native-url-polyfill": "^2.0.0",
-    "react-native-view-shot": "5.1.0",
+    "react-native-view-shot": "6.2.1",
     "react-native-vision-camera": "5.2.3",
     "react-native-vision-camera-worklets": "5.2.3",
     "react-native-web": "0.21.4",

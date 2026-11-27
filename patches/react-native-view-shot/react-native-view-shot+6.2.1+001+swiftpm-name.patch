@@ -1,0 +1,14 @@
+diff --git a/node_modules/react-native-view-shot/package.json b/node_modules/react-native-view-shot/package.json
+index be164e2..69b59ca 100644
+--- a/node_modules/react-native-view-shot/package.json
++++ b/node_modules/react-native-view-shot/package.json
+@@ -101,6 +101,9 @@
+     "node": ">=20.19.4",
+     "npm": ">=10"
+   },
++  "swiftpmConfig": {
++    "name": "ReactNativeViewShot"
++  },
+   "codegenConfig": {
+     "name": "rnviewshot",
+     "type": "modules",
