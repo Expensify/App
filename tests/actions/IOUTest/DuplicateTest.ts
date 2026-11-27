@@ -4198,6 +4198,58 @@ describe('actions/Duplicate', () => {
             expect(writeSpy.mock.calls.filter(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY))).toHaveLength(1);
         });
 
+        it('should keep the mentioned user login in the duplicated expense description', async () => {
+            // Given an expense whose description mentions a user by accountID, with that user's personal details loaded
+            jest.mocked(isSearchTopmostFullScreenRoute).mockReturnValue(true);
+            const mentionedAccountID = 9876;
+            const mentionedLogin = 'mentioned@test.com';
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                transactionID: 'bulk_1',
+                amount: -500,
+                currency: 'USD',
+                comment: {comment: `<mention-user accountID="${mentionedAccountID}"></mention-user> please check`},
+            };
+
+            // When the expense is duplicated
+            bulkDuplicateExpenses({
+                isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
+                conciergeChat: undefined,
+                transactionIDs: ['bulk_1'],
+                allTransactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}bulk_1`]: transaction},
+                sourcePolicyIDMap: {},
+                targetPolicy: mockPolicy,
+                targetPolicyCategories: fakePolicyCategories,
+                targetPolicyTags: {},
+                targetReport: policyExpenseChat,
+                policyTagList: {},
+                personalDetails: {[mentionedAccountID]: {accountID: mentionedAccountID, login: mentionedLogin}},
+                isASAPSubmitBetaEnabled: false,
+                introSelected: undefined,
+                quickAction: undefined,
+                policyRecentlyUsedCurrencies: [],
+                isSelfTourViewed: false,
+                transactionDrafts: undefined,
+                recentWaypoints: [],
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
+                rules: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the copy's description names the mentioned user by login, since the accountID-only tag is resolved through the passed personal details
+            const requestMoneyCalls = writeSpy.mock.calls.filter(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
+            expect(requestMoneyCalls).toHaveLength(1);
+            expect(requestMoneyCalls.at(0)?.[1].comment).toContain(`@${mentionedLogin}`);
+        });
+
         it('should read each written transaction ID from the distance plan when bulk-duplicating distance expenses', async () => {
             // Given three reported distance expenses selected in Spend, which take the distance branch the sibling test above does not reach
             jest.mocked(isSearchTopmostFullScreenRoute).mockReturnValue(true);
@@ -5034,6 +5086,40 @@ describe('actions/Duplicate', () => {
             // Then the copy is still created, since mention names are only a nice-to-have for the copied descriptions
             expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
             expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(1);
+        });
+
+        it('should keep the mentioned user login in the duplicated report expense descriptions', async () => {
+            // Given a report whose expense description mentions a user by accountID, with that user's personal details loaded
+            const mentionedAccountID = 9876;
+            const mentionedLogin = 'mentioned@test.com';
+            const report1: Report = {
+                reportID: 'rpt1',
+                policyID: SOURCE_POLICY_ID,
+                ownerAccountID: RORY_ACCOUNT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                reportName: 'Report 1',
+                chatReportID: ACTIVE_PEC_REPORT_ID,
+            };
+            const allReports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}rpt1`]: report1,
+                [`${ONYXKEYS.COLLECTION.REPORT}${ACTIVE_PEC_REPORT_ID}`]: activePolicyExpenseChat,
+            };
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}tx1`]: {
+                    ...createCashTransaction('tx1', 'rpt1'),
+                    comment: {comment: `<mention-user accountID="${mentionedAccountID}"></mention-user> please check`},
+                },
+            };
+            const personalDetails = {[mentionedAccountID]: {accountID: mentionedAccountID, login: mentionedLogin}};
+
+            // When the report is duplicated
+            await bulkDuplicateReports(getDefaultBulkParams(['rpt1'], {allReports, allTransactions, personalDetails}));
+            await waitForBatchedUpdates();
+
+            // Then the copied expense's description names the mentioned user by login, since the accountID-only tag is resolved through the passed personal details
+            const requestMoneyCalls = writeSpy.mock.calls.filter(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
+            expect(requestMoneyCalls).toHaveLength(1);
+            expect(requestMoneyCalls.at(0)?.[1].comment).toContain(`@${mentionedLogin}`);
         });
 
         it('should filter out pending-delete transactions', async () => {

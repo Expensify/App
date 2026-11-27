@@ -59,7 +59,7 @@ import {policyExpenseChatSelector} from '@selectors/Report';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import {useRef} from 'react';
 
-import useAccountIDToNameMap from './useAccountIDToNameMap';
+import {buildAccountIDToNameMap} from './useAccountIDToNameMap';
 import useBlockDistanceRequest from './useBlockDistanceRequest';
 import useConfirmModal from './useConfirmModal';
 import {useCurrencyListActions} from './useCurrencyList';
@@ -110,7 +110,6 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
-    const accountIDToName = useAccountIDToNameMap();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
     const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
@@ -288,6 +287,9 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
         const optimisticChatReportID = generateReportID();
         const optimisticIOUReportID = generateReportID();
         const activePolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${duplicateTargetPolicy?.id}`] ?? {};
+        const personalDetailsByLogins = getPersonalDetailsByLogin();
+        // Built at press time from the non-subscribing snapshot, so the hook doesn't re-render on every personal details change.
+        const accountIDToName = buildAccountIDToNameMap(personalDetailsByLogins);
 
         for (const item of transactionList) {
             const existingTransactionID = getExistingTransactionID(item.linkedTrackedExpenseReportAction);
@@ -295,7 +297,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
 
             duplicateTransactionAction({
                 isVendorMatchingBetaEnabled,
-                personalDetailsByLogins: getPersonalDetailsByLogin(),
+                personalDetailsByLogins,
                 getCurrencyDecimals,
                 transaction: item,
                 optimisticChatReportID,
@@ -484,10 +486,13 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 const activePolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${targetPolicyForDuplicate?.id}`] ?? {};
                 const reportDuplicateParticipants = getMoneyRequestParticipantsFromReport(targetChatForDuplicate, currentUserPersonalDetails?.accountID);
                 const reportDuplicateParticipantsPolicyTags = getPolicyTagsSelector(reportDuplicateParticipants)(allPolicyTags);
+                const personalDetailsByLogins = getPersonalDetailsByLogin();
+                // Built at press time from the non-subscribing snapshot, so the hook doesn't re-render on every personal details change.
+                const accountIDToName = buildAccountIDToNameMap(personalDetailsByLogins);
 
                 duplicateReportAction({
                     isVendorMatchingBetaEnabled,
-                    personalDetailsByLogins: getPersonalDetailsByLogin(),
+                    personalDetailsByLogins,
                     sourceReport: moneyRequestReport,
                     sourceReportTransactions: nonPendingDeleteTransactions,
                     sourceReportName: moneyRequestReport?.reportName ?? '',

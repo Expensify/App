@@ -395,7 +395,6 @@ type BuildOptimisticAddCommentReportActionParams = {
     anchorCreatedToServer?: boolean;
     /** Last action's `created` in the report; keeps the anchored `created` monotonic across successive sends. */
     lastActionCreated?: string;
-    accountIDToName?: Record<string, string>;
 };
 
 type OptimisticReportAction = {
@@ -6131,10 +6130,10 @@ function getTransactionDetails(
     };
 }
 
-function getTransactionCommentObject(transaction: OnyxEntry<Transaction>, accountIDToName?: Record<string, string>): Comment {
+function getTransactionCommentObject(transaction: OnyxEntry<Transaction>): Comment {
     return {
         ...transaction?.comment,
-        comment: Parser.htmlToMarkdown(getDescription(transaction), {accountIDToName}),
+        comment: Parser.htmlToMarkdown(getDescription(transaction)),
         waypoints: getWaypoints(transaction),
     };
 }
@@ -6978,7 +6977,6 @@ function getTransactionReportName({
     reportAction,
     linkedTransaction,
     report,
-    accountIDToName,
 }: {
     translate: LocalizedTranslate;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
@@ -6986,7 +6984,6 @@ function getTransactionReportName({
     reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>;
     linkedTransaction: OnyxEntry<Transaction>;
     report: OnyxEntry<Report>;
-    accountIDToName?: Record<string, string>;
 }): string {
     if (reportAction && isReversedTransaction(reportAction)) {
         return translate('parentReportAction.reversedTransaction');
@@ -7034,7 +7031,7 @@ function getTransactionReportName({
     const amount = getTransactionAmount(displayTransaction, isFromExpenseReport, displayTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) ?? 0;
     const formattedAmount = convertToDisplayString(amount, getCurrency(displayTransaction)) ?? '';
     const comment = getMerchantOrDescription(displayTransaction);
-    return translate('iou.threadExpenseReportName', formattedAmount, Parser.htmlToText(comment, {accountIDToName}));
+    return translate('iou.threadExpenseReportName', formattedAmount, Parser.htmlToText(comment));
 }
 
 type GetReportPreviewMessageBaseParams = {
@@ -8006,7 +8003,6 @@ function replaceLocalAttachmentReferences(
     currentCommentHtml: string | undefined,
     reportActionID: string,
     attachmentIDByLocalSource: Partial<Record<string, string>> = {},
-    accountIDToName?: Record<string, string>,
 ): string {
     const localAttachmentReferenceRegex = new RegExp(`\\n*(?:!?\\[${MARKDOWN_LABEL_PATTERN}\\]\\((?:blob:|file:|content:)[^)]*\\)|!\\((?:blob:|file:|content:)[^)]*\\))`, 'g');
     const draftLabelRegex = new RegExp(`^\\n*!?\\[(${MARKDOWN_LABEL_PATTERN})\\]`);
@@ -8054,7 +8050,7 @@ function replaceLocalAttachmentReferences(
         matchedTags.add(syncedAttachmentTag);
 
         // The synced tag carries the name the file was uploaded under, so a rename made during the upload loses to it.
-        const syncedAttachmentMarkdown = Parser.htmlToMarkdown(syncedAttachmentTag, {accountIDToName});
+        const syncedAttachmentMarkdown = Parser.htmlToMarkdown(syncedAttachmentTag);
         const labelledAttachmentMarkdown = draftLabel
             ? syncedAttachmentMarkdown.replace(/^(!?)\[[^\]]*\]/, (_reference, imagePrefix: string) => `${imagePrefix}[${draftLabel}]`)
             : syncedAttachmentMarkdown;
@@ -8277,7 +8273,6 @@ function buildOptimisticAddCommentReportAction({
     delegateAccountIDParam,
     anchorCreatedToServer = false,
     lastActionCreated,
-    accountIDToName,
 }: BuildOptimisticAddCommentReportActionParams): OptimisticReportAction {
     const commentText = isHTML ? (text ?? '') : getParsedComment(text ?? '', {reportID});
     const attachmentHtml = [
@@ -8288,7 +8283,7 @@ function buildOptimisticAddCommentReportAction({
         .join('<br />');
 
     const htmlForNewComment = `${commentText}${commentText && attachmentHtml ? '<br /><br />' : ''}${attachmentHtml}`;
-    const textForNewComment = Parser.htmlToText(htmlForNewComment, {accountIDToName});
+    const textForNewComment = Parser.htmlToText(htmlForNewComment);
 
     const isAttachmentOnly = file && !text;
     const isAttachmentWithText = !!text && file !== undefined;

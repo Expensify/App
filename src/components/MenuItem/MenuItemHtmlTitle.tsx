@@ -16,7 +16,7 @@ type MenuItemHtmlTitleProps = {
  */
 function MenuItemHtmlTitle({processedTitle}: MenuItemHtmlTitleProps) {
     const styles = useThemeStyles();
-    const accountIDToName = useMentionedAccountIDToNameMap(processedTitle || undefined);
+    const accountIDToName = useMentionedAccountIDToNameMap(processedTitle);
 
     return <Text style={styles.webViewStyles.baseFontStyle}>{convertToLTR(Parser.htmlToText(processedTitle, {accountIDToName}))}</Text>;
 }

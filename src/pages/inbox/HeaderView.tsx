@@ -239,6 +239,8 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const humanAgentName = getHumanAgentFirstName(parentReportAction, personalDetails);
     const reportDescriptionHTML = getReportDescription(report);
     const accountIDToName = useMentionedAccountIDToNameMap(reportDescriptionHTML);
+    // A thread title is parsed from its parent message, so it can hold mention-user tags too.
+    const titleAccountIDToName = useMentionedAccountIDToNameMap(title);
     const reportDescription = StringUtils.lineBreaksToSpaces(Parser.htmlToText(reportDescriptionHTML, {accountIDToName}));
     const policyName = getPolicyName({report, returnEmptyIfNotFound: true});
     const policyDescription = StringUtils.lineBreaksToSpaces(getPolicyDescriptionText(policy));
@@ -476,6 +478,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                                                 fullTitle={title}
                                                 displayNamesWithTooltips={displayNamesWithTooltips}
                                                 shouldParseFullTitle={shouldParseFullTitle && !isGroupChat}
+                                                accountIDToName={titleAccountIDToName}
                                                 tooltipEnabled
                                                 numberOfLines={1}
                                                 textStyles={[styles.headerText, styles.pre]}

@@ -38,6 +38,7 @@ import type {SearchOption} from '@libs/OptionsListUtils';
 import {createOptionFromReport} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {getAllTaxRates} from '@libs/PolicyUtils';
+import {getReportActionHtml} from '@libs/ReportActionsUtils';
 import {isHiddenForCurrentUser, isInvoiceReport, isMoneyRequestReport, isOneOnOneChat} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getTrimmedUserSearchQueryPreservingComma} from '@libs/SearchAutocompleteUtils';
@@ -233,7 +234,10 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
 
     const contextualReport = useReportOrReportDraft(contextualReportID);
     const contextualReportParentAction = useParentReportAction(contextualReport, {shouldIgnoreThreadReplies: true});
-    const contextualReportMentionSource = contextualReport ? `${contextualReport.reportName ?? ''} ${contextualReport.lastMessageHtml ?? ''}` : undefined;
+    // A thread's display name comes from its parent action's message, which can hold mentions that reportName and lastMessageHtml don't.
+    const contextualReportMentionSource = contextualReport
+        ? `${contextualReport.reportName ?? ''} ${contextualReport.lastMessageHtml ?? ''} ${getReportActionHtml(contextualReportParentAction)}`
+        : undefined;
     const accountIDToName = useMentionedAccountIDToNameMap(contextualReportMentionSource);
     const [contextualReportPendingDeleteMemberAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${getNonEmptyStringOnyxID(contextualReport?.reportID)}`, {
         selector: pendingDeleteMemberAccountIDsSelector,

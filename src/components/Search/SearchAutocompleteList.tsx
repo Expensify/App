@@ -7,7 +7,7 @@ import type {ListItem as NewListItem, ListItemProps} from '@components/Selection
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {Section, SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 
-import useAccountIDToNameMap from '@hooks/useAccountIDToNameMap';
+import {buildAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 import useAutocompleteSuggestions from '@hooks/useAutocompleteSuggestions';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -206,7 +206,6 @@ function SearchAutocompleteList({
     const styles = useThemeStyles();
     const {translate, localeCompare, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
-    const accountIDToName = useAccountIDToNameMap();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const contentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
         addOfflineIndicatorBottomSafeAreaPadding: true,
@@ -235,6 +234,7 @@ function SearchAutocompleteList({
     const transactionThreadIDs = sortedReportActionsData?.transactionThreadIDs;
     const lastActions = sortedReportActionsData?.lastActions;
     const personalDetails = usePersonalDetails();
+    const accountIDToName = buildAccountIDToNameMap(personalDetails ?? undefined);
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [personalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
