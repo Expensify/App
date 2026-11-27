@@ -1,119 +1,74 @@
 import Button from '@components/Button';
 import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
-import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Icon from '@components/Icon';
-import type {ExpensifyIconName} from '@components/Icon/ExpensifyIconLoader';
 import OnboardingHeader from '@components/OnboardingHeader';
-import {PressableWithoutFeedback} from '@components/Pressable';
-import RadioButton from '@components/RadioButton';
-import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import CompactSearchBar from '@components/SearchBar/CompactSearchBar';
 import Text from '@components/Text';
-import TextInput from '@components/TextInput';
 
 import useCompleteOnboarding from '@hooks/useCompleteOnboarding';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {setOnboardingAccountingEnabled, setOnboardingAdminsChatReportID, setOnboardingPolicyID, setOnboardingUserReportedIntegration} from '@libs/actions/Welcome';
+import {isAccountingConnectionAvailable} from '@libs/AccountingUtils';
+import {
+    setOnboardingAccountingDraft,
+    setOnboardingAccountingEnabled,
+    setOnboardingAdminsChatReportID,
+    setOnboardingPolicyID,
+    setOnboardingUserReportedIntegration,
+} from '@libs/actions/Welcome';
 import {getDefaultOnboardingFeaturesMap} from '@libs/actions/Welcome/OnboardingFeatures';
 import {isMobileSafari} from '@libs/Browser';
 import Navigation from '@libs/Navigation/Navigation';
 import {isGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import scrollFocusedInputToTop from '@libs/scrollFocusedInputToTop';
 
 import variables from '@styles/variables';
 
-import type {OnboardingAccounting, OnboardingAccountingOption} from '@src/CONST';
+import type {OnboardingAccounting} from '@src/CONST';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import ObjectUtils from '@src/types/utils/ObjectUtils';
 
-import type {ComponentRef} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import type {ScrollView as RNScrollView} from 'react-native';
-
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
+import type {AccountingOption} from './accountingOptions';
 import type {BaseOnboardingAccountingProps} from './types';
 
-type AccountingIntegrationKey = Exclude<OnboardingAccountingOption, 'other'>;
-
-type AccountingOptionKey = OnboardingAccountingOption;
-
-/** Icon and label for each option in `CONST.ONBOARDING_ACCOUNTING_MAPPING`. `satisfies` keeps the keys in sync. */
-const accountingIntegrationDetails = {
-    quickbooksOnline: {iconName: 'QBOCircle', translationKey: 'workspace.accounting.qbo'},
-    intuitEnterpriseSuite: {iconName: 'IntuitSquare', translationKey: 'workspace.accounting.intuitEnterpriseSuite'},
-    quickbooksDesktop: {iconName: 'QBDSquare', translationKey: 'workspace.accounting.qbd'},
-    xero: {iconName: 'XeroCircle', translationKey: 'workspace.accounting.xero'},
-    netsuite: {iconName: 'NetSuiteSquare', translationKey: 'workspace.accounting.netsuite'},
-    intacct: {iconName: 'IntacctSquare', translationKey: 'workspace.accounting.intacct'},
-    // Certinia has no `workspace.accounting` label, so reuse its connection page title.
-    financialforce: {iconName: 'CertiniaSquare', translationKey: 'workspace.certinia.title'},
-    rillet: {iconName: 'RilletSquare', translationKey: 'workspace.accounting.rillet'},
-    sap: {iconName: 'SapSquare', translationKey: 'workspace.accounting.sap'},
-    oracle: {iconName: 'OracleSquare', translationKey: 'workspace.accounting.oracle'},
-    microsoftDynamics: {iconName: 'MicrosoftDynamicsSquare', translationKey: 'workspace.accounting.microsoftDynamics'},
-} satisfies Record<AccountingIntegrationKey, {iconName: ExpensifyIconName; translationKey: TranslationPaths}>;
-
-const integrationKeys = ObjectUtils.typedKeys(accountingIntegrationDetails);
-
-const integrationIconNames = integrationKeys.map((integrationKey) => accountingIntegrationDetails[integrationKey].iconName);
-
-const accountingOptionKeys = ObjectUtils.typedKeys(CONST.ONBOARDING_ACCOUNTING_MAPPING);
-
-function isIntegrationKey(integrationKey: OnboardingAccounting | undefined): integrationKey is AccountingIntegrationKey {
-    return integrationKeys.some((key) => key === integrationKey);
-}
+import AccountingOptionRow from './AccountingOptionRow';
+import accountingOptions, {isOnboardingAccountingOption} from './accountingOptions';
 
 function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccountingProps) {
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
+    const {cardPaddingHorizontal} = useLayoutSpacing();
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(integrationIconNames);
-    const illustrations = useMemoizedLazyIllustrations(['Pencil']);
-    // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
+    const illustrations = useMemoizedLazyIllustrations(['Computer']);
+    const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const shouldFooterBeInsideScrollView = useShouldFooterBeInsideList();
     const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [onboardingUserReportedIntegration] = useOnyx(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION);
+    const [draft] = useOnyx(ONYXKEYS.ONBOARDING_ACCOUNTING_DRAFT);
     const [onboardingFeaturesMap] = useOnyx(ONYXKEYS.ONBOARDING_INTERESTED_FEATURES_MAP);
-
-    const isKnownIntegration = isIntegrationKey(onboardingUserReportedIntegration);
-    let initialSelectedIntegration: AccountingOptionKey | undefined;
-    if (isKnownIntegration) {
-        initialSelectedIntegration = onboardingUserReportedIntegration;
-    } else if (onboardingUserReportedIntegration) {
-        initialSelectedIntegration = 'other';
-    }
-    const [selectedIntegration, setSelectedIntegration] = useState<AccountingOptionKey | undefined>(initialSelectedIntegration);
-    const [userReportedIntegrationName, setUserReportedIntegrationName] = useState('');
-    const [shouldScrollToOtherInput, setShouldScrollToOtherInput] = useState(initialSelectedIntegration === 'other');
+    const [searchQuery, setSearchQuery] = useState('');
     const [error, setError] = useState('');
-    const scrollViewRef = useRef<ComponentRef<typeof RNScrollView>>(null);
-    const scrollContentRef = useRef<ComponentRef<typeof View>>(null);
-    const otherAccountingSoftwareInputRef = useRef<AnimatedTextInputRef | null>(null);
-    const isOtherSelected = selectedIntegration === 'other';
-
+    const {isBetaEnabled} = usePermissions();
     const groupPolicy = Object.values(allPolicies ?? {}).find((policy) => isGroupPolicy(policy) && isPolicyAdmin(policy, session?.email));
     const {completeOnboardingFlow, isLoading: isCompletingOnboarding} = useCompleteOnboarding();
 
-    // Set onboardingPolicyID and onboardingAdminsChatReportID if a workspace is created by the backend for OD signup
+    // Set onboardingPolicyID and onboardingAdminsChatReportID if a workspace is created by the backend for OD signup.
     useEffect(() => {
         if (!groupPolicy || onboardingPolicyID) {
             return;
@@ -122,15 +77,49 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
         setOnboardingPolicyID(groupPolicy.id);
     }, [groupPolicy, onboardingPolicyID]);
 
+    const onboardingPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${onboardingPolicyID}`];
+    const availableOptions = accountingOptions.filter((option) => !option.connectionName || isAccountingConnectionAvailable(option.connectionName, onboardingPolicy, isBetaEnabled));
+
+    const savedIntegration = draft ? draft.integration : onboardingUserReportedIntegration;
+    const selectedAnswerIntegration = savedIntegration && (isOnboardingAccountingOption(savedIntegration) ? savedIntegration : 'other');
+    const selectedAnswerName = draft?.name;
+    const selectedOption = availableOptions.find((option) => {
+        if (option.integration === 'other') {
+            return selectedAnswerIntegration === 'other' && selectedAnswerName === option.name;
+        }
+        return selectedAnswerIntegration === option.integration;
+    });
+    // Saved answers may refer to a legacy product or a connection whose beta is no longer enabled.
+    const customOption: AccountingOption | undefined =
+        selectedAnswerIntegration && !selectedOption && (selectedAnswerIntegration !== 'other' || selectedAnswerName)
+            ? {
+                  name: selectedAnswerName ?? CONST.ONBOARDING_ACCOUNTING_MAPPING[selectedAnswerIntegration],
+                  integration: selectedAnswerIntegration,
+                  iconName: 'Building',
+              }
+            : undefined;
+    const options = customOption ? [...availableOptions, customOption] : availableOptions;
+    const trimmedQuery = searchQuery.trim();
+    const normalizedQuery = trimmedQuery.toLocaleLowerCase();
+    const filteredOptions = options.filter((option) => `${option.name} ${option.aliases ?? ''}`.toLocaleLowerCase().includes(normalizedQuery));
+    const selectedRow = selectedOption ?? customOption;
+    // Keep the saved choice visible so searching never silently prevents continuing with it.
+    const visibleOptions = selectedRow && !filteredOptions.includes(selectedRow) ? [selectedRow, ...filteredOptions] : filteredOptions;
+    const hasSelectedOption = !!selectedRow;
+
+    const unsupportedTitle = translate('onboarding.accounting.unsupportedTitle', trimmedQuery);
+    const unsupportedSubtitle = translate('onboarding.accounting.unsupportedSubtitle');
+    const confirmSoftwareLabel = translate('onboarding.accounting.confirmSoftware', trimmedQuery);
+    useDebouncedAccessibilityAnnouncement(unsupportedTitle, filteredOptions.length === 0 && !!trimmedQuery, trimmedQuery);
+
     const submitAccounting = async () => {
-        if (!selectedIntegration) {
+        if (!selectedAnswerIntegration || !hasSelectedOption) {
             setError(translate('onboarding.errorSelection'));
             return;
         }
 
-        const integrationValue: OnboardingAccounting = selectedIntegration;
-        const trimmedIntegrationName = userReportedIntegrationName.trim();
-        const integrationName = integrationValue === 'other' && trimmedIntegrationName ? trimmedIntegrationName : undefined;
+        const integrationValue: OnboardingAccounting = selectedAnswerIntegration;
+        const integrationName = integrationValue === 'other' ? selectedAnswerName?.trim() || undefined : undefined;
         setOnboardingAccountingEnabled(true);
         setOnboardingUserReportedIntegration(integrationValue);
         await completeOnboardingFlow({
@@ -140,67 +129,13 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
         });
     };
 
-    const handleIntegrationSelect = (integrationKey: AccountingOptionKey) => {
-        if (integrationKey === 'other' && isOtherSelected) {
-            otherAccountingSoftwareInputRef.current?.focus();
-            setError('');
-            return;
-        }
-
-        setSelectedIntegration(integrationKey);
-        setShouldScrollToOtherInput(integrationKey === 'other');
-        if (integrationKey !== 'other') {
-            setUserReportedIntegrationName('');
-        }
+    const selectIntegration = (option: AccountingOption) => {
+        setOnboardingAccountingDraft({
+            integration: option.integration,
+            name: option.integration === 'other' ? option.name : undefined,
+        });
         setError('');
     };
-
-    const handleContentSizeChange = () => {
-        if (!shouldScrollToOtherInput) {
-            return;
-        }
-
-        scrollViewRef.current?.scrollToEnd({animated: false});
-        setShouldScrollToOtherInput(false);
-    };
-
-    function renderOption(optionKey: AccountingOptionKey) {
-        const isOtherOption = optionKey === 'other';
-        const label = translate(isOtherOption ? 'workspace.accounting.other' : accountingIntegrationDetails[optionKey].translationKey);
-        const isSelected = selectedIntegration === optionKey;
-
-        return (
-            <PressableWithoutFeedback
-                key={optionKey}
-                onPress={() => handleIntegrationSelect(optionKey)}
-                accessibilityLabel={label}
-                sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.ACCOUNTING_SELECT_INTEGRATION}
-                accessible={false}
-                // Keep the selected fill on hover.
-                hoverStyle={isSelected ? undefined : styles.hoveredComponentBG}
-                style={[
-                    styles.onboardingTile,
-                    isSmallScreenWidth && !isInLandscapeMode ? styles.onboardingTileNarrow : styles.onboardingAccountingItemWide,
-                    isSelected && styles.onboardingTileSelected,
-                ]}
-            >
-                <RadioButton
-                    isChecked={isSelected}
-                    onPress={() => handleIntegrationSelect(optionKey)}
-                    accessibilityLabel={label}
-                    wrapperStyle={styles.onboardingTileSelectionButton}
-                />
-                <Icon
-                    src={isOtherOption ? illustrations.Pencil : expensifyIcons[accountingIntegrationDetails[optionKey].iconName]}
-                    width={variables.iconSizeExtraLarge}
-                    height={variables.iconSizeExtraLarge}
-                    // The Other illustration has no circular badge.
-                    additionalStyles={isOtherOption ? undefined : [StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.AVATAR_SHAPE.CIRCLE)]}
-                />
-                <Text style={[styles.textLabel, styles.textStrong, styles.textAlignCenter, styles.mt2]}>{label}</Text>
-            </PressableWithoutFeedback>
-        );
-    }
 
     const continueButton = (
         <>
@@ -211,7 +146,6 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                     message={error}
                 />
             )}
-
             <ButtonDisabledWhenOffline
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 size={CONST.BUTTON_SIZE.LARGE}
@@ -232,45 +166,62 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
             shouldEnableMaxHeight={!isMobileSafari()}
             shouldAvoidScrollOnVirtualViewport={!isMobileSafari()}
         >
-            <CollapsibleHeaderOnKeyboard>
-                <OnboardingHeader
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.ONBOARDING_INTERESTED_FEATURES.getRoute())}
-                    shouldCollapseOnKeyboard
-                />
-                <View style={[onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
-                    <Text
-                        style={[styles.textHeadlineH1, styles.mb5]}
-                        accessibilityRole={CONST.ROLE.HEADER}
-                    >
-                        {translate('onboarding.accounting.title')}
-                    </Text>
-                </View>
-            </CollapsibleHeaderOnKeyboard>
+            <OnboardingHeader onBackButtonPress={() => Navigation.goBack(ROUTES.ONBOARDING_INTERESTED_FEATURES.getRoute())} />
             <ScrollView
-                ref={scrollViewRef}
-                onLayout={() => scrollFocusedInputToTop(scrollViewRef, scrollContentRef, otherAccountingSoftwareInputRef)}
-                style={[onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}
-                contentContainerStyle={[styles.pt3, styles.pb5]}
-                onContentSizeChange={handleContentSizeChange}
+                style={styles.flex1}
+                contentContainerStyle={[cardPaddingHorizontal, styles.flexGrow1, styles.pb5]}
                 keyboardShouldPersistTaps="handled"
             >
-                <View ref={scrollContentRef}>
-                    <View style={[styles.flexRow, styles.flexWrap, styles.gap3, styles.mb3]}>{accountingOptionKeys.map(renderOption)}</View>
-                    {isOtherSelected && (
-                        <TextInput
-                            ref={otherAccountingSoftwareInputRef}
-                            accessibilityLabel={translate('onboarding.accounting.otherAccountingSoftware')}
-                            label={translate('onboarding.accounting.otherAccountingSoftware')}
-                            value={userReportedIntegrationName}
-                            onChangeText={setUserReportedIntegrationName}
-                            autoFocus
+                <View>
+                    <View style={onboardingIsMediumOrLargerScreenWidth && styles.mt5}>
+                        <Text
+                            style={[styles.textHeadlineH1, styles.mb6]}
+                            accessibilityRole={CONST.ROLE.HEADER}
+                        >
+                            {translate('onboarding.accounting.title')}
+                        </Text>
+                    </View>
+                    <View style={styles.mb3}>
+                        <CompactSearchBar
+                            label={translate('common.search')}
+                            inputValue={searchQuery}
+                            onChangeText={setSearchQuery}
+                            style={[styles.mh0, styles.mb0, styles.w100, styles.mw100]}
                         />
+                    </View>
+                    {visibleOptions.length > 0 && (
+                        <View style={[styles.flexRow, styles.flexWrap, styles.gap2]}>
+                            {visibleOptions.map((option) => (
+                                <AccountingOptionRow
+                                    key={option.connectionName ?? `${option.integration}-${option.name}`}
+                                    option={option}
+                                    isSelected={option === selectedOption || option === customOption}
+                                    onSelect={selectIntegration}
+                                />
+                            ))}
+                        </View>
                     )}
-
-                    {shouldFooterBeInsideScrollView && <View style={[styles.pt8]}>{continueButton}</View>}
+                    {filteredOptions.length === 0 && (
+                        <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.pv8]}>
+                            <Icon
+                                src={illustrations.Computer}
+                                width={variables.onboardingAccountingIllustrationWidth}
+                                height={variables.onboardingAccountingIllustrationHeight}
+                            />
+                            <Text style={[styles.textHeadlineH2, styles.textAlignCenter, styles.mt5]}>{unsupportedTitle}</Text>
+                            <Text style={[styles.textSupporting, styles.textAlignCenter, styles.mt2, styles.mb5]}>{unsupportedSubtitle}</Text>
+                            <Button
+                                onPress={() => selectIntegration({name: trimmedQuery, integration: 'other', iconName: 'Building'})}
+                                sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.ACCOUNTING_CONFIRM_SOFTWARE}
+                            >
+                                <Button.Text>{confirmSoftwareLabel}</Button.Text>
+                            </Button>
+                        </View>
+                    )}
                 </View>
+                {shouldFooterBeInsideScrollView && <View style={styles.pt8}>{continueButton}</View>}
             </ScrollView>
-            {!shouldFooterBeInsideScrollView && <FixedFooter style={[styles.pt3, styles.ph5]}>{continueButton}</FixedFooter>}
+            {!shouldFooterBeInsideScrollView && <FixedFooter style={[styles.pt3, cardPaddingHorizontal]}>{continueButton}</FixedFooter>}
         </ScreenWrapper>
     );
 }

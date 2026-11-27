@@ -9,6 +9,8 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import accountingIntegrationIconNames, {accountingConnectionIconNames} from '@libs/accountingIntegrationIconNames';
+import {isAccountingConnectionAvailable} from '@libs/AccountingUtils';
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
 import {getConnectedIntegration, getIntegrationLastSuccessfulDate, shouldShowReimbursableExportDestinationAccountError} from '@libs/PolicyUtils';
@@ -49,34 +51,13 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
     const {activeIntegration, popoverAnchorRefs} = useAccountingState();
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
     const {canWrite, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.ACCOUNTING);
-    const accountingIcons = useMemoizedLazyExpensifyIcons([
-        'IntacctSquare',
-        'IntuitSquare',
-        'QBOSquare',
-        'XeroSquare',
-        'NetSuiteSquare',
-        'QBDSquare',
-        'CertiniaSquare',
-        'AcumaticaSquare',
-        'RilletSquare',
-        'DualEntrySquare',
-        'CampfireSquare',
-        'DigitsSquare',
-        'BusinessCentralSquare',
-        'ZohoBooksSquare',
-    ]);
+    const accountingIcons = useMemoizedLazyExpensifyIcons(accountingConnectionIconNames);
 
     if (!policyID) {
         return [];
     }
 
-    const canUseBusinessCentralIntegration = isBetaEnabled(CONST.BETAS.BUSINESS_CENTRAL) || !!policy?.connections?.businessCentral;
-    const accountingIntegrations = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.filter((name) => {
-        if (name === CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL) {
-            return canUseBusinessCentralIntegration;
-        }
-        return true;
-    });
+    const accountingIntegrations = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.filter((name) => isAccountingConnectionAvailable(name, policy, isBetaEnabled));
 
     const syncingIntegration = accountingIntegrations.find((integration) => integration === connectionSyncProgress?.connectionName);
     // HR providers write to the same sync progress key, so only an accounting sync counts here
@@ -173,20 +154,20 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
             return [
                 listing,
                 // Sage Accounting shares the Sage logo with Sage Intacct
-                getWaitlistListing(CONST.POLICY.CONNECTIONS.NAME.SAGE_ACCOUNTING, accountingIcons.IntacctSquare),
-                getWaitlistListing(CONST.POLICY.CONNECTIONS.NAME.ODOO),
+                getWaitlistListing(CONST.POLICY.CONNECTIONS.NAME.SAGE_ACCOUNTING, accountingIcons[accountingIntegrationIconNames.sageAccounting]),
+                getWaitlistListing(CONST.POLICY.CONNECTIONS.NAME.ODOO, accountingIcons[accountingIntegrationIconNames.odoo]),
             ];
         }
         if (name === CONST.POLICY.CONNECTIONS.NAME.CERTINIA) {
             // Acumatica is placed after Certinia, as in the design. Its connector flow arrives in a later release,
             // so only its waitlist is offered for now.
-            return [listing, getWaitlistListing(CONST.POLICY.CONNECTIONS.NAME.ACUMATICA, accountingIcons.AcumaticaSquare)];
+            return [listing, getWaitlistListing(CONST.POLICY.CONNECTIONS.NAME.ACUMATICA, accountingIcons[accountingIntegrationIconNames.acumatica])];
         }
         return listing;
     });
 
     // The connector flow arrives in a later release, so beta users also see the waitlist for now.
-    listings.push(getWaitlistListing(CONST.POLICY.CONNECTIONS.NAME.EXACT_ONLINE));
+    listings.push(getWaitlistListing(CONST.POLICY.CONNECTIONS.NAME.EXACT_ONLINE, accountingIcons[accountingIntegrationIconNames.exactOnline]));
     return listings;
 }
 

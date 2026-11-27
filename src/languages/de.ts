@@ -4098,6 +4098,9 @@ ${amount} für ${merchant} – ${date}`,
         accounting: {
             title: 'Verwendest du eine Buchhaltungssoftware?',
             otherAccountingSoftware: 'Name der Software',
+            unsupportedTitle: (software: string) => `We don’t support “${software}” yet`,
+            unsupportedSubtitle: 'Use the button below and we’ll look into supporting it in the future',
+            confirmSoftware: (software: string) => `Yes, “${software}” is what I use`,
         },
         interestedFeatures: {
             title: 'Wähle die gewünschten Funktionen aus',

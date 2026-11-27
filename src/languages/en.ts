@@ -4289,6 +4289,9 @@ const translations = {
         accounting: {
             title: 'Do you use any accounting software?',
             otherAccountingSoftware: 'Name of software',
+            unsupportedTitle: (software: string) => `We don’t support “${software}” yet`,
+            unsupportedSubtitle: 'Use the button below and we’ll look into supporting it in the future',
+            confirmSoftware: (software: string) => `Yes, “${software}” is what I use`,
         },
         interestedFeatures: {
             title: 'Select the features you want',
