@@ -171,6 +171,7 @@ import {
     getReportSubtitlePrefix,
     getTaskAssigneeChatOnyxData,
     getTitleFieldWithFallback,
+    getTransactionCommentObject,
     getTransactionDetails,
     getTransactionPolicyConvertedDisplayAmount,
     getTransactionReportName,
@@ -29504,6 +29505,26 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('getTransactionCommentObject', () => {
+        it.each([
+            [12345, '12345'],
+            [0, '0'],
+            [undefined, ''],
+            [null, ''],
+            ['<strong>Lunch</strong>', '*Lunch*'],
+        ])('normalizes description %j before converting it to markdown', (description, expected) => {
+            // Given a description may arrive from the API as a number despite its declared type
+            const transaction = Object.assign(createMock<Transaction>({}), {comment: {comment: description, customUnit: {name: 'Distance'}}});
+
+            // When a comment object is prepared for editing
+            const result = getTransactionCommentObject(transaction);
+
+            // Then markdown conversion receives text and other comment metadata is preserved
+            expect(result.comment).toBe(expected);
+            expect(result.customUnit).toEqual(transaction.comment?.customUnit);
+        });
+    });
+
     describe('getTransactionSortValue', () => {
         const mockReport: Report = createMock<Report>({
             reportID: 'test-report-id',
@@ -29683,6 +29704,23 @@ describe('ReportUtils', () => {
             const transaction = createMockTransaction({comment: {comment: 'Test description'}});
             const result = getTransactionSortValue(translateLocal, transaction, CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION, mockReport, mockPolicy);
             expect(result).toBe('Test description');
+        });
+
+        it.each([
+            [12345, '12345'],
+            [0, '0'],
+            [undefined, ''],
+            [null, ''],
+            ['<strong>Lunch</strong>', 'Lunch'],
+        ])('normalizes description %j before sorting', (description, expected) => {
+            // Given runtime API values may not match the declared description type
+            const transaction = Object.assign(createMockTransaction(), {comment: {comment: description}});
+
+            // When expenses are sorted by description
+            const result = getTransactionSortValue(translateLocal, transaction, CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION, mockReport, mockPolicy);
+
+            // Then the parser returns sortable text without throwing on numeric or empty values
+            expect(result).toBe(expected);
         });
 
         it('should return exchange rate string for EXCHANGE_RATE column', () => {
