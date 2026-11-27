@@ -12,9 +12,13 @@ import PersonalDetailsByLoginProvider from '@components/PersonalDetailsByLoginPr
 import * as useConfirmModalModule from '@hooks/useConfirmModal';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import useNetwork from '@hooks/useNetwork';
+import * as usePreferredPolicyModule from '@hooks/usePreferredPolicy';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
+import * as Modal from '@libs/actions/Modal';
+import * as MemberActions from '@libs/actions/Policy/Member';
+import * as PolicyActions from '@libs/actions/Policy/Policy';
 import {READ_COMMANDS} from '@libs/API/types';
 import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
@@ -181,6 +185,114 @@ describe('WorkspaceMemberDetailsPage', () => {
         });
         jest.restoreAllMocks();
         jest.clearAllMocks();
+    });
+
+    describe('Leaving from self details', () => {
+        const showConfirmModal = jest.fn();
+
+        beforeEach(async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                    type: CONST.POLICY.TYPE.SUBMIT,
+                    role: CONST.POLICY.ROLE.EDITOR,
+                    employeeList: {[selfEmail]: {role: CONST.POLICY.ROLE.EDITOR}},
+                });
+            });
+            showConfirmModal.mockResolvedValue({action: ModalActions.CONFIRM});
+            jest.spyOn(useConfirmModalModule, 'default').mockReturnValue(createMock<ReturnType<typeof useConfirmModalModule.default>>({showConfirmModal}));
+            jest.spyOn(usePreferredPolicyModule, 'default').mockReturnValue(createMock<ReturnType<typeof usePreferredPolicyModule.default>>({isLoadingPreferredPolicy: false}));
+            jest.spyOn(Modal, 'close').mockImplementation((callback) => {
+                callback?.();
+            });
+            jest.spyOn(PolicyActions, 'leaveWorkspace').mockImplementation(() => {});
+            jest.spyOn(MemberActions, 'removeMembers').mockImplementation(() => {});
+            jest.spyOn(Navigation, 'goBack').mockImplementation(() => {});
+        });
+
+        it.each([CONST.POLICY.ROLE.EDITOR, CONST.POLICY.ROLE.USER])('offers Leave instead of Remove on the signed-in nonowner’s details as %s', async (role) => {
+            // Given the signed-in nonowner's own details, without requiring roster-management access
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {role, employeeList: {[selfEmail]: {role}}});
+            });
+            const {unmount} = renderPage({policyID: policy.id, accountID: String(selfAccountID)});
+            await waitForBatchedUpdatesWithAct();
+            expect(await screen.findByText(TestHelper.translateLocal('common.leaveWorkspace'))).not.toBeDisabled();
+            expect(screen.queryByText(TestHelper.translateLocal('workspace.people.removeWorkspaceMemberButtonTitle'))).not.toBeOnTheScreen();
+
+            // When the member presses Leave
+            fireEvent.press(screen.getByText(TestHelper.translateLocal('common.leaveWorkspace')));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the button uses the shared departure flow, never member removal
+            expect(showConfirmModal).toHaveBeenCalledWith(expect.objectContaining({buttonVariant: CONST.BUTTON_VARIANT.DANGER}));
+            expect(PolicyActions.leaveWorkspace).toHaveBeenCalledWith(selfAccountID, selfEmail, expect.objectContaining({id: policy.id}));
+            expect(MemberActions.removeMembers).not.toHaveBeenCalled();
+            unmount();
+        });
+
+        it('disables Leave on the restricted member’s own details', async () => {
+            // Given the member's domain requires this workspace
+            jest.spyOn(usePreferredPolicyModule, 'default').mockReturnValue(
+                createMock<ReturnType<typeof usePreferredPolicyModule.default>>({
+                    isRestrictedToPreferredPolicy: true,
+                    preferredPolicyID: policy.id,
+                }),
+            );
+
+            // When self details are opened
+            const {unmount} = renderPage({policyID: policy.id, accountID: String(selfAccountID)});
+            await waitForBatchedUpdatesWithAct();
+            const leaveButton = screen.getByText(TestHelper.translateLocal('common.leaveWorkspace'));
+
+            // Then Leave stays visible but disabled and cannot start the flow
+            expect(leaveButton).toBeDisabled();
+            fireEvent.press(leaveButton);
+            expect(showConfirmModal).not.toHaveBeenCalled();
+            expect(PolicyActions.leaveWorkspace).not.toHaveBeenCalled();
+            unmount();
+        });
+
+        it('keeps other-member removal separate from leaving', async () => {
+            // Given an admin inspecting another member
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    employeeList: {[selfEmail]: {role: CONST.POLICY.ROLE.ADMIN}},
+                });
+            });
+            const {unmount} = renderPage({policyID: policy.id, accountID: String(invitedAccountID)});
+            await waitForBatchedUpdatesWithAct();
+
+            // When the admin removes that member
+            expect(screen.queryByText(TestHelper.translateLocal('common.leaveWorkspace'))).not.toBeOnTheScreen();
+            fireEvent.press(await screen.findByText(TestHelper.translateLocal('workspace.people.removeWorkspaceMemberButtonTitle')));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the existing removal path is used, never workspace departure
+            expect(MemberActions.removeMembers).toHaveBeenCalled();
+            expect(PolicyActions.leaveWorkspace).not.toHaveBeenCalled();
+            unmount();
+        });
+
+        it('does not allow a read-only member to open another member’s workspace details', async () => {
+            // Given a member without roster-management access
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                    role: CONST.POLICY.ROLE.USER,
+                    employeeList: {[selfEmail]: {role: CONST.POLICY.ROLE.USER}},
+                });
+            });
+
+            // When another member's workspace details are opened directly
+            const {unmount} = renderPage({policyID: policy.id, accountID: String(invitedAccountID)});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then neither the details screen nor its departure or removal actions are accessible
+            expect(screen.queryByTestId('WorkspaceMemberDetailsPage')).not.toBeOnTheScreen();
+            expect(screen.queryByText(TestHelper.translateLocal('common.leaveWorkspace'))).not.toBeOnTheScreen();
+            expect(screen.queryByText(TestHelper.translateLocal('workspace.people.removeWorkspaceMemberButtonTitle'))).not.toBeOnTheScreen();
+            unmount();
+        });
     });
 
     const setupWorkArrangement = async ({
