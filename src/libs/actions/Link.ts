@@ -3,7 +3,8 @@ import type {GenerateSpotnanaTokenParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import asyncOpenURL from '@libs/asyncOpenURL';
 import buildOldDotURL from '@libs/buildOldDotURL';
-import {isSharedProductHost} from '@libs/ExperienceCookie';
+import {isSharedProductHost, readExperienceCookie} from '@libs/ExperienceCookie';
+import type {ExperienceCookieValue} from '@libs/ExperienceCookie/types';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import isPublicScreenRoute from '@libs/isPublicScreenRoute';
 import Log from '@libs/Log';
@@ -66,6 +67,22 @@ Onyx.connectWithoutView({
         currentSession = value;
     },
 });
+
+// Top-level pages that both products have, so the shared product host picks the product for them by the `experience` cookie
+const COOKIE_DECIDED_PAGES = new Set(['inbox', 'home', 'settings', 'travel']);
+
+/**
+ * Returns the product the shared product host serves on a page it picks by the `experience` cookie, where a missing cookie means Expensify Classic.
+ * Returns undefined for any other path, because the host serves those the same way whatever the cookie says.
+ */
+function getCookieDecidedExperience(pathname: string): ExperienceCookieValue | undefined {
+    // The host ignores trailing slashes when it matches these pages
+    const page = pathname.replace(/\/+$/, '').slice(1);
+    if (!COOKIE_DECIDED_PAGES.has(page)) {
+        return undefined;
+    }
+    return readExperienceCookie() ?? CONST.EXPERIENCE_COOKIE.VALUES.CLASSIC;
+}
 
 function openOldDotLink(url: string, shouldOpenInSameTab = false) {
     if (getIsOffline()) {
@@ -138,7 +155,7 @@ function openTravelDotLink(policyID: OnyxEntry<string>, postLoginPath?: string) 
 const NEW_EXPENSIFY_ORIGINS = [CONST.NEW_EXPENSIFY_URL, CONST.STAGING_NEW_EXPENSIFY_URL, CONST.QA_NEW_EXPENSIFY_URL];
 
 /**
- * On the shared product host, a link to the page's own origin is a New Expensify link when its path is an App route.
+ * On the shared product host, a link to the page's own origin is a New Expensify link when its path is an App route the host serves New Expensify on.
  * Other paths on that origin are Expensify Classic pages, so they open like any other Expensify Classic link.
  */
 function isSharedProductHostAppLink(href: string): boolean {
@@ -147,8 +164,14 @@ function isSharedProductHostAppLink(href: string): boolean {
     }
 
     try {
-        if (new URL(href).origin !== window.location.origin) {
+        const {origin, pathname} = new URL(href);
+        if (origin !== window.location.origin) {
             return false;
+        }
+
+        const cookieDecidedExperience = getCookieDecidedExperience(pathname);
+        if (cookieDecidedExperience) {
+            return cookieDecidedExperience === CONST.EXPERIENCE_COOKIE.VALUES.NEW;
         }
         return findFocusedRoute(getStateFromPath(Url.getPathFromURL(href)))?.name !== SCREENS.NOT_FOUND;
     } catch {

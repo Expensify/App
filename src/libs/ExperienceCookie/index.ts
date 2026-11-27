@@ -10,7 +10,7 @@ import Log from '@libs/Log';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 
-import type {ClearExperienceCookie, IsSharedProductHost, WriteExperienceCookie} from './types';
+import type {ClearExperienceCookie, ExperienceCookieValue, IsSharedProductHost, ReadExperienceCookie, WriteExperienceCookie} from './types';
 
 const WWW_PREFIX = 'www.';
 
@@ -95,4 +95,18 @@ const clearExperienceCookie: ClearExperienceCookie = () => {
     return true;
 };
 
-export {isSharedProductHost, writeExperienceCookie, clearExperienceCookie};
+function isExperienceCookieValue(value: string | undefined): value is ExperienceCookieValue {
+    return Object.values<string | undefined>(CONST.EXPERIENCE_COOKIE.VALUES).includes(value);
+}
+
+const readExperienceCookie: ReadExperienceCookie = () => {
+    const prefix = `${CONST.EXPERIENCE_COOKIE.NAME}=`;
+    const value = document.cookie
+        .split(';')
+        .map((cookie) => cookie.trim())
+        .find((cookie) => cookie.startsWith(prefix))
+        ?.slice(prefix.length);
+    return isExperienceCookieValue(value) ? value : undefined;
+};
+
+export {isSharedProductHost, writeExperienceCookie, clearExperienceCookie, readExperienceCookie};

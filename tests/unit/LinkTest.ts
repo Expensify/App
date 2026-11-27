@@ -2,7 +2,7 @@ import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn
 import {setOnboardingErrorMessage} from '@libs/actions/Welcome';
 import * as API from '@libs/API';
 import asyncOpenURL from '@libs/asyncOpenURL';
-import {isSharedProductHost} from '@libs/ExperienceCookie';
+import {isSharedProductHost, readExperienceCookie} from '@libs/ExperienceCookie';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import swapBackgroundTabForRHPTarget from '@libs/Navigation/helpers/swapBackgroundTabForRHPTarget';
 import Navigation from '@libs/Navigation/Navigation';
@@ -37,6 +37,7 @@ type ReportUtilsMock = Record<string, unknown> & {
 jest.mock('@libs/getIsNarrowLayout', () => jest.fn());
 jest.mock('@libs/ExperienceCookie', () => ({
     isSharedProductHost: jest.fn(() => false),
+    readExperienceCookie: jest.fn(() => undefined),
 }));
 jest.mock('@libs/asyncOpenURL', () => jest.fn());
 jest.mock('@libs/API', () => ({
@@ -91,6 +92,7 @@ const mockedWaitForUserSignIn = jest.mocked(waitForUserSignIn);
 const mockedSetOnboardingErrorMessage = jest.mocked(setOnboardingErrorMessage);
 const mockedIsSharedProductHost = jest.mocked(isSharedProductHost);
 const mockedAsyncOpenURL = jest.mocked(asyncOpenURL);
+const mockedReadExperienceCookie = jest.mocked(readExperienceCookie);
 
 const SHARED_PRODUCT_HOST_ORIGIN = 'https://expensify.com.dev';
 const realLocation = window.location;
@@ -98,10 +100,11 @@ const realLocation = window.location;
 /** Resolves the URL that the last Expensify Classic link was opened at */
 async function getOpenedClassicURL(): Promise<string | undefined> {
     const [promise, getURL] = mockedAsyncOpenURL.mock.calls.at(-1) ?? [];
-    if (!promise || typeof getURL !== 'function') {
+    if (!promise || !getURL) {
         return undefined;
     }
-    return getURL(await promise);
+    const params = await promise;
+    return typeof getURL === 'function' ? getURL(params) : getURL;
 }
 
 /** Serves the page from the given origin, as the shared product host when isShared is true, without triggering a real navigation */
@@ -113,6 +116,7 @@ function arrangePageOrigin(origin: string, isShared: boolean) {
 afterEach(() => {
     Object.defineProperty(window, 'location', {value: realLocation, writable: true, configurable: true});
     mockedIsSharedProductHost.mockReturnValue(false);
+    mockedReadExperienceCookie.mockReturnValue(undefined);
 });
 
 function buildNavigationState(key: string, routes: NavigationState['routes'], index = routes.length - 1): NavigationState {
@@ -466,12 +470,62 @@ describe('Link.openLink', () => {
         expect(mockedAsyncOpenURL).not.toHaveBeenCalled();
     });
 
-    it.each(['inbox', 'settings?param=%7B%7D'])('opens %s on the shared product host in the app, as the host does for New Expensify users', (path) => {
+    it.each(['inbox', 'home', 'settings?param=%7B%7D', 'travel'])('opens %s on the shared product host in the app when the experience cookie is new', (path) => {
+        // Given the page served from the shared product host to a browser whose cookie makes the host serve New Expensify on pages both products have
         arrangePageOrigin(SHARED_PRODUCT_HOST_ORIGIN, true);
+        mockedReadExperienceCookie.mockReturnValue(CONST.EXPERIENCE_COOKIE.VALUES.NEW);
 
+        // When opening a link to one of those pages
         openLink(`${SHARED_PRODUCT_HOST_ORIGIN}/${path}`, environmentURL, false, TEST_SESSION);
 
+        // Then it opens in the app, as the host would serve it
         expect(Navigation.navigate).toHaveBeenCalledWith(path);
+        expect(mockedAsyncOpenURL).not.toHaveBeenCalled();
+    });
+
+    it.each([
+        ['inbox', CONST.EXPERIENCE_COOKIE.VALUES.CLASSIC],
+        ['inbox', undefined],
+        ['home', CONST.EXPERIENCE_COOKIE.VALUES.CLASSIC],
+        ['settings', undefined],
+        ['settings/', CONST.EXPERIENCE_COOKIE.VALUES.CLASSIC],
+        ['settings?param=%7B%7D', CONST.EXPERIENCE_COOKIE.VALUES.CLASSIC],
+        ['travel', undefined],
+    ])('opens %s in Expensify Classic with cookie %s', async (path, experience) => {
+        // Given the page served from the shared product host to a browser whose cookie makes the host serve Classic on pages both products have
+        arrangePageOrigin(SHARED_PRODUCT_HOST_ORIGIN, true);
+        mockedReadExperienceCookie.mockReturnValue(experience);
+
+        // When opening a link to one of those pages
+        openLink(`${SHARED_PRODUCT_HOST_ORIGIN}/${path}`, environmentURL, false, TEST_SESSION);
+
+        // Then it opens in Expensify Classic with a token, as the host would serve it
+        expect(Navigation.navigate).not.toHaveBeenCalled();
+        await expect(getOpenedClassicURL()).resolves.toBe(`${SHARED_PRODUCT_HOST_ORIGIN}/${path}${path.includes('?') ? '&' : '?'}authToken=short-lived-token&email=`);
+    });
+
+    it.each([CONST.EXPERIENCE_COOKIE.VALUES.CLASSIC, undefined])('opens a deeper page on the shared product host in the app when the experience cookie is %s', (experience) => {
+        // Given the page served from the shared product host, which serves New Expensify on deeper pages whatever the cookie says
+        arrangePageOrigin(SHARED_PRODUCT_HOST_ORIGIN, true);
+        mockedReadExperienceCookie.mockReturnValue(experience);
+
+        // When opening a link to a page below one that both products have
+        openLink(`${SHARED_PRODUCT_HOST_ORIGIN}/settings/profile`, environmentURL, false, TEST_SESSION);
+
+        // Then it opens in the app
+        expect(Navigation.navigate).toHaveBeenCalledWith('settings/profile');
+        expect(mockedAsyncOpenURL).not.toHaveBeenCalled();
+    });
+
+    it('ignores the experience cookie for New Expensify links on other hosts', () => {
+        // Given New Expensify served from its own host, where the cookie doesn't pick the product
+        mockedReadExperienceCookie.mockReturnValue(CONST.EXPERIENCE_COOKIE.VALUES.CLASSIC);
+
+        // When opening a link to a page both products have on the shared product host
+        openLink(`${CONST.NEW_EXPENSIFY_URL}inbox`, environmentURL, false, TEST_SESSION);
+
+        // Then it opens in the app
+        expect(Navigation.navigate).toHaveBeenCalledWith('inbox');
         expect(mockedAsyncOpenURL).not.toHaveBeenCalled();
     });
 
