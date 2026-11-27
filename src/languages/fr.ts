@@ -2203,6 +2203,10 @@ const translations: TranslationDeepObject<typeof en> = {
         payViaABA: 'Payer via ABA',
         missingABADepositAccount: ({name}: {name: string}) => `${name} n’a pas de compte bancaire en AUD. Veuillez lui demander d’en ajouter un, puis réessayez.`,
         submittersMissingABADepositAccount: 'Un ou plusieurs déclarants n’ont pas de compte bancaire en AUD. Veuillez leur demander d’en ajouter un, puis réessayez.',
+        waitForABAFile: 'Veuillez patienter pendant que nous générons le fichier ABA.',
+        successABAFile: "Votre fichier ABA a été généré ! S'il ne s'est pas téléchargé automatiquement, utilisez le bouton ci-dessous.",
+        reportsWithNothingToPayViaABA: 'Une ou plusieurs notes de frais n’ont rien à payer et n’ont donc pas été incluses dans le fichier ABA.',
+        reportsLeftOutOfABAFile: 'Une ou plusieurs notes de frais n’ont pas été incluses dans le fichier ABA. Veuillez réessayer plus tard.',
     },
     transactionMerge: {
         listPage: {

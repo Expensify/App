@@ -2105,6 +2105,10 @@ const translations: TranslationDeepObject<typeof en> = {
         payViaABA: '通过 ABA 支付',
         missingABADepositAccount: ({name}: {name: string}) => `${name} 没有 AUD 银行账户。请让 TA 添加一个后再重试。`,
         submittersMissingABADepositAccount: '一个或多个提交人没有 AUD 银行账户。请让他们添加一个后再试一次。',
+        waitForABAFile: '正在生成 ABA 文件，请稍候。',
+        successABAFile: '您的 ABA 文件已生成！如果没有自动下载，请使用下方按钮。',
+        reportsWithNothingToPayViaABA: '一个或多个报销单没有可支付的金额，因此未包含在 ABA 文件中。',
+        reportsLeftOutOfABAFile: '一个或多个报表未包含在 ABA 文件中。请稍后重试。',
     },
     transactionMerge: {
         listPage: {
