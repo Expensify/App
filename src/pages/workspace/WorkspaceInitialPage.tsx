@@ -33,7 +33,7 @@ import useWorkspaceAgents from '@hooks/useWorkspaceAgents';
 
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {clearErrors, openPolicyInitialPage, removeWorkspace} from '@libs/actions/Policy/Policy';
-import {getRules} from '@libs/actions/Policy/Rules';
+import {getPolicyRules} from '@libs/actions/Policy/Rules';
 import {hasAgentErrorsSelector} from '@libs/AgentUtils';
 import goBackFromWorkspaceSettingPages from '@libs/Navigation/helpers/goBackFromWorkspaceSettingPages';
 import WorkspaceCreationReveal from '@libs/Navigation/helpers/WorkspaceCreationReveal';
@@ -170,7 +170,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         openPolicyInitialPage(routePolicyID);
         // Deliberately not `useRulesPrefetch`, which fetches once per session for screens that only need a count.
         // Opening a workspace is the point at which its rules have to be current, including after a reconnect.
-        getRules();
+        getPolicyRules(routePolicyID);
     };
     useNetwork({onReconnect: fetchPolicyData});
     useFocusEffect(

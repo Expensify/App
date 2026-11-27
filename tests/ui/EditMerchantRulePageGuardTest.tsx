@@ -6,7 +6,7 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import * as API from '@libs/API';
-import {READ_COMMANDS} from '@libs/API/types';
+import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -33,6 +33,7 @@ const OTHER_POLICY_ID = 'policy2';
 const RULE_ID = 'merchantRule1';
 const ADMIN_EMAIL = 'admin@example.com';
 const ADMIN_ACCOUNT_ID = 1;
+const FETCH_STATUS_KEY = `${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_RULES_FETCH_STATUS}${POLICY_ID}` as const;
 
 const {FIELD} = CONST.RULES.EXPENSE_DEFAULT;
 const {TRIGGERS: TRIGGER, ACTIONS: ACTION} = CONST.RULES;
@@ -60,9 +61,9 @@ function buildEditableRule(): Rule {
     };
 }
 
-/** Stops `GetRules` from actually going out, so a test can hold the collection in whatever fetch state it needs. */
+/** Settles the fetch without changing the rules seeded by the test. */
 function stubRulesFetch() {
-    return jest.spyOn(API, 'read').mockImplementation(() => {});
+    return jest.spyOn(API, 'makeRequestWithSideEffects').mockResolvedValue({jsonCode: CONST.JSON_CODE.NO_RESPONSE});
 }
 
 async function seedOnyx(rule?: Rule) {
@@ -103,12 +104,10 @@ function renderEditMerchantRulePage() {
  * ruleID with a freshly built merchant rule, so the page has to refuse rather than render an empty form.
  */
 describe('EditMerchantRulePage route guard', () => {
-    let readSpy: ReturnType<typeof stubRulesFetch>;
+    let requestSpy: ReturnType<typeof stubRulesFetch>;
 
     beforeEach(() => {
-        // Every test mounts the editor, which sends `GetRules`. A real one resolves against the global fetch mock and
-        // can land after the next test has cleared Onyx, marking the collection as fetched before that test mounts.
-        readSpy = stubRulesFetch();
+        requestSpy = stubRulesFetch();
     });
 
     afterEach(async () => {
@@ -117,7 +116,8 @@ describe('EditMerchantRulePage route guard', () => {
         await act(async () => {
             await Onyx.clear();
         });
-        readSpy.mockRestore();
+        await waitForBatchedUpdatesWithAct();
+        requestSpy.mockRestore();
     });
 
     it('opens the editor for a rule this policy can edit', async () => {
@@ -158,14 +158,14 @@ describe('EditMerchantRulePage route guard', () => {
 
         // Then it requests the rules rather than settling on not-found for a rule that does exist server side. The
         // request only goes out once the fetch flags have loaded from Onyx, which can take more than one tick.
-        await waitFor(() => expect(readSpy).toHaveBeenCalledWith(READ_COMMANDS.GET_RULES, expect.anything(), expect.anything()));
+        await waitFor(() => expect(requestSpy).toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.GET_RULES, {scope: CONST.RULES.SCOPE.POLICY, scopeID: POLICY_ID}));
     });
 
     it('waits for the fetch instead of showing not-found or an empty form before the collection arrives', async () => {
         // Given the request is in flight, so Onyx has hydrated the collection as empty but nothing has answered yet
         await seedOnyx();
         await act(async () => {
-            await Onyx.set(ONYXKEYS.RAM_ONLY_IS_LOADING_RULES, true);
+            await Onyx.set(FETCH_STATUS_KEY, CONST.RULES.FETCH_STATUS.LOADING);
         });
 
         // When the editor mounts
@@ -182,8 +182,7 @@ describe('EditMerchantRulePage route guard', () => {
         // Given the fetch has answered and the rule is genuinely not in the collection
         await seedOnyx();
         await act(async () => {
-            await Onyx.set(ONYXKEYS.RAM_ONLY_IS_LOADING_RULES, false);
-            await Onyx.set(ONYXKEYS.RAM_ONLY_HAS_RULES_DATA_BEEN_FETCHED, true);
+            await Onyx.set(FETCH_STATUS_KEY, CONST.RULES.FETCH_STATUS.LOADED);
         });
 
         // When the editor mounts

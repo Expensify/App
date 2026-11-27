@@ -72,7 +72,7 @@ function useTaxAmount({
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`);
     // A category's tax default lives in the `rules_` collection, which only `GetRules` populates. Onyx hydrates it
     // as empty first, so without waiting the expense picks up the workspace default and the rule never applies.
-    const {areRulesLoading} = useRulesPrefetch(arePolicyRulesEnabled(policy, policyCategories));
+    const {areRulesLoading} = useRulesPrefetch(policy?.id, arePolicyRulesEnabled(policy, policyCategories));
 
     // Update the tax code when the default changes (for example, because the transaction currency changed)
     const workspaceDefaultTaxCode = getDefaultTaxCode(policy, transaction) ?? (isMovingTransactionFromTrackExpense ? (getDefaultTaxCode(policyForMovingExpenses, transaction) ?? '') : '');

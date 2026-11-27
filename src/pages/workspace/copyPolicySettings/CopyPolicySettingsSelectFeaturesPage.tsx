@@ -85,7 +85,7 @@ function CopyPolicySettingsSelectFeaturesPage() {
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${sourcePolicyID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${sourcePolicyID}`);
     const [codingRulesCount = 0] = useOnyx(ONYXKEYS.COLLECTION.RULE, {selector: createExpenseDefaultRuleCountSelector(sourcePolicyID)});
-    useRulesPrefetch();
+    useRulesPrefetch(sourcePolicyID);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const sourcePolicy = sourcePolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${sourcePolicyID}`] : undefined;

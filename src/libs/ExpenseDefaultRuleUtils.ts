@@ -235,7 +235,7 @@ function getRuleActions(rule: Rule | ExpenseDefaultRule | undefined): Array<Expe
     return fromIndexMap(actions);
 }
 
-/** `GetRules` returns every rule the user can see, so callers have to narrow the collection to one policy themselves. */
+/** The cache can hold rules from multiple workspaces. */
 function isPolicyScopedRule(rule: Rule | undefined, policyID: string | undefined): boolean {
     return !!rule && !!policyID && rule.scope === CONST.RULES.SCOPE.POLICY && rule.scopeID === policyID;
 }

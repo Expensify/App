@@ -10107,6 +10107,11 @@ const CONST = {
             POLICY: 'policy',
             ACCOUNT: 'account',
         },
+        FETCH_STATUS: {
+            LOADING: 'loading',
+            LOADED: 'loaded',
+            FAILED: 'failed',
+        },
         TRIGGERS: RULE_TRIGGERS,
         /** Every action a rule can perform, across all rule kinds. */
         ACTIONS: {

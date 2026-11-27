@@ -83,9 +83,8 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
     const {environmentURL} = useEnvironment();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {isOffline} = useNetwork();
-    // Category rules come from the rules collection, which only a GetRules call fills. This page is reachable
-    // without passing one that makes it, so without this the section reads empty on a fresh session.
-    useRulesPrefetch();
+    // This page can be reached directly before the workspace's rules have loaded.
+    useRulesPrefetch(policyID);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const policyCategory = policyCategories?.[categoryName] ?? Object.values(policyCategories).find((category) => category.previousCategoryName === categoryName);

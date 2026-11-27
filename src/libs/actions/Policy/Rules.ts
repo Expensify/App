@@ -3,6 +3,7 @@ import {getImportFailedFinalModal} from '@libs/actions/ImportSpreadsheet';
 // Namespace import on purpose. `rulesdir/no-api-side-effects-method` only matches member calls, so importing
 // `makeRequestWithSideEffects` by name would quietly switch that guardrail off.
 import * as API from '@libs/API';
+import {waitForWrites} from '@libs/API';
 import type {
     AddPolicyAgentRuleParams,
     DeletePolicyAgentRuleParams,
@@ -17,12 +18,15 @@ import type OpenPolicyRulesPageParams from '@libs/API/parameters/OpenPolicyRules
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
-import {getIsOffline} from '@libs/NetworkState';
+import {getAccountID} from '@libs/Network/NetworkStore';
+import {getIsOffline, subscribe as subscribeToNetworkState} from '@libs/NetworkState';
 import {rand64} from '@libs/NumberUtils';
+import {filterRulesForPolicy} from '@libs/RuleUtils';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {OnyxValues} from '@src/ONYXKEYS';
 import type {GeneratedRuleState, GeneratedRuleType} from '@src/types/onyx/GeneratedRule';
 import type {ImportFinalModal} from '@src/types/onyx/ImportedSpreadsheet';
 import type Policy from '@src/types/onyx/Policy';
@@ -31,108 +35,161 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import type Rule from '@src/types/onyx/Rule';
 import type {RuleBody} from '@src/types/onyx/Rule';
 
-import type {OnyxUpdate} from 'react-native-onyx';
+import type {OnyxCollection, OnyxMultiSetInput, OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
 /** A coding rule parsed from an imported spreadsheet row, keyed by a client-generated ruleID */
 type ImportedMerchantRule = Omit<CodingRule, 'ruleID' | 'pendingAction' | 'errors'>;
 
-/** How long a `GetRules` read may stay marked in flight before the flag is treated as stale. */
 const RULES_FETCH_TIMEOUT_MS = 30 * 1000;
 
-let staleRulesFetchTimeoutID: ReturnType<typeof setTimeout> | undefined;
+type RulesFetchStatus = OnyxValues[typeof ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_RULES_FETCH_STATUS];
+type RuleKey = `${typeof ONYXKEYS.COLLECTION.RULE}${string}`;
 
-/**
- * Fetches every rule the user has access to. The response SETs the whole `rules_` collection.
- *
- * Two flags rather than one: the in-flight flag is set before the request so a second screen mounting
- * during it waits instead of sending its own, and so a deep linked editor can hold off on rendering
- * not-found. The fetched flag is only set once the collection has actually arrived.
- */
-function getRules() {
-    // A read is discarded rather than queued when there is no connectivity, and a discarded request applies
-    // neither its success nor its failure data. Sending one offline would leave the in-flight flag set for the
-    // rest of the session, which blocks every later fetch.
-    if (getIsOffline()) {
+type PendingRulesFetch = {
+    accountID: ReturnType<typeof getAccountID>;
+    finish: (status?: RulesFetchStatus) => void;
+    newRuleKeys?: Set<string>;
+};
+
+const pendingRulesFetches = new Map<string, PendingRulesFetch>();
+let cachedRules: OnyxCollection<Rule>;
+
+// The action needs live rules when a response arrives to avoid undoing edits made after the request started.
+Onyx.connectWithoutView({
+    key: ONYXKEYS.COLLECTION.RULE,
+    callback: (rules) => {
+        if (pendingRulesFetches.size) {
+            // A rule added and then deleted during a fetch is absent both before and after it.
+            for (const key in rules) {
+                if (!Object.hasOwn(rules, key) || cachedRules?.[key]) {
+                    continue;
+                }
+                const rule = rules[key];
+                if (rule?.scope === CONST.RULES.SCOPE.POLICY) {
+                    pendingRulesFetches.get(rule.scopeID)?.newRuleKeys?.add(key);
+                }
+            }
+        }
+        cachedRules = rules;
+    },
+});
+
+function isRuleKey(key: string): key is RuleKey {
+    return key.startsWith(ONYXKEYS.COLLECTION.RULE) && key !== ONYXKEYS.COLLECTION.RULE;
+}
+
+function applyPolicyRulesSnapshot(policyID: string, snapshot: Record<string, Rule>, rulesBeforeFetch: OnyxCollection<Rule>, newRuleKeys: ReadonlySet<string>) {
+    const updates: OnyxMultiSetInput = {};
+    const previousPolicyRules = filterRulesForPolicy(rulesBeforeFetch, policyID);
+
+    // Leave newer rule data and local changes in place when applying the snapshot.
+    const canReplaceCachedRule = (key: string) => {
+        const current = cachedRules?.[key];
+        return current === previousPolicyRules[key] && !newRuleKeys.has(key) && !current?.pendingAction && !current?.errors;
+    };
+
+    for (const [key, rule] of Object.entries(previousPolicyRules)) {
+        if (rule && isRuleKey(key) && !Object.hasOwn(snapshot, key) && canReplaceCachedRule(key)) {
+            updates[key] = null;
+        }
+    }
+    for (const [key, rule] of Object.entries(filterRulesForPolicy(snapshot, policyID))) {
+        if (rule && isRuleKey(key) && canReplaceCachedRule(key)) {
+            updates[key] = rule;
+        }
+    }
+    return Onyx.multiSet(updates);
+}
+
+/** Refreshes one workspace without replacing the rules for other workspaces or accounts. */
+async function getPolicyRules(policyID: string | undefined) {
+    if (!policyID || getIsOffline()) {
         return;
     }
 
-    type RulesFetchKey = typeof ONYXKEYS.RAM_ONLY_HAS_RULES_DATA_BEEN_FETCHED | typeof ONYXKEYS.RAM_ONLY_IS_LOADING_RULES | typeof ONYXKEYS.RAM_ONLY_HAS_RULES_FETCH_FAILED;
+    const key = `${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_RULES_FETCH_STATUS}${policyID}` as const;
+    const {FAILED, LOADED, LOADING} = CONST.RULES.FETCH_STATUS;
+    const command = SIDE_EFFECT_REQUEST_COMMANDS.GET_RULES;
+    const accountID = getAccountID();
+    const pendingFetch = pendingRulesFetches.get(policyID);
+    if (pendingFetch && pendingFetch.accountID === accountID) {
+        return;
+    }
+    pendingFetch?.finish(FAILED);
 
-    const optimisticData: Array<OnyxUpdate<RulesFetchKey>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.RAM_ONLY_IS_LOADING_RULES,
-            value: true,
-        },
-        {
-            // This attempt has not failed yet, so an earlier failure stops standing for it.
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.RAM_ONLY_HAS_RULES_FETCH_FAILED,
-            value: false,
-        },
-    ];
-    const successData: Array<OnyxUpdate<RulesFetchKey>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.RAM_ONLY_IS_LOADING_RULES,
-            value: false,
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.RAM_ONLY_HAS_RULES_DATA_BEEN_FETCHED,
-            value: true,
-        },
-    ];
-    const failureData: Array<OnyxUpdate<RulesFetchKey>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.RAM_ONLY_IS_LOADING_RULES,
-            value: false,
-        },
-        {
-            // A failure means the collection never arrived, so a screen opened later asks for it again rather than
-            // resolving a category's tax against rules that never arrived. The prefetch hook asks at most once
-            // per mount, which is what keeps a server error from retrying on every render.
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.RAM_ONLY_HAS_RULES_DATA_BEEN_FETCHED,
-            value: false,
-        },
-        {
-            // Tells the attempt that failed apart from one still to send, so a screen waiting on the collection
-            // stops waiting. Without it, a collection that never arrived reads the same either way.
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.RAM_ONLY_HAS_RULES_FETCH_FAILED,
-            value: true,
-        },
-    ];
+    let timeout: ReturnType<typeof setTimeout> | undefined;
+    let unsubscribeFromNetwork: (() => void) | undefined;
+    let unsubscribeFromStatus: (() => void) | undefined;
+    const finishFetch = (status?: RulesFetchStatus) => {
+        if (pendingRulesFetches.get(policyID)?.finish !== finishFetch) {
+            return;
+        }
+        pendingRulesFetches.delete(policyID);
+        clearTimeout(timeout);
+        unsubscribeFromNetwork?.();
+        unsubscribeFromStatus?.();
+        if (status && accountID === getAccountID()) {
+            Onyx.set(key, status);
+        }
+    };
+    const isCurrentFetch = () => pendingRulesFetches.get(policyID)?.finish === finishFetch && accountID === getAccountID();
 
-    API.read(READ_COMMANDS.GET_RULES, {}, {optimisticData, successData, failureData});
+    // Let reconnect start a new fetch even if the interrupted request never settles.
+    unsubscribeFromNetwork = subscribeToNetworkState(() => {
+        if (!getIsOffline()) {
+            return;
+        }
+        finishFetch(FAILED);
+    });
+    const fetchState: PendingRulesFetch = {accountID, finish: finishFetch};
+    pendingRulesFetches.set(policyID, fetchState);
+    let status: RulesFetchStatus = FAILED;
+    try {
+        await Onyx.set(key, LOADING);
+        if (!isCurrentFetch()) {
+            return;
+        }
+        // Cache reset removes the loading key. The action must release the slot so screens can refetch.
+        const statusConnection = Onyx.connectWithoutView({
+            key,
+            callback: (value) => {
+                if (value) {
+                    return;
+                }
+                finishFetch();
+            },
+        });
+        unsubscribeFromStatus = () => statusConnection.unsubscribe();
+        await waitForWrites(command);
+        if (!isCurrentFetch()) {
+            return;
+        }
 
-    // A read that throws, which is what a 5xx, a 429 or a socket error does, applies neither its success nor its
-    // failure data, and `API.read` reports nothing back to the caller. The timer stands in for the failure data
-    // that never ran, so a screen waiting on the collection stops waiting instead of waiting for the session. The
-    // fetched flag is left alone, so this is as retryable as any other failure. Writing a flag that already holds
-    // this value once the response has landed costs nothing, so the timer runs either way.
-    clearTimeout(staleRulesFetchTimeoutID);
-    staleRulesFetchTimeoutID = setTimeout(() => {
-        Onyx.set(ONYXKEYS.RAM_ONLY_IS_LOADING_RULES, false);
-        Onyx.set(ONYXKEYS.RAM_ONLY_HAS_RULES_FETCH_FAILED, true);
-    }, RULES_FETCH_TIMEOUT_MS);
-}
+        const rulesBeforeFetch = cachedRules;
+        const newRuleKeys = new Set<string>();
+        fetchState.newRuleKeys = newRuleKeys;
+        timeout = setTimeout(() => finishFetch(FAILED), RULES_FETCH_TIMEOUT_MS);
+        // eslint-disable-next-line rulesdir/no-api-side-effects-method -- Scoped GetRules returns a snapshot outside onyxData.
+        const response = await API.makeRequestWithSideEffects(command, {scope: CONST.RULES.SCOPE.POLICY, scopeID: policyID});
+        clearTimeout(timeout);
+        if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS || !response.rules || typeof response.rules !== 'object' || Array.isArray(response.rules)) {
+            return;
+        }
 
-/**
- * Clears the fetch flags so the next screen that needs the collection fetches it again.
- *
- * A read that never settles, such as one sent as the connection drops, applies neither its success nor its
- * failure data, which leaves the in-flight flag set and blocks every later fetch. Connectivity returning is the
- * point at which that stale state is known to be wrong.
- */
-function resetRulesFetchState() {
-    Onyx.set(ONYXKEYS.RAM_ONLY_IS_LOADING_RULES, false);
-    Onyx.set(ONYXKEYS.RAM_ONLY_HAS_RULES_DATA_BEEN_FETCHED, false);
-    Onyx.set(ONYXKEYS.RAM_ONLY_HAS_RULES_FETCH_FAILED, false);
+        // Writes queued during the fetch can make the snapshot stale before it lands.
+        await waitForWrites(command);
+        if (!isCurrentFetch()) {
+            return;
+        }
+        await applyPolicyRulesSnapshot(policyID, response.rules, rulesBeforeFetch, newRuleKeys);
+        status = LOADED;
+    } catch (error) {
+        Log.hmmm('[Rules] Failed to fetch workspace rules', {policyID, error: String(error)});
+    } finally {
+        finishFetch(status);
+    }
 }
 
 /**
@@ -736,8 +793,7 @@ function clearPolicyAgentRuleErrors(policyID: string, agentRuleID: string, agent
 export {
     openPolicyRulesPage,
     getAgentRuleSuggestions,
-    getRules,
-    resetRulesFetchState,
+    getPolicyRules,
     setRule,
     importMerchantRulesSpreadsheet,
     deleteRule,

@@ -5,13 +5,13 @@ import {
     clearPolicyAgentRuleErrors,
     deleteRule,
     deletePolicyAgentRule,
-    getRules as fetchRules,
+    getPolicyRules,
     getTransactionsMatchingRule,
     setRule,
     updatePolicyAgentRule,
 } from '@libs/actions/Policy/Rules';
 import * as API from '@libs/API';
-import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {buildExpenseDefaultRule} from '@libs/ExpenseDefaultRuleUtils';
 import {flush as flushSequentialQueue} from '@libs/Network/SequentialQueue';
 import {toIndexMap} from '@libs/RuleUtils';
@@ -736,30 +736,116 @@ describe('actions/PolicyRules', () => {
         });
     });
 
-    describe('getRules', () => {
-        it('records the attempt as failed when the read never settles', async () => {
-            // Given a `GetRules` read that applies neither its success nor its failure data, which is what a read
-            // that throws does
+    describe('getPolicyRules', () => {
+        const policyID = 'policy1';
+        const otherPolicyID = 'policy2';
+        const rule = buildExpenseDefaultRuleForPolicy(policyID);
+        const ruleKey = `${ONYXKEYS.COLLECTION.RULE}1` as const;
+        const otherRuleKey = `${ONYXKEYS.COLLECTION.RULE}2` as const;
+        const pendingRuleKey = `${ONYXKEYS.COLLECTION.RULE}3` as const;
+        const newRuleKey = `${ONYXKEYS.COLLECTION.RULE}4` as const;
+        const statusKey = `${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_RULES_FETCH_STATUS}${policyID}` as const;
+        const command = SIDE_EFFECT_REQUEST_COMMANDS.GET_RULES;
+
+        it('replaces only the fetched workspace rules and preserves pending edits', async () => {
+            // Given cached rules for two workspaces and an unsynced rule in the first one
+            const otherRule = buildExpenseDefaultRuleForPolicy(otherPolicyID);
+            const pendingRule = {...rule, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
+            await Onyx.multiSet({[ruleKey]: rule, [otherRuleKey]: otherRule, [pendingRuleKey]: pendingRule});
+            const respond = jest.fn(() => ({jsonCode: CONST.JSON_CODE.SUCCESS, rules: {[newRuleKey]: rule}}));
+            mockFetch.mockAPICommand(command, respond);
+
+            // When both the workspace and its Rules page ask for the first workspace's rules
+            await Promise.all([getPolicyRules(policyID), getPolicyRules(policyID)]);
+            await waitForBatchedUpdates();
+
+            // Then one scoped request replaces the old rule and leaves the other workspace and pending edit alone
+            expect(respond).toHaveBeenCalledTimes(1);
+            expect(respond).toHaveBeenCalledWith(expect.objectContaining({scope: CONST.RULES.SCOPE.POLICY, scopeID: policyID}));
+            expect(await getRules()).toEqual({[otherRuleKey]: otherRule, [pendingRuleKey]: pendingRule, [newRuleKey]: rule});
+            expect(await getOnyxValue(statusKey)).toBe(CONST.RULES.FETCH_STATUS.LOADED);
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_RULES_FETCH_STATUS}${otherPolicyID}`)).toBeUndefined();
+        });
+
+        it('keeps a newer rule update when an empty snapshot arrives', async () => {
+            // Given a workspace with a cached rule and a read waiting on an empty server response
+            await Onyx.set(ruleKey, rule);
+            mockFetch.mockAPICommand(command, () => ({jsonCode: CONST.JSON_CODE.SUCCESS, rules: {}}));
+            mockFetch.pause();
+            const request = getPolicyRules(policyID);
+            await waitForBatchedUpdates();
+
+            // When a newer update lands before the older snapshot
+            const updatedRule = {...rule, priority: 42};
+            await Onyx.set(ruleKey, updatedRule);
+            await mockFetch.resume();
+            await request;
+
+            // Then the cached update survives and an empty snapshot still counts as loaded
+            expect(await getOnyxValue(ruleKey)).toEqual(updatedRule);
+            expect(await getOnyxValue(statusKey)).toBe(CONST.RULES.FETCH_STATUS.LOADED);
+        });
+
+        it('does not restore a rule added and deleted during the fetch', async () => {
+            // Given a delayed snapshot that captured a rule absent from the cache when the request started
+            mockFetch.mockAPICommand(command, () => ({jsonCode: CONST.JSON_CODE.SUCCESS, rules: {[ruleKey]: rule}}));
+            mockFetch.pause();
+            const request = getPolicyRules(policyID);
+            await waitForBatchedUpdates();
+
+            // When the rule is added and then removed before that snapshot arrives
+            await Onyx.set(ruleKey, rule);
+            await Onyx.set(ruleKey, null);
+            await mockFetch.resume();
+            await request;
+
+            // Then the stale snapshot does not bring the rule back
+            expect(await getOnyxValue(ruleKey)).toBeUndefined();
+        });
+
+        it('allows a fresh request after clearing the cache during a fetch', async () => {
+            // Given a workspace refresh waiting on a snapshot
+            await Onyx.set(ruleKey, rule);
+            mockFetch.pause();
+            const request = getPolicyRules(policyID);
+            await waitForBatchedUpdates();
+
+            // When the cache is cleared and the workspace asks for rules again
+            await Onyx.clear();
+            const respond = jest.fn(() => ({jsonCode: CONST.JSON_CODE.SUCCESS, rules: {[ruleKey]: rule}}));
+            mockFetch.mockAPICommand(command, respond);
+            const retry = getPolicyRules(policyID);
+            await waitForBatchedUpdates();
+            await mockFetch.resume();
+            await Promise.all([request, retry]);
+
+            // Then the new request refills the empty cache
+            expect(respond).toHaveBeenCalledTimes(2);
+            expect(await getOnyxValue(ruleKey)).toEqual(rule);
+            expect(await getOnyxValue(statusKey)).toBe(CONST.RULES.FETCH_STATUS.LOADED);
+        });
+
+        it('clears a timed-out fetch and ignores its late response', async () => {
+            // Given a response that will return after readers have stopped waiting
             jest.useFakeTimers();
-            mockFetch?.pause?.();
-            fetchRules();
-            await waitForBatchedUpdates();
+            mockFetch.mockAPICommand(command, () => ({jsonCode: CONST.JSON_CODE.SUCCESS, rules: {[ruleKey]: rule}}));
+            mockFetch.pause();
+            const request = getPolicyRules(policyID);
+            try {
+                await waitForBatchedUpdates();
 
-            // When the read has been in flight long enough to be treated as stale
-            jest.advanceTimersByTime(30 * 1000);
-            await waitForBatchedUpdates();
-            jest.useRealTimers();
-            await waitForBatchedUpdates();
+                // When the fetch times out before the response lands
+                jest.advanceTimersByTime(30 * 1000);
+                await waitForBatchedUpdates();
+            } finally {
+                jest.useRealTimers();
+                await mockFetch.resume();
+                await request;
+            }
 
-            // Then it counts as a failed attempt, so a screen waiting on the collection stops waiting
-            expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_IS_LOADING_RULES)).toBe(false);
-            expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_HAS_RULES_FETCH_FAILED)).toBe(true);
-
-            // Then the collection is still missing, so the next screen that needs it asks again
-            expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_HAS_RULES_DATA_BEEN_FETCHED)).toBeFalsy();
-
-            await mockFetch?.resume?.();
-            await waitForBatchedUpdates();
+            // Then the status lets the next screen retry, and the late snapshot never enters the cache
+            expect(await getOnyxValue(statusKey)).toBe(CONST.RULES.FETCH_STATUS.FAILED);
+            expect(await getOnyxValue(ruleKey)).toBeUndefined();
         });
     });
 });
