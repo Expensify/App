@@ -175,4 +175,4 @@ function resolveInsightsDetailsItem({
 }
 
 export {getInsightsDetailsItemParams, getPeriodTitle, getRankingItemKey, resolveInsightsDetailsItem};
-export type {RankingGroup};
+export type {InsightsDetailsItem, RankingGroup};
