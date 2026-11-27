@@ -75,9 +75,10 @@ const mockConfirmApprovalHolder: {current?: () => void} = {current: undefined};
 const mockIsSecondaryHolder: {current?: boolean} = {current: undefined};
 jest.mock('@components/SettlementButton/AnimatedSettlementButton', () => ({
     __esModule: true,
-    default: (props: {onPress?: (params: PaymentActionParams) => void; confirmApproval?: () => void; isSecondary?: boolean}) => {
+    default: (props: {onPress?: (params: PaymentActionParams) => void; confirmApproval?: () => void; isLoading: boolean; isSecondary?: boolean}) => {
         mockOnPressHolder.current = props.onPress;
         mockConfirmApprovalHolder.current = props.confirmApproval;
+        mockLoadingState.isLoading = props.isLoading;
         mockIsSecondaryHolder.current = props.isSecondary;
         return null;
     },
@@ -206,6 +207,35 @@ describe('PayActionButton', () => {
 
         // Then the settlement button receives it, so the "Approved" animation stays grey
         expect(mockIsSecondaryHolder.current).toBe(true);
+    });
+
+    it('stops showing queued payment loading offline and restores protection on reconnect', () => {
+        // Given a payable report with a payment still queued after cancelling it offline
+        mockLoadingState.isActionLoading = true;
+        const view = renderPayActionButton();
+        expect(mockLoadingState.isLoading).toBe(true);
+
+        // When connectivity changes without the queued payment completing
+        jest.mocked(useNetwork).mockReturnValue({isOffline: true});
+        view.rerender(<PayActionButton />);
+
+        // Then offline loading stops, but reconnecting protects against duplicate payment again
+        expect(mockLoadingState.isLoading).toBe(false);
+        jest.mocked(useNetwork).mockReturnValue({isOffline: false});
+        view.rerender(<PayActionButton />);
+        expect(mockLoadingState.isLoading).toBe(true);
+    });
+
+    it('keeps ABA download loading visible even offline', () => {
+        // Given an ABA file download that has not completed
+        jest.mocked(useNetwork).mockReturnValue({isOffline: true});
+        jest.mocked(usePayViaABA).mockReturnValue({payReportsViaABA: mockPayReportsViaABA, isDownloadingABAFile: true});
+
+        // When the payable report preview renders offline
+        renderPayActionButton();
+
+        // Then the unrelated file download still shows its loading indicator
+        expect(mockLoadingState.isLoading).toBe(true);
     });
 
     it('forwards the selected bank account to payMoneyRequest when paying with a business bank account', async () => {
