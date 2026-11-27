@@ -7,7 +7,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type * as ExpenseReportSearchViewModule from '@components/Search/ExpenseReportSearchView';
 import type * as SearchContext from '@components/Search/SearchContext';
 import {SearchContextProvider} from '@components/Search/SearchContextProvider';
-import type {SearchListItem, TransactionListItemType, TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
+import type {SearchListItem, TransactionListItemType, TransactionReportGroupListItemType, TripListItemType} from '@components/Search/SearchList/ListItem/types';
 import SearchLoadingSkeleton from '@components/Search/SearchLoadingSkeleton';
 import type {CommonSearchViewProps} from '@components/Search/searchViewProps';
 import type * as SearchWriteActionsProviderModule from '@components/Search/SearchWriteActionsProvider';
@@ -1543,9 +1543,12 @@ describe('SearchPageNarrow', () => {
                 transactions: [{transactionID: 'expense_1'}, {transactionID: 'expense_2'}],
             });
             const expenseRow = createMock<TransactionListItemType>({keyForList: 'expense_1', transactionID: 'expense_1', reportID: 'todo_1', reportAction: {childReportID: 'thread_1'}});
+            // A trip opens its trip room, or the read-only summary standing in for it, in a wide panel.
+            const tripRow = createMock<TripListItemType>({keyForList: 'trip_1', reportID: 'trip_1', chatType: CONST.REPORT.CHAT_TYPE.TRIP_ROOM, travelerAccountID: TODO_ACCOUNT_ID});
             const rows = [
                 {rowName: 'a report with several expenses', row: reportRow, openedReportID: 'todo_1', width: 'super-wide'},
                 {rowName: 'an expense', row: expenseRow, openedReportID: 'thread_1', width: 'wide'},
+                {rowName: 'a trip', row: tripRow, openedReportID: 'trip_1', width: 'wide'},
             ];
             const ctrlClick: ModifiedMouseEvent = {ctrlKey: true, button: 0};
             let navigateSpy: jest.SpyInstance;
@@ -1568,7 +1571,7 @@ describe('SearchPageNarrow', () => {
             }
 
             /** The press navigates in an animation frame, and this suite runs on real timers, so the frame runs at once. */
-            async function pressRow(row: TransactionReportGroupListItemType | TransactionListItemType, event?: ModifiedMouseEvent) {
+            async function pressRow(row: TransactionReportGroupListItemType | TransactionListItemType | TripListItemType, event?: ModifiedMouseEvent) {
                 const requestAnimationFrameSpy = jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback: FrameRequestCallback) => {
                     callback(0);
                     return 0;

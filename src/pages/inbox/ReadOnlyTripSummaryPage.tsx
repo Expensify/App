@@ -9,6 +9,7 @@ import TripDetailsView from '@components/ReportActionItem/TripDetailsView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useSearchResultsContext} from '@components/Search/SearchContext';
+import useRHPWidth from '@components/WideRHPContextProvider/useRHPWidth';
 
 import useOnyx from '@hooks/useOnyx';
 import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
@@ -38,6 +39,8 @@ function ReadOnlyTripSummaryPage({reportID}: ReadOnlyTripSummaryPageProps) {
     const styles = useThemeStyles();
     const shouldReturnTripRooms = useShouldReturnTripRooms(CONST.SEARCH.DATA_TYPES.TRIP);
     const {currentSearchResults} = useSearchResultsContext();
+    // It stands in for the trip room, which opens wide from Spend, so it takes the same panel
+    useRHPWidth('wide');
 
     const queryJSON = buildSearchQueryJSON(`type:${CONST.SEARCH.DATA_TYPES.TRIP} ${CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID}:${reportID}`);
     const tripRoomKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;

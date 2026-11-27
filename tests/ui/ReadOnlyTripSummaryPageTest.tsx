@@ -6,6 +6,7 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {EMPTY_TRANSACTIONS_BY_REPORT_ID, SearchResultsContext} from '@components/Search/SearchContextDefinitions';
 import type {SearchResultsContextValue} from '@components/Search/types';
+import useRHPWidth from '@components/WideRHPContextProvider/useRHPWidth';
 
 import type * as SearchActionsModule from '@libs/actions/Search';
 import {search} from '@libs/actions/Search';
@@ -33,6 +34,7 @@ jest.mock('@libs/actions/Search', () => ({
     ...jest.requireActual<SearchActions>('@libs/actions/Search'),
     search: jest.fn(),
 }));
+jest.mock('@components/WideRHPContextProvider/useRHPWidth', () => jest.fn());
 jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
     __esModule: true,
     default: () => ({didScreenTransitionEnd: true}),
@@ -138,6 +140,21 @@ describe('ReadOnlyTripSummaryPage', () => {
 
         // And its bookings aren't buttons, because the booking details live in the trip room the admin can't open
         expect(screen.queryByRole('button', {name: /Denver Intl/})).not.toBeOnTheScreen();
+    });
+
+    it('opens in the wide panel the trip room would open in', async () => {
+        // Given a trip search for a trip the admin isn't in
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.TRAVEL_APPROVAL]);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${tripQueryHash}`, tripSearchResults);
+        });
+
+        // When the summary opens in place of the trip room
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then it asks for a wide panel, since the trip room it stands in for opens wide from Spend
+        expect(useRHPWidth).toHaveBeenCalledWith('wide');
     });
 
     it('is not found without the travel approval beta', async () => {
