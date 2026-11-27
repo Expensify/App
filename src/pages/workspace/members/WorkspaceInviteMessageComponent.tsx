@@ -163,6 +163,9 @@ function WorkspaceInviteMessageComponent({
     // Invitees have no office of their own yet, so office-based ones commute to the primary office
     const defaultOfficeLabel = selectedHasOfficeWorkArrangement && officeLocations.length > 1 ? getMemberOfficeLocation(officeLocations, undefined)?.name : undefined;
 
+    const isApproverValid = !!workspaceInviteApproverDraft && workspaceInviteApproverDraft in (policy?.employeeList ?? {});
+    const validatedApprover = isApproverValid ? workspaceInviteApproverDraft : undefined;
+
     const navigateToApproverPage = () => {
         Navigation.navigate(ROUTES.WORKSPACE_INVITE_MESSAGE_APPROVER.getRoute(policyID, Navigation.getActiveRoute()));
     };
@@ -195,6 +198,8 @@ function WorkspaceInviteMessageComponent({
             return loginFromInviteMap;
         })
         .join(', ');
+
+    const welcomeNoteSubject = `# ${currentUserPersonalDetails?.displayName ?? ''} invited you to ${policy?.name ?? 'a workspace'}`;
 
     const getDefaultWelcomeNote = () => {
         return formData?.[INPUT_IDS.WELCOME_MESSAGE] ?? workspaceInviteMessageDraft ?? translate('workspace.common.welcomeNote');
@@ -236,9 +241,6 @@ function WorkspaceInviteMessageComponent({
         }
 
         const approvalWorkflow = await Onyx.get(ONYXKEYS.APPROVAL_WORKFLOW);
-        const isApproverValid = !!workspaceInviteApproverDraft && workspaceInviteApproverDraft in (policy?.employeeList ?? {});
-        const validatedApprover = isApproverValid ? workspaceInviteApproverDraft : undefined;
-        const welcomeNoteSubject = `# ${currentUserPersonalDetails?.displayName ?? ''} invited you to ${policy?.name ?? 'a workspace'}`;
         const filteredReportActions = getAllPolicyExpenseChatReportActions(allReports, allReportActions);
         const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails, false, false));
         // Unlike the announce room, category visibility includes members with errors, so limiting the invitees doesn't take
