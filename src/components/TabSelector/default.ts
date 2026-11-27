@@ -9,6 +9,7 @@ const defaultTabSelectorActionsContextValue: TabSelectorActionsContextType = {
     onContainerScroll: () => {},
     scrollToTab: () => {},
     onTabLayout: () => {},
+    getContainerX: () => 0,
 };
 
 export {defaultTabSelectorStateContextValue, defaultTabSelectorActionsContextValue};

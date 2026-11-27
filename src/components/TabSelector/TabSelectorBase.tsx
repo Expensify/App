@@ -48,7 +48,11 @@ function TabSelectorBase<K extends string = string>({
     const [affectedAnimatedTabs, setAffectedAnimatedTabs] = useState(defaultAffectedAnimatedTabs);
 
     const {containerRef} = useTabSelectorState();
-    const {onContainerLayout, onContainerScroll} = useTabSelectorActions();
+    const {onContainerLayout, onContainerScroll, getContainerX} = useTabSelectorActions();
+    // A row that remounts under a provider which outlives it (like the Rules page's row, rendered once per tab) mounts
+    // where the previous row was scrolled. Scrolling it there after layout instead shows it at the beginning for a few
+    // frames on Android.
+    const [initialContentOffset] = useState(() => ({x: getContainerX(), y: 0}));
     const triggerScrollEvent = useScrollEventEmitter();
     // The row's ScrollView reaches the screen edge by this much, so a tab scrolled under the horizontal safe area
     // doesn't count as visible.
@@ -96,6 +100,7 @@ function TabSelectorBase<K extends string = string>({
                     updateScrollFade({offset: e.nativeEvent.contentOffset.x});
                 }}
                 ref={containerRef}
+                contentOffset={initialContentOffset}
                 style={styles.scrollableTabSelector}
                 // On iOS a horizontal ScrollView lays out its content along an unbounded main axis, so flex-1 tabs
                 // (equalWidth) divide their intrinsic content width instead of the viewport. Giving the content
