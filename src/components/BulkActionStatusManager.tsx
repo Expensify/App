@@ -38,7 +38,17 @@ function BulkActionStatusManager() {
     if (!openBulkActionID && surfaceableBulkActionID && !isAnyOtherModalActive) {
         setOpenBulkActionID(surfaceableBulkActionID);
     }
-    if (openBulkActionID && !bulkActions?.[`${ONYXKEYS.COLLECTION.BULK_ACTION}${openBulkActionID}`]) {
+    const bulkAction = openBulkActionID ? bulkActions?.[`${ONYXKEYS.COLLECTION.BULK_ACTION}${openBulkActionID}`] : undefined;
+    // The record is deleted once Concierge sends the summary, which shouldn't close the result someone is still reading.
+    const [conciergeBulkActionID, setConciergeBulkActionID] = useState<string | undefined>();
+    if (bulkAction?.shouldSendFromConcierge && conciergeBulkActionID !== openBulkActionID) {
+        setConciergeBulkActionID(openBulkActionID);
+    }
+    // A failed Concierge request rolls the flag back, so clearing the record closes the modal again.
+    if (bulkAction && !bulkAction.shouldSendFromConcierge && conciergeBulkActionID === openBulkActionID) {
+        setConciergeBulkActionID(undefined);
+    }
+    if (openBulkActionID && !bulkAction && conciergeBulkActionID !== openBulkActionID) {
         setOpenBulkActionID(undefined);
     }
 
@@ -46,13 +56,8 @@ function BulkActionStatusManager() {
         return null;
     }
 
-    const bulkAction = bulkActions?.[`${ONYXKEYS.COLLECTION.BULK_ACTION}${openBulkActionID}`];
-    if (!bulkAction) {
-        return null;
-    }
-
     const handleClose = () => {
-        if (bulkAction.shouldSendFromConcierge) {
+        if (!bulkAction || bulkAction.shouldSendFromConcierge) {
             setOpenBulkActionID(undefined);
             return;
         }

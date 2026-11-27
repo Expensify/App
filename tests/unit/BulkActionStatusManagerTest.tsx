@@ -4,7 +4,7 @@ import BulkActionStatusManager from '@components/BulkActionStatusManager';
 
 import Navigation from '@libs/Navigation/Navigation';
 
-import {clearBulkAction, sendBulkActionSummaryFromConcierge} from '@userActions/BulkAction';
+import {clearBulkAction, sendBulkActionSummaryFromConcierge, wasBulkActionInitiatedLocally} from '@userActions/BulkAction';
 import type * as Modal from '@userActions/Modal';
 
 import CONST from '@src/CONST';
@@ -65,6 +65,7 @@ describe('BulkActionStatusManager', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        jest.mocked(wasBulkActionInitiatedLocally).mockImplementation(() => false);
         await Onyx.clear();
     });
 
@@ -82,6 +83,66 @@ describe('BulkActionStatusManager', () => {
         // Then Concierge is asked for the summary and the record stays, because the backend still has to finish it
         expect(mockSendFromConcierge).toHaveBeenCalledWith(BULK_ACTION_ID, expect.objectContaining({state: CONST.BULK_ACTION.STATE.RUNNING}));
         expect(mockClearBulkAction).not.toHaveBeenCalled();
+    });
+
+    it('keeps the result Concierge messaged open until it is dismissed', async () => {
+        // Given a running bulk approval the user handed to Concierge while the modal was open
+        await Onyx.set(BULK_ACTION_KEY, {state: CONST.BULK_ACTION.STATE.RUNNING, action: CONST.SEARCH.BULK_ACTION_TYPES.APPROVE});
+        render(<BulkActionStatusManager />);
+        await waitForBatchedUpdatesWithAct();
+        await Onyx.merge(BULK_ACTION_KEY, {shouldSendFromConcierge: true});
+        await waitForBatchedUpdatesWithAct();
+
+        // When it finishes, and the record is deleted once Concierge sends the summary
+        await Onyx.merge(BULK_ACTION_KEY, {state: CONST.BULK_ACTION.STATE.DONE, total: 2, failedReportIDs: []});
+        await waitForBatchedUpdatesWithAct();
+        await Onyx.set(BULK_ACTION_KEY, null);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the result stays until the user closes it
+        expect(screen.getByText('bulkAction.approvedTitle')).toBeTruthy();
+        fireEvent.press(screen.getByText('common.close'));
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.queryByText('bulkAction.approvedTitle')).toBeNull();
+    });
+
+    it('closes a result that was cleared somewhere else', async () => {
+        // Given a finished bulk submit on screen
+        await Onyx.set(BULK_ACTION_KEY, {state: CONST.BULK_ACTION.STATE.DONE, action: CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT, total: 3, failedReportIDs: []});
+        render(<BulkActionStatusManager />);
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByText('bulkAction.submittedTitle')).toBeTruthy();
+
+        // When it's closed in another tab, which clears the record
+        await Onyx.set(BULK_ACTION_KEY, null);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then it closes here too
+        expect(screen.queryByText('bulkAction.submittedTitle')).toBeNull();
+    });
+
+    it('opens the next bulk action after a failed Concierge request and a clear somewhere else', async () => {
+        // Given a running bulk approval handed to Concierge, where the request failed and rolled the flag back
+        await Onyx.set(BULK_ACTION_KEY, {state: CONST.BULK_ACTION.STATE.RUNNING, action: CONST.SEARCH.BULK_ACTION_TYPES.APPROVE});
+        render(<BulkActionStatusManager />);
+        await waitForBatchedUpdatesWithAct();
+        await Onyx.merge(BULK_ACTION_KEY, {shouldSendFromConcierge: true});
+        await waitForBatchedUpdatesWithAct();
+        await Onyx.merge(BULK_ACTION_KEY, {shouldSendFromConcierge: null});
+        await waitForBatchedUpdatesWithAct();
+
+        // When it finishes and is closed in another tab, and then a new bulk hold starts here
+        await Onyx.merge(BULK_ACTION_KEY, {state: CONST.BULK_ACTION.STATE.DONE, total: 2, failedReportIDs: []});
+        await waitForBatchedUpdatesWithAct();
+        await Onyx.set(BULK_ACTION_KEY, null);
+        await waitForBatchedUpdatesWithAct();
+        const nextBulkActionID = 'test-bulk-action-456';
+        jest.mocked(wasBulkActionInitiatedLocally).mockImplementation((bulkActionID) => bulkActionID === nextBulkActionID);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.BULK_ACTION}${nextBulkActionID}`, {state: CONST.BULK_ACTION.STATE.RUNNING, action: CONST.SEARCH.BULK_ACTION_TYPES.HOLD});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the new bulk hold shows, since the cleared approval no longer holds the modal open
+        expect(screen.getByText('bulkAction.holdingTitle')).toBeTruthy();
     });
 
     it('does not show a bulk action Concierge will message about', async () => {

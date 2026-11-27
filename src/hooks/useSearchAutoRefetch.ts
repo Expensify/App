@@ -12,7 +12,7 @@ import {getValidGroupBy, isReportActionEntry} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MemberCustomFieldsByPolicyID} from '@src/selectors/Policy';
-import type {ReportActions, SearchResults, Transaction} from '@src/types/onyx';
+import type {BulkAction, ReportActions, SearchResults, Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -24,6 +24,7 @@ import {useEffect, useRef} from 'react';
 import useIsInPreloadedTab from './useIsInPreloadedTab';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
+import usePrevious from './usePrevious';
 import useShouldReturnTripRooms from './useShouldReturnTripRooms';
 
 type UseSearchAutoRefetch = {
@@ -59,6 +60,9 @@ type UseSearchAutoRefetch = {
 
     /** Whether the refetch should recalculate result totals */
     shouldCalculateTotals: boolean;
+
+    /** Whether a refetch from the first page should recalculate result totals */
+    shouldCalculateFirstPageTotals: boolean;
 };
 
 type DeferredRefetchBaseline = {
@@ -66,6 +70,15 @@ type DeferredRefetchBaseline = {
     reportActions: OnyxCollection<ReportActions>;
     memberCustomFields: MemberCustomFieldsByPolicyID | undefined;
 };
+
+/** The running Select all jobs as one string, so a job's progress doesn't wake Search. */
+function runningBulkActionKeysSelector(bulkActions: OnyxCollection<BulkAction>): string {
+    return Object.entries(bulkActions ?? {})
+        .filter(([, bulkAction]) => bulkAction?.state === CONST.BULK_ACTION.STATE.RUNNING)
+        .map(([key]) => key)
+        .sort()
+        .join(',');
+}
 
 /**
  * Triggers a search when a transaction or report action is added so the snapshot reflects it.
@@ -83,6 +96,7 @@ function useSearchAutoRefetch({
     searchKey,
     offset,
     shouldCalculateTotals,
+    shouldCalculateFirstPageTotals,
 }: UseSearchAutoRefetch) {
     const isFocused = useIsFocused();
     const {isOffline} = useNetwork();
@@ -297,6 +311,51 @@ function useSearchAutoRefetch({
         shouldReturnTripRooms,
         isInPreloadedTab,
         transactionWrites,
+    ]);
+
+    const [runningBulkActionKeys = ''] = useOnyx(ONYXKEYS.COLLECTION.BULK_ACTION, {selector: runningBulkActionKeysSelector});
+    const previousRunningBulkActionKeys = usePrevious(runningBulkActionKeys);
+    const hasFinishedBulkActionRef = useRef(false);
+
+    // A Select all job changes reports the results already show, so search again once one stops running.
+    useEffect(() => {
+        if (previousRunningBulkActionKeys) {
+            const runningKeys = new Set(runningBulkActionKeys.split(','));
+            if (previousRunningBulkActionKeys.split(',').some((key) => !runningKeys.has(key))) {
+                hasFinishedBulkActionRef.current = true;
+            }
+        }
+        // A preloaded tab refreshes its whole snapshot on first open, so a refetch deferred while hidden would only repeat it.
+        if (isInPreloadedTab) {
+            hasFinishedBulkActionRef.current = false;
+            return;
+        }
+        // Kept until Search can run, since `usePrevious` moves on and the finished job can't be detected again.
+        const isSearchStillActive = isFocused || isSearchTopmostFullScreenRoute();
+        // Waits for a refetch already sent, so it doesn't race this first-page one.
+        if (!hasFinishedBulkActionRef.current || !isSearchStillActive || isOffline || shouldReturnTripRooms || searchResults?.search?.isLoading || searchTriggeredRef.current) {
+            return;
+        }
+        hasFinishedBulkActionRef.current = false;
+        searchTriggeredRef.current = true;
+        // The job can change reports on every page, so the results are fetched again from the first one.
+        TransitionTracker.runAfterTransitions({
+            callback: () => {
+                search({queryJSON, searchKey, offset: 0, shouldCalculateTotals: shouldCalculateFirstPageTotals, isLoading: !!searchResults?.search?.isLoading});
+            },
+        });
+    }, [
+        runningBulkActionKeys,
+        previousRunningBulkActionKeys,
+        isFocused,
+        isOffline,
+        shouldReturnTripRooms,
+        isInPreloadedTab,
+        queryJSON,
+        searchKey,
+        shouldCalculateFirstPageTotals,
+        searchResults?.search?.isLoading,
+        searchResultsData,
     ]);
 
     return {newTransactions};

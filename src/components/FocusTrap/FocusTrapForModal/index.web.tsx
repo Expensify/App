@@ -5,7 +5,7 @@ import restoreFocusWithModality from '@libs/restoreFocusWithModality';
 import sharedTrapStack from '@libs/sharedTrapStack';
 
 import {FocusTrap} from 'focus-trap-react';
-import React, {useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 
 import type FocusTrapForModalProps from './FocusTrapForModalProps';
 
@@ -18,13 +18,26 @@ function resolveLauncherElement(ref: FocusTrapForModalProps['launcherRef']): HTM
     return node;
 }
 
-function FocusTrapForModal({children, active, initialFocus = false, shouldPreventScroll = false, shouldReturnFocus = true, launcherRef}: FocusTrapForModalProps) {
+function FocusTrapForModal({
+    children,
+    active,
+    initialFocus = false,
+    shouldPreventScroll = false,
+    shouldReturnFocus = true,
+    shouldDeactivateOnOutsideInteraction = true,
+    launcherRef,
+}: FocusTrapForModalProps) {
     // Track this trap's own launcher so onPostDeactivate targets the right shared-stack entry.
     const cachedLauncherRef = useRef<HTMLElement | null>(null);
     // How many traps were already active when we opened. focus-trap pushes us onto the stack *after* onActivate and
     // removes us *before* onPostDeactivate, so comparing against this tells an ancestor trap (was already there) apart
     // from one that opened on top of us while we were open.
     const trapDepthAtActivateRef = useRef(0);
+    // focus-trap reads its options only when the trap is created, so it reads the latest value through this ref.
+    const shouldDeactivateOnOutsideInteractionRef = useRef(shouldDeactivateOnOutsideInteraction);
+    useEffect(() => {
+        shouldDeactivateOnOutsideInteractionRef.current = shouldDeactivateOnOutsideInteraction;
+    }, [shouldDeactivateOnOutsideInteraction]);
 
     const onFocusTrapActive = () => {
         trapDepthAtActivateRef.current = sharedTrapStack.length;
@@ -72,7 +85,8 @@ function FocusTrapForModal({children, active, initialFocus = false, shouldPreven
                 onPostDeactivate: onFocusTrapPostDeactivate,
                 preventScroll: shouldPreventScroll,
                 trapStack: sharedTrapStack,
-                clickOutsideDeactivates: true,
+                clickOutsideDeactivates: () => shouldDeactivateOnOutsideInteractionRef.current,
+                escapeDeactivates: () => shouldDeactivateOnOutsideInteractionRef.current,
                 initialFocus,
                 // Lazy so document.body isn't evaluated at render time (SSR-safe).
                 fallbackFocus: () => document.body,

@@ -126,6 +126,7 @@ describe('useSearchAutoRefetch', () => {
         },
         searchKey: undefined,
         shouldCalculateTotals: false,
+        shouldCalculateFirstPageTotals: false,
         offset: 0,
     };
 
@@ -1009,6 +1010,166 @@ describe('useSearchAutoRefetch', () => {
             rerender(buildProps(memberWithUserID('NEW'), {}));
 
             // Then no search is sent, since nothing the results already show has changed
+            expect(search).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('Select all jobs', () => {
+        const BULK_ACTION_KEY = `${ONYXKEYS.COLLECTION.BULK_ACTION}job1` as const;
+
+        afterEach(async () => {
+            await Onyx.clear();
+        });
+
+        it('searches again when a Select all job finishes', async () => {
+            // Given Search is open while a Select all job runs
+            await Onyx.set(BULK_ACTION_KEY, {state: CONST.BULK_ACTION.STATE.RUNNING, action: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_WORKSPACE});
+            renderHook(() => useSearchAutoRefetch(baseProps));
+            await waitForBatchedUpdatesWithAct();
+            expect(search).not.toHaveBeenCalled();
+
+            // When the job finishes
+            await Onyx.merge(BULK_ACTION_KEY, {state: CONST.BULK_ACTION.STATE.DONE, total: 1, failedReportIDs: []});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the search runs again, since the job changed reports the results show
+            expect(search).toHaveBeenCalledWith({queryJSON: baseProps.queryJSON, searchKey: undefined, offset: 0, shouldCalculateTotals: false, isLoading: false});
+        });
+
+        it('searches again from the first page when a Select all job finishes after more pages loaded', async () => {
+            // Given Search is open on its third page while a Select all job runs
+            await Onyx.set(BULK_ACTION_KEY, {state: CONST.BULK_ACTION.STATE.RUNNING, action: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_WORKSPACE});
+            renderHook(() => useSearchAutoRefetch({...baseProps, offset: 100}));
+            await waitForBatchedUpdatesWithAct();
+
+            // When the job finishes
+            await Onyx.merge(BULK_ACTION_KEY, {state: CONST.BULK_ACTION.STATE.DONE, total: 1, failedReportIDs: []});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the search starts over, since the job can change reports on the pages already loaded
+            expect(search).toHaveBeenCalledWith(expect.objectContaining({offset: 0}));
+        });
+
+        it('works out totals for the first page when a Select all job finishes after more pages loaded', async () => {
+            // Given a saved search on its third page, where later pages skip totals but the first page gets them
+            await Onyx.set(BULK_ACTION_KEY, {state: CONST.BULK_ACTION.STATE.RUNNING, action: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_WORKSPACE});
+            renderHook(() => useSearchAutoRefetch({...baseProps, offset: 100, shouldCalculateTotals: false, shouldCalculateFirstPageTotals: true}));
+            await waitForBatchedUpdatesWithAct();
+
+            // When the job finishes
+            await Onyx.merge(BULK_ACTION_KEY, {state: CONST.BULK_ACTION.STATE.DONE, total: 1, failedReportIDs: []});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the first page is fetched with totals, so the footer keeps its count and total
+            expect(search).toHaveBeenCalledWith(expect.objectContaining({offset: 0, shouldCalculateTotals: true}));
+        });
+
+        it('does not search again for a Select all job that finished while its tab was preloaded', async () => {
+            // Given a preloaded Search tab while a Select all job runs
+            mockIsInPreloadedTab = true;
+            await Onyx.set(BULK_ACTION_KEY, {state: CONST.BULK_ACTION.STATE.RUNNING, action: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_WORKSPACE});
+            const {rerender} = renderHook(() => useSearchAutoRefetch(baseProps));
+            await waitForBatchedUpdatesWithAct();
+            await Onyx.merge(BULK_ACTION_KEY, {state: CONST.BULK_ACTION.STATE.DONE, total: 1, failedReportIDs: []});
+            await waitForBatchedUpdatesWithAct();
+
+            // When the user opens the tab
+            mockIsInPreloadedTab = false;
+            rerender(baseProps);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then nothing is searched here, since opening the tab already refreshes its whole snapshot
+            expect(search).not.toHaveBeenCalled();
+        });
+
+        it('searches again when a running job is deleted after Concierge sends its summary', async () => {
+            // Given Search is open while a Select all job runs
+            await Onyx.set(BULK_ACTION_KEY, {state: CONST.BULK_ACTION.STATE.RUNNING, action: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_WORKSPACE, shouldSendFromConcierge: true});
+            renderHook(() => useSearchAutoRefetch(baseProps));
+            await waitForBatchedUpdatesWithAct();
+
+            // When its record is deleted before a finished state shows up
+            await Onyx.set(BULK_ACTION_KEY, null);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the search still runs again
+            expect(search).toHaveBeenCalledTimes(1);
+        });
+
+        it('searches again once Search is back in focus when a Select all job finished while it was away', async () => {
+            // Given a Select all job running while the user is on another page
+            await Onyx.set(BULK_ACTION_KEY, {state: CONST.BULK_ACTION.STATE.RUNNING, action: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_WORKSPACE});
+            mockUseIsFocused.mockReturnValue(false);
+            const {rerender} = renderHook(() => useSearchAutoRefetch(baseProps));
+            await waitForBatchedUpdatesWithAct();
+            await Onyx.merge(BULK_ACTION_KEY, {state: CONST.BULK_ACTION.STATE.DONE, total: 1, failedReportIDs: []});
+            await waitForBatchedUpdatesWithAct();
+            expect(search).not.toHaveBeenCalled();
+
+            // When the user comes back to Search
+            mockUseIsFocused.mockReturnValue(true);
+            rerender(baseProps);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the search runs again, since the job changed reports the results show
+            expect(search).toHaveBeenCalledTimes(1);
+        });
+
+        it('searches again once a search that was loading when a Select all job finished is done', async () => {
+            // Given a Select all job that finishes while a search is loading
+            const loadingProps = createMock<UseSearchAutoRefetch>({...baseProps, searchResults: {...baseProps.searchResults, search: {...baseProps.searchResults?.search, isLoading: true}}});
+            await Onyx.set(BULK_ACTION_KEY, {state: CONST.BULK_ACTION.STATE.RUNNING, action: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_WORKSPACE});
+            const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {initialProps: loadingProps});
+            await waitForBatchedUpdatesWithAct();
+            await Onyx.merge(BULK_ACTION_KEY, {state: CONST.BULK_ACTION.STATE.DONE, total: 1, failedReportIDs: []});
+            await waitForBatchedUpdatesWithAct();
+            expect(search).not.toHaveBeenCalled();
+
+            // When that search finishes loading
+            rerender(baseProps);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the search runs again, since the loading one started before the job changed the reports
+            expect(search).toHaveBeenCalledTimes(1);
+        });
+
+        it('waits for an expense refetch already sent before refreshing from the first page', async () => {
+            // Given Search on its third page while a Select all job runs, and an added expense that sends a refetch
+            await Onyx.set(BULK_ACTION_KEY, {state: CONST.BULK_ACTION.STATE.RUNNING, action: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_WORKSPACE});
+            const {initialProps, rerender} = renderWithResults({}, {transactions_1: row('1')}, {offset: 100});
+            await waitForBatchedUpdatesWithAct();
+            const transactions = {transactions_1: row('1'), transactions_2: row('2')};
+            rerender({transactions, previousTransactions: {transactions_1: row('1')}});
+            await waitForBatchedUpdatesWithAct();
+            expect(search).toHaveBeenCalledTimes(1);
+
+            // When the job finishes before that refetch's results arrive
+            await Onyx.merge(BULK_ACTION_KEY, {state: CONST.BULK_ACTION.STATE.DONE, total: 1, failedReportIDs: []});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then nothing else is sent until they do, and then the first page is fetched again
+            expect(search).toHaveBeenCalledTimes(1);
+            rerender({
+                transactions,
+                previousTransactions: transactions,
+                searchResults: createMock<NonNullable<UseSearchAutoRefetch['searchResults']>>({...initialProps.searchResults, data: {transactions_2: row('2')}}),
+            });
+            await waitForBatchedUpdatesWithAct();
+            expect(search).toHaveBeenCalledTimes(2);
+            expect(search).toHaveBeenLastCalledWith(expect.objectContaining({offset: 0}));
+        });
+
+        it('does not search again while the job is still running', async () => {
+            // Given Search is open while a Select all job runs
+            await Onyx.set(BULK_ACTION_KEY, {state: CONST.BULK_ACTION.STATE.RUNNING, action: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_WORKSPACE});
+            renderHook(() => useSearchAutoRefetch(baseProps));
+            await waitForBatchedUpdatesWithAct();
+
+            // When the user hands it to Concierge, which doesn't change its state
+            await Onyx.merge(BULK_ACTION_KEY, {shouldSendFromConcierge: true});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then nothing is searched yet
             expect(search).not.toHaveBeenCalled();
         });
     });

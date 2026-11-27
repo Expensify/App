@@ -315,6 +315,7 @@ function Search({
         searchKey: currentSearchKey,
         offset,
         shouldCalculateTotals,
+        shouldCalculateFirstPageTotals: shouldCalculateTotalsOnRetry,
         reportActions,
         previousReportActions,
         memberCustomFields,

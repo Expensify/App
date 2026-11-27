@@ -55,6 +55,7 @@ function ReanimatedModal({
     swipeDirection,
     swipeThreshold,
     shouldPreventScrollOnFocus,
+    shouldDeactivateFocusTrapOnOutsideInteraction,
     initialFocus,
     shouldIgnoreBackHandlerDuringTransition = false,
     shouldEnableNewFocusManagement,
@@ -256,6 +257,7 @@ function ReanimatedModal({
                         initialFocus={initialFocus}
                         shouldReturnFocus={shouldReturnFocus ?? !shouldEnableNewFocusManagement}
                         shouldPreventScroll={shouldPreventScrollOnFocus}
+                        shouldDeactivateOnOutsideInteraction={shouldDeactivateFocusTrapOnOutsideInteraction}
                         launcherRef={launcherRef}
                     >
                         {isVisibleState && containerView}

@@ -42,18 +42,29 @@ let mockAreAllMatchingItemsSelected = false;
 let mockSelectedReports: Array<{reportID: string; policyID?: string}> = [{reportID: 'report1'}, {reportID: 'report2'}];
 let mockSelectRow: ((option: {policyID: string}) => void) | undefined;
 let mockConfirm: (() => void) | undefined;
-let mockListData: Array<{policyID?: string}> = [];
+let mockListData: Array<{policyID?: string; isSelected?: boolean}> = [];
 let mockIsSaveDisabled: boolean | undefined;
 let mockIsAppLoadPending = false;
 let mockSearchData: Record<string, unknown> = {};
 
+// The page renders outside a navigator, so the first selection is kept without the screen's focus events.
+// Coming back to the page takes a new snapshot, as `resetOnFocus` does on focus.
+let mockRefocusPage: (() => void) | undefined;
+jest.mock('@hooks/useInitialSelection', () => {
+    const {useState} = jest.requireActual<typeof React>('react');
+    return <T,>(selection: T) => {
+        const [initialSelection, setInitialSelection] = useState(selection);
+        mockRefocusPage = () => setInitialSelection(selection);
+        return initialSelection;
+    };
+});
 jest.mock('@components/SelectionList', () => {
     function MockSelectionList({
         data,
         onSelectRow,
         confirmButtonOptions,
     }: {
-        data: Array<{policyID?: string}>;
+        data: Array<{policyID?: string; isSelected?: boolean}>;
         onSelectRow: (option: {policyID: string}) => void;
         confirmButtonOptions: {onConfirm: () => void; isDisabled?: boolean};
     }) {
@@ -169,6 +180,64 @@ describe('SearchChangeWorkspacePage', () => {
         expect(mockIsSaveDisabled).toBe(true);
     });
 
+    it('checks the workspace every picked report is on', async () => {
+        // Given two picked reports that are both on Workspace 2
+        mockAreAllMatchingItemsSelected = false;
+        mockSelectedReports = [
+            {reportID: 'report1', policyID: 'policy2'},
+            {reportID: 'report2', policyID: 'policy2'},
+        ];
+
+        // When the page lists the workspaces
+        render(
+            <OnyxListItemProvider>
+                <SearchChangeWorkspacePage />
+            </OnyxListItemProvider>,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then Workspace 2 is checked, the same as a report's own Change workspace page
+        expect(mockListData.find((item) => item.policyID === 'policy2')?.isSelected).toBe(true);
+    });
+
+    it('checks the workspace a picked report was just moved to', async () => {
+        // Given a picked report that Search still shows on Workspace 1, but that a finished move put on Workspace 2
+        mockAreAllMatchingItemsSelected = false;
+        mockSelectedReports = [{reportID: 'report1', policyID: 'policy1'}];
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}report1`, {reportID: 'report1', policyID: 'policy2'});
+
+        // When the page lists the workspaces
+        render(
+            <OnyxListItemProvider>
+                <SearchChangeWorkspacePage />
+            </OnyxListItemProvider>,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then Workspace 2 is checked, where the report is now
+        expect(mockListData.find((item) => item.policyID === 'policy2')?.isSelected).toBe(true);
+    });
+
+    it('checks no workspace when the picked reports are on different ones', async () => {
+        // Given two picked reports on different workspaces
+        mockAreAllMatchingItemsSelected = false;
+        mockSelectedReports = [
+            {reportID: 'report1', policyID: 'policy1'},
+            {reportID: 'report2', policyID: 'policy2'},
+        ];
+
+        // When the page lists the workspaces
+        render(
+            <OnyxListItemProvider>
+                <SearchChangeWorkspacePage />
+            </OnyxListItemProvider>,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then nothing is checked, since there is no single workspace they're on
+        expect(mockListData.some((item) => item.isSelected)).toBe(false);
+    });
+
     it('shows a loading indicator instead of the workspaces while the app is still loading', async () => {
         // Given the app hasn't finished loading the workspaces yet
         mockIsAppLoadPending = true;
@@ -201,6 +270,32 @@ describe('SearchChangeWorkspacePage', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then the list keeps its order, the same as the single report page
+        expect(mockListData.map((item) => item.policyID)).toEqual(initialOrder);
+    });
+
+    it('keeps the workspace the reports are on pinned after coming back to the page', async () => {
+        // Given two picked reports on Workspace 2, and Workspace 3 picked on the page
+        mockAreAllMatchingItemsSelected = false;
+        mockSelectedReports = [
+            {reportID: 'report1', policyID: 'policy2'},
+            {reportID: 'report2', policyID: 'policy2'},
+        ];
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy3`, makePolicy('policy3', 'Workspace 3', CONST.POLICY.ROLE.USER));
+        render(
+            <OnyxListItemProvider>
+                <SearchChangeWorkspacePage />
+            </OnyxListItemProvider>,
+        );
+        await waitForBatchedUpdatesWithAct();
+        const initialOrder = mockListData.map((item) => item.policyID);
+        act(() => mockSelectRow?.({policyID: 'policy3'}));
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user leaves the page and comes back to it
+        act(() => mockRefocusPage?.());
+        await waitForBatchedUpdatesWithAct();
+
+        // Then Workspace 2 stays pinned, so the list keeps its order
         expect(mockListData.map((item) => item.policyID)).toEqual(initialOrder);
     });
 
