@@ -1867,6 +1867,60 @@ describe('SidebarUtils', () => {
             expect(result?.isUnread).toBe(true);
         });
 
+        it.each([
+            {description: 'owned by the current user', isOwnedByCurrentUser: true},
+            {description: 'owned by another user', isOwnedByCurrentUser: false},
+        ])('sets isIOUReportOwner from the passed current user when the expense report is $description', async ({isOwnedByCurrentUser}) => {
+            // Given an expense report whose owner is or isn't the current user passed to the LHN row, while the
+            // signed-in session belongs to another account, so a session fallback would give the opposite result
+            const sessionAccountID = CURRENT_USER_ACCOUNT_ID + 1;
+            const report: Report = {
+                ...createRandomReport(7110, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                iouReportID: undefined,
+                ownerAccountID: isOwnedByCurrentUser ? CURRENT_USER_ACCOUNT_ID : sessionAccountID,
+            };
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.SESSION, {accountID: sessionAccountID});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            });
+
+            // When the LHN option data is built
+            const result = SidebarUtils.getOptionData({
+                lastOriginalAction: undefined,
+                dateFnsLocale: undefined,
+                report,
+                reportAttributes: undefined,
+                reportNameValuePairs: {},
+                personalDetails: {},
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                parentReportAction: undefined,
+                conciergeReportID: '',
+                oneTransactionThreadReport: undefined,
+                card: undefined,
+                translate: translateLocal,
+                convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
+                localeCompare,
+                lastAction: undefined,
+                lastActionReport: undefined,
+                isReportArchived: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                reportAttributesDerived: undefined,
+                formatPhoneNumber,
+                rules: undefined,
+            });
+
+            // Then the row marks the owner using the current user passed in, not the session
+            expect(result?.isIOUReportOwner).toBe(isOwnedByCurrentUser);
+
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: CURRENT_USER_LOGIN});
+            });
+        });
+
         it('builds the thread row avatar from the parent report action passed by the caller', async () => {
             // Given a chat thread whose parent action in Onyx was posted by one user, while the LHN row resolved
             // that same action from its own subscription as posted by another user

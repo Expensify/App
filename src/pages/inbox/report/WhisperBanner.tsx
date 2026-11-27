@@ -2,6 +2,7 @@ import DisplayNames from '@components/DisplayNames';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
 
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import {useAllPersonalDetailsWithoutSnapshots} from '@hooks/usePersonalDetails';
@@ -28,9 +29,10 @@ function WhisperBanner({whisperedTo}: WhisperBannerProps) {
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Eye']);
     const [personalDetails] = useAllPersonalDetailsWithoutSnapshots(personalDetailsListSelector(whisperedTo));
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const isMultipleParticipant = whisperedTo.length > 1;
-    const isWhisperOnlyVisibleByUser = isCurrentUserTheOnlyParticipant(whisperedTo);
+    const isWhisperOnlyVisibleByUser = isCurrentUserTheOnlyParticipant(whisperedTo, currentUserAccountID);
     const whisperedToPersonalDetails = Object.values(personalDetails ?? {}).filter((details) =>
         whisperedTo.includes(details?.accountID ?? CONST.DEFAULT_NUMBER_ID),
     ) as OnyxTypes.PersonalDetails[];
@@ -50,7 +52,7 @@ function WhisperBanner({whisperedTo}: WhisperBannerProps) {
                 &nbsp;
             </Text>
             <DisplayNames
-                fullTitle={getWhisperDisplayNames(translate, formatPhoneNumber, whisperedTo) ?? ''}
+                fullTitle={getWhisperDisplayNames(translate, formatPhoneNumber, whisperedTo, currentUserAccountID) ?? ''}
                 displayNamesWithTooltips={displayNamesWithTooltips}
                 tooltipEnabled
                 numberOfLines={1}
