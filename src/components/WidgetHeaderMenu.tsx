@@ -29,13 +29,16 @@ type WidgetHeaderMenuProps = WithRequiredSentryLabel & {
     size?: typeof CONST.BUTTON_SIZE.SMALL | typeof CONST.BUTTON_SIZE.MEDIUM;
 
     testID?: string;
+
+    /** Screen reader name of the trigger, so each card's menu can say which card it belongs to */
+    accessibilityLabel?: string;
 };
 
 /**
  * Widget header three-dots menu: a Ghost trigger whose negative margins let it overflow the header
  * rather than grow it, so every card header keeps the same height. Built on `ThreeDotsMenu`.
  */
-function WidgetHeaderMenu({menuItems, size = CONST.BUTTON_SIZE.MEDIUM, testID, sentryLabel}: WidgetHeaderMenuProps) {
+function WidgetHeaderMenu({menuItems, size = CONST.BUTTON_SIZE.MEDIUM, testID, sentryLabel, accessibilityLabel}: WidgetHeaderMenuProps) {
     const styles = useThemeStyles();
     const {buttonSize, iconSize} = SIZES[size];
 
@@ -51,6 +54,7 @@ function WidgetHeaderMenu({menuItems, size = CONST.BUTTON_SIZE.MEDIUM, testID, s
             shouldChangeFillOnOpen={false}
             testID={testID}
             sentryLabel={sentryLabel}
+            accessibilityLabel={accessibilityLabel}
         />
     );
 }

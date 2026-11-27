@@ -301,7 +301,7 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible, isCopyLoading}: Co
                                                 <PopoverAnchorTooltip text={translate('reportActionCompose.addAttachment')}>
                                                     <PressableWithoutFeedback
                                                         ref={actionButtonRef}
-                                                        accessibilityLabel={translate('accessibilityHints.openActionsMenu')}
+                                                        accessibilityLabel={translate('accessibilityHints.openConciergeActionsMenu')}
                                                         role={CONST.ROLE.BUTTON}
                                                         sentryLabel={CONST.SENTRY_LABEL.CONCIERGE_PROMPT_BOX.ADD_ATTACHMENT}
                                                         disabled={!canAddAttachment}

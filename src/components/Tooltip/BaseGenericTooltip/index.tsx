@@ -186,7 +186,7 @@ function BaseGenericTooltip({
                     style={[rootWrapperStyle, animationStyle]}
                     onPress={onTooltipPress}
                     role={CONST.ROLE.TOOLTIP}
-                    accessibilityLabel={CONST.ROLE.TOOLTIP}
+                    // No label, so the tooltip is named by its text instead of the word "tooltip"
                     interactive={!!onTooltipPress}
                 >
                     {wrapperChildren}

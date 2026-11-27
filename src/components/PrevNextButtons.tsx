@@ -1,4 +1,5 @@
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -29,13 +30,14 @@ function PrevNextButtons({isPrevButtonDisabled, isNextButtonDisabled, onNext, on
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'BackArrow']);
     const styles = useThemeStyles();
     const theme = useTheme();
+    const {translate} = useLocalize();
 
     return (
         <View style={styles.flexRow}>
             <PressableWithFeedback
                 accessible
                 accessibilityRole={CONST.ROLE.BUTTON}
-                accessibilityLabel={CONST.ROLE.BUTTON}
+                accessibilityLabel={translate('common.previous')}
                 disabled={isPrevButtonDisabled}
                 style={[styles.h7, styles.mr1, styles.alignItemsCenter, styles.justifyContentCenter]}
                 onPress={onPrevious}
@@ -53,7 +55,7 @@ function PrevNextButtons({isPrevButtonDisabled, isNextButtonDisabled, onNext, on
             <PressableWithFeedback
                 accessible
                 accessibilityRole={CONST.ROLE.BUTTON}
-                accessibilityLabel={CONST.ROLE.BUTTON}
+                accessibilityLabel={translate('common.next')}
                 disabled={isNextButtonDisabled}
                 style={[styles.h7, styles.alignItemsCenter, styles.justifyContentCenter]}
                 onPress={onNext}

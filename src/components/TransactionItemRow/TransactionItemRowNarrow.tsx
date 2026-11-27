@@ -13,8 +13,6 @@ import {isScanning} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
 
-import CONST from '@src/CONST';
-
 import type {DistributedPick} from 'type-fest';
 
 import React from 'react';
@@ -85,6 +83,7 @@ function TransactionItemRowNarrow({
     bgActiveStyles,
     merchant,
     merchantOrDescription,
+    selectionAccessibilityLabel,
     missingFieldError,
     transactionThreadReportID,
     categoryForDisplay,
@@ -112,7 +111,7 @@ function TransactionItemRowNarrow({
                             onPress={(event) => {
                                 onCheckboxPress(transactionItem.transactionID, getShiftKeyFromEvent(event));
                             }}
-                            accessibilityLabel={CONST.ROLE.CHECKBOX}
+                            accessibilityLabel={selectionAccessibilityLabel}
                             isChecked={isSelected}
                             style={styles.mr3}
                             containerStyle={styles.m0}
@@ -175,7 +174,7 @@ function TransactionItemRowNarrow({
                                 isChecked={isSelected}
                                 disabled={isDisabled}
                                 onPress={() => onRadioButtonPress?.(transactionItem.transactionID)}
-                                accessibilityLabel={CONST.ROLE.RADIO}
+                                accessibilityLabel={selectionAccessibilityLabel}
                                 shouldStopMouseDownPropagation={shouldStopRadioButtonMouseDownPropagation}
                                 style={radioButtonWrapperStyle}
                             />

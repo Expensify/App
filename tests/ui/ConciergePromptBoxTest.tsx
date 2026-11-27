@@ -42,7 +42,8 @@ const SHORT_PLACEHOLDER = 'homePage.conciergePrompt.inputPlaceholderMobile';
 const ADD_ATTACHMENT = 'reportActionCompose.addAttachment';
 // `translate` resolves to the key in tests, so the greeting matches whichever time-of-day key the clock lands on.
 const GREETING = /^homePage\.conciergePrompt\.good/;
-const PLUS_BUTTON = 'accessibilityHints.openActionsMenu';
+const PLUS_BUTTON = 'accessibilityHints.openConciergeActionsMenu';
+const FAB_BUTTON = 'accessibilityHints.openActionsMenu';
 const SEND_BUTTON = 'common.send';
 const TEAMMATE = {accountID: 2, login: 'alex@expensify.com', displayName: 'Alex Adams'};
 const OTHER_TEAMMATE = {accountID: 3, login: 'blake@expensify.com', displayName: 'Blake Brown'};
@@ -685,6 +686,16 @@ describe('ConciergePromptBox', () => {
 
             // Then the menu closes
             expect(screen.queryByLabelText(ADD_ATTACHMENT)).toBeNull();
+        });
+
+        it('names the "+" button apart from the FAB, which is on Home too', () => {
+            // Given the box, which sits on Home next to the FAB named "Open actions menu"
+            // When it renders
+            render(<ConciergePromptBoxWrapper />);
+
+            // Then its "+" button has its own name, so screen readers and agents can tell the two buttons apart
+            expect(screen.getByLabelText(PLUS_BUTTON)).toBeOnTheScreen();
+            expect(screen.queryByLabelText(FAB_BUTTON)).toBeNull();
         });
 
         it('opens the picker after the menu finishes closing', () => {

@@ -12,6 +12,7 @@ import {
     getDescription,
     getExchangeRate,
     getMerchantName,
+    getTransactionSelectionAccessibilityLabel,
     getCreated as getTransactionCreated,
     hasMissingSmartscanFields,
     isAmountMissing,
@@ -117,6 +118,7 @@ function TransactionItemRow({
 
     const bgActiveStyles = isSelected && shouldHighlightItemWhenSelected ? styles.activeComponentBG : EMPTY_ACTIVE_STYLE;
     const merchant = getMerchantName(transactionItem, translate);
+    const selectionAccessibilityLabel = getTransactionSelectionAccessibilityLabel(transactionItem, translate);
 
     const getMissingFieldError = () => {
         if (isSettled(report)) {
@@ -182,6 +184,7 @@ function TransactionItemRow({
                 bgActiveStyles={bgActiveStyles}
                 merchant={merchant}
                 merchantOrDescription={merchantOrDescription}
+                selectionAccessibilityLabel={selectionAccessibilityLabel}
                 missingFieldError={missingFieldError}
                 categoryForDisplay={categoryForDisplay}
                 createdAt={createdAt}
@@ -266,6 +269,7 @@ function TransactionItemRow({
             bgActiveStyles={bgActiveStyles}
             merchant={merchant}
             description={description}
+            selectionAccessibilityLabel={selectionAccessibilityLabel}
             missingFieldError={missingFieldError}
             exchangeRateMessage={exchangeRateMessage}
             cardName={cardName}

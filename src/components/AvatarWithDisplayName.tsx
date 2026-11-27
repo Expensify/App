@@ -270,6 +270,9 @@ function AvatarWithDisplayName({
     const displayNamesWithTooltips = getDisplayNamesWithTooltips(Object.values(ownerPersonalDetails), false, localeCompare, formatPhoneNumber, translate);
     const avatarBorderColor = avatarBorderColorProp ?? (isAnonymous ? theme.highlightBG : theme.componentBG);
     const statusText = shouldDisplayStatus ? getReportStatusTranslation({stateNum: report?.stateNum, statusNum: report?.statusNum, translate}) : undefined;
+    const hasParentNavigationSubtitle = Object.keys(parentNavigationSubtitleData).length > 0;
+    // The badge is drawn inside the parent subtitle, so it only shows when both render
+    const isStatusBadgeShown = !!report && !!title && hasParentNavigationSubtitle;
     const statusTooltipText = shouldDisplayStatus ? getReportStatusTooltipTranslation({stateNum: report?.stateNum, statusNum: report?.statusNum, translate}) : undefined;
     const reportStatusColorStyle = shouldDisplayStatus ? getReportStatusColorStyle(theme, report?.stateNum, report?.statusNum) : {};
     const shouldShowReportTitleEditButton =
@@ -394,7 +397,7 @@ function AvatarWithDisplayName({
                         ) : (
                             displayNameContent
                         )}
-                        {Object.keys(parentNavigationSubtitleData).length > 0 && (
+                        {hasParentNavigationSubtitle && (
                             <ParentNavigationSubtitle
                                 parentNavigationSubtitleData={parentNavigationSubtitleData}
                                 reportID={report?.reportID}
@@ -435,7 +438,8 @@ function AvatarWithDisplayName({
             sentryLabel={CONST.SENTRY_LABEL.AVATAR_WITH_DISPLAY_NAME.GO_TO_DETAILS_PAGE}
             onPress={goToDetailsPage}
             style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
-            accessibilityLabel={title}
+            // The label hides the header's text from screen readers, so it repeats the status shown on screen
+            accessibilityLabel={[title, isStatusBadgeShown ? statusText : undefined].filter(Boolean).join(', ')}
             role={CONST.ROLE.BUTTON}
         >
             {headerView}

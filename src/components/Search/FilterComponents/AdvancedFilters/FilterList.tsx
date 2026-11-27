@@ -18,6 +18,7 @@ import type {SearchFilter} from '@libs/SearchUIUtils';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 import type {ReactNode, Ref} from 'react';
@@ -79,7 +80,7 @@ function FilterItem({filterKey, isSelected, type, onPress, onHoverIn, onFocus}: 
     const theme = useTheme();
 
     const {icon} = FILTER_VIEW_MAP[filterKey];
-    const labelKey = getFilterViewLabelKey(filterKey, type);
+    const label = translate(getFilterViewLabelKey(filterKey, type));
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', icon]);
 
     const getPressableBackgroundStyle = (pressed: boolean) => {
@@ -98,7 +99,8 @@ function FilterItem({filterKey, isSelected, type, onPress, onHoverIn, onFocus}: 
         <PressableWithFeedback
             style={({pressed}) => [styles.typeFilterMenu, getPressableBackgroundStyle(pressed)]}
             accessible
-            accessibilityLabel={filterKey}
+            accessibilityLabel={label}
+            role={CONST.ROLE.BUTTON}
             onHoverIn={() => onHoverIn?.(filterKey)}
             onFocus={() => onFocus?.(filterKey)}
             onPress={() => onPress?.(filterKey)}
@@ -116,7 +118,7 @@ function FilterItem({filterKey, isSelected, type, onPress, onHoverIn, onFocus}: 
                         numberOfLines={2}
                         style={[styles.flex1]}
                     >
-                        {translate(labelKey)}
+                        {label}
                     </Text>
                     <Icon
                         src={icons.ArrowRight}

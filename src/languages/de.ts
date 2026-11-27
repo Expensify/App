@@ -1355,6 +1355,8 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: 'Genehmigende',
             chartTitle: (title: string, stage: string) => `${title} (${stage})`,
         },
+        explainChart: (chartTitle: string) => `${chartTitle} erläutern`,
+        moreForChart: (chartTitle: string) => `Weitere Optionen für ${chartTitle}`,
         flaggedExpenses: 'Markierte Ausgaben',
         noFlaggedExpensesInRange: 'Keine markierten Ausgaben in diesem Zeitraum',
     },
@@ -11964,6 +11966,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         selectAllMembers: 'Alle Mitglieder auswählen',
         selectAllValues: 'Alle Werte auswählen',
         selectAllRules: 'Alle Regeln auswählen',
+        openConciergeActionsMenu: 'Concierge-Aktionsmenü öffnen',
     },
     parentReportAction: {
         deletedReport: 'Gelöschter Bericht',

@@ -55,7 +55,7 @@ function TextLinkBlock({text, style, prefixIcon, ...rest}: TextLinkBlockProps) {
             style={styles.dContents}
             onPress={openLink}
             accessible
-            accessibilityLabel={rest.href ?? CONST.ROLE.BUTTON}
+            accessibilityLabel={text}
         >
             {words.map((word, index) => (
                 <View

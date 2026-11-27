@@ -144,6 +144,15 @@ describe('MoneyRequestReportTransactionItem - reject errors', () => {
         expect(screen.queryByTestId('TransactionItemRowRBR')).not.toBeOnTheScreen();
     });
 
+    it('names the row after its expense, so rows in the report can be told apart', async () => {
+        // Given: An ordinary expense whose merchant was not edited
+        // When: Its row renders in the report
+        await renderTransactionItem(buildTransaction({modifiedMerchant: ''}));
+
+        // Then: The row is named after the merchant, and "View details" says what pressing it does
+        expect(screen.getByLabelText('Test Merchant')).toBe(screen.getByHintText('View details'));
+    });
+
     it('should show an edit error once, not again inside the row', async () => {
         // Given: An expense whose move to another report failed, so it carries a plain message error
         await renderTransactionItem(buildTransaction({errors: {[ERROR_TIMESTAMP]: translateLocal('iou.error.genericEditFailureMessage')}}));
@@ -158,7 +167,7 @@ describe('MoneyRequestReportTransactionItem - reject errors', () => {
         await renderTransactionItem(buildTransactionWithRejectError());
 
         // Then: The row cannot be opened, because the RHP would immediately dismiss itself
-        expect(screen.getByLabelText('View details')).toBeDisabled();
+        expect(screen.getByHintText('View details')).toBeDisabled();
     });
 
     it('should still open an expense that has no reject error', async () => {
@@ -166,8 +175,8 @@ describe('MoneyRequestReportTransactionItem - reject errors', () => {
         const {handleOnPress} = await renderTransactionItem(buildTransaction());
 
         // When: The user presses the row
-        expect(screen.getByLabelText('View details')).toBeEnabled();
-        fireEvent.press(screen.getByLabelText('View details'));
+        expect(screen.getByHintText('View details')).toBeEnabled();
+        fireEvent.press(screen.getByHintText('View details'));
         await waitForBatchedUpdatesWithAct();
 
         // Then: The expense opens as usual
@@ -181,7 +190,7 @@ describe('MoneyRequestReportTransactionItem - reject errors', () => {
         const copyableCell = document.createElement('span');
         copyableCell.setAttribute(`data-${CONST.COPYABLE_TEXT_ELEMENT}`, 'true');
         const {handleLongPress} = await renderTransactionItem(buildTransaction());
-        const row = screen.getByLabelText('View details');
+        const row = screen.getByHintText('View details');
 
         // When the user long-presses the cell element outside the text glyphs
         fireEvent(row, 'touchStart', {target: copyableCell});

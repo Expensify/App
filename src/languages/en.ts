@@ -1415,6 +1415,10 @@ const translations = {
         viewOnSpend: 'View on Spend',
         explain: 'Explain',
         explainChartPrompt: (chartTitle: string) => `Explain the data in ${chartTitle}.`,
+        // @context Screen reader label of a chart's Explain button. chartTitle is the chart's name, such as "Spend over time".
+        explainChart: (chartTitle: string) => `Explain ${chartTitle}`,
+        // @context Screen reader label of a chart's three-dots menu button. chartTitle is the chart's name, such as "Top merchants".
+        moreForChart: (chartTitle: string) => `More options for ${chartTitle}`,
         viewDetails: 'View details',
         viewAll: 'View all',
         topExpenses: 'Top expenses',
@@ -12299,6 +12303,8 @@ const translations = {
         selectAllTransactions: 'Select all transactions',
         selectAllItems: 'Select all items',
         openActionsMenu: 'Open actions menu',
+        // @context Screen reader label of the + button in the Ask Concierge box on Home. It must differ from the floating + button's "Open actions menu" on the same screen.
+        openConciergeActionsMenu: 'Open Concierge actions menu',
         selectAllCategories: 'Select all categories',
         selectAllDistanceRates: 'Select all distance rates',
         selectAllTags: 'Select all tags',

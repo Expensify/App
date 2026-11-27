@@ -4,6 +4,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import type {SearchColumnType, TableColumnSize} from '@components/Search/types';
 import TransactionItemRow from '@components/TransactionItemRow';
+import getContextMenuAccessibilityProps from '@components/utils/getContextMenuAccessibilityProps';
 
 import useCopyableTextRowPress, {isPressStartOnCopyableText} from '@hooks/useCopyableTextRowPress';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -30,7 +31,7 @@ import {
 } from '@libs/MoneyRequestReportUtils';
 import {hasFlexColumn} from '@libs/SearchUIUtils';
 import {COPYABLE_ROW_DATA_SET} from '@libs/SelectionScraper';
-import {getTransactionPendingAction} from '@libs/TransactionUtils';
+import {getTransactionAccessibilityName, getTransactionPendingAction} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
 
@@ -280,6 +281,13 @@ function MoneyRequestReportTransactionItemBody({
         queueMicrotask(() => setShouldDisableHoverStyle(true));
     }, [wasRecentlyEditingCell]);
 
+    const transactionAccessibilityName = getTransactionAccessibilityName(transaction, translate);
+    // Web has no accessibility hint, so "View details" is read at the end of the row's name there
+    const {accessibilityLabel: rowAccessibilityLabel, accessibilityHint: rowAccessibilityHint} = getContextMenuAccessibilityProps({
+        accessibilityLabel: transactionAccessibilityName || translate('iou.viewDetails'),
+        accessibilityHint: transactionAccessibilityName ? translate('iou.viewDetails') : undefined,
+    });
+
     return (
         <OfflineWithFeedback
             pendingAction={pendingAction}
@@ -290,7 +298,8 @@ function MoneyRequestReportTransactionItemBody({
             <PressableWithFeedback
                 key={transaction.transactionID}
                 onPress={handlePress}
-                accessibilityLabel={translate('iou.viewDetails')}
+                accessibilityLabel={rowAccessibilityLabel}
+                accessibilityHint={rowAccessibilityHint}
                 sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REQUEST_REPORT_TRANSACTION_ITEM}
                 role={CONST.ROLE.BUTTON}
                 isNested

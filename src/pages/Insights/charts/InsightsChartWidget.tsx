@@ -242,10 +242,12 @@ function InsightsChartWidget({
         ) : null;
 
     const explainViolationStage = violationStage ?? chart.violationStage;
+    const chartMenuAccessibilityLabel = translate('insightsPage.moreForChart', translate(chart.titleKey));
     const explainButton =
         state === INSIGHTS_CHART_STATE.READY || isLoading ? (
             <InsightsExplainButton
                 explainPrompt={translate('insightsPage.explainChartPrompt', translate(chart.titleKey))}
+                accessibilityLabel={translate('insightsPage.explainChart', translate(chart.titleKey))}
                 insightsScope={explainViolationStage ? {...insightsScope, violationStage: explainViolationStage} : insightsScope}
             />
         ) : null;
@@ -292,6 +294,7 @@ function InsightsChartWidget({
                 violationStage={shownViolationStage}
                 onViolationStageChange={onViolationStageChange}
                 actions={canUseMenuActions ? menuActions : []}
+                accessibilityLabel={chartMenuAccessibilityLabel}
             />
         );
     } else if (canUseMenuActions) {
@@ -301,6 +304,7 @@ function InsightsChartWidget({
                 testID={`insightsChartMenu-${chart.graphKey}`}
                 sentryLabel={CONST.SENTRY_LABEL.INSIGHTS.CHART_MENU}
                 menuItems={menuActions.map((action) => ({...action, shouldCallAfterModalHide: true}))}
+                accessibilityLabel={chartMenuAccessibilityLabel}
             />
         );
     }
