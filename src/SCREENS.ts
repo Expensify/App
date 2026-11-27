@@ -831,6 +831,8 @@ const SCREENS = {
             CARD_RECONCILIATION: 'Policy_Accounting_Card_Reconciliation',
             CARD_RECONCILIATION_SAGE_INTACCT_AUTO_SYNC: 'Policy_Accounting_Card_Reconciliation_Sage_Intacct_Auto_Sync',
             DYNAMIC_RECONCILIATION_ACCOUNT_SETTINGS: 'Dynamic_Policy_Accounting_Reconciliation_Account_Settings',
+            DYNAMIC_RECONCILIATION_CHARGE_CARD_SELECT: 'Dynamic_Policy_Accounting_Reconciliation_Charge_Card_Select',
+            DYNAMIC_SAGE_INTACCT_RECONCILIATION_JOURNAL_SELECT: 'Dynamic_Policy_Accounting_Sage_Intacct_Reconciliation_Journal_Select',
             DYNAMIC_RECONCILIATION_SELECT_FEED: 'Dynamic_Policy_Accounting_Reconciliation_Select_Feed',
         },
         INITIAL: 'Workspace_Initial',

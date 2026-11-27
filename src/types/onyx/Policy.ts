@@ -1293,11 +1293,23 @@ type SageIntacctDataElementWithValue = SageIntacctDataElement & {
     value: string;
 };
 
+/** Sage Intacct charge card imported with its liability GL account key and title */
+type SageIntacctCreditCard = SageIntacctDataElement & {
+    /** Liability GL account number linked to this charge card. Omitted when not imported from Sage Intacct. */
+    value?: string;
+    liabilityAccountTitle?: string;
+};
+
+/** Sage Intacct GL journal imported with its reporting book and direct posting flag */
+type SageIntacctJournal = SageIntacctDataElementWithValue & {
+    disallowDirectPosting?: boolean;
+};
+
 /**
  * Connection data for Sage Intacct
  */
 type SageIntacctConnectionData = {
-    creditCards: SageIntacctDataElement[];
+    creditCards: SageIntacctCreditCard[];
     entities: SageIntacctDataElementWithValue[];
     bankAccounts: SageIntacctDataElement[];
 
@@ -1306,7 +1318,7 @@ type SageIntacctConnectionData = {
 
     /** Collection of vendors */
     vendors: SageIntacctDataElementWithValue[];
-    journals: SageIntacctDataElementWithValue[];
+    journals: SageIntacctJournal[];
     items: SageIntacctDataElement[];
     taxSolutionIDs: string[];
 };
@@ -1439,6 +1451,9 @@ type SageIntacctConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** ID of the account cross-border currency conversion costs are charged to. Unset means the cost is not exported. */
         fxExpenseAccount?: string;
+
+        /** Symbol of the GL journal used for continuous reconciliation and FX fee entries. */
+        reconciliationJournal?: string;
 
         /** Collection of Sage Intacct config errors */
         errors?: OnyxCommon.Errors;
@@ -4529,6 +4544,8 @@ export type {
     SageIntacctMappingName,
     SageIntacctDimension,
     SageIntacctDataElementWithValue,
+    SageIntacctCreditCard,
+    SageIntacctJournal,
     NetSuiteMappingValues,
     SageIntacctDataElement,
     SageIntacctConnectionsConfig,

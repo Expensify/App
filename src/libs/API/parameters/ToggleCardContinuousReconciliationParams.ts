@@ -3,6 +3,7 @@ type ToggleCardContinuousReconciliationParams = {
     policyID: string;
     shouldUseContinuousReconciliation: boolean;
     expensifyCardContinuousReconciliationConnection?: string;
+    expensifyCardLiabilityAccountID?: string;
 };
 
 export default ToggleCardContinuousReconciliationParams;

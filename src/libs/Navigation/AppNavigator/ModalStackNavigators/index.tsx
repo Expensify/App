@@ -1179,6 +1179,10 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/workspace/accounting/reconciliation/CardReconciliationSageIntacctAutoSyncPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_RECONCILIATION_ACCOUNT_SETTINGS]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/reconciliation/DynamicReconciliationAccountSettingsPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_RECONCILIATION_CHARGE_CARD_SELECT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/reconciliation/DynamicSageIntacctReconciliationChargeCardSelectPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_RECONCILIATION_JOURNAL_SELECT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/reconciliation/DynamicSageIntacctReconciliationJournalSelectPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_RECONCILIATION_SELECT_FEED]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/reconciliation/DynamicReconciliationFeedSelectorPage').default,
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY]: () => require<ReactComponentModule>('../../../../pages/workspace/workflows/WorkspaceAutoReportingFrequencyPage').default,

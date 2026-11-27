@@ -5,6 +5,8 @@ import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import useReconciliationFundID from '@hooks/useReconciliationFundID';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearSageIntacctErrorField} from '@libs/actions/Policy/Policy';
@@ -13,17 +15,19 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {areSettingsInErrorFields, getSageIntacctNonReimbursableActiveDefaultVendor, settingsPendingAction} from '@libs/PolicyUtils';
+import {areSettingsInErrorFields, getResolvedSageIntacctReconciliationCard, getSageIntacctNonReimbursableActiveDefaultVendor, settingsPendingAction} from '@libs/PolicyUtils';
 
 import type {MenuItemToRender} from '@pages/workspace/accounting/intacct/types';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import {useRoute} from '@react-navigation/native';
+import {isExpensifyCardContinuousReconciliationEnabledSelector} from '@selectors/Card';
 import React from 'react';
 
 import {getDefaultVendorName} from './utils';
@@ -44,6 +48,16 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyConnectionsP
     const backTo = route.params?.backTo;
 
     const isDefaultVendorSet = !!(defaultVendorName && defaultVendorName !== '');
+
+    const {fundID: reconciliationFundID} = useReconciliationFundID(policyID);
+    const [cardContinuousReconciliation] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${reconciliationFundID}`, {
+        selector: isExpensifyCardContinuousReconciliationEnabledSelector,
+    });
+    const [cardReconciliationConnection] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${reconciliationFundID}`);
+    const [cardReconciliationLiabilityAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_RECONCILIATION_LIABILITY_ACCOUNT_ID}${reconciliationFundID}`);
+    const isIntacctCardCREnabled = !!cardContinuousReconciliation && cardReconciliationConnection === CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT;
+    const reconciliationCard = isIntacctCardCREnabled ? getResolvedSageIntacctReconciliationCard(policy, cardReconciliationLiabilityAccountID, true) : undefined;
+    const exportAsHelperText = reconciliationCard ? translate('workspace.sageIntacct.reconciliation.exportDestinationHelper', reconciliationCard.name) : undefined;
 
     const renderDefault = (item: MenuItemToRender) => {
         return (
@@ -79,6 +93,7 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyConnectionsP
             title: config?.export.nonReimbursable ? translate(`workspace.sageIntacct.nonReimbursableExpenses.values.${config?.export.nonReimbursable}`) : undefined,
             description: translate('workspace.accounting.exportAs'),
             sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.NON_REIMBURSABLE_ROW.EXPORT_AS,
+            helperText: exportAsHelperText,
             onPress: () => {
                 if (!policyID) {
                     return;

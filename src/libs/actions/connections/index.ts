@@ -30,6 +30,7 @@ function removePolicyConnection(policy: Policy, connectionName: PolicyConnection
             | typeof ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS
             | typeof ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION
             | typeof ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION
+            | typeof ONYXKEYS.COLLECTION.EXPENSIFY_CARD_RECONCILIATION_LIABILITY_ACCOUNT_ID
             | typeof ONYXKEYS.COLLECTION.TRAVEL_BILLING_CONTINUOUS_RECONCILIATION_CONNECTION
             | typeof ONYXKEYS.COLLECTION.TRAVEL_BILLING_USE_CONTINUOUS_RECONCILIATION
             | typeof ONYXKEYS.COLLECTION.POLICY_MERGE_HR_INITIAL_SYNC_MODAL_SHOWN
@@ -58,6 +59,11 @@ function removePolicyConnection(policy: Policy, connectionName: PolicyConnection
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${workspaceAccountID}`,
+            value: null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_RECONCILIATION_LIABILITY_ACCOUNT_ID}${workspaceAccountID}`,
             value: null,
         },
         {

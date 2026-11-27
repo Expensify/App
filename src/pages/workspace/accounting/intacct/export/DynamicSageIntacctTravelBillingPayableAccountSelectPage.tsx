@@ -1,6 +1,7 @@
 import type {SelectorType} from '@components/SelectionScreen';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import useLocalize from '@hooks/useLocalize';
 
 import {updateSageIntacctTravelBillingPayableAccount} from '@libs/actions/connections/SageIntacct';
 import {clearSageIntacctErrorField} from '@libs/actions/Policy/Policy';
@@ -18,12 +19,13 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import React from 'react';
 
 function DynamicSageIntacctTravelBillingPayableAccountSelectPage({policy}: WithPolicyConnectionsProps) {
+    const {translate} = useLocalize();
     const policyID = policy?.id ?? String(CONST.DEFAULT_NUMBER_ID);
     const config = policy?.connections?.intacct?.config;
     const selectedAccountID = config?.export?.travelInvoicingPayableAccountID;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_TRAVEL_BILLING_PAYABLE_ACCOUNT_SELECT.path);
 
-    const data = getSageIntacctCreditCards(policy, selectedAccountID);
+    const data = getSageIntacctCreditCards(policy, selectedAccountID, translate);
 
     const selectAccount = (row: SelectorType<string>) => {
         if (row.value !== selectedAccountID) {

@@ -6432,6 +6432,28 @@ const translations = {
             },
             travelBillingDescription: 'Travel expenses will export as credit card charges to the Sage Intacct account specified below.',
             creditCardAccount: 'Credit card account',
+            reconciliation: {
+                chargeCard: 'Charge card',
+                journal: 'Journal',
+                noJournalsFound: 'No journals found',
+                noJournalsFoundDescription: 'Add an active journal that allows direct posting in Sage Intacct and sync the connection again.',
+                liabilityAccountSubtitle: (account: string) => `Liability account: ${account}`,
+                chargeCardPickerHelper: (account: string) => `Expensify Card expenses export to this charge card. Settlements debit its liability account, ${account}.`,
+                chargeCardPickerHelperFallback: 'Expensify Card expenses export to this charge card. Settlements debit its liability account.',
+                journalPickerHelper: 'Expensify posts card settlements, Travel Billing payments and FX fee entries to this journal.',
+                journalBooks: {
+                    accrual: 'Accrual',
+                    cash: 'Cash',
+                    cashAndAccrual: 'Cash and accrual',
+                    noReportingBook: 'No reporting book',
+                },
+                oneBookWarning: (book: string, otherBook: string) => `This journal is only in your ${book} book. These entries do not show in reports that you run on a ${otherBook} basis.`,
+                changeWarning: (oldValue: string) => `This change applies to new entries only. Entries already posted stay in ${oldValue}.`,
+                dualBookNoBookWarning: 'Choose a journal with a reporting book because your company uses both accrual and cash books.',
+                exportDestinationHelper: (card: string) => `Expensify Card expenses always export to ${card}, the reconciliation charge card.`,
+                requireChargeCardAndJournal: 'Choose a charge card and journal before turning on continuous reconciliation.',
+                requireJournal: 'Choose a journal before turning on continuous reconciliation.',
+            },
             defaultVendor: 'Default vendor',
             defaultVendorDescription: (isReimbursable: boolean) =>
                 isReimbursable
@@ -12148,6 +12170,53 @@ const translations = {
                 integrationSyncFailed: (label: string, errorMessage: string, workspaceAccountingLink?: string) =>
                     `there was a problem syncing with ${label}${errorMessage ? ` ("${errorMessage}")` : ''}. Please fix the issue in <a href="${workspaceAccountingLink}">workspace settings</a>.`,
                 integrationSyncFailedRecurrence: ({count}: {count: number}) => `(Repeated ${count} times.)`,
+                autoReconciliationFailed: {
+                    openSettings: 'Open settings',
+                    expensifyCardHeader: ({count, label}: {count: number; label: string}) => ({
+                        one: `Expensify Card reconciliation: 1 problem with ${label}.`,
+                        other: `Expensify Card reconciliation: ${count} problems with ${label}.`,
+                    }),
+                    travelBillingHeader: ({count, label}: {count: number; label: string}) => ({
+                        one: `Travel Billing reconciliation: 1 problem with ${label}.`,
+                        other: `Travel Billing reconciliation: ${count} problems with ${label}.`,
+                    }),
+                    combinedHeader: ({count, label}: {count: number; label: string}) => ({
+                        one: `Continuous reconciliation: 1 problem with ${label}.`,
+                        other: `Continuous reconciliation: ${count} problems with ${label}.`,
+                    }),
+                    genericHeader: (label: string) => `Continuous reconciliation: problem with ${label}.`,
+                    journalMissingOrInactive: (journal: string) =>
+                        journal
+                            ? `No active journal is selected (${journal}). Choose an active journal in reconciliation settings.`
+                            : 'No active journal is selected. Choose an active journal in reconciliation settings.',
+                    journalNoBook: (journal: string) =>
+                        journal
+                            ? `Settlements post to journal ${journal}, but ${journal} is not in a reporting book. These entries do not show in your accrual or cash reports. Choose a journal with a reporting book.`
+                            : 'Settlements post to a journal with no reporting book. These entries do not show in your accrual or cash reports. Choose a journal with a reporting book.',
+                    defaultCardIsReconciliationCard: (card: string) =>
+                        card
+                            ? `The workspace default charge card is set to the reconciliation card (${card}). Choose another default charge card in export settings.`
+                            : 'The workspace default charge card is set to the reconciliation card. Choose another default charge card in export settings.',
+                    entryRejected: (prefix: string, label: string, errorMessage: string) =>
+                        errorMessage
+                            ? `${prefix}${label} said: "${errorMessage}" Expensify tries again on the next sync.`
+                            : `${prefix}${label} rejected an entry. Expensify tries again on the next sync.`,
+                    cardOrLiabilityAccountMissingOrInactive: (details: string) =>
+                        details
+                            ? `The reconciliation charge card or its liability account is missing or inactive (${details}). Make it active or choose another card.`
+                            : 'The reconciliation charge card or its liability account is missing or inactive. Make it active or choose another card.',
+                    noSettlementBankAccount: 'No settlement bank account is selected. Choose one in reconciliation settings.',
+                    settlementBankAccountNotInIntacct: (bankAccount: string, label: string) =>
+                        bankAccount
+                            ? `The settlement bank account (${bankAccount}) is not in ${label}. Choose another bank account, or make it active and sync again.`
+                            : `The settlement bank account is not in ${label}. Choose another bank account, or make it active and sync again.`,
+                    dateRange: (start: string, end: string) => ` (${start} to ${end})`,
+                    tooManySettlementsWaiting: ({count, range, total}: {count: number; range: string; total: string}) => ({
+                        one: `1 settlement${range}${total} is waiting to post. Fix the cause before it posts.`,
+                        other: `${count} settlements${range}${total} are waiting to post. Fix the cause before they post.`,
+                    }),
+                    fallback: 'There was a problem with continuous reconciliation.',
+                },
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
                     `The ${feedName} connection is broken. To restore card imports, <a href='${workspaceCompanyCardRoute}'>log into your bank</a>.`,
                 companyCardConnectionBroken30Days: ({

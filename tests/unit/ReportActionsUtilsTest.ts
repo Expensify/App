@@ -9141,6 +9141,53 @@ describe('ReportActionsUtils', () => {
             expect(result).not.toContain('QuickBooks Online');
         });
 
+        it('should format AUTO_RECONCILIATION_FAILED messages with mention, escaping, and pluralization', () => {
+            // Given an AUTO_RECONCILIATION_FAILED action with a preferred exporter mention and multiple issues
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.AUTO_RECONCILIATION_FAILED,
+                reportActionID: 'auto-recon-fail-1',
+                actorAccountID: 1,
+                created: '2026-11-22 04:00:00',
+                message: [],
+                originalMessage: {
+                    label: 'Sage Intacct',
+                    connectionName: 'intacct',
+                    policyID: testPolicyID,
+                    mentionedAccountIDs: [99],
+                    issues: [
+                        {
+                            programme: 'expensifyCard',
+                            kind: 'didNotPost',
+                            code: 'ENTRY_REJECTED',
+                            date: '30 Nov 2026',
+                            amount: 230000,
+                            currency: 'USD',
+                            errorMessage: 'Missing <Department> dimension',
+                        },
+                        {
+                            programme: 'travelBilling',
+                            kind: 'didNotPost',
+                            code: 'TOO_MANY_SETTLEMENTS_WAITING',
+                            waitingCount: 35,
+                            waitingDateStart: '2026-10-01',
+                            waitingDateEnd: '2026-11-15',
+                            waitingTotal: 500000,
+                            currency: 'USD',
+                        },
+                    ],
+                },
+            } as ReportAction;
+
+            // When formatting the message HTML
+            const html = ReportActionsUtils.getAutoReconciliationFailedMessage(translateLocal, action, convertToDisplayString);
+
+            // Then the message includes the mention, pluralized combined header, escaped error, and localized totals
+            expect(html).toContain('<mention-user accountID="99"/>');
+            expect(html).toContain('<strong>Continuous reconciliation: 2 problems with Sage Intacct.</strong>');
+            expect(html).toContain('Missing &lt;Department&gt; dimension');
+            expect(html).toContain('35 settlements (2026-10-01 to 2026-11-15), $5,000.00 are waiting to post.');
+        });
+
         it('should append recurrence text when recurrenceCount > 1', () => {
             const action = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED,

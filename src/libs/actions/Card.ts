@@ -1642,6 +1642,7 @@ type ContinuousReconciliationUpdate = OnyxUpdate<
     | typeof ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION
     | typeof ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION_PENDING_ACTION
     | typeof ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION
+    | typeof ONYXKEYS.COLLECTION.EXPENSIFY_CARD_RECONCILIATION_LIABILITY_ACCOUNT_ID
 >;
 
 function toggleContinuousReconciliation(
@@ -1650,6 +1651,8 @@ function toggleContinuousReconciliation(
     shouldUseContinuousReconciliation: boolean,
     connectionName: ConnectionName,
     oldConnectionName?: ConnectionName,
+    expensifyCardLiabilityAccountID?: string,
+    oldLiabilityAccountID?: string,
 ) {
     const parameters: ToggleCardContinuousReconciliationParams = shouldUseContinuousReconciliation
         ? {
@@ -1657,6 +1660,7 @@ function toggleContinuousReconciliation(
               policyID,
               shouldUseContinuousReconciliation,
               expensifyCardContinuousReconciliationConnection: connectionName,
+              ...(expensifyCardLiabilityAccountID ? {expensifyCardLiabilityAccountID} : {}),
           }
         : {
               policyAccountID: workspaceAccountID,
@@ -1717,6 +1721,24 @@ function toggleContinuousReconciliation(
             value: oldConnectionName ?? null,
         },
     ];
+
+    if (expensifyCardLiabilityAccountID) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_RECONCILIATION_LIABILITY_ACCOUNT_ID}${workspaceAccountID}`,
+            value: expensifyCardLiabilityAccountID,
+        });
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_RECONCILIATION_LIABILITY_ACCOUNT_ID}${workspaceAccountID}`,
+            value: expensifyCardLiabilityAccountID,
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_RECONCILIATION_LIABILITY_ACCOUNT_ID}${workspaceAccountID}`,
+            value: oldLiabilityAccountID ?? null,
+        });
+    }
 
     API.write(WRITE_COMMANDS.TOGGLE_CARD_CONTINUOUS_RECONCILIATION, parameters, {
         optimisticData,
@@ -2072,6 +2094,10 @@ function exportExpensifyCardListToCSV({policyID, cards, personalDetailsList, set
     localFileDownload(fileName, csvContent, translate);
 }
 
+function setCardReconciliationLiabilityAccountDraft(workspaceAccountID: number, liabilityAccountID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_RECONCILIATION_LIABILITY_ACCOUNT_ID}${workspaceAccountID}`, liabilityAccountID);
+}
+
 export {
     requestReplacementExpensifyCard,
     activatePhysicalExpensifyCard,
@@ -2106,6 +2132,7 @@ export {
     toggleCashbackToBill,
     clearCashbackToBillError,
     toggleContinuousReconciliation,
+    setCardReconciliationLiabilityAccountDraft,
     setCardReconciliationAccount,
     updateExpensifyCardLimitType,
     updateSelectedFeed,

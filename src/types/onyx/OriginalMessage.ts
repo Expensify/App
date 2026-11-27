@@ -1575,6 +1575,68 @@ type OriginalMessageIntegrationSyncFailed = {
     recurrenceCount?: number;
 };
 
+/** Single continuous reconciliation problem reported by Integration-Server */
+type ReconciliationIssue = {
+    /** Reconciliation programme identifier such as expensifyCard or travelBilling */
+    programme?: string;
+
+    /** Issue category such as didNotPost or postedBut */
+    kind?: string;
+
+    /** Machine-readable issue code mapped to localized alert text */
+    code?: string;
+
+    /** GL journal symbol, distinct from journalTitle */
+    journal?: string;
+    journalTitle?: string;
+    card?: string;
+    glAccount?: string;
+    bankAccount?: string;
+
+    /** Formatted settlement date shown in entry rejection alerts */
+    date?: string;
+
+    /** Amount in smallest currency unit (cents) */
+    amount?: number;
+
+    /** ISO 4217 currency code. Defaults to USD when omitted. */
+    currency?: string;
+    errorMessage?: string;
+    waitingCount?: number;
+
+    /** Start date of waiting settlements range (YYYY-MM-DD) */
+    waitingDateStart?: string;
+
+    /** End date of waiting settlements range (YYYY-MM-DD) */
+    waitingDateEnd?: string;
+
+    /** Total waiting settlement amount in smallest currency unit (cents) */
+    waitingTotal?: number;
+};
+
+/**
+ * Original message for AUTO_RECONCILIATION_FAILED actions posted in #admins
+ */
+type OriginalMessageAutoReconciliationFailed = {
+    /** User-friendly accounting system name */
+    label: string;
+
+    /** Connection identifier key (for example "intacct") */
+    connectionName: string;
+
+    /** Workspace policy ID owning the accounting connection */
+    policyID: string;
+
+    /** List of reconciliation problems collected during the sync */
+    issues: ReconciliationIssue[];
+
+    /** Preferred exporter account IDs. Only the first entry renders as the leading mention. */
+    mentionedAccountIDs?: number[];
+
+    /** Account IDs that receive unread indicators for this alert */
+    actionableForAccountIDs?: number[];
+};
+
 /**
  * Original message for broken Concierge company card connection
  */
@@ -1955,6 +2017,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN]: OriginalPersonalCard;
     [CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN_30_DAYS]: OriginalPersonalCard;
     [CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED]: OriginalMessageIntegrationSyncFailed;
+    [CONST.REPORT.ACTIONS.TYPE.AUTO_RECONCILIATION_FAILED]: OriginalMessageAutoReconciliationFailed;
     [CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION]: OriginalMessageDeletedTransaction;
     [CONST.REPORT.ACTIONS.TYPE.UNDELETED_TRANSACTION]: OriginalMessageUnreportedTransaction;
     [CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED]: OriginalMessageDEWFailed;
@@ -2015,5 +2078,6 @@ export type {
     OriginalMessageMarkedReimbursed,
     OriginalMessageReimbursed,
     OriginalMessageSettlementAccountLocked,
+    ReconciliationIssue,
     ViolationsSnapshot,
 };
