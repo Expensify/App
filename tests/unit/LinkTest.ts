@@ -2,17 +2,21 @@ import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn
 import {setOnboardingErrorMessage} from '@libs/actions/Welcome';
 import * as API from '@libs/API';
 import asyncOpenURL from '@libs/asyncOpenURL';
+import {getOldDotEnvironmentURL} from '@libs/Environment/Environment';
 import {isSharedProductHost, readExperienceCookie} from '@libs/ExperienceCookie';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import Growl from '@libs/Growl';
 import swapBackgroundTabForRHPTarget from '@libs/Navigation/helpers/swapBackgroundTabForRHPTarget';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
+import type * as NetworkStateModule from '@libs/NetworkState';
 import * as Url from '@libs/Url';
+import addTrailingForwardSlash from '@libs/UrlUtils';
 
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
-import {getInternalNewExpensifyPath, openLink, openReportFromDeepLink} from '@src/libs/actions/Link';
+import {getInternalNewExpensifyPath, openLink, openOldDotLink, openReportFromDeepLink} from '@src/libs/actions/Link';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -38,6 +42,12 @@ jest.mock('@libs/getIsNarrowLayout', () => jest.fn());
 jest.mock('@libs/ExperienceCookie', () => ({
     isSharedProductHost: jest.fn(() => false),
     readExperienceCookie: jest.fn(() => undefined),
+}));
+jest.mock('@libs/Growl', () => ({__esModule: true, default: {error: jest.fn()}}));
+let mockIsOffline = false;
+jest.mock('@libs/NetworkState', () => ({
+    ...jest.requireActual<typeof NetworkStateModule>('@libs/NetworkState'),
+    getIsOffline: () => mockIsOffline,
 }));
 jest.mock('@libs/asyncOpenURL', () => jest.fn());
 jest.mock('@libs/API', () => ({
@@ -93,6 +103,7 @@ const mockedSetOnboardingErrorMessage = jest.mocked(setOnboardingErrorMessage);
 const mockedIsSharedProductHost = jest.mocked(isSharedProductHost);
 const mockedAsyncOpenURL = jest.mocked(asyncOpenURL);
 const mockedReadExperienceCookie = jest.mocked(readExperienceCookie);
+const mockedMakeRequestWithSideEffects = jest.mocked(API.makeRequestWithSideEffects);
 
 const SHARED_PRODUCT_HOST_ORIGIN = 'https://expensify.com.dev';
 const realLocation = window.location;
@@ -117,6 +128,7 @@ afterEach(() => {
     Object.defineProperty(window, 'location', {value: realLocation, writable: true, configurable: true});
     mockedIsSharedProductHost.mockReturnValue(false);
     mockedReadExperienceCookie.mockReturnValue(undefined);
+    mockIsOffline = false;
 });
 
 function buildNavigationState(key: string, routes: NavigationState['routes'], index = routes.length - 1): NavigationState {
@@ -557,6 +569,82 @@ describe('Link.openLink', () => {
         expect(mockedIsAnonymousUser).toHaveBeenCalledWith(session);
         expect(signOutAndRedirectToSignIn).not.toHaveBeenCalled();
         expect(Navigation.navigate).toHaveBeenCalledWith('/settings/profile');
+    });
+});
+
+describe('Link.openOldDotLink', () => {
+    const openedURLs: string[] = [];
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+        openedURLs.length = 0;
+
+        // Records each URL once its promise settles, and handles a rejection the way asyncOpenURL does
+        mockedAsyncOpenURL.mockImplementation((promise, url) => {
+            promise.then((params) => openedURLs.push(typeof url === 'function' ? url(params) : url)).catch(() => undefined);
+        });
+    });
+
+    afterEach(() => {
+        mockedAsyncOpenURL.mockReset();
+    });
+
+    it.each([
+        ['offline', () => (mockIsOffline = true)],
+        ['the token response is empty', () => mockedMakeRequestWithSideEffects.mockImplementationOnce(() => Promise.resolve())],
+        ['the token response has no token', () => mockedMakeRequestWithSideEffects.mockImplementationOnce(() => Promise.resolve({}))],
+        ['the token request fails', () => mockedMakeRequestWithSideEffects.mockImplementationOnce(() => Promise.reject(new Error('Network error')))],
+    ])('shows an error on the shared product host when %s', async (_description, arrangeFailure) => {
+        // Given the page served from the shared product host to a browser whose cookie makes the host serve New Expensify on the inbox without a token
+        arrangePageOrigin(SHARED_PRODUCT_HOST_ORIGIN, true);
+        mockedReadExperienceCookie.mockReturnValue(CONST.EXPERIENCE_COOKIE.VALUES.NEW);
+        arrangeFailure();
+
+        // When opening the Expensify Classic inbox
+        openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
+        await waitForBatchedUpdates();
+
+        // Then no URL is opened and the user is told it failed, so the app doesn't silently reload itself
+        expect(openedURLs).toEqual([]);
+        expect(Growl.error).toHaveBeenCalledTimes(1);
+    });
+
+    it.each([
+        ['the classic cookie', CONST.OLDDOT_URLS.INBOX, CONST.EXPERIENCE_COOKIE.VALUES.CLASSIC, `${SHARED_PRODUCT_HOST_ORIGIN}/inbox?email=`],
+        ['no cookie', CONST.OLDDOT_URLS.INBOX, undefined, `${SHARED_PRODUCT_HOST_ORIGIN}/inbox?email=`],
+        ['a Classic-only page', 'policy?param=%7B%7D', CONST.EXPERIENCE_COOKIE.VALUES.NEW, `${SHARED_PRODUCT_HOST_ORIGIN}/policy?param=%7B%7D&email=`],
+    ])('opens Expensify Classic without a token on the shared product host for %s', async (_description, url, experience, expectedURL) => {
+        // Given the page served from the shared product host, which serves Classic without a token for this cookie and page
+        arrangePageOrigin(SHARED_PRODUCT_HOST_ORIGIN, true);
+        mockedReadExperienceCookie.mockReturnValue(experience);
+        mockedMakeRequestWithSideEffects.mockImplementationOnce(() => Promise.reject(new Error('Network error')));
+
+        // When opening Expensify Classic and the token request fails
+        openOldDotLink(url, true);
+        await waitForBatchedUpdates();
+
+        // Then Classic still opens, without a token, so the user can sign in there
+        expect(openedURLs).toEqual([expectedURL]);
+        expect(Growl.error).not.toHaveBeenCalled();
+    });
+
+    it.each([
+        ['offline', () => (mockIsOffline = true)],
+        ['the token response is empty', () => mockedMakeRequestWithSideEffects.mockImplementationOnce(() => Promise.resolve())],
+        ['the token request fails', () => mockedMakeRequestWithSideEffects.mockImplementationOnce(() => Promise.reject(new Error('Network error')))],
+    ])('opens Expensify Classic without a token on other hosts when %s', async (_description, arrangeFailure) => {
+        // Given New Expensify served from its own host, where Classic's host always serves Classic
+        mockedReadExperienceCookie.mockReturnValue(CONST.EXPERIENCE_COOKIE.VALUES.NEW);
+        arrangeFailure();
+
+        // When opening Expensify Classic
+        openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
+        await waitForBatchedUpdates();
+
+        // Then Classic still opens, without a token, so the user can sign in there
+        const oldDotEnvironmentURL = await getOldDotEnvironmentURL();
+        expect(openedURLs).toEqual([`${addTrailingForwardSlash(oldDotEnvironmentURL)}${CONST.OLDDOT_URLS.INBOX}?email=`]);
+        expect(Growl.error).not.toHaveBeenCalled();
     });
 });
 

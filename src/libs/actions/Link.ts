@@ -6,7 +6,9 @@ import buildOldDotURL from '@libs/buildOldDotURL';
 import {isSharedProductHost, readExperienceCookie} from '@libs/ExperienceCookie';
 import type {ExperienceCookieValue} from '@libs/ExperienceCookie/types';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import Growl from '@libs/Growl';
 import isPublicScreenRoute from '@libs/isPublicScreenRoute';
+import {translate} from '@libs/Localize';
 import Log from '@libs/Log';
 import {setDeepLinkToOpenAfterOnboarding} from '@libs/navigateAfterOnboarding';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
@@ -31,6 +33,7 @@ import addTrailingForwardSlash from '@libs/UrlUtils';
 
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -84,18 +87,50 @@ function getCookieDecidedExperience(pathname: string): ExperienceCookieValue | u
     return readExperienceCookie() ?? CONST.EXPERIENCE_COOKIE.VALUES.CLASSIC;
 }
 
+/**
+ * Whether an Expensify Classic link still opens Classic without a token. On the shared product host it opens New Expensify again when the cookie gives its page to New Expensify.
+ */
+function canOpenOldDotLinkWithoutToken(url: string): boolean {
+    if (!isSharedProductHost()) {
+        return true;
+    }
+    return getCookieDecidedExperience(new URL(url, window.location.origin).pathname) !== CONST.EXPERIENCE_COOKIE.VALUES.NEW;
+}
+
+function showOpenOldDotLinkError() {
+    Growl.error({bodyText: translate(IntlStore.getCurrentLocale(), 'common.genericErrorMessage')});
+}
+
 function openOldDotLink(url: string, shouldOpenInSameTab = false) {
+    const canOpenWithoutToken = canOpenOldDotLinkWithoutToken(url);
+
     if (getIsOffline()) {
+        if (!canOpenWithoutToken) {
+            showOpenOldDotLinkError();
+            return;
+        }
         buildOldDotURL(url).then((oldDotURL) => openExternalLink(oldDotURL, undefined, shouldOpenInSameTab));
         return;
     }
 
-    // If shortLivedAuthToken is not accessible, fallback to opening the link without the token.
+    // If shortLivedAuthToken is not accessible, fallback to opening the link without the token where that still opens Expensify Classic.
     asyncOpenURL(
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
         API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_OLD_DOT_LINK, {}, {})
-            .then((response) => (response ? buildOldDotURL(url, response.shortLivedAuthToken) : buildOldDotURL(url)))
-            .catch(() => buildOldDotURL(url)),
+            .then((response) => {
+                if (!canOpenWithoutToken && !response?.shortLivedAuthToken) {
+                    throw new Error('No short-lived auth token to open Expensify Classic');
+                }
+                return response ? buildOldDotURL(url, response.shortLivedAuthToken) : buildOldDotURL(url);
+            })
+            .catch((error: unknown) => {
+                if (canOpenWithoutToken) {
+                    return buildOldDotURL(url);
+                }
+                Log.warn('[Link] Could not open Expensify Classic on the shared product host without a short-lived auth token', {error});
+                showOpenOldDotLinkError();
+                throw error;
+            }),
         (oldDotURL) => oldDotURL,
         undefined,
         shouldOpenInSameTab,
