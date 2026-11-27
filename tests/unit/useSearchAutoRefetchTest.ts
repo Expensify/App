@@ -1134,7 +1134,11 @@ describe('useSearchAutoRefetch', () => {
 
             // Then nothing else is sent until they do, and then the first page is fetched again
             expect(search).toHaveBeenCalledTimes(1);
-            rerender({transactions, previousTransactions: transactions, searchResults: {...initialProps.searchResults, data: {transactions_2: row('2')}}});
+            rerender({
+                transactions,
+                previousTransactions: transactions,
+                searchResults: createMock<NonNullable<UseSearchAutoRefetch['searchResults']>>({...initialProps.searchResults, data: {transactions_2: row('2')}}),
+            });
             await waitForBatchedUpdatesWithAct();
             expect(search).toHaveBeenCalledTimes(2);
             expect(search).toHaveBeenLastCalledWith(expect.objectContaining({offset: 0}));
