@@ -1,5 +1,4 @@
 import EReceiptWithSizeCalculation from '@components/EReceiptWithSizeCalculation';
-import Icon from '@components/Icon';
 import * as eReceiptBGs from '@components/Icon/EReceiptBGs';
 import Text from '@components/Text';
 import TransactionPreviewSkeletonView from '@components/TransactionPreviewSkeletonView';
@@ -9,7 +8,6 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import DateUtils from '@libs/DateUtils';
@@ -37,8 +35,7 @@ function AuthorizeCardTransactionPreview({transactionID, amount, currency, merch
     const StyleUtils = useStyleUtils();
     const {translate, dateFnsLocale} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const theme = useTheme();
-    const icons = useMemoizedLazyExpensifyIcons(['CreditCard', 'ReceiptBody', 'CreditCardExclamation']);
+    const icons = useMemoizedLazyExpensifyIcons(['ReceiptBody', 'CreditCardExclamation']);
     const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
 
     const reportPreviewStyles = StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, 1);
@@ -57,15 +54,14 @@ function AuthorizeCardTransactionPreview({transactionID, amount, currency, merch
     }
 
     const formattedDate = created ? DateUtils.formatToMonthDayWithOptionalYearInUTC(created, dateFnsLocale) : '';
-    const headerText = [formattedDate, translate('common.card')].filter(Boolean).join(` ${CONST.DOT_SEPARATOR} `);
     let displayAmount = '';
     if (amount !== undefined) {
         displayAmount = currency ? convertToDisplayString(amount, currency) : convertToDisplayStringWithoutCurrency(amount);
     }
 
     const formattedLastFourPAN = formatLastFourPAN(lastFourPAN);
-    const shouldShowCardEnding = formattedLastFourPAN.length > 0;
-    const cardEndingText = shouldShowCardEnding ? `${translate('paymentMethodList.accountLastFour')} ${formattedLastFourPAN}` : '';
+    const cardEndingText = formattedLastFourPAN ? `${translate('paymentMethodList.accountLastFour')} ${formattedLastFourPAN}` : '';
+    const supportingText = [formattedDate, cardEndingText].filter(Boolean).join(` ${CONST.DOT_SEPARATOR} `);
     const shouldShowMerchantOrDescription = !!merchant;
 
     const colorStyles = StyleUtils.getEReceiptColorStyles(CONST.ERECEIPT_COLORS.GREEN);
@@ -90,15 +86,9 @@ function AuthorizeCardTransactionPreview({transactionID, amount, currency, merch
                 </View>
             </View>
             <View style={[styles.expenseAndReportPreviewBoxBody, styles.mtn1]}>
-                <View style={styles.gap2}>
-                    <View style={[styles.flexRow, styles.gap2]}>
-                        <View style={[styles.flex1, styles.gap2]}>
-                            <Text
-                                style={[styles.textLabelSupporting, styles.lh16]}
-                                numberOfLines={1}
-                            >
-                                {headerText}
-                            </Text>
+                <View style={[styles.flexColumn, styles.gap1]}>
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2]}>
+                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                             {shouldShowMerchantOrDescription && (
                                 <Text
                                     fontSize={fontScale.text}
@@ -108,32 +98,30 @@ function AuthorizeCardTransactionPreview({transactionID, amount, currency, merch
                                     {merchant}
                                 </Text>
                             )}
-                            {shouldShowCardEnding && (
-                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
-                                    <Icon
-                                        src={icons.CreditCard}
-                                        height={variables.iconSizeExtraSmall}
-                                        width={variables.iconSizeExtraSmall}
-                                        fill={theme.icon}
-                                    />
-                                    <Text
-                                        numberOfLines={1}
-                                        style={[styles.textMicroSupporting, styles.pre, styles.flexShrink1]}
-                                    >
-                                        {cardEndingText}
-                                    </Text>
-                                </View>
-                            )}
                         </View>
                         {!!displayAmount && (
                             <Text
                                 fontSize={fontScale.text}
-                                style={[styles.flexShrink0, styles.alignSelfCenter]}
+                                style={styles.flexShrink0}
                                 numberOfLines={1}
                             >
                                 {displayAmount}
                             </Text>
                         )}
+                    </View>
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2]}>
+                        <Text
+                            numberOfLines={1}
+                            style={[styles.textLabelSupporting, styles.pre, styles.flexShrink1, styles.lh16]}
+                        >
+                            {supportingText}
+                        </Text>
+                        <Text
+                            numberOfLines={1}
+                            style={[styles.textLabelSupporting, styles.pre, styles.flexShrink0, styles.lh16]}
+                        >
+                            {translate('common.card')}
+                        </Text>
                     </View>
                 </View>
             </View>
