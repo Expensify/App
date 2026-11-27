@@ -1,3 +1,4 @@
+import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useOnyx from '@hooks/useOnyx';
 
 import {readNewestAction} from '@userActions/Report';
@@ -24,28 +25,46 @@ type ConciergeChatHistoryActionsContextType = {
     collapseHistory: () => void;
 };
 
-const ConciergeChatHistoryStateContext = createContext<ConciergeChatHistoryStateContextType>({
+/** The main pane and the side panel can show the Concierge chat side by side, so each keeps its own history state */
+type ConciergeChatHistoryByPane = {
+    main: ConciergeChatHistoryStateContextType;
+    sidePanel: ConciergeChatHistoryStateContextType;
+};
+
+type ConciergeChatHistoryPane = keyof ConciergeChatHistoryByPane;
+
+type ConciergeChatHistoryActionsByPaneContextType = {
+    setShowFullHistory: (pane: ConciergeChatHistoryPane, show: boolean) => void;
+    collapseHistory: (pane: ConciergeChatHistoryPane) => void;
+};
+
+const DEFAULT_HISTORY_STATE: ConciergeChatHistoryStateContextType = {
     showFullHistory: false,
     isHistoryCollapsedByUser: false,
-});
+};
 
-const ConciergeChatHistoryActionsContext = createContext<ConciergeChatHistoryActionsContextType>({
+const DEFAULT_HISTORY_BY_PANE: ConciergeChatHistoryByPane = {
+    main: DEFAULT_HISTORY_STATE,
+    sidePanel: DEFAULT_HISTORY_STATE,
+};
+
+const ConciergeChatHistoryStateContext = createContext<ConciergeChatHistoryByPane>(DEFAULT_HISTORY_BY_PANE);
+
+const ConciergeChatHistoryActionsContext = createContext<ConciergeChatHistoryActionsByPaneContextType>({
     setShowFullHistory: () => {},
     collapseHistory: () => {},
 });
 
 function ConciergeChatHistoryProvider({children}: PropsWithChildren) {
-    const [showFullHistory, setShowFullHistoryState] = useState(false);
-    const [isHistoryCollapsedByUser, setIsHistoryCollapsedByUser] = useState(false);
+    const [historyByPane, setHistoryByPane] = useState(DEFAULT_HISTORY_BY_PANE);
 
-    const setShowFullHistory = (show: boolean) => {
-        setShowFullHistoryState(show);
-        setIsHistoryCollapsedByUser(!show);
+    const setShowFullHistory = (pane: ConciergeChatHistoryPane, show: boolean) => {
+        setHistoryByPane((previous) => ({...previous, [pane]: {showFullHistory: show, isHistoryCollapsedByUser: !show}}));
     };
 
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const collapseHistory = () => {
-        setShowFullHistory(false);
+    const collapseHistory = (pane: ConciergeChatHistoryPane) => {
+        setShowFullHistory(pane, false);
         readNewestAction(conciergeReportID, true);
     };
 
@@ -54,26 +73,36 @@ function ConciergeChatHistoryProvider({children}: PropsWithChildren) {
     const [prevAccountID, setPrevAccountID] = useState(accountID);
     if (prevAccountID !== accountID) {
         setPrevAccountID(accountID);
-        setShowFullHistoryState(false);
-        setIsHistoryCollapsedByUser(false);
+        setHistoryByPane(DEFAULT_HISTORY_BY_PANE);
     }
 
-    const stateValue = {showFullHistory, isHistoryCollapsedByUser};
     const actionsValue = {setShowFullHistory, collapseHistory};
 
     return (
-        <ConciergeChatHistoryStateContext.Provider value={stateValue}>
+        <ConciergeChatHistoryStateContext.Provider value={historyByPane}>
             <ConciergeChatHistoryActionsContext.Provider value={actionsValue}>{children}</ConciergeChatHistoryActionsContext.Provider>
         </ConciergeChatHistoryStateContext.Provider>
     );
 }
 
 function useConciergeChatHistoryState(): ConciergeChatHistoryStateContextType {
-    return useContext(ConciergeChatHistoryStateContext);
+    const isInSidePanel = useIsInSidePanel();
+    const historyByPane = useContext(ConciergeChatHistoryStateContext);
+    return isInSidePanel ? historyByPane.sidePanel : historyByPane.main;
 }
 
-function useConciergeChatHistoryActions(): ConciergeChatHistoryActionsContextType {
-    return useContext(ConciergeChatHistoryActionsContext);
+/**
+ * Acts on the history of the pane this hook renders in.
+ * Callers outside the side panel that open the Concierge chat there pass `isInSidePanel` to act on the side panel instead.
+ */
+function useConciergeChatHistoryActions(isInSidePanelOverride?: boolean): ConciergeChatHistoryActionsContextType {
+    const isInSidePanel = useIsInSidePanel();
+    const actions = useContext(ConciergeChatHistoryActionsContext);
+    const pane: ConciergeChatHistoryPane = (isInSidePanelOverride ?? isInSidePanel) ? 'sidePanel' : 'main';
+    return {
+        setShowFullHistory: (show: boolean) => actions.setShowFullHistory(pane, show),
+        collapseHistory: () => actions.collapseHistory(pane),
+    };
 }
 
 export {ConciergeChatHistoryProvider, useConciergeChatHistoryActions, useConciergeChatHistoryState};

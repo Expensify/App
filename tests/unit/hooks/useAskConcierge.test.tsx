@@ -24,6 +24,7 @@ let mockSidePanelReportID: string | undefined;
 let mockIsInSidePanel = false;
 const mockOpenConciergeAnywhere = jest.fn();
 const mockSetShowFullHistory = jest.fn();
+const mockUseConciergeChatHistoryActions = jest.fn<{setShowFullHistory: jest.Mock}, [boolean | undefined]>(() => ({setShowFullHistory: mockSetShowFullHistory}));
 
 jest.mock('@hooks/useSidePanelReportID', () => ({
     __esModule: true,
@@ -36,7 +37,7 @@ jest.mock('@hooks/useOpenConciergeAnywhere', () => ({
 }));
 
 jest.mock('@pages/inbox/ConciergeChatHistoryContext', () => ({
-    useConciergeChatHistoryActions: () => ({setShowFullHistory: mockSetShowFullHistory}),
+    useConciergeChatHistoryActions: (isInSidePanel?: boolean) => mockUseConciergeChatHistoryActions(isInSidePanel),
 }));
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
@@ -232,8 +233,10 @@ describe('useAskConcierge', () => {
             result.current.askConcierge('  [] Buy milk  ');
 
             // Then Concierge is still opened with its history expanded so the task shows, the detection gets the
-            // trimmed text and the target report, and the text is not also posted as a plain comment
+            // trimmed text and the target report, and the text is not also posted as a plain comment.
+            // The history is expanded in the side panel because that is where Concierge opens on web.
             expect(mockOpenConciergeAnywhere).toHaveBeenCalledWith({forceConcierge: true});
+            expect(mockUseConciergeChatHistoryActions).toHaveBeenLastCalledWith(true);
             expect(mockSetShowFullHistory).toHaveBeenCalledWith(true);
             expect(mockCreateTaskFromMarkdown).toHaveBeenCalledWith(expect.objectContaining({text: '[] Buy milk', parentReport: CONCIERGE_REPORT}));
             expect(mockAddComment).not.toHaveBeenCalled();

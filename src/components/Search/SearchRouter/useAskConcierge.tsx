@@ -40,7 +40,7 @@ function useAskConcierge({forceConcierge = false}: {forceConcierge?: boolean} = 
     const {timezone, accountID: currentUserAccountID} = currentUserPersonalDetails;
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const delegateAccountID = useDelegateAccountID();
-    const {setShowFullHistory} = useConciergeChatHistoryActions();
+    const {setShowFullHistory} = useConciergeChatHistoryActions(isInSidePanel);
     const shouldShowAskConcierge = !!targetReportID && !!targetReport;
 
     const shouldRespondInThread = targetReportID === conciergeReportID;
