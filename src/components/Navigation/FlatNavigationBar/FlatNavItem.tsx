@@ -1,11 +1,11 @@
-import Icon from '@components/Icon';
+import IconWithStatusIndicator from '@components/Navigation/IconWithStatusIndicator';
 import getTabIconFill from '@components/Navigation/NavigationTabBar/getTabIconFill';
 import {getCollapseFadeStyle} from '@components/Navigation/SearchSidebarCollapseStore';
+import StatusIndicator from '@components/Navigation/StatusIndicator';
 import {PressableWithFeedback} from '@components/Pressable';
 import type {PressableRef} from '@components/Pressable/GenericPressable/types';
 import Text from '@components/Text';
 
-import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -19,7 +19,6 @@ import type {SentryLabel} from '@src/types/utils/SentryLabel';
 import type {ColorValue, Role} from 'react-native';
 
 import React from 'react';
-import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 
 type FlatNavItemProps = {
@@ -93,7 +92,6 @@ function FlatNavItem({
 }: FlatNavItemProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const StyleUtils = useStyleUtils();
 
     const getRowBackgroundStyle = (isHovered: boolean) => {
         if (isSelected) {
@@ -124,25 +122,20 @@ function FlatNavItem({
                 return (
                     <>
                         {!!icon && (
-                            <View>
-                                <Icon
-                                    src={icon}
-                                    fill={getTabIconFill(isSelected, hovered, theme)}
-                                    width={variables.iconSizeNormal}
-                                    height={variables.iconSizeNormal}
-                                />
+                            <IconWithStatusIndicator
+                                src={icon}
+                                fill={getTabIconFill(isSelected, hovered, theme)}
+                                size={variables.iconSizeNormal}
+                            >
                                 {!!statusIndicatorColor && (
-                                    <View
+                                    <StatusIndicator
+                                        color={statusIndicatorColor}
+                                        // The dot's stroke reads as a gap cut out of the row, so it takes the row's background.
+                                        borderColor={rowBackgroundColor}
                                         testID="FlatNavItemStatusIndicator"
-                                        style={[
-                                            styles.navigationTabBarStatusIndicator,
-                                            styles.statusIndicatorColor(statusIndicatorColor),
-                                            // The dot's stroke reads as a gap cut out of the row, so it takes the row's background.
-                                            !!rowBackgroundColor && StyleUtils.getBorderColorStyle(rowBackgroundColor),
-                                        ]}
                                     />
                                 )}
-                            </View>
+                            </IconWithStatusIndicator>
                         )}
                         {renderLeftElement?.({backgroundColor: rowBackgroundColor})}
                         <Animated.View style={[styles.flex1, collapseFadeStyle]}>

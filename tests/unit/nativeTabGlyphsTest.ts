@@ -1,5 +1,6 @@
 import NATIVE_TAB_GLYPHS from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/NATIVE_TAB_GLYPHS';
 import FLAT_NAV_TAB_BAR_SLOT from '@libs/Navigation/FlatNavTabBar/FLAT_NAV_TAB_BAR_SLOT';
+import MORE_MENU from '@libs/Navigation/MoreMenu/MORE_MENU';
 
 import {readFileSync} from 'fs';
 import path from 'path';
@@ -29,9 +30,12 @@ describe('NATIVE_TAB_GLYPHS', () => {
         [FLAT_NAV_TAB_BAR_SLOT.EXPENSES, 'receipt.svg'],
         [FLAT_NAV_TAB_BAR_SLOT.REPORTS, 'document.svg'],
         [FLAT_NAV_TAB_BAR_SLOT.MORE, 'caret-up-down.svg'],
-    ])('should match the source SVG of the %s slot glyph', (slot, fileName) => {
-        // Given a slot glyph, which is a hand copy of an SVG in assets/images because Skia draws the bar icons from path data
-        const glyph = NATIVE_TAB_GLYPHS[slot];
+        [MORE_MENU.ITEM.ACCOUNTING, 'connect.svg'],
+        [MORE_MENU.ITEM.SAVED, 'bookmark.svg'],
+    ] as const)('should match the source SVG of the %s glyph', (glyphName, fileName) => {
+        // Given a glyph of a slot or a More menu entry with no route, which is a hand copy of an SVG in assets/images
+        // because Skia draws the bar icons from path data
+        const glyph = NATIVE_TAB_GLYPHS[glyphName];
 
         // When its source SVG is read
         const svg = parseSvg(fileName);

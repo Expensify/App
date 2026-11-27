@@ -5,7 +5,9 @@ import MoreMenuPopover from '@components/Navigation/MoreMenu/MoreMenuPopover';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import FlatNavTabPressListeners from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/FlatNavTabPressListeners';
 import type {NativeTabLayoutProps} from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/NativeTabLayout';
-import {navigateToSpendTab} from '@libs/SearchNavigationUtils';
+import MoreMenuStateContext, {isMoreItemSelectedByMenu} from '@libs/Navigation/MoreMenu/MoreMenuStateContext';
+import type {MoreMenuState} from '@libs/Navigation/MoreMenu/MoreMenuStateContext';
+import {navigateToSpendTab, showSpendTabSearchOnMountedSearchPage} from '@libs/SearchNavigationUtils';
 import {startNavigateToReportsTabSpans} from '@libs/telemetry/startTabNavigationSpans';
 
 import CONST from '@src/CONST';
@@ -13,7 +15,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 
-import React from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import Onyx from 'react-native-onyx';
 
@@ -22,7 +24,7 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 jest.mock('@components/Navigation/MoreMenu/MoreMenuPopover', () => jest.fn(() => null));
 jest.mock('@components/Search/SearchContext', () => ({useSearchSelectionActions: () => ({clearSelectedTransactions: jest.fn()})}));
-jest.mock('@libs/SearchNavigationUtils', () => ({navigateToSpendTab: jest.fn()}));
+jest.mock('@libs/SearchNavigationUtils', () => ({navigateToSpendTab: jest.fn(), showSpendTabSearchOnMountedSearchPage: jest.fn()}));
 jest.mock('@libs/interceptAnonymousUser', () => jest.fn((callback: () => void) => callback()));
 jest.mock('@libs/telemetry/startTabNavigationSpans', () => ({startNavigateToReportsTabSpans: jest.fn()}));
 jest.mock('@libs/clearSelectedText/clearSelectedText', () => jest.fn());
@@ -48,11 +50,15 @@ let liveFocusedRouteName: string = SCREENS.HOME;
 let liveSearchKey: string | undefined;
 // The params a navigation from another tab hands the Search tab route
 let liveSearchTabParams: Record<string, unknown> | undefined;
+// The key of the Search navigator's state, which it has once it is mounted
+let liveSearchNavigatorStateKey: string | undefined;
+// A screen pushed over the Search page in the Search navigator
+let liveScreenOverSearchPage: string | undefined;
 
 function buildProps(focusedRouteName: string): Pick<NativeTabLayoutProps, 'state' | 'descriptors'> {
     const routes = ROUTE_NAMES.map((name) => ({key: `${name}-key`, name}));
     return {
-        state: createMock<NativeTabLayoutProps['state']>({routes, index: ROUTE_NAMES.indexOf(focusedRouteName)}),
+        state: createMock<NativeTabLayoutProps['state']>({key: 'tab-state-key', routes, index: ROUTE_NAMES.indexOf(focusedRouteName)}),
         descriptors: Object.fromEntries(
             routes.map((route) => [
                 route.key,
@@ -73,7 +79,15 @@ function buildProps(focusedRouteName: string): Pick<NativeTabLayoutProps, 'state
                                     {
                                         name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
                                         params: liveSearchTabParams,
-                                        state: {routes: [{name: SCREENS.SEARCH.ROOT, params: {q: 'type:expense', searchKey: liveSearchKey}}]},
+                                        state: {
+                                            key: liveSearchNavigatorStateKey,
+                                            // A mounted navigator has a full state, which is no longer stale
+                                            ...(liveSearchNavigatorStateKey ? {stale: false} : {}),
+                                            routes: [
+                                                {name: SCREENS.SEARCH.ROOT, params: {q: 'type:expense', searchKey: liveSearchKey}},
+                                                ...(liveScreenOverSearchPage ? [{name: liveScreenOverSearchPage}] : []),
+                                            ],
+                                        },
                                     },
                                 ],
                             }),
@@ -84,15 +98,33 @@ function buildProps(focusedRouteName: string): Pick<NativeTabLayoutProps, 'state
     };
 }
 
+// Keeps the state of the More menu, as the tab navigator does around its tabs, and marks the bar as showing the More
+// item selected the way the navigator decides it
+function MoreMenuStateProvider({children}: {children: React.ReactNode}) {
+    const moreMenuState = useState<MoreMenuState>('closed');
+    return (
+        <MoreMenuStateContext.Provider value={moreMenuState}>
+            {isMoreItemSelectedByMenu(moreMenuState[0]) && <View testID="MoreItemSelected" />}
+            {children}
+        </MoreMenuStateContext.Provider>
+    );
+}
+
+function isMoreItemSelected() {
+    return screen.queryByTestId('MoreItemSelected') !== null;
+}
+
 async function renderListeners(focusedRouteName: string, searchKey?: string) {
     liveFocusedRouteName = focusedRouteName;
     liveSearchKey = searchKey;
     const props = buildProps(focusedRouteName);
     render(
-        <FlatNavTabPressListeners
-            state={props.state}
-            descriptors={props.descriptors}
-        />,
+        <MoreMenuStateProvider>
+            <FlatNavTabPressListeners
+                state={props.state}
+                descriptors={props.descriptors}
+            />
+        </MoreMenuStateProvider>,
     );
     await waitForBatchedUpdatesWithAct();
 }
@@ -121,6 +153,8 @@ describe('FlatNavTabPressListeners', () => {
         pressListeners.clear();
         stateListeners.clear();
         liveSearchTabParams = undefined;
+        liveSearchNavigatorStateKey = undefined;
+        liveScreenOverSearchPage = undefined;
         await Onyx.set(ONYXKEYS.SEARCH_FILTERS, {[CONST.SEARCH.SEARCH_KEYS.REPORTS]: {timestamp: '2026-11-10 12:00:00', query: LAST_REPORTS_QUERY}});
     });
 
@@ -153,6 +187,46 @@ describe('FlatNavTabPressListeners', () => {
         // itself, and no tab span starts, since no tab is opened
         expect(jest.mocked(navigateToSpendTab).mock.calls).toEqual(expectedNavigations);
         expect(startNavigateToReportsTabSpans).not.toHaveBeenCalled();
+    });
+
+    it.each([
+        {focusedRouteName: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, tabStateKeyToFocusSearchIn: undefined},
+        {focusedRouteName: SCREENS.HOME, tabStateKeyToFocusSearchIn: 'tab-state-key'},
+    ])(
+        'changes the search of the mounted Search page instead of opening the route when Reports is pressed from $focusedRouteName',
+        async ({focusedRouteName, tabStateKeyToFocusSearchIn}) => {
+            // Given the Search navigator mounted with the Search page on top, showing Expenses, and Search or Home focused
+            liveSearchNavigatorStateKey = 'search-state-key';
+            await renderListeners(focusedRouteName, CONST.SEARCH.SEARCH_KEYS.EXPENSES);
+
+            // When the user presses Reports
+            press(SCREENS.NATIVE_TAB_ITEM.REPORTS);
+
+            // Then the mounted page takes the Reports search as params, as its type tabs do, and the Search tab is focused
+            // when the press came from another tab, since opening the route would mount a second Search page from scratch
+            expect(showSpendTabSearchOnMountedSearchPage).toHaveBeenCalledWith(
+                CONST.SEARCH.SEARCH_KEYS.REPORTS,
+                LAST_REPORTS_QUERY,
+                expect.any(Function),
+                expect.objectContaining({key: 'search-state-key'}),
+                tabStateKeyToFocusSearchIn,
+            );
+            expect(navigateToSpendTab).not.toHaveBeenCalled();
+        },
+    );
+
+    it('opens the search route when another screen is on top of the Search page', async () => {
+        // Given the Search navigator mounted with a report pushed over the Search page, which shows Expenses
+        liveSearchNavigatorStateKey = 'search-state-key';
+        liveScreenOverSearchPage = SCREENS.SEARCH.MONEY_REQUEST_REPORT;
+        await renderListeners(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, CONST.SEARCH.SEARCH_KEYS.EXPENSES);
+
+        // When the user presses Reports
+        press(SCREENS.NATIVE_TAB_ITEM.REPORTS);
+
+        // Then Reports opens through the search route, since new params would only change the page under the report
+        expect(navigateToSpendTab).toHaveBeenCalledWith(CONST.SEARCH.SEARCH_KEYS.REPORTS, LAST_REPORTS_QUERY, expect.any(Function));
+        expect(showSpendTabSearchOnMountedSearchPage).not.toHaveBeenCalled();
     });
 
     it('navigates once on a quick double tap', async () => {
@@ -278,5 +352,47 @@ describe('FlatNavTabPressListeners', () => {
         // Then the menu stays mounted and shown, because the callback reads the current state, not the one it was created with
         expect(screen.getByTestId('MoreMenu')).toBeTruthy();
         expect(getMoreMenuProps()?.isVisible).toBe(true);
+    });
+
+    it('keeps the More item selected only until the menu starts closing when the user picks nothing', async () => {
+        // Given Home focused with the More menu closed, so the bar shows Home as selected
+        await renderListeners(SCREENS.HOME);
+        expect(isMoreItemSelected()).toBe(false);
+
+        // When the user presses More
+        press(SCREENS.NATIVE_TAB_ITEM.MORE);
+
+        // Then the menu keeps the More item selected
+        expect(isMoreItemSelected()).toBe(true);
+
+        // When the user closes the menu without a pick, as a tap outside it or the back button does
+        act(() => getMoreMenuProps()?.onClose());
+
+        // Then the selection goes back to the tab the user is on at once, without waiting for the menu to finish closing
+        expect(getMoreMenuProps()?.isVisible).toBe(false);
+        expect(isMoreItemSelected()).toBe(false);
+    });
+
+    it('keeps the More item selected after a pick until the menu has closed', async () => {
+        // Given Home focused with the More menu open
+        await renderListeners(SCREENS.HOME);
+        press(SCREENS.NATIVE_TAB_ITEM.MORE);
+
+        // When the user picks an entry, which the menu reports before the close every pick is followed by
+        act(() => {
+            getMoreMenuProps()?.onItemPicked();
+            getMoreMenuProps()?.onClose();
+        });
+
+        // Then the menu closes with the More item still selected, since the entry opens under More only once the menu
+        // has closed and the selection would otherwise go back to Home in between
+        expect(getMoreMenuProps()?.isVisible).toBe(false);
+        expect(isMoreItemSelected()).toBe(true);
+
+        // When the menu has finished closing
+        act(() => getMoreMenuProps()?.onModalHide());
+
+        // Then the menu no longer holds the selection, which now follows the tab the picked entry opened
+        expect(isMoreItemSelected()).toBe(false);
     });
 });

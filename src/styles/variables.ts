@@ -126,6 +126,10 @@ export default {
     iconBottomBar: 24,
     /** Glyph size in the floating tab bar. */
     iconFloatingTabBar: 20,
+    /** Side of the smaller glyph drawn beside a glyph in the floating tab bar, such as the chevron of the More item. */
+    floatingTabBarIconAccessorySize: 10,
+    /** Gap between a glyph in the floating tab bar and the smaller glyph drawn beside it. */
+    floatingTabBarIconAccessoryGap: 4,
     /** Account avatar size in the floating tab bar. */
     avatarFloatingTabBar: avatarSizes.avatarSizeXSmall,
     // The tab glyphs are drawn about this far above the bottom of their box.
@@ -140,8 +144,16 @@ export default {
     nativeTabIconBoxIOSLandscape: 21,
     /** Radius of the status dot drawn into a native tab bar icon. */
     nativeTabIconDotRadius: 4,
-    /** Width of the ring cut out of a native tab bar icon around its status dot, as the JS tab bar's dot border does. */
+    /** Width of the ring cut out of a native tab bar icon around its status dot, as the JS tab bar's dot border does, and around a glyph drawn over its corner. */
     nativeTabIconDotCutout: 2,
+    /** Gap between the glyph and the smaller glyph drawn beside it in a native tab bar icon, such as the chevron of the More item. */
+    nativeTabIconAccessoryGap: 4,
+    /** Side of the smaller glyph drawn at the right edge of the selected pill, such as the chevron of the More item on Android. */
+    nativeTabIconPillEdgeAccessorySize: 10,
+    /** Space between a glyph drawn at the right edge of the selected pill and that edge. */
+    nativeTabIconPillEdgeAccessoryInset: 6,
+    /** Space between the More menu card and the top of the native tab bar. */
+    moreMenuCardGap: 8,
     /** Gap between the glyph and the label drawn under it, or beside it in landscape, in an iOS native tab bar icon. */
     nativeTabIconLabelGap: 6,
     /** UIKit puts this much more space before a landscape tab's icon than after it, so the icon adds it after its label to even out the selected pill. */
@@ -153,6 +165,8 @@ export default {
     iosNativeTabBarLabelInset: 8,
     /** Material's BottomNavigationView row, without the gesture inset under it. */
     androidNativeTabBarHeight: 80,
+    /** Width of Material's selected pill in the Android bar. */
+    androidNativeTabBarActiveIndicatorWidth: 64,
     /** Material's bar row (androidNativeTabBarHeight) plus the 16 dp Material keeps between a FAB and the bar. */
     androidNativeTabBarFloatingButtonsBottom: 96,
     /** UITabBar's row above the home indicator inset, plus the gap to the floating buttons. */

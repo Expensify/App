@@ -213,6 +213,8 @@ const SENTRY_LABEL = {
         EXPENSIFY_LOGO: 'NavigationTabBar-ExpensifyLogo',
         INBOX: 'NavigationTabBar-Inbox',
         REPORTS: 'NavigationTabBar-Reports',
+        EXPENSES: 'NavigationTabBar-Expenses',
+        MORE: 'NavigationTabBar-More',
         INSIGHTS: 'NavigationTabBar-Insights',
         WORKSPACES: 'NavigationTabBar-Workspaces',
         ACCOUNT: 'NavigationTabBar-Account',

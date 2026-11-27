@@ -1,7 +1,7 @@
 /**
  * The placeholder items of the flat nav native tab bar. Expenses, Reports and More are tabs of their own in the native
- * bar, but no screen is behind them: the Search, Insights and Workspaces routes are hidden from the bar and drawn
- * inside the placeholder of their slot, which the bar then shows as selected.
+ * bar, but no screen is behind them: the Search, Insights and Workspaces routes are hidden from the bar and shown
+ * under the placeholder of their slot, which the bar then shows as selected.
  */
 import type {FlatNavSectionID} from '@libs/Navigation/FlatNav/types';
 import type {FlatNavTabBarSlot} from '@libs/Navigation/FlatNavTabBar/FLAT_NAV_TAB_BAR_SLOT';
@@ -62,13 +62,22 @@ function getSearchTabSearchKey(searchTabRoute: {state?: NavigationState | Partia
 }
 
 /**
- * The placeholder a hidden tab route is drawn inside, or undefined for a route the flat nav bar has no slot for, such
- * as Account. Search takes the slot of its section, see useNativeFlatNavSearchSection.
+ * The placeholder whose bar item shows as selected for a hidden tab route, or undefined for a route the flat nav bar
+ * has no slot for, such as Account. Search takes the slot of its section, see useNativeFlatNavSearchSection, and stays
+ * mounted when its section changes, see `tabBarItemHostRouteName` in patches/react-navigation/details.md.
  */
 function getFlatNavTabHostRouteName(routeName: string, searchSectionID: FlatNavSectionID | undefined): NativeTabItemName | undefined {
     const slot = getFlatNavTabBarSlot({focusedTabRouteName: routeName, activeFlatNavSectionID: searchSectionID});
     return Object.values(SCREENS.NATIVE_TAB_ITEM).find((itemName) => NATIVE_TAB_ITEM_SLOTS[itemName] === slot);
 }
 
-export {findSearchTabRoute, getFlatNavTabHostRouteName, getNativeTabGlyphName, getSearchTabSearchKey, isNativeTabItemName, isNavigationToNativeTabItem};
+/**
+ * The hidden tab route a press on a placeholder opens: Search for Expenses and Reports. More opens a menu, so it names
+ * no route. See `tabBarItemHiddenRouteName` in patches/react-navigation/details.md.
+ */
+function getFlatNavTabHiddenRouteName(routeName: string): typeof NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR | undefined {
+    return routeName === SCREENS.NATIVE_TAB_ITEM.EXPENSES || routeName === SCREENS.NATIVE_TAB_ITEM.REPORTS ? NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR : undefined;
+}
+
+export {findSearchTabRoute, getFlatNavTabHiddenRouteName, getFlatNavTabHostRouteName, getNativeTabGlyphName, getSearchTabSearchKey, isNativeTabItemName, isNavigationToNativeTabItem};
 export type {NativeTabRouteName};

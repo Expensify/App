@@ -3,10 +3,11 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
-import {getNativeTabGlyphName} from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/nativeTabItemUtils';
+import getNativeTabIconGlyphs from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/getNativeTabIconGlyphs';
 import type {NativeTabRouteName} from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/nativeTabItemUtils';
 import getTabBarIcon from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/tabIconRasterizer';
 import type {TabIconLayout} from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/tabIconRasterizer';
+import type {MoreMenuItemID} from '@libs/Navigation/MoreMenu/MORE_MENU';
 
 import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
@@ -23,6 +24,9 @@ const LIQUID_GLASS_IOS_VERSION = 26;
 
 /** UITabBar sits above the home indicator inset, so the floating buttons clear both. */
 const getFloatingButtonsBottom = (bottomInset: number) => variables.iosNativeTabBarFloatingButtonsBottom + bottomInset;
+
+/** Distance from the bottom of the window to the top edge of the bar, which the floating buttons rest on. */
+const getTabBarTop = getFloatingButtonsBottom;
 
 const TAB_ICON_LAYOUT: TabIconLayout = {
     glyphSize: variables.iconNativeTabBarIOS,
@@ -54,7 +58,9 @@ function useNativeTabBarOptions({shouldShowNativeTabBar, isTabBarVertical, dotCo
     const shouldDrawLabels = Number.parseInt(String(Platform.Version), 10) >= LIQUID_GLASS_IOS_VERSION;
     // A column has the height for a stacked tab whatever the orientation.
     const isInline = isInLandscapeMode && !isTabBarVertical;
-    const tabIconLayout = isInline ? LANDSCAPE_TAB_ICON_LAYOUT : TAB_ICON_LAYOUT;
+    // The classic bar and the column squeeze an icon widened by the More chevron, so the chevron goes over the glyph's corner there.
+    const accessoryPlacement = shouldDrawLabels && !isTabBarVertical ? 'beside' : 'corner';
+    const tabIconLayout: TabIconLayout = {...(isInline ? LANDSCAPE_TAB_ICON_LAYOUT : TAB_ICON_LAYOUT), accessoryPlacement};
     const barItemCount = Object.keys(tabLabels).length;
     const itemWidth = (windowWidth - 2 * variables.iosNativeTabBarHorizontalInset) / barItemCount - variables.iosNativeTabBarLabelInset;
     // In landscape the label shares the item's width with the glyph's box beside it and the space after it.
@@ -82,25 +88,31 @@ function useNativeTabBarOptions({shouldShowNativeTabBar, isTabBarVertical, dotCo
         tabBarMinimizeBehavior: 'none',
     };
 
-    const getTabOptions = (name: NativeTabRouteName): NativeBottomTabNavigationOptions => ({
+    const getTabOptions = (name: NativeTabRouteName, moreTabItemID?: MoreMenuItemID): NativeBottomTabNavigationOptions => ({
         ...(!shouldDrawLabels && {tabBarLabel: tabLabels[name]}),
-        tabBarIcon: getTabBarIcon(tabIconLayout, (isSelected) => ({
-            name: getNativeTabGlyphName(name),
-            color: isSelected ? theme.iconMenu : theme.icon,
-            dotColor: dotColors[name],
-            // A column is too narrow for the labels, so it shows the icons alone.
-            label:
-                shouldDrawLabels && !isTabBarVertical
-                    ? {
-                          text: tabLabels[name],
-                          color: isSelected ? theme.text : theme.textSupporting,
-                          isBold: isSelected,
-                          fontSize: fontScale.micro,
-                          gap: variables.nativeTabIconLabelGap,
-                          maxWidth: labelMaxWidth,
-                      }
-                    : undefined,
-        })),
+        tabBarIcon: getTabBarIcon(tabIconLayout, (isSelected) => {
+            const {name: glyphName, accessoryName, reservesAccessory} = getNativeTabIconGlyphs(name, moreTabItemID, isSelected);
+            return {
+                name: glyphName,
+                color: isSelected ? theme.iconMenu : theme.icon,
+                dotColor: dotColors[name],
+                // The chevron keeps the inactive color in both states, as in the design.
+                accessory: accessoryName ? {name: accessoryName, color: theme.icon} : undefined,
+                reservesAccessory,
+                // A column is too narrow for the labels, so it shows the icons alone.
+                label:
+                    shouldDrawLabels && !isTabBarVertical
+                        ? {
+                              text: tabLabels[name],
+                              color: isSelected ? theme.text : theme.textSupporting,
+                              isBold: isSelected,
+                              fontSize: fontScale.micro,
+                              gap: variables.nativeTabIconLabelGap,
+                              maxWidth: labelMaxWidth,
+                          }
+                        : undefined,
+            };
+        }),
         // On iOS 26 the label is drawn into the icon, so VoiceOver reads it from here.
         tabBarAccessibilityLabel: tabLabels[name],
     });
@@ -109,4 +121,4 @@ function useNativeTabBarOptions({shouldShowNativeTabBar, isTabBarVertical, dotCo
 }
 
 export default useNativeTabBarOptions;
-export {getFloatingButtonsBottom};
+export {getFloatingButtonsBottom, getTabBarTop};

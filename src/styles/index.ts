@@ -819,6 +819,12 @@ const staticStyles = (theme: ThemeColors) =>
             marginHorizontal: -variables.floatingTabBarSelectedOverhang,
         },
 
+        // The room a smaller glyph beside a tab's glyph takes, kept on both sides so the glyph stays centered over its label.
+        navigationTabBarIconAccessory: {
+            width: variables.floatingTabBarIconAccessoryGap + variables.floatingTabBarIconAccessorySize,
+            paddingLeft: variables.floatingTabBarIconAccessoryGap,
+        },
+
         androidNativeTabBarSpacer: {
             height: variables.androidNativeTabBarHeight,
         },
@@ -7340,6 +7346,19 @@ const dynamicStyles = (theme: ThemeColors) =>
                 fontSize: interpolate(scale.get(), [0, ACTIVE_LABEL_SCALE], [0, variables.fontSizeLabel]),
             } satisfies TextStyle;
         },
+
+        // Turns the bottom docked sheet into a card above the bar: its width and top radii are set by the sheet, so they are overridden here.
+        moreMenuCard: (bottomOffset: number, leftInset: number, rightInset: number) =>
+            ({
+                width: 'auto',
+                alignSelf: 'stretch',
+                marginLeft: Math.max(variables.floatingTabBarHorizontalInset, leftInset),
+                marginRight: Math.max(variables.floatingTabBarHorizontalInset, rightInset),
+                marginBottom: bottomOffset + variables.moreMenuCardGap,
+                borderRadius: variables.componentBorderRadiusCard,
+                borderTopLeftRadius: variables.componentBorderRadiusCard,
+                borderTopRightRadius: variables.componentBorderRadiusCard,
+            }) satisfies ViewStyle,
 
         statusIndicatorColor: (backgroundColor: string = theme.danger) =>
             ({

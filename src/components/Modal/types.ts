@@ -87,6 +87,9 @@ type BaseModalProps = Partial<ReanimatedModalProps> &
         /** Should we apply padding style in modal itself. If this value is false, we will handle it in ScreenWrapper */
         shouldUseModalPaddingStyle?: boolean;
 
+        /** Whether the modal pads its content by the left and right safe area insets. Off for a modal whose margins already clear them. */
+        shouldAddSideSafeAreaPadding?: boolean;
+
         /** After swipe more than threshold modal will close */
         swipeThreshold?: number;
 

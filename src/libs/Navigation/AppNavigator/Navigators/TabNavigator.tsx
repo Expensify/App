@@ -5,6 +5,8 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import MoreMenuStateContext from '@libs/Navigation/MoreMenu/MoreMenuStateContext';
+import type {MoreMenuState} from '@libs/Navigation/MoreMenu/MoreMenuStateContext';
 import {bottomTabScreenLayoutWrapper} from '@libs/Navigation/PlatformStackNavigation/ScreenLayout';
 import type {TabNavigatorParamList} from '@libs/Navigation/types';
 import {getSpan} from '@libs/telemetry/activeSpans';
@@ -14,6 +16,7 @@ import FreezeWrapper from '@navigation/AppNavigator/FreezeWrapper';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 /**
  * Tab Navigator containing Home, Inbox (Reports), Search, Insights, Settings, and Workspaces pages.
@@ -21,7 +24,7 @@ import SCREENS from '@src/SCREENS';
 import type {BottomTabBarProps} from '@react-navigation/bottom-tabs';
 
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import React, {lazy, Suspense, useEffect} from 'react';
+import React, {lazy, Suspense, useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 // Do not lazy load Search navigator for performance reasons
@@ -95,6 +98,12 @@ const TAB_SCREEN_OPTIONS_BASE = {
     freezeOnBlur: true,
 } as const;
 
+/** Holds the state of the More menu of the flat nav bar, which the bar's More tab opens and TabNavigatorBar shows. */
+function MoreMenuStateProvider({children}: ChildrenProps) {
+    const moreMenuState = useState<MoreMenuState>('closed');
+    return <MoreMenuStateContext.Provider value={moreMenuState}>{children}</MoreMenuStateContext.Provider>;
+}
+
 function TabNavigator() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const theme = useTheme();
@@ -107,38 +116,40 @@ function TabNavigator() {
 
     return (
         <NavigatorTabBarVisibilityProvider>
-            <TabRootGestureController />
-            <Tab.Navigator
-                backBehavior="fullHistory"
-                tabBar={renderTabBar}
-                screenOptions={screenOptions}
-                screenLayout={bottomTabScreenLayoutWrapper}
-            >
-                <Tab.Screen
-                    name={SCREENS.HOME}
-                    component={HomePageScreen}
-                />
-                <Tab.Screen
-                    name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
-                    component={ReportsSplitNavigatorScreen}
-                />
-                <Tab.Screen
-                    name={NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}
-                    component={SearchFullscreenNavigator}
-                />
-                <Tab.Screen
-                    name={SCREENS.INSIGHTS}
-                    component={InsightsPageScreen}
-                />
-                <Tab.Screen
-                    name={NAVIGATORS.WORKSPACE_NAVIGATOR}
-                    component={WorkspaceNavigatorScreen}
-                />
-                <Tab.Screen
-                    name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
-                    component={SettingsSplitNavigatorScreen}
-                />
-            </Tab.Navigator>
+            <MoreMenuStateProvider>
+                <TabRootGestureController />
+                <Tab.Navigator
+                    backBehavior="fullHistory"
+                    tabBar={renderTabBar}
+                    screenOptions={screenOptions}
+                    screenLayout={bottomTabScreenLayoutWrapper}
+                >
+                    <Tab.Screen
+                        name={SCREENS.HOME}
+                        component={HomePageScreen}
+                    />
+                    <Tab.Screen
+                        name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
+                        component={ReportsSplitNavigatorScreen}
+                    />
+                    <Tab.Screen
+                        name={NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}
+                        component={SearchFullscreenNavigator}
+                    />
+                    <Tab.Screen
+                        name={SCREENS.INSIGHTS}
+                        component={InsightsPageScreen}
+                    />
+                    <Tab.Screen
+                        name={NAVIGATORS.WORKSPACE_NAVIGATOR}
+                        component={WorkspaceNavigatorScreen}
+                    />
+                    <Tab.Screen
+                        name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
+                        component={SettingsSplitNavigatorScreen}
+                    />
+                </Tab.Navigator>
+            </MoreMenuStateProvider>
         </NavigatorTabBarVisibilityProvider>
     );
 }

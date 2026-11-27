@@ -74,9 +74,10 @@ function TabSelectorContextProvider({children, activeTabKey}: TabSelectorContext
         scrollToTabUtil({tabX, tabWidth, containerRef, ...containerLayoutRef.current});
     };
 
-    // Sync scroll position when the active tab changes externally (e.g. back/forward browser history buttons, not user tap)
+    // Sync scroll position when the active tab changes externally (e.g. back/forward browser history buttons, not user tap).
+    // The first run finds no tab laid out yet, so it only records the tab the row starts on, which the layout callbacks scroll to.
     useEffect(() => {
-        if (!lastScrolledToTab.current || !activeTabKey || activeTabKey === lastScrolledToTab.current) {
+        if (!activeTabKey || activeTabKey === lastScrolledToTab.current) {
             return;
         }
 

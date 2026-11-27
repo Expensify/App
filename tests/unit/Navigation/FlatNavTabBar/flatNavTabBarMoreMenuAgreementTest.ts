@@ -5,6 +5,8 @@ import type {FlatNavSavedSearchItem, FlatNavSection, FlatNavSectionID} from '@li
 import FLAT_NAV_TAB_BAR_SLOT from '@libs/Navigation/FlatNavTabBar/FLAT_NAV_TAB_BAR_SLOT';
 import getFlatNavTabBarSlot from '@libs/Navigation/FlatNavTabBar/getFlatNavTabBarSlot';
 import getMoreMenuItems from '@libs/Navigation/MoreMenu/getMoreMenuItems';
+import getMoreTabItemID from '@libs/Navigation/MoreMenu/getMoreTabItemID';
+import MORE_MENU from '@libs/Navigation/MoreMenu/MORE_MENU';
 import type {SearchKey} from '@libs/SearchKeyUtils';
 import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
 
@@ -69,6 +71,23 @@ describe('flat nav tab bar slot and More menu', () => {
         expect(mismatches).toEqual([]);
     });
 
+    it.each(VISIBILITY_CASES)('should show a More entry in the More item exactly while More is highlighted, with %s', (_description, sections) => {
+        // Given every focused tab and every search the Search page can hold, with the section read from the visible sections
+        const cases = FOCUSED_ROUTES.flatMap((focusedTabRouteName) =>
+            SEARCH_KEYS.map((searchKey) => {
+                const isSearchFocused = focusedTabRouteName === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR;
+                return {focusedTabRouteName, searchKey, activeFlatNavSectionID: isSearchFocused ? getActiveFlatNavItem(sections, searchKey)?.sectionID : undefined};
+            }),
+        );
+
+        // When the slot and the More item are built from the same focus
+        const mismatches = cases.filter((focus) => (getFlatNavTabBarSlot(focus) === FLAT_NAV_TAB_BAR_SLOT.MORE) !== !!getMoreTabItemID(focus));
+
+        // Then the More item shows an entry's glyph only while it is highlighted, so it never keeps a glyph after the user
+        // leaves for an item of its own, and never shows the plain chevron while highlighted
+        expect(mismatches).toEqual([]);
+    });
+
     it('should highlight More with no active entry for an Accounting search the user cannot see', () => {
         // Given a user without the Accounting section on an Accounting search, with the section read from the search key
         // alone, because checking whether Accounting is visible needs the settings of every workspace
@@ -79,8 +98,10 @@ describe('flat nav tab bar slot and More menu', () => {
         const slot = getFlatNavTabBarSlot(focus);
         const activeItems = getMoreMenuItems({...focus, sections}).filter((item) => item.isActive);
 
-        // Then More is highlighted while its menu has no active entry, since the menu does not list Accounting
+        // Then More is highlighted and shows the Accounting glyph, which tells where the user is, while its menu has no
+        // active entry, since the menu does not list Accounting
         expect(slot).toBe(FLAT_NAV_TAB_BAR_SLOT.MORE);
+        expect(getMoreTabItemID(focus)).toBe(MORE_MENU.ITEM.ACCOUNTING);
         expect(activeItems).toEqual([]);
     });
 
@@ -97,8 +118,10 @@ describe('flat nav tab bar slot and More menu', () => {
         const slot = getFlatNavTabBarSlot(focus);
         const activeItems = getMoreMenuItems({...focus, sections}).filter((item) => item.isActive);
 
-        // Then More is highlighted while its menu has no active entry, since the menu leaves out a Saved row that would open nothing
+        // Then More is highlighted and shows the Saved glyph, while its menu has no active entry, since the menu leaves out a
+        // Saved row that would open nothing
         expect(slot).toBe(FLAT_NAV_TAB_BAR_SLOT.MORE);
+        expect(getMoreTabItemID(focus)).toBe(MORE_MENU.ITEM.SAVED);
         expect(activeItems).toEqual([]);
     });
 });

@@ -9,12 +9,11 @@ import type {FlatNavSection} from '@libs/Navigation/FlatNav/types';
 import type FlatNavTabBarFocus from '@libs/Navigation/FlatNavTabBar/FlatNavTabBarFocus';
 
 import type {TranslationPaths} from '@src/languages/types';
-import NAVIGATORS from '@src/NAVIGATORS';
-import SCREENS from '@src/SCREENS';
 
+import type {MoreMenuSectionItemID} from './MORE_MENU';
+
+import getMoreTabItemID from './getMoreTabItemID';
 import MORE_MENU from './MORE_MENU';
-
-type MoreMenuSectionItemID = typeof MORE_MENU.ITEM.ACCOUNTING | typeof MORE_MENU.ITEM.SAVED;
 
 type MoreMenuItemBase = {
     translationPath: TranslationPaths;
@@ -53,13 +52,11 @@ type GetMoreMenuItemsParams = FlatNavTabBarFocus & {
     workspacesDotColor?: string;
 };
 
-const SECTION_ITEM_IDS: readonly MoreMenuSectionItemID[] = [MORE_MENU.ITEM.ACCOUNTING, MORE_MENU.ITEM.SAVED];
-
 function getMoreMenuItems({sections, focusedTabRouteName, activeFlatNavSectionID, workspacesDotColor}: GetMoreMenuItemsParams): MoreMenuItem[] {
-    const activeSectionID = focusedTabRouteName === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR ? activeFlatNavSectionID : undefined;
+    const activeItemID = getMoreTabItemID({focusedTabRouteName, activeFlatNavSectionID});
 
     const items: MoreMenuItem[] = [];
-    for (const id of SECTION_ITEM_IDS) {
+    for (const id of MORE_MENU.SECTION_ITEMS) {
         const section = sections.find((visibleSection) => visibleSection.id === id);
         // Offline, the Saved section stays visible while all its saved searches are pending delete, and none of them can be opened.
         if (!section || !getFlatNavSectionDefaultItem(section)) {
@@ -69,18 +66,18 @@ function getMoreMenuItems({sections, focusedTabRouteName, activeFlatNavSectionID
             id,
             translationPath: section.translationPath,
             iconName: section.iconName,
-            isActive: activeSectionID === id,
+            isActive: activeItemID === id,
             section,
             badgeText: section.badgeText,
         });
     }
     items.push(
-        {id: MORE_MENU.ITEM.INSIGHTS, translationPath: 'common.insights', iconName: 'PieChart', isActive: focusedTabRouteName === SCREENS.INSIGHTS},
+        {id: MORE_MENU.ITEM.INSIGHTS, translationPath: 'common.insights', iconName: MORE_MENU.PAGE_ICON_NAMES.insights, isActive: activeItemID === MORE_MENU.ITEM.INSIGHTS},
         {
             id: MORE_MENU.ITEM.WORKSPACES,
             translationPath: 'common.workspacesTabTitle',
-            iconName: 'Buildings',
-            isActive: focusedTabRouteName === NAVIGATORS.WORKSPACE_NAVIGATOR,
+            iconName: MORE_MENU.PAGE_ICON_NAMES.workspaces,
+            isActive: activeItemID === MORE_MENU.ITEM.WORKSPACES,
             indicatorColor: workspacesDotColor,
         },
     );
