@@ -47,6 +47,9 @@ const ONYXKEYS = {
     /** Whether a semantic modal is covering the product marketing window in this app instance */
     RAM_ONLY_IS_PRODUCT_MARKETING_WINDOW_COVERED: 'isProductMarketingWindowCovered',
 
+    /** Accounts that went through onboarding in this app runtime, used to hide the trial reminder until the next session */
+    RAM_ONLY_TRIAL_REMINDER_FIRST_SESSION_ACCOUNT_IDS: 'trialReminderFirstSessionAccountIDs',
+
     /** Whether the current user can claim or nudge a billing owner about the Early Renewal 2027 offer */
     EARLY_RENEWAL_OFFER_ELIGIBILITY: 'earlyRenewalOfferEligibility',
 
@@ -1866,6 +1869,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.DEVICE_ID]: string;
     [ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED]: boolean;
     [ONYXKEYS.RAM_ONLY_IS_PRODUCT_MARKETING_WINDOW_COVERED]: boolean;
+    [ONYXKEYS.RAM_ONLY_TRIAL_REMINDER_FIRST_SESSION_ACCOUNT_IDS]: Record<number, boolean>;
     [ONYXKEYS.PERSISTED_REQUESTS]: OnyxTypes.AnyRequest[];
     [ONYXKEYS.PERSISTED_ONGOING_REQUESTS]: OnyxTypes.AnyRequest;
     [ONYXKEYS.REQUESTS_KEPT_ON_SAML_SIGN_OUT]: OnyxTypes.RequestsKeptOnSAMLSignOut;
