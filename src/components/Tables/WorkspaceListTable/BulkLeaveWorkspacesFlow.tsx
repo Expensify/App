@@ -88,8 +88,9 @@ function BulkLeaveWorkspacesFlow({selectedRows, policyIDs, onConfirm, onDismiss}
                     return;
                 }
                 queueBulkLeavePolicy(
+                    currentUserPersonalDetails.accountID,
                     userLogin,
-                    rowsToLeave.map((row) => ({id: row.policyID, pendingAction: row.pendingAction})),
+                    rowsToLeave.map((row) => ({id: row.policyID, name: row.title, pendingAction: row.pendingAction})),
                 );
                 onConfirm();
                 if (skippedRows.length === 0) {

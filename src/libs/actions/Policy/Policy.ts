@@ -1816,7 +1816,6 @@ function leaveWorkspace(currentUserAccountID: number, currentUserEmail: string, 
     if (!policy) {
         return;
     }
-    const workspaceChats = ReportUtils.getAllWorkspaceReports(policy.id);
 
     const optimisticData: Array<
         OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS>
@@ -1858,6 +1857,25 @@ function leaveWorkspace(currentUserAccountID: number, currentUserEmail: string, 
             },
         },
     ];
+
+    const reportsOnyxData = getLeaveWorkspaceReportsOnyxData(currentUserAccountID, policy.id, policy.name);
+    optimisticData.push(...reportsOnyxData.optimisticData);
+    successData.push(...reportsOnyxData.successData);
+    failureData.push(...reportsOnyxData.failureData);
+
+    const params: LeavePolicyParams = {
+        policyID: policy.id,
+        email: currentUserEmail,
+    };
+    API.write(WRITE_COMMANDS.LEAVE_POLICY, params, {optimisticData, successData, failureData});
+}
+
+/** Closes and archives the workspace chats the current user loses access to when leaving the workspace */
+function getLeaveWorkspaceReportsOnyxData(currentUserAccountID: number, policyID: string, policyName: string | undefined) {
+    const workspaceChats = ReportUtils.getAllWorkspaceReports(policyID);
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS>> = [];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA>> = [];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS>> = [];
 
     const currentTime = DateUtils.getDBTime();
     const pendingChatMembers = ReportUtils.getPendingChatMembers([currentUserAccountID], [], CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
@@ -1909,7 +1927,7 @@ function leaveWorkspace(currentUserAccountID: number, currentUserEmail: string, 
                     value: {
                         statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                         stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                        oldPolicyName: policy?.name ?? '',
+                        oldPolicyName: policyName ?? '',
                         isPinned: false,
                     },
                 },
@@ -1954,16 +1972,16 @@ function leaveWorkspace(currentUserAccountID: number, currentUserEmail: string, 
         }
     }
 
-    const params: LeavePolicyParams = {
-        policyID: policy.id,
-        email: currentUserEmail,
-    };
-    API.write(WRITE_COMMANDS.LEAVE_POLICY, params, {optimisticData, successData, failureData});
+    return {optimisticData, successData, failureData};
 }
 
-function queueBulkLeavePolicy(currentUserEmail: string, policies: Array<Pick<Policy, 'id' | 'pendingAction'>>) {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [];
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [];
+function queueBulkLeavePolicy(currentUserAccountID: number, currentUserEmail: string, policies: Array<Pick<Policy, 'id' | 'name' | 'pendingAction'>>) {
+    const optimisticData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS>
+    > = [];
+    const failureData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS>
+    > = [];
 
     for (const policy of policies) {
         const key = `${ONYXKEYS.COLLECTION.POLICY}${policy.id}` as const;
@@ -1991,6 +2009,10 @@ function queueBulkLeavePolicy(currentUserEmail: string, policies: Array<Pick<Pol
                 },
             },
         });
+
+        const reportsOnyxData = getLeaveWorkspaceReportsOnyxData(currentUserAccountID, policy.id, policy.name);
+        optimisticData.push(...reportsOnyxData.optimisticData);
+        failureData.push(...reportsOnyxData.failureData);
     }
 
     const params: QueueBulkLeavePolicyParams = {policyIDList: policies.map((policy) => policy.id).join(',')};

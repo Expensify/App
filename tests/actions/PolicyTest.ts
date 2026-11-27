@@ -9698,7 +9698,7 @@ describe('actions/Policy', () => {
             mockFetch?.pause?.();
 
             // When the user leaves both at once
-            Policy.queueBulkLeavePolicy(ESH_EMAIL, [firstPolicy, secondPolicy]);
+            Policy.queueBulkLeavePolicy(ESH_ACCOUNT_ID, ESH_EMAIL, [firstPolicy, secondPolicy]);
             await waitForBatchedUpdates();
 
             // Then both show as pending removal while the request is queued
@@ -9719,13 +9719,53 @@ describe('actions/Policy', () => {
 
             // When leaving it fails
             mockFetch?.fail?.();
-            Policy.queueBulkLeavePolicy(ESH_EMAIL, [policy]);
+            Policy.queueBulkLeavePolicy(ESH_ACCOUNT_ID, ESH_EMAIL, [policy]);
             await waitForBatchedUpdates();
 
             // Then the workspace is no longer pending removal and the user sees why
             const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
             expect(updatedPolicy?.pendingAction).toBeFalsy();
             expect(updatedPolicy?.employeeList?.[ESH_EMAIL]?.errors).toBeTruthy();
+        });
+
+        it('archives the workspace chats optimistically, like leaving a single workspace', async () => {
+            // Given a workspace with a chat the user keeps after leaving
+            const policy: PolicyType = {...createRandomPolicy(6, CONST.POLICY.TYPE.TEAM), id: 'bulkLeaveChats', name: WORKSPACE_NAME, pendingAction: null};
+            const workspaceChat: Report = {...createRandomReport(200, undefined), reportID: '200', policyID: policy.id, type: CONST.REPORT.TYPE.CHAT, isPinned: true};
+            const getAllWorkspaceReportsSpy = jest.spyOn(ReportUtils, 'getAllWorkspaceReports').mockReturnValue([workspaceChat]);
+            const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
+
+            // When the user leaves it with the bulk action
+            Policy.queueBulkLeavePolicy(ESH_ACCOUNT_ID, ESH_EMAIL, [policy]);
+            await waitForBatchedUpdates();
+
+            // Then the chat is closed, unpinned and archived before the queued job runs, so it doesn't linger in the LHN
+            const writeOptions = requireRecord(requireCallArgument(apiWriteSpy.mock.calls.at(0), 2));
+            expect(writeOptions?.optimisticData).toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({
+                        key: `${ONYXKEYS.COLLECTION.REPORT}${workspaceChat.reportID}`,
+                        value: expect.objectContaining({statusNum: CONST.REPORT.STATUS_NUM.CLOSED, oldPolicyName: WORKSPACE_NAME, isPinned: false}),
+                    }),
+                    expect.objectContaining({
+                        key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${workspaceChat.reportID}`,
+                        value: expect.objectContaining({private_isArchived: expect.any(String) as unknown}),
+                    }),
+                ]),
+            );
+
+            // And the archive is undone if the request fails
+            expect(writeOptions?.failureData).toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({
+                        key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${workspaceChat.reportID}`,
+                        value: {private_isArchived: null},
+                    }),
+                ]),
+            );
+
+            apiWriteSpy.mockRestore();
+            getAllWorkspaceReportsSpy.mockRestore();
         });
     });
 
