@@ -185,5 +185,4 @@ function useSharedGroupSelectionTotal(): SharedGroupSelectionTotal {
 }
 
 export default SharedGroupSelectionTotalProvider;
-export {getSharedGroupSelection, useSharedGroupSelectionTotal};
-export type {SharedGroupSelection, SharedGroupSelectionTotal};
+export {useSharedGroupSelectionTotal};
