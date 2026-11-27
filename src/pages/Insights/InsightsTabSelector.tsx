@@ -38,6 +38,7 @@ function InsightsTabSelector({activeDashboardID, dashboardIDs}: InsightsTabSelec
             tabButtonStyles={styles.ph6}
             tabs={tabs}
             activeTabKey={activeDashboardID}
+            itemGroupAccessibilityLabel={translate('common.insights')}
             onTabPress={(dashboardID) => Navigation.navigate(ROUTES.INSIGHTS.getRoute(dashboardID))}
         />
     );
