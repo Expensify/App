@@ -242,6 +242,21 @@ describe('useAskConcierge', () => {
             expect(mockAddComment).not.toHaveBeenCalled();
         });
 
+        it('expands the main pane history for a `[] task` on native, where Concierge opens in the main pane', async () => {
+            // Given native, where Concierge opens as its own page instead of in the side panel
+            mockIsInSidePanel = false;
+            await seedReports();
+            mockCreateTaskFromMarkdown.mockReturnValueOnce(true);
+            const {result} = renderAskConcierge({forceConcierge: true});
+
+            // When the shorthand is sent
+            result.current.askConcierge('[] Buy milk');
+
+            // Then the main pane history is expanded so the task shows where Concierge opens
+            expect(mockUseConciergeChatHistoryActions).toHaveBeenLastCalledWith(false);
+            expect(mockSetShowFullHistory).toHaveBeenCalledWith(true);
+        });
+
         it('falls back to a comment when the text is not the task shorthand', async () => {
             // Given a loaded Concierge report and text the markdown task detection does not claim
             await seedReports();

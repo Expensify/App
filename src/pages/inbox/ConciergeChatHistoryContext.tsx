@@ -59,7 +59,13 @@ function ConciergeChatHistoryProvider({children}: PropsWithChildren) {
     const [historyByPane, setHistoryByPane] = useState(DEFAULT_HISTORY_BY_PANE);
 
     const setShowFullHistory = (pane: ConciergeChatHistoryPane, show: boolean) => {
-        setHistoryByPane((previous) => ({...previous, [pane]: {showFullHistory: show, isHistoryCollapsedByUser: !show}}));
+        setHistoryByPane((previous) => {
+            // Keep the same state object so neither pane rerenders when nothing changed.
+            if (previous[pane].showFullHistory === show && previous[pane].isHistoryCollapsedByUser === !show) {
+                return previous;
+            }
+            return {...previous, [pane]: {showFullHistory: show, isHistoryCollapsedByUser: !show}};
+        });
     };
 
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
