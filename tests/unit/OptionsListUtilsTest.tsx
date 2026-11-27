@@ -7502,6 +7502,7 @@ describe('OptionsListUtils', () => {
 
                 // When the option is built from it
                 const option = createOptionFromReport({
+                    lastActions: undefined,
                     dateFnsLocale: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
@@ -7532,6 +7533,7 @@ describe('OptionsListUtils', () => {
                     EMPTY_PRIVATE_IS_ARCHIVED_MAP,
                     undefined,
                     {
+                        lastActions: undefined,
                         currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                         dateFnsLocale: undefined,
                         convertToDisplayString,
@@ -7553,6 +7555,7 @@ describe('OptionsListUtils', () => {
                     undefined,
                     {
                         getReportByID: () => undefined,
+                        lastActions: undefined,
                         dateFnsLocale: undefined,
                         convertToDisplayString,
                         showChatPreviewLine: true,
