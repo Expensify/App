@@ -12,6 +12,6 @@
     The field is only read by the SwiftPM tooling, so the patch has no effect on the CocoaPods build.
     ```
 
-- Upstream PR/issue: 🛑 TODO
+- Upstream PR/issue: https://github.com/gre/react-native-view-shot/pull/777
 - E/App issue: https://github.com/Expensify/App/issues/96908
 - PR introducing patch: 🛑 TODO
