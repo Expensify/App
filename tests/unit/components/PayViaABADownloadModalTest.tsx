@@ -72,6 +72,23 @@ describe('PayViaABADownloadModal', () => {
         expect(screen.getByText('iou.successABAFile\n\niou.submittersMissingABADepositAccount')).toBeOnTheScreen();
     });
 
+    it('tells the user when some reports had nothing to pay, alongside any submitters without an AUD bank account', async () => {
+        // Given an ABA file that is still being generated
+        const {promise, resolve} = Promise.withResolvers<PayViaABAResult>();
+        renderModal(promise);
+
+        // When it arrives without one report whose submitter has no AUD bank account and another with nothing to pay
+        await act(async () =>
+            resolve({
+                abaFile,
+                skippedReportIDs: {[CONST.ABA_SKIPPED_REPORT_REASON.MISSING_DEPOSIT_ACCOUNT]: ['456'], [CONST.ABA_SKIPPED_REPORT_REASON.NOTHING_TO_PAY]: ['789']},
+            }),
+        );
+
+        // Then the user is told about both, so they know why each report was left out of the file
+        expect(screen.getByText('iou.successABAFile\n\niou.submittersMissingABADepositAccount\n\niou.reportsWithNothingToPayViaABA')).toBeOnTheScreen();
+    });
+
     it("tells the user why the ABA file couldn't be generated", async () => {
         // Given an ABA file the backend refuses to generate
         const {promise, reject} = Promise.withResolvers<PayViaABAResult>();

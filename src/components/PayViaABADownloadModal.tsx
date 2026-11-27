@@ -64,10 +64,15 @@ function PayViaABADownloadModal({abaFileRequest, getDownloadFailedMessage, close
         if (!abaFile) {
             return translate('iou.waitForABAFile');
         }
-        if (payViaABAResult?.skippedReportIDs[CONST.ABA_SKIPPED_REPORT_REASON.MISSING_DEPOSIT_ACCOUNT]?.length) {
-            return `${translate('iou.successABAFile')}\n\n${translate('iou.submittersMissingABADepositAccount')}`;
+        const skippedReportIDs = payViaABAResult?.skippedReportIDs;
+        const paragraphs = [translate('iou.successABAFile')];
+        if (skippedReportIDs?.[CONST.ABA_SKIPPED_REPORT_REASON.MISSING_DEPOSIT_ACCOUNT]?.length) {
+            paragraphs.push(translate('iou.submittersMissingABADepositAccount'));
         }
-        return translate('iou.successABAFile');
+        if (skippedReportIDs?.[CONST.ABA_SKIPPED_REPORT_REASON.NOTHING_TO_PAY]?.length) {
+            paragraphs.push(translate('iou.reportsWithNothingToPayViaABA'));
+        }
+        return paragraphs.join('\n\n');
     })();
 
     return (

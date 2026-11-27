@@ -1837,6 +1837,7 @@ const translations = {
         successABAFile: "Your ABA file has been generated! If it didn't automatically download, use the button below.",
         missingABADepositAccount: ({name}: {name: string}) => `${name} doesn't have an AUD bank account. Please ask them to add one and try again.`,
         submittersMissingABADepositAccount: "One or more submitters don't have an AUD bank account. Please ask them to add one and try again.",
+        reportsWithNothingToPayViaABA: "One or more reports have nothing to pay, so they weren't included in the ABA file.",
         confirmPaymentReceivedModalTitle: 'Confirm payment received',
         receivedPayment: 'Received payment',
         receivedPaymentReportAction: (payer?: string) => `${payer ? `${payer} ` : ''}received payment`,
