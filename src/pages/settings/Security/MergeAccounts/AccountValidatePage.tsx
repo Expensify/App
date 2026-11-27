@@ -8,6 +8,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
+import useRedirectToPendingDomainAccountMergeRequest from '@hooks/useRedirectToPendingDomainAccountMergeRequest';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
@@ -105,6 +106,8 @@ function AccountValidatePage() {
     const mergeWithValidateCode = account?.mergeWithValidateCode;
     const getValidateCodeForAccountMerge = account?.getValidateCodeForAccountMerge;
 
+    const pendingDomainAccountMergeRequest = useRedirectToPendingDomainAccountMergeRequest();
+
     const isAccountMerged = mergeWithValidateCode?.isAccountMerged;
 
     const latestError = getLatestErrorMessage(mergeWithValidateCode);
@@ -114,7 +117,8 @@ function AccountValidatePage() {
     const {translate} = useLocalize();
 
     useFocusEffect(() => {
-        if (!isAccountMerged || !email) {
+        // A domain-controlled merge returns 200 with a pending request, so skip the success redirect and let the pending screen win.
+        if (pendingDomainAccountMergeRequest || !isAccountMerged || !email) {
             return;
         }
         return Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(email, 'success'), {forceReplace: true});
@@ -187,7 +191,7 @@ function AccountValidatePage() {
                     }
                     descriptionSecondaryStyles={styles.mb8}
                     handleSubmitForm={(code) => {
-                        mergeWithValidateCodeAction(email, code);
+                        mergeWithValidateCodeAction(email, code, countryCode);
                     }}
                     sendValidateCode={() => {
                         requestValidationCodeForAccountMerge(email, true, countryCode);

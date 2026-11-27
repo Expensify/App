@@ -59,7 +59,7 @@ function InsightsAICardRow({insights, insightsScope, hasFailedToLoad}: InsightsA
     const cardsPerRow = isMediumScreenWidth ? CARDS_PER_ROW_ON_MEDIUM_SCREEN : MAX_CARD_COUNT;
     const reservedRowCount = shouldUseNarrowLayout ? 1 : Math.ceil(MAX_CARD_COUNT / cardsPerRow);
 
-    // Reserve the maximum card layout before its copy arrives. Taller content can still grow.
+    // While loading, reserve the tallest card layout so the loader does not grow when long insights arrive. Loaded cards take their own height to keep the designed spacing.
     const reservedCardHeight =
         styles.defaultBadge.minHeight +
         styles.gap2.gap +
@@ -69,7 +69,9 @@ function InsightsAICardRow({insights, insightsScope, hasFailedToLoad}: InsightsA
         styles.gap5.gap +
         variables.componentSizeSmall;
     const reservedCardsHeight =
-        reservedCardHeight * reservedRowCount + styles.gap8.gap * (reservedRowCount - 1) + 2 * (shouldUseNarrowLayout ? styles.pv5.paddingVertical : styles.pv10.paddingVertical);
+        reservedCardHeight * reservedRowCount +
+        styles.gap8.gap * (reservedRowCount - 1) +
+        (shouldUseNarrowLayout ? styles.pt5.paddingTop + styles.pb7.paddingBottom : 2 * styles.pv5.paddingVertical);
     const reservedLoaderHeight =
         variables.insightsAILoadingAnimationSize +
         styles.mb4.marginBottom +
@@ -137,7 +139,7 @@ function InsightsAICardRow({insights, insightsScope, hasFailedToLoad}: InsightsA
             <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={hasHoverSupport()}
-                style={[pageGutterEdgeToEdge, styles.pv5, reservedHeightStyle]}
+                style={[pageGutterEdgeToEdge, styles.pt5, styles.pb7]}
                 contentContainerStyle={pageGutter}
             >
                 {cards.map((card, index) => renderSlot(card, index, styles.insightsAICard))}
@@ -148,7 +150,7 @@ function InsightsAICardRow({insights, insightsScope, hasFailedToLoad}: InsightsA
     const rows = Array.from({length: Math.ceil(cards.length / cardsPerRow)}, (row, rowIndex) => cards.slice(rowIndex * cardsPerRow, (rowIndex + 1) * cardsPerRow));
 
     return (
-        <View style={[styles.pv10, styles.gap8, reservedHeightStyle, styles.justifyContentCenter]}>
+        <View style={[styles.pv5, styles.gap8]}>
             {rows.map((row, rowIndex) => (
                 <View
                     key={row.at(0)?.key}

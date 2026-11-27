@@ -113,7 +113,7 @@ function DynamicIOURequestStepCompanyInfo({route, report, transaction}: DynamicI
         const draftTransactionIDs = validTransactionDraftIDsSelector(transactionDrafts);
         sendInvoice({
             getCurrencyDecimals,
-            currentUserAccountID: currentUserPersonalDetails.accountID,
+            currentUserPersonalDetails,
             transaction,
             policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
             invoiceChatReport: report,
