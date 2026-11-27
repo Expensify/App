@@ -9,6 +9,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import CONST from '@src/CONST';
 
+import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports -- type-only import from react-native
 import type {LayoutChangeEvent, ScrollView as RNScrollView, StyleProp, ViewStyle} from 'react-native';
 
@@ -39,7 +40,7 @@ function useScrollableWrapper({shouldUseScrollView: shouldUseScrollViewProp = fa
         addOfflineIndicatorBottomSafeAreaPadding: false,
     });
 
-    const scrollViewRef = useRef<RNScrollView>(null);
+    const scrollViewRef = useRef<ComponentRef<typeof RNScrollView>>(null);
     const [containerHeight, setContainerHeight] = useState(0);
     const [contentHeight, setContentHeight] = useState(0);
 
