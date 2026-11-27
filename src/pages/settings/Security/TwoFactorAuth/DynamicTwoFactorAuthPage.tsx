@@ -7,6 +7,7 @@ import RenderHTML from '@components/RenderHTML';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import ValidateCodeActionForm from '@components/ValidateCodeActionForm';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -22,9 +23,11 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TwoFactorAuthNavigatorParamList} from '@libs/Navigation/types';
+import {getContactMethod} from '@libs/UserUtils';
 
-import {toggleTwoFactorAuth} from '@userActions/Session';
-import {quitAndNavigateBack, setCodesAreCopied} from '@userActions/TwoFactorAuthActions';
+import {clearAccountMessages, toggleTwoFactorAuth} from '@userActions/Session';
+import {getEnteredSecurityCode, quitAndNavigateBack, setCodesAreCopied, setEnteredSecurityCode} from '@userActions/TwoFactorAuthActions';
+import {requestValidateCodeAction} from '@userActions/User';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -32,6 +35,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import {CommonActions, useIsFocused} from '@react-navigation/native';
+import {emailSelector} from '@selectors/Session';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -64,6 +68,11 @@ function DynamicTwoFactorAuthPage({navigation, route}: DynamicTwoFactorAuthPageP
     };
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
+
+    // Kept when the user comes back to this page from the verify step, so they don't have to enter the code again
+    const [securityCode, setSecurityCode] = useState(getEnteredSecurityCode);
+
     // EnableTwoFactorAuth mints a new secret on every call. Guard the in-flight request so a focus
     // flicker before recovery codes land cannot send a second Toggle and invalidate the first QR code.
     const hasRequestedEnableRef = useRef(false);
@@ -143,6 +152,11 @@ function DynamicTwoFactorAuthPage({navigation, route}: DynamicTwoFactorAuthPageP
             return;
         }
 
+        // Wait for the security code, so the setup emails it before creating the secret and recovery codes
+        if (!securityCode) {
+            return;
+        }
+
         if (hasRequestedEnableRef.current) {
             return;
         }
@@ -154,15 +168,44 @@ function DynamicTwoFactorAuthPage({navigation, route}: DynamicTwoFactorAuthPageP
         // Without it the page would keep rendering an empty codes box with no way to continue. The `is2FAEnabled`
         // guard above keeps this re-run from enabling 2FA a second time.
         // eslint-disable-next-line react-hooks/exhaustive-deps -- We want to run this when component mounts
-    }, [isUserValidated, isFocused, is2FAEnabled, is2FASetupInProgress, recoveryCodes]);
+    }, [isUserValidated, isFocused, is2FAEnabled, is2FASetupInProgress, recoveryCodes, securityCode]);
+
+    // The server only turns on 2FA when it also gets a security code emailed to the account, so someone with a stolen session
+    // can't lock the owner out. The server checks this code on the verify step, together with the authenticator code. It is
+    // asked for first because the authenticator code expires within a minute and checking email can take longer.
+    if (isUserValidated && !is2FAEnabled && !securityCode) {
+        return (
+            <TwoFactorAuthWrapper
+                title={translate('twoFactorAuth.headerTitle')}
+                stepCounter={{
+                    step: 1,
+                    text: translate('common.securityCode'),
+                    total: 3,
+                }}
+                stepName={CONST.TWO_FACTOR_AUTH_STEPS.COPY_CODES}
+                onBackButtonPress={() => quitAndNavigateBack(is2FAEnabled, backPath)}
+            >
+                <ValidateCodeActionForm
+                    descriptionPrimary={translate('twoFactorAuth.enterSecurityCode', getContactMethod(account?.primaryLogin, sessionEmail))}
+                    sendValidateCode={() => requestValidateCodeAction({reasonCode: CONST.ENABLE_TWO_FACTOR_AUTH_VALIDATE_CODE_REASON})}
+                    handleSubmitForm={(code) => {
+                        setEnteredSecurityCode(code);
+                        setSecurityCode(code);
+                    }}
+                    clearError={clearAccountMessages}
+                    submitButtonText={translate('common.next')}
+                />
+            </TwoFactorAuthWrapper>
+        );
+    }
 
     return (
         <TwoFactorAuthWrapper
             title={translate('twoFactorAuth.headerTitle')}
             stepCounter={{
-                step: 1,
+                step: 2,
                 text: translate('twoFactorAuth.stepCodes'),
-                total: 2,
+                total: 3,
             }}
             shouldEnableKeyboardAvoidingView={false}
             stepName={CONST.TWO_FACTOR_AUTH_STEPS.COPY_CODES}

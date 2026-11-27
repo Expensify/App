@@ -2721,6 +2721,8 @@ const translations: TranslationDeepObject<typeof en> = {
         `),
         errorStepCodes: '请在继续之前复制或下载这些代码',
         stepVerify: '验证',
+        enterSecurityCode: (contactMethod: string) => `请输入发送到 ${contactMethod} 的安全验证码，以设置双重验证。验证码应在一两分钟内到达。`,
+        securityCodeRejected: '该安全码无效，我们已向你发送了新的安全码。',
         scanCode: '使用你的 扫描二维码',
         authenticatorApp: '身份验证器应用',
         addKey: '或者将此密钥添加到你的验证器应用：',

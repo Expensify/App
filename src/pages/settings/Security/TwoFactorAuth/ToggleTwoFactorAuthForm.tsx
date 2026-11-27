@@ -22,6 +22,12 @@ type BaseTwoFactorAuthFormProps = {
      */
     validateInsteadOfDisable?: boolean;
 
+    /** Security code emailed to the account, sent along with the authenticator code when setting up 2FA */
+    validateCode?: string;
+
+    /** Called when the server rejects the security code, so the page can ask for a new one */
+    onInvalidValidateCode?: () => void;
+
     /** Callback that is called when the text input is focused */
     onFocus?: () => void;
 
@@ -31,7 +37,7 @@ type BaseTwoFactorAuthFormProps = {
     ref: Ref<BaseTwoFactorAuthFormRef>;
 };
 
-function ToggleTwoFactorAuthForm({validateInsteadOfDisable, onFocus, shouldAutoFocusOnMobile = true, ref}: BaseTwoFactorAuthFormProps) {
+function ToggleTwoFactorAuthForm({validateInsteadOfDisable, validateCode, onInvalidValidateCode, onFocus, shouldAutoFocusOnMobile = true, ref}: BaseTwoFactorAuthFormProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasCompletedGuidedSetupFlowSelector});
     const shouldKeepTwoFactorAuthFlowOpen = AccountUtils.isForced2FAOnboardingSetup(account, !!hasCompletedGuidedSetupFlow);
@@ -50,7 +56,7 @@ function ToggleTwoFactorAuthForm({validateInsteadOfDisable, onFocus, shouldAutoF
 
     const handleSubmit = (code: string) => {
         if (validateInsteadOfDisable !== false) {
-            validateTwoFactorAuth(code, shouldClearData, {shouldKeepTwoFactorAuthFlowOpen});
+            validateTwoFactorAuth(code, shouldClearData, {shouldKeepTwoFactorAuthFlowOpen, validateCode, onInvalidValidateCode});
             return;
         }
         toggleTwoFactorAuth(false, code);

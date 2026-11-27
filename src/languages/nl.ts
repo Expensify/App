@@ -2816,6 +2816,9 @@ const translations: TranslationDeepObject<typeof en> = {
         `),
         errorStepCodes: 'Kopieer of download de codes voordat je verdergaat',
         stepVerify: 'Verifiëren',
+        enterSecurityCode: (contactMethod: string) =>
+            `Vul de beveiligingscode in die naar ${contactMethod} is gestuurd om tweefactorauthenticatie in te stellen. Die zou binnen een of twee minuten moeten aankomen.`,
+        securityCodeRejected: 'Die beveiligingscode werkte niet, dus we hebben je een nieuwe gestuurd.',
         scanCode: 'Scan de QR-code met je',
         authenticatorApp: 'authenticator-app',
         addKey: 'Of voeg deze geheime sleutel toe aan je authenticator-app:',

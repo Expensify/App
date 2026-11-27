@@ -997,6 +997,47 @@ describe('Session', () => {
             makeRequestSpy.mockRestore();
         });
 
+        test('sends the emailed security code with the authenticator code', () => {
+            // Given a user who entered the security code emailed to them before entering the authenticator code
+            const makeRequestSpy = jest.spyOn(API, 'makeRequestWithSideEffects').mockResolvedValue(undefined);
+
+            // When the user submits the authenticator code
+            SessionUtil.validateTwoFactorAuth('123456', false, {validateCode: '654321'});
+
+            // Then both codes are sent, so the server can confirm the person turning on 2FA also controls the account's email
+            expect(makeRequestSpy).toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.TWO_FACTOR_AUTH_VALIDATE, {twoFactorAuthCode: '123456', validateCode: '654321'}, expect.any(Object));
+
+            makeRequestSpy.mockRestore();
+        });
+
+        test('asks for the security code again only when the server rejects the security code', async () => {
+            // Given the server rejects the security code, after it already accepted the authenticator code
+            const makeRequestSpy = jest
+                .spyOn(API, 'makeRequestWithSideEffects')
+                .mockResolvedValue({jsonCode: CONST.JSON_CODE.INCORRECT_VALIDATE_CODE, message: 'Incorrect or invalid security code. Please try again or request a new code.'});
+            const onInvalidValidateCode = jest.fn();
+
+            // When the user submits both codes
+            SessionUtil.validateTwoFactorAuth('123456', false, {validateCode: '654321', onInvalidValidateCode});
+            await waitForBatchedUpdates();
+
+            // Then the page is told to ask for a new security code, because retrying with the same one can't succeed
+            expect(onInvalidValidateCode).toHaveBeenCalledTimes(1);
+
+            // Given the server rejects the authenticator code instead
+            makeRequestSpy.mockResolvedValue({jsonCode: 402, message: 'Invalid code'});
+            onInvalidValidateCode.mockClear();
+
+            // When the user submits both codes
+            SessionUtil.validateTwoFactorAuth('111111', false, {validateCode: '654321', onInvalidValidateCode});
+            await waitForBatchedUpdates();
+
+            // Then the security code is kept, since the server checks the authenticator code first and doesn't use up the security code
+            expect(onInvalidValidateCode).not.toHaveBeenCalled();
+
+            makeRequestSpy.mockRestore();
+        });
+
         test('forced onboarding path updates auth token before clearing Onyx without openApp', async () => {
             // Given a user completing forced-onboarding 2FA while the success screen remains open.
             const makeRequestSpy = jest.spyOn(API, 'makeRequestWithSideEffects').mockResolvedValue({

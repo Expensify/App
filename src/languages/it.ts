@@ -2818,6 +2818,9 @@ const translations: TranslationDeepObject<typeof en> = {
         `),
         errorStepCodes: 'Copia o scarica i codici prima di continuare',
         stepVerify: 'Verifica',
+        enterSecurityCode: (contactMethod: string) =>
+            `Inserisci il codice di sicurezza inviato a ${contactMethod} per configurare l’autenticazione a due fattori. Dovrebbe arrivare entro uno o due minuti.`,
+        securityCodeRejected: 'Quel codice di sicurezza non ha funzionato, quindi te ne abbiamo inviato uno nuovo.',
         scanCode: 'Scansiona il codice QR usando il tuo',
         authenticatorApp: 'app di autenticazione',
         addKey: 'Oppure aggiungi questa chiave segreta alla tua app di autenticazione:',
