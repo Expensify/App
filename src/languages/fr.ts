@@ -10104,6 +10104,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Les dépenses hors poche seront exportées une fois payées',
                 },
             },
+            autoCreateVendor: 'Créer automatiquement des fournisseurs',
+            autoCreateVendorDescription: "Expensify créera automatiquement des fournisseurs dans Campfire s'ils n'existent pas déjà.",
             syncReimbursedReports: 'Synchroniser les notes de frais remboursées',
             syncReimbursedReportsDescription: 'Lorsqu’une note de frais est payée par virement ACH, un paiement de facture sera généré sur ce compte.',
             billPaymentAccount: {

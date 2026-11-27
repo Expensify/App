@@ -10236,6 +10236,8 @@ ${reportName}`,
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Οι εκτός τσέπης δαπάνες θα εξαχθούν όταν πληρωθούν',
                 },
             },
+            autoCreateVendor: 'Αυτόματη δημιουργία προμηθευτών',
+            autoCreateVendorDescription: 'Η Expensify θα δημιουργεί αυτόματα προμηθευτές στο Campfire, αν δεν υπάρχουν ήδη.',
             syncReimbursedReports: 'Συγχρονισμός αποζημιωμένων αναφορών',
             syncReimbursedReportsDescription: 'Όταν μια αναφορά πληρωθεί μέσω ACH, θα δημιουργηθεί μια πληρωμή λογαριασμού σε αυτόν τον λογαριασμό.',
             billPaymentAccount: {
