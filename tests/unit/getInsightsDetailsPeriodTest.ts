@@ -18,7 +18,7 @@ describe('getInsightsDetailsPeriod', () => {
         const filters: InsightsFilters = {...BASE_FILTERS, date: {preset}, groupBy: CONST.SEARCH.GROUP_BY.DAY};
 
         // When a point on a ranking graph opens the Details panel
-        const period = getInsightsDetailsPeriod(filters, CONST.INSIGHTS.GRAPH.TOP_MERCHANTS);
+        const period = getInsightsDetailsPeriod(filters, CONST.SEARCH.GROUP_BY.MERCHANT);
 
         // Then the panel works in the preset's own period, since the whole range is that one period
         expect(period).toBe(expectedPeriod);
@@ -36,7 +36,7 @@ describe('getInsightsDetailsPeriod', () => {
         const filters: InsightsFilters = {...BASE_FILTERS, date: {preset}, groupBy: CONST.SEARCH.GROUP_BY.WEEK};
 
         // When a point on a ranking graph opens the Details panel
-        const period = getInsightsDetailsPeriod(filters, CONST.INSIGHTS.GRAPH.TOP_SPENDERS);
+        const period = getInsightsDetailsPeriod(filters, CONST.SEARCH.GROUP_BY.FROM);
 
         // Then the panel follows Group by, since these ranges have no single period of their own
         expect(period).toBe(CONST.SEARCH.GROUP_BY.WEEK);
@@ -47,7 +47,7 @@ describe('getInsightsDetailsPeriod', () => {
         const filters: InsightsFilters = {...BASE_FILTERS, date: {from: '2026-01-01', to: '2026-06-30'}, groupBy: CONST.SEARCH.GROUP_BY.MONTH};
 
         // When a point on a ranking graph opens the Details panel
-        const period = getInsightsDetailsPeriod(filters, CONST.INSIGHTS.GRAPH.TOP_CATEGORIES);
+        const period = getInsightsDetailsPeriod(filters, CONST.SEARCH.GROUP_BY.CATEGORY);
 
         // Then the panel follows Group by, since a custom range has no period of its own
         expect(period).toBe(CONST.SEARCH.GROUP_BY.MONTH);
@@ -58,7 +58,7 @@ describe('getInsightsDetailsPeriod', () => {
         const filters: InsightsFilters = {...BASE_FILTERS, date: {on: '2026-03-15'}};
 
         // When a point on a ranking graph opens the Details panel
-        const period = getInsightsDetailsPeriod(filters, CONST.INSIGHTS.GRAPH.TOP_MERCHANTS);
+        const period = getInsightsDetailsPeriod(filters, CONST.SEARCH.GROUP_BY.MERCHANT);
 
         // Then the panel works in days, the only period a single date fits
         expect(period).toBe(CONST.SEARCH.GROUP_BY.DAY);
@@ -69,7 +69,7 @@ describe('getInsightsDetailsPeriod', () => {
         const filters: InsightsFilters = {...BASE_FILTERS, date: {preset: CONST.SEARCH.DATE_PRESETS.LAST_MONTH}, groupBy: CONST.SEARCH.GROUP_BY.WEEK};
 
         // When a point on Spend over time opens the Details panel
-        const period = getInsightsDetailsPeriod(filters, CONST.INSIGHTS.GRAPH.SPEND_OVER_TIME);
+        const period = getInsightsDetailsPeriod(filters, undefined);
 
         // Then the panel works in the clicked point's period, a week, not the month the preset covers
         expect(period).toBe(CONST.SEARCH.GROUP_BY.WEEK);

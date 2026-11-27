@@ -5,6 +5,7 @@ import type {SearchGroupBy} from '@components/Search/types';
 import DateUtils from '@libs/DateUtils';
 import {hashText} from '@libs/UserUtils';
 
+import type {InsightsViolationStage} from '@pages/Insights/dashboardSpecs';
 import getInsightsDateRange from '@pages/Insights/getInsightsDateRange';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
 import type {InsightsTimeGroupBy} from '@pages/Insights/insightsGroupByUtils';
@@ -25,6 +26,10 @@ const SUPPORTED_GRAPH_KEYS = new Set<InsightsGraphKey>([
     CONST.INSIGHTS.GRAPH.TOP_MERCHANTS,
     CONST.INSIGHTS.GRAPH.TOP_CATEGORIES,
     CONST.INSIGHTS.GRAPH.TOP_SPENDERS,
+    CONST.INSIGHTS.GRAPH.VIOLATIONS_OVER_TIME,
+    CONST.INSIGHTS.GRAPH.TOP_VIOLATIONS,
+    CONST.INSIGHTS.GRAPH.VIOLATIONS_BY_SUBMITTER,
+    CONST.INSIGHTS.GRAPH.VIOLATIONS_BY_APPROVER,
 ]);
 
 type InsightsDetailsQuery = {
@@ -42,6 +47,9 @@ type InsightsDetailsQuery = {
 
     /** Whether the summarized period is a day, week, month, quarter or year, which is also what the average is counted in */
     periodGroupBy: InsightsTimeGroupBy;
+
+    /** Whether the clicked point is a period on a graph over time, rather than an item on a ranking graph */
+    isPeriodItem: boolean;
 
     /** Whether the period hasn't ended yet, so its spend may still grow */
     isPeriodInProgress: boolean;
@@ -65,6 +73,9 @@ type BuildInsightsDetailsQueryParams = {
 
     /** Last day the dashboard counts expenses through, as yyyy-MM-dd */
     lastDay: string;
+
+    /** Whether a Compliance graph counts violations at submission or approval */
+    violationStage: InsightsViolationStage | undefined;
 };
 
 /** Returns the calendar day, week, month, quarter or year that contains the date, or undefined when the date doesn't fall in a real month, quarter or year. */
@@ -85,16 +96,16 @@ function getCalendarPeriod(groupBy: InsightsTimeGroupBy, date: string): ChartPer
     }
 }
 
-/** Returns the period the panel summarizes: the clicked one on Spend over time, the last one in the Date range on ranking graphs. */
+/** Returns the period the panel summarizes: the clicked one on graphs over time, the last one in the Date range on ranking graphs. */
 function getSummarizedPeriod({
-    graphKey,
+    itemGroupBy,
     filters,
     itemKey,
     periodEnd,
     lastDay,
     periodGroupBy,
-}: Pick<BuildInsightsDetailsQueryParams, 'graphKey' | 'filters' | 'itemKey' | 'periodEnd' | 'lastDay'> & {periodGroupBy: InsightsTimeGroupBy}): ChartPeriod | undefined {
-    if (graphKey === CONST.INSIGHTS.GRAPH.SPEND_OVER_TIME) {
+}: Pick<BuildInsightsDetailsQueryParams, 'itemGroupBy' | 'filters' | 'itemKey' | 'periodEnd' | 'lastDay'> & {periodGroupBy: InsightsTimeGroupBy}): ChartPeriod | undefined {
+    if (!itemGroupBy) {
         return periodEnd ? {start: itemKey, end: periodEnd} : undefined;
     }
 
@@ -120,12 +131,13 @@ function buildInsightsDetailsQuery({
     periodEnd,
     topExpensesSnapshotHash,
     lastDay,
+    violationStage,
 }: BuildInsightsDetailsQueryParams): InsightsDetailsQuery | undefined {
     if (!SUPPORTED_GRAPH_KEYS.has(graphKey)) {
         return undefined;
     }
-    const periodGroupBy = getInsightsDetailsPeriod(filters, graphKey);
-    const period = getSummarizedPeriod({graphKey, filters, itemKey, periodEnd, lastDay, periodGroupBy});
+    const periodGroupBy = getInsightsDetailsPeriod(filters, itemGroupBy);
+    const period = getSummarizedPeriod({itemGroupBy, filters, itemKey, periodEnd, lastDay, periodGroupBy});
     // Sent as dates rather than the preset, which the server would count from its own today and could reject the period for falling outside it
     const {start, end} = getInsightsDateRange(filters.date, lastDay);
     const datedFilters = 'preset' in filters.date && start && end ? {...filters, date: {from: start, to: end}} : filters;
@@ -134,8 +146,9 @@ function buildInsightsDetailsQuery({
         return undefined;
     }
 
-    const item = itemGroupBy ? {groupBy: itemGroupBy, value: itemGroupBy === CONST.SEARCH.GROUP_BY.FROM ? Number(itemKey) : itemKey} : undefined;
-    const hashedFields = {graphKey, filters: filtersQueryJSON.filters, targetCurrency: filters.groupCurrency, groupBy: periodGroupBy, period, item};
+    const isMemberItem = itemGroupBy === CONST.SEARCH.GROUP_BY.FROM || itemGroupBy === CONST.SEARCH.GROUP_BY.APPROVER;
+    const item = itemGroupBy ? {groupBy: itemGroupBy, value: isMemberItem ? Number(itemKey) : itemKey} : undefined;
+    const hashedFields = {graphKey, filters: filtersQueryJSON.filters, targetCurrency: filters.groupCurrency, groupBy: periodGroupBy, period, item, violationStage};
     const hash = hashText(JSON.stringify(hashedFields), 2 ** 32);
 
     return {
@@ -144,6 +157,7 @@ function buildInsightsDetailsQuery({
         topExpensesSnapshotHash,
         period,
         periodGroupBy,
+        isPeriodItem: !itemGroupBy,
         isPeriodInProgress: period.end >= lastDay,
     };
 }

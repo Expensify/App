@@ -2,18 +2,19 @@ import type {Errors} from './OnyxCommon';
 
 /** Summary of the period and the item's average over the previous periods */
 type InsightsDetailsSummary = {
-    /** Spend in the period, in the group currency's smallest unit */
+    /** Spend in the period, in the group currency's smallest unit. On Compliance, the number of violations instead. */
     total: number;
 
+    /** Expenses in the period. On Compliance, the expenses with at least one violation. */
     count: number;
 
     /**
-     * The item's percentage of all spend in the period.
-     * On Spend over time, the period's percentage of all spend in the Date range instead.
+     * The item's percentage of all spend in the period. On Spend over time, the period's percentage of all spend in the Date range instead.
+     * On Compliance, the violation rate: flagged expenses as a percentage of all the item's expenses.
      */
     shareOfTotal: number;
 
-    /** Spend per complete period before the summarized one, or null when there's no history to average */
+    /** Total per complete period before the summarized one, or null when there's no history to average */
     average: number | null;
 
     /** Number of complete periods the average covers, up to a year's worth */

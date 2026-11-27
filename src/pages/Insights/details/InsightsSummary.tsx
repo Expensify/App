@@ -59,6 +59,13 @@ const AVERAGE_TILE_KEYS = {
     [CONST.SEARCH.GROUP_BY.QUARTER]: 'insightsPage.summary.quarterAverage',
 } as const satisfies Record<AveragePeriodGroupBy, TranslationPaths>;
 
+const COMPLIANCE_GRAPH_KEYS = new Set<InsightsGraphKey>([
+    CONST.INSIGHTS.GRAPH.VIOLATIONS_OVER_TIME,
+    CONST.INSIGHTS.GRAPH.TOP_VIOLATIONS,
+    CONST.INSIGHTS.GRAPH.VIOLATIONS_BY_SUBMITTER,
+    CONST.INSIGHTS.GRAPH.VIOLATIONS_BY_APPROVER,
+]);
+
 type InsightsSummaryProps = {
     query: InsightsDetailsQuery;
 
@@ -118,6 +125,12 @@ function SummaryAverageComparison({comparison, graphKey, periodGroupBy, currency
 
     const getVersusAverageLabel = (amount: string) => {
         switch (graphKey) {
+            case CONST.INSIGHTS.GRAPH.TOP_VIOLATIONS:
+                return translate('insightsPage.summary.versusViolationAverage', amount);
+            case CONST.INSIGHTS.GRAPH.VIOLATIONS_BY_SUBMITTER:
+                return translate('insightsPage.summary.versusSubmitterAverage', amount);
+            case CONST.INSIGHTS.GRAPH.VIOLATIONS_BY_APPROVER:
+                return translate('insightsPage.summary.versusApproverAverage', amount);
             case CONST.INSIGHTS.GRAPH.TOP_MERCHANTS:
                 return translate('insightsPage.summary.versusMerchantAverage', amount);
             case CONST.INSIGHTS.GRAPH.TOP_SPENDERS:
@@ -161,7 +174,14 @@ function SummaryAverageComparison({comparison, graphKey, periodGroupBy, currency
     const isIncrease = comparison.difference > 0;
     const changeColor = StyleUtils.getSpendChangeColor(isIncrease);
     const percentage = formatPercentOfTotal(comparison.percentage, comparison.difference, preferredLocale);
-    const amount = convertToDisplayString(Math.abs(comparison.difference), currency);
+    const absoluteDifference = Math.abs(comparison.difference);
+    // A difference from an average can be a fractional number of violations
+    const amount = COMPLIANCE_GRAPH_KEYS.has(graphKey)
+        ? translate('insightsPage.summary.violationCount', {
+              count: absoluteDifference,
+              formattedCount: formatNumber(preferredLocale, absoluteDifference, {maximumFractionDigits: 1}),
+          })
+        : convertToDisplayString(absoluteDifference, currency);
 
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.flexWrap, styles.gap2]}>
@@ -189,8 +209,8 @@ function InsightsSummary({query, graphKey, currency, summary, state}: InsightsSu
     const styles = useThemeStyles();
     const {translate, preferredLocale, dateFnsLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
-    const {period, periodGroupBy, isPeriodInProgress} = query;
-    const isSpendOverTime = graphKey === CONST.INSIGHTS.GRAPH.SPEND_OVER_TIME;
+    const {period, periodGroupBy, isPeriodItem, isPeriodInProgress} = query;
+    const isCompliance = COMPLIANCE_GRAPH_KEYS.has(graphKey);
     const comparison = summary ? getInsightsAverageComparison(summary) : undefined;
     const hasAverage = !!comparison && comparison.type !== INSIGHTS_AVERAGE_COMPARISON.NOT_ENOUGH_HISTORY;
     // The average covers the 12 months before the period, which never hold enough complete years to compare
@@ -199,7 +219,7 @@ function InsightsSummary({query, graphKey, currency, summary, state}: InsightsSu
     const periodTitle = getPeriodTitle(periodGroupBy, period, dateFnsLocale);
 
     const getSectionTitle = () => {
-        if (isSpendOverTime) {
+        if (isPeriodItem) {
             return translate('insightsPage.summary.title');
         }
         return isPeriodInProgress ? translate('search.periodSoFar', {period: periodTitle}) : periodTitle;
@@ -220,6 +240,15 @@ function InsightsSummary({query, graphKey, currency, summary, state}: InsightsSu
                 return format(start, 'yyyy', {locale: dateFnsLocale});
         }
     };
+
+    const getTotalLabel = () => {
+        if (isCompliance) {
+            return isPeriodItem ? translate('common.violations') : translate('insightsPage.summary.periodViolations', getShortPeriodName());
+        }
+        return isPeriodItem ? translate('common.spend') : translate('insightsPage.summary.periodSpend', getShortPeriodName());
+    };
+
+    const formatTotal = (total: number) => (isCompliance ? formatNumber(preferredLocale, total, {maximumFractionDigits: 1}) : convertToDisplayString(total, currency));
 
     return (
         <View style={[styles.highlightBG, styles.borderRadiusComponentLarge, styles.overflowHidden]}>
@@ -253,13 +282,13 @@ function InsightsSummary({query, graphKey, currency, summary, state}: InsightsSu
                     )}
                     <View style={[styles.flexRow, styles.gap5, styles.p4, styles.borderBottom]}>
                         <SummaryTile
-                            label={isSpendOverTime ? translate('common.spend') : translate('insightsPage.summary.periodSpend', getShortPeriodName())}
-                            value={convertToDisplayString(summary.total, currency)}
+                            label={getTotalLabel()}
+                            value={formatTotal(summary.total)}
                         />
                         {averagePeriodGroupBy ? (
                             <SummaryTile
                                 label={translate(AVERAGE_TILE_KEYS[averagePeriodGroupBy], hasAverage ? summary.averagePeriodCount : MIN_AVERAGE_PERIOD_COUNT)}
-                                value={hasAverage ? convertToDisplayString(summary.average ?? 0, currency) : undefined}
+                                value={hasAverage ? formatTotal(summary.average ?? 0) : undefined}
                             />
                         ) : (
                             <View style={styles.flex1} />
@@ -267,11 +296,11 @@ function InsightsSummary({query, graphKey, currency, summary, state}: InsightsSu
                     </View>
                     <View style={[styles.flexRow, styles.gap5, styles.p4]}>
                         <SummaryTile
-                            label={translate('common.expenses')}
+                            label={translate(isCompliance ? 'insightsPage.flaggedExpenses' : 'common.expenses')}
                             value={formatNumber(preferredLocale, summary.count)}
                         />
                         <SummaryTile
-                            label={translate('insightsPage.summary.shareOfTotal')}
+                            label={translate(isCompliance ? 'insightsPage.summary.violationRate' : 'insightsPage.summary.shareOfTotal')}
                             value={formatPercentOfTotal(summary.shareOfTotal, summary.total, preferredLocale)}
                         />
                     </View>
