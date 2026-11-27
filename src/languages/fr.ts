@@ -4020,6 +4020,10 @@ ${amount} pour ${merchant} - ${date}`,
             incorrectSecurityCode: 'Code de sécurité incorrect ou non valide. Veuillez réessayer ou demander un nouveau code.',
             pleaseFillTwoFactorAuth: 'Veuillez saisir votre code d’authentification à deux facteurs',
         },
+        requestNewCodeAccessibilityLabel: ({count}: {count: number}) => ({
+            one: 'Demander un nouveau code dans 1 seconde',
+            other: `Demander un nouveau code dans ${count} secondes`,
+        }),
     },
     passwordForm: {
         pleaseFillOutAllFields: 'Veuillez remplir tous les champs',

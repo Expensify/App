@@ -3,6 +3,7 @@ import Icon from '@components/Icon';
 import * as Pressables from '@components/Pressable';
 import Text from '@components/Text';
 
+import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -66,6 +67,13 @@ function GrowlNotificationContent({bodyText, type, duration, action, position, n
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['Exclamation', 'Checkmark']);
+
+    // The growl shows away from focus and hides itself, so it is announced; the parent remounts it per growl, so each is read once
+    useAccessibilityAnnouncement(bodyText, true, {
+        shouldAnnounceOnNative: true,
+        shouldAnnounceOnWeb: true,
+        politeness: type === CONST.GROWL.SUCCESS ? 'polite' : 'assertive',
+    });
 
     // Derived live so that resizing the window flips position + slide direction during display.
     const useBottomPosition = shouldUseExplicitBottomPosition(position) || (!!action && !shouldUseNarrowLayout);

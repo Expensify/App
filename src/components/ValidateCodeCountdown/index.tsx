@@ -12,6 +12,8 @@ import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 
 import type {ValidateCodeCountdownProps} from './types';
 
+import CountdownAccessibilityWrapper from './CountdownAccessibilityWrapper';
+
 const ANNOUNCEMENT_INTERVAL_SECONDS = 10;
 
 function ValidateCodeCountdown({onCountdownFinish, requestedAt, ref}: ValidateCodeCountdownProps) {
@@ -81,11 +83,13 @@ function ValidateCodeCountdown({onCountdownFinish, requestedAt, ref}: ValidateCo
     );
 
     return (
-        <RenderHTML
-            html={translate('validateCodeForm.requestNewCode', {
-                timeRemaining: `00:${String(timeRemaining).padStart(2, '0')}`,
-            })}
-        />
+        <CountdownAccessibilityWrapper accessibilityLabel={translate('validateCodeForm.requestNewCodeAccessibilityLabel', {count: timeRemaining})}>
+            <RenderHTML
+                html={translate('validateCodeForm.requestNewCode', {
+                    timeRemaining: `00:${String(timeRemaining).padStart(2, '0')}`,
+                })}
+            />
+        </CountdownAccessibilityWrapper>
     );
 }
 

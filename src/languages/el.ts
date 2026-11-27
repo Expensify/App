@@ -4067,6 +4067,10 @@ ${amount} για ${merchant} - ${date}`,
             incorrectSecurityCode: 'Εσφαλμένος ή μη έγκυρος κωδικός ασφαλείας. Δοκιμάστε ξανά ή ζητήστε έναν νέο κωδικό.',
         },
         securityCodeNotReceived: 'Δεν λάβατε κωδικό ασφαλείας;',
+        requestNewCodeAccessibilityLabel: ({count}: {count: number}) => ({
+            one: 'Ζητήστε νέο κωδικό σε 1 δευτερόλεπτο',
+            other: `Ζητήστε νέο κωδικό σε ${count} δευτερόλεπτα`,
+        }),
     },
     passwordForm: {
         pleaseFillOutAllFields: 'Παρακαλούμε συμπληρώστε όλα τα πεδία',

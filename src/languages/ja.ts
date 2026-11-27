@@ -3956,6 +3956,10 @@ ${date} の ${merchant} への ${amount}`,
             incorrectSecurityCode: 'セキュリティコードが正しくないか無効です。もう一度お試しいただくか、新しいコードをリクエストしてください。',
             pleaseFillTwoFactorAuth: '2 要素認証コードを入力してください',
         },
+        requestNewCodeAccessibilityLabel: ({count}: {count: number}) => ({
+            one: '1秒後に新しいコードをリクエストできます',
+            other: `${count}秒後に新しいコードを再送信できます`,
+        }),
     },
     passwordForm: {
         pleaseFillOutAllFields: 'すべての項目を入力してください',

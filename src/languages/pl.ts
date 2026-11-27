@@ -4041,6 +4041,10 @@ ${amount} dla ${merchant} - ${date}`,
             incorrectSecurityCode: 'Nieprawidłowy lub nieważny kod zabezpieczający. Spróbuj ponownie albo poproś o nowy kod.',
             pleaseFillTwoFactorAuth: 'Wprowadź swój kod uwierzytelniania dwuskładnikowego',
         },
+        requestNewCodeAccessibilityLabel: ({count}: {count: number}) => ({
+            one: 'Poproś o nowy kod za 1 sekundę',
+            other: `Poproś o nowy kod za ${count} sekund`,
+        }),
     },
     passwordForm: {
         pleaseFillOutAllFields: 'Proszę wypełnić wszystkie pola',
