@@ -1594,6 +1594,7 @@ function getReasonForShowingRowInLHN({
     derivedIsEmptyReport,
     transactionViolations,
     pendingExpenseActionMetadata,
+    isOffline,
 }: {
     report: OnyxEntry<Report>;
     chatReport: OnyxEntry<Report>;
@@ -1610,6 +1611,7 @@ function getReasonForShowingRowInLHN({
     derivedIsEmptyReport: boolean | undefined;
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
     pendingExpenseActionMetadata: OnyxEntry<ReportMetadata>;
+    isOffline: boolean;
 }): TranslationPaths | null {
     if (!report) {
         return null;
@@ -1634,6 +1636,7 @@ function getReasonForShowingRowInLHN({
         hasGuidesEmails,
         transactionViolations,
         pendingExpenseActionMetadata,
+        isOffline,
     });
 
     if (!([CONST.REPORT_IN_LHN_REASONS.HAS_ADD_WORKSPACE_ROOM_ERRORS, CONST.REPORT_IN_LHN_REASONS.HAS_IOU_VIOLATIONS] as Array<typeof reason>).includes(reason) && hasRBR) {

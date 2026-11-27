@@ -888,6 +888,7 @@ describe('DebugUtils', () => {
                 conciergeReportID: undefined,
                 derivedIsEmptyReport: undefined,
                 pendingExpenseActionMetadata: undefined,
+                isOffline: false,
             });
             expect(reason).toBeNull();
         });
@@ -903,6 +904,7 @@ describe('DebugUtils', () => {
                 conciergeReportID: undefined,
                 derivedIsEmptyReport: undefined,
                 pendingExpenseActionMetadata: undefined,
+                isOffline: false,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasDraftComment');
         });
@@ -921,6 +923,7 @@ describe('DebugUtils', () => {
                 conciergeReportID: undefined,
                 derivedIsEmptyReport: undefined,
                 pendingExpenseActionMetadata: undefined,
+                isOffline: false,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasGBR');
         });
@@ -938,6 +941,7 @@ describe('DebugUtils', () => {
                 conciergeReportID: undefined,
                 derivedIsEmptyReport: undefined,
                 pendingExpenseActionMetadata: undefined,
+                isOffline: false,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.pinnedByUser');
         });
@@ -959,6 +963,7 @@ describe('DebugUtils', () => {
                 conciergeReportID: undefined,
                 derivedIsEmptyReport: undefined,
                 pendingExpenseActionMetadata: undefined,
+                isOffline: false,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasAddWorkspaceRoomErrors');
         });
@@ -988,6 +993,7 @@ describe('DebugUtils', () => {
                 conciergeReportID: undefined,
                 derivedIsEmptyReport: undefined,
                 pendingExpenseActionMetadata: undefined,
+                isOffline: false,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.isUnread');
         });
@@ -1010,6 +1016,7 @@ describe('DebugUtils', () => {
                 conciergeReportID: undefined,
                 derivedIsEmptyReport: undefined,
                 pendingExpenseActionMetadata: undefined,
+                isOffline: false,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.isArchived');
         });
@@ -1027,6 +1034,7 @@ describe('DebugUtils', () => {
                 conciergeReportID: undefined,
                 derivedIsEmptyReport: undefined,
                 pendingExpenseActionMetadata: undefined,
+                isOffline: false,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.isSelfDM');
         });
@@ -1041,6 +1049,7 @@ describe('DebugUtils', () => {
                 conciergeReportID: undefined,
                 derivedIsEmptyReport: undefined,
                 pendingExpenseActionMetadata: undefined,
+                isOffline: false,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.isFocused');
         });
@@ -1104,6 +1113,7 @@ describe('DebugUtils', () => {
                 conciergeReportID: undefined,
                 derivedIsEmptyReport: undefined,
                 pendingExpenseActionMetadata: undefined,
+                isOffline: false,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasRBR');
         });
@@ -1167,6 +1177,7 @@ describe('DebugUtils', () => {
                 conciergeReportID: undefined,
                 derivedIsEmptyReport: undefined,
                 pendingExpenseActionMetadata: undefined,
+                isOffline: false,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasRBR');
         });
@@ -1182,6 +1193,7 @@ describe('DebugUtils', () => {
                 conciergeReportID: undefined,
                 derivedIsEmptyReport: undefined,
                 pendingExpenseActionMetadata: undefined,
+                isOffline: false,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasRBR');
         });
@@ -1203,6 +1215,7 @@ describe('DebugUtils', () => {
                 derivedIsEmptyReport: undefined,
                 pendingExpenseActionMetadata: undefined,
                 transactionViolations,
+                isOffline: false,
             });
 
             // Then the reason is not hasGBR, because the SUBMIT badge is suppressed when nothing is submittable, matching the LHN row

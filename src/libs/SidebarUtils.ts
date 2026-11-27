@@ -260,6 +260,7 @@ function shouldDisplayReportInLHN({
         currentUserAccountID,
         conciergeReportID,
         hasGuidesEmails,
+        isOffline,
     });
 
     return {shouldDisplay};

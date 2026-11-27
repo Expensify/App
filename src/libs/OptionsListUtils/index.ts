@@ -1988,6 +1988,7 @@ function isValidReport(
         shouldAlwaysIncludeDM,
         isTimeRequest = false,
         conciergeReportID,
+        isOffline,
     } = config;
     const topmostReportId = Navigation.getTopmostReportId();
     const doesReportHaveViolations = !!getViolatingReportIDForRBRInLHN(option.item, transactionViolations, policy);
@@ -2016,6 +2017,7 @@ function isValidReport(
         // real metadata, so every caller has to pass `reportAttributesDerived` for that check to hold here. The metadata
         // below is only read before reportAttributes has computed this report.
         pendingExpenseActionMetadata: undefined,
+        isOffline,
     });
 
     if (!shouldBeInOptionList) {
@@ -2517,6 +2519,7 @@ function getValidOptions(
                     currentUserAccountID,
                     currentUserLogin: currentUserEmail,
                     conciergeReportID,
+                    isOffline: isOfflineNetworkState,
                 },
                 draftComment,
                 chatReport,

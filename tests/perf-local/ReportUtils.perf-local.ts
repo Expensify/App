@@ -202,6 +202,7 @@ describe('ReportUtils', () => {
                 conciergeReportID: undefined,
                 derivedIsEmptyReport: undefined,
                 pendingExpenseActionMetadata: undefined,
+                isOffline: false,
             }),
         );
     });
