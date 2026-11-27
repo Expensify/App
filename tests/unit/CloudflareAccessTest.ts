@@ -514,7 +514,7 @@ describe('pendingAuthFlowStorage', () => {
         savePendingAuthFlow(FLOW);
         // When the tester comes back from the consent page hours later
         nowSpy.mockReturnValue(FLOW.createdAt + ONE_DAY_MS - 60_000);
-        // Then the record is still there. Cloudflare doesn't limit the time spent on its pages, and Chrome reloads the page on Back after about 10 minutes there, so a shorter expiry would fail the exchange and hide where the page came back from
+        // Then the record is still there. Cloudflare doesn't limit the time spent on its pages, so the exchange after a late Allow needs the verifier, and a page that Back reloads after about 10 minutes there needs the record to tell it came back from Cloudflare
         expect(consumePendingAuthFlow(FLOW.state)).toEqual(FLOW);
     });
 

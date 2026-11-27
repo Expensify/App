@@ -8,8 +8,10 @@ import {isRecord} from '@libs/ObjectUtils';
 import CONST from '@src/CONST';
 
 /**
- * Cloudflare puts no limit on the time spent at its pages, and Chrome reloads the page on Back after about 10 minutes
- * there, so the record has to outlive any pause. An older record is treated as absent, so the boot sweep removes abandoned ones
+ * Cloudflare puts no limit on the time spent at its pages, so the record has to outlive any pause: an Allow after it
+ * needs the verifier, and a page that Back reloads instead of restoring (Chrome does after about 10 minutes there) needs
+ * an open record to tell it came back from Cloudflare. The day itself is arbitrary and guards nothing, since the verifier
+ * is useless without Cloudflare's single-use code. It only lets the boot sweep remove records nobody will read
  */
 const PENDING_AUTH_FLOW_TTL_MS = 24 * 60 * 60 * 1000;
 

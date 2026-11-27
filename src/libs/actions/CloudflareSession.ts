@@ -26,6 +26,10 @@ let sessionGeneration = 0;
 
 let codeExchangeErrorMessage: string | undefined;
 
+/**
+ * Leaves the pending round trip records in place: one may belong to another tab still on the consent page, whose Allow
+ * would otherwise fail. A record holds no token, and an Allow after a sign-out gives the browser only a Cloudflare session
+ */
 function resetSessionState() {
     sessionGeneration++;
     sessionCache = null;

@@ -476,7 +476,7 @@ describe('redirectToCloudflareSignIn', () => {
         // When the session is reset before the callback arrives
         await reset();
 
-        // Then the record is still there, so a tab still on the consent page can finish with Allow. The record holds no token, and an Allow after an Expensify sign-out gives this browser only a Cloudflare session
+        // Then the record is still there. It may belong to another tab still on the consent page, whose Allow needs it. Keeping it is safe: it holds no token, and an Allow after an Expensify sign-out gives this browser only a Cloudflare session, which Cloudflare's own sign-in would give it anyway
         expect(pendingAuthFlowStorage.consumePendingAuthFlow(OAUTH_STATE)).toMatchObject({codeVerifier: PAIR_1.codeVerifier});
     });
 });

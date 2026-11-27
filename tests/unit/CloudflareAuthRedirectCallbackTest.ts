@@ -116,7 +116,7 @@ describe('the boot-time QA auth callback handling', () => {
 
         // Then the day-old record is gone from storage: no callback will ever consume it, and localStorage would otherwise keep it on disk indefinitely
         expect(window.localStorage.getItem(`${CONST.LOCAL_STORAGE_KEYS.QA_AUTH_REDIRECT_FLOW_PREFIX}${FLOW.state}`)).toBeNull();
-        // Then the 11-minute-old record survives. Chrome reloads the page on Back after about 10 minutes on the consent page, and an open record is what will let the reloaded page tell it came back from Cloudflare
+        // Then the 11-minute-old record survives. Chrome reloads the page on Back after about 10 minutes on the consent page, and the reloaded page needs an open record to tell it came back from Cloudflare
         expect(pendingAuthFlowStorage.consumePendingAuthFlow(recentFlow.state)).toEqual(recentFlow);
     });
 
@@ -235,7 +235,7 @@ describe('the boot-time QA auth callback handling', () => {
         // When the handler runs
         runBoot();
 
-        // Then the capture carries the record's createdAt. The record is consumed here, so the capture is the only place left to read it from
+        // Then the capture carries the record's createdAt. The record is consumed here, so the capture is the only place left to tie the callback to what started the round trip, such as the email saved on Continue
         expect(captureAuthCallback.getCapturedCloudflareAuthCallback()).toMatchObject({outcome, flowCreatedAt: FLOW.createdAt});
     });
 
