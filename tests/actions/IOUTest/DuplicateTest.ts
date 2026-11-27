@@ -4151,6 +4151,53 @@ describe('actions/Duplicate', () => {
             expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${copyReportID}`))?.pendingNewTransactionIDs).toBeUndefined();
         });
 
+        it('should still duplicate the expenses when no personal details are loaded', async () => {
+            // Given an expense to duplicate while the personal details list has not loaded yet
+            jest.mocked(isSearchTopmostFullScreenRoute).mockReturnValue(true);
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                transactionID: 'bulk_1',
+                amount: -500,
+                currency: 'USD',
+            };
+
+            // When the expense is duplicated
+            bulkDuplicateExpenses({
+                isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
+                conciergeChat: undefined,
+                transactionIDs: ['bulk_1'],
+                allTransactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}bulk_1`]: transaction},
+                sourcePolicyIDMap: {},
+                targetPolicy: mockPolicy,
+                targetPolicyCategories: fakePolicyCategories,
+                targetPolicyTags: {},
+                targetReport: policyExpenseChat,
+                policyTagList: {},
+                personalDetails: undefined,
+                isASAPSubmitBetaEnabled: false,
+                introSelected: undefined,
+                quickAction: undefined,
+                policyRecentlyUsedCurrencies: [],
+                isSelfTourViewed: false,
+                transactionDrafts: undefined,
+                recentWaypoints: [],
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
+                rules: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the copy is still created, since mention names are only a nice-to-have for the copied description
+            expect(writeSpy.mock.calls.filter(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY))).toHaveLength(1);
+        });
+
         it('should read each written transaction ID from the distance plan when bulk-duplicating distance expenses', async () => {
             // Given three reported distance expenses selected in Spend, which take the distance branch the sibling test above does not reach
             jest.mocked(isSearchTopmostFullScreenRoute).mockReturnValue(true);
@@ -4866,6 +4913,33 @@ describe('actions/Duplicate', () => {
             const reportNames = createReportCalls.map((call) => call[1].reportName);
             expect(reportNames).toContain('Copy of Source Policy Report');
             expect(reportNames).toContain('Copy of Inaccessible Policy Report');
+        });
+
+        it('should still duplicate the report when no personal details are loaded', async () => {
+            // Given a report to duplicate while the personal details list has not loaded yet
+            const report1: Report = {
+                reportID: 'rpt1',
+                policyID: SOURCE_POLICY_ID,
+                ownerAccountID: RORY_ACCOUNT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                reportName: 'Report 1',
+                chatReportID: ACTIVE_PEC_REPORT_ID,
+            };
+            const allReports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}rpt1`]: report1,
+                [`${ONYXKEYS.COLLECTION.REPORT}${ACTIVE_PEC_REPORT_ID}`]: activePolicyExpenseChat,
+            };
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}tx1`]: createCashTransaction('tx1', 'rpt1'),
+            };
+
+            // When the report is duplicated
+            await bulkDuplicateReports(getDefaultBulkParams(['rpt1'], {allReports, allTransactions, personalDetails: undefined}));
+            await waitForBatchedUpdates();
+
+            // Then the copy is still created, since mention names are only a nice-to-have for the copied descriptions
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(1);
         });
 
         it('should filter out pending-delete transactions', async () => {

@@ -1,8 +1,11 @@
 import {render, screen} from '@testing-library/react-native';
 
 import DisplayNames from '@components/DisplayNames';
+import type DisplayNamesProps from '@components/DisplayNames/types';
 
 import Parser from '@libs/Parser';
+
+import type {ComponentType} from 'react';
 
 import React from 'react';
 
@@ -69,6 +72,48 @@ describe('DisplayNames HTML Parsing', () => {
             );
 
             expect(mockHtmlToText).toHaveBeenCalledWith(htmlTitle, {accountIDToName: undefined});
+        });
+    });
+
+    describe('DisplayNames Component (web) - accountIDToName prop', () => {
+        // Jest resolves the native implementation by default, so the web one is loaded explicitly
+        const {default: WebDisplayNames} = jest.requireActual<{default: ComponentType<DisplayNamesProps>}>('@components/DisplayNames/index.tsx');
+
+        it('passes the accountIDToName map to the HTML parser so mentions show readable names', () => {
+            // Given a title that mentions a user and a map with that user's name
+            const mentionedAccountID = 42;
+            const htmlTitle = `<mention-user accountID="${mentionedAccountID}"></mention-user>`;
+            const accountIDToName = {[mentionedAccountID]: 'mentioned@test.com'};
+
+            // When the web component renders the title
+            render(
+                <WebDisplayNames
+                    fullTitle={htmlTitle}
+                    numberOfLines={1}
+                    accountIDToName={accountIDToName}
+                />,
+            );
+
+            // Then the parser receives the map to resolve the mention
+            expect(mockHtmlToText).toHaveBeenCalledWith(htmlTitle, {accountIDToName});
+        });
+
+        it('shows the title as is when shouldParseFullTitle is false', () => {
+            // Given a plain title that must not go through the HTML parser
+            const plainTitle = '<strong>Test Title</strong>';
+
+            // When the web component renders it without parsing
+            render(
+                <WebDisplayNames
+                    fullTitle={plainTitle}
+                    numberOfLines={1}
+                    shouldParseFullTitle={false}
+                />,
+            );
+
+            // Then the parser is skipped and the raw title is shown
+            expect(mockHtmlToText).not.toHaveBeenCalled();
+            expect(screen.getByText(plainTitle)).toBeTruthy();
         });
     });
 });

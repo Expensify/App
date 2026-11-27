@@ -1,4 +1,4 @@
-import {render} from '@testing-library/react-native';
+import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -9,6 +9,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 
 import DynamicSplitExpensePage from '@pages/iou/DynamicSplitExpensePage';
+import updateSplitTransactionsFromSplitExpensesFlow from '@pages/iou/updateSplitTransactionsFromSplitExpensesFlow';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -21,6 +22,7 @@ import Onyx from 'react-native-onyx';
 
 import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
+import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const CURRENT_USER_ACCOUNT_ID = 1;
@@ -30,6 +32,9 @@ const APPROVED_REPORT_ID = 'approvedReport';
 const ORIGINAL_TRANSACTION_ID = 'original';
 const OPEN_SPLIT_TRANSACTION_ID = 'openSplit';
 const FROZEN_SPLIT_TRANSACTION_ID = 'frozenSplit';
+const MENTIONED_ACCOUNT_ID = 42;
+const MENTIONED_LOGIN = 'mentioned@test.com';
+const SPLIT_DRAFT_KEY = `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${ORIGINAL_TRANSACTION_ID}` as const;
 
 let capturedSplitListData: SplitListItemType[] = [];
 let mockSearchResultsData: SearchResultDataType | undefined;
@@ -97,6 +102,9 @@ jest.mock('@libs/Navigation/OnyxTabNavigator', () => {
         TabScreenWithFocusTrapWrapper: MockTabScreenWithFocusTrapWrapper,
     };
 });
+
+// Saving is only checked for what the page hands to the flow, so the flow itself is not run
+jest.mock('@pages/iou/updateSplitTransactionsFromSplitExpensesFlow', () => jest.fn());
 
 jest.mock('@pages/iou/SplitList', () => {
     function MockSplitList({data}: {data: SplitListItemType[]}) {
@@ -229,5 +237,42 @@ describe('DynamicSplitExpensePage', () => {
         // Then both rows stay editable - only frozen splits are locked
         expect(capturedSplitListData).toHaveLength(2);
         expect(capturedSplitListData.every((item) => item.isEditable)).toBe(true);
+    });
+
+    it.each([
+        {
+            description: 'a name for each known user',
+            personalDetailsList: {[MENTIONED_ACCOUNT_ID]: {accountID: MENTIONED_ACCOUNT_ID, login: MENTIONED_LOGIN}},
+            expectedAccountIDToName: {[MENTIONED_ACCOUNT_ID]: MENTIONED_LOGIN},
+        },
+        {
+            description: 'an empty name map when no personal details are loaded',
+            personalDetailsList: undefined,
+            expectedAccountIDToName: {},
+        },
+    ])('saves the splits with $description', async ({personalDetailsList, expectedAccountIDToName}) => {
+        // Given splits that add up to the expense total (a self-DM expense total is negative), with or without personal details loaded
+        await Onyx.multiSet({
+            [SPLIT_DRAFT_KEY]: {
+                ...makeTransaction(ORIGINAL_TRANSACTION_ID, SELF_DM_REPORT_ID, 300),
+                comment: {
+                    originalTransactionID: ORIGINAL_TRANSACTION_ID,
+                    splitExpenses: [
+                        {transactionID: OPEN_SPLIT_TRANSACTION_ID, amount: -100, created: '2024-01-01'},
+                        {transactionID: FROZEN_SPLIT_TRANSACTION_ID, amount: -200, created: '2024-01-01'},
+                    ],
+                },
+            },
+            [ONYXKEYS.PERSONAL_DETAILS_LIST]: personalDetailsList,
+        });
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // When the splits are saved
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('common.save')));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the splits are saved with the names of the known users, so mentions in their descriptions stay readable
+        expect(updateSplitTransactionsFromSplitExpensesFlow).toHaveBeenCalledWith(expect.objectContaining({accountIDToName: expectedAccountIDToName}));
     });
 });
