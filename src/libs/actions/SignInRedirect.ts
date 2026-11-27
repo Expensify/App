@@ -186,14 +186,16 @@ function clearStorageAndRedirect(signOutReason: SignOutReason, errorMessage?: st
  * @param signOutReason Which path tore down the session. Telemetry only, it must not drive behavior.
  * @param errorMessage Error message to be displayed on the sign in page
  * @param isSAMLReauthentication Whether the redirection was triggered by reauthentication for SAML required account
- * @param isStashingSession Whether the outgoing session is stashed to come back after a Supportal session
+ * @param shouldKeepExperienceCookie Whether to keep the experience cookie, as when the outgoing session is stashed to come back after a Supportal session
+ * or the sign-out is a step of switching to another account
  */
-function redirectToSignIn(signOutReason: SignOutReason, errorMessage?: string, isSAMLReauthentication?: boolean, isStashingSession?: boolean): Promise<void> {
+function redirectToSignIn(signOutReason: SignOutReason, errorMessage?: string, isSAMLReauthentication?: boolean, shouldKeepExperienceCookie?: boolean): Promise<void> {
     // Onyx.clear empties SESSION before its promise resolves, so the session type is read first.
     // A Supportal or Copilot session runs in the agent's own browser, and starting Supportal stashes the agent's session,
     // so neither clears the agent's experience cookie.
     // Signing out clears the cookie for every account, matching the backend, so a cookie left from the beta can't route the next user.
-    const shouldClearExperienceCookie = !currentIsAgentSession && !isStashingSession;
+    // Switching to another account keeps it, so a cookie written for that account survives the sign-out.
+    const shouldClearExperienceCookie = !currentIsAgentSession && !shouldKeepExperienceCookie;
     return clearStorageAndRedirect(signOutReason, errorMessage, isSAMLReauthentication).then(() => {
         clearSessionStorage();
         if (shouldClearExperienceCookie) {

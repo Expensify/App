@@ -405,6 +405,7 @@ function signOutAndRedirectToSignIn(
     shouldSignOutFromOldDot = true,
     shouldForceUseStashedSession?: boolean,
     signOutReason: SignOutReason = CONST.SIGN_OUT_REASON.USER_SIGN_OUT,
+    shouldKeepExperienceCookie?: boolean,
 ) {
     Log.info('Redirecting to Sign In because signOut() was called');
     hideContextMenu(false);
@@ -551,7 +552,7 @@ function signOutAndRedirectToSignIn(
                     });
                 });
             } else {
-                redirectToSignIn(signOutReason, undefined, undefined, shouldStashSession).then(() => {
+                redirectToSignIn(signOutReason, undefined, undefined, shouldStashSession || shouldKeepExperienceCookie).then(() => {
                     Onyx.multiSet(onyxSetParams);
 
                     if (hasSwitchedAccountInHybridMode) {

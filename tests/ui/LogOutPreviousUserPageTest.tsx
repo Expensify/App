@@ -235,6 +235,24 @@ describe('LogOutPreviousUserPage', () => {
         expect(topRouteAtSignOut).toBe(SCREENS.TRANSITION_BETWEEN_APPS);
     });
 
+    it('keeps the experience cookie when signing out for a link into another account', async () => {
+        // Given an account signed in to NewDot and a transition link for a different account
+        mockInitialURL = OTHER_ACCOUNT_TRANSITION_URL;
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: OUTGOING_EMAIL, accountID: OUTGOING_ACCOUNT_ID, authToken: OUTGOING_AUTH_TOKEN});
+        });
+        renderPage({shortLivedAuthToken: 'token', email: INCOMING_EMAIL, exitTo: ROUTES.HOME, shouldForceLogin: ''});
+        await waitForBatchedUpdatesWithAct();
+
+        // When the switch is confirmed
+        fireEvent.press(await screen.findByRole(CONST.ROLE.BUTTON, {name: TestHelper.translateLocal('deeplinkWrapper.switchAccount.confirm')}));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the previous account is signed out in a way that keeps a cookie written for the next account
+        expect(signOutAndRedirectToSignIn).toHaveBeenCalledTimes(1);
+        expect(signOutAndRedirectToSignIn).toHaveBeenCalledWith(expect.anything(), false, false, true, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER, true);
+    });
+
     it('shows the not-found page for a transition link that is not the launch URL', async () => {
         // Given an account signed in to NewDot that was launched from a transition link for a different account
         mockInitialURL = OTHER_ACCOUNT_TRANSITION_URL;
