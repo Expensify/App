@@ -79,6 +79,7 @@ import {useGetPersonalDetailsByLogin} from './usePersonalDetailByLogin';
 import {usePersonalDetailsByIDs} from './usePersonalDetails';
 import usePersonalPolicy from './usePersonalPolicy';
 import useReportIsArchived from './useReportIsArchived';
+import useReportTransactions from './useReportTransactions';
 import useRestrictedActionPolicyID from './useRestrictedActionPolicyID';
 import useSplitEffectivePolicy from './useSplitEffectivePolicy';
 import useStrictPolicyRules from './useStrictPolicyRules';
@@ -145,6 +146,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`);
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`);
     const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(requestParentReportAction);
+    const iouReportTransactions = useReportTransactions(iouReport?.reportID);
     const [chatIOUReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(iouReport?.chatReportID)}`);
 
     // Global collections
@@ -605,18 +607,19 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                             deleteTransactions([transaction.transactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash, false);
                             return;
                         }
-                        const goBackRoute = getNavigationUrlOnMoneyRequestDelete(
-                            transaction.transactionID,
-                            requestParentReportAction,
+                        const goBackRoute = getNavigationUrlOnMoneyRequestDelete({
+                            transactionID: transaction.transactionID,
+                            reportAction: requestParentReportAction,
                             transactionThreadReport,
                             iouReport,
-                            chatIOUReport,
-                            isChatIOUReportArchived,
+                            iouReportTransactions,
+                            chatReport: chatIOUReport,
+                            isChatReportArchived: isChatIOUReportArchived,
                             getCurrencyDecimals,
-                            accountID,
-                            false,
-                            chatIOUReportActions,
-                        );
+                            currentUserAccountID: accountID,
+                            isSingleTransactionView: false,
+                            chatReportActions: chatIOUReportActions,
+                        });
                         const deleteNavigateBackUrl = goBackRoute ?? backTo ?? Navigation.getActiveRoute();
                         setDeleteTransactionNavigateBackUrl(deleteNavigateBackUrl);
                         // The wide RHP close animation was changed, and because of that the expense was deleted right after
