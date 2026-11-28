@@ -3,6 +3,8 @@ import {act, renderHook} from '@testing-library/react-native';
 import type {DiscardChangesConfirmation} from '@hooks/useDiscardChangesConfirmation/types';
 import type UseDiscardChangesConfirmationOptions from '@hooks/useDiscardChangesConfirmation/types';
 
+import {releaseFlowDiscardPromptSuppression, runWhileReplayingDiscardedNavigation, suppressFlowDiscardPrompt} from '@libs/Navigation/helpers/discardPromptState';
+
 import type {HardwareBackPressEvent} from '@src/types/utils/ReactNativeCompat';
 
 import {BackHandler} from 'react-native';
@@ -16,14 +18,20 @@ const mockHardwareBackPressEvent: HardwareBackPressEvent = {type: 'hardwareBackP
 let mockPreventRemoveFlag: boolean | undefined;
 let mockPreventRemoveCallback: ((e: MockBeforeRemoveEvent) => void) | undefined;
 let mockIsFocused = true;
+let mockIsFlowFocused = true;
+const mockNavigation = {
+    getState: () => ({key: 'flow-stack', index: 0, routes: [{key: 'test-route-key'}]}),
+    getParent: () => ({isFocused: () => mockIsFlowFocused}),
+};
 jest.mock('@react-navigation/native', () => ({
     usePreventRemove: (flag: boolean, callback: (e: MockBeforeRemoveEvent) => void) => {
         mockPreventRemoveFlag = flag;
         mockPreventRemoveCallback = callback;
     },
     useIsFocused: () => mockIsFocused,
+    useNavigation: () => mockNavigation,
     // The hook reads `route.name` to key its tab-switch guard
-    useRoute: () => ({name: 'test-route'}),
+    useRoute: () => ({name: 'test-route', key: 'test-route-key', params: {transactionID: '1'}}),
     // Focus effects behave like plain effects in these tests — the screen is always focused
     useFocusEffect: (callback: () => undefined | (() => void)) => {
         jest.requireActual<{useEffect: (effect: () => undefined | (() => void), deps: unknown[]) => void}>('react').useEffect(callback, [callback]);
@@ -102,6 +110,8 @@ describe('useDiscardChangesConfirmation (native)', () => {
         mockPreventRemoveFlag = undefined;
         mockPreventRemoveCallback = undefined;
         mockIsFocused = true;
+        mockIsFlowFocused = true;
+        releaseFlowDiscardPromptSuppression();
         hardwareBackCallback = undefined;
         resolveModal = undefined;
         backHandlerSpy = jest.spyOn(BackHandler, 'addEventListener').mockImplementation((event, handler) => {
@@ -332,6 +342,94 @@ describe('useDiscardChangesConfirmation (native)', () => {
             // Then the close goes through at the root, so the whole RHP closes instead of only the top screen
             expect(mockShowConfirmModal).not.toHaveBeenCalled();
             expect(mockNavigationDispatch).toHaveBeenCalledWith({type: 'GO_BACK', source: 'rhp-route', target: 'root'});
+        });
+
+        it('lets the navigation through without a second prompt when another guard already confirmed it', () => {
+            // Given a dirty screen under another dirty guard of the same RHP
+            renderDiscardHook(() => true);
+
+            // When the other guard sends again the navigation the user picked Discard for
+            runWhileReplayingDiscardedNavigation(() => invokeBeforeRemove('DISMISS_MODAL'));
+
+            // Then this screen lets it through without asking again
+            expect(mockShowConfirmModal).not.toHaveBeenCalled();
+            expect(mockNavigationDispatch).toHaveBeenCalledWith({type: 'DISMISS_MODAL'});
+        });
+    });
+    describe('flow root', () => {
+        const invokeBeforeRemove = (type: string, action: Omit<MockBeforeRemoveEvent['data']['action'], 'type'> = {}) => {
+            act(() => {
+                mockPreventRemoveCallback?.({data: {action: {type, ...action}}});
+            });
+        };
+
+        const renderFlowRootHook = (options: Partial<UseDiscardChangesConfirmationOptions> = {}) =>
+            renderHook(() => useDiscardChangesConfirmation({getHasUnsavedChanges: () => true, shouldPromptWhenUnfocused: true, ...options}));
+
+        it('keeps prevention armed and prompts while a later step covers the root', () => {
+            // Given a dirty flow root covered by a later step
+            mockIsFocused = false;
+            renderFlowRootHook();
+
+            // When closing the flow removes the root
+            invokeBeforeRemove('POP', {target: 'rhp-stack'});
+
+            // Then the root still blocks the removal and asks the user
+            expect(mockPreventRemoveFlag).toBe(true);
+            expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+            expect(mockNavigationDispatch).not.toHaveBeenCalled();
+        });
+
+        it('replays a click outside the RHP at the root on Discard, so the whole flow closes', async () => {
+            // Given a dirty flow root covered by a later step, without `shouldCloseRHPOnDiscard`
+            mockIsFocused = false;
+            renderFlowRootHook();
+
+            // When the user clicks outside the RHP and picks Discard
+            invokeBeforeRemove('GO_BACK', {source: 'rhp-route'});
+            await resolveModalWith('CONFIRM');
+
+            // Then the replay targets the root, so the whole RHP closes instead of only the step on top
+            expect(mockNavigationDispatch).toHaveBeenCalledWith({type: 'GO_BACK', source: 'rhp-route', target: 'root'});
+        });
+
+        it('lets the removal through when the flow itself is not visible', () => {
+            // Given a dirty flow root whose flow is covered by another screen
+            mockIsFocused = false;
+            mockIsFlowFocused = false;
+            renderFlowRootHook();
+
+            // When the root is removed
+            invokeBeforeRemove('POP', {target: 'rhp-stack'});
+
+            // Then it isn't asked about and the removal proceeds
+            expect(mockShowConfirmModal).not.toHaveBeenCalled();
+            expect(mockNavigationDispatch).toHaveBeenCalledWith({type: 'POP', target: 'rhp-stack'});
+        });
+
+        it('lets a replace inside the flow stack through without prompting', () => {
+            // Given a dirty flow root
+            renderFlowRootHook();
+
+            // When going back replaces the root with an earlier step of the same flow
+            invokeBeforeRemove('REPLACE', {target: 'flow-stack'});
+
+            // Then the draft stays, so the navigation proceeds without a prompt
+            expect(mockShowConfirmModal).not.toHaveBeenCalled();
+            expect(mockNavigationDispatch).toHaveBeenCalledWith({type: 'REPLACE', target: 'flow-stack'});
+        });
+
+        it('lets a submit from a later step through while the flow is suppressed', () => {
+            // Given a dirty flow root and a submit that muted the flow's guards
+            renderFlowRootHook();
+            suppressFlowDiscardPrompt();
+
+            // When the submit dismisses the flow
+            invokeBeforeRemove('DISMISS_MODAL');
+
+            // Then it isn't interrupted
+            expect(mockShowConfirmModal).not.toHaveBeenCalled();
+            expect(mockNavigationDispatch).toHaveBeenCalledWith({type: 'DISMISS_MODAL'});
         });
     });
 });
