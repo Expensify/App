@@ -58,6 +58,7 @@ import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {policyExpenseChatSelector} from '@selectors/Report';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import {useRef} from 'react';
+import Onyx from 'react-native-onyx';
 
 import useBlockDistanceRequest from './useBlockDistanceRequest';
 import useConfirmModal from './useConfirmModal';
@@ -150,24 +151,15 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     // Global collections
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [transactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const draftTransactionIDs = Object.keys(transactionDrafts ?? {});
-    const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
-    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
-    const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`);
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
-    const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
     // Billing keys
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
@@ -279,10 +271,20 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
         getMoneyRequestParticipantsFromReport(activePolicyExpenseChat, accountID).at(0)?.accountID,
     ]);
 
-    const duplicateExpenseTransaction = (transactionList: OnyxTypes.Transaction[]) => {
+    const duplicateExpenseTransaction = async (transactionList: OnyxTypes.Transaction[]) => {
         if (!transactionList.length) {
             return;
         }
+        const [allPolicyCategories, quickAction, policyRecentlyUsedCurrencies, recentWaypoints, conciergeChat, introSelected, onboarding] = await Onyx.multiGet([
+            ONYXKEYS.COLLECTION.POLICY_CATEGORIES,
+            ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+            ONYXKEYS.RECENTLY_USED_CURRENCIES,
+            ONYXKEYS.NVP_RECENT_WAYPOINTS,
+            `${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`,
+            ONYXKEYS.NVP_INTRO_SELECTED,
+            ONYXKEYS.NVP_ONBOARDING,
+        ]);
+        const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
         const optimisticChatReportID = generateReportID();
         const optimisticIOUReportID = generateReportID();
         const activePolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${duplicateTargetPolicy?.id}`] ?? {};
@@ -302,7 +304,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 introSelected,
                 quickAction,
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
-                isSelfTourViewed,
+                isSelfTourViewed: hasSeenTourSelector(onboarding),
                 customUnitPolicyID: policy?.id,
                 targetPolicy: duplicateTargetPolicy ?? undefined,
                 targetPolicyCategories: activePolicyCategories,
@@ -460,7 +462,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.DUPLICATE_REPORT,
             shouldShow: !!defaultExpensePolicy,
             shouldCloseModalOnSelect: false,
-            onSelected: () => {
+            onSelected: async () => {
                 if (!isDuplicateReportActive) {
                     return;
                 }
@@ -477,6 +479,16 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 temporarilyDisableDuplicateReportAction();
                 wasDuplicateReportTriggeredRef.current = true;
 
+                const [allPolicyCategories, quickAction, policyRecentlyUsedCurrencies, recentWaypoints, conciergeChat, introSelected, onboarding] = await Onyx.multiGet([
+                    ONYXKEYS.COLLECTION.POLICY_CATEGORIES,
+                    ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+                    ONYXKEYS.RECENTLY_USED_CURRENCIES,
+                    ONYXKEYS.NVP_RECENT_WAYPOINTS,
+                    `${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`,
+                    ONYXKEYS.NVP_INTRO_SELECTED,
+                    ONYXKEYS.NVP_ONBOARDING,
+                ]);
+                const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
                 const targetChatForDuplicate = isSourcePolicyValid ? chatReport : activePolicyExpenseChat;
                 const activePolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${targetPolicyForDuplicate?.id}`] ?? {};
                 const reportDuplicateParticipants = getMoneyRequestParticipantsFromReport(targetChatForDuplicate, currentUserPersonalDetails?.accountID);
@@ -497,7 +509,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                     personalDetails,
                     quickAction,
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
-                    isSelfTourViewed,
+                    isSelfTourViewed: hasSeenTourSelector(onboarding),
                     transactionViolations: allTransactionViolations,
                     translate,
                     recentWaypoints: recentWaypoints ?? [],
@@ -660,6 +672,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 if (result.action !== ModalActions.CONFIRM) {
                     return;
                 }
+                const bankAccountList = await Onyx.get(ONYXKEYS.BANK_ACCOUNT_LIST);
                 const backToRoute = backTo ?? (chatReport?.reportID ? ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID) : undefined);
                 const deleteNavigateBackUrl = backToRoute ?? Navigation.getActiveRoute();
                 setDeleteTransactionNavigateBackUrl(deleteNavigateBackUrl);

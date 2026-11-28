@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {renderHook, waitFor} from '@testing-library/react-native';
+import {act, renderHook, waitFor} from '@testing-library/react-native';
 
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
@@ -24,6 +24,7 @@ import type * as MockUsePaymentContextUtil from '../../utils/mockUsePaymentConte
 
 import createRandomTransaction, {createRandomDistanceRequestTransaction} from '../../utils/collections/transaction';
 import createMock from '../../utils/createMock';
+import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/actions/IOU/Duplicate', () => ({
     bulkDuplicateExpenses: jest.fn(),
@@ -297,6 +298,26 @@ function useSearchBulkActionsWithDuplicateReport({queryJSON}: {queryJSON: Search
 }
 
 const renderHookWithProvider: typeof renderHook = (callback, options) => renderHook(callback, {...options, wrapper: OnyxListItemProvider});
+
+const STORED_ONBOARDING = {hasCompletedGuidedSetupFlow: true, selfTourViewed: true};
+const STORED_INTRO_SELECTED = {choice: CONST.ONBOARDING_CHOICES.TRACK_PERSONAL};
+const STORED_QUICK_ACTION = {action: CONST.QUICK_ACTIONS.REQUEST_MANUAL, chatReportID: 'quickActionChat'};
+const STORED_RECENTLY_USED_CURRENCIES = ['EUR', 'GBP'];
+const STORED_RECENT_WAYPOINTS = [{name: 'Office', address: '1 Main St', lat: 1, lng: 2}];
+const STORED_CONCIERGE_REPORT_ID = 'concierge1';
+const STORED_CONCIERGE_CHAT = {reportID: STORED_CONCIERGE_REPORT_ID, reportName: 'Concierge'};
+
+async function seedStoredDuplicateData() {
+    await Onyx.multiSet({
+        [ONYXKEYS.NVP_ONBOARDING]: STORED_ONBOARDING,
+        [ONYXKEYS.NVP_INTRO_SELECTED]: STORED_INTRO_SELECTED,
+        [ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE]: STORED_QUICK_ACTION,
+        [ONYXKEYS.RECENTLY_USED_CURRENCIES]: STORED_RECENTLY_USED_CURRENCIES,
+        [ONYXKEYS.NVP_RECENT_WAYPOINTS]: STORED_RECENT_WAYPOINTS,
+        [ONYXKEYS.CONCIERGE_REPORT_ID]: STORED_CONCIERGE_REPORT_ID,
+        [`${ONYXKEYS.COLLECTION.REPORT}${STORED_CONCIERGE_REPORT_ID}` as const]: STORED_CONCIERGE_CHAT,
+    });
+}
 
 describe('useSearchBulkActions - duplicate option', () => {
     beforeAll(() => {
@@ -617,6 +638,39 @@ describe('useSearchBulkActions - duplicate option', () => {
     // Data / invocation tests
     // ============================================================
 
+    it('should pass the stored onboarding, intent, quick action, recent data, drafts and Concierge chat to bulkDuplicateExpenses', async () => {
+        // Given a user who saw the tour, chose a track intent, and has a quick action, recent currencies, recent waypoints, a transaction draft and a Concierge chat, which the copies' optimistic data is built from
+        await seedStoredDuplicateData();
+        const draft = {...createRandomTransaction(3), transactionID: 'draft1'};
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${draft.transactionID}`, draft);
+        const txn = {...createRandomTransaction(1), transactionID: '610', managedCard: false};
+        mockSelectedTransactions = {[txn.transactionID]: makeSelectedTransaction({reportID: 'r1'})};
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${txn.transactionID}`, txn);
+        const {result} = renderHookWithProvider(() => useSearchBulkActionsWithDuplicate({queryJSON: baseQueryJSON}));
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeDefined();
+        });
+
+        // When the user duplicates the selected expense
+        await act(async () => {
+            result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)?.onSelected?.();
+            await waitForBatchedUpdates();
+        });
+
+        // Then the stored onboarding state, intent, quick action, recent currencies, recent waypoints, drafts and Concierge chat still reach bulkDuplicateExpenses
+        expect(bulkDuplicateExpenses).toHaveBeenCalledWith(
+            expect.objectContaining({
+                isSelfTourViewed: true,
+                isTrackIntentUser: true,
+                quickAction: STORED_QUICK_ACTION,
+                policyRecentlyUsedCurrencies: STORED_RECENTLY_USED_CURRENCIES,
+                recentWaypoints: STORED_RECENT_WAYPOINTS,
+                conciergeChat: STORED_CONCIERGE_CHAT,
+                transactionDrafts: expect.objectContaining({[draft.transactionID]: expect.objectContaining({transactionID: draft.transactionID})}),
+            }),
+        );
+    });
+
     it('should call bulkDuplicateExpenses with all selected transaction IDs', async () => {
         const txn1 = {...createRandomTransaction(1), transactionID: '600', managedCard: false};
         const txn2 = {...createRandomTransaction(2), transactionID: '601', managedCard: false};
@@ -634,7 +688,10 @@ describe('useSearchBulkActions - duplicate option', () => {
             expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeDefined();
         });
 
-        result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)?.onSelected?.();
+        await act(async () => {
+            result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)?.onSelected?.();
+            await waitForBatchedUpdates();
+        });
 
         expect(bulkDuplicateExpenses).toHaveBeenCalledTimes(1);
         expect(bulkDuplicateExpenses).toHaveBeenCalledWith(
@@ -661,7 +718,10 @@ describe('useSearchBulkActions - duplicate option', () => {
             expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeDefined();
         });
 
-        result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)?.onSelected?.();
+        await act(async () => {
+            result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)?.onSelected?.();
+            await waitForBatchedUpdates();
+        });
 
         expect(bulkDuplicateExpenses).toHaveBeenCalledWith(
             expect.objectContaining({
@@ -684,7 +744,10 @@ describe('useSearchBulkActions - duplicate option', () => {
             expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeDefined();
         });
 
-        result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)?.onSelected?.();
+        await act(async () => {
+            result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)?.onSelected?.();
+            await waitForBatchedUpdates();
+        });
 
         expect(bulkDuplicateExpenses).toHaveBeenCalledWith(
             expect.objectContaining({
@@ -720,7 +783,10 @@ describe('useSearchBulkActions - duplicate option', () => {
             expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeDefined();
         });
 
-        result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)?.onSelected?.();
+        await act(async () => {
+            result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)?.onSelected?.();
+            await waitForBatchedUpdates();
+        });
 
         expect(bulkDuplicateExpenses).toHaveBeenCalledWith(
             expect.objectContaining({
@@ -758,7 +824,10 @@ describe('useSearchBulkActions - duplicate option', () => {
             expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeDefined();
         });
 
-        result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)?.onSelected?.();
+        await act(async () => {
+            result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)?.onSelected?.();
+            await waitForBatchedUpdates();
+        });
 
         expect(bulkDuplicateExpenses).toHaveBeenCalledWith(
             expect.objectContaining({
@@ -802,7 +871,10 @@ describe('useSearchBulkActions - duplicate option', () => {
             expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeDefined();
         });
 
-        result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)?.onSelected?.();
+        await act(async () => {
+            result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)?.onSelected?.();
+            await waitForBatchedUpdates();
+        });
 
         expect(bulkDuplicateExpenses).toHaveBeenCalledTimes(1);
         expect(bulkDuplicateExpenses).toHaveBeenCalledWith(
@@ -832,7 +904,10 @@ describe('useSearchBulkActions - duplicate option', () => {
             expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeDefined();
         });
 
-        result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)?.onSelected?.();
+        await act(async () => {
+            result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)?.onSelected?.();
+            await waitForBatchedUpdates();
+        });
 
         expect(bulkDuplicateExpenses).toHaveBeenCalledWith(
             expect.objectContaining({
@@ -860,7 +935,10 @@ describe('useSearchBulkActions - duplicate option', () => {
             expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeDefined();
         });
 
-        result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)?.onSelected?.();
+        await act(async () => {
+            result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)?.onSelected?.();
+            await waitForBatchedUpdates();
+        });
 
         expect(bulkDuplicateExpenses).toHaveBeenCalledWith(
             expect.objectContaining({
@@ -886,7 +964,10 @@ describe('useSearchBulkActions - duplicate option', () => {
             expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeDefined();
         });
 
-        result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)?.onSelected?.();
+        await act(async () => {
+            result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)?.onSelected?.();
+            await waitForBatchedUpdates();
+        });
 
         expect(bulkDuplicateExpenses).toHaveBeenCalledWith(
             expect.objectContaining({
@@ -1138,7 +1219,10 @@ describe('useSearchBulkActions - duplicate option', () => {
             expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeDefined();
         });
 
-        result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)?.onSelected?.();
+        await act(async () => {
+            result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)?.onSelected?.();
+            await waitForBatchedUpdates();
+        });
 
         expect(bulkDuplicateExpenses).not.toHaveBeenCalled();
         expect(mockShowConfirmModal).toHaveBeenCalledWith(
@@ -1162,7 +1246,10 @@ describe('useSearchBulkActions - duplicate option', () => {
             expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeDefined();
         });
 
-        result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)?.onSelected?.();
+        await act(async () => {
+            result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)?.onSelected?.();
+            await waitForBatchedUpdates();
+        });
 
         expect(bulkDuplicateExpenses).toHaveBeenCalledTimes(1);
         expect(mockClearSelectedTransactions).toHaveBeenCalledTimes(1);
@@ -1235,7 +1322,9 @@ describe('useBulkDuplicateAction - source report target', () => {
             }),
         );
         await waitFor(() => expect(result.current).toBeDefined());
-        result.current();
+        await act(async () => {
+            await result.current();
+        });
 
         // Then the copies go to the source report on its own policy, like the single-expense duplicate
         expect(bulkDuplicateExpenses).toHaveBeenCalledWith(
@@ -1266,7 +1355,9 @@ describe('useBulkDuplicateAction - source report target', () => {
             }),
         );
         await waitFor(() => expect(result.current).toBeDefined());
-        result.current();
+        await act(async () => {
+            await result.current();
+        });
 
         // Then the copies keep the existing routing to the default workspace chat and policy
         expect(bulkDuplicateExpenses).toHaveBeenCalledWith(
@@ -1300,7 +1391,9 @@ describe('useBulkDuplicateAction - source report target', () => {
             }),
         );
         await waitFor(() => expect(result.current).toBeDefined());
-        result.current();
+        await act(async () => {
+            await result.current();
+        });
 
         // Then the user is sent to the restricted action page for the source workspace, like the single-expense duplicate, and no copy is written
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(sourcePolicy.id));
@@ -1331,7 +1424,9 @@ describe('useBulkDuplicateAction - source report target', () => {
             }),
         );
         await waitFor(() => expect(result.current).toBeDefined());
-        result.current();
+        await act(async () => {
+            await result.current();
+        });
 
         // Then the user is sent to the restricted action page for the default workspace the copies would go to, and no copy is written
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(defaultPolicy.id));
@@ -1581,7 +1676,10 @@ describe('useSearchBulkActions - duplicate report option', () => {
             expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE_REPORT)).toBeDefined();
         });
 
-        result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE_REPORT)?.onSelected?.();
+        await act(async () => {
+            result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE_REPORT)?.onSelected?.();
+            await waitForBatchedUpdates();
+        });
 
         expect(bulkDuplicateReports).toHaveBeenCalledTimes(1);
         expect(bulkDuplicateReports).toHaveBeenCalledWith(
@@ -1613,7 +1711,10 @@ describe('useSearchBulkActions - duplicate report option', () => {
             expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE_REPORT)).toBeDefined();
         });
 
-        result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE_REPORT)?.onSelected?.();
+        await act(async () => {
+            result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE_REPORT)?.onSelected?.();
+            await waitForBatchedUpdates();
+        });
 
         expect(mockClearSelectedTransactions).toHaveBeenCalledWith(undefined, true);
     });

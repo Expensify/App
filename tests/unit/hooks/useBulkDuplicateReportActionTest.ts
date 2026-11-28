@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {renderHook, waitFor} from '@testing-library/react-native';
+import {act, renderHook, waitFor} from '@testing-library/react-native';
 
 import type {SelectedReports} from '@components/Search/types';
 
@@ -82,6 +82,26 @@ function makeSelectedReport(overrides: Partial<SelectedReports> = {}): SelectedR
     };
 }
 
+const STORED_ONBOARDING = {hasCompletedGuidedSetupFlow: true, selfTourViewed: true};
+const STORED_INTRO_SELECTED = {choice: CONST.ONBOARDING_CHOICES.TRACK_PERSONAL};
+const STORED_QUICK_ACTION = {action: CONST.QUICK_ACTIONS.REQUEST_MANUAL, chatReportID: 'quickActionChat'};
+const STORED_RECENTLY_USED_CURRENCIES = ['EUR', 'GBP'];
+const STORED_RECENT_WAYPOINTS = [{name: 'Office', address: '1 Main St', lat: 1, lng: 2}];
+const STORED_CONCIERGE_REPORT_ID = 'concierge1';
+const STORED_CONCIERGE_CHAT = {reportID: STORED_CONCIERGE_REPORT_ID, reportName: 'Concierge'};
+
+async function seedStoredDuplicateData() {
+    await Onyx.multiSet({
+        [ONYXKEYS.NVP_ONBOARDING]: STORED_ONBOARDING,
+        [ONYXKEYS.NVP_INTRO_SELECTED]: STORED_INTRO_SELECTED,
+        [ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE]: STORED_QUICK_ACTION,
+        [ONYXKEYS.RECENTLY_USED_CURRENCIES]: STORED_RECENTLY_USED_CURRENCIES,
+        [ONYXKEYS.NVP_RECENT_WAYPOINTS]: STORED_RECENT_WAYPOINTS,
+        [ONYXKEYS.CONCIERGE_REPORT_ID]: STORED_CONCIERGE_REPORT_ID,
+        [`${ONYXKEYS.COLLECTION.REPORT}${STORED_CONCIERGE_REPORT_ID}` as const]: STORED_CONCIERGE_CHAT,
+    });
+}
+
 describe('useBulkDuplicateReportAction', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
@@ -122,7 +142,9 @@ describe('useBulkDuplicateReportAction', () => {
             expect(result.current).toBeInstanceOf(Function);
         });
 
-        result.current();
+        await act(async () => {
+            await result.current();
+        });
 
         expect(bulkDuplicateReports).toHaveBeenCalledTimes(1);
         expect(bulkDuplicateReports).toHaveBeenCalledWith(
@@ -155,7 +177,9 @@ describe('useBulkDuplicateReportAction', () => {
             expect(result.current).toBeInstanceOf(Function);
         });
 
-        result.current();
+        await act(async () => {
+            await result.current();
+        });
 
         expect(bulkDuplicateReports).toHaveBeenCalledWith(
             expect.objectContaining({
@@ -186,7 +210,9 @@ describe('useBulkDuplicateReportAction', () => {
             expect(result.current).toBeInstanceOf(Function);
         });
 
-        result.current();
+        await act(async () => {
+            await result.current();
+        });
 
         expect(mockClearSelectedTransactions).toHaveBeenCalledWith(undefined, true);
     });
@@ -213,11 +239,41 @@ describe('useBulkDuplicateReportAction', () => {
             expect(result.current).toBeInstanceOf(Function);
         });
 
-        result.current();
+        await act(async () => {
+            await result.current();
+        });
 
         expect(bulkDuplicateReports).toHaveBeenCalledWith(
             expect.objectContaining({
                 selectedReports,
+            }),
+        );
+    });
+
+    it('should pass the stored onboarding, intent, quick action, recent data and Concierge chat to bulkDuplicateReports', async () => {
+        // Given a user who saw the tour, chose a track intent, and has a quick action, recent currencies, recent waypoints and a Concierge chat, which the copies' optimistic data is built from
+        mockDefaultExpensePolicy = createMock<Policy>({id: 'policy1', type: CONST.POLICY.TYPE.TEAM, name: 'Test WS'});
+        await seedStoredDuplicateData();
+        const selectedReports = [makeSelectedReport({reportID: 'rpt1', policyID: 'policy1'})];
+        const {result} = renderHook(() => useBulkDuplicateReportAction({selectedReports, allReports: {}, allTransactions: {}, searchData: undefined}));
+        await waitFor(() => {
+            expect(result.current).toBeInstanceOf(Function);
+        });
+
+        // When the user duplicates the selected report
+        await act(async () => {
+            await result.current();
+        });
+
+        // Then the stored onboarding state, intent, quick action, recent currencies, recent waypoints and Concierge chat still reach bulkDuplicateReports
+        expect(bulkDuplicateReports).toHaveBeenCalledWith(
+            expect.objectContaining({
+                isSelfTourViewed: true,
+                isTrackIntentUser: true,
+                quickAction: STORED_QUICK_ACTION,
+                policyRecentlyUsedCurrencies: STORED_RECENTLY_USED_CURRENCIES,
+                recentWaypoints: STORED_RECENT_WAYPOINTS,
+                conciergeChat: STORED_CONCIERGE_CHAT,
             }),
         );
     });
@@ -252,7 +308,9 @@ describe('useBulkDuplicateReportAction', () => {
             expect(result.current).toBeInstanceOf(Function);
         });
 
-        result.current();
+        await act(async () => {
+            await result.current();
+        });
 
         expect(bulkDuplicateReports).toHaveBeenCalledWith(
             expect.objectContaining({
@@ -295,7 +353,9 @@ describe('useBulkDuplicateReportAction', () => {
             expect(result.current).toBeInstanceOf(Function);
         });
 
-        result.current();
+        await act(async () => {
+            await result.current();
+        });
 
         expect(bulkDuplicateReports).toHaveBeenCalledWith(
             expect.objectContaining({
@@ -326,7 +386,9 @@ describe('useBulkDuplicateReportAction', () => {
             expect(result.current).toBeInstanceOf(Function);
         });
 
-        result.current();
+        await act(async () => {
+            await result.current();
+        });
 
         expect(bulkDuplicateReports).toHaveBeenCalledWith(
             expect.objectContaining({
@@ -351,7 +413,9 @@ describe('useBulkDuplicateReportAction', () => {
             expect(result.current).toBeInstanceOf(Function);
         });
 
-        result.current();
+        await act(async () => {
+            await result.current();
+        });
 
         expect(bulkDuplicateReports).toHaveBeenCalledWith(expect.objectContaining({allReports: {}}));
     });
