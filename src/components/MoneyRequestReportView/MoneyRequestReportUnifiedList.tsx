@@ -5,6 +5,8 @@ import useIsMobileWebLandscape from '@hooks/useIsMobileWebLandscape';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
+import mergeRefs from '@libs/mergeRefs';
+
 import type ActionListRefType from '@pages/inbox/ActionListTypes';
 import CollapsedReportHeaderSpacer from '@pages/inbox/report/CollapsibleReportHeader/CollapsedReportHeaderSpacer';
 import useScrollToEditingReportAction from '@pages/inbox/report/useScrollToEditingReportAction';
@@ -14,11 +16,11 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 
-import type {FlashListProps, ListRenderItemInfo, ViewToken} from '@shopify/flash-list';
+import type {FlashListProps, FlashListRef, ListRenderItemInfo, ViewToken} from '@shopify/flash-list';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 
 import React, {useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 
 import type {ExternalScrollFlashListTableHandle} from './ExternalScrollFlashListTable';
 import type {MoneyRequestReportTransactionListController, TransactionListItemData} from './MoneyRequestReportTransactionList';
@@ -26,6 +28,7 @@ import type {MoneyRequestReportTransactionListController, TransactionListItemDat
 import ExternalScrollFlashListTable, {createScrollOffsetStore} from './ExternalScrollFlashListTable';
 import MoneyRequestViewReportFields from './MoneyRequestViewReportFields';
 import ReportActionsListLoadingSkeleton from './ReportActionsListLoadingSkeleton';
+import StickyReportTableHeader from './StickyReportTableHeader';
 import useScrollToNewTransaction from './useScrollToNewTransaction';
 
 /** Single virtualized data item rendered by the unified FlatList. Mixes transactions, a footer marker, and report actions in one scroll. */
@@ -54,7 +57,7 @@ function unifiedListItemType(item: UnifiedListItem) {
 
 type MoneyRequestReportFlashListProps = FlashListProps<UnifiedListItem> & {
     /** Ref to the underlying list, shared via the common ActionList imperative API. */
-    ref: ActionListRefType;
+    ref: React.Ref<FlashListRef<UnifiedListItem>>;
 };
 
 /**
@@ -226,10 +229,37 @@ function MoneyRequestReportUnifiedList({
     const isMobileWebLandscape = useIsMobileWebLandscape();
     const [viewportHeight, setViewportHeight] = useState(windowHeight);
     const [tableOffsetTop, setTableOffsetTop] = useState(0);
+    const contentStyle = StyleSheet.flatten(contentContainerStyle);
+    const contentPaddingTop = contentStyle?.paddingTop ?? contentStyle?.paddingVertical ?? contentStyle?.padding ?? 0;
+    const columnHeaderOffsetTop = tableOffsetTop + (typeof contentPaddingTop === 'number' ? contentPaddingTop : 0);
+    const flashListRef = useRef<FlashListRef<UnifiedListItem>>(null);
 
     // A subscribe/notify store carries the scroll offset to the nested table FlashList with zero parent re-renders.
     // Lazy useState initializer (not useRef.current) so it is created exactly once without reading a ref during render.
     const [scrollOffsetStore] = useState(createScrollOffsetStore);
+    const [tableEndOffsetStore] = useState(createScrollOffsetStore);
+
+    const updateInlineTableEndOffset = () => {
+        if (!shouldInlineTransactions) {
+            return;
+        }
+        const footerLayout = flashListRef.current?.getLayout(controller.transactionListItems.length);
+        if (!footerLayout) {
+            return;
+        }
+        // Item layouts exclude the list header and padding; the first-item offset includes both.
+        tableEndOffsetStore.setOffset((flashListRef.current?.getFirstItemOffset() ?? 0) + footerLayout.y);
+    };
+
+    const commitListLayout = () => {
+        updateInlineTableEndOffset();
+        onCommitLayoutEffect?.();
+    };
+
+    const updateContentSize = (width: number, height: number) => {
+        updateInlineTableEndOffset();
+        onContentSizeChange(width, height);
+    };
 
     // Reset the offset to the top whenever the report changes. A report view opens at the top, but the store only
     // updates from onScroll — so without this a stale offset
@@ -239,9 +269,8 @@ function MoneyRequestReportUnifiedList({
 
     const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
         // Always feed the offset store (emitter, not state: the nested FlashList updates its own render stack without
-        // re-rendering the parent). Feed it even in inline mode — the store has no subscribers then, so this is a cheap
-        // write — so that if the layout flips to the horizontal table, the nested list windows against the real scroll
-        // offset instead of a stale 0.
+        // re-rendering the parent). The column header subscribes in both wide modes, and the nested list also uses it
+        // when the table overflows horizontally.
         scrollOffsetStore.setOffset(event.nativeEvent.contentOffset.y);
         onScroll(event);
     };
@@ -339,9 +368,19 @@ function MoneyRequestReportUnifiedList({
         />
     );
 
+    const tableColumnHeader = controller.tableColumnHeader ? (
+        <StickyReportTableHeader
+            scrollOffsetStore={scrollOffsetStore}
+            tableEndOffsetStore={tableEndOffsetStore}
+            offsetTop={columnHeaderOffsetTop}
+        >
+            {controller.tableColumnHeader}
+        </StickyReportTableHeader>
+    ) : null;
+
     return (
         <MoneyRequestReportFlashList
-            ref={listRef}
+            ref={mergeRefs(listRef, flashListRef)}
             accessibilityLabel={accessibilityLabel}
             testID={CONST.TEST_ID.MONEY_REQUEST_REPORT_ACTIONS_LIST}
             data={data}
@@ -355,16 +394,16 @@ function MoneyRequestReportUnifiedList({
             maintainVisibleContentPosition={{autoscrollToBottomThreshold: undefined, disabled: isMobileWebLandscape}}
             onViewableItemsChanged={onViewableItemsChangedAdjusted}
             onLayout={handleLayout}
-            onCommitLayoutEffect={onCommitLayoutEffect}
+            onCommitLayoutEffect={commitListLayout}
             onEndReached={onEndReached}
             onEndReachedThreshold={0.75}
             onStartReached={onStartReached}
             onStartReachedThreshold={0.75}
+            ListHeaderComponentStyle={tableColumnHeader ? styles.zIndex1 : undefined}
             ListHeaderComponent={
                 isHorizontalTable ? (
                     <>
-                        {/* Report fields + group-by/columns controls stay pinned to the page; only the column header and
-                            rows scroll horizontally. Measured together so the table's offset into the page is exact. */}
+                        {/* Only the table scrolls horizontally; fields and controls keep their page alignment. */}
                         <View onLayout={(event: LayoutChangeEvent) => setTableOffsetTop(event.nativeEvent.layout.height)}>
                             <CollapsedReportHeaderSpacer />
                             {reportFieldsHeader}
@@ -375,12 +414,13 @@ function MoneyRequestReportUnifiedList({
                             keyExtractor={unifiedListKeyExtractor}
                             getItemType={unifiedListItemType}
                             renderItem={(item, _index, meta) => controller.renderTransactionListItem(item, meta)}
-                            renderHeader={() => controller.tableColumnHeader}
+                            renderHeader={() => tableColumnHeader}
                             estimatedRowHeight={variables.tableRowHeight}
                             contentWidth={controller.tableMinWidth}
                             store={scrollOffsetStore}
                             viewportHeight={viewportHeight}
-                            offsetTop={tableOffsetTop}
+                            offsetTop={columnHeaderOffsetTop}
+                            onTableEndOffsetChange={tableEndOffsetStore.setOffset}
                             ref={tableRef}
                         />
                         {/* Rendered outside the horizontal scroller so the totals/add-expense summary stays pinned to the viewport. */}
@@ -388,17 +428,19 @@ function MoneyRequestReportUnifiedList({
                     </>
                 ) : (
                     <>
-                        <CollapsedReportHeaderSpacer />
-                        {reportFieldsHeader}
-                        {controller.beforeListContent}
-                        {controller.tableColumnHeader}
+                        <View onLayout={(event: LayoutChangeEvent) => setTableOffsetTop(event.nativeEvent.layout.height)}>
+                            <CollapsedReportHeaderSpacer />
+                            {reportFieldsHeader}
+                            {controller.beforeListContent}
+                        </View>
+                        {tableColumnHeader}
                     </>
                 )
             }
             keyboardShouldPersistTaps="handled"
             onScroll={handleScroll}
             onScrollBeginDrag={onScrollBeginDrag}
-            onContentSizeChange={onContentSizeChange}
+            onContentSizeChange={updateContentSize}
             // Chrome's scroll anchoring would scroll by the height CollapsedReportHeaderSpacer adds above the rows, undoing the
             // header hand-over. It doesn't help with rows above the viewport, which FlashList moves by rewriting their top.
             contentContainerStyle={[contentContainerStyle, isMobileWebLandscape && styles.overflowAnchorNone]}
