@@ -2907,41 +2907,49 @@ type NewWorkspaceWorkflowsOptions = {
     /** Explicit pick from the workspace creation feature map, when the flow offers one */
     workflowsFeatureEnabled?: boolean;
 
-    /** The account level onboarding choice */
-    introSelectedChoice?: OnboardingPurpose;
+    /** The account level onboarding NVP. The server treats an NVP without a choice differently from a missing one */
+    introSelected?: OnyxEntry<IntroSelected>;
 
     /** The choice passed for this creation */
     engagementChoice?: OnboardingPurpose;
 };
 
 /**
- * Determines whether workflows feature is enabled by default on a workspace
+ * Whether an onboarding choice makes the server create the workspace with track defaults. Only these two count, not newDotPersonalSpend.
  */
-function shouldEnableWorkflowsByDefaultForNewWorkspace({
-    isSubmitWorkspace,
-    workspaceType,
-    workflowsFeatureEnabled,
-    introSelectedChoice,
-    engagementChoice,
-}: NewWorkspaceWorkflowsOptions): boolean {
+function isServerTrackIntent(choice?: OnboardingPurpose): boolean {
+    return choice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE || choice === CONST.ONBOARDING_CHOICES.TRACK_PERSONAL;
+}
+
+/**
+ * Determines whether workflows feature is enabled by default on a workspace, in the order the server resolves it
+ */
+function shouldEnableWorkflowsByDefaultForNewWorkspace({isSubmitWorkspace, workspaceType, workflowsFeatureEnabled, introSelected, engagementChoice}: NewWorkspaceWorkflowsOptions): boolean {
     if (workflowsFeatureEnabled !== undefined) {
         return workflowsFeatureEnabled;
     }
+
+    // The account's choice only decides track defaults when this creation doesn't pass its own choice
+    if (isServerTrackIntent(engagementChoice) || (!engagementChoice && isServerTrackIntent(introSelected?.choice))) {
+        return false;
+    }
+
+    // The account's choice, or this creation's when the account has no onboarding NVP, can only turn Workflows on
+    const choice = introSelected ? introSelected.choice : engagementChoice;
+    if ((introSelected && !choice) || choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM || choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND) {
+        return true;
+    }
+
     if (isSubmitWorkspace) {
         return true;
     }
-    if (workspaceType === CONST.POLICY.TYPE.CORPORATE && engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && introSelectedChoice === CONST.ONBOARDING_CHOICES.ADMIN) {
-        return false;
+
+    if (workspaceType === CONST.POLICY.TYPE.TEAM) {
+        return !engagementChoice || engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM || engagementChoice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
     }
-    if (engagementChoice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE || engagementChoice === CONST.ONBOARDING_CHOICES.TRACK_PERSONAL) {
-        return false;
-    }
-    return (
-        !engagementChoice ||
-        engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ||
-        engagementChoice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND ||
-        isTrackOnboardingChoice(engagementChoice)
-    );
+
+    // Control workspaces start with Workflows off
+    return false;
 }
 
 /**
@@ -3056,7 +3064,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
         isSubmitWorkspace,
         workspaceType,
         workflowsFeatureEnabled: featuresMap?.find((feature) => feature.id === CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED)?.enabled,
-        introSelectedChoice: introSelected?.choice,
+        introSelected,
         engagementChoice,
     });
 

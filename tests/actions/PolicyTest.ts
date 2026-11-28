@@ -1554,6 +1554,174 @@ describe('actions/Policy', () => {
             });
         });
 
+        it('create a Control workspace with disabled workflows if the account onboarding choice is newDotSubmit', async () => {
+            // Given an invited employee whose account onboarding choice is newDotSubmit
+            const policyID = Policy.generatePolicyID();
+
+            // When they create a Control workspace from Workspaces > New workspace, which sends newDotManageTeam for this creation
+            Policy.createWorkspace({
+                conciergeChat: undefined,
+                policyOwner: {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID},
+                makeMeAdmin: true,
+                policyName: WORKSPACE_NAME,
+                policyID,
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.SUBMIT},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
+                currency: undefined,
+                isSelfTourViewed: false,
+                hasActiveAdminPolicies: false,
+                hasOwnedPaidPolicy: false,
+                activePolicy: undefined,
+                delegateAccountID: undefined,
+                shouldCreateControlPolicy: true,
+            });
+            await waitForBatchedUpdates();
+
+            await TestHelper.getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                callback: (policy) => {
+                    // Then workflows are off, as the server only turns them on for a Control workspace when the account's choice is manage team, looking around or empty
+                    expect(policy?.areWorkflowsEnabled).toBe(false);
+                },
+            });
+        });
+
+        it('create a Control workspace with enabled workflows if the account onboarding choice is newDotManageTeam', async () => {
+            // Given an account whose onboarding choice is newDotManageTeam
+            const policyID = Policy.generatePolicyID();
+
+            // When it creates a Control workspace
+            Policy.createWorkspace({
+                conciergeChat: undefined,
+                policyOwner: {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID},
+                makeMeAdmin: true,
+                policyName: WORKSPACE_NAME,
+                policyID,
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
+                currency: undefined,
+                isSelfTourViewed: false,
+                hasActiveAdminPolicies: false,
+                hasOwnedPaidPolicy: false,
+                activePolicy: undefined,
+                delegateAccountID: undefined,
+                shouldCreateControlPolicy: true,
+            });
+            await waitForBatchedUpdates();
+
+            await TestHelper.getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                callback: (policy) => {
+                    // Then workflows are on, since the server turns them on for that account choice whatever the workspace type
+                    expect(policy?.areWorkflowsEnabled).toBe(true);
+                },
+            });
+        });
+
+        it('create a Collect workspace with disabled workflows if no engagement choice is passed and the account onboarding choice is newDotTrackWorkspace', async () => {
+            // Given an account whose onboarding choice is newDotTrackWorkspace
+            const policyID = Policy.generatePolicyID();
+
+            // When it creates a Collect workspace without its own engagement choice, as the Travel flow does
+            Policy.createWorkspace({
+                conciergeChat: undefined,
+                policyOwner: {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID},
+                makeMeAdmin: true,
+                policyName: WORKSPACE_NAME,
+                policyID,
+                engagementChoice: undefined,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
+                currency: undefined,
+                isSelfTourViewed: false,
+                hasActiveAdminPolicies: false,
+                hasOwnedPaidPolicy: false,
+                activePolicy: undefined,
+                delegateAccountID: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            await TestHelper.getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                callback: (policy) => {
+                    // Then workflows are off, because the server applies the account's track defaults when the creation passes no choice
+                    expect(policy?.areWorkflowsEnabled).toBe(false);
+                },
+            });
+        });
+
+        it('create a Collect workspace with enabled workflows if the engagement choice is newDotSplitChat and the account onboarding choice is newDotManageTeam', async () => {
+            // Given an account whose onboarding choice is newDotManageTeam
+            const policyID = Policy.generatePolicyID();
+
+            // When it creates a Collect workspace passing newDotSplitChat for this creation
+            Policy.createWorkspace({
+                conciergeChat: undefined,
+                policyOwner: {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID},
+                makeMeAdmin: true,
+                policyName: WORKSPACE_NAME,
+                policyID,
+                engagementChoice: CONST.ONBOARDING_CHOICES.CHAT_SPLIT,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
+                currency: undefined,
+                isSelfTourViewed: false,
+                hasActiveAdminPolicies: false,
+                hasOwnedPaidPolicy: false,
+                activePolicy: undefined,
+                delegateAccountID: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            await TestHelper.getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                callback: (policy) => {
+                    // Then workflows are on, since the account's manage team choice turns them on after the split chat choice turned them off
+                    expect(policy?.areWorkflowsEnabled).toBe(true);
+                },
+            });
+        });
+
+        it('create a workspace with disabled workflows if the feature map turns workflows off', async () => {
+            // Given an account whose onboarding choice is newDotManageTeam, which would otherwise turn workflows on
+            const policyID = Policy.generatePolicyID();
+
+            // When it creates a workspace with Workflows turned off in the feature map
+            Policy.createWorkspace({
+                conciergeChat: undefined,
+                policyOwner: {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID},
+                makeMeAdmin: true,
+                policyName: WORKSPACE_NAME,
+                policyID,
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
+                currency: undefined,
+                isSelfTourViewed: false,
+                hasActiveAdminPolicies: false,
+                hasOwnedPaidPolicy: false,
+                activePolicy: undefined,
+                delegateAccountID: undefined,
+                featuresMap: [{id: CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED, enabled: false}],
+            });
+            await waitForBatchedUpdates();
+
+            await TestHelper.getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                callback: (policy) => {
+                    // Then workflows are off, because an explicit feature pick always wins on the server
+                    expect(policy?.areWorkflowsEnabled).toBe(false);
+                },
+            });
+        });
+
         it('creates a Submit workspace with ADVANCED approval mode and correct feature flags', async () => {
             const policyID = Policy.generatePolicyID();
             Policy.createWorkspace({
