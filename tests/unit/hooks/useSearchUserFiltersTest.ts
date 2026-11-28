@@ -472,4 +472,34 @@ describe('useSearchUserFilters', () => {
         expect(secondMount.result.current.isLoadingMore).toBe(false);
         expect(secondMount.result.current.hasMore).toBe(true);
     });
+
+    it('preserves cached scoped logins and pagination when a silent background refresh fails', async () => {
+        // Given cached workspace state from an earlier open and a failing silent refresh
+        const cachedState: SearchUserFiltersState = {
+            hasLoadedBase: true,
+            hasMore: true,
+            nextCursor: '50',
+            scopedLogins: ['removed@example.com'],
+        };
+        onyxStore[getStateKey('policy-1')] = cachedState;
+        mockOpenSearchUserFiltersPage.mockRejectedValueOnce(new Error('Failed to load search user filters'));
+
+        // When the hook remounts and the silent refresh fails
+        const {result} = renderHook(() =>
+            useSearchUserFilters({
+                policyIDs: 'policy-1',
+                searchTerm: '',
+            }),
+        );
+
+        await waitFor(() => {
+            expect(mockOpenSearchUserFiltersPage).toHaveBeenCalledTimes(1);
+        });
+
+        // Then the cached state is preserved and no spinner or Onyx overwrite occurs
+        expect(result.current.isSearching).toBe(false);
+        expect(result.current.hasMore).toBe(true);
+        expect(mockSetSearchUserFiltersState).not.toHaveBeenCalled();
+        expect(onyxStore[getStateKey('policy-1')]).toEqual(cachedState);
+    });
 });

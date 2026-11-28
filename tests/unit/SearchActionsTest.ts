@@ -10,6 +10,7 @@ import {
     getPayOption,
     openSearch,
     openSearchTagFiltersPage,
+    openSearchUserFiltersPage,
     queueExportSearchItemsToCSV,
     queueExportSearchWithTemplate,
     rejectMoneyRequestsOnSearch,
@@ -19,7 +20,7 @@ import {
     setSearchUserFiltersState,
 } from '@libs/actions/Search';
 import {makeRequestWithSideEffects, waitForWrites, read, write} from '@libs/API';
-import type {OpenSearchTagFiltersPageResponse} from '@libs/API/parameters';
+import type {OpenSearchTagFiltersPageResponse, OpenSearchUserFiltersPageResponse} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import fileDownload from '@libs/fileDownload';
 import {translate} from '@libs/Localize';
@@ -1035,6 +1036,60 @@ describe('getPayOption', () => {
 
             expect(storedScoped).toEqual(scopedState);
             expect(storedUnscoped).toEqual(unscopedState);
+        });
+    });
+
+    describe('openSearchUserFiltersPage', () => {
+        it('returns pagination and logins when the server responds with jsonCode 200', async () => {
+            // Given a successful OpenSearchUserFiltersPage response with personal details updates
+            const accountID = 101;
+            mockMakeRequestWithSideEffects.mockResolvedValueOnce(
+                createMock<Response<never> & OpenSearchUserFiltersPageResponse>({
+                    jsonCode: CONST.JSON_CODE.SUCCESS,
+                    hasMore: true,
+                    nextCursor: '50',
+                    onyxData: [
+                        {
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                            value: {
+                                [accountID]: {accountID, login: 'removed@example.com'},
+                            },
+                        },
+                    ],
+                }),
+            );
+
+            // When openSearchUserFiltersPage is called
+            const result = await openSearchUserFiltersPage({searchQuery: '', cursor: '', limit: CONST.SEARCH.USER_FILTER_PAGE_SIZE, policyIDs: 'policy-1'}, true);
+
+            // Then pagination metadata and extracted logins are returned
+            expect(result).toEqual({
+                hasMore: true,
+                nextCursor: '50',
+                logins: ['removed@example.com'],
+            });
+        });
+
+        it('rejects when the request resolves with a non-success jsonCode or undefined response', async () => {
+            // Given Reauthentication resolves a network failure with UNABLE_TO_RETRY
+            mockMakeRequestWithSideEffects.mockResolvedValueOnce(
+                createMock<Response<never>>({
+                    jsonCode: CONST.JSON_CODE.UNABLE_TO_RETRY,
+                }),
+            );
+
+            // When openSearchUserFiltersPage is called
+            // Then the promise rejects instead of returning an empty page
+            await expect(openSearchUserFiltersPage({searchQuery: '', cursor: '', limit: CONST.SEARCH.USER_FILTER_PAGE_SIZE, policyIDs: 'policy-1'}, true)).rejects.toThrow(
+                'Failed to load search user filters',
+            );
+
+            // Given an undefined response
+            mockMakeRequestWithSideEffects.mockResolvedValueOnce(undefined);
+
+            // Then the promise also rejects
+            await expect(openSearchUserFiltersPage({searchQuery: '', cursor: '', limit: CONST.SEARCH.USER_FILTER_PAGE_SIZE}, true)).rejects.toThrow('Failed to load search user filters');
         });
     });
 });
