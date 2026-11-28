@@ -21,6 +21,8 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import Navigation from '@libs/Navigation/Navigation';
 import {generateReportID} from '@libs/ReportUtils';
 
+import useIconTileMenuItemProps from '@pages/inbox/sidebar/FABPopoverContent/useIconTileMenuItemProps';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -43,6 +45,7 @@ function SearchActionsBarCreateButton() {
     const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
     const [createMenuPosition, setCreateMenuPosition] = useState<{horizontal: number; vertical: number}>({horizontal: 0, vertical: 0});
     const {calculatePopoverPosition} = usePopoverPosition();
+    const getIconTileMenuItemProps = useIconTileMenuItemProps();
 
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
@@ -100,9 +103,11 @@ function SearchActionsBarCreateButton() {
         });
     };
 
+    const createExpenseIcon = getIconForAction(CONST.IOU.TYPE.CREATE, expensifyIcons);
     const createMenuItems: PopoverMenuItem[] = [
         {
-            icon: getIconForAction(CONST.IOU.TYPE.CREATE, expensifyIcons),
+            icon: createExpenseIcon,
+            ...getIconTileMenuItemProps(CONST.FAB_MENU_ITEM_IDS.EXPENSE, createExpenseIcon),
             text: translate('iou.createExpense'),
             sentryLabel: CONST.SENTRY_LABEL.SEARCH.CREATE_MENU.CREATE_EXPENSE,
             onSelected: () =>
@@ -112,6 +117,7 @@ function SearchActionsBarCreateButton() {
         },
         {
             icon: expensifyIcons.Location,
+            ...getIconTileMenuItemProps(CONST.FAB_MENU_ITEM_IDS.TRACK_DISTANCE, expensifyIcons.Location),
             text: translate('iou.trackDistance'),
             sentryLabel: CONST.SENTRY_LABEL.SEARCH.CREATE_MENU.TRACK_DISTANCE,
             onSelected: () =>
@@ -123,6 +129,7 @@ function SearchActionsBarCreateButton() {
             ? [
                   {
                       icon: expensifyIcons.Document,
+                      ...getIconTileMenuItemProps(CONST.FAB_MENU_ITEM_IDS.CREATE_REPORT, expensifyIcons.Document),
                       text: translate('report.newReport.createReport'),
                       sentryLabel: CONST.SENTRY_LABEL.SEARCH.CREATE_MENU.CREATE_REPORT,
                       onSelected: createReport,
