@@ -4,13 +4,12 @@ import {getAllReportActions, isCreatedAction} from '@libs/ReportActionsUtils';
 import {getTransactionDetails, isMoneyRequestReport} from '@libs/ReportUtils';
 import {getIsFromGlobalCreate, isDistanceRequest, isPerDiemRequest, isTimeRequest} from '@libs/TransactionUtils';
 
-import {getAllPersonalDetails, getAllReports, getAllTransactionViolations} from '@userActions/IOU';
+import {getAllPersonalDetails, getAllTransactionViolations} from '@userActions/IOU';
 import {getMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
 import {getReportPreviewReportAction} from '@userActions/IOU/MoneyRequestBuilder';
 import type {RequestMoneyInformation} from '@userActions/IOU/MoneyRequestBuilder';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Receipt, ReceiptError} from '@src/types/onyx/Transaction';
@@ -122,7 +121,7 @@ function buildRetryPayload(context: ReceiptRetryDispatchContext, receiptFile: Fi
         isVendorMatchingBetaEnabled,
         rules,
         personalDetailsByLogins,
-        conciergeReportID,
+        conciergeChat,
         isSelfTourViewed,
         isASAPSubmitBetaEnabled,
         isTrackIntentUser,
@@ -169,7 +168,7 @@ function buildRetryPayload(context: ReceiptRetryDispatchContext, receiptFile: Fi
         isVendorMatchingBetaEnabled,
         rules,
         personalDetailsByLogins,
-        conciergeChat: conciergeReportID ? getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`] : undefined,
+        conciergeChat,
         isSelfTourViewed,
         isASAPSubmitBetaEnabled,
         isTrackIntentUser,

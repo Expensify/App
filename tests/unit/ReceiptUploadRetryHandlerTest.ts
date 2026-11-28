@@ -39,6 +39,7 @@ const POLICY_ID = 'A0000000000000001';
 const IOU_ACTION_ID = '6000000000000001';
 const THREAD_REPORT_ID = '5000000000000001';
 const SELF_DM_REPORT_ID = '2000000000000001';
+const CONCIERGE_REPORT_ID = '3000000000000001';
 
 const receiptFile: FileObject = {name: 'receipt.jpg', type: 'image/jpeg', uri: 'file:///receipts/receipt.jpg'};
 
@@ -74,7 +75,7 @@ function buildContext(transaction: Transaction, receiptErrorOverrides: Partial<R
         isVendorMatchingBetaEnabled: false,
         rules: {},
         personalDetailsByLogins: CURRENT_USER_PERSONAL_DETAILS_BY_LOGINS,
-        conciergeReportID: undefined,
+        conciergeChat: undefined,
         isSelfTourViewed: true,
         isASAPSubmitBetaEnabled: false,
         isTrackIntentUser: false,
@@ -147,6 +148,18 @@ describe('buildRetryPayload', () => {
 
         // Then it is offered, because the participant can still be resolved from the report
         expect(canRetry).toBe(true);
+    });
+
+    it('passes the Concierge chat from the dispatch context, so the retry does not look it up in the whole report collection', () => {
+        // Given a failed RequestMoney whose dispatch context carries the Concierge chat read when Try again was pressed
+        const conciergeChat = {reportID: CONCIERGE_REPORT_ID} as Report;
+        const context = {...buildContext(buildFailedTransaction()), conciergeChat};
+
+        // When the retry payload is rebuilt
+        const payload = buildRetryPayload(context, receiptFile);
+
+        // Then requestMoney gets that same report, which it uses when the retry has to set up a workspace and its onboarding tasks
+        expect(payload?.conciergeChat).toBe(conciergeChat);
     });
 
     it('reuses the IOU report action and transaction thread, so the retry does not add a second expense to the report', () => {
@@ -455,6 +468,18 @@ describe('buildRetryPayload', () => {
             expect(payload?.existingTransactionThreadCreatedReportActionID).toBe(threadCreatedActionID);
             expect(payload?.report?.reportID).toBe(SELF_DM_REPORT_ID);
             expect(payload?.transactionParams.amount).toBe(1200);
+        });
+
+        it('passes the Concierge chat from the dispatch context, so the retry does not look it up in the whole report collection', () => {
+            // Given a failed track whose dispatch context carries the Concierge chat read when Try again was pressed
+            const conciergeChat = {reportID: CONCIERGE_REPORT_ID} as Report;
+            const context = {...buildTrackExpenseContext(), conciergeChat};
+
+            // When the retry payload is rebuilt
+            const payload = buildTrackExpenseRetryPayload(context, receiptFile);
+
+            // Then trackExpense gets that same report, which it uses when the retry has to set up a workspace and its onboarding tasks
+            expect(payload?.conciergeChat).toBe(conciergeChat);
         });
 
         it('reuses the whisper ID saved with the receipt error, so the retry does not add a second whisper', () => {

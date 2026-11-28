@@ -2,15 +2,13 @@
 import {getAllReportActions, isCreatedAction} from '@libs/ReportActionsUtils';
 import {isSelfDM} from '@libs/ReportUtils';
 
-import {getAllReports} from '@userActions/IOU';
 import type {CreateTrackExpenseParams} from '@userActions/IOU/types/CreateTrackExpenseParams';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 
-import type {ReceiptRetryContext} from './types';
+import type {ReceiptRetryContext, ReceiptRetryDispatchContext} from './types';
 
 import {buildRetryTransactionParams, isRetryableFlow, parseRetryParams, resolveParticipant} from './buildRetryPayload';
 
@@ -31,7 +29,7 @@ function canBuildTrackExpenseRetryPayload(context: ReceiptRetryContext): boolean
 }
 
 /** Rebuilds the `TrackExpense` call behind a failed receipt upload from the records the failure left in Onyx. */
-function buildTrackExpenseRetryPayload(context: ReceiptRetryContext, receiptFile: FileObject): CreateTrackExpenseParams | undefined {
+function buildTrackExpenseRetryPayload(context: ReceiptRetryDispatchContext, receiptFile: FileObject): CreateTrackExpenseParams | undefined {
     const {
         transaction,
         iouReport,
@@ -39,7 +37,7 @@ function buildTrackExpenseRetryPayload(context: ReceiptRetryContext, receiptFile
         transactionThreadReportID,
         policyParams,
         rules,
-        conciergeReportID,
+        conciergeChat,
         isSelfTourViewed,
         isASAPSubmitBetaEnabled,
         introSelected,
@@ -81,7 +79,7 @@ function buildTrackExpenseRetryPayload(context: ReceiptRetryContext, receiptFile
         },
         currentUserPersonalDetails: currentUser,
         introSelected,
-        conciergeChat: conciergeReportID ? getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`] : undefined,
+        conciergeChat,
         quickAction: undefined,
         recentWaypoints: [],
         isSelfTourViewed,

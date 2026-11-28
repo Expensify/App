@@ -33,8 +33,6 @@ type ReceiptRetryContext = {
     /** Used by `shouldCreateNewMoneyRequestReport`, so an empty collection can make the retry create a second report. */
     rules: OnyxCollection<Rule>;
 
-    conciergeReportID: string | undefined;
-
     isSelfTourViewed: boolean;
 
     isASAPSubmitBetaEnabled: boolean;
@@ -61,6 +59,9 @@ type ReceiptRetryContext = {
 /** The retry context plus the data that is only read when the retry is dispatched, not while rendering. */
 type ReceiptRetryDispatchContext = ReceiptRetryContext & {
     personalDetailsByLogins: PersonalDetailsByLogin;
+
+    /** Read when Try again is pressed, so the receipt view does not subscribe to the Concierge chat on every expense row. */
+    conciergeChat: OnyxEntry<Report>;
 };
 
 type RetryOutcome = 'dispatched' | 'fileMissing' | 'payloadIncomplete' | 'unsupportedAction' | 'dispatchFailed';
