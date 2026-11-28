@@ -623,6 +623,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                             chatReportID: report?.parentReportID,
                             chatReport: parentReport,
                             chatReportActions: parentReportActions,
+                            transactionThreadReport: report,
                             transactionThreadReportActions,
                             transactionID: transaction.transactionID,
                             reportAction: parentReportAction,

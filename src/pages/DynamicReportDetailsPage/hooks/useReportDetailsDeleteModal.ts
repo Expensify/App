@@ -92,6 +92,7 @@ function useReportDetailsDeleteModal(reportID: string, caseID: CaseID, parentRep
                     moneyRequestReport,
                     iouTransactionID,
                     requestParentReportAction,
+                    requestParentReportActionChildReport,
                     iouReport,
                     chatIOUReport,
                     isChatIOUReportArchived,

@@ -231,6 +231,7 @@ type DeleteTrackExpenseParams = {
     chatReportID: string | undefined;
     chatReport: OnyxEntry<OnyxTypes.Report> | undefined;
     chatReportActions: OnyxEntry<OnyxTypes.ReportActions>;
+    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     transactionThreadReportActions: OnyxEntry<OnyxTypes.ReportActions>;
     transactionID: string | undefined;
     reportAction: OnyxTypes.ReportAction;
@@ -3143,6 +3144,7 @@ function trackExpense(
  * @param chatReportID - The ID of the chat report containing the track expense
  * @param transactionID - The ID of the track expense being deleted
  * @param reportAction - The report action associated with the track expense
+ * @param transactionThreadReport - The thread of the track expense, which `reportAction.childReportID` points to
  * @param isSingleTransactionView - Whether we're in single transaction view
  * @returns The URL to navigate to
  */
@@ -3151,6 +3153,7 @@ function getNavigationUrlAfterTrackExpenseDelete(
     chatReport: OnyxEntry<OnyxTypes.Report> | undefined,
     transactionID: string | undefined,
     reportAction: OnyxTypes.ReportAction,
+    transactionThreadReport: OnyxEntry<OnyxTypes.Report>,
     iouReport: OnyxEntry<OnyxTypes.Report>,
     chatIOUReport: OnyxEntry<OnyxTypes.Report>,
     isChatReportArchived: boolean | undefined,
@@ -3164,8 +3167,6 @@ function getNavigationUrlAfterTrackExpenseDelete(
 
     // If not a self DM, handle it as a regular money request
     if (!isSelfDM(chatReport)) {
-        const allReports = getAllReports();
-        const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`];
         return getNavigationUrlOnMoneyRequestDelete(
             transactionID,
             reportAction,
@@ -3192,6 +3193,7 @@ function deleteTrackExpense({
     chatReportID,
     chatReport,
     chatReportActions,
+    transactionThreadReport,
     transactionThreadReportActions,
     transactionID,
     reportAction,
@@ -3219,6 +3221,7 @@ function deleteTrackExpense({
         chatReport,
         transactionID,
         reportAction,
+        transactionThreadReport,
         iouReport,
         chatIOUReport,
         isChatIOUReportArchived,
@@ -3226,9 +3229,6 @@ function deleteTrackExpense({
         isSingleTransactionView,
         currentUserAccountID,
     );
-
-    const allReports = getAllReports();
-    const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`];
 
     // STEP 1: Get all collections we're updating
     if (!isSelfDM(chatReport)) {

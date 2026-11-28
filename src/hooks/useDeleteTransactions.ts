@@ -370,6 +370,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     chatReportID: candidateIOUReport?.reportID,
                     chatReport: candidateIOUReport,
                     chatReportActions: selfDMReportActions,
+                    transactionThreadReport,
                     transactionThreadReportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${action?.childReportID}`],
                     transactionID,
                     reportAction: action,
