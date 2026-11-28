@@ -1,14 +1,10 @@
 import type {ConfirmationFieldViewRefs} from '@components/MoneyRequestConfirmationList/hooks/useScrollToFlaggedField';
 import type {MeasurableInput} from '@components/SelectionList/SelectionListWithSections/types';
-import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import type {IOUAction, IOUType} from '@src/CONST';
 import type CONST from '@src/CONST';
 
 import {createContext, useContext} from 'react';
-
-/** Reports that an inline input took focus. The getter returns that input, or null once it unmounts. */
-type OnInlineInputFocus = (getInput: () => BaseTextInputRef | null) => void;
 
 /**
  * Cross-cutting state for the money-request confirmation surface. Anything that
@@ -58,9 +54,6 @@ type ConfirmationFieldsContextValue = {
 
     /** Reports whether the inline amount field holds input the draft can't show as the user's: a sign with no digits, or a currency the user picked (new manual expense flow). */
     onUnsavedAmountInputChange?: (hasUnsavedInput: boolean) => void;
-
-    /** Reports the inline input that took focus, so cancelling the discard prompt can put focus back in it (new manual expense flow). */
-    onInlineInputFocus?: OnInlineInputFocus;
 };
 
 const ConfirmationFieldsContext = createContext<ConfirmationFieldsContextValue | null>(null);
@@ -75,4 +68,3 @@ function useConfirmationFields(): ConfirmationFieldsContextValue {
 
 export default ConfirmationFieldsContext;
 export {useConfirmationFields};
-export type {OnInlineInputFocus};

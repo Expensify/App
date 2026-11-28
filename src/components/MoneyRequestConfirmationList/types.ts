@@ -1,4 +1,3 @@
-import type {OnInlineInputFocus} from '@components/MoneyRequestConfirmationFields/context';
 import type {ReceiptOptions} from '@components/MoneyRequestConfirmationListFooter/fieldGroupTypes';
 
 import type {OptionData} from '@libs/ReportUtils';
@@ -116,9 +115,6 @@ type MoneyRequestConfirmationListProps = {
 
     /** Whether the discard prompt covers the form, which keeps the inline inputs read-only */
     isDiscardModalVisible: boolean;
-
-    /** Reports the inline input that took focus, so cancelling the discard prompt can put focus back in it */
-    onInlineInputFocus?: OnInlineInputFocus;
 };
 
 export type {MoneyRequestConfirmationListItem, MoneyRequestConfirmationListProps};

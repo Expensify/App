@@ -3,7 +3,6 @@ import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import TextInput from '@components/TextInput';
-import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
@@ -18,7 +17,7 @@ import {setDraftSplitTransaction} from '@userActions/IOU/Split';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
-import React, {useRef, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 import AutomaticFieldHint from './AutomaticFieldHint';
@@ -37,8 +36,7 @@ type MerchantFieldProps = {
 };
 
 function MerchantField({isMerchantRequired, shouldDisplayFieldError, fieldError}: MerchantFieldProps) {
-    const {transactionID, isReadOnly, didConfirm, isDiscardModalVisible, isEditingSplitBill, canEnterScanFieldsManually, fieldViewRefs, onInlineInputFocus} = useConfirmationFields();
-    const merchantInputRef = useRef<BaseTextInputRef | null>(null);
+    const {transactionID, isReadOnly, didConfirm, isDiscardModalVisible, isEditingSplitBill, canEnterScanFieldsManually, fieldViewRefs} = useConfirmationFields();
     const {shouldUseDropdownRows} = useExpenseFormLayout();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -132,10 +130,8 @@ function MerchantField({isMerchantRequired, shouldDisplayFieldError, fieldError}
                     value={merchantInput}
                     readOnly={didConfirm || isDiscardModalVisible}
                     onChangeText={handleMerchantInputChange}
-                    ref={merchantInputRef}
                     onFocus={() => {
                         setIsMerchantInputFocused(true);
-                        onInlineInputFocus?.(() => merchantInputRef.current);
                     }}
                     onBlur={() => {
                         setIsMerchantInputFocused(false);

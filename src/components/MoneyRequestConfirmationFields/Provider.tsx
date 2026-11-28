@@ -8,8 +8,6 @@ import type {ReactNode} from 'react';
 
 import React from 'react';
 
-import type {OnInlineInputFocus} from './context';
-
 import ConfirmationFieldsContext from './context';
 
 type ProviderProps = {
@@ -88,9 +86,6 @@ type ProviderProps = {
     /** Reports whether the inline amount field holds input the draft can't show as the user's: a sign with no digits, or a currency the user picked */
     onUnsavedAmountInputChange?: (hasUnsavedInput: boolean) => void;
 
-    /** Reports the inline input that took focus, so cancelling the discard prompt can put focus back in it */
-    onInlineInputFocus?: OnInlineInputFocus;
-
     /** Block components rendered inside the Provider */
     children: ReactNode;
 };
@@ -121,7 +116,6 @@ function Provider({
     onSubmitForm,
     setEmptyTaxAmountTransactionID,
     onUnsavedAmountInputChange,
-    onInlineInputFocus,
     children,
 }: ProviderProps) {
     const value = {
@@ -150,7 +144,6 @@ function Provider({
         onSubmitForm,
         setEmptyTaxAmountTransactionID,
         onUnsavedAmountInputChange,
-        onInlineInputFocus,
     };
     return <ConfirmationFieldsContext.Provider value={value}>{children}</ConfirmationFieldsContext.Provider>;
 }

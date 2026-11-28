@@ -4,7 +4,6 @@ import MenuItem from '@components/MenuItem';
 import ConfirmationFieldsProvider from '@components/MoneyRequestConfirmationFields/Provider';
 import ExpenseFormLayoutContext, {dropdownRowsExpenseFormLayout} from '@components/MoneyRequestConfirmationList/sections/ExpenseFormLayoutContext';
 import MerchantField from '@components/MoneyRequestConfirmationList/sections/MerchantField';
-import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -150,32 +149,5 @@ describe('MerchantField while the discard prompt shows', () => {
 
         // Then it is read-only, so the refocus iOS does after a cancelled back swipe cannot bring the keyboard back
         expect(merchantInput).toHaveProp('readOnly', true);
-    });
-
-    it('reports the merchant input when it takes focus, so cancelling the prompt can focus it again', () => {
-        // Given the editable merchant input of a new expense
-        const onInlineInputFocus = jest.fn<void, [() => BaseTextInputRef | null]>();
-        render(
-            <ConfirmationFieldsProvider
-                transactionID="1"
-                reportID="2"
-                action={CONST.IOU.ACTION.CREATE}
-                iouType={CONST.IOU.TYPE.SUBMIT}
-                onInlineInputFocus={onInlineInputFocus}
-            >
-                <MerchantField
-                    isMerchantRequired
-                    shouldDisplayFieldError={false}
-                    fieldError={undefined}
-                />
-            </ConfirmationFieldsProvider>,
-        );
-
-        // When the user focuses it
-        fireEvent(screen.getByLabelText('common.merchant'), 'focus');
-
-        // Then the form learns which input to focus after Cancel
-        expect(onInlineInputFocus).toHaveBeenCalledTimes(1);
-        expect(onInlineInputFocus.mock.calls.at(0)?.at(0)?.()).toBeTruthy();
     });
 });

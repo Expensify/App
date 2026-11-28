@@ -4,7 +4,6 @@ import ConfirmationFieldsProvider from '@components/MoneyRequestConfirmationFiel
 import AmountField from '@components/MoneyRequestConfirmationList/sections/AmountField';
 import ExpenseFormLayoutContext from '@components/MoneyRequestConfirmationList/sections/ExpenseFormLayoutContext';
 import type {NumberWithSymbolFormProps} from '@components/NumberWithSymbolForm';
-import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import {setMoneyRequestAmount, setMoneyRequestCurrency} from '@libs/actions/IOU/MoneyRequest';
 
@@ -39,14 +38,12 @@ jest.mock('@components/NumberWithSymbolForm', () => {
         errorText,
         currencyButtonRef,
         readOnly,
-        onFocus,
         ref,
     }: {
         onInputChange: (amount: string) => void;
         errorText?: string;
         currencyButtonRef?: NumberWithSymbolFormProps['currencyButtonRef'];
         readOnly?: boolean;
-        onFocus?: () => void;
         ref?: React.Ref<{focus: () => void}>;
     }) => {
         useImperativeHandle(ref, () => ({focus: mockFocusAmountInput}));
@@ -78,12 +75,6 @@ jest.mock('@components/NumberWithSymbolForm', () => {
                     onPress={() => onInputChange('')}
                 >
                     <Text>Clear amount</Text>
-                </Pressable>
-                <Pressable
-                    accessibilityRole="button"
-                    onPress={() => onFocus?.()}
-                >
-                    <Text>Focus amount</Text>
                 </Pressable>
             </>
         );
@@ -666,31 +657,5 @@ describe('AmountField while the discard prompt shows', () => {
 
         // Then the prompt keeps the input from taking the focus iOS restores after a cancelled back swipe
         expect(mockIsAmountInputReadOnly).toBe(isDiscardModalVisible);
-    });
-
-    it('reports the amount input when it takes focus, so cancelling the prompt can focus it again', () => {
-        // Given a new manual expense with an amount entered
-        const onInlineInputFocus = jest.fn<void, [() => BaseTextInputRef | null]>();
-        render(
-            <ConfirmationFieldsProvider
-                transactionID="1"
-                reportID="2"
-                action={CONST.IOU.ACTION.CREATE}
-                iouType={CONST.IOU.TYPE.SUBMIT}
-                onInlineInputFocus={onInlineInputFocus}
-            >
-                <AmountField
-                    {...amountFieldProps}
-                    amount={500}
-                />
-            </ConfirmationFieldsProvider>,
-        );
-
-        // When the user focuses the amount input
-        fireEvent.press(screen.getByText('Focus amount'));
-
-        // Then the form learns which input to focus after Cancel
-        expect(onInlineInputFocus).toHaveBeenCalledTimes(1);
-        expect(onInlineInputFocus.mock.calls.at(0)?.at(0)?.()).toBeTruthy();
     });
 });

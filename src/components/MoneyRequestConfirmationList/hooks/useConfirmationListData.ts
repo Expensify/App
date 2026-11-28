@@ -83,7 +83,6 @@ function useConfirmationListDataWithPolicy({
     onUnsavedAmountInputChange,
     onSubmitWillStart,
     isDiscardModalVisible,
-    onInlineInputFocus,
 }: UseConfirmationListDataParams): ConfirmationListData {
     // Every distance branch below goes inert for the variants that pass no distance state.
     const {
@@ -369,7 +368,6 @@ function useConfirmationListDataWithPolicy({
                 onSubmitForm: confirm,
                 setEmptyTaxAmountTransactionID,
                 onUnsavedAmountInputChange,
-                onInlineInputFocus,
             },
         },
 

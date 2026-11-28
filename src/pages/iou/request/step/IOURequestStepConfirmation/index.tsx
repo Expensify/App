@@ -401,7 +401,7 @@ function IOURequestStepConfirmationContent({
     const submitLock = useSubmitLock();
     const {isConfirmed, formHasBeenSubmitted} = submitLock;
 
-    const {setHasUnsavedAmountInput, suppressDiscardPrompt, isDiscardModalVisible, setLastFocusedInput} = useConfirmationDiscardGuard({
+    const {setHasUnsavedAmountInput, suppressDiscardPrompt, isDiscardModalVisible} = useConfirmationDiscardGuard({
         // Embedded on the start page, this confirmation is the flow's first step, so leaving it throws the draft away
         shouldConfirmDiscardingChanges: shouldHideHeader,
         requestType,
@@ -673,7 +673,6 @@ function IOURequestStepConfirmationContent({
         onUnsavedAmountInputChange: setHasUnsavedAmountInput,
         onSubmitWillStart: suppressDiscardPrompt,
         isDiscardModalVisible,
-        onInlineInputFocus: setLastFocusedInput,
     };
 
     const renderSubmissionVariant = () => {

@@ -88,7 +88,6 @@ function AmountField({
         reportActionID,
         fieldViewRefs,
         onUnsavedAmountInputChange,
-        onInlineInputFocus,
     } = useConfirmationFields();
     // Filled by the forms that offer a receipt from beside the amount field rather than from a full-width empty
     // state, with their compact add-receipt button.
@@ -385,7 +384,6 @@ function AmountField({
                             currencyButtonRef={currencyButtonRef}
                             onFocus={() => {
                                 setIsAmountInputFocused(true);
-                                onInlineInputFocus?.(() => amountInputRef.current);
                             }}
                             onBlur={() => {
                                 setIsAmountInputFocused(false);
