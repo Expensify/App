@@ -147,7 +147,7 @@ function WorkspaceCompanyCardsTable({
 
     const hasOnceLoadedPage = !!pageLoadingState?.hasOnceLoadedPage;
     const isPageRequestLoading = !!pageLoadingState?.isLoadingPage;
-    const hasPageLoadError = !isOffline && !isPageRequestLoading && !!pageLoadingState?.hasLoadingError;
+    const hasPageLoadError = !!pageLoadingState?.hasLoadingError;
     const hasOnceLoadedSelectedFeed = !!bankName && !!companyCardsLoadingState?.feeds?.[bankName]?.hasOnceLoaded;
 
     const hasNoAssignedCard = Object.keys(assignedCards ?? {}).length === 0;
@@ -194,9 +194,10 @@ function WorkspaceCompanyCardsTable({
     const isSelectedFeedLoading = !!selectedFeedStatus?.isLoading && !hasOnceLoadedSelectedFeed;
 
     const isLoadingPage = !isOffline && !hasCards && (isLoadingOnyxPersonalDetails || areWorkspaceCardFeedsLoading);
-    const isLoadingFeed =
-        !hasCards &&
-        ((!feedName && isInitiallyLoadingFeeds) || (!isPolicyLoaded && (!pageLoadingState?.hasOnceLoadedPage || isPageRequestLoading)) || isLoadingOnyxFeed || isSelectedFeedLoading);
+    // A workspace without its account ID keeps loading until a page request settles. Once one succeeds, the page renders
+    // without the account ID instead of spinning, since the creation response that carries it may never arrive.
+    const isWaitingForPolicy = !isPolicyLoaded && (!hasOnceLoadedPage || isPageRequestLoading);
+    const isLoadingFeed = !hasCards && ((!feedName && isInitiallyLoadingFeeds) || isWaitingForPolicy || isLoadingOnyxFeed || isSelectedFeedLoading);
     // A settled page error must remain actionable even when account resolution or Onyx hydration is incomplete.
     const isLoading = !shouldShowWorkspaceFeedsLoadError && (isLoadingPage || isLoadingFeed || isLoadingOnyxCardList);
 

@@ -88,8 +88,9 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     };
 
     const retryPolicyCompanyCardsPage = () => {
-        // A lost creation response leaves an optimistic policy that the access wrapper will not refresh.
-        if (policy?.policyAccountID === undefined) {
+        // A lost creation response leaves an optimistic policy that the access wrapper will not refresh. A missing policy is
+        // left to the wrapper, which already opens the workspace when it has no data.
+        if (policy && policy.policyAccountID === undefined) {
             openWorkspace(policyID, []);
         }
         loadPolicyCompanyCardsPage();
