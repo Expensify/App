@@ -468,6 +468,7 @@ function handleActionButtonPress({
                     allViolations,
                     rules,
                     getCurrencyDecimals,
+                    iouReportTransactions: allReportTransactions,
                     personalDetailsByLogins,
                 }),
             );
@@ -816,6 +817,7 @@ type GetApproveActionCallbackParams = {
     allViolations: OnyxCollection<TransactionViolations>;
     rules: OnyxCollection<Rule>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    iouReportTransactions: Transaction[];
     personalDetailsByLogins: PersonalDetailsByLogin;
 };
 
@@ -839,6 +841,7 @@ function getApproveActionCallback({
     allViolations,
     rules,
     getCurrencyDecimals,
+    iouReportTransactions,
     personalDetailsByLogins,
 }: GetApproveActionCallbackParams) {
     if (!item.reportID) {
@@ -850,6 +853,7 @@ function getApproveActionCallback({
 
     approveMoneyRequest({
         expenseReport: snapshotReport,
+        expenseReportTransactions: iouReportTransactions,
         expenseReportPolicy: reportPolicy,
         rules,
         currentUserAccountIDParam: currentUserAccountID,

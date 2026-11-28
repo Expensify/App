@@ -514,6 +514,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                 isASAPSubmitBetaEnabled,
                 confirmApproval: () => confirmApproval(),
                 iouReport: moneyRequestReport,
+                iouReportTransactions: moneyReportTransactions,
                 rules,
                 userBillingGracePeriodEnds,
                 amountOwed,

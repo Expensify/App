@@ -33,7 +33,7 @@ function ApproveActionButton() {
     const [transactionViolations] = useReportTransactionViolations(transactions);
     const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, currentUserAccountID, currentUserEmail, undefined, transactions);
 
-    const confirmApproval = useConfirmApproveReportAction(actionButtonData, hasViolations);
+    const confirmApproval = useConfirmApproveReportAction(actionButtonData, transactions, hasViolations);
 
     return (
         <ExpenseHeaderApprovalButton

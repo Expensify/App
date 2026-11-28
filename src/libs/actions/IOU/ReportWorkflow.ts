@@ -34,11 +34,9 @@ import {
     buildOptimisticRetractedReportAction,
     buildOptimisticSubmittedReportAction,
     buildOptimisticUnapprovedReportAction,
-    getAllHeldTransactions as getAllHeldTransactionsReportUtils,
     getNextApproverAccountID,
     getReimbursableTotal,
     getReportOrDraftReport,
-    getReportTransactions,
     getUnheldReimbursableTotal,
     hasHeldExpenses as hasHeldExpensesReportUtils,
     hasOutstandingChildRequest,
@@ -67,6 +65,7 @@ import mergeAdditionalPayOnyxData from './mergeAdditionalPayOnyxData';
 
 type ApproveMoneyRequestFunctionParams = {
     expenseReport: OnyxEntry<OnyxTypes.Report>;
+    expenseReportTransactions: OnyxTypes.Transaction[];
     expenseReportPolicy: OnyxEntry<OnyxTypes.Policy>;
     rules: OnyxCollection<OnyxTypes.Rule>;
     currentUserAccountIDParam: number;
@@ -139,6 +138,7 @@ function getReportOriginalCreationTimestamp(expenseReport?: OnyxEntry<OnyxTypes.
 function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
     const {
         expenseReport,
+        expenseReportTransactions,
         rules,
         currentUserAccountIDParam,
         currentUserEmailParam,
@@ -178,10 +178,9 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         return;
     }
 
-    const reportTransactions = getReportTransactions(expenseReport.reportID);
     const unheldTotal = getUnheldReimbursableTotal(expenseReport) + (expenseReport.unheldNonReimbursableTotal ?? 0);
     let total = getReimbursableTotal(expenseReport) + (expenseReport.nonReimbursableTotal ?? 0);
-    const hasHeldExpenses = hasHeldExpensesReportUtils(reportTransactions);
+    const hasHeldExpenses = hasHeldExpensesReportUtils(expenseReportTransactions);
     if (hasHeldExpenses && !full && !!unheldTotal) {
         total = unheldTotal;
     }
@@ -410,7 +409,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
 
     // Clear hold reason of all transactions if we approve all requests
     if (full && hasHeldExpenses) {
-        const heldTransactions = getAllHeldTransactionsReportUtils(expenseReport.reportID);
+        const heldTransactions = expenseReportTransactions.filter((transaction) => isOnHold(transaction));
         for (const heldTransaction of heldTransactions) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -474,7 +473,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
     }
 
     // Remove duplicates violations if we approve the report
-    const duplicatedTransactions = getReportTransactions(expenseReport.reportID).filter((transaction) =>
+    const duplicatedTransactions = expenseReportTransactions.filter((transaction) =>
         isDuplicate(
             transaction,
             currentUserEmailParam,

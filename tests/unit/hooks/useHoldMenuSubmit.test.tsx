@@ -9,15 +9,17 @@ import useHoldMenuSubmit from '@hooks/useHoldMenuSubmit';
 import type usePayViaABA from '@hooks/usePayViaABA';
 
 import {payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
+import {approveMoneyRequest} from '@userActions/IOU/ReportWorkflow';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report} from '@src/types/onyx';
+import type {Policy, Report, Transaction} from '@src/types/onyx';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../../utils/collections/policies';
+import createRandomTransaction from '../../utils/collections/transaction';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 const mockPayReportsViaABA = jest.fn<void, Parameters<ReturnType<typeof usePayViaABA>['payReportsViaABA']>>();
@@ -26,6 +28,17 @@ jest.mock('@hooks/usePayViaABA', () => ({__esModule: true, default: jest.fn(() =
 jest.mock('@userActions/IOU/PayMoneyRequest', () => ({
     ...jest.requireActual<Record<string, unknown>>('@userActions/IOU/PayMoneyRequest'),
     payMoneyRequest: jest.fn(),
+}));
+
+let mockReportTransactions: Transaction[] = [];
+jest.mock('@hooks/useReportTransactions', () => ({__esModule: true, default: () => mockReportTransactions}));
+
+// The violations confirmation has its own tests, so here it runs the approval straight away
+jest.mock('@hooks/useConfirmApproveReportViolations', () => ({__esModule: true, default: () => (onProceed: () => void) => onProceed()}));
+
+jest.mock('@userActions/IOU/ReportWorkflow', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@userActions/IOU/ReportWorkflow'),
+    approveMoneyRequest: jest.fn(),
 }));
 
 jest.mock('@components/DelegateNoAccessModalProvider', () => ({
@@ -48,6 +61,7 @@ describe('useHoldMenuSubmit', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        mockReportTransactions = [];
         await act(async () => {
             await Onyx.clear();
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
@@ -112,5 +126,30 @@ describe('useHoldMenuSubmit', () => {
         // Then it's paid the usual way, without an ABA file
         expect(payMoneyRequest).toHaveBeenCalledWith(expect.objectContaining({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, full: false}));
         expect(mockPayReportsViaABA).not.toHaveBeenCalled();
+    });
+
+    it('passes the report transactions to approveMoneyRequest when approving', async () => {
+        // Given the hold menu of an approval for a report whose transactions are loaded
+        const reportTransaction: Transaction = {...createRandomTransaction(1), reportID: expenseReport.reportID};
+        mockReportTransactions = [reportTransaction];
+        const onClose = jest.fn();
+        const {result} = renderHook(
+            () =>
+                useHoldMenuSubmit({
+                    moneyRequestReport: expenseReport,
+                    chatReport,
+                    requestType: CONST.IOU.REPORT_ACTION_TYPE.APPROVE,
+                    onClose,
+                }),
+            {wrapper: Wrapper},
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // When the approver approves only the expenses that aren't on hold
+        result.current.onSubmit(false);
+
+        // Then approveMoneyRequest gets the report's transactions from the caller instead of reading them from Onyx itself, and the menu closes
+        expect(approveMoneyRequest).toHaveBeenCalledWith(expect.objectContaining({expenseReportTransactions: [reportTransaction], full: false}));
+        expect(onClose).toHaveBeenCalled();
     });
 });

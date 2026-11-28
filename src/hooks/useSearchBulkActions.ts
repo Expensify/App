@@ -1540,6 +1540,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         personalDetailsByLogins: getPersonalDetailsByLogin(),
                         getCurrencyDecimals,
                         expenseReport,
+                        expenseReportTransactions: Object.values(allReportsTransactionsAndViolations?.[reportID]?.transactions ?? {}),
                         expenseReportPolicy: reportPolicy,
                         rules,
                         currentUserAccountIDParam: accountID,

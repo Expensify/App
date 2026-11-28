@@ -361,6 +361,7 @@ function useSelectionModePayment({
             isASAPSubmitBetaEnabled,
             confirmApproval,
             iouReport: moneyRequestReport,
+            iouReportTransactions: transactions,
             rules,
             userBillingGracePeriodEnds,
             amountOwed,
