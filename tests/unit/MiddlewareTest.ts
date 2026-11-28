@@ -1,4 +1,5 @@
-import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {prepareRequest, processRequest} from '@libs/API/makeRequest';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import SaveResponseInOnyx from '@libs/Middleware/SaveResponseInOnyx';
 
 import CONST from '@src/CONST';
@@ -188,6 +189,125 @@ describe('Middleware', () => {
 
                 // Then no extra full ReconnectApp runs, since no updates were skipped or the request already returns full data
                 expect(App.reconnectApp).not.toHaveBeenCalled();
+            });
+        });
+
+        describe('when a READ response may be older than a WRITE', () => {
+            const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}1` as const;
+
+            const buildResponse = (comment: string) => ({
+                jsonCode: 200,
+                onyxData: [{onyxMethod: Onyx.METHOD.MERGE, key: transactionKey, value: {comment: {comment}}}],
+            });
+
+            const prepareWrite = () => prepareRequest(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DESCRIPTION, CONST.API_REQUEST_TYPE.WRITE, {transactionID: '1', comment: 'new'});
+
+            beforeEach(async () => {
+                await Onyx.merge(transactionKey, {comment: {comment: 'new'}});
+                await waitForBatchedUpdates();
+                Request.addMiddleware(SaveResponseInOnyx);
+            });
+
+            afterEach(() => {
+                jest.restoreAllMocks();
+            });
+
+            test('drops a SearchForTodos response sent before a newer WRITE and sends the READ again', async () => {
+                // Given a SearchForTodos READ that is sent before the user saves an edit
+                const readRequest = prepareRequest(READ_COMMANDS.SEARCH_FOR_TODOS, CONST.API_REQUEST_TYPE.READ, null);
+                const xhrSpy = jest.spyOn(HttpUtils, 'xhr').mockResolvedValueOnce(buildResponse('old')).mockResolvedValueOnce(buildResponse('new'));
+                processRequest(readRequest, CONST.API_REQUEST_TYPE.READ);
+
+                // When the WRITE is made while the READ is in flight, so its response still holds the old value
+                prepareWrite();
+                await waitForBatchedUpdates();
+                await waitForNetworkPromises();
+
+                // Then the stale response is not applied, and the READ is sent again so the client gets data that includes the edit
+                expect(xhrSpy).toHaveBeenCalledTimes(2);
+                expect((await getOnyxValue(transactionKey))?.comment?.comment).toBe('new');
+            });
+
+            test('applies a SearchForTodos response once the READ was sent again the maximum number of times', async () => {
+                // Given a SearchForTodos READ where a new WRITE is made while every send of it is in flight, as when ReadNewestAction keeps firing on a busy report
+                const readRequest = prepareRequest(READ_COMMANDS.SEARCH_FOR_TODOS, CONST.API_REQUEST_TYPE.READ, null);
+                const xhrSpy = jest.spyOn(HttpUtils, 'xhr').mockImplementation(() => {
+                    prepareWrite();
+                    return Promise.resolve(buildResponse('old'));
+                });
+
+                // When the READ is sent and every response is older than the latest WRITE
+                processRequest(readRequest, CONST.API_REQUEST_TYPE.READ);
+                await waitForBatchedUpdates();
+                await waitForNetworkPromises();
+
+                // Then the READ is sent again only twice, so it cannot loop forever, and the last response is applied like any other READ response
+                expect(xhrSpy).toHaveBeenCalledTimes(3);
+                expect((await getOnyxValue(transactionKey))?.comment?.comment).toBe('old');
+            });
+
+            test('applies a SearchForTodos response sent after the latest WRITE', async () => {
+                // Given a SearchForTodos READ that is sent after the user's edit, so the server already has it
+                prepareWrite();
+                const readRequest = prepareRequest(READ_COMMANDS.SEARCH_FOR_TODOS, CONST.API_REQUEST_TYPE.READ, null);
+
+                // When its response arrives
+                const xhrSpy = jest.spyOn(HttpUtils, 'xhr').mockResolvedValueOnce(buildResponse('from server'));
+                await processRequest(readRequest, CONST.API_REQUEST_TYPE.READ);
+                await waitForBatchedUpdates();
+                await waitForNetworkPromises();
+
+                // Then it is applied normally and not sent again
+                expect(xhrSpy).toHaveBeenCalledTimes(1);
+                expect((await getOnyxValue(transactionKey))?.comment?.comment).toBe('from server');
+            });
+
+            test('applies a SearchForTodos response when the WRITE was made while the READ waited for the queue', async () => {
+                // Given a SearchForTodos READ that is created while the queue is busy, and a WRITE that is made before the READ is actually sent
+                const readRequest = prepareRequest(READ_COMMANDS.SEARCH_FOR_TODOS, CONST.API_REQUEST_TYPE.READ, null);
+                prepareWrite();
+
+                // When the READ is sent after that WRITE, so its response already includes the edit
+                const xhrSpy = jest.spyOn(HttpUtils, 'xhr').mockResolvedValueOnce(buildResponse('from server'));
+                await processRequest(readRequest, CONST.API_REQUEST_TYPE.READ);
+                await waitForBatchedUpdates();
+                await waitForNetworkPromises();
+
+                // Then it is applied and not sent again, because only WRITEs made after the READ was sent make its response stale
+                expect(xhrSpy).toHaveBeenCalledTimes(1);
+                expect((await getOnyxValue(transactionKey))?.comment?.comment).toBe('from server');
+            });
+
+            test('applies a SearchForTodos response when only an OpenReport WRITE was made while it was in flight', async () => {
+                // Given a SearchForTodos READ that is sent before the user opens a report
+                const readRequest = prepareRequest(READ_COMMANDS.SEARCH_FOR_TODOS, CONST.API_REQUEST_TYPE.READ, null);
+                const xhrSpy = jest.spyOn(HttpUtils, 'xhr').mockResolvedValueOnce(buildResponse('from server'));
+                processRequest(readRequest, CONST.API_REQUEST_TYPE.READ);
+
+                // When an OpenReport WRITE is made while the READ is in flight
+                prepareRequest(WRITE_COMMANDS.OPEN_REPORT, CONST.API_REQUEST_TYPE.WRITE, {reportID: '1'});
+                await waitForBatchedUpdates();
+                await waitForNetworkPromises();
+
+                // Then the response is applied and not sent again, because OpenReport only loads the report and does not change data that SearchForTodos returns
+                expect(xhrSpy).toHaveBeenCalledTimes(1);
+                expect((await getOnyxValue(transactionKey))?.comment?.comment).toBe('from server');
+            });
+
+            test('applies a READ that is not in the allowlist even when a newer WRITE exists', async () => {
+                // Given a READ that is not known to bring back stale data, sent before a WRITE
+                const readRequest = prepareRequest(READ_COMMANDS.OPEN_SEARCH_PAGE, CONST.API_REQUEST_TYPE.READ, {});
+                const xhrSpy = jest.spyOn(HttpUtils, 'xhr').mockResolvedValueOnce(buildResponse('from server'));
+                processRequest(readRequest, CONST.API_REQUEST_TYPE.READ);
+
+                // When its response arrives after the WRITE was made
+                prepareWrite();
+                await waitForBatchedUpdates();
+                await waitForNetworkPromises();
+
+                // Then it is applied as today, because the check is scoped to the allowlisted commands only
+                expect(xhrSpy).toHaveBeenCalledTimes(1);
+                expect((await getOnyxValue(transactionKey))?.comment?.comment).toBe('from server');
             });
         });
     });

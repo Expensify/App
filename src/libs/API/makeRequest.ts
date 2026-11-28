@@ -19,10 +19,23 @@ import Onyx from 'react-native-onyx';
 
 import type {ApiCommand, ApiRequestCommandParameters, ApiRequestType} from './types';
 
+import {WRITE_COMMANDS} from './types';
+
 // Use timestamp-based IDs to avoid collisions between browser tabs.
 // Each tab has its own JS context with its own counter, so a simple
 // incrementing number would collide across tabs.
 let requestIndex = Date.now();
+
+// The requestIndex of the newest WRITE prepared so far, so a READ response can tell whether a WRITE was made after the READ was sent
+let latestWriteRequestIndex = 0;
+
+// OpenReport runs on almost every report open and only loads the report, so a READ already in flight when it is made
+// still has current data. Counting it would drop that READ's response and send the READ again for no reason.
+const writesThatKeepReadsCurrent = new Set<string>([WRITE_COMMANDS.OPEN_REPORT]);
+
+function getLatestWriteRequestIndex(): number {
+    return latestWriteRequestIndex;
+}
 
 function buildLogParams(command: string, params: Record<string, unknown>): Record<string, unknown> {
     return sanitizeLogParams({command, ...params});
@@ -71,12 +84,14 @@ function prepareRequest<TCommand extends ApiCommand, TKey extends OnyxKey>(
         pusherSocketID: isWriteRequest ? pusherSocketID : undefined,
     };
 
+    const currentRequestIndex = requestIndex++;
+
     // Assemble all request metadata (used by middlewares, and for persisted requests stored in Onyx)
     const request: SetRequired<OnyxRequest<TKey>, 'data'> = {
         command,
         data,
         initiatedOffline: getIsOffline(),
-        requestIndex: requestIndex++,
+        requestIndex: currentRequestIndex,
         ...onyxDataWithoutOptimisticData,
         successData,
         failureData,
@@ -84,6 +99,9 @@ function prepareRequest<TCommand extends ApiCommand, TKey extends OnyxKey>(
     };
 
     if (isWriteRequest) {
+        if (!writesThatKeepReadsCurrent.has(command)) {
+            latestWriteRequestIndex = currentRequestIndex;
+        }
         // This should be removed once we are no longer using deprecatedAPI https://github.com/Expensify/Expensify/issues/215650
         request.data.shouldRetry ??= true;
         request.data.canCancel = true;
@@ -107,6 +125,8 @@ async function processRequest<TKey extends OnyxKey>(request: OnyxRequest<TKey>, 
     // Read requests are processed right away, but don't return the response to the caller
     if (type === CONST.API_REQUEST_TYPE.READ) {
         Log.info('[API] Read command. Processing request with middleware', false, {command: request.command});
+        // Recorded here and not in prepareRequest, because API.read() can wait for the queue between the two and the READ then already includes those WRITEs
+        request.latestWriteRequestIndexWhenSent = latestWriteRequestIndex;
         processWithMiddleware(request);
         return Promise.resolve();
     }
@@ -116,4 +136,4 @@ async function processRequest<TKey extends OnyxKey>(request: OnyxRequest<TKey>, 
     return processWithMiddleware(request);
 }
 
-export {buildLogParams, prepareRequest, processRequest};
+export {buildLogParams, getLatestWriteRequestIndex, prepareRequest, processRequest};
