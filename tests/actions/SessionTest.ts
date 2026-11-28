@@ -1777,6 +1777,46 @@ describe('Session', () => {
             expect(await getOnyxValue(ONYXKEYS.STASHED_SESSION)).toEqual(expect.objectContaining({email: 'test@user.com'}));
             expect(clearExperienceCookie).not.toHaveBeenCalled();
         });
+
+        test('keeps the experience cookie when the redirect is a step of switching accounts', async () => {
+            // Given a signed in user
+            await TestHelper.signInWithTestUser();
+
+            // When the redirect runs for a switch to another account
+            await SignInRedirect.default(CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER, undefined, undefined, true);
+            await waitForBatchedUpdates();
+
+            // Then a cookie written for the next account survives
+            expect(clearExperienceCookie).not.toHaveBeenCalled();
+        });
+
+        test('keeps the experience cookie when the full sign out is a step of switching accounts', async () => {
+            // Given a signed in user whose sign out request succeeds
+            await TestHelper.signInWithTestUser();
+            jest.spyOn(API, 'makeRequestWithSideEffects').mockResolvedValue(undefined);
+
+            // When they sign out to switch to another account
+            signOutAndRedirectToSignIn(await Onyx.get(ONYXKEYS.SESSION), false, false, true, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER, true);
+            await waitForBatchedUpdates();
+
+            // Then the session is cleared and a cookie written for the next account survives
+            expect(await getOnyxValue(ONYXKEYS.SESSION)).toBeUndefined();
+            expect(clearExperienceCookie).not.toHaveBeenCalled();
+        });
+
+        test('clears the experience cookie when the full sign out does not ask to keep it', async () => {
+            // Given a signed in user whose sign out request succeeds
+            await TestHelper.signInWithTestUser();
+            jest.spyOn(API, 'makeRequestWithSideEffects').mockResolvedValue(undefined);
+
+            // When they sign out the same way without asking to keep the cookie
+            signOutAndRedirectToSignIn(await Onyx.get(ONYXKEYS.SESSION), false, false, true, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER);
+            await waitForBatchedUpdates();
+
+            // Then the session and the cookie are both cleared
+            expect(await getOnyxValue(ONYXKEYS.SESSION)).toBeUndefined();
+            expect(clearExperienceCookie).toHaveBeenCalledTimes(1);
+        });
     });
 
     describe('signIn', () => {
