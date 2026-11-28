@@ -124,6 +124,11 @@ function parseAndLogRoute(state: NavigationState, authenticated: boolean) {
     trackFullstoryPageView(state);
 }
 
+/** Guided setup screens that useOnboardingFlowRouter reopens on its own. Test Drive and the join-workspace task screens are not among them. */
+function isGuidedSetupPath(path: string) {
+    return isOnboardingPath(path) && !isJoinWorkspaceTaskPath(path) && !path.replace(/^\//, '').startsWith(ROUTES.TEST_DRIVE_DEMO_ROOT);
+}
+
 let lastNewDotScreenName: string | undefined;
 
 function setNewDotScreenContext() {
@@ -165,8 +170,8 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         const path = initialUrl ? getPathFromURL(initialUrl) : null;
         const isOnboardingURL = !!path && isOnboardingPath(path) && !isJoinWorkspaceTaskPath(path);
         // An initial state skips OnboardingGuard, so copilot and supportal sessions are kept out of onboarding here too.
-        // A signed-in user's cached onboarding NVP can be stale, so useOnboardingFlowRouter opens onboarding once fresh app data confirms it.
-        if ((authenticated || isOnboardingCompleted || shouldSuppressPromotionalUI) && isOnboardingURL) {
+        // A signed-in user's cached onboarding NVP can be stale, so useOnboardingFlowRouter opens guided setup once fresh app data confirms it.
+        if (((isOnboardingCompleted || shouldSuppressPromotionalUI) && isOnboardingURL) || (authenticated && !!path && isGuidedSetupPath(path))) {
             return getAdaptedStateFromPath(ROUTES.HOME);
         }
 
@@ -186,9 +191,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
             return undefined;
         }
 
-        const isStaleOnboardingPath = !!lastVisitedPath && isOnboardingPath(lastVisitedPath) && !isJoinWorkspaceTaskPath(lastVisitedPath);
-
-        if (shouldOpenLastVisitedPath(lastVisitedPath) && authenticated && !isStaleOnboardingPath) {
+        if (shouldOpenLastVisitedPath(lastVisitedPath) && authenticated && !isGuidedSetupPath(lastVisitedPath)) {
             // Only skip restoration if there's a specific deep link that's not the root
             // This allows restoration when app is killed and reopened without a deep link
             const isRootPath = !path || path === '' || path === '/';

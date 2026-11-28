@@ -6696,8 +6696,6 @@ async function completeOnboarding({
         personalTrackGoal,
     };
 
-    markOnboardingCompletedByThisClient();
-
     // Side-effect requests are never queued or retried, so offline we fall through to API.write.
     // Checked twice because waitForWrites also resolves when the connection drops mid-wait.
     if (shouldWaitForRHPVariantInitialization && !isOfflineNetwork()) {
@@ -6706,11 +6704,13 @@ async function completeOnboarding({
 
         if (!isOfflineNetwork()) {
             // We need to access the nvp_onboardingRHPVariant directly from the response to redirect the user to the correct page
+            markOnboardingCompletedByThisClient();
             // eslint-disable-next-line rulesdir/no-api-side-effects-method
             return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.COMPLETE_GUIDED_SETUP, parameters, {optimisticData, successData, failureData});
         }
     }
 
+    markOnboardingCompletedByThisClient();
     // API calls are not chained in this case
     // eslint-disable-next-line rulesdir/no-multiple-api-calls
     return API.write(WRITE_COMMANDS.COMPLETE_GUIDED_SETUP, parameters, {optimisticData, successData, failureData});

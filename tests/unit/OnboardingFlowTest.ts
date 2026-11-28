@@ -15,10 +15,15 @@ import {runSessionCleanupCallbacks} from '@libs/SessionCleanup';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import NAVIGATORS from '@src/NAVIGATORS';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 import type * as NativeNavigation from '@react-navigation/native';
+
+import Onyx from 'react-native-onyx';
+
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/Navigation/navigationRef', () => ({
     getRootState: jest.fn(),
@@ -452,6 +457,10 @@ describe('OnboardingFlow', () => {
     });
 
     describe('wasOnboardingCompletedByThisClient', () => {
+        beforeAll(() => {
+            Onyx.init({keys: ONYXKEYS});
+        });
+
         it('stays set for the page load and resets on sign-out', () => {
             // Given this client sends the onboarding completion
             markOnboardingCompletedByThisClient();
@@ -463,6 +472,18 @@ describe('OnboardingFlow', () => {
             runSessionCleanupCallbacks();
 
             // Then the flag is cleared, so a different account signing in on this client is not treated as the one who completed
+            expect(wasOnboardingCompletedByThisClient()).toBe(false);
+        });
+
+        it('resets when the completion rolls back', async () => {
+            // Given this client sent a completion
+            markOnboardingCompletedByThisClient();
+
+            // When CompleteGuidedSetup fails and its failure data marks onboarding incomplete again
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+            await waitForBatchedUpdates();
+
+            // Then a later completion from another device is no longer treated as this client's, so the router closes onboarding
             expect(wasOnboardingCompletedByThisClient()).toBe(false);
         });
     });

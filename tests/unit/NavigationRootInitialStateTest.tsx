@@ -122,7 +122,7 @@ describe('NavigationRoot initial state', () => {
         render(
             <NavigationRoot
                 authenticated
-                lastVisitedPath={ROUTES.ONBOARDING_WORK_EMAIL.route as Route}
+                lastVisitedPath={ROUTES.ONBOARDING_WORK_EMAIL.getRoute()}
                 initialUrl={null}
                 onReady={() => {}}
             />,
@@ -154,11 +154,33 @@ describe('NavigationRoot initial state', () => {
         expect(getPathFromState(mockCapturedInitialState)).toBe(getPathFromState(getAdaptedStateFromPath(ROUTES.HOME)));
     });
 
+    it('restores the Test Drive demo on a cold start', async () => {
+        // Given a user who closed the app on the Test Drive demo, which the onboarding router never reopens
+        await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+        await waitForBatchedUpdates();
+
+        // When the native app cold starts without a deep link
+        render(
+            <NavigationRoot
+                authenticated
+                lastVisitedPath={ROUTES.TEST_DRIVE_DEMO_ROOT}
+                initialUrl={null}
+                onReady={() => {}}
+            />,
+        );
+
+        // Then the demo is restored instead of being dropped with the guided setup screens
+        if (!mockCapturedInitialState) {
+            throw new Error('NavigationRoot did not restore an initial state');
+        }
+        expect(getPathFromState(mockCapturedInitialState)).toBe(getPathFromState(getAdaptedStateFromPath(ROUTES.TEST_DRIVE_DEMO_ROOT)));
+    });
+
     it('restores a join-workspace task page on a cold start', async () => {
         // Given a completed user who was on the join-workspace task screen, which the onboarding router never reopens
         await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
         await waitForBatchedUpdates();
-        const joinWorkspaceTaskPath = `${ROUTES.ONBOARDING_WORKSPACES.route}?isJoinWorkspaceTask=true` as Route;
+        const joinWorkspaceTaskPath = ROUTES.ONBOARDING_WORKSPACES.getRoute(undefined, true);
 
         // When the native app cold starts without a deep link
         render(

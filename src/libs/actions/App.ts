@@ -5,6 +5,7 @@ import clearWorkboxRecoveryCaches from '@libs/clearWorkboxRecoveryCaches';
 import {getLastFullReconnectTimeToRecord} from '@libs/FullReconnectUtils';
 import Log from '@libs/Log';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import {rand64} from '@libs/NumberUtils';
 import {isPublicRoom, isValidReport} from '@libs/ReportUtils';
 import {sanitizeUrlForLogging} from '@libs/sanitizeLogParams';
 import {clearSoundAssetsCache} from '@libs/Sound';
@@ -93,20 +94,21 @@ Onyx.connectWithoutView({
     },
 });
 
-// Only the leader tab processes OpenApp and ReconnectApp, and RAM-only keys do not sync across tabs, so each tab watches the synced
-// IS_LOADING_REPORT_DATA turn true then false instead. It never renders, so Onyx.connectWithoutView is appropriate.
-let hasStartedLoadingReportData = false;
+// Only the leader tab processes OpenApp and ReconnectApp, and RAM-only keys do not sync across tabs, so every tab sets its own flag when
+// the synced refresh ID changes after it loaded. It never renders, so Onyx.connectWithoutView is appropriate.
+let hasReadInitialAppDataRefreshID = false;
+let initialAppDataRefreshID: string | undefined;
 Onyx.connectWithoutView({
-    key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-    callback: (isLoadingReportData) => {
-        if (isLoadingReportData) {
-            hasStartedLoadingReportData = true;
+    key: ONYXKEYS.APP_DATA_REFRESH_ID,
+    callback: (refreshID) => {
+        if (!hasReadInitialAppDataRefreshID) {
+            hasReadInitialAppDataRefreshID = true;
+            initialAppDataRefreshID = refreshID;
             return;
         }
-        if (!hasStartedLoadingReportData) {
+        if (!refreshID || refreshID === initialAppDataRefreshID) {
             return;
         }
-        hasStartedLoadingReportData = false;
         Onyx.merge(ONYXKEYS.RAM_ONLY_HAS_RECEIVED_APP_DATA, true);
     },
 });
@@ -318,7 +320,12 @@ function getPolicyParamsForOpenOrReconnect(): PolicyParamsForOpenOrReconnect {
     return {policyIDList: getNonOptimisticPolicyIDs(allPolicies)};
 }
 
-type OnyxDataForOpenOrReconnectKeys = typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.IS_LOADING_REPORT_DATA | typeof ONYXKEYS.HAS_LOADED_APP | typeof ONYXKEYS.IS_LOADING_APP;
+type OnyxDataForOpenOrReconnectKeys =
+    | typeof ONYXKEYS.COLLECTION.REPORT
+    | typeof ONYXKEYS.IS_LOADING_REPORT_DATA
+    | typeof ONYXKEYS.HAS_LOADED_APP
+    | typeof ONYXKEYS.IS_LOADING_APP
+    | typeof ONYXKEYS.APP_DATA_REFRESH_ID;
 
 /**
  * Returns the Onyx data that is used for both the OpenApp and ReconnectApp API commands.
@@ -385,6 +392,11 @@ function getOnyxDataForOpenOrReconnect(
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.IS_LOADING_APP,
             value: false,
+        });
+        result.successData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.APP_DATA_REFRESH_ID,
+            value: rand64(),
         });
     }
 

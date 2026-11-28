@@ -101,6 +101,7 @@ Onyx.connectWithoutView({
     },
 });
 
+// The guard runs outside React during navigation and needs this synchronously, so it can't use useOnyx.
 Onyx.connectWithoutView({
     key: ONYXKEYS.RAM_ONLY_HAS_RECEIVED_APP_DATA,
     callback: (value) => {

@@ -567,6 +567,9 @@ const ONYXKEYS = {
 
     HAS_LOADED_APP: 'hasLoadedApp',
 
+    /** Changes each time OpenApp or ReconnectApp succeeds. Persisted so tabs that did not process the response see it too */
+    APP_DATA_REFRESH_ID: 'appDataRefreshID',
+
     IS_TEST_TOOLS_MODAL_OPEN: 'isTestToolsModalOpen',
 
     /** Stores information about active wallet transfer amount, selectedAccountID, status, etc */
@@ -1996,6 +1999,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.POLICY_ROOMS_METADATA]: Record<string, OnyxTypes.PolicyRoomsMetadata>;
     [ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING]: Record<string, number>;
     [ONYXKEYS.HAS_LOADED_APP]: boolean;
+    [ONYXKEYS.APP_DATA_REFRESH_ID]: string;
     [ONYXKEYS.NVP_HAS_SEEN_FOR_YOU_TODO]: boolean;
     [ONYXKEYS.NVP_HOME_SELECTED_INSIGHT]:
         | typeof CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME

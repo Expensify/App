@@ -33,6 +33,9 @@ type GetOnboardingInitialPathParamsType = {
     resumePath?: string;
 };
 
+/** In memory so it resets on reload. Once this client sends CompleteGuidedSetup itself, its caller decides where to go next, so the router must not also dismiss onboarding. */
+let hasCompletedOnboardingOnThisClient = false;
+
 let onboardingData: OnyxEntry<Onboarding>;
 
 Onyx.connectWithoutView({
@@ -42,11 +45,13 @@ Onyx.connectWithoutView({
             return;
         }
         onboardingData = value;
+
+        // A failed CompleteGuidedSetup rolls this back to false, so a later completion from another device must close onboarding again
+        if (value.hasCompletedGuidedSetupFlow === false) {
+            hasCompletedOnboardingOnThisClient = false;
+        }
     },
 });
-
-/** In memory so it resets on reload. Once this client sends CompleteGuidedSetup itself, its caller decides where to go next, so the router must not also dismiss onboarding. */
-let hasCompletedOnboardingOnThisClient = false;
 
 registerSessionCleanupCallback(() => {
     hasCompletedOnboardingOnThisClient = false;
