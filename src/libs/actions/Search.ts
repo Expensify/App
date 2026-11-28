@@ -2152,6 +2152,7 @@ function rejectMoneyRequestInBulk(
     rules: OnyxCollection<Rule>,
     reportTransactionsCollection: Record<string, Transaction>,
     isChatReportArchived: boolean,
+    allReports: OnyxCollection<Report>,
     hash?: number,
 ) {
     const optimisticData: Array<RejectMoneyRequestData['optimisticData'][number] | OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
@@ -2185,6 +2186,7 @@ function rejectMoneyRequestInBulk(
             shouldUseBulkAction: true,
             reportTransactionsCollection,
             isChatReportArchived,
+            allReports,
         });
         if (data) {
             optimisticData.push(...data.optimisticData);
@@ -2291,6 +2293,7 @@ function rejectMoneyRequestsOnSearch({
                 rules,
                 reportTransactionsCollection,
                 isChatReportArchived,
+                allReports,
                 hash,
             );
         } else {
@@ -2319,6 +2322,7 @@ function rejectMoneyRequestsOnSearch({
                     },
                     reportTransactionsCollection,
                     isChatReportArchived,
+                    allReports,
                 });
             }
         }
