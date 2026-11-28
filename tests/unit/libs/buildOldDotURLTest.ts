@@ -1,5 +1,6 @@
 import buildOldDotURL from '@libs/buildOldDotURL';
 import {getCurrentUserEmail} from '@libs/CurrentUserStore';
+import {isSharedProductHost} from '@libs/ExperienceCookie';
 
 jest.mock('@libs/CurrentUserStore', () => ({
     getCurrentUserEmail: jest.fn(),
@@ -10,11 +11,23 @@ jest.mock('@libs/Environment/Environment', () => ({
     getOldDotEnvironmentURL: jest.fn(() => Promise.resolve('https://www.example.com')),
 }));
 
+jest.mock('@libs/ExperienceCookie', () => ({
+    isSharedProductHost: jest.fn(() => false),
+}));
+
 const mockedGetCurrentUserEmail = jest.mocked(getCurrentUserEmail);
+const mockedIsSharedProductHost = jest.mocked(isSharedProductHost);
 
 describe('buildOldDotURL', () => {
+    const realLocation = window.location;
+
     beforeEach(() => {
         mockedGetCurrentUserEmail.mockReturnValue('test@example.com');
+        mockedIsSharedProductHost.mockReturnValue(false);
+    });
+
+    afterEach(() => {
+        Object.defineProperty(window, 'location', {value: realLocation, writable: true, configurable: true});
     });
 
     test('appends the email param to a plain path', async () => {
@@ -37,5 +50,17 @@ describe('buildOldDotURL', () => {
         mockedGetCurrentUserEmail.mockReturnValue(null);
 
         await expect(buildOldDotURL('r/12345')).resolves.toBe('https://www.example.com/r/12345?email=');
+    });
+
+    test('uses the page origin on the shared product host', async () => {
+        // Given the page served from the shared product host
+        Object.defineProperty(window, 'location', {value: {origin: 'https://expensify.com.dev'}, writable: true, configurable: true});
+        mockedIsSharedProductHost.mockReturnValue(true);
+
+        // When an Expensify Classic URL is built
+        const url = buildOldDotURL('r/12345', 'secret-token');
+
+        // Then it stays on the shared product host instead of the Expensify Classic host
+        await expect(url).resolves.toBe('https://expensify.com.dev/r/12345?authToken=secret-token&email=test%40example.com');
     });
 });

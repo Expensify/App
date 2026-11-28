@@ -11,6 +11,10 @@ const prefixes: LinkingOptions<RootNavigatorParamList>['prefixes'] = [
     'https://staging.expensify.cash',
     'https://dev.new.expensify.com',
     'https://new.expensify.com',
+    // Hosts that serve both products. The dev host starts with the production one, so it has to come first.
+    'https://expensify.com.dev',
+    'https://expensify.com',
+    'https://staging.expensify.com',
     CONST.NEW_EXPENSIFY_URL,
     CONST.STAGING_NEW_EXPENSIFY_URL,
     CONST.ADHOC_NEW_EXPENSIFY_URL,

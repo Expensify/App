@@ -1,15 +1,22 @@
 import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn, waitForUserSignIn} from '@libs/actions/Session';
 import {setOnboardingErrorMessage} from '@libs/actions/Welcome';
+import * as API from '@libs/API';
+import asyncOpenURL from '@libs/asyncOpenURL';
+import {getOldDotEnvironmentURL} from '@libs/Environment/Environment';
+import {isSharedProductHost, readExperienceCookie} from '@libs/ExperienceCookie';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import Growl from '@libs/Growl';
 import swapBackgroundTabForRHPTarget from '@libs/Navigation/helpers/swapBackgroundTabForRHPTarget';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
+import type * as NetworkStateModule from '@libs/NetworkState';
 import * as Url from '@libs/Url';
+import addTrailingForwardSlash from '@libs/UrlUtils';
 
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
-import {getInternalNewExpensifyPath, openLink, openReportFromDeepLink} from '@src/libs/actions/Link';
+import {getInternalNewExpensifyPath, openLink, openOldDotLink, openReportFromDeepLink} from '@src/libs/actions/Link';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -32,6 +39,23 @@ type ReportUtilsMock = Record<string, unknown> & {
 };
 
 jest.mock('@libs/getIsNarrowLayout', () => jest.fn());
+jest.mock('@libs/ExperienceCookie', () => ({
+    isSharedProductHost: jest.fn(() => false),
+    readExperienceCookie: jest.fn(() => undefined),
+}));
+jest.mock('@libs/Growl', () => ({__esModule: true, default: {error: jest.fn()}}));
+let mockIsOffline = false;
+jest.mock('@libs/NetworkState', () => ({
+    ...jest.requireActual<typeof NetworkStateModule>('@libs/NetworkState'),
+    getIsOffline: () => mockIsOffline,
+}));
+jest.mock('@libs/asyncOpenURL', () => jest.fn());
+jest.mock('@libs/API', () => ({
+    read: jest.fn(),
+    write: jest.fn(),
+    paginate: jest.fn(),
+    makeRequestWithSideEffects: jest.fn(() => Promise.resolve({shortLivedAuthToken: 'short-lived-token'})),
+}));
 jest.mock('@libs/Navigation/helpers/swapBackgroundTabForRHPTarget', () => jest.fn());
 jest.mock('@libs/Navigation/navigationRef', () => ({
     __esModule: true,
@@ -76,6 +100,36 @@ const mockedCanAnonymousUserAccessRoute = jest.mocked(canAnonymousUserAccessRout
 const mockedIsAnonymousUser = jest.mocked(isAnonymousUser);
 const mockedWaitForUserSignIn = jest.mocked(waitForUserSignIn);
 const mockedSetOnboardingErrorMessage = jest.mocked(setOnboardingErrorMessage);
+const mockedIsSharedProductHost = jest.mocked(isSharedProductHost);
+const mockedAsyncOpenURL = jest.mocked(asyncOpenURL);
+const mockedReadExperienceCookie = jest.mocked(readExperienceCookie);
+const mockedMakeRequestWithSideEffects = jest.mocked(API.makeRequestWithSideEffects);
+
+const SHARED_PRODUCT_HOST_ORIGIN = 'https://expensify.com.dev';
+const realLocation = window.location;
+
+/** Resolves the URL that the last Expensify Classic link was opened at */
+async function getOpenedClassicURL(): Promise<string | undefined> {
+    const [promise, getURL] = mockedAsyncOpenURL.mock.calls.at(-1) ?? [];
+    if (!promise || !getURL) {
+        return undefined;
+    }
+    const params = await promise;
+    return typeof getURL === 'function' ? getURL(params) : getURL;
+}
+
+/** Serves the page from the given origin, as the shared product host when isShared is true, without triggering a real navigation */
+function arrangePageOrigin(origin: string, isShared: boolean) {
+    Object.defineProperty(window, 'location', {value: {origin}, writable: true, configurable: true});
+    mockedIsSharedProductHost.mockReturnValue(isShared);
+}
+
+afterEach(() => {
+    Object.defineProperty(window, 'location', {value: realLocation, writable: true, configurable: true});
+    mockedIsSharedProductHost.mockReturnValue(false);
+    mockedReadExperienceCookie.mockReturnValue(undefined);
+    mockIsOffline = false;
+});
 
 function buildNavigationState(key: string, routes: NavigationState['routes'], index = routes.length - 1): NavigationState {
     return {
@@ -409,6 +463,99 @@ describe('Link.openLink', () => {
         expect(Navigation.navigate).not.toHaveBeenCalled();
     });
 
+    it('opens a link to the shared product host internally when the page is served from it', () => {
+        // Given the page served from the shared product host
+        arrangePageOrigin(SHARED_PRODUCT_HOST_ORIGIN, true);
+
+        // When opening a report link on that host
+        openLink(`${SHARED_PRODUCT_HOST_ORIGIN}/r/regular-report/123456789`, environmentURL, false, TEST_SESSION);
+
+        // Then the report opens in the app, the same way as a New Expensify link, and Expensify Classic isn't opened
+        expect(Navigation.navigate).toHaveBeenCalledWith(
+            ROUTES.SEARCH_REPORT.getRoute({
+                reportID: 'regular-report',
+                reportActionID: '123456789',
+                backTo: activeRoute,
+            }),
+        );
+        expect(API.makeRequestWithSideEffects).not.toHaveBeenCalled();
+        expect(mockedAsyncOpenURL).not.toHaveBeenCalled();
+    });
+
+    it.each(['inbox', 'home', 'settings?param=%7B%7D', 'travel'])('opens %s on the shared product host in the app when the experience cookie is new', (path) => {
+        // Given the page served from the shared product host to a browser whose cookie makes the host serve New Expensify on pages both products have
+        arrangePageOrigin(SHARED_PRODUCT_HOST_ORIGIN, true);
+        mockedReadExperienceCookie.mockReturnValue(CONST.EXPERIENCE_COOKIE.VALUES.NEW);
+
+        // When opening a link to one of those pages
+        openLink(`${SHARED_PRODUCT_HOST_ORIGIN}/${path}`, environmentURL, false, TEST_SESSION);
+
+        // Then it opens in the app, as the host would serve it
+        expect(Navigation.navigate).toHaveBeenCalledWith(path);
+        expect(mockedAsyncOpenURL).not.toHaveBeenCalled();
+    });
+
+    it.each([
+        ['inbox', CONST.EXPERIENCE_COOKIE.VALUES.CLASSIC],
+        ['inbox', undefined],
+        ['home', CONST.EXPERIENCE_COOKIE.VALUES.CLASSIC],
+        ['settings', undefined],
+        ['settings/', CONST.EXPERIENCE_COOKIE.VALUES.CLASSIC],
+        ['settings?param=%7B%7D', CONST.EXPERIENCE_COOKIE.VALUES.CLASSIC],
+        ['travel', undefined],
+    ])('opens %s in Expensify Classic with cookie %s', async (path, experience) => {
+        // Given the page served from the shared product host to a browser whose cookie makes the host serve Classic on pages both products have
+        arrangePageOrigin(SHARED_PRODUCT_HOST_ORIGIN, true);
+        mockedReadExperienceCookie.mockReturnValue(experience);
+
+        // When opening a link to one of those pages
+        openLink(`${SHARED_PRODUCT_HOST_ORIGIN}/${path}`, environmentURL, false, TEST_SESSION);
+
+        // Then it opens in Expensify Classic with a token, as the host would serve it
+        expect(Navigation.navigate).not.toHaveBeenCalled();
+        await expect(getOpenedClassicURL()).resolves.toBe(`${SHARED_PRODUCT_HOST_ORIGIN}/${path}${path.includes('?') ? '&' : '?'}authToken=short-lived-token&email=`);
+    });
+
+    it.each([CONST.EXPERIENCE_COOKIE.VALUES.CLASSIC, undefined])('opens a deeper page on the shared product host in the app when the experience cookie is %s', (experience) => {
+        // Given the page served from the shared product host, which serves New Expensify on deeper pages whatever the cookie says
+        arrangePageOrigin(SHARED_PRODUCT_HOST_ORIGIN, true);
+        mockedReadExperienceCookie.mockReturnValue(experience);
+
+        // When opening a link to a page below one that both products have
+        openLink(`${SHARED_PRODUCT_HOST_ORIGIN}/settings/profile`, environmentURL, false, TEST_SESSION);
+
+        // Then it opens in the app
+        expect(Navigation.navigate).toHaveBeenCalledWith('settings/profile');
+        expect(mockedAsyncOpenURL).not.toHaveBeenCalled();
+    });
+
+    it('ignores the experience cookie for New Expensify links on other hosts', () => {
+        // Given New Expensify served from its own host, where the cookie doesn't pick the product
+        mockedReadExperienceCookie.mockReturnValue(CONST.EXPERIENCE_COOKIE.VALUES.CLASSIC);
+
+        // When opening a link to a page both products have on the shared product host
+        openLink(`${CONST.NEW_EXPENSIFY_URL}inbox`, environmentURL, false, TEST_SESSION);
+
+        // Then it opens in the app
+        expect(Navigation.navigate).toHaveBeenCalledWith('inbox');
+        expect(mockedAsyncOpenURL).not.toHaveBeenCalled();
+    });
+
+    it.each([
+        ['an Expensify Classic page on the shared product host', `${SHARED_PRODUCT_HOST_ORIGIN}/reports?param=%7B%7D`],
+        ['an Expensify Classic link on its own host', 'https://www.expensify.com.dev/reports?param=%7B%7D'],
+    ])('opens %s in Expensify Classic on the shared product host', async (_description, href) => {
+        // Given the page served from the shared product host
+        arrangePageOrigin(SHARED_PRODUCT_HOST_ORIGIN, true);
+
+        // When opening a link to a path that has no App route
+        openLink(href, environmentURL, false, TEST_SESSION);
+
+        // Then it opens in Expensify Classic, signed in, on the shared product host
+        expect(Navigation.navigate).not.toHaveBeenCalled();
+        await expect(getOpenedClassicURL()).resolves.toBe(`${SHARED_PRODUCT_HOST_ORIGIN}/reports?param=%7B%7D&authToken=short-lived-token&email=`);
+    });
+
     it('navigates for a signed-in session passed in', () => {
         // Given a signed-in session passed in, so the anonymous restriction must not apply
         const session = {accountID: 1, authToken: 'token'};
@@ -422,6 +569,82 @@ describe('Link.openLink', () => {
         expect(mockedIsAnonymousUser).toHaveBeenCalledWith(session);
         expect(signOutAndRedirectToSignIn).not.toHaveBeenCalled();
         expect(Navigation.navigate).toHaveBeenCalledWith('/settings/profile');
+    });
+});
+
+describe('Link.openOldDotLink', () => {
+    const openedURLs: string[] = [];
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+        openedURLs.length = 0;
+
+        // Records each URL once its promise settles, and handles a rejection the way asyncOpenURL does
+        mockedAsyncOpenURL.mockImplementation((promise, url) => {
+            promise.then((params) => openedURLs.push(typeof url === 'function' ? url(params) : url)).catch(() => undefined);
+        });
+    });
+
+    afterEach(() => {
+        mockedAsyncOpenURL.mockReset();
+    });
+
+    it.each([
+        ['offline', () => (mockIsOffline = true)],
+        ['the token response is empty', () => mockedMakeRequestWithSideEffects.mockImplementationOnce(() => Promise.resolve())],
+        ['the token response has no token', () => mockedMakeRequestWithSideEffects.mockImplementationOnce(() => Promise.resolve({}))],
+        ['the token request fails', () => mockedMakeRequestWithSideEffects.mockImplementationOnce(() => Promise.reject(new Error('Network error')))],
+    ])('shows an error on the shared product host when %s', async (_description, arrangeFailure) => {
+        // Given the page served from the shared product host to a browser whose cookie makes the host serve New Expensify on the inbox without a token
+        arrangePageOrigin(SHARED_PRODUCT_HOST_ORIGIN, true);
+        mockedReadExperienceCookie.mockReturnValue(CONST.EXPERIENCE_COOKIE.VALUES.NEW);
+        arrangeFailure();
+
+        // When opening the Expensify Classic inbox
+        openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
+        await waitForBatchedUpdates();
+
+        // Then no URL is opened and the user is told it failed, so the app doesn't silently reload itself
+        expect(openedURLs).toEqual([]);
+        expect(Growl.error).toHaveBeenCalledTimes(1);
+    });
+
+    it.each([
+        ['the classic cookie', CONST.OLDDOT_URLS.INBOX, CONST.EXPERIENCE_COOKIE.VALUES.CLASSIC, `${SHARED_PRODUCT_HOST_ORIGIN}/inbox?email=`],
+        ['no cookie', CONST.OLDDOT_URLS.INBOX, undefined, `${SHARED_PRODUCT_HOST_ORIGIN}/inbox?email=`],
+        ['a Classic-only page', 'policy?param=%7B%7D', CONST.EXPERIENCE_COOKIE.VALUES.NEW, `${SHARED_PRODUCT_HOST_ORIGIN}/policy?param=%7B%7D&email=`],
+    ])('opens Expensify Classic without a token on the shared product host for %s', async (_description, url, experience, expectedURL) => {
+        // Given the page served from the shared product host, which serves Classic without a token for this cookie and page
+        arrangePageOrigin(SHARED_PRODUCT_HOST_ORIGIN, true);
+        mockedReadExperienceCookie.mockReturnValue(experience);
+        mockedMakeRequestWithSideEffects.mockImplementationOnce(() => Promise.reject(new Error('Network error')));
+
+        // When opening Expensify Classic and the token request fails
+        openOldDotLink(url, true);
+        await waitForBatchedUpdates();
+
+        // Then Classic still opens, without a token, so the user can sign in there
+        expect(openedURLs).toEqual([expectedURL]);
+        expect(Growl.error).not.toHaveBeenCalled();
+    });
+
+    it.each([
+        ['offline', () => (mockIsOffline = true)],
+        ['the token response is empty', () => mockedMakeRequestWithSideEffects.mockImplementationOnce(() => Promise.resolve())],
+        ['the token request fails', () => mockedMakeRequestWithSideEffects.mockImplementationOnce(() => Promise.reject(new Error('Network error')))],
+    ])('opens Expensify Classic without a token on other hosts when %s', async (_description, arrangeFailure) => {
+        // Given New Expensify served from its own host, where Classic's host always serves Classic
+        mockedReadExperienceCookie.mockReturnValue(CONST.EXPERIENCE_COOKIE.VALUES.NEW);
+        arrangeFailure();
+
+        // When opening Expensify Classic
+        openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
+        await waitForBatchedUpdates();
+
+        // Then Classic still opens, without a token, so the user can sign in there
+        const oldDotEnvironmentURL = await getOldDotEnvironmentURL();
+        expect(openedURLs).toEqual([`${addTrailingForwardSlash(oldDotEnvironmentURL)}${CONST.OLDDOT_URLS.INBOX}?email=`]);
+        expect(Growl.error).not.toHaveBeenCalled();
     });
 });
 
@@ -487,5 +710,49 @@ describe('Link.getInternalNewExpensifyPath', () => {
 
     it('returns an empty path for an empty href', () => {
         expect(getInternalNewExpensifyPath('')).toBe('');
+    });
+
+    it('treats a link to the shared product host as internal when the page is served from it', () => {
+        // Given the page served from the shared product host
+        arrangePageOrigin(SHARED_PRODUCT_HOST_ORIGIN, true);
+
+        // When reading the path of a link to an App route on that host
+        const path = getInternalNewExpensifyPath(`${SHARED_PRODUCT_HOST_ORIGIN}/r/1234`);
+
+        // Then the link is internal, because the host serves the app on that route
+        expect(path).toBe('r/1234');
+    });
+
+    it('keeps an Expensify Classic link external on the shared product host', () => {
+        // Given the page served from the shared product host
+        arrangePageOrigin(SHARED_PRODUCT_HOST_ORIGIN, true);
+
+        // When reading the path of a link to Classic's own host
+        const path = getInternalNewExpensifyPath('https://www.expensify.com.dev/policy');
+
+        // Then the link is external, because only the page's own origin can serve the app
+        expect(path).toBe('');
+    });
+
+    it('keeps a path without an App route external on the shared product host', () => {
+        // Given the page served from the shared product host
+        arrangePageOrigin(SHARED_PRODUCT_HOST_ORIGIN, true);
+
+        // When reading the path of a link to a Classic page on that host
+        const path = getInternalNewExpensifyPath(`${SHARED_PRODUCT_HOST_ORIGIN}/reports?param=%7B%7D`);
+
+        // Then the link is external, because the host serves Classic on paths the app doesn't have
+        expect(path).toBe('');
+    });
+
+    it('treats a link to the shared product host as external on other hosts', () => {
+        // Given the page served from a host other than the shared product host
+        arrangePageOrigin(SHARED_PRODUCT_HOST_ORIGIN, false);
+
+        // When reading the path of a link to the shared product host
+        const path = getInternalNewExpensifyPath(`${SHARED_PRODUCT_HOST_ORIGIN}/r/1234`);
+
+        // Then the link is external, because the app on other hosts can't open pages of the shared product host in place
+        expect(path).toBe('');
     });
 });

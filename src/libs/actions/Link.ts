@@ -3,8 +3,12 @@ import type {GenerateSpotnanaTokenParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import asyncOpenURL from '@libs/asyncOpenURL';
 import buildOldDotURL from '@libs/buildOldDotURL';
+import {isSharedProductHost, readExperienceCookie} from '@libs/ExperienceCookie';
+import type {ExperienceCookieValue} from '@libs/ExperienceCookie/types';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import Growl from '@libs/Growl';
 import isPublicScreenRoute from '@libs/isPublicScreenRoute';
+import {translate} from '@libs/Localize';
 import Log from '@libs/Log';
 import {setDeepLinkToOpenAfterOnboarding} from '@libs/navigateAfterOnboarding';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
@@ -29,6 +33,7 @@ import addTrailingForwardSlash from '@libs/UrlUtils';
 
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -66,18 +71,66 @@ Onyx.connectWithoutView({
     },
 });
 
+// Top-level pages that both products have, so the shared product host picks the product for them by the `experience` cookie
+const COOKIE_DECIDED_PAGES = new Set(['inbox', 'home', 'settings', 'travel']);
+
+/**
+ * Returns the product the shared product host serves on a page it picks by the `experience` cookie, where a missing cookie means Expensify Classic.
+ * Returns undefined for any other path, because the host serves those the same way whatever the cookie says.
+ */
+function getCookieDecidedExperience(pathname: string): ExperienceCookieValue | undefined {
+    // The host ignores trailing slashes when it matches these pages
+    const page = pathname.replace(/\/+$/, '').slice(1);
+    if (!COOKIE_DECIDED_PAGES.has(page)) {
+        return undefined;
+    }
+    return readExperienceCookie() ?? CONST.EXPERIENCE_COOKIE.VALUES.CLASSIC;
+}
+
+/**
+ * Whether an Expensify Classic link still opens Classic without a token. On the shared product host it opens New Expensify again when the cookie gives its page to New Expensify.
+ */
+function canOpenOldDotLinkWithoutToken(url: string): boolean {
+    if (!isSharedProductHost()) {
+        return true;
+    }
+    return getCookieDecidedExperience(new URL(url, window.location.origin).pathname) !== CONST.EXPERIENCE_COOKIE.VALUES.NEW;
+}
+
+function showOpenOldDotLinkError() {
+    Growl.error({bodyText: translate(IntlStore.getCurrentLocale(), 'common.genericErrorMessage')});
+}
+
 function openOldDotLink(url: string, shouldOpenInSameTab = false) {
+    const canOpenWithoutToken = canOpenOldDotLinkWithoutToken(url);
+
     if (getIsOffline()) {
+        if (!canOpenWithoutToken) {
+            showOpenOldDotLinkError();
+            return;
+        }
         buildOldDotURL(url).then((oldDotURL) => openExternalLink(oldDotURL, undefined, shouldOpenInSameTab));
         return;
     }
 
-    // If shortLivedAuthToken is not accessible, fallback to opening the link without the token.
+    // If shortLivedAuthToken is not accessible, fallback to opening the link without the token where that still opens Expensify Classic.
     asyncOpenURL(
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
         API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_OLD_DOT_LINK, {}, {})
-            .then((response) => (response ? buildOldDotURL(url, response.shortLivedAuthToken) : buildOldDotURL(url)))
-            .catch(() => buildOldDotURL(url)),
+            .then((response) => {
+                if (!canOpenWithoutToken && !response?.shortLivedAuthToken) {
+                    throw new Error('No short-lived auth token to open Expensify Classic');
+                }
+                return response ? buildOldDotURL(url, response.shortLivedAuthToken) : buildOldDotURL(url);
+            })
+            .catch((error: unknown) => {
+                if (canOpenWithoutToken) {
+                    return buildOldDotURL(url);
+                }
+                Log.warn('[Link] Could not open Expensify Classic on the shared product host without a short-lived auth token', {error});
+                showOpenOldDotLinkError();
+                throw error;
+            }),
         (oldDotURL) => oldDotURL,
         undefined,
         shouldOpenInSameTab,
@@ -136,6 +189,31 @@ function openTravelDotLink(policyID: OnyxEntry<string>, postLoginPath?: string) 
 
 const NEW_EXPENSIFY_ORIGINS = [CONST.NEW_EXPENSIFY_URL, CONST.STAGING_NEW_EXPENSIFY_URL, CONST.QA_NEW_EXPENSIFY_URL];
 
+/**
+ * On the shared product host, a link to the page's own origin is a New Expensify link when its path is an App route the host serves New Expensify on.
+ * Other paths on that origin are Expensify Classic pages, so they open like any other Expensify Classic link.
+ */
+function isSharedProductHostAppLink(href: string): boolean {
+    if (!isSharedProductHost()) {
+        return false;
+    }
+
+    try {
+        const {origin, pathname} = new URL(href);
+        if (origin !== window.location.origin) {
+            return false;
+        }
+
+        const cookieDecidedExperience = getCookieDecidedExperience(pathname);
+        if (cookieDecidedExperience) {
+            return cookieDecidedExperience === CONST.EXPERIENCE_COOKIE.VALUES.NEW;
+        }
+        return findFocusedRoute(getStateFromPath(Url.getPathFromURL(href)))?.name !== SCREENS.NOT_FOUND;
+    } catch {
+        return false;
+    }
+}
+
 function getInternalNewExpensifyPath(href: string) {
     if (!href) {
         return '';
@@ -143,7 +221,8 @@ function getInternalNewExpensifyPath(href: string) {
 
     const attrPath = Url.getPathFromURL(href);
     // The dev server's port varies, so dev is matched by prefix instead of by origin.
-    const hasNewExpensifyOrigin = NEW_EXPENSIFY_ORIGINS.some((origin) => Url.hasSameExpensifyOrigin(href, origin)) || href.startsWith(CONST.DEV_NEW_EXPENSIFY_URL);
+    const hasNewExpensifyOrigin =
+        NEW_EXPENSIFY_ORIGINS.some((origin) => Url.hasSameExpensifyOrigin(href, origin)) || href.startsWith(CONST.DEV_NEW_EXPENSIFY_URL) || isSharedProductHostAppLink(href);
     const isExternalPath = CONST.PATHS_TO_TREAT_AS_EXTERNAL.some((path) => attrPath.startsWith(path));
 
     return hasNewExpensifyOrigin && !isExternalPath ? attrPath : '';
@@ -373,7 +452,7 @@ function getReportLinkRoute(
 }
 
 function openLink(href: string, environmentURL: string, isAttachment: boolean, session: OnyxEntry<Session>) {
-    const hasSameOrigin = Url.hasSameExpensifyOrigin(href, environmentURL);
+    const hasSameOrigin = Url.hasSameExpensifyOrigin(href, environmentURL) || isSharedProductHostAppLink(href);
     const hasExpensifyOrigin = Url.hasSameExpensifyOrigin(href, CONFIG.EXPENSIFY.EXPENSIFY_URL) || Url.hasSameExpensifyOrigin(href, CONFIG.EXPENSIFY.STAGING_API_ROOT);
     const internalNewExpensifyPath = getInternalNewExpensifyPath(href);
     const internalExpensifyPath = getInternalExpensifyPath(href);

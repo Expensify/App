@@ -46,6 +46,7 @@ function GoogleSignIn({isDesktopFlow = false, onPointerDown}: GoogleSignInProps)
         const google = window.google;
         if (google) {
             google.accounts.id.initialize({
+                // Google accepts sign-ins only from the origins registered for this client
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 client_id: CONFIG.GOOGLE_SIGN_IN.WEB_CLIENT_ID,
                 callback: (response) => signIn(response, preferredLocale, marketingAttribution),

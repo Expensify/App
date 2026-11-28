@@ -32,7 +32,7 @@ jest.mock('@libs/Log', () => ({
 }));
 
 // The React Native preset resolves index.native.ts first, so the web implementation is loaded by its file name
-const {writeExperienceCookie, clearExperienceCookie} = jest.requireActual<typeof WebExperienceCookie>('@libs/ExperienceCookie/index.ts');
+const {isSharedProductHost, writeExperienceCookie, clearExperienceCookie, readExperienceCookie} = jest.requireActual<typeof WebExperienceCookie>('@libs/ExperienceCookie/index.ts');
 
 const HOST_ONLY_DELETE = 'experience=; Max-Age=0; Path=/; Secure; SameSite=Lax';
 
@@ -131,6 +131,59 @@ describe('ExperienceCookie', () => {
         expect(didWrite).toBe(false);
         expect(getCookieWrites()).toEqual([]);
         expect(mockLogHmmm).toHaveBeenCalledWith(expect.stringContaining('[ExperienceCookie]'), {hostname: 'expensify.com.dev', cookieDomain: '.expensify.com'});
+    });
+
+    it.each([
+        ['expensify.com.dev', true],
+        ['www.expensify.com.dev', false],
+        ['dev.new.expensify.com', false],
+    ])('reports whether %s is the shared product host', (hostname, expected) => {
+        // Given the dev build served from the shared product host, Classic's own host or New Expensify's own host
+        arrangeHostname(hostname);
+
+        // When the app checks where it is served from
+        const isShared = isSharedProductHost();
+
+        // Then only the host without www serves both products
+        expect(isShared).toBe(expected);
+    });
+
+    it('never treats the page as the shared product host on native', () => {
+        // Given the native implementation, which has no page host
+        arrangeHostname('expensify.com.dev');
+
+        // When the app checks where it is served from
+        const isShared = NativeExperienceCookie.isSharedProductHost();
+
+        // Then it is never the shared product host
+        expect(isShared).toBe(false);
+    });
+
+    it.each([
+        ['experience=new', CONST.EXPERIENCE_COOKIE.VALUES.NEW],
+        ['other=1; experience=classic; last=2', CONST.EXPERIENCE_COOKIE.VALUES.CLASSIC],
+        ['experienced=new', undefined],
+        ['experience=other', undefined],
+        ['', undefined],
+    ])("reads the experience cookie from '%s'", (cookie, expected) => {
+        // Given the cookies the browser sends for this page
+        const cookieGetter = jest.spyOn(Document.prototype, 'cookie', 'get').mockReturnValue(cookie);
+
+        // When the app reads the experience cookie
+        const experience = readExperienceCookie();
+
+        // Then only a known experience value is returned, because the host serves Classic for any other value
+        expect(experience).toBe(expected);
+        cookieGetter.mockRestore();
+    });
+
+    it('never reads a cookie on native', () => {
+        // Given the native implementation, which has no browser cookies
+        // When the app reads the experience cookie
+        const experience = NativeExperienceCookie.readExperienceCookie();
+
+        // Then there is no cookie to read
+        expect(experience).toBeUndefined();
     });
 
     it('never writes a cookie on native', () => {
