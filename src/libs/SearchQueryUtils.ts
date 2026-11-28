@@ -871,6 +871,13 @@ function getQueryWithoutGroupBy(queryJSON: SearchQueryJSON | Readonly<SearchQuer
 }
 
 /**
+ * Trip rooms can't be grouped, so a group-by from a saved or typed trip query is dropped.
+ */
+function getQueryJSONWithoutTripGroupBy(queryJSON: SearchQueryJSON | undefined, shouldReturnTripRooms: boolean, rawQuery?: string) {
+    return shouldReturnTripRooms && queryJSON?.groupBy ? buildSearchQueryJSON(getQueryWithoutGroupBy(queryJSON), rawQuery) : queryJSON;
+}
+
+/**
  * The query the Spend footer's selections produce, built from the query the footer is showing. Only `footerTotal`
  * changes what the backend returns. The other two ride along so the selection is restored with the search.
  */
@@ -3809,6 +3816,7 @@ function getAllMatchingReportQuery(queryJSON: SearchQueryJSON, excludedTransacti
 
 export {
     getAllMatchingReportQuery,
+    getQueryJSONWithoutTripGroupBy,
     getDateRangeDisplayValueFromFormValue,
     getRangeBoundariesFromFormValue,
     getRangeQueryValue,

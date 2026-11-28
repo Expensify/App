@@ -5,6 +5,7 @@ import {saveLastSearchParams} from '@libs/actions/ReportNavigation';
 import {clearPageRequestedSearch, isFirstPageSearchInFlight, markPageRequestedSearch, openSearch, search} from '@libs/actions/Search';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import {hasPendingSearchWrite} from '@libs/pendingSearchWrite';
+import {getCurrentSearchQueryJSON, getQueryJSONWithoutTripGroupBy} from '@libs/SearchQueryUtils';
 import {isSearchDataLoaded, isSearchPending} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -104,6 +105,13 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
         // A preloaded tab builds from cached results only. The request, saved params and recent search wait until it is opened.
         // Account switches clear snapshots before replacing the retained page's query.
         if (isLoadingApp || !queryJSON || hash === undefined || isOffline || isInPreloadedTab) {
+            return;
+        }
+
+        // The preloaded page can unfreeze before SearchQueryProvider receives the submitted route params.
+        const navigationQuery = getCurrentSearchQueryJSON();
+        // A route without `q` resolves to undefined while the provider falls back to the default query, so only a resolved route can disagree.
+        if (navigationQuery && hash !== getQueryJSONWithoutTripGroupBy(navigationQuery, shouldReturnTripRooms)?.hash) {
             return;
         }
 
