@@ -58,7 +58,11 @@ function RejectReasonPage({route}: RejectReasonPageProps) {
             return;
         }
 
-        const [rules, reportTransactionsAndViolations] = await Onyx.multiGet([ONYXKEYS.COLLECTION.RULE, ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS]);
+        const [rules, reportTransactionsAndViolations, allReports] = await Onyx.multiGet([
+            ONYXKEYS.COLLECTION.RULE,
+            ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS,
+            ONYXKEYS.COLLECTION.REPORT,
+        ]);
         const reportTransactionsCollection = reportTransactionsAndViolations?.[reportID]?.transactions ?? {};
         const urlToNavigateBack = rejectMoneyRequest({
             transactionID,
@@ -73,6 +77,7 @@ function RejectReasonPage({route}: RejectReasonPageProps) {
             rules,
             reportTransactionsCollection,
             isChatReportArchived,
+            allReports,
         });
         removeTransaction(transactionID, {isDeleted: false});
         // If the super wide rhp is not opened, dismiss the entire modal.

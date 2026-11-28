@@ -45,7 +45,7 @@ import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
-import {getAllReports, getAllTransactions, getAllTransactionViolations} from '.';
+import {getAllTransactions, getAllTransactionViolations} from '.';
 
 type RejectMoneyRequestData = {
     optimisticData: Array<
@@ -126,6 +126,9 @@ type PrepareRejectMoneyRequestDataParams = {
     shouldUseBulkAction?: boolean;
     reportTransactionsCollection: Record<string, OnyxTypes.Transaction>;
     isChatReportArchived: boolean;
+
+    /** Needed in full, not just the expense report, to find an open report the rejected expense can move to */
+    allReports: OnyxCollection<OnyxTypes.Report>;
 };
 
 function prepareRejectMoneyRequestData({
@@ -143,9 +146,9 @@ function prepareRejectMoneyRequestData({
     shouldUseBulkAction,
     reportTransactionsCollection,
     isChatReportArchived,
+    allReports,
 }: PrepareRejectMoneyRequestDataParams): RejectMoneyRequestData | undefined {
     const allTransactions = getAllTransactions();
-    const allReports = getAllReports();
     // TODO: https://github.com/Expensify/App/issues/66512
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const allTransactionViolations = getAllTransactionViolations();
