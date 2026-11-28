@@ -1733,6 +1733,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.DOMAIN.GROUP_EDIT_NAME]: {
                             path: ROUTES.DOMAIN_GROUP_EDIT_NAME.route,
                         },
+                        [SCREENS.DOMAIN.GROUP_EDIT_CARD_LIMIT]: {
+                            path: ROUTES.DOMAIN_GROUP_EDIT_CARD_LIMIT.route,
+                        },
                         [SCREENS.DOMAIN.SECURITY_GROUPS_PREFERRED_WORKSPACE]: {
                             path: ROUTES.DOMAIN_SECURITY_GROUPS_PREFERRED_WORKSPACE.route,
                         },

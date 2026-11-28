@@ -1335,6 +1335,7 @@ const SCREENS = {
         MEMBER_MOVE_TO_GROUP: 'Member_Move_To_Group',
         GROUP_DETAILS: 'Domain_Group_Details',
         GROUP_EDIT_NAME: 'Domain_Group_Edit_Name',
+        GROUP_EDIT_CARD_LIMIT: 'Domain_Group_Edit_Card_Limit',
         SECURITY_GROUPS_PREFERRED_WORKSPACE: 'Domain_Security_Groups_Preferred_Workspace',
         GROUP_CREATE: 'Domain_Group_Create',
         GROUP_CREATE_PREFERRED_WORKSPACE: 'Domain_Group_Create_Preferred_Workspace',
