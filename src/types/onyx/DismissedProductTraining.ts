@@ -10,7 +10,6 @@ const {
     HAS_FILTER_NEGATION,
     MILEAGE_RATE_AUTO_UPDATED,
     MARK_ALL_AS_READ,
-    ACCOUNT_MOVED_TO_TOP_BAR,
     CONNECTIONS_MOVED,
     REQUIRE_FIELDS_RULE_RECEIPT_COUPLING_TOOLTIP,
     REQUIRE_FIELDS_RULE_ITEMIZED_RECEIPT_COUPLING_TOOLTIP,
@@ -108,9 +107,9 @@ type DismissedProductTraining = {
     [MARK_ALL_AS_READ]: DismissedProductTrainingElement;
 
     /**
-     * When user dismisses the tooltip pointing at the account button in the top bar, we store the timestamp here.
+     * Retained for accounts that dismissed the removed Account navigation tooltip.
      */
-    [ACCOUNT_MOVED_TO_TOP_BAR]: DismissedProductTrainingElement;
+    accountMovedToTopBar?: DismissedProductTrainingElement;
 
     /**
      * When user dismisses the tooltip pointing at the Connections item in the workspace menu, we store the timestamp here.

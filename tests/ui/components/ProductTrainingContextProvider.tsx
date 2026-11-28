@@ -173,6 +173,21 @@ describe('ProductTrainingContextProvider', () => {
     });
 
     describe('Tooltip Dismissal', () => {
+        it('ignores dismissal records for the removed Account tooltip', async () => {
+            // Given an account with a dismissal saved before the Account tooltip was removed
+            await Onyx.merge(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
+                accountMovedToTopBar: {timestamp: DateUtils.getDBTime(), dismissedMethod: 'x'},
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // When another educational tooltip registers
+            const {result} = renderHook(() => useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GPS_TOOLTIP), {wrapper});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the historical record does not suppress active training
+            expect(result.current.shouldShowProductTrainingTooltip).toBe(true);
+        });
+
         it('should not show dismissed tooltips', async () => {
             // When a tooltip has been dismissed
             const date = new Date();

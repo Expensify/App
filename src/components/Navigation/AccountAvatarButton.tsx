@@ -1,11 +1,8 @@
 import AccountNavigationAvatar from '@components/Avatar/AccountNavigationAvatar';
 import {PressableWithoutFeedback} from '@components/Pressable';
-import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import Tooltip from '@components/Tooltip';
-import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 
 import useAccountTabIndicatorStatus from '@hooks/useAccountTabIndicatorStatus';
-import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -13,8 +10,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
-
-import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -43,17 +38,10 @@ function AccountAvatarButtonContent() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {status} = useAccountTabIndicatorStatus();
-    const isAnonymousUser = useIsAnonymousUser();
     const isFocused = useIsFocused();
     const isSelected = useRoute().name === SCREENS.SETTINGS.ROOT;
 
-    const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
-        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.ACCOUNT_MOVED_TO_TOP_BAR,
-        isFocused && !isAnonymousUser,
-    );
-
     const navigateToAccount = () => {
-        hideProductTrainingTooltip();
         if (isSelected) {
             return;
         }
@@ -62,23 +50,11 @@ function AccountAvatarButtonContent() {
         }, session);
     };
 
-    const TooltipToRender = shouldShowProductTrainingTooltip ? EducationalTooltip : Tooltip;
-    const tooltipProps = shouldShowProductTrainingTooltip
-        ? {
-              shouldRender: true,
-              renderTooltipContent: renderProductTrainingTooltip,
-              wrapperStyle: styles.productTrainingTooltipWrapper,
-              onTooltipPress: navigateToAccount,
-              anchorAlignment: {
-                  horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                  vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-              },
-              shiftHorizontal: variables.accountAvatarTooltipShiftHorizontal,
-          }
-        : {text: translate('initialSettingsPage.account'), isFocused};
-
     return (
-        <TooltipToRender {...tooltipProps}>
+        <Tooltip
+            text={translate('initialSettingsPage.account')}
+            isFocused={isFocused}
+        >
             <PressableWithoutFeedback
                 onPress={navigateToAccount}
                 role={CONST.ROLE.BUTTON}
@@ -91,7 +67,7 @@ function AccountAvatarButtonContent() {
                     size={CONST.AVATAR_SIZE.MID_SMALL}
                 />
             </PressableWithoutFeedback>
-        </TooltipToRender>
+        </Tooltip>
     );
 }
 
