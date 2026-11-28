@@ -1,0 +1,257 @@
+diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/container/TabsContainer.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/container/TabsContainer.kt
+--- a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/container/TabsContainer.kt
++++ b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/container/TabsContainer.kt
+@@ -38,6 +38,7 @@
+ import com.swmansion.rnscreens.gamma.tabs.screen.TabsScreen
+ import com.swmansion.rnscreens.gamma.tabs.screen.TabsScreenDelegate
+ import com.swmansion.rnscreens.gamma.tabs.screen.TabsScreenFragment
++import com.swmansion.rnscreens.gamma.tabs.screen.TabsScreenFragmentLifecycleTracker
+ import com.swmansion.rnscreens.safearea.EdgeInsets
+ import com.swmansion.rnscreens.safearea.SafeAreaProvider
+ import com.swmansion.rnscreens.safearea.SafeAreaView
+@@ -112,6 +113,13 @@
+ 
+     private var pendingStateUpdateRequest: TabsNavigationStateUpdateRequest? = null
+ 
++    private var isDeferredFlushScheduled = false
++    private val deferredFlushRunnable =
++        Runnable {
++            isDeferredFlushScheduled = false
++            flushPendingUpdates()
++        }
++
+     private fun requirePendingStateUpdateRequest(): TabsNavigationStateUpdateRequest =
+         checkNotNull(pendingStateUpdateRequest) { "[RNScreens] Attempt to require nullish pendingStateUpdateRequest" }
+ 
+@@ -276,6 +284,7 @@
+      * shadowing [android.view.View.invalidate].
+      */
+     internal fun tearDown() {
++        cancelDeferredFlush()
+         observerRegistry.clear()
+         setPendingNavigationStateUpdate(null)
+     }
+@@ -322,6 +331,7 @@
+     }
+ 
+     override fun onDetachedFromWindow() {
++        cancelDeferredFlush()
+         super.onDetachedFromWindow()
+         teardownFragmentManager()
+         parentContainerRegistry.detach(this)
+@@ -405,7 +415,7 @@
+     // region TabsScreenDelegate impl
+ 
+     override fun onAppearanceChanged(tabsScreen: TabsScreen) {
+-        if (isAttachedToWindow && selectedTab.tabsScreen === tabsScreen) {
++        if (isAttachedToWindow && getFragmentForScreenKey(navState.selectedScreenKey)?.tabsScreen === tabsScreen) {
+             invalidationFlags.isNavigationMenuAppearanceInvalidated = true
+             post {
+                 this.flushPendingUpdates()
+@@ -414,8 +424,10 @@
+     }
+ 
+     override fun onMenuItemAttributesChange(tabsScreen: TabsScreen) {
++        // Initial selection may still be waiting for another fragment's lifecycle callback to finish.
++        val selectedFragment = getFragmentForScreenKey(navState.selectedScreenKey) ?: return
+         getMenuItemForTabsScreen(tabsScreen)?.let { menuItem ->
+-            val appearance = selectedTab.tabsScreen.appearance
++            val appearance = selectedFragment.tabsScreen.appearance
+             appearanceCoordinator.updateMenuItemAppearance(
+                 themedContext,
+                 menuItem,
+@@ -482,12 +494,40 @@
+     }
+ 
+     private fun performSelectedTabUpdateIfNeeded() {
+-        if (invalidationFlags.isSelectedTabInvalidated) {
+-            invalidationFlags.isSelectedTabInvalidated = false
+-            performSelectedTabUpdate()
++        if (!invalidationFlags.isSelectedTabInvalidated) {
++            return
++        }
++
++        val manager = fragmentManager ?: return
++        if (manager.isDestroyed) {
++            return
++        }
++        if (TabsScreenFragmentLifecycleTracker.isRunningCallback(manager)) {
++            // Appearance events can synchronously flush Fabric while FragmentManager is executing a transaction.
++            // Leave the request invalidated and retry after the outer lifecycle dispatch returns.
++            scheduleDeferredFlush()
++            return
++        }
++
++        invalidationFlags.isSelectedTabInvalidated = false
++        performSelectedTabUpdate()
++        if (pendingStateUpdateRequest != null && invalidationFlags.isSelectedTabInvalidated) {
++            scheduleDeferredFlush()
++        }
++    }
++
++    private fun scheduleDeferredFlush() {
++        if (!isDeferredFlushScheduled && isAttachedToWindow) {
++            isDeferredFlushScheduled = true
++            post(deferredFlushRunnable)
+         }
+     }
+ 
++    private fun cancelDeferredFlush() {
++        removeCallbacks(deferredFlushRunnable)
++        isDeferredFlushScheduled = false
++    }
++
+     private fun updateBottomNavigationViewAppearanceIfNeeded() {
+         // The appearance comes from the selected tab. A host whose tabs React removes, as it does when unmounting the
+         // host, still gets the mount callback with its selected tab gone, so the update waits for a selected tab.
+@@ -509,7 +549,14 @@
+ 
+         val stateUpdateRequest = requirePendingStateUpdateRequest()
+ 
++        val nextSelectedFragment = getFragmentForScreenKey(stateUpdateRequest.selectedScreenKey)
++        if (nextSelectedFragment == null) {
++            RNSLog.w(TAG, "TabsContainer::performSelectedTabUpdate target was removed; skipping update")
++            pendingStateUpdateRequest = null
++            return
++        }
++
+         val nextSelectedMenuItemId =
+-            checkNotNull(getMenuItemIdForFragment(requireFragmentForScreenKey(stateUpdateRequest.selectedScreenKey))) {
++            checkNotNull(getMenuItemIdForFragment(nextSelectedFragment)) {
+                 "[RNScreens] Failed to find Menu Item for screenKey: ${stateUpdateRequest.selectedScreenKey}"
+             }
+@@ -520,15 +567,20 @@
+                 stateUpdateRequest,
+                 TabsNavigationStateRejectionReason.STALE,
+             )
+-            pendingStateUpdateRequest = null
++            if (pendingStateUpdateRequest === stateUpdateRequest) {
++                pendingStateUpdateRequest = null
++            }
+             return
+         }
+ 
+         if (bottomNavigationView.selectedItemId != nextSelectedMenuItemId || navState.isEmpty()) {
+             isInExternalOperationContext = true
+             // This triggers on OnMenuItemClicked callback, where we perform actual update from
+-            bottomNavigationView.setSelectedItemIdWithActionOrigin(nextSelectedMenuItemId, stateUpdateRequest.actionOrigin)
+-            isInExternalOperationContext = false
++            try {
++                bottomNavigationView.setSelectedItemIdWithActionOrigin(nextSelectedMenuItemId, stateUpdateRequest.actionOrigin)
++            } finally {
++                isInExternalOperationContext = false
++            }
+         } else {
+             observerRegistry.emitOnNavigationStateUpdateRejected(
+                 navState,
+@@ -537,7 +589,10 @@
+             )
+         }
+ 
+-        pendingStateUpdateRequest = null
++        // Lifecycle events and navigation observers may have queued a newer request during this update.
++        if (pendingStateUpdateRequest === stateUpdateRequest) {
++            pendingStateUpdateRequest = null
++        }
+     }
+ 
+     private fun updateNavigationMenuStructure() {
+@@ -748,7 +803,9 @@
+             }
+         }
+ 
+-        appearanceCoordinator.updateTabAppearance(themedContext, this)
++        // Theme setup runs on attach even when the first selection has been deferred.
++        invalidationFlags.isNavigationMenuAppearanceInvalidated = true
++        updateBottomNavigationViewAppearanceIfNeeded()
+     }
+ 
+     private fun getFragmentForMenuItemId(itemId: Int): TabsScreenFragment? = tabsModel.find { it.menuItemId == itemId }
+@@ -770,11 +827,6 @@
+ 
+     private fun getFragmentForScreenKey(screenKey: String): TabsScreenFragment? = tabsModel.find { it.requireScreenKey == screenKey }
+ 
+-    private fun requireFragmentForScreenKey(screenKey: String): TabsScreenFragment =
+-        checkNotNull(getFragmentForScreenKey(screenKey)) {
+-            "[RNScreens] Requested fragment for key: $screenKey does not exist"
+-        }
+-
+     private fun updateInterfaceInsets(newHeight: Int? = null) {
+         val height = if (tabBarHidden) 0 else (newHeight ?: bottomNavigationView.height)
+ 
+diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/screen/TabsScreenFragment.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/screen/TabsScreenFragment.kt
+--- a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/screen/TabsScreenFragment.kt
++++ b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/screen/TabsScreenFragment.kt
+@@ -23,22 +23,22 @@
+     ): View = tabsScreen
+ 
+     override fun onStart() {
+-        tabsScreen.eventEmitter.emitOnWillAppear()
++        runInLifecycleCallback { tabsScreen.eventEmitter.emitOnWillAppear() }
+         super.onStart()
+     }
+ 
+     override fun onResume() {
+-        tabsScreen.eventEmitter.emitOnDidAppear()
++        runInLifecycleCallback { tabsScreen.eventEmitter.emitOnDidAppear() }
+         super.onResume()
+     }
+ 
+     override fun onPause() {
+-        tabsScreen.eventEmitter.emitOnWillDisappear()
++        runInLifecycleCallback { tabsScreen.eventEmitter.emitOnWillDisappear() }
+         super.onPause()
+     }
+ 
+     override fun onStop() {
+-        tabsScreen.eventEmitter.emitOnDidDisappear()
++        runInLifecycleCallback { tabsScreen.eventEmitter.emitOnDidDisappear() }
+         super.onStop()
+     }
+ 
+@@ -48,4 +48,14 @@
+         // Handle theme change through RN's Appearance.setColorScheme
+         tabsScreen.onFragmentConfigurationChange(this, newConfig)
+     }
++
++    private inline fun runInLifecycleCallback(block: () -> Unit) {
++        val fragmentManager = parentFragmentManager
++        TabsScreenFragmentLifecycleTracker.onCallbackStarted(fragmentManager)
++        try {
++            block()
++        } finally {
++            TabsScreenFragmentLifecycleTracker.onCallbackFinished(fragmentManager)
++        }
++    }
+ }
+diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/screen/TabsScreenFragmentLifecycleTracker.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/screen/TabsScreenFragmentLifecycleTracker.kt
+new file mode 100644
+--- /dev/null
++++ b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/screen/TabsScreenFragmentLifecycleTracker.kt
+@@ -0,0 +1,26 @@
++package com.swmansion.rnscreens.gamma.tabs.screen
++
++import androidx.annotation.MainThread
++import androidx.fragment.app.FragmentManager
++import java.util.WeakHashMap
++
++/** Tracks callbacks that can synchronously flush Fabric updates into the same FragmentManager. */
++@MainThread
++internal object TabsScreenFragmentLifecycleTracker {
++    private val callbackDepth = WeakHashMap<FragmentManager, Int>()
++
++    fun onCallbackStarted(fragmentManager: FragmentManager) {
++        callbackDepth[fragmentManager] = (callbackDepth[fragmentManager] ?: 0) + 1
++    }
++
++    fun onCallbackFinished(fragmentManager: FragmentManager) {
++        val depth = (callbackDepth[fragmentManager] ?: 0) - 1
++        if (depth > 0) {
++            callbackDepth[fragmentManager] = depth
++        } else {
++            callbackDepth.remove(fragmentManager)
++        }
++    }
++
++    fun isRunningCallback(fragmentManager: FragmentManager): Boolean = (callbackDepth[fragmentManager] ?: 0) > 0
++}
