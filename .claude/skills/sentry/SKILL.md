@@ -29,17 +29,22 @@ Use these tools for data analysis:
 | Tool | Purpose |
 |------|---------|
 | `mcp__sentry__find_releases` | Find release versions for scoping queries |
-| `mcp__sentry__search_issues` | Search for errors/crashes by query, project, date range |
-| `mcp__sentry__search_events` | Query raw events/spans (performance data, durations) |
+| `mcp__sentry__search_issues` | Find grouped issues/crashes by query, project, date range |
+| `mcp__sentry__search_errors` | Count and aggregate individual error events, or list them |
+| `mcp__sentry__search_traces` | Query spans/transactions for durations and percentiles (e.g. P90) |
+| `mcp__sentry__get_trace_details` | Overview of a specific trace by trace ID |
+| `mcp__sentry__search_profiles` | Find profiles to inspect |
+| `mcp__sentry__get_profile_details` | Inspect one profile by profile ID or URL |
 | `mcp__sentry__search_issue_events` | Get individual events for a known issue ID |
 | `mcp__sentry__get_issue_tag_values` | Inspect tag distributions (e.g. device, version) on an issue |
 | `mcp__sentry__get_sentry_resource` | Fetch a specific Sentry resource by URL/ID |
 
 **Do not use** `mcp__sentry__analyze_issue_with_seer` — AI analysis is out of scope for this skill.
 
-Always use:
-- **org slug**: `expensify`
-- **project slug**: `app`
+Always scope every search and lookup to:
+- **org**: `expensify`
+- **project**: `app`, passed as `projectSlug` (or `projectSlugOrId` for `search_issues`), so results from other projects don't add noise
+- **regionUrl**: `https://us.sentry.io`, where the tool takes one
 
 ## Example uses
 
