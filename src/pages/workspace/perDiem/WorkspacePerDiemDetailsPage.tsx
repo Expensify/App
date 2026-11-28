@@ -11,7 +11,6 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
-import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -29,9 +28,10 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {Rate, Subrate} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import React from 'react';
+import React, {useState} from 'react';
 
 type WorkspacePerDiemDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.PER_DIEM_DETAILS>;
 
@@ -45,20 +45,26 @@ function WorkspacePerDiemDetailsPage({route}: WorkspacePerDiemDetailsPageProps) 
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const {getCurrencySymbol, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
-    const customUnit = getPerDiemCustomUnit(policy);
     const {canWrite: canWritePerDiem} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.PER_DIEM);
-
-    const selectedRate = getAvailablePerDiemRate(customUnit?.rates?.[rateID]);
-    const fetchedSubRate = selectedRate?.subRates?.find((subRate) => subRate.id === subRateID);
-    const previousFetchedSubRate = usePrevious(fetchedSubRate);
+    const [deletingRate, setDeletingRate] = useState<{rate: Rate; subRate: Subrate}>();
     const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
 
-    const selectedSubRate = fetchedSubRate ?? previousFetchedSubRate;
+    const customUnit = getPerDiemCustomUnit(policy);
+    const availableRate = getAvailablePerDiemRate(customUnit?.rates?.[rateID]);
+    const fetchedSubRate = availableRate?.subRates?.find((subRate) => subRate.id === subRateID);
+    const selectedRate = deletingRate?.rate ?? availableRate;
+    const selectedSubRate = deletingRate?.subRate ?? fetchedSubRate;
+    const isDeleting = !!deletingRate;
 
     const amountValue = selectedSubRate?.rate ? convertToDisplayStringWithoutCurrency(Number(selectedSubRate.rate)) : undefined;
     const currencyValue = selectedRate?.currency ? `${selectedRate.currency} - ${getCurrencySymbol(selectedRate.currency)}` : undefined;
 
     const handleDeletePerDiemRate = () => {
+        if (!availableRate || !fetchedSubRate || isDeleting) {
+            return;
+        }
+        // Keep the confirmed rate visible while navigation closes this page after the optimistic deletion.
+        setDeletingRate({rate: availableRate, subRate: fetchedSubRate});
         deleteWorkspacePerDiemRates(policyID, customUnit, [
             {
                 destination: selectedRate?.name ?? '',
@@ -78,7 +84,7 @@ function WorkspacePerDiemDetailsPage({route}: WorkspacePerDiemDetailsPageProps) 
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED}
             policyFeature={CONST.POLICY.POLICY_FEATURE.PER_DIEM}
-            shouldBeBlocked={isEmptyObject(fetchedSubRate)}
+            shouldBeBlocked={!isDeleting && isEmptyObject(fetchedSubRate)}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
@@ -92,24 +98,28 @@ function WorkspacePerDiemDetailsPage({route}: WorkspacePerDiemDetailsPageProps) 
                     keyboardShouldPersistTaps="always"
                 >
                     <MenuItemField
+                        isDisabled={isDeleting}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.PER_DIEM.DETAILS_DESTINATION}
                         name={translate('common.destination')}
                         onPress={canWritePerDiem ? () => Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_EDIT_DESTINATION.getRoute(policyID, rateID, subRateID)) : undefined}
                         value={selectedRate?.name}
                     />
                     <MenuItemField
+                        isDisabled={isDeleting}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.PER_DIEM.DETAILS_SUBRATE}
                         name={translate('common.subrate')}
                         onPress={canWritePerDiem ? () => Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_EDIT_SUBRATE.getRoute(policyID, rateID, subRateID)) : undefined}
                         value={selectedSubRate?.name}
                     />
                     <MenuItemField
+                        isDisabled={isDeleting}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.PER_DIEM.DETAILS_AMOUNT}
                         name={translate('workspace.perDiem.amount')}
                         onPress={canWritePerDiem ? () => Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_EDIT_AMOUNT.getRoute(policyID, rateID, subRateID)) : undefined}
                         value={amountValue}
                     />
                     <MenuItemField
+                        isDisabled={isDeleting}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.PER_DIEM.DETAILS_CURRENCY}
                         name={translate('common.currency')}
                         onPress={canWritePerDiem ? () => Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_EDIT_CURRENCY.getRoute(policyID, rateID, subRateID)) : undefined}
@@ -117,6 +127,7 @@ function WorkspacePerDiemDetailsPage({route}: WorkspacePerDiemDetailsPageProps) 
                     />
                     {canWritePerDiem && (
                         <MenuItemAction
+                            isDisabled={isDeleting}
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.PER_DIEM.DETAILS_DELETE}
                             icon={icons.Trashcan}
                             title={translate('common.delete')}
