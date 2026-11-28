@@ -30,7 +30,7 @@ import {
     getSubmitToAccountID,
     isTimeTrackingEnabled,
 } from '@libs/PolicyUtils';
-import {getIOUReportIDFromReportActionPreview, getOneTransactionThreadReportID, isActionOfType} from '@libs/ReportActionsUtils';
+import {getIOUReportIDFromReportActionPreview, getOneTransactionThreadReportID, getOriginalMessage, isActionOfType, isSplitBillAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {getReportAlternateText, resolveLastActionContext} from '@libs/ReportAlternateTextUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -90,6 +90,7 @@ import type {
     ReportAction,
     ReportAttributesDerivedValue,
     Rule,
+    Transaction,
     VisibleReportActionsDerivedValue,
 } from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
@@ -236,6 +237,7 @@ type GetAlternateTextConfig = {
     localeCompare?: LocaleContextProps['localeCompare'];
     formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
     rules: OnyxCollection<Rule>;
+    splitAndTrackTransactions?: Transaction[];
 };
 
 /**
@@ -280,6 +282,7 @@ function getAlternateText(
         localeCompare,
         formatPhoneNumber,
         rules,
+        splitAndTrackTransactions,
     }: GetAlternateTextConfig,
 ) {
     const report = getReportOrDraftReport({reportID: option.reportID});
@@ -295,6 +298,7 @@ function getAlternateText(
             const resolvedCurrentUserAccountID = currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID;
             const oneTransactionThreadReportID = transactionThreadIDs?.[report.reportID];
             const {lastAction, lastActionReport, movedFromReport, movedToReport} = resolveLastActionContext(report, isReportArchived, visibleReportActionsData, oneTransactionThreadReportID);
+            const splitOrTrackTransactionID = isSplitBillAction(lastAction) || isTrackExpenseAction(lastAction) ? getOriginalMessage(lastAction)?.IOUTransactionID : undefined;
             return getReportAlternateText({
                 report,
                 lastAction,
@@ -326,6 +330,7 @@ function getAlternateText(
                 convertToDisplayString,
                 convertToDisplayStringWithoutCurrency: convertToDisplayStringWithoutCurrency ?? fallbackConvertToDisplayStringWithoutCurrency,
                 rules,
+                lastActionTransaction: splitOrTrackTransactionID ? splitAndTrackTransactions?.find((transaction) => transaction.transactionID === splitOrTrackTransactionID) : undefined,
             });
         }
         if (option.lastMessageText) {
@@ -2232,6 +2237,7 @@ function prepareReportOptionsForDisplay(
         formatPhoneNumber,
         transactionThreadIDs,
         lastActions,
+        splitAndTrackTransactions,
     } = config;
 
     const validOptions: Array<SearchOption<Report>> = [];
@@ -2248,6 +2254,7 @@ function prepareReportOptionsForDisplay(
         sortedActions,
         transactionThreadIDs,
         lastActions,
+        splitAndTrackTransactions,
         rules,
         conciergeReportID,
         isTrackIntentUser,
@@ -2307,6 +2314,7 @@ function prepareReportOptionsForDisplay(
                     localeCompare,
                     formatPhoneNumber,
                     rules,
+                    splitAndTrackTransactions,
                 },
             ),
         );
@@ -2798,6 +2806,7 @@ type SearchOptionsConfig = {
     sortedActions: Record<string, ReportAction[]> | undefined;
     transactionThreadIDs?: Record<string, string | undefined>;
     lastActions: Record<string, ReportAction> | undefined;
+    splitAndTrackTransactions?: Transaction[];
     currentUserLogin?: string;
     localeCompare?: LocaleContextProps['localeCompare'];
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
@@ -2839,6 +2848,7 @@ function getSearchOptions({
     sortedActions,
     transactionThreadIDs,
     lastActions,
+    splitAndTrackTransactions,
     currentUserLogin,
     localeCompare,
     formatPhoneNumber,
@@ -2890,6 +2900,7 @@ function getSearchOptions({
             sortedActions,
             transactionThreadIDs,
             lastActions,
+            splitAndTrackTransactions,
             currentUserLogin: currentUserLogin ?? currentUserEmail,
             localeCompare,
             excludeFromSuggestionsOnly,

@@ -6534,6 +6534,7 @@ export {
     canReportActionTriggerUnreadMarker,
     shouldReportActionBeVisible,
     isReportActionVisible,
+    isReportActionVisibleAsLastAction,
     wasActionTakenByCurrentUser,
     isReportActionFromCurrentUser,
     isInviteOrRemovedAction,
