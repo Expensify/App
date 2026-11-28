@@ -23,6 +23,7 @@ import {
     shouldBlockSubmitDueToStrictPolicyRules,
     shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
+import {filterRulesForPolicy} from '@libs/RuleUtils';
 import {getTransactionViolations, hasOnlyPendingCardTransactions, showHeldExpensesBlockModal, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 
 import {submitReport} from '@userActions/IOU/ReportWorkflow';
@@ -83,7 +84,7 @@ function SubmitActionButtonContent() {
         delegateAccountID,
     } = useReportPreviewActionButtonData(iouReportID);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE, {selector: (allRules) => filterRulesForPolicy(allRules, iouReport?.policyID)});
     const isChatReportArchived = useReportIsArchived(iouReport?.chatReportID);
     const [chatArchiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(iouReport?.chatReportID)}`, {selector: getArchiveReason});
     const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();

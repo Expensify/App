@@ -8,7 +8,6 @@ import useNetwork from '@hooks/useNetwork';
 import useNewTransactions from '@hooks/useNewTransactions';
 import useOnyx from '@hooks/useOnyx';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
-import usePolicy from '@hooks/usePolicy';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -19,6 +18,7 @@ import {createTransactionThreadReport, openReport, setOptimisticTransactionThrea
 import {CAROUSEL_SOURCE, clearActiveTransactionIDsForSource, getActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllPersonalDetails} from '@libs/PersonalDetailsStore';
+import {getPolicyIDOrDefault} from '@libs/PolicyUtils';
 import {
     getAllReportActions,
     getIOUActionForReportID,
@@ -40,7 +40,7 @@ import {contextMenuRef} from '@pages/inbox/report/ContextMenu/ReportActionContex
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {fullPolicySnapshotLastModifiedSelector} from '@src/selectors/Policy';
+import {fullPolicySnapshotLastModifiedSelector, reportPreviewPolicySelector} from '@src/selectors/Policy';
 import {hasOnceLoadedReportActionsSelector, isLoadingInitialReportActionsSelector, pendingNewTransactionsSelector} from '@src/selectors/ReportMetaData';
 import type {PersonalDetailsList, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
 
@@ -123,12 +123,12 @@ function MoneyRequestReportPreview({
     const transactionsWithReceipts = getTransactionsWithReceipts(allReportTransactions);
     const hasNonReimbursableTransactions = hasNonReimbursableTransactionsTransactionUtils(allReportTransactions);
     const areAllRequestsBeingSmartScanned = areAllRequestsBeingSmartScannedReportUtils(action, allReportTransactions);
-    const policy = usePolicy(policyID);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getPolicyIDOrDefault(policyID)}`, {selector: reportPreviewPolicySelector});
     const [fullPolicySnapshotLastModified] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}${getNonEmptyStringOnyxID(policyID)}`, {
         selector: fullPolicySnapshotLastModifiedSelector,
     });
     const lastTransaction = transactions?.at(0);
-    const lastTransactionViolations = useTransactionViolations(lastTransaction?.transactionID);
+    const lastTransactionViolations = useTransactionViolations(lastTransaction?.transactionID, true, undefined, policy?.id === iouReport?.policyID ? policy : undefined);
     const isTrackExpenseAction = isTrackExpenseActionReportActionsUtils(action);
     const isSplitBillAction = isSplitBillActionReportActionsUtils(action);
 
