@@ -29,7 +29,7 @@ function AddToWalletButton({card, cardHolderName, cardDescription, style}: AddTo
     const [isLoading, setIsLoading] = useState(false);
     const styles = useThemeStyles();
     const {executeScenario} = useMultifactorAuthentication();
-    const {isInWallet, isLoading: isCardLoading, isCardAvailable, isWalletAvailable, refreshWalletStatus} = useIsCardInWallet(card);
+    const {isInWallet, isCardAvailable, isWalletAvailable, refreshWalletStatus} = useIsCardInWallet(card);
 
     const handleOnPress = () => {
         if (isUkEuExpensifyCard(card)) {
@@ -63,7 +63,7 @@ function AddToWalletButton({card, cardHolderName, cardDescription, style}: AddTo
         return null;
     }
 
-    if (isLoading || isCardLoading) {
+    if (isLoading) {
         // The spinner takes the place of the button, so it needs the same outer spacing to avoid the surrounding rows shifting
         return (
             <ActivityIndicator

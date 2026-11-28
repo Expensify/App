@@ -1,15 +1,18 @@
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
+import useOnyx from '@hooks/useOnyx';
 
-import {checkIfWalletIsAvailable, isCardInWallet} from '@libs/Wallet';
+import {checkIfWalletIsAvailable} from '@libs/Wallet';
+
+import refreshCardWalletStatus from '@userActions/refreshCardWalletStatus';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card} from '@src/types/onyx';
 
-import {useEffect, useRef, useState} from 'react';
+import {useEffect, useState} from 'react';
 
 type UseIsCardInWalletType = {
     isInWallet: boolean | null;
-    isLoading: boolean;
     isCardAvailable: boolean;
     isWalletAvailable: boolean;
 
@@ -18,35 +21,23 @@ type UseIsCardInWalletType = {
 };
 
 function useIsCardInWallet(card: Card): UseIsCardInWalletType {
-    const [isInWallet, setIsInWallet] = useState<boolean | null>(null);
+    const [walletStatus] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_CARD_WALLET_STATUS}${card.cardID}`);
     const [isWalletAvailable, setIsWalletAvailable] = useState(false);
-    const isCardAvailable = card.state === CONST.EXPENSIFY_CARD.STATE.OPEN;
-    const [isLoading, setIsLoading] = useState(false);
-    const latestRequestIDRef = useRef(0);
-    const latestReadRef = useRef<Promise<void>>(Promise.resolve());
-    const refreshWalletStatus = () => {
-        latestRequestIDRef.current += 1;
-        const requestID = latestRequestIDRef.current;
 
-        const read = isCardInWallet(card)
-            .catch(() => false)
-            .then((result): Promise<void> | undefined => {
-                // Reads can resolve out of order (e.g. a focus refresh started meanwhile), so a stale one waits for the newest
-                if (requestID !== latestRequestIDRef.current) {
-                    return latestReadRef.current;
-                }
-                setIsInWallet(result);
-                setIsLoading(false);
-            });
-        latestReadRef.current = read;
-        return read;
+    // The stored status may be from an earlier visit (e.g. the card was added in the wallet app), so wait for a fresh read
+    const [freshStatusCardIDs, setFreshStatusCardIDs] = useState<ReadonlySet<number>>(() => new Set());
+    const isCardAvailable = card.state === CONST.EXPENSIFY_CARD.STATE.OPEN;
+    const refreshWalletStatus = () => {
+        const {cardID} = card;
+        return refreshCardWalletStatus(card).then(() => {
+            setFreshStatusCardIDs((cardIDs) => (cardIDs.has(cardID) ? cardIDs : new Set(cardIDs).add(cardID)));
+        });
     };
 
     useEffect(() => {
         if (!isCardAvailable) {
             return;
         }
-
         refreshWalletStatus();
     }, [refreshWalletStatus, isCardAvailable, card]);
 
@@ -73,8 +64,7 @@ function useIsCardInWallet(card: Card): UseIsCardInWalletType {
     });
 
     return {
-        isInWallet,
-        isLoading,
+        isInWallet: freshStatusCardIDs.has(card.cardID) ? (walletStatus?.isInWallet ?? null) : null,
         isCardAvailable,
         isWalletAvailable,
         refreshWalletStatus,

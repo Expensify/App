@@ -7,6 +7,7 @@ import {createDigitalGoogleWallet} from '@libs/actions/Wallet';
 import {handleAddCardToWallet as handleAddCardToGoogleWallet, isCardInWallet as isCardInGoogleWallet} from '@libs/Wallet/index.android';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card} from '@src/types/onyx';
 
 import type {AndroidCardData, CardStatus, TokenizationStatus} from '@expensify/react-native-wallet';
@@ -23,6 +24,7 @@ import {
 } from '@expensify/react-native-wallet';
 import React from 'react';
 import {AppState} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 import {createRandomExpensifyCard} from '../utils/collections/card';
 import createMock from '../utils/createMock';
@@ -102,9 +104,14 @@ function bringAppToForeground() {
 }
 
 describe('AddToWalletButton', () => {
-    beforeEach(() => {
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    beforeEach(async () => {
         jest.clearAllMocks();
         addEventListenerSpy = jest.spyOn(AppState, 'addEventListener');
+        await Onyx.clear();
     });
 
     it.each<CardStatus>(['requireActivation', 'pending'])('hides the button and shows the added status when the wallet pass is "%s"', async (status) => {
@@ -179,6 +186,30 @@ describe('AddToWalletButton', () => {
         expect(screen.queryByTestId('add-to-wallet-spinner')).not.toBeOnTheScreen();
     });
 
+    it('shows the added status after a successful add without a focus refresh', async () => {
+        // Given a card that is not in the wallet yet
+        mockGetCardStatus.mockResolvedValue('not found');
+        let resolveAdd: (status: TokenizationStatus) => void = () => {};
+        mockAddCardToAppleWallet.mockReturnValue(
+            new Promise((resolve) => {
+                resolveAdd = resolve;
+            }),
+        );
+        renderCardWalletSection();
+        expect(await screen.findByTestId('add-to-wallet-button')).toBeOnTheScreen();
+
+        // When the add succeeds and the wallet reports the card, with no focus refresh in between
+        fireEvent(screen.getByTestId('add-to-wallet-button'), 'touchEnd');
+        mockGetCardStatus.mockResolvedValue('active');
+        await act(async () => {
+            resolveAdd('success');
+        });
+
+        // Then the status text shows and the button is hidden, without waiting for the app to come back to the foreground
+        expect(screen.getByText('cardPage.cardAddedToWallet')).toBeOnTheScreen();
+        expect(screen.queryByTestId('add-to-wallet-button')).not.toBeOnTheScreen();
+    });
+
     it('keeps the newest wallet status when an older read resolves last', async () => {
         // Given the card page with a card that is not in the wallet yet
         mockGetCardStatus.mockResolvedValueOnce('not found');
@@ -232,9 +263,6 @@ describe('AddToWalletButton', () => {
         mockGetCardStatus.mockResolvedValue('requireActivation');
         await act(async () => {
             resolveAdd('success');
-        });
-        act(() => {
-            bringAppToForeground();
         });
 
         // Then the spinner is gone and the card shows as added instead of offering to add it again

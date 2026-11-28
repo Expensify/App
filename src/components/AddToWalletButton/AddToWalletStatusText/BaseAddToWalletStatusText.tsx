@@ -16,9 +16,9 @@ type BaseAddToWalletStatusTextProps = AddToWalletStatusTextProps & {
 function BaseAddToWalletStatusText({card, style, platform}: BaseAddToWalletStatusTextProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isInWallet, isLoading: isCardLoading, isCardAvailable, isWalletAvailable} = useIsCardInWallet(card);
+    const {isInWallet, isCardAvailable, isWalletAvailable} = useIsCardInWallet(card);
 
-    if (!isWalletAvailable || !isCardAvailable || isCardLoading || !isInWallet) {
+    if (!isWalletAvailable || !isCardAvailable || !isInWallet) {
         return null;
     }
 

@@ -50,7 +50,7 @@ const mockBiometrics = {
 jest.mock('@components/MultifactorAuthentication/biometrics/useBiometrics', () => ({__esModule: true, default: () => mockBiometrics}));
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({__esModule: true, default: () => ({accountID: 123})}));
 jest.mock('@hooks/useNetwork', () => ({__esModule: true, default: () => ({isOffline: mockIsOffline})}));
-jest.mock('@libs/Wallet', () => ({handleAddCardToWallet: jest.fn()}));
+jest.mock('@libs/Wallet', () => ({handleAddCardToWallet: jest.fn(), isCardInWallet: jest.fn(() => Promise.resolve(true))}));
 jest.mock('@libs/API');
 jest.mock('@expensify/react-native-wallet', () => ({addCardToGoogleWallet: jest.fn(), getSecureWalletInfo: jest.fn()}));
 jest.mock('@libs/actions/PaymentMethods', () => ({getPaymentMethods: jest.fn()}));

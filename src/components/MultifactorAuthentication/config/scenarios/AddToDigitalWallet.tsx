@@ -4,6 +4,7 @@ import {DefaultServerFailureScreen} from '@components/MultifactorAuthentication/
 import type {MultifactorAuthenticationScenarioCustomConfig} from '@components/MultifactorAuthentication/config/types';
 
 import {getPaymentMethods} from '@libs/actions/PaymentMethods';
+import refreshCardWalletStatus from '@libs/actions/refreshCardWalletStatus';
 import getPlatform from '@libs/getPlatform';
 import {isSignedChallengeFailure} from '@libs/MultifactorAuthentication/shared/helpers';
 import Navigation from '@libs/Navigation/Navigation';
@@ -99,6 +100,7 @@ export default {
             return CONST.MULTIFACTOR_AUTHENTICATION.CALLBACK_RESPONSE.SHOW_OUTCOME_SCREEN;
         }
         getPaymentMethods();
+        refreshCardWalletStatus(payload.card);
         if (getPlatform() === CONST.PLATFORM.IOS) {
             Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_ADDED_TO_WALLET.getRoute(String(payload.card.cardID)));
         }
