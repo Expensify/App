@@ -3779,6 +3779,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
         const parentReportNameValuePairs = {expensify_text_title: titleField};
 
         const sharedParams = {
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             rules: undefined,
             transactionID,
