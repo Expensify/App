@@ -1043,22 +1043,21 @@ describe('getPayOption', () => {
         it('returns pagination and logins when the server responds with jsonCode 200', async () => {
             // Given a successful OpenSearchUserFiltersPage response with personal details updates
             const accountID = 101;
-            mockMakeRequestWithSideEffects.mockResolvedValueOnce(
-                createMock<Response<never> & OpenSearchUserFiltersPageResponse>({
-                    jsonCode: CONST.JSON_CODE.SUCCESS,
-                    hasMore: true,
-                    nextCursor: '50',
-                    onyxData: [
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                            value: {
-                                [accountID]: {accountID, login: 'removed@example.com'},
-                            },
+            const response: Response<typeof ONYXKEYS.PERSONAL_DETAILS_LIST> & OpenSearchUserFiltersPageResponse = {
+                jsonCode: CONST.JSON_CODE.SUCCESS,
+                hasMore: true,
+                nextCursor: '50',
+                onyxData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                        value: {
+                            [accountID]: {accountID, login: 'removed@example.com'},
                         },
-                    ],
-                }),
-            );
+                    },
+                ],
+            };
+            mockMakeRequestWithSideEffects.mockResolvedValueOnce(response);
 
             // When openSearchUserFiltersPage is called
             const result = await openSearchUserFiltersPage({searchQuery: '', cursor: '', limit: CONST.SEARCH.USER_FILTER_PAGE_SIZE, policyIDs: 'policy-1'}, true);
