@@ -142,6 +142,8 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
     const state = {
         report,
         hasOnceLoadedReportActions,
+        newestFetchedReportActionID: reportPaginationState?.newestFetchedReportActionID,
+        isLoadingNewerReportActions: reportLoadingState?.isLoadingNewerReportActions,
         // Pagination reports no older actions until a load stores pages, so a pending report load may still bring some.
         isWaitingForOlderActions: hasOlderActions || isReportLoadPending,
         hasNewerActions,
