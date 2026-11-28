@@ -11,7 +11,8 @@ import * as SignInRedirect from '@libs/actions/SignInRedirect';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import asyncOpenURL from '@libs/asyncOpenURL';
 import buildOldDotURL from '@libs/buildOldDotURL';
-import {clearExperienceCookie} from '@libs/ExperienceCookie';
+import {forgetClassicSignOut, openClassicSignOutAfter, preventClassicSignInDuring} from '@libs/ClassicSignIn';
+import {clearExperienceCookie, isSharedProductHost} from '@libs/ExperienceCookie';
 import getPlatform from '@libs/getPlatform';
 import Growl from '@libs/Growl';
 import HttpUtils from '@libs/HttpUtils';
@@ -73,10 +74,17 @@ jest.mock('@libs/openExternalLink', () => ({
 
 jest.mock('@libs/getPlatform', () => jest.fn());
 
-// Mocked to check that the sign in redirect clears the experience cookie
+// Mocked to check that the sign in redirect clears the experience cookie, and to choose the host the sign out runs on
 jest.mock('@libs/ExperienceCookie', () => ({
     writeExperienceCookie: jest.fn(),
     clearExperienceCookie: jest.fn(),
+    isSharedProductHost: jest.fn(() => false),
+}));
+
+jest.mock('@libs/ClassicSignIn', () => ({
+    forgetClassicSignOut: jest.fn(),
+    openClassicSignOutAfter: jest.fn(),
+    preventClassicSignInDuring: jest.fn(),
 }));
 
 const mockedGetPlatform = jest.mocked(getPlatform);
@@ -145,6 +153,7 @@ describe('Session', () => {
             expect(mockAPI.write).not.toHaveBeenCalled();
             expect(SignInRedirect.default).toHaveBeenCalledTimes(1);
             expect(Growl.success).not.toHaveBeenCalled();
+            expect(openClassicSignOutAfter).toHaveBeenCalledWith(redirect.promise);
             redirect.resolve();
             await expect(result).resolves.toBe(true);
             expect(Growl.success).toHaveBeenCalledWith({bodyText: 'You’ve been signed out on all devices.', position: CONST.GROWL.POSITION.BOTTOM_RIGHT});
@@ -655,29 +664,62 @@ describe('Session', () => {
     });
 
     describe('SignOutAndRedirectToSignIn', () => {
-        test('SignOutAndRedirectToSignIn should redirect to OldDot when LogOut returns truthy hasOldDotAuthCookies', async () => {
-            await TestHelper.signInWithTestUser();
-            setHasRadio(false);
-            await waitForBatchedUpdates();
+        describe('when LogOut reports Classic session cookies', () => {
+            let redirectToSignInSpy: jest.SpiedFunction<typeof SignInRedirect.default>;
 
-            jest.mocked(HttpUtils.xhr)
-                // This will make the call to OpenApp below return with an expired session code
-                .mockImplementationOnce(() =>
-                    Promise.resolve({
-                        jsonCode: CONST.JSON_CODE.SUCCESS,
-                        hasOldDotAuthCookies: true,
-                    }),
-                );
+            beforeEach(async () => {
+                // Given a signed-in user whose browser has Classic session cookies
+                await TestHelper.signInWithTestUser();
+                jest.clearAllMocks();
+                jest.spyOn(API, 'makeRequestWithSideEffects').mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS, hasOldDotAuthCookies: true});
+                redirectToSignInSpy = jest.spyOn(SignInRedirect, 'default').mockImplementation(() => Promise.resolve());
+            });
 
-            const redirectToSignInSpy = jest.spyOn(SignInRedirect, 'default').mockImplementation(() => Promise.resolve());
+            afterEach(() => {
+                jest.restoreAllMocks();
+                jest.mocked(isSharedProductHost).mockReturnValue(false);
+                jest.clearAllMocks();
+            });
 
-            signOutAndRedirectToSignIn(await Onyx.get(ONYXKEYS.SESSION));
+            test('SignOutAndRedirectToSignIn should redirect to OldDot on other hosts', async () => {
+                // Given a host that serves only New Expensify
+                jest.mocked(isSharedProductHost).mockReturnValue(false);
 
-            await waitForBatchedUpdates();
+                // When the user signs out
+                await signOutAndRedirectToSignIn(await Onyx.get(ONYXKEYS.SESSION));
 
-            expect(asyncOpenURL).toHaveBeenCalledWith(expect.any(Promise), `${CONFIG.EXPENSIFY.EXPENSIFY_URL}${CONST.OLDDOT_URLS.SIGN_OUT}`, true, true);
-            expect(redirectToSignInSpy).toHaveBeenCalled();
-            jest.clearAllMocks();
+                // Then the Classic sign-out page opens after the sign in redirect
+                expect(redirectToSignInSpy).toHaveBeenCalled();
+                expect(asyncOpenURL).toHaveBeenCalledWith(expect.any(Promise), `${CONFIG.EXPENSIFY.EXPENSIFY_URL}${CONST.OLDDOT_URLS.SIGN_OUT}`, true, true);
+                expect(openClassicSignOutAfter).not.toHaveBeenCalled();
+            });
+
+            test('SignOutAndRedirectToSignIn should open the Classic sign-out page of the same host on the shared product host', async () => {
+                // Given the host that serves both products
+                jest.mocked(isSharedProductHost).mockReturnValue(true);
+
+                // When the user signs out
+                await signOutAndRedirectToSignIn(await Onyx.get(ONYXKEYS.SESSION));
+
+                // Then the sign-out page of this host opens after the sign in redirect, since only it can end the Classic session the sign-in page would restore
+                expect(redirectToSignInSpy).toHaveBeenCalledTimes(1);
+                expect(openClassicSignOutAfter).toHaveBeenCalledTimes(1);
+                expect(openClassicSignOutAfter).toHaveBeenCalledWith(expect.any(Promise));
+                expect(asyncOpenURL).not.toHaveBeenCalled();
+            });
+
+            test('SignOutAndRedirectToSignIn should keep the Classic session on the shared product host when asked to', async () => {
+                // Given the host that serves both products
+                jest.mocked(isSharedProductHost).mockReturnValue(true);
+
+                // When the session is cleared for a user that Classic is signing in
+                await signOutAndRedirectToSignIn(await Onyx.get(ONYXKEYS.SESSION), {signOutReason: CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER, shouldEndClassicBrowserSession: false});
+
+                // Then no Classic sign-out page opens, since the Classic session belongs to the new user
+                expect(redirectToSignInSpy).toHaveBeenCalledTimes(1);
+                expect(openClassicSignOutAfter).not.toHaveBeenCalled();
+                expect(asyncOpenURL).not.toHaveBeenCalled();
+            });
         });
 
         test('SignOutAndRedirectToSignIn should not redirect to OldDot when LogOut return falsy hasOldDotAuthCookies', async () => {
@@ -704,6 +746,60 @@ describe('Session', () => {
             jest.clearAllMocks();
         });
 
+        test('SignOutAndRedirectToSignIn should sign out of Classic after the sign in redirect', async () => {
+            // Given a signed-in user
+            await TestHelper.signInWithTestUser();
+            jest.spyOn(SessionUtil, 'signOut').mockResolvedValue(undefined);
+            const redirectToSignInSpy = jest.spyOn(SignInRedirect, 'default').mockImplementation(() => Promise.resolve());
+
+            // When the user signs out
+            signOutAndRedirectToSignIn(await Onyx.get(ONYXKEYS.SESSION));
+
+            await waitForBatchedUpdates();
+
+            // Then the Classic sign out waits for the sign in redirect, which clears the local session
+            expect(redirectToSignInSpy).toHaveBeenCalled();
+            expect(openClassicSignOutAfter).toHaveBeenCalledWith(expect.any(Promise));
+            jest.restoreAllMocks();
+            jest.clearAllMocks();
+        });
+
+        test('SignOutAndRedirectToSignIn should not sign out of Classic when stashing the session', async () => {
+            // Given a signed-in user
+            await TestHelper.signInWithTestUser();
+            jest.spyOn(SessionUtil, 'signOut').mockResolvedValue(undefined);
+            const redirectToSignInSpy = jest.spyOn(SignInRedirect, 'default').mockImplementation(() => Promise.resolve());
+
+            // When the session is stashed to come back to it later
+            signOutAndRedirectToSignIn(await Onyx.get(ONYXKEYS.SESSION), {shouldStashSession: true});
+
+            await waitForBatchedUpdates();
+
+            // Then the Classic session stays, since the stashed session still needs it
+            expect(redirectToSignInSpy).toHaveBeenCalled();
+            expect(openClassicSignOutAfter).not.toHaveBeenCalled();
+            jest.restoreAllMocks();
+            jest.clearAllMocks();
+        });
+
+        test('SignOutAndRedirectToSignIn should not sign out of Classic when another user is signing in from Classic', async () => {
+            // Given a signed-in user
+            await TestHelper.signInWithTestUser();
+            jest.spyOn(SessionUtil, 'signOut').mockResolvedValue(undefined);
+            const redirectToSignInSpy = jest.spyOn(SignInRedirect, 'default').mockImplementation(() => Promise.resolve());
+
+            // When the session is cleared for a user that Classic is signing in
+            signOutAndRedirectToSignIn(await Onyx.get(ONYXKEYS.SESSION), {signOutReason: CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER, shouldEndClassicBrowserSession: false});
+
+            await waitForBatchedUpdates();
+
+            // Then the Classic session stays, since it belongs to the new user
+            expect(redirectToSignInSpy).toHaveBeenCalled();
+            expect(openClassicSignOutAfter).not.toHaveBeenCalled();
+            jest.restoreAllMocks();
+            jest.clearAllMocks();
+        });
+
         test('SignOutAndRedirectToSignIn should restore stashed session and redirect to OldDot supportal of supportal agent', async () => {
             jest.spyOn(SessionUtil, 'isSupportAuthToken').mockReturnValue(true);
             jest.spyOn(SessionUtil, 'hasStashedSession').mockReturnValue(true);
@@ -720,7 +816,7 @@ describe('Session', () => {
 
             await waitForBatchedUpdates();
 
-            signOutAndRedirectToSignIn(await Onyx.get(ONYXKEYS.SESSION), false, false, true, true);
+            signOutAndRedirectToSignIn(await Onyx.get(ONYXKEYS.SESSION), {shouldForceUseStashedSession: true});
 
             await waitForBatchedUpdates();
 
@@ -754,7 +850,7 @@ describe('Session', () => {
 
             const redirectToSignInSpy = jest.spyOn(SignInRedirect, 'default').mockImplementation(() => Promise.resolve());
 
-            signOutAndRedirectToSignIn(await Onyx.get(ONYXKEYS.SESSION), true, false, true, true);
+            signOutAndRedirectToSignIn(await Onyx.get(ONYXKEYS.SESSION), {shouldResetToHome: true, shouldForceUseStashedSession: true});
 
             await waitForBatchedUpdates();
 
@@ -768,6 +864,31 @@ describe('Session', () => {
                 [ONYXKEYS.CREDENTIALS]: testStashedCredentials,
                 [ONYXKEYS.SESSION]: testStashedSession,
             });
+        });
+
+        test('SignOutAndRedirectToSignIn should keep the Classic sign-in page closed while a supportal agent without a stashed session goes back to supportal', async () => {
+            // Given a supportal session of an agent who wasn't signed in before it started.
+            // The tests above replace Onyx.clear, so their stashed session has to be cleared for real first.
+            jest.restoreAllMocks();
+            await Onyx.clear();
+            await waitForBatchedUpdates();
+            jest.spyOn(SessionUtil, 'isSupportAuthToken').mockReturnValue(true);
+            jest.spyOn(SessionUtil, 'hasStashedSession').mockReturnValue(false);
+            jest.spyOn(SessionUtil, 'signOut').mockResolvedValue(undefined);
+            const redirectToSignInSpy = jest.spyOn(SignInRedirect, 'default').mockImplementation(() => Promise.resolve());
+            jest.clearAllMocks();
+            await Onyx.merge(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT});
+            await waitForBatchedUpdates();
+
+            // When the agent signs out
+            signOutAndRedirectToSignIn(await Onyx.get(ONYXKEYS.SESSION), {shouldForceUseStashedSession: true});
+            await waitForBatchedUpdates();
+
+            // Then supportal opens, and the signed-out sign-in screen can't open the Classic sign-in page before it
+            expect(redirectToSignInSpy).toHaveBeenCalledWith(CONST.SIGN_OUT_REASON.SUPPORTAL_LOGOUT);
+            expect(preventClassicSignInDuring).toHaveBeenCalledWith(expect.any(Promise));
+            expect(openExternalLink).toHaveBeenCalledWith('mockOldDotURL', undefined, true);
+            jest.clearAllMocks();
         });
     });
 
@@ -881,6 +1002,26 @@ describe('Session', () => {
 
             expect(makeRequestSpy).toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.LOG_OUT, expect.objectContaining({authToken: 'testAuthToken', partnerUserID: 'testLogin'}), {});
             makeRequestSpy.mockRestore();
+        });
+
+        test('SignOut should skip the SAML browser session on the shared product host', async () => {
+            // Given a user who signed in with SAML on the host that serves both products
+            await TestHelper.signInWithTestUser();
+            await waitForBatchedUpdates();
+            jest.mocked(isSharedProductHost).mockReturnValue(true);
+            mockedOpenAuthSessionAsync.mockClear();
+            const makeRequestSpy = jest.spyOn(API, 'makeRequestWithSideEffects').mockResolvedValue(undefined);
+
+            // When the user signs out
+            await SessionUtil.signOut({signedInWithSAML: true, authToken: 'testAuthToken', autoGeneratedLogin: 'testLogin'});
+            await waitForBatchedUpdates();
+
+            // Then no SAML browser session opens, since it could never report back there, and the session still ends on the server
+            expect(mockedOpenAuthSessionAsync).not.toHaveBeenCalled();
+            expect(makeRequestSpy).toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.LOG_OUT, expect.objectContaining({authToken: 'testAuthToken', partnerUserID: 'testLogin'}), {});
+
+            makeRequestSpy.mockRestore();
+            jest.mocked(isSharedProductHost).mockReturnValue(false);
         });
 
         test('SignOut should follow normal LOG_OUT path when signedInWithSAML is false', async () => {
@@ -1576,7 +1717,7 @@ describe('Session', () => {
             const passedSession: Session = {authToken: 'passedAuthToken', email: 'passed@example.com', accountID: 2};
 
             // When the user signs out and asks to keep the session for later, as a supportal login does
-            signOutAndRedirectToSignIn(passedSession, false, true);
+            signOutAndRedirectToSignIn(passedSession, {shouldStashSession: true});
             await waitForBatchedUpdates();
 
             // Then the passed session is the one stashed, so it is the one restored afterwards
@@ -1659,6 +1800,87 @@ describe('Session', () => {
 
             // Then the stamp leaves it unchanged
             expect(session?.creationDate).toBe(creationDate);
+        });
+    });
+
+    describe('unfinished Classic sign out', () => {
+        const SIGNED_IN_SESSION = {authToken: 'authToken', accountID: 1, email: 'user@example.com'};
+
+        test('is forgotten once the user signs in', async () => {
+            // Given a signed out page
+            await Onyx.set(ONYXKEYS.SESSION, null);
+            await waitForBatchedUpdates();
+            jest.mocked(forgetClassicSignOut).mockClear();
+
+            // When the user signs in
+            await Onyx.set(ONYXKEYS.SESSION, SIGNED_IN_SESSION);
+            await waitForBatchedUpdates();
+
+            // Then the sign out is forgotten, so a later sign-in request doesn't end the Classic session the user has now
+            expect(forgetClassicSignOut).toHaveBeenCalledTimes(1);
+        });
+
+        test('is kept while the signed in session only changes', async () => {
+            // Given a signed in user
+            await Onyx.set(ONYXKEYS.SESSION, SIGNED_IN_SESSION);
+            await waitForBatchedUpdates();
+            jest.mocked(forgetClassicSignOut).mockClear();
+
+            // When the auth token is renewed
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: 'renewedAuthToken'});
+            await waitForBatchedUpdates();
+
+            // Then nothing is forgotten, since a sign out that starts now must still reach Classic
+            expect(forgetClassicSignOut).not.toHaveBeenCalled();
+        });
+
+        test.each([
+            ['an anonymous session starts', {authToken: 'anonymousAuthToken', authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS}],
+            ['the session has no auth token', {email: 'user@example.com'}],
+        ])('is kept when %s', async (_description, session) => {
+            // Given a signed out page
+            await Onyx.set(ONYXKEYS.SESSION, null);
+            await waitForBatchedUpdates();
+            jest.mocked(forgetClassicSignOut).mockClear();
+
+            // When the session changes without the user signing in
+            await Onyx.set(ONYXKEYS.SESSION, session);
+            await waitForBatchedUpdates();
+
+            // Then nothing is forgotten
+            expect(forgetClassicSignOut).not.toHaveBeenCalled();
+        });
+
+        test('is kept for the session the page loaded with', () => {
+            // Given a freshly loaded page whose session subscriptions haven't received anything yet
+            let connectSpy: jest.SpiedFunction<typeof Onyx.connectWithoutView> | undefined;
+            let isolatedForgetClassicSignOut: jest.Mock | undefined;
+            jest.isolateModules(() => {
+                const isolatedOnyx = jest.requireActual<{default: typeof Onyx}>('react-native-onyx').default;
+                connectSpy = jest.spyOn(isolatedOnyx, 'connectWithoutView');
+                isolatedForgetClassicSignOut = jest.requireMock<{forgetClassicSignOut: jest.Mock}>('@libs/ClassicSignIn').forgetClassicSignOut;
+                jest.requireActual('@src/libs/actions/Session');
+            });
+            const deliverSession = (session: OnyxEntry<Session>) => {
+                for (const [options] of connectSpy?.mock.calls ?? []) {
+                    if (options.key === ONYXKEYS.SESSION) {
+                        options.callback?.(session, ONYXKEYS.SESSION);
+                    }
+                }
+            };
+
+            // When the stored session of a signed in user is the first one delivered
+            deliverSession({...SIGNED_IN_SESSION});
+
+            // Then nothing is forgotten, since that session may be one a sign out in another tab is about to clear
+            expect(isolatedForgetClassicSignOut).not.toHaveBeenCalled();
+
+            // When the user signs out and in again on this page
+            deliverSession(undefined);
+            deliverSession({...SIGNED_IN_SESSION});
+
+            // Then the sign out is forgotten
+            expect(isolatedForgetClassicSignOut).toHaveBeenCalledTimes(1);
         });
     });
 
@@ -1770,7 +1992,7 @@ describe('Session', () => {
             await TestHelper.signInWithTestUser();
 
             // When they open Supportal, which signs them out and stashes their session to come back to it
-            signOutAndRedirectToSignIn(await Onyx.get(ONYXKEYS.SESSION), false, true, false, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER);
+            signOutAndRedirectToSignIn(await Onyx.get(ONYXKEYS.SESSION), {shouldStashSession: true, shouldSignOutFromOldDot: false, signOutReason: CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER});
             await waitForBatchedUpdates();
 
             // Then their own cookie is left alone, because their session continues after Supportal

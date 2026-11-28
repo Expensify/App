@@ -1,5 +1,7 @@
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import CustomStatusBarAndBackground from '@components/CustomStatusBarAndBackground';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ThemeProvider from '@components/ThemeProvider';
@@ -9,13 +11,16 @@ import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import useIsSupportalSession from '@hooks/useIsSupportalSession';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
+import useShouldSignInThroughClassic from '@hooks/useShouldSignInThroughClassic';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isClientTheLeader as isClientTheLeaderActiveClientManager} from '@libs/ActiveClientManager';
+import {openClassicSignIn} from '@libs/ClassicSignIn';
 import Log from '@libs/Log';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import Visibility from '@libs/Visibility';
@@ -191,6 +196,8 @@ function SignInPage({ref, shouldResetTabTitle = true}: SignInPageProps) {
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
     const isSupportalSession = useIsSupportalSession();
     const [isAuthenticatingWithShortLivedToken] = useOnyx(ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN);
+    const shouldSignInThroughClassic = useShouldSignInThroughClassic();
+    const {isOffline} = useNetwork();
     /**
       This variable is only added to make sure the component is re-rendered
       whenever the activeClients change, so that we call the
@@ -230,6 +237,14 @@ function SignInPage({ref, shouldResetTabTitle = true}: SignInPageProps) {
             setHasInitiatedSAMLLogin(false);
         }
     }, [credentials?.login, isUsingValidateCode, setIsUsingValidateCode, hasInitiatedSAMLLogin, setHasInitiatedSAMLLogin]);
+
+    useEffect(() => {
+        // The Classic page can't load offline, so the browser would replace this screen with its own error page
+        if (!shouldSignInThroughClassic || isOffline) {
+            return;
+        }
+        return openClassicSignIn();
+    }, [shouldSignInThroughClassic, isOffline]);
 
     const {
         shouldShowLoginForm,
@@ -340,6 +355,18 @@ function SignInPage({ref, shouldResetTabTitle = true}: SignInPageProps) {
         navigateBack,
     }));
     useAndroidBackButtonHandler(navigateBack);
+
+    if (shouldSignInThroughClassic) {
+        return (
+            <FullPageOfflineBlockingView>
+                {/* No "Go Back" button: this is the first screen of a signed-out user, so there is nothing to go back to */}
+                <FullScreenLoadingIndicator
+                    shouldUseGoBackButton={false}
+                    testID="ClassicSignInLoadingIndicator"
+                />
+            </FullPageOfflineBlockingView>
+        );
+    }
 
     return (
         <ColorSchemeWrapper>

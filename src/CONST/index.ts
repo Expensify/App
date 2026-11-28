@@ -2067,6 +2067,7 @@ const CONST = {
         POLICY_CONNECTIONS_URL: (policyID: string) => `policy?param={"policyID":"${policyID}"}#connections`,
         POLICY_CONNECTIONS_URL_ENCODED: (policyID: string) => `policy?param=%7B%22policyID%22%3A%22${policyID}%22%7D#connections`,
         PRINTABLE_REPORT: (reportID: string) => `printablereport.php?promptPrint=true&reportID=${reportID}`,
+        SIGN_IN: 'signin',
         SIGN_OUT: 'signout',
         SUPPORTAL_RESTORE_STASHED_LOGIN: '_support/index?action=restoreStashedLogin',
         SUPPORTAL_LOGIN_NEWDOT: (supportEmail: string, reason: string) =>
@@ -8420,6 +8421,7 @@ const CONST = {
         RETRY_LAZY_REFRESHED: 'RETRY_LAZY_REFRESHED',
         UPDATE_REQUIRED_RELOADED_VERSION: 'UPDATE_REQUIRED_RELOADED_VERSION',
         LAST_REFRESH_TIMESTAMP: 'LAST_REFRESH_TIMESTAMP',
+        CLASSIC_SIGN_IN_OPENED_AT: 'CLASSIC_SIGN_IN_OPENED_AT',
         LAST_VISITED_PATH: {
             WORKSPACES_TAB: 'LAST_VISITED_PATH_WORKSPACES_TAB',
             SETTINGS_TAB: 'LAST_VISITED_PATH_SETTINGS_TAB',
@@ -8428,6 +8430,7 @@ const CONST = {
 
     LOCAL_STORAGE_KEYS: {
         QA_AUTH_REDIRECT_FLOW_PREFIX: 'QA_AUTH_REDIRECT_FLOW:',
+        CLASSIC_SIGN_OUT: 'CLASSIC_SIGN_OUT',
     },
 
     RESERVATION_TYPE,

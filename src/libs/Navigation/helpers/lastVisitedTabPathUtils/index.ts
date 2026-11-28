@@ -8,10 +8,15 @@ import type {ValueOf} from 'type-fest';
 type LastVisitedTabPathKey = ValueOf<typeof CONST.SESSION_STORAGE_KEYS.LAST_VISITED_PATH>;
 
 /**
- * Clears all session storage data.
+ * Clears all session storage data except the Expensify Classic sign-in openings of this tab.
  */
 function clearSessionStorage() {
+    // The openings limit a sign-in loop, which can pass through a sign out
+    const classicSignInOpenings = sessionStorage.getItem(CONST.SESSION_STORAGE_KEYS.CLASSIC_SIGN_IN_OPENED_AT);
     sessionStorage.clear();
+    if (classicSignInOpenings !== null) {
+        sessionStorage.setItem(CONST.SESSION_STORAGE_KEYS.CLASSIC_SIGN_IN_OPENED_AT, classicSignInOpenings);
+    }
 }
 
 function clearLastVisitedTabPaths() {

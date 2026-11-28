@@ -30,7 +30,7 @@ const handleDeletedAccount: Middleware = (requestResponse) =>
         if (response?.jsonCode !== 408 || !response?.message?.includes('The account you are trying to use is deleted.')) {
             return response;
         }
-        signOutAndRedirectToSignIn(session, true, false, true, true, CONST.SIGN_OUT_REASON.ACCOUNT_DELETED);
+        signOutAndRedirectToSignIn(session, {shouldResetToHome: true, shouldForceUseStashedSession: true, signOutReason: CONST.SIGN_OUT_REASON.ACCOUNT_DELETED});
     });
 
 export default handleDeletedAccount;

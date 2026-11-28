@@ -530,7 +530,7 @@ function openReportFromDeepLink(
                 // (canAnonymousUserAccessRoute would allow it). Force a real sign-in first; the deep link is re-processed
                 // after sign-in. Without this the user lands on /r/:id?secureKey with no join, stuck loading/404.
                 if (isAnonymousUser(currentSession)) {
-                    signOutAndRedirectToSignIn(currentSession, true);
+                    signOutAndRedirectToSignIn(currentSession, {shouldResetToHome: true});
                     return;
                 }
                 // On cold launch the report is already the initial route; navigating again would stack a duplicate
@@ -588,7 +588,7 @@ function openReportFromDeepLink(
                     }
 
                     if (route && isAnonymousUser(currentSession) && !canAnonymousUserAccessRoute(route)) {
-                        signOutAndRedirectToSignIn(currentSession, true);
+                        signOutAndRedirectToSignIn(currentSession, {shouldResetToHome: true});
                         return;
                     }
 

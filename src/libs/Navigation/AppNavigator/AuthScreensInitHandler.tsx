@@ -187,7 +187,12 @@ function AuthScreensInitHandler() {
                 isDelegateSession: Session.isDelegateSession(session),
                 isSupportalTransition,
             });
-            Session.signOutAndRedirectToSignIn(session, false, isSupportalTransition, true, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER);
+            // The new user comes from Expensify Classic, so its web session there has to stay
+            Session.signOutAndRedirectToSignIn(session, {
+                shouldStashSession: isSupportalTransition,
+                signOutReason: CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER,
+                shouldEndClassicBrowserSession: false,
+            });
             return () => {
                 Session.cleanupSession();
             };
