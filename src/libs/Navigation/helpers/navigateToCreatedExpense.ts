@@ -23,6 +23,9 @@ type NavigateToCreatedExpenseParams = {
     /** IOU report the transaction landed in, used to open single-expense reports directly from Spend and to stack the expense report beneath the transaction thread when needed. */
     iouReportID?: string;
 
+    /** Confirmed from the report's transactionCount, not the potentially incomplete transaction cache. */
+    isOneTransactionIOUReport?: boolean;
+
     /** Transactions currently belonging to the IOU report. */
     reportTransactions: Transaction[];
 };
@@ -49,7 +52,7 @@ function getCurrentRouteBackTo() {
  * Opens a just-created expense when "View" is pressed on the "Expense added" growl. The user may have
  * switched tabs while the growl was up, so the destination follows wherever they are now.
  */
-function navigateToCreatedExpense({threadReportID, transactionID, iouReportID, reportTransactions}: NavigateToCreatedExpenseParams) {
+function navigateToCreatedExpense({threadReportID, transactionID, iouReportID, isOneTransactionIOUReport = false, reportTransactions}: NavigateToCreatedExpenseParams) {
     // Oldest first, so the prev/next arrows follow the expense dates. Grouped layouts (e.g. by category) list them
     // differently, which only the report view knows.
     const openableTransactionIDs = reportTransactions
@@ -57,15 +60,16 @@ function navigateToCreatedExpense({threadReportID, transactionID, iouReportID, r
         .sort(compareByCreated)
         .map((transaction) => transaction.transactionID);
     const hasMultipleReportTransactions = iouReportID ? openableTransactionIDs.length > 1 : false;
+    const isOnSpend = isSearchTopmostFullScreenRoute();
 
     // Don't reopen an expense the user is already looking at. getState() can miss a just-opened RHP's nested state,
     // so read the full tree.
     const focusedReportID = Navigation.getFocusedReportId(navigationRef.getRootState());
-    if (focusedReportID === threadReportID || (!hasMultipleReportTransactions && !!iouReportID && focusedReportID === iouReportID)) {
+    if (focusedReportID === threadReportID || (!hasMultipleReportTransactions && (!isOnSpend || isOneTransactionIOUReport) && !!iouReportID && focusedReportID === iouReportID)) {
         return;
     }
 
-    const openOnInbox = isReportTopmostSplitNavigator() && !isSearchTopmostFullScreenRoute();
+    const openOnInbox = isReportTopmostSplitNavigator() && !isOnSpend;
 
     // When a report/expense is already open in the RHP the app's convention is to replace it rather than stack a second
     // report RHP on top of it.
@@ -73,8 +77,9 @@ function navigateToCreatedExpense({threadReportID, transactionID, iouReportID, r
     const backTo = forceReplace ? getCurrentRouteBackTo() : Navigation.getActiveRoute();
 
     if (!openOnInbox) {
-        if (iouReportID && !hasMultipleReportTransactions) {
-            // The Spend carousel can prevent the thread's redirect, so open the report with its actions directly.
+        if (iouReportID && isOneTransactionIOUReport && !hasMultipleReportTransactions && isOnSpend) {
+            // The Spend carousel can prevent the thread's redirect. Check the report's count because its cached
+            // transactions may be incomplete, then open the report with its actions directly.
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: iouReportID, backTo}), {forceReplace});
             return;
         }

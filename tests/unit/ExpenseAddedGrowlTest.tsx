@@ -221,7 +221,38 @@ describe('ExpenseAddedGrowl', () => {
         // Then the existing thread is initialized and opened without creating a replacement
         expect(mockSetOptimisticTransactionThread).toHaveBeenCalledWith('thread-1', undefined, undefined, undefined);
         expect(mockCreateTransactionThreadReport).not.toHaveBeenCalled();
-        expect(mockNavigateToCreatedExpense).toHaveBeenCalledWith({threadReportID: 'thread-1', transactionID: '1', iouReportID: undefined, reportTransactions: []});
+        expect(mockNavigateToCreatedExpense).toHaveBeenCalledWith({
+            threadReportID: 'thread-1',
+            transactionID: '1',
+            iouReportID: undefined,
+            reportTransactions: [],
+            isOneTransactionIOUReport: false,
+        });
+    });
+
+    it.each([
+        [CONST.REPORT.TYPE.EXPENSE, 1],
+        [CONST.REPORT.TYPE.EXPENSE, 5],
+        [CONST.REPORT.TYPE.EXPENSE, undefined],
+        [CONST.REPORT.TYPE.INVOICE, 1],
+        [CONST.REPORT.TYPE.INVOICE, 5],
+        [CONST.REPORT.TYPE.INVOICE, undefined],
+    ] as const)('passes the report count confirmation for report type %s and count %s', async (type, transactionCount) => {
+        // Given only the newly created expense is cached, independently of its parent's transaction count
+        render(<ExpenseAddedGrowl />);
+        await flush(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}report-1`, {reportID: 'report-1', type, transactionCount});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}1`, {transactionID: '1', reportID: 'report-1', transactionThreadReportID: 'thread-1'});
+            const signal: Record<string, SearchDataTypes> = {};
+            signal['1'] = type === CONST.REPORT.TYPE.INVOICE ? INVOICE : EXPENSE;
+            await Onyx.merge(ONYXKEYS.RAM_ONLY_EXPENSE_ADDED_GROWL_TRANSACTION_IDS, signal);
+        });
+
+        // When the user presses View
+        lastGrowlProps()?.action?.onPress();
+
+        // Then navigation trusts the report's count rather than assuming that the cache is complete
+        expect(mockNavigateToCreatedExpense).toHaveBeenCalledWith(expect.objectContaining({iouReportID: 'report-1', isOneTransactionIOUReport: transactionCount === 1}));
     });
 
     it('does nothing when View is pressed after the expense was deleted offline', async () => {
@@ -273,7 +304,13 @@ describe('ExpenseAddedGrowl', () => {
         expect(closePopover).toHaveBeenCalled();
         expect(mockNavigateToCreatedExpense).not.toHaveBeenCalled();
         onModalDidClose();
-        expect(mockNavigateToCreatedExpense).toHaveBeenCalledWith({threadReportID: 'thread-1', transactionID: '1', iouReportID: undefined, reportTransactions: []});
+        expect(mockNavigateToCreatedExpense).toHaveBeenCalledWith({
+            threadReportID: 'thread-1',
+            transactionID: '1',
+            iouReportID: undefined,
+            reportTransactions: [],
+            isOneTransactionIOUReport: false,
+        });
         removeCloseListener();
     });
 
@@ -304,6 +341,7 @@ describe('ExpenseAddedGrowl', () => {
             transactionID,
             iouReportID: undefined,
             reportTransactions: [],
+            isOneTransactionIOUReport: false,
         });
     });
 
@@ -325,7 +363,13 @@ describe('ExpenseAddedGrowl', () => {
             }),
         );
         expect(mockSetOptimisticTransactionThread).not.toHaveBeenCalled();
-        expect(mockNavigateToCreatedExpense).toHaveBeenCalledWith({threadReportID: 'created-thread', transactionID: '1', iouReportID: undefined, reportTransactions: []});
+        expect(mockNavigateToCreatedExpense).toHaveBeenCalledWith({
+            threadReportID: 'created-thread',
+            transactionID: '1',
+            iouReportID: undefined,
+            reportTransactions: [],
+            isOneTransactionIOUReport: false,
+        });
     });
 
     it('does not show a growl when there is no pending signal', () => {

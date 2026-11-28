@@ -287,7 +287,13 @@ describe('navigateToCreatedExpense', () => {
         mockGetIsNarrowLayout.mockReturnValue(isNarrowLayout);
 
         // When they open a newly-created single-transaction invoice or expense report
-        navigateToCreatedExpense({threadReportID: 'thread-1', transactionID: 'txn-1', iouReportID: 'iou-1', reportTransactions: [buildTransaction('txn-1')]});
+        navigateToCreatedExpense({
+            threadReportID: 'thread-1',
+            transactionID: 'txn-1',
+            iouReportID: 'iou-1',
+            isOneTransactionIOUReport: true,
+            reportTransactions: [buildTransaction('txn-1')],
+        });
         await waitForBatchedUpdates();
 
         // Then the report's actions are available without relying on a carousel-dependent thread redirect
@@ -305,7 +311,13 @@ describe('navigateToCreatedExpense', () => {
         mockGetCurrentRoute.mockReturnValue({params: {backTo}});
 
         // When the user opens a newly-created expense
-        navigateToCreatedExpense({threadReportID: 'thread-1', transactionID: 'txn-1', iouReportID: 'iou-1', reportTransactions: [buildTransaction('txn-1')]});
+        navigateToCreatedExpense({
+            threadReportID: 'thread-1',
+            transactionID: 'txn-1',
+            iouReportID: 'iou-1',
+            isOneTransactionIOUReport: true,
+            reportTransactions: [buildTransaction('txn-1')],
+        });
         await waitForBatchedUpdates();
 
         // Then the parent replaces the open report and preserves its original back destination
@@ -333,8 +345,8 @@ describe('navigateToCreatedExpense', () => {
         expect(setActiveTransactionIDs).toHaveBeenCalledWith(['txn-1']);
     });
 
-    it('should ignore pending deletes when opening a single-transaction report from Spend', async () => {
-        // Given the only other transaction is being deleted and should not require a report list
+    it.each([true, false])('should open the parent with pending deletes only when its count confirms one transaction: %s', async (isOneTransactionIOUReport) => {
+        // Given another cached transaction is pending deletion, which does not optimistically decrement the report's count
         mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
         const deletedTransaction = {...buildTransaction('txn-2'), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
 
@@ -343,14 +355,52 @@ describe('navigateToCreatedExpense', () => {
             threadReportID: 'thread-1',
             transactionID: 'txn-1',
             iouReportID: 'iou-1',
+            isOneTransactionIOUReport,
             reportTransactions: [buildTransaction('txn-1'), deletedTransaction],
         });
         await waitForBatchedUpdates();
 
-        // Then the report opens directly rather than relying on the thread redirect
+        // Then only a confirmed count of one permits opening the report instead of the surviving expense's thread
         expect(Navigation.navigate).toHaveBeenCalledTimes(1);
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: 'iou-1', backTo: ''}), {forceReplace: false});
-        expect(setActiveTransactionIDs).not.toHaveBeenCalled();
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: isOneTransactionIOUReport ? 'iou-1' : 'thread-1', backTo: ''}), {forceReplace: false});
+        if (isOneTransactionIOUReport) {
+            expect(setActiveTransactionIDs).not.toHaveBeenCalled();
+        } else {
+            expect(setActiveTransactionIDs).toHaveBeenCalledWith(['txn-1']);
+        }
+    });
+
+    it.each([false, undefined])('should open the created thread from a partially cached report when single-transaction status is %s', async (isOneTransactionIOUReport) => {
+        // Given Spend has cached only the created expense, even though its parent is not confirmed to contain just one
+        mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
+        mockGetFocusedReportId.mockReturnValue('iou-1');
+
+        // When View is pressed with the parent already focused
+        navigateToCreatedExpense({threadReportID: 'thread-1', transactionID: 'txn-1', iouReportID: 'iou-1', isOneTransactionIOUReport, reportTransactions: [buildTransaction('txn-1')]});
+        await waitForBatchedUpdates();
+
+        // Then neither the focused-parent check nor the shortcut hides the newly created expense
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: 'thread-1', backTo: ''}), {forceReplace: false});
+        expect(setActiveTransactionIDs).toHaveBeenCalledWith(['txn-1']);
+    });
+
+    it.each([true, false])('should retain thread navigation outside Spend and Inbox when narrow layout is %s', async (isNarrowLayout) => {
+        // Given the user is on a tab without Spend's background carousel
+        mockGetIsNarrowLayout.mockReturnValue(isNarrowLayout);
+
+        // When View is pressed for a confirmed single-transaction report
+        navigateToCreatedExpense({
+            threadReportID: 'thread-1',
+            transactionID: 'txn-1',
+            iouReportID: 'iou-1',
+            isOneTransactionIOUReport: true,
+            reportTransactions: [buildTransaction('txn-1')],
+        });
+        await waitForBatchedUpdates();
+
+        // Then the existing thread redirect chooses the appropriate parent screen for that tab
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: 'thread-1', backTo: ''}), {forceReplace: false});
+        expect(setActiveTransactionIDs).toHaveBeenCalledWith(['txn-1']);
     });
 
     it('should open the transaction thread as a full report when the user is on the Inbox tab on a narrow layout', () => {

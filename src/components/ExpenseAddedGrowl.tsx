@@ -12,7 +12,7 @@ import Log from '@libs/Log';
 import navigateToCreatedExpense from '@libs/Navigation/helpers/navigateToCreatedExpense';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
-import {findSelfDMReportID, isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
+import {findSelfDMReportID, isInvoiceReport, isMoneyRequestReport, isOneTransactionReport} from '@libs/ReportUtils';
 import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -162,7 +162,9 @@ function ExpenseAddedGrowlContent({transactionID, signal, active, setActive}: Ex
             return;
         }
         // The growl sits above popovers, so close any open one first, the same as tapping a notification.
-        close(() => navigateToCreatedExpense({threadReportID, transactionID: active.transactionID, iouReportID, reportTransactions}));
+        close(() =>
+            navigateToCreatedExpense({threadReportID, transactionID: active.transactionID, iouReportID, reportTransactions, isOneTransactionIOUReport: isOneTransactionReport(iouReport)}),
+        );
     };
 
     return (
