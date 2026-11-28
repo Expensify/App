@@ -197,6 +197,7 @@ describe('useSearchUserFilters', () => {
             }),
         );
 
+        // Then no spinner shows and the complete first-page refresh replaces outdated scoped logins
         expect(result.current.isSearching).toBe(false);
         await waitFor(() => {
             expect(onyxStore[getStateKey('policy-1')]).toEqual({
@@ -501,5 +502,66 @@ describe('useSearchUserFilters', () => {
         expect(result.current.hasMore).toBe(true);
         expect(mockSetSearchUserFiltersState).not.toHaveBeenCalled();
         expect(onyxStore[getStateKey('policy-1')]).toEqual(cachedState);
+    });
+
+    it('clears isLoadingMore when going offline interrupts pagination and allows pagination after reconnecting', async () => {
+        // Given a cached paginated base state with an in-flight silent refresh and loadMoreUsers request
+        onyxStore[getStateKey('policy-1')] = {
+            hasLoadedBase: true,
+            hasMore: true,
+            nextCursor: '50',
+            scopedLogins: ['first@example.com'],
+        };
+        const refreshDeferred = createDeferredResponse();
+        const loadMoreDeferred = createDeferredResponse();
+        mockOpenSearchUserFiltersPage.mockReturnValueOnce(refreshDeferred.promise).mockReturnValueOnce(loadMoreDeferred.promise);
+
+        const {result, rerender} = renderHook(() =>
+            useSearchUserFilters({
+                policyIDs: 'policy-1',
+                searchTerm: '',
+            }),
+        );
+
+        await waitFor(() => {
+            expect(mockOpenSearchUserFiltersPage).toHaveBeenCalledTimes(1);
+        });
+
+        act(() => {
+            result.current.loadMoreUsers();
+        });
+        expect(result.current.isLoadingMore).toBe(true);
+
+        // When the device goes offline before pagination settles
+        mockIsOffline = true;
+        rerender({});
+
+        // Then isLoadingMore clears immediately
+        expect(result.current.isLoadingMore).toBe(false);
+
+        // When the device reconnects and the reconnect silent refresh fails
+        mockOpenSearchUserFiltersPage.mockRejectedValueOnce(new Error('Failed to load search user filters'));
+        mockIsOffline = false;
+        rerender({});
+
+        await waitFor(() => {
+            expect(mockOpenSearchUserFiltersPage).toHaveBeenCalledTimes(3);
+        });
+
+        // Then isLoadingMore remains false so loadMoreUsers can run again
+        expect(result.current.isLoadingMore).toBe(false);
+        const retryPageDeferred = createDeferredResponse();
+        mockOpenSearchUserFiltersPage.mockReturnValueOnce(retryPageDeferred.promise);
+        act(() => {
+            result.current.loadMoreUsers();
+        });
+        expect(result.current.isLoadingMore).toBe(true);
+
+        await act(async () => {
+            retryPageDeferred.resolve({hasMore: false, nextCursor: '', logins: ['second@example.com']});
+            await retryPageDeferred.promise;
+        });
+        expect(result.current.isLoadingMore).toBe(false);
+        expect(result.current.hasMore).toBe(false);
     });
 });
