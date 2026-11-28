@@ -1089,7 +1089,7 @@ function addActions({
 
     // Check if the last visible action is from Concierge with unresolved followups
     // If so, optimistically resolve them by adding the updated action to optimisticReportActions
-    const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportID, undefined, {}, undefined, undefined, currentUserAccountID);
+    const {lastVisibleAction, lastMessageText = ''} = ReportActionsUtils.getLastVisibleActionAndMessage(reportID, currentUserAccountID);
     const lastActorAccountID = lastVisibleAction?.actorAccountID;
     const lastActionReportActionID = lastVisibleAction?.reportActionID;
     const resolvedAction = buildOptimisticResolvedFollowups(lastVisibleAction);
@@ -1203,7 +1203,6 @@ function addActions({
         lastMessageText: '',
         lastVisibleActionCreated: '',
     };
-    const {lastMessageText = ''} = ReportActionsUtils.getLastVisibleMessage(reportID);
     if (lastMessageText) {
         const lastVisibleActionCreated = lastVisibleAction?.created;
         failureReport = {

@@ -1,3 +1,4 @@
+import {getSortedReportActionsForDisplay, isReportPreviewAction} from '@libs/ReportActionsUtils';
 import getSendMessageListWeight from '@libs/telemetry/getSendMessageListWeight';
 
 import CONST from '@src/CONST';
@@ -59,6 +60,27 @@ describe('getSendMessageListWeight', () => {
         expect(getSendMessageListWeight(actions, undefined, true).reportActionCount).toBe(0);
         expect(getSendMessageListWeight(actions, REPORT_ID, true).reportActionCount).toBe(2);
         expect(getSendMessageListWeight(actions, REPORT_ID, true).moneyRequestPreviewCount).toBe(1);
+    });
+
+    it.each([CONST.REPORT.ACTIONS.TYPE.SUBMITTED, CONST.REPORT.ACTIONS.TYPE.FORWARDED])('includes the synthetic routed action for %s', (actionName) => {
+        // Given a workflow action that produces an additional display row
+        const actions = toCollection([
+            makeAction({
+                reportActionID: 'workflow',
+                actionName,
+                originalMessage: {workflow: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, to: 'approver@example.com'},
+            }),
+            makeAction({reportActionID: 'preview', actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW}),
+        ]);
+
+        // When telemetry counts actions without sorting
+        const result = getSendMessageListWeight(actions, REPORT_ID, true);
+        const displayedActions = getSortedReportActionsForDisplay(actions, true, false, undefined, REPORT_ID);
+
+        // Then counts include synthetic rows and match the display pipeline
+        expect(result).toEqual({reportActionCount: 3, moneyRequestPreviewCount: 1});
+        expect(result.reportActionCount).toBe(displayedActions.length);
+        expect(result.moneyRequestPreviewCount).toBe(displayedActions.filter(isReportPreviewAction).length);
     });
 
     it('returns zero counts for an empty action list', () => {

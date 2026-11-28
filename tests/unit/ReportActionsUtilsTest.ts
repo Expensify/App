@@ -1418,6 +1418,19 @@ describe('ReportActionsUtils', () => {
             );
         });
 
+        it('keeps the first action when timestamps and IDs tie', () => {
+            // Given two distinct stored actions with equal ordering fields
+            const first = {...LHNTestUtils.getFakeReportAction('first@test.com', 3), reportID: 'tie', reportActionID: 'same', actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT};
+            const second = {...first, actorAccountID: 123};
+            const actions = {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}tie`]: {first, second}};
+
+            // When selecting the newest visible action in insertion order
+            const result = ReportActionsUtils.getLastVisibleAction('tie', true, {}, actions);
+
+            // Then the original first-match tie behavior is preserved
+            expect(result).toBe(first);
+        });
+
         it('should skip a whisper that targets somebody else when picking the last visible action', async () => {
             const reportID = '90210';
             const comment: ReportAction = {
@@ -1492,6 +1505,18 @@ describe('ReportActionsUtils', () => {
         beforeEach(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[comment.reportActionID]: comment, [whisper.reportActionID]: whisper});
             await waitForBatchedUpdates();
+        });
+
+        it.each([WHISPER_TARGET_ACCOUNT_ID, WHISPER_TARGET_ACCOUNT_ID + 1])('preserves send rollback selection for account %s', (accountID) => {
+            // Given a newer targeted whisper and a caller whose account may differ from the session
+            const previousAction = ReportActionsUtils.getLastVisibleAction(REPORT_ID, undefined, {}, undefined, undefined, accountID);
+            const previousMessage = ReportActionsUtils.getLastVisibleMessage(REPORT_ID);
+
+            // When the send resolves both values together
+            const result = ReportActionsUtils.getLastVisibleActionAndMessage(REPORT_ID, accountID);
+
+            // Then rollback text and the action used to restore followups retain their separate visibility contexts
+            expect(result).toEqual({lastVisibleAction: previousAction, ...previousMessage});
         });
 
         it('should take the message from the whisper when the user is the one it targets', () => {
