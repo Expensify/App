@@ -1,0 +1,48 @@
+diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceApplicator.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceApplicator.kt
+index 00c5a27..5c22526 100644
+--- a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceApplicator.kt
++++ b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceApplicator.kt
+@@ -8,7 +8,9 @@ import android.graphics.Typeface
+ import android.graphics.drawable.StateListDrawable
+ import android.util.TypedValue
+ import android.view.MenuItem
++import android.view.View
+ import android.view.ViewGroup
++import android.widget.ImageView
+ import android.widget.TextView
+ import androidx.core.view.children
+ import androidx.core.view.isVisible
+@@ -190,6 +192,33 @@ internal class TabsAppearanceApplicator(
+         if (menuItem.icon != targetIcon) {
+             menuItem.icon = targetIcon
+         }
++        fitIconViewToIcon(menuItem, tabsScreen)
++    }
++
++    // Material sizes every icon view as a square of the icon size, which scales a wider icon down. A wider icon gets an
++    // icon view of its own aspect ratio at that height instead, which still fits in the item's selected pill.
++    private fun fitIconViewToIcon(
++        menuItem: MenuItem,
++        tabsScreen: TabsScreen,
++    ) {
++        val iconView =
++            bottomNavigationView
++                .findViewById<View>(menuItem.itemId)
++                ?.findViewById<ImageView>(R.id.navigation_bar_item_icon_view) ?: return
++        val icon = tabsScreen.icon
++        val height = bottomNavigationView.itemIconSize
++        val width =
++            if (icon != null && icon.intrinsicWidth > icon.intrinsicHeight && icon.intrinsicHeight > 0) {
++                height * icon.intrinsicWidth / icon.intrinsicHeight
++            } else {
++                height
++            }
++        val layoutParams = iconView.layoutParams ?: return
++        if (layoutParams.width != width || layoutParams.height != height) {
++            layoutParams.width = width
++            layoutParams.height = height
++            iconView.layoutParams = layoutParams
++        }
+     }
+ 
+     internal fun updateBadgeAppearance(

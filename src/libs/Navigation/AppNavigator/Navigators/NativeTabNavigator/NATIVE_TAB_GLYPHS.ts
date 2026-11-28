@@ -1,5 +1,7 @@
 import type {FlatNavTabBarSlot} from '@libs/Navigation/FlatNavTabBar/FLAT_NAV_TAB_BAR_SLOT';
 import FLAT_NAV_TAB_BAR_SLOT from '@libs/Navigation/FlatNavTabBar/FLAT_NAV_TAB_BAR_SLOT';
+import MORE_MENU from '@libs/Navigation/MoreMenu/MORE_MENU';
+import type {MoreMenuSectionItemID} from '@libs/Navigation/MoreMenu/MORE_MENU';
 
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
@@ -19,7 +21,8 @@ type NativeTabGlyph = {
  * Vector copies of the tab bar SVGs in `assets/images`, so Skia draws each glyph at the bar's size and the device's
  * density on both platforms. They have to be kept in sync with those files.
  *
- * Tabs are keyed by their route name. The flat nav slots that are not a route of their own are keyed by their slot.
+ * Tabs are keyed by their route name. The flat nav slots that are not a route of their own are keyed by their slot, and
+ * the More menu entries with no route of their own, which the More slot shows once picked, by their entry.
  */
 const NATIVE_TAB_GLYPHS = {
     // home.svg
@@ -105,12 +108,26 @@ const NATIVE_TAB_GLYPHS = {
             },
         ],
     },
+    // connect.svg
+    [MORE_MENU.ITEM.ACCOUNTING]: {
+        viewBoxSize: 20,
+        paths: [
+            {
+                d: 'M18.7 1.3c-.4-.4-1-.4-1.4 0l-1.6 1.6c-2.1-1.5-4.8-1.1-6.7.9l-.8.7c-.3.3-.3.8 0 1.2l6.2 6.1c.3.3.8.3 1.2 0l.6-.6c2-1.9 2.4-4.7.9-6.9l1.6-1.6c.4-.4.4-1 0-1.4m-8.4 10-1.8 1.8-1.6-1.6 1.8-1.8c.4-.4.4-1 0-1.4s-1-.4-1.4 0l-1.9 1.9-.9-1c-.3-.3-.8-.3-1.2 0l-.5.6c-2 1.9-2.4 4.7-.9 6.9L.3 18.3c-.4.4-.4 1 0 1.4s1 .4 1.4 0l1.6-1.6c2.1 1.5 4.8 1.1 6.7-.9l.7-.7c.3-.3.3-.8 0-1.2l-.9-.8 1.8-1.8c.4-.4.4-1 0-1.4s-.9-.4-1.3 0',
+            },
+        ],
+    },
+    // bookmark.svg
+    [MORE_MENU.ITEM.SAVED]: {
+        viewBoxSize: 20,
+        paths: [{d: 'M4 3a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v15.06a1 1 0 0 1-1.58.814L10 15.725l-4.42 3.149A1 1 0 0 1 4 18.06z'}],
+    },
 } as const satisfies Record<string, NativeTabGlyph>;
 
 type NativeTabGlyphName = keyof typeof NATIVE_TAB_GLYPHS;
 
 /** A tab of the native tab bar, by its route name. */
-type NativeTabName = Exclude<NativeTabGlyphName, FlatNavTabBarSlot>;
+type NativeTabName = Exclude<NativeTabGlyphName, FlatNavTabBarSlot | MoreMenuSectionItemID>;
 
 export default NATIVE_TAB_GLYPHS;
 export type {NativeTabGlyph, NativeTabGlyphName, NativeTabName};

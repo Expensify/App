@@ -4,16 +4,31 @@ import type {FlatNavCannedSearchItem, FlatNavSavedSearchItem, FlatNavSection} fr
 import Navigation from '@libs/Navigation/Navigation';
 import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
 import type {SpendTabSearchKey} from '@libs/SearchNavigationUtils';
-import navigateToCannedSpendSearch, {navigateToFlatNavItem, navigateToFlatNavSection, navigateToSearch, navigateToSpendTab} from '@libs/SearchNavigationUtils';
+import navigateToCannedSpendSearch, {
+    navigateToFlatNavItem,
+    navigateToFlatNavSection,
+    navigateToSearch,
+    navigateToSpendTab,
+    showSpendTabSearchOnMountedSearchPage,
+} from '@libs/SearchNavigationUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {SearchFilters} from '@src/types/onyx';
+
+import type {NavigationState} from '@react-navigation/native';
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
     default: {navigate: jest.fn()},
+}));
+const mockNavigationRefDispatch = jest.fn<void, [unknown]>();
+jest.mock('@libs/Navigation/navigationRef', () => ({
+    __esModule: true,
+    default: {dispatch: (action: unknown) => mockNavigationRefDispatch(action)},
 }));
 jest.mock('@libs/actions/Search', () => ({
     ...jest.requireActual<Record<string, unknown>>('@libs/actions/Search'),
@@ -262,6 +277,66 @@ describe('SearchNavigationUtils', () => {
             // Then navigation is aborted because the section has no item to open
             expect(Navigation.navigate).not.toHaveBeenCalled();
             expect(clearSelectedTransactions).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('showSpendTabSearchOnMountedSearchPage', () => {
+        const LAST_REPORTS_QUERY = 'type:expense-report sortBy:date sortOrder:desc status:drafts';
+        const searchRootRoute = {key: 'search-root-key', name: SCREENS.SEARCH.ROOT, params: {q: REPORTS_QUERY, name: 'Saved', searchKey: SEARCH_KEYS.REPORTS}};
+        const searchNavigatorState: NavigationState = {
+            key: 'search-state-key',
+            index: 0,
+            routeNames: [SCREENS.SEARCH.ROOT],
+            routes: [searchRootRoute],
+            stale: false,
+            type: 'stack',
+        };
+
+        it('hands the mounted Search page the last Reports query as params, with no route opened', () => {
+            // Given a mounted Search navigator, the query the user last left Reports with, and Search focused
+            const clearSelection = jest.fn();
+
+            // When the Reports search is shown on the mounted page
+            showSpendTabSearchOnMountedSearchPage(SEARCH_KEYS.REPORTS, LAST_REPORTS_QUERY, clearSelection, searchNavigatorState, undefined);
+
+            // Then the Search navigator alone gets the new params, the way the type tabs of the page change its search,
+            // so the page stays mounted. The name of a saved search and a raw query do not carry over to the new search.
+            expect(mockNavigationRefDispatch.mock.calls).toEqual([
+                [
+                    {
+                        type: CONST.NAVIGATION.ACTION_TYPE.PUSH_PARAMS,
+                        payload: {params: {q: LAST_REPORTS_QUERY, name: undefined, rawQuery: undefined, searchKey: SEARCH_KEYS.REPORTS}},
+                        target: 'search-state-key',
+                    },
+                ],
+            ]);
+            expect(Navigation.navigate).not.toHaveBeenCalled();
+            // And the selection of the previous search is cleared and the search context reset, as opening the route does
+            expect(clearSelection).toHaveBeenCalledTimes(1);
+            expect(setSearchContext).toHaveBeenCalledWith(false);
+        });
+
+        it('focuses the Search tab after changing its search when the press came from another tab', () => {
+            // Given a mounted Search navigator while another tab is focused, and no query left for Expenses
+            // When the Expenses search is shown on the mounted page with the tab navigator to focus Search in
+            showSpendTabSearchOnMountedSearchPage(SEARCH_KEYS.EXPENSES, undefined, jest.fn(), searchNavigatorState, 'tab-state-key');
+
+            // Then the page first takes the default Expenses search in place of the search it had, with no step added
+            // to its params history, so Android Back from Search returns to the tab the press came from. The route
+            // keeps its key, so the page stays mounted. The tab navigator then jumps to the Search tab as it is.
+            const reset = mockNavigationRefDispatch.mock.calls.at(0)?.at(0);
+            const jumpTo = mockNavigationRefDispatch.mock.calls.at(1)?.at(0);
+            expect(reset).toEqual(
+                expect.objectContaining({
+                    type: 'RESET',
+                    payload: expect.objectContaining({
+                        key: 'search-state-key',
+                        routes: [{...searchRootRoute, params: {q: EXPENSES_QUERY, name: undefined, rawQuery: undefined, searchKey: SEARCH_KEYS.EXPENSES}}],
+                    }),
+                    target: 'search-state-key',
+                }),
+            );
+            expect(jumpTo).toEqual(expect.objectContaining({type: 'JUMP_TO', payload: expect.objectContaining({name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}), target: 'tab-state-key'}));
         });
     });
 });

@@ -1,4 +1,5 @@
-import Icon from '@components/Icon';
+import IconWithStatusIndicator from '@components/Navigation/IconWithStatusIndicator';
+import StatusIndicator from '@components/Navigation/StatusIndicator';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -38,17 +39,18 @@ function TabBarItem({icon, label, isSelected, isHovered = false, statusIndicator
                 isInLandscapeMode && [styles.flexRow, styles.gap1Half],
             ]}
         >
-            <View>
-                <Icon
-                    src={icon}
-                    fill={getTabIconFill(isSelected, isHovered, theme)}
-                    width={iconSize}
-                    height={iconSize}
-                />
+            <IconWithStatusIndicator
+                src={icon}
+                fill={getTabIconFill(isSelected, isHovered, theme)}
+                size={iconSize}
+            >
                 {!!statusIndicatorColor && (
-                    <View style={[styles.navigationTabBarStatusIndicator, styles.statusIndicatorColor(statusIndicatorColor), isHovered && {borderColor: theme.sidebarHover}]} />
+                    <StatusIndicator
+                        color={statusIndicatorColor}
+                        borderColor={isHovered ? theme.sidebarHover : undefined}
+                    />
                 )}
-            </View>
+            </IconWithStatusIndicator>
             <TabBarLabel
                 label={label}
                 isSelected={isSelected}

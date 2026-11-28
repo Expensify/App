@@ -1,0 +1,195 @@
+diff --git a/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js b/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js
+index 031a2c6..7d1f0ca 100644
+--- a/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js
++++ b/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js
+@@ -55,7 +55,18 @@ export function NativeBottomTabView({
+   // shows the pressed item selected over the hidden route in one cheap commit, ahead of the render of the navigation.
+   const [itemPress, setItemPress] = React.useState(null);
+   const pendingItemPress = itemPress !== null && (focusedRouteKey === itemPress.focusedRouteKey || focusedRouteKey === itemPress.hiddenRouteKey) && state.routes.some(route => route.key === itemPress.hiddenRouteKey && getNamedHostRouteKey(route) === itemPress.hostRouteKey) ? itemPress : null;
+-  const getExplicitHostRouteKey = route => pendingItemPress !== null && route.key === pendingItemPress.hiddenRouteKey ? pendingItemPress.itemRouteKey : getNamedHostRouteKey(route);
++  // The visible tab whose item the bar shows as selected in place of the focused route's, see
++  // `tabBarSelectedItemRouteName`. The focused route stays shown: a hidden route with a host is treated as if it named
++  // that tab as its host, and any other route keeps its tab, see `getContentRouteKeyUnderSelectedItem`.
++  const selectedItemRouteName = descriptors[focusedRouteKey]?.options.tabBarSelectedItemRouteName;
++  const selectedItemRouteKey = selectedItemRouteName === undefined ? undefined : state.routes.find(route => route.name === selectedItemRouteName && !isRouteHidden(route))?.key;
++  const getExplicitHostRouteKey = route => {
++    if (pendingItemPress !== null && route.key === pendingItemPress.hiddenRouteKey) {
++      return pendingItemPress.itemRouteKey;
++    }
++    const namedHostRouteKey = getNamedHostRouteKey(route);
++    return namedHostRouteKey !== undefined && selectedItemRouteKey !== undefined && route.key === focusedRouteKey ? selectedItemRouteKey : namedHostRouteKey;
++  };
+   // The route native shows as selected: the focused one, or the hidden route of a pending item press.
+   const nativeSelectedRoute = pendingItemPress !== null ? state.routes.find(route => route.key === pendingItemPress.hiddenRouteKey) : state.routes[state.index];
+   // The visible tab a hidden route with an explicit host is drawn inside: the first host it had, for as long as that tab
+@@ -70,16 +81,34 @@ export function NativeBottomTabView({
+     if (contentHostRouteKey !== undefined && state.routes.some(hostRoute => hostRoute.key === contentHostRouteKey && !isRouteHidden(hostRoute))) {
+       return contentHostRouteKey;
+     }
+-    contentHostRouteKeysRef.current.set(route.key, explicitHostRouteKey);
+-    return explicitHostRouteKey;
++    // The item shown as selected in place of the route's own is not a host the route named, so it is not drawn there.
++    const firstHostRouteKey = getNamedHostRouteKey(route) ?? explicitHostRouteKey;
++    contentHostRouteKeysRef.current.set(route.key, firstHostRouteKey);
++    return firstHostRouteKey;
+   };
+   const getHostRouteKey = route => getContentHostRouteKey(route) ?? firstVisibleRouteKey;
+   // The tab native selects for a hidden route: the tab it is drawn inside, which takes the item of the host it names
+   // where the tabs trade places, or else the tab of that host, which shows the view of the route while selected.
+   const getNativeHostRouteKey = route => (tradesPlaces ? getContentHostRouteKey(route) : getExplicitHostRouteKey(route)) ?? firstVisibleRouteKey;
++  // The tab that stays shown under the item of another tab while the given route is focused: the route's own tab, or the
++  // first visible tab for a hidden route without a host. Where the tabs trade places that tab takes the item, and on iOS
++  // the tab of the item is selected and shows the content of that tab.
++  const getContentRouteKeyUnderSelectedItem = route => {
++    const isHidden = isRouteHidden(route);
++    if (selectedItemRouteKey === undefined || isHidden && getExplicitHostRouteKey(route) !== undefined) {
++      return undefined;
++    }
++    const contentRouteKey = isHidden ? firstVisibleRouteKey : route.key;
++    return contentRouteKey === selectedItemRouteKey ? undefined : contentRouteKey;
++  };
++  const contentRouteKeyUnderSelectedItem = getContentRouteKeyUnderSelectedItem(state.routes[state.index]);
+   // The tab each tab trades places with, so that a hidden route's tab takes the item of the host the route names. A tab
+   // trades with one tab at a time and the focused route goes first, so its item is always the selected one.
+   const tradedRouteKeys = new Map();
++  if (tradesPlaces && contentRouteKeyUnderSelectedItem !== undefined) {
++    tradedRouteKeys.set(contentRouteKeyUnderSelectedItem, selectedItemRouteKey);
++    tradedRouteKeys.set(selectedItemRouteKey, contentRouteKeyUnderSelectedItem);
++  }
+   const explicitlyHostedRoutes = state.routes.filter(route => isRouteHidden(route) && getExplicitHostRouteKey(route) !== undefined);
+   (tradesPlaces ? [...explicitlyHostedRoutes.filter(route => route.key === nativeSelectedRoute.key), ...explicitlyHostedRoutes.filter(route => route.key !== nativeSelectedRoute.key)] : []).forEach(route => {
+     const itemRouteKey = getExplicitHostRouteKey(route);
+@@ -93,11 +122,18 @@ export function NativeBottomTabView({
+   // The route whose item and place in the bar a tab takes, which is its own unless it traded places.
+   const getItemRoute = route => state.routes.find(itemRoute => itemRoute.key === tradedRouteKeys.get(route.key)) ?? route;
+   // The trade goes both ways, so the tab in a route's place is the one that takes that route's item.
+-  const tabBarItemOrder = tradesPlaces && explicitlyHostedRoutes.length > 0 ? state.routes.filter(route => !isRouteHidden(route)).map(route => getItemRoute(route).name) : undefined;
++  const tabBarItemOrder = tradesPlaces && (explicitlyHostedRoutes.length > 0 || tradedRouteKeys.size > 0) ? state.routes.filter(route => !isRouteHidden(route)).map(route => getItemRoute(route).name) : undefined;
+   const isNativeSelectedRouteHidden = isRouteHidden(nativeSelectedRoute);
+   const isFocusedRouteHostedExplicitly = isNativeSelectedRouteHidden && getExplicitHostRouteKey(nativeSelectedRoute) !== undefined;
+-  const isFocusedRouteSelectionHidden = isNativeSelectedRouteHidden && !isFocusedRouteHostedExplicitly;
+-  const nativeSelectedRouteKey = isNativeSelectedRouteHidden ? getNativeHostRouteKey(nativeSelectedRoute) ?? nativeSelectedRoute.key : nativeSelectedRoute.key;
++  const isFocusedRouteSelectionHidden = isNativeSelectedRouteHidden && !isFocusedRouteHostedExplicitly && contentRouteKeyUnderSelectedItem === undefined;
++  const getNativeSelectedRouteKey = route => {
++    const contentRouteKey = getContentRouteKeyUnderSelectedItem(route);
++    if (contentRouteKey !== undefined) {
++      return tradesPlaces ? contentRouteKey : selectedItemRouteKey;
++    }
++    return isRouteHidden(route) ? getNativeHostRouteKey(route) ?? route.key : route.key;
++  };
++  const nativeSelectedRouteKey = getNativeSelectedRouteKey(nativeSelectedRoute);
+   // The route each explicit host shows. Native shows a tab the user taps before JS focuses the route drawn in it, so
+   // that route stays laid out while it is not focused: the last one focused in the host, or else the first it hosts.
+   // It is laid out only while its tab has the item of the host it names, so no other item shows it.
+@@ -115,7 +151,13 @@ export function NativeBottomTabView({
+   // for the tab of the host that route names or of the item that opens it. A tab showing a hidden route of its own
+   // shows no other.
+   const getHostedContentSourceScreenKey = route => {
+-    if (tradesPlaces || isNativeSelectedRouteHidden && getContentHostRouteKey(nativeSelectedRoute) === route.key) {
++    if (tradesPlaces) {
++      return undefined;
++    }
++    if (contentRouteKeyUnderSelectedItem !== undefined && route.key === selectedItemRouteKey) {
++      return state.routes.find(contentRoute => contentRoute.key === contentRouteKeyUnderSelectedItem)?.name;
++    }
++    if (isNativeSelectedRouteHidden && getContentHostRouteKey(nativeSelectedRoute) === route.key) {
+       return undefined;
+     }
+     const lendableRoutes = getLendableRoutes(route);
+@@ -227,15 +269,9 @@ export function NativeBottomTabView({
+   const getCurrentNativeSelection = () => {
+     const currentState = navigation.getState();
+     const currentFocusedRoute = currentState.routes[currentState.index];
+-    if (!isRouteHidden(currentFocusedRoute)) {
+-      return {
+-        routeKey: currentFocusedRoute.key,
+-        isSelectionHidden: false
+-      };
+-    }
+     return {
+-      routeKey: getNativeHostRouteKey(currentFocusedRoute) ?? currentFocusedRoute.key,
+-      isSelectionHidden: getExplicitHostRouteKey(currentFocusedRoute) === undefined
++      routeKey: getNativeSelectedRouteKey(currentFocusedRoute),
++      isSelectionHidden: isRouteHidden(currentFocusedRoute) && getExplicitHostRouteKey(currentFocusedRoute) === undefined && getContentRouteKeyUnderSelectedItem(currentFocusedRoute) === undefined
+     };
+   };
+ 
+@@ -476,8 +512,8 @@ export function NativeBottomTabView({
+           focused: !isSelectionHidden
+         })) : undefined;
+         // A host whose own selection is disabled leaves its repeated selection to its `tabPress` listener, so native
+-        // neither pops nor scrolls the hidden route it shows.
+-        const isRepeatedSelectionLeftToJS = isFocusedRouteHostedExplicitly && route.key === nativeSelectedRouteKey && tabBarSelectionEnabled === false;
++        // neither pops nor scrolls the hidden route it shows, nor the tab shown under its item.
++        const isRepeatedSelectionLeftToJS = (isFocusedRouteHostedExplicitly || contentRouteKeyUnderSelectedItem !== undefined) && route.key === nativeSelectedRouteKey && tabBarSelectionEnabled === false;
+         const preventNativeSelection = tabBarSelectionEnabled === false || getHiddenRouteOpenedFromAnotherTab(route, itemRoute) !== undefined;
+         return /*#__PURE__*/_jsx(Tabs.Screen, {
+           onWillDisappear: () => onTransitionStart({
+@@ -569,7 +605,7 @@ export function NativeBottomTabView({
+             overrideScrollViewContentInsetAdjustmentBehavior: contentOptions.overrideScrollViewContentInsetAdjustmentBehavior
+           },
+           // Keyed by route key, so a re-keyed route still remounts its content inside the same native tab.
+-          children: [/*#__PURE__*/_jsx(Deferred, {
++          children: renderTabContent(route.key, /*#__PURE__*/_jsx(Deferred, {
+             lazy: contentOptions.lazy ?? false,
+             visible: isFocused || isPreloaded,
+             children: /*#__PURE__*/_jsx(ScreenWithHeader, {
+@@ -582,12 +618,12 @@ export function NativeBottomTabView({
+                 children: render()
+               })
+             })
+-          }, route.key), renderHiddenRoutes(route.key)]
++          }, route.key))
+         }, route.name);
+       })
+     }, "native-tabs-host")]
+   });
+-  function renderHiddenRoutes(hostRouteKey) {
++  function renderTabContent(hostRouteKey, tabScreen) {
+     const hostRoute = state.routes.find(route => route.key === hostRouteKey);
+     const shownHostedRouteKey = getShownHostedRouteKey(hostRouteKey);
+     const hiddenRouteViews = state.routes.map((route, index) => {
+@@ -637,18 +673,18 @@ export function NativeBottomTabView({
+         }) : screen
+       }, route.key);
+     });
+-    // The routes with an explicit host share one view, which native moves into the tab that shows them.
+-    const hostedContentViews = tradesPlaces ? [] : hiddenRouteViews.filter((view, index) => view !== null && getExplicitHostRouteKey(state.routes[index]) !== undefined);
+-    if (hostedContentViews.length === 0) {
+-      return hiddenRouteViews;
++    if (tradesPlaces || explicitlyHostedRoutes.length === 0) {
++      return [tabScreen, hiddenRouteViews];
+     }
+-    return [...hiddenRouteViews.filter(view => !hostedContentViews.includes(view)), /*#__PURE__*/_jsx(View, {
++    // In a bar with hosted routes the whole content of a tab is one view, which native moves into the tab that shows it:
++    // the tab of the host a hidden route names, or the tab whose item is shown as selected in place of this one.
++    return /*#__PURE__*/_jsx(View, {
+       nativeID: "RNSTabsHostedContent",
+       collapsable: false,
+       style: StyleSheet.absoluteFill,
+       pointerEvents: "box-none",
+-      children: hostedContentViews
+-    }, "hosted-content")];
++      children: [tabScreen, hiddenRouteViews]
++    }, "hosted-content");
+   }
+ }
+ const styles = StyleSheet.create({
+diff --git a/node_modules/@react-navigation/bottom-tabs/lib/typescript/src/unstable/types.d.ts b/node_modules/@react-navigation/bottom-tabs/lib/typescript/src/unstable/types.d.ts
+index 653fbc5..7b0d705 100644
+--- a/node_modules/@react-navigation/bottom-tabs/lib/typescript/src/unstable/types.d.ts
++++ b/node_modules/@react-navigation/bottom-tabs/lib/typescript/src/unstable/types.d.ts
+@@ -98,6 +98,13 @@ export type NativeBottomTabNavigationOptions = NativeHeaderOptions & {
+      * the `tabPress` event follows in the next task.
+      */
+     tabBarItemHiddenRouteName?: string;
++    /**
++     * Name of the visible tab whose item the tab bar shows as selected while this tab is focused, in place of this tab's
++     * own item, with this tab's content left as it is. Used for an item that opens a menu over the current tab. On iOS
++     * that tab is selected and shows the native view of the tab the content is in, elsewhere the two tabs trade their
++     * places and items in the tab bar. Ignored when no visible tab has this name.
++     */
++    tabBarSelectedItemRouteName?: string;
+     /**
+      * Accessibility label for the tab bar item, read by the screen reader. Useful when the tab has no visible label.
+      */
