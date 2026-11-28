@@ -1,4 +1,4 @@
-import {render, screen} from '@testing-library/react-native';
+import {act, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -314,6 +314,66 @@ describe('WorkspaceCompanyCardsTable unresolved workspace account ID', () => {
 
         expect(screen.queryByTestId('WorkspaceCompanyCardsTableLoadingIndicator')).toBeNull();
         expect(screen.getByText(TestHelper.translateLocal('workspace.companyCards.error.workspaceFeedsCouldNotBeLoadedTitle'))).toBeTruthy();
+    });
+
+    it('shows a terminal page error despite unresolved account and initial loading guards and keeps failed retries actionable', async () => {
+        // Given a failed page request without an account ID or hydrated feed/card metadata
+        const pageKey = `${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE}${POLICY_ID}` as const;
+        await Onyx.merge(pageKey, {isLoadingPage: false, hasLoadingError: true});
+        renderTable(
+            {
+                ...buildCompanyCards({workspaceCardFeedsStatus: {}}),
+                isInitiallyLoadingFeeds: true,
+                onyxMetadata: {cardListMetadata: {status: 'loading'}, allCardFeedsMetadata: {status: 'loading'}, lastSelectedFeedMetadata: {status: 'loading'}},
+            },
+            false,
+            {isPolicyLoaded: false, isPageFetchPending: true, domainOrWorkspaceAccountID: CONST.DEFAULT_NUMBER_ID},
+        );
+        await waitForBatchedUpdates();
+
+        // When the failed request settles, its retry UI is not hidden by any initial loader
+        const errorTitle = TestHelper.translateLocal('workspace.companyCards.error.workspaceFeedsCouldNotBeLoadedTitle');
+        expect(screen.getByText(errorTitle)).toBeTruthy();
+        expect(screen.getByText(TestHelper.translateLocal('common.tryAgain'))).toBeTruthy();
+        expect(screen.queryByTestId('WorkspaceCompanyCardsTableLoadingIndicator')).toBeNull();
+
+        // Then retry clears the error while pending and a repeated failure stays actionable
+        await act(async () => Onyx.merge(pageKey, {isLoadingPage: true, hasLoadingError: false}));
+        expect(screen.queryByText(errorTitle)).toBeNull();
+        expect(screen.getByTestId('WorkspaceCompanyCardsTableLoadingIndicator')).toBeTruthy();
+        await act(async () => Onyx.merge(pageKey, {isLoadingPage: false, hasLoadingError: true}));
+        expect(screen.getByText(errorTitle)).toBeTruthy();
+    });
+
+    it('renders the empty page after a successful retry even if the creation response never supplied an account ID', async () => {
+        // Given a successful cards response that did not rehydrate the optimistic workspace
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE}${POLICY_ID}`, {isLoadingPage: false, hasOnceLoadedPage: true});
+
+        // When the workspace account ID is still unresolved
+        renderTable(buildCompanyCards({workspaceCardFeedsStatus: {}}), false, {
+            isPolicyLoaded: false,
+            isPageFetchPending: true,
+            domainOrWorkspaceAccountID: CONST.DEFAULT_NUMBER_ID,
+        });
+        await waitForBatchedUpdates();
+
+        // Then a successful cards response ends page loading without fabricating a request error
+        expect(screen.queryByTestId('WorkspaceCompanyCardsTableLoadingIndicator')).toBeNull();
+        expect(screen.queryByText(TestHelper.translateLocal('workspace.companyCards.error.workspaceFeedsCouldNotBeLoadedTitle'))).toBeNull();
+        expect(screen.getByTestId('WorkspaceCompanyCardPageEmptyState')).toBeTruthy();
+    });
+
+    it('renders an empty workspace after retry resolves its account ID and page request', async () => {
+        // Given a policy-scoped successful retry before any feeds have been added
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE}${POLICY_ID}`, {isLoadingPage: false, hasLoadingError: false, hasOnceLoadedPage: true});
+
+        // When the workspace account ID has resolved without cached feeds
+        renderTable(buildCompanyCards({workspaceCardFeedsStatus: {}}), false, {isPageFetchPending: true});
+        await waitForBatchedUpdates();
+
+        // Then policy-scoped success releases the initial page-fetch guard
+        expect(screen.getByTestId('WorkspaceCompanyCardPageEmptyState')).toBeTruthy();
+        expect(screen.queryByTestId('WorkspaceCompanyCardsTableLoadingIndicator')).toBeNull();
     });
 });
 

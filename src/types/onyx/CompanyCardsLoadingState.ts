@@ -15,6 +15,11 @@ type CompanyCardsFeedLoadingState = {
  * cannot wipe hasOnceLoaded flags. Used to gate skeleton UI without blocking refresh requests.
  */
 type CompanyCardsLoadingState = {
+    /** Page request state is keyed by policy ID, even before a workspace account ID is available */
+    isLoadingPage?: boolean;
+
+    hasLoadingError?: boolean;
+
     /** Whether workspace company card feeds have been fetched at least once in this session */
     hasOnceLoadedPage?: boolean;
 

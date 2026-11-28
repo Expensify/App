@@ -101,15 +101,22 @@ describe('CompanyCards RAM-only loading state updates', () => {
         );
     });
 
-    it('openPolicyCompanyCardsPage skips loading state updates when domainOrWorkspaceAccountID is 0', () => {
-        openPolicyCompanyCardsPage('policy123', CONST.DEFAULT_NUMBER_ID, [], mockTranslate);
+    it.each([CONST.DEFAULT_NUMBER_ID, 11111111])('tracks page requests independently of account ID %s', (accountID) => {
+        // Given a workspace whose account ID may not have arrived yet
+        const policyID = 'policy123';
+        const key = `${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE}${policyID}` as const;
 
+        // When its Company Cards page is opened or retried
+        openPolicyCompanyCardsPage(policyID, accountID, [], mockTranslate);
+
+        // Then every outcome updates policy-scoped state, including clearing the last error on retry
         expect(mockRead).toHaveBeenCalledWith(
             READ_COMMANDS.OPEN_POLICY_COMPANY_CARDS_PAGE,
             expect.any(Object),
             expect.objectContaining({
-                optimisticData: [],
-                successData: [],
+                optimisticData: expect.arrayContaining([{onyxMethod: Onyx.METHOD.MERGE, key, value: {isLoadingPage: true, hasLoadingError: false}}]),
+                successData: expect.arrayContaining([{onyxMethod: Onyx.METHOD.MERGE, key, value: {isLoadingPage: false, hasLoadingError: false, hasOnceLoadedPage: true}}]),
+                failureData: expect.arrayContaining([{onyxMethod: Onyx.METHOD.MERGE, key, value: {isLoadingPage: false, hasLoadingError: true}}]),
             }),
         );
     });

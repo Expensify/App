@@ -15,6 +15,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {openWorkspace} from '@libs/actions/Policy/Policy';
 import {getDomainOrWorkspaceAccountID} from '@libs/CardUtils';
 import Growl from '@libs/Growl';
 import Navigation from '@libs/Navigation/Navigation';
@@ -86,8 +87,16 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
         openPolicyCompanyCardsPage(policyID, domainOrWorkspaceAccountID, emailList, translate);
     };
 
+    const retryPolicyCompanyCardsPage = () => {
+        // A lost creation response leaves an optimistic policy that the access wrapper will not refresh.
+        if (policy?.policyAccountID === undefined) {
+            openWorkspace(policyID, []);
+        }
+        loadPolicyCompanyCardsPage();
+    };
+
     const {isOffline} = useNetwork({
-        onReconnect: loadPolicyCompanyCardsPage,
+        onReconnect: retryPolicyCompanyCardsPage,
     });
 
     // A freshly created workspace has no account ID until the back end returns one, so we can't treat the policy as loaded yet.
@@ -173,7 +182,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
                     isAssigningCardDisabled={isAssigningCardDisabled || !canWriteCompanyCards}
                     canWriteCompanyCards={canWriteCompanyCards}
                     isSelectionModeEnabled={isSelectionModeEnabled}
-                    onReloadPage={loadPolicyCompanyCardsPage}
+                    onReloadPage={retryPolicyCompanyCardsPage}
                     onReloadFeed={loadPolicyCompanyCardsFeed}
                 />
             </WorkspacePageWithSections>

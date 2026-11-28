@@ -1,9 +1,12 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
+import {openWorkspace} from '@libs/actions/Policy/Policy';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 
 import WorkspaceCompanyCardsPage from '@pages/workspace/companyCards/WorkspaceCompanyCardsPage';
+
+import {openPolicyCompanyCardsPage} from '@userActions/CompanyCards';
 
 import SCREENS from '@src/SCREENS';
 
@@ -14,7 +17,8 @@ const POLICY_ID = 'policy123';
 const mockClearTableSelection = jest.fn();
 const mockGoBack = jest.fn();
 const mockTurnOffMobileSelectionMode = jest.fn();
-const mockTableProps: {current?: {isSelectionModeEnabled: boolean; isPolicyLoaded: boolean; isPageFetchPending: boolean}} = {};
+type MockTableProps = {isSelectionModeEnabled: boolean; isPolicyLoaded: boolean; isPageFetchPending: boolean; onReloadPage: () => void};
+const mockTableProps: {current?: MockTableProps} = {};
 let mockFeedName = 'feed-a';
 let mockIsMobileSelectionModeEnabled = true;
 let mockShouldUseNarrowLayout = true;
@@ -34,14 +38,12 @@ jest.mock('@components/Tables/WorkspaceCompanyCardsTable', () => {
     const {View} = require('react-native');
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-    const MockWorkspaceCompanyCardsTable = ReactMock.forwardRef(
-        ({isSelectionModeEnabled, isPolicyLoaded, isPageFetchPending}: {isSelectionModeEnabled: boolean; isPolicyLoaded: boolean; isPageFetchPending: boolean}, ref: unknown) => {
-            mockTableProps.current = {isSelectionModeEnabled, isPolicyLoaded, isPageFetchPending};
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-            ReactMock.useImperativeHandle(ref, () => ({clearSelection: mockClearTableSelection}));
-            return <View testID="WorkspaceCompanyCardsTable" />;
-        },
-    );
+    const MockWorkspaceCompanyCardsTable = ReactMock.forwardRef(({isSelectionModeEnabled, isPolicyLoaded, isPageFetchPending, onReloadPage}: MockTableProps, ref: unknown) => {
+        mockTableProps.current = {isSelectionModeEnabled, isPolicyLoaded, isPageFetchPending, onReloadPage};
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+        ReactMock.useImperativeHandle(ref, () => ({clearSelection: mockClearTableSelection}));
+        return <View testID="WorkspaceCompanyCardsTable" />;
+    });
 
     return {
         __esModule: true,
@@ -110,6 +112,7 @@ jest.mock('@libs/actions/MobileSelectionMode', () => ({
         mockTurnOffMobileSelectionMode();
     },
 }));
+jest.mock('@libs/actions/Policy/Policy', () => ({openWorkspace: jest.fn()}));
 jest.mock('@libs/CardUtils', () => ({getDomainOrWorkspaceAccountID: () => 123}));
 jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
@@ -293,6 +296,35 @@ describe('WorkspaceCompanyCardsPage isPageFetchPending', () => {
         render(getWorkspaceCompanyCardsPage());
 
         expect(mockTableProps.current?.isPageFetchPending).toBe(false);
+    });
+});
+
+describe('WorkspaceCompanyCardsPage retry', () => {
+    beforeEach(resetMocks);
+
+    it('rehydrates a workspace with a missing account ID when retrying the cards page', () => {
+        // Given a lost creation response and an optimistic workspace
+        mockPolicy = {name: 'Acme', employeeList: {}};
+        render(getWorkspaceCompanyCardsPage());
+
+        // When the user retries loading Company Cards
+        mockTableProps.current?.onReloadPage();
+
+        // Then both the missing workspace data and cards are refreshed
+        expect(openWorkspace).toHaveBeenCalledWith(POLICY_ID, []);
+        expect(openPolicyCompanyCardsPage).toHaveBeenCalledWith(POLICY_ID, 123, [], expect.any(Function));
+    });
+
+    it('does not rehydrate an already-resolved workspace on cards retry', () => {
+        // Given a workspace with an account ID
+        render(getWorkspaceCompanyCardsPage());
+
+        // When the user retries loading Company Cards
+        mockTableProps.current?.onReloadPage();
+
+        // Then only the cards page is refreshed
+        expect(openWorkspace).not.toHaveBeenCalled();
+        expect(openPolicyCompanyCardsPage).toHaveBeenCalled();
     });
 });
 
