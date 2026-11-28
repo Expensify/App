@@ -10,7 +10,7 @@ import useOnyx from '@hooks/useOnyx';
 
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import openSearchFromTabBar from '@libs/Navigation/FlatNavTabBar/openSearchFromTabBar';
-import {navigateToSpendTab} from '@libs/SearchNavigationUtils';
+import {navigateToSpendTab, showSpendTabSearchOnMountedSearchPage} from '@libs/SearchNavigationUtils';
 import type {SpendTabSearchKey} from '@libs/SearchNavigationUtils';
 
 import CONST from '@src/CONST';
@@ -41,8 +41,8 @@ function FlatNavTabPressListeners({state, descriptors}: Pick<NativeTabLayoutProp
     const reportsNavigation = getTabNavigation(SCREENS.NATIVE_TAB_ITEM.REPORTS);
     const moreNavigation = getTabNavigation(SCREENS.NATIVE_TAB_ITEM.MORE);
 
-    // A navigation from another tab hands Search its search in the tab route params, which Search takes only in its next
-    // render. A tap made before then would navigate Search directly and be overridden by those params, so it waits.
+    // A navigation through the search route hands Search its search in the tab route params, which Search takes only in its
+    // next render. A tap made before then would navigate Search directly and be overridden by those params, so it waits.
     const pendingSearchNavigation = useRef<{isPending: boolean; queuedSearchKey?: SpendTabSearchKey}>({isPending: false});
     const getCurrentSearchTabRoute = () => findSearchTabRoute(searchNavigation?.getState());
 
@@ -51,20 +51,35 @@ function FlatNavTabPressListeners({state, descriptors}: Pick<NativeTabLayoutProp
     const openSpendTab = (searchKey: SpendTabSearchKey) => {
         const isSearchFocused = !!searchNavigation?.isFocused();
         // A press made after leaving the pending Search for another tab is not queued, since the queue is replayed only
-        // for a user still on Search. It navigates from that tab, which hands Search its search in the params again.
+        // for a user still on Search. It navigates from that tab like any other press.
         if (pendingSearchNavigation.current.isPending && isSearchFocused) {
             pendingSearchNavigation.current.queuedSearchKey = searchKey;
             return;
         }
+        const searchTabRoute = getCurrentSearchTabRoute();
         // Search already on this search: the tap is a repeated selection, which the native bar answers by itself.
-        if (isSearchFocused && getSearchTabSearchKey(getCurrentSearchTabRoute()) === searchKey) {
+        if (isSearchFocused && getSearchTabSearchKey(searchTabRoute) === searchKey) {
             return;
         }
         const lastSearchQuery = searchKey === CONST.SEARCH.SEARCH_KEYS.REPORTS ? lastReportsSearchQuery : lastExpensesSearchQuery;
-        const searchTabParams = getCurrentSearchTabRoute()?.params;
-        openSearchFromTabBar(() => navigateToSpendTab(searchKey, lastSearchQuery, clearSelectedTransactions), isSearchFocused, session);
-        // Only a navigation from another tab replaces the Search tab route params, so only that one leaves Search pending.
-        pendingSearchNavigation.current = {isPending: getCurrentSearchTabRoute()?.params !== searchTabParams};
+        // With the Search page on top of the Search tab the tap only changes its search, as its type tabs do. A tab not
+        // mounted yet, or one with another screen on top, is opened through the search route.
+        const searchNavigatorState = searchTabRoute?.state;
+        const isSearchPageOnTop = searchNavigatorState?.routes.at(searchNavigatorState.index ?? -1)?.name === SCREENS.SEARCH.ROOT;
+        const mountedSearchNavigatorState = isSearchPageOnTop && searchNavigatorState?.stale === false ? searchNavigatorState : undefined;
+        // On Search the new search is pushed as params, so Back returns to the previous one. From another tab the search
+        // replaces the one Search had, and the tab navigator jumps to Search.
+        const tabNavigatorStateKeyToFocusSearchIn = isSearchFocused ? undefined : state.key;
+        openSearchFromTabBar(
+            () =>
+                mountedSearchNavigatorState
+                    ? showSpendTabSearchOnMountedSearchPage(searchKey, lastSearchQuery, clearSelectedTransactions, mountedSearchNavigatorState, tabNavigatorStateKeyToFocusSearchIn)
+                    : navigateToSpendTab(searchKey, lastSearchQuery, clearSelectedTransactions),
+            isSearchFocused,
+            session,
+        );
+        // Only a navigation through the search route replaces the Search tab route params, so only that one leaves Search pending.
+        pendingSearchNavigation.current = {isPending: getCurrentSearchTabRoute()?.params !== searchTabRoute?.params};
     };
 
     // The tab navigator reports its new state after Search has taken the params.

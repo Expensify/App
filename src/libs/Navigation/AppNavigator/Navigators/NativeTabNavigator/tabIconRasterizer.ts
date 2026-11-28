@@ -5,7 +5,7 @@ import type {NativeBottomTabIcon, NativeBottomTabNavigationOptions} from '@react
 import type {SkCanvas, SkParagraph, SkPath} from 'react-native-skia';
 
 import {PixelRatio} from 'react-native';
-import {BlendMode, FillType, FontWeight, ImageFormat, Skia, TextAlign} from 'react-native-skia';
+import {BlendMode, FillType, FontWeight, ImageFormat, PaintStyle, Skia, StrokeJoin, TextAlign} from 'react-native-skia';
 
 import type {NativeTabGlyph, NativeTabGlyphName} from './NATIVE_TAB_GLYPHS';
 
@@ -20,6 +20,14 @@ type TabIconLayout = {
     direction: 'stacked' | 'inline';
     /** Transparent space after the label of an inline icon. */
     trailingInset?: number;
+    /**
+     * Where an accessory glyph goes: beside the glyph, which widens the icon, over the glyph's bottom right corner, for a
+     * bar that squeezes a wider icon into a square slot, or at the right edge of the selected pill, for a bar whose pill
+     * is wider than the glyph. Defaults to beside.
+     */
+    accessoryPlacement?: 'beside' | 'corner' | 'pillEdge';
+    /** Width of the selected pill, which an icon with its accessory at the pill's edge spans. */
+    pillWidth?: number;
 };
 
 type TabIconLabel = {
@@ -33,15 +41,30 @@ type TabIconLabel = {
     maxWidth: number;
 };
 
+type TabIconAccessory = {
+    name: NativeTabGlyphName;
+    color: string;
+};
+
 type TabIconParams = {
     name: NativeTabGlyphName;
     color: string;
     dotColor?: string;
     label?: TabIconLabel;
+    /** A smaller glyph drawn with the main one, where the layout's `accessoryPlacement` says. The main glyph stays centered over its label. */
+    accessory?: TabIconAccessory;
+    /** Frames the icon as if it had an accessory, so an item that shows one only some of the time keeps its width in the bar. */
+    reservesAccessory?: boolean;
 };
 
-/** Upper bound on cached icons, enough for every tab in both selection states across a few status and theme changes. */
-const MAX_CACHED_ICONS = 64;
+/** Side of an accessory glyph's box, relative to the main glyph. */
+const ACCESSORY_GLYPH_SCALE = 0.5;
+
+/**
+ * Upper bound on cached icons, enough for every tab and every glyph of the More item in both selection states, in both
+ * orientations, across a few status and theme changes. Reaching it clears the cache, so every icon is drawn again.
+ */
+const MAX_CACHED_ICONS = 128;
 
 const iconCache = new Map<string, NativeBottomTabIcon | undefined>();
 const glyphPathCache = new Map<NativeTabGlyphName, SkPath[]>();
@@ -80,16 +103,33 @@ function makeLabelParagraph({text, color, isBold, fontSize, maxWidth}: TabIconLa
     return paragraph;
 }
 
-function drawGlyph(canvas: SkCanvas, name: NativeTabGlyphName, left: number, top: number, size: number, color: string) {
+/**
+ * @param cutout - width of the ring cleared around the glyph's outline, in canvas pixels, so a glyph drawn over another
+ * stays readable, as the status dot's cutout does
+ */
+function drawGlyph(canvas: SkCanvas, name: NativeTabGlyphName, left: number, top: number, size: number, color: string, cutout = 0) {
     const paint = Skia.Paint();
-    paint.setColor(Skia.Color(color));
     paint.setAntiAlias(true);
     const viewBoxScale = size / NATIVE_TAB_GLYPHS[name].viewBoxSize;
+    const paths = getGlyphPaths(name);
 
     canvas.save();
     canvas.translate(left, top);
     canvas.scale(viewBoxScale, viewBoxScale);
-    for (const path of getGlyphPaths(name)) {
+    if (cutout) {
+        paint.setBlendMode(BlendMode.Clear);
+        paint.setStyle(PaintStyle.Stroke);
+        paint.setStrokeJoin(StrokeJoin.Round);
+        // The stroke is centered on the outline and drawn in viewBox units, so it is twice the cutout, scaled back.
+        paint.setStrokeWidth((2 * cutout) / viewBoxScale);
+        for (const path of paths) {
+            canvas.drawPath(path, paint);
+        }
+        paint.setBlendMode(BlendMode.SrcOver);
+        paint.setStyle(PaintStyle.Fill);
+    }
+    paint.setColor(Skia.Color(color));
+    for (const path of paths) {
         canvas.drawPath(path, paint);
     }
     canvas.restore();
@@ -124,22 +164,34 @@ type TabIconFrame = {
  * With a label, every tab gives its glyph the same box, so every label starts at the same place:
  * under that box, or beside it in landscape.
  */
-function getTabIconFrame(layout: TabIconLayout, contentSize: number, labelGap: number, labelWidth: number, labelHeight: number, hasLabel: boolean, scale: number): TabIconFrame {
+function getTabIconFrame(
+    layout: TabIconLayout,
+    contentSize: number,
+    accessoryWidth: number,
+    labelGap: number,
+    labelWidth: number,
+    labelHeight: number,
+    hasLabel: boolean,
+    scale: number,
+): TabIconFrame {
     const boxSize = hasLabel ? Math.max(layout.glyphSize, layout.iconBoxSize) * scale : contentSize;
 
     if (layout.direction === 'inline') {
         const canvasHeight = Math.ceil(Math.max(boxSize, labelHeight));
+        // The label of every tab starts after the glyph's box, so the accessory pushes only its own label further.
+        const labelLeft = boxSize + accessoryWidth + labelGap;
         return {
-            canvasWidth: Math.ceil(boxSize + (hasLabel ? labelGap + labelWidth + (layout.trailingInset ?? 0) * scale : 0)),
+            canvasWidth: Math.ceil(hasLabel ? labelLeft + labelWidth + (layout.trailingInset ?? 0) * scale : boxSize + accessoryWidth),
             canvasHeight,
             contentLeft: (boxSize - contentSize) / 2,
             contentTop: (canvasHeight - contentSize) / 2,
-            labelLeft: boxSize + labelGap,
+            labelLeft,
             labelTop: (canvasHeight - labelHeight) / 2,
         };
     }
 
-    const canvasWidth = Math.ceil(Math.max(contentSize, labelWidth));
+    // The canvas grows by the accessory on both sides, so the glyph stays centered over the label and in the bar item.
+    const canvasWidth = Math.ceil(Math.max(contentSize + 2 * accessoryWidth, labelWidth));
     const labelTop = (boxSize + layout.glyphSize * scale) / 2 + labelGap;
     const contentTop = (boxSize - contentSize) / 2;
     return {
@@ -152,9 +204,53 @@ function getTabIconFrame(layout: TabIconLayout, contentSize: number, labelGap: n
     };
 }
 
-function drawTabIcon(layout: TabIconLayout, {name, color, dotColor, label}: TabIconParams): NativeBottomTabIcon | undefined {
+/** Width the accessory adds on each side of the glyph, so the glyph stays centered. */
+function getAccessoryWidth(layout: TabIconLayout, contentSize: number, scale: number): number {
+    switch (layout.accessoryPlacement ?? 'beside') {
+        case 'beside':
+            return variables.nativeTabIconAccessoryGap * scale + contentSize * ACCESSORY_GLYPH_SCALE;
+        case 'pillEdge':
+            return Math.max(0, ((layout.pillWidth ?? 0) * scale - contentSize) / 2);
+        default:
+            return 0;
+    }
+}
+
+function drawAccessory(
+    canvas: SkCanvas,
+    accessory: TabIconAccessory,
+    placement: NonNullable<TabIconLayout['accessoryPlacement']>,
+    contentLeft: number,
+    contentTop: number,
+    contentSize: number,
+    canvasWidth: number,
+    scale: number,
+) {
+    if (placement === 'corner') {
+        const accessorySize = contentSize * ACCESSORY_GLYPH_SCALE;
+        drawGlyph(
+            canvas,
+            accessory.name,
+            contentLeft + contentSize - accessorySize,
+            contentTop + contentSize - accessorySize,
+            accessorySize,
+            accessory.color,
+            variables.nativeTabIconDotCutout * scale,
+        );
+        return;
+    }
+    const accessorySize = placement === 'pillEdge' ? variables.nativeTabIconPillEdgeAccessorySize * scale : contentSize * ACCESSORY_GLYPH_SCALE;
+    const accessoryLeft =
+        placement === 'pillEdge'
+            ? canvasWidth - variables.nativeTabIconPillEdgeAccessoryInset * scale - accessorySize
+            : contentLeft + contentSize + variables.nativeTabIconAccessoryGap * scale;
+    drawGlyph(canvas, accessory.name, accessoryLeft, contentTop + (contentSize - accessorySize) / 2, accessorySize, accessory.color);
+}
+
+function drawTabIcon(layout: TabIconLayout, {name, color, dotColor, label, accessory, reservesAccessory}: TabIconParams): NativeBottomTabIcon | undefined {
     const scale = PixelRatio.get();
     const contentSize = layout.glyphSize * scale;
+    const accessoryPlacement = layout.accessoryPlacement ?? 'beside';
     const paragraph = label ? makeLabelParagraph(label, scale) : undefined;
     // The label is bold only when selected, so both states are framed for the larger weight and the glyph stays put.
     const otherWeightParagraph = label ? makeLabelParagraph({...label, isBold: !label.isBold}, scale) : undefined;
@@ -164,6 +260,7 @@ function drawTabIcon(layout: TabIconLayout, {name, color, dotColor, label}: TabI
     const {canvasWidth, canvasHeight, contentLeft, contentTop, labelLeft, labelTop} = getTabIconFrame(
         layout,
         contentSize,
+        accessory || reservesAccessory ? getAccessoryWidth(layout, contentSize, scale) : 0,
         (label?.gap ?? 0) * scale,
         labelWidth,
         labelHeight,
@@ -179,6 +276,9 @@ function drawTabIcon(layout: TabIconLayout, {name, color, dotColor, label}: TabI
 
     const canvas = surface.getCanvas();
     drawGlyph(canvas, name, contentLeft, contentTop, contentSize, color);
+    if (accessory) {
+        drawAccessory(canvas, accessory, accessoryPlacement, contentLeft, contentTop, contentSize, canvasWidth, scale);
+    }
     if (dotColor) {
         drawStatusDot(canvas, contentLeft + contentSize, contentTop, scale, dotColor);
     }
@@ -209,9 +309,22 @@ function drawTabIcon(layout: TabIconLayout, {name, color, dotColor, label}: TabI
  * stays the same. A status, theme or language change redraws only the icons it reaches.
  */
 function getTabIcon(layout: TabIconLayout, params: TabIconParams): NativeBottomTabIcon | undefined {
-    const {name, color, dotColor, label} = params;
+    const {name, color, dotColor, label, accessory, reservesAccessory} = params;
     // The label's font is fixed per platform, so it is left out of the key.
-    const key = [layout.direction, name, color, dotColor, label?.text, label?.color, label?.isBold, label?.maxWidth].join('|');
+    const key = [
+        layout.direction,
+        name,
+        color,
+        dotColor,
+        label?.text,
+        label?.color,
+        label?.isBold,
+        label?.maxWidth,
+        accessory?.name,
+        accessory?.color,
+        reservesAccessory,
+        layout.accessoryPlacement,
+    ].join('|');
     if (iconCache.has(key)) {
         return iconCache.get(key);
     }
@@ -231,4 +344,5 @@ function getTabBarIcon(layout: TabIconLayout, getParams: (isSelected: boolean) =
 }
 
 export default getTabBarIcon;
+export {getAccessoryWidth, getTabIconFrame};
 export type {TabIconLayout};

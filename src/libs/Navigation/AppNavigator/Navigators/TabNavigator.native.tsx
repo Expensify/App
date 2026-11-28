@@ -1,9 +1,15 @@
 import HorizontalSafeArea from '@components/HorizontalSafeArea';
+import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 
+import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {FlatNavSectionID} from '@libs/Navigation/FlatNav/types';
+import getMoreTabItemID from '@libs/Navigation/MoreMenu/getMoreTabItemID';
 import {bottomTabScreenLayoutWrapper} from '@libs/Navigation/PlatformStackNavigation/ScreenLayout';
 import type {TabNavigatorParamList} from '@libs/Navigation/types';
 import type {SearchKey} from '@libs/SearchKeyUtils';
@@ -21,14 +27,15 @@ import type {NavigationState} from '@react-navigation/native';
 import {createNativeBottomTabNavigator} from '@react-navigation/bottom-tabs/unstable';
 import {useNavigationState, useRoute} from '@react-navigation/native';
 import {authTokenTypeSelector} from '@selectors/Session';
-import React from 'react';
+import React, {createContext, useContext} from 'react';
+import {View} from 'react-native';
 
 import type {NativeTabRouteName} from './NativeTabNavigator/nativeTabItemUtils';
 import type {NativeTabLayoutProps} from './NativeTabNavigator/NativeTabLayout';
 
 import getActiveTabRoute from './NativeTabNavigator/getActiveTabRoute';
 import isTabHostFullWidth from './NativeTabNavigator/isTabHostFullWidth';
-import {findSearchTabRoute, getFlatNavTabHostRouteName, getSearchTabSearchKey} from './NativeTabNavigator/nativeTabItemUtils';
+import {findSearchTabRoute, getFlatNavTabHiddenRouteName, getFlatNavTabHostRouteName, getSearchTabSearchKey} from './NativeTabNavigator/nativeTabItemUtils';
 import NativeTabLayout from './NativeTabNavigator/NativeTabLayout';
 import tabScreenListeners from './NativeTabNavigator/tabScreenListeners';
 import useIsTabBarVertical from './NativeTabNavigator/useIsTabBarVertical';
@@ -52,36 +59,80 @@ const HIDDEN_TAB_OPTIONS = {tabBarItemHidden: true};
 
 const renderNativeTabLayout = (props: NativeTabLayoutProps) => <NativeTabLayout {...props} />;
 
-/** The Expenses, Reports and More items of the flat nav bar, which show the routes drawn inside them rather than a screen of their own. */
+type FlatNavSearchSectionResolver = (searchKey: SearchKey | undefined) => FlatNavSectionID | undefined;
+
+/**
+ * Resolves the section of the search Search shows from its search key. Only the flat nav navigator provides it. The bar
+ * and the placeholders under its items read the same resolver, so they agree on the item Search is under.
+ */
+const FlatNavSearchSectionContext = createContext<FlatNavSearchSectionResolver | undefined>(undefined);
+
+function getSearchSectionID(resolveSearchSectionID: FlatNavSearchSectionResolver | undefined, tabState: NavigationState) {
+    return resolveSearchSectionID?.(getSearchTabSearchKey(findSearchTabRoute(tabState)));
+}
+
+/** The More item of the flat nav bar, which shows the hidden routes under it rather than a screen of its own. */
 function NativeTabItemPlaceholder() {
     return null;
 }
 
-type NativeTabNavigatorProps = {
-    /** Resolves the section of the search Search shows from its search key, given only with the flat nav bar */
-    getFlatNavSearchSectionID?: (searchKey: SearchKey | undefined) => FlatNavSectionID | undefined;
+/**
+ * The Expenses and Reports items of the flat nav bar, which show Search rather than a screen of their own. Search is
+ * not laid out under these items while it is on a search of the More menu, so a tap on one of them then shows this
+ * skeleton until Search opens the search of the item.
+ */
+function NativeTabSearchItemPlaceholder() {
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+    const {top} = useSafeAreaInsets();
+    const {contentHeaderHeight} = useContentHeaderHeight();
+    const resolveSearchSectionID = useContext(FlatNavSearchSectionContext);
+    const isSearchUnderMore = useNavigationState(
+        (state) => getFlatNavTabHostRouteName(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, getSearchSectionID(resolveSearchSectionID, state)) === SCREENS.NATIVE_TAB_ITEM.MORE,
+    );
 
+    if (!isSearchUnderMore) {
+        return null;
+    }
+
+    return (
+        <View style={[styles.flex1, styles.appBG]}>
+            {/* The room the Search page header takes, with the list padded for the type tabs and the search bar as on that page */}
+            <View style={StyleUtils.getHeight(top + contentHeaderHeight)} />
+            <SearchRowSkeleton containerStyle={styles.searchListContentContainerStyles(false)} />
+        </View>
+    );
+}
+
+type NativeTabNavigatorProps = {
     isFlatNavTabBarEnabled?: boolean;
 };
 
-function NativeTabNavigator({getFlatNavSearchSectionID, isFlatNavTabBarEnabled = false}: NativeTabNavigatorProps) {
+function NativeTabNavigator({isFlatNavTabBarEnabled = false}: NativeTabNavigatorProps) {
+    const resolveSearchSectionID = useContext(FlatNavSearchSectionContext);
     const {shouldShowNativeTabBar, dotColors, tabLabels, tabRouterOverride, isTabSelectionEnabled} = useNativeTabNavigator({isFlatNavTabBarEnabled});
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const isTabBarVertical = useIsTabBarVertical();
     const {screenOptions, getTabOptions} = useNativeTabBarOptions({shouldShowNativeTabBar, isTabBarVertical, dotColors, tabLabels});
+    // The More menu entry the More item shows is read from the navigator's current state, like the search key, so its
+    // glyph changes in the same commit as the focused tab.
+    const getMoreTabItemIDFromState = (navigation: {getState: () => NavigationState}) => {
+        const tabState = navigation.getState();
+        return getMoreTabItemID({focusedTabRouteName: getActiveTabRoute(tabState)?.name, activeFlatNavSectionID: getSearchSectionID(resolveSearchSectionID, tabState)});
+    };
+    // A tab with no label has no bar item and draws no icon. It shows under the item of its flat nav slot, or, with no
+    // slot, under the first item with no item shown as selected.
     // The search key is read from the navigator's current state, as the route given here has no nested state, so the bar
-    // selects the new item in the same commit as Search moves.
-    const getSearchSectionID = (navigation: {getState: () => NavigationState}) => getFlatNavSearchSectionID?.(getSearchTabSearchKey(findSearchTabRoute(navigation.getState())));
-    // A tab with no label has no bar item and draws no icon. It is drawn inside the item of its flat nav slot, or, with no
-    // slot, inside the first item with no item shown as selected.
+    // selects the new item in the same commit as the section changes.
     const getScreenOptions = ({route, navigation}: {route: {name: NativeTabRouteName}; navigation: {getState: () => NavigationState}}) =>
         route.name in tabLabels
             ? {
                   ...screenOptions,
-                  ...getTabOptions(route.name),
+                  ...getTabOptions(route.name, route.name === SCREENS.NATIVE_TAB_ITEM.MORE ? getMoreTabItemIDFromState(navigation) : undefined),
                   tabBarSelectionEnabled: isTabSelectionEnabled(route.name),
+                  tabBarItemHiddenRouteName: getFlatNavTabHiddenRouteName(route.name),
               }
-            : {...screenOptions, ...HIDDEN_TAB_OPTIONS, tabBarItemHostRouteName: getFlatNavTabHostRouteName(route.name, getSearchSectionID(navigation))};
+            : {...screenOptions, ...HIDDEN_TAB_OPTIONS, tabBarItemHostRouteName: getFlatNavTabHostRouteName(route.name, getSearchSectionID(resolveSearchSectionID, navigation.getState()))};
 
     const tabNavigator = (
         <>
@@ -107,11 +158,11 @@ function NativeTabNavigator({getFlatNavSearchSectionID, isFlatNavTabBarEnabled =
                     <>
                         <Tab.Screen
                             name={SCREENS.NATIVE_TAB_ITEM.EXPENSES}
-                            component={NativeTabItemPlaceholder}
+                            component={NativeTabSearchItemPlaceholder}
                         />
                         <Tab.Screen
                             name={SCREENS.NATIVE_TAB_ITEM.REPORTS}
-                            component={NativeTabItemPlaceholder}
+                            component={NativeTabSearchItemPlaceholder}
                         />
                         <Tab.Screen
                             name={SCREENS.NATIVE_TAB_ITEM.MORE}
@@ -152,10 +203,9 @@ function FlatNavNativeTabNavigator() {
     const getFlatNavSearchSectionID = useNativeFlatNavSearchSection({isSearchFocused});
 
     return (
-        <NativeTabNavigator
-            isFlatNavTabBarEnabled
-            getFlatNavSearchSectionID={getFlatNavSearchSectionID}
-        />
+        <FlatNavSearchSectionContext.Provider value={getFlatNavSearchSectionID}>
+            <NativeTabNavigator isFlatNavTabBarEnabled />
+        </FlatNavSearchSectionContext.Provider>
     );
 }
 

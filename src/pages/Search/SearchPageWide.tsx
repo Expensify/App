@@ -9,6 +9,7 @@ import {useSearchQueryContext, useSearchSelectionContext} from '@components/Sear
 import SearchLoadingSkeleton from '@components/Search/SearchLoadingSkeleton';
 import SearchActionsBarWide from '@components/Search/SearchPageHeader/SearchActionsBarWide';
 import SearchPageHeaderWide from '@components/Search/SearchPageHeader/SearchPageHeaderWide';
+import SearchResultsSwap from '@components/Search/SearchResultsSwap';
 import SearchSelectionFooter from '@components/Search/SearchSelectionFooter';
 import SearchWithNavigationDeferredMount from '@components/Search/SearchWithNavigationDeferredMount';
 import type {SearchParams, SearchQueryJSON} from '@components/Search/types';
@@ -137,27 +138,32 @@ function SearchPageWide({
                                     onSort={onSortPressedCallback}
                                 />
                                 <View style={styles.flex1}>
-                                    <Animated.View
-                                        key={contentQueryJSON.hash}
-                                        entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
-                                        style={StyleSheet.absoluteFill}
+                                    <SearchResultsSwap
+                                        hash={contentQueryJSON.hash}
+                                        shouldWaitForResults={!shouldShowLoadingSkeleton}
                                     >
-                                        {shouldShowLoadingSkeleton ? (
-                                            <SearchLoadingSkeleton />
-                                        ) : (
-                                            <SearchWithNavigationDeferredMount
-                                                isReplacingContent={isReplacingPreviousContent}
-                                                queryJSON={contentQueryJSON}
-                                                searchResults={contentSearchResults}
-                                                handleSearch={handleSearchAction}
-                                                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                                                onSearchListScroll={scrollHandler}
-                                                onSortPressedCallback={onSortPressedCallback}
-                                                onDestinationVisible={endSubmitNavigationSpans}
-                                                onContentReady={onSearchContentReady}
-                                            />
-                                        )}
-                                    </Animated.View>
+                                        <Animated.View
+                                            key={contentQueryJSON.hash}
+                                            entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
+                                            style={StyleSheet.absoluteFill}
+                                        >
+                                            {shouldShowLoadingSkeleton ? (
+                                                <SearchLoadingSkeleton />
+                                            ) : (
+                                                <SearchWithNavigationDeferredMount
+                                                    isReplacingContent={isReplacingPreviousContent}
+                                                    queryJSON={contentQueryJSON}
+                                                    searchResults={contentSearchResults}
+                                                    handleSearch={handleSearchAction}
+                                                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                                    onSearchListScroll={scrollHandler}
+                                                    onSortPressedCallback={onSortPressedCallback}
+                                                    onDestinationVisible={endSubmitNavigationSpans}
+                                                    onContentReady={onSearchContentReady}
+                                                />
+                                            )}
+                                        </Animated.View>
+                                    </SearchResultsSwap>
                                     {!!searchOverlayContent && <View style={[StyleSheet.absoluteFill, styles.appBG]}>{searchOverlayContent}</View>}
                                     {/* Floats over the bottom of the list, which already ends above SearchSelectionFooter. */}
                                     <SearchBulkActionsBarWide queryJSON={queryJSON} />
