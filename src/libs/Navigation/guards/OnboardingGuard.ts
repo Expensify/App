@@ -1,5 +1,5 @@
 import AccountUtils from '@libs/AccountUtils';
-import {setOnboardingErrorMessage} from '@libs/actions/Welcome';
+import {isServerDataReady, setOnboardingErrorMessage} from '@libs/actions/Welcome';
 import Log from '@libs/Log';
 import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
 import {getDeepestFocusedScreen, isTwoFactorSetupScreen} from '@libs/Navigation/Navigation';
@@ -301,7 +301,8 @@ const OnboardingGuard: NavigationGuard = {
         }
 
         const skipOnboardingConfig = CONFIG.SKIP_ONBOARDING;
-        const isLoading = context.isLoading;
+        // IS_LOADING_APP is persisted as false, so a reopened app also has to wait for this session's first sync
+        const isLoading = context.isLoading || !isServerDataReady();
 
         const shouldSkipOnboarding =
             skipOnboardingConfig ||

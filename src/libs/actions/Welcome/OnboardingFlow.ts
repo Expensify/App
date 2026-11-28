@@ -123,6 +123,11 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
     }
 
     if (isVsbOrSmb) {
+        // A reopened app no longer restores the saved onboarding screen, so resume the later team steps here once a company size is picked
+        const isLaterTeamStep = initialPath.includes(ROUTES.ONBOARDING_INTERESTED_FEATURES.route) || initialPath.includes(ROUTES.ONBOARDING_ACCOUNTING.route);
+        if (isLaterTeamStep && !!currentOnboardingCompanySize) {
+            return initialPath;
+        }
         return `/${ROUTES.ONBOARDING_EMPLOYEES.route}`;
     }
 

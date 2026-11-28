@@ -71,6 +71,48 @@ describe('NavigationRoot initial state', () => {
         expect(getPathFromState(mockCapturedInitialState)).toBe(getPathFromState(getAdaptedStateFromPath(DISTANCE_EDIT_ROUTE as Route)));
     });
 
+    it('does not restore a saved onboarding page on a cold start', async () => {
+        // Given a signed-in user who closed the app while the onboarding modal was open
+        await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+        await waitForBatchedUpdates();
+
+        // When the app starts again without a deep link
+        render(
+            <NavigationRoot
+                authenticated
+                lastVisitedPath={ROUTES.ONBOARDING_PURPOSE.route as Route}
+                initialUrl={null}
+                onReady={() => {}}
+            />,
+        );
+
+        // Then onboarding is not reopened from the cache, because the user may have joined a workspace since then and useOnboardingFlowRouter decides once the server data arrives
+        expect(mockCapturedInitialState).toBeUndefined();
+    });
+
+    it('restores a saved join-workspace task page on a cold start', async () => {
+        // Given an onboarded user who closed the app on the private-domain step of the Concierge join-workspace task
+        await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+        await waitForBatchedUpdates();
+        const joinWorkspaceTaskPath = ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(undefined, true);
+
+        // When the app starts again without a deep link
+        render(
+            <NavigationRoot
+                authenticated
+                lastVisitedPath={joinWorkspaceTaskPath as Route}
+                initialUrl={null}
+                onReady={() => {}}
+            />,
+        );
+
+        // Then the task page is restored, because useOnboardingFlowRouter only resumes core onboarding and can't bring this step back
+        if (!mockCapturedInitialState) {
+            throw new Error('NavigationRoot did not restore an initial state');
+        }
+        expect(getPathFromState(mockCapturedInitialState)).toBe(getPathFromState(getAdaptedStateFromPath(joinWorkspaceTaskPath as Route)));
+    });
+
     it('does not restore the last visited path when the user is signed out', async () => {
         // Given a public domain account whose session is no longer authenticated
         await Onyx.set(ONYXKEYS.ACCOUNT, {isFromPublicDomain: true});

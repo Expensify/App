@@ -10,7 +10,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import Pusher from '@libs/Pusher';
 import {didUserLogInDuringSession, isLoggingInAsNewUser} from '@libs/SessionUtils';
 
-import {openApp} from '@userActions/App';
+import {openApp, reconnectApp} from '@userActions/App';
 import {signOutAndRedirectToSignIn} from '@userActions/Session';
 import {subscribeToUserEvents} from '@userActions/User';
 
@@ -122,6 +122,7 @@ jest.mock('@components/InitialURLContextProvider', () => ({
 }));
 
 jest.mock('@selectors/Onboarding', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@selectors/Onboarding'),
     hasSeenTourSelector: () => false,
 }));
 
@@ -316,6 +317,87 @@ describe('AuthScreensInitHandler', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(openApp).toHaveBeenCalled();
+    });
+
+    it('calls openApp on reopen when the account has not finished onboarding and has no workspace yet', async () => {
+        // Given a reopened app for an account that skipped onboarding and has no workspace in its cache, like a user invited to a workspace after closing the app
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID, email: 'test@test.com'});
+        await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+        await Onyx.set(ONYXKEYS.HAS_NON_PERSONAL_POLICY, false);
+        await waitForBatchedUpdates();
+
+        // When the signed-in screens initialize
+        renderAuthScreensInitHandler();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then OpenApp is sent instead of ReconnectApp, because only OpenApp returns hasNonPersonalPolicy, which decides whether onboarding opens
+        expect(openApp).toHaveBeenCalled();
+        expect(reconnectApp).not.toHaveBeenCalled();
+    });
+
+    it('calls reconnectApp on reopen when the account already belongs to a workspace', async () => {
+        // Given a reopened app for an account that has not finished onboarding but already has a workspace in its cache
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID, email: 'test@test.com'});
+        await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+        await Onyx.set(ONYXKEYS.HAS_NON_PERSONAL_POLICY, true);
+        await waitForBatchedUpdates();
+
+        // When the signed-in screens initialize
+        renderAuthScreensInitHandler();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the lighter ReconnectApp is kept, because onboarding is already skipped for workspace members
+        expect(reconnectApp).toHaveBeenCalled();
+        expect(openApp).not.toHaveBeenCalled();
+    });
+
+    it('calls reconnectApp on reopen when the account was invited to NewDot', async () => {
+        // Given a reopened app for an invited account that has not finished onboarding and has no workspace in its cache
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID, email: 'test@test.com'});
+        await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+        await Onyx.set(ONYXKEYS.HAS_NON_PERSONAL_POLICY, false);
+        await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, {inviteType: CONST.ONBOARDING_INVITE_TYPES.WORKSPACE});
+        await waitForBatchedUpdates();
+
+        // When the signed-in screens initialize
+        renderAuthScreensInitHandler();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then ReconnectApp is kept, because invited accounts skip onboarding and don't need OpenApp to decide it
+        expect(reconnectApp).toHaveBeenCalled();
+        expect(openApp).not.toHaveBeenCalled();
+    });
+
+    it('calls reconnectApp on reopen when the account was migrated from OldDot', async () => {
+        // Given a reopened app for a migrated account that has not finished onboarding and has no workspace in its cache
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID, email: 'test@test.com'});
+        await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+        await Onyx.set(ONYXKEYS.HAS_NON_PERSONAL_POLICY, false);
+        await Onyx.set(ONYXKEYS.NVP_TRY_NEW_DOT, {nudgeMigration: {timestamp: new Date('2026-01-01')}});
+        await waitForBatchedUpdates();
+
+        // When the signed-in screens initialize
+        renderAuthScreensInitHandler();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then ReconnectApp is kept, because migrated accounts skip onboarding, so a full OpenApp on every launch would be wasted
+        expect(reconnectApp).toHaveBeenCalled();
+        expect(openApp).not.toHaveBeenCalled();
+    });
+
+    it('calls reconnectApp on reopen when the account has finished onboarding', async () => {
+        // Given a reopened app for an account that has already finished onboarding and has no workspace
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID, email: 'test@test.com'});
+        await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+        await waitForBatchedUpdates();
+
+        // When the signed-in screens initialize
+        renderAuthScreensInitHandler();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then ReconnectApp is kept, because onboarding can no longer open for this account
+        expect(reconnectApp).toHaveBeenCalled();
+        expect(openApp).not.toHaveBeenCalled();
     });
 
     it('reinitializes ActiveClientManager when not leader and transitioning', async () => {

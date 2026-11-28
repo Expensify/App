@@ -34,6 +34,8 @@ let isLoadingReportData = true;
 // Without this, a stale persisted `false` from a previous session would
 // resolve the onServerDataReady() promise before OpenApp/ReconnectApp completes.
 let hasStartedLoading = false;
+// Stays true after this session's first OpenApp or ReconnectApp finishes, so later reconnects don't count as loading again.
+let hasFinishedFirstSync = false;
 
 let resolveIsReadyPromise: (value?: Promise<void>) => void | undefined;
 let isServerDataReadyPromise = new Promise<void>((resolve) => {
@@ -42,6 +44,11 @@ let isServerDataReadyPromise = new Promise<void>((resolve) => {
 
 function onServerDataReady(): Promise<void> {
     return isServerDataReadyPromise;
+}
+
+/** Whether this session's first OpenApp or ReconnectApp has finished */
+function isServerDataReady(): boolean {
+    return hasFinishedFirstSync;
 }
 
 /**
@@ -249,6 +256,9 @@ Onyx.connectWithoutView({
         // Only resolve once loading has started — this ensures a stale
         // persisted `false` from a previous session is ignored.
         if (hasStartedLoading) {
+            if (!isLoadingReportData) {
+                hasFinishedFirstSync = true;
+            }
             checkServerDataReady();
         }
     },
@@ -267,6 +277,7 @@ function resetAllChecks(shouldKeepPendingCallers = false) {
     }
     isLoadingReportData = true;
     hasStartedLoading = false;
+    hasFinishedFirstSync = false;
 }
 
 function setSelfTourViewed(shouldUpdateOnyxDataOnlyLocally = false) {
@@ -308,6 +319,7 @@ function dismissProductTraining(elementName: string, isDismissedUsingCloseButton
 
 export {
     onServerDataReady,
+    isServerDataReady,
     dismissProductTraining,
     setOnboardingPurposeSelected,
     updateOnboardingLastVisitedPath,
