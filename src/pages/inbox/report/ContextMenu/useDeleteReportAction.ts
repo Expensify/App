@@ -103,6 +103,7 @@ function useDeleteReportAction({reportID, reportAction, onConfirm, onClose, dele
                     chatReportID: reportID,
                     chatReport: report,
                     chatReportActions: reportActions,
+                    transactionThreadReport: childReport,
                     transactionThreadReportActions: childReportActions,
                     transactionID: originalMessage?.IOUTransactionID,
                     reportAction,
