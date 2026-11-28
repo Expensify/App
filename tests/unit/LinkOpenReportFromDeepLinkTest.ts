@@ -1,4 +1,4 @@
-import {navigateToConciergeChat} from '@libs/actions/Report';
+import {navigateToConciergeChat, openReport} from '@libs/actions/Report';
 import {waitForUserSignIn} from '@libs/actions/Session';
 import {setOnboardingErrorMessage} from '@libs/actions/Welcome';
 import {setDeepLinkToOpenAfterOnboarding} from '@libs/navigateAfterOnboarding';
@@ -100,6 +100,19 @@ describe('openReportFromDeepLink before onboarding', () => {
     afterEach(async () => {
         runSessionCleanupCallbacks();
         await waitForBatchedUpdates();
+    });
+
+    it('initializes a report attachment before a fresh visitor has signed in', () => {
+        // Given storage has no session and navigation must wait for the public-room bootstrap
+        jest.mocked(waitForUserSignIn).mockImplementationOnce(() => new Promise<boolean>(() => {}));
+        const route = 'attachment/?type=r&reportID=123#preview';
+
+        // When a fresh visitor opens the attachment directly
+        openReportFromDeepLink(`${APP_URL}/${route}`, {}, false, undefined, undefined, undefined, undefined, 0, {}, undefined);
+
+        // Then OpenReport can establish the anonymous session without waiting for sign-in
+        expect(openReport).toHaveBeenCalledWith(expect.objectContaining({reportID: '123', isFromDeepLink: true}));
+        expect(mockedNavigation.navigate).not.toHaveBeenCalled();
     });
 
     it.each([
