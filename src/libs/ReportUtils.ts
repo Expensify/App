@@ -16118,6 +16118,7 @@ function getTransactionSortValue(
     policy: OnyxEntry<Policy>,
     policyCategories?: PolicyCategories,
     policyTagLists?: PolicyTagLists,
+    accountIDToName?: Record<string, string>,
 ): string | number | undefined {
     switch (key) {
         case CONST.SEARCH.TABLE_COLUMNS.DATE:
@@ -16144,7 +16145,7 @@ function getTransactionSortValue(
         case CONST.SEARCH.TABLE_COLUMNS.TOTAL:
             return Math.abs(transaction.convertedAmount ?? 0);
         case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
-            return Parser.htmlToText(getDescription(transaction));
+            return Parser.htmlToText(getDescription(transaction), {accountIDToName});
         case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE:
             return getReimbursable(transaction) ? 1 : 0;
         case CONST.SEARCH.TABLE_COLUMNS.BILLABLE:

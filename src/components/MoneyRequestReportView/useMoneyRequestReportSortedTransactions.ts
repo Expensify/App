@@ -1,5 +1,6 @@
 import type {SearchSortBy, SortOrder} from '@components/Search/types';
 
+import {useMentionedAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
@@ -97,6 +98,8 @@ function useMoneyRequestReportSortedTransactions({
     policyTagLists,
 }: UseMoneyRequestReportSortedTransactionsParams): UseMoneyRequestReportSortedTransactionsResult {
     const {translate, localeCompare} = useLocalize();
+    // Only the users mentioned in these descriptions are looked up, so edits to anyone else's personal details don't re-render the rows
+    const accountIDToName = useMentionedAccountIDToNameMap(transactions.map((transaction) => transaction.comment?.comment ?? '').join(' '));
     const ownerLoginSelector = personalDetailsLoginSelector(report?.ownerAccountID);
     const [ownerLogin] = useAllPersonalDetails(ownerLoginSelector);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
@@ -132,7 +135,10 @@ function useMoneyRequestReportSortedTransactions({
     // Some sort values, like the vendor name, scan a whole workspace list to resolve, so each transaction's value is
     // resolved once here instead of twice on every comparison.
     const sortValueByTransactionID = new Map(
-        transactions.map((transaction) => [transaction.transactionID, getTransactionSortValue(translate, transaction, sortBy, report, policy, policyCategories, policyTagLists)]),
+        transactions.map((transaction) => [
+            transaction.transactionID,
+            getTransactionSortValue(translate, transaction, sortBy, report, policy, policyCategories, policyTagLists, accountIDToName),
+        ]),
     );
     const sortedTransactions: TransactionWithOptionalHighlight[] = [...transactions].sort((a, b) =>
         compareValues(sortValueByTransactionID.get(a.transactionID), sortValueByTransactionID.get(b.transactionID), sortOrder, sortBy, localeCompare, true),

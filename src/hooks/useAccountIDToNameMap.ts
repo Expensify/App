@@ -1,6 +1,6 @@
 import type {PersonalDetailsList} from '@src/types/onyx';
 
-import {useAllPersonalDetails} from './usePersonalDetails';
+import {useAllPersonalDetailsWithoutSnapshots} from './usePersonalDetails';
 
 /** Mapping from accountID to user name (login or displayName). */
 type AccountIDToNameMap = Record<string, string>;
@@ -34,7 +34,8 @@ function buildAccountIDToNameMap(personalDetailsList: PersonalDetailsList | unde
 
 /** Returns an accountID -> name (login or displayName) map built from PERSONAL_DETAILS_LIST. */
 function useAccountIDToNameMap(): AccountIDToNameMap {
-    const [personalDetailsList] = useAllPersonalDetails();
+    // Mentions resolve against the live list, like MentionUserRenderer, since a Search snapshot can leave out a mentioned account.
+    const [personalDetailsList] = useAllPersonalDetailsWithoutSnapshots();
     return buildAccountIDToNameMap(personalDetailsList);
 }
 
@@ -44,7 +45,9 @@ function useAccountIDToNameMap(): AccountIDToNameMap {
  */
 function useMentionedAccountIDToNameMap(htmlString: string | undefined): AccountIDToNameMap {
     const mentionedAccountIDs = getMentionedAccountIDs(htmlString);
-    const [accountIDToName = EMPTY_ACCOUNT_ID_TO_NAME_MAP] = useAllPersonalDetails((personalDetailsList) => buildAccountIDToNameMap(personalDetailsList, mentionedAccountIDs));
+    const [accountIDToName = EMPTY_ACCOUNT_ID_TO_NAME_MAP] = useAllPersonalDetailsWithoutSnapshots((personalDetailsList) =>
+        buildAccountIDToNameMap(personalDetailsList, mentionedAccountIDs),
+    );
     return accountIDToName;
 }
 

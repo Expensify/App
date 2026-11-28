@@ -6,6 +6,7 @@ import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationLi
 import MoneyRequestHeaderStatusBar from '@components/MoneyRequestHeaderStatusBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 
+import {useMentionedAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
@@ -68,6 +69,7 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
 
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(IOUTransactionID)}`);
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${IOUTransactionID}`);
+    const accountIDToName = useMentionedAccountIDToNameMap(draftTransaction?.comment?.comment);
     const [personalDetails] = useAllPersonalDetails();
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
     const [session] = useOnyx(ONYXKEYS.SESSION);
@@ -161,6 +163,7 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
             formatPhoneNumber,
             rules,
             personalDetailsByLogins: getPersonalDetailsByLogin(),
+            accountIDToName,
         });
         cleanupAfterExpenseCreate({draftTransactionIDs: [CONST.IOU.OPTIMISTIC_TRANSACTION_ID], shouldWaitForUpcomingTransition: true});
         dismissModalAndOpenReportInInboxTab(reportID, undefined, hasChatReportTransactions);

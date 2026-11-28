@@ -11,6 +11,7 @@ import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionAction
 import type {SplitListItemType} from '@components/SelectionList/ListItem/types';
 import TabSelector from '@components/TabSelector/TabSelector';
 
+import {buildAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 import useAllTransactions from '@hooks/useAllTransactions';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -443,6 +444,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
             isTrackIntentUser: isTrackIntentUserSelector(introSelected),
             formatPhoneNumber,
             rules,
+            accountIDToName: buildAccountIDToNameMap(personalDetails ?? undefined),
         });
     };
 

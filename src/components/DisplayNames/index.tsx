@@ -23,9 +23,10 @@ function DisplayNames({
     shouldParseFullTitle = true,
     accessibilityLabel,
     isSelectable = false,
+    accountIDToName,
 }: DisplayNamesProps) {
     const {translate} = useLocalize();
-    const processedTitle = shouldParseFullTitle ? Parser.htmlToText(fullTitle) : fullTitle;
+    const processedTitle = shouldParseFullTitle ? Parser.htmlToText(fullTitle, {accountIDToName}) : fullTitle;
     const title = StringUtils.lineBreaksToSpaces(processedTitle) || translate('common.hidden');
 
     if (!tooltipEnabled) {

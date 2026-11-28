@@ -123,6 +123,7 @@ type UpdateSplitTransactionsData = {
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
     rules: OnyxCollection<OnyxTypes.Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
+    accountIDToName?: Record<string, string>;
 };
 
 type UpdateSplitTransactionsParams = UpdateSplitTransactionsData & {
@@ -352,6 +353,7 @@ function updateSplitTransactions({
     getCurrencySymbol,
     rules,
     isVendorMatchingBetaEnabled,
+    accountIDToName,
 }: UpdateSplitTransactionsParams) {
     const parentTransactionReport = getReportOrDraftReport({
         reportID: transactionReport?.parentReportID,
@@ -487,7 +489,7 @@ function updateSplitTransactions({
 
     const splits: SplitTransactionSplitsParam =
         splitExpenses.map((split) => {
-            const currentDescription = getParsedComment(Parser.htmlToMarkdown(split.description ?? ''));
+            const currentDescription = getParsedComment(Parser.htmlToMarkdown(split.description ?? '', {accountIDToName}));
             changesInReportTotal += split.amount;
             return {
                 amount: split.amount,
@@ -979,7 +981,7 @@ function updateSplitTransactions({
         }
 
         const {participantParams, policyParams, transactionParams, parentChatReport, existingTransaction} = requestMoneyInformation;
-        const parsedComment = getParsedComment(Parser.htmlToMarkdown(transactionParams.comment ?? ''));
+        const parsedComment = getParsedComment(Parser.htmlToMarkdown(transactionParams.comment ?? '', {accountIDToName}));
         transactionParams.comment = parsedComment;
 
         const splitExpenseIOUReportPolicyID =

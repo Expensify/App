@@ -2,6 +2,7 @@ import {useSearchQueryContext, useSearchResultsContext} from '@components/Search
 import type {SearchListItem, TransactionGroupListItemType, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {SearchColumnType, SearchData, SearchQueryJSON, SelectedTransactions} from '@components/Search/types';
 
+import {buildAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -254,6 +255,8 @@ function useSearchSnapshot({queryJSON, searchResults, transactions, reportAction
                   reportAttributesDerivedValue: reportAttributesForSections,
                   optimisticTransactionID,
                   shouldReturnTripRooms,
+                  // Only task and expense report sections parse names, so other types skip building the map.
+                  accountIDToName: isTask || isExpenseReportType ? buildAccountIDToNameMap(onyxPersonalDetailsList ?? undefined) : undefined,
               }
             : undefined,
     );

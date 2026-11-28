@@ -2127,6 +2127,7 @@ function convertBulkTrackedExpensesToIOU({
     rules,
     isVendorMatchingBetaEnabled,
     chatReportActions,
+    accountIDToName,
 }: {
     isVendorMatchingBetaEnabled: boolean | undefined;
     transactions: OnyxTypes.Transaction[];
@@ -2147,6 +2148,7 @@ function convertBulkTrackedExpensesToIOU({
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<OnyxTypes.Rule>;
     chatReportActions: OnyxEntry<OnyxTypes.ReportActions>;
+    accountIDToName?: Record<string, string>;
 }) {
     const iouReportID = iouReport?.reportID;
 
@@ -2199,7 +2201,7 @@ function convertBulkTrackedExpensesToIOU({
         const actionableWhisperReportActionID = getTrackExpenseActionableWhisper(transactionID, selfDMReportID, selfDMReportActions)?.reportActionID;
 
         const commentText = typeof transaction.comment === 'string' ? transaction.comment : (transaction.comment?.comment ?? '');
-        const parsedComment = getParsedComment(Parser.htmlToMarkdown(commentText));
+        const parsedComment = getParsedComment(Parser.htmlToMarkdown(commentText, {accountIDToName}));
 
         const attendees = transaction.comment?.attendees;
 

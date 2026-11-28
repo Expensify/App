@@ -2,6 +2,7 @@ import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleCon
 import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 import type {SelectedReports} from '@components/Search/types';
 
+import {buildAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import {getPolicyTagsSelector} from '@hooks/useParticipantsPolicyTags';
 
@@ -637,7 +638,12 @@ function shouldDuplicateAsManualDistance(transaction: OnyxTypes.Transaction, sho
  * Builds the transactionParams object and computes waypoints used when duplicating a transaction.
  * Shared between duplicateExpenseTransaction and duplicateReport.
  */
-function buildDuplicateTransactionParams(transaction: OnyxTypes.Transaction, transactionDetails: ReturnType<typeof getTransactionDetails>, shouldDuplicateSelfDMExpense = false) {
+function buildDuplicateTransactionParams(
+    transaction: OnyxTypes.Transaction,
+    transactionDetails: ReturnType<typeof getTransactionDetails>,
+    shouldDuplicateSelfDMExpense = false,
+    accountIDToName?: Record<string, string>,
+) {
     const {linkedTrackedExpenseReportAction, ...transactionWithoutLinkedAction} = transaction;
     const isManualDistanceDuplicate = shouldDuplicateAsManualDistance(transaction, shouldDuplicateSelfDMExpense);
     const shouldKeepWaypoints = !isExpenseSplit(transaction) && !isManualDistanceDuplicate;
@@ -652,7 +658,7 @@ function buildDuplicateTransactionParams(transaction: OnyxTypes.Transaction, tra
         originalAmount: undefined,
         actionableWhisperReportActionID: undefined,
         attendees: transactionDetails?.attendees as Attendee[] | undefined,
-        comment: Parser.htmlToMarkdown(transactionDetails?.comment ?? ''),
+        comment: Parser.htmlToMarkdown(transactionDetails?.comment ?? '', {accountIDToName}),
         created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
         customUnitRateID: transaction.comment?.customUnit?.customUnitRateID,
         isFromGlobalCreate: undefined,
@@ -723,6 +729,7 @@ function createExpenseByType({
     participantsPolicyTags,
     policyTags,
     rules,
+    accountIDToName,
 }: {
     transactionType: string;
     params: DuplicateRequestMoneyInformation;
@@ -740,6 +747,7 @@ function createExpenseByType({
     participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
     policyTags: OnyxTypes.PolicyTagLists;
     rules: OnyxCollection<OnyxTypes.Rule>;
+    accountIDToName?: Record<string, string>;
 }) {
     switch (transactionType) {
         case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE: {
@@ -768,7 +776,7 @@ function createExpenseByType({
                 },
                 transactionParams: {
                     ...(params.transactionParams ?? {}),
-                    comment: Parser.htmlToMarkdown(transactionDetails?.comment ?? ''),
+                    comment: Parser.htmlToMarkdown(transactionDetails?.comment ?? '', {accountIDToName}),
                     validWaypoints: waypoints,
                     modifiedAmount: transactionDetails?.amount,
                     distanceRequestType: duplicateRequestType,
@@ -844,6 +852,7 @@ type DuplicateExpenseTransactionParams = {
     rules: OnyxCollection<OnyxTypes.Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
     personalDetailsByLogins: PersonalDetailsByLogin;
+    accountIDToName?: Record<string, string>;
 };
 
 function duplicateExpenseTransaction({
@@ -880,6 +889,7 @@ function duplicateExpenseTransaction({
     rules,
     isVendorMatchingBetaEnabled,
     personalDetailsByLogins,
+    accountIDToName,
 }: DuplicateExpenseTransactionParams) {
     if (!transaction) {
         return;
@@ -891,7 +901,7 @@ function duplicateExpenseTransaction({
     // A duplicate mirrors the source, so an unreported source stays unreported even when a workspace is available
     const isSourceUnreported = !transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const shouldDuplicateSelfDMExpense = !targetPolicy || isSourceUnreported;
-    const {transactionParams, waypoints} = buildDuplicateTransactionParams(transaction, transactionDetails, shouldDuplicateSelfDMExpense);
+    const {transactionParams, waypoints} = buildDuplicateTransactionParams(transaction, transactionDetails, shouldDuplicateSelfDMExpense, accountIDToName);
     const duplicateRequestType = getDuplicateRequestType(transaction, shouldDuplicateSelfDMExpense);
 
     const params: DuplicateRequestMoneyInformation = {
@@ -1009,6 +1019,7 @@ function duplicateExpenseTransaction({
         participantsPolicyTags,
         policyTags: targetPolicyTags ?? {},
         rules,
+        accountIDToName,
     });
 }
 
@@ -1041,6 +1052,7 @@ type DuplicateReportParams = {
     rules: OnyxCollection<OnyxTypes.Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
     personalDetailsByLogins: PersonalDetailsByLogin;
+    accountIDToName?: Record<string, string>;
 };
 
 /**
@@ -1128,6 +1140,7 @@ function duplicateReport({
     rules,
     isVendorMatchingBetaEnabled,
     personalDetailsByLogins,
+    accountIDToName,
 }: DuplicateReportParams) {
     if (!targetPolicy || !parentChatReport) {
         return;
@@ -1209,7 +1222,7 @@ function duplicateReport({
         }
 
         const isLastExpense = i === eligibleTransactions.length - 1;
-        const {transactionParams, waypoints} = buildDuplicateTransactionParams(transaction, transactionDetails);
+        const {transactionParams, waypoints} = buildDuplicateTransactionParams(transaction, transactionDetails, false, accountIDToName);
 
         const params: DuplicateRequestMoneyInformation = {
             isVendorMatchingBetaEnabled,
@@ -1280,6 +1293,7 @@ function duplicateReport({
             participantsPolicyTags,
             policyTags: targetPolicyTags ?? {},
             rules,
+            accountIDToName,
         });
 
         if (result?.iouReport) {
@@ -1359,6 +1373,7 @@ function bulkDuplicateExpenses({
         return;
     }
 
+    const accountIDToName = buildAccountIDToNameMap(personalDetails ?? undefined);
     const optimisticChatReportID = generateReportID();
 
     // These are mutable: when the current IOU report can't accept more
@@ -1471,6 +1486,7 @@ function bulkDuplicateExpenses({
             participantsPolicyTags,
             conciergeChat,
             rules,
+            accountIDToName,
         });
 
         if (result?.iouReport) {
@@ -1575,6 +1591,7 @@ async function bulkDuplicateReports({
         transactionsByReportID.set(transaction.reportID, list);
     }
 
+    const accountIDToName = buildAccountIDToNameMap(personalDetails ?? undefined);
     let hasDuplicatedReport = false;
     const accountIDAtStart = getCurrentUserAccountIDFromSession();
 
@@ -1653,6 +1670,7 @@ async function bulkDuplicateReports({
             participantsPolicyTags,
             conciergeChat,
             rules,
+            accountIDToName,
         });
 
         hasDuplicatedReport = true;

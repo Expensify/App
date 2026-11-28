@@ -6,6 +6,7 @@ import type LastSearchParams from '@src/types/onyx/ReportNavigation';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {buildAccountIDToNameMap} from './useAccountIDToNameMap';
 import useActionLoadingReportIDs from './useActionLoadingReportIDs';
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
@@ -68,6 +69,8 @@ function useSearchSections(): UseSearchSectionsResult {
             conciergeReportID,
             convertToDisplayString,
             reportAttributesDerivedValue,
+            // The snapshot already carries the personal details of its rows, so there's no need to subscribe to the whole list.
+            accountIDToName: buildAccountIDToNameMap(searchResultsData.personalDetailsList),
         });
         results = getSortedSections(type, searchData, localeCompare, translate, getEffectiveSortBy(lastSearchQuery?.queryJSON), sortOrder, groupBy).map((value) => value.reportID);
     }

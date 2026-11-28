@@ -33,6 +33,7 @@ import {
     getChildTransactions,
     getDeleteConfirmationPrompt,
     getDeleteExpenseTitle,
+    getDescription,
     getOriginalTransactionWithSplitInfo,
     hasCustomUnitOutOfPolicyViolation as hasCustomUnitOutOfPolicyViolationTransactionUtils,
     hasAppliedCommuterExclusion,
@@ -59,6 +60,7 @@ import {policyExpenseChatSelector} from '@selectors/Report';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import {useRef} from 'react';
 
+import {useMentionedAccountIDToNameMap} from './useAccountIDToNameMap';
 import useBlockDistanceRequest from './useBlockDistanceRequest';
 import useConfirmModal from './useConfirmModal';
 import {useCurrencyListActions} from './useCurrencyList';
@@ -143,6 +145,8 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     const personalPolicy = usePersonalPolicy();
     const restrictedActionPolicyID = useRestrictedActionPolicyID(policy);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`);
+    // Only the users mentioned in the descriptions that can be duplicated are looked up, keyed by accountID.
+    const accountIDToName = useMentionedAccountIDToNameMap([transaction, ...nonPendingDeleteTransactions].map(getDescription).join(' '));
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`);
     const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(requestParentReportAction);
     const [chatIOUReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(iouReport?.chatReportID)}`);
@@ -321,6 +325,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 participantsPolicyTags,
                 conciergeChat,
                 rules,
+                accountIDToName,
             });
         }
     };
@@ -510,6 +515,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                     participantsPolicyTags: reportDuplicateParticipantsPolicyTags,
                     conciergeChat,
                     rules,
+                    accountIDToName,
                 });
             },
         },

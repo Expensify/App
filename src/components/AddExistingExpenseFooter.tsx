@@ -1,3 +1,4 @@
+import {buildAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 import useChangeTransactionsReportReports from '@hooks/useChangeTransactionsReportReports';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -104,6 +105,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
                         formatPhoneNumber,
                         rules,
                         chatReportActions,
+                        accountIDToName: buildAccountIDToNameMap(personalDetails ?? undefined),
                     });
                 } else {
                     changeTransactionsReport({

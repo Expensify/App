@@ -5,6 +5,7 @@ import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import StatusBadge from '@components/StatusBadge';
 import TransactionItemRow from '@components/TransactionItemRow';
 
+import {buildAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
@@ -119,6 +120,7 @@ function SearchStaticList({
             conciergeReportID,
             convertToDisplayString,
             reportAttributesDerivedValue: undefined,
+            accountIDToName: buildAccountIDToNameMap(searchData.personalDetailsList),
         });
 
         return getSortedSections(type, filteredData, localeCompare, translate, getEffectiveSortBy(queryJSON), sortOrder, validGroupBy)

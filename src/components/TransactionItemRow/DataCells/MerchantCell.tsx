@@ -4,6 +4,7 @@ import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 
+import {useMentionedAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -30,8 +31,9 @@ function MerchantOrDescriptionCell({merchantOrDescription, shouldShowTooltip, sh
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const inputRef = useRef<ComponentRef<typeof RNTextInput> | null>(null);
+    const accountIDToName = useMentionedAccountIDToNameMap(isDescription ? merchantOrDescription : undefined);
 
-    const text = !isDescription ? merchantOrDescription : StringUtils.lineBreaksToSpaces(Parser.htmlToText(merchantOrDescription));
+    const text = !isDescription ? merchantOrDescription : StringUtils.lineBreaksToSpaces(Parser.htmlToText(merchantOrDescription, {accountIDToName}));
 
     // Normalize merchant values for save/equality checks (descriptions can keep whitespace)
     const getNormalizedValue = (value: string) => (isDescription ? value : value.trim());

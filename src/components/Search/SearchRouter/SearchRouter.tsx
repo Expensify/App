@@ -10,6 +10,7 @@ import {isSearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQu
 import type {SearchQueryString} from '@components/Search/types';
 import type {SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 
+import {useMentionedAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
@@ -37,6 +38,7 @@ import type {SearchOption} from '@libs/OptionsListUtils';
 import {createOptionFromReport} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {getAllTaxRates} from '@libs/PolicyUtils';
+import {getReportActionHtml} from '@libs/ReportActionsUtils';
 import {isHiddenForCurrentUser, isInvoiceReport, isMoneyRequestReport, isOneOnOneChat} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getTrimmedUserSearchQueryPreservingComma} from '@libs/SearchAutocompleteUtils';
@@ -232,6 +234,11 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
 
     const contextualReport = useReportOrReportDraft(contextualReportID);
     const contextualReportParentAction = useParentReportAction(contextualReport, {shouldIgnoreThreadReplies: true});
+    // A thread's display name comes from its parent action's message, which can hold mentions that reportName and lastMessageHtml don't.
+    const contextualReportMentionSource = contextualReport
+        ? `${contextualReport.reportName ?? ''} ${contextualReport.lastMessageHtml ?? ''} ${getReportActionHtml(contextualReportParentAction)}`
+        : undefined;
+    const accountIDToName = useMentionedAccountIDToNameMap(contextualReportMentionSource);
     const [contextualReportPendingDeleteMemberAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${getNonEmptyStringOnyxID(contextualReport?.reportID)}`, {
         selector: pendingDeleteMemberAccountIDsSelector,
     });
@@ -341,7 +348,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                         text: StringUtils.lineBreaksToSpaces(
                             `${translate('search.searchIn')} ${
                                 shouldParserToHTML
-                                    ? Parser.htmlToText(reportForContextualSearch.text ?? reportForContextualSearch.alternateText ?? '')
+                                    ? Parser.htmlToText(reportForContextualSearch.text ?? reportForContextualSearch.alternateText ?? '', {accountIDToName})
                                     : (reportForContextualSearch.text ?? reportForContextualSearch.alternateText ?? '')
                             }`,
                         ),

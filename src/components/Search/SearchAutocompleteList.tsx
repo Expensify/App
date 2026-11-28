@@ -7,6 +7,7 @@ import type {ListItem as NewListItem, ListItemProps} from '@components/Selection
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {Section, SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 
+import {buildAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 import useAutocompleteSuggestions from '@hooks/useAutocompleteSuggestions';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -233,6 +234,7 @@ function SearchAutocompleteList({
     const transactionThreadIDs = sortedReportActionsData?.transactionThreadIDs;
     const lastActions = sortedReportActionsData?.lastActions;
     const personalDetails = usePersonalDetails();
+    const accountIDToName = buildAccountIDToNameMap(personalDetails ?? undefined);
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [personalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
@@ -648,7 +650,7 @@ function SearchAutocompleteList({
             ...option,
             keyForList,
             pressableStyle: styles.br2,
-            text: StringUtils.lineBreaksToSpaces(shouldParserToHTML ? Parser.htmlToText(option.text ?? '') : (option.text ?? '')),
+            text: StringUtils.lineBreaksToSpaces(shouldParserToHTML ? Parser.htmlToText(option.text ?? '', {accountIDToName}) : (option.text ?? '')),
         } as AutocompleteListItem;
     });
     const skeletonHeader = (
