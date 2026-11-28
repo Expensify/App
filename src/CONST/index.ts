@@ -6636,6 +6636,8 @@ const CONST = {
         DEFAULT: 'default',
     },
     SUBSCRIPTION: {
+        /** Href marker for the #admins room link inside subscription tooltip copy */
+        ADMINS_ROOM_LINK: 'adminsRoom',
         TEAM_2025_PRICING_START_DATE: new Date(2025, 3, 1),
         PRICING_TYPE_2025: 'team2025Pricing',
         EARLY_RENEWAL: {
@@ -6652,6 +6654,22 @@ const CONST = {
             ANNUAL: 'yearly2018',
             PAY_PER_USE: 'monthly2018',
             INVOICING: 'invoicing2018',
+        },
+        PLAN_CARD: {
+            CODE_MENU: {
+                ADD: 'add',
+                HIDDEN: 'hidden',
+            },
+            TYPE_LABEL: {
+                ANNUAL: 'annual',
+                PAY_PER_USE: 'payPerUse',
+            },
+            AUTO_RENEW_ACTION: {
+                DELEGATE: 'delegate',
+                ENABLE: 'enable',
+                SURVEY: 'survey',
+                DISABLE: 'disable',
+            },
         },
     },
     EXPENSE_RULES: {

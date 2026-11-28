@@ -161,16 +161,43 @@ describe('ExpensifyCodePage', () => {
         expect(applyExpensifyCode).toHaveBeenCalledWith('HappyDays100Off');
     });
 
-    it('show NotFoundPage when subscription already has expensifyCode', async () => {
+    it('shows NotFoundPage when a visible code is already applied', async () => {
+        // Given a visible applied code, because the card already shows it and this page must not offer a replacement
         await TestHelper.signInWithTestUser();
         await act(async () => {
             await Onyx.set(ONYXKEYS.NVP_PRIVATE_PROMO_CODE, 'APPLIED_CODE');
+            await Onyx.set(ONYXKEYS.NVP_PRIVATE_PROMO_DISCOUNT, 20);
+            await Onyx.set(ONYXKEYS.NVP_PRIVATE_PROMO_CODE_VALID_BILLING_CYCLES, 3);
         });
         await waitForBatchedUpdatesWithAct();
 
+        // When the code page opens
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
+        // Then the page is Not Found, because an applied code cannot be replaced from here
+        expect(screen.getByTestId('NotFoundPage')).toBeOnTheScreen();
+        expect(screen.queryByText('APPLIED_CODE')).not.toBeOnTheScreen();
+    });
+
+    it('shows NotFoundPage when the applied code is secret', async () => {
+        // Given a secret promo, because that code must not be editable from this page
+        await TestHelper.signInWithTestUser();
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.NVP_PRIVATE_PROMO_CODE, 'SECRET_CODE');
+            await Onyx.set(ONYXKEYS.NVP_PRIVATE_PROMO_DISCOUNT, {
+                isSecretPromoCode: true,
+                monthlySubscriptionDiscount: 20,
+                yearlySubscriptionDiscount: 20,
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // When the code page opens
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the page is Not Found, because a secret code cannot be replaced here
         expect(screen.getByTestId('NotFoundPage')).toBeOnTheScreen();
         expect(screen.queryByRole('button', {name: TestHelper.translateLocal('subscription.expensifyCode.apply')})).not.toBeOnTheScreen();
     });

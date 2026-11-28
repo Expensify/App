@@ -32,7 +32,7 @@ function SubscriptionExpiringSoonBanner({endDate}: SubscriptionExpiringSoonBanne
                 <Button
                     sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.EXPIRING_SOON_BANNER_MANAGE}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
-                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_SETTINGS_DETAILS)}
+                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.route)}
                 >
                     <Button.Text>{translate('subscription.billingBanner.subscriptionExpiringSoon.manage')}</Button.Text>
                 </Button>

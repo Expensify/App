@@ -12780,6 +12780,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             saveWithExpensifyTitle: 'Sparen mit der Expensify Karte',
             saveWithExpensifyDescription: 'Verwenden Sie unseren Einsparungsrechner, um zu sehen, wie das Cashback der Expensify Karte Ihre Expensify Rechnung reduzieren kann.',
             saveWithExpensifyButton: 'Mehr erfahren',
+            plan: 'Plan',
         },
         compareModal: {
             comparePlans: 'Tarife vergleichen',
@@ -12791,11 +12792,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             creditBalance: 'Guthaben',
             taxExempt: 'Steuerbefreiungsstatus beantragen',
             taxExemptEnabled: 'Steuerbefreit',
-            taxExemptStatus: 'Steuerbefreiungsstatus',
             payPerUse: 'Nutzungsgbühr',
             subscriptionSize: 'Abonnementgröße',
-            headsUp:
-                'Hinweis: Wenn du deine Abonnementgröße jetzt nicht festlegst, setzen wir sie automatisch auf die Anzahl der aktiven Mitglieder in deinem ersten Monat. Du verpflichtest dich dann, für mindestens diese Anzahl von Mitgliedern in den nächsten 12 Monaten zu zahlen. Du kannst deine Abonnementgröße jederzeit erhöhen, aber du kannst sie erst verringern, wenn dein Abonnement abgelaufen ist.',
             zeroCommitment: 'Keine Verpflichtung zum vergünstigten Jahresabonnementpreis',
         },
         subscriptionSize: {
@@ -12867,29 +12865,34 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         },
         subscriptionSettings: {
             title: 'Abonnementeinstellungen',
-            summary: (subscriptionType: string, subscriptionSize: string, expensifyCode: string, autoRenew: string, autoIncrease: string) =>
-                `Abonnementstyp: ${subscriptionType}, Abonnementgröße: ${subscriptionSize}${expensifyCode ? `, Expensify-Code: ${expensifyCode}` : ''}, Automatische Verlängerung: ${autoRenew}, Automatische jährliche Sitzplatzerhöhung: ${autoIncrease}`,
-            none: 'keine',
-            on: 'an',
-            off: 'aus',
             annual: 'Jährlich',
             autoRenew: 'Automatisch verlängern',
             autoIncrease: 'Jährliche Plätze automatisch erhöhen',
-            saveUpTo: (amountWithCurrency: string) => `Spare bis zu ${amountWithCurrency}/Monat pro aktivem Mitglied`,
-            automaticallyIncrease:
-                'Erhöhe deine jährlichen Plätze automatisch, um aktive Mitglieder zu berücksichtigen, die deine Abonnementgröße überschreiten. Hinweis: Dadurch wird das Enddatum deines Jahresabonnements verlängert.',
             disableAutoRenew: 'Automatische Verlängerung deaktivieren',
             helpUsImprove: 'Hilf uns, Expensify zu verbessern',
             whatsMainReason: 'Was ist der Hauptgrund, warum du die automatische Verlängerung deaktivierst?',
             renewsOn: (date: string) => `Verlängert sich am ${date}.`,
             pricingConfiguration: 'Die Preise hängen von der Konfiguration ab. Wählen Sie für den niedrigsten Preis ein Jahresabonnement und nutzen Sie die Expensify Karte.',
             learnMore: (hasAdminsRoom: boolean) =>
-                `<muted-text>Erfahre mehr auf unserer <a href="${CONST.PRICING}">Preisseite</a> oder chatte mit unserem Team in deinem ${hasAdminsRoom ? `<a href="adminsRoom">#admins-Raum.</a>` : '#admins-Raum.'}</muted-text>`,
+                `<muted-text>Erfahren Sie mehr auf unserer <a href="${CONST.PRICING}">Preisseite</a> oder chatten Sie mit unserem Team in Ihrem ${hasAdminsRoom ? `<a href="${CONST.SUBSCRIPTION.ADMINS_ROOM_LINK}">#admins-Raum.</a>` : '#admins-Raum.'}</muted-text>`,
             estimatedPrice: 'Geschätzter Preis',
             changesBasedOn: 'Dies ändert sich basierend auf Ihrer Nutzung der Expensify Karte und den untenstehenden Abooptionen.',
             collectBillingDescription: 'Collect-Arbeitsbereiche werden monatlich pro Mitglied ohne jährliche Verpflichtung abgerechnet.',
             pricing: 'Preise',
-            editSubscription: 'Abonnement bearbeiten',
+            subscriptionType: 'Abonnementstyp',
+            memberCount: ({count}: {count: number}) => ({
+                one: '1 Mitglied',
+                other: `${count} Mitglieder`,
+            }),
+            sizeNotSet: `<muted-text-label>Wenn Sie Ihre Abonnementgröße jetzt nicht festlegen, legen wir sie automatisch basierend auf der Anzahl der aktiven Mitglieder in Ihrem ersten Monat fest. <a href="${CONST.PRICING}">Mehr erfahren</a></muted-text-label>`,
+            expensifyCodeApplied: (code: string) => `${code} angewendet`,
+            addExpensifyCode: 'Expensify-Code hinzufügen',
+            saveWithAnnualSubscription: 'Sparen Sie mit einem Jahresabonnement',
+            autoIncreaseDescription: (amountWithCurrency: string) =>
+                `Sparen Sie bis zu ${amountWithCurrency}/Monat pro aktivem Mitglied. Zusätzliche Plätze werden automatisch hinzugefügt, wenn aktive Nutzer:innen Ihr Abonnement überschreiten, wodurch sich Ihr jährliches Enddatum verlängert.`,
+            annualSavingsDescription: (hasAdminsRoom: boolean) =>
+                `<muted-text>Wählen Sie für den niedrigsten Preis ein Jahresabonnement und holen Sie sich die Expensify Karte. Erfahren Sie mehr auf unserer <a href="${CONST.PRICING}">Preisseite</a> oder chatten Sie mit unserem Team in Ihrem ${hasAdminsRoom ? `<a href="${CONST.SUBSCRIPTION.ADMINS_ROOM_LINK}">#admins-Raum.</a>` : '#admins-Raum.'}</muted-text>`,
+            secretExpensifyCodeApplied: 'Expensify-Code angewendet',
         },
         cancelSubscription: {
             title: 'Abonnement kündigen',

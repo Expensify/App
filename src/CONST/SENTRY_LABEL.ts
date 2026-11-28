@@ -1,3 +1,5 @@
+import SUBSCRIPTION_SENTRY_LABEL from './subscriptionSentryLabel';
+
 const SENTRY_LABEL = {
     TEXT_INPUT: {
         FIELD: 'TextInput-Field',
@@ -3524,39 +3526,7 @@ const SENTRY_LABEL = {
         PERSONAL_KARMA_SWITCH: 'SettingsTeachersUnite-PersonalKarmaSwitch',
         UPDATE_EMAIL_BUTTON: 'SettingsTeachersUnite-UpdateEmailButton',
     },
-    SETTINGS_SUBSCRIPTION: {
-        EXPLORE_PLANS: 'SettingsSubscription-ExplorePlans',
-        PAYMENT_CARD_MENU_ITEM: {
-            CHANGE_CARD: 'SettingsSubscription-PaymentCardMenuItem-ChangeCard',
-            CHANGE_CURRENCY: 'SettingsSubscription-PaymentCardMenuItem-ChangeCurrency',
-        },
-        SAVE_WITH_EXPENSIFY: 'SettingsSubscription-SaveWithExpensify',
-        RETRY_PAYMENT: 'SettingsSubscription-RetryPayment',
-        AUTHENTICATE_PAYMENT: 'SettingsSubscription-AuthenticatePayment',
-        VIEW_PAYMENT_HISTORY: 'SettingsSubscription-ViewPaymentHistory',
-        PAYMENT_HISTORY_ROW: 'SettingsSubscription-PaymentHistoryRow',
-        PAYMENT_ACTIVITY_ROW: 'SettingsSubscription-PaymentActivityRow',
-        VIEW_BILLING_RECEIPT: 'SettingsSubscription-ViewBillingReceipt',
-        REQUEST_REFUND: 'SettingsSubscription-RequestRefund',
-        CANCEL_SUBSCRIPTION: 'SettingsSubscription-CancelSubscription',
-        AUTO_RENEW_SWITCH: 'SettingsSubscription-AutoRenewSwitch',
-        AUTO_INCREASE_SWITCH: 'SettingsSubscription-AutoIncreaseSwitch',
-        ADD_PAYMENT_CARD: 'SettingsSubscription-AddPaymentCard',
-        BILLING_CURRENCY: 'SettingsSubscription-BillingCurrency',
-        CANCEL_SUBSCRIPTION_DONE: 'SettingsSubscription-CancelSubscriptionDone',
-        EARLY_RENEWAL_BANNER_CLAIM: 'SettingsSubscription-EarlyRenewalBannerClaim',
-        EARLY_RENEWAL_BANNER_RENEW: 'SettingsSubscription-EarlyRenewalBannerRenew',
-        EDIT_SUBSCRIPTION: 'SettingsSubscription-EditSubscription',
-        EXPENSIFY_CODE: 'SettingsSubscription-ExpensifyCode',
-        EXPIRING_SOON_BANNER_MANAGE: 'SettingsSubscription-ExpiringSoonBannerManage',
-        PAYMENT_CARD_MENU: 'SettingsSubscription-PaymentCardMenu',
-        PLAN_DOWNGRADE: 'SettingsSubscription-PlanDowngrade',
-        PLAN_UPGRADE: 'SettingsSubscription-PlanUpgrade',
-        SUBSCRIPTION_SIZE: 'SettingsSubscription-SubscriptionSize',
-        SUBSCRIPTION_SIZE_SAVE: 'SettingsSubscription-SubscriptionSizeSave',
-        TAX_EXEMPT: 'SettingsSubscription-TaxExempt',
-        PAYMENT_CARD_SECURITY_LINK: 'SettingsSubscription-PaymentCardSecurityLink',
-    },
+    SETTINGS_SUBSCRIPTION: SUBSCRIPTION_SENTRY_LABEL,
     REIMBURSEMENT_ACCOUNT: {
         BENEFICIAL_OWNERS_CONFIRM: 'ReimbursementAccount-BeneficialOwnersConfirm',
         BANK_ACCOUNT_ADDED_CONFIRM: 'ReimbursementAccount-BankAccountAddedConfirm',

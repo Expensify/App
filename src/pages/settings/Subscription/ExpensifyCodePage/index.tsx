@@ -10,6 +10,7 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearDraftValues, clearErrorFields} from '@libs/actions/FormActions';
@@ -36,8 +37,9 @@ function ExpensifyCodePage() {
     const [hasSubmitted, setHasSubmitted] = useState(false);
     const [privatePromoCode] = useOnyx(ONYXKEYS.NVP_PRIVATE_PROMO_CODE);
     const [privatePromoDiscount] = useOnyx(ONYXKEYS.NVP_PRIVATE_PROMO_DISCOUNT);
-    const {isSecretPromoCode} = getPrivatePromoDiscountInfo(privatePromoDiscount, false);
-    const isExpensifyCodeApplied = !!privatePromoCode;
+    const privateSubscription = usePrivateSubscription();
+    const {isSecretPromoCode} = getPrivatePromoDiscountInfo(privatePromoDiscount, privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL);
+    const hasAppliedCode = !!privatePromoCode || isSecretPromoCode;
 
     const defaultValues = {
         [INPUT_IDS.EXPENSIFY_CODE]: '',
@@ -60,13 +62,14 @@ function ExpensifyCodePage() {
     );
 
     useEffect(() => {
-        if (!hasSubmitted || !isExpensifyCodeApplied) {
+        if (!hasSubmitted || !hasAppliedCode) {
             return;
         }
         Navigation.goBack();
-    }, [hasSubmitted, isExpensifyCodeApplied]);
+    }, [hasSubmitted, hasAppliedCode]);
 
-    if ((isExpensifyCodeApplied && !hasSubmitted) || isSecretPromoCode) {
+    // An applied code cannot be replaced here. Classic does not let a customer swap codes after one is applied.
+    if (hasAppliedCode && !hasSubmitted) {
         return <NotFoundPage />;
     }
 

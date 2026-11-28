@@ -1,8 +1,6 @@
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
-import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import OptionItem from '@components/OptionsPicker/OptionItem';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -21,7 +19,6 @@ import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {openLink} from '@libs/actions/Link';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {getSubscriptionPrice, isSubscriptionTypeOfInvoicing, shouldUseSimplifiedCollectSubscriptionUI} from '@libs/SubscriptionUtils';
@@ -29,12 +26,12 @@ import {getSubscriptionPrice, isSubscriptionTypeOfInvoicing, shouldUseSimplified
 import Navigation from '@navigation/Navigation';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import {openSubscriptionDescriptionLink} from '@pages/settings/Subscription/utils';
 
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 
 import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
@@ -66,31 +63,9 @@ function SubscriptionSettings() {
     const shouldUseSimplifiedCollectUI = shouldUseSimplifiedCollectSubscriptionUI(subscriptionPlan, hasTeam2025Pricing);
     const collectPriceDisplay = convertToShortDisplayString(subscriptionPrice, preferredCurrency);
 
-    const openAdminsRoom = () => {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(adminsChatReportID));
+    const openDescriptionLink = (href: string) => {
+        openSubscriptionDescriptionLink(href, adminsChatReportID, environmentURL, session);
     };
-
-    const handleLinkPress = (href: string) => {
-        if (href.endsWith('adminsRoom')) {
-            if (adminsChatReportID) {
-                openAdminsRoom();
-            }
-        } else if (href.endsWith(CONST.PRICING)) {
-            openLink(CONST.PRICING, environmentURL, false, session);
-        }
-    };
-
-    const subscriptionSizeSection =
-        privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL && privateSubscription?.userCount ? (
-            <View style={styles.mt5}>
-                <MenuItemSectionRoot>
-                    <MenuItemField.Row
-                        name={translate('subscription.details.subscriptionSize')}
-                        value={String(privateSubscription.userCount)}
-                    />
-                </MenuItemSectionRoot>
-            </View>
-        ) : null;
 
     if (isSubscriptionTypeOfInvoicing(privateSubscription?.type)) {
         return <NotFoundPage />;
@@ -117,7 +92,7 @@ function SubscriptionSettings() {
                         <View style={[styles.renderHTML, styles.mb5]}>
                             <RenderHTML
                                 html={translate('subscription.subscriptionSettings.learnMore', !!adminsChatReportID)}
-                                onLinkPress={(_evt, href) => handleLinkPress(href)}
+                                onLinkPress={(_evt, href) => openDescriptionLink(href)}
                             />
                         </View>
                         <Text style={styles.mutedNormalTextLabel}>{translate('subscription.subscriptionSettings.pricing')}</Text>
@@ -135,7 +110,7 @@ function SubscriptionSettings() {
                         <View style={[styles.renderHTML, styles.mb5]}>
                             <RenderHTML
                                 html={translate('subscription.subscriptionSettings.learnMore', !!adminsChatReportID)}
-                                onLinkPress={(_evt, href) => handleLinkPress(href)}
+                                onLinkPress={(_evt, href) => openDescriptionLink(href)}
                             />
                         </View>
                         <Text style={styles.mutedNormalTextLabel}>{translate('subscription.subscriptionSettings.estimatedPrice')}</Text>
@@ -151,24 +126,12 @@ function SubscriptionSettings() {
                                 <Text style={[styles.textLabelSupporting, styles.mt2]}>{translate('subscription.details.zeroCommitment')}</Text>
                             </View>
                         ) : (
-                            <>
-                                {privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.PAY_PER_USE ? (
-                                    <OptionItem
-                                        title="subscription.details.payPerUse"
-                                        icon={illustrations.SubscriptionPPU}
-                                        style={[styles.mt5, styles.flex0]}
-                                        isDisabled
-                                    />
-                                ) : (
-                                    <OptionItem
-                                        title="subscription.details.annual"
-                                        icon={illustrations.SubscriptionAnnual}
-                                        style={[styles.mt5, styles.flex0]}
-                                        isDisabled
-                                    />
-                                )}
-                                {subscriptionSizeSection}
-                            </>
+                            <OptionItem
+                                title={privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.PAY_PER_USE ? 'subscription.details.payPerUse' : 'subscription.details.annual'}
+                                icon={privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.PAY_PER_USE ? illustrations.SubscriptionPPU : illustrations.SubscriptionAnnual}
+                                style={[styles.mt5, styles.flex0]}
+                                isDisabled
+                            />
                         )}
                     </>
                 )}
