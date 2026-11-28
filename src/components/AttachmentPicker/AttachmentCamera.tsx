@@ -12,6 +12,7 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
 import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
+import useHasVerticalBar from '@hooks/useHasVerticalBar';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useIsPlatformMuted from '@hooks/useIsPlatformMuted';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -82,6 +83,7 @@ function AttachmentCamera({isVisible, onCapture, onClose, onModalHide}: Attachme
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const insets = useSafeAreaInsets();
+    const hasVerticalBar = useHasVerticalBar();
     const StyleUtils = useStyleUtils();
     const isInLandscapeMode = useIsInLandscapeMode();
     const lazyIcons = useMemoizedLazyExpensifyIcons(['Bolt', 'boltSlash', 'CameraFlip', 'Close']);
@@ -270,7 +272,7 @@ function AttachmentCamera({isVisible, onCapture, onClose, onModalHide}: Attachme
             style={styles.appBG}
             innerContainerStyle={styles.flex1}
         >
-            <View style={[styles.flex1, styles.appBG, StyleUtils.getPlatformSafeAreaPadding(insets)]}>
+            <View style={[styles.flex1, styles.appBG, StyleUtils.getPlatformSafeAreaPadding(insets, {hasVerticalBar})]}>
                 <View style={[styles.flexRow, styles.justifyContentEnd, styles.ph3, styles.pv2]}>
                     <PressableWithFeedback
                         role={CONST.ROLE.BUTTON}

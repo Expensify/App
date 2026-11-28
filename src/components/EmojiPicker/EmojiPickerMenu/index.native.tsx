@@ -4,6 +4,7 @@ import EmojiPickerMenuItem from '@components/EmojiPicker/EmojiPickerMenuItem';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
+import useHasVerticalBar from '@hooks/useHasVerticalBar';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
@@ -54,7 +55,8 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
     } = useEmojiPickerMenu();
     const StyleUtils = useStyleUtils();
     const insets = useSafeAreaInsets();
-    const {paddingLeft: safeAreaPaddingLeft, paddingRight: safeAreaPaddingRight} = StyleUtils.getPlatformSafeAreaPadding(insets);
+    const hasVerticalBar = useHasVerticalBar();
+    const {paddingLeft: safeAreaPaddingLeft, paddingRight: safeAreaPaddingRight} = StyleUtils.getPlatformSafeAreaPadding(insets, {hasVerticalBar});
     const [searchText, setSearchText] = useState('');
 
     const headerRefs = useRef<Record<number, React.RefObject<ComponentRef<typeof View> | null>>>({});

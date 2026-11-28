@@ -1,6 +1,6 @@
 import {act, renderHook} from '@testing-library/react-native';
 
-import useIsTabBarVertical from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/useIsTabBarVertical/index.ios';
+import useHasVerticalBar from '@hooks/useHasVerticalBar/index.ios';
 
 import type {VerticalBarEdge} from '@expensify/nitro-utils';
 
@@ -29,24 +29,24 @@ jest.mock('@expensify/nitro-utils', () => ({
     },
 }));
 
-describe('useIsTabBarVertical', () => {
+describe('useHasVerticalBar', () => {
     beforeEach(() => {
         mockNativeVerticalBar.edge = 'unspecified';
         mockNativeVerticalBar.listeners.clear();
     });
 
-    it('reports a column only while UIKit names an edge for the vertical bar', () => {
+    it('reports a vertical bar only while UIKit names an edge for it', () => {
         // Given a window whose trait collection names no vertical bar edge
-        const {result, unmount} = renderHook(() => useIsTabBarVertical());
+        const {result, unmount} = renderHook(() => useHasVerticalBar());
         expect(result.current).toBe(false);
 
         // When the phone folds so that the bar moves to the trailing edge, and then rotates so that it goes away again
         act(() => mockNativeVerticalBar.setEdge('trailing'));
-        const isVerticalWhileFolded = result.current;
+        const hasVerticalBarWhileFolded = result.current;
         act(() => mockNativeVerticalBar.setEdge('unspecified'));
 
         // Then the hook follows the native trait both ways and stops listening once unmounted
-        expect(isVerticalWhileFolded).toBe(true);
+        expect(hasVerticalBarWhileFolded).toBe(true);
         expect(result.current).toBe(false);
         unmount();
         expect(mockNativeVerticalBar.listeners.size).toBe(0);

@@ -2,6 +2,7 @@ import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperS
 
 import {useContext} from 'react';
 
+import useHasVerticalBar from './useHasVerticalBar';
 import useSafeAreaInsets from './useSafeAreaInsets';
 import useStyleUtils from './useStyleUtils';
 
@@ -35,7 +36,8 @@ import useStyleUtils from './useStyleUtils';
 function useSafeAreaPaddings(isUsingEdgeToEdgeBottomSafeAreaPadding = false) {
     const StyleUtils = useStyleUtils();
     const insets = useSafeAreaInsets();
-    const {paddingTop, paddingBottom, paddingLeft, paddingRight} = StyleUtils.getPlatformSafeAreaPadding(insets);
+    const hasVerticalBar = useHasVerticalBar();
+    const {paddingTop, paddingBottom, paddingLeft, paddingRight} = StyleUtils.getPlatformSafeAreaPadding(insets, {hasVerticalBar});
 
     const screenWrapperStatusContext = useContext(ScreenWrapperStatusContext);
     const isSafeAreaTopPaddingApplied = screenWrapperStatusContext?.isSafeAreaTopPaddingApplied ?? false;

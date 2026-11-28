@@ -1,7 +1,7 @@
+import useHasVerticalBar from '@hooks/useHasVerticalBar';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 
-import useIsTabBarVertical from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/useIsTabBarVertical';
 import {getFloatingButtonsBottom} from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/useNativeTabBarOptions';
 
 /**
@@ -11,7 +11,7 @@ import {getFloatingButtonsBottom} from '@libs/Navigation/AppNavigator/Navigators
 function useTabBarCoveredHeight(): number {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {bottom: bottomInset} = useSafeAreaInsets();
-    const isTabBarVertical = useIsTabBarVertical();
+    const isTabBarVertical = useHasVerticalBar();
 
     if (!shouldUseNarrowLayout) {
         return 0;
