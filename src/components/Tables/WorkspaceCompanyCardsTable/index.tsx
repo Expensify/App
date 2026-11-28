@@ -143,14 +143,20 @@ function WorkspaceCompanyCardsTable({
     const [personalDetails, personalDetailsMetadata] = useAllPersonalDetails();
     const [sharedCardCustomNames] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainOrWorkspaceAccountID}`, {selector: companyCardCustomNamesSelector});
     const [companyCardsLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE}${domainOrWorkspaceAccountID}`);
+    const [pageLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_PAGE_LOADING_STATE}${policyID}`);
 
-    const hasOnceLoadedPage = !!companyCardsLoadingState?.hasOnceLoadedPage;
+    const hasOnceLoadedPage = !!pageLoadingState?.hasOnceLoadedPage;
+    const isPageRequestLoading = !!pageLoadingState?.isLoadingPage;
+    const hasPageLoadError = !!pageLoadingState?.hasLoadingError;
     const hasOnceLoadedSelectedFeed = !!bankName && !!companyCardsLoadingState?.feeds?.[bankName]?.hasOnceLoaded;
 
     const hasNoAssignedCard = Object.keys(assignedCards ?? {}).length === 0;
 
-    // Synthesize error locally since Onyx discards writes to collection keys with member ID '0'.
-    const shouldShowWorkspaceFeedsLoadError = domainOrWorkspaceAccountID === CONST.DEFAULT_NUMBER_ID && isPolicyLoaded && !isOffline;
+    // Keep settled page failures actionable even before the workspace account ID resolves. A workspace whose account ID
+    // resolved to 0 can't show feeds, since Onyx discards collection writes for member ID '0', so it keeps the error even
+    // after a page request succeeds. Hide it during requests so retries can load.
+    const hasNoWorkspaceAccount = domainOrWorkspaceAccountID === CONST.DEFAULT_NUMBER_ID && isPolicyLoaded;
+    const shouldShowWorkspaceFeedsLoadError = !isOffline && !isPageRequestLoading && (hasPageLoadError || hasNoWorkspaceAccount);
     const workspaceCardFeedsErrors = shouldShowWorkspaceFeedsLoadError
         ? {
               [CONST.COMPANY_CARDS.WORKSPACE_FEEDS_LOAD_ERROR]: translate('workspace.companyCards.error.workspaceFeedsCouldNotBeLoadedMessage'),
@@ -180,7 +186,7 @@ function WorkspaceCompanyCardsTable({
     // The page fetch is kicked off from an effect, so its optimistic `isLoading` flag only lands after the first render.
     // Treat the window before it as loading too, otherwise the empty feed state flashes before the loading indicator shows up.
     const isPageFetchAwaited = isPageFetchPending && !hasFeedErrors;
-    const areWorkspaceCardFeedsLoading = (!!workspaceCardFeedsStatus?.[domainOrWorkspaceAccountID]?.isLoading || isPageFetchAwaited) && !hasOnceLoadedPage;
+    const areWorkspaceCardFeedsLoading = (!!workspaceCardFeedsStatus?.[domainOrWorkspaceAccountID]?.isLoading || isPageRequestLoading || isPageFetchAwaited) && !hasOnceLoadedPage;
 
     const isLoadingOnyxCardList = !hasCards && isLoadingOnyxValue(cardListMetadata);
     const isLoadingOnyxPersonalDetails = isLoadingOnyxValue(personalDetailsMetadata);
@@ -188,8 +194,12 @@ function WorkspaceCompanyCardsTable({
     const isSelectedFeedLoading = !!selectedFeedStatus?.isLoading && !hasOnceLoadedSelectedFeed;
 
     const isLoadingPage = !isOffline && !hasCards && (isLoadingOnyxPersonalDetails || areWorkspaceCardFeedsLoading);
-    const isLoadingFeed = !hasCards && ((!feedName && isInitiallyLoadingFeeds) || !isPolicyLoaded || isLoadingOnyxFeed || isSelectedFeedLoading);
-    const isLoading = isLoadingPage || isLoadingFeed || isLoadingOnyxCardList;
+    // A workspace without its account ID keeps loading until a page request settles. Once one succeeds, the page renders
+    // without the account ID instead of spinning, since the creation response that carries it may never arrive.
+    const isWaitingForPolicy = !isPolicyLoaded && (!hasOnceLoadedPage || isPageRequestLoading);
+    const isLoadingFeed = !hasCards && ((!feedName && isInitiallyLoadingFeeds) || isWaitingForPolicy || isLoadingOnyxFeed || isSelectedFeedLoading);
+    // A settled page error must remain actionable even when account resolution or Onyx hydration is incomplete.
+    const isLoading = !shouldShowWorkspaceFeedsLoadError && (isLoadingPage || isLoadingFeed || isLoadingOnyxCardList);
 
     // Unassign requests hide their rows while online (pending-delete filter below), so bulk unassigning every
     // visible card would flash the empty feed state; treat that in-flight window as loading instead.
