@@ -25,7 +25,7 @@ type UseSearchUserFiltersParams = {
 };
 
 type UseSearchUserFiltersResult = {
-    /** Whether a first-page lookup is in flight for the active search */
+    /** Whether an uncached first-page lookup is in flight for the active search (false during silent background refreshes) */
     isSearching: boolean;
 
     /** Whether the next page of users is loading */
@@ -44,7 +44,6 @@ type QueryPaginationState = {
     nextCursor: string;
 };
 
-// The query pagination state is always replaced wholesale, so every reset can share this object.
 const EMPTY_QUERY_PAGINATION: QueryPaginationState = {searchKey: undefined, hasMore: false, nextCursor: ''};
 
 // Use NUL so policy IDs and user queries cannot collide across the separator.
@@ -138,8 +137,11 @@ function useSearchUserFilters({policyIDs, searchTerm, ready = true}: UseSearchUs
         if (isEmptyQuery) {
             // Replace scoped logins only when page 1 holds the complete workspace result set so removed logins are pruned.
             const nextScopedLogins = policyIDs ? mergeScopedLogins(prev?.scopedLogins, logins, isFirstPage && !nextHasMore) : prev?.scopedLogins;
+            // Keep a deeper cached cursor when a page-1 refresh runs so scrolling continues from the next unloaded page.
+            const shouldPreserveCursor = isFirstPage && nextHasMore && !!prev?.hasMore && Number(prev.nextCursor) > Number(responseCursor);
+            const resolvedNextCursor = shouldPreserveCursor ? prev.nextCursor : responseCursor;
             refreshedPolicyIDsRef.current = policyIDs;
-            updateCachedBase({hasLoadedBase: true, hasMore: nextHasMore, nextCursor: responseCursor, scopedLogins: nextScopedLogins});
+            updateCachedBase({hasLoadedBase: true, hasMore: nextHasMore, nextCursor: resolvedNextCursor, scopedLogins: nextScopedLogins});
             return;
         }
 

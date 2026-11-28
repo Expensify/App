@@ -564,4 +564,46 @@ describe('useSearchUserFilters', () => {
         expect(result.current.isLoadingMore).toBe(false);
         expect(result.current.hasMore).toBe(false);
     });
+
+    it('preserves a deeper cached cursor when a page-1 background refresh runs after reconnecting', async () => {
+        // Given a cached scope that already paginated past page 1 to offset 150
+        onyxStore[getStateKey('policy-1')] = {
+            hasLoadedBase: true,
+            hasMore: true,
+            nextCursor: '150',
+            scopedLogins: ['page1@example.com', 'page3@example.com'],
+        };
+        mockOpenSearchUserFiltersPage.mockResolvedValueOnce({
+            hasMore: true,
+            nextCursor: '50',
+            logins: ['page1@example.com', 'new-page1@example.com'],
+        });
+
+        // When the hook runs a silent page-1 refresh on reconnect or remount
+        const {result} = renderHook(() =>
+            useSearchUserFilters({
+                policyIDs: 'policy-1',
+                searchTerm: '',
+            }),
+        );
+
+        await waitFor(() => {
+            expect(onyxStore[getStateKey('policy-1')]?.scopedLogins).toEqual(['page1@example.com', 'page3@example.com', 'new-page1@example.com']);
+        });
+
+        // Then the deeper cursor is preserved so loadMoreUsers fetches offset 150 instead of re-fetching offset 50
+        expect(onyxStore[getStateKey('policy-1')]?.nextCursor).toBe('150');
+        mockOpenSearchUserFiltersPage.mockResolvedValueOnce({
+            hasMore: false,
+            nextCursor: '',
+            logins: ['page4@example.com'],
+        });
+        act(() => {
+            result.current.loadMoreUsers();
+        });
+        expect(mockOpenSearchUserFiltersPage).toHaveBeenLastCalledWith({searchQuery: '', cursor: '150', limit: CONST.SEARCH.USER_FILTER_PAGE_SIZE, policyIDs: 'policy-1'}, false);
+        await waitFor(() => {
+            expect(result.current.hasMore).toBe(false);
+        });
+    });
 });
