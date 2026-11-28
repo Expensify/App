@@ -1,5 +1,6 @@
 import {write} from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import {getUpdatedTransactionTag} from '@libs/TagsOptionsListUtils';
 
 import CONST from '@src/CONST';
 import {buildCopyPolicySettingsData, copyPolicySettings} from '@src/libs/actions/Policy/CopyPolicySettings';
@@ -15,10 +16,13 @@ import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
+import createMock from '../utils/createMock';
 
 jest.mock('@libs/API', () => ({
     write: jest.fn(),
 }));
+
+const TAX_FIELD_ID = 'field_id_TAX';
 
 const SOURCE_POLICY_ID = 'SOURCE000000000A';
 const TARGET_POLICY_ID = 'TARGET000000000B';
@@ -67,6 +71,10 @@ function makeSourcePolicy(overrides: Partial<Policy> = {}): Policy {
         eReceipts: true,
         preventSelfApproval: true,
         preventPayoutNonReimbursableReports: true,
+        isReceiptVisibilityPublic: true,
+        requireMapOrGPS: true,
+        mccGroup: {dining: {category: 'Meals', groupID: 'dining'}},
+        exportLayouts: {sourceLayout: {name: 'Source layout', templateName: 'sourceLayout', type: 'csv', policyID: SOURCE_POLICY_ID, description: ''}},
         ...overrides,
     };
 }
@@ -157,13 +165,120 @@ function getCopyPolicySettingsStep(update: {value?: unknown} | undefined): Pick<
 describe('actions/Policy/CopyPolicySettings', () => {
     describe('buildCopyPolicySettingsData', () => {
         describe('per-part field patches and pendingFields', () => {
+            it.each([false, true])('keeps the first tag level when editing the second after copying Tags to a new workspace: %s', (isNewPolicy) => {
+                // Given two tag levels on the source and a target without multi-level tag metadata.
+                const source = makeSourcePolicy({hasMultipleTagLists: true});
+                const target = makeTargetPolicy({hasMultipleTagLists: false});
+                const tags: PolicyTagLists = {
+                    Department: {name: 'Department', required: false, orderWeight: 0, tags: {Engineering: {name: 'Engineering', enabled: true}}},
+                    Project: {name: 'Project', required: false, orderWeight: 1, tags: {Alpha: {name: 'Alpha', enabled: true}}},
+                };
+
+                // When Tags is copied and the second level is edited before the response arrives.
+                const {optimisticData} = buildCopyPolicySettingsData(source, [target], ['tags'], {}, {[SOURCE_TAGS_KEY]: tags}, {}, false, isNewPolicy);
+                const copied = getOptimisticPolicy(optimisticData);
+                const updatedTag = getUpdatedTransactionTag({
+                    transactionTag: 'Engineering',
+                    selectedTagName: 'Alpha',
+                    currentTag: '',
+                    tagListIndex: 1,
+                    policyTags: tags,
+                    hasDependentTags: false,
+                    hasMultipleTagLists: copied?.hasMultipleTagLists ?? false,
+                    tagListCount: 2,
+                });
+
+                // Then choosing a project cannot erase the department already on the expense.
+                expect(updatedTag).toBe('Engineering:Alpha');
+            });
+
+            it('copies clean member, tax, connection, report-field and export-layout values', () => {
+                // Given source objects with source-only feedback, nested connection feedback and deleted MCC rules.
+                const feedback = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE, errors: {old: 'Source failed'}};
+                const connection = {config: {companyID: 'sourceCompany', ...feedback}};
+                const approvalRule = {approver: '', applyWhen: [], ...feedback};
+                const deletedApprovalRule = {...approvalRule, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
+                const expenseRule = {tax: {[TAX_FIELD_ID]: {externalID: 'VAT'}}, applyWhen: [], ...feedback};
+                const source = makeSourcePolicy(
+                    createMock<Partial<Policy>>({
+                        employeeList: {member: {email: 'member', ...feedback}},
+                        fieldList: {field: {fieldID: 'field', name: 'Field', ...feedback}},
+                        exportLayouts: {layout: {name: 'CSV', templateName: 'layout', ...feedback}},
+                        connections: {[CONST.POLICY.CONNECTIONS.NAME.QBO]: connection},
+                        taxRates: {name: 'Tax', defaultExternalID: 'VAT', ...feedback, taxes: {VAT: {name: 'VAT', value: '10%', ...feedback}}},
+                        mccGroup: {deleted: {category: 'Meals', groupID: 'deleted', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}},
+                        rules: {approvalRules: [approvalRule, deletedApprovalRule], expenseRules: [expenseRule]},
+                    }),
+                );
+                const target = makeTargetPolicy();
+
+                // When these parts are copied over an existing workspace.
+                const {optimisticData, failureData} = buildCopyPolicySettingsData(source, [target], ['members', 'taxes', 'accounting', 'reports', 'categories', 'codingRules'], {}, {}, {});
+                const copied = getOptimisticPolicy(optimisticData);
+
+                // Then nested feedback and queued deletions cannot follow the settings, and rollback retains target state.
+                expect(copied?.employeeList).toEqual({member: {email: 'member'}});
+                expect(copied?.taxRates).toEqual({name: 'Tax', defaultExternalID: 'VAT', taxes: {VAT: {name: 'VAT', value: '10%'}}});
+                expect(copied?.connections).toEqual({[CONST.POLICY.CONNECTIONS.NAME.QBO]: {config: {companyID: 'sourceCompany'}}});
+                expect(copied?.fieldList?.field).toEqual({fieldID: 'field', name: 'Field'});
+                expect(copied?.exportLayouts).toEqual({layout: {name: 'CSV', templateName: 'layout'}});
+                expect(copied?.mccGroup).toEqual({});
+                expect(copied?.rules?.approvalRules).toEqual([{approver: '', applyWhen: []}]);
+                expect(copied?.rules?.expenseRules).toEqual([{tax: {[TAX_FIELD_ID]: {externalID: 'VAT'}}, applyWhen: []}]);
+                expect(getFailurePolicy(failureData)?.employeeList).toEqual(target.employeeList);
+                expect(connection.config.errors).toEqual(feedback.errors);
+            });
+
+            it('does not restore tax or tag contents queued for deletion on their parent', () => {
+                // Given source containers whose contents have been removed locally while deletion is queued.
+                const source = makeSourcePolicy({
+                    taxRates: {
+                        name: 'Tax',
+                        defaultExternalID: '',
+                        defaultValue: '',
+                        foreignTaxDefault: '',
+                        taxes: {VAT: {name: 'VAT', value: '10%'}},
+                        pendingFields: {taxes: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                    },
+                });
+                const sourceTags: PolicyTagLists = {
+                    Department: {
+                        name: 'Department',
+                        required: false,
+                        orderWeight: 0,
+                        tags: {Old: {name: 'Old', enabled: true}},
+                        pendingFields: {tags: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                    },
+                };
+
+                // When those settings are copied.
+                const {optimisticData} = buildCopyPolicySettingsData(source, [makeTargetPolicy()], ['taxes', 'tags'], {}, {[SOURCE_TAGS_KEY]: sourceTags}, {});
+
+                // Then rebuilding children cannot resurrect the deleted tax or tag contents.
+                expect(getOptimisticPolicy(optimisticData)?.taxRates?.taxes).toEqual({});
+                expect(optimisticData.find((update) => update.key === TARGET_TAGS_KEY)?.value).toEqual({Department: {name: 'Department', required: false, orderWeight: 0, tags: {}}});
+                expect(sourceTags.Department.tags.Old).toBeDefined();
+            });
+
+            it('does not restore a target title queued for deletion when the source has no title', () => {
+                // Given no source title and a target title that was removed locally.
+                const target = makeTargetPolicy(
+                    createMock<Partial<Policy>>({fieldList: {title: {fieldID: CONST.REPORT_FIELD_TITLE_FIELD_ID, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}}}),
+                );
+
+                // When report settings are copied.
+                const {optimisticData} = buildCopyPolicySettingsData(makeSourcePolicy({fieldList: {}}), [target], ['reports'], {}, {}, {});
+
+                // Then the target deletion remains effective.
+                expect(getOptimisticPolicy(optimisticData)?.fieldList).toEqual({});
+            });
             it.each<[Part, ReadonlyArray<keyof Policy>]>([
                 ['overview', ['address', 'description']],
                 ['currency', ['outputCurrency']],
                 ['members', ['employeeList']],
-                ['reports', ['fieldList', 'areReportFieldsEnabled']],
+                ['reports', ['fieldList', 'areReportFieldsEnabled', 'exportLayouts']],
                 ['accounting', ['connections', 'areConnectionsEnabled']],
-                ['categories', ['areCategoriesEnabled']],
+                ['categories', ['areCategoriesEnabled', 'mccGroup']],
                 ['tags', ['areTagsEnabled']],
                 ['taxes', ['tax', 'taxRates']],
                 [
@@ -196,9 +311,10 @@ describe('actions/Policy/CopyPolicySettings', () => {
                         'preventPayoutNonReimbursableReports',
                         'shouldShowAutoApprovalOptions',
                         'shouldShowAutoReimbursementLimitOption',
+                        'isReceiptVisibilityPublic',
                     ],
                 ],
-                ['distanceRates', ['areDistanceRatesEnabled']],
+                ['distanceRates', ['areDistanceRatesEnabled', 'requireMapOrGPS']],
                 ['perDiem', ['arePerDiemRatesEnabled']],
                 ['invoices', ['areInvoicesEnabled', 'areInvoiceFieldsEnabled', 'invoice', 'fieldList']],
                 ['travel', ['isTravelEnabled']],
@@ -219,6 +335,211 @@ describe('actions/Policy/CopyPolicySettings', () => {
                     expect(policy?.[field]).toEqual(sourcePolicy[field]);
                 }
                 expect(policy?.pendingFields).toEqual(expect.objectContaining(Object.fromEntries(expectedFields.map((field) => [field, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE]))));
+            });
+
+            it('copies MCC categories without source pending markers and preserves rollback state', () => {
+                // Given a source MCC edit that is still queued and a target with its own pending edit.
+                const source = makeSourcePolicy({mccGroup: {dining: {category: 'Meals', groupID: 'dining', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}}});
+                const target = makeTargetPolicy({mccGroup: {dining: {category: 'Travel', groupID: 'dining', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}}});
+
+                // When Categories is copied to an existing or a new workspace.
+                for (const isNewPolicy of [false, true]) {
+                    const {optimisticData, failureData} = buildCopyPolicySettingsData(source, [target], ['categories'], {}, {}, {}, false, isNewPolicy);
+
+                    // Then only setting values reach the destination, while the source and rollback keep their own feedback.
+                    expect(getOptimisticPolicy(optimisticData)?.mccGroup).toEqual({dining: {category: 'Meals', groupID: 'dining'}});
+                    if (!isNewPolicy) {
+                        expect(getFailurePolicy(failureData)?.mccGroup).toEqual(target.mccGroup);
+                    }
+                }
+                expect(source.mccGroup?.dining.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            });
+
+            it('replaces only Agent rules when Rules is selected and clears an empty source', () => {
+                // Given different Agent rules and an unrelated target approval rule.
+                const sourceRule = {
+                    ruleID: 'source',
+                    prompt: 'Require a receipt',
+                    created: '2026-11-01',
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    errors: {old: 'Source error'},
+                };
+                const source = makeSourcePolicy({
+                    rules: {agentRules: {source: sourceRule}},
+                });
+                const target = makeTargetPolicy({
+                    rules: {
+                        agentRules: {
+                            old: {ruleID: 'old', prompt: 'Old rule', created: '2026-10-01'},
+                        },
+                        approvalRules: [{approver: 'admin@example.com', applyWhen: []}],
+                    },
+                });
+
+                // When Rules are copied, then copied again from an empty source.
+                const copied = getOptimisticPolicy(buildCopyPolicySettingsData(source, [target], ['rules'], {}, {}, {}).optimisticData);
+                const cleared = getOptimisticPolicy(buildCopyPolicySettingsData(makeSourcePolicy({rules: undefined}), [target], ['rules'], {}, {}, {}).optimisticData);
+
+                // Then Auth's Agent-rule replacement does not overwrite codingRules-owned approval rules or retain source errors.
+                expect(copied?.rules).toEqual({
+                    agentRules: {
+                        source: {
+                            ruleID: 'source',
+                            prompt: 'Require a receipt',
+                            created: '2026-11-01',
+                        },
+                    },
+                    approvalRules: target.rules?.approvalRules,
+                });
+                expect(cleared?.rules).toEqual({...target.rules, agentRules: {}});
+                expect(source.rules?.agentRules?.source.errors).toEqual({
+                    old: 'Source error',
+                });
+            });
+
+            it('replaces coding rule groups using the target members and enabled taxes', () => {
+                // Given saved legacy rules, valid and invalid approvers, and tax defaults.
+                const migratedRuleID = '123';
+                const memberEmail = 'member@example.com';
+                const source = makeSourcePolicy({
+                    rules: {
+                        codingRules: {
+                            legacy: {filters: {left: 'merchant', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Coffee'}, category: 'Meals'},
+                            [migratedRuleID]: {ruleID: migratedRuleID, filters: {left: 'merchant', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Migrated'}},
+                        },
+                        approvalRules: [
+                            {approver: 'member@example.com', applyWhen: []},
+                            {approver: 'outsider@example.com', applyWhen: []},
+                        ],
+                        expenseRules: [
+                            {tax: {[TAX_FIELD_ID]: {externalID: 'VAT'}}, applyWhen: []},
+                            {tax: {[TAX_FIELD_ID]: {externalID: 'MISSING'}}, applyWhen: []},
+                        ],
+                    },
+                });
+                const target = makeTargetPolicy({
+                    employeeList: {[memberEmail]: {email: memberEmail}},
+                    taxRates: {name: 'Tax', defaultExternalID: 'VAT', defaultValue: '10%', foreignTaxDefault: 'VAT', taxes: {VAT: {name: 'VAT', value: '10%'}}},
+                    rules: {agentRules: {agent: {ruleID: 'agent', prompt: 'Keep this', created: '2026-11-01'}}},
+                });
+
+                // When Merchant rules are copied and then cleared by an empty source.
+                const copied = getOptimisticPolicy(buildCopyPolicySettingsData(source, [target], ['codingRules'], {}, {}, {}).optimisticData);
+                const cleared = getOptimisticPolicy(buildCopyPolicySettingsData(makeSourcePolicy({rules: undefined}), [target], ['codingRules'], {}, {}, {}).optimisticData);
+
+                // Then each group follows Auth's ownership and eligibility, and numeric IDs await its new identities.
+                expect(copied?.rules).toEqual({
+                    ...target.rules,
+                    codingRules: {legacy: source.rules?.codingRules?.legacy},
+                    approvalRules: [source.rules?.approvalRules?.[0]],
+                    expenseRules: [source.rules?.expenseRules?.[0]],
+                });
+                expect(cleared?.rules).toEqual({...target.rules, codingRules: {}, approvalRules: [], expenseRules: []});
+            });
+
+            it('keeps the creation title when the source has no report title', () => {
+                // Given a newly created target title and a source without report fields.
+                const title: NonNullable<Policy['fieldList']>[string] = {
+                    fieldID: CONST.REPORT_FIELD_TITLE_FIELD_ID,
+                    name: 'Title',
+                    type: 'formula',
+                    defaultValue: 'Default title',
+                    target: 'expense',
+                    orderWeight: 0,
+                    deletable: true,
+                    values: [],
+                    keys: [],
+                    externalIDs: [],
+                    disabledOptions: [],
+                    isTax: false,
+                };
+                const source = makeSourcePolicy({fieldList: {}});
+                const target = makeTargetPolicy({fieldList: {title}});
+
+                // When Reports are copied into the new workspace.
+                const copied = getOptimisticPolicy(buildCopyPolicySettingsData(source, [target], ['reports'], {}, {}, {}, false, true).optimisticData);
+
+                // Then the new workspace retains a title and its new fields are marked as additions.
+                expect(copied?.fieldList).toEqual({title});
+                expect(copied?.pendingFields?.fieldList).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+            });
+
+            it('copies only invoice markup and preserves the target invoicing identity', () => {
+                // Given workspaces with separate invoicing identities.
+                const sourcePolicy = makeSourcePolicy({invoice: {markUp: 25, companyName: 'Source', bankAccount: {stripeConnectAccountID: 'source-stripe'}}});
+                const targetPolicy = makeTargetPolicy({invoice: {markUp: 5, companyName: 'Target', bankAccount: {stripeConnectAccountID: 'target-stripe'}}});
+                // When invoice settings are copied.
+                const {optimisticData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['invoices'], {}, {}, {});
+                // Then only markup changes, because billing identity belongs to the target.
+                expect(getOptimisticPolicy(optimisticData)?.invoice).toEqual({...targetPolicy.invoice, markUp: 25});
+            });
+
+            it('removes target invoice markup when the source has none', () => {
+                // Given a source without markup and a target with its own invoicing identity.
+                const source = makeSourcePolicy({invoice: {companyName: 'Source'}});
+                const target = makeTargetPolicy({invoice: {markUp: 10, companyName: 'Target'}});
+
+                // When Invoices is copied.
+                const {optimisticData} = buildCopyPolicySettingsData(source, [target], ['invoices'], {}, {}, {});
+
+                // Then markup is removed while the target identity is retained, as Auth does.
+                expect(getOptimisticPolicy(optimisticData)?.invoice).toEqual({companyName: 'Target'});
+            });
+
+            it('does not create invoice settings when neither workspace has markup or invoice settings', () => {
+                // Given no invoice settings on either workspace.
+                const source = makeSourcePolicy({invoice: undefined});
+                const target = makeTargetPolicy({invoice: undefined});
+
+                // When Invoices is copied.
+                const {optimisticData} = buildCopyPolicySettingsData(source, [target], ['invoices'], {}, {}, {});
+
+                // Then no empty invoice object is fabricated.
+                expect(getOptimisticPolicy(optimisticData)?.invoice).toBeUndefined();
+            });
+
+            it('does not create invoice settings from source identity alone', () => {
+                // Given a source identity without markup and an unconfigured target.
+                const source = makeSourcePolicy({invoice: {companyName: 'Source'}});
+                const target = makeTargetPolicy({invoice: undefined});
+
+                // When Invoices is copied.
+                const {optimisticData} = buildCopyPolicySettingsData(source, [target], ['invoices'], {}, {}, {});
+
+                // Then the target remains unconfigured, matching Auth's invoice copy.
+                expect(getOptimisticPolicy(optimisticData)?.invoice).toBeUndefined();
+            });
+
+            it('leaves government-rate flags to the server eligibility check', () => {
+                // Given source government rates that may be invalid for the target currency or unit.
+                const source = makeSourcePolicy({shouldAutoUpdateGovernmentDistanceRates: true, autoUpdateGovernmentRateCountry: 'FR'});
+                const target = makeTargetPolicy({shouldAutoUpdateGovernmentDistanceRates: false, autoUpdateGovernmentRateCountry: 'DE'});
+
+                // When Distance rates is copied optimistically.
+                const {optimisticData} = buildCopyPolicySettingsData(source, [target], ['distanceRates'], {}, {}, {});
+                const copied = getOptimisticPolicy(optimisticData);
+
+                // Then source eligibility flags are not copied or marked pending before Auth resolves them.
+                expect(copied?.shouldAutoUpdateGovernmentDistanceRates).toBe(false);
+                expect(copied?.autoUpdateGovernmentRateCountry).toBe('DE');
+                expect(copied?.pendingFields?.shouldAutoUpdateGovernmentDistanceRates).toBeUndefined();
+                expect(copied?.pendingFields?.autoUpdateGovernmentRateCountry).toBeUndefined();
+            });
+
+            it('keeps bulk-copy progress untouched when copying into a new policy', () => {
+                // Given a new destination with no bulk-copy operation to track.
+                const source = makeSourcePolicy();
+                const target = makeTargetPolicy();
+
+                // When the shared copier builds duplicate settings.
+                const {optimisticData, successData, failureData} = buildCopyPolicySettingsData(source, [target], ['timeTracking', 'receiptPartners'], {}, {}, {}, false, true);
+                // Then every lifecycle leaves the existing bulk-copy state alone.
+                expect(failureData.some((update) => update.key === POLICY_KEY)).toBe(false);
+                for (const update of [...optimisticData, ...successData, ...failureData]) {
+                    expect(update.key).not.toBe(ONYXKEYS.COPY_POLICY_SETTINGS);
+                    expect(update.key).not.toBe(ONYXKEYS.NVP_BULK_POLICY_COPY_SETTINGS);
+                    expect(update.key).not.toBe(`${ONYXKEYS.COLLECTION.POLICY}${SOURCE_POLICY_ID}`);
+                }
             });
 
             it('retains target values for unrelated fields', () => {
@@ -245,7 +566,7 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 expect(policy?.pendingFields?.showTagGLCodes).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
             });
 
-            it('enables Rules on the target when merchant rules are copied so they are visible while offline', () => {
+            it('preserves an explicit disabled Rules toggle when merchant rules are copied', () => {
                 // Given a target with Rules off, and a source whose Rules toggle was turned off after it got merchant rules
                 const sourcePolicy = makeSourcePolicy({areRulesEnabled: false});
                 const targetPolicy = makeTargetPolicy({areRulesEnabled: false});
@@ -254,8 +575,8 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 const {optimisticData, successData, failureData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['codingRules'], {}, {}, {});
                 const policy = getOptimisticPolicy(optimisticData);
 
-                // Then Rules is turned on optimistically and marked pending, because merchant rules only show up while Rules is on
-                expect(policy?.areRulesEnabled).toBe(true);
+                // Then the explicit source toggle matches Auth while the copied fields are pending.
+                expect(policy?.areRulesEnabled).toBe(false);
                 expect(policy?.pendingFields?.areRulesEnabled).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
 
                 // Then success clears the pending marker and failure restores the original toggle
@@ -264,7 +585,7 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 expect(getFailurePolicy(failureData)?.areRulesEnabled).toBe(false);
             });
 
-            it('enables Rules on the target when merchant rules are copied together with rules from a source that has Rules off', () => {
+            it('keeps Rules off when both rule parts are copied from a disabled source', () => {
                 // Given a source whose Rules toggle is off
                 const sourcePolicy = makeSourcePolicy({areRulesEnabled: false});
                 const targetPolicy = makeTargetPolicy({areRulesEnabled: false});
@@ -272,8 +593,8 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 // When rules and merchant rules are copied together
                 const {optimisticData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['rules', 'codingRules'], {}, {}, {});
 
-                // Then merchant rules still turn Rules on, so the copied merchant rules stay visible
-                expect(getOptimisticPolicy(optimisticData)?.areRulesEnabled).toBe(true);
+                // Then neither part overrides the explicit source toggle, matching Auth.
+                expect(getOptimisticPolicy(optimisticData)?.areRulesEnabled).toBe(false);
             });
 
             it('copies only autoAddTripName from travelSettings, never the Spotnana identity fields or terms acceptance', () => {
@@ -310,7 +631,8 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 expect(policy?.travelSettings?.hasAcceptedTerms).toBe(false);
             });
 
-            it('leaves target travelSettings untouched when the source has no autoAddTripName preference', () => {
+            it('uses the default autoAddTripName preference when the source has none', () => {
+                // Given no source preference and a target that has trip names disabled.
                 const sourcePolicy = makeSourcePolicy({
                     travelSettings: {
                         spotnanaCompanyID: 'SOURCE_COMPANY',
@@ -326,10 +648,12 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 };
                 const targetPolicy = makeTargetPolicy({travelSettings: targetTravelSettings});
 
+                // When Travel settings are copied without an explicit preference.
                 const {optimisticData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['travel'], {}, {}, {});
                 const policy = getOptimisticPolicy(optimisticData);
 
-                expect(policy?.travelSettings).toEqual(targetTravelSettings);
+                // Then Auth's default is applied while the target keeps its own Travel identity.
+                expect(policy?.travelSettings).toEqual({...targetTravelSettings, autoAddTripName: true});
             });
 
             it('copies autoAddTripName to a not-yet-provisioned target without fabricating identity fields', () => {
@@ -677,6 +1001,33 @@ describe('actions/Policy/CopyPolicySettings', () => {
         });
 
         describe('customUnits preservation', () => {
+            it('ignores null and deleted rates and strips source feedback when reusing a target rate', () => {
+                // Given source and target rate tombstones alongside a matching rate with a failed source edit.
+                const rate = {customUnitRateID: 'sourceRate', name: 'Default', rate: 67, currency: 'USD', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE, errors: {old: 'Failed'}};
+                const sourceUnit = {
+                    customUnitID: 'sourceUnit',
+                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    rates: {kept: rate, deleted: {...rate, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}},
+                    errors: {old: 'Failed'},
+                };
+                const targetUnit = {customUnitID: 'targetUnit', name: CONST.CUSTOM_UNITS.NAME_DISTANCE, rates: {targetRate: {...rate, customUnitRateID: 'targetRate'}}};
+                Object.defineProperty(sourceUnit.rates, 'missing', {value: null, enumerable: true});
+                Object.defineProperty(targetUnit.rates, 'missing', {value: null, enumerable: true});
+                const source = makeSourcePolicy({customUnits: {sourceUnit}});
+                const target = makeTargetPolicy({customUnits: {targetUnit}});
+
+                // When distance rates are copied over an existing matching rate.
+                const {optimisticData, failureData} = buildCopyPolicySettingsData(source, [target], ['distanceRates'], {}, {}, {});
+
+                // Then the destination gets only live values under its own IDs and rollback preserves its original state.
+                expect(getOptimisticPolicy(optimisticData)?.customUnits?.targetUnit).toEqual({
+                    customUnitID: 'targetUnit',
+                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    rates: {targetRate: {customUnitRateID: 'targetRate', name: 'Default', rate: 67, currency: 'USD'}},
+                });
+                expect(getFailurePolicy(failureData)?.customUnits).toEqual(target.customUnits);
+                expect(rate.errors).toEqual({old: 'Failed'});
+            });
             const sourceDistanceUnit: CustomUnit = {
                 customUnitID: '1000000000001',
                 name: CONST.CUSTOM_UNITS.NAME_DISTANCE,

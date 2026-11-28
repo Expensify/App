@@ -38,6 +38,9 @@ function getWorkspaceRules(policy: Policy | undefined, translate: LocaleContextP
     if (policy?.eReceipts) {
         total.push(translate('workspace.rules.individualExpenseRules.eReceipts'));
     }
+    if (policy?.isReceiptVisibilityPublic) {
+        total.push(translate('workspace.rules.individualExpenseRules.publicReceiptVisibility'));
+    }
     if (policy?.isAttendeeTrackingEnabled) {
         total.push(translate('workspace.rules.individualExpenseRules.attendeeTracking'));
     }
@@ -60,6 +63,10 @@ function getWorkspaceRules(policy: Policy | undefined, translate: LocaleContextP
         total.push(translate('workspace.categories.glCode'));
     }
 
+    if (Object.values(policy?.rules?.agentRules ?? {}).some((rule) => rule && rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)) {
+        total.push(translate('workspace.rules.agentRules.title'));
+    }
+
     // defaultReimbursable defaults to true, so a flipped default or a hidden billable/reimbursable field
     // (disabledFields) both indicate a non-default cash expense rule worth copying.
     if (policy?.defaultReimbursable === false || Object.values(policy?.disabledFields ?? {}).some(Boolean)) {
@@ -67,7 +74,7 @@ function getWorkspaceRules(policy: Policy | undefined, translate: LocaleContextP
     }
 
     // Field requirements and flag for review rules are stored on the categories rather than on the policy.
-    const enabledCategories = Object.values(policyCategories ?? {}).filter((category) => category.enabled && category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const enabledCategories = Object.values(policyCategories ?? {}).filter((category) => category?.enabled && category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     if (enabledCategories.some((category) => categoryHasAnyRequireFieldsRule(category))) {
         total.push(translate('workspace.rules.tabs.requireFields'));
     }

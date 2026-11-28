@@ -1,5 +1,7 @@
 import {act, render} from '@testing-library/react-native';
 
+import {LocaleContext} from '@components/LocaleContextProvider';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {ConfirmButtonOptions, ListItem} from '@components/SelectionList/types';
 
@@ -7,6 +9,7 @@ import CopyPolicySettingsSelectFeaturesPage from '@pages/workspace/copyPolicySet
 import WorkspaceDuplicateSelectFeaturesForm from '@pages/workspace/duplicate/WorkspaceDuplicateSelectFeaturesForm';
 
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTagLists} from '@src/types/onyx';
 
@@ -16,7 +19,7 @@ import Onyx from 'react-native-onyx';
 import createRandomPolicy from '../utils/collections/policies';
 import createMock from '../utils/createMock';
 import getOnyxValue from '../utils/getOnyxValue';
-import {getGlobalFetchMock} from '../utils/TestHelper';
+import {getGlobalFetchMock, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const POLICY_ID = '1';
@@ -110,8 +113,9 @@ const POLICY_TAGS_WITH_EMPTY_GROUP = createMock<PolicyTagLists>({
 });
 
 describe('Select features pages with an empty tag group', () => {
-    beforeAll(() => {
+    beforeAll(async () => {
         Onyx.init({keys: ONYXKEYS});
+        await IntlStore.load(CONST.LOCALES.EN);
     });
 
     beforeEach(async () => {
@@ -143,19 +147,23 @@ describe('Select features pages with an empty tag group', () => {
     });
 
     it('WorkspaceDuplicateSelectFeaturesForm renders without crashing and counts only populated tag groups', () => {
+        // Given one populated tag group and one empty group in the source workspace.
         render(
-            <OnyxListItemProvider>
-                <WorkspaceDuplicateSelectFeaturesForm policyID={POLICY_ID} />
-            </OnyxListItemProvider>,
+            <LocaleContext.Provider value={createMock<LocaleContextProps>({translate: translateLocal, numberFormat: (number) => String(number)})}>
+                <OnyxListItemProvider>
+                    <WorkspaceDuplicateSelectFeaturesForm policyID={POLICY_ID} />
+                </OnyxListItemProvider>
+            </LocaleContext.Provider>,
         );
 
         expect(mockSelectionListData.length).toBeGreaterThan(0);
 
+        // When the tag count caption is rendered.
         const renderedData = mockSelectionListData.at(-1) ?? [];
         const tagsItem = renderedData.find((item) => item.keyForList === 'tags');
 
-        // The empty "Project" group must contribute 0, so only the two "Region" tags are counted.
-        expect(tagsItem?.alternateText).toMatch(/^2\b/);
+        // Then the empty Project group contributes nothing to the localized label and count.
+        expect(tagsItem?.alternateText).toBe('Tags: 2');
     });
 
     it('does not save hidden currency when selected workspaces already share the same currency', async () => {

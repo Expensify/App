@@ -1,10 +1,11 @@
 import {write} from '@libs/API';
 import type {CopyPolicySettingsParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import buildCopyPolicySettingsSource from '@libs/buildCopyPolicySettingsSource';
+import buildDuplicateSettingSnapshot, {buildDuplicateSettingCollection} from '@libs/buildDuplicateSettingSnapshot';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {buildCopiedExpenseDefaultRules} from '@libs/ExpenseDefaultRuleUtils';
-import {hasExplicitFlagAmount} from '@libs/FlagForReviewRulesUtils';
-import {categoryHasAnyRequireFieldsRule} from '@libs/RequireFieldsRulesUtils';
+import {categoryHasAnyRequireFieldsRule, hasExplicitAmountLimit} from '@libs/PolicyRulesUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -38,10 +39,10 @@ const PARTS_TO_POLICY_FIELDS = {
     overview: ['address', 'description'],
     currency: ['outputCurrency'],
     members: ['employeeList'],
-    reports: ['fieldList', 'areReportFieldsEnabled'],
+    reports: ['fieldList', 'areReportFieldsEnabled', 'exportLayouts'],
     accounting: ['connections', 'areConnectionsEnabled'],
-    categories: ['areCategoriesEnabled', 'requiresCategory'],
-    tags: ['areTagsEnabled'],
+    categories: ['areCategoriesEnabled', 'requiresCategory', 'autoCategorizeNewExpenses', 'mccGroup', 'showCategoryGLCodes'],
+    tags: ['areTagsEnabled', 'requiresTag', 'hasMultipleTagLists'],
     taxes: ['tax', 'taxRates'],
     // achAccount is intentionally excluded — the backend remaps bankAccountID per-caller
     // (see Auth PR #21638). We rely on the server push for that field.
@@ -52,6 +53,8 @@ const PARTS_TO_POLICY_FIELDS = {
         'autoReportingOffset',
         'autoReportingOffsetSecondSemiMonthly',
         'harvesting',
+        'timeZone',
+        'globalReimbursementFXPreferCompany',
         'approvalMode',
         'autoApproval',
         'reimbursementChoice',
@@ -76,11 +79,12 @@ const PARTS_TO_POLICY_FIELDS = {
         'shouldShowAutoApprovalOptions',
         'shouldShowAutoReimbursementLimitOption',
         'customRules',
+        'isReceiptVisibilityPublic',
     ],
-    // Merchant rules are copied into the `rules_` collection rather than onto the policy, so this part patches
-    // no policy field. It stays listed because the map has to cover every part.
+    // Merchant rules also patch policy.rules and areRulesEnabled separately below.
     codingRules: [],
-    distanceRates: ['areDistanceRatesEnabled', 'customUnits'],
+    // Auth resolves government-rate eligibility for each target; use its push for those flags.
+    distanceRates: ['areDistanceRatesEnabled', 'customUnits', 'commuterExclusions', 'requireMapOrGPS'],
     perDiem: ['arePerDiemRatesEnabled', 'customUnits'],
     invoices: ['areInvoicesEnabled', 'areInvoiceFieldsEnabled', 'invoice', 'fieldList'],
     // travelSettings is handled separately (buildTravelSettingsPatch): the Spotnana identity
@@ -99,8 +103,7 @@ type PolicyFieldsForPart = (typeof PARTS_TO_POLICY_FIELDS)[Part][number];
  * given target can't access. Parts with no plan/feature gate (e.g. overview, members) are omitted.
  *
  * This is intentionally separate from `PARTS_TO_POLICY_FIELDS`: that map lists every Onyx field a
- * part copies, and several parts copy no policy field at all (`codingRules` copies into the `rules_`
- * collection, `timeTracking`/`receiptPartners` are patched separately).
+ * part copies, while `codingRules`, `timeTracking` and `receiptPartners` also have separate patches.
  */
 const PART_TO_POLICY_FEATURE: Partial<Record<Part, PolicyFeatureName>> = {
     reports: CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED,
@@ -138,35 +141,22 @@ function findCustomUnitByName(policy: Policy | undefined, unitName: string): Cus
     return Object.values(policy.customUnits).find((unit) => unit.name === unitName);
 }
 
-/**
- * Returns the customUnits patch to merge into the target policy when distanceRates and/or perDiem are
- * being copied. This mirrors what Auth's CopyPolicySettings persists: the source unit is written under
- * the target's existing unit ID, and each source rate keeps the target's rate ID when the target
- * already has a rate of the same name.
- *
- * Units and rates the target doesn't have yet are left out. Auth mints their IDs and pushes them to
- * Onyx as a merge, so optimistically inventing a different ID would leave the same unit or rate on
- * screen twice once the server push lands.
- *
- * Skipping the optimistic update for those new rates is fine because the copy runs behind a blocking
- * modal, so nothing is on screen waiting for them. Showing them optimistically would require sending
- * an optimisticRateIDs parameter and having Auth use those IDs instead of minting its own, which we
- * can add later if we need it.
- */
+/** Reuses existing unit/rate IDs; new IDs come from Auth to avoid duplicate rates after its push. */
 function buildCustomUnitsPatch(sourcePolicy: Policy, targetPolicy: Policy, isDistanceSelected: boolean, isPerDiemSelected: boolean): {customUnits: Record<string, CustomUnit>} | undefined {
     const unitNames = [...(isDistanceSelected ? [CONST.CUSTOM_UNITS.NAME_DISTANCE] : []), ...(isPerDiemSelected ? [CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL] : [])];
     const patch: Record<string, CustomUnit> = {};
 
     for (const unitName of unitNames) {
-        const sourceUnit = findCustomUnitByName(sourcePolicy, unitName);
+        const rawSourceUnit = findCustomUnitByName(sourcePolicy, unitName);
         const targetUnit = findCustomUnitByName(targetPolicy, unitName);
-        if (!sourceUnit || !targetUnit) {
+        if (!rawSourceUnit || rawSourceUnit.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !targetUnit) {
             continue;
         }
+        const sourceUnit = buildDuplicateSettingSnapshot(rawSourceUnit);
 
         const targetRateIDByName = new Map<string, string>();
         for (const targetRate of Object.values(targetUnit.rates ?? {})) {
-            if (!targetRate.name || !targetRate.customUnitRateID || targetRateIDByName.has(targetRate.name)) {
+            if (!targetRate?.name || targetRate.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !targetRate.customUnitRateID || targetRateIDByName.has(targetRate.name)) {
                 continue;
             }
             targetRateIDByName.set(targetRate.name, targetRate.customUnitRateID);
@@ -174,6 +164,9 @@ function buildCustomUnitsPatch(sourcePolicy: Policy, targetPolicy: Policy, isDis
 
         const rates: Record<string, Rate> = {};
         for (const sourceRate of Object.values(sourceUnit.rates ?? {})) {
+            if (!sourceRate || sourceRate.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                continue;
+            }
             const sourceRateName = sourceRate.name;
             const targetRateID = sourceRateName ? targetRateIDByName.get(sourceRateName) : undefined;
             if (!sourceRateName || !targetRateID) {
@@ -183,7 +176,7 @@ function buildCustomUnitsPatch(sourcePolicy: Policy, targetPolicy: Policy, isDis
             // Each target rate ID can only stand in for one source rate, so a second source rate of the
             // same name falls through to the server push like any other rate the target doesn't have.
             targetRateIDByName.delete(sourceRateName);
-            rates[targetRateID] = {...sourceRate, customUnitRateID: targetRateID};
+            rates[targetRateID] = {...buildDuplicateSettingSnapshot(sourceRate), customUnitRateID: targetRateID};
         }
 
         patch[targetUnit.customUnitID] = {...sourceUnit, customUnitID: targetUnit.customUnitID, rates};
@@ -231,25 +224,13 @@ function buildTimeTrackingPatch(sourcePolicy: Policy): Pick<Policy, 'units'> | u
     return {units: {time: sourceTime}};
 }
 
-/**
- * Returns the travelSettings patch to merge onto the target when travel is copied. Only the
- * non-identity autoAddTripName preference is transferred; the target keeps its own Spotnana
- * identity fields (spotnanaCompanyID/associatedTravelDomainAccountID) and hasAcceptedTerms, which
- * the backend re-provisions per target. Mirrors Auth's autoAddTripName-only copy. Spreading the
- * target's existing travelSettings (like setWorkspaceTravelSettings) means a target that is not yet
- * provisioned gets only {autoAddTripName} with no fabricated identity fields, so it is not treated
- * as provisioned.
- */
+/** Copies Travel preferences while preserving the target's own identity and consent. */
 function buildTravelSettingsPatch(sourcePolicy: Policy, targetPolicy: Policy): Pick<Policy, 'travelSettings'> | undefined {
-    const sourceAutoAddTripName = sourcePolicy.travelSettings?.autoAddTripName;
-    if (sourceAutoAddTripName === undefined) {
+    if (!sourcePolicy.isTravelEnabled) {
         return undefined;
     }
 
-    // A target that is not yet provisioned has no travelSettings, so the spread yields just
-    // {autoAddTripName}. The Spotnana identity fields are optional (populated by the backend at
-    // provision time), so leaving them out here keeps the target from looking provisioned.
-    return {travelSettings: {...targetPolicy.travelSettings, autoAddTripName: sourceAutoAddTripName}};
+    return {travelSettings: {...targetPolicy.travelSettings, autoAddTripName: sourcePolicy.travelSettings?.autoAddTripName ?? true}};
 }
 
 /**
@@ -313,7 +294,7 @@ function buildCategoryRulesPatch(sourceCategories: PolicyCategories, targetCateg
 
         // expenseLimitType and commentHint can be set without a rule existing, so gate on the rule predicates
         // themselves - otherwise a category carrying no rule would still patch (and force-enable) the target.
-        if (!hasExplicitFlagAmount(sourceCategory.maxExpenseAmount) && !categoryHasAnyRequireFieldsRule(sourceCategory) && !sourceCategory.commentHint) {
+        if (!hasExplicitAmountLimit(sourceCategory.maxExpenseAmount) && !categoryHasAnyRequireFieldsRule(sourceCategory) && !sourceCategory.commentHint) {
             continue;
         }
 
@@ -352,6 +333,15 @@ function buildPolicyFieldPatch(sourcePolicy: Policy, targetPolicy: Policy, parts
 
     for (const part of parts) {
         for (const field of PARTS_TO_POLICY_FIELDS[part]) {
+            if (field === 'invoice') {
+                const invoice = {...targetPolicy.invoice};
+                delete invoice.markUp;
+                const sourceMarkUp = sourcePolicy.invoice?.markUp;
+                if (sourceMarkUp !== undefined || targetPolicy.invoice) {
+                    patch.invoice = sourceMarkUp === undefined ? invoice : {...invoice, markUp: sourceMarkUp};
+                }
+                continue;
+            }
             if (field === 'customUnits') {
                 continue;
             }
@@ -363,25 +353,93 @@ function buildPolicyFieldPatch(sourcePolicy: Policy, targetPolicy: Policy, parts
         }
     }
 
+    if (parts.includes('rules') && (sourcePolicy.rules?.agentRules || targetPolicy.rules?.agentRules)) {
+        // Auth replaces Agent rules; the other rule groups belong to codingRules.
+        patch.rules = {
+            ...targetPolicy.rules,
+            agentRules: Object.fromEntries(
+                Object.entries(sourcePolicy.rules?.agentRules ?? {})
+                    .filter(([, rule]) => !!rule && rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+                    .map(([id, rule]) => [id, buildDuplicateSettingSnapshot(rule)]),
+            ),
+        };
+    }
+
+    if (parts.includes('codingRules')) {
+        const members = parts.includes('members') ? sourcePolicy.employeeList : targetPolicy.employeeList;
+        const approverEmails = new Set(
+            Object.entries(members ?? {})
+                .filter(([, member]) => !!member && member.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+                .map(([email]) => email.toLowerCase()),
+        );
+        if (parts.includes('members')) {
+            approverEmails.add(targetPolicy.owner.toLowerCase());
+        }
+        const taxPolicy = parts.includes('taxes') ? sourcePolicy : targetPolicy;
+        const taxCodes = new Set(
+            Object.entries(taxPolicy.taxRates?.taxes ?? {})
+                .filter(([, tax]) => !!tax && !tax.isDisabled && tax.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+                .map(([code]) => code),
+        );
+        patch.rules = {
+            ...(patch.rules ?? targetPolicy.rules),
+            // Numeric IDs are reminted by Auth and already have temporary copies in rules_.
+            codingRules: Object.fromEntries(
+                Object.entries(sourcePolicy.rules?.codingRules ?? {})
+                    .filter(([id]) => !(Number(id) > 0))
+                    .filter(([, rule]) => !!rule && rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+                    .map(([id, rule]) => [id, buildDuplicateSettingSnapshot(rule)]),
+            ),
+            approvalRules: (sourcePolicy.rules?.approvalRules ?? [])
+                .filter((rule) => !!rule && (!('pendingAction' in rule) || rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE))
+                .filter((rule) => !rule.approver || approverEmails.has(rule.approver.toLowerCase()))
+                .map((rule) => buildDuplicateSettingSnapshot(rule)),
+            expenseRules: (sourcePolicy.rules?.expenseRules ?? [])
+                .filter((rule) => !!rule && (!('pendingAction' in rule) || rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE))
+                .filter((rule) => {
+                    const taxCode = rule.tax?.field_id_TAX?.externalID;
+                    return !taxCode || taxCodes.has(taxCode);
+                })
+                .map((rule) => buildDuplicateSettingSnapshot(rule)),
+        };
+    }
+
+    if (parts.includes('workflows') && parts.includes('members')) {
+        patch.approver = sourcePolicy.approver;
+    }
+
     if (shouldCopyReportFields || shouldCopyInvoiceFields) {
         const shouldCopyField = (field: NonNullable<Policy['fieldList']>[string]) => {
-            const isInvoiceField = field.target === CONST.REPORT_FIELD_TARGETS.INVOICE;
+            const isInvoiceField = field?.target === CONST.REPORT_FIELD_TARGETS.INVOICE;
             return (shouldCopyReportFields && !isInvoiceField) || (shouldCopyInvoiceFields && isInvoiceField);
         };
         const retainedTargetFields = Object.entries(targetPolicy.fieldList ?? {}).filter(([, field]) => !shouldCopyField(field));
-        const copiedSourceFields = Object.entries(sourcePolicy.fieldList ?? {}).filter(([, field]) => shouldCopyField(field));
+        const copiedSourceFields = Object.entries(sourcePolicy.fieldList ?? {}).filter(
+            ([, field]) => !!field && field.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && shouldCopyField(field),
+        );
         const mergedFields = [...retainedTargetFields, ...copiedSourceFields];
         patch.fieldList = Object.fromEntries(mergedFields);
+        if (shouldCopyReportFields && !copiedSourceFields.some(([, field]) => field.fieldID === CONST.REPORT_FIELD_TITLE_FIELD_ID)) {
+            const titleField = Object.entries(targetPolicy.fieldList ?? {}).find(
+                ([, field]) => field?.fieldID === CONST.REPORT_FIELD_TITLE_FIELD_ID && field.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            );
+            if (titleField) {
+                patch.fieldList[titleField[0]] = titleField[1];
+            }
+        }
     }
 
     return patch;
 }
 
-function buildExpandedPendingFields(parts: Part[]): Partial<Record<PolicyFieldsForPart, typeof CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE>> {
-    const pendingFields: Partial<Record<PolicyFieldsForPart, typeof CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE>> = {};
+function buildExpandedPendingFields(
+    parts: Part[],
+    pendingAction: typeof CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD | typeof CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+): Partial<Record<PolicyFieldsForPart, typeof pendingAction>> {
+    const pendingFields: Partial<Record<PolicyFieldsForPart, typeof pendingAction>> = {};
     for (const part of parts) {
         for (const field of PARTS_TO_POLICY_FIELDS[part]) {
-            pendingFields[field] = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+            pendingFields[field] = pendingAction;
         }
     }
     return pendingFields;
@@ -406,23 +464,26 @@ type CopyPolicySettingsOnyxKeys =
     | typeof ONYXKEYS.NVP_BULK_POLICY_COPY_SETTINGS;
 
 function buildCopyPolicySettingsData(
-    sourcePolicy: Policy,
+    sourcePolicyData: Policy,
     targetPolicies: Policy[],
     parts: Part[],
     allPolicyCategories: OnyxCollection<PolicyCategories>,
     allPolicyTags: OnyxCollection<PolicyTagLists>,
     allRules: OnyxCollection<Rule>,
     isOffline = false,
+    isNewPolicy = false,
 ): {
     optimisticData: Array<OnyxUpdate<CopyPolicySettingsOnyxKeys>>;
     successData: Array<OnyxUpdate<CopyPolicySettingsOnyxKeys>>;
     failureData: Array<OnyxUpdate<CopyPolicySettingsOnyxKeys>>;
 } {
+    const sourcePolicy = buildCopyPolicySettingsSource(sourcePolicyData);
     const optimisticData: Array<OnyxUpdate<CopyPolicySettingsOnyxKeys>> = [];
     const successData: Array<OnyxUpdate<CopyPolicySettingsOnyxKeys>> = [];
     const failureData: Array<OnyxUpdate<CopyPolicySettingsOnyxKeys>> = [];
 
-    const pendingFields = buildExpandedPendingFields(parts);
+    const pendingAction = isNewPolicy ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+    const pendingFields = buildExpandedPendingFields(parts, pendingAction);
     const clearedPendingFields = buildClearedPendingFields(parts);
 
     const isCategoriesSelected = parts.includes('categories');
@@ -435,37 +496,31 @@ function buildCopyPolicySettingsData(
     const isRulesSelected = parts.includes('rules');
     const isTravelSelected = parts.includes('travel');
     const isWorkflowsSelected = parts.includes('workflows');
-    const timeTrackingPendingFields = isTimeTrackingSelected
-        ? {
-              isTimeTrackingEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-              timeTrackingDefaultRate: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-          }
-        : {};
-    const timeTrackingClearedPendingFields = isTimeTrackingSelected
-        ? {
-              isTimeTrackingEnabled: null,
-              timeTrackingDefaultRate: null,
-          }
-        : {};
-    const receiptPartnersPendingFields = isReceiptPartnersSelected ? {receiptPartners: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE} : {};
+    const timeTrackingPendingFields = isTimeTrackingSelected ? {isTimeTrackingEnabled: pendingAction, timeTrackingDefaultRate: pendingAction} : {};
+    const timeTrackingClearedPendingFields = isTimeTrackingSelected ? {isTimeTrackingEnabled: null, timeTrackingDefaultRate: null} : {};
+    const receiptPartnersPendingFields = isReceiptPartnersSelected ? {receiptPartners: pendingAction} : {};
     const receiptPartnersClearedPendingFields = isReceiptPartnersSelected ? {receiptPartners: null} : {};
-    const reimbursementPendingFields = isWorkflowsSelected ? {reimbursement: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE} : {};
+    const reimbursementPendingFields = isWorkflowsSelected ? {reimbursement: pendingAction} : {};
     const reimbursementClearedPendingFields = isWorkflowsSelected ? {reimbursement: null} : {};
-    // Merchant rules are only visible while Rules is on, so copying them turns Rules on for the target,
-    // the same way the backend does. This keeps the target right while offline, before the server push lands.
-    const codingRulesPatch = isCodingRulesSelected ? {areRulesEnabled: true} : {};
-    const codingRulesPendingFields = isCodingRulesSelected ? {areRulesEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE} : {};
+    // Auth preserves an explicit source Rules toggle, including when Merchant rules are copied.
+    const codingRulesPatch = isCodingRulesSelected ? {areRulesEnabled: sourcePolicy.areRulesEnabled ?? true} : {};
+    const codingRulesPendingFields = isCodingRulesSelected ? {areRulesEnabled: pendingAction} : {};
     const codingRulesClearedPendingFields = isCodingRulesSelected ? {areRulesEnabled: null} : {};
 
     const sourceCategoriesKey = `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${sourcePolicy.id}` as const;
     const sourceTagsKey = `${ONYXKEYS.COLLECTION.POLICY_TAGS}${sourcePolicy.id}` as const;
-    const sourceCategories = allPolicyCategories?.[sourceCategoriesKey] ?? {};
-    const sourceTags = allPolicyTags?.[sourceTagsKey] ?? {};
+    const sourceCategories = buildDuplicateSettingCollection(allPolicyCategories?.[sourceCategoriesKey] ?? undefined);
+    const sourceTags = Object.fromEntries(
+        Object.entries(buildDuplicateSettingCollection(allPolicyTags?.[sourceTagsKey] ?? undefined)).map(([name, tagList]) => [
+            name,
+            {...tagList, tags: buildDuplicateSettingCollection(tagList.tags)},
+        ]),
+    );
 
     for (const targetPolicy of targetPolicies) {
         const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${targetPolicy.id}` as const;
         const policyFieldPatch = buildPolicyFieldPatch(sourcePolicy, targetPolicy, parts);
-        const customUnitsPatch = buildCustomUnitsPatch(sourcePolicy, targetPolicy, isDistanceSelected, isPerDiemSelected);
+        const customUnitsPatch = isNewPolicy ? undefined : buildCustomUnitsPatch(sourcePolicy, targetPolicy, isDistanceSelected, isPerDiemSelected);
         const timeTrackingPatch = isTimeTrackingSelected ? buildTimeTrackingPatch(sourcePolicy) : undefined;
         const travelSettingsPatch = isTravelSelected ? buildTravelSettingsPatch(sourcePolicy, targetPolicy) : undefined;
         const receiptPartnersPatch = isReceiptPartnersSelected ? buildReceiptPartnersPatch(sourcePolicy) : undefined;
@@ -529,15 +584,17 @@ function buildCopyPolicySettingsData(
             },
         });
 
-        // Failure: restore the original target policy in full, surface RBR
-        failureData.push({
-            onyxMethod: Onyx.METHOD.SET,
-            key: policyKey,
-            value: {
-                ...targetPolicy,
-                errors: getMicroSecondOnyxErrorWithTranslationKey('workspace.copyPolicySettings.error'),
-            },
-        });
+        if (!isNewPolicy) {
+            // Failure: restore the original target policy in full, surface RBR
+            failureData.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key: policyKey,
+                value: {
+                    ...targetPolicy,
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('workspace.copyPolicySettings.error'),
+                },
+            });
+        }
 
         // Step 3: collection keys (categories / tags) — SET-level overwrite with snapshot rollback
         if (isCategoriesSelected) {
@@ -589,6 +646,10 @@ function buildCopyPolicySettingsData(
                 value: previousTags,
             });
         }
+    }
+
+    if (isNewPolicy) {
+        return {optimisticData, successData, failureData};
     }
 
     // Surface an RBR on the source policy row so the admin knows the bulk copy failed

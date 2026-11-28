@@ -11,10 +11,12 @@ import {
     getReceiptPartnersCopySettingsDescription,
     getTimeTrackingCopySettingsDescription,
     hasCurrencyConflictWithAnyTarget,
+    hasTravelEntity,
     isCopyPolicySettingsPartEnabledOnSource,
     isCurrencyBlockedByTargetBA,
     isTargetCompatibleForAccountingPart,
     needsCurrencyForWorkflows,
+    shouldRequireTravelTerms,
     shouldShowCopyPolicySettingsUpgradeStep,
 } from '@libs/CopyPolicySettingsUtils';
 import type {CopyPolicySettingsSourceFeatureContext} from '@libs/CopyPolicySettingsUtils';
@@ -26,6 +28,8 @@ import type {ConnectionName} from '@src/types/onyx/Policy';
 
 import createRandomPolicy from '../utils/collections/policies';
 import {translateLocal} from '../utils/TestHelper';
+
+const TAX_FIELD_ID = 'field_id_TAX';
 
 function makePolicyWithConnection(connectionName: ConnectionName, connectionPayload: Record<string, unknown>): Policy {
     const base = createRandomPolicy(0, CONST.POLICY.TYPE.CORPORATE);
@@ -46,6 +50,37 @@ function makePolicyWithCurrency(id: number, outputCurrency: string, hasBankAccou
 
 describe('CopyPolicySettingsUtils', () => {
     beforeAll(() => IntlStore.load(CONST.LOCALES.EN));
+
+    describe('Travel provisioning', () => {
+        it.each([
+            {travelSettings: {spotnanaEntityID: 'source-entity'}},
+            {travelSettings: {spotnanaCompanyID: 'source-company'}},
+            {travelSettings: {associatedTravelDomainAccountID: '123'}},
+            {isTravelProvisioned: true},
+        ] satisfies Array<Partial<Policy>>)('requires consent for provisioned source %# even before a full policy load', (provisioningMarkers) => {
+            // Given a source with only one provisioning marker cached on the device.
+            const policy = {...createRandomPolicy(0), ...provisioningMarkers};
+
+            // When checking Travel availability and consent for copying or duplication.
+            const hasEntity = hasTravelEntity(policy);
+            const requiresTerms = shouldRequireTravelTerms(policy, ['travel']);
+
+            // Then provisioned sources require consent only when Travel is selected.
+            expect(hasEntity).toBe(true);
+            expect(requiresTerms).toBe(true);
+            expect(shouldRequireTravelTerms(policy, ['overview'])).toBe(false);
+        });
+
+        it.each([undefined, {...createRandomPolicy(0), isTravelProvisioned: false, travelSettings: {}}])('does not require consent for an unprovisioned source %#', (policy) => {
+            // Given a source with no provisioning markers or no cached policy.
+            // When checking consent with Travel selected.
+            const requiresTerms = shouldRequireTravelTerms(policy, ['travel']);
+
+            // Then an unprovisioned source does not need Travel consent.
+            expect(requiresTerms).toBe(false);
+            expect(hasTravelEntity(policy)).toBe(false);
+        });
+    });
 
     describe('getConnectionCompanyID', () => {
         it('returns realmId for QuickBooks Online', () => {
@@ -253,6 +288,23 @@ describe('CopyPolicySettingsUtils', () => {
             expect(isCopyPolicySettingsPartEnabledOnSource('codingRules', {...baseContext, codingRulesCount: 0})).toBe(false);
             expect(isCopyPolicySettingsPartEnabledOnSource('codingRules', {...baseContext, isCollectPolicy: true})).toBe(false);
             expect(isCopyPolicySettingsPartEnabledOnSource('codingRules', baseContext)).toBe(true);
+        });
+
+        it.each<NonNullable<Policy['rules']>>([
+            {codingRules: {legacy: {filters: {left: 'merchant', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Coffee'}}}},
+            {approvalRules: [{approver: 'member@example.com', applyWhen: []}]},
+            {expenseRules: [{tax: {[TAX_FIELD_ID]: {externalID: 'VAT'}}, applyWhen: []}]},
+        ])('offers Merchant rules for legacy policy rule groups without rules_ entries: %j', (rules) => {
+            // Given a workspace whose saved rules have not been migrated into rules_.
+            const context = {...baseContext, codingRulesCount: 0, policy: {...createRandomPolicy(0), rules}};
+
+            // When availability is checked for Control and Collect targets.
+            const controlAvailable = isCopyPolicySettingsPartEnabledOnSource('codingRules', context);
+            const collectAvailable = isCopyPolicySettingsPartEnabledOnSource('codingRules', {...context, isCollectPolicy: true});
+
+            // Then legacy groups remain selectable while retaining the existing plan restriction.
+            expect(controlAvailable).toBe(true);
+            expect(collectAvailable).toBe(false);
         });
 
         it('hides travel when the source policy does not have travel enabled', () => {
