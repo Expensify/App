@@ -171,4 +171,26 @@ describe('WorkspaceWorkflowsApprovalsCreatePage', () => {
         expect(approvalWorkflows).toHaveLength(2);
         expect(approvalWorkflows.find((workflow) => workflow.isDefault)?.approvers.map((approver) => approver.email)).toEqual([ALICE_EMAIL]);
     });
+
+    it('moves a member out of their current workflow when the new workflow takes them, with Multiple Approvers on', async () => {
+        // Given Multiple Approvers is on and a rule already sends Alice's and Carol's reports to Alice
+        const aliceWorkflowRuleKey = `${ONYXKEYS.COLLECTION.RULE}aliceWorkflowRule` as const;
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.MULTIPLE_APPROVERS]);
+            await Onyx.set(aliceWorkflowRuleKey, {
+                scope: CONST.RULES.SCOPE.POLICY,
+                scopeID: POLICY_ID,
+                triggers: Object.fromEntries([['1', CONST.RULES.TRIGGERS.REPORT_SUBMIT]]),
+                filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: [ALICE_EMAIL, CAROL_EMAIL]},
+                actions: Object.fromEntries([['1', {name: CONST.RULES.ACTIONS.FORWARD_TO, approver: ALICE_EMAIL}]]),
+            });
+        });
+        await renderCreatePageWithMembers([CAROL_EMAIL]);
+
+        // When the admin adds a workflow approved by Bob with Carol in it
+        fireEvent.press(screen.getByText(translateLocal('workflowsCreateApprovalsPage.submitButton')));
+
+        // Then Carol leaves Alice's rule, since a member can only belong to one workflow, and Alice stays in it
+        await waitFor(async () => expect((await getOnyxValue(aliceWorkflowRuleKey))?.filters).toEqual(expect.objectContaining({right: [ALICE_EMAIL]})));
+    });
 });

@@ -73,10 +73,12 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {GestureResponderEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
+import policyCategoriesVisibilitySelector from '@selectors/PolicyCategories';
 import {authTokenTypeSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
 import React, {useEffect, useState} from 'react';
 import {Keyboard, View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 type WorkspaceInviteMessageComponentProps = {
     policy: OnyxEntry<Policy>;
@@ -116,8 +118,6 @@ function WorkspaceInviteMessageComponent({
     const [allPersonalDetails] = useAllPersonalDetails();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
-    // Only used when this page finishes a "+N more" workflow edit, which has no edit page behind it to save the workflow.
-    const [approvalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
 
     const [welcomeNote, setWelcomeNote] = useState<string>();
     const {inputCallbackRef, inputRef} = useAutoFocusInput();
@@ -137,7 +137,7 @@ function WorkspaceInviteMessageComponent({
     const workspaceInviteRoleDraft = isSubmitPolicy(policy) ? CONST.POLICY.ROLE.EDITOR : draftInviteRole;
     const defaultApprover = getDefaultApprover(policy);
     const [approverDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT}${policyID}`);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {selector: policyCategoriesVisibilitySelector});
     const [categoryVisibilityDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_CATEGORY_VISIBILITY_DRAFT}${policyID}`);
     const shouldShowCategoryVisibilityRow = canSetInvitedMembersCategoryVisibility(policy);
     // A lazy-loaded workspace may only have some of its categories, so the complete list is read here too.
@@ -240,7 +240,7 @@ function WorkspaceInviteMessageComponent({
         // eslint-disable-next-line react-hooks/exhaustive-deps -- the drafts are only read once, when the page opens
     }, []);
 
-    const sendInvitation = () => {
+    const sendInvitation = async () => {
         Keyboard.dismiss();
         const categoryNames = shouldShowCategoryVisibilityRow ? categoryVisibilityDraftNames : undefined;
         // A member needs at least one category, so an invite whose chosen categories are all gone waits for the admin to pick again
@@ -294,6 +294,7 @@ function WorkspaceInviteMessageComponent({
         }
 
         if (isWorkflowApprovalExpensesFromRoute) {
+            const approvalWorkflow = await Onyx.get(ONYXKEYS.APPROVAL_WORKFLOW);
             const nestedBackTo = getSearchParamFromPath(backTo?.toString() ?? '', 'backTo');
             if (nestedBackTo) {
                 Navigation.goBack(nestedBackTo as Routes);

@@ -95,7 +95,6 @@ function DynamicIOURequestStepDestination({
     const policyID = reportPolicyID === CONST.POLICY.ID_FAKE ? getPolicyByCustomUnitID(transaction, allPolicies)?.id : reportPolicyID;
     const [policy, policyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${explicitPolicyID ?? policyID}`);
     const {accountID} = useCurrentUserPersonalDetails();
-    const policyExpenseReport = policy?.id ? getPolicyExpenseChat(accountID, policy.id) : undefined;
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const personalPolicy = usePersonalPolicy();
     const headerAreaHeight = useHeaderAreaHeight();
@@ -145,43 +144,55 @@ function DynamicIOURequestStepDestination({
         if (isEmptyObject(customUnit)) {
             return;
         }
-        let targetReport: OnyxEntry<Report> = explicitPolicyID && transaction?.isFromGlobalCreate ? policyExpenseReport : report;
-        let targetIouType = iouType;
-        let transactionReportID;
-        if (selectedDestination !== destination.keyForList) {
-            if (openedFromStartPage) {
-                ({targetReport, targetIouType, transactionReportID} = getInitialPerDiemTargetReport(
-                    targetReport,
-                    selfDMReport,
-                    targetIouType,
-                    defaultExpensePolicy,
-                    personalPolicy,
-                    transaction?.isFromGlobalCreate ?? false,
-                ));
-                setTransactionReport(transactionID, {reportID: transactionReportID}, true);
-                setMoneyRequestParticipantsFromReport(transactionID, targetReport, accountID, targetIouType !== CONST.IOU.TYPE.TRACK);
-                setCustomUnitID(transactionID, customUnit.customUnitID);
-                setMoneyRequestCategory(transactionID, customUnit?.defaultCategory ?? '', undefined);
+        const applyDestination = (initialTargetReport: OnyxEntry<Report>) => {
+            let targetReport = initialTargetReport;
+            let targetIouType = iouType;
+            let transactionReportID;
+            if (selectedDestination !== destination.keyForList) {
+                if (openedFromStartPage) {
+                    ({targetReport, targetIouType, transactionReportID} = getInitialPerDiemTargetReport(
+                        targetReport,
+                        selfDMReport,
+                        targetIouType,
+                        defaultExpensePolicy,
+                        personalPolicy,
+                        transaction?.isFromGlobalCreate ?? false,
+                    ));
+                    setTransactionReport(transactionID, {reportID: transactionReportID}, true);
+                    setMoneyRequestParticipantsFromReport(transactionID, targetReport, accountID, targetIouType !== CONST.IOU.TYPE.TRACK);
+                    setCustomUnitID(transactionID, customUnit.customUnitID);
+                    setMoneyRequestCategory(transactionID, customUnit?.defaultCategory ?? '', undefined);
+                }
+                setCustomUnitRateID(transactionID, destination.keyForList ?? '', transaction, policy, false, personalPolicy?.outputCurrency);
+                setMoneyRequestCurrency(transactionID, destination.currency);
+                clearSubrates(transactionID);
             }
-            setCustomUnitRateID(transactionID, destination.keyForList ?? '', transaction, policy, false, personalPolicy?.outputCurrency);
-            setMoneyRequestCurrency(transactionID, destination.currency);
-            clearSubrates(transactionID);
+
+            if (isEditPage) {
+                navigateBack();
+            } else {
+                // Time is a dynamic route: build it on the start base when the destination is shown inline on the start page
+                // (single per-diem policy) and on the destination base otherwise, so Time's back returns to the right step.
+                // Only the shape of this base reaches the stack - the base route already exists and keeps its own params.
+                const timeBase = openedFromStartPage
+                    ? ROUTES.MONEY_REQUEST_CREATE.getRoute(action, targetIouType, transactionID, targetReport?.reportID ?? reportID, backToReport)
+                    : createDynamicRoute(
+                          DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESTINATION.path,
+                          ROUTES.MONEY_REQUEST_CREATE.getRoute(action, targetIouType, transactionID, targetReport?.reportID ?? reportID, backToReport),
+                      );
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TIME.path, timeBase));
+            }
+        };
+
+        if (!explicitPolicyID || !transaction?.isFromGlobalCreate) {
+            applyDestination(report);
+            return;
         }
 
-        if (isEditPage) {
-            navigateBack();
-        } else {
-            // Time is a dynamic route: build it on the start base when the destination is shown inline on the start page
-            // (single per-diem policy) and on the destination base otherwise, so Time's back returns to the right step.
-            // Only the shape of this base reaches the stack - the base route already exists and keeps its own params.
-            const timeBase = openedFromStartPage
-                ? ROUTES.MONEY_REQUEST_CREATE.getRoute(action, targetIouType, transactionID, targetReport?.reportID ?? reportID, backToReport)
-                : createDynamicRoute(
-                      DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESTINATION.path,
-                      ROUTES.MONEY_REQUEST_CREATE.getRoute(action, targetIouType, transactionID, targetReport?.reportID ?? reportID, backToReport),
-                  );
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TIME.path, timeBase));
-        }
+        // The workspace chat is only needed on submit, so read it once here instead of subscribing to every report
+        // eslint-disable-next-line rulesdir/no-onyx-get-snapshot-key -- replaces getPolicyExpenseChat's module-level Onyx.connect fallback, which never read a Search snapshot
+        const reports = await Onyx.get(ONYXKEYS.COLLECTION.REPORT);
+        applyDestination(getPolicyExpenseChat(accountID, policy?.id, reports));
     };
 
     const tabTitles = {
@@ -295,7 +306,9 @@ function DynamicIOURequestStepDestination({
                         ref={destinationSelectionListRef}
                         selectedDestination={selectedDestination}
                         policyID={policy.id}
-                        onSubmit={updateDestination}
+                        onSubmit={(destination) => {
+                            updateDestination(destination);
+                        }}
                     />
                 )}
             </StepScreenWrapper>

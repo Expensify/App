@@ -210,14 +210,12 @@ describe('WorkspaceInviteMessageComponent - Category visibility row', () => {
     });
 
     it('shows the number of chosen categories and sends them with the invite', async () => {
-        // Given the admin limited the members being invited to Meals and Travel
-        await setCategoriesAndDraft(
-            {
-                Meals: {name: 'Meals', enabled: true},
-                Travel: {name: 'Travel', enabled: true},
-            },
-            ['Meals', 'Travel'],
-        );
+        // Given the admin limited the members being invited to Meals and Travel, and Meals is already limited to some members
+        const policyCategories = {
+            Meals: {name: 'Meals', enabled: true, visibleTo: {[ADMIN_ACCOUNT_ID]: true}},
+            Travel: {name: 'Travel', enabled: true},
+        };
+        await setCategoriesAndDraft(policyCategories, ['Meals', 'Travel']);
         await renderPage(buildPolicy());
 
         // Then the row counts them
@@ -226,8 +224,9 @@ describe('WorkspaceInviteMessageComponent - Category visibility row', () => {
         // When the admin sends the invite
         await pressInvite();
 
-        // Then the chosen categories go with it, so the backend restricts the new member
+        // Then the chosen categories go with it, along with the workspace categories, so the backend restricts the new member
         expect(addMembersToWorkspaceMock.mock.lastCall?.[8]?.categoryNames).toEqual(['Meals', 'Travel']);
+        expect(addMembersToWorkspaceMock.mock.lastCall?.[8]?.policyCategories).toEqual(policyCategories);
     });
 
     it('counts and sends only the chosen categories that are still enabled', async () => {
