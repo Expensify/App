@@ -111,7 +111,7 @@ jest.mock('@libs/SearchQueryUtils', () => ({
 jest.mock('@libs/SearchUIUtils', () => ({
     getDatePresets: jest.fn(() => ['today', 'yesterday', 'lastWeek', 'lastMonth']),
     getHasOptions: jest.fn(() => [{value: 'attachment'}, {value: 'note'}]),
-    getHasOptionAvailability: jest.fn(() => ({shouldShowTag: true, shouldShowCategory: true, shouldShowSubmittedViolation: true, shouldShowApprovedViolation: true})),
+    getHasOptionAvailability: jest.fn(() => ({shouldShowTag: true, shouldShowCategory: true, shouldShowViolations: true})),
 }));
 
 jest.mock('@hooks/useExportedToFilterOptions', () => ({
@@ -517,13 +517,12 @@ describe('useAutocompleteSuggestions', () => {
         ['', true],
         ['', false],
         ['vio', false],
-    ] as const)('filters group-by suggestions for "%s" when violation search availability is %s', (value, shouldShowSubmittedViolation) => {
+    ] as const)('filters group-by suggestions for "%s" when violation search availability is %s', (value, shouldShowViolations) => {
         // Given violation search availability reflects the user's accessible group workspaces, independently of Rules
         getHasOptionAvailability.mockReturnValueOnce({
             shouldShowTag: true,
             shouldShowCategory: true,
-            shouldShowSubmittedViolation,
-            shouldShowApprovedViolation: shouldShowSubmittedViolation,
+            shouldShowViolations,
         });
         parseForAutocomplete.mockReturnValue({
             autocomplete: {key: CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY, value},
@@ -535,7 +534,7 @@ describe('useAutocompleteSuggestions', () => {
 
         // Then Violation is only offered with an accessible group workspace, while other matching groupings remain available
         const suggestions = result.current.map((suggestion) => suggestion.text);
-        expect(suggestions.includes(CONST.SEARCH.GROUP_BY.VIOLATION)).toBe(shouldShowSubmittedViolation);
+        expect(suggestions.includes(CONST.SEARCH.GROUP_BY.VIOLATION)).toBe(shouldShowViolations);
         if (!value) {
             expect(suggestions).toContain(CONST.SEARCH.GROUP_BY.FROM);
         }
@@ -544,7 +543,7 @@ describe('useAutocompleteSuggestions', () => {
     it('removes the violation group-by suggestion when the last group workspace is removed', () => {
         // Given an accessible group workspace with Rules off still supports violation search
         const policies = {[`${ONYXKEYS.COLLECTION.POLICY}1`]: createMock<Policy>({id: '1', type: CONST.POLICY.TYPE.TEAM, areRulesEnabled: false})};
-        getHasOptionAvailability.mockReturnValueOnce({shouldShowTag: true, shouldShowCategory: true, shouldShowSubmittedViolation: true, shouldShowApprovedViolation: true});
+        getHasOptionAvailability.mockReturnValueOnce({shouldShowTag: true, shouldShowCategory: true, shouldShowViolations: true});
         parseForAutocomplete.mockReturnValue({
             autocomplete: {key: CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY, value: ''},
             ranges: [],
@@ -556,7 +555,7 @@ describe('useAutocompleteSuggestions', () => {
         expect(result.current.map((suggestion) => suggestion.text)).toContain(CONST.SEARCH.GROUP_BY.VIOLATION);
 
         // When that workspace is removed while the search input stays open
-        getHasOptionAvailability.mockReturnValueOnce({shouldShowTag: false, shouldShowCategory: false, shouldShowSubmittedViolation: false, shouldShowApprovedViolation: false});
+        getHasOptionAvailability.mockReturnValueOnce({shouldShowTag: false, shouldShowCategory: false, shouldShowViolations: false});
         rerender({policies: {}});
 
         // Then the suggestions use the updated workspaces and retain other grouping choices
@@ -996,9 +995,9 @@ describe('useAutocompleteSuggestions', () => {
             expect(result.current.map((item) => item.text)).toEqual(['Tag absent']);
         });
 
-        it('suggests nothing when no workspace has Rules enabled', () => {
-            // Given none of the user's workspaces has Rules turned on, so the advanced filters hide the violation row too
-            getHasOptionAvailability.mockReturnValueOnce({shouldShowTag: true, shouldShowCategory: true, shouldShowSubmittedViolation: false, shouldShowApprovedViolation: false});
+        it('suggests nothing when the user has no accessible group workspace', () => {
+            // Given no accessible group workspace, so the advanced filters hide the violation row too
+            getHasOptionAvailability.mockReturnValueOnce({shouldShowTag: true, shouldShowCategory: true, shouldShowViolations: false});
             parseForAutocomplete.mockReturnValue({
                 autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION, value: ''},
                 ranges: [],

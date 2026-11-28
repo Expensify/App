@@ -5843,8 +5843,7 @@ function getStatusOptions(translate: LocalizedTranslate, type: SearchDataTypes, 
 type HasOptionAvailability = {
     shouldShowTag: boolean;
     shouldShowCategory: boolean;
-    shouldShowSubmittedViolation: boolean;
-    shouldShowApprovedViolation: boolean;
+    shouldShowViolations: boolean;
 };
 
 type GetHasOptionsConfig = {
@@ -5866,8 +5865,7 @@ type GetHasOptionsConfig = {
 function getHasOptionAvailability(policies: OnyxCollection<OnyxTypes.Policy> | undefined): HasOptionAvailability {
     let shouldShowTag = false;
     let shouldShowCategory = false;
-    let shouldShowSubmittedViolation = false;
-    let shouldShowApprovedViolation = false;
+    let shouldShowViolations = false;
 
     for (const policy of Object.values(policies ?? {})) {
         if (!policy || policy.isJoinRequestPending || !isGroupPolicy(policy)) {
@@ -5876,15 +5874,14 @@ function getHasOptionAvailability(policies: OnyxCollection<OnyxTypes.Policy> | u
 
         shouldShowTag ||= policy.areTagsEnabled === true;
         shouldShowCategory ||= policy.areCategoriesEnabled === true;
-        shouldShowSubmittedViolation = true;
-        shouldShowApprovedViolation = true;
+        shouldShowViolations = true;
 
-        if (shouldShowTag && shouldShowCategory && shouldShowSubmittedViolation && shouldShowApprovedViolation) {
+        if (shouldShowTag && shouldShowCategory && shouldShowViolations) {
             break;
         }
     }
 
-    return {shouldShowTag, shouldShowCategory, shouldShowSubmittedViolation, shouldShowApprovedViolation};
+    return {shouldShowTag, shouldShowCategory, shouldShowViolations};
 }
 
 /**
@@ -5898,13 +5895,11 @@ function getHasOptions(translate: LocalizedTranslate, type: SearchDataTypes, con
 
     switch (type) {
         case CONST.SEARCH.DATA_TYPES.EXPENSE: {
-            const availability = shouldShowAllOptions
-                ? {shouldShowTag: true, shouldShowCategory: true, shouldShowSubmittedViolation: true, shouldShowApprovedViolation: true}
-                : getHasOptionAvailability(policies);
+            const availability = shouldShowAllOptions ? {shouldShowTag: true, shouldShowCategory: true, shouldShowViolations: true} : getHasOptionAvailability(policies);
             const shouldShowTag = availability.shouldShowTag || !!selectedValues?.includes(CONST.SEARCH.HAS_VALUES.TAG);
             const shouldShowCategory = availability.shouldShowCategory || !!selectedValues?.includes(CONST.SEARCH.HAS_VALUES.CATEGORY);
-            const shouldShowSubmittedViolation = availability.shouldShowSubmittedViolation || !!selectedValues?.includes(CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION);
-            const shouldShowApprovedViolation = availability.shouldShowApprovedViolation || !!selectedValues?.includes(CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION);
+            const shouldShowSubmittedViolation = availability.shouldShowViolations || !!selectedValues?.includes(CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION);
+            const shouldShowApprovedViolation = availability.shouldShowViolations || !!selectedValues?.includes(CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION);
             return [
                 {text: translate(HAS_VALUE_TRANSLATION_KEYS[CONST.SEARCH.HAS_VALUES.RECEIPT]), value: CONST.SEARCH.HAS_VALUES.RECEIPT},
                 {text: translate(HAS_VALUE_TRANSLATION_KEYS[CONST.SEARCH.HAS_VALUES.ATTACHMENT]), value: CONST.SEARCH.HAS_VALUES.ATTACHMENT},
@@ -6076,8 +6071,8 @@ function getSortOrderOptions(translate: LocalizedTranslate) {
 }
 
 /**
- * The group-by options, in sections. Violation only shows when a workspace has Rules on, since grouping by violation
- * only returns results for those workspaces.
+ * The group-by options, in sections. Violation shows when the user has an accessible group workspace,
+ * because expenses can have violations even when Rules is off.
  */
 function getGroupBySections(translate: LocalizedTranslate, shouldShowViolationGroupBy = false): GroupBySection[] {
     const getOption = (groupBy: SearchGroupBy): SingleSelectItem<SearchGroupBy> => ({

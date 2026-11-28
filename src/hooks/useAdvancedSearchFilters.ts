@@ -331,7 +331,7 @@ function useAdvancedSearchFilters(type: SearchDataTypes | undefined) {
     const isVendorFilterAvailableSelector = (allPolicies: OnyxCollection<Policy>) => hasVendorFeatureOnAnyPolicy(allPolicies, isVendorMatchingBetaEnabled);
     const [isVendorFilterAvailable = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: isVendorFilterAvailableSelector});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const shouldDisplayViolationFilter = getHasOptionAvailability(policies).shouldShowSubmittedViolation;
+    const shouldDisplayViolationFilter = getHasOptionAvailability(policies).shouldShowViolations;
 
     const {workspaces} = useAdvancedSearchFiltersWorkspaces(policies);
 

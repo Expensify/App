@@ -83,6 +83,7 @@ const DATA_TYPE_VALUES = Object.values(CONST.SEARCH.DATA_TYPES);
 const GROUP_BY_FRIENDLY_VALUES = Object.values(CONST.SEARCH.GROUP_BY)
     .filter(isGroupBySupportedBySearch)
     .map((value) => getUserFriendlyValue(value));
+const VIOLATION_GROUP_BY_FRIENDLY_VALUE = getUserFriendlyValue(CONST.SEARCH.GROUP_BY.VIOLATION);
 const VIEW_FRIENDLY_VALUES = Object.values(CONST.SEARCH.VIEW).map((value) => getUserFriendlyValue(value));
 const EXPENSE_TYPE_FRIENDLY_VALUES = Object.values(CONST.SEARCH.TRANSACTION_TYPE).map((value) => getUserFriendlyValue(value));
 const RECEIPT_TYPE_FRIENDLY_VALUES = CONST.SEARCH.SELECTABLE_RECEIPT_TYPES.map((value) => getUserFriendlyValue(value));
@@ -397,11 +398,10 @@ function useAutocompleteSuggestions({
                         return [];
                 }
             })();
-            const shouldShowViolationGroupBy = getHasOptionAvailability(policies).shouldShowSubmittedViolation;
-            const violationGroupByValue = getUserFriendlyValue(CONST.SEARCH.GROUP_BY.VIOLATION);
+            const shouldShowViolationGroupBy = getHasOptionAvailability(policies).shouldShowViolations;
             const filteredGroupBy = groupByAutocompleteList.filter(
                 (groupByValue) =>
-                    (groupByValue !== violationGroupByValue || shouldShowViolationGroupBy) &&
+                    (groupByValue !== VIOLATION_GROUP_BY_FRIENDLY_VALUE || shouldShowViolationGroupBy) &&
                     groupByValue.toLowerCase().includes(autocompleteValue.toLowerCase()) &&
                     !alreadyAutocompletedKeys.has(groupByValue.toLowerCase()),
             );
@@ -465,7 +465,7 @@ function useAutocompleteSuggestions({
             }));
         }
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION: {
-            if (!getHasOptionAvailability(policies).shouldShowSubmittedViolation) {
+            if (!getHasOptionAvailability(policies).shouldShowViolations) {
                 return getEmptyArray<AutocompleteItemData>();
             }
 

@@ -16694,26 +16694,6 @@ describe('SearchUIUtils', () => {
         });
     });
 
-    describe('getHasOptionAvailability', () => {
-        test.each([CONST.POLICY.TYPE.TEAM, CONST.POLICY.TYPE.CORPORATE])('shows violations for a %s workspace without a Rules setting', (policyType) => {
-            // Given a group workspace without a Rules setting or enabled tags and categories
-            const policies: OnyxCollection<OnyxTypes.Policy> = {
-                [`${ONYXKEYS.COLLECTION.POLICY}1`]: {
-                    ...createRandomPolicy(1, policyType),
-                    areRulesEnabled: undefined,
-                    areTagsEnabled: false,
-                    areCategoriesEnabled: false,
-                },
-            };
-
-            // When checking availability without loading any category rules
-            const availability = SearchUIUtils.getHasOptionAvailability(policies);
-
-            // Then violations are available without enabling tags or categories
-            expect(availability).toEqual({shouldShowTag: false, shouldShowCategory: false, shouldShowSubmittedViolation: true, shouldShowApprovedViolation: true});
-        });
-    });
-
     describe('getHasOptions', () => {
         const getExpenseHasOptions = () => ({
             receipt: {text: translateLocal('common.receipt'), value: CONST.SEARCH.HAS_VALUES.RECEIPT},
@@ -16812,29 +16792,14 @@ describe('SearchUIUtils', () => {
             expect(result.map((option) => option.value)).toContain(CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION);
         });
 
-        test('shows Submitted and Approved violation when at least one accessible workspace has Rules enabled', () => {
+        test('shows Submitted and Approved violation for an accessible group workspace', () => {
+            // Given a group workspace where violations do not depend on enabled workspace features
             const {receipt, attachment, submittedViolation, approvedViolation} = getExpenseHasOptions();
             const policies: OnyxCollection<OnyxTypes.Policy> = {
                 [`${ONYXKEYS.COLLECTION.POLICY}1`]: {
                     ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
                     areTagsEnabled: false,
                     areCategoriesEnabled: false,
-                    areRulesEnabled: true,
-                },
-            };
-
-            const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE, {policies});
-
-            expect(result).toEqual([receipt, attachment, submittedViolation, approvedViolation]);
-        });
-
-        test.each([CONST.POLICY.TYPE.TEAM, CONST.POLICY.TYPE.CORPORATE])('shows Submitted and Approved violation for a %s workspace with Rules off', (policyType) => {
-            // Given a group workspace with Rules disabled, expenses can still have violations
-            const policies: OnyxCollection<OnyxTypes.Policy> = {
-                [`${ONYXKEYS.COLLECTION.POLICY}1`]: {
-                    ...createRandomPolicy(1, policyType),
-                    areTagsEnabled: true,
-                    areCategoriesEnabled: true,
                     areRulesEnabled: false,
                 },
             };
@@ -16842,11 +16807,8 @@ describe('SearchUIUtils', () => {
             // When building the expense has filter options
             const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE, {policies});
 
-            // Then both violation options remain available alongside enabled workspace features
-            expect(result.map((option) => option.value)).toContain(CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION);
-            expect(result.map((option) => option.value)).toContain(CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION);
-            expect(result.map((option) => option.value)).toContain(CONST.SEARCH.HAS_VALUES.TAG);
-            expect(result.map((option) => option.value)).toContain(CONST.SEARCH.HAS_VALUES.CATEGORY);
+            // Then both violation options are offered even with Rules, tags and categories disabled
+            expect(result).toEqual([receipt, attachment, submittedViolation, approvedViolation]);
         });
 
         test('ignores personal policies when deciding which has options to show', () => {
@@ -16880,22 +16842,6 @@ describe('SearchUIUtils', () => {
             const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE, {policies});
 
             expect(result).toEqual([receipt, attachment]);
-        });
-
-        test('shows Submitted and Approved violation for Collect workspaces with Rules enabled', () => {
-            const {receipt, attachment, submittedViolation, approvedViolation} = getExpenseHasOptions();
-            const policies: OnyxCollection<OnyxTypes.Policy> = {
-                [`${ONYXKEYS.COLLECTION.POLICY}1`]: {
-                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-                    areTagsEnabled: false,
-                    areCategoriesEnabled: false,
-                    areRulesEnabled: true,
-                },
-            };
-
-            const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE, {policies});
-
-            expect(result).toEqual([receipt, attachment, submittedViolation, approvedViolation]);
         });
 
         test('keeps already-selected Tag/Category/Submitted/Approved violation when those workspace features are off', () => {
