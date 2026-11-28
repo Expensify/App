@@ -3943,6 +3943,25 @@ const staticStyles = (theme: ThemeColors) =>
             ...spacing.p5,
         },
 
+        // Square growl for finishing a whole list of work, parked with CONST.GROWL.CELEBRATION_OFFSCREEN_OFFSET.
+        growlNotificationCelebrationBox: {
+            width: variables.growlNotificationCelebrationSize,
+            height: variables.growlNotificationCelebrationSize,
+            flexDirection: 'column',
+            justifyContent: 'center',
+            ...spacing.p5,
+            ...spacing.gap1,
+        },
+
+        growlNotificationCelebrationAnimation: {
+            width: variables.growlNotificationCelebrationAnimationSize,
+            height: variables.growlNotificationCelebrationAnimationSize,
+        },
+
+        growlNotificationSupportingText: {
+            color: theme.tooltipSupportingText,
+        },
+
         growlNotificationText: {
             fontSize: variables.fontSizeNormal,
             ...FontUtils.fontFamily.platform.EXP_NEUE,

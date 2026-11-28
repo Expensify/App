@@ -51,7 +51,7 @@ describe('useFlatNavSections', () => {
         jest.mocked(useSearchTypeMenuSectionsForNavigation).mockReturnValue(typeMenuSections);
         jest.mocked(useTodoCounts).mockReturnValue({
             counts: {[SEARCH_KEYS.SUBMIT]: 0, [SEARCH_KEYS.APPROVE]: 4, [SEARCH_KEYS.PAY]: 0, [SEARCH_KEYS.EXPORT]: 0},
-            singleReportIDs: {[SEARCH_KEYS.SUBMIT]: undefined, [SEARCH_KEYS.APPROVE]: undefined, [SEARCH_KEYS.PAY]: undefined, [SEARCH_KEYS.EXPORT]: undefined},
+            reportIDs: {[SEARCH_KEYS.SUBMIT]: [], [SEARCH_KEYS.APPROVE]: [], [SEARCH_KEYS.PAY]: [], [SEARCH_KEYS.EXPORT]: []},
         });
         jest.mocked(useFlatNavSavedSearchItems).mockReturnValue([savedSearchItem]);
     });

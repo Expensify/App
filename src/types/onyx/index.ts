@@ -124,6 +124,8 @@ import type Fund from './Fund';
 import type GeneratedRule from './GeneratedRule';
 import type GovernmentMileageRate from './GovernmentMileageRate';
 import type GpsDraftDetails from './GpsDraftDetails';
+import type HomeTodoReview from './HomeTodoReview';
+import type {HomeTodoSearchKey} from './HomeTodoReview';
 import type HybridApp from './HybridApp';
 import type ImportedSpreadsheet from './ImportedSpreadsheet';
 import type ImportedSpreadsheetMemberData from './ImportedSpreadsheetMemberData';
@@ -570,6 +572,8 @@ export type {
     VacationDelegatePolicyDiff,
     BillingReceiptDetails,
     ExportTemplate,
+    HomeTodoReview,
+    HomeTodoSearchKey,
     HybridApp,
     AppReview,
     AppReviewLastPrompt,

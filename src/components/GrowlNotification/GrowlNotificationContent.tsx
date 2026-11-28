@@ -1,4 +1,5 @@
 import Button from '@components/Button';
+import ConfirmationPageIllustration from '@components/ConfirmationPage/primitives/ConfirmationPageIllustration';
 import Icon from '@components/Icon';
 import * as Pressables from '@components/Pressable';
 import Text from '@components/Text';
@@ -25,8 +26,8 @@ import GrowlNotificationContainer from './GrowlNotificationContainer';
 import GrowlNotificationPortal from './GrowlNotificationPortal';
 import shouldUseExplicitBottomPosition from './shouldUseExplicitBottomPosition';
 
-const INACTIVE_OFFSET = CONST.GROWL.OFFSCREEN_OFFSET;
-const INACTIVE_POSITION_Y = -INACTIVE_OFFSET;
+/** Skips most of the first rocket's climb in the fireworks, so the first burst (frame 17 at 24 fps) comes right after the growl appears */
+const CELEBRATION_FIREWORKS_START_FRAME = 12;
 
 const PressableWithoutFeedback = Pressables.PressableWithoutFeedback;
 
@@ -39,6 +40,9 @@ type GrowlNotificationContentProps = {
     /** Position where the growl is anchored */
     position?: GrowlPosition;
 
+    /** Heading shown above the body text, used by the celebration growl */
+    title?: string;
+
     /** Identifies this growl instance; passed back through onDismissed so the parent can ignore stale dismissals. */
     nonce: number;
     onDismissed: (dismissedNonce: number) => void;
@@ -46,14 +50,14 @@ type GrowlNotificationContentProps = {
 
 // Every growl variant must have an icon mapping; keeping this map exhaustive over GrowlType.
 type GrowlIconTypes = Record<
-    GrowlType,
+    Exclude<GrowlType, typeof CONST.GROWL.CELEBRATION>,
     {
         icon: React.FC<SvgProps> | IconAsset;
         iconColor: string;
     }
 >;
 
-function GrowlNotificationContent({bodyText, type, duration, action, position, nonce, onDismissed}: GrowlNotificationContentProps) {
+function GrowlNotificationContent({bodyText, type, duration, action, position, title, nonce, onDismissed}: GrowlNotificationContentProps) {
     // Normalized: 0 = fully offscreen for the current anchor, 1 = fully visible. The container
     // multiplies this against the live `inactiveY`, so the offscreen position stays correct
     // even when the responsive layout flips after the growl is dismissed.
@@ -69,7 +73,8 @@ function GrowlNotificationContent({bodyText, type, duration, action, position, n
 
     // Derived live so that resizing the window flips position + slide direction during display.
     const useBottomPosition = shouldUseExplicitBottomPosition(position) || (!!action && !shouldUseNarrowLayout);
-    const inactiveY = useBottomPosition ? INACTIVE_OFFSET : INACTIVE_POSITION_Y;
+    const inactiveOffset = type === CONST.GROWL.CELEBRATION ? CONST.GROWL.CELEBRATION_OFFSCREEN_OFFSET : CONST.GROWL.OFFSCREEN_OFFSET;
+    const inactiveY = useBottomPosition ? inactiveOffset : -inactiveOffset;
 
     const types: GrowlIconTypes = {
         [CONST.GROWL.SUCCESS]: {
@@ -147,41 +152,62 @@ function GrowlNotificationContent({bodyText, type, duration, action, position, n
                     useBottomPosition={useBottomPosition}
                 >
                     <GestureDetector gesture={flingGesture}>
-                        <View style={[styles.growlNotificationBox, action ? styles.growlNotificationBoxWithAction : styles.growlNotificationBoxWithoutAction]}>
-                            {/* The dismiss target covers only the icon + text; the action Button is a sibling
-                                (not nested inside a pressable) so it stays independently focusable for screen
-                                readers and its press can't bubble into a dismiss. */}
+                        {type === CONST.GROWL.CELEBRATION ? (
                             <PressableWithoutFeedback
-                                accessibilityLabel={bodyText}
+                                accessibilityLabel={title ? `${title} ${bodyText}` : bodyText}
                                 sentryLabel={CONST.SENTRY_LABEL.GROWL_NOTIFICATION.DISMISS}
                                 onPress={triggerDismiss}
-                                style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}
+                                style={[
+                                    styles.growlNotificationBox,
+                                    styles.growlNotificationCelebrationBox,
+                                    useBottomPosition && !shouldUseNarrowLayout ? styles.alignSelfEnd : styles.alignSelfCenter,
+                                ]}
                             >
-                                <Icon
-                                    src={types[type].icon}
-                                    fill={types[type].iconColor}
+                                {/* Falls back to a still image with reduce motion on */}
+                                <ConfirmationPageIllustration
+                                    illustrationStyle={styles.growlNotificationCelebrationAnimation}
+                                    initialFrame={CELEBRATION_FIREWORKS_START_FRAME}
                                 />
-                                <Text style={styles.growlNotificationText}>{bodyText}</Text>
+                                {!!title && <Text style={[styles.growlNotificationText, styles.textStrong, styles.textAlignCenter, styles.flex0]}>{title}</Text>}
+                                <Text style={[styles.growlNotificationText, styles.growlNotificationSupportingText, styles.textAlignCenter, styles.flex0]}>{bodyText}</Text>
                             </PressableWithoutFeedback>
-                            {!!action && (
-                                <Button
-                                    accessibilityLabel={action.label}
-                                    sentryLabel={CONST.SENTRY_LABEL.GROWL_NOTIFICATION.ACTION}
-                                    onPress={() => {
-                                        if (isActionPressedRef.current) {
-                                            return;
-                                        }
-                                        isActionPressedRef.current = true;
-                                        triggerDismiss();
-                                        action.onPress();
-                                    }}
-                                    innerStyles={styles.bgTransparent}
-                                    hoverStyles={styles.growlNotificationActionHovered}
+                        ) : (
+                            <View style={[styles.growlNotificationBox, action ? styles.growlNotificationBoxWithAction : styles.growlNotificationBoxWithoutAction]}>
+                                {/* The dismiss target covers only the icon + text; the action Button is a sibling
+                                (not nested inside a pressable) so it stays independently focusable for screen
+                                readers and its press can't bubble into a dismiss. */}
+                                <PressableWithoutFeedback
+                                    accessibilityLabel={bodyText}
+                                    sentryLabel={CONST.SENTRY_LABEL.GROWL_NOTIFICATION.DISMISS}
+                                    onPress={triggerDismiss}
+                                    style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}
                                 >
-                                    <Button.Text style={styles.growlNotificationActionText}>{action.label}</Button.Text>
-                                </Button>
-                            )}
-                        </View>
+                                    <Icon
+                                        src={types[type].icon}
+                                        fill={types[type].iconColor}
+                                    />
+                                    <Text style={styles.growlNotificationText}>{bodyText}</Text>
+                                </PressableWithoutFeedback>
+                                {!!action && (
+                                    <Button
+                                        accessibilityLabel={action.label}
+                                        sentryLabel={CONST.SENTRY_LABEL.GROWL_NOTIFICATION.ACTION}
+                                        onPress={() => {
+                                            if (isActionPressedRef.current) {
+                                                return;
+                                            }
+                                            isActionPressedRef.current = true;
+                                            triggerDismiss();
+                                            action.onPress();
+                                        }}
+                                        innerStyles={styles.bgTransparent}
+                                        hoverStyles={styles.growlNotificationActionHovered}
+                                    >
+                                        <Button.Text style={styles.growlNotificationActionText}>{action.label}</Button.Text>
+                                    </Button>
+                                )}
+                            </View>
+                        )}
                     </GestureDetector>
                 </GrowlNotificationContainer>
             </View>

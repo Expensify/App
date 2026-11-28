@@ -8,18 +8,17 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTodoCounts from '@hooks/useTodoCounts';
 
+import {startHomeTodoReview} from '@libs/actions/HomeTodoReview';
 import {setHasSeenForYouTodo} from '@libs/actions/Todos';
+import {getHomeTodoReportRoute} from '@libs/HomeTodoReviewUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {SearchKey} from '@libs/SearchKeyUtils';
-import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
 
 import useTimeSensitiveItems from '@pages/home/TimeSensitiveSection/useTimeSensitiveItems';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
-import {accountIDSelector} from '@src/selectors/Session';
+import type {HomeTodoSearchKey} from '@src/types/onyx';
 
 import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect} from 'react';
@@ -27,6 +26,7 @@ import React, {useEffect} from 'react';
 import ConciergePromptBox from './ConciergePromptBox';
 import ForYouBody from './ForYouBody';
 import shouldHideForYouSection from './shouldHideForYouSection';
+import useClearHomeTodoReviewOnFocus from './useClearHomeTodoReviewOnFocus';
 import useReviewDomainAdminRequests from './useReviewDomainAdminRequests';
 import useReviewFlaggedExpenses from './useReviewFlaggedExpenses';
 
@@ -43,9 +43,8 @@ function ForYouSection({isInitialLoad, isConciergeMenuVisible, setIsConciergeMen
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const isFocused = useIsFocused();
-    const {counts: reportCounts, singleReportIDs} = useTodoCounts(isFocused);
+    const {counts: reportCounts, reportIDs: todoReportIDs} = useTodoCounts(isFocused);
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const isOnboardingCompleted = hasCompletedGuidedSetupFlowSelector(onboarding);
@@ -53,6 +52,7 @@ function ForYouSection({isInitialLoad, isConciergeMenuVisible, setIsConciergeMen
     const {count: flaggedExpensesCount, reviewExpenses} = useReviewFlaggedExpenses();
     const {count: domainAdminRequestsCount, reviewDomainAdminRequests} = useReviewDomainAdminRequests();
     const timeSensitiveItems = useTimeSensitiveItems();
+    useClearHomeTodoReviewOnFocus();
 
     const icons = useMemoizedLazyExpensifyIcons(['ReceiptSearch', 'MoneyBag', 'Send', 'ThumbsUp', 'Export', 'UserShield']);
 
@@ -61,30 +61,16 @@ function ForYouSection({isInitialLoad, isConciergeMenuVisible, setIsConciergeMen
     const payCount = reportCounts[CONST.SEARCH.SEARCH_KEYS.PAY];
     const exportCount = reportCounts[CONST.SEARCH.SEARCH_KEYS.EXPORT];
 
-    const navigateToReport = (reportID: string) => {
-        if (shouldUseNarrowLayout) {
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, undefined, undefined, ROUTES.HOME));
+    // Opens the row's first report and hands the rest to the report screen, which pages through them and moves on
+    // to the next one after each action, so the user can finish the row without leaving Home.
+    const createBeginReportTodoHandler = (searchKey: HomeTodoSearchKey) => () => {
+        const reportIDs = todoReportIDs[searchKey];
+        const firstReportID = reportIDs.at(0);
+        if (!firstReportID) {
             return;
         }
-        Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID, backTo: ROUTES.HOME}));
-    };
-
-    const createNavigationHandler = (action: string, queryParams: Record<string, unknown>, searchKey: SearchKey, reportID?: string) => () => {
-        if (reportID) {
-            navigateToReport(reportID);
-            return;
-        }
-
-        Navigation.navigate(
-            ROUTES.SEARCH_ROOT.getRoute({
-                query: buildQueryStringFromFilterFormValues({
-                    type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-                    action,
-                    ...queryParams,
-                }),
-                searchKey,
-            }),
-        );
+        startHomeTodoReview(searchKey, reportIDs);
+        Navigation.navigate(getHomeTodoReportRoute(firstReportID, shouldUseNarrowLayout));
     };
 
     const todoItems = [
@@ -105,7 +91,7 @@ function ForYouSection({isInitialLoad, isConciergeMenuVisible, setIsConciergeMen
             count: submitCount,
             icon: icons.Send,
             translationKey: 'homePage.forYouSection.submit' as const,
-            handler: createNavigationHandler(CONST.SEARCH.ACTION_FILTERS.SUBMIT, {from: [`${accountID}`]}, CONST.SEARCH.SEARCH_KEYS.SUBMIT, singleReportIDs[CONST.SEARCH.SEARCH_KEYS.SUBMIT]),
+            handler: createBeginReportTodoHandler(CONST.SEARCH.SEARCH_KEYS.SUBMIT),
         },
         {
             key: 'approve',
@@ -114,12 +100,7 @@ function ForYouSection({isInitialLoad, isConciergeMenuVisible, setIsConciergeMen
             count: approveCount,
             icon: icons.ThumbsUp,
             translationKey: 'homePage.forYouSection.approve' as const,
-            handler: createNavigationHandler(
-                CONST.SEARCH.ACTION_FILTERS.APPROVE,
-                {to: [`${accountID}`]},
-                CONST.SEARCH.SEARCH_KEYS.APPROVE,
-                singleReportIDs[CONST.SEARCH.SEARCH_KEYS.APPROVE],
-            ),
+            handler: createBeginReportTodoHandler(CONST.SEARCH.SEARCH_KEYS.APPROVE),
         },
         {
             key: 'pay',
@@ -128,12 +109,7 @@ function ForYouSection({isInitialLoad, isConciergeMenuVisible, setIsConciergeMen
             count: payCount,
             icon: icons.MoneyBag,
             translationKey: 'homePage.forYouSection.pay' as const,
-            handler: createNavigationHandler(
-                CONST.SEARCH.ACTION_FILTERS.PAY,
-                {reimbursable: CONST.SEARCH.BOOLEAN.YES, payer: accountID?.toString()},
-                CONST.SEARCH.SEARCH_KEYS.PAY,
-                singleReportIDs[CONST.SEARCH.SEARCH_KEYS.PAY],
-            ),
+            handler: createBeginReportTodoHandler(CONST.SEARCH.SEARCH_KEYS.PAY),
         },
         {
             key: 'export',
@@ -142,12 +118,7 @@ function ForYouSection({isInitialLoad, isConciergeMenuVisible, setIsConciergeMen
             count: exportCount,
             icon: icons.Export,
             translationKey: 'homePage.forYouSection.export' as const,
-            handler: createNavigationHandler(
-                CONST.SEARCH.ACTION_FILTERS.EXPORT,
-                {exporter: [`${accountID}`], exportedOn: CONST.SEARCH.DATE_PRESETS.NEVER},
-                CONST.SEARCH.SEARCH_KEYS.EXPORT,
-                singleReportIDs[CONST.SEARCH.SEARCH_KEYS.EXPORT],
-            ),
+            handler: createBeginReportTodoHandler(CONST.SEARCH.SEARCH_KEYS.EXPORT),
         },
         {
             key: 'reviewDomainAdminRequests',

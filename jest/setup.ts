@@ -8,7 +8,7 @@ import type {ReadDirItem} from 'react-native-fs';
 import type * as RNKeyboardController from 'react-native-keyboard-controller';
 
 import 'react-native-gesture-handler/jestSetup';
-import type Animated from 'react-native-reanimated';
+import type * as Reanimated from 'react-native-reanimated';
 
 import {useMemo} from 'react';
 import 'setimmediate';
@@ -160,19 +160,24 @@ jest.mock('react-native-share', () => ({
     default: jest.fn(),
 }));
 
-jest.mock('react-native-reanimated', () => ({
-    ...jest.requireActual<typeof Animated>('react-native-reanimated/mock'),
-    createAnimatedPropAdapter: jest.fn,
-    // react-native-reanimated/mock leaves dispatchCommand out (see its own "ADD ME IF NEEDED" comment). forceClearInput
-    // (src/libs/ComponentUtils) dispatches it from a UI-thread worklet, so any test exercising that path needs it mocked.
-    dispatchCommand: jest.fn(),
-    useReducedMotion: jest.fn,
-    useScrollViewOffset: jest.fn(() => 0),
-    // A real animated ref is callable and has observe, which useKeyboardDrivenScroll uses to listen to the scroll view's events
-    useAnimatedRef: jest.fn(() => Object.assign(jest.fn(), {observe: jest.fn()})),
-    LayoutAnimationConfig: ({children}: {children: React.ReactNode}) => children,
-    makeShareableCloneRecursive: jest.fn,
-}));
+jest.mock('react-native-reanimated', () => {
+    const reanimatedMock = jest.requireActual<typeof Reanimated>('react-native-reanimated/mock');
+    return {
+        ...reanimatedMock,
+        // The mock's makeMutable returns the raw value, so module-level shared values would have no get or set.
+        makeMutable: reanimatedMock.useSharedValue,
+        createAnimatedPropAdapter: jest.fn,
+        // react-native-reanimated/mock leaves dispatchCommand out (see its own "ADD ME IF NEEDED" comment). forceClearInput
+        // (src/libs/ComponentUtils) dispatches it from a UI-thread worklet, so any test exercising that path needs it mocked.
+        dispatchCommand: jest.fn(),
+        useReducedMotion: jest.fn,
+        useScrollViewOffset: jest.fn(() => 0),
+        // A real animated ref is callable and has observe, which useKeyboardDrivenScroll uses to listen to the scroll view's events
+        useAnimatedRef: jest.fn(() => Object.assign(jest.fn(), {observe: jest.fn()})),
+        LayoutAnimationConfig: ({children}: {children: React.ReactNode}) => children,
+        makeShareableCloneRecursive: jest.fn,
+    };
+});
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-return
 jest.mock('react-native-worklets', () => require('react-native-worklets/src/mock'));

@@ -68,6 +68,9 @@ const ONYXKEYS = {
     /** The ID of the bank account whose business details the Wise intro page has started reading. RAM-only, since a reload ends the read. */
     RAM_ONLY_WISE_INTRO_READ_BANK_ACCOUNT_ID: 'wiseIntroReadBankAccountID',
 
+    /** The reports a Home to-do row's `Begin` button pages through. RAM-only, since a reload ends the review. */
+    RAM_ONLY_HOME_TODO_REVIEW: 'homeTodoReview',
+
     /** Ordered reportIDs from the latest SearchForReports response, used to display server search results in the tier order Auth returned. */
     RAM_ONLY_SEARCH_RESULT_REPORT_IDS: 'searchResultReportIDs',
 
@@ -2056,6 +2059,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.WISE_ONBOARDING_UNSAVED_PAGES]: OnyxTypes.WiseOnboardingUnsavedPages;
     [ONYXKEYS.RAM_ONLY_WISE_INTRO_READ_BANK_ACCOUNT_ID]: number;
     [ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS]: string[] | null;
+    [ONYXKEYS.RAM_ONLY_HOME_TODO_REVIEW]: OnyxTypes.HomeTodoReview | null;
     [ONYXKEYS.RAM_ONLY_SEARCH_TRANSACTION_WRITES]: {writeID: number; oldestWriteID: number; transactionIDs: Record<string, number>; reportIDs: Record<string, number>};
     [ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS]: boolean;
     [ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN]: boolean;

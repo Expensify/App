@@ -16,6 +16,9 @@ type GrowlContent = {
     /** Position where the growl is anchored */
     position?: GrowlPosition;
 
+    /** Heading shown above the body text, used by the celebration growl */
+    title?: string;
+
     /** Bumped on every show() call so identical-args re-shows still remount and re-trigger the growl. */
     nonce: number;
 };
@@ -32,8 +35,8 @@ type GrowlNotificationProps = {
 function GrowlNotification({ref}: GrowlNotificationProps) {
     const [content, setContent] = useState<GrowlContent | null>(null);
 
-    const show: NonNullable<GrowlRef['show']> = ({bodyText, type, duration, action, position}) => {
-        setContent((prev) => ({bodyText, type, duration, action, position, nonce: (prev?.nonce ?? 0) + 1}));
+    const show: NonNullable<GrowlRef['show']> = ({bodyText, type, duration, action, position, title}) => {
+        setContent((prev) => ({bodyText, type, duration, action, position, title, nonce: (prev?.nonce ?? 0) + 1}));
     };
 
     useImperativeHandle(ref, () => ({show}), [show]);
@@ -60,6 +63,7 @@ function GrowlNotification({ref}: GrowlNotificationProps) {
             duration={content.duration}
             action={content.action}
             position={content.position}
+            title={content.title}
             nonce={content.nonce}
             onDismissed={handleDismissed}
         />

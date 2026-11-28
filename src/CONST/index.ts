@@ -5296,6 +5296,7 @@ const CONST = {
         SUCCESS: 'success',
         ERROR: 'error',
         WARNING: 'warning',
+        CELEBRATION: 'celebration',
         POSITION: {
             TOP: 'top',
             BOTTOM_RIGHT: 'bottomRight',
@@ -5307,6 +5308,25 @@ const CONST = {
         // Pixel distance used to park the growl fully offscreen before it slides in. It only needs to
         // exceed the growl's height + margins; the exact value isn't tied to a measured dimension.
         OFFSCREEN_OFFSET: 255,
+        // The celebration growl is much taller, so it needs room for its height, the bottom inset, the native safe area and its shadow.
+        CELEBRATION_OFFSCREEN_OFFSET: 360,
+    },
+
+    /**
+     * Timings of a Home to-do review moving from one report to the next, in ms. RESULT_FALLBACK_DURATION must exceed
+     * RESULT_HOLD_DURATION + EXIT_DURATION so the fallback only restores the action button when the review did not move on.
+     */
+    HOME_TODO_REVIEW_ANIMATION: {
+        RESULT_HOLD_DURATION: 550,
+        RESULT_FALLBACK_DURATION: 3000,
+        EXIT_DURATION: 150,
+        ENTER_DURATION: 250,
+
+        /** Shows the panel again even if the screen never renders a new report ID, so it cannot stay out of view */
+        ENTER_FALLBACK_DELAY: 1000,
+
+        /** How far the panel moves while it fades, a short slide so it reads as the same panel leaving and coming back */
+        PANEL_OFFSET: 24,
     },
 
     LOCALES,
