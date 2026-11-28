@@ -79,8 +79,12 @@ describe('DescriptionField', () => {
         expect(screen.queryAllByText(/[*_]/)).toHaveLength(0);
     });
 
-    it('keeps the description input from taking focus while the discard prompt shows, so iOS cannot raise its keyboard over the prompt', () => {
-        // Given the editable description input of a new expense, while the discard prompt covers the form
+    it.each([
+        {condition: 'the discard prompt covers the form', isDiscardModalVisible: true, didConfirm: false, isReadOnly: true},
+        {condition: 'the expense was confirmed', isDiscardModalVisible: false, didConfirm: true, isReadOnly: true},
+        {condition: 'the user is entering the description', isDiscardModalVisible: false, didConfirm: false, isReadOnly: false},
+    ])('makes the description input read-only only when it must not take focus: $condition', ({isDiscardModalVisible, didConfirm, isReadOnly}) => {
+        // Given the editable description input of a new expense, while the discard prompt shows, after the expense was confirmed, or during normal entry
         render(
             <HTMLEngineProvider>
                 <ConfirmationFieldsProvider
@@ -88,7 +92,8 @@ describe('DescriptionField', () => {
                     reportID={REPORT_ID}
                     action={CONST.IOU.ACTION.CREATE}
                     iouType={CONST.IOU.TYPE.SUBMIT}
-                    isDiscardModalVisible
+                    isDiscardModalVisible={isDiscardModalVisible}
+                    didConfirm={didConfirm}
                 >
                     <DescriptionField
                         isDescriptionRequired={false}
@@ -101,7 +106,7 @@ describe('DescriptionField', () => {
         // When the input renders
         const descriptionInput = screen.getByLabelText('common.description');
 
-        // Then it is read-only, so the refocus iOS does after a cancelled back swipe cannot bring the keyboard back
-        expect(descriptionInput).toHaveProp('readOnly', true);
+        // Then the prompt keeps it from taking the focus iOS restores after a cancelled back swipe, a confirmed expense can't change, and normal entry stays editable
+        expect(descriptionInput).toHaveProp('readOnly', isReadOnly);
     });
 });

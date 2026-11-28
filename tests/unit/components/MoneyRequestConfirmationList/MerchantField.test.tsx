@@ -125,16 +125,21 @@ describe('MerchantField on an edited split', () => {
     });
 });
 
-describe('MerchantField while the discard prompt shows', () => {
-    it('keeps the merchant input from taking focus, so iOS cannot raise its keyboard over the prompt', () => {
-        // Given the editable merchant input of a new expense, while the discard prompt covers the form
+describe('MerchantField read-only state', () => {
+    it.each([
+        {condition: 'the discard prompt covers the form', isDiscardModalVisible: true, didConfirm: false, isReadOnly: true},
+        {condition: 'the expense was confirmed', isDiscardModalVisible: false, didConfirm: true, isReadOnly: true},
+        {condition: 'the user is entering the merchant', isDiscardModalVisible: false, didConfirm: false, isReadOnly: false},
+    ])('makes the merchant input read-only only when it must not take focus: $condition', ({isDiscardModalVisible, didConfirm, isReadOnly}) => {
+        // Given the editable merchant input of a new expense, while the discard prompt shows, after the expense was confirmed, or during normal entry
         render(
             <ConfirmationFieldsProvider
                 transactionID="1"
                 reportID="2"
                 action={CONST.IOU.ACTION.CREATE}
                 iouType={CONST.IOU.TYPE.SUBMIT}
-                isDiscardModalVisible
+                isDiscardModalVisible={isDiscardModalVisible}
+                didConfirm={didConfirm}
             >
                 <MerchantField
                     isMerchantRequired
@@ -147,7 +152,7 @@ describe('MerchantField while the discard prompt shows', () => {
         // When the input renders
         const merchantInput = screen.getByLabelText('common.merchant');
 
-        // Then it is read-only, so the refocus iOS does after a cancelled back swipe cannot bring the keyboard back
-        expect(merchantInput).toHaveProp('readOnly', true);
+        // Then the prompt keeps it from taking the focus iOS restores after a cancelled back swipe, a confirmed expense can't change, and normal entry stays editable
+        expect(merchantInput).toHaveProp('readOnly', isReadOnly);
     });
 });
