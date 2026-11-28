@@ -20,7 +20,7 @@ type NavigateToCreatedExpenseParams = {
     /** The created transaction's ID. */
     transactionID: string;
 
-    /** IOU report the transaction landed in, used to decide whether to stack the expense report underneath. */
+    /** IOU report the transaction landed in, used to open single-expense reports directly from Spend and to stack the expense report beneath the transaction thread when needed. */
     iouReportID?: string;
 
     /** Transactions currently belonging to the IOU report. */
