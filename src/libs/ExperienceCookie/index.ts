@@ -10,7 +10,7 @@ import Log from '@libs/Log';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 
-import type {ClearExperienceCookie, WriteExperienceCookie} from './types';
+import type {ClearExperienceCookie, ExperienceCookieValue, WriteExperienceCookie} from './types';
 
 const WWW_PREFIX = 'www.';
 
@@ -41,6 +41,18 @@ function getSharedProductHost(): string | undefined {
         return undefined;
     }
     return getHostnameWithoutWWW(getOldDotURLFromEnvironment(CONFIG.ENVIRONMENT));
+}
+
+/**
+ * The origin of the host that serves both products, for example `https://expensify.com` in production.
+ */
+function getSharedProductOrigin(): string | undefined {
+    if (!isEnvironment(CONFIG.ENVIRONMENT)) {
+        return undefined;
+    }
+    const url = new URL(getOldDotURLFromEnvironment(CONFIG.ENVIRONMENT));
+    url.hostname = getHostnameWithoutWWW(url.href);
+    return url.origin;
 }
 
 /**
@@ -95,4 +107,32 @@ const clearExperienceCookie: ClearExperienceCookie = () => {
     return true;
 };
 
-export {writeExperienceCookie, clearExperienceCookie};
+function readCookie(name: string): string | undefined {
+    const prefix = `${name}=`;
+    return document.cookie
+        .split(';')
+        .map((cookie) => cookie.trim())
+        .find((cookie) => cookie.startsWith(prefix))
+        ?.slice(prefix.length);
+}
+
+function isExperienceCookieValue(value: string | undefined): value is ExperienceCookieValue {
+    return Object.values<string | undefined>(CONST.EXPERIENCE_COOKIE.VALUES).includes(value);
+}
+
+/**
+ * Returns the product the `experience` cookie selects, or undefined when the cookie is missing or holds an unknown value.
+ */
+function readExperienceCookie(): ExperienceCookieValue | undefined {
+    const value = readCookie(CONST.EXPERIENCE_COOKIE.NAME);
+    return isExperienceCookieValue(value) ? value : undefined;
+}
+
+/**
+ * Whether the router has asked this browser to stay off the shared host for now.
+ */
+function hasSharedHostBrake(): boolean {
+    return !!readCookie(CONST.EXPERIENCE_COOKIE.BRAKE_NAME);
+}
+
+export {writeExperienceCookie, clearExperienceCookie, readExperienceCookie, hasSharedHostBrake, getSharedProductOrigin};

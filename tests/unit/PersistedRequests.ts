@@ -6,6 +6,7 @@ import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 
 import type Request from '../../src/types/onyx/Request';
+import type {AnyRequest} from '../../src/types/onyx/Request';
 
 import * as PersistedRequests from '../../src/libs/actions/PersistedRequests';
 import ONYXKEYS from '../../src/ONYXKEYS';
@@ -420,5 +421,92 @@ describe('PersistedRequests persistence guarantees', () => {
 
         // Then storage keeps that queue, so the sent requestA is not brought back and sent twice
         expect(await OnyxUtils.get(ONYXKEYS.PERSISTED_REQUESTS)).toEqual([requestB, requestC]);
+    });
+});
+
+describe('PersistedRequests initialization', () => {
+    /**
+     * Loads a fresh copy of the module on its own Onyx instance, which is never initialized and so never delivers stored values.
+     * The test delivers them through the captured callbacks, in the order it chooses.
+     */
+    function loadWithManualStorage() {
+        let connectSpy: jest.SpyInstance<ReturnType<typeof Onyx.connectWithoutView>, Parameters<typeof Onyx.connectWithoutView>> | undefined;
+        let isolatedPersistedRequests: typeof PersistedRequests | undefined;
+        jest.isolateModules(() => {
+            const isolatedOnyx = jest.requireActual<{default: typeof Onyx}>('react-native-onyx').default;
+            connectSpy = jest.spyOn(isolatedOnyx, 'connectWithoutView');
+            isolatedPersistedRequests = jest.requireActual<typeof PersistedRequests>('../../src/libs/actions/PersistedRequests');
+        });
+        if (!connectSpy || !isolatedPersistedRequests) {
+            throw new Error('PersistedRequests did not load');
+        }
+        const calls = connectSpy.mock.calls;
+        const deliver = (key: OnyxKey, value: AnyRequest | AnyRequest[] | undefined) => calls.find(([options]) => options.key === key)?.[0].callback?.(value, key);
+        let isInitialized = false;
+        isolatedPersistedRequests.waitForInitialization().then(() => {
+            isInitialized = true;
+        });
+        return {
+            module: isolatedPersistedRequests,
+            deliverQueue: (requests: AnyRequest[]) => deliver(ONYXKEYS.PERSISTED_REQUESTS, requests),
+            deliverOngoingRequest: (ongoingRequest: AnyRequest | undefined) => deliver(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, ongoingRequest),
+            isInitialized: () => isInitialized,
+        };
+    }
+
+    it('waits for the stored ongoing request after the queue has loaded', async () => {
+        // Given storage that delivers an empty queue before the request that was being sent when the page closed
+        const storage = loadWithManualStorage();
+
+        // When only the queue has been delivered
+        storage.deliverQueue([]);
+        await waitForBatchedUpdates();
+
+        // Then initialization is still pending, because the getters would miss the unsent request
+        expect(storage.isInitialized()).toBe(false);
+
+        // When the ongoing request is delivered
+        storage.deliverOngoingRequest(request);
+        await waitForBatchedUpdates();
+
+        // Then initialization resolves and the getters include it
+        expect(storage.isInitialized()).toBe(true);
+        expect(storage.module.getAllIncludingOngoing()).toEqual([request]);
+    });
+
+    it('waits for the queue after the ongoing request has loaded', async () => {
+        // Given storage that delivers the ongoing request before the queue
+        const storage = loadWithManualStorage();
+
+        // When only the ongoing request has been delivered
+        storage.deliverOngoingRequest(undefined);
+        await waitForBatchedUpdates();
+
+        // Then initialization is still pending, because queued requests may still arrive
+        expect(storage.isInitialized()).toBe(false);
+
+        // When the queue is delivered
+        storage.deliverQueue([request]);
+        await waitForBatchedUpdates();
+
+        // Then initialization resolves and the getters include the queue
+        expect(storage.isInitialized()).toBe(true);
+        expect(storage.module.getAllIncludingOngoing()).toEqual([request]);
+    });
+
+    it('resolves when the first ongoing request delivered is an own write', async () => {
+        // Given the queue has loaded and this tab has already started sending its first request
+        const storage = loadWithManualStorage();
+        storage.deliverQueue([request]);
+        storage.module.processNextRequest();
+        await waitForBatchedUpdates();
+
+        // When the ongoing request key first delivers that same request
+        storage.deliverOngoingRequest(request);
+        await waitForBatchedUpdates();
+
+        // Then initialization resolves, so a wait for it never hangs on the tab's own write
+        expect(storage.isInitialized()).toBe(true);
+        expect(storage.module.getAllIncludingOngoing()).toEqual([request]);
     });
 });

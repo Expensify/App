@@ -10,4 +10,4 @@ type WriteExperienceCookie = (value: ExperienceCookieValue) => boolean;
 /** Deletes the host-only and the shared-domain `experience` cookie. Returns false, without writing anything, on any host other than the one that serves both products. */
 type ClearExperienceCookie = () => boolean;
 
-export type {ClearExperienceCookie, WriteExperienceCookie};
+export type {ClearExperienceCookie, ExperienceCookieValue, WriteExperienceCookie};

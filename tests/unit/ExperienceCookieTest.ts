@@ -32,7 +32,7 @@ jest.mock('@libs/Log', () => ({
 }));
 
 // The React Native preset resolves index.native.ts first, so the web implementation is loaded by its file name
-const {writeExperienceCookie, clearExperienceCookie} = jest.requireActual<typeof WebExperienceCookie>('@libs/ExperienceCookie/index.ts');
+const {writeExperienceCookie, clearExperienceCookie, getSharedProductOrigin} = jest.requireActual<typeof WebExperienceCookie>('@libs/ExperienceCookie/index.ts');
 
 const HOST_ONLY_DELETE = 'experience=; Max-Age=0; Path=/; Secure; SameSite=Lax';
 
@@ -145,5 +145,20 @@ describe('ExperienceCookie', () => {
         expect(didWrite).toBe(false);
         expect(didClear).toBe(false);
         expect(getCookieWrites()).toEqual([]);
+    });
+
+    it.each([
+        [CONST.ENVIRONMENT.DEV, 'https://expensify.com.dev'],
+        [CONST.ENVIRONMENT.STAGING, 'https://staging.expensify.com'],
+        [CONST.ENVIRONMENT.PRODUCTION, 'https://expensify.com'],
+    ])('derives the shared product origin for %s', (environment, origin) => {
+        // Given a build for the environment
+        mockEnvironment = environment;
+
+        // When the shared product origin is read
+        const sharedProductOrigin = getSharedProductOrigin();
+
+        // Then the shared host is that environment's Expensify Classic host without www
+        expect(sharedProductOrigin).toBe(origin);
     });
 });

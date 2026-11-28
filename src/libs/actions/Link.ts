@@ -814,22 +814,24 @@ function getTravelDotLink(policyID: OnyxEntry<string>) {
 }
 
 /**
+ * Fetches a short-lived auth token for the current session. Resolves to undefined if the request fails.
+ */
+function getShortLivedAuthToken(): Promise<string | undefined> {
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_OLD_DOT_LINK, {}, {})
+        .then((response) => response?.shortLivedAuthToken)
+        .catch((error) => {
+            Log.warn('[Link] Failed to fetch short-lived auth token', {error});
+            return undefined;
+        });
+}
+
+/**
  * Fetches a short-lived auth token and appends it to the given setup link.
  * Falls back to returning the original link if the token request fails.
  */
 function getShortLivedAuthTokenURL(setupLink: string): Promise<string> {
-    // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_OLD_DOT_LINK, {}, {})
-        .then((response) => {
-            if (!response?.shortLivedAuthToken) {
-                return setupLink;
-            }
-            return Url.appendParam(setupLink, 'authToken', response.shortLivedAuthToken);
-        })
-        .catch((error) => {
-            Log.warn('[Link] Failed to fetch short-lived auth token', {error});
-            return setupLink;
-        });
+    return getShortLivedAuthToken().then((shortLivedAuthToken) => (shortLivedAuthToken ? Url.appendParam(setupLink, 'authToken', shortLivedAuthToken) : setupLink));
 }
 
 export {
@@ -842,5 +844,6 @@ export {
     buildTravelDotURL,
     getTravelDotLink,
     openReportFromDeepLink,
+    getShortLivedAuthToken,
     getShortLivedAuthTokenURL,
 };

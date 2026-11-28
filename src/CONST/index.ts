@@ -8413,11 +8413,23 @@ const CONST = {
             CLASSIC: 'classic',
         },
         MAX_AGE_SECONDS: 365 * 24 * 60 * 60,
+
+        // The router sets this cookie for a few minutes when it sends a browser with the experience cookie to an older host, so the App must not send it back
+        BRAKE_NAME: 'hybridWebClassicHost',
+    },
+
+    LEGACY_HOST_HOP: {
+        // A tab that came back to New Expensify's own host within this time is not moved again. It matches the router's brake cookie lifetime.
+        TAB_GUARD_DURATION_MS: 10 * 60 * 1000,
+
+        // Startup waits at most this long for the request queue and the short-lived token before staying on this host
+        TIMEOUT_MS: 10 * 1000,
     },
 
     SESSION_STORAGE_KEYS: {
         INITIAL_URL: 'INITIAL_URL',
         RETRY_LAZY_REFRESHED: 'RETRY_LAZY_REFRESHED',
+        SHARED_HOST_HOP: 'SHARED_HOST_HOP',
         UPDATE_REQUIRED_RELOADED_VERSION: 'UPDATE_REQUIRED_RELOADED_VERSION',
         LAST_REFRESH_TIMESTAMP: 'LAST_REFRESH_TIMESTAMP',
         LAST_VISITED_PATH: {
