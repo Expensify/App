@@ -99,6 +99,62 @@ describe('StickyReportTableHeader', () => {
         }
     });
 
+    it('leaves pinning to a sticky list header and only pushes the header off with the last row', () => {
+        // Given a measured header whose list header box sticks, so the browser keeps it at the top without lagging the scroll.
+        const scrollOffsetStore = createScrollOffsetStore();
+        const tableEndOffsetStore = createScrollOffsetStore();
+        tableEndOffsetStore.setOffset(780);
+        const onRender = jest.fn();
+        render(
+            <Profiler
+                id="sticky-header"
+                onRender={onRender}
+            >
+                <StickyReportTableHeader
+                    scrollOffsetStore={scrollOffsetStore}
+                    tableEndOffsetStore={tableEndOffsetStore}
+                    offsetTop={220}
+                    isListHeaderSticky
+                >
+                    <Text>Column labels</Text>
+                </StickyReportTableHeader>
+            </Profiler>,
+        );
+        const header = screen.getByTestId('sticky-report-table-header');
+        fireEvent(header, 'layout', {nativeEvent: {layout: {height: 40}}});
+        onRender.mockClear();
+
+        // When scrolling through the rows until the header's bottom meets the last row.
+        for (const offset of [200, 500, 960]) {
+            act(() => scrollOffsetStore.setOffset(offset));
+        }
+
+        // Then JS never moves the header while the browser pins it, so those scroll frames don't render it.
+        expect(onRender).not.toHaveBeenCalled();
+        expect(header).toHaveStyle({transform: [{translateY: 0}]});
+
+        // When scrolling past the last row, then the header leaves with it until it is out of view.
+        for (const [offset, translation] of [
+            [980, -20],
+            [1000, -40],
+        ]) {
+            act(() => scrollOffsetStore.setOffset(offset));
+            expect(header).toHaveStyle({transform: [{translateY: translation}]});
+        }
+        onRender.mockClear();
+
+        // When reading the comments below the table, then the hidden header stays put without rendering.
+        for (const offset of [1200, 1500]) {
+            act(() => scrollOffsetStore.setOffset(offset));
+        }
+        expect(onRender).not.toHaveBeenCalled();
+        expect(header).toHaveStyle({transform: [{translateY: -40}]});
+
+        // When scrolling back into the rows, then the header returns for the browser to pin again.
+        act(() => scrollOffsetStore.setOffset(500));
+        expect(header).toHaveStyle({transform: [{translateY: 0}]});
+    });
+
     it('updates push-off when rows are removed or header geometry changes without scrolling', () => {
         // Given a header already pinned above a long expense table.
         const scrollOffsetStore = createScrollOffsetStore();

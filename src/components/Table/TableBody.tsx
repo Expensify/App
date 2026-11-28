@@ -73,14 +73,6 @@ function getColumnScrollOverrideProps(overflowXAutoStyle: ViewStyle, overridePro
  */
 const columnScrollPageHeaderStyle = toViewStyle({position: 'sticky', left: 0});
 
-/**
- * Sticks the shared list-header box at minus the page header's height, so exactly that much scrolls off and leaves the
- * column header flush against the scroller. `zIndex` lifts it above the rows, which paint later in tree order.
- */
-function getColumnScrollListHeaderStyle(pageHeaderHeight: number): ViewStyle {
-    return toViewStyle({position: 'sticky', top: -pageHeaderHeight, zIndex: 1});
-}
-
 type ViewabilityInfo = {
     viewableItems: Array<ViewToken<TableData>>;
     changed: Array<ViewToken<TableData>>;
@@ -518,7 +510,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                     ListHeaderComponentStyle={[
                         ListHeaderComponentStyle,
                         // An unmeasured page header leaves nothing to offset the stack by, and 0 would pin it instead.
-                        pageHeaderHeight > 0 && shouldRenderColumnHeaderInListHeader && getColumnScrollListHeaderStyle(pageHeaderHeight),
+                        pageHeaderHeight > 0 && shouldRenderColumnHeaderInListHeader && StyleUtils.getStickyListHeaderStyle(pageHeaderHeight),
                     ]}
                     ListEmptyComponent={shouldRenderEmptyStateInList ? emptyStateContent : ListEmptyComponent}
                     ListEmptyComponentStyle={[ListEmptyComponentStyle, shouldRenderEmptyStateInList && styles.flexGrow1, shouldRenderEmptyStateInList && styles.justifyContentCenter]}

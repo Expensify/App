@@ -2,9 +2,11 @@ import FlashList from '@components/FlashList';
 import type {ViewableItemsChangedHandler} from '@components/FlashList/types';
 
 import useIsMobileWebLandscape from '@hooks/useIsMobileWebLandscape';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
+import {canUseCssPositionSticky} from '@libs/DeviceCapabilities';
 import mergeRefs from '@libs/mergeRefs';
 
 import type ActionListRefType from '@pages/inbox/ActionListTypes';
@@ -225,6 +227,7 @@ function MoneyRequestReportUnifiedList({
     // Seed with the window height (a safe over-estimate) so the nested list windows against a non-zero viewport on the
     // first paint — otherwise a height of 0 renders the transactions area blank until onLayout corrects it next frame.
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {windowHeight} = useWindowDimensions();
     const isMobileWebLandscape = useIsMobileWebLandscape();
     const [viewportHeight, setViewportHeight] = useState(windowHeight);
@@ -368,11 +371,17 @@ function MoneyRequestReportUnifiedList({
         />
     );
 
+    // Where it can, the browser pins the column header by sticking this list's header box, so the header keeps up with
+    // the scroll instead of trailing it by a frame. A horizontally scrolling table keeps its header inside its own
+    // scroller, where vertical sticking has nothing to stick to, so that header is still moved from the scroll offset.
+    const isColumnHeaderSticky = canUseCssPositionSticky() && !isHorizontalTable && !!controller.tableColumnHeader;
+
     const tableColumnHeader = controller.tableColumnHeader ? (
         <StickyReportTableHeader
             scrollOffsetStore={scrollOffsetStore}
             tableEndOffsetStore={tableEndOffsetStore}
             offsetTop={columnHeaderOffsetTop}
+            isListHeaderSticky={isColumnHeaderSticky}
         >
             {controller.tableColumnHeader}
         </StickyReportTableHeader>
@@ -399,7 +408,8 @@ function MoneyRequestReportUnifiedList({
             onEndReachedThreshold={0.75}
             onStartReached={onStartReached}
             onStartReachedThreshold={0.75}
-            ListHeaderComponentStyle={tableColumnHeader ? styles.zIndex1 : undefined}
+            // The fields and controls above the column header scroll off, leaving the header flush against the top.
+            ListHeaderComponentStyle={[!!tableColumnHeader && styles.zIndex1, isColumnHeaderSticky && StyleUtils.getStickyListHeaderStyle(tableOffsetTop)]}
             ListHeaderComponent={
                 isHorizontalTable ? (
                     <>
