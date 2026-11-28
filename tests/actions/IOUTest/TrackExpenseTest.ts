@@ -3067,6 +3067,7 @@ describe('actions/IOU/TrackExpense', () => {
             const result = deleteTrackExpense({
                 isArchivedIOUReport: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
+                transactionThreadReport: thread,
                 transactionThreadReportActions: undefined,
                 chatReportID: selfDMReport.reportID,
                 chatReport: selfDMReport,
