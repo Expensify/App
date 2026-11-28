@@ -133,13 +133,13 @@ function Geometry() {
                     x={64}
                     y={12}
                     width="100%"
-                    height="8"
+                    height={8}
                 />
                 <SkeletonViewRect
                     x={64}
                     y={32.5}
                     width="50%"
-                    height="8"
+                    height={8}
                 />
             </SkeletonLoader>
         </View>

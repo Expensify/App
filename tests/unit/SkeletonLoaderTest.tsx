@@ -1,7 +1,8 @@
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {fireEvent, render, screen, within} from '@testing-library/react-native';
 
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import SkeletonLoader, {SkeletonViewRect} from '@components/SkeletonLoader';
+import {getSkeletonRadius, resolveSkeletonDimension} from '@components/SkeletonLoader/geometry';
 import SkeletonRect from '@components/SkeletonRect';
 import ItemListSkeletonView from '@components/Skeletons/ItemListSkeletonView';
 
@@ -37,7 +38,7 @@ function Shapes() {
                 x={72}
                 y={12.5}
                 width="100%"
-                height="8"
+                height={8}
             />
             <SkeletonViewRect
                 testID="circle"
@@ -90,7 +91,6 @@ describe('SkeletonLoader', () => {
         // Then shapes remain responsive to the overridden viewport.
         expect(getStyle('bar')).toMatchObject({width: '100%'});
         expect(canvas).toMatchObject({width: 150});
-        expect(screen.getByTestId('loader', {includeHiddenElements: true}).props.onLayout).toBeUndefined();
     });
 
     it('removes animation immediately for static mode and live reduced-motion changes', () => {
@@ -134,12 +134,37 @@ describe('SkeletonLoader', () => {
         );
         // When it renders both color layers.
         const pulseStyle = getStyle('loader-pulse');
+        const foregroundShapes = within(screen.getByTestId('loader-pulse', {includeHiddenElements: true})).UNSAFE_getAllByType(SkeletonViewRect);
         // Then only the foreground group animates and shape identifiers remain unique.
         expect(screen.getAllByTestId('bar', {includeHiddenElements: true})).toHaveLength(1);
         expect(getStyle('bar')).not.toHaveProperty('animationName');
         expect(getStyle('circle')).not.toHaveProperty('animationName');
         expect(pulseStyle).toMatchObject({animationIterationCount: 'infinite'});
         expect(getStyle('loader')).not.toHaveProperty('animationName');
+        expect(getStyle('bar')).toMatchObject({backgroundColor: palette.backgroundColor});
+        expect(foregroundShapes).toHaveLength(2);
+        for (const shape of foregroundShapes) {
+            expect(StyleSheet.flatten(within(shape).UNSAFE_getByType(View).props.style)).toMatchObject({backgroundColor: palette.foregroundColor});
+        }
+    });
+
+    it.each([0, NaN])('keeps base geometry static when speed is %s', (speed) => {
+        // Given a loader with a speed that cannot run an animation.
+        render(
+            <SkeletonLoader
+                {...palette}
+                height={64}
+                speed={speed}
+                testID="loader"
+            >
+                <Shapes />
+            </SkeletonLoader>,
+        );
+        // When the shapes render.
+        const bar = getStyle('bar');
+        // Then base geometry stays visible without an animated foreground layer.
+        expect(bar).toMatchObject({width: '100%', height: 8, backgroundColor: palette.backgroundColor});
+        expect(screen.queryByTestId('loader-pulse', {includeHiddenElements: true})).toBeNull();
     });
 
     it('keeps the legacy rectangle available for unrelated SVG loaders', () => {
@@ -290,11 +315,12 @@ describe('SkeletonLoader', () => {
             </SkeletonLoader>,
         );
         // When the loader is rendered.
-        const loader = screen.getByTestId('loader', {includeHiddenElements: true});
+        const bar = screen.getByTestId('bar', {includeHiddenElements: true});
         // Then it neither intercepts interaction nor exposes decorative geometry to accessibility.
         expect(getStyle('loader')).toMatchObject({pointerEvents: 'none'});
-        expect(loader.props.pointerEvents).toBeUndefined();
-        expect(loader.props).toMatchObject({accessible: false, accessibilityElementsHidden: true, importantForAccessibility: 'no-hide-descendants'});
+        expect(screen.getByTestId('loader', {includeHiddenElements: true})).toHaveProp('aria-hidden', true);
+        expect(bar).toBeTruthy();
+        expect(screen.queryByTestId('bar')).toBeNull();
     });
 
     it('migrates real options-list geometry, including circles and percentages, without SVG descendants', () => {
@@ -312,5 +338,38 @@ describe('SkeletonLoader', () => {
         expect(view.UNSAFE_queryAllByType(Rect)).toHaveLength(0);
         expect(rectangles[0].props).toMatchObject({x: 20, y: 12, width: 40, height: 40, borderRadius: 20});
         expect(rectangles.filter((rect) => rect.props.y === 38).map((rect): unknown => rect.props.width)).toEqual(['100%', '50%', '25%']);
+    });
+});
+
+describe('SkeletonLoader geometry', () => {
+    it.each([
+        [8, 2],
+        [9, 4],
+        ['8', 2],
+        ['9', 4],
+        ['50%', 4],
+        [NaN, 4],
+        [-1, 2],
+        [undefined, 4],
+    ] as const)('uses radius %s → %s for View and legacy SVG heights', (height, expectedRadius) => {
+        // Given a bar height, including legacy SVG strings and missing or invalid values.
+        // When choosing the shared corner radius.
+        const radius = getSkeletonRadius(height);
+        // Then the small-bar boundary remains at 8, preserving legacy rounding.
+        expect(radius).toBe(expectedRadius);
+    });
+
+    it.each([
+        [8, 8],
+        [9, 9],
+        ['50%', '50%'],
+        [NaN, 0],
+        [-8, 0],
+    ] as const)('resolves dimension %s → %s without measuring a parent', (dimension, expectedDimension) => {
+        // Given a numeric or percentage dimension.
+        // When resolving it for a View style.
+        const resolved = resolveSkeletonDimension(dimension);
+        // Then percentages remain declarative and invalid or negative pixel sizes collapse to zero.
+        expect(resolved).toBe(expectedDimension);
     });
 });

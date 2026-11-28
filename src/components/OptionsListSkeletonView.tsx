@@ -58,13 +58,13 @@ function OptionsListSkeletonView({shouldAnimate = true, shouldStyleAsTable = fal
                             x={textStartX}
                             y={18}
                             width="20%"
-                            height="8"
+                            height={8}
                         />
                         <SkeletonViewRect
                             x={textStartX}
                             y={38}
                             width={shouldStyleAsTable ? '10%' : lineWidth}
-                            height="8"
+                            height={8}
                         />
                     </>
                 );

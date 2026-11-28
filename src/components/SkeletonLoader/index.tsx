@@ -1,3 +1,7 @@
+/**
+ * Renders children as a static base and a pulsing foreground, so they must be pure geometry
+ * without effects, subscriptions, or interactive content.
+ */
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Accessibility from '@libs/Accessibility';
@@ -21,8 +25,7 @@ function SkeletonLoader({children, width, height, style, backgroundColor, foregr
         <View
             testID={testID}
             accessible={false}
-            accessibilityElementsHidden
-            importantForAccessibility="no-hide-descendants"
+            aria-hidden
             style={[styles.pRelative, styles.overflowHidden, {width, height}, style, styles.pointerEventsNone]}
         >
             <SkeletonContext.Provider value={context}>{children}</SkeletonContext.Provider>

@@ -19,9 +19,9 @@ type SkeletonViewRectProps = {
     x?: number;
     y?: number;
     /** Percentages resolve against the whole loader, before applying x/y offsets. */
-    width: number | `${number}` | `${number}%`;
+    width: number | `${number}%`;
     /** Percentages resolve against the whole loader height. */
-    height: number | `${number}` | `${number}%`;
+    height: number | `${number}%`;
     /** Defaults to the legacy radius: 2 for heights up to 8, otherwise 4. */
     borderRadius?: number;
     testID?: string;
