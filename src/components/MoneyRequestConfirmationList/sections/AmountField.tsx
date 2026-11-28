@@ -391,7 +391,7 @@ function AmountField({
                             leadingRightHandSideComponent={shouldShowAutomaticHint ? <AutomaticFieldHint /> : undefined}
                             shouldUseBorderlessButtons
                             disabled={isAmountFieldDisabled}
-                            readOnly={isAmountFieldDisabled || isDiscardModalVisible}
+                            readOnly={isDiscardModalVisible}
                         />
                     </View>
                     {amountTrailingAction}
