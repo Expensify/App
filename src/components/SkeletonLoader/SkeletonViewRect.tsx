@@ -1,3 +1,4 @@
+/** Absolutely positioned skeleton shape that must be rendered inside SkeletonLoader. */
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import React, {useContext} from 'react';

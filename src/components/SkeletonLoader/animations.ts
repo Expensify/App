@@ -1,3 +1,4 @@
+/** Opacity pulse keyframes for the skeleton foreground layer. */
 import {css} from 'react-native-reanimated';
 
 const DEFAULT_SPEED_SECONDS = 1.2;

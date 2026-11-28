@@ -1,3 +1,4 @@
+/** Size and corner radius helpers shared by View and legacy SVG skeleton rects. */
 import type {DimensionValue} from 'react-native';
 
 import type {SkeletonViewRectProps} from './types';
