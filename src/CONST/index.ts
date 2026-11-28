@@ -5828,6 +5828,10 @@ const CONST = {
             get WAITLIST_CONNECTION_NAMES() {
                 return [this.NAME.SAGE_ACCOUNTING, this.NAME.ACUMATICA] as const;
             },
+            // Integrations whose connect flow leaves the app or opens a menu, so the Connections page opens a connect page for them first
+            get CONNECT_PAGE_CONNECTION_NAMES() {
+                return [this.NAME.QBO, this.NAME.XERO, this.NAME.CERTINIA] as const;
+            },
             // The `origin` the backend stamps on a report field imported by an accounting integration. These values
             // differ from the connection names above (e.g. `quickbooksOnline` is stamped as `qbo`), so map them here.
             get REPORT_FIELD_ORIGIN() {

@@ -699,4 +699,6 @@ export default {
     // How short a value has to be before that edit button is worth reserving room for.
     narrowEditableContentWidth: 60,
     pieChartLegendMargin: 32,
+    connectionOrbitDiameter: 160,
+    connectionOrbitBadgeSize: 56,
 } as const;

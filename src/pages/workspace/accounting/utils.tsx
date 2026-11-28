@@ -19,7 +19,7 @@ import {isAuthenticationError} from '@libs/actions/connections';
 import {getCardsCustomExportPendingAction, areCardsCustomExportInErrorFields} from '@libs/CardFeedUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {canUseTaxNetSuite} from '@libs/NetSuiteUtils';
-import {getCurrentConnectionName} from '@libs/PolicyUtils';
+import {getConnectedIntegration, getCurrentConnectionName} from '@libs/PolicyUtils';
 
 import Navigation from '@navigation/Navigation';
 
@@ -29,7 +29,8 @@ import {getTrackingCategories} from '@userActions/connections/Xero';
 
 import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {CombinedCardFeeds, Policy, WorkspaceCardsList} from '@src/types/onyx';
+import type {CombinedCardFeeds, Policy, PolicyConnectionSyncProgress, WorkspaceCardsList} from '@src/types/onyx';
+import type Beta from '@src/types/onyx/Beta';
 import type {Account, ConnectionName, Connections, PolicyConnectionName, QBDNonReimbursableExportAccountType, QBDReimbursableExportAccountType} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -38,9 +39,10 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
 
+import type {ActiveIntegration} from './AccountingContext/types';
 import type {AccountingIntegration} from './types';
 
-import {isCertiniaFFAConnection} from './certinia/utils';
+import {getCertiniaSetupRoute, isCertiniaFFAConnection} from './certinia/utils';
 import {
     getImportCustomFieldsSettings,
     getInitialSubPageForNetsuiteTokenInput,
@@ -95,6 +97,9 @@ type GetAccountingIntegrationDataOptions = {
 
     /** Picks QBO or Intuit Enterprise Suite explicitly instead of following the existing connection */
     isIntuitEnterpriseSuiteOverride?: boolean;
+
+    /** Connects to the sandbox when true and the live account when false. When undefined, the flow asks the user. */
+    isSandbox?: boolean;
 };
 
 function getAccountingIntegrationData(
@@ -112,6 +117,7 @@ function getAccountingIntegrationData(
         cardFeeds,
         cardList,
         isIntuitEnterpriseSuiteOverride,
+        isSandbox,
     }: GetAccountingIntegrationDataOptions = {},
 ): AccountingIntegration | undefined {
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
@@ -140,12 +146,9 @@ function getAccountingIntegrationData(
     };
     const getBackToAfterWorkspaceUpgradeRouteForCertinia = () => {
         if (integrationToDisconnect) {
-            return ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting);
+            return ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting, undefined, undefined, isSandbox);
         }
-        if (existingConnections.certinia) {
-            return ROUTES.POLICY_ACCOUNTING_CERTINIA_EXISTING_CONNECTIONS.getRoute(policyID);
-        }
-        return ROUTES.POLICY_ACCOUNTING_CERTINIA_PREREQUISITES.getRoute(policyID);
+        return getCertiniaSetupRoute(policyID, !!isSandbox, existingConnections.certinia);
     };
     const getBackToAfterWorkspaceUpgradeRouteForRillet = () => {
         if (integrationToDisconnect) {
@@ -192,6 +195,7 @@ function getAccountingIntegrationData(
                     <ConnectToQuickbooksOnlineFlow
                         policyID={policyID}
                         isIntuitEnterpriseSuite={shouldUseIntuitEnterpriseSuite}
+                        isSandbox={isSandbox}
                         key={key}
                     />
                 ),
@@ -246,6 +250,8 @@ function getAccountingIntegrationData(
                                   integrationToDisconnect,
                                   shouldDisconnectIntegrationBeforeConnecting,
                                   true,
+                                  undefined,
+                                  isSandbox,
                               ),
                           },
                       }
@@ -499,6 +505,7 @@ function getAccountingIntegrationData(
                 setupConnectionFlow: (
                     <ConnectToCertiniaFlow
                         policyID={policyID}
+                        isSandbox={isSandbox}
                         key={key}
                     />
                 ),
@@ -919,7 +926,45 @@ function getQBDReimbursableAccounts(
     return accounts;
 }
 
+/** Accounting integrations still behind a beta are left out unless the workspace is already connected to them */
+function getAvailableAccountingIntegrations(policy: OnyxEntry<Policy>, isBetaEnabled: (beta: Beta) => boolean) {
+    const canUseBusinessCentralIntegration = isBetaEnabled(CONST.BETAS.BUSINESS_CENTRAL) || !!policy?.connections?.businessCentral;
+    return CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.filter((name) => {
+        if (name === CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL) {
+            return canUseBusinessCentralIntegration;
+        }
+        return true;
+    });
+}
+
+/** A first sync runs before the connection is saved on the policy, so the integration being synced also counts as connected */
+function getConnectedAndSyncingIntegrations(policy: OnyxEntry<Policy>, connectionSyncProgress: OnyxEntry<PolicyConnectionSyncProgress>, accountingIntegrations: readonly ConnectionName[]) {
+    // HR providers write to the same sync progress key, so only an accounting sync counts here
+    const syncingIntegration = accountingIntegrations.find((integration) => integration === connectionSyncProgress?.connectionName);
+    const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? syncingIntegration;
+    return {connectedIntegration, syncingIntegration};
+}
+
+/** Adds the replace prompt details when the workspace already has another accounting integration connected */
+function getActiveIntegrationToConnect(activeIntegration: ActiveIntegration, connectedIntegration: ConnectionName | undefined): ActiveIntegration {
+    if (!connectedIntegration) {
+        return activeIntegration;
+    }
+    return {...activeIntegration, integrationToDisconnect: connectedIntegration, shouldDisconnectIntegrationBeforeConnecting: true};
+}
+
+/** The saved QBO connection gets the Intuit Enterprise Suite scope some time after the first sync starts, so a sync started for Intuit Enterprise Suite counts too */
+function isIntuitEnterpriseSuiteConnectionOrSync(policy: OnyxEntry<Policy>, isSyncInProgress: boolean, activeIntegration: ActiveIntegration | undefined): boolean {
+    if (isIntuitEnterpriseSuiteConnection(policy)) {
+        return true;
+    }
+    return isSyncInProgress && activeIntegration?.name === CONST.POLICY.CONNECTIONS.NAME.QBO && activeIntegration.isIntuitEnterpriseSuite === true;
+}
+
 export {
+    getActiveIntegrationToConnect,
+    getAvailableAccountingIntegrations,
+    getConnectedAndSyncingIntegrations,
     getAccountingIntegrationData,
     getCurrentAccountingIntegrationName,
     getSynchronizationErrorMessage,
@@ -927,4 +972,5 @@ export {
     getQBDReimbursableAccounts,
     getQuickbooksOnlineIntegrationName,
     isIntuitEnterpriseSuiteConnection,
+    isIntuitEnterpriseSuiteConnectionOrSync,
 };

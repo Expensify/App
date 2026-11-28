@@ -1089,6 +1089,7 @@ type WorkspaceSplitNavigatorParamList = {
         shouldDisconnectIntegrationBeforeConnecting?: boolean;
         isIntuitEnterpriseSuite?: string;
         tab?: ValueOf<typeof CONST.TAB.CONNECTIONS>;
+        isSandbox?: string;
     };
     [SCREENS.WORKSPACE.DYNAMIC_RECEIPT_PARTNERS_INVITE]: {
         policyID: string;

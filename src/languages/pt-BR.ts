@@ -8504,6 +8504,13 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             netSuiteOAuthMigrationRequired: 'Atualize sua conexão com o NetSuite para OAuth 2.0 até fevereiro de 2027.',
             netSuiteOAuthMigrationRequiredUrgent: 'Sua conexão com o NetSuite precisa ser atualizada imediatamente para OAuth 2.0.',
             netSuiteOAuthUpgradeNow: 'Atualize agora',
+            connectPage: {
+                title: (integrationName: string) => `Conectar a ${integrationName}`,
+                importChartOfAccounts: 'Importar plano de contas',
+                importCodingFields: 'Importar campos de codificação',
+                exportApprovedExpenses: 'Exportar despesas aprovadas',
+                exportPaymentsAndSettlements: 'Exportar pagamentos e liquidações',
+            },
         },
         export: {
             notReadyHeading: 'Não está pronto para exportar',

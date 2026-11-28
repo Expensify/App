@@ -5,7 +5,7 @@ import type CONST from '@src/CONST';
 import type {Route as Routes} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {CardFeedWithDomainID, CompanyCardFeedWithDomainID} from '@src/types/onyx';
-import type {BusinessCentralBankAccountSettingName, PolicyReportFieldType, SageIntacctMappingName} from '@src/types/onyx/Policy';
+import type {BusinessCentralBankAccountSettingName, ConnectionName, PolicyReportFieldType, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {CustomFieldType} from '@src/types/onyx/PolicyEmployee';
 
 import type {TupleToUnion, ValueOf} from 'type-fest';
@@ -805,6 +805,11 @@ type WorkspaceSettingsParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.CLAIM_OFFER]: {
         policyID: string;
         integration: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.CONNECT]: {
+        policyID: string;
+        connectionName: ConnectionName;
+        isIntuitEnterpriseSuite?: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_XERO_AUTO_SYNC]: {
         policyID: string;

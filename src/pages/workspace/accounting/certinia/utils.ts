@@ -9,6 +9,7 @@ import {
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ROUTES from '@src/ROUTES';
 import type {FinancialForceConnectionConfig, FinancialForceFFAExportStatus} from '@src/types/onyx/Policy';
 
 import type {TupleToUnion, ValueOf} from 'type-fest';
@@ -126,11 +127,23 @@ function getCertiniaSelectedCompanyID(config: FinancialForceConnectionConfig | u
     return config?.hasPSA ? config.export?.companyID : config?.company;
 }
 
+/** Where connecting to Certinia starts once the admin has picked the sandbox or the live account */
+function getCertiniaSetupRoute(policyID: string, isSandbox: boolean, hasReusableConnection: boolean) {
+    if (isSandbox) {
+        return ROUTES.POLICY_ACCOUNTING_CERTINIA_PREREQUISITES.getRoute(policyID, CONST.CERTINIA_PREREQUISITES.PAGE_NAME.INSTALL_BUNDLE, isSandbox);
+    }
+    if (hasReusableConnection) {
+        return ROUTES.POLICY_ACCOUNTING_CERTINIA_EXISTING_CONNECTIONS.getRoute(policyID);
+    }
+    return ROUTES.POLICY_ACCOUNTING_CERTINIA_PREREQUISITES.getRoute(policyID);
+}
+
 export {
     CERTINIA_DIMENSION_PARAMS,
     CERTINIA_FFA_EXPORT_STATUSES,
     dimensionParamToNumber,
     getCertiniaSelectedCompanyID,
+    getCertiniaSetupRoute,
     getCertiniaReportExportStatusValue,
     getCertiniaFFAExportStatusValue,
     getDimensionLabel,

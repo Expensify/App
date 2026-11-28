@@ -10,6 +10,7 @@ import {isAuthenticationError} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
 
 import {useAccountingState} from '@pages/workspace/accounting/AccountingContext/contexts';
+import {getCertiniaSetupRoute} from '@pages/workspace/accounting/certinia/utils';
 
 import type {AnchorPosition} from '@styles/index';
 
@@ -17,10 +18,13 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
-import React, {useEffect, useLayoutEffect, useState} from 'react';
+import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
 
 type ConnectToCertiniaFlowProps = {
     policyID: string;
+
+    /** Connects to the sandbox when true and the live account when false. When undefined, the flow asks the user. */
+    isSandbox?: boolean;
 };
 
 const anchorAlignment = {
@@ -28,7 +32,7 @@ const anchorAlignment = {
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
 
-function ConnectToCertiniaFlow({policyID}: ConnectToCertiniaFlowProps) {
+function ConnectToCertiniaFlow({policyID, isSandbox}: ConnectToCertiniaFlowProps) {
     const {translate} = useLocalize();
 
     const hasReusablePoliciesConnectedToCertinia = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.CERTINIA, policyID);
@@ -60,8 +64,7 @@ function ConnectToCertiniaFlow({policyID}: ConnectToCertiniaFlowProps) {
             text: translate('workspace.certinia.prerequisites.connectSandboxButton'),
             sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CERTINIA.CONNECTION_OPTIONS.CONNECT_SANDBOX,
             onSelected: () => {
-                const isSandbox = true;
-                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CERTINIA_PREREQUISITES.getRoute(policyID, CONST.CERTINIA_PREREQUISITES.PAGE_NAME.INSTALL_BUNDLE, isSandbox));
+                Navigation.navigate(getCertiniaSetupRoute(policyID, true, hasReusablePoliciesConnectedToCertinia));
                 setIsConnectionOptionsPopoverOpen(false);
             },
         },
@@ -80,7 +83,18 @@ function ConnectToCertiniaFlow({policyID}: ConnectToCertiniaFlowProps) {
             : []),
     ];
 
+    const didInitialize = useRef(false);
+
     useEffect(() => {
+        if (didInitialize.current) {
+            return;
+        }
+        didInitialize.current = true;
+
+        if (!isAuthError && isSandbox !== undefined) {
+            Navigation.navigate(getCertiniaSetupRoute(policyID, isSandbox, hasReusablePoliciesConnectedToCertinia));
+            return;
+        }
         if (!isAuthError) {
             // We could ignore the lint error here because this effect has no dependencies, and would only run once.
             // eslint-disable-next-line react-hooks/set-state-in-effect

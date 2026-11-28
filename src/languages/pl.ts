@@ -8533,6 +8533,13 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
             netSuiteOAuthMigrationRequired: 'Zaktualizuj swoje połączenie z NetSuite do OAuth 2.0 do lutego 2027.',
             netSuiteOAuthMigrationRequiredUrgent: 'Twoje połączenie z NetSuite wymaga natychmiastowej aktualizacji do OAuth 2.0.',
             netSuiteOAuthUpgradeNow: 'Ulepsz teraz',
+            connectPage: {
+                title: (integrationName: string) => `Połącz z ${integrationName}`,
+                importChartOfAccounts: 'Zaimportuj plan kont',
+                importCodingFields: 'Importuj pola księgowe',
+                exportApprovedExpenses: 'Eksportuj zatwierdzone wydatki',
+                exportPaymentsAndSettlements: 'Eksportuj płatności i rozliczenia',
+            },
         },
         export: {
             notReadyHeading: 'Niegotowe do eksportu',

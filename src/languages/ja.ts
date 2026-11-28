@@ -8394,6 +8394,13 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             netSuiteOAuthMigrationRequired: '2027年2月までに、NetSuite 接続を OAuth 2.0 にアップグレードしてください。',
             netSuiteOAuthMigrationRequiredUrgent: 'NetSuite との接続は、ただちに OAuth 2.0 へのアップグレードが必要です。',
             netSuiteOAuthUpgradeNow: '今すぐアップグレード',
+            connectPage: {
+                title: (integrationName: string) => `${integrationName}に接続する`,
+                importChartOfAccounts: '勘定科目表をインポート',
+                importCodingFields: 'コーディング項目をインポート',
+                exportApprovedExpenses: '承認済み経費をエクスポート',
+                exportPaymentsAndSettlements: '支払いと精算をエクスポート',
+            },
         },
         export: {
             notReadyHeading: 'エクスポートの準備ができていません',

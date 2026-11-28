@@ -76,11 +76,12 @@ function setEnvironment(environment: ValueOf<typeof CONST.ENVIRONMENT>) {
     });
 }
 
-function renderFlow({isIntuitEnterpriseSuite = false, onConnect = jest.fn()} = {}) {
+function renderFlow({isIntuitEnterpriseSuite = false, isSandbox, onConnect = jest.fn()}: {isIntuitEnterpriseSuite?: boolean; isSandbox?: boolean; onConnect?: jest.Mock} = {}) {
     render(
         <BaseConnectToQuickbooksOnlineFlow
             policyID={POLICY_ID}
             isIntuitEnterpriseSuite={isIntuitEnterpriseSuite}
+            isSandbox={isSandbox}
             onConnect={onConnect}
         />,
     );
@@ -154,6 +155,24 @@ describe('BaseConnectToQuickbooksOnlineFlow', () => {
 
         expect(onConnect).toHaveBeenCalledTimes(1);
         expect(onConnect).toHaveBeenCalledWith(isSandbox);
+    });
+
+    it.each([
+        ['sandbox', true],
+        ['live account', false],
+    ])('connects straight to the %s picked before the flow started for Intuit Enterprise Suite on staging', async (_connectionName, isSandbox) => {
+        // Given Intuit Enterprise Suite on staging, where the flow would otherwise ask between the sandbox and the live account
+        setEnvironment(CONST.ENVIRONMENT.STAGING);
+
+        // When the flow starts with that choice already made on the Connect page
+        const onConnect = renderFlow({isIntuitEnterpriseSuite: true, isSandbox});
+
+        // Then it connects to the chosen account without asking again
+        await waitFor(() => {
+            expect(onConnect).toHaveBeenCalledTimes(1);
+        });
+        expect(onConnect).toHaveBeenCalledWith(isSandbox);
+        expect(mockPopoverMenu).not.toHaveBeenCalled();
     });
 
     it('disables policy taxes once when the flow starts', async () => {

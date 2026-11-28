@@ -8426,6 +8426,13 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             netSuiteOAuthMigrationRequired: 'Actualiza tu conexión con NetSuite a OAuth 2.0 antes de febrero de 2027.',
             netSuiteOAuthMigrationRequiredUrgent: 'Tu conexión con NetSuite requiere una actualización inmediata a OAuth 2.0.',
             netSuiteOAuthUpgradeNow: 'Mejorar ahora',
+            connectPage: {
+                title: (integrationName: string) => `Conectar con ${integrationName}`,
+                importChartOfAccounts: 'Importar plan de cuentas',
+                importCodingFields: 'Importar campos de codificación',
+                exportApprovedExpenses: 'Exportar gastos aprobados',
+                exportPaymentsAndSettlements: 'Exportar pagos y liquidaciones',
+            },
         },
         card: {
             issueCard: 'Emitir tarjeta',

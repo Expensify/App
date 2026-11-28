@@ -1,8 +1,13 @@
 import {renderHook} from '@testing-library/react-native';
 
+import Navigation from '@libs/Navigation/Navigation';
+import type * as PolicyConnectionUtils from '@libs/PolicyUtils/connections';
+
+import type * as AccountingUtils from '@pages/workspace/accounting/utils';
 import useAccountingConnectionListings from '@pages/workspace/connections/useAccountingConnectionListings';
 
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 
@@ -25,6 +30,7 @@ jest.mock('@libs/actions/connections', () => ({isConnectionInProgress: () => fal
 jest.mock('@libs/Navigation/Navigation', () => ({__esModule: true, default: {navigate: jest.fn()}}));
 jest.mock('@libs/PolicyUtils', () => ({
     getConnectedIntegration: () => mockConnectedIntegration,
+    isConnectPageConnectionName: jest.requireActual<typeof PolicyConnectionUtils>('@libs/PolicyUtils/connections').isConnectPageConnectionName,
     getIntegrationLastSuccessfulDate: () => undefined,
     shouldShowReimbursableExportDestinationAccountError: () => false,
 }));
@@ -34,8 +40,11 @@ jest.mock('@pages/workspace/accounting/AccountingContext', () => ({
 }));
 jest.mock('@pages/workspace/accounting/utils', () => ({
     getAccountingIntegrationData: (name: string) => ({title: name}),
+    getActiveIntegrationToConnect: jest.requireActual<typeof AccountingUtils>('@pages/workspace/accounting/utils').getActiveIntegrationToConnect,
+    getAvailableAccountingIntegrations: jest.requireActual<typeof AccountingUtils>('@pages/workspace/accounting/utils').getAvailableAccountingIntegrations,
+    getConnectedAndSyncingIntegrations: jest.requireActual<typeof AccountingUtils>('@pages/workspace/accounting/utils').getConnectedAndSyncingIntegrations,
     getSynchronizationErrorMessage: () => undefined,
-    isIntuitEnterpriseSuiteConnection: () => false,
+    isIntuitEnterpriseSuiteConnectionOrSync: jest.requireActual<typeof AccountingUtils>('@pages/workspace/accounting/utils').isIntuitEnterpriseSuiteConnectionOrSync,
 }));
 
 const policy: Policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), id: 'policy-1'};
@@ -55,30 +64,53 @@ describe('useAccountingConnectionListings', () => {
 
     it('should start the connect flow for a workspace with no accounting integration', () => {
         // Given a workspace with nothing connected
-        const xero = findListing(CONST.POLICY.CONNECTIONS.NAME.XERO);
+        const netSuite = findListing(CONST.POLICY.CONNECTIONS.NAME.NETSUITE);
 
-        // When the admin connects Xero
-        xero?.onConnect?.();
+        // When the admin connects NetSuite, which has no Connect page
+        netSuite?.onConnect?.();
 
-        // Then Xero's flow starts with nothing to disconnect
-        expect(mockStartIntegrationFlow).toHaveBeenCalledWith({name: CONST.POLICY.CONNECTIONS.NAME.XERO, isIntuitEnterpriseSuite: undefined});
+        // Then NetSuite's flow starts with nothing to disconnect
+        expect(mockStartIntegrationFlow).toHaveBeenCalledWith({name: CONST.POLICY.CONNECTIONS.NAME.NETSUITE, isIntuitEnterpriseSuite: undefined});
     });
 
     it('should replace the connected integration when the admin connects another one', () => {
         // Given a workspace already connected to QuickBooks Online, since only one accounting integration can be connected
         mockConnectedIntegration = CONST.POLICY.CONNECTIONS.NAME.QBO;
-        const xero = findListing(CONST.POLICY.CONNECTIONS.NAME.XERO);
+        const netSuite = findListing(CONST.POLICY.CONNECTIONS.NAME.NETSUITE);
 
-        // When the admin connects Xero
-        xero?.onConnect?.();
+        // When the admin connects NetSuite
+        netSuite?.onConnect?.();
 
         // Then the flow is told to disconnect QuickBooks Online first, which asks the admin before replacing it
         expect(mockStartIntegrationFlow).toHaveBeenCalledWith({
-            name: CONST.POLICY.CONNECTIONS.NAME.XERO,
+            name: CONST.POLICY.CONNECTIONS.NAME.NETSUITE,
             isIntuitEnterpriseSuite: undefined,
             integrationToDisconnect: CONST.POLICY.CONNECTIONS.NAME.QBO,
             shouldDisconnectIntegrationBeforeConnecting: true,
         });
+    });
+
+    it('should open the Connect page instead of starting the flow for an integration that has one', () => {
+        // Given a workspace with nothing connected
+        const xero = findListing(CONST.POLICY.CONNECTIONS.NAME.XERO);
+
+        // When the admin connects Xero, whose flow would otherwise leave the app right away
+        xero?.onConnect?.();
+
+        // Then the Xero Connect page opens and the flow waits for the admin to press Connect there
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.POLICY_ACCOUNTING_CONNECT.getRoute(policy.id, CONST.POLICY.CONNECTIONS.NAME.XERO, undefined));
+        expect(mockStartIntegrationFlow).not.toHaveBeenCalled();
+    });
+
+    it('should open the Intuit Enterprise Suite variant of the Connect page from its card', () => {
+        // Given a workspace with nothing connected
+        const intuitEnterpriseSuite = findListing(CONST.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE);
+
+        // When the admin connects Intuit Enterprise Suite, which shares the QBO connection
+        intuitEnterpriseSuite?.onConnect?.();
+
+        // Then the QBO Connect page opens in its Intuit Enterprise Suite variant
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.POLICY_ACCOUNTING_CONNECT.getRoute(policy.id, CONST.POLICY.CONNECTIONS.NAME.QBO, true));
     });
 
     it('should only show the read-only modal to a member who cannot edit accounting', () => {

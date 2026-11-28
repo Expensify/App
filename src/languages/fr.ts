@@ -8579,6 +8579,13 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             netSuiteOAuthMigrationRequired: 'Mettez à niveau votre connexion NetSuite vers OAuth 2.0 d’ici février 2027.',
             netSuiteOAuthMigrationRequiredUrgent: 'Votre connexion NetSuite nécessite une mise à niveau immédiate vers OAuth 2.0.',
             netSuiteOAuthUpgradeNow: 'Mettre à niveau maintenant',
+            connectPage: {
+                title: (integrationName: string) => `Se connecter à ${integrationName}`,
+                importChartOfAccounts: 'Importer le plan comptable',
+                importCodingFields: 'Importer les champs de codage',
+                exportApprovedExpenses: 'Exporter les dépenses approuvées',
+                exportPaymentsAndSettlements: 'Exporter les paiements et les règlements',
+            },
         },
         export: {
             notReadyHeading: 'Pas prêt à être exporté',

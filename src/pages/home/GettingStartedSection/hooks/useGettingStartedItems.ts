@@ -17,6 +17,7 @@ import {
     hasConfiguredRules,
     hasCustomApprovalWorkflow,
     hasCustomCategories,
+    isConnectPageConnectionName,
     isPaidGroupPolicy,
     isPendingDeletePolicy,
     isPolicyAdmin,
@@ -301,12 +302,29 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         const integrationName = isDirectConnect
             ? (CONST.ONBOARDING_ACCOUNTING_MAPPING[reportedIntegration as keyof typeof CONST.ONBOARDING_ACCOUNTING_MAPPING] ?? String(reportedIntegration))
             : undefined;
+        const isConnectAccountingComplete = !!getValidConnectedIntegration(policy) || Object.values(policy?.connections ?? {}).some((conn) => !!conn?.lastSync?.successfulDate);
+        // Onboarding reports Intuit Enterprise Suite by its own name, while the workspace connects to it through QBO
+        const isIntuitEnterpriseSuite = reportedIntegration === CONST.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE;
+        const reportedConnectionName = isIntuitEnterpriseSuite ? CONST.POLICY.CONNECTIONS.NAME.QBO : reportedIntegration;
+        const connectPageRoute =
+            !isConnectAccountingComplete && isConnectPageConnectionName(reportedConnectionName)
+                ? ROUTES.POLICY_ACCOUNTING_CONNECT.getRoute(activePolicyID, reportedConnectionName, isIntuitEnterpriseSuite)
+                : undefined;
         items.push({
             key: 'connectAccounting',
             label: integrationName ? translate('homePage.gettingStartedSection.connectAccounting', {integrationName}) : translate('homePage.gettingStartedSection.connectAccountingDefault'),
             subText: translate('homePage.gettingStartedSection.connectAccountingSubText'),
-            isComplete: !!getValidConnectedIntegration(policy) || Object.values(policy?.connections ?? {}).some((conn) => !!conn?.lastSync?.successfulDate),
-            route: ROUTES.WORKSPACE_CONNECTIONS.getRoute(activePolicyID, undefined, undefined, undefined, undefined, CONST.TAB.CONNECTIONS.ACCOUNTING),
+            isComplete: isConnectAccountingComplete,
+            route: connectPageRoute ? undefined : ROUTES.WORKSPACE_CONNECTIONS.getRoute(activePolicyID, undefined, undefined, undefined, undefined, CONST.TAB.CONNECTIONS.ACCOUNTING),
+            // Opening the Connections page first keeps Home in the browser history, so Back returns to Home
+            onPress: connectPageRoute
+                ? () => {
+                      Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(activePolicyID));
+                      Navigation.setNavigationActionToMicrotaskQueue(() => {
+                          Navigation.navigate(connectPageRoute);
+                      });
+                  }
+                : undefined,
         });
     } else if (policy.areCategoriesEnabled) {
         items.push({

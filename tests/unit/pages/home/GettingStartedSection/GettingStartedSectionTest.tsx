@@ -653,18 +653,20 @@ describe('GettingStartedSection', () => {
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_OVERVIEW.getRoute(TEST_POLICY_ID));
         });
 
-        it('navigates to workspace accounting when "Connect to [system]" row is pressed', async () => {
+        it('navigates to the integration Connect page when "Connect to [system]" row is pressed', async () => {
+            // Given a user who picked QuickBooks Online in onboarding
             await setManageTeamUserState({integration: 'quickbooksOnline', areAccountingEnabled: true});
 
             renderGettingStartedSection();
             await waitForBatchedUpdates();
 
+            // When they press the "Connect to QuickBooks Online" row
             const row = screen.getByText(/homePage\.gettingStartedSection\.connectAccounting:/);
             fireEvent.press(row);
 
-            expect(Navigation.navigate).toHaveBeenCalledWith(
-                ROUTES.WORKSPACE_CONNECTIONS.getRoute(TEST_POLICY_ID, undefined, undefined, undefined, undefined, CONST.TAB.CONNECTIONS.ACCOUNTING),
-            );
+            // Then the QuickBooks Online Connect page opens over the Connections page, since the integration is already known
+            expect(Navigation.navigate).toHaveBeenNthCalledWith(1, ROUTES.POLICY_ACCOUNTING.getRoute(TEST_POLICY_ID));
+            expect(Navigation.navigate).toHaveBeenNthCalledWith(2, ROUTES.POLICY_ACCOUNTING_CONNECT.getRoute(TEST_POLICY_ID, CONST.POLICY.CONNECTIONS.NAME.QBO));
         });
 
         it('navigates to workspace categories when "Customize categories" row is pressed', async () => {

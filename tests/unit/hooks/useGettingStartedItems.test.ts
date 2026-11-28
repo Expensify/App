@@ -389,12 +389,52 @@ describe('useGettingStartedItems', () => {
             expect(connectItem?.label).toContain(name);
         });
 
-        it('should navigate to workspace accounting route', async () => {
+        it('should navigate to the Connect page of the integration picked in onboarding', async () => {
+            // Given a user who picked QuickBooks Online in onboarding and hasn't connected it yet
             await setupManageTeamScenario({accounting: CONST.POLICY.CONNECTIONS.NAME.QBO, policy: {areConnectionsEnabled: true}});
 
+            // When the getting started items are built
             const {result} = renderHook(() => useGettingStartedItems());
             await waitForBatchedUpdates();
 
+            // Then the step opens the Connections page and then the QuickBooks Online Connect page over it, so Back passes through Connections to Home
+            const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+            const microtaskQueueSpy = jest.spyOn(Navigation, 'setNavigationActionToMicrotaskQueue').mockImplementation((callback: () => void) => callback());
+            const connectItem = result.current.items.find((item) => item.key === 'connectAccounting');
+            connectItem?.onPress?.();
+            expect(navigateSpy).toHaveBeenNthCalledWith(1, ROUTES.POLICY_ACCOUNTING.getRoute(POLICY_ID));
+            expect(navigateSpy).toHaveBeenNthCalledWith(2, ROUTES.POLICY_ACCOUNTING_CONNECT.getRoute(POLICY_ID, CONST.POLICY.CONNECTIONS.NAME.QBO));
+            navigateSpy.mockRestore();
+            microtaskQueueSpy.mockRestore();
+        });
+
+        it('should navigate to the Intuit Enterprise Suite Connect page when the user picked it in onboarding', async () => {
+            // Given a user who picked Intuit Enterprise Suite, which onboarding reports by its own name while it connects through QBO
+            await setupManageTeamScenario({accounting: CONST.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE, policy: {areConnectionsEnabled: true}});
+
+            // When the getting started items are built
+            const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
+
+            // Then the step opens the QBO Connect page in its Intuit Enterprise Suite variant
+            const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+            const microtaskQueueSpy = jest.spyOn(Navigation, 'setNavigationActionToMicrotaskQueue').mockImplementation((callback: () => void) => callback());
+            const connectItem = result.current.items.find((item) => item.key === 'connectAccounting');
+            connectItem?.onPress?.();
+            expect(navigateSpy).toHaveBeenLastCalledWith(ROUTES.POLICY_ACCOUNTING_CONNECT.getRoute(POLICY_ID, CONST.POLICY.CONNECTIONS.NAME.QBO, true));
+            navigateSpy.mockRestore();
+            microtaskQueueSpy.mockRestore();
+        });
+
+        it('should navigate to workspace accounting route when the integration has no Connect page', async () => {
+            // Given a user who picked NetSuite, which starts its own setup pages instead of the Connect page
+            await setupManageTeamScenario({accounting: CONST.POLICY.CONNECTIONS.NAME.NETSUITE, policy: {areConnectionsEnabled: true}});
+
+            // When the getting started items are built
+            const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
+
+            // Then the step still opens the accounting tab of the Connections page
             const connectItem = result.current.items.find((item) => item.key === 'connectAccounting');
             expect(connectItem?.route).toBe(ROUTES.WORKSPACE_CONNECTIONS.getRoute(POLICY_ID, undefined, undefined, undefined, undefined, CONST.TAB.CONNECTIONS.ACCOUNTING));
         });
