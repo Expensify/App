@@ -13,7 +13,7 @@ type FABMenuItemResult = {
     wrapperStyle: ViewStyle;
     shouldShowIconTiles: boolean;
     setFocusedIndex: (index: number) => void;
-    onItemPress: (onSelected: () => void, options?: {shouldCallAfterModalHide?: boolean}) => void;
+    onItemPress: (onSelected: () => void | Promise<void>, options?: {shouldCallAfterModalHide?: boolean}) => void;
 };
 
 /**

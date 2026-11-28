@@ -21,8 +21,10 @@ import type ReactNative from 'react-native';
 
 import {useRoute} from '@react-navigation/native';
 import React from 'react';
+import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const POLICY_ID = 'policy123';
 const mockPolicy = createMock<Policy>({
@@ -35,7 +37,6 @@ let mockEnrollmentRoute = '';
 let mockIsBetaEnabled = false;
 let mockIsUkEuCurrencySupported = false;
 const mockShowConfirmModal = jest.fn();
-const mockOnyxKeys = ONYXKEYS;
 // The Connections page that opened the currency page on top of itself
 const mockDynamicBackPath = `workspaces/${POLICY_ID}/connections`;
 
@@ -84,15 +85,7 @@ jest.mock('@hooks/useLocalize', () => ({
 }));
 jest.mock('@hooks/useOnyx', () => ({
     __esModule: true,
-    default: (key: string): unknown[] => {
-        if (key === mockOnyxKeys.BANK_ACCOUNT_LIST || key === mockOnyxKeys.CARD_SUPPORTED_COUNTRIES) {
-            return [{}];
-        }
-        if (key === mockOnyxKeys.REIMBURSEMENT_ACCOUNT) {
-            return [{achData: {}}];
-        }
-        return [undefined];
-    },
+    default: (): unknown[] => [undefined],
 }));
 jest.mock('@hooks/usePermissions', () => ({
     __esModule: true,
@@ -160,6 +153,10 @@ function renderPage(shouldStartExpensifyCardEnrollment = true, screenName: strin
 }
 
 describe('WorkspaceOverviewCurrencyPage', () => {
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
     beforeEach(() => {
         jest.clearAllMocks();
         mockEnrollmentRoute = ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID: POLICY_ID, backTo: ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(POLICY_ID)});
@@ -168,10 +165,11 @@ describe('WorkspaceOverviewCurrencyPage', () => {
         mockShowConfirmModal.mockResolvedValue({action: ModalActions.CONFIRM});
     });
 
-    it('opens the add bank account flow after selecting USD when no eligible account exists', () => {
+    it('opens the add bank account flow after selecting USD when no eligible account exists', async () => {
         renderPage();
 
         fireEvent.press(screen.getByTestId(`currency-${CONST.CURRENCY.USD}`));
+        await waitForBatchedUpdatesWithAct();
 
         expect(mockNavigate).toHaveBeenCalledWith(
             ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({
@@ -182,30 +180,33 @@ describe('WorkspaceOverviewCurrencyPage', () => {
         );
     });
 
-    it('opens the bank account selector after selecting a supported currency when an eligible account exists', () => {
+    it('opens the bank account selector after selecting a supported currency when an eligible account exists', async () => {
         mockEnrollmentRoute = ROUTES.WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT.getRoute(POLICY_ID);
         mockIsBetaEnabled = true;
         mockIsUkEuCurrencySupported = true;
         renderPage();
 
         fireEvent.press(screen.getByTestId(`currency-${CONST.CURRENCY.GBP}`));
+        await waitForBatchedUpdatesWithAct();
 
         expect(mockNavigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT.getRoute(POLICY_ID), {forceReplace: true});
     });
 
-    it('does not start enrollment after selecting an unsupported currency', () => {
+    it('does not start enrollment after selecting an unsupported currency', async () => {
         renderPage();
 
         fireEvent.press(screen.getByTestId(`currency-${CONST.CURRENCY.AUD}`));
+        await waitForBatchedUpdatesWithAct();
 
         expect(mockNavigate).not.toHaveBeenCalled();
         expect(Navigation.setNavigationActionToMicrotaskQueue).toHaveBeenCalledWith(Navigation.goBack);
     });
 
-    it('preserves the normal currency selection behavior outside Expensify Card enrollment', () => {
+    it('preserves the normal currency selection behavior outside Expensify Card enrollment', async () => {
         renderPage(false);
 
         fireEvent.press(screen.getByTestId(`currency-${CONST.CURRENCY.USD}`));
+        await waitForBatchedUpdatesWithAct();
 
         expect(mockNavigate).not.toHaveBeenCalled();
         expect(Navigation.setNavigationActionToMicrotaskQueue).toHaveBeenCalledWith(Navigation.goBack);
@@ -239,24 +240,26 @@ describe('WorkspaceOverviewCurrencyPage', () => {
         expect(updateGeneralSettings).not.toHaveBeenCalled();
     });
 
-    it('changes the currency without the explanation when Direct reimbursement supports it', () => {
+    it('changes the currency without the explanation when Direct reimbursement supports it', async () => {
         // Given a workspace on Direct reimbursement, where the server accepts GBP
         renderPage(false, SCREENS.WORKSPACE.CURRENCY, directReimbursementPolicy);
 
         // When the admin picks GBP
         fireEvent.press(screen.getByTestId(`currency-${CONST.CURRENCY.GBP}`));
+        await waitForBatchedUpdatesWithAct();
 
         // Then the change is sent with no explanation, so supported currencies are not blocked
         expect(mockShowConfirmModal).not.toHaveBeenCalled();
         expect(updateGeneralSettings).toHaveBeenCalledWith(directReimbursementPolicy, directReimbursementPolicy.name, CONST.CURRENCY.GBP, undefined, expect.anything());
     });
 
-    it('goes back to the page that opened it once a currency is chosen on top of that page', () => {
+    it('goes back to the page that opened it once a currency is chosen on top of that page', async () => {
         // Given the currency page opened on top of the Connections page by the Digits currency prompt
         renderPage(false, SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_CURRENCY);
 
         // When the admin picks USD
         fireEvent.press(screen.getByTestId(`currency-${CONST.CURRENCY.USD}`));
+        await waitForBatchedUpdatesWithAct();
         jest.mocked(Navigation.setNavigationActionToMicrotaskQueue).mock.calls.at(0)?.at(0)?.();
 
         // Then the page closes back to the Connections page, the same page a reload keeps under it

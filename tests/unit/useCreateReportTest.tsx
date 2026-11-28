@@ -4,7 +4,9 @@ import useCreateReport from '@hooks/useCreateReport';
 import useOnyx from '@hooks/useOnyx';
 import useShouldShowEmptyReportConfirmation from '@hooks/useShouldShowEmptyReportConfirmation';
 
+import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
+import type * as SubscriptionUtils from '@libs/SubscriptionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -12,6 +14,8 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
 
@@ -69,7 +73,7 @@ jest.mock('@libs/ReportUtils', () => ({
     generateReportID: jest.fn(() => String(++reportIDCounter.value)),
 }));
 
-const mockShouldRestrictUserBillableActions = jest.fn(() => false);
+const mockShouldRestrictUserBillableActions = jest.fn<boolean, Parameters<typeof SubscriptionUtils.shouldRestrictUserBillableActions>>(() => false);
 jest.mock('@libs/SubscriptionUtils', () => ({
     shouldRestrictUserBillableActions: (...args: Parameters<typeof mockShouldRestrictUserBillableActions>) => mockShouldRestrictUserBillableActions(...args),
 }));
@@ -85,6 +89,11 @@ jest.mock('@hooks/usePreferredPolicy', () => () => mockUsePreferredPolicy());
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
 const POLICY_ID = 'policy-123';
+const SESSION = {accountID: 42, email: 'owner@test.com'};
+const OWNER_BILLING_GRACE_PERIOD_END = 1700000000;
+const AMOUNT_OWED = 1500;
+const USER_BILLING_GRACE_PERIOD_END_KEY = `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}42` as const;
+const USER_BILLING_GRACE_PERIOD_END = {value: 1700000001};
 
 function makePaidPolicy(id = POLICY_ID): Policy {
     return createMock<Policy>({
@@ -177,7 +186,12 @@ function setPreferredPolicyRestriction(preferredPolicyID: string | undefined, is
 // ── Tests ──────────────────────────────────────────────────────────────────────
 
 describe('useCreateReport', () => {
-    beforeEach(() => {
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    beforeEach(async () => {
+        await Onyx.clear();
         jest.clearAllMocks();
         reportIDCounter.value = 100;
         setEligiblePolicies([]);
@@ -210,7 +224,7 @@ describe('useCreateReport', () => {
             ['shows the billing restriction page instead of the selector when the preferred workspace is billing-restricted', makePaidPolicy('p1'), preferredPolicy, true, 'restricted'],
             ['falls back to the normal rules when the preferred workspace is only a membership-less stub', personalPolicy, preferredPolicyStub, false, 'selector'],
             ['falls back to the normal rules when the preferred workspace is not in Onyx at all', personalPolicy, undefined, false, 'selector'],
-        ])('%s', (_description, activePolicy, restrictedPolicy, isBillingRestricted, expected) => {
+        ])('%s', async (_description, activePolicy, restrictedPolicy, isBillingRestricted, expected) => {
             // Given a domain lock on `preferred-1` and the active workspace / preferred workspace data in Onyx
             setupUseCreateReportOnyx({
                 activePolicy,
@@ -230,8 +244,8 @@ describe('useCreateReport', () => {
             );
 
             // When the user presses "Create report"
-            act(() => {
-                result.current.createReport();
+            await act(async () => {
+                await result.current.createReport();
             });
 
             // Then an eligible preferred workspace wins without a selector, and anything else falls back to the normal rules
@@ -252,7 +266,7 @@ describe('useCreateReport', () => {
         it.each([
             ['the security group is still loading', true, 'loaded'],
             ['the preferred workspace is still loading', false, 'loading'],
-        ] as const)('hides the entry point and does nothing on press while %s', (_description, isLoadingPreferredPolicy, preferredPolicyLoadStatus) => {
+        ] as const)('hides the entry point and does nothing on press while %s', async (_description, isLoadingPreferredPolicy, preferredPolicyLoadStatus) => {
             // Given the domain lock cannot be evaluated yet because its Onyx inputs have not resolved
             setupUseCreateReportOnyx({
                 activePolicy: makePaidPolicy('p1'),
@@ -270,8 +284,8 @@ describe('useCreateReport', () => {
             );
 
             // When the user presses "Create report" anyway
-            act(() => {
-                result.current.createReport();
+            await act(async () => {
+                await result.current.createReport();
             });
 
             // Then nothing is created or navigated, instead of silently falling back to the active workspace
@@ -282,7 +296,7 @@ describe('useCreateReport', () => {
     });
 
     describe('upgrade path (no policies)', () => {
-        it('navigates to upgrade path when user has no group policies', () => {
+        it('navigates to upgrade path when user has no group policies', async () => {
             // Given a user with no workspace they can create a report on
             const onCreateReport = jest.fn();
 
@@ -294,8 +308,8 @@ describe('useCreateReport', () => {
             );
 
             // When they press "Create report"
-            act(() => {
-                result.current.createReport();
+            await act(async () => {
+                await result.current.createReport();
             });
 
             // Then they are sent to the upgrade flow for reports, since there is nowhere to create the report yet
@@ -308,7 +322,7 @@ describe('useCreateReport', () => {
     });
 
     describe('workspace selection', () => {
-        it('navigates to workspace selector when default policy ID is not available', () => {
+        it('navigates to workspace selector when default policy ID is not available', async () => {
             // Given an eligible workspace exists but no default workspace ID can be resolved
             const onCreateReport = jest.fn();
             const policies = [undefined];
@@ -321,8 +335,8 @@ describe('useCreateReport', () => {
             );
 
             // When they press "Create report"
-            act(() => {
-                result.current.createReport();
+            await act(async () => {
+                await result.current.createReport();
             });
 
             // Then the selector opens so the user picks a workspace instead of the hook guessing
@@ -330,7 +344,7 @@ describe('useCreateReport', () => {
             expect(onCreateReport).not.toHaveBeenCalled();
         });
 
-        it('navigates to workspace selector when restricted with multiple workspaces', () => {
+        it('navigates to workspace selector when restricted with multiple workspaces', async () => {
             // Given a non-personal default that is billing-restricted and another workspace to choose, so only the
             // billing safety net (not the personal-default rule) can open the selector
             setupUseCreateReportOnyx({activePolicy: makePaidPolicy('p1')});
@@ -346,15 +360,15 @@ describe('useCreateReport', () => {
             );
 
             // When they press "Create report"
-            act(() => {
-                result.current.createReport();
+            await act(async () => {
+                await result.current.createReport();
             });
 
             // Then the selector opens so the user isn't dead-ended on the restricted-action page
             expect(Navigation.navigate).toHaveBeenCalledWith(DYNAMIC_ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
         });
 
-        it('navigates to workspace selector when default is personal and there are 2+ non-personal workspaces', () => {
+        it('navigates to workspace selector when default is personal and there are 2+ non-personal workspaces', async () => {
             // Given a personal default and two non-personal workspaces; per spec the selector shows iff both hold
             const personalPolicy: OnyxEntry<Policy> = {
                 ...makePaidPolicy('personal-1'),
@@ -372,8 +386,8 @@ describe('useCreateReport', () => {
             );
 
             // When they press "Create report"
-            act(() => {
-                result.current.createReport();
+            await act(async () => {
+                await result.current.createReport();
             });
 
             // Then the selector opens because there is no meaningful default to create on
@@ -381,7 +395,7 @@ describe('useCreateReport', () => {
             expect(onCreateReport).not.toHaveBeenCalled();
         });
 
-        it('does NOT show selector when default is non-personal, even with multiple non-personal workspaces', () => {
+        it('does NOT show selector when default is non-personal, even with multiple non-personal workspaces', async () => {
             // Given a non-personal default among three non-personal workspaces
             setupUseCreateReportOnyx({activePolicy: makePaidPolicy('p1')});
             const onCreateReport = jest.fn();
@@ -395,8 +409,8 @@ describe('useCreateReport', () => {
             );
 
             // When they press "Create report"
-            act(() => {
-                result.current.createReport();
+            await act(async () => {
+                await result.current.createReport();
             });
 
             // Then per spec the report goes straight to the default, with no selector
@@ -404,7 +418,7 @@ describe('useCreateReport', () => {
             expect(onCreateReport).toHaveBeenCalledWith(expect.anything(), false);
         });
 
-        it('does NOT show selector when default is a Submit workspace, even with 2+ Submit workspaces', () => {
+        it('does NOT show selector when default is a Submit workspace, even with 2+ Submit workspaces', async () => {
             // Given a Submit default among two Submit workspaces; Submit is a valid non-personal default (regression)
             setupUseCreateReportOnyx({activePolicy: makeSubmitPolicy('p1')});
             const onCreateReport = jest.fn();
@@ -418,8 +432,8 @@ describe('useCreateReport', () => {
             );
 
             // When they press "Create report"
-            act(() => {
-                result.current.createReport();
+            await act(async () => {
+                await result.current.createReport();
             });
 
             // Then the report goes straight to the Submit default instead of opening the selector
@@ -427,7 +441,7 @@ describe('useCreateReport', () => {
             expect(onCreateReport).toHaveBeenCalledWith(expect.anything(), false);
         });
 
-        it('does NOT show selector when default is personal but only 1 non-personal workspace exists', () => {
+        it('does NOT show selector when default is personal but only 1 non-personal workspace exists', async () => {
             // Given a personal default and a single non-personal workspace
             const personalPolicy: OnyxEntry<Policy> = {
                 ...makePaidPolicy('personal-1'),
@@ -445,8 +459,8 @@ describe('useCreateReport', () => {
             );
 
             // When they press "Create report"
-            act(() => {
-                result.current.createReport();
+            await act(async () => {
+                await result.current.createReport();
             });
 
             // Then per spec the report goes to the only candidate, with nothing to choose between
@@ -456,7 +470,35 @@ describe('useCreateReport', () => {
     });
 
     describe('direct report creation', () => {
-        it('calls onCreateReport directly when workspace is valid and no confirmation needed', () => {
+        it('passes the stored session and billing data to the anonymous-user guard and the billing check', async () => {
+            // Given a single workspace and a stored session and billing data with non-default values, which decide whether the user is anonymous or billing-restricted
+            const policy = makePaidPolicy();
+            setEligiblePolicies([policy]);
+            await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: SESSION,
+                [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: OWNER_BILLING_GRACE_PERIOD_END,
+                [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: AMOUNT_OWED,
+                [USER_BILLING_GRACE_PERIOD_END_KEY]: USER_BILLING_GRACE_PERIOD_END,
+            });
+            const {result} = renderHook(() => useCreateReport({onCreateReport: jest.fn()}));
+
+            // When they press "Create report"
+            await act(async () => {
+                await result.current.createReport();
+            });
+
+            // Then the stored session still reaches the anonymous-user guard, and the stored billing data still reaches the billing check
+            expect(interceptAnonymousUser).toHaveBeenCalledWith(expect.any(Function), SESSION);
+            expect(mockShouldRestrictUserBillableActions).toHaveBeenCalledWith(
+                policy,
+                OWNER_BILLING_GRACE_PERIOD_END,
+                {[USER_BILLING_GRACE_PERIOD_END_KEY]: USER_BILLING_GRACE_PERIOD_END},
+                AMOUNT_OWED,
+                expect.anything(),
+            );
+        });
+
+        it('calls onCreateReport directly when workspace is valid and no confirmation needed', async () => {
             // Given a single unrestricted workspace with no empty report to warn about
             const onCreateReport = jest.fn();
             const policies = [makePaidPolicy()];
@@ -469,8 +511,8 @@ describe('useCreateReport', () => {
             );
 
             // When they press "Create report"
-            act(() => {
-                result.current.createReport();
+            await act(async () => {
+                await result.current.createReport();
             });
 
             // Then the report is created right away without any navigation
@@ -478,7 +520,7 @@ describe('useCreateReport', () => {
             expect(Navigation.navigate).not.toHaveBeenCalled();
         });
 
-        it('opens empty report confirmation when policy has empty reports', () => {
+        it('opens empty report confirmation when policy has empty reports', async () => {
             // Given the workspace already has an empty report the user should be warned about
             mockUseShouldShowEmptyReportConfirmation.mockReturnValue(true);
             const onCreateReport = jest.fn();
@@ -492,8 +534,8 @@ describe('useCreateReport', () => {
             );
 
             // When they press "Create report"
-            act(() => {
-                result.current.createReport();
+            await act(async () => {
+                await result.current.createReport();
             });
 
             // Then the confirmation opens first, so the user doesn't pile up empty reports by accident
@@ -503,7 +545,7 @@ describe('useCreateReport', () => {
     });
 
     describe('restricted action', () => {
-        it('navigates to restricted action when single workspace is billing-restricted', () => {
+        it('navigates to restricted action when single workspace is billing-restricted', async () => {
             // Given the user's only workspace is billing-restricted, so there is no alternative to offer
             mockShouldRestrictUserBillableActions.mockReturnValue(true);
             const onCreateReport = jest.fn();
@@ -517,8 +559,8 @@ describe('useCreateReport', () => {
             );
 
             // When they press "Create report"
-            act(() => {
-                result.current.createReport();
+            await act(async () => {
+                await result.current.createReport();
             });
 
             // Then the billing restriction page opens for that workspace
@@ -528,7 +570,7 @@ describe('useCreateReport', () => {
     });
 
     describe('decision flow priority', () => {
-        it('upgrade path takes priority over workspace selection when no policies exist', () => {
+        it('upgrade path takes priority over workspace selection when no policies exist', async () => {
             // Given no eligible workspaces, which would also leave no default workspace
             const onCreateReport = jest.fn();
 
@@ -540,8 +582,8 @@ describe('useCreateReport', () => {
             );
 
             // When they press "Create report"
-            act(() => {
-                result.current.createReport();
+            await act(async () => {
+                await result.current.createReport();
             });
 
             // Then the upgrade flow wins over the selector, since an empty selector would be a dead end
@@ -551,7 +593,7 @@ describe('useCreateReport', () => {
     });
 
     describe('policies loaded with valid workspace', () => {
-        it('does not navigate to upgrade path when user has a workspace', () => {
+        it('does not navigate to upgrade path when user has a workspace', async () => {
             // Given the user has one eligible workspace
             const onCreateReport = jest.fn();
             const policies = [makePaidPolicy()];
@@ -564,8 +606,8 @@ describe('useCreateReport', () => {
             );
 
             // When they press "Create report"
-            act(() => {
-                result.current.createReport();
+            await act(async () => {
+                await result.current.createReport();
             });
 
             // Then the report is created directly and the upgrade flow is never opened
@@ -580,7 +622,7 @@ describe('useCreateReport', () => {
     });
 
     describe('empty report confirmation dismissed', () => {
-        it('calls onCreateReport directly when confirmation was previously dismissed', () => {
+        it('calls onCreateReport directly when confirmation was previously dismissed', async () => {
             // Given the user previously chose not to see the empty-report confirmation again
             mockUseShouldShowEmptyReportConfirmation.mockReturnValue(false);
             setupUseCreateReportOnyx({emptyReportsConfirmationDismissed: true});
@@ -596,8 +638,8 @@ describe('useCreateReport', () => {
             );
 
             // When they press "Create report"
-            act(() => {
-                result.current.createReport();
+            await act(async () => {
+                await result.current.createReport();
             });
 
             // Then the report is created without asking again
@@ -663,7 +705,7 @@ describe('useCreateReport', () => {
             expect(result.current.isVisible).toBe(false);
         });
 
-        it('does not navigate to upgrade path when the user actually has policies but Onyx is still loading', () => {
+        it('does not navigate to upgrade path when the user actually has policies but Onyx is still loading', async () => {
             // Given a cold start: the policy selection reports no workspaces only because Onyx hasn't hydrated yet
             mockUseOnyx.mockReturnValue([undefined, {status: 'loading'}]);
 
@@ -677,8 +719,8 @@ describe('useCreateReport', () => {
             );
 
             // When they press "Create report" anyway
-            act(() => {
-                result.current.createReport();
+            await act(async () => {
+                await result.current.createReport();
             });
 
             // Then nothing happens, rather than treating "not loaded" as "no policies" and opening the upgrade flow

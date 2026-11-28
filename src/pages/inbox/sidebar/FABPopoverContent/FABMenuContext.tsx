@@ -3,7 +3,7 @@ import {createContext, useContext} from 'react';
 type FABMenuContextType = {
     focusedIndex: number;
     setFocusedIndex: (index: number) => void;
-    onItemPress: (onSelected: () => void, options?: {shouldCallAfterModalHide?: boolean}) => void;
+    onItemPress: (onSelected: () => void | Promise<void>, options?: {shouldCallAfterModalHide?: boolean}) => void;
     isVisible: boolean;
     registeredItems: readonly string[];
     registerItem: (id: string) => void;

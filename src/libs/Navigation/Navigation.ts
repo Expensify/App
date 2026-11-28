@@ -1030,7 +1030,7 @@ function getTopmostSuperWideRHPReportID(state: NavigationState = navigationRef.g
  * For detailed information about dismissing modals,
  * see the NAVIGATION.md documentation.
  */
-function dismissModal({ref = navigationRef, afterTransition, waitForTransition}: {ref?: NavigationRef; afterTransition?: () => void; waitForTransition?: boolean} = {}) {
+function dismissModal({ref = navigationRef, afterTransition, waitForTransition}: {ref?: NavigationRef; afterTransition?: () => void | Promise<void>; waitForTransition?: boolean} = {}) {
     clearSelectedTextIfComposerBlurred();
     const runImmediately = !waitForTransition;
     const performDismiss = () => {

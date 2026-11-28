@@ -15,7 +15,8 @@ import type {Policy} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import useOnyx from './useOnyx';
+import Onyx from 'react-native-onyx';
+
 import useReviewWorkspaceSettingsTaskCompletion from './useReviewWorkspaceSettingsTaskCompletion';
 
 type ApplyWorkspaceCurrencyChangeOptions = {
@@ -34,19 +35,21 @@ type ApplyWorkspaceCurrencyChangeOptions = {
  * and re-enables government rate auto-update when a country was chosen for a shared (EUR) currency.
  */
 function useApplyWorkspaceCurrencyChange(policy: OnyxEntry<Policy>) {
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [supportedCountriesByCurrency] = useOnyx(ONYXKEYS.CARD_SUPPORTED_COUNTRIES);
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-    const [governmentMileageRates] = useOnyx(ONYXKEYS.GOVERNMENT_MILEAGE_RATES);
     const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
 
-    return (
+    return async (
         currencyCode: string,
         {isForcedToChangeCurrency = false, shouldStartExpensifyCardEnrollment = false, governmentRateCountry, backTo}: ApplyWorkspaceCurrencyChangeOptions = {},
     ) => {
         if (!policy) {
             return;
         }
+        const [bankAccountList, supportedCountriesByCurrency, reimbursementAccount, governmentMileageRates] = await Onyx.multiGet([
+            ONYXKEYS.BANK_ACCOUNT_LIST,
+            ONYXKEYS.CARD_SUPPORTED_COUNTRIES,
+            ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+            ONYXKEYS.GOVERNMENT_MILEAGE_RATES,
+        ]);
         clearDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
         updateGeneralSettings(policy, policy.name ?? '', currencyCode, getReviewWorkspaceSettingsTaskCompletion(), {
             governmentRateCountry,

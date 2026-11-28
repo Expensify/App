@@ -21,7 +21,7 @@ type FABFocusableMenuItemProps = Omit<MenuItemProps, 'focused' | 'onFocus' | 'wr
     WithRequiredSentryLabel & {
         itemId: string;
         isVisible?: boolean;
-        onPress?: () => void;
+        onPress?: () => void | Promise<void>;
         shouldCallAfterModalHide?: boolean;
 
         /** Last create action of the user, which picks the tile color of the quick action row */
