@@ -25,7 +25,10 @@ import {
     DEFAULT_MCC_GROUP,
     isDefaultMccGroupID,
 } from '@libs/actions/Policy/OptimisticPolicyCategoriesAndMccGroups';
+import * as API from '@libs/API';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
+// eslint-disable-next-line no-restricted-imports -- Namespace required for jest.spyOn; this test does not call the restricted paid-policy helpers.
+import * as ReportUtils from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -499,6 +502,77 @@ describe('actions/PolicyCategory', () => {
     });
 
     describe('deleteWorkspaceCategories', () => {
+        it.each<{
+            description: string;
+            remaining?: PolicyCategory;
+            expectedPolicyUpdate: Partial<Policy>;
+        }>([
+            {
+                description: 'an enabled category remains',
+                remaining: {name: 'Other', enabled: true},
+                expectedPolicyUpdate: {},
+            },
+            {
+                description: 'only a disabled category remains',
+                remaining: {name: 'Other', enabled: false},
+                expectedPolicyUpdate: {requiresCategory: false},
+            },
+            {
+                description: 'the remaining enabled category is pending deletion',
+                remaining: {
+                    name: 'Other',
+                    enabled: true,
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                },
+                expectedPolicyUpdate: {requiresCategory: false},
+            },
+            {
+                description: 'all categories are selected',
+                expectedPolicyUpdate: {requiresCategory: false},
+            },
+            {
+                description: 'an unselected category has an inherited object property name',
+                remaining: {name: 'constructor', enabled: true},
+                expectedPolicyUpdate: {},
+            },
+        ])('preserves the category requirement when $description', ({remaining, expectedPolicyUpdate}) => {
+            // Given a selected enabled category and a remaining category whose availability determines the requirement.
+            const categories: PolicyCategories = {
+                Travel: {name: 'Travel', enabled: true},
+            };
+            if (remaining) {
+                categories[remaining.name] = remaining;
+            }
+            const policyData: PolicyData = {
+                policy: {...createRandomPolicy(0), requiresCategory: true},
+                categories,
+                tags: {},
+                reports: [],
+                transactionsAndViolations: {},
+            };
+            const write = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+            const updateViolations = jest.spyOn(ReportUtils, 'pushTransactionViolationsOnyxData');
+
+            try {
+                // When deletion prepares the optimistic category state before the API write.
+                deleteWorkspaceCategories(policyData, ['Travel'], false, undefined, undefined, CONST.DEFAULT_NUMBER_ID, false, undefined, false);
+
+                // Then transaction validation receives the correct category requirement and only the selected category is removed.
+                expect(updateViolations).toHaveBeenCalledTimes(1);
+                expect(updateViolations.mock.calls.at(0)?.[3]).toEqual(expectedPolicyUpdate);
+                expect(updateViolations.mock.calls.at(0)?.[4]).toEqual({
+                    Travel: {
+                        enabled: false,
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    },
+                });
+                expect(categories.Travel.enabled).toBe(true);
+            } finally {
+                updateViolations.mockRestore();
+                write.mockRestore();
+            }
+        });
+
         it('Delete category', async () => {
             const fakePolicy = createRandomPolicy(0);
             const fakeCategories = createRandomPolicyCategories(3);

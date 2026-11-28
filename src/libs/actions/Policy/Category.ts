@@ -39,7 +39,7 @@ import fileDownload from '@libs/fileDownload';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import enhanceParameters from '@libs/Network/enhanceParameters';
-import {hasEnabledOptions} from '@libs/OptionsListUtils';
+import {isOptionEnabled} from '@libs/OptionsListUtils';
 import {goBackWhenEnableFeature, removePendingFieldsFromCustomUnit} from '@libs/PolicyUtils';
 import {pushTransactionAutoSelectionsOnyxData, pushTransactionViolationsOnyxData} from '@libs/ReportUtils';
 
@@ -1396,8 +1396,9 @@ function deleteWorkspaceCategories(
         return acc;
     }, {});
 
-    const shouldDisableRequiresCategory = !hasEnabledOptions(
-        Object.values(policyData.categories).filter((category) => !categoryNamesToDelete.includes(category.name) && category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
+    // Reuse the optimistic update to avoid scanning every selected name for each category.
+    const shouldDisableRequiresCategory = !Object.values(policyData.categories).some(
+        (category) => !Object.hasOwn(optimisticPolicyCategoriesData, category.name) && isOptionEnabled(category),
     );
     const optimisticPolicyData: Partial<Policy> = shouldDisableRequiresCategory
         ? {
