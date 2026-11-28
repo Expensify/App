@@ -4,18 +4,17 @@ import useTabBarCoveredHeight from '@components/Navigation/TabBarBottomContent/u
 import useDefaultTabRootKeyboardVerticalOffset from '@components/Navigation/TabBarBottomContent/useTabRootKeyboardVerticalOffset/index';
 import useTabRootKeyboardVerticalOffset from '@components/Navigation/TabBarBottomContent/useTabRootKeyboardVerticalOffset/index.ios';
 
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 
-jest.mock('@hooks/useResponsiveLayout', () => jest.fn(() => ({shouldUseNarrowLayout: true})));
+let mockShouldUseNarrowLayout = true;
+
+jest.mock('@hooks/useResponsiveLayout', () => () => ({shouldUseNarrowLayout: mockShouldUseNarrowLayout}));
 jest.mock('@hooks/useSafeAreaInsets', () => jest.fn(() => ({top: 47, bottom: 34, left: 0, right: 0})));
 jest.mock('@libs/getPlatform', () => ({
     __esModule: true,
     default: () => 'ios',
 }));
 jest.mock('@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/useIsTabBarVertical', () => jest.fn(() => false));
-
-const mockUseResponsiveLayout = jest.mocked(useResponsiveLayout);
 
 function renderTabRoot() {
     return renderHook(() => ({
@@ -27,7 +26,7 @@ function renderTabRoot() {
 
 describe('useTabRootKeyboardVerticalOffset', () => {
     afterEach(() => {
-        mockUseResponsiveLayout.mockImplementation(() => ({shouldUseNarrowLayout: true}) as ReturnType<typeof useResponsiveLayout>);
+        mockShouldUseNarrowLayout = true;
     });
 
     it('lifts a narrow iOS tab root past the whole band its footer pads', () => {
@@ -44,7 +43,7 @@ describe('useTabRootKeyboardVerticalOffset', () => {
 
     it('does not change the lift on a wide layout or off iOS', () => {
         // Given a wide layout, where the tab bar covers nothing of the screen
-        mockUseResponsiveLayout.mockImplementation(() => ({shouldUseNarrowLayout: false}) as ReturnType<typeof useResponsiveLayout>);
+        mockShouldUseNarrowLayout = false;
 
         // When the offset is read on iOS and on the other platforms
         const {offset} = renderTabRoot();
