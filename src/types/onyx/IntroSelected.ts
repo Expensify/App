@@ -1,4 +1,4 @@
-import type {OnboardingInvite} from '@src/CONST';
+import type {OnboardingAccounting, OnboardingInvite} from '@src/CONST';
 
 import type {OnboardingPurpose} from './index';
 
@@ -30,6 +30,9 @@ type IntroSelected = {
 
     /** Company size selected during onboarding */
     companySize?: string;
+
+    /** Accounting software selected during onboarding */
+    userReportedIntegration?: OnboardingAccounting;
 
     /** Task reportID for 'setupCategories' type */
     setupCategories?: string;
