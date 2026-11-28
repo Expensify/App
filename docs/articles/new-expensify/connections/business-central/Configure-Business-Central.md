@@ -139,6 +139,8 @@ Check the **Posting mode** under **Advanced**. When it's set to **Create only**,
 
 Business Central checks each export right away and returns an error if something is wrong. Open the report to see the error message, fix the issue in Expensify or Business Central, then export the report again.
 
+If the error lists **records already created in Business Central** or says the export succeeded but couldn't be recorded, contact Concierge before exporting again. If only payment confirmation failed, sync the connection instead of exporting again. Learn how to [recover an incomplete Business Central export](/articles/new-expensify/connections/business-central/Troubleshooting/Export-Errors/Recover-Incomplete-Exports).
+
 ## Why don't I see the Expensify Card settlement setting?
 
 **Sync Expensify Card settlements** only appears when the Expensify Card is set up on the workspace.
