@@ -191,14 +191,14 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
         bankAccountList,
         currentUserLogin ?? '',
         accountID,
-        undefined,
+        transactions,
         false,
         isChatReportArchived,
         invoiceReceiverPolicy,
     );
     const onlyShowPayElsewhere =
         !canIOUBePaid &&
-        canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, currentUserLogin ?? '', accountID, undefined, true, isChatReportArchived, invoiceReceiverPolicy);
+        canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, currentUserLogin ?? '', accountID, transactions, true, isChatReportArchived, invoiceReceiverPolicy);
     const isPayable = hasPayAction && canIOUBePaid;
 
     const totalAmount = getTotalAmountForIOUReportPreviewButton(moneyRequestReport, policy, CONST.REPORT.PRIMARY_ACTIONS.PAY, nonPendingDeleteTransactions, convertToDisplayString);

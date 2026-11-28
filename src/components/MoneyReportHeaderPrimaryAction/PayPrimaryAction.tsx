@@ -65,7 +65,7 @@ function PayPrimaryAction({reportID, chatReportID, isDisabled}: PayPrimaryAction
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const lastWorkspaceNumber = useLastWorkspaceNumber();
 
-    const {moneyRequestReport, chatReport, transaction} = useTransactionThreadData(reportID, chatReportID);
+    const {moneyRequestReport, chatReport} = useTransactionThreadData(reportID, chatReportID);
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
@@ -95,25 +95,14 @@ function PayPrimaryAction({reportID, chatReportID, isDisabled}: PayPrimaryAction
         bankAccountList,
         currentUserLogin ?? '',
         accountID,
-        transaction ? [transaction] : undefined,
+        transactions,
         false,
         isChatReportArchived,
         invoiceReceiverPolicy,
     );
     const onlyShowPayElsewhere =
         !canIOUBePaid &&
-        canIOUBePaidAction(
-            moneyRequestReport,
-            chatReport,
-            policy,
-            bankAccountList,
-            currentUserLogin ?? '',
-            accountID,
-            transaction ? [transaction] : undefined,
-            true,
-            isChatReportArchived,
-            invoiceReceiverPolicy,
-        );
+        canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, currentUserLogin ?? '', accountID, transactions, true, isChatReportArchived, invoiceReceiverPolicy);
     const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere;
     const canAllowSettlement = hasUpdatedTotal(moneyRequestReport, policy);
     const totalAmount = getTotalAmountForIOUReportPreviewButton(moneyRequestReport, policy, CONST.REPORT.PRIMARY_ACTIONS.PAY, nonPendingDeleteTransactions, convertToDisplayString);
