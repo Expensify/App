@@ -94,6 +94,7 @@ type BaseTextInputWithSymbolProps = {
     | 'onFocus'
     | 'onBlur'
     | 'disabled'
+    | 'readOnly'
     | 'ref'
     | 'accessibilityLabel'
     | 'shouldAllowFocusInLandscapeMode'

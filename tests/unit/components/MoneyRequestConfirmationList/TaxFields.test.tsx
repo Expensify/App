@@ -34,10 +34,12 @@ jest.mock('@hooks/useCurrencyList', () => ({
         convertToDisplayString: jest.fn((amount: number) => `display:${amount}`),
     })),
 }));
-// The tax amount input beside the row is its own component with its own tests, so here it only records the error it is given.
+// The tax amount input beside the row is its own component with its own tests, so here it only records the error and the read-only state it is given.
 let mockTaxAmountErrorText: string | undefined;
-jest.mock('@components/NumberWithSymbolForm', () => ({errorText}: {errorText?: string}) => {
+let mockIsTaxAmountInputReadOnly: boolean | undefined;
+jest.mock('@components/NumberWithSymbolForm', () => ({errorText, readOnly}: {errorText?: string; readOnly?: boolean}) => {
     mockTaxAmountErrorText = errorText;
+    mockIsTaxAmountInputReadOnly = readOnly;
     return null;
 });
 
@@ -90,15 +92,25 @@ type RenderParams = {
     taxPolicy?: Policy | null;
     movingPolicy?: Policy;
     taxAmountError?: TranslationPaths;
+    isDiscardModalVisible?: boolean;
 };
 
-const renderTaxRateRow = ({action = CONST.IOU.ACTION.CREATE, canModifyTaxFields = true, didConfirm = false, taxPolicy = policy, movingPolicy, taxAmountError}: RenderParams = {}) =>
+const renderTaxRateRow = ({
+    action = CONST.IOU.ACTION.CREATE,
+    canModifyTaxFields = true,
+    didConfirm = false,
+    taxPolicy = policy,
+    movingPolicy,
+    taxAmountError,
+    isDiscardModalVisible = false,
+}: RenderParams = {}) =>
     render(
         <ConfirmationFieldsProvider
             transactionID={TRANSACTION_ID}
             reportID={REPORT_ID}
             action={action}
             iouType={CONST.IOU.TYPE.SUBMIT}
+            isDiscardModalVisible={isDiscardModalVisible}
         >
             <ExpenseFormLayoutContext.Provider value={dropdownRowsExpenseFormLayout}>
                 <TaxFields
@@ -127,6 +139,7 @@ describe('TaxFields', () => {
         mockShouldOpenInDropdown = undefined;
         mockDropdownPolicyID = undefined;
         mockTaxAmountErrorText = undefined;
+        mockIsTaxAmountInputReadOnly = undefined;
         jest.mocked(Navigation.navigate).mockClear();
         await Onyx.clear();
         await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, draftTransaction);
@@ -192,6 +205,22 @@ describe('TaxFields', () => {
         // Then neither opens a list the user can no longer change anything from
         await waitFor(() => {
             expect(mockShouldOpenInDropdown).toBe(false);
+        });
+    });
+
+    it.each([
+        {condition: 'the discard prompt covers the form', isDiscardModalVisible: true, didConfirm: false, isReadOnly: true},
+        {condition: 'the expense was confirmed', isDiscardModalVisible: false, didConfirm: true, isReadOnly: true},
+        {condition: 'the user is entering the tax amount', isDiscardModalVisible: false, didConfirm: false, isReadOnly: false},
+    ])('makes the tax amount input read-only only when it must not take focus: $condition', async ({isDiscardModalVisible, didConfirm, isReadOnly}) => {
+        // Given a workspace with a tax rate, on a form where the tax can be changed
+        // When the tax amount input renders while the discard prompt shows, after the expense was confirmed, or during normal entry
+        renderTaxRateRow({isDiscardModalVisible, didConfirm});
+
+        // Then the prompt keeps the input from taking the focus iOS restores after a cancelled back swipe, and a confirmed
+        // expense stays locked, since the input's read-only flag takes precedence over its disabled one
+        await waitFor(() => {
+            expect(mockIsTaxAmountInputReadOnly).toBe(isReadOnly);
         });
     });
 

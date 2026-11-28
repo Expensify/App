@@ -112,7 +112,7 @@ type MoneyRequestAmountInputProps = {
     disabled?: boolean;
     ref?: ForwardedRef<BaseTextInputRef>;
     keyboardType?: KeyboardTypeOptions;
-} & Pick<TextInputWithSymbolProps, 'autoGrowExtraSpace' | 'submitBehavior' | 'shouldUseDefaultLineHeightForPrefix' | 'onFocus' | 'onBlur' | 'symbolTextStyle'>;
+} & Pick<TextInputWithSymbolProps, 'autoGrowExtraSpace' | 'submitBehavior' | 'shouldUseDefaultLineHeightForPrefix' | 'onFocus' | 'onBlur' | 'symbolTextStyle' | 'readOnly'>;
 
 /**
  * @deprecated Use AmountFormField (for inline split rows) or KeypadAmountEditor (for full-screen forms) instead.
@@ -227,6 +227,7 @@ function MoneyRequestAmountInput({
             hideSymbol={hideCurrencySymbol}
             isSymbolPressable={isCurrencyPressable}
             symbolTextStyle={props.symbolTextStyle}
+            readOnly={props.readOnly}
             shouldShowBigNumberPad={shouldShowBigNumberPad}
             style={inputStyle}
             autoGrow={autoGrow}

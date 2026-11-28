@@ -28,6 +28,9 @@ type UseSplitParticipantsParams = {
     /** Whether the split rows should be rendered as read-only (no editable inputs) */
     shouldShowReadOnlySplits: boolean;
 
+    /** Whether the discard prompt covers the form, which keeps the editable split amounts read-only */
+    isDiscardModalVisible: boolean;
+
     /** The payee participant (current user) for the split */
     payeePersonalDetails: OnyxEntry<OnyxTypes.PersonalDetails> | CurrentUserPersonalDetails;
 
@@ -62,6 +65,7 @@ type UseSplitParticipantsParams = {
 function useSplitParticipants({
     isTypeSplit,
     shouldShowReadOnlySplits,
+    isDiscardModalVisible,
     payeePersonalDetails,
     selectedParticipants,
     transaction,
@@ -142,6 +146,7 @@ function useSplitParticipants({
                     shouldApplyPaddingToContainer
                     shouldUseDefaultLineHeightForPrefix={false}
                     shouldWrapInputInContainer={false}
+                    readOnly={isDiscardModalVisible}
                 />
             ),
         }));

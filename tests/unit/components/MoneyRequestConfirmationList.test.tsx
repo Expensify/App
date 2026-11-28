@@ -45,6 +45,7 @@ function renderConfirmationList({requestType, action = CONST.IOU.ACTION.CREATE, 
             selectedParticipants={[]}
             receiptOptions={{shouldDisplayReceipt: false}}
             onOpenParticipantPicker={jest.fn()}
+            isDiscardModalVisible={false}
         />,
     );
 }

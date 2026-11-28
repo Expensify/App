@@ -64,7 +64,7 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
     const {convertToDisplayString, getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
-    const {isEditingSplitBill, setEmptyTaxAmountTransactionID, fieldViewRefs} = useConfirmationFields();
+    const {isEditingSplitBill, isDiscardModalVisible, setEmptyTaxAmountTransactionID, fieldViewRefs} = useConfirmationFields();
     const numberFormRef = useRef<NumberWithSymbolFormRef | null>(null);
 
     const taxSlice = useTransactionSelector(transactionID, taxSliceSelector);
@@ -256,6 +256,8 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
                         onInputChange={handleTaxAmountChange}
                         shouldShowBigNumberPad={false}
                         disabled={didConfirm}
+                        // The input reads `readOnly` over `disabled`, so the confirmed lock has to be repeated here.
+                        readOnly={didConfirm || isDiscardModalVisible}
                     />
                 </View>
             ) : (

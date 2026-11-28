@@ -25,6 +25,7 @@ function useParticipantSection({
     isTimeRequest,
     shouldHideToSection,
     shouldShowReadOnlySplits,
+    isDiscardModalVisible,
     selectedParticipantsProp,
     payeePersonalDetailsProp,
     formError,
@@ -59,6 +60,7 @@ function useParticipantSection({
     const {splitParticipants, getSplitSectionHeader} = useSplitParticipants({
         isTypeSplit,
         shouldShowReadOnlySplits,
+        isDiscardModalVisible,
         payeePersonalDetails,
         selectedParticipants,
         transaction,

@@ -122,6 +122,17 @@ describe('NumberWithSymbolForm', () => {
         });
     });
 
+    it.each([true, false])('passes readOnly to the text input, displayAsTextInput: %s', async (displayAsTextInput) => {
+        // Given a form locked while the discard prompt covers it
+        renderForm({displayAsTextInput, value: '10', readOnly: true});
+
+        // When the form renders
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the text input is read-only, so iOS can't refocus it after a cancelled back swipe
+        expect(getTextInput()).toHaveProp('readOnly', true);
+    });
+
     describe('displayAsTextInput path', () => {
         it.each([
             {accessibilityLabel: undefined, expectedLabel: 'Amount'},

@@ -49,6 +49,7 @@ const listProps: MoneyRequestConfirmationListProps = {
     onOpenParticipantPicker: () => {},
     receiptOptions: {shouldDisplayReceipt: true},
     canEnterScanFieldsManually: true,
+    isDiscardModalVisible: false,
 };
 
 function isLastRenderCompact(): boolean | undefined {

@@ -28,6 +28,9 @@ type UseConfirmationDiscardGuardResult = {
 
     /** Lets a submit leave without asking. A submit can dismiss the confirmation before `isSubmitting` renders, so call it as the submit starts. */
     suppressDiscardPrompt: () => void;
+
+    /** Whether the discard prompt covers the confirmation */
+    isDiscardModalVisible: boolean;
 };
 
 function useConfirmationDiscardGuard({shouldConfirmDiscardingChanges, requestType, isAmountSet, isSubmitting}: UseConfirmationDiscardGuardParams): UseConfirmationDiscardGuardResult {
@@ -38,11 +41,13 @@ function useConfirmationDiscardGuard({shouldConfirmDiscardingChanges, requestTyp
         setHasUnsavedAmountInput(false);
     }
 
+    const [isDiscardModalVisible, setIsDiscardModalVisible] = useState(false);
     const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
         getHasUnsavedChanges: () => shouldConfirmDiscardingChanges && !isSubmitting && (isAmountSet || hasUnsavedAmountInput),
+        onVisibilityChange: setIsDiscardModalVisible,
     });
 
-    return {setHasUnsavedAmountInput, suppressDiscardPrompt};
+    return {setHasUnsavedAmountInput, suppressDiscardPrompt, isDiscardModalVisible};
 }
 
 export default useConfirmationDiscardGuard;

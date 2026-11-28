@@ -58,7 +58,17 @@ type AmountTextInputProps = {
     rightHandSideComponent?: React.ReactNode;
 } & Pick<
     BaseTextInputProps,
-    'autoFocus' | 'autoGrowExtraSpace' | 'containerStyles' | 'submitBehavior' | 'ref' | 'onFocus' | 'onBlur' | 'disabled' | 'accessibilityLabel' | 'shouldAllowFocusInLandscapeMode'
+    | 'autoFocus'
+    | 'autoGrowExtraSpace'
+    | 'containerStyles'
+    | 'submitBehavior'
+    | 'ref'
+    | 'onFocus'
+    | 'onBlur'
+    | 'disabled'
+    | 'readOnly'
+    | 'accessibilityLabel'
+    | 'shouldAllowFocusInLandscapeMode'
 >;
 
 function AmountTextInput({
