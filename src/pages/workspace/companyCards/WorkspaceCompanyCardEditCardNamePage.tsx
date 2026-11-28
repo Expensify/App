@@ -13,7 +13,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 
-import {getCardNameError, getCardNameErrorMessage, getCompanyCardCustomName, getCompanyCardFeed, getCompanyFeeds, getDomainOrWorkspaceAccountID} from '@libs/CardUtils';
+import {getCardNameError, getCardNameErrorMessage, getCompanyCardFeed, getCompanyFeeds, getDomainOrWorkspaceAccountID, splitCardFeedWithDomainID} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import StringUtils from '@libs/StringUtils';
 
@@ -29,7 +29,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EditExpensifyCardNameForm';
 
-import {companyCardCustomNamesSelector} from '@selectors/Card';
 import React from 'react';
 
 import {getCompanyCardDetailsBackPath} from './utils';
@@ -39,7 +38,6 @@ type WorkspaceCompanyCardEditCardNamePageProps = PlatformStackScreenProps<Settin
 function WorkspaceCompanyCardEditCardNamePage({route, navigation}: WorkspaceCompanyCardEditCardNamePageProps) {
     const {policyID, cardID, feed} = route.params;
     const workspaceAccountID = useWorkspaceAccountID(policyID);
-    const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
 
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -50,10 +48,10 @@ function WorkspaceCompanyCardEditCardNamePage({route, navigation}: WorkspaceComp
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyFeeds[feed]);
     const goBackToCardDetails = () => Navigation.goBack(getCompanyCardDetailsBackPath(policyID, feed, cardID, navigation.getState()));
 
-    const [sharedCardCustomNames] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainOrWorkspaceAccountID}`, {
-        selector: companyCardCustomNamesSelector,
+    const splitFeed = splitCardFeedWithDomainID(feed);
+    const [defaultValue] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${splitFeed?.domainID}_${splitFeed?.feedName}`, {
+        selector: (cards) => cards?.[cardID]?.nameValuePairs?.cardTitle,
     });
-    const defaultValue = getCompanyCardCustomName(cardID, sharedCardCustomNames, customCardNames);
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM>) => {
         updateCompanyCardName(domainOrWorkspaceAccountID, cardID, StringUtils.sanitizeName(values[INPUT_IDS.NAME]), getCompanyCardFeed(feed), defaultValue);
