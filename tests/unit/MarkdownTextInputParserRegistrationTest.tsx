@@ -1,6 +1,9 @@
 import {render} from '@testing-library/react-native';
 
 import type {MarkdownTextInputProps} from '@expensify/react-native-live-markdown';
+// Live-markdown declares its JSI globals in a native-only module, and the jest typecheck resolves the package's web
+// typings, so this pulls the declarations in for the globals the test stubs below.
+import type {} from '@expensify/react-native-live-markdown/lib/typescript/src/workletRuntime';
 import type {ActivityProps} from 'react';
 
 import {MarkdownTextInput} from '@expensify/react-native-live-markdown';

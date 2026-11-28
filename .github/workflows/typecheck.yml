@@ -4,7 +4,7 @@ on:
   workflow_call:
   pull_request:
     types: [opened, synchronize]
-    paths: ['**.js', '**.ts', '**.tsx', 'package.json', 'package-lock.json', '**/tsconfig*.json']
+    paths: ['**.js', '**.ts', '**.tsx', 'package.json', 'package-lock.json', '**/tsconfig*.json', 'config/typescript/**', '.github/workflows/typecheck.yml']
 
 concurrency:
   group: ${{ github.ref == 'refs/heads/main' && format('{0}-{1}', github.ref, github.sha) || github.ref }}-typecheck
@@ -20,6 +20,12 @@ jobs:
       BASE_REF: ${{ github.base_ref || 'main' }}
     steps:
       - uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
+        with:
+          # Only use the elevated OSBotify token on the post-merge `workflow_call` run
+          # (so the auto-commit step below can push to the protected `main` branch).
+          # PR runs use the default GITHUB_TOKEN so PR code can't borrow push-to-main
+          # access via the persisted checkout credentials.
+          token: ${{ github.event_name == 'push' && secrets.OS_BOTIFY_COMMIT_TOKEN || github.token }}
 
       - uses: ./.github/actions/composite/setupNode
         with:
@@ -29,6 +35,40 @@ jobs:
         run: npm run typecheck
         env:
           CI: true
+
+      # If the native project has fewer errors than its baseline records, the typecheck above
+      # rewrote config/typescript/native-baseline.tsv lower. Commit it back to `main` as OSBotify,
+      # the same way lint.yml tightens the oxlint seatbelt. Only runs under `workflow_call`
+      # (i.e. invoked from preDeploy.yml, which only triggers on push to main).
+      - name: Check for tightened native typecheck baseline
+        id: baseline_diff
+        if: github.event_name == 'push'
+        run: |
+          if git diff --quiet config/typescript/native-baseline.tsv; then
+            echo "tightened=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::native-baseline.tsv unchanged; skipping auto-commit."
+          else
+            echo "tightened=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Setup git for OSBotify
+        if: steps.baseline_diff.outputs.tightened == 'true'
+        uses: Expensify/GitHub-Actions/setupGitForOSBotify@main
+        with:
+          OP_VAULT: ${{ vars.OP_VAULT }}
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          SETUP_AS_APP: false
+
+      # If the push races with another commit to `main`, let this step fail.
+      # The next `push: main` typecheck run will re-tighten the baseline and try
+      # again; no need to retry here.
+      - name: Auto-commit tightened native typecheck baseline
+        if: steps.baseline_diff.outputs.tightened == 'true'
+        continue-on-error: true
+        run: |
+          git add config/typescript/native-baseline.tsv
+          git commit -m "Auto-tighten native typecheck baseline"
+          git push origin main
 
       - name: Check for new JavaScript files
         run: |

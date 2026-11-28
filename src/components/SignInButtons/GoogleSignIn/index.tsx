@@ -7,9 +7,9 @@ import {beginGoogleSignIn} from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type Response from '@src/types/modules/google';
 import type Locale from '@src/types/onyx/Locale';
 import type {StoredMarketingAttribution} from '@src/types/onyx/MarketingAttribution';
+import type Response from '@src/types/web/google';
 
 import type {OnyxEntry} from 'react-native-onyx';
 

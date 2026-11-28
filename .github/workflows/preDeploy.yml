@@ -9,6 +9,7 @@ on:
 jobs:
   typecheck:
     uses: ./.github/workflows/typecheck.yml
+    secrets: inherit
 
   lint:
     uses: ./.github/workflows/lint.yml

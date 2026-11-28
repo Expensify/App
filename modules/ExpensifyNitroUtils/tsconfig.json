@@ -1,11 +1,13 @@
 {
-    // The app project, not the root solution: the solution owns no compiler options.
-    "extends": "../../tsconfig.app.json",
+    // The native app project, not the root solution: the solution owns no compiler options, and Nitro modules only run on iOS and Android.
+    "extends": "../../tsconfig.app.native.json",
     "compilerOptions": {
         // Without this the app project's build info path is inherited and this module would write
         // over it.
         "tsBuildInfoFile": "./tsconfig.ts7.tsbuildinfo",
         "outDir": "./lib"
     },
-    "include": ["src/**/*"]
+    "include": ["src/**/*"],
+    // The native app project excludes this module, and that exclude would otherwise be inherited.
+    "exclude": ["lib", "node_modules"]
 }
