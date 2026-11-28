@@ -233,6 +233,7 @@ import type SearchFooterConversion from './SearchFooterConversion';
 import type SearchResults from './SearchResults';
 import type SearchSidebar from './SearchSidebar';
 import type SearchTagFiltersPaginationState from './SearchTagFiltersPaginationState';
+import type SearchUserFiltersState from './SearchUserFiltersState';
 import type SecurityGroup from './SecurityGroup';
 import type {DomainSecurityGroupMembership} from './SecurityGroup';
 import type SelectedTabRequest from './SelectedTabRequest';
@@ -484,6 +485,7 @@ export type {
     PolicyRoomsMetadata,
     SearchResults,
     SearchTagFiltersPaginationState,
+    SearchUserFiltersState,
     ReviewDuplicates,
     PrivateSubscription,
     PrivatePromoDiscount,

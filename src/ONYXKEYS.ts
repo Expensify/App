@@ -1115,6 +1115,9 @@ const ONYXKEYS = {
         /** Paginated tag search results, keyed by policyIDs.
          *  Registered as RAM-only in `setup/index.ts`. */
         RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS: 'searchTagFiltersResults_',
+        /** Lookup state for user filter search, keyed by policyIDs.
+         *  Registered as RAM-only in `setup/index.ts`. */
+        RAM_ONLY_SEARCH_USER_FILTERS_STATE: 'searchUserFiltersState_',
         /** Whether a Search list row has keyboard focus, keyed by the row's keyForList, so only the rows whose focus flips re-render.
          *  Registered as RAM-only in `setup/index.ts`. */
         RAM_ONLY_SEARCH_ROW_FOCUS: 'searchRowFocus_',
@@ -1773,6 +1776,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.RAM_ONLY_EXPENSIFY_CARD_LOADING_STATE]: OnyxTypes.ExpensifyCardLoadingState;
     [ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_TAG_FILTERS_PAGINATION]: OnyxTypes.SearchTagFiltersPaginationState;
     [ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS]: OnyxTypes.SearchTagFilterItem[];
+    [ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_USER_FILTERS_STATE]: OnyxTypes.SearchUserFiltersState;
     [ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_ROW_FOCUS]: boolean;
     [ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_CATEGORIES_LOADING_STATE]: OnyxTypes.PolicyDataLoadingState;
     [ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_TAGS_LOADING_STATE]: OnyxTypes.PolicyDataLoadingState;

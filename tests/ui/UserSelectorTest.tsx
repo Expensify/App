@@ -1,4 +1,4 @@
-import {act, render} from '@testing-library/react-native';
+import {render} from '@testing-library/react-native';
 
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import UserSelector from '@components/Search/FilterComponents/UserSelector';
@@ -83,7 +83,7 @@ describe('UserSelector', () => {
         mockedSelectionList.mockClear();
         mockedUsePersonalDetailSearchSelector.mockClear();
         mockedUseSearchUserFilters.mockClear();
-        mockedUseOnyx.mockReturnValue([undefined, {status: 'loaded'}]);
+        mockedUseOnyx.mockReset().mockReturnValue([undefined, {status: 'loaded'}]);
         currentUserOption = null;
         mockedUsePersonalDetails.mockReturnValue(personalDetailsList);
         mockedUsePersonalDetailSearchSelector.mockImplementation(buildSelectorReturn);
@@ -285,48 +285,47 @@ describe('UserSelector', () => {
         expect(mockedSelectionList.mock.lastCall?.[0]?.textInputOptions?.headerMessage).toBe('common.noResultsFound');
     });
 
-    it('merges server-scoped logins into workspaceMemberLogins and skips re-rendering when duplicate logins arrive', () => {
-        // Given a workspace filter with one policy
+    it('merges cached server-scoped logins into workspaceMemberLogins and sorts policyIDs canonically', () => {
+        // Given a workspace filter with two policies and cached server-scoped logins in RAM-only Onyx
         const memberEmail = 'member@example.com';
-        mockedUseOnyx.mockReturnValue([
-            {
-                [`${ONYXKEYS.COLLECTION.POLICY}policy-1`]: {
-                    id: 'policy-1',
-                    owner: 'owner@example.com',
-                    employeeList: {
-                        [memberEmail]: {email: memberEmail},
+        mockedUseOnyx.mockImplementation((key) => {
+            if (key === ONYXKEYS.COLLECTION.POLICY) {
+                return [
+                    {
+                        [`${ONYXKEYS.COLLECTION.POLICY}policy-2`]: {
+                            id: 'policy-2',
+                            owner: 'owner2@example.com',
+                            employeeList: {},
+                        },
+                        [`${ONYXKEYS.COLLECTION.POLICY}policy-1`]: {
+                            id: 'policy-1',
+                            owner: 'owner1@example.com',
+                            employeeList: {
+                                [memberEmail]: {email: memberEmail},
+                            },
+                        },
                     },
-                },
-            },
-            {status: 'loaded'},
-        ]);
+                    {status: 'loaded'},
+                ];
+            }
+            if (key === `${ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_USER_FILTERS_STATE}policy-1,policy-2`) {
+                return [['removed@example.com'], {status: 'loaded'}];
+            }
+            return [undefined, {status: 'loaded'}];
+        });
 
+        // When UserSelector renders with policies in reverse order
         render(
             <UserSelector
                 value={[]}
-                policyID={{value: ['policy-1'], isNegated: false}}
+                policyID={{value: ['policy-2', 'policy-1'], isNegated: false}}
                 onChange={jest.fn()}
             />,
         );
 
-        const onScopedLoginsChange = mockedUseSearchUserFilters.mock.lastCall?.[0]?.onScopedLoginsChange;
-        expect(onScopedLoginsChange).toBeDefined();
-
-        // When the server returns a removed member for policy-1
-        act(() => {
-            onScopedLoginsChange?.('policy-1', ['removed@example.com']);
-        });
-
-        const includeLoginsAfterFirst = mockedUsePersonalDetailSearchSelector.mock.lastCall?.[0]?.includeLoginsOnly;
-        expect(includeLoginsAfterFirst).toEqual(new Set(['member@example.com', 'owner@example.com', 'removed@example.com']));
-        const renderCountAfterFirst = mockedSelectionList.mock.calls.length;
-
-        // When a subsequent response for the same policy returns the same login
-        act(() => {
-            onScopedLoginsChange?.('policy-1', ['removed@example.com']);
-        });
-
-        // Then the state is unchanged and UserSelector does not re-render
-        expect(mockedSelectionList.mock.calls).toHaveLength(renderCountAfterFirst);
+        // Then policyIDs are sorted canonically and cached server-scoped logins are included
+        expect(mockedUseSearchUserFilters).toHaveBeenLastCalledWith(expect.objectContaining({policyIDs: 'policy-1,policy-2'}));
+        const includeLogins = mockedUsePersonalDetailSearchSelector.mock.lastCall?.[0]?.includeLoginsOnly;
+        expect(includeLogins).toEqual(new Set(['member@example.com', 'owner1@example.com', 'owner2@example.com', 'removed@example.com']));
     });
 });

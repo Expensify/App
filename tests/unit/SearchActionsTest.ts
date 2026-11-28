@@ -10,15 +10,17 @@ import {
     getPayOption,
     openSearch,
     openSearchTagFiltersPage,
+    openSearchUserFiltersPage,
     queueExportSearchItemsToCSV,
     queueExportSearchWithTemplate,
     rejectMoneyRequestsOnSearch,
     saveSearch,
     saveSearchFilters,
     search,
+    setSearchUserFiltersState,
 } from '@libs/actions/Search';
 import {makeRequestWithSideEffects, waitForWrites, read, write} from '@libs/API';
-import type {OpenSearchTagFiltersPageResponse} from '@libs/API/parameters';
+import type {OpenSearchTagFiltersPageResponse, OpenSearchUserFiltersPageResponse} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import fileDownload from '@libs/fileDownload';
 import {translate} from '@libs/Localize';
@@ -30,7 +32,7 @@ import {buildSearchQueryJSON, normalizeDatePresetsInQuery} from '@libs/SearchQue
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {ExportTemplate, Policy, Report, SearchTagFilterItem} from '@src/types/onyx';
+import type {ExportTemplate, Policy, Report, SearchTagFilterItem, SearchUserFiltersState} from '@src/types/onyx';
 import type {ReportTransactionsAndViolationsDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
@@ -990,6 +992,103 @@ describe('getPayOption', () => {
             connection.unsubscribe();
 
             expect(storedResults).toEqual([...existingTags, ...nextTags]);
+        });
+    });
+
+    describe('setSearchUserFiltersState', () => {
+        it('stores user filter lookup state under the policy scope key or all when unscoped', async () => {
+            // Given a workspace-scoped state and an unscoped state
+            const scopedState: SearchUserFiltersState = {
+                hasLoadedBase: true,
+                hasMore: true,
+                nextCursor: '50',
+                scopedLogins: ['removed@example.com'],
+            };
+            const unscopedState: SearchUserFiltersState = {
+                hasLoadedBase: true,
+                hasMore: false,
+                nextCursor: '',
+            };
+
+            // When setSearchUserFiltersState is called for both scopes
+            setSearchUserFiltersState('policy-1', scopedState);
+            setSearchUserFiltersState('', unscopedState);
+            await waitForBatchedUpdates();
+
+            // Then each state is saved under its RAM-only Onyx collection key
+            let storedScoped: SearchUserFiltersState | undefined;
+            let storedUnscoped: SearchUserFiltersState | undefined;
+            const scopedConnection = Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_USER_FILTERS_STATE}policy-1`,
+                callback: (val) => {
+                    storedScoped = val;
+                },
+            });
+            const unscopedConnection = Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_USER_FILTERS_STATE}all`,
+                callback: (val) => {
+                    storedUnscoped = val;
+                },
+            });
+            await waitForBatchedUpdates();
+            scopedConnection.unsubscribe();
+            unscopedConnection.unsubscribe();
+
+            expect(storedScoped).toEqual(scopedState);
+            expect(storedUnscoped).toEqual(unscopedState);
+        });
+    });
+
+    describe('openSearchUserFiltersPage', () => {
+        it('returns pagination and logins when the server responds with jsonCode 200', async () => {
+            // Given a successful OpenSearchUserFiltersPage response with personal details updates
+            const accountID = 101;
+            const response: Response<typeof ONYXKEYS.PERSONAL_DETAILS_LIST> & OpenSearchUserFiltersPageResponse = {
+                jsonCode: CONST.JSON_CODE.SUCCESS,
+                hasMore: true,
+                nextCursor: '50',
+                onyxData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                        value: {
+                            [accountID]: {accountID, login: 'removed@example.com'},
+                        },
+                    },
+                ],
+            };
+            mockMakeRequestWithSideEffects.mockResolvedValueOnce(response);
+
+            // When openSearchUserFiltersPage is called
+            const result = await openSearchUserFiltersPage({searchQuery: '', cursor: '', limit: CONST.SEARCH.USER_FILTER_PAGE_SIZE, policyIDs: 'policy-1'}, true);
+
+            // Then pagination metadata and extracted logins are returned
+            expect(result).toEqual({
+                hasMore: true,
+                nextCursor: '50',
+                logins: ['removed@example.com'],
+            });
+        });
+
+        it('rejects when the request resolves with a non-success jsonCode or undefined response', async () => {
+            // Given Reauthentication resolves a network failure with UNABLE_TO_RETRY
+            mockMakeRequestWithSideEffects.mockResolvedValueOnce(
+                createMock<Response<never>>({
+                    jsonCode: CONST.JSON_CODE.UNABLE_TO_RETRY,
+                }),
+            );
+
+            // When openSearchUserFiltersPage is called
+            // Then the promise rejects instead of returning an empty page
+            await expect(openSearchUserFiltersPage({searchQuery: '', cursor: '', limit: CONST.SEARCH.USER_FILTER_PAGE_SIZE, policyIDs: 'policy-1'}, true)).rejects.toThrow(
+                'Failed to load search user filters',
+            );
+
+            // Given an undefined response
+            mockMakeRequestWithSideEffects.mockResolvedValueOnce(undefined);
+
+            // Then the promise also rejects
+            await expect(openSearchUserFiltersPage({searchQuery: '', cursor: '', limit: CONST.SEARCH.USER_FILTER_PAGE_SIZE}, true)).rejects.toThrow('Failed to load search user filters');
         });
     });
 });

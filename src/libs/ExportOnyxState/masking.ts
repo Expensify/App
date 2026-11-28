@@ -46,8 +46,8 @@ const onyxKeysToRemove = new Set<ValueOf<typeof ONYXKEYS> | ValueOf<typeof ONYXK
 ]);
 
 // Collection keys (matched by prefix) whose every entry is removed from the export. Used for RAM-only
-// collections that hold a plain value, such as the typed card number in a company-card search.
-const collectionKeysToRemove = new Set<string>([ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARD_NUMBER_SEARCH]);
+// collections that hold sensitive or transient search values such as card numbers or login emails.
+const collectionKeysToRemove = new Set<string>([ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARD_NUMBER_SEARCH, ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_USER_FILTERS_STATE]);
 
 // ============================================================
 // 2. KEYS WITH EXPORT RULES - keep some fields, mask the rest

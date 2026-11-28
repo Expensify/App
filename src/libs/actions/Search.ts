@@ -121,6 +121,7 @@ import type {
     SaveSearch,
     SearchResults,
     SearchTagFilterItem,
+    SearchUserFiltersState,
     Transaction,
     TransactionViolations,
 } from '@src/types/onyx';
@@ -1294,18 +1295,28 @@ function setSearchTagFiltersPagination(
     });
 }
 
+function setSearchUserFiltersState(policyIDs: string, state: SearchUserFiltersState) {
+    const policyIDsKey = policyIDs || ALL_POLICY_IDS_KEY;
+    Onyx.set(`${ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_USER_FILTERS_STATE}${policyIDsKey}`, state);
+}
+
 function openSearchUserFiltersPage(params: OpenSearchUserFiltersPageParams, shouldCancelPendingRequests = false): Promise<{hasMore: boolean; nextCursor: string; logins: string[]}> {
     if (shouldCancelPendingRequests) {
         HttpUtils.cancelPendingRequests(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_SEARCH_USER_FILTERS_PAGE);
     }
 
     return makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_SEARCH_USER_FILTERS_PAGE, {...params, canCancel: true}).then((response) => {
+        // Non-sequential network errors resolve with a non-success jsonCode instead of rejecting, so reject here to avoid treating failures as an empty page.
+        if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+            throw new Error('Failed to load search user filters');
+        }
+
         // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- OpenSearchUserFiltersPage response fields are command-specific and not declared on the shared Response type
-        const userFiltersResponse = response as OpenSearchUserFiltersPageResponse | undefined;
+        const userFiltersResponse = response as OpenSearchUserFiltersPageResponse;
         return {
-            hasMore: !!userFiltersResponse?.hasMore,
-            nextCursor: userFiltersResponse?.nextCursor ?? '',
-            logins: getLoginsFromOnyxUpdates(response?.onyxData),
+            hasMore: !!userFiltersResponse.hasMore,
+            nextCursor: userFiltersResponse.nextCursor ?? '',
+            logins: getLoginsFromOnyxUpdates(response.onyxData),
         };
     });
 }
@@ -3096,6 +3107,7 @@ export {
     openSearchUserFiltersPage,
     ALL_POLICY_IDS_KEY,
     setSearchTagFiltersPagination,
+    setSearchUserFiltersState,
     getPolicyFromSearchSnapshot,
     getReportFromSearchSnapshot,
     getReportActionsFromSearchSnapshot,
