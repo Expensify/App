@@ -80,6 +80,9 @@ type Account = {
     /** Whether SAML is required for the current account */
     isSAMLRequired?: boolean;
 
+    /** Email that Google sign-in was refused for because its domain requires SAML */
+    loginRequiringSAML?: string;
+
     /** Is this account having trouble receiving emails? */
     hasEmailDeliveryFailure?: boolean;
 

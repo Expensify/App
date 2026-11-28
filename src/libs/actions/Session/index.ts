@@ -624,6 +624,7 @@ function signInAttemptState(): OnyxData<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEY
                     isLoading: true,
                     message: null,
                     loadingForm: CONST.FORMS.LOGIN_FORM,
+                    loginRequiringSAML: null,
                 },
             },
         ],

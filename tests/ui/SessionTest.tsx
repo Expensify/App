@@ -4,7 +4,7 @@ import * as AppActions from '@libs/actions/App';
 import * as Device from '@libs/actions/Device';
 import {hasAuthToken} from '@libs/actions/Session';
 import * as Session from '@libs/actions/Session';
-import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import Navigation from '@libs/Navigation/Navigation';
 import {getCurrentUserEmail, setLastShortAuthToken} from '@libs/Network/NetworkStore';
 
@@ -560,6 +560,84 @@ describe('SAML re-fire loop guard', () => {
             await waitForBatchedUpdatesWithAct();
 
             await waitFor(() => expect(navigateSpy).toHaveBeenCalledWith(ROUTES.SAML_SIGN_IN));
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+            await waitForNetworkPromises();
+        },
+        FULL_APP_UI_TEST_TIMEOUT_MS,
+    );
+});
+
+describe('Google sign-in on a domain that requires SAML', () => {
+    const SAML_USER_LOGIN = 'employee@samlrequired.com';
+
+    beforeEach(() => {
+        jest.restoreAllMocks();
+        wrapOnyxWithWaitForBatchedUpdates(Onyx);
+    });
+
+    afterEach(async () => {
+        cleanup();
+        await act(async () => {
+            await Onyx.clear();
+        });
+        await waitForBatchedUpdatesWithAct();
+        await waitForNetworkPromises();
+        PusherHelper.teardown();
+        jest.clearAllMocks();
+        mockFetch.mockAPICommand(WRITE_COMMANDS.SIGN_IN_WITH_GOOGLE, () => ({}));
+    });
+
+    async function signInWithGoogle() {
+        const {unmount} = render(<App />);
+        await waitForBatchedUpdatesWithAct();
+        await waitForNetworkPromises();
+
+        await act(async () => {
+            Session.beginGoogleSignIn('googleToken', CONST.LOCALES.EN);
+        });
+        await waitForBatchedUpdatesWithAct();
+        await waitForNetworkPromises();
+        await waitForBatchedUpdatesWithAct();
+        return unmount;
+    }
+
+    it(
+        'continues sign-in with the email Google was refused for',
+        async () => {
+            mockFetch.mockAPICommand(WRITE_COMMANDS.SIGN_IN_WITH_GOOGLE, () => ({
+                jsonCode: CONST.JSON_CODE.EXP_ERROR,
+                onyxData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.ACCOUNT, value: {loginRequiringSAML: SAML_USER_LOGIN}}],
+            }));
+
+            const unmount = await signInWithGoogle();
+
+            // BeginSignIn then sends a SAML required account to SAML sign-in, like an email typed in by hand
+            const beginSignInCalls = TestHelper.getFetchMockCalls(READ_COMMANDS.BEGIN_SIGNIN);
+            expect(beginSignInCalls).toHaveLength(1);
+            const beginSignInBody = beginSignInCalls.at(0)?.[1]?.body;
+            expect(beginSignInBody instanceof FormData ? beginSignInBody.get('email') : undefined).toBe(SAML_USER_LOGIN);
+            const account = await Onyx.get(ONYXKEYS.ACCOUNT);
+            expect(account?.loginRequiringSAML).toBeUndefined();
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+            await waitForNetworkPromises();
+        },
+        FULL_APP_UI_TEST_TIMEOUT_MS,
+    );
+
+    it(
+        'does not start SAML sign-in when Google sign-in fails for another reason',
+        async () => {
+            const navigateSpy = jest.spyOn(Navigation, 'navigate');
+            mockFetch.mockAPICommand(WRITE_COMMANDS.SIGN_IN_WITH_GOOGLE, () => ({jsonCode: CONST.JSON_CODE.EXP_ERROR}));
+
+            const unmount = await signInWithGoogle();
+
+            TestHelper.expectAPICommandToHaveBeenCalled(READ_COMMANDS.BEGIN_SIGNIN, 0);
+            expect(navigateSpy).not.toHaveBeenCalledWith(ROUTES.SAML_SIGN_IN);
 
             unmount();
             await waitForBatchedUpdatesWithAct();

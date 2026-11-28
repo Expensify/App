@@ -20,7 +20,7 @@ import Log from '@libs/Log';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import Visibility from '@libs/Visibility';
 
-import {clearSignInData} from '@userActions/Session';
+import {beginSignIn, clearSignInData} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -230,6 +230,15 @@ function SignInPage({ref, shouldResetTabTitle = true}: SignInPageProps) {
             setHasInitiatedSAMLLogin(false);
         }
     }, [credentials?.login, isUsingValidateCode, setIsUsingValidateCode, hasInitiatedSAMLLogin, setHasInitiatedSAMLLogin]);
+
+    // Google sign-in is refused when the domain requires SAML, so continue as if this email was typed in
+    const loginRequiringSAML = account?.loginRequiringSAML;
+    useEffect(() => {
+        if (!loginRequiringSAML) {
+            return;
+        }
+        beginSignIn(loginRequiringSAML);
+    }, [loginRequiringSAML]);
 
     const {
         shouldShowLoginForm,
