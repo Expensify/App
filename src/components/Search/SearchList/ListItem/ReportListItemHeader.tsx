@@ -35,7 +35,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import {shouldShowMarkAsDone} from '@libs/ReportUtils';
-import {showHeldExpensesBlockModal, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
+import {showHeldCorporateCardExpensesBlockModal, showHeldExpensesBlockModal, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 
 import {handleActionButtonPress} from '@userActions/Search';
 
@@ -368,6 +368,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
             openReportSubmitToPopover,
             onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy),
             onAllHeldExpensesBlock: () => showHeldExpensesBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy),
+            onHeldCorporateCardExpensesBlock: () => showHeldCorporateCardExpensesBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy),
             currentUserAccountID,
             currentUserLogin,
             activePolicy,

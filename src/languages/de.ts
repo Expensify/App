@@ -1893,6 +1893,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 'Sie können diesen Bericht nicht als erledigt markieren, weil alle Transaktionen ausstehen. Es kann einige Tage dauern, bis sie gebucht werden.',
             allExpensesOnHoldDescription: 'Sie können diesen Bericht nicht einreichen, da alle Ausgaben angehalten wurden. Entfernen Sie die Sperre, um ihn einzureichen.',
             allExpensesOnHoldMarkAsDoneDescription: 'Sie können diesen Bericht nicht als erledigt markieren, da alle Ausgaben angehalten wurden. Entfernen Sie die Sperre, um fortzufahren.',
+            heldCorporateCardExpensesDescription:
+                'Sie können diesen Bericht nicht einreichen, da seine angehaltenen Firmenkartenausgaben nicht aus dieser Kartenabrechnung entfernt werden können. Entfernen Sie die Sperre, um ihn einzureichen.',
+            heldCorporateCardExpensesMarkAsDoneDescription:
+                'Sie können diesen Bericht nicht als erledigt markieren, da seine angehaltenen Firmenkartenausgaben nicht aus dieser Kartenabrechnung entfernt werden können. Entfernen Sie die Sperre, um fortzufahren.',
             reportsNotSubmittedTitle: 'Berichte einreichen',
             reportsNotMarkedAsDoneTitle: 'Berichte als erledigt markieren',
             reportsNotSubmittedDescription:

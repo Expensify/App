@@ -41,6 +41,7 @@ import {
     mergeProhibitedViolations,
     shouldShowAttendees,
     shouldShowViolation,
+    showHeldCorporateCardExpensesBlockModal,
     showHeldExpensesBlockModal,
     showPendingCardTransactionsBlockModal,
 } from '@libs/TransactionUtils';
@@ -275,6 +276,7 @@ function TransactionListItemInner<TItem extends ListItem>({
             openReportSubmitToPopover,
             onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy),
             onAllHeldExpensesBlock: () => showHeldExpensesBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy),
+            onHeldCorporateCardExpensesBlock: () => showHeldCorporateCardExpensesBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy),
             confirmSubmitReportViolations,
             // Transaction rows cannot approve reports; do not initialize a report approval hook for each row.
             confirmApproveReportViolations: () => undefined,

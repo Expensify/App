@@ -6,7 +6,14 @@ import useOnyx from '@hooks/useOnyx';
 
 import {isSubmitPolicy} from '@libs/PolicyUtils';
 import {hasOnlyHeldExpenses, hasViolations, shouldBlockSubmitDueToPreventSelfApproval, shouldBlockSubmitDueToStrictPolicyRules} from '@libs/ReportUtils';
-import {getTransactionViolations, hasOnlyPendingCardTransactions, showHeldExpensesBlockModal, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
+import {
+    getTransactionViolations,
+    hasHeldCorporateCardExpenses,
+    hasOnlyPendingCardTransactions,
+    showHeldCorporateCardExpensesBlockModal,
+    showHeldExpensesBlockModal,
+    showPendingCardTransactionsBlockModal,
+} from '@libs/TransactionUtils';
 
 import {submitReport} from '@userActions/IOU/ReportWorkflow';
 
@@ -104,6 +111,8 @@ jest.mock('@libs/TransactionUtils', () => ({
     hasOnlyPendingCardTransactions: jest.fn(() => false),
     showPendingCardTransactionsBlockModal: jest.fn(),
     showHeldExpensesBlockModal: jest.fn(),
+    hasHeldCorporateCardExpenses: jest.fn(() => false),
+    showHeldCorporateCardExpensesBlockModal: jest.fn(),
 }));
 
 jest.mock('@libs/ReportUtils', () => {
@@ -185,6 +194,8 @@ const mockedHasOnlyPendingCardTransactions = jest.mocked(hasOnlyPendingCardTrans
 const mockedShowPendingCardTransactionsBlockModal = jest.mocked(showPendingCardTransactionsBlockModal);
 const mockedHasOnlyHeldExpenses = jest.mocked(hasOnlyHeldExpenses);
 const mockedShowHeldExpensesBlockModal = jest.mocked(showHeldExpensesBlockModal);
+const mockedHasHeldCorporateCardExpenses = jest.mocked(hasHeldCorporateCardExpenses);
+const mockedShowHeldCorporateCardExpensesBlockModal = jest.mocked(showHeldCorporateCardExpensesBlockModal);
 const mockedHasViolations = jest.mocked(hasViolations);
 const mockedGetTransactionViolations = jest.mocked(getTransactionViolations);
 const mockedShouldBlockSubmitDueToStrictPolicyRules = jest.mocked(shouldBlockSubmitDueToStrictPolicyRules);
@@ -203,6 +214,7 @@ describe('SubmitActionButton', () => {
         mockedIsSubmitPolicy.mockReturnValue(false);
         mockedHasOnlyPendingCardTransactions.mockReturnValue(false);
         mockedHasOnlyHeldExpenses.mockReturnValue(false);
+        mockedHasHeldCorporateCardExpenses.mockReturnValue(false);
         mockedHasViolations.mockReturnValue(false);
         // jest.clearAllMocks() only clears recorded calls, so a mockReturnValue set by one test would otherwise leak
         // into every test that runs after it.
@@ -306,6 +318,47 @@ describe('SubmitActionButton', () => {
 
         expect(mockedShowHeldExpensesBlockModal).toHaveBeenCalled();
         expect(mockedSubmitReport).not.toHaveBeenCalled();
+    });
+
+    it('shows the held corporate card expenses block modal instead of submitting a card statement report', () => {
+        // Given a card statement report with a held corporate card expense
+        mockedHasHeldCorporateCardExpenses.mockReturnValue(true);
+        mockedUseOnyx.mockImplementation((key) => {
+            if (key === `${ONYXKEYS.COLLECTION.REPORT}${TEST_IOU_REPORT_ID}`) {
+                return createOnyxResult<Report>(iouReport);
+            }
+
+            // The mocked useOnyx skips the selector, so this is the selector's result for a statement report
+            if (key === `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${TEST_IOU_REPORT_ID}`) {
+                return createOnyxResult(true);
+            }
+            return createOnyxResult(undefined);
+        });
+        render(<SubmitActionButton />);
+
+        // When the submitter presses Submit
+        act(() => {
+            mockSubmitButtonPropsHolder.current?.onPress?.();
+        });
+
+        // Then the modal explains the hold, instead of a submission the backend rejects because the expense can't leave the statement
+        expect(mockedShowHeldCorporateCardExpensesBlockModal).toHaveBeenCalled();
+        expect(mockedSubmitReport).not.toHaveBeenCalled();
+    });
+
+    it('submits a regular report with a held corporate card expense', () => {
+        // Given a regular report with a held corporate card expense
+        mockedHasHeldCorporateCardExpenses.mockReturnValue(true);
+        render(<SubmitActionButton />);
+
+        // When the submitter presses Submit
+        act(() => {
+            mockSubmitButtonPropsHolder.current?.onPress?.();
+        });
+
+        // Then it submits, because only a card statement report keeps its corporate card expenses
+        expect(mockedShowHeldCorporateCardExpensesBlockModal).not.toHaveBeenCalled();
+        expect(mockedSubmitReport).toHaveBeenCalled();
     });
 
     it('computes hasViolations from the context violations and forwards the result to submitReport', () => {

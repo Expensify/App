@@ -1872,6 +1872,9 @@ const translations: TranslationDeepObject<typeof en> = {
             allTransactionsPendingMarkAsDoneDescription: 'すべての取引が保留中のため、このレポートを完了にできません。反映されるまでに数日かかる場合があります。',
             allExpensesOnHoldDescription: 'すべての経費が保留中のため、このレポートを送信できません。送信するには、保留を解除してください。',
             allExpensesOnHoldMarkAsDoneDescription: 'すべての経費が保留中のため、このレポートを完了にできません。続行するには、保留を解除してください。',
+            heldCorporateCardExpensesDescription: '保留中の会社カード経費はこのカード明細から移動できないため、このレポートを送信できません。送信するには、保留を解除してください。',
+            heldCorporateCardExpensesMarkAsDoneDescription:
+                '保留中の会社カード経費はこのカード明細から移動できないため、このレポートを完了にできません。続行するには、保留を解除してください。',
             reportsNotSubmittedTitle: 'レポートを提出',
             reportsNotMarkedAsDoneTitle: 'レポートを完了にする',
             reportsNotSubmittedDescription: 'これらのレポートを送信できませんでした。経費が保留中または処理待ちになっていないことを確認してから、もう一度お試しください。',

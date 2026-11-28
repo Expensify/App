@@ -41,7 +41,14 @@ import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {isInvoiceReport, isOpenExpenseReport, isProcessingReport, isReportPendingDelete, shouldShowMarkAsDone} from '@libs/ReportUtils';
 import {hasVisibleViolations} from '@libs/SearchUIUtils';
 import shouldBreakAccessibilityGrouping from '@libs/shouldBreakAccessibilityGrouping';
-import {getAttendees, isViolationDismissed, shouldShowViolation, showHeldExpensesBlockModal, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
+import {
+    getAttendees,
+    isViolationDismissed,
+    shouldShowViolation,
+    showHeldCorporateCardExpensesBlockModal,
+    showHeldExpensesBlockModal,
+    showPendingCardTransactionsBlockModal,
+} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
 
@@ -296,6 +303,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             openReportSubmitToPopover,
             onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy),
             onAllHeldExpensesBlock: () => showHeldExpensesBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy),
+            onHeldCorporateCardExpensesBlock: () => showHeldCorporateCardExpensesBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy),
             currentUserAccountID,
             currentUserLogin,
             activePolicy,

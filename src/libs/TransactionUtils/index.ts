@@ -996,6 +996,34 @@ function showHeldExpensesBlockModal(
 }
 
 /**
+ * Check if any held expense is a corporate card expense. Submitting a report moves its held expenses to a new report,
+ * but corporate card expenses can't leave a card statement report, so the backend rejects that submission.
+ */
+function hasHeldCorporateCardExpenses(transactions: Array<OnyxEntry<Transaction>>): boolean {
+    // Auth treats a managed card expense without a stored liability as corporate, so only an explicit personal liability is excluded
+    return transactions.some(
+        (transaction) => isOnHold(transaction) && isManagedCardTransaction(transaction) && transaction?.comment?.liabilityType !== CONST.TRANSACTION.LIABILITY_TYPE.ALLOW,
+    );
+}
+
+/**
+ * Show a confirm modal explaining that a card statement report with held corporate card expenses cannot be submitted.
+ * Pass shouldShowMarkAsDoneCopy when the triggering button uses the "Mark as done" copy so the modal matches it.
+ */
+function showHeldCorporateCardExpensesBlockModal(
+    showConfirmModal: (options: {title: string; prompt: string; confirmText: string; shouldShowCancelButton: boolean}) => void | Promise<unknown>,
+    translate: LocaleContextProps['translate'],
+    shouldShowMarkAsDoneCopy = false,
+) {
+    showConfirmModal({
+        title: translate(shouldShowMarkAsDoneCopy ? 'iou.error.unableToMarkAsDone' : 'iou.error.unableToSubmitReport'),
+        prompt: translate(shouldShowMarkAsDoneCopy ? 'iou.error.heldCorporateCardExpensesMarkAsDoneDescription' : 'iou.error.heldCorporateCardExpensesDescription'),
+        confirmText: translate('common.buttonConfirm'),
+        shouldShowCancelButton: false,
+    });
+}
+
+/**
  * The transaction is considered scanning if it is a partial transaction, has a receipt, and the receipt is being scanned.
  * Note that this does not include receipts that are being scanned in the background for auditing / smart scan everything, because there should be no indication to the user that the receipt is being scanned.
  */
@@ -1720,6 +1748,8 @@ export {
     getSupersededPendingCardTransactionIDs,
     showPendingCardTransactionsBlockModal,
     showHeldExpensesBlockModal,
+    hasHeldCorporateCardExpenses,
+    showHeldCorporateCardExpensesBlockModal,
     isOnHold,
     getWaypoints,
     isAmountMissing,

@@ -754,6 +754,8 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 conciergeFeedbackForReportActionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 supportTicketCalendarLink: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 reopenedAsReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                // eslint-disable-next-line @typescript-eslint/naming-convention -- Auth stores this NVP under the key expensify_statementCardID
+                expensify_statementCardID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
             });
         case 'expensify_text_title':
             return validateObject<ObjectElement<ReportNameValuePairs, 'expensify_text_title'>>(value, {

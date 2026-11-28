@@ -1890,6 +1890,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 'Non puoi segnare questo report come completato perché tutte le transazioni sono in sospeso. Potrebbero volerci alcuni giorni prima che vengano registrate.',
             allExpensesOnHoldDescription: 'Non puoi inviare questo report perché tutte le spese sono in sospeso. Rimuovi il blocco per inviarlo.',
             allExpensesOnHoldMarkAsDoneDescription: 'Non puoi segnare questo report come completato perché tutte le spese sono in sospeso. Rimuovi il blocco per continuare.',
+            heldCorporateCardExpensesDescription:
+                'Non puoi inviare questo report perché le sue spese con carte aziendali in sospeso non possono essere spostate fuori da questo estratto conto della carta. Rimuovi il blocco per inviarlo.',
+            heldCorporateCardExpensesMarkAsDoneDescription:
+                'Non puoi segnare questo report come completato perché le sue spese con carte aziendali in sospeso non possono essere spostate fuori da questo estratto conto della carta. Rimuovi il blocco per continuare.',
             reportsNotSubmittedTitle: 'Invia report',
             reportsNotMarkedAsDoneTitle: 'Segna i report come completati',
             reportsNotSubmittedDescription: 'Questi report non possono essere inviati. Controlla che le spese non siano bloccate o in sospeso, poi riprova.',

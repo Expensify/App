@@ -1824,6 +1824,8 @@ const translations: TranslationDeepObject<typeof en> = {
             allTransactionsPendingMarkAsDoneDescription: '您无法将此报表标记为完成，因为所有交易都在待处理。它们可能需要几天时间才会入账。',
             allExpensesOnHoldDescription: '你无法提交此报表，因为所有费用都已被暂挂。请取消暂挂后再提交。',
             allExpensesOnHoldMarkAsDoneDescription: '你无法将此报表标记为完成，因为所有费用都已被暂挂。请取消暂挂后再继续。',
+            heldCorporateCardExpensesDescription: '你无法提交此报表，因为其中被暂挂的公司卡费用无法移出此卡对账单。请取消暂挂后再提交。',
+            heldCorporateCardExpensesMarkAsDoneDescription: '你无法将此报表标记为完成，因为其中被暂挂的公司卡费用无法移出此卡对账单。请取消暂挂后再继续。',
             reportsNotSubmittedTitle: '提交报表',
             reportsNotMarkedAsDoneTitle: '将报表标记为已完成',
             reportsNotSubmittedDescription: '这些报表无法提交。请检查报销是否未被搁置或待处理，然后重试。',

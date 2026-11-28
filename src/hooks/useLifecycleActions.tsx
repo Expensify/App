@@ -24,7 +24,13 @@ import {
 } from '@libs/ReportUtils';
 import refreshSearchAfterReportAction from '@libs/SearchRefreshUtils';
 import showConfirmModalAfterMoreMenuDismiss from '@libs/showConfirmModalAfterMoreMenuDismiss';
-import {hasOnlyPendingCardTransactions, showHeldExpensesBlockModal, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
+import {
+    hasHeldCorporateCardExpenses,
+    hasOnlyPendingCardTransactions,
+    showHeldCorporateCardExpensesBlockModal,
+    showHeldExpensesBlockModal,
+    showPendingCardTransactionsBlockModal,
+} from '@libs/TransactionUtils';
 
 import {cancelPayment, markReportPaymentReceived} from '@userActions/IOU/PayMoneyRequest';
 import {approveMoneyRequest, reopenReport, retractReport, submitReport, unapproveExpenseReport} from '@userActions/IOU/ReportWorkflow';
@@ -93,6 +99,9 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
+    const [isCardStatementReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {
+        selector: (reportNameValuePairs) => !!reportNameValuePairs?.expensify_statementCardID,
+    });
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
     const [chatReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
     const [submitterPersonalDetails] = usePersonalDetail(moneyRequestReport?.ownerAccountID);
@@ -305,6 +314,11 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
 
         if (hasOnlyHeldExpenses) {
             showHeldExpensesBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy);
+            return;
+        }
+
+        if (isCardStatementReport && hasHeldCorporateCardExpenses(transactions)) {
+            showHeldCorporateCardExpensesBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy);
             return;
         }
 

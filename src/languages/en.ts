@@ -2019,6 +2019,9 @@ const translations = {
             allTransactionsPendingMarkAsDoneDescription: "You can't mark this report as done because all transactions are pending. They may take a few days to post.",
             allExpensesOnHoldDescription: "You can't submit this report because all expenses are on hold. Remove the hold to submit.",
             allExpensesOnHoldMarkAsDoneDescription: "You can't mark this report as done because all expenses are on hold. Remove the hold to continue.",
+            heldCorporateCardExpensesDescription: "You can't submit this report because its held company card expenses can't be moved off this card statement. Remove the hold to submit.",
+            heldCorporateCardExpensesMarkAsDoneDescription:
+                "You can't mark this report as done because its held company card expenses can't be moved off this card statement. Remove the hold to continue.",
             reportsNotSubmittedTitle: 'Submit reports',
             reportsNotMarkedAsDoneTitle: 'Mark reports as done',
             reportsNotSubmittedDescription: "These reports couldn't be submitted. Check that expenses aren't held or pending, then try again.",

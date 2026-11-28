@@ -36,7 +36,7 @@ import {
     shouldBlockSubmitDueToStrictPolicyRules,
     shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
-import {hasOnlyPendingCardTransactions, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
+import {hasHeldCorporateCardExpenses, hasOnlyPendingCardTransactions, showHeldCorporateCardExpensesBlockModal, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 
 import {retractReport, setPreferredReportSubmissionMethod, submitReport} from '@userActions/IOU/ReportWorkflow';
 
@@ -107,6 +107,9 @@ function SubmitPrimaryActionContent({reportID, isDisabled}: SubmitPrimaryActionP
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [preferredSubmissionMethod] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_PREFERRED_REPORT_SUBMISSION_METHOD}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
+    const [isCardStatementReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(moneyRequestReport?.reportID)}`, {
+        selector: (reportNameValuePairs) => !!reportNameValuePairs?.expensify_statementCardID,
+    });
 
     const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
 
@@ -170,6 +173,11 @@ function SubmitPrimaryActionContent({reportID, isDisabled}: SubmitPrimaryActionP
 
         if (hasOnlyPendingCardTransactions(transactions)) {
             showPendingCardTransactionsBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy);
+            return;
+        }
+
+        if (isCardStatementReport && hasHeldCorporateCardExpenses(transactions)) {
+            showHeldCorporateCardExpensesBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy);
             return;
         }
 

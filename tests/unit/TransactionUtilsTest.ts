@@ -1926,6 +1926,47 @@ describe('TransactionUtils', () => {
         });
     });
 
+    describe('hasHeldCorporateCardExpenses', () => {
+        const holdComment = {hold: '1234'};
+
+        it('returns true for a held managed card expense with a corporate liability', () => {
+            // Given a held company card expense marked as a corporate liability
+            const transaction = generateTransaction({managedCard: true, comment: {...holdComment, liabilityType: CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT}});
+
+            // When checking the report's expenses
+            // Then it counts, because the backend can't move it off its statement report
+            expect(TransactionUtils.hasHeldCorporateCardExpenses([transaction])).toBe(true);
+        });
+
+        it('returns true for a held managed card expense without a stored liability', () => {
+            // Given a held Expensify Card expense, which stores no liability
+            const transaction = generateTransaction({managedCard: true, comment: holdComment});
+
+            // When checking the report's expenses
+            // Then it counts, because the backend treats a managed card expense without a liability as corporate
+            expect(TransactionUtils.hasHeldCorporateCardExpenses([transaction])).toBe(true);
+        });
+
+        it('returns false for a held managed card expense with a personal liability', () => {
+            // Given a held company card expense that the domain marked as a personal liability
+            const transaction = generateTransaction({managedCard: true, comment: {...holdComment, liabilityType: CONST.TRANSACTION.LIABILITY_TYPE.ALLOW}});
+
+            // When checking the report's expenses
+            // Then it doesn't count, because personal liability expenses can leave the statement report
+            expect(TransactionUtils.hasHeldCorporateCardExpenses([transaction])).toBe(false);
+        });
+
+        it('returns false when the corporate card expense is not held or the held expense is not on a managed card', () => {
+            // Given an unheld corporate card expense and a held cash expense
+            const unheldCardTransaction = generateTransaction({managedCard: true, comment: {liabilityType: CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT}});
+            const heldCashTransaction = generateTransaction({managedCard: false, comment: holdComment});
+
+            // When checking the report's expenses
+            // Then neither counts, because only held corporate card expenses get moved off the statement report
+            expect(TransactionUtils.hasHeldCorporateCardExpenses([unheldCardTransaction, heldCashTransaction])).toBe(false);
+        });
+    });
+
     describe('isMapBasedDistanceRequest', () => {
         const waypoints = {
             waypoint0: {keyForList: 'start_waypoint', address: 'A'},
