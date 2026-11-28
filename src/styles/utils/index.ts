@@ -787,6 +787,15 @@ function getEmojiPickerStyle(isSmallScreenWidth: boolean): ViewStyle {
     };
 }
 
+/**
+ * Sticks a list's header box at minus the height above its column header, so exactly that much scrolls off and leaves
+ * the column header flush against the scroller. `zIndex` lifts it above the rows, which paint later in tree order.
+ * Only for platforms where `canUseCssPositionSticky()` is true.
+ */
+function getStickyListHeaderStyle(scrolledOffHeight: number): ViewStyle {
+    return toViewStyle({position: 'sticky', top: -scrolledOffHeight, zIndex: 1});
+}
+
 function getPaymentMethodMenuWidth(isSmallScreenWidth: boolean): ViewStyle {
     const margin = 20;
     return {
@@ -1532,6 +1541,7 @@ const staticStyleUtils = {
     getDropDownButtonHeight,
     getEmojiPickerListHeight,
     getEmojiPickerStyle,
+    getStickyListHeaderStyle,
     getEmojiReactionBubbleTextStyle,
     getTransformScaleStyle,
     getTopLeftTransformScaleStyle,
