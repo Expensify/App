@@ -45,6 +45,8 @@ const LIST_CONTENT_SIZE = {
 };
 const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
 
+const LIST_POSITION_CORRECTION_SETTLE_MS = 150;
+
 const REPORT_ID = '1';
 const COMMENT_LINKING_REPORT_ID = '2';
 const USER_A_ACCOUNT_ID = 1;
@@ -391,6 +393,14 @@ describe('Pagination', () => {
         TestHelper.expectAPICommandToHaveBeenCalledWith('OpenReport', 1, {reportID: REPORT_ID, reportActionID: '5'});
         TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
         TestHelper.expectAPICommandToHaveBeenCalledWith('GetNewerActions', 0, {reportID: REPORT_ID, reportActionID: '5'});
+
+        // FlashList ignores scroll events for 100 ms after it keeps the visible messages in place for the newer page.
+        await act(
+            () =>
+                new Promise<void>((resolve) => {
+                    setTimeout(resolve, LIST_POSITION_CORRECTION_SETTLE_MS);
+                }),
+        );
 
         // Simulate the maintainVisibleContentPosition scroll adjustment, so it is now possible to scroll down more.
         scrollToOffset(500);

@@ -280,6 +280,18 @@ describe('useReportActionsScroll', () => {
             expect(result.current.maintainVisibleContentPosition.autoscrollToBottomThreshold).toBeUndefined();
         });
 
+        it('keeps the visible content position at the bottom of a regular chat while newer actions are still to load', async () => {
+            // Given a regular chat at its loaded bottom while newer messages are still on the server, e.g. after opening a link to an older message
+            const params = {hasScrolledOverThreshold: false, hasNewerActions: true};
+
+            // When the list reads its scroll settings
+            const {result} = await renderScroll(params);
+
+            // Then the position is kept, because the bottom is not the live tail yet. Each newer page then loads below the message being read and
+            // moves the scroll offset out of the start zone, so the next scroll down can load the page after it.
+            expect(result.current.maintainVisibleContentPosition.disabled).toBe(false);
+        });
+
         it('is aligned to top and focuses to top on mount for a transaction thread report', async () => {
             mockIsTransactionThread = true;
 

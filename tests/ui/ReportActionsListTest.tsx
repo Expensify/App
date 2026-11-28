@@ -7,6 +7,7 @@ import {useIsReportLoadPending} from '@hooks/useInFlightRequests';
 /* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
 import type * as InFlightRequests from '@hooks/useInFlightRequests';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
+import useLoadReportActions from '@hooks/useLoadReportActions';
 import useNetwork from '@hooks/useNetwork';
 import * as NetworkWithOfflineStatus from '@hooks/useNetworkWithOfflineStatus';
 import useOnyx from '@hooks/useOnyx';
@@ -43,11 +44,12 @@ import useScrollToEditingReportAction from '@pages/inbox/report/useScrollToEditi
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {reportActionsListLoadingStateSelector} from '@src/selectors/ReportMetaData';
+import {canLoadNewerReportActionsSelector, reportActionsListLoadingStateSelector} from '@src/selectors/ReportMetaData';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type * as ReactNavigation from '@react-navigation/native';
 import type ReactNative from 'react-native';
+import type {LayoutChangeEvent} from 'react-native';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -126,6 +128,9 @@ const mockUseConciergeChatHistoryState = useConciergeChatHistoryState as jest.Mo
 const mockUseConciergeChatHistoryActions = useConciergeChatHistoryActions as jest.MockedFunction<typeof useConciergeChatHistoryActions>;
 
 function getMockReportLoadingState(selector: unknown, hasOnceLoadedReportActions = true) {
+    if (selector === canLoadNewerReportActionsSelector) {
+        return true;
+    }
     return selector === reportActionsListLoadingStateSelector ? {hasOnceLoadedReportActions, isLoadingInitialReportActions: false} : undefined;
 }
 
@@ -162,6 +167,7 @@ jest.mock('@hooks/useLoadReportActions', () =>
     })),
 );
 jest.mock('@hooks/usePrevious', () => jest.fn());
+jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn(() => false));
 
 const mockUseCurrentUserPersonalDetails = useCurrentUserPersonalDetails as jest.MockedFunction<typeof useCurrentUserPersonalDetails>;
 
@@ -206,6 +212,8 @@ type MockInvertedFlashListProps = {
     extraData?: unknown;
     renderItem?: (info: {item: OnyxTypes.ReportAction; index: number}) => React.ReactElement | null;
     onContentSizeChange?: () => void;
+    onStartReached?: () => void;
+    onLayout?: (event: LayoutChangeEvent) => void;
     ListFooterComponent?: React.ReactNode;
 };
 
@@ -1573,6 +1581,126 @@ describe('ReportActionsList (body)', () => {
             // Then the pending scroll-to-bottom is flushed, so the list lands on the new comment
             const scrollHookResult = mockUseReportActionsScroll.mock.results.at(-1)?.value as {flushPendingScrollToBottom: jest.Mock};
             expect(scrollHookResult.flushPendingScrollToBottom).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe('Loading newer messages', () => {
+        it('gives the list onStartReached only once there are newer actions to load', () => {
+            // Given a chat whose loaded messages still look complete, as when a page saved on an earlier visit claims the newest end
+            let hasNewerActions = false;
+            mockUseNetwork.mockReturnValue({isOffline: false});
+            mockUsePaginatedReportActions.mockImplementation(() => ({...defaultPaginatedReportActionsResult, reportActions: mockReportActions, hasNewerActions}));
+            const renderList = () => (
+                <ReportActionsSkeletonGuard reportID={mockReport.reportID}>
+                    <ReportActionsListContent reportID={mockReport.reportID} />
+                </ReportActionsSkeletonGuard>
+            );
+            const view = render(renderList());
+            const onStartReachedBeforeOpenReport = getCapturedListProps()?.onStartReached;
+
+            // When OpenReport reports that newer messages exist
+            hasNewerActions = true;
+            view.rerender(renderList());
+
+            // Then the list only gets onStartReached now. FlashList calls it once each time the list enters the start zone, so a call made
+            // while nothing newer could load would be used up, and a user already at the bottom would never get the newer messages.
+            expect(onStartReachedBeforeOpenReport).toBeUndefined();
+            expect(getCapturedListProps()?.onStartReached).toEqual(expect.any(Function));
+        });
+
+        const renderChatWithNewerActions = ({scrollOffset, getCursor, getCanLoadNewer = () => true}: {scrollOffset: number; getCursor: () => string; getCanLoadNewer?: () => boolean}) => {
+            const loadNewerChats = jest.fn();
+            mockUseNetwork.mockReturnValue({isOffline: false});
+            jest.mocked(useLoadReportActions).mockReturnValue({loadOlderChats: jest.fn(), loadNewerChats, currentReportOldestActionID: undefined});
+            jest.mocked(useActionListRef).mockReturnValue(createMock<ReturnType<typeof useActionListRef>>({current: {getAbsoluteLastScrollOffset: () => scrollOffset}}));
+            mockUseOnyx.mockImplementation((key, options) => {
+                if (options?.selector === canLoadNewerReportActionsSelector) {
+                    return [getCanLoadNewer(), {status: 'loaded'}] as ReturnType<typeof getMockOnyxValue>;
+                }
+                if (!key.startsWith(ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE)) {
+                    return getMockOnyxValue(key, options);
+                }
+                const paginationState = {newestFetchedReportActionID: getCursor()};
+                return [options?.selector ? (options.selector as (value: unknown) => unknown)(paginationState) : paginationState, {status: 'loaded'}] as ReturnType<typeof getMockOnyxValue>;
+            });
+            mockUsePaginatedReportActions.mockReturnValue({...defaultPaginatedReportActionsResult, reportActions: mockReportActions, hasNewerActions: true});
+            const renderList = () => (
+                <ReportActionsSkeletonGuard reportID={mockReport.reportID}>
+                    <ReportActionsListContent reportID={mockReport.reportID} />
+                </ReportActionsSkeletonGuard>
+            );
+            const view = render(renderList());
+            act(() => getCapturedListProps()?.onLayout?.(createMock<LayoutChangeEvent>({nativeEvent: {layout: {x: 0, y: 0, width: 400, height: 800}}})));
+            return {loadNewerChats, rerender: () => view.rerender(renderList())};
+        };
+
+        afterEach(() => {
+            jest.mocked(useActionListRef).mockReturnValue({current: null});
+            jest.mocked(useLoadReportActions).mockImplementation(() => ({loadOlderChats: jest.fn(), loadNewerChats: jest.fn(), currentReportOldestActionID: undefined}));
+        });
+
+        it('asks for the next page once when the cursor moves while the list is still at the bottom', () => {
+            // Given a chat with newer messages on the server, scrolled to the bottom of what is loaded
+            let cursor = '2';
+            const {loadNewerChats, rerender} = renderChatWithNewerActions({scrollOffset: 0, getCursor: () => cursor});
+            expect(loadNewerChats).not.toHaveBeenCalled();
+
+            // When a newer page lands but the view stays at the bottom, as when it lands mid-fling or only has messages already shown
+            cursor = '3';
+            rerender();
+            rerender();
+
+            // Then the next page is requested once. FlashList only calls onStartReached again after the list leaves the start zone,
+            // so without this the user would stay stuck at the bottom.
+            expect(loadNewerChats).toHaveBeenCalledTimes(1);
+            expect(loadNewerChats).toHaveBeenCalledWith(false);
+        });
+
+        it('does not ask for a second page from onStartReached while the first one is still loading', () => {
+            // Given a chat with newer messages on the server, scrolled to the bottom of what is loaded
+            let canLoadNewer = true;
+            const {loadNewerChats, rerender} = renderChatWithNewerActions({scrollOffset: 0, getCursor: () => '2', getCanLoadNewer: () => canLoadNewer});
+
+            // When FlashList reports reaching the start, and reports it again while that newer page is still loading,
+            // as it does when the first page renders at the bottom and then the list updates
+            act(() => getCapturedListProps()?.onStartReached?.());
+            canLoadNewer = false;
+            rerender();
+            act(() => getCapturedListProps()?.onStartReached?.());
+
+            // Then only one page is requested, so the same page isn't fetched twice
+            expect(loadNewerChats).toHaveBeenCalledTimes(1);
+        });
+
+        it('asks for the next page once the newer page that moved the cursor has finished loading', () => {
+            // Given a chat at the bottom of what is loaded, with a newer page still loading
+            let cursor = '2';
+            let canLoadNewer = false;
+            const {loadNewerChats, rerender} = renderChatWithNewerActions({scrollOffset: 0, getCursor: () => cursor, getCanLoadNewer: () => canLoadNewer});
+
+            // When that page moves the cursor before its loading flag clears, and then the flag clears
+            cursor = '3';
+            rerender();
+            expect(loadNewerChats).not.toHaveBeenCalled();
+            canLoadNewer = true;
+            rerender();
+
+            // Then the next page is requested. Without re-checking when loading ends, the cursor wouldn't move again
+            // and the user would stay stuck at the bottom.
+            expect(loadNewerChats).toHaveBeenCalledTimes(1);
+        });
+
+        it('does not ask for the next page when the cursor moves while the user reads above the bottom', () => {
+            // Given a chat with newer messages on the server, scrolled well above the bottom of what is loaded
+            let cursor = '2';
+            const {loadNewerChats, rerender} = renderChatWithNewerActions({scrollOffset: 5000, getCursor: () => cursor});
+
+            // When a newer page lands
+            cursor = '3';
+            rerender();
+
+            // Then nothing more is requested, because the user isn't at the bottom and FlashList will ask when they get there
+            expect(loadNewerChats).not.toHaveBeenCalled();
         });
     });
 

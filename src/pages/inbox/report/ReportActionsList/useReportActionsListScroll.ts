@@ -1,5 +1,6 @@
 import type {ViewableItemsChangedHandler} from '@components/FlashList/types';
 
+import useOnyx from '@hooks/useOnyx';
 import useReportActionsScroll from '@hooks/useReportActionsScroll';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -13,13 +14,20 @@ import useFollowActionBadgeTarget from '@pages/inbox/report/useFollowActionBadge
 import useScrollToEditingReportAction from '@pages/inbox/report/useScrollToEditingReportAction';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {canLoadNewerReportActionsSelector} from '@src/selectors/ReportMetaData';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 
-import {useEffect, useRef} from 'react';
+import {useEffect, useEffectEvent, useRef} from 'react';
 
 import type {UseReportActionsListScrollParams} from './types';
+
+const START_REACHED_THRESHOLD = 0.75;
+
+const newestFetchedReportActionIDSelector = (paginationState: OnyxEntry<OnyxTypes.ReportPaginationState>) => paginationState?.newestFetchedReportActionID;
 
 /**
  * Create a unique key for each action in the FlatList.
@@ -163,7 +171,16 @@ function useReportActionsListScroll({
         loadOlderChats(false);
     };
 
+    const [newestFetchedReportActionID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE}${reportID}`, {selector: newestFetchedReportActionIDSelector});
+    const [canLoadNewerReportActions = false] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`, {selector: canLoadNewerReportActionsSelector});
+    const requestedNewerCursorRef = useRef(newestFetchedReportActionID);
+    const listHeightRef = useRef(0);
+
     const loadNewerChatsAfterTransitions = () => {
+        if (!canLoadNewerReportActions) {
+            return;
+        }
+        requestedNewerCursorRef.current = newestFetchedReportActionID;
         if (!isSearchTopmostFullScreenRoute()) {
             loadNewerChats(false);
             return;
@@ -175,6 +192,22 @@ function useReportActionsListScroll({
             },
         });
     };
+
+    // FlashList won't call onStartReached again while the user stays at the bottom, so ask for the next page when the cursor moves.
+    const loadNewerChatsIfAtBottom = useEffectEvent(() => {
+        if (!hasNewerActions || !newestFetchedReportActionID || requestedNewerCursorRef.current === newestFetchedReportActionID || listHeightRef.current <= 0) {
+            return;
+        }
+        const scrollOffset = listRef.current?.getAbsoluteLastScrollOffset?.();
+        if (scrollOffset === undefined || scrollOffset > listHeightRef.current * START_REACHED_THRESHOLD) {
+            return;
+        }
+        loadNewerChatsAfterTransitions();
+    });
+
+    useEffect(() => {
+        loadNewerChatsIfAtBottom();
+    }, [hasNewerActions, newestFetchedReportActionID, canLoadNewerReportActions]);
 
     useFollowActionBadgeTarget({
         reportID,
@@ -199,9 +232,11 @@ function useReportActionsListScroll({
             getItemType: (item: OnyxTypes.ReportAction) => item.actionName,
             onEndReached: loadOlderChatsOnEndReached,
             onEndReachedThreshold: 0.75,
-            onStartReached: loadNewerChatsAfterTransitions,
-            onStartReachedThreshold: 0.75,
+            // FlashList calls this once per entry into the start zone, so don't use that call up before there are newer messages.
+            onStartReached: hasNewerActions ? loadNewerChatsAfterTransitions : undefined,
+            onStartReachedThreshold: START_REACHED_THRESHOLD,
             onLayout: (event: LayoutChangeEvent) => {
+                listHeightRef.current = event.nativeEvent.layout.height;
                 onLayout?.(event);
                 flushPendingScrollToBottom();
             },

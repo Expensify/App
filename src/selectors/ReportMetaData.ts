@@ -31,6 +31,8 @@ const reportActionsListLoadingStateSelector = (
           }
         : undefined;
 
+const canLoadNewerReportActionsSelector = (loadingState: OnyxEntry<ReportLoadingState>) => loadingState?.isLoadingInitialReportActions === false && !loadingState.isLoadingNewerReportActions;
+
 const isLoadingInitialReportActionsSelector = (loadingState: OnyxEntry<ReportLoadingState>) => loadingState?.isLoadingInitialReportActions;
 
 const isLoadingReportStatusSelector = (loadingState: OnyxEntry<ReportLoadingState>) => loadingState?.isLoadingReportStatus;
@@ -149,6 +151,7 @@ export {
     hasOnceLoadedReportActionsSelector,
     reportActionsLoadingStateSelector,
     reportActionsListLoadingStateSelector,
+    canLoadNewerReportActionsSelector,
     isLoadingInitialReportActionsSelector,
     isLoadingReportStatusSelector,
     isOptimisticReportSelector,
