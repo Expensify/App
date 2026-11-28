@@ -1,5 +1,4 @@
 import type {PaymentMethod} from '@components/KYCWall/types';
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
@@ -9,9 +8,8 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
 import {getBusinessBankAccountForPayment, shouldSetUpGlobalReimbursementsBeforePaying} from '@libs/BankAccountUtils';
 import DateUtils from '@libs/DateUtils';
-import type HttpsError from '@libs/Errors/HttpsError';
+import HttpsError from '@libs/Errors/HttpsError';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
-import fileDownload from '@libs/fileDownload';
 import Navigation from '@libs/Navigation/Navigation';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {getIsOffline} from '@libs/NetworkState';
@@ -1086,46 +1084,77 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
 
 type PayViaABAFunctionParams = {
     reportIDs: string[];
-    policy: OnyxEntry<OnyxTypes.Policy>;
     shouldReimburseHeldTransactions?: boolean;
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
     isSelfTourViewed: boolean | undefined;
     currentUserAccountID: number;
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
     delegateAccountID: number | undefined;
-    userBillingGracePeriodEnds: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
-    amountOwed: OnyxEntry<number>;
-    ownerBillingGracePeriodEnd?: OnyxEntry<number>;
-    translate: LocalizedTranslate;
-    onDownloadFailed: (error?: HttpsError) => void;
     onPaid?: () => void;
 };
 
-/**
- * Downloads the ABA file for paying the given reports. The backend marks them as "paid elsewhere" when it creates the file.
- * Resolves once the download has finished or failed.
- */
-async function payViaABA(params: PayViaABAFunctionParams): Promise<void> {
-    const {
-        reportIDs,
-        policy,
-        shouldReimburseHeldTransactions = true,
-        introSelected,
-        isSelfTourViewed,
-        currentUserAccountID,
-        conciergeChat,
-        delegateAccountID,
-        userBillingGracePeriodEnds,
-        amountOwed,
-        ownerBillingGracePeriodEnd,
-        translate,
-        onDownloadFailed,
-        onPaid,
-    } = params;
-    if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
-        Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
-        return;
+type ABAFile = {
+    fileName: string;
+    content: string;
+};
+
+/** The reports left out of an ABA file, keyed by why they were left out */
+type SkippedABAReportIDs = Record<string, string[]>;
+
+type PayViaABAResult = {
+    abaFile: ABAFile;
+    skippedReportIDs: SkippedABAReportIDs;
+};
+
+type PayViaABAResponse = {
+    jsonCode?: number;
+    message?: string;
+    aba?: string;
+
+    /** Sent as an empty array when no reports were skipped */
+    skippedReportIDs?: Record<string, Array<string | number>> | [];
+};
+
+/** Keeps the reasons that have reports, so an unexpected shape just means nothing was skipped */
+function getSkippedABAReportIDs(skippedReportIDs: PayViaABAResponse['skippedReportIDs']): SkippedABAReportIDs {
+    if (!skippedReportIDs || typeof skippedReportIDs !== 'object' || Array.isArray(skippedReportIDs)) {
+        return {};
     }
+    const skippedReportIDsByReason: SkippedABAReportIDs = {};
+    for (const [reason, reportIDs] of Object.entries(skippedReportIDs)) {
+        if (Array.isArray(reportIDs) && reportIDs.length > 0) {
+            skippedReportIDsByReason[reason] = reportIDs.map(String);
+        }
+    }
+    return skippedReportIDsByReason;
+}
+
+/**
+ * Reads the ABA file's text and the reports left out of it from the PayViaABA response. The API currently sends the file
+ * itself, but soon will send a JSON response with the file's text in `aba`.
+ */
+async function parsePayViaABAResponse(response: Response): Promise<{content: string; skippedReportIDs: SkippedABAReportIDs}> {
+    if (response.headers.get('content-type') !== 'application/json') {
+        if (!response.ok) {
+            throw new Error('Failed to download the ABA file');
+        }
+        return response.text().then((content) => ({content, skippedReportIDs: {}}));
+    }
+    return response.json().then((data: PayViaABAResponse) => {
+        if (data.jsonCode !== CONST.JSON_CODE.SUCCESS || data.aba === undefined) {
+            throw new HttpsError({message: data.message ?? '', status: String(data.jsonCode ?? '')});
+        }
+        return {content: data.aba, skippedReportIDs: getSkippedABAReportIDs(data.skippedReportIDs)};
+    });
+}
+
+/**
+ * Gets the ABA file for paying the given reports, leaving it to the caller to save. The backend marks the reports in the
+ * file as "paid elsewhere" when it creates it, and also returns the reports it couldn't pay. Rejects with the backend's
+ * error when it doesn't send the file.
+ */
+async function payViaABA(params: PayViaABAFunctionParams): Promise<PayViaABAResult> {
+    const {reportIDs, shouldReimburseHeldTransactions = true, introSelected, isSelfTourViewed, currentUserAccountID, conciergeChat, delegateAccountID, onPaid} = params;
 
     completePaymentOnboarding(CONST.IOU.PAYMENT_SELECTED.BBA, introSelected, isSelfTourViewed, currentUserAccountID, conciergeChat, delegateAccountID);
 
@@ -1137,41 +1166,26 @@ async function payViaABA(params: PayViaABAFunctionParams): Promise<void> {
 
     // Matches the file names Classic gives ABA files
     const fileName = reportIDs.length === 1 ? `ABA_Report_${reportIDs.at(0)}.aba` : `ABA_Report_Bulk_${format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}.aba`;
-    let hasDownloadFailed = false;
-    const handleDownloadFailed = (error?: HttpsError) => {
-        hasDownloadFailed = true;
-        onDownloadFailed(error);
-    };
 
     // The file download doesn't go through the write queue, so we wait for queued writes to reach the server first
     await API.waitForWrites(WRITE_COMMANDS.PAY_VIA_ABA);
-    return fileDownload(
-        translate,
-        getCommandURL({command: WRITE_COMMANDS.PAY_VIA_ABA}),
-        fileName,
-        '',
-        false,
-        formData,
-        CONST.NETWORK.METHOD.POST,
-        handleDownloadFailed,
-        undefined,
-        false,
-    ).then(() => {
-        if (hasDownloadFailed) {
-            return;
-        }
+    const response = await fetch(getCommandURL({command: WRITE_COMMANDS.PAY_VIA_ABA}), {method: CONST.NETWORK.METHOD.POST, body: formData, credentials: 'same-origin'});
+    const {content, skippedReportIDs} = await parsePayViaABAResponse(response);
 
-        // A successful download means the reports are paid, so we mark them as paid now to stop the Pay button
-        // reappearing before the BE's pusher updates arrive.
-        Onyx.update(
-            reportIDs.map((reportID) => ({
+    // The backend only sends the file once it has paid the reports in it, so we mark them as paid now to stop the Pay
+    // button reappearing before the BE's pusher updates arrive.
+    const skippedReportIDSet = new Set(Object.values(skippedReportIDs).flat());
+    Onyx.update(
+        reportIDs
+            .filter((reportID) => !skippedReportIDSet.has(reportID))
+            .map((reportID) => ({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: {statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED, stateNum: CONST.REPORT.STATE_NUM.APPROVED},
             })),
-        );
-        onPaid?.();
-    });
+    );
+    onPaid?.();
+    return {abaFile: {fileName, content}, skippedReportIDs};
 }
 
 function markReportPaymentReceived(
@@ -1482,4 +1496,4 @@ function savePreferredPaymentMethod(
 }
 
 export {cancelPayment, completePaymentOnboarding, getBankAccountToSetUpBeforePaying, markReportPaymentReceived, payInvoice, payMoneyRequest, payViaABA, savePreferredPaymentMethod};
-export type {PayMoneyRequestFunctionParams};
+export type {ABAFile, PayMoneyRequestFunctionParams, PayViaABAResult};

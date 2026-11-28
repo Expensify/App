@@ -2,6 +2,7 @@ import {write} from '@libs/API';
 import type {
     ConnectPolicyToRilletParams,
     UpdateRilletAccountingMethodParams,
+    UpdateRilletAutoCreateVendorParams,
     UpdateRilletAutoSyncParams,
     UpdateRilletBillPaymentAccountParams,
     UpdateRilletCardProgramAccountParams,
@@ -713,6 +714,15 @@ function updateRilletAccountingMethod(policyID: string, accountingMethod: Rillet
     write(WRITE_COMMANDS.UPDATE_RILLET_ACCOUNTING_METHOD, parameters, onyxData);
 }
 
+function updateRilletAutoCreateVendor(policyID: string, enabled: RilletExport['autoCreateVendor'], oldEnabled?: RilletExport['autoCreateVendor']) {
+    const onyxData = prepareRilletExportOnyxData(policyID, CONST.RILLET_CONFIG.AUTO_CREATE_VENDOR, enabled, oldEnabled ?? null);
+    const parameters: UpdateRilletAutoCreateVendorParams = {
+        policyID,
+        enabled,
+    };
+    write(WRITE_COMMANDS.UPDATE_RILLET_AUTO_CREATE_VENDOR, parameters, onyxData);
+}
+
 function updateRilletSyncReimbursedReports(policyID: string, enabled: RilletSync['syncReimbursedReports'], oldEnabled?: RilletSync['syncReimbursedReports']) {
     const onyxData = prepareRilletSyncOnyxData(policyID, CONST.RILLET_CONFIG.SYNC_REIMBURSED_REPORTS, enabled, oldEnabled ?? null);
     const parameters: UpdateRilletSyncReimbursedReportsParams = {
@@ -828,6 +838,7 @@ export {
     updateRilletCreditCardAccount,
     updateRilletAutoSync,
     updateRilletAccountingMethod,
+    updateRilletAutoCreateVendor,
     updateRilletSyncReimbursedReports,
     updateRilletBillPaymentAccount,
     updateRilletFxExpenseAccount,

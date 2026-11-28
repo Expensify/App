@@ -1297,6 +1297,7 @@ describe('actions/IOU', () => {
                 },
                 isASAPSubmitBetaEnabled: true,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
@@ -1371,6 +1372,7 @@ describe('actions/IOU', () => {
                 },
                 isASAPSubmitBetaEnabled: true,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
@@ -2034,6 +2036,7 @@ describe('actions/IOU', () => {
                 },
                 isASAPSubmitBetaEnabled: true,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
@@ -2972,6 +2975,7 @@ describe('actions/IOU', () => {
                         action === CONST.IOU.ACTION.SHARE ? {accountant: {accountID: VIT_ACCOUNT_ID, login: VIT_EMAIL}, newAccountIDs: [], newLogins: [], formatPhoneNumber} : undefined,
                     isASAPSubmitBetaEnabled: true,
                     currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                    currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                     introSelected: undefined,
                     quickAction: undefined,
                     recentWaypoints: [],
@@ -3043,6 +3047,7 @@ describe('actions/IOU', () => {
                         action === CONST.IOU.ACTION.SHARE ? {accountant: {accountID: VIT_ACCOUNT_ID, login: VIT_EMAIL}, newAccountIDs: [], newLogins: [], formatPhoneNumber} : undefined,
                     isASAPSubmitBetaEnabled: true,
                     currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                    currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                     introSelected: undefined,
                     quickAction: undefined,
                     recentWaypoints: [],
@@ -3298,6 +3303,7 @@ describe('actions/IOU', () => {
                     action === CONST.IOU.ACTION.SHARE ? {accountant: {accountID: VIT_ACCOUNT_ID, login: VIT_EMAIL}, newAccountIDs: [], newLogins: [], formatPhoneNumber} : undefined,
                 isASAPSubmitBetaEnabled: true,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
@@ -3348,6 +3354,7 @@ describe('actions/IOU', () => {
                 report,
                 currentUserAccountID: CREATE_TRANSACTION_USER_ACCOUNT_ID,
                 currentUserEmail: CREATE_TRANSACTION_USER_LOGIN,
+                currentUserPersonalDetails: {accountID: CREATE_TRANSACTION_USER_ACCOUNT_ID, login: CREATE_TRANSACTION_USER_LOGIN},
                 shouldGenerateTransactionThreadReport: false,
                 isASAPSubmitBetaEnabled: true,
                 quickAction: undefined,
@@ -3394,6 +3401,90 @@ describe('actions/IOU', () => {
 
             expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.REQUEST_MONEY, 1);
             expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.TRACK_EXPENSE, 0);
+        });
+
+        it.each([
+            {iouType: CONST.IOU.TYPE.TRACK, expectedCommand: WRITE_COMMANDS.TRACK_EXPENSE, seed: 92},
+            {iouType: CONST.IOU.TYPE.SUBMIT, expectedCommand: WRITE_COMMANDS.REQUEST_MONEY, seed: 95},
+        ])('defers auto-submit, reuses one preview card, and finalizes Submit and Close state for $expectedCommand batches', async ({iouType, expectedCommand, seed}) => {
+            // Given a workspace with Instant Submit, Submit and Close, and reimbursements disabled, plus two receipts dropped at once
+            await signInWithTestUser(CREATE_TRANSACTION_USER_ACCOUNT_ID, CREATE_TRANSACTION_USER_LOGIN);
+            const policyID = `submit-and-close-policy-${seed}`;
+            const chatReportID = `submit-and-close-chat-${seed}`;
+            const policy: Policy = {
+                ...createRandomPolicy(seed, CONST.POLICY.TYPE.TEAM),
+                id: policyID,
+                autoReporting: true,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+            };
+            const chatReport: Report = {
+                ...createRandomReport(seed, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                reportID: chatReportID,
+                policyID,
+                ownerAccountID: CREATE_TRANSACTION_USER_ACCOUNT_ID,
+                iouReportID: undefined,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, chatReport);
+            const tx1 = {...createRandomTransaction(seed + 1), transactionID: `batch-tx-${seed}-1`, amount: 0, currency: 'USD', created: '2026-11-26'};
+            const tx2 = {...createRandomTransaction(seed + 2), transactionID: `batch-tx-${seed}-2`, amount: 0, currency: 'USD', created: '2026-11-26'};
+
+            // When both receipts are submitted in one batch via createTransaction
+            const writeSpy = jest.spyOn(API, 'writeWhenReady');
+            createTransaction({
+                ...buildCreateTransactionParams(iouType, chatReport),
+                isASAPSubmitBetaEnabled: false,
+                policyParams: {policy},
+                participant: {reportID: chatReportID, isPolicyExpenseChat: true, policyID},
+                transactions: [tx1, tx2],
+                files: [
+                    {transactionID: tx1.transactionID, source: `receipt-${seed}-1`},
+                    {transactionID: tx2.transactionID, source: `receipt-${seed}-2`},
+                ],
+                optimisticTransactionIDs: [`opt-tx-${seed}-1`, `opt-tx-${seed}-2`],
+            });
+            await waitForBatchedUpdates();
+
+            // Then both calls target the same report and preview action, and only the first defers auto-submit
+            const commandCalls = writeSpy.mock.calls.filter(([command]) => command === expectedCommand);
+            expect(commandCalls).toHaveLength(2);
+            const firstParams = commandCalls.at(0)?.at(1);
+            const secondParams = commandCalls.at(1)?.at(1);
+            const firstReportID = typeof firstParams === 'object' && firstParams !== null && 'iouReportID' in firstParams ? firstParams.iouReportID : undefined;
+            const firstPreviewActionID =
+                typeof firstParams === 'object' && firstParams !== null && 'reportPreviewReportActionID' in firstParams ? firstParams.reportPreviewReportActionID : undefined;
+            expect(firstReportID).toBeTruthy();
+            expect(firstPreviewActionID).toBeTruthy();
+            expect(firstParams).toEqual(expect.objectContaining({iouReportID: firstReportID, reportPreviewReportActionID: firstPreviewActionID, shouldDeferAutoSubmit: true}));
+            expect(secondParams).toEqual(expect.objectContaining({iouReportID: firstReportID, reportPreviewReportActionID: firstPreviewActionID, shouldDeferAutoSubmit: false}));
+
+            // And the final item restores the optimistic Submit and Close report status, rolls it back on failure, and keeps preview count accurate
+            const createdReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${String(firstReportID)}`);
+            expect(createdReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.APPROVED);
+            expect(createdReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.CLOSED);
+            const secondOnyxData = commandCalls.at(1)?.at(2);
+            const failureDataUpdates =
+                typeof secondOnyxData === 'object' && secondOnyxData !== null && 'failureData' in secondOnyxData && Array.isArray(secondOnyxData.failureData)
+                    ? secondOnyxData.failureData
+                    : [];
+            expect(failureDataUpdates).toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({
+                        key: `${ONYXKEYS.COLLECTION.REPORT}${String(firstReportID)}`,
+                        value: expect.objectContaining({
+                            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                        }),
+                    }),
+                ]),
+            );
+            const chatActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`);
+            const previewActions = Object.values(chatActions ?? {}).filter((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW);
+            expect(previewActions).toHaveLength(1);
+            expect(previewActions.at(0)?.childMoneyRequestCount).toBe(2);
+            writeSpy.mockRestore();
         });
     });
 });

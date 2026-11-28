@@ -1,10 +1,12 @@
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import getImageRecyclingKey from '@libs/getImageRecyclingKey';
 import Log from '@libs/Log';
 
 import CONST from '@src/CONST';
+import type {SingleImageSource} from '@src/types/utils/ReactNativeCompat';
 
-import type {ImageProps, ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
+import type {ImageProps, StyleProp, ViewStyle} from 'react-native';
 
 import React from 'react';
 
@@ -24,7 +26,7 @@ type OnLoadNativeEvent = {
 };
 
 type ImageWithSizeCalculationProps = {
-    url: string | ImageSourcePropType;
+    url: string | SingleImageSource;
     altText?: string;
     style?: StyleProp<ViewStyle>;
 
@@ -78,13 +80,16 @@ function ImageWithSizeCalculation({
     const source = typeof url === 'string' ? {uri: url} : url;
 
     const onError = () => {
-        Log.hmmm('Unable to fetch image to calculate size', {url});
+        Log.hmmm('Unable to fetch image to calculate size');
         onLoadFailure?.();
     };
 
     return (
         // Thumbnails are sized for the image alone, so the Retry notice would be clipped inside them.
         <ImageWithLoading
+            // Remount on a new picture so a recycled row doesn't inherit the old stall state. Native blanks the view on a
+            // remount, so a new URI for the same picture (chat upload, upgraded scan) keeps the same key
+            key={recyclingKey ?? getImageRecyclingKey(source)}
             containerStyles={[styles.w100, styles.h100, style]}
             style={[styles.w100, styles.h100]}
             source={source}

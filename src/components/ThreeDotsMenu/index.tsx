@@ -98,12 +98,11 @@ function ThreeDotsMenu({
             return;
         }
         hideProductTrainingTooltip?.();
-        buttonRef.current?.blur();
 
-        // Dismiss the keyboard before opening the menu so the menu doesn't
-        // render while the keyboard is still animating closed (which creates
-        // a blank-space flash on mobile web).
+        // Run this before blurring the button, so a surface that contains the button can hold state
+        // (such as keeping a peeking bar open) before focus leaves it.
         onIconPress?.();
+        buttonRef.current?.blur();
 
         const openMenu = () => {
             if (getMenuPosition) {
@@ -116,7 +115,8 @@ function ThreeDotsMenu({
             }
         };
 
-        // On mobile web, wait for the keyboard to fully close before opening the menu.
+        // On mobile web, wait for the keyboard to fully close before opening the menu, so the menu doesn't
+        // render while the keyboard is still animating closed (which creates a blank-space flash).
         // KeyboardUtils.dismiss() uses visualViewport to detect keyboard state and resolves
         // immediately if the keyboard is not open. On desktop, call openMenu() synchronously
         // to preserve the original behavior (avoids async microtask deferral on desktop Chrome).

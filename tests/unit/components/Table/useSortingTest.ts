@@ -39,6 +39,69 @@ function renderSorting(compareItems: CompareItemsCallback<TestItem> = compareByN
 }
 
 describe('useSorting middleware', () => {
+    it('keeps the chosen column and order when rerendering and invalidates the sorted-data cache', () => {
+        // Given a table whose key order differs from its initial name order
+        const items = createItems();
+        const compareItems: CompareItemsCallback<TestItem> = (first, second, sorting) => {
+            const columnKey = sorting.columnKey === 'keyForList' ? 'keyForList' : 'name';
+            const comparison = first[columnKey].localeCompare(second[columnKey]);
+            return sorting.order === CONST.SEARCH.SORT_ORDER.ASC ? comparison : -comparison;
+        };
+        const onSortingChange = jest.fn();
+        const {result, rerender} = renderHook(() =>
+            useSorting({
+                compareItems,
+                initialSortColumn: NAME_COLUMN_KEY,
+                initialSortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+                columnKeys: [NAME_COLUMN_KEY, 'keyForList'],
+                onSortingChange,
+            }),
+        );
+        expect(result.current.middleware(items).map((item) => item.name)).toEqual(['Charlie', 'Bravo', 'Alpha']);
+
+        // When the user chooses a different column in the same order and rerenders the mounted table
+        act(() => result.current.methods.updateSorting({columnKey: 'keyForList', order: CONST.SEARCH.SORT_ORDER.DESC}));
+        rerender({});
+
+        // Then neither rerendering nor the earlier cached result replaces the user's choice
+        expect(result.current.activeSorting).toEqual({columnKey: 'keyForList', order: CONST.SEARCH.SORT_ORDER.DESC});
+        expect(result.current.methods.getActiveSorting()).toEqual(result.current.activeSorting);
+        expect(result.current.middleware(items).map((item) => item.name)).toEqual(['Bravo', 'Alpha', 'Charlie']);
+        expect(onSortingChange).toHaveBeenCalledTimes(1);
+    });
+
+    it('falls back to the default column and order when a column disappears', () => {
+        // Given a conditional column with a user-selected order different from the default
+        const onSortingChange = jest.fn();
+        const {result, rerender} = renderHook(
+            ({columnKeys}: {columnKeys: string[]}) =>
+                useSorting({
+                    compareItems: compareByName,
+                    initialSortColumn: NAME_COLUMN_KEY,
+                    initialSortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+                    columnKeys,
+                    onSortingChange,
+                }),
+            {initialProps: {columnKeys: [NAME_COLUMN_KEY, 'conditional']}},
+        );
+        const chosenSorting = {columnKey: 'conditional', order: CONST.SEARCH.SORT_ORDER.ASC};
+        act(() => result.current.methods.updateSorting(chosenSorting));
+        onSortingChange.mockClear();
+
+        // When the conditional column disappears
+        rerender({columnKeys: [NAME_COLUMN_KEY]});
+
+        // Then the table derives the default without emitting a user change
+        expect(result.current.activeSorting).toEqual({columnKey: NAME_COLUMN_KEY, order: CONST.SEARCH.SORT_ORDER.DESC});
+        expect(onSortingChange).not.toHaveBeenCalled();
+
+        // When the column returns, the derived fallback has not overwritten the stored choice
+        rerender({columnKeys: [NAME_COLUMN_KEY, 'conditional']});
+
+        // Then the original user selection is active again
+        expect(result.current.activeSorting).toEqual(chosenSorting);
+    });
+
     it('sorts the data by the active column without changing the original array', () => {
         // Given a table sorted by name ascending
         const items = createItems();

@@ -24,12 +24,13 @@ import shouldIgnoreSelectionWhenUpdatedManually from '@libs/shouldIgnoreSelectio
 import CONST from '@src/CONST';
 
 import type {ComponentRef, ForwardedRef} from 'react';
-import type {KeyboardTypeOptions, NativeSyntheticEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {KeyboardTypeOptions, StyleProp, TextStyle, ViewStyle} from 'react-native';
 
 import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
 
+import type {AmountTextInputKeyPressEvent} from './AmountTextInput';
 import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
 import type {TextInputWithSymbolProps} from './TextInputWithSymbol/types';
 
@@ -129,7 +130,7 @@ type NumberWithSymbolFormProps = {
     /**
      * Renders the flip and currency buttons as their icon plus label, without the pill background, so they read as
      * part of the field rather than as controls stacked on top of it. Their tap targets are unchanged.
-     * Left off for `AmountForm`, whose trailing button (e.g. the Chronos OOO duration unit) is a control on top of a
+     * Left off for `AmountFormInline`, whose trailing button (e.g. the Chronos OOO duration unit) is a control on top of a
      * standalone amount input rather than a row inside a form, so it keeps the pill.
      */
     shouldUseBorderlessButtons?: boolean;
@@ -413,7 +414,7 @@ function NumberWithSymbolForm({
     /**
      * Input handler to check for a forward-delete key (or keyboard shortcut) press.
      */
-    const textInputKeyPress = (event: NativeSyntheticEvent<KeyboardEvent>) => {
+    const textInputKeyPress = (event: AmountTextInputKeyPressEvent) => {
         const key = event.nativeEvent.key.toLowerCase();
 
         if (!textInput.current?.value && key === 'backspace' && isNegative) {
@@ -430,7 +431,7 @@ function NumberWithSymbolForm({
         // Also check for the keyboard shortcut on iOS in cases where a hardware keyboard may be connected to the device.
         const operatingSystem = getOperatingSystem() as string | null;
         const allowedOS: string[] = [CONST.OS.MAC_OS, CONST.OS.IOS];
-        forwardDeletePressedRef.current = key === 'delete' || (allowedOS.includes(operatingSystem ?? '') && event.nativeEvent.ctrlKey && key === 'd');
+        forwardDeletePressedRef.current = key === 'delete' || (allowedOS.includes(operatingSystem ?? '') && !!event.nativeEvent.ctrlKey && key === 'd');
     };
 
     useImperativeHandle(numberFormRef, () => ({

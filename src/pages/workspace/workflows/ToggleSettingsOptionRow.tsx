@@ -76,14 +76,17 @@ type ToggleSettingOptionRowProps = {
     accordionStyle?: StyleProp<ViewStyle>;
     isActive: boolean;
 
-    /** Callback to be called when the switch is toggled */
-    onToggle: (isEnabled: boolean) => void;
+    /** Callback to be called when the switch is toggled. A union of two function types, so async handlers and sync callers that return a value both fit. */
+    onToggle: ((isEnabled: boolean) => void) | ((isEnabled: boolean) => Promise<void>);
 
     /** SubMenuItems will be shown when the option is enabled */
     subMenuItems?: React.ReactNode;
 
     /** If there is a pending action, we will grey out the option */
     pendingAction?: PendingAction;
+
+    /** Skips this row's own pending-action opacity, e.g. when an ancestor already dims it, to avoid stacking the dim */
+    shouldDisableOpacity?: boolean;
 
     /** Any error message to show */
     errors?: Errors;
@@ -132,6 +135,7 @@ function ToggleSettingOptionRow({
     isActive,
     disabledAction,
     pendingAction,
+    shouldDisableOpacity = false,
     errors,
     onCloseError,
     disabled = false,
@@ -248,6 +252,7 @@ function ToggleSettingOptionRow({
     return (
         <OfflineWithFeedback
             pendingAction={pendingAction}
+            shouldDisableOpacity={shouldDisableOpacity}
             errors={errors}
             errorRowStyles={[styles.mt2]}
             style={[wrapperStyle]}

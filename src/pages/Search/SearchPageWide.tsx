@@ -1,4 +1,5 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import useShouldUseFlatNavigationBar from '@components/Navigation/FlatNavigationBar/useShouldUseFlatNavigationBar';
 import {useSearchSidebarContentOffsetStyle} from '@components/Navigation/SearchSidebarCollapseStore';
 import ReceiptScanDropZone from '@components/ReceiptScanDropZone';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -102,12 +103,14 @@ function SearchPageWide({
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery(), searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}));
     const splitContainerAnimatedStyle = useSearchSidebarContentOffsetStyle();
+    const shouldUseFlatNavigationBar = useShouldUseFlatNavigationBar();
     const receiptDropTargetRef = useRef<ComponentRef<typeof View>>(null);
 
     return (
         <Animated.View
             ref={receiptDropTargetRef}
-            style={[styles.searchSplitContainer, splitContainerAnimatedStyle]}
+            // Without the Spend column there is nothing to offset the page by, since the navigation bar reserves its own width.
+            style={[styles.searchSplitContainer, !shouldUseFlatNavigationBar && splitContainerAnimatedStyle]}
         >
             <ReceiptScanDropZone
                 dropZoneRef={receiptDropTargetRef}

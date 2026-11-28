@@ -11,6 +11,7 @@ import {
     getDownloadFileName,
     getExportFileName,
     getExtensionFromMimeType,
+    getFileName,
     getFileNameWithFallback,
     getFileValidationErrorText,
     getImageDimensionsAfterResize,
@@ -18,7 +19,6 @@ import {
     isHighResolutionImage,
     isLabelledDng,
     isLabelledTiff,
-    rejectWithFileDownloadError,
     resizeImageIfNeeded,
     splitExtensionFromFileName,
 } from '@libs/fileDownload/FileUtils';
@@ -57,6 +57,34 @@ describe('FileUtils', () => {
             const file = splitExtensionFromFileName('image');
             expect(file.fileName).toEqual('image');
             expect(file.fileExtension).toEqual('');
+        });
+    });
+
+    describe('getFileName', () => {
+        it('should decode the last URL segment and replace illegal characters', () => {
+            // Given an image URL whose file name is percent-encoded and contains a character illegal in file names
+            const url = 'https://example.com/images/bank%20statement%3A2026.png?v=1#preview';
+
+            // When the file name is read from it
+            const fileName = getFileName(url);
+
+            // Then it is decoded, stripped of the query and hash, and the illegal character is replaced
+            expect(fileName).toBe('bank statement_2026.png');
+        });
+
+        it.each([
+            ['a lone percent sign', 'https://example.com/images/100%.png', '100%.png'],
+            ['an invalid escape', 'https://example.com/images/image%zz.png', 'image%zz.png'],
+            ['a truncated multi-byte escape', 'https://example.com/images/price%E2%82.png', 'price%E2%82.png'],
+            ['malformed encoding and illegal characters', 'https://example.com/images/a:b*100%.png', 'a_b_100%.png'],
+        ])('should return the raw segment for %s instead of throwing', (_, url, expected) => {
+            // Given an image URL from a chat message whose last segment has malformed percent-encoding, which
+            // would otherwise throw while rendering the message
+            // When the file name is read from it
+            const fileName = getFileName(url);
+
+            // Then the raw segment is returned, with illegal file name characters still replaced
+            expect(fileName).toBe(expected);
         });
     });
 
@@ -157,50 +185,20 @@ describe('FileUtils', () => {
     });
 
     describe('isErrorResponseForFileDownload', () => {
-        it.each(['report.csv', 'ABA_Report_123.aba'])('treats a JSON response to a %s download as an error', (fileName) => {
-            // Given the API responded to a CSV or ABA file download with JSON
-            const contentType = 'application/json';
-
-            // When checking whether the response is an error
-            const isError = isErrorResponseForFileDownload(contentType, fileName);
-
-            // Then it is, since the commands that return these files only respond with JSON when they fail
-            expect(isError).toBe(true);
+        it('treats a JSON response to a CSV download as an API error', () => {
+            expect(isErrorResponseForFileDownload('application/json', 'expensify_export.csv')).toBe(true);
         });
 
-        it('treats the file content type as the file', () => {
-            // Given the API responded to an ABA file download with the file's own content type
-            const contentType = 'text/plain; charset=utf-8';
-
-            // When checking whether the response is an error
-            const isError = isErrorResponseForFileDownload(contentType, 'ABA_Report_123.aba');
-
-            // Then it isn't, so the file gets saved
-            expect(isError).toBe(false);
+        it('accepts the response when it is the CSV file', () => {
+            expect(isErrorResponseForFileDownload('text/csv', 'expensify_export.csv')).toBe(false);
         });
 
-        it('does not treat JSON as an error for other files', () => {
-            // Given a JSON response to the download of a JSON file
-            const contentType = 'application/json';
-
-            // When checking whether the response is an error
-            const isError = isErrorResponseForFileDownload(contentType, 'attachment.json');
-
-            // Then it isn't, since JSON is what that file contains
-            expect(isError).toBe(false);
+        it('accepts a JSON response to a download that is not a CSV', () => {
+            expect(isErrorResponseForFileDownload('application/json', 'data.json')).toBe(false);
         });
-    });
 
-    describe('rejectWithFileDownloadError', () => {
-        it('rejects with the error the API responded with', async () => {
-            // Given the API responded to a file download with an error
-            const response = createMock<Response>({json: () => Promise.resolve({jsonCode: 402, message: '402 Missing AU deposit account'})});
-
-            // When reading the error
-            const result = rejectWithFileDownloadError(response);
-
-            // Then it carries the API's code and message, so the caller can tell the user what went wrong
-            await expect(result).rejects.toMatchObject({status: '402', message: '402 Missing AU deposit account'});
+        it('accepts the response when there is no file name to check', () => {
+            expect(isErrorResponseForFileDownload('application/json')).toBe(false);
         });
     });
 
@@ -670,6 +668,33 @@ describe('FileUtils', () => {
 
             // Then the result keeps the resized dimensions, so the optimistic thumbnail doesn't jump from a square to the real aspect ratio
             expect(result).toEqual({uri: 'file://resized.jpg', name: 'large.jpg', type: 'image/jpeg', width: 3000, height: 2000});
+        });
+
+        it('should resize a 12 MiB image when given the receipt limit', async () => {
+            // Given a 12 MiB receipt: over the 10 MiB receipt limit, under the 24 MiB attachment limit
+            jest.mocked(getPlatform).mockReturnValue(CONST.PLATFORM.IOS);
+            jest.mocked(ImageSize.getSize).mockResolvedValue({width: 8000, height: 6000});
+            jest.mocked(getImageManipulator).mockResolvedValue(Object.assign(new File(['resized'], 'receipt.jpg', {type: 'image/jpeg'}), {uri: 'file://resized.jpg'}));
+            const file = {uri: 'file://receipt.jpg', name: 'receipt.jpg', type: 'image/jpeg', size: 12 * 1024 * 1024};
+
+            // When it is resized against the receipt limit
+            const result = await resizeImageIfNeeded(file, CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE);
+
+            // Then it is resized instead of being uploaded over the receipt limit
+            expect(getImageManipulator).toHaveBeenCalled();
+            expect(result.uri).toBe('file://resized.jpg');
+        });
+
+        it('should not resize a 12 MiB image when no limit is given', async () => {
+            // Given a 12 MiB image sent as a regular attachment
+            const file = {uri: 'file://photo.jpg', name: 'photo.jpg', type: 'image/jpeg', size: 12 * 1024 * 1024};
+
+            // When it is resized without a limit
+            const result = await resizeImageIfNeeded(file);
+
+            // Then it is returned untouched, because attachments still use the 24 MiB limit
+            expect(getImageManipulator).not.toHaveBeenCalled();
+            expect(result).toBe(file);
         });
     });
 

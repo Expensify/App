@@ -10,17 +10,10 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {
-    clearMoneyRequestAmount,
-    getMoneyRequestParticipantsFromReport,
-    setMoneyRequestAmount,
-    setMoneyRequestCurrency,
-    setMoneyRequestTaxAmount,
-    setMoneyRequestTaxRate,
-} from '@libs/actions/IOU/MoneyRequest';
+import {clearMoneyRequestAmount, setMoneyRequestAmount, setMoneyRequestCurrency, setMoneyRequestTaxAmount, setMoneyRequestTaxRate} from '@libs/actions/IOU/MoneyRequest';
 import {convertToBackendAmount, convertToFrontendAmountAsString, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import {calculateAmount, isMovingTransactionFromTrackExpense, isP2PRecipient, isParticipantP2P} from '@libs/IOUUtils';
+import {calculateAmount, isMovingTransactionFromTrackExpense, isP2PRecipient} from '@libs/IOUUtils';
 import {getBackendAmountFromInput} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
@@ -62,14 +55,11 @@ type AmountFieldProps = {
     isDistanceRequest: boolean;
     shouldShowTimeRequestFields: boolean;
     shouldDisplayFieldError: boolean;
-    formError: string;
 
     /** The amount entry of the errors a blocked confirm revealed, from `getConfirmationFieldErrors`. Distance and time leave it out, since their amount is computed. */
     fieldError?: TranslationPaths;
 
     policy: OnyxEntry<OnyxTypes.Policy>;
-    clearFormErrors: (errors: string[]) => void;
-    setFormError: (error: TranslationPaths | '') => void;
 };
 
 function AmountField({
@@ -80,15 +70,13 @@ function AmountField({
     isDistanceRequest,
     shouldShowTimeRequestFields,
     shouldDisplayFieldError,
-    formError,
     fieldError,
     policy,
-    clearFormErrors,
-    setFormError,
 }: AmountFieldProps) {
     const isScreenFocused = useIsFocused();
     const navigation = useNavigation();
-    const {isEditingSplitBill, canEnterScanFieldsManually, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID, fieldViewRefs} = useConfirmationFields();
+    const {isEditingSplitBill, canEnterScanFieldsManually, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID, fieldViewRefs, onUnsavedAmountInputChange} =
+        useConfirmationFields();
     // Filled by the forms that offer a receipt from beside the amount field rather than from a full-width empty
     // state, with their compact add-receipt button.
     const {amountTrailingAction, shouldUseDropdownRows} = useExpenseFormLayout();
@@ -123,14 +111,11 @@ function AmountField({
     // not offered as a control at all: no caret, no hover, no press. A scanning receipt's amount comes from SmartScan,
     // so its row is locked the same way until the scan finishes.
     const canOpenAmountPage = !isReadOnly && !isDistanceRequest && !shouldShowTimeRequestFields && !isScanningReceipt;
-    const isP2P = isParticipantP2P(getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID).at(0));
-    // Editing a split bill flags an invalid amount as the user types, through the form error rather than the field errors.
-    const amountErrorKey = formError === 'common.error.invalidAmount' ? 'common.error.invalidAmount' : fieldError;
     const shouldShowAmountMissingError = shouldDisplayFieldError && amountIsMissing;
 
     let amountFieldErrorText = '';
-    if (amountErrorKey) {
-        amountFieldErrorText = translate(amountErrorKey);
+    if (fieldError) {
+        amountFieldErrorText = translate(fieldError);
     } else if (shouldShowAmountMissingError) {
         amountFieldErrorText = translate('common.error.enterAmount');
     }
@@ -185,6 +170,15 @@ function AmountField({
         };
     }, [shouldAutoFocusOnMount, isAmountFieldDisabled, isScreenFocused]);
 
+    // The draft drops a sign typed without digits and can't tell the user's currency pick from the workspace default, so the field tracks both itself.
+    const isSignOnlyInputRef = useRef(false);
+    const currencyBeforeUserPickRef = useRef<string | undefined>(undefined);
+
+    const reportUnsavedInput = (currency: string) => {
+        const hasPickedOtherCurrency = currencyBeforeUserPickRef.current !== undefined && currency !== currencyBeforeUserPickRef.current;
+        onUnsavedAmountInputChange?.(isSignOnlyInputRef.current || hasPickedOtherCurrency);
+    };
+
     const showCurrencyPicker = () => {
         setIsCurrencyPickerVisible(true);
     };
@@ -227,6 +221,7 @@ function AmountField({
             }, {});
 
             setDraftSplitTransaction(
+                translate,
                 transactionID,
                 baseTransaction,
                 {
@@ -270,6 +265,11 @@ function AmountField({
             return;
         }
 
+        if (currencyBeforeUserPickRef.current === undefined) {
+            currencyBeforeUserPickRef.current = effectiveCurrency;
+        }
+        reportUnsavedInput(value);
+
         const parsedAmount = getBackendAmountFromInput(transactionAmount);
         const updatedAmount = parsedAmount ?? amount;
 
@@ -298,6 +298,10 @@ function AmountField({
             return;
         }
 
+        // Clearing the draft wipes the input only when it showed an amount, so only a sign typed into an already empty field stays on screen.
+        isSignOnlyInputRef.current = newAmount.trim() === '-' && transactionAmount === '';
+        reportUnsavedInput(effectiveCurrency);
+
         const parsedAmount = getBackendAmountFromInput(newAmount);
         if (parsedAmount === null) {
             // User cleared the field — mark amount as unset so the field stays empty
@@ -306,14 +310,6 @@ function AmountField({
             // Recalculate split shares to 0 so each participant's individual amount reflects the cleared total.
             buildAndSaveSplitShares(0, effectiveCurrency);
             return;
-        }
-
-        const isInlineAmountInvalid = parsedAmount === 0 && isP2P;
-
-        if (isInlineAmountInvalid && shouldDisplayFieldError) {
-            setFormError('common.error.invalidAmount');
-        } else if (!isInlineAmountInvalid) {
-            clearFormErrors(isEditingSplitBill && parsedAmount !== 0 ? ['common.error.invalidAmount', 'iou.error.invalidAmount'] : ['common.error.invalidAmount']);
         }
 
         buildAndSaveSplitShares(parsedAmount, effectiveCurrency);
@@ -391,7 +387,11 @@ function AmountField({
                 // The distance and time forms compute their amount rather than take it, so the field is a read-only
                 // row on them. The trailing slot travels with it, or those forms would have nowhere to offer the
                 // compact add-receipt button from.
-                <View style={[styles.flexRow, styles.alignItemsCenter, shouldUseDropdownRows ? undefined : styles.mt2]}>
+                // A split edited while its receipt is still scanning can be blocked on this row, so it shows the field error and holds the ref a blocked confirm scrolls to.
+                <View
+                    ref={fieldViewRefs?.amount}
+                    style={[styles.flexRow, styles.alignItemsCenter, shouldUseDropdownRows ? undefined : styles.mt2]}
+                >
                     <View style={styles.flex1}>
                         {shouldUseDropdownRows ? (
                             // On the bordered form the editable amount is a text input, so a locked one reads as a
@@ -404,7 +404,7 @@ function AmountField({
                                     onPress={openAmountPage}
                                     isDisabled={didConfirm}
                                     isInteractive={canOpenAmountPage}
-                                    errorText={shouldShowAmountMissingError ? translate('common.error.enterAmount') : ''}
+                                    errorText={amountFieldErrorText}
                                     sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.AMOUNT_FIELD}
                                 />
                             </ExpenseFieldContainer>
@@ -420,16 +420,16 @@ function AmountField({
                                         <MenuItem.FieldName>{translate('iou.amount')}</MenuItem.FieldName>
                                         <MenuItem.FieldValue style={styles.moneyRequestConfirmationAmount}>{formattedAmount}</MenuItem.FieldValue>
                                     </MenuItem.Content>
-                                    {(canOpenAmountPage || shouldShowAmountMissingError) && (
+                                    {(canOpenAmountPage || !!amountFieldErrorText) && (
                                         <MenuItem.Trailing>
-                                            {shouldShowAmountMissingError && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                                            {!!amountFieldErrorText && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
                                             {canOpenAmountPage && <MenuItem.Chevron />}
                                         </MenuItem.Trailing>
                                     )}
                                 </MenuItem.Row>
-                                {shouldShowAmountMissingError && (
+                                {!!amountFieldErrorText && (
                                     <MenuItem.HelpText
-                                        message={translate('common.error.enterAmount')}
+                                        message={amountFieldErrorText}
                                         isError
                                     />
                                 )}

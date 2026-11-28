@@ -25,7 +25,14 @@ import {getReportFromSearchSnapshot, setSearchMergeReportIDs} from '@libs/action
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
-import {canMergeReports, doReportsHaveMatchingReportFieldValues, getMoneyRequestSpendBreakdown, getPersonalDetailsForAccountID, isReportExportedOrPending} from '@libs/ReportUtils';
+import {
+    canMergeReports,
+    doReportsHaveMatchingReportFieldValues,
+    getMoneyRequestSpendBreakdown,
+    getPersonalDetailsForAccountID,
+    isArchivedReport,
+    isReportExportedOrPending,
+} from '@libs/ReportUtils';
 
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 
@@ -34,7 +41,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isTrackIntentUserSelector} from '@src/selectors/Onboarding';
 import type {Transaction} from '@src/types/onyx';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React, {useState} from 'react';
 
@@ -43,9 +49,8 @@ function SearchMergeReports() {
     const {currentSearchResults} = useSearchResultsContext();
     const {currentSearchHash} = useSearchQueryContext();
 
-    const [selectedReportIDs, selectedReportIDsMeta] = useOnyx(ONYXKEYS.SEARCH_MERGE_REPORT_IDS);
-    const [allReports, allReportsMeta] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const isLoadingOnyxData = isLoadingOnyxValue(allReportsMeta, selectedReportIDsMeta);
+    const [selectedReportIDs] = useOnyx(ONYXKEYS.SEARCH_MERGE_REPORT_IDS);
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
@@ -63,7 +68,6 @@ function SearchMergeReports() {
     const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const isReportMergeBetaEnabled = isBetaEnabled(CONST.BETAS.REPORT_MERGE);
     const session = useSession();
     const personalDetails = usePersonalDetails();
     const personalPolicy = usePersonalPolicy();
@@ -215,6 +219,7 @@ function SearchMergeReports() {
             delegateAccountID,
             getCurrencyDecimals,
             getCurrencySymbol,
+            isChatReportArchived: isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${destinationReport.parentReportID}`]),
             personalDetailsByLogins: getPersonalDetailsByLogin(),
         });
 
@@ -236,18 +241,11 @@ function SearchMergeReports() {
         setDestinationReportID(item.reportID);
     };
 
-    // Loading while `selectedReportIDs` and `allReports` are being hydrated.
-    // Or while reports are being hydrated from snapshot data.
-    const isLoading =
-        isLoadingOnyxData ||
-        selectedReportIDs?.some((reportID) => {
-            const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
-            return !allReports?.[reportKey] && !!currentSearchResults?.data?.[reportKey];
-        });
-
-    if (!isReportMergeBetaEnabled) {
-        return null;
-    }
+    // Loading while reports are being hydrated from snapshot data.
+    const isLoading = selectedReportIDs?.some((reportID) => {
+        const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
+        return !allReports?.[reportKey] && !!currentSearchResults?.data?.[reportKey];
+    });
 
     return (
         <StepScreenWrapper

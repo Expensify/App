@@ -60,6 +60,15 @@ function getComparisonColor(color: string, colorScheme: ColorScheme): string {
     return (hue && colors[`${hue}${colorScheme === CONST.COLOR_SCHEME.DARK ? CHART_COMPARISON_SHADE_DARK : CHART_COMPARISON_SHADE}`]) ?? color;
 }
 
+const CHART_AVERAGE_MARKER_SHADE = 600;
+
+/** Returns the color to mark an average in on bars drawn in `color`, a darker shade of the same hue */
+function getAverageMarkerColor(color: string): string {
+    const index = CHART_PALETTE.indexOf(color);
+    const hue = index < 0 ? undefined : CHART_PALETTE_HUES.at(index % CHART_PALETTE_HUES.length);
+    return (hue && colors[`${hue}${CHART_AVERAGE_MARKER_SHADE}`]) ?? color;
+}
+
 /** Index of the default single-color chart color (green400). */
 const DEFAULT_CHART_COLOR_INDEX = 3;
 
@@ -70,6 +79,7 @@ const VictoryTheme = {
         default: getChartColor(DEFAULT_CHART_COLOR_INDEX),
         getColor: getChartColor,
         getComparisonColor,
+        getAverageMarkerColor,
     },
     fontFamilies: Array.from(CHART_FONT_FAMILY_NAMES),
     axis: {

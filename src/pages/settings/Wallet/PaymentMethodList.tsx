@@ -70,7 +70,6 @@ import type {BankAccount, BankAccountList, CardList, Policy} from '@src/types/on
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {ReactElement} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
@@ -91,7 +90,7 @@ import type {CardPressHandlerParams, PaymentMethodPressHandlerParams} from './Wa
 
 import PaymentMethodListItem from './PaymentMethodListItem';
 
-type PaymentMethodPressHandler = ({event, accountType, accountData, methodID, icon, description, isDefault}: PaymentMethodPressHandlerParams) => void;
+type PaymentMethodPressHandler = ({event, accountType, accountData, methodID, icon, description, isDefault}: PaymentMethodPressHandlerParams) => void | Promise<void>;
 
 type CardPressHandler = ({event, cardID, cardData, icon}: CardPressHandlerParams) => void;
 
@@ -143,7 +142,7 @@ type PaymentMethodListProps = {
     shouldShowBankAccountSections?: boolean;
 
     /** Function to be called when the user presses the add bank account button */
-    onAddBankAccountPress?: () => void;
+    onAddBankAccountPress?: () => void | Promise<void>;
 
     /** The icon to be displayed in the right side of the payment method item */
     itemIconRight?: IconAsset;
@@ -238,15 +237,13 @@ function PaymentMethodList({
     });
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
-    const [bankAccountList = getEmptyObject<BankAccountList>(), bankAccountListResult] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [bankAccountList = getEmptyObject<BankAccountList>()] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
-    const isLoadingBankAccountList = isLoadingOnyxValue(bankAccountListResult);
-    const [cardList = getEmptyObject<CardList>(), cardListResult] = useOnyx(ONYXKEYS.CARD_LIST);
-    const isLoadingCardList = isLoadingOnyxValue(cardListResult);
+    const [cardList = getEmptyObject<CardList>()] = useOnyx(ONYXKEYS.CARD_LIST);
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const [allCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
-    const cardsForPolicyLookup = shouldShowAssignedCards ? Object.values(isLoadingCardList ? {} : (cardList ?? {})).filter((card) => !!card.domainName || !!card.fundID) : [];
+    const cardsForPolicyLookup = shouldShowAssignedCards ? Object.values(cardList).filter((card) => !!card.domainName || !!card.fundID) : [];
     const policiesForAssignedCardsSelectorFactory = createPoliciesForAssignedCardsSelector(cardsForPolicyLookup, getPolicyIDsNamedByCardFeeds(cardsForPolicyLookup, allCardFeeds));
     const [policiesForAssignedCards] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         selector: (policies: OnyxCollection<Policy>) => policiesForAssignedCardsSelectorFactory(policies),
@@ -262,8 +259,8 @@ function PaymentMethodList({
 
     const mapBankStatusToRowStatus = (
         status: BankAccountConnectionStatus,
-        onActionPress: (e: GestureResponderEvent | KeyboardEvent | undefined) => void,
-        onUnlockPress?: (e: GestureResponderEvent | KeyboardEvent | undefined) => void,
+        onActionPress: (e: GestureResponderEvent | KeyboardEvent | undefined) => void | Promise<void>,
+        onUnlockPress?: (e: GestureResponderEvent | KeyboardEvent | undefined) => void | Promise<void>,
         isPendingDelete = false,
         onPlaidPress?: () => void,
     ): PaymentMethodItem['connectionStatus'] => ({
@@ -290,7 +287,7 @@ function PaymentMethodList({
 
     const computeFilteredPaymentMethods = (): Array<PaymentMethodItem | string> => {
         if (shouldShowAssignedCards) {
-            const assignedCards = Object.values(isLoadingCardList ? {} : (cardList ?? {}))
+            const assignedCards = Object.values(cardList)
                 // Include active Expensify cards, company cards (domain), and personal cards
                 .filter(
                     (card) =>
@@ -599,7 +596,7 @@ function PaymentMethodList({
         // const paymentCardList = fundList ?? {};
         // const filteredCardList = Object.values(paymentCardList).filter((card) => !!card.accountData?.additionalData?.isP2PDebitCard);
         const filteredCardList = {};
-        let combinedPaymentMethods = formatPaymentMethods(isLoadingBankAccountList ? {} : (bankAccountList ?? {}), filteredCardList, styles, translate);
+        let combinedPaymentMethods = formatPaymentMethods(bankAccountList, filteredCardList, styles, translate);
 
         if (!isOffline) {
             combinedPaymentMethods = combinedPaymentMethods.filter(

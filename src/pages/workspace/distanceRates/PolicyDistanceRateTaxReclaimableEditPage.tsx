@@ -1,4 +1,4 @@
-import AmountForm from '@components/AmountForm';
+import AmountFormKeypad from '@components/AmountFormAdapters/AmountFormKeypad';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapperWithRef from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -95,11 +95,10 @@ function PolicyDistanceRateTaxReclaimableEditPage({route, policy}: PolicyDistanc
                     addBottomSafeAreaPadding
                 >
                     <InputWrapperWithRef
-                        InputComponent={AmountForm}
+                        InputComponent={AmountFormKeypad}
                         inputID={INPUT_IDS.TAX_CLAIMABLE_VALUE}
                         decimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES}
                         defaultValue={currentTaxReclaimableOnValue?.toString() ?? ''}
-                        isCurrencyPressable={false}
                         currency={currency}
                         ref={inputCallbackRef}
                     />

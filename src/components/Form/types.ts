@@ -1,6 +1,7 @@
 import type AddPlaidBankAccount from '@components/AddPlaidBankAccount';
 import type AddressSearch from '@components/AddressSearch';
-import type AmountForm from '@components/AmountForm';
+import type AmountFormInline from '@components/AmountFormAdapters/AmountFormInline';
+import type AmountFormKeypad from '@components/AmountFormAdapters/AmountFormKeypad';
 import type AmountTextInput from '@components/AmountTextInput';
 import type CheckboxWithLabel from '@components/CheckboxWithLabel';
 import type CountryPicker from '@components/CountryPicker';
@@ -58,8 +59,10 @@ import type {DynamicFormListItem} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
-import type {ComponentType, FocusEvent, Key, ReactNode, Ref, RefObject} from 'react';
-import type {GestureResponderEvent, InputModeOptions, KeyboardTypeOptions, StyleProp, SubmitBehavior, TextInputSubmitEditingEvent, ViewStyle} from 'react-native';
+import type {ComponentRef, ComponentType, FocusEvent, Key, ReactNode, Ref, RefObject} from 'react';
+// eslint-disable-next-line no-restricted-imports -- type only
+import type {GestureResponderEvent, InputModeOptions, KeyboardTypeOptions, ScrollView, StyleProp, SubmitBehavior, TextInputSubmitEditingEvent, ViewStyle} from 'react-native';
+import type {AnimatedRef} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 
 /**
@@ -76,7 +79,8 @@ type ValidInputs =
     | typeof CountrySelector
     | typeof CurrencySelector
     | typeof CurrencyPicker
-    | typeof AmountForm
+    | typeof AmountFormInline
+    | typeof AmountFormKeypad
     | typeof NumberWithSymbolForm
     | typeof PercentageForm
     | typeof BusinessTypePicker
@@ -202,6 +206,9 @@ type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = ForwardedFSClassProp
 
         shouldUseScrollView?: boolean;
 
+        /** When set, FormWrapper attaches its scroll view to this ref instead of its own, so the caller can scroll it, e.g. with useKeyboardDrivenScroll */
+        scrollViewRef?: AnimatedRef<ComponentRef<typeof ScrollView>>;
+
         /** Container styles */
         style?: StyleProp<ViewStyle>;
 
@@ -233,14 +240,10 @@ type FormRef<TFormID extends OnyxFormKey = OnyxFormKey> = {
     resetFormFieldError: (fieldID: keyof Form) => void;
     submit: () => void;
     scrollToEnd: () => void;
-    /** Delay by the keyboard transition duration by default; pass false when the keyboard has finished opening. */
-    scrollTo: (y: number, shouldDelayScroll?: boolean) => void;
 };
 
 type FormWrapperRef = {
     scrollToEnd: () => void;
-    /** Delay by the keyboard transition duration by default; pass false when the keyboard has finished opening. */
-    scrollTo: (y: number, shouldDelayScroll?: boolean) => void;
 };
 
 type InputRefs = Record<string, RefObject<InputComponentBaseProps>>;

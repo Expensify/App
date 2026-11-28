@@ -54,21 +54,21 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     // delegate. The launch options above cover `Linking.getInitialURL()`; replaying it here also
     // fires the `url` event for listeners already attached.
     for context in connectionOptions.urlContexts {
-      forward(urlContext: context)
+      forward(urlContext: context, in: scene)
     }
     for userActivity in connectionOptions.userActivities {
-      forward(userActivity: userActivity)
+      forward(userActivity: userActivity, in: scene)
     }
   }
 
   func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
     for context in URLContexts {
-      forward(urlContext: context)
+      forward(urlContext: context, in: scene)
     }
   }
 
   func scene(_ scene: UIScene, continue userActivity: NSUserActivity) {
-    forward(userActivity: userActivity)
+    forward(userActivity: userActivity, in: scene)
   }
 
   // There is no scene lifecycle forwarding because nothing implements the matching
@@ -97,12 +97,15 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     return options.isEmpty ? nil : options
   }
 
-  // MARK: - Forwarding to the app delegate
+  // MARK: - Forwarding to React Native and the app delegate
 
-  // `AppDelegate` is the single sink for these, so `RCTLinkingManager`, Expo subscribers and any
-  // `UIApplicationDelegate` swizzling (Firebase swizzles both selectors) all see them.
+  // `RCTLinkingManager`'s app delegate entry points do nothing in apps that adopt UIScene, so links
+  // reach JS through its scene entry points. The app delegate still gets them, so
+  // Expo subscribers and any `UIApplicationDelegate` swizzling (Firebase swizzles both selectors) see them.
 
-  private func forward(urlContext: UIOpenURLContext) {
+  private func forward(urlContext: UIOpenURLContext, in scene: UIScene) {
+    RCTLinkingManager.scene(scene, openURLContexts: [urlContext])
+
     let application = UIApplication.shared
     var options: [UIApplication.OpenURLOptionsKey: Any] = [.openInPlace: urlContext.options.openInPlace]
     if let sourceApplication = urlContext.options.sourceApplication {
@@ -114,7 +117,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     _ = application.delegate?.application?(application, open: urlContext.url, options: options)
   }
 
-  private func forward(userActivity: NSUserActivity) {
+  private func forward(userActivity: NSUserActivity, in scene: UIScene) {
+    RCTLinkingManager.scene(scene, continue: userActivity)
+
     let application = UIApplication.shared
     _ = application.delegate?.application?(application, continue: userActivity, restorationHandler: { _ in })
   }

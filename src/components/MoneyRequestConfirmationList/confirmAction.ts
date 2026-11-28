@@ -45,7 +45,7 @@ type BuildConfirmActionParams = {
     /** Drops the form error the last confirm set, since validation checks it again on the next confirm */
     clearConfirmError: () => void;
 
-    /** Shows the errors of the amount, date and merchant fields, which render on the fields rather than in the form error */
+    /** Shows the errors that render on their own fields rather than in the form error */
     revealFieldErrors: () => void;
 
     /** Setter for the "user already confirmed split" flag */
@@ -55,7 +55,7 @@ type BuildConfirmActionParams = {
     showDelegateNoAccessModal: () => void;
 
     /** Caller-provided confirm handler for non-pay flows */
-    onConfirm?: () => void;
+    onConfirm?: () => void | Promise<void>;
 
     /** Caller-provided send-money handler for pay flows */
     onSendMoney?: (paymentMethod: PaymentMethodType | undefined) => Promise<void>;
@@ -91,6 +91,10 @@ function buildConfirmAction({
             return;
         }
 
+        if ('shouldSetDidConfirmSplit' in result && result.shouldSetDidConfirmSplit) {
+            setDidConfirmSplit(true);
+        }
+
         if ('isFieldError' in result) {
             clearConfirmError();
             revealFieldErrors();
@@ -98,9 +102,6 @@ function buildConfirmAction({
         }
 
         if (result.errorKey) {
-            if (result.shouldSetDidConfirmSplit) {
-                setDidConfirmSplit(true);
-            }
             setConfirmError(result.errorKey);
             return;
         }

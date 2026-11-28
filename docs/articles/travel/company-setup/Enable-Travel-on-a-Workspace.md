@@ -2,7 +2,7 @@
 title: Enable Expensify Travel on a workspace
 description: Learn how Workspace Admins can enable Expensify Travel to manage business travel bookings and expenses in one place.
 keywords: [Expensify Travel, enable travel, workspace admin, business travel, travel management, travel policy, book travel, company travel, reviewing your request, validate your account, travel access request]
-internalScope: Audience is Workspace Admins. Covers enabling Expensify Travel, the account verification prompts shown when first selecting Book travel, and the Add trip names to expenses setting. Does not cover booking restrictions or travel policy configuration
+internalScope: Audience is workspace admins. Covers enabling Expensify Travel, the account verification prompts shown when first selecting Book travel, and the Add trip names to expenses setting. Does not cover booking restrictions, travel policy configuration, or syncing workspace coding to Expensify Travel
 ---
 
 # Enable Expensify Travel on a workspace
@@ -66,6 +66,10 @@ When **Add trip names to expenses** is toggled on, Expensify automatically inclu
 Workspace Admins can turn this setting on or off by going to **Workspaces > [Workspace Name] > Travel** and toggling **Add trip names to expenses**.
 
 **Note:** The **Add trip names to expenses** toggle only appears in New Expensify, but it controls description behavior for both New Expensify and Expensify Classic expenses.
+
+## Can travelers choose a category, tag, or report field when they book?
+
+Yes. When a workspace admin enables **Sync coding to Expensify Travel**, travelers answer the workspace's category, tag, and report field questions when they book a trip. Learn how to [sync workspace coding to Expensify Travel](/articles/travel/company-setup/Sync-Workspace-Coding-to-Expensify-Travel).
 
 ## Can I set up travel policy rules after enabling Expensify Travel?
 

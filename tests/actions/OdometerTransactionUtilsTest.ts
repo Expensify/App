@@ -4,6 +4,7 @@ import {
     removeMoneyRequestOdometerImage,
     saveOdometerDraft,
     setMoneyRequestOdometerImage,
+    setMoneyRequestOdometerReading,
 } from '@libs/actions/OdometerTransactionUtils';
 import type {OdometerUnsavedChangesState} from '@libs/actions/OdometerTransactionUtils';
 import '@libs/actions/IOU/MoneyRequest';
@@ -121,6 +122,34 @@ describe('actions/OdometerTransactionUtils', () => {
 
     afterEach(() => {
         jest.clearAllMocks();
+    });
+
+    describe('setMoneyRequestOdometerReading', () => {
+        it('stores the unit the readings were entered in, and clears it with the readings', async () => {
+            // Given a draft transaction
+            const transaction = createRandomTransaction(1);
+            const transactionID = transaction.transactionID;
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, transaction);
+
+            // When readings are entered in km
+            setMoneyRequestOdometerReading(transactionID, 2, 6, true, CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
+            await waitForBatchedUpdates();
+
+            // Then the unit is saved next to the readings, so it can be sent to the backend later
+            let draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+            expect(draftTransaction?.comment?.odometerStart).toBe(2);
+            expect(draftTransaction?.comment?.odometerEnd).toBe(6);
+            expect(draftTransaction?.comment?.odometerUnit).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
+
+            // When the readings are cleared
+            setMoneyRequestOdometerReading(transactionID, null, null, true);
+            await waitForBatchedUpdates();
+
+            // Then the unit is cleared too, so the next readings take the current rate's unit
+            draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+            expect(draftTransaction?.comment?.odometerStart).toBeUndefined();
+            expect(draftTransaction?.comment?.odometerUnit).toBeUndefined();
+        });
     });
 
     describe('setMoneyRequestOdometerImage and removeMoneyRequestOdometerImage', () => {

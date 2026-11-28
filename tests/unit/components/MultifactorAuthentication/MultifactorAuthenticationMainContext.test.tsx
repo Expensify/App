@@ -139,6 +139,169 @@ describe('Wallet MFA composed providers', () => {
         expect(state.scenarioResponse?.body).toBeUndefined();
     });
 
+    it('completes authorization on wallet success so the modal can hide before the sheet dismisses', async () => {
+        // Given the real providers and a wallet sheet that is still presented over the modal.
+        let finishWallet: ((status: TokenizationStatus) => void) | undefined;
+        jest.mocked(handleAddCardToWallet).mockImplementation(
+            () =>
+                new Promise<TokenizationStatus>((resolve) => {
+                    finishWallet = resolve;
+                }),
+        );
+        render(
+            <MultifactorAuthenticationContextProviders>
+                <Probe />
+            </MultifactorAuthenticationContextProviders>,
+        );
+        await startScenario();
+        await waitFor(() => expect(handleAddCardToWallet).toHaveBeenCalled());
+        expect(state.isAuthorizationComplete).toBe(false);
+
+        // When the wallet reports success, which is when the native sheet starts dismissing.
+        await act(async () => finishWallet?.('success'));
+
+        // Then the scenario asks for a hidden modal as soon as authorization completes, and nothing aborts it.
+        await waitFor(() => expect(state.isAuthorizationComplete).toBe(true));
+        expect(state.scenario?.shouldHideModalOnSuccess).toBe(true);
+        expect(state.error).toBeUndefined();
+    });
+
+    it('finishes the flow on reconnect when wallet succeeds while offline', async () => {
+        // Given the wallet sheet is presented over the modal.
+        let finishWallet: ((status: TokenizationStatus) => void) | undefined;
+        jest.mocked(handleAddCardToWallet).mockImplementation(
+            () =>
+                new Promise<TokenizationStatus>((resolve) => {
+                    finishWallet = resolve;
+                }),
+        );
+        const renderTree = () => (
+            <MultifactorAuthenticationContextProviders>
+                <Probe />
+            </MultifactorAuthenticationContextProviders>
+        );
+        const view = render(renderTree());
+        await startScenario();
+        await waitFor(() => expect(handleAddCardToWallet).toHaveBeenCalled());
+
+        // When the connection drops before the wallet reports success.
+        mockIsOffline = true;
+        view.rerender(renderTree());
+        await act(async () => finishWallet?.('success'));
+        await waitFor(() => expect(state.isAuthorizationComplete).toBe(true));
+        expect(state.isFlowComplete).toBe(false);
+
+        // Then reconnecting finishes the flow once, so a later MFA attempt is not blocked by the old scenario.
+        mockIsOffline = false;
+        view.rerender(renderTree());
+        await waitFor(() => expect(state.isFlowComplete).toBe(true));
+        expect(state.isModalOpen).toBe(false);
+        expect(mockBiometrics.authorize).toHaveBeenCalledTimes(1);
+        expect(handleAddCardToWallet).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not open the modal when the flow starts offline, so a start after reconnect still works', async () => {
+        // Given the device is offline.
+        mockIsOffline = true;
+        const renderTree = () => (
+            <MultifactorAuthenticationContextProviders>
+                <Probe />
+            </MultifactorAuthenticationContextProviders>
+        );
+        const view = render(renderTree());
+
+        // When the user starts the wallet scenario offline.
+        await act(async () => {
+            await controls.executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.ADD_TO_DIGITAL_WALLET, payload);
+        });
+
+        // Then no empty modal blocks the app.
+        expect(state.isModalOpen).toBe(false);
+        expect(state.scenario).toBeUndefined();
+
+        // When the device reconnects and the user starts the scenario again.
+        mockIsOffline = false;
+        view.rerender(renderTree());
+        await startScenario();
+
+        // Then the flow runs as usual.
+        await waitFor(() => expect(handleAddCardToWallet).toHaveBeenCalledTimes(1));
+    });
+
+    it('runs the scenario callback once when the connection flaps while the flow is finalizing', async () => {
+        // Given credential checks that hang once the scenario callback has run, holding finalization open.
+        let releaseCredentialCheck: ((value: boolean) => void) | undefined;
+        const pendingCredentialCheck = new Promise<boolean>((resolve) => {
+            releaseCredentialCheck = resolve;
+        });
+        mockBiometrics.areLocalCredentialsKnownToServer.mockImplementation(() => (jest.mocked(getPaymentMethods).mock.calls.length > 0 ? pendingCredentialCheck : Promise.resolve(true)));
+        const renderTree = () => (
+            <MultifactorAuthenticationContextProviders>
+                <Probe />
+            </MultifactorAuthenticationContextProviders>
+        );
+        const view = render(renderTree());
+        await startScenario();
+        await waitFor(() => expect(getPaymentMethods).toHaveBeenCalledTimes(1));
+        expect(state.isFlowComplete).toBe(false);
+
+        // When the connection drops and returns before finalization finishes.
+        mockIsOffline = true;
+        view.rerender(renderTree());
+        mockIsOffline = false;
+        view.rerender(renderTree());
+        await act(async () => releaseCredentialCheck?.(true));
+
+        // Then the reconnect re-run does not finalize again, so the callback runs exactly once.
+        await waitFor(() => expect(state.isFlowComplete).toBe(true));
+        expect(getPaymentMethods).toHaveBeenCalledTimes(1);
+    });
+
+    it('closes the flow when the scenario callback throws so the modal is not stuck', async () => {
+        // Given a scenario callback that throws during finalization.
+        jest.mocked(getPaymentMethods).mockImplementationOnce(() => {
+            throw new Error('callback failed');
+        });
+        render(
+            <MultifactorAuthenticationContextProviders>
+                <Probe />
+            </MultifactorAuthenticationContextProviders>,
+        );
+
+        // When the flow reaches finalization.
+        await startScenario();
+        await waitFor(() => expect(getPaymentMethods).toHaveBeenCalledTimes(1));
+
+        // Then the flow still completes and the modal closes instead of hanging behind the finalization lock.
+        await waitFor(() => expect(state.isFlowComplete).toBe(true));
+        expect(state.isModalOpen).toBe(false);
+    });
+
+    it('keeps the modal visible when wallet provisioning is canceled so the outcome screen can show', async () => {
+        // Given the wallet sheet is presented over the modal.
+        let finishWallet: ((status: TokenizationStatus) => void) | undefined;
+        jest.mocked(handleAddCardToWallet).mockImplementation(
+            () =>
+                new Promise<TokenizationStatus>((resolve) => {
+                    finishWallet = resolve;
+                }),
+        );
+        render(
+            <MultifactorAuthenticationContextProviders>
+                <Probe />
+            </MultifactorAuthenticationContextProviders>,
+        );
+        await startScenario();
+        await waitFor(() => expect(handleAddCardToWallet).toHaveBeenCalled());
+
+        // When the user cancels in the wallet sheet.
+        await act(async () => finishWallet?.('canceled'));
+
+        // Then authorization never completes, so the modal stays visible for the failure outcome.
+        await waitFor(() => expect(state.isFlowComplete).toBe(true));
+        expect(state.isAuthorizationComplete).toBe(false);
+    });
+
     it('requires the existing enrollment flow before wallet provisioning', async () => {
         // Given a device without an enrolled credential.
         mockBiometrics.areLocalCredentialsKnownToServer.mockResolvedValue(false);

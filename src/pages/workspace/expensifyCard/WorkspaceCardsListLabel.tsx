@@ -7,7 +7,6 @@ import WorkspaceCardLabel, {useWorkspaceCardLabelPopover} from '@components/Work
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -15,7 +14,7 @@ import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getCardSettings} from '@libs/CardUtils';
+import {getCardProgramKey, getCardSettings} from '@libs/CardUtils';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isSupportedInviteOnboardingChoice, isSupportedPendingInviteOnboarding} from '@libs/OnboardingUtils';
 import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
@@ -37,9 +36,11 @@ import type {ValueOf} from 'type-fest';
 
 import {useRoute} from '@react-navigation/native';
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import {accountIDSelector} from '@selectors/Session';
 import {addDays, format} from 'date-fns';
 import React from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 type WorkspaceCardsListLabelProps = {
     type: ValueOf<typeof CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE>;
@@ -55,7 +56,7 @@ type RequestLimitIncreaseButtonProps = {
     buttonStyle?: StyleProp<ViewStyle>;
 
     /** Invoked with a callback to close the popover when the button is pressed */
-    onRequest: (closePopover: () => void) => void;
+    onRequest: (closePopover: () => void) => void | Promise<void>;
 };
 
 function RequestLimitIncreaseButton({text, buttonStyle, onRequest}: RequestLimitIncreaseButtonProps) {
@@ -85,22 +86,8 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
     const {showConfirmModal} = useConfirmModal();
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeReportID}`, {selector: Boolean});
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
-    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-    const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
-    const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-
-    // Mirror ReportFetchHandler's onboarding-pending logic so we can detect when Concierge still has a pending guided
-    // setup (welcome message + tasks) that OpenReport will create. See https://github.com/Expensify/App/issues/99396.
-    const isOnboardingCompleted = hasCompletedGuidedSetupFlow ?? false;
-    const isRegularOnboardingPending = !!introSelected && !introSelected.inviteType && isSupportedInviteOnboardingChoice(introSelected.choice) && !isOnboardingCompleted;
-    const isPendingInviteOnboarding = isSupportedPendingInviteOnboarding(introSelected);
-    const isGuidedSetupPending = isRegularOnboardingPending || isPendingInviteOnboarding;
 
     const defaultFundID = useDefaultFundID(policyID);
 
@@ -118,8 +105,25 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
     // Right after adding a bank account plaidAccountID is stored inside the accountData and not in the additionalData
     const isConnectedWithPlaid = !!settings?.isPaymentBankAccountConnectedWithPlaid || !!bankAccountData?.plaidAccountID || !!bankAccountData?.additionalData?.plaidAccountID;
 
-    const requestLimitIncrease = (closePopover: () => void) => {
+    const requestLimitIncrease = async (closePopover: () => void) => {
         closePopover();
+
+        const [introSelected, onboarding, isLoadingApp, conciergeChat, session] = await Onyx.multiGet([
+            ONYXKEYS.NVP_INTRO_SELECTED,
+            ONYXKEYS.NVP_ONBOARDING,
+            ONYXKEYS.IS_LOADING_APP,
+            `${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`,
+            ONYXKEYS.SESSION,
+        ]);
+        const currentUserAccountID = accountIDSelector(session) ?? CONST.DEFAULT_NUMBER_ID;
+        const {isSelfTourViewed, hasCompletedGuidedSetupFlow} = guidedSetupAndTourStatusSelector(onboarding);
+
+        // Mirror ReportFetchHandler's onboarding-pending logic so we can detect when Concierge still has a pending guided
+        // setup (welcome message + tasks) that OpenReport will create. See https://github.com/Expensify/App/issues/99396.
+        const isOnboardingCompleted = hasCompletedGuidedSetupFlow ?? false;
+        const isRegularOnboardingPending = !!introSelected && !introSelected.inviteType && isSupportedInviteOnboardingChoice(introSelected.choice) && !isOnboardingCompleted;
+        const isPendingInviteOnboarding = isSupportedPendingInviteOnboarding(introSelected);
+        const isGuidedSetupPending = isRegularOnboardingPending || isPendingInviteOnboarding;
 
         // The Concierge onboarding welcome message + tasks are created by OpenReport's guidedSetupData, and the request
         // queue is a blocking FIFO, so an OpenReport carrying that onboarding data must be enqueued BEFORE the limit-increase
@@ -179,7 +183,7 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
             if (action !== ModalActions.CONFIRM) {
                 return;
             }
-            queueExpensifyCardForBilling(CONST.COUNTRY.US, defaultFundID);
+            queueExpensifyCardForBilling(defaultFundID, getCardProgramKey(cardSettings));
         });
     };
 

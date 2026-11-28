@@ -7,7 +7,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getGPSRoutes, getGPSWaypoints} from '@libs/GPSDraftDetailsUtils';
-import {getExistingTransactionID} from '@libs/IOUUtils';
+import {getExistingTransactionID, shouldDeferAutoSubmitForBatchItem} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
@@ -17,7 +17,15 @@ import {getPersonalDetail} from '@libs/PersonalDetailsStore';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {getDistanceRateCustomUnit, isTaxTrackingEnabled, resolveCurrentTaxCode} from '@libs/PolicyUtils';
-import {getChatReportFromMoneyRequestReport, getTransactionDetails, isInvoiceRoom, isOneOnOneChat, isPolicyExpenseChat as isPolicyExpenseChatReportUtil, isSelfDM} from '@libs/ReportUtils';
+import {
+    getChatReportFromMoneyRequestReport,
+    getTransactionDetails,
+    isInvoiceRoom,
+    isMoneyRequestReport,
+    isOneOnOneChat,
+    isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
+    isSelfDM,
+} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {logReceiptSubmitted} from '@libs/telemetry/ReceiptObservability';
@@ -52,12 +60,14 @@ import type {
     QuickAction,
     RecentWaypoint,
     Report,
+    ReportAction,
     Rule,
     Transaction,
     TransactionViolation,
 } from '@src/types/onyx';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Accountant, Attendee, Participant} from '@src/types/onyx/IOU';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {Unit} from '@src/types/onyx/Policy';
 import type {Comment, Receipt, SplitShares} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -81,6 +91,7 @@ type CreateTransactionParams = {
     report: OnyxEntry<Report>;
     currentUserAccountID: number;
     currentUserEmail?: string;
+    currentUserPersonalDetails: CurrentUserPersonalDetails;
     shouldGenerateTransactionThreadReport: boolean;
     isASAPSubmitBetaEnabled: boolean;
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
@@ -133,6 +144,7 @@ function createTransaction({
     report,
     currentUserAccountID,
     currentUserEmail,
+    currentUserPersonalDetails,
     shouldGenerateTransactionThreadReport,
     isASAPSubmitBetaEnabled,
     transactionViolations,
@@ -163,9 +175,20 @@ function createTransaction({
     isVendorMatchingBetaEnabled,
 }: CreateTransactionParams) {
     const draftTransactionIDs = Object.keys(allTransactionDrafts ?? {});
+    const isExpenseReport = isMoneyRequestReport(report);
+    let existingIOUReport: Report | undefined;
+    let existingReportPreviewAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW> | undefined;
 
     for (const [index, receiptFile] of files.entries()) {
         const transaction = transactions.find((item) => item.transactionID === receiptFile.transactionID);
+        const nextFile = files.at(index + 1);
+        const nextTransaction = nextFile ? transactions.find((item) => item.transactionID === nextFile.transactionID) : undefined;
+        const shouldDeferAutoSubmit = shouldDeferAutoSubmitForBatchItem({
+            nextTransaction,
+            hasNextItem: !!nextFile,
+            isFromExistingReport: isExpenseReport,
+            isASAPSubmitBetaEnabled,
+        });
         const receipt: Receipt = receiptFile.file ?? {};
         receipt.source = receiptFile.source;
         receipt.state = CONST.IOU.RECEIPT_STATE.SCAN_READY;
@@ -183,8 +206,10 @@ function createTransaction({
             iouType,
         });
         if (iouType === CONST.IOU.TYPE.TRACK && report) {
-            trackExpense({
+            const result = trackExpense({
                 report,
+                existingIOUReport,
+                existingReportPreviewAction,
                 isDraftPolicy: false,
                 isDraftChatReport,
                 existingTransaction: transaction,
@@ -212,6 +237,7 @@ function createTransaction({
                     accountID: currentUserAccountID,
                     email: currentUserEmail ?? '',
                 },
+                currentUserPersonalDetails,
                 introSelected,
                 conciergeChat,
                 quickAction,
@@ -224,14 +250,19 @@ function createTransaction({
                 reportActionsList: undefined,
                 getCurrencyDecimals,
                 rules,
+                shouldDeferAutoSubmit,
             });
+            existingIOUReport = result?.iouReport;
+            existingReportPreviewAction = result?.reportPreviewAction;
         } else {
             const existingTransactionID = getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction);
             const existingTransactionDraft = existingTransactionID ? allTransactionDrafts?.[existingTransactionID] : undefined;
 
-            requestMoney({
+            const result = requestMoney({
                 isVendorMatchingBetaEnabled,
                 report,
+                existingIOUReport,
+                existingReportPreviewAction,
                 participantParams: {
                     payeeEmail: currentUserEmail,
                     payeeAccountID: currentUserAccountID,
@@ -254,6 +285,7 @@ function createTransaction({
                 },
                 draftTransactionIDs,
                 shouldGenerateTransactionThreadReport,
+                shouldDeferAutoSubmit,
                 isASAPSubmitBetaEnabled,
                 currentUserAccountIDParam: currentUserAccountID,
                 currentUserEmailParam: currentUserEmail ?? '',
@@ -274,6 +306,8 @@ function createTransaction({
                 rules,
                 personalDetailsByLogins,
             });
+            existingIOUReport = result?.iouReport;
+            existingReportPreviewAction = result?.reportPreviewAction;
         }
     }
 }

@@ -20,6 +20,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import React from 'react';
+import Onyx from 'react-native-onyx';
 
 type PolicyDistanceRateGovernmentRateCountryPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATES_GOVERNMENT_RATE_COUNTRY>;
 
@@ -27,18 +28,19 @@ function PolicyDistanceRateGovernmentRateCountryPage({route}: PolicyDistanceRate
     const policyID = route.params.policyID;
     const {translate} = useLocalize();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const [governmentMileageRates] = useOnyx(ONYXKEYS.GOVERNMENT_MILEAGE_RATES);
 
     const customUnit = getDistanceRateCustomUnit(policy);
     const currentCountry = policy?.autoUpdateGovernmentRateCountry;
 
     const goBackToSettings = () => Navigation.goBack(ROUTES.WORKSPACE_DISTANCE_RATES_SETTINGS.getRoute(policyID));
 
-    const saveCountry = (selectedCountry: string) => {
+    const saveCountry = async (selectedCountry: string) => {
         if (!policy || !customUnit || selectedCountry === currentCountry) {
             goBackToSettings();
             return;
         }
+
+        const governmentMileageRates = await Onyx.get(ONYXKEYS.GOVERNMENT_MILEAGE_RATES);
 
         // Saving a country turns the auto-update on with that country, or moves an enabled workspace to the new country
         setWorkspaceDistanceAutoUpdate(policy, true, governmentMileageRates ?? [], selectedCountry);

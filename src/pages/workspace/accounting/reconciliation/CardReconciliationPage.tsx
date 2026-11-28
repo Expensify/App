@@ -43,6 +43,7 @@ import type {TupleToUnion} from 'type-fest';
 import {isExpensifyCardContinuousReconciliationEnabledSelector} from '@selectors/Card';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 type CardReconciliationPageProps = WithPolicyConnectionsProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION>;
 
@@ -77,7 +78,6 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
         selector: isExpensifyCardContinuousReconciliationEnabledSelector,
     });
     const [continuousReconciliationPendingAction] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION_PENDING_ACTION}${effectiveDomainID}`);
-    const [currentConnectionName] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${effectiveDomainID}`);
     const [reconciliationBankAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_RECONCILIATION_BANK_ACCOUNT_ID}${effectiveDomainID}`);
 
     const resolvedCardSettings = getCardSettings(cardSettings);
@@ -91,10 +91,11 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
     const connectionBankAccounts = getConnectionBankAccountsForReconciliation(policy?.connections, connectionName);
     const bankAccountTitle = connectionBankAccounts.find((account) => account.id === reconciliationBankAccountID)?.name ?? '';
 
-    const handleToggleContinuousReconciliation = (value: boolean) => {
+    const toggleReconciliation = async (value: boolean) => {
         if (!policyID) {
             return;
         }
+        const currentConnectionName = await Onyx.get(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${effectiveDomainID}`);
         toggleContinuousReconciliation(effectiveDomainID, policyID, value, connectionName, currentConnectionName);
         if (value) {
             Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.path));
@@ -185,7 +186,7 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
                         switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CONTINUOUS_RECONCILIATION_SWITCH}
                         disabled={!autoSync}
                         isActive={!!continuousReconciliation}
-                        onToggle={handleToggleContinuousReconciliation}
+                        onToggle={toggleReconciliation}
                         wrapperStyle={styles.ph5}
                         pendingAction={continuousReconciliationPendingAction}
                     />

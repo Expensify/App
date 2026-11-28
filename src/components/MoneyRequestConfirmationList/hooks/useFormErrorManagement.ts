@@ -1,15 +1,12 @@
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 
-import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {areRequiredFieldsEmpty, getTag, hasMissingSmartscanFields} from '@libs/TransactionUtils';
 import {getIsViolationFixed} from '@libs/Violations/ViolationsUtils';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {Attendee} from '@src/types/onyx/IOU';
-import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -26,9 +23,6 @@ type UseFormErrorManagementParams = {
     /** Currently selected category */
     iouCategory: string;
 
-    /** Currently selected attendees */
-    iouAttendees: Attendee[];
-
     /** Policy the IOU belongs to */
     policy: OnyxEntry<OnyxTypes.Policy>;
 
@@ -37,8 +31,6 @@ type UseFormErrorManagementParams = {
 
     /** Policy categories, used for category validation */
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
-
-    currentUserPersonalDetails: CurrentUserPersonalDetails;
 
     /** Whether we are editing an existing split bill */
     isEditingSplitBill: boolean | undefined;
@@ -58,8 +50,8 @@ type UseFormErrorManagementParams = {
     /** Whether splits are rendered read-only (suppresses some field errors) */
     shouldShowReadOnlySplits: boolean;
 
-    /** Whether the transaction is a distance request (its amount is read-only, so amount errors are not shown inline) */
-    isDistanceRequest: boolean;
+    /** Whether the expense needs attendees it doesn't have, so a missing-attendees error in the footer clears once they are added or the category changes */
+    isMissingAttendees: boolean;
 };
 
 type UseFormErrorManagementResult = {
@@ -91,39 +83,30 @@ type UseFormErrorManagementResult = {
     errorMessage: string | undefined;
 };
 
-/** Whether the attendees or tax amount field shows this error itself, so the footer leaves it out */
-function isErrorShownOnItsOwnField(error: TranslationPaths | ''): boolean {
-    return error === 'violations.missingAttendees' || error === 'iou.error.invalidTaxAmount';
-}
-
 /**
  * Owns the form-error state for the Money Request confirmation flow.
  *
  * Holds a debounced form-error string, exposes setters and clearing helpers used by the
  * controllers, and derives the violation-fixed flag and the user-visible error message.
  * `shouldDisplayFieldError` is gated on edit-split-bill mode so field-level errors only render in
- * that flow. `errorMessage` prefers `routeError`, then leaves out the errors their own field already
- * shows (missingAttendees, the tax amount error, and the invalid amount an edited split flags as the
- * user types) so they don't show twice.
- * The amount, date and merchant errors of a blocked confirm aren't held here at all: they are derived
- * by `getConfirmationFieldErrors` and shown through `useConfirmationFieldErrors`.
+ * that flow. `errorMessage` prefers `routeError`, then the form error.
+ * The errors a field shows on itself aren't held here at all: they are derived by
+ * `getConfirmationFieldErrors` and shown through `useConfirmationFieldErrors`.
  */
 function useFormErrorManagement({
     transaction,
     transactionReport,
     iouCategory,
-    iouAttendees,
     policy,
     policyTags,
     policyCategories,
-    currentUserPersonalDetails,
     isEditingSplitBill,
     hasSmartScanFailed,
     didConfirmSplit,
     routeError,
     isTypeSplit,
     shouldShowReadOnlySplits,
-    isDistanceRequest,
+    isMissingAttendees,
 }: UseFormErrorManagementParams): UseFormErrorManagementResult {
     const isFocused = useIsFocused();
     const {translate} = useLocalize();
@@ -166,10 +149,7 @@ function useFormErrorManagement({
         policyCategories,
         policyTagLists: policyTags,
         policyTaxRates: policy?.taxRates?.taxes,
-        iouAttendees,
-        ownerLogin: currentUserPersonalDetails.email ?? currentUserPersonalDetails.login,
-        isAttendeeTrackingEnabled: isAttendeeTrackingEnabled(policy),
-        isControlPolicy: policy?.type === CONST.POLICY.TYPE.CORPORATE,
+        isMissingAttendees,
     });
 
     // Mirror formError into a ref so the effect below can read the current value without listing
@@ -206,23 +186,12 @@ function useFormErrorManagement({
         }
     }, [isFocused, shouldDisplayFieldError, hasSmartScanFailed, didConfirmSplit, isViolationFixed, setFormError]);
 
-    // An edited split sets this error as the user types and its amount input shows it, so the footer skips it; a distance amount has no input, so its error stays.
-    const isShownOnAmountField = (error: TranslationPaths | ''): boolean => !isDistanceRequest && error === 'common.error.invalidAmount';
-
     const computeErrorMessage = (): string | undefined => {
         if (routeError) {
             return routeError;
         }
-        // This runs ahead of the split branch below because splits render the same amount input, so the error duplicates the same way.
-        if (isShownOnAmountField(formError)) {
-            return undefined;
-        }
         if (isTypeSplit && !shouldShowReadOnlySplits) {
-            // The debounced value lags the live one after a fix, so it is checked too, or the amount error would flash into the footer for that moment (#96565).
-            return debouncedFormError && !isShownOnAmountField(debouncedFormError) ? translate(debouncedFormError) : undefined;
-        }
-        if (isErrorShownOnItsOwnField(formError)) {
-            return undefined;
+            return debouncedFormError ? translate(debouncedFormError) : undefined;
         }
         return formError ? translate(formError) : undefined;
     };
@@ -242,4 +211,3 @@ function useFormErrorManagement({
 }
 
 export default useFormErrorManagement;
-export {isErrorShownOnItsOwnField};

@@ -39,8 +39,7 @@ function useScanActions() {
     // useState lazy initializer generates the ID once on mount and keeps it stable across renders
     const [reportID] = useState(() => generateReportID());
 
-    const policyChatForActivePolicy: OnyxTypes.Report =
-        !isEmptyObject(activePolicy) && isGroupPolicy(activePolicy) && policyChats.length > 0 ? (policyChats.at(0) ?? ({} as OnyxTypes.Report)) : ({} as OnyxTypes.Report);
+    const policyChatForActivePolicy = !isEmptyObject(activePolicy) && isGroupPolicy(activePolicy) && policyChats.length > 0 ? policyChats.at(0) : undefined;
 
     const startScan = () => {
         interceptAnonymousUser(() => {
