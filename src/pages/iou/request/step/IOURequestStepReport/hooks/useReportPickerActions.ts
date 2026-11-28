@@ -195,11 +195,11 @@ function useReportPickerActions({
     const isUnreportedManagedCardTransaction = isUnreportedManagedCardTransactionUtil(transaction);
 
     const transactionPolicyID = transaction?.participants?.at(0)?.isPolicyExpenseChat ? transaction?.participants.at(0)?.policyID : undefined;
-    // When moving an expense that belongs to another user, or when the selection includes per diem
-    // transactions, use the policy of their report (or the transaction's policy as fallback) so the
-    // selected workspace is preserved.
-    // For the current user's own non-per-diem expenses, fall back to undefined to let the default workspace apply.
-    const targetExpensePolicyID = ownerAccountID !== session?.accountID || isPerDiemTransaction ? (selectedReport?.policyID ?? transactionPolicyID) : undefined;
+    // Keep the workspace of the expense when it belongs to another user, when it is a per diem expense, or when it is
+    // being created from a workspace chat, so "Create report" opens the report in the same workspace as the listed reports.
+    // Otherwise (editing the current user's own expense, or creating it from global create) let the default workspace apply.
+    const shouldKeepExpenseWorkspace = ownerAccountID !== session?.accountID || isPerDiemTransaction || (!isEditing && !isFromGlobalCreate);
+    const targetExpensePolicyID = shouldKeepExpenseWorkspace ? (selectedReport?.policyID ?? transactionPolicyID) : undefined;
 
     // We need to fall back to transactionPolicyID because for a new workspace there is no report created yet
     // and if we choose this workspace as participant we want to create a new report in the chosen workspace
