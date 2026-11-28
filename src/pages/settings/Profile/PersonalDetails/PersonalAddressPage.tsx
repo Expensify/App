@@ -2,6 +2,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
 import {getCountryCode, normalizeCountryCode} from '@libs/CountryUtils';
+import type AccountSettingsParamList from '@libs/Navigation/paramLists/AccountSettingsParamList';
 import {getCurrentAddress} from '@libs/PersonalDetailsUtils';
 
 import AddressPage from '@pages/AddressPage';
@@ -10,8 +11,13 @@ import type {FormOnyxValues} from '@src/components/Form/types';
 import CONST from '@src/CONST';
 import {updateAddress as updateAddressPersonalDetails} from '@src/libs/actions/PersonalDetails';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
+import INPUT_IDS from '@src/types/form/HomeAddressForm';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 
+import type {RouteProp} from '@react-navigation/native';
+
+import {useRoute} from '@react-navigation/native';
 import React from 'react';
 
 /**
@@ -32,6 +38,7 @@ function updateAddress(values: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS
 
 function PersonalAddressPage() {
     const {translate} = useLocalize();
+    const route = useRoute<RouteProp<AccountSettingsParamList, typeof SCREENS.SETTINGS.PREFERENCES.HOME_ADDRESS>>();
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [defaultCountry] = useOnyx(ONYXKEYS.COUNTRY);
@@ -44,6 +51,7 @@ function PersonalAddressPage() {
             isLoadingApp={isLoadingApp}
             updateAddress={(values) => updateAddress(values, privatePersonalDetails?.addresses ?? [])}
             title={translate('privatePersonalDetails.address')}
+            shouldAutoFocusAddressLine1={route.name === SCREENS.SETTINGS.PREFERENCES.HOME_ADDRESS && route.params?.fieldToFocus === INPUT_IDS.ADDRESS_LINE_1}
             forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
         />
     );

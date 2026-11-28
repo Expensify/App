@@ -39,9 +39,11 @@ type AddressPageProps = ForwardedFSClassProps & {
     shouldRequireZip?: boolean;
 
     defaultCountry?: Country;
+    /** Opts in to focusing Address line 1 after navigation; other address forms keep their existing focus behavior. */
+    shouldAutoFocusAddressLine1?: boolean;
 } & BackToParams;
 
-function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo, defaultCountry, shouldRequireZip, forwardedFSClass}: AddressPageProps) {
+function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo, defaultCountry, shouldRequireZip, shouldAutoFocusAddressLine1, forwardedFSClass}: AddressPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -122,6 +124,7 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo
                         street2={street2}
                         zip={zipcode}
                         shouldRequireZip={shouldRequireZip}
+                        shouldAutoFocusAddressLine1={shouldAutoFocusAddressLine1}
                         forwardedFSClass={forwardedFSClass}
                     />
                 )}

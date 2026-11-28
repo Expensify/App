@@ -1,4 +1,5 @@
 import Button from '@components/Button';
+import AnchorPressOverrideContext from '@components/HTMLEngineProvider/HTMLRenderers/AnchorPressOverrideContext';
 import RenderHTML from '@components/RenderHTML';
 import ActionableItemButtons from '@components/ReportActionItem/ActionableItemButtons';
 
@@ -6,7 +7,8 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 
-import openHomeAddressPage from '@libs/Navigation/helpers/openHomeAddressPage';
+import {getInternalNewExpensifyPath} from '@libs/actions/Link';
+import openHomeAddressPage, {openHomeAddressPageWithFocus} from '@libs/Navigation/helpers/openHomeAddressPage';
 import {getCurrentAddress} from '@libs/PersonalDetailsUtils';
 import {isArchivedOrPendingDeletePolicy} from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportActionHtml, getReportActionText} from '@libs/ReportActionsUtils';
@@ -16,6 +18,7 @@ import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBa
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {Policy, PrivatePersonalDetails, ReportAction} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -35,6 +38,14 @@ const createIsCommuteStillMeasuredSelector = (currentUserEmail: string | undefin
         policy.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE &&
         getEffectiveWorkArrangement(currentUserEmail ? policy.employeeList?.[currentUserEmail]?.hasOfficeWorkArrangement : undefined, policy.commuterExclusions.isOfficeWorkArrangement));
 
+function getHomeAddressPressOverride(href: string) {
+    const path = getInternalNewExpensifyPath(href).split(/[?#]/).at(0);
+    if (path !== ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.route) {
+        return undefined;
+    }
+    return openHomeAddressPageWithFocus;
+}
+
 function HomeAddressRequiredContent({action, reportID}: HomeAddressRequiredContentProps) {
     const {translate} = useLocalize();
     const [hasHomeAddress] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {selector: hasHomeAddressSelector});
@@ -51,7 +62,9 @@ function HomeAddressRequiredContent({action, reportID}: HomeAddressRequiredConte
 
     return (
         <ReportActionItemBasicMessage>
-            <RenderHTML html={`<comment><muted-text>${getReportActionHtml(action) || getReportActionText(action)}</muted-text></comment>`} />
+            <AnchorPressOverrideContext.Provider value={getHomeAddressPressOverride}>
+                <RenderHTML html={`<comment><muted-text>${getReportActionHtml(action) || getReportActionText(action)}</muted-text></comment>`} />
+            </AnchorPressOverrideContext.Provider>
             {!isResolved && (
                 <ActionableItemButtons layout="horizontal">
                     <Button
