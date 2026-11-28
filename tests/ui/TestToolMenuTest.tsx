@@ -91,7 +91,6 @@ jest.mock('@hooks/useActiveServer', () => ({
 jest.mock('@libs/ApiUtils', () => ({
     ...jest.requireActual<Record<string, unknown>>('@libs/ApiUtils'),
     isQAServerActive: () => false,
-    getActiveServer: () => mockProductionServer,
     getCommandURL: () => 'https://test-api.expensify.com/api/Ping?',
 }));
 

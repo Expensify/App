@@ -62,6 +62,5 @@ describe('ApiUtils when the stored preference arrives before the environment', (
 
         // The preference was stored before anyone could interpret it, and must not have been discarded
         expect(ApiUtils.getApiRoot()).toBe(STAGING_API_ROOT);
-        expect(ApiUtils.getActiveServer()).toBe(CONST.SERVER.STAGING);
     });
 });

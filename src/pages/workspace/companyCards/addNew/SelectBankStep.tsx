@@ -6,6 +6,7 @@ import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
 
+import useActiveServer from '@hooks/useActiveServer';
 import {useCompanyCardBankIcons} from '@hooks/useCompanyCardIcons';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -13,7 +14,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getActiveServer} from '@libs/ApiUtils';
+import {isUsingNonProductionAPI} from '@libs/ApiUtils';
 import {getBankCardDetailsImage, getCorrectStepForPlaidSelectedBank} from '@libs/CardUtils';
 
 import variables from '@styles/variables';
@@ -34,7 +35,7 @@ function SelectBankStep() {
     const companyCardBankIcons = useCompanyCardBankIcons();
     const {isOffline} = useNetwork();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
-    const [activeServer = getActiveServer()] = useOnyx(ONYXKEYS.ACTIVE_SERVER);
+    const {activeServer} = useActiveServer();
     const bankSelected = addNewCard?.data?.selectedBank;
     const [hasError, setHasError] = useState(false);
     const isOtherBankSelected = bankSelected === CONST.COMPANY_CARDS.BANKS.OTHER;
@@ -62,7 +63,7 @@ function SelectBankStep() {
     const data = Object.values(CONST.COMPANY_CARDS.BANKS)
         .filter((bank) => {
             if (bank === CONST.COMPANY_CARDS.BANKS.MOCK_BANK) {
-                return CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.PRODUCTION || activeServer !== CONST.SERVER.PRODUCTION;
+                return CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.PRODUCTION || isUsingNonProductionAPI(activeServer);
             }
             if (bank === CONST.COMPANY_CARDS.BANKS.FILE_IMPORT) {
                 return false;

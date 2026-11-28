@@ -58,7 +58,6 @@ describe('a production build', () => {
     it('stays on production when nothing is stored', async () => {
         await setActiveServer(null);
 
-        expect(ApiUtils.getActiveServer()).toBe(CONST.SERVER.PRODUCTION);
         expect(ApiUtils.getApiRoot()).toBe('https://www.expensify.com/');
     });
 
@@ -67,14 +66,13 @@ describe('a production build', () => {
         // other way in, so a deliberate choice outranks the build's own default
         await setActiveServer(CONST.SERVER.STAGING);
 
-        expect(ApiUtils.getActiveServer()).toBe(CONST.SERVER.STAGING);
+        expect(ApiUtils.getApiRoot()).toBe('https://staging.expensify.com/');
     });
 
     it('ignores a stored qa and stays on production', async () => {
         // Unlike staging, QA has no host a production build could reach
         await setActiveServer(CONST.SERVER.QA);
 
-        expect(ApiUtils.getActiveServer()).toBe(CONST.SERVER.PRODUCTION);
         expect(ApiUtils.isQAServerActive()).toBe(false);
         expect(ApiUtils.getApiRoot()).toBe('https://www.expensify.com/');
     });

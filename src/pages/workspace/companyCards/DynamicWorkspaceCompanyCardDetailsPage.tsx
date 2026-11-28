@@ -12,6 +12,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
+import useActiveServer from '@hooks/useActiveServer';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
@@ -27,7 +28,7 @@ import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getActiveServer} from '@libs/ApiUtils';
+import {isUsingNonProductionAPI} from '@libs/ApiUtils';
 import navigateToCardTransactions from '@libs/CardNavigationUtils';
 import {
     getCardFeedIcon,
@@ -59,7 +60,6 @@ import variables from '@styles/variables';
 
 import {clearCompanyCardErrorField, unassignWorkspaceCompanyCard, updateWorkspaceCompanyCard} from '@userActions/CompanyCards';
 
-import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -112,7 +112,7 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
     const {canWrite: canWriteCompanyCards} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
-    const [activeServer = getActiveServer()] = useOnyx(ONYXKEYS.ACTIVE_SERVER);
+    const {activeServer} = useActiveServer();
     const [allBankCards] = useCardsList(feedName);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [cardFeeds] = useCardFeeds(policyID);
@@ -143,8 +143,7 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
 
     // Show "Break connection" only when Mock Bank requests target non-production APIs.
     const isMockBank = bank?.includes(CONST.COMPANY_CARDS.BANK_CONNECTIONS.MOCK_BANK);
-    const isUsingNonProductionAPI = activeServer !== CONST.SERVER.PRODUCTION || CONFIG.IS_USING_LOCAL_WEB;
-    const shouldShowBreakConnection = isMockBank && isUsingNonProductionAPI;
+    const shouldShowBreakConnection = isMockBank && isUsingNonProductionAPI(activeServer);
 
     const lastUpdatedText = card ? getCardLastUpdated(card, translate, getLocalDateFromDatetime).text : translate('workspace.moreFeatures.companyCards.neverUpdated');
 

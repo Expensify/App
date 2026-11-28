@@ -70,7 +70,6 @@ describe('ApiUtils in a staging environment', () => {
         await setStagingToggle(null);
 
         expect(ApiUtils.getApiRoot()).toBe(STAGING_API_ROOT);
-        expect(ApiUtils.getActiveServer()).toBe(CONST.SERVER.STAGING);
     });
 
     it('honours a deliberate opt-out', async () => {
@@ -78,7 +77,6 @@ describe('ApiUtils in a staging environment', () => {
         await setStagingToggle(false);
 
         expect(ApiUtils.getApiRoot()).toBe(PRODUCTION_API_ROOT);
-        expect(ApiUtils.getActiveServer()).toBe(CONST.SERVER.PRODUCTION);
     });
 
     it('keeps the toggle on when it is explicitly set', async () => {

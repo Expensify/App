@@ -70,7 +70,6 @@ describe('ApiUtils in a production environment', () => {
         await setStagingToggle(null);
 
         expect(ApiUtils.getApiRoot()).toBe(PRODUCTION_API_ROOT);
-        expect(ApiUtils.getActiveServer()).toBe(CONST.SERVER.PRODUCTION);
     });
 
     it('routes to production when the toggle is off', async () => {
@@ -85,7 +84,6 @@ describe('ApiUtils in a production environment', () => {
         await setStagingToggle(true);
 
         expect(ApiUtils.getApiRoot()).toBe(STAGING_API_ROOT);
-        expect(ApiUtils.getActiveServer()).toBe(CONST.SERVER.STAGING);
     });
 
     it('ignores the toggle on the internal dev environment', async () => {
