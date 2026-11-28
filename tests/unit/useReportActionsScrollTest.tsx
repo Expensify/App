@@ -5,17 +5,20 @@ import useReportActionsScroll from '@hooks/useReportActionsScroll';
 import type Navigation from '@libs/Navigation/Navigation';
 
 import {ActionListContext} from '@pages/inbox/ActionListContext';
+import type useReportUnreadMessageScrollTracking from '@pages/inbox/report/useReportUnreadMessageScrollTracking';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
 
 import type {ReactNode} from 'react';
+import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import {makeMutable} from 'react-native-reanimated';
 
+import createMock from '../utils/createMock';
 import {createMockReport, getFakeReportAction} from '../utils/ReportTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -57,7 +60,7 @@ let mockIsActionBadgeBelowViewport = false;
 let mockShouldDisablePillTracking: boolean | undefined;
 jest.mock('@pages/inbox/report/useReportUnreadMessageScrollTracking', () => ({
     __esModule: true,
-    default: ({shouldDisablePillTracking}: {shouldDisablePillTracking?: boolean}) => {
+    default: ({shouldDisablePillTracking, onTrackScrolling}: Parameters<typeof useReportUnreadMessageScrollTracking>[0]) => {
         mockShouldDisablePillTracking = shouldDisablePillTracking;
         return {
             isFloatingMessageCounterVisible: mockIsFloatingMessageCounterVisible,
@@ -66,7 +69,12 @@ jest.mock('@pages/inbox/report/useReportUnreadMessageScrollTracking', () => ({
             setIsActionBadgeAboveViewport: mockSetIsActionBadgeAboveViewport,
             isActionBadgeBelowViewport: mockIsActionBadgeBelowViewport,
             setIsActionBadgeBelowViewport: mockSetIsActionBadgeBelowViewport,
-            trackVerticalScrolling: mockTrackVerticalScrolling,
+            trackVerticalScrolling: (event?: NativeSyntheticEvent<NativeScrollEvent>) => {
+                mockTrackVerticalScrolling(event);
+                if (event) {
+                    onTrackScrolling(event);
+                }
+            },
             onViewableItemsChanged: mockOnViewableItemsChanged,
         };
     },
@@ -610,6 +618,27 @@ describe('useReportActionsScroll', () => {
 
             expect(mockSetIsFloatingMessageCounterVisible).toHaveBeenCalledWith(false);
             expect(mockScrollToBottom).toHaveBeenCalledTimes(1);
+        });
+
+        it('preserves the viewport when the reader scrolls before the opening transition ends', async () => {
+            // Given the chat is visible while its initial alignment still waits for the transition
+            const {result} = await renderScroll();
+            act(() => result.current.onLoad());
+            expect(mockScrollToBottom).not.toHaveBeenCalled();
+
+            // When a reader scrolls into older messages before that transition ends
+            const scrollEvent = createMock<NativeSyntheticEvent<NativeScrollEvent>>({
+                nativeEvent: {
+                    contentOffset: {x: 0, y: 80},
+                    contentSize: {width: 600, height: 1200},
+                    layoutMeasurement: {width: 600, height: 800},
+                },
+            });
+            act(() => result.current.trackVerticalScrolling(scrollEvent));
+            flushTransitions();
+
+            // Then the deferred alignment should leave the reader at the older messages
+            expect(mockScrollToBottom).not.toHaveBeenCalled();
         });
 
         it('does not scroll to bottom on mount when there is an initial scroll key', async () => {
