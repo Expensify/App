@@ -9,20 +9,12 @@ type CompanyCardsFeedLoadingState = {
 };
 
 /**
- * Session-scoped loading state for company cards.
+ * Session-scoped loading state for company card feeds and bulk updates, keyed by domain or workspace account ID.
  *
  * Frontend-owned and RAM-only so backend SET responses on SHARED_NVP_PRIVATE_DOMAIN_MEMBER
  * cannot wipe hasOnceLoaded flags. Used to gate skeleton UI without blocking refresh requests.
  */
 type CompanyCardsLoadingState = {
-    /** Page request state is keyed by policy ID, even before a workspace account ID is available */
-    isLoadingPage?: boolean;
-
-    hasLoadingError?: boolean;
-
-    /** Whether workspace company card feeds have been fetched at least once in this session */
-    hasOnceLoadedPage?: boolean;
-
     /** Identifies the latest successful bulk transaction start date update */
     bulkTransactionStartDateUpdateSuccessID?: string;
 

@@ -143,9 +143,9 @@ function WorkspaceCompanyCardsTable({
     const [personalDetails, personalDetailsMetadata] = useAllPersonalDetails();
     const [sharedCardCustomNames] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainOrWorkspaceAccountID}`, {selector: companyCardCustomNamesSelector});
     const [companyCardsLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE}${domainOrWorkspaceAccountID}`);
-    const [pageLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE}${policyID}`);
+    const [pageLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_PAGE_LOADING_STATE}${policyID}`);
 
-    const hasOnceLoadedPage = !!companyCardsLoadingState?.hasOnceLoadedPage || !!pageLoadingState?.hasOnceLoadedPage;
+    const hasOnceLoadedPage = !!pageLoadingState?.hasOnceLoadedPage;
     const isPageRequestLoading = !!pageLoadingState?.isLoadingPage;
     const hasPageLoadError = !isOffline && !isPageRequestLoading && !!pageLoadingState?.hasLoadingError;
     const hasOnceLoadedSelectedFeed = !!bankName && !!companyCardsLoadingState?.feeds?.[bankName]?.hasOnceLoaded;

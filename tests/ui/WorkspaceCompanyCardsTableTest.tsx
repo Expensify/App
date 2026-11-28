@@ -195,14 +195,17 @@ describe('WorkspaceCompanyCardsTable loading suppression', () => {
     });
 
     it('does not show the page loading indicator when workspace feeds are loading but RAM-only hasOnceLoadedPage is true', async () => {
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE}${DOMAIN_OR_WORKSPACE_ACCOUNT_ID}`, {
+        // Given a page that has already loaded in this session
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_PAGE_LOADING_STATE}${POLICY_ID}`, {
             hasOnceLoadedPage: true,
         });
 
+        // When workspace feeds refresh
         renderTable(buildCompanyCards());
 
         await waitForBatchedUpdates();
 
+        // Then the initial page skeleton stays hidden
         expect(screen.queryByTestId('WorkspaceCompanyCardsTableLoadingIndicator')).toBeNull();
         expect(screen.getByTestId('WorkspaceCompanyCardPageEmptyState')).toBeTruthy();
     });
@@ -257,14 +260,17 @@ describe('WorkspaceCompanyCardsTable pending page fetch', () => {
     });
 
     it('shows the empty feed state once the page fetch has succeeded', async () => {
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE}${DOMAIN_OR_WORKSPACE_ACCOUNT_ID}`, {
+        // Given a successful policy-scoped page request
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_PAGE_LOADING_STATE}${POLICY_ID}`, {
             hasOnceLoadedPage: true,
         });
 
+        // When the page has no feeds
         renderTable(buildCompanyCards({workspaceCardFeedsStatus: {}}), false, {isPageFetchPending: true});
 
         await waitForBatchedUpdates();
 
+        // Then successful page state releases the initial loading guard
         expect(screen.queryByTestId('WorkspaceCompanyCardsTableLoadingIndicator')).toBeNull();
         expect(screen.getByTestId('WorkspaceCompanyCardPageEmptyState')).toBeTruthy();
     });
@@ -318,7 +324,7 @@ describe('WorkspaceCompanyCardsTable unresolved workspace account ID', () => {
 
     it('shows a terminal page error despite unresolved account and initial loading guards and keeps failed retries actionable', async () => {
         // Given a failed page request without an account ID or hydrated feed/card metadata
-        const pageKey = `${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE}${POLICY_ID}` as const;
+        const pageKey = `${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_PAGE_LOADING_STATE}${POLICY_ID}` as const;
         await Onyx.merge(pageKey, {isLoadingPage: false, hasLoadingError: true});
         renderTable(
             {
@@ -347,7 +353,7 @@ describe('WorkspaceCompanyCardsTable unresolved workspace account ID', () => {
 
     it('renders the empty page after a successful retry even if the creation response never supplied an account ID', async () => {
         // Given a successful cards response that did not rehydrate the optimistic workspace
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE}${POLICY_ID}`, {isLoadingPage: false, hasOnceLoadedPage: true});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_PAGE_LOADING_STATE}${POLICY_ID}`, {isLoadingPage: false, hasOnceLoadedPage: true});
 
         // When the workspace account ID is still unresolved
         renderTable(buildCompanyCards({workspaceCardFeedsStatus: {}}), false, {
@@ -365,7 +371,7 @@ describe('WorkspaceCompanyCardsTable unresolved workspace account ID', () => {
 
     it('renders an empty workspace after retry resolves its account ID and page request', async () => {
         // Given a policy-scoped successful retry before any feeds have been added
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE}${POLICY_ID}`, {isLoadingPage: false, hasLoadingError: false, hasOnceLoadedPage: true});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_PAGE_LOADING_STATE}${POLICY_ID}`, {isLoadingPage: false, hasLoadingError: false, hasOnceLoadedPage: true});
 
         // When the workspace account ID has resolved without cached feeds
         renderTable(buildCompanyCards({workspaceCardFeedsStatus: {}}), false, {isPageFetchPending: true});

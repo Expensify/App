@@ -1092,9 +1092,12 @@ const ONYXKEYS = {
         /** Set while `OpenPolicyReceiptPartnersPage` is in flight, keyed by policyID. Kept off the policy so the request doesn't
          *  rewrite it and rerun everything that reads it. Registered as RAM-only in `setup/index.ts`. */
         RAM_ONLY_IS_LOADING_RECEIPT_PARTNERS: 'isLoadingReceiptPartners_',
-        /** Session-scoped loading flags for company cards page and feeds.
+        /** Session-scoped loading flags for company card feeds and bulk updates, keyed by domain or workspace account ID.
          *  Registered as RAM-only in `setup/index.ts`. */
         RAM_ONLY_COMPANY_CARDS_LOADING_STATE: 'companyCardsLoadingState_',
+        /** Session-scoped loading flags for the Company Cards page, keyed by policyID.
+         *  Registered as RAM-only in `setup/index.ts`. */
+        RAM_ONLY_COMPANY_CARDS_PAGE_LOADING_STATE: 'companyCardsPageLoadingState_',
 
         /** Session-scoped results of a company-card full-number search, keyed by policyID.
          *  RAM-only so "this number is card X" is never written to disk. Registered in `setup/index.ts`. */
@@ -1767,6 +1770,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.RAM_ONLY_IS_LOADING_DUPLICATE_TRANSACTION_DETAILS]: boolean;
     [ONYXKEYS.COLLECTION.RAM_ONLY_IS_LOADING_RECEIPT_PARTNERS]: boolean;
     [ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE]: OnyxTypes.CompanyCardsLoadingState;
+    [ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_PAGE_LOADING_STATE]: OnyxTypes.CompanyCardsPageLoadingState;
     [ONYXKEYS.COLLECTION.RAM_ONLY_PERSONAL_DETAILS_LOADING_STATE]: OnyxTypes.PersonalDetailsLoadingState;
     [ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARD_NUMBER_SEARCH]: OnyxTypes.CompanyCardNumberSearch;
     [ONYXKEYS.COLLECTION.RAM_ONLY_RECEIPT_TRANSLATION_STATE]: OnyxTypes.ReceiptTranslationState;
