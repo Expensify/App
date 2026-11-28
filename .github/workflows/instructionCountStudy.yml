@@ -1,0 +1,149 @@
+name: Instruction count study (temporary experiment)
+
+# Runs only on the PR that carries this file. Not meant to be merged.
+# Question: can a CI runner count CPU instructions for a benchmark, and is that count steady between runs?
+on:
+  pull_request:
+    types: [opened, synchronize]
+    paths:
+      - '.github/workflows/instructionCountStudy.yml'
+      - 'tests/perf-local/icount/**'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  # The Hermes version the app ships (node_modules/react-native/sdks/.hermesv1version).
+  HERMES_TAG: hermes-v250829098.0.14
+  # main just before Expensify/App#104376, and its merge commit.
+  BASE_SHA: c6f165a3cf4c179e281a4e2a2ae619131c1e99c9
+  HEAD_SHA: 8c496c833f2e318186dbc19979c9236746b2ee3d
+
+jobs:
+  instruction-count-study:
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    timeout-minutes: 150
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [1, 2, 3]
+    steps:
+      - name: Checkout
+        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
+
+      - name: Setup NodeJS
+        uses: ./.github/actions/composite/setupNode
+
+      - name: Record runner hardware and counter access
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/study/results"
+          {
+            echo "cpus=$(nproc)"
+            grep -m1 'model name' /proc/cpuinfo || true
+            echo "kernel=$(uname -r)"
+            echo "perf_event_paranoid=$(cat /proc/sys/kernel/perf_event_paranoid 2>/dev/null || echo missing)"
+            echo "pmu_flag=$(grep -m1 -o 'arch_perfmon' /proc/cpuinfo || echo absent)"
+            echo "hypervisor=$(grep -m1 -o 'hypervisor' /proc/cpuinfo || echo absent)"
+            echo "event_sources=$(echo /sys/bus/event_source/devices/*)"
+          } | tee "$RUNNER_TEMP/study/results/runner.txt"
+          # Allow unprivileged counting if the kernel has counters at all.
+          sudo sysctl -w kernel.perf_event_paranoid=-1 || true
+
+      - name: Install build tools
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends cmake ninja-build libicu-dev build-essential python3
+
+      - name: Build the Hermes CLI the app ships
+        shell: bash
+        run: |
+          cd "$RUNNER_TEMP/study"
+          git clone --depth 1 --branch "$HERMES_TAG" https://github.com/facebook/hermes.git hermes-src
+          cmake -S hermes-src -B hermes-build -G Ninja -DCMAKE_BUILD_TYPE=Release -DHERMES_ENABLE_INTL=ON
+          cmake --build hermes-build --target hermes
+          gcc -O2 -o icount "$GITHUB_WORKSPACE/tests/perf-local/icount/icount.c"
+
+      # The same benchmark is bundled from two versions of the app code, so a known small change (+3 to 5%) can be looked for.
+      - name: Bundle the benchmark before and after the known change
+        shell: bash
+        run: |
+          set -e
+          STUDY="$RUNNER_TEMP/study"
+          mkdir -p "$STUDY/out"
+          git fetch --depth 1 origin "$BASE_SHA" "$HEAD_SHA"
+          for tree in base head; do
+            sha="$BASE_SHA"
+            if [ "$tree" = head ]; then sha="$HEAD_SHA"; fi
+            git worktree add --detach "$STUDY/wt-$tree" "$sha"
+            ln -s "$GITHUB_WORKSPACE/node_modules" "$STUDY/wt-$tree/node_modules"
+            mkdir -p "$STUDY/wt-$tree/tests/perf-local/utils" "$STUDY/wt-$tree/tests/perf-local/engine"
+            cp scripts/bundleEngineBench.ts "$STUDY/wt-$tree/scripts/bundleEngineBench.ts"
+            cp tests/perf-local/utils/sidebarSortDataset.ts "$STUDY/wt-$tree/tests/perf-local/utils/sidebarSortDataset.ts"
+            cd "$STUDY/wt-$tree"
+            for scenario in "acc30-default 15000 0.3 false" "acc30-focus 15000 0.3 true" "ascii-default 15000 0 false"; do
+              read -r name reports accented focus <<< "$scenario"
+              for iterations in 0 20; do
+                entry="tests/perf-local/engine/icount_${name}_$iterations.ts"
+                sed -e "s/__REPORTS__/$reports/" -e "s/__ACCENTED__/$accented/" -e "s/__FOCUS__/$focus/" -e "s/__ITERATIONS__/$iterations/" \
+                  "$GITHUB_WORKSPACE/tests/perf-local/icount/entry.template.txt" > "$entry"
+                node scripts/bundleEngineBench.ts "$entry" "$STUDY/out/$tree-$name-$iterations.js" --hermes
+              done
+            done
+            cd "$GITHUB_WORKSPACE"
+          done
+          ls -la "$STUDY/out"
+
+      - name: Check the benchmark runs
+        shell: bash
+        run: |
+          "$RUNNER_TEMP/study/hermes-build/bin/hermes" "$RUNNER_TEMP/study/out/base-acc30-default-20.hbc"
+          "$RUNNER_TEMP/study/icount" "$RUNNER_TEMP/study/hermes-build/bin/hermes" "$RUNNER_TEMP/study/out/base-acc30-default-20.hbc" || true
+
+      - name: Count with hardware counters (Hermes and Node)
+        if: ${{ !cancelled() }}
+        shell: bash
+        run: node tests/perf-local/icount/run.mjs "$RUNNER_TEMP/study" "$RUNNER_TEMP/study/results/perf.csv" perf 10 hermes,node
+
+      # Existing tests/perf-local files, unchanged, on Hermes: the same code is run several times, so every difference is noise.
+      - name: Count existing perf-local tests on Hermes
+        if: ${{ !cancelled() }}
+        shell: bash
+        run: node tests/perf-local/icount/runPerfLocalOnHermes.mjs "$RUNNER_TEMP/study" perf 5 tests/perf-local/*.perf-local.ts
+
+      - name: Probe single native calls
+        if: ${{ !cancelled() }}
+        shell: bash
+        run: node tests/perf-local/icount/probeNativeCalls.mjs "$RUNNER_TEMP/study" perf 6 | tee "$RUNNER_TEMP/study/results/native-call-probes.md"
+
+      - name: Summarise
+        if: ${{ !cancelled() }}
+        shell: bash
+        run: |
+          {
+            echo "### Runner ${{ matrix.runner }}"
+            echo '```'
+            cat "$RUNNER_TEMP/study/results/runner.txt"
+            echo '```'
+            echo "#### Sort benchmark, before and after the known change"
+            node tests/perf-local/icount/analyze.mjs "$RUNNER_TEMP/study/results/perf.csv"
+            echo
+            echo "#### Existing perf-local tests, same code"
+            node tests/perf-local/icount/analyzeExistingTests.mjs "$RUNNER_TEMP/study/results/existing-tests.csv" "$RUNNER_TEMP/study/results/existing-tests.log"
+            echo
+            echo "#### Single native calls, same code"
+            cat "$RUNNER_TEMP/study/results/native-call-probes.md"
+          } | tee "$RUNNER_TEMP/study/results/summary.md" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload results
+        if: ${{ !cancelled() }}
+        # v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: instruction-count-results-${{ matrix.runner }}
+          path: ${{ runner.temp }}/study/results
