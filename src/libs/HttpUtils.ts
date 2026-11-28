@@ -77,6 +77,24 @@ const ALREADY_CREATED_MESSAGES = new Set<string>([CONST.ERROR_TITLE.ALREADY_CREA
  */
 const APICommandRegex = /\/api\/([^&?]+)\??.*/;
 
+type AttemptOptions = {
+    method: RequestType;
+    body: FormData | null;
+    abortSignal: AbortSignal | undefined;
+    command: string | undefined;
+
+    /** Resolved once per request, so every attempt of that request sends the same prefetch key */
+    prefetchKey?: string;
+    prefetchHeaders?: Record<string, string>;
+};
+
+type AttemptResult<TKey extends OnyxKey> = {
+    response: Response<TKey>;
+
+    /** Whether nitro-fetch served this attempt from a prefetch instead of sending it */
+    isPrefetchedResponse: boolean;
+};
+
 /**
  * Send an HTTP request, and attempt to resolve the json response.
  * If there is a network error, we'll set the application offline.
@@ -88,11 +106,33 @@ function processHTTPRequest<TKey extends OnyxKey>(
     abortSignal: AbortSignal | undefined = undefined,
     shouldSkipPrefetch = false,
 ): Promise<Response<TKey>> {
+    const command = url.match(APICommandRegex)?.[1];
+    const {prefetchKey, prefetchHeaders} = shouldSkipPrefetch ? {prefetchKey: undefined, prefetchHeaders: undefined} : preparePrefetchRequest(command);
+
+    return attemptRequest<TKey>(url, {method, body, abortSignal, command, prefetchKey, prefetchHeaders})
+        .then(({response, isPrefetchedResponse}) => {
+            if (response.jsonCode === CONST.JSON_CODE.UPDATE_REQUIRED) {
+                // A prefetched response can come from a body saved by the previous build, so it carries that build's appversion.
+                // https://github.com/Expensify/App/pull/103842 leaves appversion out of saved bodies, but bodies saved by older builds still have it.
+                // Retry without the prefetchKey, because nitro-fetch can serve the same cached response again for a few seconds.
+                if (isPrefetchedResponse) {
+                    return processHTTPRequest<TKey>(url, method, body, abortSignal, true);
+                }
+
+                // Trigger a modal and disable the app as the user needs to upgrade to the latest minimum version to continue
+                alertUser();
+            }
+            return processJSONResponse(response);
+        })
+        .finally(() => markAppStartupNetworkRequestEnd(command));
+}
+
+/**
+ * Send the request once, check its HTTP status and parse the body. The JSON codes are handled separately in processJSONResponse.
+ */
+function attemptRequest<TKey extends OnyxKey>(url: string, {method, body, abortSignal, command, prefetchKey, prefetchHeaders}: AttemptOptions): Promise<AttemptResult<TKey>> {
     const startTime = new Date().valueOf();
 
-    const command = url.match(APICommandRegex)?.[1];
-
-    const {prefetchKey, prefetchHeaders} = shouldSkipPrefetch ? {prefetchKey: undefined, prefetchHeaders: undefined} : preparePrefetchRequest(command);
     let isPrefetchedResponse = false;
 
     const fetchParams: NonNullable<Parameters<typeof nitroFetch>[1]> = {
@@ -197,73 +237,67 @@ function processHTTPRequest<TKey extends OnyxKey>(
                 },
             );
         })
-        .then((response) => {
-            // Some retried requests will result in a "Unique Constraints Violation" error from the server, which just means the record already exists
-            if (response.jsonCode === CONST.JSON_CODE.BAD_REQUEST && response.message === CONST.ERROR_TITLE.DUPLICATE_RECORD) {
-                throw new HttpsError({
-                    message: CONST.ERROR.DUPLICATE_RECORD,
-                    status: CONST.JSON_CODE.BAD_REQUEST.toString(),
-                    title: CONST.ERROR_TITLE.DUPLICATE_RECORD,
-                    requestID: response.requestID,
-                });
-            }
-
-            // Per-command messages indicating the resource already exists on the server (e.g. retry after a successful first attempt).
-            if (response.jsonCode === CONST.JSON_CODE.EXP_ERROR && response.message && ALREADY_CREATED_MESSAGES.has(response.message)) {
-                throw new HttpsError({
-                    message: CONST.ERROR.ALREADY_CREATED,
-                    status: CONST.JSON_CODE.EXP_ERROR.toString(),
-                    title: response.message,
-                });
-            }
-
-            // Auth is down or timed out while making a request
-            if (response.jsonCode === CONST.JSON_CODE.EXP_ERROR && response.title === CONST.ERROR_TITLE.SOCKET && response.type === CONST.ERROR_TYPE.SOCKET) {
-                throw new HttpsError({
-                    message: CONST.ERROR.EXPENSIFY_SERVICE_INTERRUPTED,
-                    status: CONST.JSON_CODE.EXP_ERROR.toString(),
-                    title: CONST.ERROR_TITLE.SOCKET,
-                    requestID: response.requestID,
-                });
-            }
-
-            // The server sheds writes during instability with an app-level 503, which asks us to try again shortly
-            if (response.jsonCode === CONST.JSON_CODE.SERVICE_UNAVAILABLE) {
-                throw new HttpsError({
-                    message: CONST.ERROR.SERVICE_UNAVAILABLE,
-                    status: CONST.JSON_CODE.SERVICE_UNAVAILABLE.toString(),
-                    title: CONST.ERROR_TITLE.SERVICE_UNAVAILABLE,
-                    requestID: response.requestID,
-                });
-            }
-
-            if (response.data && (response.data?.authWriteCommands?.length ?? 0)) {
-                const {phpCommandName, authWriteCommands} = response.data;
-                const message = `The API command ${phpCommandName} is doing too many Auth writes. Count ${authWriteCommands.length}, commands: ${authWriteCommands.join(
-                    ', ',
-                )}. If you modified this command, you MUST refactor it to remove the extra Auth writes. Otherwise, update the allowed write count in Web-Expensify APIWriteCommands.`;
-                alert('Too many auth writes', message);
-            }
-            if (response.jsonCode === CONST.JSON_CODE.UPDATE_REQUIRED) {
-                // A prefetched response can come from a body saved by the previous build, so it carries that build's appversion.
-                // https://github.com/Expensify/App/pull/103842 leaves appversion out of saved bodies, but bodies saved by older builds still have it.
-                // Retry without the prefetchKey, because nitro-fetch can serve the same cached response again for a few seconds.
-                if (isPrefetchedResponse) {
-                    return processHTTPRequest<TKey>(url, method, body, abortSignal, true);
-                }
-
-                // Trigger a modal and disable the app as the user needs to upgrade to the latest minimum version to continue
-                alertUser();
-            }
-            return response;
-        })
+        .then((response) => ({response, isPrefetchedResponse}))
         .catch((error: unknown) => {
             // A rejected fetch skips the success path above, leaving these spans open to record everything until something else tears them down.
             cancelSpan(waitSpanId);
             cancelSpan(downloadSpanId);
             throw error;
-        })
-        .finally(() => markAppStartupNetworkRequestEnd(command));
+        });
+}
+
+/**
+ * Turn the JSON codes that mean the request failed into errors, and alert when a command does too many Auth writes.
+ * UPDATE_REQUIRED is handled in processHTTPRequest, which may retry the request.
+ */
+function processJSONResponse<TKey extends OnyxKey>(response: Response<TKey>): Response<TKey> {
+    // Some retried requests will result in a "Unique Constraints Violation" error from the server, which just means the record already exists
+    if (response.jsonCode === CONST.JSON_CODE.BAD_REQUEST && response.message === CONST.ERROR_TITLE.DUPLICATE_RECORD) {
+        throw new HttpsError({
+            message: CONST.ERROR.DUPLICATE_RECORD,
+            status: CONST.JSON_CODE.BAD_REQUEST.toString(),
+            title: CONST.ERROR_TITLE.DUPLICATE_RECORD,
+            requestID: response.requestID,
+        });
+    }
+
+    // Per-command messages indicating the resource already exists on the server (e.g. retry after a successful first attempt).
+    if (response.jsonCode === CONST.JSON_CODE.EXP_ERROR && response.message && ALREADY_CREATED_MESSAGES.has(response.message)) {
+        throw new HttpsError({
+            message: CONST.ERROR.ALREADY_CREATED,
+            status: CONST.JSON_CODE.EXP_ERROR.toString(),
+            title: response.message,
+        });
+    }
+
+    // Auth is down or timed out while making a request
+    if (response.jsonCode === CONST.JSON_CODE.EXP_ERROR && response.title === CONST.ERROR_TITLE.SOCKET && response.type === CONST.ERROR_TYPE.SOCKET) {
+        throw new HttpsError({
+            message: CONST.ERROR.EXPENSIFY_SERVICE_INTERRUPTED,
+            status: CONST.JSON_CODE.EXP_ERROR.toString(),
+            title: CONST.ERROR_TITLE.SOCKET,
+            requestID: response.requestID,
+        });
+    }
+
+    // The server sheds writes during instability with an app-level 503, which asks us to try again shortly
+    if (response.jsonCode === CONST.JSON_CODE.SERVICE_UNAVAILABLE) {
+        throw new HttpsError({
+            message: CONST.ERROR.SERVICE_UNAVAILABLE,
+            status: CONST.JSON_CODE.SERVICE_UNAVAILABLE.toString(),
+            title: CONST.ERROR_TITLE.SERVICE_UNAVAILABLE,
+            requestID: response.requestID,
+        });
+    }
+
+    if (response.data && (response.data?.authWriteCommands?.length ?? 0)) {
+        const {phpCommandName, authWriteCommands} = response.data;
+        const message = `The API command ${phpCommandName} is doing too many Auth writes. Count ${authWriteCommands.length}, commands: ${authWriteCommands.join(
+            ', ',
+        )}. If you modified this command, you MUST refactor it to remove the extra Auth writes. Otherwise, update the allowed write count in Web-Expensify APIWriteCommands.`;
+        alert('Too many auth writes', message);
+    }
+    return response;
 }
 
 /**
