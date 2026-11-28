@@ -1,8 +1,9 @@
 /**
  * Follows the payments of a Search bulk pay click, so the reports left unpaid because the bank account needs global
  * reimbursements are listed in one modal once every payment has a response. Those are the reports the client skipped
- * before paying and the ones the backend rejected. Writes go through the SequentialQueue, so Search can't wait for the
- * responses itself. GlobalReimbursementPayError reports each one here instead.
+ * before paying and the ones the backend rejected. The same modal lists the reports skipped because nothing is owed on
+ * them, so the click ends in one modal. Writes go through the SequentialQueue, so Search can't wait for the responses
+ * itself. GlobalReimbursementPayError reports each one here instead.
  *
  * The clicks are kept in memory, because only the tab that sends the requests gets their responses.
  */
@@ -17,10 +18,13 @@ type BulkPay = {
     /** The names of the reports whose payment has no response yet, keyed by reportID */
     pendingReportNames: Map<string, string>;
     unpaidReportNames: string[];
+
+    /** The names of the reports the client didn't pay because they're non-reimbursable or total $0 or less */
+    nothingOwedReportNames: string[];
     hasPaidReports: boolean;
 };
 
-type BulkPayParams = Pick<BulkPay, 'bankAccount' | 'pendingReportNames' | 'hasPaidReports'> & {
+type BulkPayParams = Pick<BulkPay, 'bankAccount' | 'pendingReportNames' | 'nothingOwedReportNames' | 'hasPaidReports'> & {
     /** The names of the reports the client didn't pay because the bank account needs global reimbursements */
     skippedReportNames: string[];
 };
@@ -41,18 +45,22 @@ function showUnpaidReportsIfSettled(bulkPay: BulkPay) {
     }
     bulkPays.delete(bulkPay);
 
-    const {bankAccount, unpaidReportNames, hasPaidReports} = bulkPay;
-    if (unpaidReportNames.length === 0) {
+    const {bankAccount, unpaidReportNames, nothingOwedReportNames, hasPaidReports} = bulkPay;
+    if (unpaidReportNames.length === 0 && nothingOwedReportNames.length === 0) {
         return;
     }
 
-    // Nothing was paid, so there is nothing to list next to the unpaid reports. Open the intro directly, the same way paying a single report does
-    const {accountNumber, ...introData} = bankAccount;
-    showEnableGlobalReimbursementsModal(hasPaidReports ? {...bankAccount, unpaidReportNames} : {...introData, isPayingMultipleReports: unpaidReportNames.length > 1});
+    // Nothing was paid or skipped for another reason, so there is nothing to list next to the unpaid reports. Open the intro directly, the same way paying a single report does
+    if (!hasPaidReports && nothingOwedReportNames.length === 0) {
+        const {accountNumber, ...introData} = bankAccount;
+        showEnableGlobalReimbursementsModal({...introData, isPayingMultipleReports: unpaidReportNames.length > 1});
+        return;
+    }
+    showEnableGlobalReimbursementsModal({...bankAccount, unpaidReportNames, nothingOwedReportNames});
 }
 
 /** Starts following a bulk pay click. Call it before sending the payments, so no response is missed. */
-function followGlobalReimbursementsBulkPay({bankAccount, pendingReportNames, skippedReportNames, hasPaidReports}: BulkPayParams) {
+function followGlobalReimbursementsBulkPay({bankAccount, pendingReportNames, skippedReportNames, nothingOwedReportNames, hasPaidReports}: BulkPayParams) {
     // A report can't be paid again while its payment is in flight, so an earlier click that still waits for one of these reports never got its response.
     // Forget it, or the response of this click would settle that one instead.
     for (const earlierBulkPay of bulkPays) {
@@ -61,7 +69,13 @@ function followGlobalReimbursementsBulkPay({bankAccount, pendingReportNames, ski
         }
     }
 
-    const bulkPay = {bankAccount, pendingReportNames: new Map(pendingReportNames), unpaidReportNames: [...skippedReportNames], hasPaidReports};
+    const bulkPay = {
+        bankAccount,
+        pendingReportNames: new Map(pendingReportNames),
+        unpaidReportNames: [...skippedReportNames],
+        nothingOwedReportNames: [...nothingOwedReportNames],
+        hasPaidReports,
+    };
     bulkPays.add(bulkPay);
     showUnpaidReportsIfSettled(bulkPay);
 }

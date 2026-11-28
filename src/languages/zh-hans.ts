@@ -1670,6 +1670,9 @@ const translations: TranslationDeepObject<typeof en> = {
         settleInvoicePersonal: (amount?: string, last4Digits?: string) => (amount ? `使用个人账户 ${last4Digits} 支付了 ${amount}` : `使用个人账户支付`),
         settleInvoiceBusiness: (amount?: string, last4Digits?: string) => (amount ? `已使用商务账户 ${last4Digits} 支付 ${amount}` : `使用公司账户支付`),
         payWithPolicy: (policyName: string, formattedAmount?: string) => (formattedAmount ? `通过 ${policyName} 支付 ${formattedAmount}` : `通过 ${policyName} 支付`),
+        bankPaySkippedReportsDescription: '这些报销单未通过银行账户支付，因为它们要么不可报销，要么总金额为零或小于零。如果你愿意，可以手动将它们标记为已支付。',
+        bankPayAllReportsSkippedDescription: '所选报表为不可报销报表，或其总金额小于或等于 0。如有需要，您可以手动将这些报表标记为已支付。',
+        bankPayReportSkippedDescription: '此报销单不可报销或总金额小于等于零。如有需要，你可以手动将其标记为已支付。',
         businessBankAccount: (amount?: string, last4Digits?: string) => (amount ? `使用银行账户尾号为 ${last4Digits} 支付了 ${amount}` : `通过银行账户 ${last4Digits} 支付`),
         automaticallyPaidWithBusinessBankAccount: (amount?: string, last4Digits?: string) =>
             `已通过<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">工作区规则</a>使用尾号为 ${last4Digits} 的银行账户支付了 ${amount ? `${amount} ` : ''}`,
@@ -12846,6 +12849,7 @@ ${reportName}`,
         approvingTitle: '正在批准报表…',
         submittingTitle: '正在提交报表…',
         payingTitle: '正在将报表标记为已支付…',
+        payingWithBankTitle: '正在支付报表…',
         holdingTitle: '正在暂挂报销费用…',
         unholdingTitle: '正在解除报销费用的保留…',
         rejectingTitle: '正在拒绝报销费用…',
@@ -12868,6 +12872,10 @@ ${reportName}`,
         paidTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `已将 ${count} 份报表中的 ${doneCount} 份标记为已支付`,
             other: `已将 ${count} 份报表中的 ${doneCount} 份标记为已支付`,
+        }),
+        paidWithBankTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `已支付 ${doneCount}/${count} 份报表`,
+            other: `已支付 ${count} 份报销单中的 ${doneCount} 份`,
         }),
         heldTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `已暂挂 ${count} 份报表中 ${doneCount} 份的报销费用`,
@@ -12910,6 +12918,10 @@ ${reportName}`,
             one: '1 份报表无法标记为已支付。',
             other: `${count} 份报表无法标记为已支付。`,
         }),
+        skippedBankPayBody: ({count}: {count: number}) => ({
+            one: '有 1 份报销单未通过银行账户支付，因为其不可报销或总金额小于等于 0。如有需要，您可以手动将其标记为已支付。',
+            other: `${count} 份报销单未通过银行账户支付，因为它们要么不可报销，要么总金额小于或等于 0。如果你愿意，可以手动将它们标记为已支付。`,
+        }),
         notHeldBody: ({count}: {count: number}) => ({
             one: '无法暂挂 1 份报表的报销费用。',
             other: `无法暂挂 ${count} 份报表的报销费用。`,
@@ -12933,6 +12945,18 @@ ${reportName}`,
         notMovedBody: ({count}: {count: number}) => ({
             one: '1 份报表无法移动。',
             other: `${count} 份报表无法移动。`,
+        }),
+        skippedNeedsGlobalReimbursementsBody: ({count}: {count: number}) => ({
+            one: '有 1 份报销单未支付，因为银行账户需要先完成全球报销设置。',
+            other: `有 ${count} 份报销单未支付，因为该银行账户需要先完成全球报销设置。`,
+        }),
+        skippedDepositAccountNeedsGlobalReimbursementsBody: ({count}: {count: number}) => ({
+            one: '1 份报销单未支付，因为该成员的银行账户尚未设置为全球报销。',
+            other: `由于成员的银行账户尚未设置为支持全球报销，${count} 份报表尚未支付。`,
+        }),
+        skippedNeedsQuoteBody: ({count}: {count: number}) => ({
+            one: '1 份报表未支付，因为其付款使用了其他货币。请从该报表中进行付款以确认汇率。',
+            other: `${count} 份报表未支付，因为它们以其他货币支付。请在每份报表中逐一付款以确认汇率。`,
         }),
     },
     earlyRenewal: {

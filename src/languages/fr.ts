@@ -1742,6 +1742,12 @@ const translations: TranslationDeepObject<typeof en> = {
         settleInvoicePersonal: (amount?: string, last4Digits?: string) => (amount ? `a payé ${amount} avec le compte personnel ${last4Digits}` : `Payé avec un compte personnel`),
         settleInvoiceBusiness: (amount?: string, last4Digits?: string) => (amount ? `a payé ${amount} avec le compte professionnel ${last4Digits}` : `Payé avec le compte professionnel`),
         payWithPolicy: (policyName: string, formattedAmount?: string) => (formattedAmount ? `Payer ${formattedAmount} via ${policyName}` : `Payer via ${policyName}`),
+        bankPaySkippedReportsDescription:
+            "Ces notes de frais n'ont pas été payées via le compte bancaire car elles sont soit non remboursables, soit ont un montant total égal ou inférieur à zéro. Vous pouvez les marquer manuellement comme payées si vous préférez.",
+        bankPayAllReportsSkippedDescription:
+            'Les notes de frais sélectionnées ne sont pas remboursables ou ont un montant total égal ou inférieur à zéro. Vous pouvez marquer manuellement ces notes de frais comme payées si vous le préférez.',
+        bankPayReportSkippedDescription:
+            'Cette note de frais n’est pas remboursable ou a un montant total égal ou inférieur à zéro. Vous pouvez la marquer comme payée manuellement si vous le préférez.',
         businessBankAccount: (amount?: string, last4Digits?: string) => (amount ? `a payé ${amount} avec le compte bancaire ${last4Digits}` : `payé avec le compte bancaire ${last4Digits}`),
         automaticallyPaidWithBusinessBankAccount: (amount?: string, last4Digits?: string) =>
             `payé ${amount ? `${amount} ` : ''} avec le compte bancaire ${last4Digits} via les <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">règles d’espace de travail</a>`,
@@ -13480,6 +13486,7 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         approvingTitle: 'Approbation des notes de frais...',
         submittingTitle: 'Soumission des notes de frais...',
         payingTitle: 'Marquage des notes de frais comme payées...',
+        payingWithBankTitle: 'Paiement des notes de frais...',
         holdingTitle: 'Mise en attente des dépenses...',
         unholdingTitle: 'Suppression de la mise en attente des dépenses...',
         rejectingTitle: 'Rejet des dépenses...',
@@ -13502,6 +13509,10 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         paidTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `Marqué ${doneCount} sur ${count} note de frais comme payé`,
             other: `Marqué ${doneCount} sur ${count} notes de frais comme payé`,
+        }),
+        paidWithBankTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Payé ${doneCount} note de frais sur ${count}`,
+            other: `${doneCount} notes de frais payées sur ${count}`,
         }),
         heldTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `Dépenses mises en attente pour ${doneCount} sur ${count} note de frais`,
@@ -13544,6 +13555,10 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
             one: "1 note de frais n'a pas pu être payée.",
             other: `${count} notes de frais n'ont pas pu être payées.`,
         }),
+        skippedBankPayBody: ({count}: {count: number}) => ({
+            one: "1 note de frais n'a pas été payée via le compte bancaire, car elle n'est pas remboursable ou a un montant total nul ou inférieur à zéro. Vous pouvez la marquer comme payée manuellement si vous le préférez.",
+            other: `${count} notes de frais n'ont pas été payées via le compte bancaire car elles sont soit non remboursables, soit d’un montant total nul ou inférieur à zéro. Vous pouvez les marquer comme payées manuellement si vous préférez.`,
+        }),
         notHeldBody: ({count}: {count: number}) => ({
             one: "Les dépenses de 1 note de frais n'ont pas pu être mises en attente.",
             other: `Les dépenses de ${count} notes de frais n'ont pas pu être mises en attente.`,
@@ -13567,6 +13582,18 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         notMovedBody: ({count}: {count: number}) => ({
             one: "1 note de frais n'a pas pu être déplacée.",
             other: `${count} notes de frais n'ont pas pu être déplacées.`,
+        }),
+        skippedNeedsGlobalReimbursementsBody: ({count}: {count: number}) => ({
+            one: '1 note de frais n’a pas été payée, car le compte bancaire doit d’abord être configuré pour les remboursements globaux.',
+            other: `${count} notes de frais n'ont pas été payées, car le compte bancaire doit d'abord être configuré pour les remboursements globaux.`,
+        }),
+        skippedDepositAccountNeedsGlobalReimbursementsBody: ({count}: {count: number}) => ({
+            one: "1 note de frais n'a pas été remboursée, car le compte bancaire du membre n'est pas encore configuré pour les remboursements internationaux.",
+            other: `${count} notes de frais n'ont pas été payées, car les comptes bancaires des membres ne sont pas encore configurés pour les remboursements internationaux.`,
+        }),
+        skippedNeedsQuoteBody: ({count}: {count: number}) => ({
+            one: '1 note de frais n’a pas été payée car elle est réglée dans une autre devise. Payez-la depuis la note de frais pour confirmer le taux de change.',
+            other: `${count} notes de frais n’ont pas été payées car elles sont réglées dans une autre devise. Payez chacune depuis la note de frais pour confirmer le taux de change.`,
         }),
     },
     earlyRenewal: {

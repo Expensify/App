@@ -37,6 +37,7 @@ describe('GlobalReimbursementsBulkPay', () => {
                 ['C', 'Report C'],
             ]),
             skippedReportNames: ['Report B'],
+            nothingOwedReportNames: [],
             hasPaidReports: false,
         });
 
@@ -50,12 +51,18 @@ describe('GlobalReimbursementsBulkPay', () => {
         expect(settleGlobalReimbursementsBulkPayReport('C', REJECTED)).toBe(true);
 
         // Then one modal lists both unpaid reports for the paying account
-        expect(await getModalData()).toEqual({...BANK_ACCOUNT, unpaidReportNames: ['Report B', 'Report C']});
+        expect(await getModalData()).toEqual({...BANK_ACCOUNT, unpaidReportNames: ['Report B', 'Report C'], nothingOwedReportNames: []});
     });
 
     it('opens the intro for several reports when the only payment is rejected next to a skipped report', async () => {
         // Given a click that pays one report and skips another
-        followGlobalReimbursementsBulkPay({bankAccount: BANK_ACCOUNT, pendingReportNames: new Map([['A', 'Report A']]), skippedReportNames: ['Report B'], hasPaidReports: false});
+        followGlobalReimbursementsBulkPay({
+            bankAccount: BANK_ACCOUNT,
+            pendingReportNames: new Map([['A', 'Report A']]),
+            skippedReportNames: ['Report B'],
+            nothingOwedReportNames: [],
+            hasPaidReports: false,
+        });
 
         // When the backend rejects the payment
         settleGlobalReimbursementsBulkPayReport('A', REJECTED);
@@ -67,7 +74,7 @@ describe('GlobalReimbursementsBulkPay', () => {
     it('opens the intro for one report right away when the click only skipped that report', async () => {
         // Given a click with nothing to pay
         // When it skips its only report
-        followGlobalReimbursementsBulkPay({bankAccount: BANK_ACCOUNT, pendingReportNames: new Map(), skippedReportNames: ['Report B'], hasPaidReports: false});
+        followGlobalReimbursementsBulkPay({bankAccount: BANK_ACCOUNT, pendingReportNames: new Map(), skippedReportNames: ['Report B'], nothingOwedReportNames: [], hasPaidReports: false});
 
         // Then the intro opens with the copy for one report, without waiting for any response
         expect(await getModalData()).toEqual({...INTRO_DATA, isPayingMultipleReports: false});
@@ -75,18 +82,30 @@ describe('GlobalReimbursementsBulkPay', () => {
 
     it('lists a rejected report next to payments it does not wait for, like invoices', async () => {
         // Given a click that already paid invoices and pays one expense report
-        followGlobalReimbursementsBulkPay({bankAccount: BANK_ACCOUNT, pendingReportNames: new Map([['A', 'Report A']]), skippedReportNames: [], hasPaidReports: true});
+        followGlobalReimbursementsBulkPay({
+            bankAccount: BANK_ACCOUNT,
+            pendingReportNames: new Map([['A', 'Report A']]),
+            skippedReportNames: [],
+            nothingOwedReportNames: [],
+            hasPaidReports: true,
+        });
 
         // When the backend rejects the expense report
         settleGlobalReimbursementsBulkPayReport('A', REJECTED);
 
         // Then the list shows, because the invoices count as paid
-        expect(await getModalData()).toEqual({...BANK_ACCOUNT, unpaidReportNames: ['Report A']});
+        expect(await getModalData()).toEqual({...BANK_ACCOUNT, unpaidReportNames: ['Report A'], nothingOwedReportNames: []});
     });
 
     it('does not count a payment that failed for another reason as paid, and does not list it', async () => {
         // Given a click that pays one report and skips another
-        followGlobalReimbursementsBulkPay({bankAccount: BANK_ACCOUNT, pendingReportNames: new Map([['A', 'Report A']]), skippedReportNames: ['Report B'], hasPaidReports: false});
+        followGlobalReimbursementsBulkPay({
+            bankAccount: BANK_ACCOUNT,
+            pendingReportNames: new Map([['A', 'Report A']]),
+            skippedReportNames: ['Report B'],
+            nothingOwedReportNames: [],
+            hasPaidReports: false,
+        });
 
         // When the payment fails without the global reimbursements signal
         settleGlobalReimbursementsBulkPayReport('A', FAILED);
@@ -97,7 +116,13 @@ describe('GlobalReimbursementsBulkPay', () => {
 
     it('shows nothing when every report was paid', async () => {
         // Given a click that pays one report and skips none
-        followGlobalReimbursementsBulkPay({bankAccount: BANK_ACCOUNT, pendingReportNames: new Map([['A', 'Report A']]), skippedReportNames: [], hasPaidReports: false});
+        followGlobalReimbursementsBulkPay({
+            bankAccount: BANK_ACCOUNT,
+            pendingReportNames: new Map([['A', 'Report A']]),
+            skippedReportNames: [],
+            nothingOwedReportNames: [],
+            hasPaidReports: false,
+        });
 
         // When the payment goes through
         settleGlobalReimbursementsBulkPayReport('A', PAID);
@@ -108,7 +133,13 @@ describe('GlobalReimbursementsBulkPay', () => {
 
     it('gives each click its own modal, even when an earlier click never gets a response', async () => {
         // Given a first click whose payment never gets a response, and a second click
-        followGlobalReimbursementsBulkPay({bankAccount: BANK_ACCOUNT, pendingReportNames: new Map([['A', 'Report A']]), skippedReportNames: ['Report B'], hasPaidReports: false});
+        followGlobalReimbursementsBulkPay({
+            bankAccount: BANK_ACCOUNT,
+            pendingReportNames: new Map([['A', 'Report A']]),
+            skippedReportNames: ['Report B'],
+            nothingOwedReportNames: [],
+            hasPaidReports: false,
+        });
         followGlobalReimbursementsBulkPay({
             bankAccount: BANK_ACCOUNT,
             pendingReportNames: new Map([
@@ -116,6 +147,7 @@ describe('GlobalReimbursementsBulkPay', () => {
                 ['D', 'Report D'],
             ]),
             skippedReportNames: [],
+            nothingOwedReportNames: [],
             hasPaidReports: false,
         });
 
@@ -124,19 +156,65 @@ describe('GlobalReimbursementsBulkPay', () => {
         settleGlobalReimbursementsBulkPayReport('D', REJECTED);
 
         // Then the second click lists only its own report
-        expect(await getModalData()).toEqual({...BANK_ACCOUNT, unpaidReportNames: ['Report D']});
+        expect(await getModalData()).toEqual({...BANK_ACCOUNT, unpaidReportNames: ['Report D'], nothingOwedReportNames: []});
     });
 
     it('forgets an earlier click that still waits for a report the admin pays again', async () => {
         // Given a click whose payment of report A never gets a response, and a later click that pays report A again
-        followGlobalReimbursementsBulkPay({bankAccount: BANK_ACCOUNT, pendingReportNames: new Map([['A', 'Report A']]), skippedReportNames: ['Stale report'], hasPaidReports: true});
-        followGlobalReimbursementsBulkPay({bankAccount: BANK_ACCOUNT, pendingReportNames: new Map([['A', 'Report A']]), skippedReportNames: [], hasPaidReports: true});
+        followGlobalReimbursementsBulkPay({
+            bankAccount: BANK_ACCOUNT,
+            pendingReportNames: new Map([['A', 'Report A']]),
+            skippedReportNames: ['Stale report'],
+            nothingOwedReportNames: [],
+            hasPaidReports: true,
+        });
+        followGlobalReimbursementsBulkPay({
+            bankAccount: BANK_ACCOUNT,
+            pendingReportNames: new Map([['A', 'Report A']]),
+            skippedReportNames: [],
+            nothingOwedReportNames: [],
+            hasPaidReports: true,
+        });
 
         // When the backend rejects report A
         settleGlobalReimbursementsBulkPayReport('A', REJECTED);
 
         // Then the later click lists it, without the report the earlier click skipped
-        expect(await getModalData()).toEqual({...BANK_ACCOUNT, unpaidReportNames: ['Report A']});
+        expect(await getModalData()).toEqual({...BANK_ACCOUNT, unpaidReportNames: ['Report A'], nothingOwedReportNames: []});
+    });
+
+    it('lists the reports with nothing owed next to a rejected report instead of opening the intro', async () => {
+        // Given a click that pays one report and skips another because nothing is owed on it
+        followGlobalReimbursementsBulkPay({
+            bankAccount: BANK_ACCOUNT,
+            pendingReportNames: new Map([['A', 'Report A']]),
+            skippedReportNames: [],
+            nothingOwedReportNames: ['Card lunch'],
+            hasPaidReports: false,
+        });
+
+        // When the backend rejects the payment
+        settleGlobalReimbursementsBulkPayReport('A', REJECTED);
+
+        // Then one modal lists both, because the intro alone wouldn't tell the admin about the report with nothing owed
+        expect(await getModalData()).toEqual({...BANK_ACCOUNT, unpaidReportNames: ['Report A'], nothingOwedReportNames: ['Card lunch']});
+    });
+
+    it('lists only the reports with nothing owed once every payment went through', async () => {
+        // Given a click that pays one report and skips another because nothing is owed on it
+        followGlobalReimbursementsBulkPay({
+            bankAccount: BANK_ACCOUNT,
+            pendingReportNames: new Map([['A', 'Report A']]),
+            skippedReportNames: [],
+            nothingOwedReportNames: ['Card lunch'],
+            hasPaidReports: false,
+        });
+
+        // When report A is paid
+        settleGlobalReimbursementsBulkPayReport('A', PAID);
+
+        // Then the modal lists the report with nothing owed alone, so the admin knows to mark it as paid
+        expect(await getModalData()).toEqual({...BANK_ACCOUNT, unpaidReportNames: [], nothingOwedReportNames: ['Card lunch']});
     });
 
     it('leaves a payment outside of bulk pay to the caller', () => {

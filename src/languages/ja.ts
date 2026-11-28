@@ -1715,6 +1715,10 @@ const translations: TranslationDeepObject<typeof en> = {
         settleInvoicePersonal: (amount?: string, last4Digits?: string) => (amount ? `個人アカウント（下4桁 ${last4Digits}）で ${amount} を支払いました` : `個人アカウントで支払い済み`),
         settleInvoiceBusiness: (amount?: string, last4Digits?: string) => (amount ? `ビジネス口座（末尾${last4Digits}）で${amount}を支払いました` : `ビジネスアカウントで支払済み`),
         payWithPolicy: (policyName: string, formattedAmount?: string) => (formattedAmount ? `${policyName}で${formattedAmount}を支払う` : `${policyName}で支払う`),
+        bankPaySkippedReportsDescription:
+            'これらのレポートは、返金対象外であるか、合計金額が0以下であるため、銀行口座を通じて支払われていません。必要に応じて、手動で支払い済みにマークすることができます。',
+        bankPayAllReportsSkippedDescription: '選択されたレポートは精算対象外であるか、合計金額が0以下です。必要に応じて、これらのレポートを手動で支払い済みにすることができます。',
+        bankPayReportSkippedDescription: 'このレポートは精算対象外か、合計金額が0以下です。必要であれば、手動で支払い済みにマークできます。',
         businessBankAccount: (amount?: string, last4Digits?: string) => (amount ? `銀行口座（末尾${last4Digits}）で${amount}を支払いました` : `銀行口座（下4桁 ${last4Digits}）で支払い済み`),
         automaticallyPaidWithBusinessBankAccount: (amount?: string, last4Digits?: string) =>
             `<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">ワークスペースルール</a>に従い、銀行口座（下4桁 ${last4Digits}）で${amount ? `${amount} ` : ''}を支払いました`,
@@ -13179,6 +13183,7 @@ ${reportName}`,
         approvingTitle: 'レポートを承認しています…',
         submittingTitle: 'レポートを送信しています…',
         payingTitle: 'レポートを支払済みにしています…',
+        payingWithBankTitle: 'レポートを支払い中…',
         holdingTitle: '経費を保留にしています…',
         unholdingTitle: '経費の保留を解除しています…',
         rejectingTitle: '経費を却下しています…',
@@ -13201,6 +13206,10 @@ ${reportName}`,
         paidTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `${count} 件中 ${doneCount} 件のレポートを支払済みにしました`,
             other: `${count} 件中 ${doneCount} 件のレポートを支払済みにしました`,
+        }),
+        paidWithBankTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `${count}件のレポートのうち${doneCount}件を支払済み`,
+            other: `${count}件中${doneCount}件のレポートを支払済み`,
         }),
         heldTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `${count} 件中 ${doneCount} 件のレポートの経費を保留にしました`,
@@ -13243,6 +13252,10 @@ ${reportName}`,
             one: '1件のレポートを支払済みにできませんでした。',
             other: `${count} 件のレポートを支払済みにできませんでした。`,
         }),
+        skippedBankPayBody: ({count}: {count: number}) => ({
+            one: '1 件のレポートは、非精算対象であるか、合計金額が 0 以下であるため、銀行口座経由で支払われませんでした。必要に応じて、手動で支払済みにマークできます。',
+            other: `${count} 件のレポートは、返金対象外であるか、合計金額が 0 以下であるため、銀行口座から支払われていません。必要に応じて手動で支払済みにできます。`,
+        }),
         notHeldBody: ({count}: {count: number}) => ({
             one: '1件のレポートの経費を保留にできませんでした。',
             other: `${count} 件のレポートの経費を保留にできませんでした。`,
@@ -13266,6 +13279,18 @@ ${reportName}`,
         notMovedBody: ({count}: {count: number}) => ({
             one: '1件のレポートを移動できませんでした。',
             other: `${count} 件のレポートを移動できませんでした。`,
+        }),
+        skippedNeedsGlobalReimbursementsBody: ({count}: {count: number}) => ({
+            one: '銀行口座でグローバル払い戻しの設定を先に行う必要があるため、1件のレポートは支払われませんでした。',
+            other: `銀行口座でグローバル払い戻しを先に設定する必要があるため、${count} 件のレポートが支払われませんでした。`,
+        }),
+        skippedDepositAccountNeedsGlobalReimbursementsBody: ({count}: {count: number}) => ({
+            one: 'メンバーの銀行口座がまだグローバル払い戻し用に設定されていないため、1件のレポートが支払われませんでした。',
+            other: `${count} 件のレポートは、メンバーの銀行口座がまだグローバル払い戻しに設定されていないため支払われませんでした。`,
+        }),
+        skippedNeedsQuoteBody: ({count}: {count: number}) => ({
+            one: '1 件のレポートは別の通貨で精算されているため支払われていません。為替レートを確認するには、そのレポートから支払ってください。',
+            other: `${count} 件のレポートは、別の通貨で支払われているため精算されていません。為替レートを確定するため、各レポートから個別に支払ってください。`,
         }),
     },
     earlyRenewal: {

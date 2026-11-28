@@ -1783,6 +1783,11 @@ const translations: TranslationDeepObject<typeof en> = {
         settleInvoicePersonal: (amount?: string, last4Digits?: string) => (amount ? `πληρώθηκε ${amount} με προσωπικό λογαριασμό ${last4Digits}` : `Πληρώθηκε με προσωπικό λογαριασμό`),
         settleInvoiceBusiness: (amount?: string, last4Digits?: string) => (amount ? `πληρώθηκε ${amount} με επαγγελματικό λογαριασμό ${last4Digits}` : `Πληρωμή με επαγγελματικό λογαριασμό`),
         payWithPolicy: (policyName: string, formattedAmount?: string) => (formattedAmount ? `Πληρώστε ${formattedAmount} μέσω ${policyName}` : `Πληρωμή μέσω ${policyName}`),
+        bankPaySkippedReportsDescription:
+            'Αυτές οι αναφορές δεν πληρώθηκαν μέσω του τραπεζικού λογαριασμού, επειδή είτε δεν είναι αποζημιώσιμες είτε έχουν συνολικό ποσό μηδέν ή μικρότερο. Μπορείτε να τις σημειώσετε χειροκίνητα ως πληρωμένες, αν το προτιμάτε.',
+        bankPayAllReportsSkippedDescription:
+            'Οι επιλεγμένες αναφορές δεν είναι αποζημιώσιμες ή έχουν συνολικό ποσό μηδέν ή λιγότερο. Μπορείτε, αν προτιμάτε, να σημειώσετε μη αυτόματα αυτές τις αναφορές ως πληρωμένες.',
+        bankPayReportSkippedDescription: 'Αυτή η αναφορά δεν αποζημιώνεται ή έχει συνολικό ποσό μηδέν ή μικρότερο. Μπορείτε, αν προτιμάτε, να την σημάνετε χειροκίνητα ως πληρωμένη.',
         businessBankAccount: (amount?: string, last4Digits?: string) =>
             amount ? `πληρώθηκε ${amount} με τραπεζικό λογαριασμό ${last4Digits}` : `πληρώθηκε με τραπεζικό λογαριασμό ${last4Digits}`,
         automaticallyPaidWithBusinessBankAccount: (amount?: string, last4Digits?: string) =>
@@ -13668,6 +13673,7 @@ ${reportName}`,
         approvingTitle: 'Γίνεται έγκριση αναφορών...',
         submittingTitle: 'Υποβολή αναφορών...',
         payingTitle: 'Σημειώνονται οι αναφορές ως πληρωμένες...',
+        payingWithBankTitle: 'Πληρώνονται αναφορές...',
         holdingTitle: 'Τα έξοδα τίθενται σε αναμονή...',
         unholdingTitle: 'Αφαιρείται η κράτηση των εξόδων...',
         rejectingTitle: 'Απόρριψη εξόδων...',
@@ -13690,6 +13696,10 @@ ${reportName}`,
         paidTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `Σημειώθηκαν ως πληρωμένες ${doneCount} από ${count} αναφορά`,
             other: `Σημειώθηκαν ως πληρωμένες ${doneCount} από ${count} αναφορές`,
+        }),
+        paidWithBankTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Πληρώσατε ${doneCount} από ${count} αναφορά`,
+            other: `Πληρώθηκαν ${doneCount} από ${count} αναφορές`,
         }),
         heldTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `Τέθηκαν σε αναμονή έξοδα σε ${doneCount} από ${count} αναφορά`,
@@ -13732,6 +13742,10 @@ ${reportName}`,
             one: '1 αναφορά δεν μπόρεσε να πληρωθεί.',
             other: `${count} αναφορές δεν ήταν δυνατό να πληρωθούν.`,
         }),
+        skippedBankPayBody: ({count}: {count: number}) => ({
+            one: '1 αναφορά δεν πληρώθηκε μέσω του τραπεζικού λογαριασμού επειδή δεν είναι αποζημιώσιμη ή έχει συνολικό ποσό μηδέν ή μικρότερο. Μπορείτε, αν προτιμάτε, να την επισημάνετε χειροκίνητα ως πληρωμένη.',
+            other: `${count} αναφορές δεν πληρώθηκαν μέσω του τραπεζικού λογαριασμού, επειδή είτε δεν είναι αποζημιώσιμες είτε έχουν συνολικό ποσό μηδέν ή μικρότερο. Μπορείτε να τις σημειώσετε χειροκίνητα ως πληρωμένες, αν προτιμάτε.`,
+        }),
         notHeldBody: ({count}: {count: number}) => ({
             one: 'Τα έξοδα σε 1 αναφορά δεν ήταν δυνατό να τεθούν σε αναμονή.',
             other: `Τα έξοδα σε ${count} αναφορές δεν ήταν δυνατό να τεθούν σε αναμονή.`,
@@ -13755,6 +13769,18 @@ ${reportName}`,
         notMovedBody: ({count}: {count: number}) => ({
             one: '1 αναφορά δεν μπόρεσε να μετακινηθεί.',
             other: `${count} αναφορές δεν ήταν δυνατό να μετακινηθούν.`,
+        }),
+        skippedNeedsGlobalReimbursementsBody: ({count}: {count: number}) => ({
+            one: '1 αναφορά δεν πληρώθηκε επειδή ο τραπεζικός λογαριασμός χρειάζεται πρώτα ρύθμιση διεθνών αποζημιώσεων.',
+            other: `${count} αναφορές δεν πληρώθηκαν, επειδή ο τραπεζικός λογαριασμός χρειάζεται πρώτα ρύθμιση παγκόσμιων αποζημιώσεων.`,
+        }),
+        skippedDepositAccountNeedsGlobalReimbursementsBody: ({count}: {count: number}) => ({
+            one: '1 αναφορά δεν πληρώθηκε, επειδή ο τραπεζικός λογαριασμός του μέλους δεν έχει ρυθμιστεί ακόμα για παγκόσμιες αποζημιώσεις.',
+            other: `${count} αναφορές δεν πληρώθηκαν, επειδή οι τραπεζικοί λογαριασμοί των μελών δεν έχουν ρυθμιστεί ακόμη για παγκόσμιες επιστροφές χρημάτων.`,
+        }),
+        skippedNeedsQuoteBody: ({count}: {count: number}) => ({
+            one: '1 αναφορά δεν πληρώθηκε επειδή εξοφλείται σε άλλο νόμισμα. Πληρώστε την από την αναφορά για να επιβεβαιώσετε την ισοτιμία.',
+            other: `${count} αναφορές δεν πληρώθηκαν επειδή εξοφλούνται σε άλλο νόμισμα. Πληρώστε καθεμία από την ίδια την αναφορά για να επιβεβαιώσετε την ισοτιμία.`,
         }),
     },
     emailIssuePage: {

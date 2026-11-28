@@ -19,6 +19,7 @@ import type {ValueOf} from 'type-fest';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import {translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@libs/Navigation/Navigation', () => ({
@@ -27,7 +28,9 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 
 // The confirm modal is UI the global modal host renders, so the test only checks what it was asked to show
-const mockShowConfirmModal = jest.fn<Promise<{action: string}>, [{id?: string; title?: string; prompt?: string}]>(() => Promise.resolve({action: 'CLOSE'}));
+const mockShowConfirmModal = jest.fn<Promise<{action: string}>, [{id?: string; title?: string; subtitle?: string; prompt?: string; shouldShowCancelButton?: boolean}]>(() =>
+    Promise.resolve({action: 'CLOSE'}),
+);
 jest.mock('@hooks/useConfirmModal', () => jest.fn(() => ({showConfirmModal: mockShowConfirmModal})));
 
 // The bulk pay modal waits for the pay popover to dismiss, which never happens under Jest
@@ -59,6 +62,7 @@ async function blockPay({
     isAccountLocked = false,
     bankAccount = createBusinessBankAccount(undefined, undefined),
     unpaidReportNames = undefined as string[] | undefined,
+    nothingOwedReportNames = undefined as string[] | undefined,
 } = {}) {
     await act(async () => {
         await Onyx.set(ONYXKEYS.BETAS, betas);
@@ -78,6 +82,7 @@ async function blockPay({
             bankCountry: CONST.COUNTRY.US,
             bankCurrency: CONST.CURRENCY.USD,
             ...(unpaidReportNames ? {unpaidReportNames, accountNumber: ACCOUNT_NUMBER} : {}),
+            ...(nothingOwedReportNames ? {nothingOwedReportNames, accountNumber: ACCOUNT_NUMBER} : {}),
         });
     });
     await waitForBatchedUpdatesWithAct();
@@ -142,6 +147,33 @@ describe('EnableGlobalReimbursementsPayModal', () => {
             const modalOptions = mockShowConfirmModal.mock.calls.at(0)?.at(0);
             expect(modalOptions?.title).toContain('1234');
             expect(modalOptions?.prompt).toBe(`${CONST.DOT_SEPARATOR} Report B\n${CONST.DOT_SEPARATOR} Report C`);
+            expect(Navigation.navigate).not.toHaveBeenCalled();
+        });
+
+        it('lists the reports with nothing owed under the reports that need global reimbursements', async () => {
+            // Given an admin on the Wise beta
+            // When bulk pay left one report unpaid because the account needs global reimbursements, and skipped another because nothing is owed on it
+            await blockPay({unpaidReportNames: ['Report B'], nothingOwedReportNames: ['Card lunch']});
+
+            // Then one modal lists both, each under its own reason, so the admin doesn't get a second modal for the report with nothing owed
+            expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+            expect(mockShowConfirmModal.mock.calls.at(0)?.at(0)?.prompt).toBe(
+                `${CONST.DOT_SEPARATOR} Report B\n\n${translateLocal('iou.bankPaySkippedReportsDescription')}\n${CONST.DOT_SEPARATOR} Card lunch`,
+            );
+            expect(Navigation.navigate).not.toHaveBeenCalled();
+        });
+
+        it('lists only the reports with nothing owed when no report needs global reimbursements', async () => {
+            // Given an admin on the Wise beta
+            // When every payment of a bulk pay went through, and it skipped a report because nothing is owed on it
+            await blockPay({unpaidReportNames: [], nothingOwedReportNames: ['Card lunch']});
+
+            // Then the modal explains why that report wasn't paid, without offering to set up global reimbursements
+            expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+            const modalOptions = mockShowConfirmModal.mock.calls.at(0)?.at(0);
+            expect(modalOptions?.subtitle).toBe(translateLocal('iou.bankPaySkippedReportsDescription'));
+            expect(modalOptions?.prompt).toBe(`${CONST.DOT_SEPARATOR} Card lunch`);
+            expect(modalOptions?.shouldShowCancelButton).toBe(false);
             expect(Navigation.navigate).not.toHaveBeenCalled();
         });
 

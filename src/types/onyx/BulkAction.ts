@@ -2,8 +2,16 @@ import type CONST from '@src/CONST';
 
 import type {ValueOf} from 'type-fest';
 
+import type {PaymentMethodType} from './OriginalMessage';
+
 /** Possible states of a bulk action */
 type BulkActionState = ValueOf<typeof CONST.BULK_ACTION.STATE>;
+
+/** Why a bulk bank payment left a report unpaid */
+type BulkPaySkipReason = ValueOf<typeof CONST.BULK_ACTION.SKIP_REASON>;
+
+/** Reports a bulk bank payment left unpaid on purpose, grouped by why. The backend can add a reason the App doesn't know yet. */
+type BulkPaySkippedReportIDs = Partial<Record<BulkPaySkipReason, string[]>>;
 
 /** Bulk actions from Search "Select all" that run on the backend */
 type BulkActionType =
@@ -30,9 +38,15 @@ type BulkAction = {
     /** Reports the action couldn't be done on, set once it is done */
     failedReportIDs?: string[];
 
+    /** How a bulk payment pays the reports, set when it pays through a bank account instead of marking them as paid */
+    paymentType?: PaymentMethodType;
+
+    /** Reports a bank payment left unpaid on purpose, grouped by why, set once it is done */
+    skippedReportIDs?: BulkPaySkippedReportIDs;
+
     /** Whether Concierge should message the result instead of showing it here */
     shouldSendFromConcierge?: boolean;
 };
 
 export default BulkAction;
-export type {BulkActionType};
+export type {BulkActionType, BulkPaySkipReason};
