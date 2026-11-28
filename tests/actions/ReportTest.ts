@@ -13493,6 +13493,10 @@ describe('actions/Report', () => {
                 [REPORT_PREVIEW_ACTION_2_ID]: reportPreviewAction2,
             },
         };
+        const allReportsTransactions: Record<string, OnyxTypes.Transaction[]> = {
+            [SOURCE_REPORT_1_ID]: [transaction1],
+            [SOURCE_REPORT_2_ID]: [transaction2],
+        };
 
         let mockFetch: MockFetch;
         beforeEach(async () => {
@@ -13544,6 +13548,7 @@ describe('actions/Report', () => {
                 policyTagList: {},
                 allReports,
                 allReportActions,
+                allReportsTransactions,
                 bankAccountList: undefined,
                 isTrackIntentUser: false,
                 personalPolicyOutputCurrency: undefined,
@@ -13617,6 +13622,7 @@ describe('actions/Report', () => {
                 policyTagList: {},
                 allReports,
                 allReportActions,
+                allReportsTransactions,
                 bankAccountList: undefined,
                 isTrackIntentUser: false,
                 personalPolicyOutputCurrency: undefined,
@@ -13688,6 +13694,7 @@ describe('actions/Report', () => {
                 policyTagList: {},
                 allReports,
                 allReportActions,
+                allReportsTransactions,
                 hash: SNAPSHOT_HASH,
                 bankAccountList: undefined,
                 isTrackIntentUser: false,
@@ -13765,6 +13772,7 @@ describe('actions/Report', () => {
                 policyTagList: {},
                 allReports: {...allReports, [`${ONYXKEYS.COLLECTION.REPORT}${DESTINATION_REPORT_ID}`]: submittedDestinationReport},
                 allReportActions,
+                allReportsTransactions,
                 bankAccountList: undefined,
                 isTrackIntentUser: false,
                 personalPolicyOutputCurrency: undefined,

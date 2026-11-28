@@ -162,7 +162,6 @@ import {
     getReportNotificationPreference,
     getReportOrDraftReport,
     getReportPreviewReportActionMessage,
-    getReportTransactions,
     getUploadingAttachmentHtmlFromComment,
     hasOutstandingChildRequest,
     isAdminRoom,
@@ -508,7 +507,7 @@ type MergeReportsProps = {
     policyTagList: OnyxEntry<PolicyTagLists>;
     allTransactionViolation?: OnyxCollection<TransactionViolation[]>;
     allReports?: OnyxCollection<Report>;
-    allReportsTransactions?: Record<string, Transaction[]>;
+    allReportsTransactions: Record<string, Transaction[]>;
     allReportActions?: Record<string, OnyxEntry<ReportActions>>;
     hash?: number;
     bankAccountList: OnyxEntry<BankAccountList>;
@@ -9455,7 +9454,7 @@ function mergeReports({
     const transactionsToMove: Transaction[] = [];
     const transactionIDsToMove: string[] = [];
     for (const sourceReportID of sourceReportIDs) {
-        const transactions = getReportTransactions(sourceReportID, allReportsTransactions);
+        const transactions = allReportsTransactions[sourceReportID] ?? [];
         transactionsToMove.push(...transactions);
         transactionIDsToMove.push(...transactions.map((t) => t.transactionID));
     }
