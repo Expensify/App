@@ -12,7 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 import type {PolicyFeature} from '@libs/PolicyUtils';
-import {getReportFieldKey, hasEnabledListValue} from '@libs/ReportUtils';
+import {getReportFieldKey, hasEnabledListValue, isFailedReportFieldAdd} from '@libs/ReportUtils';
 import {getReportFieldInitialValue, getReportFieldTypeTranslationKey, isReportFieldImportedFromIntegration, isReportFieldTargetValid} from '@libs/WorkspaceReportFieldUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -67,7 +67,7 @@ function FieldsSettingsPage({
     const reportFieldKey = getReportFieldKey(reportFieldID);
     const reportField = policy?.fieldList?.[reportFieldKey] ?? null;
 
-    if (!reportField || !isReportFieldTargetValid(reportField, expectedTarget)) {
+    if (!reportField || isFailedReportFieldAdd(reportField) || !isReportFieldTargetValid(reportField, expectedTarget)) {
         return <NotFoundPage />;
     }
 

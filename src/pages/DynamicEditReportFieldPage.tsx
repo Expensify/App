@@ -24,6 +24,7 @@ import {getReportName} from '@libs/ReportNameUtils';
 import {
     getReportFieldFromReportNameValuePairs,
     getReportFieldKey,
+    getReportFieldsWithoutFailedAdds,
     getTitleFieldWithFallback,
     isGroupPolicyExpenseReport,
     isInvoiceReport,
@@ -140,6 +141,7 @@ function DynamicEditReportFieldPage({route}: DynamicEditReportFieldPageProps) {
     const menuItems: PopoverMenuItem[] = [];
 
     const isReportFieldDeletable = reportField.deletable && reportField?.fieldID !== CONST.REPORT_FIELD_TITLE_FIELD_ID;
+    const policyFieldList = getReportFieldsWithoutFailedAdds(policy?.fieldList);
 
     if (isReportFieldDeletable) {
         menuItems.push({
@@ -175,7 +177,7 @@ function DynamicEditReportFieldPage({route}: DynamicEditReportFieldPageProps) {
                     fieldValue={fieldValue}
                     isRequired={!isReportFieldDeletable}
                     onSubmit={handleReportFieldChange}
-                    fieldList={policy?.fieldList}
+                    fieldList={policyFieldList}
                 />
             )}
 
@@ -205,7 +207,7 @@ function DynamicEditReportFieldPage({route}: DynamicEditReportFieldPageProps) {
                     fieldValue={fieldValue}
                     isRequired={!isReportFieldDeletable}
                     onSubmit={handleReportFieldChange}
-                    fieldList={policy?.fieldList}
+                    fieldList={policyFieldList}
                     disabled
                 />
             )}

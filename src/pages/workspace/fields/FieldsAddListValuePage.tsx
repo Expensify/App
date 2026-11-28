@@ -13,7 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 import type {PolicyFeature} from '@libs/PolicyUtils';
-import {getReportFieldKey} from '@libs/ReportUtils';
+import {getReportFieldKey, isFailedReportFieldAdd} from '@libs/ReportUtils';
 import {isReportFieldImportedFromIntegration, isReportFieldTargetValid, validateReportFieldListValueName} from '@libs/WorkspaceReportFieldUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -49,7 +49,7 @@ function FieldsAddListValuePage({policy, policyID, reportFieldID, featureName, p
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
     const {canWrite} = usePolicyFeatureWriteAccess(policy, policyFeature);
     const reportField = reportFieldID ? policy?.fieldList?.[getReportFieldKey(reportFieldID)] : undefined;
-    const isReportFieldInvalid = !!reportFieldID && (!reportField || !isReportFieldTargetValid(reportField, expectedTarget));
+    const isReportFieldInvalid = !!reportFieldID && (!reportField || isFailedReportFieldAdd(reportField) || !isReportFieldTargetValid(reportField, expectedTarget));
     const draftListValues = formDraft?.[INPUT_IDS.LIST_VALUES];
     const draftDisabledListValues = formDraft?.[INPUT_IDS.DISABLED_LIST_VALUES];
 
