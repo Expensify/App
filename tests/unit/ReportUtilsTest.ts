@@ -12826,6 +12826,108 @@ describe('ReportUtils', () => {
             expect(isUnread(report, undefined, false, false)).toBe(false);
         });
 
+        it('returns true when lastReadTime is exactly 1ms before the newest message and the last actor is the current user', async () => {
+            // Given a report another device marked unread from the inbox: the server stores lastReadTime exactly
+            // 1ms before the newest visible message, but this device still has the current user as the last actor
+            // because the actor rewrite is client-only
+            const lastVisibleActionCreated = '2026-10-09 06:36:10.802';
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: '1',
+                lastReadTime: DateUtils.subtractMillisecondsFromDateTime(lastVisibleActionCreated, 1),
+                lastVisibleActionCreated,
+                lastMessageText: 'Hello',
+                lastActorAccountID: currentUserAccountID,
+            };
+
+            // When checking whether the report is unread
+            // Then it is unread, because only MarkAsUnread ever writes an exact 1ms gap, so the gap proves the mark was deliberate
+            expect(isUnread(report, undefined, false, false)).toBe(true);
+        });
+
+        it('returns true when lastReadTime is exactly 1ms before a loaded action and the last actor is the current user', async () => {
+            // Given a report another device marked unread before an older message from the other user, so the stored
+            // lastReadTime is 1ms before that action rather than before the newest message
+            const scanReportID = 'manual-mark-scan';
+            const boundaryActionCreated = '2026-10-09 06:36:10.802';
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${scanReportID}`, {
+                'boundary-action': {
+                    reportActionID: 'boundary-action',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    actorAccountID: currentUserAccountID + 1,
+                    created: boundaryActionCreated,
+                    message: [{type: 'COMMENT', text: 'Boundary', html: 'Boundary'}],
+                },
+            });
+            await waitForBatchedUpdates();
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: scanReportID,
+                lastReadTime: DateUtils.subtractMillisecondsFromDateTime(boundaryActionCreated, 1),
+                lastVisibleActionCreated: '2026-10-20 10:00:00.000',
+                lastMessageText: 'Hello',
+                lastActorAccountID: currentUserAccountID,
+            };
+
+            // When checking whether the report is unread
+            // Then it is unread, because the loaded action pins the gap to a deliberate mark even though the newest message is the user's
+            expect(isUnread(report, undefined, false, false)).toBe(true);
+        });
+
+        it('returns false when the only action at the 1ms boundary is deleted or a whisper', async () => {
+            // Given a report whose lastReadTime sits 1ms before actions that never move lastVisibleActionCreated,
+            // so they cannot anchor a manual mark
+            const scanReportID = 'manual-mark-exclusions';
+            const boundaryActionCreated = '2026-10-09 06:36:10.802';
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${scanReportID}`, {
+                'deleted-action': {
+                    reportActionID: 'deleted-action',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    actorAccountID: currentUserAccountID + 1,
+                    created: boundaryActionCreated,
+                    message: [{type: 'COMMENT', text: '', html: '', deleted: '2026-10-09 07:00:00.000'}],
+                },
+                'whisper-action': {
+                    reportActionID: 'whisper-action',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    actorAccountID: currentUserAccountID + 1,
+                    created: boundaryActionCreated,
+                    message: [{type: 'COMMENT', text: 'Whisper', html: 'Whisper'}],
+                    originalMessage: {whisperedTo: [currentUserAccountID]},
+                },
+            });
+            await waitForBatchedUpdates();
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: scanReportID,
+                lastReadTime: DateUtils.subtractMillisecondsFromDateTime(boundaryActionCreated, 1),
+                lastVisibleActionCreated: '2026-10-20 10:00:00.000',
+                lastMessageText: 'Hello',
+                lastActorAccountID: currentUserAccountID,
+            };
+
+            // When checking whether the report is unread
+            // Then it is read, because neither a deleted action nor a whisper can be the boundary of a manual mark
+            expect(isUnread(report, undefined, false, false)).toBe(false);
+        });
+
+        it('returns false when the gap is a second rather than a millisecond', () => {
+            // Given a report where the user replied to the other user's message a second after reading it, the case
+            // the self-authored suppression exists for
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: '1',
+                lastReadTime: '2024-03-01 12:00:00.000',
+                lastVisibleActionCreated: '2024-03-01 12:00:01.000',
+                lastMessageText: 'Hello',
+                lastActorAccountID: currentUserAccountID,
+            };
+
+            // When checking whether the report is unread
+            // Then it is read, because a one-second gap is an ordinary read followed by a reply, not a manual mark
+            expect(isUnread(report, undefined, false, false)).toBe(false);
+        });
+
         it('returns true when the current user manually marked their own message as unread', () => {
             // Given a thread where only the current user has written, so markCommentAsUnread keeps them as the last actor,
             // and the user marked their message as unread, which rolls lastReadTime back and sets the manual marker

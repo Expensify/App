@@ -222,6 +222,7 @@ import {
     isActionableJoinRequestPending,
     isActionableTrackExpense,
     isActionOfType,
+    isActionVisibleForUnreadMark,
     isCreatedSupportTicketReportAction,
     isCreatedTaskReportAction,
     isCurrentActionUnread,
@@ -11231,6 +11232,32 @@ function generateIsEmptyReport(report: OnyxEntry<Report>, isReportArchived: bool
     return !lastVisibleMessage.lastMessageText;
 }
 
+/**
+ * Mark as unread stores lastReadTime exactly 1ms before the chosen action.
+ * That gap is a deliberate mark, including on a device that still has the current user as the last actor.
+ */
+function isManualMarkUnreadTime(lastReadTime: string, lastVisibleActionCreated: string | undefined, reportIDs: Array<string | undefined>): boolean {
+    if (lastVisibleActionCreated && lastReadTime === DateUtils.subtractMillisecondsFromDateTime(lastVisibleActionCreated, 1)) {
+        return true;
+    }
+
+    for (const reportID of reportIDs) {
+        if (!reportID) {
+            continue;
+        }
+        const actions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
+        for (const action of Object.values(actions ?? {})) {
+            if (!isActionVisibleForUnreadMark(action)) {
+                continue;
+            }
+            if (lastReadTime === DateUtils.subtractMillisecondsFromDateTime(action.created, 1)) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 // We need oneTransactionThreadReport to get the correct last visible action created
 function isUnread(report: OnyxEntry<Report>, oneTransactionThreadReport: OnyxEntry<Report>, isReportArchived: boolean | undefined, derivedIsEmptyReport: boolean | undefined): boolean {
     if (!report) {
@@ -11259,7 +11286,13 @@ function isUnread(report: OnyxEntry<Report>, oneTransactionThreadReport: OnyxEnt
 
     // A manual mark-as-unread wins over the "last actor is me" rule, so a report where only the current user has written
     // (e.g. a new thread) still shows as unread. Reading the report moves lastReadTime forward, so this can't stick.
-    if (isUnreadFromTimestamp && drivingActorAccountID === deprecatedCurrentUserAccountID && !(lastReadTime < lastMentionedTime) && !report.manuallyMarkedUnreadReportActionID) {
+    if (
+        isUnreadFromTimestamp &&
+        drivingActorAccountID === deprecatedCurrentUserAccountID &&
+        !(lastReadTime < lastMentionedTime) &&
+        !report.manuallyMarkedUnreadReportActionID &&
+        !isManualMarkUnreadTime(lastReadTime, lastVisibleActionCreated, [report.reportID, oneTransactionThreadReport?.reportID])
+    ) {
         return false;
     }
 

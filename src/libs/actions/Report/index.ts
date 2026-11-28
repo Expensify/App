@@ -3528,7 +3528,17 @@ function markCommentAsUnread(reportID: string | undefined, reportActions: OnyxEn
         },
     ];
 
-    const reportActionID = reportAction?.reportActionID ?? latestReportActionFromOtherUsers?.reportActionID;
+    // The id must belong to the action whose created time we used. The server derives lastReadTime from this id.
+    let boundaryAction: ReportAction | undefined;
+    if (reportAction?.created) {
+        boundaryAction = reportAction;
+    } else if (otherUserActionTime && lastVisibleActionCreated && otherUserActionTime <= lastVisibleActionCreated) {
+        boundaryAction = latestReportActionFromOtherUsers ?? undefined;
+    } else if (lastVisibleActionCreated) {
+        const threadActions = transactionThreadReportID ? ReportActionsUtils.getAllReportActions(transactionThreadReportID) : undefined;
+        boundaryAction = findActionAtLastVisibleTime([reportActions, threadActions], lastVisibleActionCreated);
+    }
+    const reportActionID = boundaryAction?.reportActionID;
 
     const parameters: MarkAsUnreadParams = {
         reportID,
@@ -3538,6 +3548,79 @@ function markCommentAsUnread(reportID: string | undefined, reportActions: OnyxEn
 
     API.write(WRITE_COMMANDS.MARK_AS_UNREAD, parameters, {optimisticData, successData, failureData});
     DeviceEventEmitter.emit(`unreadAction_${reportID}`, lastReadTime);
+
+    // The LHN row of a one-transaction report follows the newest of the parent and thread cursors, and the parent
+    // write above never moves the thread's. When the thread's newest action is the row's newest line and the thread
+    // already read it, isUnread() picks the thread cursor over the parent's rolled-back one, so the row stays read on
+    // every device. The thread needs its own mark, sent with the thread id because the server derives the read time
+    // from the action in the request's report. The write is skipped when that action isn't loaded: without its id the
+    // server can't anchor the boundary, and a thread the user read on another device isn't loaded here.
+    const threadLastVisibleActionCreated = transactionThreadReport?.lastVisibleActionCreated;
+    if (
+        transactionThreadReportID &&
+        threadLastVisibleActionCreated &&
+        threadLastVisibleActionCreated > (report?.lastVisibleActionCreated ?? '') &&
+        (transactionThreadReport?.lastReadTime ?? '') >= threadLastVisibleActionCreated
+    ) {
+        const threadActions = ReportActionsUtils.getAllReportActions(transactionThreadReportID);
+        const threadBoundaryAction = findActionAtLastVisibleTime([threadActions], threadLastVisibleActionCreated);
+        if (!threadBoundaryAction) {
+            return;
+        }
+        const threadLastReadTime = DateUtils.subtractMillisecondsFromDateTime(threadBoundaryAction.created, 1);
+        const threadOptimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`,
+                value: {lastReadTime: threadLastReadTime},
+            },
+        ];
+        const threadSuccessData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`,
+                value: {lastReadTime: threadLastReadTime},
+            },
+        ];
+        const threadFailureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`,
+                value: {lastReadTime: transactionThreadReport?.lastReadTime ?? null},
+            },
+        ];
+        // Read state is stored per report, so the thread's cursor can only move through a MarkAsUnread of its own
+        // report. The two writes are independent, not chained.
+        // eslint-disable-next-line rulesdir/no-multiple-api-calls
+        API.write(
+            WRITE_COMMANDS.MARK_AS_UNREAD,
+            {
+                reportID: transactionThreadReportID,
+                lastReadTime: threadLastReadTime,
+                reportActionID: threadBoundaryAction.reportActionID,
+            },
+            {optimisticData: threadOptimisticData, successData: threadSuccessData, failureData: threadFailureData},
+        );
+        DeviceEventEmitter.emit(`unreadAction_${transactionThreadReportID}`, threadLastReadTime);
+    }
+}
+
+/**
+ * The server sets lastReadTime from reportActionID (created minus 1ms) and ignores the lastReadTime in the request.
+ * The id has to be the action exactly at lastVisibleActionCreated. An older action would move the server's boundary
+ * behind the one the optimistic and success data write, so when no exact action is loaded the request goes without an id
+ * and the server keeps the lastReadTime parameter instead.
+ */
+function findActionAtLastVisibleTime(actionGroups: Array<OnyxEntry<ReportActions> | undefined>, lastVisibleActionCreated: string): ReportAction | undefined {
+    for (const actions of actionGroups) {
+        for (const action of Object.values(actions ?? {})) {
+            if (!ReportActionsUtils.isActionVisibleForUnreadMark(action) || action.created !== lastVisibleActionCreated) {
+                continue;
+            }
+            return action;
+        }
+    }
+    return undefined;
 }
 
 /** Toggles the pinned state of the report. */
