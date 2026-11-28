@@ -16,6 +16,7 @@ import {
     saveSearch,
     saveSearchFilters,
     search,
+    setSearchUserFiltersState,
 } from '@libs/actions/Search';
 import {makeRequestWithSideEffects, waitForWrites, read, write} from '@libs/API';
 import type {OpenSearchTagFiltersPageResponse} from '@libs/API/parameters';
@@ -30,7 +31,7 @@ import {buildSearchQueryJSON, normalizeDatePresetsInQuery} from '@libs/SearchQue
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {ExportTemplate, Policy, Report, SearchTagFilterItem} from '@src/types/onyx';
+import type {ExportTemplate, Policy, Report, SearchTagFilterItem, SearchUserFiltersState} from '@src/types/onyx';
 import type {ReportTransactionsAndViolationsDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
@@ -990,6 +991,50 @@ describe('getPayOption', () => {
             connection.unsubscribe();
 
             expect(storedResults).toEqual([...existingTags, ...nextTags]);
+        });
+    });
+
+    describe('setSearchUserFiltersState', () => {
+        it('stores user filter lookup state under the policy scope key or all when unscoped', async () => {
+            // Given a workspace-scoped state and an unscoped state
+            const scopedState: SearchUserFiltersState = {
+                hasLoadedBase: true,
+                hasMore: true,
+                nextCursor: '50',
+                scopedLogins: ['removed@example.com'],
+            };
+            const unscopedState: SearchUserFiltersState = {
+                hasLoadedBase: true,
+                hasMore: false,
+                nextCursor: '',
+            };
+
+            // When setSearchUserFiltersState is called for both scopes
+            setSearchUserFiltersState('policy-1', scopedState);
+            setSearchUserFiltersState('', unscopedState);
+            await waitForBatchedUpdates();
+
+            // Then each state is saved under its RAM-only Onyx collection key
+            let storedScoped: SearchUserFiltersState | undefined;
+            let storedUnscoped: SearchUserFiltersState | undefined;
+            const scopedConnection = Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_USER_FILTERS_STATE}policy-1`,
+                callback: (val) => {
+                    storedScoped = val;
+                },
+            });
+            const unscopedConnection = Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_USER_FILTERS_STATE}all`,
+                callback: (val) => {
+                    storedUnscoped = val;
+                },
+            });
+            await waitForBatchedUpdates();
+            scopedConnection.unsubscribe();
+            unscopedConnection.unsubscribe();
+
+            expect(storedScoped).toEqual(scopedState);
+            expect(storedUnscoped).toEqual(unscopedState);
         });
     });
 });

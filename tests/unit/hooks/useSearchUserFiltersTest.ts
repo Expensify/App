@@ -291,7 +291,65 @@ describe('useSearchUserFilters', () => {
 
         rerender({searchTerm: ''});
         expect(result.current.isSearching).toBe(false);
+        expect(result.current.isLoadingMore).toBe(false);
         expect(result.current.hasMore).toBe(true);
+
+        // When loadMoreUsers is called again after returning to the base list, pagination still works
+        const retryPageDeferred = createDeferredResponse();
+        mockOpenSearchUserFiltersPage.mockReturnValueOnce(retryPageDeferred.promise);
+        act(() => {
+            result.current.loadMoreUsers();
+        });
+        expect(result.current.isLoadingMore).toBe(true);
+        await act(async () => {
+            retryPageDeferred.resolve({hasMore: false, nextCursor: '', logins: ['second@example.com']});
+            await retryPageDeferred.promise;
+        });
+        expect(result.current.isLoadingMore).toBe(false);
+        expect(result.current.hasMore).toBe(false);
+    });
+
+    it('retries a previously failed search term after switching to another query and back', async () => {
+        // Given a search for alice that fails on the first attempt
+        mockOpenSearchUserFiltersPage.mockRejectedValueOnce(new Error('network failure'));
+
+        const {result, rerender} = renderHook(
+            ({searchTerm}: {searchTerm: string}) =>
+                useSearchUserFilters({
+                    policyIDs: 'policy-1',
+                    searchTerm,
+                }),
+            {initialProps: {searchTerm: 'alice'}},
+        );
+
+        await waitFor(() => {
+            expect(result.current.isSearching).toBe(false);
+        });
+
+        // When the user switches to bob and that lookup succeeds
+        mockOpenSearchUserFiltersPage.mockResolvedValueOnce({hasMore: false, nextCursor: '', logins: ['bob@example.com']});
+        rerender({searchTerm: 'bob'});
+
+        await waitFor(() => {
+            expect(result.current.isSearching).toBe(false);
+        });
+
+        // When the user searches for alice again
+        const retryDeferred = createDeferredResponse();
+        mockOpenSearchUserFiltersPage.mockReturnValueOnce(retryDeferred.promise);
+        rerender({searchTerm: 'alice'});
+
+        // Then the failed marker was cleared and alice is fetched again
+        expect(result.current.isSearching).toBe(true);
+        await waitFor(() => {
+            expect(mockOpenSearchUserFiltersPage).toHaveBeenLastCalledWith({searchQuery: 'alice', cursor: '', limit: CONST.SEARCH.USER_FILTER_PAGE_SIZE, policyIDs: 'policy-1'}, true);
+        });
+
+        await act(async () => {
+            retryDeferred.resolve({hasMore: false, nextCursor: '', logins: ['alice@example.com']});
+            await retryDeferred.promise;
+        });
+        expect(result.current.isSearching).toBe(false);
     });
 
     it('prevents an in-flight silent refresh from overwriting loadMoreUsers pagination', async () => {

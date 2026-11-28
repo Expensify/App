@@ -77,26 +77,36 @@ function useSearchUserFilters({policyIDs, searchTerm, ready = true}: UseSearchUs
     const {isOffline} = useNetwork();
     const policyIDsKey = policyIDs || ALL_POLICY_IDS_KEY;
     const [cachedBase] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_USER_FILTERS_STATE}${policyIDsKey}`);
+    const trimmedSearchTerm = searchTerm.trim();
+    const isEmptyQuery = trimmedSearchTerm === '';
+    const searchKey = getSearchKey(policyIDs, trimmedSearchTerm);
+
     const [queryPagination, setQueryPagination] = useState(EMPTY_QUERY_PAGINATION);
-    const [loadingMoreSearchKey, setLoadingMoreSearchKey] = useState<string | undefined>(undefined);
-    const [failedSearchKey, setFailedSearchKey] = useState<string | undefined>(undefined);
+    const [activeSearchState, setActiveSearchState] = useState({
+        searchKey,
+        isLoadingMore: false,
+        hasFailed: false,
+    });
 
     const requestSeqRef = useRef(0);
     const refreshedPolicyIDsRef = useRef<string | undefined>(undefined);
     const cachedBaseRef = useRef(cachedBase);
 
-    const trimmedSearchTerm = searchTerm.trim();
-    const isEmptyQuery = trimmedSearchTerm === '';
-    const searchKey = getSearchKey(policyIDs, trimmedSearchTerm);
+    // Reset per-search flags synchronously when the active scope or query changes so returning to an
+    // earlier search does not inherit a superseded load-more spinner or transient failure.
+    if (activeSearchState.searchKey !== searchKey) {
+        setActiveSearchState({searchKey, isLoadingMore: false, hasFailed: false});
+    }
 
+    const isSameSearchKey = activeSearchState.searchKey === searchKey;
     const hasLoadedBase = !!cachedBase?.hasLoadedBase;
-    const hasFailedCurrentSearch = failedSearchKey === searchKey;
+    const hasFailedCurrentSearch = isSameSearchKey && activeSearchState.hasFailed;
     const hasLoadedCurrentSearch = (isEmptyQuery ? hasLoadedBase : queryPagination.searchKey === searchKey) || hasFailedCurrentSearch;
 
     const isSearching = ready && !isOffline && !hasLoadedCurrentSearch;
     const hasMore = isEmptyQuery ? hasLoadedBase && !!cachedBase?.hasMore : queryPagination.searchKey === searchKey && queryPagination.hasMore;
     const nextCursor = isEmptyQuery ? (cachedBase?.nextCursor ?? '') : queryPagination.nextCursor;
-    const isLoadingMore = loadingMoreSearchKey === searchKey;
+    const isLoadingMore = isSameSearchKey && activeSearchState.isLoadingMore;
 
     const updateCachedBase = (nextState: SearchUserFiltersState) => {
         const prev = cachedBaseRef.current;
@@ -122,8 +132,7 @@ function useSearchUserFilters({policyIDs, searchTerm, ready = true}: UseSearchUs
         }
 
         const prev = cachedBaseRef.current;
-        setLoadingMoreSearchKey((current) => (current === searchKey ? undefined : current));
-        setFailedSearchKey((current) => (current === searchKey ? undefined : current));
+        setActiveSearchState((current) => (current.isLoadingMore || current.hasFailed ? {searchKey, isLoadingMore: false, hasFailed: false} : current));
 
         if (isEmptyQuery) {
             // Replace scoped logins only when page 1 holds the complete workspace result set so removed logins are pruned.
@@ -154,10 +163,10 @@ function useSearchUserFilters({policyIDs, searchTerm, ready = true}: UseSearchUs
                 if (isFirstPage) {
                     // Leave Onyx untouched on failure so reopening retries, and keep cached data if a silent refresh fails.
                     if (!isEmptyQuery || !cachedBaseRef.current?.hasLoadedBase) {
-                        setFailedSearchKey(searchKey);
+                        setActiveSearchState({searchKey, isLoadingMore: false, hasFailed: true});
                     }
                 } else {
-                    setLoadingMoreSearchKey((current) => (current === searchKey ? undefined : current));
+                    setActiveSearchState((current) => (current.isLoadingMore ? {...current, isLoadingMore: false} : current));
                 }
             });
     };
@@ -196,7 +205,7 @@ function useSearchUserFilters({policyIDs, searchTerm, ready = true}: UseSearchUs
 
         // Bumping the sequence prevents an in-flight silent refresh from overwriting the next page cursor.
         const requestSeq = ++requestSeqRef.current;
-        setLoadingMoreSearchKey(searchKey);
+        setActiveSearchState({searchKey, isLoadingMore: true, hasFailed: false});
 
         fetchUserFiltersPage(nextCursor, requestSeq);
     };
