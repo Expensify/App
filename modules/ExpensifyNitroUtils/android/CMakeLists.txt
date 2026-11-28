@@ -20,6 +20,8 @@ include_directories(
 )
 
 find_library(LOG_LIB log)
+# The receipt warp takes and returns nitro-image Images.
+find_package(react-native-nitro-image REQUIRED)
 
 # 🔧 Ensure 16KB ELF page alignment
 set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-z,max-page-size=16384")
@@ -29,4 +31,5 @@ target_link_libraries(
     ${PACKAGE_NAME}
     ${LOG_LIB}
     android
+    react-native-nitro-image::NitroImage
 )

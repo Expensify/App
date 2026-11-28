@@ -18,6 +18,8 @@ namespace margelo::nitro::utils {
       prototype.registerHybridMethod("detectYuv", &HybridDocumentDetectorModuleSpec::detectYuv);
       prototype.registerHybridMethod("open", &HybridDocumentDetectorModuleSpec::open);
       prototype.registerHybridMethod("release", &HybridDocumentDetectorModuleSpec::release);
+      prototype.registerHybridMethod("detectInImage", &HybridDocumentDetectorModuleSpec::detectInImage);
+      prototype.registerHybridMethod("warpImage", &HybridDocumentDetectorModuleSpec::warpImage);
     });
   }
 

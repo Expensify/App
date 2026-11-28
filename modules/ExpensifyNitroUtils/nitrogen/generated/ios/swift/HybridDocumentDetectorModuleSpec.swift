@@ -6,6 +6,7 @@
 ///
 
 import NitroModules
+import NitroImage
 
 /// See ``HybridDocumentDetectorModuleSpec``
 public protocol HybridDocumentDetectorModuleSpec_protocol: HybridObject {
@@ -17,6 +18,8 @@ public protocol HybridDocumentDetectorModuleSpec_protocol: HybridObject {
   func detectYuv(frame: YuvFrame) throws -> DetectedDocument?
   func open() throws -> Double
   func release(owner: Double) throws -> Void
+  func detectInImage(image: (any HybridImageSpec)) throws -> Promise<DetectedDocument?>
+  func warpImage(image: (any HybridImageSpec), quad: [DocumentCorner], maxLongSide: Double) throws -> Promise<(any HybridImageSpec)>
 }
 
 public extension HybridDocumentDetectorModuleSpec_protocol {

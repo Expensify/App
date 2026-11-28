@@ -24,14 +24,20 @@ import captureReceipt, {shouldTakePhoto} from '@pages/iou/request/step/IOUReques
 import CameraPermissionPrompt from '@pages/iou/request/step/IOURequestStepScan/components/CameraPermissionPrompt';
 import CameraViewport from '@pages/iou/request/step/IOURequestStepScan/components/CameraViewport';
 import {useMultiScanActions, useMultiScanState} from '@pages/iou/request/step/IOURequestStepScan/components/MultiScanContext';
+import {useReceiptCaptureActions} from '@pages/iou/request/step/IOURequestStepScan/components/ReceiptCaptureContext';
 import ReceiptPreviews from '@pages/iou/request/step/IOURequestStepScan/components/ReceiptPreviews';
 import ScannerControlsBar from '@pages/iou/request/step/IOURequestStepScan/components/ScannerControlsBar';
+import CapturedReceiptPreview from '@pages/iou/request/step/IOURequestStepScan/documentDetection/CapturedReceiptPreview';
+import CaptureZoomView from '@pages/iou/request/step/IOURequestStepScan/documentDetection/CaptureZoomView';
 import DocumentDetection from '@pages/iou/request/step/IOURequestStepScan/documentDetection/DocumentDetection';
 import type {DocumentEdgeDetection} from '@pages/iou/request/step/IOURequestStepScan/documentDetection/DocumentDetection';
 import DocumentOutline from '@pages/iou/request/step/IOURequestStepScan/documentDetection/DocumentOutline';
+import enhanceCapture, {enhanceUpgradePhoto} from '@pages/iou/request/step/IOURequestStepScan/documentDetection/enhanceCapture';
 import isDocumentDetectionSupported from '@pages/iou/request/step/IOURequestStepScan/documentDetection/isDocumentDetectionSupported';
 import ReceiptEnhancementToast from '@pages/iou/request/step/IOURequestStepScan/documentDetection/ReceiptEnhancementToast';
+import ReceiptProcessingToast from '@pages/iou/request/step/IOURequestStepScan/documentDetection/ReceiptProcessingToast';
 import useCameraInitTelemetry from '@pages/iou/request/step/IOURequestStepScan/hooks/useCameraInitTelemetry';
+import useCapturedReceiptPreview from '@pages/iou/request/step/IOURequestStepScan/hooks/useCapturedReceiptPreview';
 import usePhotoUpgrade from '@pages/iou/request/step/IOURequestStepScan/hooks/usePhotoUpgrade';
 import isCameraClosedError from '@pages/iou/request/step/IOURequestStepScan/isCameraClosedError';
 import shouldLightFlashWithTorch, {getTorchFallbackReason} from '@pages/iou/request/step/IOURequestStepScan/utils/shouldLightFlashWithTorch';
@@ -109,6 +115,14 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
     const hideReceiptEnhancementToast = () => setIsReceiptEnhancementToastVisible(false);
 
     useFocusEffect(() => hideReceiptEnhancementToast);
+
+    const [isProcessingReceipt, setIsProcessingReceipt] = useState(false);
+    const {setIsReceiptCaptureShown} = useReceiptCaptureActions();
+    const {capturedReceipt, showCapturedReceipt, finishCapturedReceiptPreview} = useCapturedReceiptPreview();
+
+    // A focus listener rather than a focus effect, which would also run on a re-render and clear the processing state the
+    // shutter just set.
+    useEffect(() => navigation.addListener('focus', () => setIsProcessingReceipt(false)), [navigation]);
 
     const toggleMultiScanAndHideToast = () => {
         hideReceiptEnhancementToast();
@@ -259,15 +273,28 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
 
         isCapturingPhoto.current = true;
         HapticFeedback.press();
+        setIsProcessingReceipt(shouldDetectDocument);
+        setIsReceiptCaptureShown(shouldDetectDocument);
         // A full photo is taken well after the tap when the flash has to meter first, so its blink waits for the real capture.
         if (!isPhotoCapture) {
             showBlink();
         }
 
         const shouldUpgradeToPhoto = canUpgradeReceiptQuality && !isMultiScanEnabled && !isPhotoCapture;
+        let isCaptureCropped = false;
+        let capturedAspectRatio = 1;
 
         // The snapshot goes first so its request reaches the native queue ahead of the still.
-        captureReceipt(camera.current, photoOutput, {flash, hasFlash, isPlatformMuted, isInLandscapeMode, isTorchOn, path: getReceiptsUploadFolderPath(), onWillCapturePhoto: showBlink})
+        captureReceipt(camera.current, photoOutput, {
+            flash,
+            hasFlash,
+            isPlatformMuted,
+            isInLandscapeMode,
+            isTorchOn,
+            path: getReceiptsUploadFolderPath(),
+            onWillCapturePhoto: showBlink,
+            transformImage: shouldDetectDocument ? enhanceCapture : undefined,
+        })
             .then((photo: CapturedPhoto) => {
                 endSpanWithAttributes(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE, {
                     [CONST.TELEMETRY.ATTRIBUTE_PHOTO_WIDTH]: photo.width,
@@ -275,12 +302,16 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
                     [CONST.TELEMETRY.ATTRIBUTE_CAPTURE_DURATION_MS]: photo.captureDurationMs,
                     [CONST.TELEMETRY.ATTRIBUTE_SAVE_DURATION_MS]: photo.saveDurationMs,
                 });
-                if (!isMultiScanEnabled) {
+                // A cropped receipt starts its prepare span after the captured-receipt card, so the span never times the card.
+                if (!isMultiScanEnabled && !photo.isTransformed) {
                     startReceiptPrepareSpan(CONST.TELEMETRY.SPAN_PLATFORM.NATIVE);
                 }
+                isCaptureCropped = !!photo.isTransformed;
+                capturedAspectRatio = photo.width / photo.height;
                 return ReceiptStorage.adopt(photo.path);
             })
             .then((durableName) => {
+                setIsProcessingReceipt(false);
                 if (isMultiScanEnabled) {
                     isCapturingPhoto.current = false;
                 } else {
@@ -294,14 +325,38 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
                     type: 'image/jpeg',
                 };
 
+                if (isCaptureCropped && !isMultiScanEnabled) {
+                    showCapturedReceipt(
+                        {source, aspectRatio: capturedAspectRatio},
+                        {
+                            finish: () => {
+                                startReceiptPrepareSpan(CONST.TELEMETRY.SPAN_PLATFORM.NATIVE);
+                                if (shouldUpgradeToPhoto) {
+                                    upgradeReceiptWithPhoto(durableName, isCaptureCropped);
+                                }
+                                onCapture(cameraFile, source);
+                            },
+                            abandon: () => {
+                                discardPendingPhoto();
+                                ReceiptStorage.discard(source).catch((error: unknown) => {
+                                    Log.warn('[Camera] could not delete the receipt left behind the captured-receipt card', {error: getErrorMessage(error)});
+                                });
+                            },
+                        },
+                    );
+                    return;
+                }
+
                 if (shouldUpgradeToPhoto) {
-                    upgradeReceiptWithPhoto(durableName);
+                    upgradeReceiptWithPhoto(durableName, isCaptureCropped);
                 }
 
                 onCapture(cameraFile, source);
             })
             .catch((error: unknown) => {
                 isCapturingPhoto.current = false;
+                setIsProcessingReceipt(false);
+                setIsReceiptCaptureShown(false);
                 maybeCancelShutterSpan();
                 const errorMessage = getErrorMessage(error);
                 const isScreenFocused = navigation.isFocused();
@@ -318,7 +373,7 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
             });
 
         if (shouldUpgradeToPhoto) {
-            startPhotoCapture(photoOutput);
+            startPhotoCapture(photoOutput, shouldDetectDocument ? enhanceUpgradePhoto : undefined);
         }
     };
 
@@ -352,60 +407,72 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
                             </View>
                         )}
                         {cameraPermissionStatus === RESULTS.GRANTED && device != null && (
-                            <CameraViewport
-                                camera={camera}
-                                device={device}
-                                outputs={outputs}
-                                cameraAspectRatio={cameraAspectRatio}
-                                isInLandscapeMode={isInLandscapeMode}
-                                tapGesture={tapGesture}
-                                cameraFocusIndicatorAnimatedStyle={cameraFocusIndicatorAnimatedStyle}
-                                blinkStyle={blinkStyle}
-                                isAttachmentPickerActive={isAttachmentPickerActive}
-                                didCapturePhoto={didCapturePhoto}
-                                hasPendingPhotoCapture={hasPendingPhotoCapture}
-                                onConfigured={finishCameraSetup}
-                                onStarted={relightTorchAfterRestart}
-                                onSessionConfigSelected={handleSessionConfigSelected}
-                                // With receipt enhancement, the controls bar shows flash next to the shutter, so the viewport doesn't show it too.
-                                shouldShowFlashButton={canUseMultiScan && !canUseReceiptEnhancement}
-                                cameraPermissionStatus={cameraPermissionStatus}
-                                flash={flash}
-                                hasFlash={hasFlash}
-                                setFlash={setFlash}
-                                overlay={
-                                    detection && shouldDetectDocument && !didCapturePhoto ? (
-                                        <>
-                                            <DocumentOutline
-                                                edge={detection.edge}
-                                                isHidden={detection.isMoving}
-                                            />
-                                            {isReceiptEnhancementToastVisible && <ReceiptEnhancementToast onHide={hideReceiptEnhancementToast} />}
-                                        </>
-                                    ) : null
-                                }
-                                isTorchOn={isTorchRequested}
-                            />
+                            <CaptureZoomView
+                                isZoomed={shouldDetectDocument && (isProcessingReceipt || didCapturePhoto)}
+                                edge={detection?.edge}
+                            >
+                                <CameraViewport
+                                    camera={camera}
+                                    device={device}
+                                    outputs={outputs}
+                                    cameraAspectRatio={cameraAspectRatio}
+                                    isInLandscapeMode={isInLandscapeMode}
+                                    tapGesture={tapGesture}
+                                    cameraFocusIndicatorAnimatedStyle={cameraFocusIndicatorAnimatedStyle}
+                                    blinkStyle={blinkStyle}
+                                    isAttachmentPickerActive={isAttachmentPickerActive}
+                                    didCapturePhoto={didCapturePhoto}
+                                    hasPendingPhotoCapture={hasPendingPhotoCapture}
+                                    onConfigured={finishCameraSetup}
+                                    onStarted={relightTorchAfterRestart}
+                                    onSessionConfigSelected={handleSessionConfigSelected}
+                                    // With receipt enhancement, the controls bar shows flash next to the shutter, so the viewport doesn't show it too.
+                                    shouldShowFlashButton={canUseMultiScan && !canUseReceiptEnhancement}
+                                    cameraPermissionStatus={cameraPermissionStatus}
+                                    flash={flash}
+                                    hasFlash={hasFlash}
+                                    setFlash={setFlash}
+                                    overlay={
+                                        detection && shouldDetectDocument && !didCapturePhoto ? (
+                                            <>
+                                                <DocumentOutline
+                                                    edge={detection.edge}
+                                                    isHidden={detection.isMoving}
+                                                />
+                                                {isReceiptEnhancementToastVisible && <ReceiptEnhancementToast onHide={hideReceiptEnhancementToast} />}
+                                            </>
+                                        ) : null
+                                    }
+                                    isTorchOn={isTorchRequested}
+                                />
+                            </CaptureZoomView>
                         )}
+                        {isProcessingReceipt && <ReceiptProcessingToast />}
                     </View>
 
-                    <ScannerControlsBar
-                        isInLandscapeMode={isInLandscapeMode}
-                        isMultiScanEnabled={isMultiScanEnabled}
-                        canUseMultiScan={canUseMultiScan}
-                        shouldAcceptMultipleFiles={shouldAcceptMultipleFiles}
-                        cameraPermissionStatus={cameraPermissionStatus}
-                        flash={flash}
-                        hasFlash={hasFlash}
-                        setFlash={setFlash}
-                        setIsAttachmentPickerActive={setIsAttachmentPickerActiveAndHideToast}
-                        onAttachmentPickerStatusChange={onAttachmentPickerStatusChange}
-                        onPicked={onPicked}
-                        capturePhoto={capturePhoto}
-                        toggleMultiScan={toggleMultiScanAndHideToast}
-                        isReceiptEnhancementEnabled={isReceiptEnhancementEnabled}
-                        toggleReceiptEnhancement={canUseReceiptEnhancement ? toggleReceiptEnhancement : undefined}
-                    />
+                    {/* A row in landscape, so the bar still stretches to the full height as it did without the wrapper */}
+                    <View
+                        style={[isInLandscapeMode && styles.flexRow, (isProcessingReceipt || !!capturedReceipt) && styles.opacity0]}
+                        pointerEvents={isProcessingReceipt || capturedReceipt ? 'none' : 'auto'}
+                    >
+                        <ScannerControlsBar
+                            isInLandscapeMode={isInLandscapeMode}
+                            isMultiScanEnabled={isMultiScanEnabled}
+                            canUseMultiScan={canUseMultiScan}
+                            shouldAcceptMultipleFiles={shouldAcceptMultipleFiles}
+                            cameraPermissionStatus={cameraPermissionStatus}
+                            flash={flash}
+                            hasFlash={hasFlash}
+                            setFlash={setFlash}
+                            setIsAttachmentPickerActive={setIsAttachmentPickerActiveAndHideToast}
+                            onAttachmentPickerStatusChange={onAttachmentPickerStatusChange}
+                            onPicked={onPicked}
+                            capturePhoto={capturePhoto}
+                            toggleMultiScan={toggleMultiScanAndHideToast}
+                            isReceiptEnhancementEnabled={isReceiptEnhancementEnabled}
+                            toggleReceiptEnhancement={canUseReceiptEnhancement ? toggleReceiptEnhancement : undefined}
+                        />
+                    </View>
 
                     {canUseMultiScan && !!onMultiScanSubmit && isInLandscapeMode && (
                         <ReceiptPreviews
@@ -422,6 +489,14 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
                         isMultiScanEnabled={isMultiScanEnabled}
                         submit={onMultiScanSubmit}
                         isCapturingPhoto={didCapturePhoto}
+                    />
+                )}
+
+                {!!capturedReceipt && (
+                    <CapturedReceiptPreview
+                        source={capturedReceipt.source}
+                        aspectRatio={capturedReceipt.aspectRatio}
+                        onFinish={finishCapturedReceiptPreview}
                     />
                 )}
             </View>

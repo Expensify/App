@@ -24,6 +24,9 @@ type DocumentReader = {
     /** Furthest a point of the edge may lie off the straight side, as a share of the receipt's shorter side */
     maxBend: number;
 
+    /** Lowest detector confidence the outline is shown for, and the capture is cropped to */
+    minConfidence: number;
+
     /** Runs the detector on a camera frame */
     readDocument: ReadDocument;
 };

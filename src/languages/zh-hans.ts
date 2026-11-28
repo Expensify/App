@@ -1458,6 +1458,8 @@ const translations: TranslationDeepObject<typeof en> = {
         multiScan: '多重扫描',
         receiptEnhancements: '收据增强',
         receiptEnhancementsEnabled: '已开启收据增强',
+        processingReceipt: '正在处理收据...',
+        receiptCaptured: '已拍摄收据',
         shutter: '快门',
         gallery: '图库',
         deleteReceipt: '删除收据',

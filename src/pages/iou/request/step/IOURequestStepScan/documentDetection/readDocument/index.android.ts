@@ -7,6 +7,7 @@ const ROTATION_TO_UPRIGHT = {up: 0, right: 270, down: 180, left: 90} as const;
 const documentReader: DocumentReader = {
     frameResolution: {width: 640, height: 480},
     maxBend: 0.12,
+    minConfidence: MIN_MODEL_CONFIDENCE,
     readDocument(frame, detector, owner) {
         'worklet';
 

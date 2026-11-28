@@ -37,10 +37,12 @@
     "devDependencies": {
         "react": "*",
         "react-native": "*",
+        "react-native-nitro-image": "*",
         "react-native-nitro-modules": "*"
     },
     "peerDependencies": {
         "react": "*",
-        "react-native": "*"
+        "react-native": "*",
+        "react-native-nitro-image": "*"
     }
 }

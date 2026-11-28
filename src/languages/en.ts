@@ -1660,6 +1660,8 @@ const translations = {
         multiScan: 'multi-scan',
         receiptEnhancements: 'Receipt enhancements',
         receiptEnhancementsEnabled: 'Receipt enhancements enabled',
+        processingReceipt: 'Processing receipt...',
+        receiptCaptured: 'Receipt captured',
         shutter: 'shutter',
         gallery: 'gallery',
         deleteReceipt: 'Delete receipt',

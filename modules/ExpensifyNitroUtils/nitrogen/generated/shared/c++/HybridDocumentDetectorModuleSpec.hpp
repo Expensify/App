@@ -17,10 +17,19 @@
 namespace margelo::nitro::utils { struct DetectedDocument; }
 // Forward declaration of `YuvFrame` to properly resolve imports.
 namespace margelo::nitro::utils { struct YuvFrame; }
+// Forward declaration of `HybridImageSpec` to properly resolve imports.
+namespace margelo::nitro::image { class HybridImageSpec; }
+// Forward declaration of `DocumentCorner` to properly resolve imports.
+namespace margelo::nitro::utils { struct DocumentCorner; }
 
 #include "DetectedDocument.hpp"
 #include <optional>
 #include "YuvFrame.hpp"
+#include <NitroModules/Promise.hpp>
+#include <memory>
+#include <NitroImage/HybridImageSpec.hpp>
+#include "DocumentCorner.hpp"
+#include <vector>
 
 namespace margelo::nitro::utils {
 
@@ -57,6 +66,8 @@ namespace margelo::nitro::utils {
       virtual std::optional<DetectedDocument> detectYuv(const YuvFrame& frame) = 0;
       virtual double open() = 0;
       virtual void release(double owner) = 0;
+      virtual std::shared_ptr<Promise<std::optional<DetectedDocument>>> detectInImage(const std::shared_ptr<margelo::nitro::image::HybridImageSpec>& image) = 0;
+      virtual std::shared_ptr<Promise<std::shared_ptr<margelo::nitro::image::HybridImageSpec>>> warpImage(const std::shared_ptr<margelo::nitro::image::HybridImageSpec>& image, const std::vector<DocumentCorner>& quad, double maxLongSide) = 0;
 
     protected:
       // Hybrid Setup

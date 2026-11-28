@@ -11,6 +11,8 @@ import androidx.annotation.Keep
 import com.facebook.jni.HybridData
 import com.facebook.proguard.annotations.DoNotStrip
 import dalvik.annotation.optimization.FastNative
+import com.margelo.nitro.core.Promise
+import com.margelo.nitro.image.HybridImageSpec
 import com.margelo.nitro.core.HybridObject
 
 /**
@@ -49,6 +51,14 @@ abstract class HybridDocumentDetectorModuleSpec: HybridObject() {
   @DoNotStrip
   @Keep
   abstract fun release(owner: Double): Unit
+  
+  @DoNotStrip
+  @Keep
+  abstract fun detectInImage(image: com.margelo.nitro.image.HybridImageSpec): Promise<DetectedDocument?>
+  
+  @DoNotStrip
+  @Keep
+  abstract fun warpImage(image: com.margelo.nitro.image.HybridImageSpec, quad: Array<DocumentCorner>, maxLongSide: Double): Promise<com.margelo.nitro.image.HybridImageSpec>
 
   // Default implementation of `HybridObject.toString()`
   override fun toString(): String {

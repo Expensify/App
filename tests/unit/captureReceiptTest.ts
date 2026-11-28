@@ -96,7 +96,20 @@ describe('captureReceipt', () => {
 
             // Then the fast snapshot is used, written into the receipts folder
             expect(mockCapturePhotoToPath).not.toHaveBeenCalled();
-            expect(mockCaptureSnapshotToPath).toHaveBeenCalledWith(camera, expect.stringMatching(/^\/receipts\/receipt_\d+_\d+\.jpg$/));
+            expect(mockCaptureSnapshotToPath).toHaveBeenCalledWith(camera, expect.stringMatching(/^\/receipts\/receipt_\d+_\d+\.jpg$/), undefined);
+        });
+
+        it('hands the image transform to both the snapshot and the photo', () => {
+            // Given a transform that crops the receipt before it is saved
+            const transformImage = jest.fn();
+
+            // When a snapshot and then a flash photo are captured with it
+            captureReceiptAndroid(camera, photoOutput, {...BASE_OPTIONS, transformImage});
+            captureReceiptAndroid(camera, photoOutput, {...BASE_OPTIONS, flash: true, transformImage});
+
+            // Then both paths run it, so the saved receipt is cropped whichever way it was taken
+            expect(mockCaptureSnapshotToPath.mock.calls.at(-1)?.at(2)).toBe(transformImage);
+            expect(mockCapturePhotoToPath.mock.calls.at(-1)?.at(4)).toBe(transformImage);
         });
 
         it('takes a snapshot for a flash scan when the torch lights the preview', () => {

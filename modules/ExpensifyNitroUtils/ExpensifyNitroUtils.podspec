@@ -24,6 +24,9 @@ Pod::Spec.new do |s|
 
   s.frameworks = "Vision"
 
+  # The receipt warp takes and returns nitro-image Images.
+  s.dependency "NitroImage"
+
   s.pod_target_xcconfig = {
     "HEADER_SEARCH_PATHS" => [
       "${PODS_ROOT}/RCT-Folly",

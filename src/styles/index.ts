@@ -4376,6 +4376,13 @@ const staticStyles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
 
+        capturedReceiptCard: {
+            overflow: 'hidden',
+            borderRadius: variables.componentBorderRadiusNormal,
+            backgroundColor: theme.cardBG,
+            boxShadow: theme.shadow,
+        },
+
         // Float above the receipt to avoid zooming with it.
         receiptPageCountBadge: {
             ...RECEIPT_PAGE_BADGE_POSITION,

@@ -22,6 +22,8 @@ namespace margelo::nitro::utils { class HybridAppStartTimeModuleSpec; }
 namespace margelo::nitro::utils { class HybridContactsModuleSpec; }
 // Forward declaration of `HybridDocumentDetectorModuleSpec` to properly resolve imports.
 namespace margelo::nitro::utils { class HybridDocumentDetectorModuleSpec; }
+// Forward declaration of `HybridImageSpec` to properly resolve imports.
+namespace margelo::nitro::image { class HybridImageSpec; }
 // Forward declaration of `HybridShareActionHandlerSpec` to properly resolve imports.
 namespace margelo::nitro::utils { class HybridShareActionHandlerSpec; }
 // Forward declaration of `HybridWindowBarsModuleSpec` to properly resolve imports.
@@ -40,6 +42,8 @@ namespace ExpensifyNitroUtils { class HybridAppStartTimeModuleSpec_cxx; }
 namespace ExpensifyNitroUtils { class HybridContactsModuleSpec_cxx; }
 // Forward declaration of `HybridDocumentDetectorModuleSpec_cxx` to properly resolve imports.
 namespace ExpensifyNitroUtils { class HybridDocumentDetectorModuleSpec_cxx; }
+// Forward declaration of `HybridImageSpec_cxx` to properly resolve imports.
+namespace NitroImage { class HybridImageSpec_cxx; }
 // Forward declaration of `HybridShareActionHandlerSpec_cxx` to properly resolve imports.
 namespace ExpensifyNitroUtils { class HybridShareActionHandlerSpec_cxx; }
 // Forward declaration of `HybridWindowBarsModuleSpec_cxx` to properly resolve imports.
@@ -58,6 +62,7 @@ namespace ExpensifyNitroUtils { class HybridWindowBarsModuleSpec_cxx; }
 #include "SharedFile.hpp"
 #include "StringHolder.hpp"
 #include "TopBarRegion.hpp"
+#include <NitroImage/HybridImageSpec.hpp>
 #include <NitroModules/Promise.hpp>
 #include <NitroModules/PromiseHolder.hpp>
 #include <NitroModules/Result.hpp>
@@ -293,6 +298,86 @@ namespace margelo::nitro::utils::bridge::swift {
     return optional.value();
   }
   
+  // pragma MARK: std::shared_ptr<Promise<std::optional<DetectedDocument>>>
+  /**
+   * Specialized version of `std::shared_ptr<Promise<std::optional<DetectedDocument>>>`.
+   */
+  using std__shared_ptr_Promise_std__optional_DetectedDocument___ = std::shared_ptr<Promise<std::optional<DetectedDocument>>>;
+  inline std::shared_ptr<Promise<std::optional<DetectedDocument>>> create_std__shared_ptr_Promise_std__optional_DetectedDocument___() noexcept {
+    return Promise<std::optional<DetectedDocument>>::create();
+  }
+  inline PromiseHolder<std::optional<DetectedDocument>> wrap_std__shared_ptr_Promise_std__optional_DetectedDocument___(std::shared_ptr<Promise<std::optional<DetectedDocument>>> promise) noexcept {
+    return PromiseHolder<std::optional<DetectedDocument>>(std::move(promise));
+  }
+  
+  // pragma MARK: std::function<void(const std::optional<DetectedDocument>& /* result */)>
+  /**
+   * Specialized version of `std::function<void(const std::optional<DetectedDocument>&)>`.
+   */
+  using Func_void_std__optional_DetectedDocument_ = std::function<void(const std::optional<DetectedDocument>& /* result */)>;
+  /**
+   * Wrapper class for a `std::function<void(const std::optional<DetectedDocument>& / * result * /)>`, this can be used from Swift.
+   */
+  class Func_void_std__optional_DetectedDocument__Wrapper final {
+  public:
+    explicit Func_void_std__optional_DetectedDocument__Wrapper(std::function<void(const std::optional<DetectedDocument>& /* result */)>&& func): _function(std::make_unique<std::function<void(const std::optional<DetectedDocument>& /* result */)>>(std::move(func))) {}
+    inline void call(std::optional<DetectedDocument> result) const noexcept {
+      _function->operator()(result);
+    }
+  private:
+    std::unique_ptr<std::function<void(const std::optional<DetectedDocument>& /* result */)>> _function;
+  } SWIFT_NONCOPYABLE;
+  Func_void_std__optional_DetectedDocument_ create_Func_void_std__optional_DetectedDocument_(void* NON_NULL swiftClosureWrapper) noexcept;
+  inline Func_void_std__optional_DetectedDocument__Wrapper wrap_Func_void_std__optional_DetectedDocument_(Func_void_std__optional_DetectedDocument_ value) noexcept {
+    return Func_void_std__optional_DetectedDocument__Wrapper(std::move(value));
+  }
+  
+  // pragma MARK: std::shared_ptr<margelo::nitro::image::HybridImageSpec>
+  /**
+   * Specialized version of `std::shared_ptr<margelo::nitro::image::HybridImageSpec>`.
+   */
+  using std__shared_ptr_margelo__nitro__image__HybridImageSpec_ = std::shared_ptr<margelo::nitro::image::HybridImageSpec>;
+  std::shared_ptr<margelo::nitro::image::HybridImageSpec> create_std__shared_ptr_margelo__nitro__image__HybridImageSpec_(void* NON_NULL swiftUnsafePointer) noexcept;
+  void* NON_NULL get_std__shared_ptr_margelo__nitro__image__HybridImageSpec_(std__shared_ptr_margelo__nitro__image__HybridImageSpec_ cppType);
+  
+  // pragma MARK: std::weak_ptr<margelo::nitro::image::HybridImageSpec>
+  using std__weak_ptr_margelo__nitro__image__HybridImageSpec_ = std::weak_ptr<margelo::nitro::image::HybridImageSpec>;
+  inline std__weak_ptr_margelo__nitro__image__HybridImageSpec_ weakify_std__shared_ptr_margelo__nitro__image__HybridImageSpec_(const std::shared_ptr<margelo::nitro::image::HybridImageSpec>& strong) noexcept { return strong; }
+  
+  // pragma MARK: std::shared_ptr<Promise<std::shared_ptr<margelo::nitro::image::HybridImageSpec>>>
+  /**
+   * Specialized version of `std::shared_ptr<Promise<std::shared_ptr<margelo::nitro::image::HybridImageSpec>>>`.
+   */
+  using std__shared_ptr_Promise_std__shared_ptr_margelo__nitro__image__HybridImageSpec___ = std::shared_ptr<Promise<std::shared_ptr<margelo::nitro::image::HybridImageSpec>>>;
+  inline std::shared_ptr<Promise<std::shared_ptr<margelo::nitro::image::HybridImageSpec>>> create_std__shared_ptr_Promise_std__shared_ptr_margelo__nitro__image__HybridImageSpec___() noexcept {
+    return Promise<std::shared_ptr<margelo::nitro::image::HybridImageSpec>>::create();
+  }
+  inline PromiseHolder<std::shared_ptr<margelo::nitro::image::HybridImageSpec>> wrap_std__shared_ptr_Promise_std__shared_ptr_margelo__nitro__image__HybridImageSpec___(std::shared_ptr<Promise<std::shared_ptr<margelo::nitro::image::HybridImageSpec>>> promise) noexcept {
+    return PromiseHolder<std::shared_ptr<margelo::nitro::image::HybridImageSpec>>(std::move(promise));
+  }
+  
+  // pragma MARK: std::function<void(const std::shared_ptr<margelo::nitro::image::HybridImageSpec>& /* result */)>
+  /**
+   * Specialized version of `std::function<void(const std::shared_ptr<margelo::nitro::image::HybridImageSpec>&)>`.
+   */
+  using Func_void_std__shared_ptr_margelo__nitro__image__HybridImageSpec_ = std::function<void(const std::shared_ptr<margelo::nitro::image::HybridImageSpec>& /* result */)>;
+  /**
+   * Wrapper class for a `std::function<void(const std::shared_ptr<margelo::nitro::image::HybridImageSpec>& / * result * /)>`, this can be used from Swift.
+   */
+  class Func_void_std__shared_ptr_margelo__nitro__image__HybridImageSpec__Wrapper final {
+  public:
+    explicit Func_void_std__shared_ptr_margelo__nitro__image__HybridImageSpec__Wrapper(std::function<void(const std::shared_ptr<margelo::nitro::image::HybridImageSpec>& /* result */)>&& func): _function(std::make_unique<std::function<void(const std::shared_ptr<margelo::nitro::image::HybridImageSpec>& /* result */)>>(std::move(func))) {}
+    inline void call(std::shared_ptr<margelo::nitro::image::HybridImageSpec> result) const noexcept {
+      _function->operator()(result);
+    }
+  private:
+    std::unique_ptr<std::function<void(const std::shared_ptr<margelo::nitro::image::HybridImageSpec>& /* result */)>> _function;
+  } SWIFT_NONCOPYABLE;
+  Func_void_std__shared_ptr_margelo__nitro__image__HybridImageSpec_ create_Func_void_std__shared_ptr_margelo__nitro__image__HybridImageSpec_(void* NON_NULL swiftClosureWrapper) noexcept;
+  inline Func_void_std__shared_ptr_margelo__nitro__image__HybridImageSpec__Wrapper wrap_Func_void_std__shared_ptr_margelo__nitro__image__HybridImageSpec_(Func_void_std__shared_ptr_margelo__nitro__image__HybridImageSpec_ value) noexcept {
+    return Func_void_std__shared_ptr_margelo__nitro__image__HybridImageSpec__Wrapper(std::move(value));
+  }
+  
   // pragma MARK: std::shared_ptr<HybridDocumentDetectorModuleSpec>
   /**
    * Specialized version of `std::shared_ptr<HybridDocumentDetectorModuleSpec>`.
@@ -330,6 +415,24 @@ namespace margelo::nitro::utils::bridge::swift {
   }
   inline Result_void_ create_Result_void_(const std::exception_ptr& error) noexcept {
     return Result<void>::withError(error);
+  }
+  
+  // pragma MARK: Result<std::shared_ptr<Promise<std::optional<DetectedDocument>>>>
+  using Result_std__shared_ptr_Promise_std__optional_DetectedDocument____ = Result<std::shared_ptr<Promise<std::optional<DetectedDocument>>>>;
+  inline Result_std__shared_ptr_Promise_std__optional_DetectedDocument____ create_Result_std__shared_ptr_Promise_std__optional_DetectedDocument____(const std::shared_ptr<Promise<std::optional<DetectedDocument>>>& value) noexcept {
+    return Result<std::shared_ptr<Promise<std::optional<DetectedDocument>>>>::withValue(value);
+  }
+  inline Result_std__shared_ptr_Promise_std__optional_DetectedDocument____ create_Result_std__shared_ptr_Promise_std__optional_DetectedDocument____(const std::exception_ptr& error) noexcept {
+    return Result<std::shared_ptr<Promise<std::optional<DetectedDocument>>>>::withError(error);
+  }
+  
+  // pragma MARK: Result<std::shared_ptr<Promise<std::shared_ptr<margelo::nitro::image::HybridImageSpec>>>>
+  using Result_std__shared_ptr_Promise_std__shared_ptr_margelo__nitro__image__HybridImageSpec____ = Result<std::shared_ptr<Promise<std::shared_ptr<margelo::nitro::image::HybridImageSpec>>>>;
+  inline Result_std__shared_ptr_Promise_std__shared_ptr_margelo__nitro__image__HybridImageSpec____ create_Result_std__shared_ptr_Promise_std__shared_ptr_margelo__nitro__image__HybridImageSpec____(const std::shared_ptr<Promise<std::shared_ptr<margelo::nitro::image::HybridImageSpec>>>& value) noexcept {
+    return Result<std::shared_ptr<Promise<std::shared_ptr<margelo::nitro::image::HybridImageSpec>>>>::withValue(value);
+  }
+  inline Result_std__shared_ptr_Promise_std__shared_ptr_margelo__nitro__image__HybridImageSpec____ create_Result_std__shared_ptr_Promise_std__shared_ptr_margelo__nitro__image__HybridImageSpec____(const std::exception_ptr& error) noexcept {
+    return Result<std::shared_ptr<Promise<std::shared_ptr<margelo::nitro::image::HybridImageSpec>>>>::withError(error);
   }
   
   // pragma MARK: std::vector<SharedFile>

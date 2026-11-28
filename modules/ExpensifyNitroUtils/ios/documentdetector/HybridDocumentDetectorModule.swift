@@ -1,6 +1,9 @@
+import CoreImage
 import CoreVideo
 import Foundation
+import NitroImage
 import NitroModules
+import UIKit
 import Vision
 
 /**
@@ -65,6 +68,28 @@ final class HybridDocumentDetectorModule: HybridDocumentDetectorModuleSpec {
     // onto it.
     private static let tipPaperShare = 0.75
 
+    // On a still a snapped corner may move this share of the receipt's shorter side from Vision's corner. Further than
+    // that, the side caught a crease or a line in the table, not the paper's edge.
+    private static let maxStillSnapShift = 0.04
+
+    private static let secondSheetShare = 0.2
+    private static let minSheetCellShare = 0.05
+
+    // On a still, Vision can report a dark rectangle such as a keyboard as a document with full confidence. A receipt is
+    // brighter than what it lies on, or bright on its own when it lies on a white table, so the crop is kept only then.
+    private static let minPaperInsideContrast = 30.0
+    private static let paperBrightLuma = 150.0
+    private static let paperSampleInset = 0.15
+    private static let paperRingOffset = 0.08
+    private static let minRingSamples = 8
+
+    private static let sheetSplitCells = 2
+
+    private static let sheetRegionMargin = 0.15
+
+    // The size the live camera frames arrive at, which the detection's pixel distances are tuned for.
+    private static let stillLongSide = 1920.0
+
     private let sequenceHandler = VNSequenceRequestHandler()
     private let request = VNDetectDocumentSegmentationRequest()
 
@@ -79,7 +104,11 @@ final class HybridDocumentDetectorModule: HybridDocumentDetectorModuleSpec {
 
         // AVFoundation's device-point conversion expects the raw buffer's (sensor) orientation, which `.up` keeps.
         try sequenceHandler.perform([request], on: buffer, orientation: .up)
-        guard let document = request.results?.first else {
+        return Self.readDocument(request.results?.first, in: buffer)
+    }
+
+    private static func readDocument(_ document: VNRectangleObservation?, in buffer: CVPixelBuffer, isStill: Bool = false) -> DetectedDocument? {
+        guard let document else {
             return nil
         }
 
@@ -89,19 +118,25 @@ final class HybridDocumentDetectorModule: HybridDocumentDetectorModuleSpec {
         }
         let frameWidth = Double(CVPixelBufferGetWidth(buffer))
         let frameHeight = Double(CVPixelBufferGetHeight(buffer))
+        // On a still the crop is kept for good, so it trusts only Vision's own quad. When that collapses, as with a receipt
+        // turned 40 degrees or more, the corners read from the mask can include whatever else is on the table, like a book.
+        let isVisionUsable = isUsableQuad(visionCorners.map { CGPoint(x: Double($0.x) * frameWidth, y: Double($0.y) * frameHeight) })
+        if isStill, !isVisionUsable {
+            return nil
+        }
         let refined = document.globalSegmentationMask.flatMap { maskObservation in
             MaskReader.read(maskObservation.pixelBuffer) { mask -> (corners: [CGPoint], confidence: Double, outline: [CGPoint]?)? in
-                guard let found = Self.findCorners(visionCorners: visionCorners, confidence: Double(document.confidence), mask: mask, frameWidth: frameWidth, frameHeight: frameHeight) else {
+                guard let found = findCorners(visionCorners: visionCorners, confidence: Double(document.confidence), mask: mask, frameWidth: frameWidth, frameHeight: frameHeight) else {
                     return nil
                 }
                 return LumaReader.read(buffer) { luma in
-                    let snapped = Self.snapCorners(corners: found.corners, mask: mask, luma: luma, frameWidth: frameWidth, frameHeight: frameHeight)
-                    return (snapped, found.confidence, Self.bendOutline(corners: snapped, mask: mask, luma: luma, frameWidth: frameWidth, frameHeight: frameHeight))
+                    let snapped = snapCorners(corners: found.corners, mask: mask, luma: luma, frameWidth: frameWidth, frameHeight: frameHeight, isStill: isStill)
+                    return (snapped, found.confidence, bendOutline(corners: snapped, mask: mask, luma: luma, frameWidth: frameWidth, frameHeight: frameHeight))
                 } ?? (found.corners, found.confidence, nil)
             }
         }
         guard let refined else {
-            return Self.isUsableQuad(visionCorners.map { CGPoint(x: Double($0.x) * frameWidth, y: Double($0.y) * frameHeight) })
+            return isVisionUsable
                 ? DetectedDocument(corners: visionCorners.map { DocumentCorner(x: Double($0.x), y: Double($0.y)) }, confidence: Double(document.confidence), outline: nil)
                 : nil
         }
@@ -194,14 +229,31 @@ final class HybridDocumentDetectorModule: HybridDocumentDetectorModuleSpec {
     }
 
     private static func findLargestPatch(mask: MaskReader) -> Set<Int> {
+        return findPaperPatches(mask: mask).largest
+    }
+
+    private static func findPaperPatches(mask: MaskReader, erodeCells: Int = 0) -> (largest: Set<Int>, secondCount: Int) {
         var isPaper = [Bool](repeating: false, count: mask.width * mask.height)
         for row in 0..<mask.height {
             for column in 0..<mask.width {
                 isPaper[row * mask.width + column] = (mask.value(x: (Double(column) + 0.5) / Double(mask.width), y: (Double(row) + 0.5) / Double(mask.height)) ?? 0) >= maskBorderValue
             }
         }
+        for _ in 0..<erodeCells {
+            let previous = isPaper
+            for cell in previous.indices where previous[cell] {
+                let row = cell / mask.width
+                let column = cell % mask.width
+                let isEdge = (column > 0 && !previous[cell - 1]) || (column < mask.width - 1 && !previous[cell + 1])
+                    || (row > 0 && !previous[cell - mask.width]) || (row < mask.height - 1 && !previous[cell + mask.width])
+                if isEdge {
+                    isPaper[cell] = false
+                }
+            }
+        }
         var isSeen = [Bool](repeating: false, count: isPaper.count)
         var largest: [Int] = []
+        var secondCount = 0
         for start in isPaper.indices where isPaper[start] && !isSeen[start] {
             var patch = [start]
             isSeen[start] = true
@@ -221,10 +273,42 @@ final class HybridDocumentDetectorModule: HybridDocumentDetectorModuleSpec {
                 }
             }
             if patch.count > largest.count {
+                secondCount = largest.count
                 largest = patch
+            } else if patch.count > secondCount {
+                secondCount = patch.count
             }
         }
-        return Set(largest)
+        return (Set(largest), secondCount)
+    }
+
+    // Vision's quad can span two sheets lying side by side, so the crop is cut to the biggest one.
+    private static func findLargestOfSeveralSheets(_ document: VNRectangleObservation, frameWidth: Double, frameHeight: Double) -> CGRect? {
+        guard let maskBuffer = document.globalSegmentationMask?.pixelBuffer else {
+            return nil
+        }
+        return MaskReader.read(maskBuffer) { mask -> CGRect? in
+            let patches = findPaperPatches(mask: mask, erodeCells: sheetSplitCells)
+            let cellCount = Double(mask.width * mask.height)
+            guard Double(patches.largest.count) >= minSheetCellShare * cellCount, Double(patches.secondCount) >= secondSheetShare * Double(patches.largest.count) else {
+                return nil
+            }
+            let columns = patches.largest.map { $0 % mask.width }
+            let rows = patches.largest.map { $0 / mask.width }
+            guard let minColumn = columns.min(), let maxColumn = columns.max(), let minRow = rows.min(), let maxRow = rows.max() else {
+                return nil
+            }
+            let left = Double(max(0, minColumn - sheetSplitCells)) / Double(mask.width) * frameWidth
+            let right = Double(min(mask.width, maxColumn + 1 + sheetSplitCells)) / Double(mask.width) * frameWidth
+            let top = Double(max(0, minRow - sheetSplitCells)) / Double(mask.height) * frameHeight
+            let bottom = Double(min(mask.height, maxRow + 1 + sheetSplitCells)) / Double(mask.height) * frameHeight
+            let marginX = (right - left) * sheetRegionMargin
+            let marginY = (bottom - top) * sheetRegionMargin
+            let region = CGRect(x: left - marginX, y: top - marginY, width: right - left + 2 * marginX, height: bottom - top + 2 * marginY)
+                .intersection(CGRect(x: 0, y: 0, width: frameWidth, height: frameHeight))
+                .integral
+            return region.width >= 2 && region.height >= 2 ? region : nil
+        }
     }
 
     private static func getConvexHull(_ points: [CGPoint]) -> [CGPoint] {
@@ -262,9 +346,72 @@ final class HybridDocumentDetectorModule: HybridDocumentDetectorModuleSpec {
 
     func release(owner: Double) throws {}
 
+    func detectInImage(image: (any HybridImageSpec)) throws -> Promise<DetectedDocument?> {
+        guard let uiImage = (image as? NativeImage)?.uiImage else {
+            throw RuntimeError.error(withMessage: "detectInImage needs an Image from react-native-nitro-image")
+        }
+        return Promise.async(.userInitiated) {
+            let startedAt = CFAbsoluteTimeGetCurrent()
+            guard let buffer = ReceiptStill.makeUprightBuffer(uiImage, longSide: Self.stillLongSide) else {
+                return nil
+            }
+            let stillRequest = VNDetectDocumentSegmentationRequest()
+            try VNImageRequestHandler(cvPixelBuffer: buffer, orientation: .up).perform([stillRequest])
+            var found = Self.readDocument(stillRequest.results?.first, in: buffer, isStill: true)
+            var isLargestOfSeveral = false
+            if found != nil,
+               let observation = stillRequest.results?.first,
+               let region = Self.findLargestOfSeveralSheets(observation, frameWidth: Double(CVPixelBufferGetWidth(buffer)), frameHeight: Double(CVPixelBufferGetHeight(buffer))),
+               let sheetBuffer = ReceiptStill.copyRegion(of: buffer, region: region) {
+                let sheetRequest = VNDetectDocumentSegmentationRequest()
+                try VNImageRequestHandler(cvPixelBuffer: sheetBuffer, orientation: .up).perform([sheetRequest])
+                if let sheet = Self.readDocument(sheetRequest.results?.first, in: sheetBuffer, isStill: true) {
+                    let frameWidth = Double(CVPixelBufferGetWidth(buffer))
+                    let frameHeight = Double(CVPixelBufferGetHeight(buffer))
+                    let toFrame = { (corner: DocumentCorner) in
+                        DocumentCorner(x: (Double(region.minX) + corner.x * Double(region.width)) / frameWidth, y: (Double(region.minY) + corner.y * Double(region.height)) / frameHeight)
+                    }
+                    found = DetectedDocument(corners: sheet.corners.map(toFrame), confidence: sheet.confidence, outline: nil)
+                    isLargestOfSeveral = true
+                }
+            }
+            var isPaperLook = true
+            if let current = found {
+                let frameWidth = Double(CVPixelBufferGetWidth(buffer))
+                let frameHeight = Double(CVPixelBufferGetHeight(buffer))
+                isPaperLook = LumaReader.read(buffer) { luma in
+                    Self.isPaperInside(corners: current.corners, luma: luma, frameWidth: frameWidth, frameHeight: frameHeight)
+                } ?? true
+                if !isPaperLook {
+                    found = nil
+                }
+            }
+            // On a wooden table the outline's edge search catches grain lines running beside the receipt's long sides, and
+            // the crop would widen to them. The corners are already moved onto the paper's edge, so the crop uses them alone.
+            let document = found.map {
+                DetectedDocument(corners: $0.corners, confidence: $0.confidence, outline: nil)
+            }
+            let durationMs = Int((CFAbsoluteTimeGetCurrent() - startedAt) * 1000)
+            NSLog("%@", "DocumentDetector still \(Int(uiImage.size.width))x\(Int(uiImage.size.height)): confidence \(document?.confidence ?? 0), largest of several \(isLargestOfSeveral), paper look \(isPaperLook) in \(durationMs)ms")
+            return document
+        }
+    }
+
+    func warpImage(image: (any HybridImageSpec), quad: [DocumentCorner], maxLongSide: Double) throws -> Promise<(any HybridImageSpec)> {
+        guard let uiImage = (image as? NativeImage)?.uiImage else {
+            throw RuntimeError.error(withMessage: "warpImage needs an Image from react-native-nitro-image")
+        }
+        guard quad.count == 4 else {
+            throw RuntimeError.error(withMessage: "warpImage needs 4 corners, got \(quad.count)")
+        }
+        return Promise.async(.userInitiated) {
+            return ReceiptImage(uiImage: try ReceiptStill.warp(uiImage, quad: quad, maxLongSide: maxLongSide))
+        }
+    }
+
     // Vision's quad keeps to the flat part of a crumpled receipt, so its sides run inside the paper. Each side is moved onto
     // the paper's edge and the corners are taken where those lines meet.
-    private static func snapCorners(corners: [CGPoint], mask: MaskReader, luma: LumaReader, frameWidth: Double, frameHeight: Double) -> [CGPoint] {
+    private static func snapCorners(corners: [CGPoint], mask: MaskReader, luma: LumaReader, frameWidth: Double, frameHeight: Double, isStill: Bool = false) -> [CGPoint] {
         let pixelCorners = corners.map { CGPoint(x: Double($0.x) * frameWidth, y: Double($0.y) * frameHeight) }
         let shorterSide = (0..<4).map { getDistance(pixelCorners[$0], pixelCorners[($0 + 1) % 4]) }.min() ?? 0
         guard shorterSide > 0 else {
@@ -297,7 +444,8 @@ final class HybridDocumentDetectorModule: HybridDocumentDetectorModuleSpec {
                 }) else {
                     continue
                 }
-                guard let edge = findLumaEdge(x: x, y: y, normalX: normalX, normalY: normalY, from: found - lumaSearch, to: found + lumaSearch, luma: luma) else {
+                let isPaperEdge = isStill ? makePaperEdgeCheck(x: x, y: y, normalX: normalX, normalY: normalY, limit: band * outwardSearchShare, luma: luma) : nil
+                guard let edge = findLumaEdge(x: x, y: y, normalX: normalX, normalY: normalY, from: found - lumaSearch, to: found + lumaSearch, luma: luma, isAccepted: isPaperEdge) else {
                     continue
                 }
                 samples.append((t, min(max(edge, -band), band)))
@@ -312,14 +460,23 @@ final class HybridDocumentDetectorModule: HybridDocumentDetectorModuleSpec {
             ))
         }
 
-        return (0..<4).map { corner in
+        let maxShift = isStill ? maxStillSnapShift * shorterSide : 2 * band
+        let snapped: [CGPoint?] = (0..<4).map { corner in
             let original = pixelCorners[corner]
             let previous = lines[(corner + 3) % 4]
             let next = lines[corner]
-            var point = original
-            if let meeting = intersectLines(previous.start, previous.end, next.start, next.end), getDistance(meeting, original) <= 2 * band {
-                point = meeting
+            guard let meeting = intersectLines(previous.start, previous.end, next.start, next.end), getDistance(meeting, original) <= maxShift else {
+                return nil
             }
+            return meeting
+        }
+        // On a still all four corners move together or none does: one corner snapped next to one left in place would tilt
+        // the side between them.
+        if isStill, snapped.contains(where: { $0 == nil }) {
+            return corners
+        }
+        return (0..<4).map { corner in
+            let point = snapped[corner] ?? pixelCorners[corner]
             return CGPoint(x: Double(point.x) / frameWidth, y: Double(point.y) / frameHeight)
         }
     }
@@ -563,7 +720,8 @@ final class HybridDocumentDetectorModule: HybridDocumentDetectorModuleSpec {
         from: Double,
         to: Double,
         luma: LumaReader,
-        shouldPreferOutermost: Bool = false
+        shouldPreferOutermost: Bool = false,
+        isAccepted: ((Double) -> Bool)? = nil
     ) -> Double? {
         var best: Double?
         var bestContrast = minEdgeContrast
@@ -574,6 +732,10 @@ final class HybridDocumentDetectorModule: HybridDocumentDetectorModuleSpec {
             let inside = luma.value(x: x + normalX * (distance - edgeProbe), y: y + normalY * (distance - edgeProbe))
             let outside = luma.value(x: x + normalX * (distance + edgeProbe), y: y + normalY * (distance + edgeProbe))
             let contrast = inside - outside
+            if let isAccepted, contrast > bestContrast, !isAccepted(distance) {
+                distance += 1
+                continue
+            }
             if contrast > bestContrast {
                 bestContrast = contrast
                 best = distance
@@ -652,7 +814,9 @@ final class HybridDocumentDetectorModule: HybridDocumentDetectorModuleSpec {
         return best.map { CGPoint(x: x + $0.x, y: y + $0.y) }
     }
 
-    private static func findPaperBoundary(x: Double, y: Double, normalX: Double, normalY: Double, limit: Double, luma: LumaReader) -> Double? {
+    // Reads the brightness along a line through the paper's edge, and the level between table and paper on that line, or nil
+    // when the two are too alike to tell apart.
+    private static func readPaperLevel(x: Double, y: Double, normalX: Double, normalY: Double, limit: Double, luma: LumaReader) -> (read: (Double) -> Double, threshold: Double)? {
         let read = { (distance: Double) in luma.value(x: x + normalX * distance, y: y + normalY * distance) }
         let insideSamples = [0.5, 0.75, 1.0, 1.25, 1.5].map { read(-limit * $0) }.sorted()
         let paper = insideSamples[insideSamples.count - 2]
@@ -661,7 +825,15 @@ final class HybridDocumentDetectorModule: HybridDocumentDetectorModuleSpec {
         guard paper - background >= minTipContrast else {
             return nil
         }
-        let threshold = background + tipPaperShare * (paper - background)
+        return (read, background + tipPaperShare * (paper - background))
+    }
+
+    private static func findPaperBoundary(x: Double, y: Double, normalX: Double, normalY: Double, limit: Double, luma: LumaReader) -> Double? {
+        guard let level = readPaperLevel(x: x, y: y, normalX: normalX, normalY: normalY, limit: limit, luma: luma) else {
+            return nil
+        }
+        let read = level.read
+        let threshold = level.threshold
         var distance = limit
         while distance >= -limit {
             if read(distance) >= threshold, read(distance - tipBackingPixels / 4) >= threshold, read(distance - tipBackingPixels / 2) >= threshold, read(distance - tipBackingPixels) >= threshold {
@@ -670,6 +842,46 @@ final class HybridDocumentDetectorModule: HybridDocumentDetectorModuleSpec {
             distance -= 1
         }
         return nil
+    }
+
+    // An edge of the paper has paper-bright pixels just inside it and darker ones just outside. Returns nil when paper and
+    // table are too alike to tell, and then any edge is accepted.
+    private static func makePaperEdgeCheck(x: Double, y: Double, normalX: Double, normalY: Double, limit: Double, luma: LumaReader) -> ((Double) -> Bool)? {
+        guard let level = readPaperLevel(x: x, y: y, normalX: normalX, normalY: normalY, limit: limit, luma: luma) else {
+            return nil
+        }
+        let read = level.read
+        let threshold = level.threshold
+        return { distance in read(distance - tipBackingPixels) >= threshold && read(distance + tipBackingPixels) < threshold }
+    }
+
+    private static func isPaperInside(corners: [DocumentCorner], luma: LumaReader, frameWidth: Double, frameHeight: Double) -> Bool {
+        guard corners.count == 4 else {
+            return false
+        }
+        let point = { (u: Double, v: Double) -> CGPoint in
+            let top = (x: corners[0].x + (corners[1].x - corners[0].x) * u, y: corners[0].y + (corners[1].y - corners[0].y) * u)
+            let bottom = (x: corners[3].x + (corners[2].x - corners[3].x) * u, y: corners[3].y + (corners[2].y - corners[3].y) * u)
+            return CGPoint(x: (top.x + (bottom.x - top.x) * v) * frameWidth, y: (top.y + (bottom.y - top.y) * v) * frameHeight)
+        }
+        let isInFrame = { (p: CGPoint) in p.x >= 0 && p.y >= 0 && Double(p.x) < frameWidth && Double(p.y) < frameHeight }
+        let read = { (p: CGPoint) in luma.value(x: Double(p.x), y: Double(p.y)) }
+        let median = { (values: [Double]) -> Double in values.sorted()[values.count / 2] }
+
+        let steps = (0..<7).map { paperSampleInset + (1 - 2 * paperSampleInset) * Double($0) / 6 }
+        let inside = steps.flatMap { u in steps.map { v in read(point(u, v)) } }
+        let insideLevel = median(inside)
+        if insideLevel >= paperBrightLuma {
+            return true
+        }
+        let along = (1...9).map { Double($0) / 10 }
+        let ringPoints = along.flatMap { t in
+            [point(t, -paperRingOffset), point(t, 1 + paperRingOffset), point(-paperRingOffset, t), point(1 + paperRingOffset, t)]
+        }.filter(isInFrame)
+        guard ringPoints.count >= minRingSamples else {
+            return false
+        }
+        return insideLevel - median(ringPoints.map(read)) >= minPaperInsideContrast
     }
 
     private static func getDistance(_ a: CGPoint, _ b: CGPoint) -> Double {
@@ -806,3 +1018,160 @@ private struct LumaReader {
         return Double(rowStart.load(fromByteOffset: column, as: UInt8.self))
     }
 }
+
+private final class ReceiptImage: HybridImageSpec, NativeImage {
+    let uiImage: UIImage
+
+    // Tells the JS garbage collector how much native memory this object holds, so a straightened receipt is freed promptly.
+    var memorySize: Int {
+        guard let cgImage = uiImage.cgImage else {
+            return 0
+        }
+        return cgImage.bytesPerRow * cgImage.height
+    }
+
+    init(uiImage: UIImage) {
+        self.uiImage = uiImage
+        super.init()
+    }
+}
+
+private enum ReceiptStill {
+    private static let context = CIContext()
+
+    // A photo's UIImage keeps the sensor's pixels with an orientation flag, while the corners from JS are in the upright
+    // image. Both the detection buffer and the warp apply that flag on the way, rather than first drawing a full-size
+    // upright copy, which for a 12 MP photo is another 49 MB.
+    static func makeUprightBuffer(_ uiImage: UIImage, longSide: Double) -> CVPixelBuffer? {
+        let uprightWidth = Double(uiImage.size.width * uiImage.scale)
+        let uprightHeight = Double(uiImage.size.height * uiImage.scale)
+        guard uprightWidth > 0, uprightHeight > 0 else {
+            return nil
+        }
+        let scale = min(1, longSide / max(uprightWidth, uprightHeight))
+        let width = max(2, Int(uprightWidth * scale))
+        let height = max(2, Int(uprightHeight * scale))
+        var buffer: CVPixelBuffer?
+        let attributes = [kCVPixelBufferCGImageCompatibilityKey: true, kCVPixelBufferCGBitmapContextCompatibilityKey: true] as CFDictionary
+        guard CVPixelBufferCreate(kCFAllocatorDefault, width, height, kCVPixelFormatType_32BGRA, attributes, &buffer) == kCVReturnSuccess, let buffer else {
+            return nil
+        }
+        CVPixelBufferLockBaseAddress(buffer, [])
+        defer {
+            CVPixelBufferUnlockBaseAddress(buffer, [])
+        }
+        // Without its own memory a CGContext allocates some, and detection would then read pixels never drawn.
+        guard let baseAddress = CVPixelBufferGetBaseAddress(buffer), let context = CGContext(
+            data: baseAddress,
+            width: width,
+            height: height,
+            bitsPerComponent: 8,
+            bytesPerRow: CVPixelBufferGetBytesPerRow(buffer),
+            space: CGColorSpaceCreateDeviceRGB(),
+            bitmapInfo: CGImageAlphaInfo.premultipliedFirst.rawValue | CGBitmapInfo.byteOrder32Little.rawValue
+        ) else {
+            return nil
+        }
+        context.interpolationQuality = .high
+        // UIKit draws with the origin at the top left and applies the image's orientation.
+        context.translateBy(x: 0, y: CGFloat(height))
+        context.scaleBy(x: 1, y: -1)
+        UIGraphicsPushContext(context)
+        uiImage.draw(in: CGRect(x: 0, y: 0, width: width, height: height))
+        UIGraphicsPopContext()
+        return buffer
+    }
+
+    static func copyRegion(of source: CVPixelBuffer, region: CGRect) -> CVPixelBuffer? {
+        let width = Int(region.width)
+        let height = Int(region.height)
+        var buffer: CVPixelBuffer?
+        let attributes = [kCVPixelBufferCGImageCompatibilityKey: true, kCVPixelBufferCGBitmapContextCompatibilityKey: true] as CFDictionary
+        guard CVPixelBufferCreate(kCFAllocatorDefault, width, height, kCVPixelFormatType_32BGRA, attributes, &buffer) == kCVReturnSuccess, let buffer else {
+            return nil
+        }
+        CVPixelBufferLockBaseAddress(source, .readOnly)
+        CVPixelBufferLockBaseAddress(buffer, [])
+        defer {
+            CVPixelBufferUnlockBaseAddress(buffer, [])
+            CVPixelBufferUnlockBaseAddress(source, .readOnly)
+        }
+        guard let sourceBase = CVPixelBufferGetBaseAddress(source), let targetBase = CVPixelBufferGetBaseAddress(buffer) else {
+            return nil
+        }
+        let sourceRowBytes = CVPixelBufferGetBytesPerRow(source)
+        let targetRowBytes = CVPixelBufferGetBytesPerRow(buffer)
+        let bytesPerPixel = 4
+        for row in 0..<height {
+            let from = sourceBase.advanced(by: (Int(region.minY) + row) * sourceRowBytes + Int(region.minX) * bytesPerPixel)
+            let to = targetBase.advanced(by: row * targetRowBytes)
+            to.copyMemory(from: from, byteCount: width * bytesPerPixel)
+        }
+        return buffer
+    }
+
+    private static func makeUprightCIImage(_ uiImage: UIImage) -> CIImage? {
+        guard let cgImage = uiImage.cgImage else {
+            return nil
+        }
+        let oriented = CIImage(cgImage: cgImage).oriented(toPropertyOrientation(uiImage.imageOrientation))
+        return oriented.transformed(by: CGAffineTransform(translationX: -oriented.extent.origin.x, y: -oriented.extent.origin.y))
+    }
+
+    private static func toPropertyOrientation(_ orientation: UIImage.Orientation) -> CGImagePropertyOrientation {
+        switch orientation {
+        case .up: return .up
+        case .down: return .down
+        case .left: return .left
+        case .right: return .right
+        case .upMirrored: return .upMirrored
+        case .downMirrored: return .downMirrored
+        case .leftMirrored: return .leftMirrored
+        case .rightMirrored: return .rightMirrored
+        @unknown default: return .up
+        }
+    }
+
+    static func warp(_ uiImage: UIImage, quad: [DocumentCorner], maxLongSide: Double) throws -> UIImage {
+        guard let upright = makeUprightCIImage(uiImage), upright.extent.width > 0, upright.extent.height > 0 else {
+            throw RuntimeError.error(withMessage: "warpImage could not read the image's pixels")
+        }
+        let startedAt = CFAbsoluteTimeGetCurrent()
+        let imageHeight = Double(upright.extent.height)
+        let pixelScale = Double(upright.extent.width) / Double(uiImage.size.width)
+        // Core Image's origin is the bottom left.
+        let points = quad.map { CGPoint(x: $0.x * pixelScale, y: imageHeight - $0.y * pixelScale) }
+        let (topLeft, topRight, bottomRight, bottomLeft) = (points[0], points[1], points[2], points[3])
+
+        let width = max(distance(topLeft, topRight), distance(bottomLeft, bottomRight))
+        let height = max(distance(topLeft, bottomLeft), distance(topRight, bottomRight))
+        let scale = min(1, maxLongSide / max(width, height))
+        let outputWidth = max(1, (width * scale).rounded())
+        let outputHeight = max(1, (height * scale).rounded())
+
+        let filter = CIFilter(name: "CIPerspectiveCorrection")
+        filter?.setValue(upright, forKey: kCIInputImageKey)
+        filter?.setValue(CIVector(cgPoint: topLeft), forKey: "inputTopLeft")
+        filter?.setValue(CIVector(cgPoint: topRight), forKey: "inputTopRight")
+        filter?.setValue(CIVector(cgPoint: bottomRight), forKey: "inputBottomRight")
+        filter?.setValue(CIVector(cgPoint: bottomLeft), forKey: "inputBottomLeft")
+        guard let corrected = filter?.outputImage, !corrected.extent.isInfinite, corrected.extent.width > 0, corrected.extent.height > 0 else {
+            throw RuntimeError.error(withMessage: "The corners do not form a shape a rectangle can be mapped from")
+        }
+        let extent = corrected.extent
+        let fitted = corrected
+            .transformed(by: CGAffineTransform(translationX: -extent.origin.x, y: -extent.origin.y))
+            .transformed(by: CGAffineTransform(scaleX: outputWidth / extent.width, y: outputHeight / extent.height))
+        guard let output = context.createCGImage(fitted, from: CGRect(x: 0, y: 0, width: outputWidth, height: outputHeight)) else {
+            throw RuntimeError.error(withMessage: "warpImage could not render the straightened receipt")
+        }
+        let durationMs = Int((CFAbsoluteTimeGetCurrent() - startedAt) * 1000)
+        NSLog("%@", "ReceiptWarp warped \(Int(upright.extent.width))x\(Int(upright.extent.height)) to \(output.width)x\(output.height) in \(durationMs)ms")
+        return UIImage(cgImage: output, scale: 1, orientation: .up)
+    }
+
+    private static func distance(_ a: CGPoint, _ b: CGPoint) -> Double {
+        return hypot(Double(b.x - a.x), Double(b.y - a.y))
+    }
+}
+

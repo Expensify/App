@@ -1556,6 +1556,8 @@ const translations: TranslationDeepObject<typeof en> = {
         multiScan: 'wielokrotne skanowanie',
         receiptEnhancements: 'Ulepszenia paragonów',
         receiptEnhancementsEnabled: 'Ulepszenia paragonów włączone',
+        processingReceipt: 'Przetwarzanie paragonu...',
+        receiptCaptured: 'Paragon zapisany',
         shutter: 'migawka',
         gallery: 'galeria',
         deleteReceipt: 'Usuń paragon',

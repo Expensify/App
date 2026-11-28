@@ -3,9 +3,13 @@ package com.margelo.nitro.utils
 import ai.onnxruntime.OnnxTensor
 import ai.onnxruntime.OrtEnvironment
 import ai.onnxruntime.OrtSession
+import android.graphics.Bitmap
 import android.os.SystemClock
 import android.util.Log
 import com.margelo.nitro.NitroModules
+import com.margelo.nitro.core.Promise
+import com.margelo.nitro.image.HybridImage
+import com.margelo.nitro.image.HybridImageSpec
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
@@ -19,6 +23,7 @@ import kotlin.math.floor
 import kotlin.math.hypot
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
 /**
@@ -42,6 +47,10 @@ class HybridDocumentDetectorModule : HybridDocumentDetectorModuleSpec() {
     )
 
     private class Rectangle(val corners: Array<DoubleArray>, val rebuiltCorner: Int, val confidence: Double)
+
+    private class PaperPatches(val largestRegion: Region?, val largestCount: Int, val secondCount: Int)
+
+    private class StillMatch(val corners: Array<DoubleArray>, val pass: Pass, val confidence: Double, val isSnapped: Boolean)
 
     private enum class Gate { REJECTED, ACCEPTED, REACQUIRED, JUMPED, UNCONFIRMED }
 
@@ -88,6 +97,214 @@ class HybridDocumentDetectorModule : HybridDocumentDetectorModuleSpec() {
         if (isLastOwner) {
             releaseExecutor.execute { freeResources() }
         }
+    }
+
+    override fun warpImage(image: HybridImageSpec, quad: Array<DocumentCorner>, maxLongSide: Double): Promise<HybridImageSpec> =
+        Promise.async {
+            val source = (image as? HybridImage)?.bitmap ?: throw IllegalArgumentException("warpImage needs an Image from react-native-nitro-image")
+            HybridImage(ReceiptWarp.warp(source, quad, maxLongSide))
+        }
+
+    override fun detectInImage(image: HybridImageSpec): Promise<DetectedDocument?> {
+        val bitmap = (image as? HybridImage)?.bitmap ?: throw IllegalArgumentException("detectInImage needs an Image from react-native-nitro-image")
+        return Promise.async {
+            val owner = open()
+            try {
+                detectStill(bitmap)
+            } finally {
+                release(owner)
+            }
+        }
+    }
+
+    @Synchronized
+    private fun detectStill(bitmap: Bitmap): DetectedDocument? {
+        val session = getSession() ?: return null
+        val startedAt = SystemClock.uptimeMillis()
+        val (width, height) = loadStill(bitmap)
+        buildIntegral(width, height, width)
+
+        val fullFrame = Region(0.0, 0.0, width.toDouble(), height.toDouble())
+        val (fullFrameMatch, fullFramePass) = findStillMatch(session, fullFrame, width, height)
+        var source = "full_frame"
+        var match = fullFrameMatch
+        val patches = findPaperPatches(fullFramePass, width, height)
+        val largestPatchRegion = patches.largestRegion
+        if (match != null && largestPatchRegion != null && patches.secondCount >= SECOND_SHEET_SHARE * patches.largestCount) {
+            val sheetMatch = findStillMatch(session, largestPatchRegion, width, height).first
+            if (sheetMatch != null) {
+                match = sheetMatch
+                source = "largest_of_several"
+            }
+        }
+        if (match == null && largestPatchRegion != null) {
+            // Two papers in view pull the corner peaks apart, so the whole-frame look fails. Looking again at just the
+            // biggest patch of paper the mask found shows the model one sheet.
+            match = findStillMatch(session, largestPatchRegion, width, height).first
+            source = "largest_patch"
+        }
+        if (match == null) {
+            match = findStillMatch(session, getCentreRegion(width, height), width, height).first
+            source = "centre"
+        }
+        val durationMs = SystemClock.uptimeMillis() - startedAt
+        if (match == null) {
+            Log.i(TAG, "still ${bitmap.width}x${bitmap.height}: no receipt, paper patches ${patches.largestCount}/${patches.secondCount}, patch look ${largestPatchRegion != null} in ${durationMs}ms")
+            return null
+        }
+
+        val readLuma = LumaReader(width, height, width, 0, width, height)
+        val fitted = fitSidesPastFingers(match.corners, match.pass, readLuma) ?: match.corners
+        val outline = bendOutline(fitted, match.pass, width, height, readLuma, match.isSnapped)
+        Log.i(TAG, "still ${bitmap.width}x${bitmap.height}: receipt from $source, confidence ${match.confidence}, outline ${outline != null}, paper patches ${patches.largestCount}/${patches.secondCount} in ${durationMs}ms")
+        val toShare = { point: DoubleArray -> DocumentCorner(point[0] / width, point[1] / height) }
+        return DetectedDocument(fitted.map(toShare).toTypedArray(), match.confidence, outline?.map(toShare)?.toTypedArray())
+    }
+
+    private fun findStillMatch(session: OrtSession, region: Region, width: Int, height: Int): Pair<StillMatch?, Pass> {
+        // loadStill stores the color planes at half width with no padding, and already upright.
+        val pass = runPass(session, region, uvRowStride = width / 2, uvPixelStride = 1, width = width, height = height, rotation = 0, uprightWidth = width, uprightHeight = height)
+        val rectangle = toRectangle(pass.corners, pass.peaks) ?: return Pair(null, pass)
+        val minIou = if (rectangle.rebuiltCorner >= 0) MIN_REBUILT_MASK_IOU else MIN_MASK_IOU
+        if (computeMaskIou(rectangle.corners, pass) < minIou) {
+            return Pair(null, pass)
+        }
+        val snapped = snapToEdges(rectangle.corners, width, height, width, 0, width, height)
+        if (snapped != null && computeRectangleShapeError(snapped.first, getMaxAngleDeviation(rectangle.rebuiltCorner)) <= 1.0) {
+            return Pair(StillMatch(snapped.first, pass, rectangle.confidence, true), pass)
+        }
+        return Pair(StillMatch(rectangle.corners, pass, rectangle.confidence, false), pass)
+    }
+
+    private fun findPaperPatches(pass: Pass, width: Int, height: Int): PaperPatches {
+        var isPaper = BooleanArray(HEATMAP_SIZE * HEATMAP_SIZE) { pass.mask[it] > 0 }
+        repeat(SHEET_SPLIT_CELLS) { isPaper = erodePaper(isPaper) }
+        val isSeen = BooleanArray(HEATMAP_SIZE * HEATMAP_SIZE)
+        val queue = IntArray(HEATMAP_SIZE * HEATMAP_SIZE)
+        var bestCount = 0
+        var secondCount = 0
+        var bestBox = IntArray(4)
+        for (start in 0 until HEATMAP_SIZE * HEATMAP_SIZE) {
+            if (isSeen[start] || !isPaper[start]) {
+                continue
+            }
+            var head = 0
+            var tail = 0
+            queue[tail++] = start
+            isSeen[start] = true
+            val box = intArrayOf(HEATMAP_SIZE, HEATMAP_SIZE, -1, -1)
+            while (head < tail) {
+                val cell = queue[head++]
+                val x = cell % HEATMAP_SIZE
+                val y = cell / HEATMAP_SIZE
+                box[0] = min(box[0], x)
+                box[1] = min(box[1], y)
+                box[2] = max(box[2], x)
+                box[3] = max(box[3], y)
+                for (neighbor in intArrayOf(cell - 1, cell + 1, cell - HEATMAP_SIZE, cell + HEATMAP_SIZE)) {
+                    val isAdjacent = neighbor / HEATMAP_SIZE == y || abs(neighbor - cell) == HEATMAP_SIZE
+                    if (neighbor < 0 || neighbor >= isSeen.size || !isAdjacent || isSeen[neighbor] || !isPaper[neighbor]) {
+                        continue
+                    }
+                    isSeen[neighbor] = true
+                    queue[tail++] = neighbor
+                }
+            }
+            if (tail > bestCount) {
+                secondCount = bestCount
+                bestCount = tail
+                bestBox = box
+            } else if (tail > secondCount) {
+                secondCount = tail
+            }
+        }
+        if (bestCount < MIN_PATCH_SHARE * HEATMAP_SIZE * HEATMAP_SIZE) {
+            return PaperPatches(null, bestCount, secondCount)
+        }
+        bestBox = intArrayOf(
+            max(0, bestBox[0] - SHEET_SPLIT_CELLS),
+            max(0, bestBox[1] - SHEET_SPLIT_CELLS),
+            min(HEATMAP_SIZE - 1, bestBox[2] + SHEET_SPLIT_CELLS),
+            min(HEATMAP_SIZE - 1, bestBox[3] + SHEET_SPLIT_CELLS),
+        )
+        val toUprightX = { cell: Int -> pass.region.x + (cell * HEATMAP_STRIDE - pass.offsetX) / pass.scale }
+        val toUprightY = { cell: Int -> pass.region.y + (cell * HEATMAP_STRIDE - pass.offsetY) / pass.scale }
+        val left = toUprightX(bestBox[0])
+        val top = toUprightY(bestBox[1])
+        val right = toUprightX(bestBox[2] + 1)
+        val bottom = toUprightY(bestBox[3] + 1)
+        val marginX = (right - left) * PATCH_MARGIN
+        val marginY = (bottom - top) * PATCH_MARGIN
+        val x = (left - marginX).coerceAtLeast(0.0)
+        val y = (top - marginY).coerceAtLeast(0.0)
+        val regionWidth = (right + marginX).coerceAtMost(width.toDouble()) - x
+        val regionHeight = (bottom + marginY).coerceAtMost(height.toDouble()) - y
+        if (regionWidth * regionHeight >= MAX_PATCH_REGION_SHARE * width * height) {
+            return PaperPatches(null, bestCount, secondCount)
+        }
+        return PaperPatches(Region(x, y, regionWidth, regionHeight), bestCount, secondCount)
+    }
+
+    private fun erodePaper(isPaper: BooleanArray): BooleanArray =
+        BooleanArray(isPaper.size) { cell ->
+            val x = cell % HEATMAP_SIZE
+            val y = cell / HEATMAP_SIZE
+            isPaper[cell] &&
+                (x == 0 || isPaper[cell - 1]) &&
+                (x == HEATMAP_SIZE - 1 || isPaper[cell + 1]) &&
+                (y == 0 || isPaper[cell - HEATMAP_SIZE]) &&
+                (y == HEATMAP_SIZE - 1 || isPaper[cell + HEATMAP_SIZE])
+        }
+
+    private fun loadStill(bitmap: Bitmap): Pair<Int, Int> {
+        val scale = min(1.0, STILL_LONG_SIDE.toDouble() / max(bitmap.width, bitmap.height))
+        // Even sizes, so every color sample covers a whole 2 x 2 block.
+        val width = max(2, (bitmap.width * scale).toInt() and 1.inv())
+        val height = max(2, (bitmap.height * scale).toInt() and 1.inv())
+        val readable = ReceiptWarp.toSoftwareBitmap(bitmap)
+        val scaled = Bitmap.createScaledBitmap(readable, width, height, true)
+        val pixels = IntArray(width * height)
+        scaled.getPixels(pixels, 0, width, 0, 0, width, height)
+        if (scaled !== readable) {
+            scaled.recycle()
+        }
+        if (readable !== bitmap) {
+            readable.recycle()
+        }
+
+        if (luma.size != width * height) {
+            luma = ByteArray(width * height)
+        }
+        val chromaWidth = width / 2
+        val chromaSize = chromaWidth * (height / 2)
+        if (chromaU.size != chromaSize) {
+            chromaU = ByteArray(chromaSize)
+            chromaV = ByteArray(chromaSize)
+        }
+        for (index in pixels.indices) {
+            val pixel = pixels[index]
+            luma[index] = toByte(LUMA_FROM_RED * (pixel shr 16 and 0xFF) + LUMA_FROM_GREEN * (pixel shr 8 and 0xFF) + LUMA_FROM_BLUE * (pixel and 0xFF))
+        }
+        for (row in 0 until height / 2) {
+            for (column in 0 until chromaWidth) {
+                var red = 0
+                var green = 0
+                var blue = 0
+                for (corner in 0 until 4) {
+                    val pixel = pixels[(2 * row + corner / 2) * width + 2 * column + corner % 2]
+                    red += pixel shr 16 and 0xFF
+                    green += pixel shr 8 and 0xFF
+                    blue += pixel and 0xFF
+                }
+                val r = red / 4.0
+                val g = green / 4.0
+                val b = blue / 4.0
+                val luminance = LUMA_FROM_RED * r + LUMA_FROM_GREEN * g + LUMA_FROM_BLUE * b
+                chromaU[row * chromaWidth + column] = toByte((b - luminance) / BLUE_FROM_U + CHROMA_OFFSET)
+                chromaV[row * chromaWidth + column] = toByte((r - luminance) / RED_FROM_V + CHROMA_OFFSET)
+            }
+        }
+        return Pair(width, height)
     }
 
     private fun currentOwner(): Long = synchronized(activeOwners) { activeOwners.lastOrNull() ?: NO_OWNER }
@@ -145,7 +362,7 @@ class HybridDocumentDetectorModule : HybridDocumentDetectorModuleSpec() {
                 isFullFrameSearch -> Region(0.0, 0.0, uprightWidth.toDouble(), uprightHeight.toDouble())
                 else -> getCentreRegion(uprightWidth, uprightHeight)
             }
-        val first = runPass(session, region, frame, width, height, rotation, uprightWidth, uprightHeight)
+        val first = runPass(session, region, frame.uvRowStride.toInt(), frame.uvPixelStride.toInt(), width, height, rotation, uprightWidth, uprightHeight)
         var corners = first.corners
         val peaks = first.peaks
 
@@ -783,7 +1000,8 @@ class HybridDocumentDetectorModule : HybridDocumentDetectorModuleSpec() {
     private fun runPass(
         session: OrtSession,
         region: Region,
-        frame: YuvFrame,
+        uvRowStride: Int,
+        uvPixelStride: Int,
         width: Int,
         height: Int,
         rotation: Int,
@@ -793,7 +1011,7 @@ class HybridDocumentDetectorModule : HybridDocumentDetectorModuleSpec() {
         val scale = min(INPUT_SIZE / region.width, INPUT_SIZE / region.height)
         val offsetX = (INPUT_SIZE - region.width * scale) / 2
         val offsetY = (INPUT_SIZE - region.height * scale) / 2
-        fillInput(region, scale, offsetX, offsetY, frame, width, height, rotation, uprightWidth, uprightHeight)
+        fillInput(region, scale, offsetX, offsetY, uvRowStride, uvPixelStride, width, height, rotation, uprightWidth, uprightHeight)
 
         val env = OrtEnvironment.getEnvironment()
         OnnxTensor.createTensor(env, input, longArrayOf(1, 3, INPUT_SIZE.toLong(), INPUT_SIZE.toLong())).use { tensor ->
@@ -875,15 +1093,14 @@ class HybridDocumentDetectorModule : HybridDocumentDetectorModuleSpec() {
         scale: Double,
         offsetX: Double,
         offsetY: Double,
-        frame: YuvFrame,
+        uvRowStride: Int,
+        uvPixelStride: Int,
         width: Int,
         height: Int,
         rotation: Int,
         uprightWidth: Int,
         uprightHeight: Int,
     ) {
-        val uvRowStride = frame.uvRowStride.toInt()
-        val uvPixelStride = frame.uvPixelStride.toInt()
         val planeSize = INPUT_SIZE * INPUT_SIZE
         val halfBox = 0.5 / scale
         val integralWidth = width + 1
@@ -1092,6 +1309,24 @@ class HybridDocumentDetectorModule : HybridDocumentDetectorModuleSpec() {
         private const val MIN_EDGE_HIT_SHARE = 0.7
 
         private const val BEND_BAND = 0.15
+
+        private const val STILL_LONG_SIDE = 640
+
+        private const val LUMA_FROM_RED = 0.299
+        private const val LUMA_FROM_GREEN = 0.587
+        private const val LUMA_FROM_BLUE = 0.114
+
+        private const val MIN_PATCH_SHARE = 0.05
+
+        private const val PATCH_MARGIN = 0.15
+
+        private const val MAX_PATCH_REGION_SHARE = 0.9
+
+        private const val SECOND_SHEET_SHARE = 0.2
+
+        private const val SHEET_SPLIT_CELLS = 2
+
+        private fun toByte(value: Double): Byte = value.roundToInt().coerceIn(0, 255).toByte()
 
         private fun applySigmoid(value: Double) = 1 / (1 + exp(-value))
 

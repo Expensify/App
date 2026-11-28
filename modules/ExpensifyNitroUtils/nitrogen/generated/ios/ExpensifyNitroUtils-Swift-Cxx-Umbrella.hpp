@@ -22,6 +22,8 @@ namespace margelo::nitro::utils { class HybridAppStartTimeModuleSpec; }
 namespace margelo::nitro::utils { class HybridContactsModuleSpec; }
 // Forward declaration of `HybridDocumentDetectorModuleSpec` to properly resolve imports.
 namespace margelo::nitro::utils { class HybridDocumentDetectorModuleSpec; }
+// Forward declaration of `HybridImageSpec` to properly resolve imports.
+namespace margelo::nitro::image { class HybridImageSpec; }
 // Forward declaration of `HybridShareActionHandlerSpec` to properly resolve imports.
 namespace margelo::nitro::utils { class HybridShareActionHandlerSpec; }
 // Forward declaration of `HybridWindowBarsModuleSpec` to properly resolve imports.
@@ -52,6 +54,7 @@ namespace margelo::nitro::utils { struct YuvFrame; }
 #include "TopBarRegion.hpp"
 #include "VerticalBarEdge.hpp"
 #include "YuvFrame.hpp"
+#include <NitroImage/HybridImageSpec.hpp>
 #include <NitroModules/ArrayBuffer.hpp>
 #include <NitroModules/Promise.hpp>
 #include <NitroModules/Result.hpp>
@@ -79,6 +82,8 @@ namespace ExpensifyNitroUtils { class HybridAppStartTimeModuleSpec_cxx; }
 namespace ExpensifyNitroUtils { class HybridContactsModuleSpec_cxx; }
 // Forward declaration of `HybridDocumentDetectorModuleSpec_cxx` to properly resolve imports.
 namespace ExpensifyNitroUtils { class HybridDocumentDetectorModuleSpec_cxx; }
+// Forward declaration of `HybridImageSpec_cxx` to properly resolve imports.
+namespace NitroImage { class HybridImageSpec_cxx; }
 // Forward declaration of `HybridShareActionHandlerSpec_cxx` to properly resolve imports.
 namespace ExpensifyNitroUtils { class HybridShareActionHandlerSpec_cxx; }
 // Forward declaration of `HybridWindowBarsModuleSpec_cxx` to properly resolve imports.

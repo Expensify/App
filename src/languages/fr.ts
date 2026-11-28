@@ -1522,6 +1522,8 @@ const translations: TranslationDeepObject<typeof en> = {
         multiScan: 'numérisation multiple',
         receiptEnhancements: 'Améliorations des reçus',
         receiptEnhancementsEnabled: 'Améliorations des reçus activées',
+        processingReceipt: 'Traitement du reçu...',
+        receiptCaptured: 'Reçu capturé',
         shutter: 'obturateur',
         gallery: 'galerie',
         deleteReceipt: 'Supprimer le reçu',
