@@ -8,9 +8,11 @@ import CONST from '@src/CONST';
 
 import React from 'react';
 
+import type {FloatingCameraButtonProps} from './BaseFloatingCameraButton';
+
 import BaseFloatingCameraButton from './BaseFloatingCameraButton';
 
-function FloatingCameraButton() {
+function FloatingCameraButton({style}: FloatingCameraButtonProps) {
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Camera', 'ReceiptPlus']);
     const styles = useThemeStyles();
     const isInLandscapeMode = useIsInLandscapeMode();
@@ -19,7 +21,7 @@ function FloatingCameraButton() {
     return (
         <BaseFloatingCameraButton
             icon={icon}
-            style={isInLandscapeMode && styles.floatingCameraButtonLandscape}
+            style={style ?? [styles.floatingCameraButton, isInLandscapeMode && styles.floatingCameraButtonLandscape]}
         />
     );
 }

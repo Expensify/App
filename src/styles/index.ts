@@ -2177,6 +2177,13 @@ const staticStyles = (theme: ThemeColors) =>
             boxShadow: theme.shadow,
         },
 
+        // The view of a button in the vertical bar. UIKit pads it above and below, so it is shorter than the button by that
+        // padding: the button spills into it and two buttons keep the same gap they have when they float.
+        verticalBarItem: {
+            width: variables.componentSizeLarge,
+            height: variables.componentSizeLarge - 2 * variables.iosVerticalBarItemViewPadding,
+        },
+
         floatingActionButtonSmall: {
             width: variables.componentSizeNormal,
             height: variables.componentSizeNormal,

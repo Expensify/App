@@ -45,6 +45,7 @@ import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTopInsetHeaderStyle from '@hooks/useTopInsetHeaderStyle';
+import useVerticalBarBackButton from '@hooks/useVerticalBarBackButton';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getReportRouteForCurrentContext from '@libs/Navigation/helpers/getReportRouteForCurrentContext';
@@ -403,6 +404,9 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     // shouldUseNarrowLayout true for any RHP regardless of actual screen width.
     const shouldShowCloseButton = (!!isInSidePanel && !shouldUseNarrowLayout) || isAgentReportInRHP;
     const shouldShowBackButton = (shouldUseNarrowLayout || !!isInSidePanel) && !shouldShowCloseButton;
+    // The vertical bar of a foldable iPhone has the back button instead.
+    const isBackButtonInVerticalBar = useVerticalBarBackButton(onNavigationMenuButtonClicked, shouldShowBackButton);
+    const shouldShowHeaderBackButton = shouldShowBackButton && !isBackButtonInVerticalBar;
 
     const onboardingHelpDropdownButton = (
         <OnboardingHelpDropdownButton
@@ -433,8 +437,8 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                     {isLoading ? (
                         <ReportHeaderSkeletonView onBackButtonPress={onNavigationMenuButtonClicked} />
                     ) : (
-                        <View style={[styles.appContentHeaderTitle, (!shouldUseNarrowLayout || isAgentReportInRHP) && !isLoading && styles.pl5]}>
-                            {shouldShowBackButton && (
+                        <View style={[styles.appContentHeaderTitle, (!shouldUseNarrowLayout || isAgentReportInRHP || isBackButtonInVerticalBar) && !isLoading && styles.pl5]}>
+                            {shouldShowHeaderBackButton && (
                                 <PressableWithoutFeedback
                                     ref={setBackButtonRef}
                                     onPress={onNavigationMenuButtonClicked}

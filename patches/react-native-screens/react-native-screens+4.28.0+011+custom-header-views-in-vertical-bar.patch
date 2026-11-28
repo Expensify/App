@@ -1,0 +1,115 @@
+diff --git a/node_modules/react-native-screens/ios/RNSScreenStackHeaderSubview.mm b/node_modules/react-native-screens/ios/RNSScreenStackHeaderSubview.mm
+index add33c4..d27d2c3 100644
+--- a/node_modules/react-native-screens/ios/RNSScreenStackHeaderSubview.mm
++++ b/node_modules/react-native-screens/ios/RNSScreenStackHeaderSubview.mm
+@@ -14,6 +14,29 @@
+ 
+ namespace react = facebook::react;
+ 
++@interface RNSScreenStackHeaderSubview ()
++- (void)barButtonItemViewDidLoseSuperview;
++@end
++
++// The custom view of a header subview's bar button item. On a foldable iPhone UIKit hosts the items of the vertical
++// bar in views that it builds again when the traits of the bar change, as on a rotation or a fold. It can then leave a
++// custom view out of every host, so this view tells its header subview when it has no superview any more.
++@interface RNSScreenStackHeaderSubviewBarItemView : UIView
++@property (nonatomic, weak) RNSScreenStackHeaderSubview *headerSubview;
++@end
++
++@implementation RNSScreenStackHeaderSubviewBarItemView
++
++- (void)didMoveToSuperview
++{
++  [super didMoveToSuperview];
++  if (self.superview == nil) {
++    [self.headerSubview barButtonItemViewDidLoseSuperview];
++  }
++}
++
++@end
++
+ @implementation RNSScreenStackHeaderSubview {
+   react::RNSScreenStackHeaderSubviewShadowNode::ConcreteState::Shared _state;
+   CGRect _lastScheduledFrame;
+@@ -21,6 +44,7 @@ @implementation RNSScreenStackHeaderSubview {
+   // The cycle is cleared via `invalidateUIBarButtonItem` method, called by `invalidate` callback.
+   UIBarButtonItem *_barButtonItem;
+   BOOL _hidesSharedBackground;
++  BOOL _isBarButtonItemRestoreScheduled;
+ }
+ 
+ #pragma mark - Common
+@@ -214,7 +238,8 @@ - (UIBarButtonItem *)getUIBarButtonItem
+       // Stretching RNSScreenStackHeaderSubview means that its subviews are aligned to left instead
+       // of the center. To mitigate this, we add a wrapper view that will center
+       // RNSScreenStackHeaderSubview inside of itself.
+-      UIView *wrapperView = [UIView new];
++      RNSScreenStackHeaderSubviewBarItemView *wrapperView = [RNSScreenStackHeaderSubviewBarItemView new];
++      wrapperView.headerSubview = self;
+       wrapperView.translatesAutoresizingMaskIntoConstraints = NO;
+ 
+       self.translatesAutoresizingMaskIntoConstraints = NO;
+@@ -280,6 +305,62 @@ - (void)configureBarButtonItem
+     }
+   }
+ #endif // RNS_IPHONE_OS_VERSION_AVAILABLE(26_0)
++#if RNS_IPHONE_OS_VERSION_AVAILABLE(27_1) && !TARGET_OS_TV && !TARGET_OS_VISION
++  // On a foldable iPhone UIKit moves bar items into the vertical bar, but with the automatic behavior it keeps an
++  // item with a custom view in the top bar. Preferring the vertical bar lets a custom view follow the other items.
++  if (@available(iOS 27.1, *)) {
++    if (_barButtonItem != nil) {
++      _barButtonItem.axisBehavior = UIBarButtonItemAxisBehaviorVerticalPreferred;
++    }
++  }
++#endif // RNS_IPHONE_OS_VERSION_AVAILABLE(27_1) && !TARGET_OS_TV && !TARGET_OS_VISION
++}
++
++- (void)barButtonItemViewDidLoseSuperview
++{
++#if RNS_IPHONE_OS_VERSION_AVAILABLE(27_1) && !TARGET_OS_TV && !TARGET_OS_VISION
++  if (@available(iOS 27.1, *)) {
++    if (_barButtonItem == nil || _isBarButtonItemRestoreScheduled) {
++      return;
++    }
++    _isBarButtonItemRestoreScheduled = YES;
++    // UIKit may be moving the view from one host to another, so whether it left the view out is only known once it
++    // is done with the bar.
++    __weak RNSScreenStackHeaderSubview *weakSelf = self;
++    dispatch_async(dispatch_get_main_queue(), ^{
++      [weakSelf restoreBarButtonItemIfDropped];
++    });
++  }
++#endif // RNS_IPHONE_OS_VERSION_AVAILABLE(27_1) && !TARGET_OS_TV && !TARGET_OS_VISION
++}
++
++- (void)restoreBarButtonItemIfDropped
++{
++  _isBarButtonItemRestoreScheduled = NO;
++
++  UIBarButtonItem *barButtonItem = _barButtonItem;
++  if (barButtonItem == nil || barButtonItem.customView.superview != nil) {
++    return;
++  }
++
++  RNSScreenStackHeaderConfig *headerConfig = [self getHeaderConfig];
++  UIViewController *vc = headerConfig.screenView.controller;
++  UINavigationController *navctr = vc.navigationController;
++  // A bar that is hidden, or that shows the items of another screen, has none of this screen's views on purpose.
++  if (navctr == nil || navctr.topViewController != vc || navctr.navigationBarHidden ||
++      ![headerConfig shouldHeaderBeVisible]) {
++    return;
++  }
++
++  UINavigationItem *navitem = vc.navigationItem;
++  if (![navitem.leftBarButtonItems containsObject:barButtonItem] &&
++      ![navitem.rightBarButtonItems containsObject:barButtonItem]) {
++    return;
++  }
++
++  // UIKit does not host the view of an item again when it gets the same item, so the subview needs a new one.
++  _barButtonItem = nil;
++  [RNSScreenStackHeaderConfig willShowViewController:vc animated:NO withConfig:headerConfig];
+ }
+ 
+ - (void)setHidesSharedBackground:(BOOL)hidesSharedBackground

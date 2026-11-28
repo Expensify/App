@@ -3,6 +3,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useVerticalBarBackButton from '@hooks/useVerticalBarBackButton';
 
 import CONST from '@src/CONST';
 
@@ -24,11 +25,14 @@ function ReportHeaderSkeletonView({shouldAnimate = true, onBackButtonPress = () 
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['BackArrow']);
+    // The vertical bar of a foldable iPhone has the back button instead, as it does for the header this one stands in for.
+    const isBackButtonInVerticalBar = useVerticalBarBackButton(onBackButtonPress, shouldUseNarrowLayout);
+    const hasBackButton = shouldUseNarrowLayout && !isBackButtonInVerticalBar;
 
     return (
-        <View style={[styles.appContentHeader, shouldUseNarrowLayout && styles.pl2, styles.h100]}>
-            <View style={[styles.appContentHeaderTitle, !shouldUseNarrowLayout && styles.pl5]}>
-                {shouldUseNarrowLayout && (
+        <View style={[styles.appContentHeader, hasBackButton && styles.pl2, styles.h100]}>
+            <View style={[styles.appContentHeaderTitle, !hasBackButton && styles.pl5]}>
+                {hasBackButton && (
                     <PressableWithFeedback
                         onPress={onBackButtonPress}
                         style={[styles.touchableButtonImage]}

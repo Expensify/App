@@ -37,11 +37,13 @@ import type {OnyxCollection} from 'react-native-onyx';
 import React, {useEffect, useState} from 'react';
 import {Platform, View} from 'react-native';
 
-type BaseFloatingCameraButtonProps = {
-    icon: IconAsset;
-
-    /** Styles applied on top of the button's default styles */
+type FloatingCameraButtonProps = {
+    /** Where the button sits. Without it the button floats over the corner the tab bar leaves free. */
     style?: StyleProp<ViewStyle>;
+};
+
+type BaseFloatingCameraButtonProps = FloatingCameraButtonProps & {
+    icon: IconAsset;
 };
 
 function BaseFloatingCameraButton({icon, style}: BaseFloatingCameraButtonProps) {
@@ -109,8 +111,7 @@ function BaseFloatingCameraButton({icon, style}: BaseFloatingCameraButtonProps) 
                 styles.ph0,
                 // Prevent text selection on touch devices (e.g. on long press)
                 canUseTouchScreen() && styles.userSelectNone,
-                styles.floatingCameraButton,
-                style,
+                style ?? styles.floatingCameraButton,
             ]}
             accessibilityLabel={translate('sidebarScreen.fabScanReceiptExplained')}
             onPress={onPress}
@@ -138,3 +139,4 @@ function BaseFloatingCameraButton({icon, style}: BaseFloatingCameraButtonProps) 
 }
 
 export default BaseFloatingCameraButton;
+export type {FloatingCameraButtonProps};
