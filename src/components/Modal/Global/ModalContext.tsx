@@ -5,6 +5,8 @@ import CONST from '@src/CONST';
 import noop from 'lodash/noop';
 import React, {useContext, useEffect, useRef, useState} from 'react';
 
+import useDismissModalsOnSessionChange from './useDismissModalsOnSessionChange';
+
 const ModalActions = {
     CONFIRM: 'CONFIRM',
     CLOSE: 'CLOSE',
@@ -21,6 +23,7 @@ type ModalProps = {
 };
 
 type ModalContextType = {
+    /** Pending interactions are abandoned without settlement when the session changes, so old account actions cannot continue. */
     showModal<P extends ModalProps>(options: {
         component: React.FunctionComponent<P>;
         props?: Omit<P, 'closeModal' | 'resolveModal'>;
@@ -61,6 +64,15 @@ function ModalProvider({children}: {children: React.ReactNode}) {
     useEffect(() => {
         modalStackRef.current = modalStack;
     }, [modalStack]);
+
+    const dismissModals = () => {
+        // Do not resolve or reject these promises: even DISMISS or rejection runs callers' finally handlers in the new session.
+        modalPromisesStack.current = {};
+        modalStackRef.current = {modals: []};
+        setModalStack({modals: []});
+    };
+
+    useDismissModalsOnSessionChange(dismissModals);
 
     const showModal: ModalContextType['showModal'] = ({component, props, id, isCloseable = true}) => {
         // This is a promise that will resolve when the modal is closed

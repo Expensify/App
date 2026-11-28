@@ -7,7 +7,10 @@ import useHoldSubmitterEducationalModal from '@hooks/useHoldSubmitterEducational
 
 import variables from '@styles/variables';
 
+import ONYXKEYS from '@src/ONYXKEYS';
+
 import React from 'react';
+import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -62,10 +65,36 @@ function renderEducationalModalHooks() {
 }
 
 describe('expense educational modal hooks', () => {
-    beforeEach(() => {
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    beforeEach(async () => {
+        await Onyx.clear();
+        await Onyx.set(ONYXKEYS.SESSION, {accountID: 1, authToken: 'original-token'});
         mockFeatureTrainingModalProps = undefined;
         mockRenderedContent = undefined;
         mockHoldSubmitterIsDM = undefined;
+    });
+
+    it.each(['showHoldSubmitterEducationalModal', 'showHoldOrRejectEducationalModal'] as const)('does not run the %s follow-up after switching accounts', async (showModal) => {
+        // Given the real educational hook and the finally continuation used by hold/reject callers.
+        const onFollowUp = jest.fn();
+        const {result} = renderEducationalModalHooks();
+        await act(async () => {
+            result.current[showModal]().finally(onFollowUp);
+            await waitForBatchedUpdates();
+        });
+        expect(mockFeatureTrainingModalProps).toBeDefined();
+
+        // When a Copilot switch replaces the effective account before the user answers.
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: 2});
+            await waitForBatchedUpdates();
+        });
+
+        // Then no caller-owned hold/reject action can continue under the new account.
+        expect(onFollowUp).not.toHaveBeenCalled();
     });
 
     it.each(['close', 'confirm'] as const)('lets the caller chain its follow-up when the user chooses to %s the hold/reject modal', async (action) => {

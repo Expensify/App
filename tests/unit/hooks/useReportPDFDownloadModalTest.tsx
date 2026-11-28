@@ -18,11 +18,13 @@ import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 // Counts real mounts, so a test can tell an in-place props update apart from a remount.
 const mockOnFileDownloadModalMount = jest.fn();
+const mockOnFileDownloadModalUnmount = jest.fn();
 jest.mock('@components/Modal/FileDownloadModal', () => {
     const {useEffect} = jest.requireActual<typeof React>('react');
     return jest.fn(() => {
         useEffect(() => {
             mockOnFileDownloadModalMount();
+            return mockOnFileDownloadModalUnmount;
         }, []);
         return null;
     });
@@ -45,7 +47,10 @@ const subscribeToOnyx = (listener: () => void) => {
 };
 
 // A minimal reactive store, so an update re-renders the modal the global modal stack renders, like a real Onyx subscription.
-const useMockOnyx = (key: string) => [useSyncExternalStore(subscribeToOnyx, () => mockOnyxValues[key])];
+const useMockOnyx = (key: string, options?: {selector?: (value: unknown) => unknown}) => {
+    const value = useSyncExternalStore(subscribeToOnyx, () => mockOnyxValues[key]);
+    return [options?.selector ? options.selector(value) : value];
+};
 
 describe('useReportPDFDownloadModal', () => {
     const mockedFileDownloadModal = jest.mocked(FileDownloadModal);
@@ -71,7 +76,7 @@ describe('useReportPDFDownloadModal', () => {
         jest.clearAllMocks();
         mockOnyxValues = {
             [`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`]: {reportID: REPORT_ID, reportName: 'Expense Report'},
-            [ONYXKEYS.SESSION]: {encryptedAuthToken: 'token'},
+            [ONYXKEYS.SESSION]: {accountID: 1, authToken: 'authToken', encryptedAuthToken: 'token'},
         };
         (jest.mocked(useOnyx) as jest.Mock).mockImplementation(useMockOnyx);
     });
@@ -258,6 +263,50 @@ describe('useReportPDFDownloadModal', () => {
             getLatestModalProps()?.onDownload();
         });
         expect(downloadReportPDF).toHaveBeenCalledWith('report.pdf', 'Expense Report', expect.any(Function), 'employee@mail.com', 'token');
+    });
+
+    it.each([undefined, 'report.pdf', CONST.REPORT_DETAILS_MENU_ITEM.ERROR])('dismisses the PDF dialog on logout with filename %s', async (filename) => {
+        // Given a generating, ready, or failed PDF dialog belonging to the outgoing account.
+        mockOnyxValues[PDF_FILENAME_KEY] = filename;
+        const onResolve = jest.fn();
+        const {result} = renderReportPDFDownloadModal();
+        await act(async () => {
+            result.current.showReportPDFDownloadModal({reportID: REPORT_ID}).then(onResolve);
+            await waitForBatchedUpdates();
+        });
+
+        // When the session is cleared by logout, including a logout received from another tab.
+        await setOnyxValue(ONYXKEYS.SESSION, null);
+
+        // Then the modal unmounts and cannot trigger Submit via PDF's CLOSE/retract branch.
+        expect(mockOnFileDownloadModalUnmount).toHaveBeenCalledTimes(1);
+        expect(onResolve).not.toHaveBeenCalled();
+        const renderCountAfterLogout = mockedFileDownloadModal.mock.calls.length;
+
+        // When an old PDF response arrives afterward.
+        await setOnyxValue(PDF_FILENAME_KEY, 'late-report.pdf');
+
+        // Then it does not reopen the outgoing-account dialog.
+        expect(mockedFileDownloadModal.mock.calls.length).toBe(renderCountAfterLogout);
+        expect(mockOnFileDownloadModalMount).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not dismiss a dialog when the initial session hydrates', async () => {
+        // Given a provider mounted before its initial session value has arrived.
+        mockOnyxValues[ONYXKEYS.SESSION] = undefined;
+        const onResolve = jest.fn();
+        const {result} = renderReportPDFDownloadModal();
+        await act(async () => {
+            result.current.showReportPDFDownloadModal({reportID: REPORT_ID}).then(onResolve);
+            await waitForBatchedUpdates();
+        });
+
+        // When Onyx supplies the initial account rather than replacing a previous account.
+        await setOnyxValue(ONYXKEYS.SESSION, {accountID: 1, authToken: 'initial-token'});
+
+        // Then the initial baseline does not act as logout or an account switch.
+        expect(mockOnFileDownloadModalUnmount).not.toHaveBeenCalled();
+        expect(onResolve).not.toHaveBeenCalled();
     });
 
     it('logs a stall only while the open modal is waiting on the filename', async () => {
