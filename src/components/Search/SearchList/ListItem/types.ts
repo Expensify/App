@@ -583,7 +583,7 @@ type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
         nonPersonalAndWorkspaceCards?: CardList;
         /** All policies' tag lists, drilled from the list level so each row can resolve its policy's tags without an Onyx subscription per row */
         policyTags?: OnyxCollection<PolicyTagLists>;
-        onUndelete?: (transaction: Transaction) => void;
+        onUndelete?: (transaction: Transaction) => void | Promise<void>;
     };
 
 type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
@@ -597,7 +597,7 @@ type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem
         newTransactionID?: string;
         /** Non-personal and workspace cards for company card display */
         nonPersonalAndWorkspaceCards?: CardList;
-        onUndelete?: (transaction: Transaction) => void;
+        onUndelete?: (transaction: Transaction) => void | Promise<void>;
     };
 
 type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<
@@ -674,7 +674,7 @@ type GroupChildrenContentProps = {
     onCheckboxPress: (item: SearchListItem, itemTransactions?: TransactionListItemType[], shiftKey?: boolean) => void;
     onLongPressRow?: (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => void;
     nonPersonalAndWorkspaceCards?: CardList;
-    onUndelete?: (transaction: Transaction) => void;
+    onUndelete?: (transaction: Transaction) => void | Promise<void>;
     newTransactionID?: string;
 };
 

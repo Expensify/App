@@ -77,7 +77,7 @@ function ReportFieldView(
     report: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
     styles: ThemeStyles,
-    onSaveValue: (reportField: PolicyReportField, value: string) => void,
+    onSaveValue: (reportField: PolicyReportField, value: string) => void | Promise<void>,
     onDelete: (reportField: EnrichedPolicyReportField) => Promise<void>,
     fieldPendingAction?: PendingAction,
 ) {
