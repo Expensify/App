@@ -268,7 +268,7 @@ PODS:
     - ReactNativeDependencies
   - ForkInputMask (7.3.3)
   - FullStory (1.76.0)
-  - fullstory_react-native (1.10.2):
+  - fullstory_react-native (1.11.0):
     - FullStory (~> 1.14)
     - hermes-engine
     - RCTRequired
@@ -4108,7 +4108,7 @@ SPEC CHECKSUMS:
   fmt: ba0886e864ebb21d14c98b2e12e164b8002f5b93
   ForkInputMask: 55e3fbab504b22da98483e9f9a6514b98fdd2f3c
   FullStory: 19b5e39993793fda1b85a743bb35cadda35b1faa
-  fullstory_react-native: 26208ac97192d243bad57ec193d47b6741f5baed
+  fullstory_react-native: 198604eb2d3631966d66b755a2e9ff0427975cbb
   glog: 3cf7cb46f743c4bc758ae3e6d9c15bd1b4cfd6d4
   GoogleAppMeasurement: 0dfca1a4b534d123de3945e28f77869d10d0d600
   GoogleSignIn: d4281ab6cf21542b1cfaff85c191f230b399d2db
