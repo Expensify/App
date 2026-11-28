@@ -1,4 +1,4 @@
-import {setMoneyRequestTaxRateValues} from '@libs/actions/IOU/MoneyRequest';
+import {setDraftHasUserEdits, setMoneyRequestTaxRateValues} from '@libs/actions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {updateMoneyRequestTaxRate} from '@libs/actions/IOU/UpdateMoneyRequest';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
@@ -146,6 +146,7 @@ function useUpdateTransactionTaxRate({transactionID, transaction, report, policy
         }
 
         setMoneyRequestTaxRateValues(transactionID, {taxCode: taxes.code, taxAmount: convertToBackendAmount(taxAmount), taxValue});
+        setDraftHasUserEdits(transactionID);
     };
 
     return {updateTaxRate};

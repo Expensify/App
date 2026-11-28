@@ -10,7 +10,14 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {clearMoneyRequestAmount, setMoneyRequestAmount, setMoneyRequestCurrency, setMoneyRequestTaxAmount, setMoneyRequestTaxRate} from '@libs/actions/IOU/MoneyRequest';
+import {
+    clearMoneyRequestAmount,
+    setDraftHasUserEdits,
+    setMoneyRequestAmount,
+    setMoneyRequestCurrency,
+    setMoneyRequestTaxAmount,
+    setMoneyRequestTaxRate,
+} from '@libs/actions/IOU/MoneyRequest';
 import {convertToBackendAmount, convertToFrontendAmountAsString, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {calculateAmount, isMovingTransactionFromTrackExpense, isP2PRecipient} from '@libs/IOUUtils';
@@ -280,6 +287,11 @@ function AmountField({
             setMoneyRequestCurrency(transactionID, value);
         } else {
             persistMainDraftTotal(updatedAmount, value);
+        }
+
+        // The currency has no flag of its own, and the amount flag goes away if the user clears the amount later, so mark the draft here
+        if (!isEditingSplitBill) {
+            setDraftHasUserEdits(transactionID);
         }
 
         if (isMovingTransactionFromTrackExpense(action)) {

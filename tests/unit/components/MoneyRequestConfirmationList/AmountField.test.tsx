@@ -5,7 +5,7 @@ import AmountField from '@components/MoneyRequestConfirmationList/sections/Amoun
 import ExpenseFormLayoutContext from '@components/MoneyRequestConfirmationList/sections/ExpenseFormLayoutContext';
 import type {NumberWithSymbolFormProps} from '@components/NumberWithSymbolForm';
 
-import {setMoneyRequestAmount, setMoneyRequestCurrency} from '@libs/actions/IOU/MoneyRequest';
+import {setMoneyRequestAmount, setMoneyRequestCurrency, setDraftHasUserEdits} from '@libs/actions/IOU/MoneyRequest';
 
 import type IOURequestStepCurrencyModal from '@pages/iou/request/step/IOURequestStepCurrencyModal';
 
@@ -159,6 +159,7 @@ jest.mock('@libs/DeviceCapabilities', () => ({canUseTouchScreen: () => mockCanUs
 jest.mock('@libs/actions/IOU/MoneyRequest', () => ({
     setMoneyRequestAmount: jest.fn(),
     setMoneyRequestCurrency: jest.fn(),
+    setDraftHasUserEdits: jest.fn(),
     clearMoneyRequestAmount: jest.fn(),
 }));
 jest.mock('@userActions/IOU/Split', () => ({setDraftSplitTransaction: jest.fn()}));
@@ -327,6 +328,8 @@ describe('AmountField currency change', () => {
         // entered manual expense that blocks creation until amount, merchant and date are all filled in
         expect(setMoneyRequestCurrency).toHaveBeenCalledWith('1', 'EUR');
         expect(setMoneyRequestAmount).not.toHaveBeenCalled();
+        // And the draft is marked as edited by the user, since no amount flag records the currency change
+        expect(setDraftHasUserEdits).toHaveBeenCalledWith('1');
     });
 
     it('keeps the entered amount when the currency changes after the user set one', () => {
@@ -353,6 +356,8 @@ describe('AmountField currency change', () => {
         // Then the entered amount is saved together with the new currency, since the amount is the user's own
         expect(setMoneyRequestAmount).toHaveBeenCalledWith('1', 1000, 'EUR');
         expect(setMoneyRequestCurrency).not.toHaveBeenCalled();
+        // And the draft is marked as edited by the user, so the picked currency still counts if the user clears the amount later
+        expect(setDraftHasUserEdits).toHaveBeenCalledWith('1');
     });
 });
 

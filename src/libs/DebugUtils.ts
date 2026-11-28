@@ -1279,6 +1279,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     withdrawalID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     isAmountSet: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     isCreatedSet: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    hasUserEdits: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     selectedRouteKey: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     rejectFailedFromReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     isReusedRoute: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1460,6 +1461,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
         case 'isAmountSet':
         case 'isMerchantSet':
         case 'isCreatedSet':
+        case 'hasUserEdits':
             return validateBoolean(value);
     }
 }

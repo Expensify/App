@@ -13,6 +13,7 @@ import useReceiptPhotoOutput from '@hooks/useReceiptPhotoOutput';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {setDraftHasUserEdits} from '@libs/actions/IOU/MoneyRequest';
 import {setMoneyRequestOdometerImage} from '@libs/actions/OdometerTransactionUtils';
 import {capturePhotoToPath} from '@libs/cameraCapture';
 import {getMimeTypeFromUri} from '@libs/fileDownload/FileUtils';
@@ -153,6 +154,9 @@ function IOURequestStepOdometerImage({
                     isTransactionDraft,
                     false,
                 );
+                if (isTransactionDraft) {
+                    setDraftHasUserEdits(transactionID);
+                }
             })
             .finally(() => {
                 navigateBack();
@@ -235,6 +239,9 @@ function IOURequestStepOdometerImage({
                                     isTransactionDraft,
                                     false,
                                 );
+                                if (isTransactionDraft) {
+                                    setDraftHasUserEdits(transactionID);
+                                }
                                 endSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_CAPTURE);
                                 setDidCapturePhoto(true);
                                 navigateBack();

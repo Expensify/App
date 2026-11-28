@@ -26,7 +26,7 @@ import usePolicy from '@hooks/usePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {setMoneyRequestDistanceRate} from '@libs/actions/IOU/MoneyRequest';
+import {setDraftHasUserEdits, setMoneyRequestDistanceRate} from '@libs/actions/IOU/MoneyRequest';
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -218,6 +218,9 @@ function CreateDistanceRatePage({
             const isEdit = action === CONST.IOU.ACTION.EDIT;
             const transactionDraft = await Onyx.get(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(transactionID)}`);
             setMoneyRequestDistanceRate(transactionDraft, customUnitRateID, policy, true);
+            if (!isEdit) {
+                setDraftHasUserEdits(transactionID);
+            }
             Navigation.goBack(
                 !isEdit
                     ? ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action ?? CONST.IOU.ACTION.CREATE, iouType ?? CONST.IOU.TYPE.SUBMIT, transactionID, reportID)

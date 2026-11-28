@@ -1,8 +1,8 @@
 import CONST from '@src/CONST';
-import type {Report, Transaction} from '@src/types/onyx';
-import type {WaypointCollection} from '@src/types/onyx/Transaction';
+import type {OdometerDraft, Report, Transaction} from '@src/types/onyx';
+import type {Comment, WaypointCollection} from '@src/types/onyx/Transaction';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import type {ManuallyEnteredScanFields} from './TransactionUtils';
@@ -13,6 +13,7 @@ import {isExpenseReport, isExpenseRequest, isPolicyExpenseChat} from './ReportUt
 import {
     doesMoneyRequestDraftHaveUserInput,
     hasValidModifiedAmount,
+    hasReceiptSource,
     haveWaypointAddressesChanged,
     isCreatedMissing,
     isExpenseUnreported,
@@ -248,6 +249,73 @@ function getWaypointsHasUnsavedChanges(
     return haveWaypointAddressesChanged(committedWaypoints, currentWaypoints);
 }
 
+type DraftUserEditsOptions = {
+    /** Odometer readings the user saved for later. They're kept after the flow closes, so a draft that still matches them has nothing to lose. */
+    savedOdometerDraft?: OnyxEntry<OdometerDraft>;
+};
+
+/**
+ * Whether the odometer step holds readings or photos that closing the flow would lose.
+ */
+function hasOdometerDraftUserEdits(comment: Comment | undefined, savedOdometerDraft: OnyxEntry<OdometerDraft>): boolean {
+    const hasReadings = (comment?.odometerStart ?? null) !== null || (comment?.odometerEnd ?? null) !== null;
+    if (savedOdometerDraft) {
+        // Saved photos get new URIs each time the draft is loaded, so they can't be compared here: the photo handlers set
+        // `hasUserEdits` instead. The odometer step only saves both readings at once, so a draft without readings is one the
+        // saved trip hasn't been restored into yet.
+        return (
+            hasReadings &&
+            ((savedOdometerDraft.odometerStartReading ?? null) !== (comment?.odometerStart ?? null) || (savedOdometerDraft.odometerEndReading ?? null) !== (comment?.odometerEnd ?? null))
+        );
+    }
+    return hasReadings || !!comment?.odometerStartImage || !!comment?.odometerEndImage;
+}
+
+/**
+ * Whether the user entered anything in this draft that closing the flow would lose. Values the app fills in by itself (default
+ * category, tag and tax, billable, the distance amount and merchant, the test and test drive receipts, ...) don't count, so a draft
+ * the user didn't touch has nothing to lose.
+ */
+function hasDraftUserEdits(transaction: OnyxEntry<Transaction>, options: DraftUserEditsOptions = {}): boolean {
+    if (!transaction) {
+        return false;
+    }
+
+    const comment = transaction.comment;
+    if (transaction.hasUserEdits || transaction.isCreatedSet || !!comment?.comment?.trim() || Object.values(transaction.splitShares ?? {}).some((splitShare) => !!splitShare?.isModified)) {
+        return true;
+    }
+
+    switch (transaction.iouRequestType) {
+        case CONST.IOU.REQUEST_TYPE.DISTANCE:
+        case CONST.IOU.REQUEST_TYPE.DISTANCE_MAP:
+            return doesMoneyRequestDraftHaveUserInput(transaction);
+        case CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL:
+            return typeof comment?.customUnit?.quantity === 'number';
+        case CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER:
+            return hasOdometerDraftUserEdits(comment, options.savedOdometerDraft);
+        case CONST.IOU.REQUEST_TYPE.DISTANCE_GPS:
+            // The GPS trip is saved separately and is kept after the flow closes.
+            return false;
+        case CONST.IOU.REQUEST_TYPE.PER_DIEM:
+            return !!comment?.customUnit?.customUnitRateID || !!comment?.customUnit?.subRates?.length;
+        case CONST.IOU.REQUEST_TYPE.TIME:
+            return comment?.units?.count !== undefined;
+        default: {
+            const receipt = transaction.receipt;
+            const hasUserReceipt = hasReceiptSource(transaction) && !receipt?.isTestReceipt && !receipt?.isTestDriveReceipt;
+            return hasUserReceipt || !!transaction.isAmountSet || !!transaction.isMerchantSet;
+        }
+    }
+}
+
+/**
+ * Whether any draft of the flow has user input. Multi-scan has one draft per receipt.
+ */
+function haveDraftsUserEdits(drafts: OnyxCollection<Transaction>, options?: DraftUserEditsOptions): boolean {
+    return Object.values(drafts ?? {}).some((draft) => hasDraftUserEdits(draft, options));
+}
+
 /**
  * Determines whether the date field should be shown on the money request confirmation surface.
  * This is the single source of truth shared by the confirmation footer (where the date field is rendered)
@@ -343,4 +411,6 @@ export {
     getAmountHasUnsavedChanges,
     getStringFieldHasUnsavedChanges,
     getWaypointsHasUnsavedChanges,
+    hasDraftUserEdits,
+    haveDraftsUserEdits,
 };
