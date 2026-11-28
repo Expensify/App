@@ -173,15 +173,15 @@ function SearchPageFooter({
             sentryLabel={CONST.SENTRY_LABEL.SEARCH.FOOTER_BUTTON}
             ref={props.ref}
             accessibilityLabel={footerAccessibilityLabel}
-            style={styles.flexShrink1}
-            innerStyles={[styles.bgTransparent, styles.mnh0, styles.ph0, styles.pv0, styles.flexShrink1]}
+            style={[styles.flexShrink1, shouldUseNarrowLayout && styles.flexGrow1]}
+            innerStyles={[styles.bgTransparent, styles.mnh0, styles.ph0, styles.pv0, styles.flexShrink1, shouldUseNarrowLayout && [styles.flexGrow1, styles.justifyContentStart]]}
             size={CONST.BUTTON_SIZE.SMALL}
             hoverStyles={styles.bgTransparent}
             onPress={props.onPress}
             onFocus={() => setIsFooterButtonFocused(true)}
             onBlur={() => setIsFooterButtonFocused(false)}
         >
-            <View style={[styles.flexRow, styles.flexWrap, styles.alignItemsCenter, styles.flexShrink1, styles.columnGap3, styles.rowGap1]}>
+            <View style={[styles.flexRow, styles.flexWrap, styles.alignItemsCenter, styles.flexShrink1, styles.columnGap3, styles.rowGap1, shouldUseNarrowLayout && styles.flexGrow1]}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
                     <Text style={[styles.textLabelSupporting, styles.pointerEventsNone]}>{`${countLabel}:`}</Text>
                     {/* The count never loads: both counts come back on every search, so it holds still while the total reloads. */}
@@ -224,8 +224,9 @@ function SearchPageFooter({
     return (
         <View style={[styles.borderTop, styles.ph5, styles.pv3, shouldUseNarrowLayout && styles.searchPageFooterFABClearance, StyleUtils.getBackgroundColorStyle(theme.appBG)]}>
             <View style={[shouldUseNarrowLayout ? styles.justifyContentStart : styles.justifyContentEnd, styles.flexRow, styles.alignItemsCenter]}>
+                {/* On narrow layouts the trigger fills the row, so its figures wrap against the row's width instead of flipping between one and two lines as the footer moves with the keyboard. */}
                 <FilterPopupButton
-                    wrapperStyle={styles.flexShrink1}
+                    wrapperStyle={[styles.flexShrink1, shouldUseNarrowLayout && styles.flexGrow1]}
                     PopoverComponent={renderFooterPopup}
                     renderButton={footerButton}
                     popoverAnchorAlignment={{
