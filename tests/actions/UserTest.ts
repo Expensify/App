@@ -1081,7 +1081,7 @@ describe('actions/User', () => {
                 expect(optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`)).toEqual({
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
-                    value: {[userLockKey]: true},
+                    value: {[userLockKey]: true, [`${CONST.DOMAIN.PRIVATE_UNLOCK_REQUESTED_PREFIX}${accountID}`]: false},
                 });
 
                 // Optimistic: sets pending action to UPDATE
@@ -1151,7 +1151,37 @@ describe('actions/User', () => {
             UserActions.requestUnlockAccount(accountID);
             await waitForBatchedUpdates();
 
-            expect(mockAPI.write).toHaveBeenCalledWith(WRITE_COMMANDS.REQUEST_UNLOCK_ACCOUNT, {accountID});
+            expect(mockAPI.write).toHaveBeenCalledWith(WRITE_COMMANDS.REQUEST_UNLOCK_ACCOUNT, {accountID}, {optimisticData: [], successData: [], failureData: []});
+        });
+
+        it('marks a domain unlock as requested only on success and exposes failures for retry', async () => {
+            // Given a locked domain member with no submitted unlock request
+            const accountID = 123456;
+            const domainAccountID = 200;
+            const domainName = 'expensify.com';
+            const domainKey = `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}` as const;
+            const pendingKey = `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}` as const;
+            const errorsKey = `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}` as const;
+
+            // When the admin submits the request
+            UserActions.requestUnlockAccount(accountID, domainAccountID, domainName);
+            await waitForBatchedUpdates();
+            const data = mockAPI.write.mock.calls.at(0)?.[2];
+
+            // Then only the in-flight action is optimistic, not the submitted state
+            expect(mockAPI.write).toHaveBeenCalledWith(WRITE_COMMANDS.REQUEST_UNLOCK_ACCOUNT, {accountID, domainAccountID, domainName}, expect.anything());
+            expect(data?.optimisticData).toEqual([
+                {onyxMethod: Onyx.METHOD.MERGE, key: pendingKey, value: {member: {[accountID]: {unlockAccount: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}}}},
+                {onyxMethod: Onyx.METHOD.MERGE, key: errorsKey, value: {memberErrors: {[accountID]: {unlockAccountErrors: null}}}},
+            ]);
+            expect(data?.successData).toEqual([
+                {onyxMethod: Onyx.METHOD.MERGE, key: domainKey, value: {[`${CONST.DOMAIN.PRIVATE_UNLOCK_REQUESTED_PREFIX}${accountID}`]: true}},
+                {onyxMethod: Onyx.METHOD.MERGE, key: pendingKey, value: {member: {[accountID]: {unlockAccount: null}}}},
+            ]);
+            expect(data?.failureData).toEqual([
+                {onyxMethod: Onyx.METHOD.MERGE, key: pendingKey, value: {member: {[accountID]: {unlockAccount: null}}}},
+                {onyxMethod: Onyx.METHOD.MERGE, key: errorsKey, value: {memberErrors: {[accountID]: {unlockAccountErrors: anyObject}}}},
+            ]);
         });
     });
 

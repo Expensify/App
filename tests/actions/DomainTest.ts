@@ -1087,6 +1087,26 @@ describe('actions/Domain', () => {
         });
     });
 
+    it('clearDomainMemberError - preserves in-flight security actions', async () => {
+        // Given an unrelated failed update while an unlock request is in flight
+        const accountID = 456;
+        const key = `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}123` as const;
+        await Onyx.set(key, {member: {[accountID]: {vacationDelegate: 'update', lockAccount: 'update', unlockAccount: 'update'}}});
+
+        // When the member error is dismissed from the list
+        clearDomainMemberError(123, 456, 'member@example.com');
+
+        // Then security actions retain their duplicate-request guards
+        await TestHelper.getOnyxData({
+            key,
+            callback: (pending) => {
+                expect(pending?.member?.[456]?.vacationDelegate).toBeFalsy();
+                expect(pending?.member?.[456]?.lockAccount).toBe('update');
+                expect(pending?.member?.[456]?.unlockAccount).toBe('update');
+            },
+        });
+    });
+
     it('clearDomainMemberError - clears the placeholder personal details for an optimistic account', async () => {
         const domainAccountID = 123;
         const email = 'user@test.com';
