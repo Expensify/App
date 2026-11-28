@@ -164,6 +164,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                 rules: undefined,
                 reportTransactionsCollection: {[transaction.transactionID]: transaction},
                 isChatReportArchived: false,
+                allReports: await Onyx.get(ONYXKEYS.COLLECTION.REPORT),
             });
 
             // Then: Should return navigation route to chat report
@@ -193,6 +194,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                 rules: undefined,
                 reportTransactionsCollection: {[transaction.transactionID]: transaction},
                 isChatReportArchived: false,
+                allReports: await Onyx.get(ONYXKEYS.COLLECTION.REPORT),
             });
             await waitForBatchedUpdates();
 
@@ -262,6 +264,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                 rules: undefined,
                 reportTransactionsCollection: {[transaction.transactionID]: transaction, [secondTransaction.transactionID]: secondTransaction},
                 isChatReportArchived: false,
+                allReports: await Onyx.get(ONYXKEYS.COLLECTION.REPORT),
             });
             await waitForBatchedUpdates();
 
@@ -314,6 +317,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                 rules: undefined,
                 reportTransactionsCollection: {[transaction.transactionID]: transaction, [secondTransaction.transactionID]: secondTransaction},
                 isChatReportArchived: false,
+                allReports: await Onyx.get(ONYXKEYS.COLLECTION.REPORT),
                 options: {
                     sharedRejectedToReportID,
                     existingRejectedReport,
@@ -334,6 +338,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                 rules: undefined,
                 reportTransactionsCollection: {[transaction.transactionID]: transaction, [secondTransaction.transactionID]: secondTransaction},
                 isChatReportArchived: false,
+                allReports: await Onyx.get(ONYXKEYS.COLLECTION.REPORT),
                 options: {
                     sharedRejectedToReportID,
                     existingRejectedReport,
@@ -412,6 +417,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                     rules: undefined,
                     reportTransactionsCollection: {},
                     isChatReportArchived: false,
+                    allReports: await Onyx.get(ONYXKEYS.COLLECTION.REPORT),
                 });
 
                 await waitForBatchedUpdates();
@@ -444,6 +450,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                     rules: undefined,
                     reportTransactionsCollection: {[transaction.transactionID]: transaction, [secondTransaction.transactionID]: secondTransaction},
                     isChatReportArchived: false,
+                    allReports: await Onyx.get(ONYXKEYS.COLLECTION.REPORT),
                 });
                 await waitForBatchedUpdates();
 
@@ -476,6 +483,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                     rules: undefined,
                     reportTransactionsCollection: {[transaction.transactionID]: transaction, [secondTransaction.transactionID]: secondTransaction},
                     isChatReportArchived: false,
+                    allReports: await Onyx.get(ONYXKEYS.COLLECTION.REPORT),
                 });
                 await waitForBatchedUpdates();
 
@@ -524,6 +532,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                     rules: undefined,
                     reportTransactionsCollection: {[transaction.transactionID]: transaction, [secondTransaction.transactionID]: secondTransaction},
                     isChatReportArchived: false,
+                    allReports: await Onyx.get(ONYXKEYS.COLLECTION.REPORT),
                 });
                 await waitForBatchedUpdates();
                 await mockFetch?.resume?.();
@@ -568,6 +577,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                     rules: undefined,
                     reportTransactionsCollection: {[transaction.transactionID]: transaction, [secondTransaction.transactionID]: secondTransaction},
                     isChatReportArchived: false,
+                    allReports: await Onyx.get(ONYXKEYS.COLLECTION.REPORT),
                 });
                 await waitForBatchedUpdates();
 
@@ -637,6 +647,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                 rules: undefined,
                 reportTransactionsCollection: {[transaction.transactionID]: transaction, [secondTransaction.transactionID]: secondTransaction},
                 isChatReportArchived: false,
+                allReports: await Onyx.get(ONYXKEYS.COLLECTION.REPORT),
             });
             await waitForBatchedUpdates();
 
