@@ -19,6 +19,7 @@ import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
 import WorkspaceMoreFeaturesPage from '@pages/workspace/WorkspaceMoreFeaturesPage';
 
+import * as PolicyActions from '@userActions/Policy/Policy';
 import * as ReportActions from '@userActions/Report';
 
 import CONST from '@src/CONST';
@@ -343,7 +344,11 @@ describe('WorkspaceMoreFeaturesPage', () => {
     });
 
     describe('Concierge-routed disable flows', () => {
+        const CONCIERGE_REPORT_ID = '456';
+        const TEST_USER_ACCOUNT_ID = 1;
+
         it('opens Concierge chat when the user confirms the Expensify Card disable warning', async () => {
+            // Given a workspace with an issued Expensify Card, which can only be disabled through Concierge, and a stored Concierge chat and onboarding state
             await TestHelper.signInWithTestUser();
             getCompanyFeedsMock.mockReturnValue({});
             await act(async () => {
@@ -352,10 +357,14 @@ describe('WorkspaceMoreFeaturesPage', () => {
                     someCardID: {nameValuePairs: {}},
                 });
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}1`, {paymentBankAccountID: 1});
+                await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_REPORT_ID);
+                await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false, selfTourViewed: true});
             });
 
             renderPage({policyID: POLICY_ID});
             await waitForBatchedUpdatesWithAct();
+
+            // When the user presses the locked switch and confirms the warning
             fireEvent.press(await findLockedSwitch('workspace.moreFeatures.expensifyCard.subtitle'));
 
             await waitFor(() => {
@@ -364,18 +373,27 @@ describe('WorkspaceMoreFeaturesPage', () => {
             fireEvent.press(await screen.findByLabelText(TestHelper.translateLocal('workspace.moreFeatures.expensifyCard.disableCardButton')));
             await waitForBatchedUpdatesWithAct();
 
+            // Then Concierge opens once, with the chat, account and tour state read at press time
             expect(navigateToConciergeChatSpy).toHaveBeenCalledTimes(1);
+            expect(navigateToConciergeChatSpy).toHaveBeenCalledWith(
+                expect.objectContaining({conciergeReportID: CONCIERGE_REPORT_ID, currentUserAccountID: TEST_USER_ACCOUNT_ID, isSelfTourViewed: true, hasCompletedGuidedSetupFlow: false}),
+            );
         });
 
         it('opens Concierge chat when the user confirms the Company Cards disable warning', async () => {
+            // Given a workspace with a company card feed, which can only be disabled through Concierge, and a stored Concierge chat and onboarding state
             await TestHelper.signInWithTestUser();
             getCompanyFeedsMock.mockReturnValue({someFeed: {}} as ReturnType<typeof CardUtils.getCompanyFeeds>);
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildPolicy({id: POLICY_ID, areCompanyCardsEnabled: true}));
+                await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_REPORT_ID);
+                await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false, selfTourViewed: true});
             });
 
             renderPage({policyID: POLICY_ID});
             await waitForBatchedUpdatesWithAct();
+
+            // When the user presses the locked switch and confirms the warning
             fireEvent.press(await findLockedSwitch('workspace.moreFeatures.companyCards.subtitle'));
 
             await waitFor(() => {
@@ -384,7 +402,67 @@ describe('WorkspaceMoreFeaturesPage', () => {
             fireEvent.press(await screen.findByLabelText(TestHelper.translateLocal('workspace.moreFeatures.companyCards.disableCardButton')));
             await waitForBatchedUpdatesWithAct();
 
+            // Then Concierge opens once, with the chat, account and tour state read at press time
             expect(navigateToConciergeChatSpy).toHaveBeenCalledTimes(1);
+            expect(navigateToConciergeChatSpy).toHaveBeenCalledWith(
+                expect.objectContaining({conciergeReportID: CONCIERGE_REPORT_ID, currentUserAccountID: TEST_USER_ACCOUNT_ID, isSelfTourViewed: true, hasCompletedGuidedSetupFlow: false}),
+            );
+        });
+    });
+
+    describe('Per diem toggle', () => {
+        it('clears the stored per diem quick action when the switch is turned off', async () => {
+            // Given a Control workspace with per diem on and a global create quick action pointing at its workspace chat, which turning per diem off must clear
+            const WORKSPACE_CHAT_REPORT_ID = '123';
+            await TestHelper.signInWithTestUser();
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildPolicy({id: POLICY_ID, arePerDiemRatesEnabled: true}));
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${WORKSPACE_CHAT_REPORT_ID}`, {
+                    reportID: WORKSPACE_CHAT_REPORT_ID,
+                    policyID: POLICY_ID,
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                });
+                await Onyx.set(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {action: CONST.QUICK_ACTIONS.PER_DIEM, chatReportID: WORKSPACE_CHAT_REPORT_ID});
+            });
+            renderPage({policyID: POLICY_ID});
+            await waitForBatchedUpdatesWithAct();
+
+            // When the user turns the per diem switch off
+            fireEvent.press(await findUnlockedSwitch('workspace.moreFeatures.perDiem.subtitle'));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the stored quick action still reaches enablePerDiem, which clears it because it points at this workspace's chat
+            await waitFor(async () => {
+                expect(await Onyx.get(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE)).toBeUndefined();
+            });
+        });
+    });
+
+    describe('Taxes toggle', () => {
+        it('passes the stored government mileage rates to enablePolicyTaxes when the switch is toggled', async () => {
+            // Given a workspace with taxes off and stored government mileage rates, which enablePolicyTaxes uses to add the government rates
+            const governmentMileageRates = [{sourceRateID: 'US_2026-01-01', currency: CONST.CURRENCY.USD, name: '2026 United States', rate: 70, startDate: '2026-01-01'}];
+            const enablePolicyTaxesSpy = jest.spyOn(PolicyActions, 'enablePolicyTaxes').mockImplementation(() => undefined);
+            try {
+                await TestHelper.signInWithTestUser();
+                await act(async () => {
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildPolicy({id: POLICY_ID}));
+                    await Onyx.set(ONYXKEYS.GOVERNMENT_MILEAGE_RATES, governmentMileageRates);
+                });
+                renderPage({policyID: POLICY_ID});
+                await waitForBatchedUpdatesWithAct();
+
+                // When the user turns the taxes switch on
+                fireEvent.press(await findUnlockedSwitch('workspace.moreFeatures.taxes.subtitle'));
+
+                // Then the stored rates still reach enablePolicyTaxes, which needs them to add the government rates
+                await waitFor(() => {
+                    expect(enablePolicyTaxesSpy).toHaveBeenCalledWith(POLICY_ID, true, expect.anything(), expect.objectContaining({governmentMileageRates}));
+                });
+            } finally {
+                enablePolicyTaxesSpy.mockRestore();
+            }
         });
     });
 
@@ -589,6 +667,27 @@ describe('WorkspaceMoreFeaturesPage', () => {
             }
         });
 
+        it.each([
+            {isConfigured: true, isBetaEnabled: false, isVendorsActive: true},
+            {isConfigured: true, isBetaEnabled: true, isVendorsActive: true},
+            {isConfigured: false, isBetaEnabled: false, isVendorsActive: false},
+            {isConfigured: false, isBetaEnabled: true, isVendorsActive: false},
+        ])('shows the Digits Vendors row with active=$isVendorsActive for configured=$isConfigured and beta=$isBetaEnabled', async ({isConfigured, isBetaEnabled, isVendorsActive}) => {
+            // Given a Digits connection whose configuration determines whether vendor matching is active
+            const connections = {[CONST.POLICY.CONNECTIONS.NAME.DIGITS]: {config: {isConfigured}}};
+
+            // When the More features page renders with the selected beta state
+            await renderWithVendorMatching(connections, isBetaEnabled);
+
+            // Then the locked row shows without the beta, because Digits vendor matching is GA, and is only on once Digits is configured
+            const vendorsSwitch = await findLockedSwitch('workspace.moreFeatures.vendors.subtitle');
+            if (isVendorsActive) {
+                expect(vendorsSwitch).toBeChecked();
+            } else {
+                expect(vendorsSwitch).not.toBeChecked();
+            }
+        });
+
         // Business Central is still beta-gated, so it stays hidden when the beta is off.
         it('hides the Vendors row for a beta-gated integration (Business Central) when the beta is disabled', async () => {
             // Given a configured Business Central connection
@@ -632,6 +731,92 @@ describe('WorkspaceMoreFeaturesPage', () => {
             await renderWithVendorMatching(connections, true);
 
             // Then the Vendors row should be hidden because PSA does not support vendor matching
+            expect(vendorsSwitchQuery()).toBeNull();
+        });
+
+        // QBD is beta-gated and has no discovery state: the row is absent unless beta + Codat + CREDIT_CARD_CHARGE are all true.
+        it('shows the Vendors row for a QBD Codat + CREDIT_CARD_CHARGE connection when the beta is enabled', async () => {
+            // Given a QBD connection with apiProvider=codat and CREDIT_CARD_CHARGE export, and the vendorMatching beta enabled
+            const connections = {
+                [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
+                    config: {
+                        apiProvider: CONST.QUICKBOOKS_DESKTOP_CONFIG.API_PROVIDER.CODAT,
+                        export: {nonReimbursable: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                    },
+                },
+            };
+
+            // When the More features page renders with the beta enabled
+            await renderWithVendorMatching(connections, true);
+
+            // Then the Vendors row is visible and active
+            const vendorsSwitch = await findLockedSwitch('workspace.moreFeatures.vendors.subtitle');
+            expect(vendorsSwitch).toBeChecked();
+        });
+
+        it('hides the Vendors row for a QBD Codat + CREDIT_CARD_CHARGE connection when the beta is disabled', async () => {
+            // Given a QBD connection with apiProvider=codat and CREDIT_CARD_CHARGE export, but the vendorMatching beta disabled
+            const connections = {
+                [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
+                    config: {
+                        apiProvider: CONST.QUICKBOOKS_DESKTOP_CONFIG.API_PROVIDER.CODAT,
+                        export: {nonReimbursable: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                    },
+                },
+            };
+
+            // When the More features page renders without the beta
+            await renderWithVendorMatching(connections, false);
+
+            // Then the Vendors row is hidden — QBD has no discovery state, so it never shows without the beta
+            expect(vendorsSwitchQuery()).toBeNull();
+        });
+
+        it('hides the Vendors row for a QBD connection with a CHECK export type even when the beta is enabled', async () => {
+            // Given a QBD Codat connection whose export is CHECK, not CREDIT_CARD_CHARGE
+            const connections = {
+                [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
+                    config: {apiProvider: CONST.QUICKBOOKS_DESKTOP_CONFIG.API_PROVIDER.CODAT, export: {nonReimbursable: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CHECK}},
+                },
+            };
+
+            // When the More features page renders with the beta enabled
+            await renderWithVendorMatching(connections, true);
+
+            // Then the Vendors row is hidden because the export type does not scope vendor matching
+            expect(vendorsSwitchQuery()).toBeNull();
+        });
+
+        it('hides the Vendors row for a QBD connection with a VENDOR_BILL export type even when the beta is enabled', async () => {
+            // Given a QBD Codat connection whose export is VENDOR_BILL, not CREDIT_CARD_CHARGE
+            const connections = {
+                [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
+                    config: {
+                        apiProvider: CONST.QUICKBOOKS_DESKTOP_CONFIG.API_PROVIDER.CODAT,
+                        export: {nonReimbursable: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL},
+                    },
+                },
+            };
+
+            // When the More features page renders with the beta enabled
+            await renderWithVendorMatching(connections, true);
+
+            // Then the Vendors row is hidden because the export type does not scope vendor matching
+            expect(vendorsSwitchQuery()).toBeNull();
+        });
+
+        it('hides the Vendors row for a legacy (non-Codat) QBD connection even when the beta is enabled', async () => {
+            // Given a QBD connection without an apiProvider (legacy pre-Codat connection)
+            const connections = {
+                [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
+                    config: {export: {nonReimbursable: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}},
+                },
+            };
+
+            // When the More features page renders with the beta enabled
+            await renderWithVendorMatching(connections, true);
+
+            // Then the Vendors row is hidden because legacy QBD connections lack the Codat apiProvider
             expect(vendorsSwitchQuery()).toBeNull();
         });
     });

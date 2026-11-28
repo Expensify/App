@@ -13,7 +13,7 @@ import ViolationsUtils, {
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, BetaOverrides, Policy, PolicyCategories, PolicyTagLists, PolicyVendors, Report, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Beta, BetaOverrides, Policy, PolicyCategories, PolicyTagLists, PolicyVendors, Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {SageIntacctExportConfig} from '@src/types/onyx/Policy';
 import type {RuleFilterComparison, RuleFilterNode} from '@src/types/onyx/RuleFilters';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
@@ -176,6 +176,31 @@ describe('getViolationsOnyxData', () => {
         policy = createMock<Policy>({requiresTag: false, requiresCategory: false});
         policyTags = {};
         policyCategories = {};
+    });
+
+    it('flags a stale selected value at a level with missing tags as out of policy', () => {
+        // Given independent levels with a valid selection followed by an empty list.
+        policyTags = createMock<PolicyTagLists>({
+            Department: {name: 'Department', orderWeight: 0, required: false, tags: {Sales: {name: 'Sales', enabled: true}}},
+            Broken: {name: 'Broken', orderWeight: 99},
+        });
+        transaction.tag = 'Sales:Previous selection';
+
+        // When an expense edit recalculates violations.
+        const result = ViolationsUtils.getViolationsOnyxData({
+            isVendorMatchingBetaEnabled: false,
+            ownerLogin: undefined,
+            updatedTransaction: transaction,
+            transactionViolations,
+            policy,
+            policyTagList: policyTags,
+            policyCategories,
+            hasDependentTags: false,
+            isInvoiceTransaction: false,
+        });
+
+        // Then the empty map invalidates its stale selection without crashing or shifting levels.
+        expect(getTransactionViolationsFromResult(result)).toContainEqual({...tagOutOfPolicyViolation, data: {tagName: 'Broken'}});
     });
 
     it('should return an object with correct shape and with empty transactionViolations array', () => {
@@ -1185,6 +1210,50 @@ describe('getViolationsOnyxData', () => {
                 transaction.created = '2026-08-30';
 
                 expect(getFutureDateResult().value).toContainEqual(futureDateViolation);
+            });
+
+            it('should add futureDate violation for a time later than the +14 hour window on the latest date', () => {
+                // Given SmartScan saved today's UTC+14 date with a time that hasn't happened yet at UTC+14
+                jest.useFakeTimers();
+                jest.setSystemTime(new Date('2026-08-29T20:00:00Z'));
+                transaction.modifiedCreated = '2026-08-30 18:11:40';
+
+                // When the violations are calculated
+                // Then the time is compared like the backend does, so the violation is added
+                expect(getFutureDateResult().value).toContainEqual(futureDateViolation);
+            });
+
+            it('should not add futureDate violation for a time within the +14 hour window on the latest date', () => {
+                // Given SmartScan saved today's UTC+14 date with a time that has already happened at UTC+14
+                jest.useFakeTimers();
+                jest.setSystemTime(new Date('2026-08-29T20:00:00Z'));
+                transaction.modifiedCreated = '2026-08-30 09:30:00';
+
+                // When the violations are calculated
+                // Then the violation isn't added
+                expect(getFutureDateResult().value).not.toContainEqual(futureDateViolation);
+            });
+
+            it('should add futureDate violation for a time later than the +14 hour window on the current UTC date', () => {
+                // Given SmartScan saved the current UTC date with a time later than now + 14 hours
+                jest.useFakeTimers();
+                jest.setSystemTime(new Date('2026-08-29T02:00:00Z'));
+                transaction.modifiedCreated = '2026-08-29 18:00:00';
+
+                // When the violations are calculated
+                // Then the violation is added, because the date alone is within the window and only the time is beyond it
+                expect(getFutureDateResult().value).toContainEqual(futureDateViolation);
+            });
+
+            it('should not add futureDate violation for a time within the +14 hour window on the current UTC date', () => {
+                // Given SmartScan saved the current UTC date with a time earlier than now + 14 hours
+                jest.useFakeTimers();
+                jest.setSystemTime(new Date('2026-08-29T02:00:00Z'));
+                transaction.modifiedCreated = '2026-08-29 15:00:00';
+
+                // When the violations are calculated
+                // Then the violation isn't added
+                expect(getFutureDateResult().value).not.toContainEqual(futureDateViolation);
             });
 
             it('should add futureDate violation from created when modifiedCreated is an empty string', () => {
@@ -4958,6 +5027,127 @@ describe('getRBRMessages', () => {
 
         expect(result).toBe(expectedResult);
     });
+
+    it('should deduplicate the server rejection message when ReceiptError carries the same server reason', () => {
+        // Given a scan transaction with a server rejection string and a reconciled ReceiptError carrying that same message.
+        const serverReason = 'New expenses cannot be added to this report.';
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Onyx.merge combines server string errors and client ReceiptError entries on the same errors map at runtime.
+        const mixedErrors = {
+            receiptError: {
+                error: CONST.IOU.RECEIPT_ERROR,
+                source: 'file:///receipt.jpg',
+                filename: 'receipt.jpg',
+                message: serverReason,
+            },
+            serverError: serverReason,
+        } as unknown as Transaction['errors'];
+        const transactionWithErrors: Transaction = {
+            ...mockTransaction,
+            errors: mixedErrors,
+        };
+
+        // When building the RBR message for the report table row.
+        const result = ViolationsUtils.getRBRMessages({
+            dateFnsLocale: undefined,
+            transaction: transactionWithErrors,
+            transactionViolations: [],
+            translate: translateLocal,
+            convertToDisplayString,
+            transactionThreadActions: [],
+        });
+
+        // Then only the server rejection reason is returned without appending Receipt upload failed.
+        expect(result).toBe(serverReason);
+    });
+
+    it('should preserve the generic receipt failure message alongside an unrelated transaction error', () => {
+        // Given a scan transaction with an ordinary ReceiptError and an unrelated server edit error string.
+        const editError = 'Unable to find that request';
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Onyx.merge combines server string errors and client ReceiptError entries on the same errors map at runtime.
+        const mixedErrors = {
+            receiptError: {
+                error: CONST.IOU.RECEIPT_ERROR,
+                source: 'file:///receipt.jpg',
+                filename: 'receipt.jpg',
+            },
+            editError,
+        } as unknown as Transaction['errors'];
+        const transactionWithErrors: Transaction = {
+            ...mockTransaction,
+            errors: mixedErrors,
+        };
+
+        // When building the RBR message for the report table row.
+        const result = ViolationsUtils.getRBRMessages({
+            dateFnsLocale: undefined,
+            transaction: transactionWithErrors,
+            transactionViolations: [],
+            translate: translateLocal,
+            convertToDisplayString,
+            transactionThreadActions: [],
+        });
+
+        // Then both the receipt upload failure and the unrelated edit error are returned.
+        expect(result).toBe(`${translateLocal('iou.error.receiptFailureMessageShort')} ${editError}`);
+    });
+
+    it('should keep the generic receipt failure message when only a ReceiptError is present', () => {
+        // Given a scan transaction with only a ReceiptError and no server error string.
+        const transactionWithReceiptError: Transaction = {
+            ...mockTransaction,
+            errors: {
+                receiptError: {
+                    error: CONST.IOU.RECEIPT_ERROR,
+                    source: 'file:///receipt.jpg',
+                    filename: 'receipt.jpg',
+                },
+            },
+        };
+
+        // When building the RBR message for the report table row.
+        const result = ViolationsUtils.getRBRMessages({
+            dateFnsLocale: undefined,
+            transaction: transactionWithReceiptError,
+            transactionViolations: [],
+            translate: translateLocal,
+            convertToDisplayString,
+            transactionThreadActions: [],
+        });
+
+        // Then the generic short receipt failure copy is still returned.
+        expect(result).toBe(translateLocal('iou.error.receiptFailureMessageShort'));
+    });
+
+    it('should preserve the generic receipt failure message when an unrelated thread action fails', () => {
+        // Given a scan transaction with only a ReceiptError and an unrelated failed comment in its thread.
+        const commentError = 'Failed to post comment.';
+        const transactionWithReceiptError: Transaction = {
+            ...mockTransaction,
+            errors: {
+                receiptError: {
+                    error: CONST.IOU.RECEIPT_ERROR,
+                    source: 'file:///receipt.jpg',
+                    filename: 'receipt.jpg',
+                },
+            },
+        };
+        const failedThreadComment = createMock<ReportAction>({
+            errors: {commentError},
+        });
+
+        // When building the RBR message for the report table row.
+        const result = ViolationsUtils.getRBRMessages({
+            dateFnsLocale: undefined,
+            transaction: transactionWithReceiptError,
+            transactionViolations: [],
+            translate: translateLocal,
+            convertToDisplayString,
+            transactionThreadActions: [failedThreadComment],
+        });
+
+        // Then both the receipt failure message and the failed thread comment message are returned.
+        expect(result).toBe(`${translateLocal('iou.error.receiptFailureMessageShort')} ${commentError}`);
+    });
 });
 
 describe('hasVisibleViolationsForUser', () => {
@@ -5126,9 +5316,7 @@ describe('getIsViolationFixed', () => {
         policyCategories: undefined,
         policyTagLists: undefined,
         policyTaxRates: undefined,
-        iouAttendees: undefined,
-        ownerLogin: 'user@example.com',
-        isAttendeeTrackingEnabled: false,
+        isMissingAttendees: false,
     };
 
     const createPolicyTagList = (tagName: string, enabled: boolean) => ({
@@ -5138,12 +5326,6 @@ describe('getIsViolationFixed', () => {
             orderWeight: 1,
             tags: {[tagName]: {name: tagName, enabled}},
         },
-    });
-
-    const createAttendee = (email: string) => ({
-        email,
-        displayName: email.split('@')?.at(0) ?? '',
-        avatarUrl: '',
     });
 
     describe('violations.categoryOutOfPolicy', () => {
@@ -5317,73 +5499,25 @@ describe('getIsViolationFixed', () => {
     });
 
     describe('violations.missingAttendees', () => {
-        it('should return true when attendee tracking is disabled', () => {
-            const result = getIsViolationFixed('violations.missingAttendees', {
-                ...defaultParams,
-                isAttendeeTrackingEnabled: false,
-                category: 'Meals',
-                policyCategories: {Meals: {name: 'Meals', enabled: true, areAttendeesRequired: true}},
-            });
-            expect(result).toBe(true);
-        });
+        it('should return false while the expense still needs attendees', () => {
+            // Given an expense whose category still needs attendees it doesn't have
+            const params = {...defaultParams, isMissingAttendees: true};
 
-        it('should return true when category does not require attendees', () => {
-            const result = getIsViolationFixed('violations.missingAttendees', {
-                ...defaultParams,
-                isAttendeeTrackingEnabled: true,
-                category: 'Meals',
-                policyCategories: {Meals: {name: 'Meals', enabled: true, areAttendeesRequired: false}},
-            });
-            expect(result).toBe(true);
-        });
+            // When checking whether the missing-attendees violation is fixed
+            const result = getIsViolationFixed('violations.missingAttendees', params);
 
-        it('should return false when no attendees are present and category requires them', () => {
-            const result = getIsViolationFixed('violations.missingAttendees', {
-                ...defaultParams,
-                isAttendeeTrackingEnabled: true,
-                isControlPolicy: true,
-                category: 'Meals',
-                policyCategories: {Meals: {name: 'Meals', enabled: true, areAttendeesRequired: true}},
-                iouAttendees: [],
-            });
+            // Then it stays, so the confirmation keeps saying why it is blocked
             expect(result).toBe(false);
         });
 
-        it('should return false when only the creator is an attendee', () => {
-            const result = getIsViolationFixed('violations.missingAttendees', {
-                ...defaultParams,
-                isAttendeeTrackingEnabled: true,
-                isControlPolicy: true,
-                category: 'Meals',
-                policyCategories: {Meals: {name: 'Meals', enabled: true, areAttendeesRequired: true}},
-                iouAttendees: [createAttendee('user@example.com')],
-            });
-            expect(result).toBe(false);
-        });
+        it('should return true once the expense no longer needs attendees', () => {
+            // Given an expense whose attendees were added or whose category no longer needs them
+            const params = {...defaultParams, isMissingAttendees: false};
 
-        it('should return true when there is a non-creator attendee', () => {
-            const result = getIsViolationFixed('violations.missingAttendees', {
-                ...defaultParams,
-                isAttendeeTrackingEnabled: true,
-                isControlPolicy: true,
-                category: 'Meals',
-                policyCategories: {Meals: {name: 'Meals', enabled: true, areAttendeesRequired: true}},
-                iouAttendees: [createAttendee('user@example.com'), createAttendee('other@example.com')],
-            });
-            expect(result).toBe(true);
-        });
+            // When checking whether the missing-attendees violation is fixed
+            const result = getIsViolationFixed('violations.missingAttendees', params);
 
-        it('should return true (violation fixed) when policy is not Control type, even if category requires attendees', () => {
-            // This covers the downgrade scenario: after downgrading from Control to Collect,
-            // the category may still have areAttendeesRequired: true but we should not enforce it
-            const result = getIsViolationFixed('violations.missingAttendees', {
-                ...defaultParams,
-                isAttendeeTrackingEnabled: true,
-                isControlPolicy: false,
-                category: 'Meals',
-                policyCategories: {Meals: {name: 'Meals', enabled: true, areAttendeesRequired: true}},
-                iouAttendees: [],
-            });
+            // Then it is fixed, so the confirmation clears the error
             expect(result).toBe(true);
         });
     });

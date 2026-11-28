@@ -5,7 +5,8 @@
  */
 import type {MergeDuplicatesParams} from '@libs/API/parameters';
 import Log from '@libs/Log';
-import {getTaxByID, isMultiLevelTags as isMultiLevelTagsPolicyUtils, resolveCurrentTaxCode} from '@libs/PolicyUtils';
+import {isMultiLevelTags as isMultiLevelTagsPolicyUtils} from '@libs/PolicyUtils/tag';
+import {getTaxByID, resolveCurrentTaxCode} from '@libs/PolicyUtils/tax';
 import {getReportOrDraftReport, isOpenReport, isProcessingReport} from '@libs/ReportUtils';
 
 import type {UpdateMoneyRequestDataKeys} from '@userActions/IOU/UpdateMoneyRequest';
@@ -14,7 +15,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyTagLists, Report, ReviewDuplicates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
-import type {Comment} from '@src/types/onyx/Transaction';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -22,17 +22,14 @@ import {SafeString} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
 import Onyx from 'react-native-onyx';
 
-// This cycle import is safe because this file was extracted from TransactionUtils/index.ts, which re-exports it.
-// The functions imported here are pure helpers that aren't called at initialization time.
-// eslint-disable-next-line import/no-cycle
-import {getAmount, getCurrency, getDescription, getFormattedCreated, getMerchant, isCardTransactionReimbursableEditable, isExpensifyCardTransaction} from './index';
+import {getAmount, getCurrency, getDescription, getFormattedCreated, getMerchant, isCardTransactionReimbursableEditable, isExpensifyCardTransaction} from './fields';
 
 type FieldsToCompare = Record<string, Array<keyof Transaction>>;
 type FieldsToChange = {
     category?: Array<string | undefined>;
     merchant?: Array<string | undefined>;
     tag?: Array<string | undefined>;
-    description?: Array<Comment | undefined>;
+    description?: string[];
     taxCode?: Array<string | undefined>;
     billable?: Array<boolean | undefined>;
     reimbursable?: Array<boolean | undefined>;
@@ -92,8 +89,12 @@ function getValidDuplicateTransactionIDs(transactionID: string, transactionColle
             validTransactions.push(transaction);
         }
 
-        // Filter out transactions assumed that they have be reviewed by removing settled and approved transactions
-        const filtered = removeSettledAndApprovedTransactions(validTransactions);
+        // Filter out transactions assumed that they have be reviewed by removing settled and approved transactions.
+        // A peer whose report isn't loaded still references this transaction, so it is kept for the cleanup.
+        const filtered = validTransactions.filter((transaction) => {
+            const report = getReportOrDraftReport({reportID: transaction.reportID});
+            return !report || isReportMergeableForDuplicates(report, transaction.reportID);
+        });
 
         for (const transaction of filtered) {
             result.add(transaction.transactionID);
@@ -197,11 +198,15 @@ function removeTransactionFromDuplicateTransactionViolation(
 
 /**
  * Whether a report is still editable for a duplicate merge, i.e. one that Auth's MergeTransactions command would
- * accept. A report is mergeable when it is open, awaiting first-level approval, or unresolved (unreported expenses
- * stay editable in Auth). Anything approved, closed (Submit & Close), or reimbursed is rejected server-side.
+ * accept. A report is mergeable when it is open or awaiting first-level approval, and an unreported expense stays
+ * editable in Auth. Anything approved, closed (Submit & Close), or reimbursed is rejected server-side, and a report
+ * that isn't loaded could be any of those, so it isn't treated as mergeable.
  */
-function isReportMergeableForDuplicates(report: OnyxEntry<Report>): boolean {
-    return !report || isOpenReport(report) || isProcessingReport(report);
+function isReportMergeableForDuplicates(report: OnyxEntry<Report>, reportID: string | undefined): boolean {
+    if (!report) {
+        return !reportID || reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+    }
+    return isOpenReport(report) || isProcessingReport(report);
 }
 
 /**
@@ -209,7 +214,9 @@ function isReportMergeableForDuplicates(report: OnyxEntry<Report>): boolean {
  * merge request that would fail server-side.
  */
 function removeSettledAndApprovedTransactions(transactions: Array<OnyxEntry<Transaction>>): Transaction[] {
-    return transactions.filter((transaction) => !!transaction && isReportMergeableForDuplicates(getReportOrDraftReport({reportID: transaction.reportID}))) as Transaction[];
+    return transactions.filter(
+        (transaction): transaction is Transaction => !!transaction && isReportMergeableForDuplicates(getReportOrDraftReport({reportID: transaction.reportID}), transaction.reportID),
+    );
 }
 
 /**
@@ -217,8 +224,8 @@ function removeSettledAndApprovedTransactions(transactions: Array<OnyxEntry<Tran
  * report is no longer editable or when there are no duplicates left to merge, so callers should block the request
  * in those cases.
  */
-function canMergeDuplicates(keptReport: OnyxEntry<Report>, transactionIDList: string[]): boolean {
-    return isReportMergeableForDuplicates(keptReport) && transactionIDList.length > 0;
+function canMergeDuplicates(keptReport: OnyxEntry<Report>, keptReportID: string | undefined, transactionIDList: string[]): boolean {
+    return isReportMergeableForDuplicates(keptReport, keptReportID) && transactionIDList.length > 0;
 }
 
 /**
@@ -280,8 +287,11 @@ function compareDuplicateTransactionFields(
                 items
                     .map((item) => {
                         // Prioritize modifiedMerchant over merchant
-                        if (keys.includes('modifiedMerchant' as keyof Transaction) && keys.includes('merchant' as keyof Transaction)) {
+                        if (keys.includes('modifiedMerchant') && keys.includes('merchant')) {
                             return getMerchant(item);
+                        }
+                        if (keys.includes('comment')) {
+                            return getDescription(item);
                         }
                         return keys.map((key) => item?.[key]);
                     })
@@ -328,7 +338,7 @@ function compareDuplicateTransactionFields(
                 const allCommentsAreEqual = areAllCommentsEqual(transactions, firstTransaction);
                 const allCommentsAreEmpty = isFirstTransactionCommentEmptyObject && transactions.every((item) => getDescription(item) === '');
                 if (allCommentsAreEqual || allCommentsAreEmpty) {
-                    keep[fieldName] = firstTransaction?.comment?.comment ?? firstTransaction?.comment;
+                    keep[fieldName] = getDescription(firstTransaction);
                 } else {
                     processChanges(fieldName, transactions, keys);
                 }
@@ -452,11 +462,11 @@ function buildMergeDuplicatesParams(
     keptTransaction: OnyxEntry<Transaction>,
 ): MergeDuplicatesTransactionParams {
     return {
-        amount: -getAmount(originalTransaction as OnyxEntry<Transaction>, true),
+        amount: -getAmount(originalTransaction, true),
         reportID: originalTransaction?.reportID,
         receiptID: originalTransaction?.receipt?.receiptID ?? CONST.DEFAULT_NUMBER_ID,
-        currency: getCurrency(originalTransaction as OnyxEntry<Transaction>),
-        created: getFormattedCreated(originalTransaction as OnyxEntry<Transaction>),
+        currency: getCurrency(originalTransaction),
+        created: getFormattedCreated(originalTransaction),
         transaction: keptTransaction,
         transactionList: removeSettledAndApprovedTransactions(duplicatedTransactions ?? []),
         billable: reviewDuplicates?.billable ?? false,

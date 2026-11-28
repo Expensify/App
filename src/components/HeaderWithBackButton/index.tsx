@@ -23,6 +23,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
+import useTopInsetHeaderStyle from '@hooks/useTopInsetHeaderStyle';
 
 import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
@@ -107,6 +108,15 @@ function HeaderWithBackButton({
     const isInLandscapeMode = useIsInLandscapeMode();
     const reportAvatarSize = useHeaderAvatarSize();
     const {contentHeaderHeightStyle} = useContentHeaderHeight();
+    const headerStyle = [
+        styles.headerBar,
+        contentHeaderHeightStyle,
+        shouldShowBorderBottom && styles.borderBottom,
+        shouldShowBackButton && styles.pl2,
+        shouldOverlay && StyleSheet.absoluteFill,
+        style,
+    ];
+    const topInsetHeaderStyle = useTopInsetHeaderStyle(headerStyle);
     const setBackButtonRef = useInitialFocusRef({shouldSkip: shouldSkipFocusAfterTransition});
 
     let middleContent;
@@ -143,50 +153,44 @@ function HeaderWithBackButton({
     }
     let ThreeDotMenuButton;
     if (shouldShowThreeDotsButton) {
-        ThreeDotMenuButton =
-            threeDotsMenuItems.length === 1 && shouldMinimizeMenuButton ? (
-                <Tooltip text={threeDotsMenuItems.at(0)?.text}>
-                    <PressableWithoutFeedback
-                        onPress={threeDotsMenuItems.at(0)?.onSelected}
-                        style={[styles.touchableButtonImage]}
-                        role={CONST.ROLE.BUTTON}
-                        accessibilityLabel={threeDotsMenuItems.at(0)?.text ?? ''}
-                        sentryLabel={threeDotsMenuItems.at(0)?.sentryLabel}
-                    >
-                        <Icon
-                            src={threeDotsMenuItems.at(0)?.icon as React.FC<SvgProps>}
-                            fill={theme.icon}
-                        />
-                    </PressableWithoutFeedback>
-                </Tooltip>
-            ) : (
-                <ThreeDotsMenu
-                    shouldSelfPosition
-                    icon={threeDotsMenuIcon}
-                    iconFill={threeDotsMenuIconFill}
-                    disabled={shouldDisableThreeDotsButton}
-                    menuItems={threeDotsMenuItems}
-                    onIconPress={onThreeDotsButtonPress}
-                    shouldOverlay={shouldOverlayDots}
-                    anchorAlignment={threeDotsAnchorAlignment}
-                    shouldSetModalVisibility={shouldSetModalVisibility}
-                    sentryLabel={CONST.SENTRY_LABEL.HEADER.MORE_BUTTON}
-                />
-            );
+        // A single item is shown as its own button. Only a pressable item can be, and PopoverMenuItem requires a label on those.
+        const singleMenuItem = threeDotsMenuItems.length === 1 && shouldMinimizeMenuButton ? threeDotsMenuItems.at(0) : undefined;
+        ThreeDotMenuButton = singleMenuItem?.sentryLabel ? (
+            <Tooltip text={singleMenuItem.text}>
+                <PressableWithoutFeedback
+                    onPress={singleMenuItem.onSelected}
+                    style={[styles.touchableButtonImage]}
+                    role={CONST.ROLE.BUTTON}
+                    accessibilityLabel={singleMenuItem.text}
+                    sentryLabel={singleMenuItem.sentryLabel}
+                >
+                    <Icon
+                        src={singleMenuItem.icon as React.FC<SvgProps>}
+                        fill={theme.icon}
+                    />
+                </PressableWithoutFeedback>
+            </Tooltip>
+        ) : (
+            <ThreeDotsMenu
+                shouldSelfPosition
+                icon={threeDotsMenuIcon}
+                iconFill={threeDotsMenuIconFill}
+                disabled={shouldDisableThreeDotsButton}
+                menuItems={threeDotsMenuItems}
+                onIconPress={onThreeDotsButtonPress}
+                shouldOverlay={shouldOverlayDots}
+                anchorAlignment={threeDotsAnchorAlignment}
+                shouldSetModalVisibility={shouldSetModalVisibility}
+                sentryLabel={CONST.SENTRY_LABEL.HEADER.MORE_BUTTON}
+            />
+        );
     } else {
         ThreeDotMenuButton = null;
     }
 
     return (
         <View
-            style={[
-                styles.headerBar,
-                contentHeaderHeightStyle,
-                shouldShowBorderBottom && styles.borderBottom,
-                shouldShowBackButton && [styles.pl2],
-                shouldOverlay && StyleSheet.absoluteFill,
-                style,
-            ]}
+            style={[headerStyle, topInsetHeaderStyle]}
             onTouchStart={isInLandscapeMode ? () => Keyboard.dismiss() : undefined}
         >
             <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden, styles.mr3]}>

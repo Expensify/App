@@ -7,16 +7,15 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import type {ListItem, SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 
-import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import useHeaderAreaHeight from '@hooks/useHeaderAreaHeight';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
-import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {fetchPerDiemRates} from '@libs/actions/Policy/PerDiem';
@@ -24,6 +23,7 @@ import {setTransactionReport} from '@libs/actions/Transaction';
 import {getInitialPerDiemTargetReport} from '@libs/IOUUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import {getAvailablePerDiemRate} from '@libs/PolicyPerDiemUtils';
 import {getPerDiemCustomUnit, getPolicyByCustomUnitID, isPolicyAdmin} from '@libs/PolicyUtils';
 import {findSelfDMReportID, getPolicyExpenseChat} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -53,6 +53,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useEffect, useImperativeHandle, useRef} from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -90,18 +91,13 @@ function DynamicIOURequestStepDestination({
     const isEditPage = name === SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESTINATION_EDIT;
     const editBackPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESTINATION_EDIT.path);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
-    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const reportPolicyID = getIOURequestPolicyID(transaction, report);
     const policyID = reportPolicyID === CONST.POLICY.ID_FAKE ? getPolicyByCustomUnitID(transaction, allPolicies)?.id : reportPolicyID;
     const [policy, policyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${explicitPolicyID ?? policyID}`);
     const {accountID} = useCurrentUserPersonalDetails();
-    const policyExpenseReport = policy?.id ? getPolicyExpenseChat(accountID, policy.id) : undefined;
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const personalPolicy = usePersonalPolicy();
-    const {top} = useSafeAreaInsets();
-    const {contentHeaderHeight} = useContentHeaderHeight();
+    const headerAreaHeight = useHeaderAreaHeight();
     const customUnit = getPerDiemCustomUnit(policy);
     const selectedDestination = transaction?.comment?.customUnit?.customUnitRateID;
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`);
@@ -120,8 +116,9 @@ function DynamicIOURequestStepDestination({
 
     const {isOffline} = useNetwork();
     const isLoading = !isOffline && (!customUnit?.rates || isLoadingOnyxValue(policyMetadata));
-    const shouldShowEmptyState = isEmptyObject(customUnit?.rates) && !isOffline && !isLoading;
-    const shouldShowOfflineView = isEmptyObject(customUnit?.rates) && isOffline;
+    const hasAvailableRates = Object.values(customUnit?.rates ?? {}).some((rate) => getAvailablePerDiemRate(rate) !== undefined);
+    const shouldShowEmptyState = !hasAvailableRates && !isOffline && !isLoading;
+    const shouldShowOfflineView = !hasAvailableRates && isOffline;
 
     const navigateBack = () => {
         if (isEditPage) {
@@ -131,52 +128,71 @@ function DynamicIOURequestStepDestination({
         Navigation.goBack();
     };
 
-    const updateDestination = (destination: ListItem & {currency: string}) => {
-        if (openedFromStartPage && policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
-            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
-            return;
+    const updateDestination = async (destination: ListItem & {currency: string}) => {
+        if (openedFromStartPage && policy) {
+            const [userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed] = await Onyx.multiGet([
+                ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END,
+                ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END,
+                ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED,
+            ]);
+            if (shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
+                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+                return;
+            }
         }
 
         if (isEmptyObject(customUnit)) {
             return;
         }
-        let targetReport: OnyxEntry<Report> = explicitPolicyID && transaction?.isFromGlobalCreate ? policyExpenseReport : report;
-        let targetIouType = iouType;
-        let transactionReportID;
-        if (selectedDestination !== destination.keyForList) {
-            if (openedFromStartPage) {
-                ({targetReport, targetIouType, transactionReportID} = getInitialPerDiemTargetReport(
-                    targetReport,
-                    selfDMReport,
-                    targetIouType,
-                    defaultExpensePolicy,
-                    personalPolicy,
-                    transaction?.isFromGlobalCreate ?? false,
-                ));
-                setTransactionReport(transactionID, {reportID: transactionReportID}, true);
-                setMoneyRequestParticipantsFromReport(transactionID, targetReport, accountID, targetIouType !== CONST.IOU.TYPE.TRACK);
-                setCustomUnitID(transactionID, customUnit.customUnitID);
-                setMoneyRequestCategory(transactionID, customUnit?.defaultCategory ?? '', undefined);
+        const applyDestination = (initialTargetReport: OnyxEntry<Report>) => {
+            let targetReport = initialTargetReport;
+            let targetIouType = iouType;
+            let transactionReportID;
+            if (selectedDestination !== destination.keyForList) {
+                if (openedFromStartPage) {
+                    ({targetReport, targetIouType, transactionReportID} = getInitialPerDiemTargetReport(
+                        targetReport,
+                        selfDMReport,
+                        targetIouType,
+                        defaultExpensePolicy,
+                        personalPolicy,
+                        transaction?.isFromGlobalCreate ?? false,
+                    ));
+                    setTransactionReport(transactionID, {reportID: transactionReportID}, true);
+                    setMoneyRequestParticipantsFromReport(transactionID, targetReport, accountID, targetIouType !== CONST.IOU.TYPE.TRACK);
+                    setCustomUnitID(transactionID, customUnit.customUnitID);
+                    setMoneyRequestCategory(transactionID, customUnit?.defaultCategory ?? '', undefined);
+                }
+                setCustomUnitRateID(transactionID, destination.keyForList ?? '', transaction, policy, false, personalPolicy?.outputCurrency);
+                setMoneyRequestCurrency(transactionID, destination.currency);
+                clearSubrates(transactionID);
             }
-            setCustomUnitRateID(transactionID, destination.keyForList ?? '', transaction, policy, false, personalPolicy?.outputCurrency);
-            setMoneyRequestCurrency(transactionID, destination.currency);
-            clearSubrates(transactionID);
+
+            if (isEditPage) {
+                navigateBack();
+            } else {
+                // Time is a dynamic route: build it on the start base when the destination is shown inline on the start page
+                // (single per-diem policy) and on the destination base otherwise, so Time's back returns to the right step.
+                // Only the shape of this base reaches the stack - the base route already exists and keeps its own params.
+                const timeBase = openedFromStartPage
+                    ? ROUTES.MONEY_REQUEST_CREATE.getRoute(action, targetIouType, transactionID, targetReport?.reportID ?? reportID, backToReport)
+                    : createDynamicRoute(
+                          DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESTINATION.path,
+                          ROUTES.MONEY_REQUEST_CREATE.getRoute(action, targetIouType, transactionID, targetReport?.reportID ?? reportID, backToReport),
+                      );
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TIME.path, timeBase));
+            }
+        };
+
+        if (!explicitPolicyID || !transaction?.isFromGlobalCreate) {
+            applyDestination(report);
+            return;
         }
 
-        if (isEditPage) {
-            navigateBack();
-        } else {
-            // Time is a dynamic route: build it on the start base when the destination is shown inline on the start page
-            // (single per-diem policy) and on the destination base otherwise, so Time's back returns to the right step.
-            // Only the shape of this base reaches the stack - the base route already exists and keeps its own params.
-            const timeBase = openedFromStartPage
-                ? ROUTES.MONEY_REQUEST_CREATE.getRoute(action, targetIouType, transactionID, targetReport?.reportID ?? reportID, backToReport)
-                : createDynamicRoute(
-                      DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESTINATION.path,
-                      ROUTES.MONEY_REQUEST_CREATE.getRoute(action, targetIouType, transactionID, targetReport?.reportID ?? reportID, backToReport),
-                  );
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TIME.path, timeBase));
-        }
+        // The workspace chat is only needed on submit, so read it once here instead of subscribing to every report
+        // eslint-disable-next-line rulesdir/no-onyx-get-snapshot-key -- replaces getPolicyExpenseChat's module-level Onyx.connect fallback, which never read a Search snapshot
+        const reports = await Onyx.get(ONYXKEYS.COLLECTION.REPORT);
+        applyDestination(getPolicyExpenseChat(accountID, policy?.id, reports));
     };
 
     const tabTitles = {
@@ -222,7 +238,7 @@ function DynamicIOURequestStepDestination({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [transactionID, policy?.customUnits, transaction?.iouRequestType]);
 
-    const keyboardVerticalOffset = openedFromStartPage ? contentHeaderHeight + top + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding : 0;
+    const keyboardVerticalOffset = openedFromStartPage ? headerAreaHeight + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding : 0;
 
     return (
         <ScreenWrapper
@@ -290,7 +306,9 @@ function DynamicIOURequestStepDestination({
                         ref={destinationSelectionListRef}
                         selectedDestination={selectedDestination}
                         policyID={policy.id}
-                        onSubmit={updateDestination}
+                        onSubmit={(destination) => {
+                            updateDestination(destination);
+                        }}
                     />
                 )}
             </StepScreenWrapper>

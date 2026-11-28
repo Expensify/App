@@ -83,6 +83,8 @@ describe('useInsightsFilters', () => {
             groupBy: INSIGHTS_RUNNING_TOTAL_GROUP_BY,
             compare: CONST.SEARCH.COMPARE.PREVIOUS_PERIOD,
             groupCurrency: 'PLN',
+            tagLevel: 1,
+            defaultGroupBy: INSIGHTS_RUNNING_TOTAL_GROUP_BY,
         });
     });
 
@@ -97,6 +99,56 @@ describe('useInsightsFilters', () => {
 
         // Then the default Compare mode doesn't override the user's choice
         expect(result.current.filters.compare).toBeUndefined();
+    });
+
+    it('opens Efficiency on this month by day without comparison when no selections are stored', async () => {
+        // Given no saved Efficiency filters to override the defaults
+        await setUpActivePolicy('PLN');
+
+        // When Efficiency resolves its filters for the first visit
+        const {result} = renderHook(() => useInsightsFilters(CONST.INSIGHTS.DASHBOARD.EFFICIENCY));
+        await waitFor(() => expect(result.current.isResolved).toBe(true));
+
+        // Then the initial view and reset defaults use daily values for this month without comparison
+        expect(result.current.filters).toEqual({
+            date: {preset: CONST.SEARCH.DATE_PRESETS.THIS_MONTH},
+            policyIDs: [],
+            groupBy: CONST.SEARCH.GROUP_BY.DAY,
+            groupCurrency: 'PLN',
+            defaultGroupBy: CONST.SEARCH.GROUP_BY.DAY,
+        });
+        expect(result.current.filters.compare).toBeUndefined();
+        expect(result.current.defaultFilters).toEqual(result.current.filters);
+    });
+
+    it('preserves saved Efficiency selections instead of applying the new defaults', async () => {
+        // Given explicit Efficiency selections that must survive the default change
+        await setUpActivePolicy('PLN');
+        const stored: InsightsFilters = {
+            date: {preset: CONST.SEARCH.DATE_PRESETS.THIS_YEAR},
+            policyIDs: ['A1'],
+            groupBy: CONST.SEARCH.GROUP_BY.MONTH,
+            compare: CONST.SEARCH.COMPARE.PREVIOUS_PERIOD,
+            groupCurrency: 'USD',
+        };
+        await Onyx.merge(ONYXKEYS.SEARCH_FILTERS, {
+            [INSIGHTS_DASHBOARD_SPECS[CONST.INSIGHTS.DASHBOARD.EFFICIENCY].searchKey]: {query: buildInsightsQueryString(stored)},
+        });
+        await waitForBatchedUpdates();
+
+        // When Efficiency restores the saved query
+        const {result} = renderHook(() => useInsightsFilters(CONST.INSIGHTS.DASHBOARD.EFFICIENCY));
+        await waitFor(() => expect(result.current.isResolved).toBe(true));
+
+        // Then the saved filters win while each control can still reset to the new defaults
+        expect(result.current.filters).toEqual({...stored, defaultGroupBy: CONST.SEARCH.GROUP_BY.DAY});
+        expect(result.current.defaultFilters).toEqual({
+            date: {preset: CONST.SEARCH.DATE_PRESETS.THIS_MONTH},
+            policyIDs: [],
+            groupBy: CONST.SEARCH.GROUP_BY.DAY,
+            groupCurrency: 'PLN',
+            defaultGroupBy: CONST.SEARCH.GROUP_BY.DAY,
+        });
     });
 
     it('opens Compliance on a running total for this month against the previous period when no selections are stored', async () => {
@@ -114,6 +166,7 @@ describe('useInsightsFilters', () => {
             groupBy: INSIGHTS_RUNNING_TOTAL_GROUP_BY,
             compare: CONST.SEARCH.COMPARE.PREVIOUS_PERIOD,
             groupCurrency: 'PLN',
+            defaultGroupBy: INSIGHTS_RUNNING_TOTAL_GROUP_BY,
         });
         expect(result.current.defaultFilters).toEqual(result.current.filters);
     });
@@ -137,7 +190,7 @@ describe('useInsightsFilters', () => {
         await waitFor(() => expect(result.current.isResolved).toBe(true));
 
         // Then the saved filters win while the default period remains this month
-        expect(result.current.filters).toEqual(stored);
+        expect(result.current.filters).toEqual({...stored, defaultGroupBy: INSIGHTS_RUNNING_TOTAL_GROUP_BY});
         expect(result.current.defaultFilters.date).toEqual({preset: CONST.SEARCH.DATE_PRESETS.THIS_MONTH});
     });
 
@@ -158,7 +211,29 @@ describe('useInsightsFilters', () => {
         await waitFor(() => expect(result.current.isResolved).toBe(true));
 
         // Then what was stored wins over the page defaults and the default workspace currency
-        expect(result.current.filters).toEqual(stored);
+        expect(result.current.filters).toEqual({...stored, tagLevel: 1, defaultGroupBy: INSIGHTS_RUNNING_TOTAL_GROUP_BY});
+    });
+
+    it.each([CONST.INSIGHTS.DASHBOARD.SPEND, CONST.INSIGHTS.DASHBOARD.COMPLIANCE])('uses the %s default date when its stored date is invalid', async (dashboard) => {
+        // Given a restored query containing an unknown date token and otherwise valid selections
+        await setUpActivePolicy('PLN');
+        const searchKey = INSIGHTS_DASHBOARD_SPECS[dashboard].searchKey;
+        await Onyx.merge(ONYXKEYS.SEARCH_FILTERS, {
+            [searchKey]: {query: 'date:unknown-preset groupBy:quarter groupCurrency:USD policyID:A1'},
+        });
+        await waitForBatchedUpdates();
+
+        // When the dashboard resolves the restored selections
+        const {result} = renderHook(() => useInsightsFilters(dashboard));
+        await waitFor(() => expect(result.current.isResolved).toBe(true));
+
+        // Then its own default date applies without discarding the other saved selections
+        expect(result.current.filters).toMatchObject({
+            date: result.current.defaultFilters.date,
+            policyIDs: ['A1'],
+            groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
+            groupCurrency: 'USD',
+        });
     });
 
     it('keeps reporting the page defaults once a selection is stored, so a control can reset to them', async () => {
@@ -182,6 +257,7 @@ describe('useInsightsFilters', () => {
             groupBy: INSIGHTS_RUNNING_TOTAL_GROUP_BY,
             compare: CONST.SEARCH.COMPARE.PREVIOUS_PERIOD,
             groupCurrency: 'PLN',
+            defaultGroupBy: INSIGHTS_RUNNING_TOTAL_GROUP_BY,
         });
     });
 
@@ -223,7 +299,7 @@ describe('useInsightsFilters', () => {
         });
 
         // Then the stored query carries the new bucket and everything the other controls had already narrowed
-        expect(await getStoredQuery()).toBe('groupBy:quarter groupCurrency:USD policyID:A1 date:last-12-months');
+        expect(await getStoredQuery()).toBe('groupBy:quarter tagLevel:1 groupCurrency:USD policyID:A1 date:last-12-months');
     });
 
     it('keeps the selected grouping saved when a new date range rules it out', async () => {
@@ -240,7 +316,7 @@ describe('useInsightsFilters', () => {
         });
 
         // Then quarter stays saved, so it comes back once a range that offers it is picked
-        expect(await getStoredQuery()).toBe('groupBy:quarter groupCurrency:USD date:this-month');
+        expect(await getStoredQuery()).toBe('groupBy:quarter tagLevel:1 groupCurrency:USD date:this-month');
         expect(result.current.filters.groupBy).toBe(CONST.SEARCH.GROUP_BY.QUARTER);
     });
 
@@ -287,7 +363,7 @@ describe('useInsightsFilters', () => {
             });
 
             // Then the full query is saved under the dashboard's search key, so the choice survives signing out
-            const inputQuery = buildInsightsQueryString({...stored, compare: CONST.SEARCH.COMPARE.PREVIOUS_PERIOD});
+            const inputQuery = buildInsightsQueryString({...stored, compare: CONST.SEARCH.COMPARE.PREVIOUS_PERIOD, tagLevel: 1});
             expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.SAVE_SEARCH_FILTERS, {jsonQuery: JSON.stringify({searchKey: SPEND_SEARCH_KEY, inputQuery})}, expect.anything());
         });
 
@@ -306,7 +382,7 @@ describe('useInsightsFilters', () => {
 
             // Then no separate save is sent, and the selection is only stored locally
             expect(writeSpy).not.toHaveBeenCalledWith(WRITE_COMMANDS.SAVE_SEARCH_FILTERS, expect.anything(), expect.anything());
-            expect(await getStoredQuery()).toBe('groupBy:quarter groupCurrency:USD date:last-12-months');
+            expect(await getStoredQuery()).toBe('groupBy:quarter tagLevel:1 groupCurrency:USD date:last-12-months');
         });
 
         it('saves a change the page skips fetching for, since GetInsights never runs to save it', async () => {
@@ -324,7 +400,7 @@ describe('useInsightsFilters', () => {
             });
 
             // Then the selection is saved on its own, so it survives signing out
-            const inputQuery = buildInsightsQueryString({...stored, date: {preset: CONST.SEARCH.DATE_PRESETS.THIS_MONTH}});
+            const inputQuery = buildInsightsQueryString({...stored, date: {preset: CONST.SEARCH.DATE_PRESETS.THIS_MONTH}, tagLevel: CONST.INSIGHTS.DEFAULT_TAG_LEVEL});
             expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.SAVE_SEARCH_FILTERS, {jsonQuery: JSON.stringify({searchKey: SPEND_SEARCH_KEY, inputQuery})}, expect.anything());
         });
 
@@ -355,7 +431,7 @@ describe('useInsightsFilters', () => {
             // Then the selection is saved on its own, since no GetInsights call will save it
             expect(writeSpy).toHaveBeenCalledWith(
                 WRITE_COMMANDS.SAVE_SEARCH_FILTERS,
-                {jsonQuery: JSON.stringify({searchKey: SPEND_SEARCH_KEY, inputQuery: 'groupBy:month groupCurrency:USD policyID:A1 date:last-12-months'})},
+                {jsonQuery: JSON.stringify({searchKey: SPEND_SEARCH_KEY, inputQuery: 'groupBy:month tagLevel:1 groupCurrency:USD policyID:A1 date:last-12-months'})},
                 expect.anything(),
             );
         });

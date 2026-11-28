@@ -1,5 +1,7 @@
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
+
 import {putOnHold} from '@libs/actions/IOU/Hold';
-import {cancelPayment, completePaymentOnboarding, markReportPaymentReceived, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
+import {cancelPayment, completePaymentOnboarding, markReportPaymentReceived, payMoneyRequest, payViaABA} from '@libs/actions/IOU/PayMoneyRequest';
 import {requestMoney} from '@libs/actions/IOU/TrackExpense';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {createWorkspace, generatePolicyID} from '@libs/actions/Policy/Policy';
@@ -27,6 +29,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection, OnyxEntry, OnyxInputValue} from 'react-native-onyx';
 
+import {format} from 'date-fns';
 import Onyx from 'react-native-onyx';
 
 import type {MockFetch} from '../../utils/TestHelper';
@@ -91,6 +94,9 @@ const CARLOS_EMAIL = 'cmartins@expensifail.com';
 const CARLOS_ACCOUNT_ID = 1;
 const RORY_EMAIL = 'rory@expensifail.com';
 const RORY_ACCOUNT_ID = 3;
+const RORY_PERSONAL_DETAILS_BY_LOGINS: PersonalDetailsByLogin = {
+    [RORY_EMAIL]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
+};
 
 OnyxUpdateManager();
 /** Reads the expenses currently in Onyx for a report, i.e. what a component would pass as the report's transactions. */
@@ -111,9 +117,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
             keys: ONYXKEYS,
             initialKeyStates: {
                 [ONYXKEYS.SESSION]: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
-                    [RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
-                },
             },
         });
         initOnyxDerivedValues();
@@ -145,6 +148,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             let payIOUAction: OnyxEntry<ReportAction>;
             let transaction: OnyxEntry<Transaction>;
             requestMoney({
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 isVendorMatchingBetaEnabled: false,
                 conciergeChat: undefined,
                 report: {reportID: ''},
@@ -427,6 +431,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 .then(() => {
                     if (chatReport) {
                         requestMoney({
+                            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                             isVendorMatchingBetaEnabled: false,
                             conciergeChat: undefined,
                             report: chatReport,
@@ -611,6 +616,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 .then(() => {
                     if (chatReport) {
                         requestMoney({
+                            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                             isVendorMatchingBetaEnabled: false,
                             conciergeChat: undefined,
                             report: chatReport,
@@ -2182,6 +2188,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     if (chatReport) {
                         // When an IOU expense is submitted to that policy expense chat
                         requestMoney({
+                            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                             isVendorMatchingBetaEnabled: false,
                             conciergeChat: undefined,
                             report: chatReport,
@@ -2327,6 +2334,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             if (chatReport) {
                 // When an IOU expense is submitted to that policy expense chat
                 requestMoney({
+                    personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                     isVendorMatchingBetaEnabled: false,
                     conciergeChat: undefined,
                     report: chatReport,
@@ -2703,6 +2711,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             if (chatReport) {
                 // When an IOU expense is submitted to that policy expense chat
                 requestMoney({
+                    personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                     isVendorMatchingBetaEnabled: false,
                     conciergeChat: undefined,
                     report: chatReport,
@@ -2991,6 +3000,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
     describe('global reimbursements onboarding before paying', () => {
         const BANK_ACCOUNT_ID = 9053192;
+        const OTHER_WORKSPACE_BANK_ACCOUNT_ID = 9053193;
 
         function buildBankAccountList(isGlobalReimbursementEnabled: boolean): BankAccountList {
             return {
@@ -3007,7 +3017,12 @@ describe('actions/IOU/PayMoneyRequest', () => {
             };
         }
 
-        function payWithBusinessBankAccount(bankAccountList: BankAccountList, isWiseReimbursementsBetaEnabled: boolean) {
+        function payWithBusinessBankAccount(
+            bankAccountList: BankAccountList,
+            isWiseReimbursementsBetaEnabled: boolean,
+            requiresGlobalReimbursement = true,
+            workspaceBankAccountID = BANK_ACCOUNT_ID,
+        ) {
             const chatReport = {
                 ...createRandomReport(0, undefined),
                 type: CONST.REPORT.TYPE.CHAT,
@@ -3019,6 +3034,9 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 chatReportID: chatReport.reportID,
                 total: -100,
                 currency: CONST.CURRENCY.USD,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                nextStep: {messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY, icon: CONST.NEXT_STEP.ICONS.HOURGLASS, requiresGlobalReimbursement},
             };
 
             payMoneyRequest({
@@ -3036,6 +3054,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 isSelfTourViewed: false,
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
+                policy: {...createRandomPolicy(2), achAccount: {bankAccountID: workspaceBankAccountID, accountNumber: '', routingNumber: '', addressName: '', bankName: '', reimburser: ''}},
                 chatReportPolicy: undefined,
                 methodID: BANK_ACCOUNT_ID,
                 chatReportActions: undefined,
@@ -3044,10 +3063,11 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 rules: undefined,
             });
+            return expenseReport;
         }
 
         it('opens the onboarding instead of paying when the business bank account is not set up for global reimbursements', async () => {
-            // Given an admin in the Wise beta paying from a USD business account that has not enabled global reimbursements
+            // Given an admin in the Wise beta paying a report the backend flags for global reimbursements from a USD business account that has not enabled them
             const writeSpy = jest.spyOn(APIActions, 'write');
 
             // When they pay a report with it
@@ -3064,19 +3084,281 @@ describe('actions/IOU/PayMoneyRequest', () => {
         });
 
         it.each([
-            ['the admin is not in the Wise beta', false, false],
-            ['the account already has global reimbursements enabled', true, true],
-        ])('pays as usual when %s', async (_label, isWiseReimbursementsBetaEnabled, isGlobalReimbursementEnabled) => {
+            ['the admin is not in the Wise beta', false, false, true],
+            ['the account already has global reimbursements enabled', true, true, true],
+            ['the backend does not flag the report for global reimbursements', true, false, false],
+        ])('pays as usual when %s', async (_label, isWiseReimbursementsBetaEnabled, isGlobalReimbursementEnabled, requiresGlobalReimbursement) => {
             // Given an admin whose payment the backend accepts from this account
             const writeSpy = jest.spyOn(APIActions, 'write');
 
             // When they pay a report with it
-            payWithBusinessBankAccount(buildBankAccountList(isGlobalReimbursementEnabled), isWiseReimbursementsBetaEnabled);
+            payWithBusinessBankAccount(buildBankAccountList(isGlobalReimbursementEnabled), isWiseReimbursementsBetaEnabled, requiresGlobalReimbursement);
             await waitForBatchedUpdates();
 
             // Then the payment is sent and no onboarding opens
             expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.PAY_MONEY_REQUEST, expect.anything(), expect.anything());
             expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL)).toBeUndefined();
+        });
+
+        it('sends the payment when the report is flagged but the admin pays from an account other than the workspace one', async () => {
+            // Given a report the backend flags for global reimbursements, which describes a payment from the workspace account only
+            const writeSpy = jest.spyOn(APIActions, 'write');
+
+            // When the admin pays it from another account that has not enabled global reimbursements
+            payWithBusinessBankAccount(buildBankAccountList(false), true, true, OTHER_WORKSPACE_BANK_ACCOUNT_ID);
+            await waitForBatchedUpdates();
+
+            // Then the payment is sent and the backend decides, because the flag says nothing about this account
+            expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.PAY_MONEY_REQUEST, expect.anything(), expect.anything());
+            expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL)).toBeUndefined();
+        });
+
+        it('keeps the report unpaid with a loading state until the backend answers a payment it may still reject', async () => {
+            // Given a payment the pre-check can't stop, from a USD business account other than the workspace one that has not enabled global reimbursements, so the backend may reject it
+            mockFetch?.pause?.();
+
+            // When the admin pays the report
+            const expenseReport = payWithBusinessBankAccount(buildBankAccountList(false), true, false, OTHER_WORKSPACE_BANK_ACCOUNT_ID);
+            await waitForBatchedUpdates();
+
+            // Then the report isn't shown as paid yet, because rolling a rejected payment back makes it drop out of the lists and come back, and it shows a loading state instead
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`))?.statusNum).not.toBe(CONST.REPORT.STATUS_NUM.REIMBURSED);
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${expenseReport.reportID}`))?.isActionLoading).toBe(true);
+
+            // When the backend rejects the payment
+            mockFetch?.fail?.();
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+
+            // Then the loading state ends and the payment shows the same error it would have after an optimistic payment
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${expenseReport.reportID}`))?.isActionLoading).toBe(false);
+            const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`);
+            const payAction = Object.values(reportActions ?? {}).find((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU);
+            expect(payAction?.errors).toBeTruthy();
+        });
+
+        it('ends the loading state when the backend accepts a held payment', async () => {
+            // Given a held payment from an account other than the workspace one that has not enabled global reimbursements
+            mockFetch?.pause?.();
+            const expenseReport = payWithBusinessBankAccount(buildBankAccountList(false), true, false, OTHER_WORKSPACE_BANK_ACCOUNT_ID);
+            await waitForBatchedUpdates();
+
+            // When the backend accepts it
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+
+            // Then the loading state ends, and the last used payment method is saved since the backend doesn't send it back
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${expenseReport.reportID}`))?.isActionLoading).toBe(false);
+            expect(await getOnyxValue(ONYXKEYS.NVP_LAST_PAYMENT_METHOD)).toBeTruthy();
+        });
+
+        it('shows the report as paid right away when the backend does not flag a report paid from the workspace account', async () => {
+            // Given a report the backend does not flag for global reimbursements, like one for a US employee, and a workspace USD account that has not enabled them
+            mockFetch?.pause?.();
+            const writeSpy = jest.spyOn(APIActions, 'write');
+
+            // When the admin pays the report from the workspace account
+            const expenseReport = payWithBusinessBankAccount(buildBankAccountList(false), true, false);
+            await waitForBatchedUpdates();
+
+            // Then the report is shown as paid before the backend answers, because the flag already says the backend won't reject it, and there is no loading state
+            expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.PAY_MONEY_REQUEST, expect.anything(), expect.anything());
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`))?.statusNum).toBe(CONST.REPORT.STATUS_NUM.REIMBURSED);
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${expenseReport.reportID}`))?.isActionLoading).toBeUndefined();
+            await mockFetch?.resume?.();
+        });
+
+        it('shows the report as paid right away when the account has global reimbursements enabled', async () => {
+            // Given an account the backend won't reject for global reimbursements
+            mockFetch?.pause?.();
+
+            // When the admin pays the report with it
+            const expenseReport = payWithBusinessBankAccount(buildBankAccountList(true), true, false);
+            await waitForBatchedUpdates();
+
+            // Then the report is shown as paid before the backend answers, as for any other payment
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`))?.statusNum).toBe(CONST.REPORT.STATUS_NUM.REIMBURSED);
+            await mockFetch?.resume?.();
+        });
+    });
+
+    describe('payViaABA', () => {
+        const payViaABAParams = {
+            introSelected: undefined,
+            isSelfTourViewed: false,
+            currentUserAccountID: CARLOS_ACCOUNT_ID,
+            conciergeChat: undefined,
+            delegateAccountID: undefined,
+        };
+        const abaFileResponse = {ok: true, headers: new Headers([['content-type', 'text/plain']]), text: () => Promise.resolve('ABA file')};
+        let appendSpy: jest.SpyInstance;
+
+        const mockPayViaABAResponse = (response: Partial<Response>) => {
+            const defaultImplementation = mockFetch.getMockImplementation();
+            mockFetch.mockImplementation((input, options) => {
+                if (typeof input === 'string' && input.includes(WRITE_COMMANDS.PAY_VIA_ABA)) {
+                    return Promise.resolve(createMock<Response>(response));
+                }
+                return defaultImplementation ? defaultImplementation(input, options) : Promise.reject(new Error('No fetch mock'));
+            });
+        };
+        const getPayViaABACalls = () => mockFetch.mock.calls.filter(([input]) => typeof input === 'string' && input.includes(WRITE_COMMANDS.PAY_VIA_ABA));
+
+        beforeEach(() => {
+            appendSpy = jest.spyOn(FormData.prototype, 'append');
+            mockPayViaABAResponse(abaFileResponse);
+        });
+
+        afterEach(() => {
+            appendSpy.mockRestore();
+        });
+
+        it('returns the ABA file for a single report, named the way Classic names it', async () => {
+            // Given a single report to pay
+            // When it's paid via ABA
+            const result = await payViaABA({...payViaABAParams, reportIDs: ['123']});
+
+            // Then the PayViaABA command is posted for that report, paying held expenses too by default, and its response is returned as the report's ABA file
+            expect(appendSpy).toHaveBeenCalledWith('reportIDList', '123');
+            expect(appendSpy).toHaveBeenCalledWith('shouldReimburseHeldTransactions', 'true');
+            const [, payViaABARequest] = getPayViaABACalls().at(0) ?? [];
+            expect(payViaABARequest?.method).toBe(CONST.NETWORK.METHOD.POST);
+            expect(result).toEqual({abaFile: {fileName: 'ABA_Report_123.aba', content: 'ABA file'}, skippedReportIDs: {}});
+        });
+
+        it('returns the ABA file when the API sends its text in JSON', async () => {
+            // Given an API that sends the ABA file's text inside its JSON response instead of as a file, with an empty array when it skipped no reports
+            mockPayViaABAResponse({
+                ok: true,
+                headers: new Headers([['content-type', 'application/json']]),
+                json: () => Promise.resolve({jsonCode: CONST.JSON_CODE.SUCCESS, aba: 'ABA file\r\n', skippedReportIDs: []}),
+            });
+            const onPaid = jest.fn();
+
+            // When a report is paid via ABA
+            const result = await payViaABA({...payViaABAParams, reportIDs: ['123'], onPaid});
+
+            // Then that text is returned as the report's ABA file, the same as when the API sends the file itself, with no reports skipped
+            expect(result).toEqual({abaFile: {fileName: 'ABA_Report_123.aba', content: 'ABA file\r\n'}, skippedReportIDs: {}});
+            expect(onPaid).toHaveBeenCalled();
+        });
+
+        it('shows the reports as paid once their ABA file has downloaded', async () => {
+            // Given two approved reports
+            for (const reportID of ['123', '456']) {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportID, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED});
+            }
+
+            // When their ABA file downloads
+            const onPaid = jest.fn();
+            await payViaABA({...payViaABAParams, reportIDs: ['123', '456'], onPaid});
+            await waitForBatchedUpdates();
+
+            // Then they're shown as paid straight away, and the caller is told they're paid, since the backend only sends the file once it has paid them
+            for (const reportID of ['123', '456']) {
+                const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+                expect(report?.statusNum).toBe(CONST.REPORT.STATUS_NUM.REIMBURSED);
+            }
+            expect(onPaid).toHaveBeenCalled();
+        });
+
+        it('shows the report as paid in Search results once its ABA file has downloaded', async () => {
+            // Given an approved report that's in Search results, which rows read instead of the report itself
+            const reportKey = `${ONYXKEYS.COLLECTION.REPORT}123` as const;
+            const approvedReport = {reportID: '123', stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED};
+            await Onyx.set(reportKey, approvedReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}1`, {data: {[reportKey]: approvedReport}});
+
+            // When its ABA file downloads
+            await payViaABA({...payViaABAParams, reportIDs: ['123']});
+            await waitForBatchedUpdates();
+
+            // Then its Search row is shown as paid too, so the Pay button doesn't reappear there
+            const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}1`);
+            expect(snapshot?.data?.[reportKey]).toMatchObject({statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED});
+        });
+
+        it('leaves the report unpaid when the backend returns an error instead of its ABA file', async () => {
+            // Given an approved report the backend won't pay, so it responds with an error instead of the file
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}123`, {reportID: '123', stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED});
+            mockPayViaABAResponse({
+                ok: true,
+                headers: new Headers([['content-type', 'application/json']]),
+                json: () => Promise.resolve({jsonCode: 402, message: CONST.ERROR.MISSING_ABA_DEPOSIT_ACCOUNT}),
+            });
+            const onPaid = jest.fn();
+
+            // When it's paid via ABA
+            const abaFileRequest = payViaABA({...payViaABAParams, reportIDs: ['123'], onPaid});
+
+            // Then it fails with the backend's error, so the user can be told why, and the report isn't shown as paid
+            await expect(abaFileRequest).rejects.toMatchObject({message: CONST.ERROR.MISSING_ABA_DEPOSIT_ACCOUNT});
+            await waitForBatchedUpdates();
+            expect(onPaid).not.toHaveBeenCalled();
+            const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}123`);
+            expect(report?.statusNum).toBe(CONST.REPORT.STATUS_NUM.APPROVED);
+        });
+
+        it('leaves the report unpaid when the ABA file request fails', async () => {
+            // Given an approved report whose ABA file request fails before reaching the API, e.g. on a server error
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}123`, {reportID: '123', stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED});
+            mockPayViaABAResponse({ok: false, headers: new Headers([['content-type', 'text/html']])});
+            const onPaid = jest.fn();
+
+            // When it's paid via ABA
+            const abaFileRequest = payViaABA({...payViaABAParams, reportIDs: ['123'], onPaid});
+
+            // Then it fails, so the download modal can say so, and the report isn't shown as paid
+            await expect(abaFileRequest).rejects.toThrow();
+            await waitForBatchedUpdates();
+            expect(onPaid).not.toHaveBeenCalled();
+            const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}123`);
+            expect(report?.statusNum).toBe(CONST.REPORT.STATUS_NUM.APPROVED);
+        });
+
+        it('returns one ABA file for several reports, named with the date', async () => {
+            // Given several reports to pay, leaving their held expenses for later
+            const reportIDs = ['123', '456'];
+
+            // When they're paid via ABA
+            const result = await payViaABA({...payViaABAParams, reportIDs, shouldReimburseHeldTransactions: false});
+
+            // Then one file pays them all, named the way Classic names a bulk ABA file
+            expect(appendSpy).toHaveBeenCalledWith('reportIDList', '123,456');
+            expect(appendSpy).toHaveBeenCalledWith('shouldReimburseHeldTransactions', 'false');
+            expect(result?.abaFile.fileName).toBe(`ABA_Report_Bulk_${format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}.aba`);
+        });
+
+        it('leaves the reports the backend skipped unpaid, and returns them with the reason', async () => {
+            // Given three approved reports, where the backend can only pay one because two submitters have no AUD bank account
+            for (const reportID of ['123', '456', '789']) {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportID, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED});
+            }
+            mockPayViaABAResponse({
+                ok: true,
+                headers: new Headers([['content-type', 'application/json']]),
+                json: () =>
+                    Promise.resolve({
+                        jsonCode: CONST.JSON_CODE.SUCCESS,
+                        aba: 'ABA file',
+                        skippedReportIDs: {[CONST.ABA_SKIPPED_REPORT_REASON.MISSING_DEPOSIT_ACCOUNT]: [456, '789'], nothingToPay: []},
+                    }),
+            });
+
+            // When they're paid via ABA
+            const result = await payViaABA({...payViaABAParams, reportIDs: ['123', '456', '789']});
+            await waitForBatchedUpdates();
+
+            // Then only the report in the file is shown as paid, since the backend sends no updates for the skipped ones
+            const paidReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}123`);
+            expect(paidReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.REIMBURSED);
+            for (const reportID of ['456', '789']) {
+                const skippedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+                expect(skippedReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.APPROVED);
+            }
+
+            // And the skipped reports are returned as string IDs by reason, leaving out reasons without reports, so the user can be told which weren't paid
+            expect(result?.skippedReportIDs).toEqual({[CONST.ABA_SKIPPED_REPORT_REASON.MISSING_DEPOSIT_ACCOUNT]: ['456', '789']});
         });
     });
 });

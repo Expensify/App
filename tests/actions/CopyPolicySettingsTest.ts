@@ -60,6 +60,7 @@ function makeSourcePolicy(overrides: Partial<Policy> = {}): Policy {
         approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
         autoApproval: {limit: 10000},
         reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+        isCollectDepositAccountsEnabled: true,
         maxExpenseAmount: 50000,
         maxExpenseAge: 90,
         defaultBillable: true,
@@ -102,6 +103,7 @@ function makeTargetPolicy(overrides: Partial<Policy> = {}): Policy {
         approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
         autoApproval: {limit: 5000},
         reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+        isCollectDepositAccountsEnabled: false,
         maxExpenseAmount: 1000,
         maxExpenseAge: 30,
         defaultBillable: false,
@@ -211,7 +213,20 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 ['categories', ['areCategoriesEnabled']],
                 ['tags', ['areTagsEnabled']],
                 ['taxes', ['tax', 'taxRates']],
-                ['workflows', ['areWorkflowsEnabled', 'autoReportingFrequency', 'autoReporting', 'autoReportingOffset', 'harvesting', 'approvalMode', 'autoApproval', 'reimbursementChoice']],
+                [
+                    'workflows',
+                    [
+                        'areWorkflowsEnabled',
+                        'autoReportingFrequency',
+                        'autoReporting',
+                        'autoReportingOffset',
+                        'harvesting',
+                        'approvalMode',
+                        'autoApproval',
+                        'reimbursementChoice',
+                        'isCollectDepositAccountsEnabled',
+                    ],
+                ],
                 [
                     'rules',
                     [
@@ -386,6 +401,106 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 expect(policy?.travelSettings?.spotnanaCompanyID).toBeUndefined();
                 expect(policy?.travelSettings?.associatedTravelDomainAccountID).toBeUndefined();
                 expect(policy?.travelSettings?.hasAcceptedTerms).toBeUndefined();
+            });
+        });
+
+        describe('reimbursement countries', () => {
+            it('copies the source country selection onto the target without the source bankAccountID when workflows is selected', () => {
+                // Given a source with two reimbursement countries, one carrying a bank account
+                const sourcePolicy = makeSourcePolicy({reimbursement: {enabled: true, countries: {US: {bankAccountID: 111}, GB: {}}}});
+                // And a target with no reimbursement countries
+                const targetPolicy = makeTargetPolicy();
+
+                // When workflows is copied
+                const {optimisticData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['workflows'], {}, {}, {});
+                const policy = getOptimisticPolicy(optimisticData);
+
+                // Then both countries are selected on the target, but the source's bankAccountID is dropped (the server remaps it)
+                expect(Object.keys(policy?.reimbursement?.countries ?? {}).sort()).toEqual(['GB', 'US']);
+                expect(policy?.reimbursement?.countries?.US?.bankAccountID).toBeUndefined();
+                expect(policy?.reimbursement?.countries?.GB?.bankAccountID).toBeUndefined();
+                expect(policy?.pendingFields?.reimbursement).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            });
+
+            it('keeps a target country that already has its own bank account', () => {
+                // Given a source selecting US with no account, and a target that already has a US withdrawal account
+                const sourcePolicy = makeSourcePolicy({reimbursement: {enabled: true, countries: {US: {}}}});
+                const targetPolicy = makeTargetPolicy({reimbursement: {enabled: true, countries: {US: {bankAccountID: 222}}}});
+
+                // When workflows is copied
+                const {optimisticData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['workflows'], {}, {}, {});
+                const policy = getOptimisticPolicy(optimisticData);
+
+                // Then the target keeps its own bank account association for US
+                expect(policy?.reimbursement?.countries?.US?.bankAccountID).toBe(222);
+            });
+
+            it('drops an unprotected target country that the source does not select', () => {
+                // Given a source selecting only GB, and a target that selected US with no bank account (unprotected)
+                const sourcePolicy = makeSourcePolicy({reimbursement: {enabled: true, countries: {GB: {}}}});
+                const targetPolicy = makeTargetPolicy({reimbursement: {enabled: true, countries: {US: {}}}});
+
+                // When workflows is copied
+                const {optimisticData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['workflows'], {}, {}, {});
+                const policy = getOptimisticPolicy(optimisticData);
+
+                // Then the target matches the source: GB added, unprotected US dropped
+                expect(Object.keys(policy?.reimbursement?.countries ?? {})).toEqual(['GB']);
+            });
+
+            it('does not copy a source country the user deselected offline (pending deletion)', () => {
+                // Given a source that selected GB and deselected US offline, so US still carries a DELETE marker
+                const sourcePolicy = makeSourcePolicy({reimbursement: {enabled: true, countries: {GB: {}, US: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}}}});
+                // And a target with no reimbursement countries
+                const targetPolicy = makeTargetPolicy();
+
+                // When workflows is copied
+                const {optimisticData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['workflows'], {}, {}, {});
+                const policy = getOptimisticPolicy(optimisticData);
+
+                // Then only the effectively selected GB is copied; the pending-delete US is not resurrected
+                expect(Object.keys(policy?.reimbursement?.countries ?? {})).toEqual(['GB']);
+            });
+
+            it('keeps a protected target country even when the source has no countries', () => {
+                // Given a source with no countries, and a target with its own US bank account (protected)
+                const sourcePolicy = makeSourcePolicy();
+                const targetPolicy = makeTargetPolicy({reimbursement: {enabled: true, countries: {US: {bankAccountID: 333}, FR: {}}}});
+
+                // When workflows is copied
+                const {optimisticData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['workflows'], {}, {}, {});
+                const policy = getOptimisticPolicy(optimisticData);
+
+                // Then only the protected US survives; unprotected FR is dropped
+                expect(policy?.reimbursement?.countries?.US?.bankAccountID).toBe(333);
+                expect(policy?.reimbursement?.countries?.FR).toBeUndefined();
+            });
+
+            it('does not touch reimbursement when neither source nor target has countries', () => {
+                // Given a source and target with no reimbursement countries
+                const sourcePolicy = makeSourcePolicy();
+                const targetPolicy = makeTargetPolicy();
+
+                // When workflows is copied
+                const {optimisticData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['workflows'], {}, {}, {});
+                const policy = getOptimisticPolicy(optimisticData);
+
+                // Then no reimbursement patch is produced and no pending marker is added
+                expect(policy?.reimbursement?.countries).toBeUndefined();
+                expect(policy?.pendingFields?.reimbursement).toBeUndefined();
+            });
+
+            it('does not copy countries when workflows is not selected', () => {
+                // Given a source with reimbursement countries
+                const sourcePolicy = makeSourcePolicy({reimbursement: {enabled: true, countries: {US: {}}}});
+                const targetPolicy = makeTargetPolicy();
+
+                // When a non-workflows part is copied
+                const {optimisticData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['overview'], {}, {}, {});
+                const policy = getOptimisticPolicy(optimisticData);
+
+                // Then the target's reimbursement countries are untouched
+                expect(policy?.reimbursement?.countries).toBeUndefined();
             });
         });
 

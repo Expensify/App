@@ -1,6 +1,7 @@
 import {isFilterableBankAccount} from '@libs/BankAccountUtils';
 import {hasVendorFeatureOnAnyPolicy, isPolicyFeatureEnabled} from '@libs/PolicyUtils';
 import {getReportFieldsWithoutFailedAdds} from '@libs/ReportUtils';
+import {getHasOptionAvailability} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -48,19 +49,23 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.RECEIPT_TYPE,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.CONVERTED_AMOUNT,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY,
         ],
         [CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED, CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS, CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED],
         [
             CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_ID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTER_USER_ID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTER_PAYROLL_ID,
         ],
         [
             CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_SUBMISSION,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.DECLINED,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.HELD,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
@@ -139,6 +144,7 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.CONVERTED_AMOUNT,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY,
         ],
@@ -173,6 +179,7 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.CONVERTED_AMOUNT,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY,
         ],
@@ -281,6 +288,7 @@ function advancedSearchPoliciesSelector(policies: OnyxCollection<Policy>): OnyxC
             taxRates: policy.taxRates,
             tax: policy.tax,
             areTagsEnabled: policy.areTagsEnabled,
+            areRulesEnabled: policy.areRulesEnabled,
             areInvoicesEnabled: policy.areInvoicesEnabled,
             isAttendeeTrackingEnabled: policy.isAttendeeTrackingEnabled,
             fieldList: policy.fieldList,
@@ -324,6 +332,7 @@ function useAdvancedSearchFilters(type: SearchDataTypes | undefined) {
     const isVendorFilterAvailableSelector = (allPolicies: OnyxCollection<Policy>) => hasVendorFeatureOnAnyPolicy(allPolicies, isVendorMatchingBetaEnabled);
     const [isVendorFilterAvailable = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: isVendorFilterAvailableSelector});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const shouldDisplayViolationFilter = getHasOptionAvailability(policies).shouldShowSubmittedViolation;
 
     const {workspaces} = useAdvancedSearchFiltersWorkspaces(policies);
 
@@ -364,6 +373,9 @@ function useAdvancedSearchFilters(type: SearchDataTypes | undefined) {
                         return;
                     }
                     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE && !shouldDisplayTaxFilter) {
+                        return;
+                    }
+                    if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION && !shouldDisplayViolationFilter) {
                         return;
                     }
                     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID && !shouldDisplayWorkspaceFilter) {

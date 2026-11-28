@@ -125,7 +125,7 @@ function WorkspaceCompanyCardsSettingsPage({
         if (!selectedFeed) {
             return;
         }
-        startCardFeedRefresh(policyID, selectedFeed, policy?.outputCurrency, currencyList, countryByIp);
+        startCardFeedRefresh({policyID, feed: selectedFeed, feedCountry: selectedFeedData?.country, outputCurrency: policy?.outputCurrency, currencyList, countryByIp});
     };
 
     const {isUserValidated, verifyAccountAndResume} = useVerifyAccountAndResume(() => refreshCardFeed());
@@ -154,11 +154,11 @@ function WorkspaceCompanyCardsSettingsPage({
                 style={styles.defaultModalContainer}
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
+                <HeaderWithBackButton title={translate('common.settings')} />
                 <ScrollView
                     contentContainerStyle={styles.flexGrow1}
                     addBottomSafeAreaPadding
                 >
-                    <HeaderWithBackButton title={translate('common.settings')} />
                     <View style={styles.flex1}>
                         <MenuItemField
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.SETTINGS_FEED_NAME}

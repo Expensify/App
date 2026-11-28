@@ -1,7 +1,6 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MoneyRequestView from '@components/ReportActionItem/MoneyRequestView';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -18,6 +17,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -37,7 +37,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -56,7 +55,7 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
     const [isMergingExpenses, setIsMergingExpenses] = useState(false);
 
     const {transactionID, isOnSearch} = route.params;
-    const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
+    const [mergeTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const {targetTransaction, sourceTransaction, targetTransactionReport, targetTransactionPolicy} = useMergeTransactions({mergeTransaction});
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
 
@@ -102,6 +101,8 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
     const [sourceActionIOUReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(sourceIOUReportID)}`);
     const [sourceActionChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(sourceActionIOUReport?.chatReportID)}`);
 
+    const isSourceActionIOUReportArchived = useReportIsArchived(sourceIOUReportID);
+
     // Build the merged transaction data for display
     const mergedTransactionData = buildMergedTransactionData(targetTransaction, mergeTransaction);
 
@@ -122,6 +123,7 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
         setIsMergingExpenses(true);
 
         mergeTransactionRequest({
+            translate,
             isVendorMatchingBetaEnabled,
             getCurrencyDecimals,
             getCurrencySymbol,
@@ -151,6 +153,7 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
             sourceActionIOUReport,
             sourceActionChatReport,
             rules,
+            isSourceActionIOUReportArchived,
         });
 
         const reportIDToDismiss = reportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? reportID : undefined;
@@ -216,10 +219,6 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
 
         Navigation.dismissToSuperWideRHP();
     };
-
-    if (isLoadingOnyxValue(mergeTransactionMetadata)) {
-        return <FullScreenLoadingIndicator />;
-    }
 
     return (
         <ScreenWrapper

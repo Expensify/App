@@ -11,6 +11,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
+import type {InsightsChartStage} from './dashboardSpecs';
 import type {InsightsChartQuery} from './insightsQueries';
 
 const INSIGHTS_DASHBOARD_STATE = {
@@ -29,8 +30,16 @@ type InsightsDashboardState = ValueOf<typeof INSIGHTS_DASHBOARD_STATE>;
 type InsightsDashboardChart = InsightsChartQuery & {
     snapshot: OnyxEntry<SearchResults>;
     previousPeriodSnapshot?: OnyxEntry<SearchResults>;
+    averageSnapshot?: OnyxEntry<SearchResults>;
     average?: ChartAverage;
-    isDashboardLoaded?: boolean;
+    isAverageLoaded?: boolean;
+    eligiblePolicyIDs?: string[];
+
+    /** The chart's stages some workspace in scope is eligible for, set when the chart declares stages */
+    stages?: InsightsChartStage[];
+
+    /** Whether new data is on its way, so the chart shows its loading state instead of an empty one, while still showing any data it already has */
+    isAwaitingData?: boolean;
 };
 
 /** Checks whether GetInsights has responded for the dashboard's filters, since only its response sets `inputQuery`. */
@@ -63,9 +72,11 @@ function getDashboardState(
     });
     const hasLoadedChart = chartStates.some(({isLoaded}) => isLoaded);
     const hasChartWithRows = chartStates.some(({hasRows}) => hasRows);
+    // The other violation stage may still have data, so the charts and their stage controls stay on screen to switch back
+    const hasViolationStageControl = charts.some(({chart}) => chart.hasViolationStageControl);
 
     if (isOffline && !hasLoadedChart && dashboard?.hasResults !== false) {
-        return INSIGHTS_DASHBOARD_STATE.OFFLINE;
+        return hasViolationStageControl ? INSIGHTS_DASHBOARD_STATE.READY : INSIGHTS_DASHBOARD_STATE.OFFLINE;
     }
     if (!isOffline && Object.keys(dashboard?.errors ?? {}).length > 0) {
         return dashboard?.responseJsonCode === CONST.JSON_CODE.NO_RESPONSE ? INSIGHTS_DASHBOARD_STATE.STALE : INSIGHTS_DASHBOARD_STATE.ERROR;
@@ -81,7 +92,7 @@ function getDashboardState(
         return INSIGHTS_DASHBOARD_STATE.NO_EXPENSES;
     }
     if (chartStates.every(({isLoaded}) => isLoaded)) {
-        return INSIGHTS_DASHBOARD_STATE.EMPTY;
+        return hasViolationStageControl ? INSIGHTS_DASHBOARD_STATE.READY : INSIGHTS_DASHBOARD_STATE.EMPTY;
     }
     return INSIGHTS_DASHBOARD_STATE.READY;
 }

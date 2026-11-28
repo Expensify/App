@@ -40,6 +40,7 @@ import type SCREENS from '@src/SCREENS';
 
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 type WorkspaceExpensifyCardPageEmptyStateProps = {
     route: PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>['route'];
@@ -52,8 +53,6 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
     const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {contentHeaderHeight} = useContentHeaderHeight();
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [supportedCountriesByCurrency] = useOnyx(ONYXKEYS.CARD_SUPPORTED_COUNTRIES);
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const {showConfirmModal, closeModal} = useConfirmModal();
     const {windowHeight} = useWindowDimensions();
@@ -88,7 +87,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
     // bank account setup page and the currency page are admin only
     const shouldDisableCTA = !canWriteExpensifyCard || (!hasAccessibleFeeds && !canEditSettings);
 
-    const startFlow = () => {
+    const startFlow = async () => {
         if (!policy?.id) {
             return;
         }
@@ -97,6 +96,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
             Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_SELECT_FEED.path, ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policy.id)));
             return;
         }
+        const [bankAccountList, supportedCountriesByCurrency] = await Onyx.multiGet([ONYXKEYS.BANK_ACCOUNT_LIST, ONYXKEYS.CARD_SUPPORTED_COUNTRIES]);
         Navigation.navigate(
             getExpensifyCardEnrollmentRoute({
                 policyID: policy.id,
@@ -123,7 +123,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
         if (shouldBlockCurrencyChange || result.action !== ModalActions.CONFIRM || !policy) {
             return;
         }
-        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policy.id, {shouldStartExpensifyCardEnrollment: true}));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CURRENCY.getRoute({shouldStartExpensifyCardEnrollment: true})));
     };
 
     return (

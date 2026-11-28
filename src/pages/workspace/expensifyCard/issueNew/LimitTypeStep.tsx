@@ -1,4 +1,4 @@
-import AmountForm from '@components/AmountForm';
+import AmountFormInline from '@components/AmountFormAdapters/AmountFormInline';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapperWithRef from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
@@ -213,13 +213,11 @@ function LimitTypeStep({policy, stepNames, startStepIndex}: LimitTypeStepProps) 
                 <View style={[styles.mt3, styles.mh5]}>
                     <Text style={[styles.textLabelSupporting, styles.mb3]}>{translate('workspace.card.issueNewCard.limitAmount')}</Text>
                     <InputWrapperWithRef
-                        InputComponent={AmountForm}
+                        InputComponent={AmountFormInline}
                         label={translate('workspace.card.issueNewCard.amount')}
                         defaultValue={convertToFrontendAmountAsString(issueNewCard?.data?.limit, 0)}
-                        isCurrencyPressable={false}
                         currency={issueNewCard?.data?.currency}
                         inputID={INPUT_IDS.LIMIT}
-                        displayAsTextInput
                         onFocus={onInputFocus}
                     />
                 </View>

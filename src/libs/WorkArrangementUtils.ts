@@ -21,12 +21,20 @@ function getWorkArrangementLabel(translate: LocalizedTranslate, isOfficeBased: b
 }
 
 /**
+ * Returns whether accountID is the one the app generates from the login before the server assigns a real one. Phone
+ * logins are also checked without their SMS domain, since invites generate the ID from the bare number.
+ */
+function isAccountIDGeneratedFromLogin(accountID: number, login: string): boolean {
+    return generateAccountID(login) === accountID || generateAccountID(Str.removeSMSDomain(login)) === accountID;
+}
+
+/**
  * Resolve a workspace member login from a route accountID, including IDs generated optimistically
  * while an invite is pending. Once the invite syncs, the route can keep that temporary ID even
  * though the employee entry remains available by login in the policy.
  */
 function getMemberLoginByAccountID(policy: OnyxEntry<Policy>, accountID: number): string {
-    const matchesAccountID = (login: string) => generateAccountID(login) === accountID || generateAccountID(Str.removeSMSDomain(login)) === accountID;
+    const matchesAccountID = (login: string) => isAccountIDGeneratedFromLogin(accountID, login);
     const primaryLoginOfInvitedSecondary = Object.entries(policy?.primaryLoginsInvited ?? {}).find(([secondaryLogin]) => matchesAccountID(secondaryLogin))?.[1];
     if (primaryLoginOfInvitedSecondary) {
         return primaryLoginOfInvitedSecondary;
@@ -34,4 +42,4 @@ function getMemberLoginByAccountID(policy: OnyxEntry<Policy>, accountID: number)
     return Object.keys(policy?.employeeList ?? {}).find(matchesAccountID) ?? '';
 }
 
-export {getEffectiveWorkArrangement, getMemberLoginByAccountID, getWorkArrangementLabel};
+export {getEffectiveWorkArrangement, getMemberLoginByAccountID, getWorkArrangementLabel, isAccountIDGeneratedFromLogin};

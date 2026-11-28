@@ -25,13 +25,14 @@ import {
     isInviteOrRemovedAction,
     isMoneyRequestAction,
 } from '@libs/ReportActionsUtils';
+import {getMentionedReportIDsInReportActions} from '@libs/ReportIDToNameMapUtils';
 import {canUserPerformWriteAction as canUserPerformWriteActionUtil, parseMovedTransactionReportIDs} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import {getMovedReportID} from '@src/libs/ModifiedExpenseMessage';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Report, ReportAction, ReportActions as ReportActionsType} from '@src/types/onyx';
-import type {ReportAttributesDerivedValue, VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
+import type {ReportAttributesDerivedValue, SortedReportActionsDerivedValue, VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -129,6 +130,7 @@ function OptionRowLHNData({isOptionFocused = false, viewMode = 'default', report
     const reportAttributes = useReportAttributesByID(reportID);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
+    const [lastOriginalAction] = useOnyx(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS, {selector: (data: SortedReportActionsDerivedValue | undefined) => data?.lastActions?.[reportID]});
     const [draftComment] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {selector: optionRowReportMetadataSelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -197,7 +199,14 @@ function OptionRowLHNData({isOptionFocused = false, viewMode = 'default', report
     const whisperTransactionID = isActionableTrackExpense(lastAction) ? getOriginalMessage(lastAction)?.transactionID : undefined;
     const lastActionTransactionID = isMoneyRequestAction(lastAction) ? getOriginalMessage(lastAction)?.IOUTransactionID : undefined;
     const lastActionReportID = isInviteOrRemovedAction(lastAction) && lastAction?.actionName ? getOriginalMessage(lastAction)?.reportID : undefined;
-    const reportNameIDs = [reportID, lastActionReportID ? String(lastActionReportID) : undefined, ...getActionReportIDs(lastAction), ...getActionReportIDs(ownLastAction)];
+    // The preview text names the rooms the last message mentions by reportID, so their names come from the same selector
+    const reportNameIDs = [
+        reportID,
+        lastActionReportID ? String(lastActionReportID) : undefined,
+        ...getActionReportIDs(lastAction),
+        ...getActionReportIDs(ownLastAction),
+        ...getMentionedReportIDsInReportActions([lastAction, ownLastAction]),
+    ];
 
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(invoiceReceiverPolicyID)}`);
     const [whisperTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(whisperTransactionID)}`);
@@ -254,6 +263,7 @@ function OptionRowLHNData({isOptionFocused = false, viewMode = 'default', report
                 invoiceReceiverPolicy,
                 card,
                 lastAction,
+                lastOriginalAction,
                 translate,
                 convertToDisplayString,
                 convertToDisplayStringWithoutCurrency,

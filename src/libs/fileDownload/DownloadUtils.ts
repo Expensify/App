@@ -7,7 +7,7 @@ import CONST from '@src/CONST';
 import type {FileDownload} from './types';
 
 import createDownloadLink from './createDownloadLink';
-import {appendTimeToFileName, getFileName} from './FileUtils';
+import {appendTimeToFileName, getFileName, isErrorResponseForFileDownload} from './FileUtils';
 
 /**
  * The function downloads an attachment on web platforms.
@@ -52,7 +52,7 @@ const fetchFileDownload: FileDownload = (
     return fetch(url, fetchOptions)
         .then((response) => {
             const contentType = response.headers.get('content-type');
-            if (contentType === 'application/json' && fileName?.includes('.csv')) {
+            if (isErrorResponseForFileDownload(contentType, fileName)) {
                 throw new Error();
             }
             return response.blob();

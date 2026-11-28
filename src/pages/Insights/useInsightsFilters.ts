@@ -1,12 +1,13 @@
 import useOnyx from '@hooks/useOnyx';
 
-import {saveInsightsFilters, setInsightsFilters} from '@libs/actions/Insights';
+import {setInsightsFilters} from '@libs/actions/Insights';
+import {saveSearchFilters} from '@libs/actions/Search';
 import {getPolicyIDOrDefault} from '@libs/PolicyUtils';
 import {getLastSearchQuery} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {InsightsDashboardID} from '@src/types/onyx';
+import type {InsightsDashboardID, InsightsSearchKey} from '@src/types/onyx';
 
 import type {InsightsFilters} from './insightsFilters';
 
@@ -30,6 +31,15 @@ type UseInsightsFiltersResult = {
     setFilters: (update: Partial<InsightsFilters>) => void;
 };
 
+/** Reads and parses the filters stored for the dashboard. */
+function useStoredInsightsFilters(searchKey: InsightsSearchKey) {
+    const [storedQuery, storedQueryMetadata] = useOnyx(ONYXKEYS.SEARCH_FILTERS, {
+        selector: (searchFilters) => getLastSearchQuery(searchFilters, searchKey),
+    });
+    const parsedFilters = parseInsightsFilters(storedQuery);
+    return {storedQuery, storedQueryMetadata, parsedFilters};
+}
+
 /**
  * @param shouldSkipFetch - Whether the page won't call GetInsights for these filters, so a change to them has to be saved on its own
  */
@@ -38,14 +48,20 @@ function useInsightsFilters(dashboard: InsightsDashboardID, shouldSkipFetch?: (n
     const [activePolicyID, activePolicyIDMetadata] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy, activePolicyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getPolicyIDOrDefault(activePolicyID)}`);
 
-    const [storedQuery, storedQueryMetadata] = useOnyx(ONYXKEYS.SEARCH_FILTERS, {selector: (searchFilters) => getLastSearchQuery(searchFilters, searchKey)});
+    const {storedQuery, storedQueryMetadata, parsedFilters} = useStoredInsightsFilters(searchKey);
 
     const defaultFilters: InsightsFilters = {
         ...DEFAULT_INSIGHTS_FILTERS[dashboard],
+        defaultGroupBy: DEFAULT_INSIGHTS_FILTERS[dashboard].groupBy,
         groupCurrency: activePolicy?.outputCurrency ?? CONST.CURRENCY.USD,
     };
-    // A stored query leaves Compare out when it's off, so the default Compare mode only applies until the filters are stored
-    const filters: InsightsFilters = {...defaultFilters, compare: storedQuery ? undefined : defaultFilters.compare, ...parseInsightsFilters(storedQuery)};
+    // A stored query leaves Compare out when it's off, so the default only applies before filters are stored.
+    const storedFilters: InsightsFilters = {...defaultFilters, compare: storedQuery ? undefined : defaultFilters.compare, ...parsedFilters};
+    const filters: InsightsFilters = {
+        ...storedFilters,
+        ...(dashboard === CONST.INSIGHTS.DASHBOARD.SPEND && {tagLevel: storedFilters.tagLevel ?? CONST.INSIGHTS.DEFAULT_TAG_LEVEL}),
+    };
+    const isResolved = activePolicyIDMetadata.status === 'loaded' && activePolicyMetadata.status === 'loaded' && storedQueryMetadata.status === 'loaded';
 
     // What GetInsights fetches, so two selections that fetch the same thing can be told apart from ones that need a new request. Leaves out the display-only parts: the Compare mode every response already covers, and Running total, which resolves to its bucket here.
     const fetchedQuery = (dashboardFilters: InsightsFilters) => buildInsightsQueryString({...dashboardFilters, groupBy: getQueryGroupBy(dashboardFilters), compare: undefined});
@@ -55,7 +71,7 @@ function useInsightsFilters(dashboard: InsightsDashboardID, shouldSkipFetch?: (n
         const query = buildInsightsQueryString(next);
         // GetInsights persists the filters as a side effect, so a change it won't fetch for (Compare mode, a Running total toggle that keeps the same bucket, or any change the page skips fetching for) is saved on its own instead.
         if (fetchedQuery(next) === fetchedQuery(filters) || shouldSkipFetch?.(next)) {
-            saveInsightsFilters(searchKey, query);
+            saveSearchFilters(searchKey, query);
             return;
         }
         setInsightsFilters(searchKey, query);
@@ -64,7 +80,7 @@ function useInsightsFilters(dashboard: InsightsDashboardID, shouldSkipFetch?: (n
     return {
         filters,
         defaultFilters,
-        isResolved: activePolicyIDMetadata.status === 'loaded' && activePolicyMetadata.status === 'loaded' && storedQueryMetadata.status === 'loaded',
+        isResolved,
         setFilters,
     };
 }

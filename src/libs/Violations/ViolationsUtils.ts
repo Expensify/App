@@ -2,7 +2,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
-import {convertAttendeesToArray, getAttendeesMinusOwnerCount, getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
+import {convertAttendeesToArray, getAttendeesMinusOwnerCount} from '@libs/AttendeeUtils';
 import {isPersonalCard} from '@libs/CardUtils';
 import {getDecodedCategoryName, isCategoryMissing, isCategoryVisibleToMember} from '@libs/CategoryUtils';
 import DateUtils from '@libs/DateUtils';
@@ -60,6 +60,8 @@ import Onyx from 'react-native-onyx';
 
 import type ViolationFixParams from './types';
 
+import {getNonDefaultViolationTranslation, isNonDefaultViolationName} from './getNonDefaultViolationTranslation';
+
 type ViolationTranslationParams = {
     violation: TransactionViolation;
     translate: LocaleContextProps['translate'];
@@ -81,7 +83,7 @@ type ViolationTranslationParams = {
  * Filters out receiptRequired violation when itemizedReceiptRequired is also present.
  * Itemized receipt requirement supersedes regular receipt requirement.
  */
-function filterReceiptViolations(violations: TransactionViolation[]): TransactionViolation[] {
+function filterReceiptViolations<TViolation extends {name: string}>(violations: TViolation[]): TViolation[] {
     const hasItemizedReceiptViolation = violations.some((v) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
     const hasReceiptRequiredViolation = violations.some((v) => v.name === CONST.VIOLATIONS.RECEIPT_REQUIRED);
 
@@ -225,7 +227,7 @@ function getTagViolationForIndependentTags(policyTagList: PolicyTagLists, transa
                 continue;
             }
             const tags = policyTagList[policyTagKeys[i]].tags;
-            const isTagInPolicy = !!tags[selectedTag]?.enabled;
+            const isTagInPolicy = !!tags?.[selectedTag]?.enabled;
             if (!isTagInPolicy) {
                 newTransactionViolations.push({
                     name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
@@ -524,7 +526,9 @@ function extractErrorMessages(errors: Errors | ReceiptErrors, errorActions: Repo
         if (typeof errorValue === 'string') {
             uniqueMessages.add(errorValue);
         } else if (isReceiptError(errorValue)) {
-            uniqueMessages.add(translate('iou.error.receiptFailureMessageShort'));
+            // Use the server rejection message attached by reconcileFailureDataWithServerErrors when present
+            // so it deduplicates with transaction.errors, while keeping the generic copy for ordinary upload failures.
+            uniqueMessages.add(errorValue.message?.trim() ? errorValue.message : translate('iou.error.receiptFailureMessageShort'));
         } else {
             for (const nestedErrorValue of Object.values(errorValue)) {
                 if (!nestedErrorValue) {
@@ -543,21 +547,7 @@ function extractErrorMessages(errors: Errors | ReceiptErrors, errorActions: Repo
  * Returns true if the violation should be cleared, false if it should persist.
  */
 function getIsViolationFixed(violationError: string, params: ViolationFixParams): boolean {
-    const {
-        category,
-        tag,
-        taxCode,
-        taxValue,
-        policyCategories,
-        policyTagLists,
-        policyTaxRates,
-        iouAttendees,
-        ownerLogin,
-        isAttendeeTrackingEnabled,
-        isControlPolicy,
-        mileageRate,
-        expenseDate,
-    } = params;
+    const {category, tag, taxCode, taxValue, policyCategories, policyTagLists, policyTaxRates, isMissingAttendees, mileageRate, expenseDate} = params;
 
     const violationValidators: Record<string, () => boolean> = {
         [`${CONST.VIOLATIONS_PREFIX}${CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY}`]: () => {
@@ -589,10 +579,7 @@ function getIsViolationFixed(violationError: string, params: ViolationFixParams)
             // If taxValue is provided, check that it matches the policy tax rate. If taxValue is not provided, just check that the tax code exists in the policy.
             return taxValue !== undefined ? matchingTaxRate.value === taxValue : true;
         },
-        [`${CONST.VIOLATIONS_PREFIX}${CONST.VIOLATIONS.MISSING_ATTENDEES}`]: () => {
-            // Attendees violation is fixed if getIsMissingAttendeesViolation returns false
-            return !getIsMissingAttendeesViolation(policyCategories, category, iouAttendees, ownerLogin, isAttendeeTrackingEnabled, isControlPolicy);
-        },
+        [`${CONST.VIOLATIONS_PREFIX}${CONST.VIOLATIONS.MISSING_ATTENDEES}`]: () => !isMissingAttendees,
         [`${CONST.VIOLATIONS_PREFIX}${CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE}`]: () => {
             if (!expenseDate || !mileageRate) {
                 return true;
@@ -1246,6 +1233,10 @@ const ViolationsUtils = {
             errorIndexes = [],
             missingFields = [],
         } = violation.data ?? {};
+
+        if (isNonDefaultViolationName(violation.name)) {
+            return getNonDefaultViolationTranslation(violation.name, translate);
+        }
 
         switch (violation.name) {
             case 'allTagLevelsRequired':

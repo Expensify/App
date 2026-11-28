@@ -7,7 +7,7 @@ import {isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
 import {shouldShowConfirmationDate} from '@libs/MoneyRequestUtils';
 import {canShowReimbursableToggleForPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
-import {getCurrency, isCardTransactionReimbursableEditable, isManagedCardTransaction, shouldShowAttendees as shouldShowAttendeesTransactionUtils} from '@libs/TransactionUtils';
+import {getCurrency, isCardTransactionReimbursableEditable, isManagedCardTransaction} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
@@ -80,7 +80,6 @@ function useFooterDerivedFlags({
     const isCreatingTrackExpense = action === CONST.IOU.ACTION.CREATE && iouType === CONST.IOU.TYPE.TRACK;
 
     const shouldShowTags = (isPolicyExpenseChat || isUnreported || isCreatingTrackExpense) && hasEnabledTags(policyTagLists);
-    const shouldShowAttendees = shouldShowAttendeesTransactionUtils(iouType, policy);
 
     // For distance requests, don't show the merchant as there's already another "Distance" menu item.
     const shouldShowDate = shouldShowConfirmationDate(shouldShowSmartScanFields, isDistanceRequest);
@@ -110,7 +109,6 @@ function useFooterDerivedFlags({
         isUnreported,
         isCreatingTrackExpense,
         shouldShowTags,
-        shouldShowAttendees,
         shouldShowDate,
         canModifyTaxFields,
         shouldShowBillable,

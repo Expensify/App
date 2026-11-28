@@ -55,6 +55,8 @@ We hire and pay external contributors via [Upwork.com](https://www.upwork.com). 
 
 **The number of PRs does not change the job price**. The job price is the price in the issue title. If the title states no price, the job price is the current standard amount.
 
+**One PR that fixes more than one issue earns one job price.** If the team agreed in the issue, before the PR was created, that the PR fixes the other issues too, the job price can increase.
+
 Please add your Upwork profile link in your GitHub Bio to help ensure prompt payment.  If you're using Slack or Expensify for discussions, please add your Upwork profile link **and** your GitHub username in your Slack Title and Expensify Status.
 
 Payment for your contributions will be made no less than 7 days after the pull request is deployed to production to allow for [regression](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#regressions) testing. If you have not received payment after 8 days of the PR being deployed to production, and there are no [regressions](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#regressions), please add a comment to the issue mentioning the team member assigned to pay (Look for the melvin-bot "Triggered auto assignment to... (`Awaiting Payment`)" to see who this is).
@@ -165,6 +167,7 @@ This helps future investigators understand the history and current status of err
 
 ### Propose a solution for the job
 4. Proposals must only be posted after the `Help Wanted` label is added. Any proposals submitted beforehand will be ignored and not reviewed. Do not post proposals in Slack. MelvinBot is an exception: it may post a proposal before `Help Wanted` is applied.
+    - Until you have a merged PR in Expensify/App, [ProposalPolice](./PROPOSAL_POLICE.md#before-help-wanted) hides any comment you post on an issue without `Help Wanted`.
     - On issues where [MelvinBot](./HOW_TO_WORK_WITH_MELVINBOT.md) has posted a proposal, review Melvin's proposal using the same standards as contributor proposals. Melvin's proposal is not guaranteed to be the earliest, but it should always be reviewed first because we are spending the money to run it. Follow first-come-first-serve review order for all other proposals after `Help Wanted`. **Do not open a PR** until a proposal is accepted. See [How to Work with MelvinBot](./HOW_TO_WORK_WITH_MELVINBOT.md) for more details.
 5. Contributors should **not** submit proposals on issues when they have assigned issues or PRs that are awaiting an action from them. If so, they will be in violation of Rule #1 (Get Shit Done) in our [Code of Conduct](https://github.com/Expensify/App/blob/main/CODE_OF_CONDUCT.md) and will receive a warning. Multiple warnings can lead to removal from the program.
 6. After you reproduce the issue, complete the [proposal template here](./PROPOSAL_TEMPLATE.md) and post it as a comment in the corresponding GitHub issue (linked in the Upwork job).

@@ -124,6 +124,7 @@ function MoneyRequestViewReportFields({report, policy, pendingAction, style, sho
     const {getCurrencyDecimals} = useCurrencyListActions();
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [reportOwnerLogin] = usePersonalDetail(report?.ownerAccountID, loginSelector);
+    const [reportManagerLogin] = usePersonalDetail(report?.managerID, loginSelector);
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
 
@@ -151,7 +152,7 @@ function MoneyRequestViewReportFields({report, policy, pendingAction, style, sho
         .filter((reportField) => !shouldHideSingleReportField(reportField))
         .sort(({orderWeight: firstOrderWeight}, {orderWeight: secondOrderWeight}) => firstOrderWeight - secondOrderWeight)
         .map((field): EnrichedPolicyReportField => {
-            const isFieldDisabled = isReportFieldDisabledForUser(report, field, policy, currentUserAccountID, rules, reportOwnerLogin);
+            const isFieldDisabled = isReportFieldDisabledForUser(report, field, policy, currentUserAccountID, rules, reportOwnerLogin, reportManagerLogin);
             const isDeletedFormulaField = field.type === CONST.REPORT_FIELD_TYPES.FORMULA && field.deletable;
             const fieldKey = getReportFieldKey(field.fieldID);
             const isFieldOnPolicy = !!(policy?.fieldList?.[fieldKey] ?? policy?.fieldList?.[field.fieldID]);
@@ -162,7 +163,7 @@ function MoneyRequestViewReportFields({report, policy, pendingAction, style, sho
             // time it was edited, so the field would stop following the field it refers to.
             const shouldUseRawValue = isEditable && field.type !== CONST.REPORT_FIELD_TYPES.FORMULA;
             const fieldValue = shouldUseRawValue ? (field.value ?? field.defaultValue ?? '') : resolveReportFieldValue(field, report, policy, fieldValues, fieldsByName, getCurrencyDecimals);
-            const violation = isFieldDisabled ? undefined : getFieldViolation(field);
+            const violation = isFieldDisabled ? undefined : getFieldViolation(field, report);
             const violationTranslation = getFieldViolationTranslation(field, violation);
             return {
                 ...field,

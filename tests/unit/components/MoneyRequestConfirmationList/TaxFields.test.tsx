@@ -1,16 +1,18 @@
 import {render, waitFor} from '@testing-library/react-native';
 
+import type {DropdownFieldRenderProps} from '@components/DropdownField';
 import ConfirmationFieldsProvider from '@components/MoneyRequestConfirmationFields/Provider';
-import type {ExpenseFieldDropdownRenderProps} from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown';
 import ExpenseFormLayoutContext, {dropdownRowsExpenseFormLayout} from '@components/MoneyRequestConfirmationList/sections/ExpenseFormLayoutContext';
 import TaxFields from '@components/MoneyRequestConfirmationList/sections/TaxFields';
 
 import Navigation from '@libs/Navigation/Navigation';
+import {getCalculatedTaxAmount} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import type {IOUAction} from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy} from '@src/types/onyx';
+import type {Policy, Transaction} from '@src/types/onyx';
 
 import type {ReactNode} from 'react';
 
@@ -18,22 +20,31 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../../../utils/collections/policies';
+import createMock from '../../../utils/createMock';
 import waitForBatchedUpdates from '../../../utils/waitForBatchedUpdates';
 
-jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key, preferredLocale: 'en'}));
+jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string, ...params: unknown[]) => [key, ...params].join(' '), preferredLocale: 'en'}));
 jest.mock('@hooks/useThemeStyles', () => () => ({}));
 jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn()}));
-// The currency list lives in a provider the form is rendered without here. USD has two decimals.
+// The currency list lives in a provider the form is rendered without here. USD has two decimals, and an amount displays as its raw value.
 jest.mock('@hooks/useCurrencyList', () => ({
-    useCurrencyListActions: jest.fn(() => ({getCurrencyDecimals: jest.fn(() => 2), getCurrencySymbol: jest.fn(() => '$'), convertToDisplayString: jest.fn(() => '$0.00')})),
+    useCurrencyListActions: jest.fn(() => ({
+        getCurrencyDecimals: jest.fn(() => 2),
+        getCurrencySymbol: jest.fn(() => '$'),
+        convertToDisplayString: jest.fn((amount: number) => `display:${amount}`),
+    })),
 }));
-// The tax amount input beside the row is its own component with its own tests.
-jest.mock('@components/NumberWithSymbolForm', () => () => null);
+// The tax amount input beside the row is its own component with its own tests, so here it only records the error it is given.
+let mockTaxAmountErrorText: string | undefined;
+jest.mock('@components/NumberWithSymbolForm', () => ({errorText}: {errorText?: string}) => {
+    mockTaxAmountErrorText = errorText;
+    return null;
+});
 
 // Records what the row decided and renders its list straight away, so each test can read both without pressing anything.
 let mockShouldOpenInDropdown: boolean | undefined;
-jest.mock('@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown', () => {
-    return ({shouldOpenInDropdown, renderDropdown}: {shouldOpenInDropdown: boolean; renderDropdown: (props: ExpenseFieldDropdownRenderProps) => ReactNode}) => {
+jest.mock('@components/DropdownField', () => {
+    return ({shouldOpenInDropdown, renderDropdown}: {shouldOpenInDropdown: boolean; renderDropdown: (props: DropdownFieldRenderProps) => ReactNode}) => {
         mockShouldOpenInDropdown = shouldOpenInDropdown;
         return renderDropdown({
             isVisible: true,
@@ -69,6 +80,7 @@ const taxRates = {
 const policy: Policy = {...createRandomPolicy(1), id: 'policy1', outputCurrency: 'USD', taxRates};
 const policyWithoutRates: Policy = {...policy, taxRates: {...taxRates, taxes: {}}};
 const policyForMovingExpenses: Policy = {...createRandomPolicy(2), id: 'policy2', outputCurrency: 'USD', taxRates};
+const draftTransaction = createMock<Transaction>({transactionID: TRANSACTION_ID, reportID: REPORT_ID, amount: -10000, currency: 'USD'});
 
 type RenderParams = {
     action?: IOUAction;
@@ -77,9 +89,10 @@ type RenderParams = {
     /** Workspace the form has. `null` renders the row without one, as a tracked expense being moved does */
     taxPolicy?: Policy | null;
     movingPolicy?: Policy;
+    taxAmountError?: TranslationPaths;
 };
 
-const renderTaxRateRow = ({action = CONST.IOU.ACTION.CREATE, canModifyTaxFields = true, didConfirm = false, taxPolicy = policy, movingPolicy}: RenderParams = {}) =>
+const renderTaxRateRow = ({action = CONST.IOU.ACTION.CREATE, canModifyTaxFields = true, didConfirm = false, taxPolicy = policy, movingPolicy, taxAmountError}: RenderParams = {}) =>
     render(
         <ConfirmationFieldsProvider
             transactionID={TRANSACTION_ID}
@@ -99,7 +112,7 @@ const renderTaxRateRow = ({action = CONST.IOU.ACTION.CREATE, canModifyTaxFields 
                     iouType={CONST.IOU.TYPE.SUBMIT}
                     reportID={REPORT_ID}
                     formError=""
-                    clearFormErrors={jest.fn()}
+                    taxAmountError={taxAmountError}
                 />
             </ExpenseFormLayoutContext.Provider>
         </ConfirmationFieldsProvider>,
@@ -113,9 +126,10 @@ describe('TaxFields', () => {
     beforeEach(async () => {
         mockShouldOpenInDropdown = undefined;
         mockDropdownPolicyID = undefined;
+        mockTaxAmountErrorText = undefined;
         jest.mocked(Navigation.navigate).mockClear();
         await Onyx.clear();
-        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {transactionID: TRANSACTION_ID, reportID: REPORT_ID, amount: -10000, currency: 'USD'});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, draftTransaction);
         await waitForBatchedUpdates();
     });
 
@@ -189,6 +203,30 @@ describe('TaxFields', () => {
         // Then the row keeps the full-page selector, as the category and tag rows do for edits
         await waitFor(() => {
             expect(mockShouldOpenInDropdown).toBe(false);
+        });
+    });
+
+    it('names the maximum the rate allows in the over-the-limit tax amount error', async () => {
+        // Given a confirm blocked by a tax amount above what the expense's rate allows
+        // When the form renders the tax amount input
+        renderTaxRateRow({taxAmountError: 'iou.error.invalidTaxAmount'});
+
+        // Then the input's error names the maximum for this rate and amount, since the error key alone can't carry it
+        const maxTaxAmount = getCalculatedTaxAmount(policy, draftTransaction, 'USD', 2);
+        expect(maxTaxAmount).toBeGreaterThan(0);
+        await waitFor(() => {
+            expect(mockTaxAmountErrorText).toBe(`iou.error.invalidTaxAmount display:${maxTaxAmount}`);
+        });
+    });
+
+    it('shows the required tax amount error without a limit', async () => {
+        // Given a confirm blocked by an emptied tax amount
+        // When the form renders the tax amount input
+        renderTaxRateRow({taxAmountError: 'common.error.fieldRequired'});
+
+        // Then the input shows that error on its own, since an empty amount has no limit to name
+        await waitFor(() => {
+            expect(mockTaxAmountErrorText).toBe('common.error.fieldRequired');
         });
     });
 });

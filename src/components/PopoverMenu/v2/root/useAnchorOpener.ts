@@ -35,4 +35,3 @@ function useAnchorOpener(callerName: string): UseAnchorOpenerResult {
 }
 
 export default useAnchorOpener;
-export type {UseAnchorOpenerResult};

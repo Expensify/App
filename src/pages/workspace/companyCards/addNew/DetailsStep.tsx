@@ -33,6 +33,7 @@ import INPUT_IDS from '@src/types/form/AddNewCardFeedForm';
 
 import React from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 type DetailsStepProps = {
     policyID?: string;
@@ -52,17 +53,18 @@ function DetailsStep({policyID, cardFeeds, workspaceAccountID}: DetailsStepProps
     const icons = useMemoizedLazyExpensifyIcons(['QuestionMark']);
 
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
-    const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
 
     const feedProvider = addNewCard?.data?.feedType;
     const isStripeFeedProvider = feedProvider === CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE;
     const bank = addNewCard?.data?.selectedBank;
     const isOtherBankSelected = bank === CONST.COMPANY_CARDS.BANKS.OTHER;
 
-    const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM>) => {
+    const submit = async (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM>) => {
         if (!addNewCard?.data?.feedType) {
             return;
         }
+
+        const lastSelectedFeed = await Onyx.get(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
 
         const feedDetails = {
             ...values,
@@ -216,6 +218,7 @@ function DetailsStep({policyID, cardFeeds, workspaceAccountID}: DetailsStepProps
                             fill={theme.icon}
                         />
                         <TextLink
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.ADD_NEW_DETAILS_HELP_LINK}
                             style={[styles.label, styles.textLineHeightNormal, styles.ml2]}
                             href={CONST.COMPANY_CARDS_DELIVERY_FILE_HELP[feedProvider]}
                         >

@@ -2,12 +2,12 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
+import {useMentionedAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
@@ -32,6 +32,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
 import type {TransactionDetails} from '@libs/ReportUtils';
+import {getDescription} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -39,7 +40,6 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React, {useState} from 'react';
 import {View} from 'react-native';
@@ -55,12 +55,15 @@ function DynamicDetailsReviewPage({route}: DynamicDetailsReviewPageProps) {
     const {transactionID, isOnSearch} = route.params;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MERGE_TRANSACTION_DETAILS.path);
 
-    const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
+    const [mergeTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const {targetTransaction, sourceTransaction, targetTransactionReport, sourceTransactionReport, targetTransactionPolicy, sourceTransactionPolicy} = useMergeTransactions({
         mergeTransaction,
     });
     const sourceReportOwnerAsAttendee = useReportOwnerAsAttendee(sourceTransaction);
     const targetReportOwnerAsAttendee = useReportOwnerAsAttendee(targetTransaction);
+
+    const mergeDescriptionsHtml = `${getDescription(targetTransaction)}${getDescription(sourceTransaction)}`;
+    const accountIDToName = useMentionedAccountIDToNameMap(mergeDescriptionsHtml);
 
     // The workspace of the report the merged expense is currently headed to, which is the one whose rules apply to it.
     // An unreported expense lands in the self-DM, which has no workspace, so nothing resolves here.
@@ -161,14 +164,11 @@ function DynamicDetailsReviewPage({route}: DynamicDetailsReviewPageProps) {
         localeCompare,
         formatPhoneNumber,
         reports: [targetTransactionReport, sourceTransactionReport],
+        accountIDToName,
     });
 
     // If this screen has multiple "selection cards" on it and the user skips one or more, show an error above the footer button
     const shouldShowSubmitError = conflictFields.length > 1 && !isEmptyObject(hasErrors);
-
-    if (isLoadingOnyxValue(mergeTransactionMetadata)) {
-        return <FullScreenLoadingIndicator />;
-    }
 
     return (
         <ScreenWrapper

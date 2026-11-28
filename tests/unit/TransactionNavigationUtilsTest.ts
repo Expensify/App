@@ -1,6 +1,5 @@
 import {isDeletedAction} from '@libs/ReportActionsUtils';
 import {
-    decodeDeleteNavigateBackUrl,
     doesDeleteNavigateBackUrlIncludeDuplicatesReview,
     doesDeleteNavigateBackUrlIncludeSpecificDuplicatesReview,
     getParentReportActionDeletionStatus,
@@ -76,20 +75,6 @@ describe('TransactionNavigationUtils', () => {
         });
     });
 
-    describe('decodeDeleteNavigateBackUrl', () => {
-        it('decodes encoded URLs', () => {
-            expect(decodeDeleteNavigateBackUrl(ENCODED_DUPLICATES_REVIEW_URL)).toBe('/r//duplicates/review/123');
-        });
-
-        it('returns already-decoded URL unchanged', () => {
-            expect(decodeDeleteNavigateBackUrl(DUPLICATES_REVIEW_URL)).toBe(DUPLICATES_REVIEW_URL);
-        });
-
-        it('returns original URL when decoding fails', () => {
-            expect(decodeDeleteNavigateBackUrl('%E0%A4%A')).toBe('%E0%A4%A');
-        });
-    });
-
     describe('doesDeleteNavigateBackUrlIncludeDuplicatesReview', () => {
         it('returns false for missing URL', () => {
             expect(doesDeleteNavigateBackUrlIncludeDuplicatesReview(undefined)).toBe(false);
@@ -105,6 +90,17 @@ describe('TransactionNavigationUtils', () => {
 
         it('returns false for unrelated URL', () => {
             expect(doesDeleteNavigateBackUrlIncludeDuplicatesReview('/r/reports/123')).toBe(false);
+        });
+
+        it('checks the raw URL when it has malformed percent-encoding', () => {
+            // Given a duplicates review URL with a truncated escape, which makes decodeURIComponent throw
+            const url = '/r/%E0%A4%A/duplicates/review/123';
+
+            // When it is checked for the duplicates review page
+            const includesDuplicatesReview = doesDeleteNavigateBackUrlIncludeDuplicatesReview(url);
+
+            // Then the raw URL is checked instead of the check throwing
+            expect(includesDuplicatesReview).toBe(true);
         });
     });
 

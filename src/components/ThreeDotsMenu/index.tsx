@@ -25,6 +25,7 @@ import KeyboardUtils from '@src/utils/keyboard';
 
 import type {ComponentRef} from 'react';
 
+import {isModalCoveringSelector} from '@selectors/Modal';
 import React, {useEffect, useImperativeHandle, useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -42,6 +43,7 @@ function ThreeDotsMenu({
     shouldChangeFillOnOpen = true,
     testID,
     onIconPress = () => {},
+    onModalHide,
     menuItems,
     anchorPosition,
     anchorAlignment = {
@@ -61,7 +63,7 @@ function ThreeDotsMenu({
     sentryLabel,
     isContainerFocused = true,
 }: ThreeDotsMenuProps) {
-    const [modal] = useOnyx(ONYXKEYS.MODAL);
+    const [isCoveredByModal] = useOnyx(ONYXKEYS.MODAL, {selector: isModalCoveringSelector});
 
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -71,7 +73,7 @@ function ThreeDotsMenu({
     const buttonRef = useRef<ComponentRef<typeof View>>(null);
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ThreeDots']);
-    const isBehindModal = modal?.willAlertModalBecomeVisible && !modal?.isPopover && !shouldOverlay;
+    const isBehindModal = isCoveredByModal && !shouldOverlay;
     const {windowWidth, windowHeight} = useWindowDimensions();
     const showPopoverMenu = () => {
         setPopupMenuVisible(true);
@@ -96,12 +98,11 @@ function ThreeDotsMenu({
             return;
         }
         hideProductTrainingTooltip?.();
-        buttonRef.current?.blur();
 
-        // Dismiss the keyboard before opening the menu so the menu doesn't
-        // render while the keyboard is still animating closed (which creates
-        // a blank-space flash on mobile web).
+        // Run this before blurring the button, so a surface that contains the button can hold state
+        // (such as keeping a peeking bar open) before focus leaves it.
         onIconPress?.();
+        buttonRef.current?.blur();
 
         const openMenu = () => {
             if (getMenuPosition) {
@@ -114,7 +115,8 @@ function ThreeDotsMenu({
             }
         };
 
-        // On mobile web, wait for the keyboard to fully close before opening the menu.
+        // On mobile web, wait for the keyboard to fully close before opening the menu, so the menu doesn't
+        // render while the keyboard is still animating closed (which creates a blank-space flash).
         // KeyboardUtils.dismiss() uses visualViewport to detect keyboard state and resolves
         // immediately if the keyboard is not open. On desktop, call openMenu() synchronously
         // to preserve the original behavior (avoids async microtask deferral on desktop Chrome).
@@ -209,7 +211,10 @@ function ThreeDotsMenu({
             </View>
             <PopoverMenu
                 onClose={hidePopoverMenu}
-                onModalHide={() => setRestoreFocusType(undefined)}
+                onModalHide={() => {
+                    setRestoreFocusType(undefined);
+                    onModalHide?.();
+                }}
                 isVisible={isPopupMenuVisible && !isBehindModal && isContainerFocused}
                 anchorPosition={position ?? anchorPosition ?? {horizontal: 0, vertical: 0}}
                 anchorAlignment={anchorAlignment}

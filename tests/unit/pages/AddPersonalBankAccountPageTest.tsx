@@ -187,6 +187,24 @@ describe('AddPersonalBankAccountPage', () => {
         });
     });
 
+    it('keeps header back on the first setup step as a single ordinary back action', async () => {
+        // Given the user is on the first bank setup step
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, MANUAL_BANK_ACCOUNT_DRAFT);
+        });
+        await renderPageOverTab(
+            TAB_ROUTES.findIndex((route) => route.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR),
+            SUB_PAGE_NAMES.MANUAL_BANK_ACCOUNT_DETAILS,
+        );
+
+        // When they use the page header rather than canceling Plaid
+        fireEvent.press(screen.getByLabelText('Back'));
+
+        // Then the header leaves the destination to the stack's immediate previous screen
+        expect(goBackSpy).toHaveBeenCalledTimes(1);
+        expect(goBackSpy).toHaveBeenCalledWith();
+    });
+
     it('closes the RHP when the flow was started from the Home tab', async () => {
         await renderPageOverTab(TAB_ROUTES.findIndex((route) => route.name === SCREENS.HOME));
 
@@ -743,6 +761,47 @@ describe('AddPersonalBankAccountPage', () => {
             expect(clearPersonalBankAccountErrors).toHaveBeenCalledTimes(1);
             expect(screen.queryByText('Unable to verify bank account ownership.')).toBeNull();
             expect(navigateSpy).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe('legal name step', () => {
+        const settingsTabIndex = TAB_ROUTES.findIndex((route) => route.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR);
+
+        beforeEach(async () => {
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, MANUAL_BANK_ACCOUNT_DRAFT);
+            });
+        });
+
+        it('moves on to the address step when the legal name has hyphens', async () => {
+            // Given a new user whose legal first and last names are hyphenated
+            await renderPageOverTab(settingsTabIndex, SUB_PAGE_NAMES.LEGAL_NAME);
+            fireEvent.changeText(screen.getByLabelText('Legal first name'), 'Mary-Kate');
+            fireEvent.changeText(screen.getByLabelText('Legal last name'), 'Smith-Jones');
+            await waitForBatchedUpdatesWithAct();
+
+            // When they submit the legal name step
+            fireEvent.press(screen.getByText('Next'));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then they move on, since the bank verifies account ownership against the name exactly as it is registered, hyphens included
+            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.BANK_ACCOUNT_PERSONAL.getRoute(SUB_PAGE_NAMES.ADDRESS));
+        });
+
+        it('keeps the user on the legal name step when the names have a comma or semicolon', async () => {
+            // Given a new user with a comma or semicolon in each legal name, since the step checks each name on its own
+            await renderPageOverTab(settingsTabIndex, SUB_PAGE_NAMES.LEGAL_NAME);
+            fireEvent.changeText(screen.getByLabelText('Legal first name'), 'Jane;');
+            fireEvent.changeText(screen.getByLabelText('Legal last name'), 'Smith, Jr');
+            await waitForBatchedUpdatesWithAct();
+
+            // When they submit the legal name step
+            fireEvent.press(screen.getByText('Next'));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then both names show the error naming the characters to remove, and they stay on the step to fix them
+            expect(screen.getAllByText('Name cannot contain a comma or semicolon')).toHaveLength(2);
+            expect(navigateSpy).not.toHaveBeenCalled();
         });
     });
 });

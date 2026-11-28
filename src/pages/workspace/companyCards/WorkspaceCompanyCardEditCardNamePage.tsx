@@ -28,7 +28,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EditExpensifyCardNameForm';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {companyCardCustomNamesSelector} from '@selectors/Card';
 import React from 'react';
@@ -40,18 +39,18 @@ type WorkspaceCompanyCardEditCardNamePageProps = PlatformStackScreenProps<Settin
 function WorkspaceCompanyCardEditCardNamePage({route, navigation}: WorkspaceCompanyCardEditCardNamePageProps) {
     const {policyID, cardID, feed} = route.params;
     const workspaceAccountID = useWorkspaceAccountID(policyID);
-    const [customCardNames, customCardNamesMetadata] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
+    const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
 
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const styles = useThemeStyles();
 
-    const [cardFeeds, cardFeedsMetadata] = useCardFeeds(policyID);
+    const [cardFeeds] = useCardFeeds(policyID);
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyFeeds[feed]);
     const goBackToCardDetails = () => Navigation.goBack(getCompanyCardDetailsBackPath(policyID, feed, cardID, navigation.getState()));
 
-    const [sharedCardCustomNames, sharedCardCustomNamesMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainOrWorkspaceAccountID}`, {
+    const [sharedCardCustomNames] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainOrWorkspaceAccountID}`, {
         selector: companyCardCustomNamesSelector,
     });
     const defaultValue = getCompanyCardCustomName(cardID, sharedCardCustomNames, customCardNames);
@@ -71,10 +70,6 @@ function WorkspaceCompanyCardEditCardNamePage({route, navigation}: WorkspaceComp
 
         return errors;
     };
-
-    if (isLoadingOnyxValue(customCardNamesMetadata, sharedCardCustomNamesMetadata, cardFeedsMetadata)) {
-        return null;
-    }
 
     return (
         <AccessOrNotFoundWrapper

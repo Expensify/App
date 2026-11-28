@@ -26,11 +26,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {useRoute} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 function CopyPolicySettingsConfirmPage() {
     const route = useRoute<PlatformStackRouteProp<PolicyCopySettingsNavigatorParamList, typeof SCREENS.POLICY_COPY_SETTINGS.CONFIRM>>();
@@ -40,16 +40,12 @@ function CopyPolicySettingsConfirmPage() {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
-    const [policies, policiesMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [copyPolicySettingsState, copyPolicySettingsMetadata] = useOnyx(ONYXKEYS.COPY_POLICY_SETTINGS);
-    const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
-    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
-    const [allRules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [copyPolicySettingsState] = useOnyx(ONYXKEYS.COPY_POLICY_SETTINGS);
 
     const sourcePolicy = sourcePolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${sourcePolicyID}`] : undefined;
     const targetPolicyIDs = copyPolicySettingsState?.targetPolicyIDs ?? [];
     const parts = copyPolicySettingsState?.parts ?? [];
-    const isDataLoaded = !isLoadingOnyxValue(policiesMetadata, copyPolicySettingsMetadata);
 
     const targetPolicies = targetPolicyIDs.map((id) => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${id}`]).filter((policy): policy is Policy => policy !== undefined);
 
@@ -61,7 +57,7 @@ function CopyPolicySettingsConfirmPage() {
     const [hasAcceptedTravelTerms, setHasAcceptedTravelTerms] = useState(false);
 
     useEffect(() => {
-        if (!sourcePolicyID || !isDataLoaded) {
+        if (!sourcePolicyID) {
             return;
         }
 
@@ -73,7 +69,7 @@ function CopyPolicySettingsConfirmPage() {
         if (!parts.length && targetPolicyIDs.length) {
             Navigation.navigate(ROUTES.POLICY_COPY_SETTINGS_SELECT_FEATURES.getRoute(sourcePolicyID));
         }
-    }, [isDataLoaded, parts.length, sourcePolicyID, targetPolicyIDs.length]);
+    }, [parts.length, sourcePolicyID, targetPolicyIDs.length]);
 
     const translatedParts = parts
         .map((part) => {
@@ -83,8 +79,8 @@ function CopyPolicySettingsConfirmPage() {
         .filter(Boolean)
         .join(', ');
 
-    const handleCopyPolicySettings = () => {
-        if (!sourcePolicy || !sourcePolicyID || !isDataLoaded || !areAllTargetPoliciesResolved) {
+    const confirmCopy = async () => {
+        if (!sourcePolicy || !sourcePolicyID || !areAllTargetPoliciesResolved) {
             return;
         }
         // Editing the workspace selection from this screen can introduce a Collect (Team) target that
@@ -94,6 +90,7 @@ function CopyPolicySettingsConfirmPage() {
             Navigation.navigate(ROUTES.POLICY_COPY_SETTINGS_UPGRADE.getRoute(sourcePolicyID));
             return;
         }
+        const [allPolicyCategories, allPolicyTags, allRules] = await Onyx.multiGet([ONYXKEYS.COLLECTION.POLICY_CATEGORIES, ONYXKEYS.COLLECTION.POLICY_TAGS, ONYXKEYS.COLLECTION.RULE]);
         copyPolicySettings(sourcePolicy, targetPolicies, parts, allPolicyCategories, allPolicyTags, allRules, isOffline);
         Navigation.dismissModal();
     };
@@ -174,7 +171,7 @@ function CopyPolicySettingsConfirmPage() {
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COPY_SETTINGS_CONFIRM_SUBMIT}
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         size={CONST.BUTTON_SIZE.LARGE}
-                        onPress={handleCopyPolicySettings}
+                        onPress={confirmCopy}
                         isDisabled={parts.length === 0 || targetPolicyIDs.length === 0 || (requiresTravelTermsConsent && !hasAcceptedTravelTerms)}
                     >
                         <Button.Text>{translate('workspace.copyPolicySettings.title')}</Button.Text>

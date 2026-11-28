@@ -4,6 +4,7 @@ import EReceiptThumbnail from '@components/EReceiptThumbnail';
 import type {IconSize} from '@components/EReceiptThumbnail';
 import EReceiptWithSizeCalculation from '@components/EReceiptWithSizeCalculation';
 import type {FullScreenLoadingIndicatorIconSize} from '@components/FullscreenLoadingIndicator';
+import type {ExpoImageStyle} from '@components/Image/types';
 import ReceiptEmptyState from '@components/ReceiptEmptyState';
 import LocalPDFReceiptPreview from '@components/ReportActionItem/LocalPDFReceiptPreview';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
@@ -11,12 +12,14 @@ import ThumbnailImage from '@components/ThumbnailImage';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import getImageRecyclingKey from '@libs/getImageRecyclingKey';
+
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
 import type {ReceiptSource} from '@src/types/onyx/Transaction';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-import type {ImageProps, ImageStyle, StyleProp, ViewStyle} from 'react-native';
+import type {ImageProps, StyleProp, ViewStyle} from 'react-native';
 
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -99,9 +102,6 @@ type ReceiptImageProps = (
 
     isEmptyReceipt?: boolean;
 
-    /** Callback to be called on pressing the image */
-    onPress?: () => void;
-
     isPerDiemRequest?: boolean;
 
     /** The transaction data in search */
@@ -117,7 +117,7 @@ type ReceiptImageProps = (
     onLoadFailure?: () => void;
 
     resizeMode?: ImageProps['resizeMode'];
-    style?: StyleProp<ViewStyle & ImageStyle>;
+    style?: StyleProp<ViewStyle & ExpoImageStyle>;
 
     /** Low-resolution URI shown as a placeholder while the full image loads */
     previewUri?: string;
@@ -140,7 +140,6 @@ function ReceiptImage({
     fallbackIconColor,
     fallbackIconBackground,
     isEmptyReceipt = false,
-    onPress,
     transactionItem,
     isPerDiemRequest,
     shouldUseFullHeight,
@@ -160,8 +159,7 @@ function ReceiptImage({
         return (
             <ReceiptEmptyState
                 isThumbnail
-                onPress={onPress}
-                disabled={!onPress}
+                disabled
                 shouldUseFullHeight={shouldUseFullHeight}
                 onLoad={onLoad}
             />
@@ -233,15 +231,19 @@ function ReceiptImage({
         );
     }
 
+    const imageSource = typeof source === 'string' ? {uri: source} : source;
+
     return (
         <DeferredImageWithLoading
+            // Remount on a new source so the next receipt in the same pane doesn't inherit the old load state
+            key={getImageRecyclingKey(imageSource)}
             onLayout={(e) => {
                 if (e.nativeEvent.layout.width !== receiptImageWidth && e.timeStamp - lastUpdateWidthTimestampRef.current > MIN_UPDATE_WIDTH_DIFF) {
                     setReceiptImageWidth(e.nativeEvent.layout.width);
                 }
                 lastUpdateWidthTimestampRef.current = e.timeStamp;
             }}
-            source={typeof source === 'string' ? {uri: source} : source}
+            source={imageSource}
             style={[style, styles.overflowHidden]}
             isAuthTokenRequired={!!isAuthTokenRequired}
             loadingIconSize={loadingIconSize}

@@ -9,15 +9,21 @@ import Text from '@components/Text';
 
 import useCardFeeds from '@hooks/useCardFeeds';
 import {useCurrencyListState} from '@hooks/useCurrencyList';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 
-import {getCompanyCardFeed, getDomainOrWorkspaceAccountID, getPlaidCountry, getPlaidInstitutionId, isCardAlreadyAssigned, isSelectedFeedExpired, maskCardNumber} from '@libs/CardUtils';
+import {
+    getCompanyCardFeed,
+    getDomainOrWorkspaceAccountID,
+    getPlaidCountryForFeed,
+    getPlaidInstitutionId,
+    isCardAlreadyAssigned,
+    isSelectedFeedExpired,
+    maskCardNumber,
+} from '@libs/CardUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -42,9 +48,11 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
+import {accountIDSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 type ConfirmationStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION>;
 
@@ -56,18 +64,11 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
     const styles = useThemeStyles();
 
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
-    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const [cardError, setCardError] = useState<Errors>();
     const policy = usePolicy(policyID);
     const {currencyList} = useCurrencyListState();
-    const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
     const bankName = assignCard?.cardToAssign?.bankName ?? getCompanyCardFeed(feed);
     const [cardFeeds] = useCardFeeds(policyID);
-
-    const companyCardFeedData = cardFeeds?.[feed];
-
-    const workspaceAccountID = useWorkspaceAccountID(policyID);
-    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyCardFeedData);
 
     const cardToAssign = assignCard?.cardToAssign;
 
@@ -77,9 +78,6 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
 
     const cardholderEmail = formatPhoneNumber(cardToAssign?.email ?? '');
     const cardholderAccountID = cardholder?.accountID;
-
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const currentUserAccountID = currentUserPersonalDetails.accountID;
 
     const cardNameTitle = maskCardNumber(cardToAssign?.cardName ?? '', cardToAssign?.bankName);
 
@@ -102,17 +100,23 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
         };
     }, []);
 
-    const submit = () => {
+    const submit = async () => {
         if (!policyID) {
             return;
         }
 
-        const isFeedExpired = isSelectedFeedExpired(cardFeeds?.[feed]);
+        const [workspaceCardFeeds, countryByIp, session] = await Onyx.multiGet([ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, ONYXKEYS.COUNTRY, ONYXKEYS.SESSION]);
+        const currentUserAccountID = accountIDSelector(session) ?? CONST.DEFAULT_NUMBER_ID;
+        const companyCardFeedData = cardFeeds?.[feed];
+        const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
+        const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyCardFeedData);
+
+        const isFeedExpired = isSelectedFeedExpired(companyCardFeedData);
         const institutionId = !!getPlaidInstitutionId(bankName);
 
         if (isFeedExpired) {
             if (institutionId) {
-                const country = getPlaidCountry(policy?.outputCurrency, currencyList, countryByIp);
+                const country = getPlaidCountryForFeed(companyCardFeedData?.country, policy?.outputCurrency, currencyList, countryByIp);
                 setAddNewCompanyCardStepAndData({
                     data: {
                         selectedCountry: country,

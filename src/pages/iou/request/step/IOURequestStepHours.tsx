@@ -33,6 +33,7 @@ import SCREENS from '@src/SCREENS';
 
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useEffect, useRef, useState} from 'react';
+import Onyx from 'react-native-onyx';
 
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -62,9 +63,6 @@ function IOURequestStepHours({
     const policyID = explicitPolicyID ?? report?.policyID;
     const isTransactionDraft = shouldUseTransactionDraft(action);
     const [selectedTab] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`);
-    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
-    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const {accountID} = useCurrentUserPersonalDetails();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
@@ -96,6 +94,7 @@ function IOURequestStepHours({
     }, [selectedTab, committedCount]);
 
     const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
+        shouldCloseRHPOnDiscard: action === CONST.IOU.ACTION.CREATE,
         getHasUnsavedChanges: () => getStringFieldHasUnsavedChanges(typedCount, committedCount, isEmbeddedInStartPage),
         onCancel: () => {
             focusTimeoutRef.current = setTimeout(() => textInputRef.current?.focus(), CONST.ANIMATED_TRANSITION);
@@ -114,7 +113,7 @@ function IOURequestStepHours({
 
     const navigateBack = () => Navigation.goBack(isEditingConfirmation ? ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, reportID) : undefined);
 
-    const saveTime = () => {
+    const saveTime = async () => {
         if (rate === undefined) {
             return;
         }
@@ -139,7 +138,10 @@ function IOURequestStepHours({
 
         if (isEmbeddedInStartPage) {
             if (explicitPolicyID) {
-                const policyExpenseChat = getPolicyExpenseChat(accountID, policyID);
+                // The workspace chat is only needed on submit, so read it once here instead of subscribing to every report
+                // eslint-disable-next-line rulesdir/no-onyx-get-snapshot-key -- replaces getPolicyExpenseChat's module-level Onyx.connect fallback, which never read a Search snapshot
+                const reports = await Onyx.get(ONYXKEYS.COLLECTION.REPORT);
+                const policyExpenseChat = getPolicyExpenseChat(accountID, policyID, reports);
                 if (!policyExpenseChat) {
                     console.error(`Couldn't find policy expense chat for policyID: ${policyID}`);
                     return;
@@ -154,6 +156,22 @@ function IOURequestStepHours({
         }
 
         navigateToConfirmationPage(iouType, transactionID, reportID, backToReport);
+    };
+
+    const handleNext = async () => {
+        if (policy) {
+            const [userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed] = await Onyx.multiGet([
+                ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END,
+                ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END,
+                ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED,
+            ]);
+            if (shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
+                suppressDiscardPrompt();
+                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+                return;
+            }
+        }
+        saveTime();
     };
 
     return (
@@ -191,14 +209,7 @@ function IOURequestStepHours({
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         size={isExtraSmallScreenHeight ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.LARGE}
                         style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt0]}
-                        onPress={() => {
-                            if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
-                                suppressDiscardPrompt();
-                                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
-                                return;
-                            }
-                            saveTime();
-                        }}
+                        onPress={handleNext}
                         sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.HOURS_NEXT_BUTTON}
                     >
                         <Button.KeyboardShortcut />

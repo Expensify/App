@@ -1,11 +1,11 @@
-import AmountForm from '@components/AmountForm';
+import type {AmountEditingRef} from '@components/AmountEditingController';
+import AmountFormInline from '@components/AmountFormAdapters/AmountFormInline';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import type {NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
 import PercentageForm from '@components/PercentageForm';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
@@ -60,7 +60,7 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
     const [durationAmount, setDurationAmount] = useState('');
-    const durationAmountRef = useRef<NumberWithSymbolFormRef | null>(null);
+    const durationAmountRef = useRef<AmountEditingRef | null>(null);
     const lastEditedRef = useRef<'duration' | 'endDate' | null>(null);
     const ancestors = useAncestors(report);
 
@@ -276,11 +276,10 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
                 )}
                 <View style={styles.mb4}>
                     <InputWrapper
-                        InputComponent={AmountForm}
+                        InputComponent={AmountFormInline}
                         inputID={INPUT_IDS.DURATION_AMOUNT}
                         valueType="string"
                         label={translate('chronos.durationAmount')}
-                        displayAsTextInput
                         hideCurrencySymbol
                         shouldShowCurrencyButton
                         currencyButtonLabel={durationUnitButtonLabel}
@@ -290,7 +289,6 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
                         value={durationAmount}
                         onValueChange={applyDurationAmount}
                         onCurrencyButtonPress={() => setIsDurationUnitModalVisible(true)}
-                        isCurrencyPressable
                         numberFormRef={durationAmountRef}
                     />
                     <ValueSelectorModal

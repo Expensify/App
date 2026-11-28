@@ -10,8 +10,10 @@ import {hasOnlyNonReimbursableTransactions, isPayer} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Policy, Report, Rule, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {NetSuiteConnection} from '@src/types/onyx/Policy';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -246,6 +248,65 @@ describe('getReportPreviewAction', () => {
                 rules: undefined,
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT);
+    });
+
+    it.each([
+        {description: 'the current user is the submitter', isSubmitter: true, preventSelfApproval: true, expectedAction: CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT},
+        {description: 'self-approval prevention is disabled', isSubmitter: false, preventSelfApproval: false, expectedAction: CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW},
+    ])('should not scan approval rules when $description', async ({isSubmitter, preventSelfApproval, expectedAction}) => {
+        // Given an open report with an expense, rules cannot affect submission when either cheap condition rules out the self-approval guard.
+        const ownerAccountID = isSubmitter ? CURRENT_USER_ACCOUNT_ID : CURRENT_USER_ACCOUNT_ID + 1;
+        const ownerLogin = isSubmitter ? CURRENT_USER_EMAIL : 'owner@mail.com';
+        const policy = createMock<Policy>({
+            id: 'preview-policy',
+            type: CONST.POLICY.TYPE.CORPORATE,
+            role: CONST.POLICY.ROLE.USER,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+            preventSelfApproval,
+            approver: ownerLogin,
+            employeeList: {[ownerLogin]: {email: ownerLogin, submitsTo: ownerLogin}},
+            harvesting: {enabled: false},
+        });
+        const report = createMock<Report>({
+            reportID: `${REPORT_ID}`,
+            policyID: policy.id,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        });
+        const transaction = createMock<Transaction>({
+            reportID: report.reportID,
+            amount: 100,
+            merchant: 'Test Merchant',
+            created: '2025-01-01',
+        });
+        const rules = new Proxy<NonNullable<OnyxCollection<Rule>>>(
+            {},
+            {
+                ownKeys: () => {
+                    throw new Error('Approval rules should not be scanned');
+                },
+            },
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // When resolving the preview action, enumerating the rules would fail the test.
+        const action = getReportPreviewAction({
+            isReportArchived: false,
+            currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            currentUserLogin: CURRENT_USER_EMAIL,
+            report,
+            policy,
+            transactions: [transaction],
+            bankAccountList: {},
+            reportMetadata: undefined,
+            ownerLogin,
+            rules,
+        });
+
+        // Then the submitter keeps SUBMIT and a non-submitter keeps VIEW without scanning the rules.
+        expect(action).toBe(expectedAction);
     });
 
     it('canSubmit should return false for a non-submitter when the workspace prevents self-approval', async () => {
@@ -1558,6 +1619,48 @@ describe('getReportPreviewAction', () => {
                 rules: undefined,
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
+    });
+
+    it('canPay should return false for an invoice that the receiver pays through its linked bill', async () => {
+        // Given a submitted invoice that the receiver could otherwise pay, which Auth hides from the receiver because it has a linked bill
+        const report = {
+            ...createRandomReport(REPORT_ID, undefined),
+            type: CONST.REPORT.TYPE.INVOICE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            isWaitingOnBankAccount: false,
+            isHiddenForBillReceiver: true,
+            total: 7,
+        };
+        const policy = createRandomPolicy(0);
+        policy.role = CONST.POLICY.ROLE.ADMIN;
+        policy.type = CONST.POLICY.TYPE.CORPORATE;
+        policy.reimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+        const invoiceReceiverPolicy = createRandomPolicy(0);
+        invoiceReceiverPolicy.role = CONST.POLICY.ROLE.ADMIN;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const transaction = createMock<Transaction>({
+            reportID: `${REPORT_ID}`,
+        });
+
+        // When the preview picks its action
+        const action = getReportPreviewAction({
+            isReportArchived: false,
+            currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            currentUserLogin: CURRENT_USER_EMAIL,
+            report,
+            policy,
+            transactions: [transaction],
+            invoiceReceiverPolicy,
+            bankAccountList: {},
+            reportMetadata: undefined,
+            ownerLogin: CURRENT_USER_EMAIL,
+            rules: undefined,
+        });
+
+        // Then the preview offers no Pay, because the receiver pays the bill as in Classic
+        expect(action).not.toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
     });
 
     it('getReportPreviewAction should return VIEW action for zero value invoice', async () => {

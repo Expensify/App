@@ -18,7 +18,7 @@ function usePersonalDetailSearchSelector(config: UseSearchSelectorConfig): UseSe
     const {enablePhoneContacts = false} = config;
 
     // Phone contacts logic
-    const {contacts, contactPermissionState, importAndSaveContacts, setContactPermissionState} = useContactImport();
+    const {contacts, contactPermissionState, importAndSaveContacts, setContactPermissionState} = useContactImport({shouldImportContacts: enablePhoneContacts});
     const showImportContacts = enablePhoneContacts && !(contactPermissionState === RESULTS.GRANTED || contactPermissionState === RESULTS.LIMITED);
 
     // Use base hook with contact options
@@ -44,4 +44,3 @@ function usePersonalDetailSearchSelector(config: UseSearchSelectorConfig): UseSe
 }
 
 export default usePersonalDetailSearchSelector;
-export type {ContactState};

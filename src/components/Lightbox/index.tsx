@@ -4,6 +4,7 @@ import {useAttachmentCarouselPagerActions, useAttachmentCarouselPagerState} from
 import type {Attachment} from '@components/Attachments/types';
 import Image from '@components/Image';
 import type {ImageOnLoadEvent} from '@components/Image/types';
+import ImageLoadEventContext from '@components/ImageLoadEventContext';
 import ImageLoadTimeoutNotice from '@components/ImageLoadTimeoutNotice';
 import MultiGestureCanvas, {DEFAULT_ZOOM_RANGE} from '@components/MultiGestureCanvas';
 import type {OnScaleChangedCallback, ZoomRange} from '@components/MultiGestureCanvas/types';
@@ -11,6 +12,7 @@ import {getCanvasFitScale} from '@components/MultiGestureCanvas/utils';
 
 import useCanvasSize from '@hooks/useCanvasSize';
 import useImageLoadStall from '@hooks/useImageLoadStall';
+import type {ImageLoadStallReason} from '@hooks/useImageLoadStall';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -22,7 +24,7 @@ import type {Dimensions} from '@src/types/utils/Layout';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
-import React, {useRef, useState} from 'react';
+import React, {useContext, useRef, useState} from 'react';
 import {PixelRatio, StyleSheet, View} from 'react-native';
 import {useSharedValue} from 'react-native-reanimated';
 
@@ -32,7 +34,7 @@ const FALLBACK_OFFSET = 2;
 
 const LOADING_CONTEXT = {context: 'Lightbox'};
 
-const cachedImageDimensions = new Map<string, Dimensions | undefined>();
+const cachedImageDimensions = new Map<string | number, Dimensions | undefined>();
 
 function getImagePriority(isActive: boolean, isLightboxVisible: boolean) {
     if (isActive) {
@@ -48,8 +50,8 @@ type LightboxProps = Pick<Attachment, 'attachmentID'> & {
     /** Whether source url requires authentication */
     isAuthTokenRequired?: boolean;
 
-    /** URI to full-sized attachment */
-    uri: string;
+    /** URI to full-sized attachment, or a static image asset on native */
+    uri: string | number;
 
     /** Triggers whenever the zoom scale changes */
     onScaleChanged?: OnScaleChangedCallback;
@@ -78,6 +80,7 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
     const isPagerScrollingFallback = useSharedValue(false);
     const isScrollingEnabledFallback = useSharedValue(false);
     const {isOffline} = useNetwork();
+    const reportImageLoadEvent = useContext(ImageLoadEventContext);
 
     const state = useAttachmentCarouselPagerState();
     const actions = useAttachmentCarouselPagerActions();
@@ -214,6 +217,7 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
     const shouldShowLoadingIndicator = !isImageLoaded && !shouldShowOfflineIndicator && !hasLoadFailed && !hasLoadTimedOut;
 
     const handleError = () => {
+        reportImageLoadEvent?.({type: 'error', afterTimeout: hasLoadTimedOutRef.current, component: 'Lightbox', source: uri});
         // A stalled load that later errors is still a slow load, so keep the timeout notice instead of "not found".
         if (hasLoadTimedOutRef.current) {
             return;
@@ -223,12 +227,14 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
     };
 
     /** The transport went silent, so stop the spinner and offer a retry while the image stays mounted. */
-    const handleLoadTimeout = () => {
+    const handleLoadTimeout = (reason: ImageLoadStallReason) => {
+        reportImageLoadEvent?.({type: 'stall', reason, component: 'Lightbox', source: uri});
         updateLoadTimedOut(true);
         setIsLoading(false);
     };
 
     const retryLoad = () => {
+        reportImageLoadEvent?.({type: 'retry', component: 'Lightbox', source: uri});
         updateLoadTimedOut(false);
         setIsLoading(true);
         setReloadKey((key) => key + 1);
@@ -263,13 +269,17 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
                                 {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Custom Image wrapper does not support this prop. */}
                                 <Image
                                     key={reloadKey}
-                                    source={{uri}}
+                                    source={typeof uri === 'string' ? {uri} : uri}
                                     style={[contentSize ?? styles.invisibleImage]}
                                     isAuthTokenRequired={isAuthTokenRequired}
                                     priority={imagePriority}
                                     onError={handleError}
                                     onProgress={reportLoadActivity}
                                     onLoad={(e) => {
+                                        // Loading after a stall or a retry counts as a recovery
+                                        if (hasLoadTimedOutRef.current || reloadKey > 0) {
+                                            reportImageLoadEvent?.({type: 'recovered', component: 'Lightbox', source: uri});
+                                        }
                                         updateContentSize(e);
                                         setLightboxImageLoaded(true);
                                         updateLoadTimedOut(false);
@@ -296,7 +306,7 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
                         <View style={StyleUtils.getFullscreenCenteredContentStyles()}>
                             {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Custom Image wrapper does not support this prop. */}
                             <Image
-                                source={{uri}}
+                                source={typeof uri === 'string' ? {uri} : uri}
                                 resizeMode="contain"
                                 style={[fallbackSize ?? styles.invisibleImage]}
                                 isAuthTokenRequired={isAuthTokenRequired}

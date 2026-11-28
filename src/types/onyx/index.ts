@@ -11,7 +11,7 @@ import type AgentNewAvatarDraft from './AgentNewAvatarDraft';
 import type AppReview from './AppReview';
 import type {AppReviewLastPrompt} from './AppReview';
 import type {ApprovalWorkflowOnyx} from './ApprovalWorkflow';
-import type {AssignCard, AssignCardData} from './AssignCard';
+import type {AssignCard} from './AssignCard';
 import type Attachment from './Attachment';
 import type AvatarCropDraft from './AvatarCropDraft';
 import type {AvatarCropMaskType} from './AvatarCropDraft';
@@ -35,8 +35,6 @@ import type CardContinuousReconciliation from './CardContinuousReconciliation';
 import type CardFeeds from './CardFeeds';
 import type {
     AddNewCompanyCardFeed,
-    CardFeed,
-    CardFeedsStatus,
     CardFeedsStatusByDomainID,
     CardFeedWithDomainID,
     CombinedCardFeed,
@@ -45,11 +43,11 @@ import type {
     CompanyCardFeedWithDomainID,
     DomainSettings,
     FundID,
-    WorkspaceCardFeedsStatus,
 } from './CardFeeds';
 import type CardOnWaitlist from './CardOnWaitlist';
 import type ChronosTimeTracking from './ChronosTimeTracking';
 import type CloudflareSession from './CloudflareSession';
+import type CompanyCardNumberSearch from './CompanyCardNumberSearch';
 import type CompanyCardsLoadingState from './CompanyCardsLoadingState';
 import type ConciergePendingFollowupList from './ConciergePendingFollowupList';
 import type CopyPolicySettings from './CopyPolicySettings';
@@ -57,7 +55,6 @@ import type CopyPolicySettingsNVP from './CopyPolicySettingsNVP';
 import type {CorpayFields, CorpayFormField} from './CorpayFields';
 import type {CorpayOnboardingFields} from './CorpayOnboardingFields';
 import type Credentials from './Credentials';
-import type Currency from './Currency';
 import type {CurrencyList} from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
 import type DatabaseSizeMeasurement from './DatabaseSizeMeasurement';
@@ -81,6 +78,7 @@ import type DismissedProductTraining from './DismissedProductTraining';
 import type DismissedReferralBanners from './DismissedReferralBanners';
 import type Domain from './Domain';
 import type {DomainSecurityGroup, SamlMetadata, UserSecurityGroupData} from './Domain';
+import type DomainAccountMergeRequest from './DomainAccountMergeRequest';
 import type DomainErrors from './DomainErrors';
 import type DomainHighlightItems from './DomainHighlightItems';
 import type DomainPendingActions from './DomainPendingActions';
@@ -92,13 +90,16 @@ import type {
     DynamicFormContentItem,
     DynamicFormCountryField,
     DynamicFormField,
+    DynamicFormFieldFormat,
     DynamicFormFieldOption,
+    DynamicFormFileUpload,
     DynamicFormFieldType,
     DynamicFormHeading,
     DynamicFormLink,
     DynamicFormListField,
     DynamicFormListItem,
     DynamicFormMultiChoiceField,
+    DynamicFormNotice,
     DynamicFormNumberField,
     DynamicFormPage,
     DynamicFormSchema,
@@ -128,7 +129,10 @@ import type ImportedSpreadsheet from './ImportedSpreadsheet';
 import type ImportedSpreadsheetMemberData from './ImportedSpreadsheetMemberData';
 import type InitiatingBankAccountUnlock from './InitiatingBankAccountUnlock';
 import type InsightsDashboard from './InsightsDashboard';
-import type {AIInsight, AIInsightChip, InsightsDashboardID, InsightsGraphKey, InsightsSearchKey} from './InsightsDashboard';
+import type {AIInsight, AIInsightChip, InsightsDashboardID, InsightsFutureExpenses, InsightsGraphKey, InsightsResponseTagLevels, InsightsSearchKey} from './InsightsDashboard';
+import type InsightsDetails from './InsightsDetails';
+import type {InsightsDetailsHistoryPeriod, InsightsDetailsSummary} from './InsightsDetails';
+import type InsightsExplanation from './InsightsExplanation';
 import type IntroSelected from './IntroSelected';
 import type InvitedEmailsToAccountIDs from './InvitedEmailsToAccountIDs';
 import type JoinablePolicies from './JoinablePolicies';
@@ -139,7 +143,7 @@ import type Locale from './Locale';
 import type LocallyProcessed3DSChallengeReviews from './LocallyProcessed3DSChallengeReviews';
 import type LocallyProcessedFraudTransactionReviews from './LocallyProcessedFraudTransactionReviews';
 import type LocalPasskeyCredentialsEntry from './LocalPasskeyCredentialsEntry';
-import type {PasskeyCredential, PasskeyTransport} from './LocalPasskeyCredentialsEntry';
+import type {PasskeyCredential} from './LocalPasskeyCredentialsEntry';
 import type LockAccountDetails from './LockAccountDetails';
 import type {LoginList} from './Login';
 import type Login from './Login';
@@ -167,11 +171,11 @@ import type PendingConciergeResponse from './PendingConciergeResponse';
 import type {PendingContactAction} from './PendingContactAction';
 import type PersonalBankAccount from './PersonalBankAccount';
 import type {AddNewPersonalCard} from './PersonalCard';
-import type {PersonalDetailsList, PersonalDetailsMetadata} from './PersonalDetails';
+import type {PersonalDetailsList, PersonalDetailsLoadingState} from './PersonalDetails';
 import type PersonalDetails from './PersonalDetails';
 import type PlaidData from './PlaidData';
 import type Policy from './Policy';
-import type {AutoReportingOffset, PolicyConnectionName, PolicyConnectionSyncProgress, PolicyReportField, TaxRate, TaxRates, TaxRatesWithDefault} from './Policy';
+import type {PolicyConnectionName, PolicyConnectionSyncProgress, PolicyReportField, TaxRate, TaxRates, TaxRatesWithDefault} from './Policy';
 import type {PolicyCategories, PolicyCategory} from './PolicyCategory';
 import type PolicyDataLoadingState from './PolicyDataLoadingState';
 import type {PolicyEmployeeList} from './PolicyEmployee';
@@ -201,7 +205,6 @@ import type Report from './Report';
 import type {ReportActions} from './ReportAction';
 import type ReportAction from './ReportAction';
 import type ReportActionReactions from './ReportActionReactions';
-import type ReportActionsDraft from './ReportActionsDraft';
 import type ReportActionsDrafts from './ReportActionsDrafts';
 import type ReportLastVisitTimes from './ReportLastVisitTimes';
 import type {GroupedTransactions, ReportLayoutGroupBy, ReportLayoutOption, ReportLayoutSelection} from './ReportLayout';
@@ -221,7 +224,6 @@ import type ReusableDistanceRoute from './ReusableDistanceRoute';
 import type ReviewDuplicates from './ReviewDuplicates';
 import type Rule from './Rule';
 import type RuleMatchingTransaction from './RuleMatchingTransaction';
-import type {SavedCSVColumnLayoutData, SavedCSVColumnLayoutList} from './SavedCSVColumnLayout';
 import type {SaveSearch} from './SaveSearch';
 import type ScheduleCallDraft from './ScheduleCallDraft';
 import type ScreenShareRequest from './ScreenShareRequest';
@@ -272,7 +274,9 @@ import type WalletTerms from './WalletTerms';
 import type WalletTransfer from './WalletTransfer';
 import type WiseBankAccountFields from './WiseBankAccountFields';
 import type {WiseKYCReviewEmbeddedLink} from './WiseKYCReview';
+import type WiseOnboardingUnsavedPages from './WiseOnboardingUnsavedPages';
 import type WiseQuote from './WiseQuote';
+import type WorkspaceCategoriesSelectedForBulkEdit from './WorkspaceCategoriesSelectedForBulkEdit';
 import type WorkspaceMembersSelectedForBulkEdit from './WorkspaceMembersSelectedForBulkEdit';
 import type WorkspaceMembersSelectedForRoleChange from './WorkspaceMembersSelectedForRoleChange';
 
@@ -305,7 +309,6 @@ export type {
     ProvisioningCardData,
     Credentials,
     CorpayOnboardingFields,
-    Currency,
     CurrencyList,
     CustomStatusDraft,
     DatabaseSizeMeasurement,
@@ -313,6 +316,7 @@ export type {
     UnshareBankAccount,
     DismissedReferralBanners,
     Domain,
+    DomainAccountMergeRequest,
     Download,
     ExportDownload,
     BulkAction,
@@ -338,18 +342,22 @@ export type {
     AIInsightChip,
     InsightsDashboard,
     InsightsDashboardID,
+    InsightsDetails,
+    InsightsDetailsHistoryPeriod,
+    InsightsDetailsSummary,
+    InsightsExplanation,
+    InsightsFutureExpenses,
     InsightsGraphKey,
+    InsightsResponseTagLevels,
     InsightsSearchKey,
     IntroSelected,
     IssueNewCard,
-    AssignCardData,
     AddNewCompanyCardFeed,
     CompanyCardFeed,
     CombinedCardFeed,
     CombinedCardFeeds,
     CardContinuousReconciliation,
     CompanyCardFeedWithDomainID,
-    CardFeed,
     CardFeedWithDomainID,
     LastExportMethod,
     Locale,
@@ -360,7 +368,6 @@ export type {
     NewLogin,
     Logins,
     PasskeyCredential,
-    PasskeyTransport,
     PendingContactAction,
     MapboxAccessToken,
     MarketingAttribution,
@@ -378,7 +385,7 @@ export type {
     PersonalBankAccount,
     PersonalDetails,
     PersonalDetailsList,
-    PersonalDetailsMetadata,
+    PersonalDetailsLoadingState,
     PlaidData,
     Policy,
     PolicyCategories,
@@ -392,7 +399,6 @@ export type {
     PolicyConnectionName,
     PolicyConnectionSyncProgress,
     PolicyOwnershipChangeChecks,
-    AutoReportingOffset,
     PolicyTag,
     PolicyTags,
     PolicyTagLists,
@@ -402,8 +408,6 @@ export type {
     QuickAction,
     ShareBankAccount,
     RecentWaypoint,
-    SavedCSVColumnLayoutList,
-    SavedCSVColumnLayoutData,
     RecentlyUsedCategories,
     RecentlyUsedTags,
     ReimbursementAccount,
@@ -414,7 +418,6 @@ export type {
     ReportAction,
     ReportActionReactions,
     ReportActions,
-    ReportActionsDraft,
     ReportActionsDrafts,
     DeferredAttachmentEdits,
     ReportLastVisitTimes,
@@ -450,6 +453,7 @@ export type {
     TravelSettings,
     WorkspaceTravelSettings,
     WorkspaceMembersSelectedForBulkEdit,
+    WorkspaceCategoriesSelectedForBulkEdit,
     UserLocation,
     UserMetadata,
     UserWallet,
@@ -489,13 +493,12 @@ export type {
     CancellationDetails,
     ApprovalWorkflowOnyx,
     CardFeeds,
-    CardFeedsStatus,
     CardFeedsStatusByDomainID,
     CompanyCardsLoadingState,
+    CompanyCardNumberSearch,
     ReceiptTranslation,
     ReceiptTranslationState,
     TranslatedReceiptRow,
-    WorkspaceCardFeedsStatus,
     DomainSettings,
     SaveSearch,
     SearchFilters,
@@ -515,6 +518,7 @@ export type {
     CorpayFields,
     WiseBankAccountFields,
     WiseKYCReviewEmbeddedLink,
+    WiseOnboardingUnsavedPages,
     WiseQuote,
     CorpayFormField,
     DynamicFormAddressField,
@@ -522,13 +526,16 @@ export type {
     DynamicFormContentItem,
     DynamicFormCountryField,
     DynamicFormField,
+    DynamicFormFieldFormat,
     DynamicFormFieldOption,
+    DynamicFormFileUpload,
     DynamicFormFieldType,
     DynamicFormHeading,
     DynamicFormLink,
     DynamicFormListField,
     DynamicFormListItem,
     DynamicFormMultiChoiceField,
+    DynamicFormNotice,
     DynamicFormNumberField,
     DynamicFormPage,
     DynamicFormSchema,

@@ -7,84 +7,80 @@ import {PressableWithoutFeedback} from '@components/Pressable';
 import {useSearchResultsActions, useSearchResultsContext} from '@components/Search/SearchContext';
 import Tooltip from '@components/Tooltip';
 
-import {useLoadingBarVisibility} from '@hooks/useInFlightRequests';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
+import isHTMLElement from '@libs/isHTMLElement';
 
 import SearchTypeMenuWide from '@pages/Search/SearchTypeMenuWide';
 
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
-import SCREENS from '@src/SCREENS';
 
-import type {ParamListBase} from '@react-navigation/native';
-
-import React, {useEffect} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 
 import useShouldUseFlatNavigationBar from './FlatNavigationBar/useShouldUseFlatNavigationBar';
+import PeekSurfaceContext from './PeekSurfaceContext';
 import {
     useSearchSidebarCollapse,
     useSearchSidebarCollapseFadeStyle,
-    useSearchSidebarLayoutWidthStyle,
+    useSearchSidebarDockedWidthStyle,
     useSearchSidebarToggleButtonStyle,
     useSearchSidebarVisualWidthStyle,
 } from './SearchSidebarCollapseStore';
 import TopBar from './TopBar';
+import useEndPeekOnFocusLeave from './useEndPeekOnFocusLeave';
+import useSearchLoadingBarVisibility from './useSearchLoadingBarVisibility';
 
-type SearchSidebarProps = {
-    state: PlatformStackNavigationState<ParamListBase>;
-};
-
-function SearchSidebar({state}: SearchSidebarProps) {
+/** The Spend column, which users outside the flat nav beta see beside wide Search. */
+function SpendColumn() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {isOffline} = useNetwork();
-    const shouldShowLoadingBarForReports = useLoadingBarVisibility();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const shouldUseFlatNavigationBar = useShouldUseFlatNavigationBar();
-    const {isCollapsed, toggleSidebar, startPeek, endPeek} = useSearchSidebarCollapse();
-    const layoutSpacerStyle = useSearchSidebarLayoutWidthStyle();
+    const {isCollapsed, isPeeking, toggleSidebar, startPeek, endPeek} = useSearchSidebarCollapse();
+    const dockedWidthStyle = useSearchSidebarDockedWidthStyle();
     const visualSidebarWidthStyle = useSearchSidebarVisualWidthStyle();
     const breadcrumbAnimatedStyle = useSearchSidebarCollapseFadeStyle();
     const toggleButtonAnimatedStyle = useSearchSidebarToggleButtonStyle();
+    const shouldShowLoadingBar = useSearchLoadingBarVisibility();
+    const sidebarRef = useRef<HTMLElement>(null);
 
-    const route = state.routes.at(-1);
-    const {lastSearchType, currentSearchResults} = useSearchResultsContext();
-    const {setLastSearchType} = useSearchResultsActions();
+    // The hover-out event never fires if the column unmounts while hovered, so end the peek here.
+    useEffect(() => endPeek, [endPeek]);
 
-    const searchType = currentSearchResults?.search?.type;
-    const isSearchLoading = currentSearchResults?.search?.isLoading;
+    // An open saved search menu holds the peek, because collapsing would unmount the menu. The menu is portaled outside the sidebar's DOM, so two things would
+    // otherwise end the peek under it: the hover-out React sends through the portal when the pointer leaves the window from the menu's backdrop,
+    // and focus moving into the menu. One flag is enough, because the backdrop keeps a second menu from opening before the first one is gone.
+    const isPeekHeldRef = useRef(false);
 
-    useEffect(() => {
-        if (!searchType) {
+    const endPeekUnlessHeld = () => {
+        if (isPeekHeldRef.current) {
             return;
         }
+        endPeek();
+    };
 
-        setLastSearchType(searchType);
-    }, [lastSearchType, setLastSearchType, searchType]);
+    const holdPeekUntilMenuCloses = () => {
+        isPeekHeldRef.current = true;
+    };
 
-    useEffect(() => {
-        if (shouldUseNarrowLayout) {
-            endPeek();
+    // A saved search's menu is portaled, so its closing sends the sidebar no hover-out and the pointer is read instead.
+    // Keyboard focus keeps the peek, because Escape returns it to the menu's button, but mouse focus does not, so a clicked row cannot hold the peek.
+    const endPeekIfPointerLeft = () => {
+        isPeekHeldRef.current = false;
+        const element = sidebarRef.current;
+        if (isHTMLElement(element) && (element.matches(':hover') || !!element.querySelector(':focus-visible'))) {
+            return;
         }
+        endPeek();
+    };
 
-        return endPeek;
-    }, [endPeek, shouldUseNarrowLayout]);
-
-    const shouldShowLoadingState = route?.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT ? false : !isOffline && !!isSearchLoading;
-
-    if (shouldUseNarrowLayout) {
-        return null;
-    }
+    useEndPeekOnFocusLeave(sidebarRef, isPeeking, endPeekUnlessHeld);
 
     const toggleButtonLabel = translate(isCollapsed ? 'reportActionCompose.expand' : 'reportActionCompose.collapse');
     const toggleButton = (
@@ -108,30 +104,60 @@ function SearchSidebar({state}: SearchSidebarProps) {
     );
 
     return (
-        <Animated.View style={layoutSpacerStyle}>
-            <Hoverable onHoverOut={endPeek}>
-                <Animated.View style={[styles.searchSidebar, styles.stickToLeft, styles.zIndex1, visualSidebarWidthStyle]}>
-                    <View style={styles.flex1}>
-                        <TopBar
-                            shouldShowLoadingBar={shouldShowLoadingState || shouldShowLoadingBarForReports}
-                            breadcrumbLabel={translate('common.spend')}
-                            breadcrumbAnimatedStyle={breadcrumbAnimatedStyle}
-                            shouldDisplaySearch={false}
-                            shouldDisplayHelpButton={false}
-                        >
-                            {/* The flat navigation bar has its own toggle for the one flag both share. */}
-                            {!shouldUseFlatNavigationBar && toggleButton}
-                        </TopBar>
-                        <Hoverable onHoverIn={startPeek}>
-                            <View style={styles.flex1}>
-                                <SearchTypeMenuWide />
-                            </View>
-                        </Hoverable>
-                    </View>
-                </Animated.View>
-            </Hoverable>
-        </Animated.View>
+        <PeekSurfaceContext.Provider value={{holdPeekUntilMenuCloses, endPeekIfPointerLeft}}>
+            <Animated.View style={[styles.stickToLeft, dockedWidthStyle]}>
+                <Hoverable
+                    ref={sidebarRef}
+                    onHoverOut={endPeekUnlessHeld}
+                >
+                    <Animated.View style={[styles.searchSidebar, styles.stickToLeft, styles.zIndex1, visualSidebarWidthStyle]}>
+                        <View style={styles.flex1}>
+                            <TopBar
+                                shouldShowLoadingBar={shouldShowLoadingBar}
+                                breadcrumbLabel={translate('common.spend')}
+                                breadcrumbAnimatedStyle={breadcrumbAnimatedStyle}
+                                shouldDisplaySearch={false}
+                                shouldDisplayHelpButton={false}
+                            >
+                                {toggleButton}
+                            </TopBar>
+                            <Hoverable onHoverIn={startPeek}>
+                                <View style={styles.flex1}>
+                                    <SearchTypeMenuWide />
+                                </View>
+                            </Hoverable>
+                        </View>
+                    </Animated.View>
+                </Hoverable>
+            </Animated.View>
+        </PeekSurfaceContext.Provider>
     );
+}
+
+/**
+ * Keeps the last search type up to date. Draws the Spend column only outside the flat nav beta, since the bar and the Search page replace it.
+ */
+function SearchSidebar() {
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const shouldUseFlatNavigationBar = useShouldUseFlatNavigationBar();
+    const {currentSearchResults} = useSearchResultsContext();
+    const {setLastSearchType} = useSearchResultsActions();
+
+    const searchType = currentSearchResults?.search?.type;
+
+    useEffect(() => {
+        if (!searchType) {
+            return;
+        }
+
+        setLastSearchType(searchType);
+    }, [setLastSearchType, searchType]);
+
+    if (shouldUseNarrowLayout || shouldUseFlatNavigationBar) {
+        return null;
+    }
+
+    return <SpendColumn />;
 }
 
 export default SearchSidebar;

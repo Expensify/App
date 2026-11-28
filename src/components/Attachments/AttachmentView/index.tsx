@@ -6,6 +6,7 @@ import EReceipt from '@components/EReceipt';
 import Icon from '@components/Icon';
 import {useSession} from '@components/OnyxListItemProvider';
 import PerDiemEReceipt from '@components/PerDiemEReceipt';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ScaledDistanceEReceipt from '@components/ScaledDistanceEReceipt';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -98,7 +99,7 @@ type AttachmentViewProps = Attachment & {
     rotation?: RotationDegrees;
 };
 
-function checkIsFileImage(source: string | number | ImageURISource | ImageURISource[], fileName: string | undefined, fileType?: string) {
+function checkIsFileImage(source: string | number | ImageURISource, fileName: string | undefined, fileType?: string) {
     const isSourceImage = typeof source === 'number' || (typeof source === 'string' && Str.isImage(source));
 
     const isFileNameImage = !!fileName && Str.isImage(fileName);
@@ -258,7 +259,7 @@ function AttachmentView({
     // will appear with a source that is a blob
     const isSourcePDF = typeof source === 'string' && Str.isPDF(source);
     const isFilePDF = file && Str.isPDF(file.name ?? translate('attachmentView.unknownFilename'));
-    if (!hasPDFFailedToLoad && !isUploading && (isSourcePDF || isFilePDF)) {
+    if (!hasPDFFailedToLoad && !isUploading && typeof source === 'string' && (isSourcePDF || isFilePDF)) {
         // Every mounted PDF viewer is a full PDF.js document parse (its own worker + parsed document), so in a
         // carousel the memory cost scales with the number of PDF attachments — enough to OOM the WebContent
         // process on iOS Safari and reload the tab when several PDFs are added at once. Only mount the viewer
@@ -274,7 +275,7 @@ function AttachmentView({
                 />
             );
         }
-        const encryptedSourceUrl = isAuthTokenRequired ? addEncryptedAuthTokenToURL(source as string, encryptedAuthToken) : (source as string);
+        const encryptedSourceUrl = isAuthTokenRequired ? addEncryptedAuthTokenToURL(source, encryptedAuthToken) : source;
 
         const onPDFLoadComplete = (path: string) => {
             const id = transaction?.transactionID ?? reportActionID;
@@ -323,10 +324,11 @@ function AttachmentView({
 
     const isImage = isFileImage || (!file?.name && isLocalSourceImage);
 
-    if (isImage) {
+    // ImageView renders URLs and static image assets; other image sources cannot be shown there.
+    if (isImage && (typeof source === 'string' || typeof source === 'number')) {
         if (imageError && (typeof fallbackSource === 'number' || typeof fallbackSource === 'function')) {
-            return (
-                <View style={[styles.flexColumn, styles.alignItemsCenter, styles.justifyContentCenter]}>
+            const notFoundContent = (
+                <>
                     <Icon
                         src={fallbackSource}
                         width={variables.iconSizeSuperLarge}
@@ -348,11 +350,29 @@ function AttachmentView({
                         <Button.Icon src={icons.ArrowCircleClockwise} />
                         <Button.Text>{translate('attachmentView.retry')}</Button.Text>
                     </Button>
-                </View>
+                </>
+            );
+
+            // Tapping a loaded image brings back the carousel arrows, but this view replaces the image, so it has to
+            // toggle them itself. Otherwise the arrows can't be brought back once they auto-hide on touch screens.
+            const toggleCarouselArrows = onPress ?? (canUseTouchScreen() ? onTap : undefined);
+            if (!toggleCarouselArrows) {
+                return <View style={[styles.flexColumn, styles.alignItemsCenter, styles.justifyContentCenter]}>{notFoundContent}</View>;
+            }
+
+            return (
+                <PressableWithoutFeedback
+                    accessible={false}
+                    onPress={() => toggleCarouselArrows()}
+                    style={[styles.flex1, styles.alignSelfStretch, styles.alignItemsCenter, styles.justifyContentCenter]}
+                    sentryLabel={CONST.SENTRY_LABEL.ATTACHMENT_CAROUSEL.ITEM}
+                >
+                    {notFoundContent}
+                </PressableWithoutFeedback>
             );
         }
 
-        let imageSource = imageError && fallbackSource ? (fallbackSource as string) : (cachedSource ?? (source as string));
+        let imageSource = imageError && typeof fallbackSource === 'string' && fallbackSource ? fallbackSource : (cachedSource ?? source);
 
         if (isHighResolution) {
             if (!isUploaded) {

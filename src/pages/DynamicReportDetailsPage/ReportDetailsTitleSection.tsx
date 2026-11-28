@@ -62,6 +62,7 @@ function ReportDetailsTitleSectionContent({report}: ReportDetailsTitleSectionCon
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [reportOwnerLogin] = usePersonalDetail(report?.ownerAccountID, loginSelector);
+    const [reportManagerLogin] = usePersonalDetail(report?.managerID, loginSelector);
     const parentReportAction = useParentReportAction(report);
     const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
     const {reportName, derivedParentReportName} = useReportDetailsReportName(report, parentReport, parentReportAction);
@@ -85,6 +86,7 @@ function ReportDetailsTitleSectionContent({report}: ReportDetailsTitleSectionCon
         formatPhoneNumber,
         parentReportName: derivedParentReportName,
         isParentReportArchived,
+        currentUserAccountID,
     });
 
     const titleField: OnyxTypes.PolicyReportField | undefined = (() => {
@@ -92,9 +94,9 @@ function ReportDetailsTitleSectionContent({report}: ReportDetailsTitleSectionCon
         return fields.find((reportField) => isReportFieldOfTypeTitle(reportField));
     })();
     const fieldKey = getReportFieldKey(titleField?.fieldID);
-    const isFieldDisabled = isReportFieldDisabled(report, titleField, policy, rules, reportOwnerLogin);
+    const isFieldDisabled = isReportFieldDisabled(report, titleField, policy, rules, reportOwnerLogin, reportManagerLogin);
 
-    const shouldShowEditableTitleField = caseID !== CASES.MONEY_REQUEST && canEditReportTitle(report, policy, currentUserAccountID, rules, reportOwnerLogin);
+    const shouldShowEditableTitleField = caseID !== CASES.MONEY_REQUEST && canEditReportTitle(report, policy, currentUserAccountID, rules, reportOwnerLogin, reportManagerLogin);
 
     const shouldShowFurtherDetailsContent =
         !isEmptyObject(parentNavigationSubtitleData) && (shouldShowEditableTitleField || isMoneyRequestReport || isInvoiceReport || isMoneyRequest || isTaskReport);

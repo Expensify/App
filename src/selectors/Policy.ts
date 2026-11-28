@@ -10,11 +10,13 @@ import {
     canEditWorkspaceSettings,
     canSendInvoice,
     getActiveAdminWorkspaces,
+    getActiveEmployeeWorkspaces,
     getActivePolicies,
     getActivePoliciesWithExpenseChat,
     getOwnedPaidPolicies,
     getPolicyIDFromDomainName,
     getPolicyRole,
+    hasAnyPaidPolicy,
     hasPolicyWithXeroConnection,
     // eslint-disable-next-line no-restricted-imports -- isPaidGroupPolicy is intentional: copy-settings targets are billing/paid-only (Collect/Control), so free group plans like Submit must be excluded (see createCopySettingsEligibleTargetsSelector).
     isPaidGroupPolicy,
@@ -272,6 +274,24 @@ const createHasAdminPolicyWithXeroConnectionSelector =
 
 const hasActiveAdminPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountLogin: string) => getActiveAdminWorkspaces(policies, currentUserAccountLogin).length > 0;
 
+type ProductTrainingPolicyFlags = {
+    /** Whether the user is an employee of at least one active workspace */
+    isUserPolicyEmployee: boolean;
+
+    /** Whether the user is an admin of at least one active workspace */
+    isUserPolicyAdmin: boolean;
+
+    /** Whether any workspace in the collection is a paid one */
+    isUserInPaidPolicy: boolean;
+};
+
+// Three booleans out, so the session-wide product training provider doesn't re-render on every policy_ write
+const productTrainingPolicyFlagsSelector = (policies: OnyxCollection<Policy>, currentUserLogin: string | undefined): ProductTrainingPolicyFlags => ({
+    isUserPolicyEmployee: getActiveEmployeeWorkspaces(policies, currentUserLogin).length > 0,
+    isUserPolicyAdmin: getActiveAdminWorkspaces(policies, currentUserLogin).length > 0,
+    isUserInPaidPolicy: hasAnyPaidPolicy(policies),
+});
+
 /**
  * Whether the user could edit the settings of any active group workspace, which is what the upgrade page gates on once a
  * workspace is in the route. Admins pass, and so do editors on a Submit workspace, who `getActiveAdminWorkspaces`
@@ -387,6 +407,11 @@ const createMemberCustomFieldsSelector = (policyIDs: string[]) => {
             }
             const customFieldsByLogin: Record<string, MemberCustomFields> = {};
             for (const [login, employee] of Object.entries(employeeList)) {
+                // Despite the non-null employee type, entries can be null or undefined at runtime.
+                // Skip them so valid members' custom fields are still selected without crashing Search.
+                if (!employee) {
+                    continue;
+                }
                 customFieldsByLogin[login] = Object.fromEntries(customFieldKeys.map((key) => [key, employee[key]]));
             }
             customFieldsByPolicyID[policyID] = customFieldsByLogin;
@@ -707,6 +732,7 @@ export {
     createWorkspaceListPoliciesSelector,
     activeAdminPoliciesSelector,
     hasActiveAdminPoliciesSelector,
+    productTrainingPolicyFlagsSelector,
     canEditAnyWorkspaceSettingsSelector,
     createHasAdminPolicyWithXeroConnectionSelector,
     createTimeSensitiveAdminPoliciesSelector,

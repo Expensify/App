@@ -11,6 +11,9 @@
 #include "ExpensifyNitroUtils-Swift-Cxx-Umbrella.hpp"
 #include "HybridAppStartTimeModuleSpecSwift.hpp"
 #include "HybridContactsModuleSpecSwift.hpp"
+#include "HybridDocumentDetectorModuleSpecSwift.hpp"
+#include "HybridShareActionHandlerSpecSwift.hpp"
+#include "HybridWindowBarsModuleSpecSwift.hpp"
 #include <NitroModules/NitroDefines.hpp>
 
 namespace margelo::nitro::utils::bridge::swift {
@@ -60,6 +63,70 @@ namespace margelo::nitro::utils::bridge::swift {
     }
     #endif
     ExpensifyNitroUtils::HybridContactsModuleSpec_cxx& swiftPart = swiftWrapper->getSwiftPart();
+    return swiftPart.toUnsafe();
+  }
+  
+  // pragma MARK: std::shared_ptr<HybridDocumentDetectorModuleSpec>
+  std::shared_ptr<HybridDocumentDetectorModuleSpec> create_std__shared_ptr_HybridDocumentDetectorModuleSpec_(void* NON_NULL swiftUnsafePointer) noexcept {
+    ExpensifyNitroUtils::HybridDocumentDetectorModuleSpec_cxx swiftPart = ExpensifyNitroUtils::HybridDocumentDetectorModuleSpec_cxx::fromUnsafe(swiftUnsafePointer);
+    return std::make_shared<margelo::nitro::utils::HybridDocumentDetectorModuleSpecSwift>(swiftPart);
+  }
+  void* NON_NULL get_std__shared_ptr_HybridDocumentDetectorModuleSpec_(std__shared_ptr_HybridDocumentDetectorModuleSpec_ cppType) {
+    std::shared_ptr<margelo::nitro::utils::HybridDocumentDetectorModuleSpecSwift> swiftWrapper = std::dynamic_pointer_cast<margelo::nitro::utils::HybridDocumentDetectorModuleSpecSwift>(cppType);
+    #ifdef NITRO_DEBUG
+    if (swiftWrapper == nullptr) [[unlikely]] {
+      throw std::runtime_error("Class \"HybridDocumentDetectorModuleSpec\" is not implemented in Swift!");
+    }
+    #endif
+    ExpensifyNitroUtils::HybridDocumentDetectorModuleSpec_cxx& swiftPart = swiftWrapper->getSwiftPart();
+    return swiftPart.toUnsafe();
+  }
+  
+  // pragma MARK: std::function<void(const std::vector<SharedFile>& /* result */)>
+  Func_void_std__vector_SharedFile_ create_Func_void_std__vector_SharedFile_(void* NON_NULL swiftClosureWrapper) noexcept {
+    auto swiftClosure = ExpensifyNitroUtils::Func_void_std__vector_SharedFile_::fromUnsafe(swiftClosureWrapper);
+    return [swiftClosure = std::move(swiftClosure)](const std::vector<SharedFile>& result) mutable -> void {
+      swiftClosure.call(result);
+    };
+  }
+  
+  // pragma MARK: std::shared_ptr<HybridShareActionHandlerSpec>
+  std::shared_ptr<HybridShareActionHandlerSpec> create_std__shared_ptr_HybridShareActionHandlerSpec_(void* NON_NULL swiftUnsafePointer) noexcept {
+    ExpensifyNitroUtils::HybridShareActionHandlerSpec_cxx swiftPart = ExpensifyNitroUtils::HybridShareActionHandlerSpec_cxx::fromUnsafe(swiftUnsafePointer);
+    return std::make_shared<margelo::nitro::utils::HybridShareActionHandlerSpecSwift>(swiftPart);
+  }
+  void* NON_NULL get_std__shared_ptr_HybridShareActionHandlerSpec_(std__shared_ptr_HybridShareActionHandlerSpec_ cppType) {
+    std::shared_ptr<margelo::nitro::utils::HybridShareActionHandlerSpecSwift> swiftWrapper = std::dynamic_pointer_cast<margelo::nitro::utils::HybridShareActionHandlerSpecSwift>(cppType);
+    #ifdef NITRO_DEBUG
+    if (swiftWrapper == nullptr) [[unlikely]] {
+      throw std::runtime_error("Class \"HybridShareActionHandlerSpec\" is not implemented in Swift!");
+    }
+    #endif
+    ExpensifyNitroUtils::HybridShareActionHandlerSpec_cxx& swiftPart = swiftWrapper->getSwiftPart();
+    return swiftPart.toUnsafe();
+  }
+  
+  // pragma MARK: std::function<void()>
+  Func_void create_Func_void(void* NON_NULL swiftClosureWrapper) noexcept {
+    auto swiftClosure = ExpensifyNitroUtils::Func_void::fromUnsafe(swiftClosureWrapper);
+    return [swiftClosure = std::move(swiftClosure)]() mutable -> void {
+      swiftClosure.call();
+    };
+  }
+  
+  // pragma MARK: std::shared_ptr<HybridWindowBarsModuleSpec>
+  std::shared_ptr<HybridWindowBarsModuleSpec> create_std__shared_ptr_HybridWindowBarsModuleSpec_(void* NON_NULL swiftUnsafePointer) noexcept {
+    ExpensifyNitroUtils::HybridWindowBarsModuleSpec_cxx swiftPart = ExpensifyNitroUtils::HybridWindowBarsModuleSpec_cxx::fromUnsafe(swiftUnsafePointer);
+    return std::make_shared<margelo::nitro::utils::HybridWindowBarsModuleSpecSwift>(swiftPart);
+  }
+  void* NON_NULL get_std__shared_ptr_HybridWindowBarsModuleSpec_(std__shared_ptr_HybridWindowBarsModuleSpec_ cppType) {
+    std::shared_ptr<margelo::nitro::utils::HybridWindowBarsModuleSpecSwift> swiftWrapper = std::dynamic_pointer_cast<margelo::nitro::utils::HybridWindowBarsModuleSpecSwift>(cppType);
+    #ifdef NITRO_DEBUG
+    if (swiftWrapper == nullptr) [[unlikely]] {
+      throw std::runtime_error("Class \"HybridWindowBarsModuleSpec\" is not implemented in Swift!");
+    }
+    #endif
+    ExpensifyNitroUtils::HybridWindowBarsModuleSpec_cxx& swiftPart = swiftWrapper->getSwiftPart();
     return swiftPart.toUnsafe();
   }
 

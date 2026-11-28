@@ -28,6 +28,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
 import {resolveCurrentTaxCode} from '@libs/PolicyUtils';
+import {buildMergeDuplicatesParams, buildNewTransactionAfterReviewingDuplicates, canMergeDuplicates} from '@libs/TransactionUtils/duplicates';
 
 import {fontScale} from '@styles/typography';
 
@@ -41,7 +42,6 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -55,10 +55,10 @@ function DynamicConfirmationPage() {
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_CONFIRMATION>>();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_CONFIRMATION.path);
-    const [reviewDuplicates, reviewDuplicatesResult] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES);
+    const [reviewDuplicates] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES);
     const [duplicatedTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(reviewDuplicates?.transactionID)}`);
-    const newTransaction = useMemo(() => TransactionUtils.buildNewTransactionAfterReviewingDuplicates(reviewDuplicates, duplicatedTransaction), [duplicatedTransaction, reviewDuplicates]);
-    const [report, reportResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`);
+    const newTransaction = useMemo(() => buildNewTransactionAfterReviewingDuplicates(reviewDuplicates, duplicatedTransaction), [duplicatedTransaction, reviewDuplicates]);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`);
     const transactionID = TransactionUtils.getTransactionID(report);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [reviewDuplicatesReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reviewDuplicates?.reportID}`);
@@ -68,6 +68,7 @@ function DynamicConfirmationPage() {
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${newTransaction?.reportID}`);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const reportAction = Object.values(reportActions ?? {}).find(
         (action) => ReportActionsUtils.isMoneyRequestAction(action) && ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID === reviewDuplicates?.transactionID,
     );
@@ -76,7 +77,7 @@ function DynamicConfirmationPage() {
 
     const [duplicates] = useTransactionsByID(reviewDuplicates?.duplicates);
     const transactionsMergeParams = useMemo(
-        () => TransactionUtils.buildMergeDuplicatesParams(reviewDuplicates, duplicates ?? [], newTransaction, duplicatedTransaction),
+        () => buildMergeDuplicatesParams(reviewDuplicates, duplicates ?? [], newTransaction, duplicatedTransaction),
         [duplicates, reviewDuplicates, newTransaction, duplicatedTransaction],
     );
     const transactionIDList = transactionsMergeParams.transactionList.map((transaction) => transaction.transactionID);
@@ -121,6 +122,7 @@ function DynamicConfirmationPage() {
             allTransactionViolations,
             allReportActionsList: allReportActions,
             allReportsList: allReports,
+            allReportNameValuePairsList: allReportNameValuePairs,
         });
         if (isSuperWideRHPDisplayed) {
             Navigation.dismissToSuperWideRHP();
@@ -135,7 +137,18 @@ function DynamicConfirmationPage() {
         Navigation.dismissModal({
             afterTransition: () => Navigation.navigate(keptReportRoute, {forceReplace: true}),
         });
-    }, [childReportID, transactionsMergeParams, taxData, currentUserAccountID, currentUserLogin, isSuperWideRHPDisplayed, allTransactionViolations, allReportActions, allReports]);
+    }, [
+        childReportID,
+        transactionsMergeParams,
+        taxData,
+        currentUserAccountID,
+        currentUserLogin,
+        isSuperWideRHPDisplayed,
+        allTransactionViolations,
+        allReportActions,
+        allReports,
+        allReportNameValuePairs,
+    ]);
 
     const handleResolveDuplicates = useCallback(() => {
         resolveDuplicates({...transactionsMergeParams, ...taxData, transactionThreadReportIDMap, allTransactionViolations, allReportActionsList: allReportActions, delegateAccountID});
@@ -166,12 +179,9 @@ function DynamicConfirmationPage() {
     const isDismissingRef = useRef(false);
 
     const shouldShowNotFoundPage =
-        isEmptyObject(report) ||
-        (!ReportUtils.isValidReport(report) && !isDismissingRef.current) ||
-        ReportUtils.isReportNotFound(report) ||
-        (reviewDuplicatesResult.status === 'loaded' && (!newTransaction?.transactionID || !doesTransactionBelongToReport));
+        isEmptyObject(report) || (!ReportUtils.isValidReport(report) && !isDismissingRef.current) || ReportUtils.isReportNotFound(report) || !doesTransactionBelongToReport;
 
-    if (isLoadingOnyxValue(reviewDuplicatesResult, reportResult) || !newTransaction?.transactionID) {
+    if (!newTransaction?.transactionID) {
         return <FullScreenLoadingIndicator onGoBack={() => Navigation.goBack(backPath, {compareParams: false})} />;
     }
 
@@ -238,7 +248,7 @@ function DynamicConfirmationPage() {
                                 }
                                 // Auth's MergeTransactions also rejects a merge when the kept expense's report is no
                                 // longer editable, so block it here and explain rather than failing server-side.
-                                if (!TransactionUtils.canMergeDuplicates(iouReport, transactionIDList)) {
+                                if (!canMergeDuplicates(iouReport, newTransaction?.reportID, transactionIDList)) {
                                     setMergeErrorMessage(translate('violations.cannotMergeDuplicates'));
                                     return;
                                 }

@@ -1,39 +1,11 @@
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
+import {buildReportIDToNameMap, getMentionedReportIDs} from '@libs/ReportIDToNameMapUtils';
+import type {ReportIDToNameMap} from '@libs/ReportIDToNameMapUtils';
 
-import type {OnyxCollection} from 'react-native-onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 import useOnyx from './useOnyx';
 
-/** Mapping from reportID to report name. */
-type ReportIDToNameMap = Record<string, string>;
-
-/** Narrows a reportID -> name map to the rooms whose #name appears in the given markdown, e.g. a draft that will be compared against HTML holding <mention-report reportID=...> */
-function getReportIDToNameMapForRoomsInMarkdown(reportIDToName: ReportIDToNameMap | undefined, markdown: string): ReportIDToNameMap | undefined {
-    if (!reportIDToName || !markdown.includes('#')) {
-        return undefined;
-    }
-    const map: ReportIDToNameMap = {};
-    for (const [reportID, reportName] of Object.entries(reportIDToName)) {
-        // Only rooms can be mentioned in markdown, and their names keep the leading #.
-        if (reportName.startsWith('#') && markdown.includes(reportName)) {
-            map[reportID] = reportName;
-        }
-    }
-    return map;
-}
-
-/** Builds a map of reportID to report name from COLLECTION.REPORT. */
-function buildReportIDToNameMap(reports: OnyxCollection<Report> | undefined): ReportIDToNameMap {
-    const map: ReportIDToNameMap = {};
-    for (const report of Object.values(reports ?? {})) {
-        if (!report) {
-            continue;
-        }
-        map[report.reportID] = report.reportName ?? report.reportID;
-    }
-    return map;
-}
+const EMPTY_REPORT_ID_TO_NAME_MAP: ReportIDToNameMap = {};
 
 /** Returns a map of reportID to report name built from COLLECTION.REPORT. */
 function useReportIDToNameMap(): ReportIDToNameMap {
@@ -41,5 +13,15 @@ function useReportIDToNameMap(): ReportIDToNameMap {
     return buildReportIDToNameMap(reports);
 }
 
+/**
+ * Same as useReportIDToNameMap, but only maps the reports mentioned in the given HTML string.
+ * The selector re-renders the caller only when the names of those reports change.
+ */
+function useMentionedReportIDToNameMap(htmlString: string | undefined): ReportIDToNameMap {
+    const mentionedReportIDs = getMentionedReportIDs(htmlString);
+    const [reportIDToName = EMPTY_REPORT_ID_TO_NAME_MAP] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (reports) => buildReportIDToNameMap(reports, mentionedReportIDs)});
+    return reportIDToName;
+}
+
 export default useReportIDToNameMap;
-export {buildReportIDToNameMap, getReportIDToNameMapForRoomsInMarkdown};
+export {useMentionedReportIDToNameMap};

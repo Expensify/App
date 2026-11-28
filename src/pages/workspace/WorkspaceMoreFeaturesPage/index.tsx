@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderCentralPane from '@components/Header/composed/HeaderCentralPane';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -6,7 +6,6 @@ import Text from '@components/Text';
 
 import useCardFeeds from '@hooks/useCardFeeds';
 import useConfirmModal from '@hooks/useConfirmModal';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -17,7 +16,6 @@ import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import usePolicyConnectionsPrefetch from '@hooks/usePolicyConnectionsPrefetch';
 import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
@@ -70,7 +68,9 @@ import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import {accountIDSelector} from '@selectors/Session';
 import React, {useEffect} from 'react';
+import Onyx from 'react-native-onyx';
 
 import MoreFeaturesSection from './MoreFeaturesSection';
 import MoreFeatureToggle from './MoreFeatureToggle';
@@ -80,12 +80,10 @@ type WorkspaceMoreFeaturesPageProps = WithPolicyAndFullscreenLoadingProps & Plat
 function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPageProps) {
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.moreFeatures');
     const styles = useThemeStyles();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const {isBetaEnabledOrUnknown} = usePermissions();
     // Undefined until the betas load. The action calls below need that distinction, the UI gating just treats it as off
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {showConfirmModal} = useConfirmModal();
     const illustrations = useMemoizedLazyIllustrations([
         'FolderOpen',
@@ -107,21 +105,13 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const policyID = policy?.id;
     const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const hasAccountingConnection = hasAccountingConnections(policy);
-    const perDiemCustomUnit = getPerDiemCustomUnit(policy);
-    const distanceRateCustomUnit = getDistanceRateCustomUnit(policy);
 
     const [cardFeeds] = useCardFeeds(policyID);
     const policyData = usePolicyData(policyID);
     const {categories: policyCategories} = policyData;
     const defaultFundID = useDefaultFundID(policyID);
 
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
-    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
-    const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
-    const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
-    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID.toString()}_${CONST.EXPENSIFY_CARD.BANK}`, {
         selector: filterInactiveCards,
     });
@@ -157,9 +147,11 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     //
     // Use the active vendor source so a stale GA connection cannot bypass the beta for another
     // integration. When no source is active, keep the connected integration's discovery row.
-    // QBO (R1), Sage Intacct (R2), Xero (R3), Rillet, DualEntry, Campfire, and Zoho Books are GA. Business Central and Certinia require the vendorMatching beta.
+    // QBO (R1), Sage Intacct (R2), Xero (R3), Rillet, DualEntry, Campfire, Zoho Books, and Digits are GA. Business Central and Certinia require the vendorMatching beta.
     // Certinia is deliberately not in the discovery list. It reaches the row only through
     // getActiveVendorMatchingIntegration's strict FFA gate, so PSA connections never see it.
+    // QBD is also not in the discovery list. It reaches the row only through
+    // getActiveVendorMatchingIntegration when beta + Codat + CREDIT_CARD_CHARGE are all true.
     const vendorMatchingConnection =
         getActiveVendorMatchingIntegration(policy) ??
         getConnectedIntegration(policy, [
@@ -170,6 +162,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             CONST.POLICY.CONNECTIONS.NAME.DUALENTRY,
             CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE,
             CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS,
+            CONST.POLICY.CONNECTIONS.NAME.DIGITS,
             CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL,
         ]);
     const isGenerallyAvailableVendorConnection =
@@ -179,7 +172,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.RILLET ||
         vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.DUALENTRY ||
         vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE ||
-        vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS;
+        vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS ||
+        vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.DIGITS;
     const shouldShowVendorsFeature = isGenerallyAvailableVendorConnection || (!!isVendorMatchingBetaEnabled && !!vendorMatchingConnection);
 
     const warnAccountingManagesOrganizeFeature = async () => {
@@ -207,6 +201,18 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         });
     };
 
+    const navigateToConcierge = async () => {
+        const [conciergeReportID, introSelected, onboarding, session] = await Onyx.multiGet([
+            ONYXKEYS.CONCIERGE_REPORT_ID,
+            ONYXKEYS.NVP_INTRO_SELECTED,
+            ONYXKEYS.NVP_ONBOARDING,
+            ONYXKEYS.SESSION,
+        ]);
+        const currentUserAccountID = accountIDSelector(session) ?? CONST.DEFAULT_NUMBER_ID;
+        const {isSelfTourViewed, hasCompletedGuidedSetupFlow} = guidedSetupAndTourStatusSelector(onboarding);
+        navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, hasCompletedGuidedSetupFlow, conciergePersonalDetails, shouldDismissModal: false});
+    };
+
     const promptDisableExpensifyCardViaConcierge = async () => {
         const {action} = await showConfirmModal({
             title: translate('workspace.moreFeatures.expensifyCard.disableCardTitle'),
@@ -217,7 +223,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         if (action !== ModalActions.CONFIRM) {
             return;
         }
-        navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, hasCompletedGuidedSetupFlow, conciergePersonalDetails, shouldDismissModal: false});
+        navigateToConcierge();
     };
 
     const promptDisableTravelViaInvoicing = async () => {
@@ -243,7 +249,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         if (action !== ModalActions.CONFIRM) {
             return;
         }
-        navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, hasCompletedGuidedSetupFlow, conciergePersonalDetails, shouldDismissModal: false});
+        navigateToConcierge();
     };
 
     const promptDisableDistanceRatesForCommuterExclusions = async () => {
@@ -277,6 +283,27 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
 
     useNetwork({onReconnect: () => openPolicyMoreFeaturesPage(route.params.policyID)});
 
+    const togglePerDiem = async (isEnabled: boolean) => {
+        if (!policyID) {
+            return;
+        }
+        if (isEnabled && !isControlPolicy(policy)) {
+            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.perDiem.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)));
+            return;
+        }
+        const perDiemCustomUnit = getPerDiemCustomUnit(policy);
+        const quickAction = await Onyx.get(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
+        enablePerDiem(policyID, isEnabled, perDiemCustomUnit?.customUnitID, true, quickAction);
+    };
+
+    const toggleTaxes = async (isEnabled: boolean) => {
+        if (!policyID) {
+            return;
+        }
+        const governmentMileageRates = await Onyx.get(ONYXKEYS.GOVERNMENT_MILEAGE_RATES);
+        enablePolicyTaxes(policyID, isEnabled, isVendorMatchingBetaEnabled, {policy, governmentMileageRates, policyData});
+    };
+
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
@@ -289,13 +316,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 testID="WorkspaceMoreFeaturesPage"
                 shouldShowOfflineIndicatorInWideScreen
             >
-                <HeaderWithBackButton
-                    shouldUseHeadlineHeader
-                    title={translate('workspace.common.moreFeatures')}
-                    shouldShowBackButton={shouldUseNarrowLayout}
-                    shouldDisplayHelpButton
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
+                <HeaderCentralPane title={translate('workspace.common.moreFeatures')} />
 
                 <ScrollView addBottomSafeAreaPadding>
                     <Text style={[styles.ph5, styles.mb5, styles.mt3, styles.textSupporting, styles.workspaceSectionMobile]}>{translate('workspace.moreFeatures.subtitle')}</Text>
@@ -351,16 +372,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             pendingAction={policy?.pendingFields?.tax}
                             disabled={!canWriteMoreFeatures || hasAccountingConnection}
                             disabledAction={withReadOnlyFallback(warnAccountingManagesOrganizeFeature)}
-                            onToggle={(isEnabled) => {
-                                if (!policyID) {
-                                    return;
-                                }
-                                if (isEnabled) {
-                                    enablePolicyTaxes(policyID, true, isVendorMatchingBetaEnabled, policy?.taxRates, policyData);
-                                    return;
-                                }
-                                enablePolicyTaxes(policyID, false, isVendorMatchingBetaEnabled, undefined, policyData);
-                            }}
+                            onToggle={toggleTaxes}
                             onPress={() => {
                                 if (!policyID) {
                                     return;
@@ -467,6 +479,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                     promptDisableDistanceRatesForCommuterExclusions();
                                     return;
                                 }
+                                const distanceRateCustomUnit = getDistanceRateCustomUnit(policy);
                                 enablePolicyDistanceRates(policyID, isEnabled, distanceRateCustomUnit);
                             }}
                             onPress={() => {
@@ -560,18 +573,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             pendingAction={policy?.pendingFields?.arePerDiemRatesEnabled}
                             disabled={!canWriteMoreFeatures}
                             disabledAction={withReadOnlyFallback()}
-                            onToggle={(isEnabled) => {
-                                if (!policyID) {
-                                    return;
-                                }
-                                if (isEnabled && !isControlPolicy(policy)) {
-                                    Navigation.navigate(
-                                        ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.perDiem.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)),
-                                    );
-                                    return;
-                                }
-                                enablePerDiem(policyID, isEnabled, perDiemCustomUnit?.customUnitID, true, quickAction);
-                            }}
+                            onToggle={togglePerDiem}
                             onPress={() => {
                                 if (!policyID) {
                                     return;

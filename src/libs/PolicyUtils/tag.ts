@@ -2,7 +2,7 @@
  * Helpers for a policy's tags: tag-list lookup, parent-tag matching for dependent tags, tag names, and GL codes.
  * Extracted from PolicyUtils/index.ts to keep that file smaller.
  */
-import {getTagArrayFromName} from '@libs/TransactionUtils';
+import getTagArrayFromName from '@libs/TransactionUtils/getTagArrayFromName';
 
 import CONST from '@src/CONST';
 import type {Policy, PolicyTagLists, PolicyTags} from '@src/types/onyx';
@@ -99,7 +99,11 @@ function matchesParentTagPath(policyTag: ValueOf<PolicyTags>, parentTagPath: str
  * Dependent tag lists can hold same-named child tags under different parents (stored under unique
  * record keys), so a tag only matches by name when its parent filter also matches the parent tag path.
  */
-function findPolicyTagAtLevel(levelTags: PolicyTags, tagName: string, parentTagPath: string): ValueOf<PolicyTags> | undefined {
+function findPolicyTagAtLevel(levelTags: PolicyTags | null | undefined, tagName: string, parentTagPath: string): ValueOf<PolicyTags> | undefined {
+    if (!levelTags) {
+        return undefined;
+    }
+
     const matchesTagAtLevel = (levelTag: ValueOf<PolicyTags> | undefined): levelTag is ValueOf<PolicyTags> => {
         if (!levelTag || levelTag.name !== tagName) {
             return false;
