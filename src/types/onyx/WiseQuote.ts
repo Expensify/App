@@ -1,3 +1,7 @@
+import type CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
+
 /** Wise's price for paying a report through a global provider, held for 30 minutes. Amounts are in cents */
 type WiseQuote = {
     /** Wise's quote UUID, sent back with Pay */
@@ -43,5 +47,20 @@ type WiseQuoteRequest = {
     isFXCostPaidByCompany?: boolean;
 };
 
+/** Why Wise refused to price the payment, sent by the server in place of a quote */
+type WiseQuoteError = {
+    /** Which of Wise's checks the payment failed */
+    code: ValueOf<typeof CONST.WISE.QUOTE_ERROR_CODE>;
+
+    /** The most or least Wise sends, in hundredths of `limitCurrency` like every amount, even in a currency without decimals. Always sent for `maxAmount`, and for `minAmount` only when Wise gives its minimum */
+    limit?: number;
+
+    /** Currency of `limit`, sent exactly when `limit` is */
+    limitCurrency?: string;
+
+    /** Currency of the employee's bank account */
+    paymentCurrency: string;
+};
+
 export default WiseQuote;
-export type {WiseQuoteRequest};
+export type {WiseQuoteError, WiseQuoteRequest};

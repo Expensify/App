@@ -1987,6 +1987,13 @@ const translations: TranslationDeepObject<typeof en> = {
                 one: '1 note de frais',
                 other: `${count} notes de frais`,
             }),
+            amountAboveWiseMaximum: ({limit}: {limit: string}) =>
+                `Le montant maximal que vous pouvez payer via Wise est de ${limit}. Payez d’une autre manière et marquez la note de frais comme payée.`,
+            amountBelowWiseMinimum: ({limit}: {limit: string}) =>
+                `Le montant minimum que vous pouvez payer avec Wise est de ${limit}. Payez autrement et marquez la note de frais comme payée.`,
+            amountTooSmallForWise: 'Ce montant est trop faible pour être payé via Wise. Réglez-le d’une autre façon et marquez la note de frais comme payée.',
+            paymentUnavailable: ({currency}: {currency: string}) =>
+                `Nous n’avons pas pu configurer ce paiement. Notre partenaire de paiement ne peut pas envoyer d’argent vers un compte bancaire en ${currency} pour le moment, et nous avons été informés. Pour payer maintenant, utilisez un autre moyen de paiement et marquez la note de frais comme payée.`,
         },
         confirmPayAmount: 'Payez ce qui n’est pas en attente, ou payez l’intégralité de la note de frais.',
         confirmPayAllHoldAmount: () => ({

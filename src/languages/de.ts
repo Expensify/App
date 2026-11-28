@@ -1979,6 +1979,13 @@ const translations: TranslationDeepObject<typeof en> = {
                 one: '1 Bericht',
                 other: `${count} Berichte`,
             }),
+            amountAboveWiseMaximum: ({limit}: {limit: string}) =>
+                `Das meiste, was Sie über Wise bezahlen können, ist ${limit}. Bezahlen Sie auf einem anderen Weg und markieren Sie den Bericht als bezahlt.`,
+            amountBelowWiseMinimum: ({limit}: {limit: string}) =>
+                `Der Mindestbetrag, den Sie über Wise bezahlen können, beträgt ${limit}. Bezahlen Sie auf eine andere Weise und markieren Sie den Bericht als bezahlt.`,
+            amountTooSmallForWise: 'Dieser Betrag ist zu gering, um über Wise bezahlt zu werden. Bezahlen Sie auf einem anderen Weg und markieren Sie den Bericht als bezahlt.',
+            paymentUnavailable: ({currency}: {currency: string}) =>
+                `Wir konnten diese Zahlung nicht einrichten. Unser Zahlungspartner kann derzeit kein Geld auf ein ${currency}-Bankkonto senden und wurde darüber informiert. Um jetzt zu bezahlen, wählen Sie eine andere Zahlungsmethode und markieren Sie den Bericht als bezahlt.`,
         },
         confirmPayAmount: 'Bezahle, was nicht zurückgestellt ist, oder bezahle den gesamten Bericht.',
         confirmPayAllHoldAmount: () => ({

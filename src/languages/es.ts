@@ -1966,6 +1966,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 one: '1 informe',
                 other: `${count} informes`,
             }),
+            amountAboveWiseMaximum: ({limit}: {limit: string}) => `Lo máximo que puedes pagar a través de Wise es ${limit}. Paga de otra forma y marca el informe como pagado.`,
+            amountBelowWiseMinimum: ({limit}: {limit: string}) => `Lo mínimo que puedes pagar a través de Wise es ${limit}. Paga de otra forma y marca el informe como pagado.`,
+            amountTooSmallForWise: 'Este importe es demasiado bajo para pagarlo a través de Wise. Paga de otra forma y marca el informe como pagado.',
+            paymentUnavailable: ({currency}: {currency: string}) =>
+                `No pudimos configurar este pago. Nuestro socio de pagos no puede enviar dinero a una cuenta bancaria en ${currency} en este momento, y ya se nos ha notificado. Para pagar ahora, paga de otra forma y marca el informe como pagado.`,
         },
         confirmPayAmount: 'Paga lo que no está retenido, o paga el informe completo.',
         confirmPayAllHoldAmount: () => ({

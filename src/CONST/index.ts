@@ -1133,6 +1133,13 @@ const CONST = {
             'ZW',
         ] as string[],
 
+        /** Why Wise refused to price a payment, sent by GetWiseQuote in `wiseQuoteError.code` */
+        QUOTE_ERROR_CODE: {
+            MAX_AMOUNT: 'maxAmount',
+            MIN_AMOUNT: 'minAmount',
+            UNAVAILABLE: 'unavailable',
+        },
+
         /** Server-derived state of the Wise onboarding */
         ONBOARDING_STATUS: {
             IN_REVIEW: 'IN_REVIEW',

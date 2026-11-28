@@ -1976,6 +1976,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 one: '1 resoconto',
                 other: `${count} resoconti`,
             }),
+            amountAboveWiseMaximum: ({limit}: {limit: string}) => `L’importo massimo che puoi pagare tramite Wise è ${limit}. Paga in un altro modo e contrassegna il resoconto come pagato.`,
+            amountBelowWiseMinimum: ({limit}: {limit: string}) => `L'importo minimo che puoi pagare tramite Wise è ${limit}. Paga in un altro modo e contrassegna il resoconto come pagato.`,
+            amountTooSmallForWise: 'Questo importo è troppo basso per essere pagato tramite Wise. Paga in un altro modo e contrassegna il report come pagato.',
+            paymentUnavailable: ({currency}: {currency: string}) =>
+                `Non siamo riusciti a configurare questo pagamento. Al momento il nostro partner di pagamento non può inviare denaro a un conto bancario in ${currency} e siamo stati avvisati. Per pagare subito, usa un altro metodo di pagamento e contrassegna il report come pagato.`,
         },
         confirmPayAmount: 'Paga le voci non in sospeso oppure paga l’intero resoconto.',
         confirmPayAllHoldAmount: () => ({

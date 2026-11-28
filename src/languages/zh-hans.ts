@@ -1907,6 +1907,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 one: '1 份报告',
                 other: `${count} 份报告`,
             }),
+            amountAboveWiseMaximum: ({limit}: {limit: string}) => `通过 Wise 支付的最高金额为 ${limit}。请通过其他方式付款，并将报表标记为已支付。`,
+            amountBelowWiseMinimum: ({limit}: {limit: string}) => `通过 Wise 支付的最低金额为 ${limit}。请通过其他方式付款并将报告标记为已支付。`,
+            amountTooSmallForWise: '通过 Wise 支付的金额太小。请使用其他方式付款，并将报销单标记为“已支付”。',
+            paymentUnavailable: ({currency}: {currency: string}) =>
+                `我们无法设置此付款。目前我们的支付合作伙伴无法向${currency}银行账户汇款，我们已收到相关通知。若需立即付款，请使用其他方式付款并将报销单标记为已支付。`,
         },
         confirmPayAmount: '支付未冻结的部分，或支付整份报告。',
         confirmPayAllHoldAmount: () => ({

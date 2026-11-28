@@ -2137,6 +2137,11 @@ const translations = {
                 one: '1 report',
                 other: `${count} reports`,
             }),
+            amountAboveWiseMaximum: ({limit}: {limit: string}) => `The most you can pay through Wise is ${limit}. Pay another way and mark the report as paid.`,
+            amountBelowWiseMinimum: ({limit}: {limit: string}) => `The least you can pay through Wise is ${limit}. Pay another way and mark the report as paid.`,
+            amountTooSmallForWise: 'This amount is too small to pay through Wise. Pay another way and mark the report as paid.',
+            paymentUnavailable: ({currency}: {currency: string}) =>
+                `We couldn't set up this payment. Our payment partner can't send money to a ${currency} bank account at the moment, and we've been notified. To pay now, pay another way and mark the report as paid.`,
         },
         confirmPayAmount: "Pay what's not on hold, or pay the entire report.",
         confirmPayAllHoldAmount: () => ({
