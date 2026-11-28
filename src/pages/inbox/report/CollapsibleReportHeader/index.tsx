@@ -98,8 +98,11 @@ function MobileWebCollapsibleReportHeader({children}: CollapsibleReportHeaderPro
             }
 
             if (current.hide) {
-                if (previous?.hide !== true) {
+                // A rotation re-measures the header mid-collapse, and the new size can reset it to shown
+                if (previous?.hide !== true || current.height !== previous.height) {
                     collapseHeaderTo(animatedHeight, 0);
+                }
+                if (previous?.hide !== true) {
                     scheduleOnRN(setIsHidden, true);
                 }
                 return;

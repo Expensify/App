@@ -8,6 +8,7 @@ import ROUTE_TO_NAVIGATION_TAB from '@components/Navigation/NavigationTabBar/ROU
 import {COLLAPSE_SURFACE, layoutTransitionStyle, useSearchSidebarCollapse} from '@components/Navigation/SearchSidebarCollapseStore';
 import {SetNavigatorTabBarVisibleContext} from '@components/Navigation/TabBarBottomContent/NavigatorTabBarVisibilityProvider';
 
+import useIsLandscapeKeyboardOpen from '@hooks/useIsLandscapeKeyboardOpen';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
@@ -20,10 +21,11 @@ import cancelTabNavigationSpans, {NAVIGATION_TAB_TO_SPANS} from '@libs/telemetry
 import variables from '@styles/variables';
 
 import SCREENS from '@src/SCREENS';
+import KeyboardUtils from '@src/utils/keyboard';
 
 import type {BottomTabBarProps} from '@react-navigation/bottom-tabs';
 
-import React, {useContext, useEffect, useLayoutEffect, useState} from 'react';
+import React, {useContext, useEffect, useLayoutEffect, useState, useSyncExternalStore} from 'react';
 import {View} from 'react-native';
 
 /**
@@ -80,17 +82,25 @@ function TabNavigatorBar({state}: Pick<BottomTabBarProps, 'state'>) {
         setIsNavigatorTabBarVisible(!isHidden);
     }, [isHidden, setIsNavigatorTabBarVisible]);
 
+    // On browsers that resize the page for the keyboard, the bar docks above it and covers the focused input in
+    // landscape. The keyboard check brings the bar back when the keyboard closes while the input keeps focus. A plain
+    // height check can't tell the keyboard from the browser toolbar showing. The context isn't updated, so the tab
+    // root's copy stays hidden too.
+    const isLandscapeInputFocused = useIsLandscapeKeyboardOpen();
+    const isKeyboardVisible = useSyncExternalStore(KeyboardUtils.subscribeKeyboardVisibilityChange, KeyboardUtils.isKeyboardVisible);
+    const shouldHideNarrowBar = isHidden || (isLandscapeInputFocused && isKeyboardVisible);
+
     if (shouldUseNarrowLayout) {
         // Negative marginTop overlays the tab bar on content (zero flex space) to prevent layout shifts.
         // box-none lets taps beside the bar, such as next to the shorter landscape bar, reach the content under it.
         return (
             <View
-                style={[StyleUtils.getTabBarNarrowStyle(safeAreaPaddingBottom, isInLandscapeMode), isHidden && styles.opacity0]}
-                pointerEvents={isHidden ? 'none' : 'box-none'}
+                style={[StyleUtils.getTabBarNarrowStyle(safeAreaPaddingBottom, isInLandscapeMode), shouldHideNarrowBar && styles.opacity0]}
+                pointerEvents={shouldHideNarrowBar ? 'none' : 'box-none'}
             >
                 <NavigationTabBar
                     selectedTab={selectedTab}
-                    shouldShowFloatingButtons={!isHidden}
+                    shouldShowFloatingButtons={!shouldHideNarrowBar}
                 />
             </View>
         );
