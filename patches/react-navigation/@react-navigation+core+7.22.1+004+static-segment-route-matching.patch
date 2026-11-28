@@ -1,0 +1,113 @@
+diff --git a/node_modules/@react-navigation/core/lib/module/getStateFromPath.js b/node_modules/@react-navigation/core/lib/module/getStateFromPath.js
+index 9b12a90..6c5317e 100644
+--- a/node_modules/@react-navigation/core/lib/module/getStateFromPath.js
++++ b/node_modules/@react-navigation/core/lib/module/getStateFromPath.js
+@@ -267,7 +267,32 @@ function checkForDuplicatedConfigs(existing, config, pattern) {
+     throw new Error(`Found conflicting screens with the same pattern. The pattern '${pattern}' resolves to both '${a.join(' > ')}' and '${b.join(' > ')}'. Patterns must be unique and cannot resolve to more than one screen.`);
+   }
+ }
++// A config's regex only runs when its static segments match the path, so most route regexes are never compiled.
++const canMatchStaticSegments = (configSegments, rawSegments) => {
++  for (let i = 0; i < configSegments.length; i++) {
++    const segment = configSegments[i];
++    if (segment === '*' || segment.endsWith('?')) {
++      return true;
++    }
++    if (segment.startsWith(':')) {
++      continue;
++    }
++    const rawSegment = rawSegments[i];
++    if (rawSegment === undefined) {
++      return false;
++    }
++    let decodedSegment = rawSegment;
++    try {
++      decodedSegment = decodeURIComponent(rawSegment);
++    } catch {}
++    if (segment !== rawSegment && segment !== decodedSegment) {
++      return false;
++    }
++  }
++  return true;
++};
+ const matchAgainstConfigs = (remaining, firstDecodedSegment, firstRawSegment, configs, configsByScreen) => {
++  const rawSegments = remaining.split('/').filter(Boolean);
+   let routes;
+   let remainingPath = remaining;
+   let matchingConfig;
+@@ -280,6 +305,9 @@ const matchAgainstConfigs = (remaining, firstDecodedSegment, firstRawSegment, co
+     if (!canMatchFirstSegment(config.segments[0], firstDecodedSegment, firstRawSegment)) {
+       continue;
+     }
++    if (!canMatchStaticSegments(config.segments, rawSegments)) {
++      continue;
++    }
+     const match = remainingPath.match(config.regex);
+ 
+     // If our regex matches, we need to extract params from the path
+diff --git a/node_modules/@react-navigation/core/src/getStateFromPath.tsx b/node_modules/@react-navigation/core/src/getStateFromPath.tsx
+index f5bd01f..bc0f877 100644
+--- a/node_modules/@react-navigation/core/src/getStateFromPath.tsx
++++ b/node_modules/@react-navigation/core/src/getStateFromPath.tsx
+@@ -417,6 +417,42 @@ function checkForDuplicatedConfigs(
+   }
+ }
+ 
++// A config's regex only runs when its static segments match the path, so most route regexes are never compiled.
++const canMatchStaticSegments = (
++  configSegments: string[],
++  rawSegments: string[]
++) => {
++  for (let i = 0; i < configSegments.length; i++) {
++    const segment = configSegments[i];
++
++    if (segment === '*' || segment.endsWith('?')) {
++      return true;
++    }
++
++    if (segment.startsWith(':')) {
++      continue;
++    }
++
++    const rawSegment = rawSegments[i];
++
++    if (rawSegment === undefined) {
++      return false;
++    }
++
++    let decodedSegment = rawSegment;
++
++    try {
++      decodedSegment = decodeURIComponent(rawSegment);
++    } catch {}
++
++    if (segment !== rawSegment && segment !== decodedSegment) {
++      return false;
++    }
++  }
++
++  return true;
++};
++
+ const matchAgainstConfigs = (
+   remaining: string,
+   firstDecodedSegment: string | undefined,
+@@ -424,6 +460,7 @@ const matchAgainstConfigs = (
+   configs: RouteConfig[],
+   configsByScreen: Record<string, RouteConfig[]>
+ ) => {
++  const rawSegments = remaining.split('/').filter(Boolean);
+   let routes: ParsedRoute[] | undefined;
+   let remainingPath = remaining;
+   let matchingConfig: RouteConfig | undefined;
+@@ -444,6 +481,10 @@ const matchAgainstConfigs = (
+       continue;
+     }
+ 
++    if (!canMatchStaticSegments(config.segments, rawSegments)) {
++      continue;
++    }
++
+     const match = remainingPath.match(config.regex);
+ 
+     // If our regex matches, we need to extract params from the path

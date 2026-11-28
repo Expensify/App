@@ -34,6 +34,13 @@
 - PR Introducing Patch: N/A
 - Note: Drop this patch once call sites handle the missing state explicitly (a guarded `getRootState()` helper in `src/libs/Navigation` would cover most of them). Until then, calling `getRootState()` before the container mounts logs react-navigation's `NOT_INITIALIZED_ERROR` and returns `undefined` at runtime while the type claims otherwise, same as before the upgrade.
 
+### [@react-navigation+core+7.22.1+004+static-segment-route-matching.patch](@react-navigation+core+7.22.1+004+static-segment-route-matching.patch)
+
+- Reason: `getStateFromPath` runs the regex of every route that shares the URL's first segment, and 446 of the 634 routes in `ROUTES.ts` start with `workspaces/`, so the first workspace page of a session compiles hundreds of regexes on web. This patch skips a route when any of its static segments doesn't match the URL.
+- Upstream PR/issue: https://github.com/react-navigation/react-navigation/pull/13348, https://github.com/react-navigation/react-navigation/issues/13347
+- E/App issue: https://github.com/Expensify/App/issues/107027
+- PR Introducing Patch: https://github.com/Expensify/App/pull/107026
+
 ### [@react-navigation+native+7.4.1+001+initial.patch](@react-navigation+native+7.4.1+001+initial.patch)
 
 - Reason: Allows us to use some more advanced navigation actions without messing up the browser history
