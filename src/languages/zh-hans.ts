@@ -12989,5 +12989,21 @@ ${reportName}`,
         receivedPayment: '已收款',
         markedAsManuallyExported: (label: string) => `已将此报表标记为已手动导出到 ${label}`,
     },
+    reimbursementIntentStep: {
+        title: '你通常想怎么付款？',
+        subtitle: '别担心，之后你可以同时设置这两种方式。',
+        payViaExpensify: '通过 Expensify 支付',
+        payViaExpensifyDescription: '快速、安全、便捷',
+        payViaABAFile: '通过 ABA 文件在其他地方付款',
+        payViaABAFileDescription: '用于手动付款',
+    },
+    abaWithdrawalDetailsStep: {
+        title: '您的账户详细信息是什么？',
+        bsbNumber: 'BSB',
+        bankUserIdentificationNumber: '银行用户识别号',
+        companyName: '公司名称',
+        includeSelfBalancingTransaction: '在 ABA 文件中包含自平衡交易',
+        error: {bsbNumber: '请输入有效的 BSB，例如 123-456', bankUserIdentificationNumber: '请输入有效的银行用户识别号，最多 6 位数字'},
+    },
 };
 export default translations;

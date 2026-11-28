@@ -1570,7 +1570,11 @@ function setWorkspaceReimbursement({
     bankAccountList = {},
 }: SetWorkspaceReimbursementActionParams) {
     const lastUsedPaymentMethod = typeof lastPaymentMethod === 'string' ? lastPaymentMethod : lastPaymentMethod?.expense?.name;
+    const isForABA = bankAccountID !== undefined && !!bankAccountList?.[bankAccountID]?.accountData?.additionalData?.isForABA;
     const shouldClearBankAccountID = reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+
+    // Expensify can't pay from an ABA account, so the server saves it under reimbursement.countries instead of as the achAccount
+    const optimisticAchAccount = isForABA ? undefined : {reimburser: reimburserEmail, bankAccountID, accountNumber, addressName, bankName, state};
 
     const oldBankAccountID = Object.keys(bankAccountList ?? {}).find((accountID) => {
         const account = bankAccountList?.[accountID];
@@ -1591,7 +1595,7 @@ function setWorkspaceReimbursement({
                 reimbursementChoice,
                 isLoadingWorkspaceReimbursement: true,
                 reimburser: reimburserEmail,
-                achAccount: shouldClearBankAccountID ? null : {reimburser: reimburserEmail, bankAccountID, accountNumber, addressName, bankName, state},
+                achAccount: shouldClearBankAccountID ? null : optimisticAchAccount,
                 errorFields: {reimbursementChoice: null},
                 pendingFields: {reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
             },

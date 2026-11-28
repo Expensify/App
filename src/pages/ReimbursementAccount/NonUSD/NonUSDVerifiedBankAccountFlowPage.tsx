@@ -1,4 +1,5 @@
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -23,6 +24,7 @@ import BusinessInfo from './BusinessInfo/BusinessInfo';
 import Country from './Country';
 import Docusign from './Docusign';
 import Finish from './Finish';
+import ReimbursementIntent from './ReimbursementIntent';
 import SignerInfo from './SignerInfo';
 import getInitialSubPageForSignerInfoStep from './utils/getInitialSubPageForSignerInfoStep';
 import requiresDocusignStep from './utils/requiresDocusignStep';
@@ -42,6 +44,7 @@ type PageEntry = {
 
 const allPages: PageEntry[] = [
     {pageName: PAGE_NAME.CURRENCY_AND_COUNTRY, component: Country},
+    {pageName: PAGE_NAME.REIMBURSEMENT_INTENT, component: ReimbursementIntent},
     {pageName: PAGE_NAME.BANK_INFO, component: BankInfo, firstSubPage: BANK_INFO_SUB_PAGES.BANK_ACCOUNT_DETAILS, lastSubPage: BANK_INFO_SUB_PAGES.CONFIRMATION},
     {pageName: PAGE_NAME.BUSINESS_INFO, component: BusinessInfo, firstSubPage: BUSINESS_INFO_SUB_PAGES.NAME, lastSubPage: BUSINESS_INFO_SUB_PAGES.CONFIRMATION},
     {
@@ -62,6 +65,7 @@ type NonUSDVerifiedBankAccountFlowPageProps = PlatformStackScreenProps<Reimburse
 
 function NonUSDVerifiedBankAccountFlowPage({route}: NonUSDVerifiedBankAccountFlowPageProps) {
     const styles = useThemeStyles();
+    const {isBetaEnabled} = usePermissions();
     const policyID = route.params?.policyID;
     const currentPage = route.params?.page;
     const currentSubPage = route.params?.subPage;
@@ -83,7 +87,12 @@ function NonUSDVerifiedBankAccountFlowPage({route}: NonUSDVerifiedBankAccountFlo
     const initialSignerSubPage = getInitialSubPageForSignerInfoStep(savedSignerEmail, savedSignerFullName, savedSecondSignerEmail, currency);
 
     const isAUD = currency === CONST.CURRENCY.AUD;
-    const filteredPages = isDocusignStepRequired ? allPages : allPages.filter((page) => page.pageName !== PAGE_NAME.DOCUSIGN);
+
+    // Only AUD workspaces can choose to pay outside of Expensify with ABA files
+    const shouldShowReimbursementIntent = isAUD && isBetaEnabled(CONST.BETAS.PAY_VIA_ABA);
+    const filteredPages = allPages.filter(
+        (page) => (isDocusignStepRequired || page.pageName !== PAGE_NAME.DOCUSIGN) && (shouldShowReimbursementIntent || page.pageName !== PAGE_NAME.REIMBURSEMENT_INTENT),
+    );
     const pages = filteredPages.map((page) => {
         if (page.pageName !== PAGE_NAME.SIGNER_INFO) {
             return page;

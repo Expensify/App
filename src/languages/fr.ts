@@ -13623,5 +13623,24 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         receivedPayment: 'paiement reçu',
         markedAsManuallyExported: (label: string) => `a marqué cette note de frais comme exportée manuellement vers ${label}`,
     },
+    reimbursementIntentStep: {
+        title: 'Comment veux-tu généralement payer ?',
+        subtitle: 'Ne vous inquiétez pas, vous pourrez configurer les deux méthodes plus tard.',
+        payViaExpensify: 'Payer via Expensify',
+        payViaExpensifyDescription: 'Rapide, sécurisé et simple',
+        payViaABAFile: 'Payer ailleurs via fichier ABA',
+        payViaABAFileDescription: 'Pour les paiements manuels',
+    },
+    abaWithdrawalDetailsStep: {
+        title: 'Quelles sont les informations de votre compte ?',
+        bsbNumber: 'BSB',
+        bankUserIdentificationNumber: 'Numéro d’identification d’utilisateur bancaire',
+        companyName: 'Nom de l’entreprise',
+        includeSelfBalancingTransaction: 'Inclure une transaction auto-équilibrée dans le fichier ABA',
+        error: {
+            bsbNumber: 'Veuillez saisir un BSB valide, comme 123-456',
+            bankUserIdentificationNumber: 'Veuillez saisir un identifiant utilisateur bancaire valide comportant jusqu’à 6 chiffres',
+        },
+    },
 };
 export default translations;

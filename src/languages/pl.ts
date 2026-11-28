@@ -13553,5 +13553,24 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
         receivedPayment: 'otrzymano płatność',
         markedAsManuallyExported: (label: string) => `oznaczył ten raport jako ręcznie wyeksportowany do ${label}`,
     },
+    reimbursementIntentStep: {
+        title: 'Jak zwykle chcesz zapłacić?',
+        subtitle: 'Spokojnie, oba sposoby możesz skonfigurować później.',
+        payViaExpensify: 'Zapłać przez Expensify',
+        payViaExpensifyDescription: 'Szybko, bezpiecznie i łatwo',
+        payViaABAFile: 'Zapłać gdzie indziej za pomocą pliku ABA',
+        payViaABAFileDescription: 'Dla płatności ręcznych',
+    },
+    abaWithdrawalDetailsStep: {
+        title: 'Jakie są dane twojego konta?',
+        bsbNumber: 'BSB',
+        bankUserIdentificationNumber: 'Numer identyfikacyjny użytkownika banku',
+        companyName: 'Nazwa firmy',
+        includeSelfBalancingTransaction: 'Uwzględnij transakcję samobilansującą w pliku ABA',
+        error: {
+            bsbNumber: 'Wpisz poprawny numer BSB, na przykład 123-456',
+            bankUserIdentificationNumber: 'Wpisz prawidłowy identyfikator użytkownika banku składający się z maksymalnie 6 cyfr',
+        },
+    },
 };
 export default translations;

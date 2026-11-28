@@ -3558,6 +3558,7 @@ const SENTRY_LABEL = {
         PAYMENT_CARD_SECURITY_LINK: 'SettingsSubscription-PaymentCardSecurityLink',
     },
     REIMBURSEMENT_ACCOUNT: {
+        ABA_WITHDRAWAL_SUCCESS_CONTINUE: 'ReimbursementAccount-ABAWithdrawalSuccessContinue',
         BENEFICIAL_OWNERS_CONFIRM: 'ReimbursementAccount-BeneficialOwnersConfirm',
         BANK_ACCOUNT_ADDED_CONFIRM: 'ReimbursementAccount-BankAccountAddedConfirm',
         BENEFICIAL_OWNER_ROW: 'ReimbursementAccount-BeneficialOwnerRow',
@@ -3587,6 +3588,8 @@ const SENTRY_LABEL = {
         FINISH_CHAT_WITH_CONCIERGE: 'ReimbursementAccount-FinishChatWithConcierge',
         FINISH_ENABLE_TWO_FACTOR_AUTH: 'ReimbursementAccount-FinishEnableTwoFactorAuth',
         KYB_DOCUMENTS_FINISH_VIA_CHAT: 'ReimbursementAccount-KYBDocumentsFinishViaChat',
+        REIMBURSEMENT_INTENT_PAY_VIA_ABA_FILE: 'ReimbursementAccount-ReimbursementIntentPayViaABAFile',
+        REIMBURSEMENT_INTENT_PAY_VIA_EXPENSIFY: 'ReimbursementAccount-ReimbursementIntentPayViaExpensify',
         SIGNER_INFO_DOWNLOAD_PDS_AND_FSG: 'ReimbursementAccount-SignerInfoDownloadPDSAndFSG',
         SIGNER_INFO_SEND_REMINDER: 'ReimbursementAccount-SignerInfoSendReminder',
         UBO_CONFIRM: 'ReimbursementAccount-UBOConfirm',
