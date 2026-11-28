@@ -41,14 +41,14 @@ describe('useMCPConnectionListings', () => {
     });
 
     it('should open Grok connectors when an admin connects Grok', () => {
-        // Given an admin and Grok
+        // Given an admin and Grok, which now has its own connectors directory
         const {result} = renderHook(() => useMCPConnectionListings(policy));
         const grok = result.current.find((listing) => listing.key === 'grok');
 
         // When the admin connects Grok
         grok?.onConnect?.();
 
-        // Then MCP is enabled and Grok connectors opens
+        // Then MCP is enabled and Grok's directory opens instead of the generic MCP help article
         expect(enablePolicyFeatureForConnection).toHaveBeenCalledWith(policy, CONST.POLICY.MORE_FEATURES.IS_MCP_ENABLED);
         expect(openExternalLink).toHaveBeenCalledWith(CONST.GROK_CONNECT_URL);
     });
