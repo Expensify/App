@@ -11,6 +11,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
+import getModalKeyboardPadding from '@libs/getModalKeyboardPadding';
 import isTablet from '@libs/isTablet';
 
 import CONST from '@src/CONST';
@@ -87,9 +88,16 @@ function FilterPopupButton({
     const shouldPadForKeyboard = isSmallScreenWidth && !isTablet();
     const {height: keyboardOffset} = useReanimatedKeyboardAnimation();
     const {windowHeight} = useWindowDimensions();
-    // Without edge-to-edge (HybridApp) the modal stops above the navigation bar while the keyboard height counts from the screen bottom, so that overlap is not padded again.
-    const modalBottomInset = Math.min(Math.max(windowHeight - Dimensions.get('window').height - safeAreaPaddingTop, 0), safeAreaPaddingBottom);
-    const keyboardRoomStyle = useAnimatedStyle(() => ({paddingBottom: Math.max(safeAreaPaddingBottom, -keyboardOffset.get() - modalBottomInset)}));
+    const modalWindowHeight = Dimensions.get('window').height;
+    const keyboardRoomStyle = useAnimatedStyle(() => ({
+        paddingBottom: getModalKeyboardPadding({
+            keyboardHeight: -keyboardOffset.get(),
+            frameHeight: windowHeight,
+            windowHeight: modalWindowHeight,
+            safeAreaPaddingTop,
+            safeAreaPaddingBottom,
+        }),
+    }));
     const triggerRef = useRef<ComponentRef<typeof View> | null>(null);
     const anchorRef = useRef<ComponentRef<typeof View> | null>(null);
     const [isOverlayVisible, setIsOverlayVisible] = useState(false);
