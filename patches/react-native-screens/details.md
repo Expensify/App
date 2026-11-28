@@ -134,3 +134,11 @@
 - Upstream PR/issue: not reported yet.
 - E/App issue: [#107266](https://github.com/Expensify/App/issues/107266)
 - PR introducing patch: [#107282](https://github.com/Expensify/App/pull/107282)
+
+### [react-native-screens+4.28.0+011+defer-android-tab-selection-during-fragment-lifecycle.patch](react-native-screens+4.28.0+011+defer-android-tab-selection-during-fragment-lifecycle.patch)
+
+- Reason: Android fragment appearance events can synchronously flush Fabric updates through Reanimated. A pending native-tab selection then commits a second fragment transaction while FragmentManager is still executing the lifecycle transition. Track appearance callbacks per FragmentManager and defer selection until the next main-loop turn, retaining newer requests and cancelling retries on detach or teardown. Theme and tab-property updates also wait for an initial selection before reading its appearance. This adapts the upstream lifecycle-tracking approach to 4.28.0's gamma tabs and View.post update mechanism. It does not change the separate attach-time navigation restoration path. Remove the patch once a consumed release includes the upstream fix and the initial-selection appearance guards.
+- Upstream PR/issue: [Defer tab selection during fragment lifecycle callbacks](https://github.com/software-mansion/react-native-screens/pull/5266), [FragmentManager is already executing transactions](https://github.com/software-mansion/react-native-screens/issues/4199)
+- E/App issue: [Native-tab fragment transaction crash](https://github.com/Expensify/App/issues/107765)
+- PR introducing patch: [Defer Android native-tab selection during fragment lifecycle callbacks](https://github.com/Expensify/App/pull/108250)
+- Attribution: Based on [ayolyn's proposal](https://github.com/Expensify/App/issues/107765#issuecomment-7157057587) and the upstream work linked above, with additional initial-selection appearance guards.
