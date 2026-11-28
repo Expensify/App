@@ -152,11 +152,11 @@ function WorkspaceCompanyCardsTable({
 
     const hasNoAssignedCard = Object.keys(assignedCards ?? {}).length === 0;
 
-    // Keep settled page failures actionable even before the workspace account ID resolves.
-    // Also synthesize an error if policy loading finishes without an account ID and the page never loaded,
-    // since Onyx discards collection writes for member ID '0'. Hide it during requests so retries can load.
-    const shouldShowWorkspaceFeedsLoadError =
-        !isOffline && !isPageRequestLoading && (hasPageLoadError || (domainOrWorkspaceAccountID === CONST.DEFAULT_NUMBER_ID && isPolicyLoaded && !pageLoadingState?.hasOnceLoadedPage));
+    // Keep settled page failures actionable even before the workspace account ID resolves. A workspace whose account ID
+    // resolved to 0 can't show feeds, since Onyx discards collection writes for member ID '0', so it keeps the error even
+    // after a page request succeeds. Hide it during requests so retries can load.
+    const hasNoWorkspaceAccount = domainOrWorkspaceAccountID === CONST.DEFAULT_NUMBER_ID && isPolicyLoaded;
+    const shouldShowWorkspaceFeedsLoadError = !isOffline && !isPageRequestLoading && (hasPageLoadError || hasNoWorkspaceAccount);
     const workspaceCardFeedsErrors = shouldShowWorkspaceFeedsLoadError
         ? {
               [CONST.COMPANY_CARDS.WORKSPACE_FEEDS_LOAD_ERROR]: translate('workspace.companyCards.error.workspaceFeedsCouldNotBeLoadedMessage'),

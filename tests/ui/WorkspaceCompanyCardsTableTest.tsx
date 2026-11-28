@@ -314,12 +314,26 @@ describe('WorkspaceCompanyCardsTable unresolved workspace account ID', () => {
     });
 
     it('still shows the feeds load error once the policy is loaded and the account ID is genuinely 0', async () => {
+        // Given a loaded policy whose account ID resolved to 0
+        const pageKey = `${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_PAGE_LOADING_STATE}${POLICY_ID}` as const;
         renderTable(buildCompanyCards({workspaceCardFeedsStatus: {}}), false, {domainOrWorkspaceAccountID: CONST.DEFAULT_NUMBER_ID});
 
         await waitForBatchedUpdates();
 
         expect(screen.queryByTestId('WorkspaceCompanyCardsTableLoadingIndicator')).toBeNull();
         expect(screen.getByText(TestHelper.translateLocal('workspace.companyCards.error.workspaceFeedsCouldNotBeLoadedTitle'))).toBeTruthy();
+
+        // When a retry is pending, temporarily hide the error so the loading state can render
+        await act(async () => Onyx.merge(pageKey, {isLoadingPage: true, hasLoadingError: false}));
+        expect(screen.queryByText(TestHelper.translateLocal('workspace.companyCards.error.workspaceFeedsCouldNotBeLoadedTitle'))).toBeNull();
+        expect(screen.getByTestId('WorkspaceCompanyCardsTableLoadingIndicator')).toBeTruthy();
+
+        // Then a successful response cannot remove the error while the resolved account ID remains 0
+        await act(async () => Onyx.merge(pageKey, {isLoadingPage: false, hasLoadingError: false, hasOnceLoadedPage: true}));
+        expect(screen.getByText(TestHelper.translateLocal('workspace.companyCards.error.workspaceFeedsCouldNotBeLoadedTitle'))).toBeTruthy();
+        expect(screen.getByText(TestHelper.translateLocal('common.tryAgain'))).toBeTruthy();
+        expect(screen.queryByTestId('WorkspaceCompanyCardsTableLoadingIndicator')).toBeNull();
+        expect(screen.queryByTestId('WorkspaceCompanyCardPageEmptyState')).toBeNull();
     });
 
     it('shows a terminal page error despite unresolved account and initial loading guards and keeps failed retries actionable', async () => {
