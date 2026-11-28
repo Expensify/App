@@ -27,6 +27,11 @@ declare global {
     // `CANVASKIT_WASM_FILENAME` in `config/rsbuild/rsbuild.common.ts`.
     // eslint-disable-next-line @typescript-eslint/naming-convention, no-underscore-dangle
     const __CANVASKIT_WASM_URL__: string;
+
+    // Injected by Rspack's DefinePlugin at build time: the host that serves both New Expensify and Expensify Classic in the build's
+    // environment (e.g. `expensify.com`), or an empty string. See `getDefineValues` in `config/rsbuild/rsbuild.common.ts`.
+    // eslint-disable-next-line @typescript-eslint/naming-convention, no-underscore-dangle
+    const __SHARED_PRODUCT_HOST__: string;
 }
 
 export {};

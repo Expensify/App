@@ -52,6 +52,8 @@ module.exports = {
         WebSocket: {},
         // Build-time define from config/rsbuild/rsbuild.common.ts. SkiaWebChart reads it when mounting CanvasKit.
         __CANVASKIT_WASM_URL__: '/canvaskit-test.wasm',
+        // Build-time define from config/rsbuild/rsbuild.common.ts: the shared product host of the development environment.
+        __SHARED_PRODUCT_HOST__: 'expensify.com.dev',
     },
     fakeTimers: {
         enableGlobally: true,

@@ -1,5 +1,8 @@
-/** Verify upgrade navigation markers are removed before app routing starts. */
+/** Verify upgrade navigation markers are removed before app routing starts, and the service worker is registered only where it belongs. */
 import {APP_UPDATE_QUERY_PARAM} from '@libs/AppUpdateURL';
+import {isSharedProductHost, readExperienceCookie} from '@libs/ExperienceCookie';
+
+import CONST from '@src/CONST';
 
 import {AppRegistry} from 'react-native';
 
@@ -9,7 +12,18 @@ jest.mock('@libs/CacheAPI', () => ({__esModule: true, default: {init: jest.fn()}
 jest.mock('@libs/checkForUpdates', () => ({__esModule: true, default: jest.fn()}));
 jest.mock('@libs/DateUtils', () => ({__esModule: true, default: {startCurrentDateUpdater: jest.fn()}}));
 jest.mock('@libs/Visibility', () => ({__esModule: true, default: {isVisible: jest.fn()}}));
-jest.mock('@src/CONFIG', () => ({__esModule: true, default: {IS_IN_PRODUCTION: false, APP_NAME: 'test-app'}}));
+jest.mock('@libs/ExperienceCookie', () => ({isSharedProductHost: jest.fn(() => false), readExperienceCookie: jest.fn(() => undefined)}));
+
+let mockIsInProduction = false;
+jest.mock('@src/CONFIG', () => ({
+    __esModule: true,
+    default: {
+        get IS_IN_PRODUCTION() {
+            return mockIsInProduction;
+        },
+        APP_NAME: 'test-app',
+    },
+}));
 
 const {default: platformSetup} = jest.requireActual<{default: typeof platformSetupImpl}>('../../src/setup/platformSetup/index.ts');
 
@@ -56,5 +70,136 @@ describe('web upgrade marker cleanup', () => {
 
         // Then no unnecessary history update is made
         expect(replaceState).not.toHaveBeenCalled();
+    });
+});
+
+describe('service worker registration', () => {
+    let register: jest.Mock;
+    let deleteCache: jest.Mock;
+    let openCache: jest.Mock;
+
+    beforeEach(() => {
+        mockIsInProduction = true;
+        jest.spyOn(AppRegistry, 'runApplication').mockImplementation(() => {});
+        register = jest.fn(async () => ({}));
+        deleteCache = jest.fn(async () => true);
+        openCache = jest.fn(async () => ({}));
+        Object.defineProperty(navigator, 'serviceWorker', {
+            configurable: true,
+            value: {register},
+        });
+        Object.defineProperty(globalThis, 'caches', {
+            configurable: true,
+            value: {delete: deleteCache, open: openCache},
+        });
+        jest.mocked(isSharedProductHost).mockReturnValue(false);
+        jest.mocked(readExperienceCookie).mockReturnValue(undefined);
+    });
+
+    afterEach(() => {
+        mockIsInProduction = false;
+        jest.restoreAllMocks();
+        Reflect.deleteProperty(navigator, 'serviceWorker');
+        Reflect.deleteProperty(globalThis, 'caches');
+    });
+
+    /** Runs web setup and the page load that registers the worker */
+    async function startAppAndLoad() {
+        const loadListeners: EventListener[] = [];
+        jest.spyOn(window, 'addEventListener').mockImplementation((type, listener) => {
+            if (type !== 'load' || typeof listener !== 'function') {
+                return;
+            }
+            loadListeners.push(listener);
+        });
+        platformSetup();
+        for (const listener of loadListeners) {
+            listener(new Event('load'));
+        }
+        // Registration waits for Cache Storage first; process.nextTick is not faked, unlike timers
+        for (let tick = 0; tick < 2; tick++) {
+            await new Promise<void>((resolve) => {
+                process.nextTick(resolve);
+            });
+        }
+    }
+
+    it('registers the worker on New Expensify’s own host without touching Cache Storage', async () => {
+        // Given New Expensify on its own host, where saving media is never blocked
+        jest.mocked(isSharedProductHost).mockReturnValue(false);
+
+        // When the app starts
+        await startAppAndLoad();
+
+        // Then the worker is registered as before the shared host existed
+        expect(register).toHaveBeenCalledTimes(1);
+        expect(deleteCache).not.toHaveBeenCalled();
+        expect(openCache).not.toHaveBeenCalled();
+    });
+
+    it.each([
+        ['for a New Expensify user', CONST.EXPERIENCE_COOKIE.VALUES.NEW, true],
+        ['for an Expensify Classic user', CONST.EXPERIENCE_COOKIE.VALUES.CLASSIC, false],
+        ['without the experience cookie', undefined, false],
+    ] as const)('registers the worker on the shared host %s only when it should', async (_, cookie, shouldRegister) => {
+        // Given the shared host and the product the experience cookie selects
+        jest.mocked(isSharedProductHost).mockReturnValue(true);
+        jest.mocked(readExperienceCookie).mockReturnValue(cookie);
+
+        // When the app starts
+        await startAppAndLoad();
+
+        // Then only New Expensify users get the worker, and saved media is unblocked first
+        expect(register).toHaveBeenCalledTimes(shouldRegister ? 1 : 0);
+        expect(deleteCache).toHaveBeenCalledTimes(shouldRegister ? 1 : 0);
+        if (shouldRegister) {
+            expect(deleteCache).toHaveBeenCalledWith('user-media-blocked');
+            expect(deleteCache.mock.invocationCallOrder.at(0)).toBeLessThan(register.mock.invocationCallOrder.at(0) ?? 0);
+        }
+    });
+
+    it('does not register the worker when another tab switches to Classic before the page loads', async () => {
+        // Given a New Expensify user on the shared host, whose cookie another tab changed to Classic before the page finished loading
+        jest.mocked(isSharedProductHost).mockReturnValue(true);
+        jest.mocked(readExperienceCookie).mockReturnValue(CONST.EXPERIENCE_COOKIE.VALUES.CLASSIC);
+
+        // When the page finishes loading
+        await startAppAndLoad();
+
+        // Then the block the other tab set stays and no worker is registered, so Classic keeps working without one
+        expect(deleteCache).not.toHaveBeenCalled();
+        expect(register).not.toHaveBeenCalled();
+    });
+
+    it('restores the block when another tab switches to Classic while saved media is being unblocked', async () => {
+        // Given a New Expensify user on the shared host, whose cookie another tab changes to Classic after this page starts unblocking media
+        jest.mocked(isSharedProductHost).mockReturnValue(true);
+        jest.mocked(readExperienceCookie).mockReturnValueOnce(CONST.EXPERIENCE_COOKIE.VALUES.NEW).mockReturnValue(CONST.EXPERIENCE_COOKIE.VALUES.CLASSIC);
+
+        // When the page finishes loading
+        await startAppAndLoad();
+
+        // Then the block removed by this page is created again and saved media deleted, and no worker is registered
+        expect(deleteCache).toHaveBeenNthCalledWith(1, 'user-media-blocked');
+        expect(openCache).toHaveBeenCalledWith('user-media-blocked');
+        expect(deleteCache).toHaveBeenLastCalledWith('user-media');
+        expect(register).not.toHaveBeenCalled();
+    });
+
+    it('registers the worker even when unblocking saved media fails', async () => {
+        // Given a New Expensify user on the shared host, and Cache Storage that rejects
+        jest.mocked(isSharedProductHost).mockReturnValue(true);
+        jest.mocked(readExperienceCookie).mockReturnValue(CONST.EXPERIENCE_COOKIE.VALUES.NEW);
+        deleteCache.mockRejectedValue(new Error('Cache Storage unavailable'));
+        const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+        // When the app starts
+        await startAppAndLoad();
+
+        // Then the worker is still registered
+        expect(register).toHaveBeenCalledWith('/service-worker.js', {
+            updateViaCache: 'none',
+        });
+        expect(warn).toHaveBeenCalledWith('[SW] failed to unblock saved media', expect.any(Error));
     });
 });

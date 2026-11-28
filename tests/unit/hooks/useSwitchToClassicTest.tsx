@@ -5,7 +5,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import useOpenClassic from '@hooks/useOpenClassic';
 import useSwitchToClassic from '@hooks/useSwitchToClassic';
 
-import {writeExperienceCookie} from '@libs/ExperienceCookie';
+import {isSharedProductHost, writeExperienceCookie} from '@libs/ExperienceCookie';
 import Growl from '@libs/Growl';
 
 import Navigation from '@navigation/Navigation';
@@ -25,7 +25,7 @@ import Onyx from 'react-native-onyx';
 import getOnyxValue from '../../utils/getOnyxValue';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
-jest.mock('@libs/ExperienceCookie', () => ({writeExperienceCookie: jest.fn(() => true), clearExperienceCookie: jest.fn(() => true)}));
+jest.mock('@libs/ExperienceCookie', () => ({writeExperienceCookie: jest.fn(() => true), clearExperienceCookie: jest.fn(() => true), isSharedProductHost: jest.fn(() => false)}));
 jest.mock('@userActions/Link', () => ({openOldDotLink: jest.fn()}));
 jest.mock('@userActions/ExitSurvey', () => ({...jest.requireActual<Record<string, unknown>>('@userActions/ExitSurvey'), switchToOldDot: jest.fn()}));
 jest.mock('@navigation/Navigation', () => ({__esModule: true, default: {dismissModal: jest.fn()}}));
@@ -61,6 +61,32 @@ async function respond(results: Record<string, SwitchResult>) {
     await waitForBatchedUpdatesWithAct();
 }
 
+/** Stands in for the service worker registration and Cache Storage that New Expensify leaves behind on the shared host */
+function arrangeServiceWorker() {
+    const unregister = jest.fn(async () => true);
+    const getRegistrations = jest.fn(async () => [{unregister}]);
+    const cacheStorage = {
+        open: jest.fn(async () => ({})),
+        delete: jest.fn(async () => true),
+        has: jest.fn(async () => false),
+    };
+    Object.defineProperty(navigator, 'serviceWorker', {
+        configurable: true,
+        value: {getRegistrations},
+    });
+    Object.defineProperty(globalThis, 'caches', {
+        configurable: true,
+        value: cacheStorage,
+    });
+    return {unregister, getRegistrations, cacheStorage};
+}
+
+async function renderOpenClassic() {
+    const rendered = renderHook(() => useOpenClassic(), {wrapper: Wrapper});
+    await waitForBatchedUpdatesWithAct();
+    return rendered;
+}
+
 async function arrangeAccount(betas: Beta[], session?: Partial<Session>) {
     await Onyx.set(ONYXKEYS.BETAS, betas);
     await Onyx.set(ONYXKEYS.SESSION, {accountID: 1, email: 'user@expensify.com', authToken: 'token', ...session});
@@ -75,6 +101,11 @@ describe('useSwitchToClassic', () => {
     beforeEach(async () => {
         await Onyx.clear();
         jest.clearAllMocks();
+    });
+
+    afterEach(() => {
+        Reflect.deleteProperty(navigator, 'serviceWorker');
+        Reflect.deleteProperty(globalThis, 'caches');
     });
 
     it('marks the cookie and opens Classic only after the server saves the switch', async () => {
@@ -297,5 +328,68 @@ describe('useSwitchToClassic', () => {
         expect(writeExperienceCookie).toHaveBeenCalledWith(CONST.EXPERIENCE_COOKIE.VALUES.CLASSIC);
         expect(openOldDotLink).toHaveBeenCalledWith(CONST.OLDDOT_URLS.INBOX, true);
         expect(switchToOldDot).not.toHaveBeenCalled();
+    });
+
+    it('removes the service worker before opening Classic on the shared host', async () => {
+        // Given New Expensify on the host that serves both products, with its service worker and saved media
+        await arrangeAccount([CONST.BETAS.HYBRID_WEB]);
+        jest.mocked(isSharedProductHost).mockReturnValue(true);
+        const {unregister, cacheStorage} = arrangeServiceWorker();
+        const {result} = await renderOpenClassic();
+
+        // When the user opens Classic
+        await act(async () => {
+            result.current();
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then saving media is blocked, saved media is deleted and the worker is unregistered before Classic opens
+        expect(cacheStorage.open).toHaveBeenCalledWith('user-media-blocked');
+        expect(cacheStorage.delete).toHaveBeenCalledWith('user-media');
+        const order = [
+            jest.mocked(writeExperienceCookie).mock.invocationCallOrder.at(0),
+            cacheStorage.open.mock.invocationCallOrder.at(0),
+            cacheStorage.delete.mock.invocationCallOrder.at(0),
+            unregister.mock.invocationCallOrder.at(0),
+            jest.mocked(openOldDotLink).mock.invocationCallOrder.at(0),
+        ];
+        expect(order).toEqual([...order].sort((a = 0, b = 0) => a - b));
+        expect(openOldDotLink).toHaveBeenCalledWith(CONST.OLDDOT_URLS.INBOX, true);
+    });
+
+    it('opens Classic on the shared host even when removing the service worker fails', async () => {
+        // Given Cache Storage and the service worker registry both fail
+        await arrangeAccount([CONST.BETAS.HYBRID_WEB]);
+        jest.mocked(isSharedProductHost).mockReturnValue(true);
+        const {getRegistrations, cacheStorage} = arrangeServiceWorker();
+        cacheStorage.open.mockRejectedValue(new Error('Cache Storage unavailable'));
+        getRegistrations.mockRejectedValue(new Error('Service workers unavailable'));
+        const {result} = await renderOpenClassic();
+
+        // When the user opens Classic
+        await act(async () => {
+            result.current();
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then Classic still opens
+        expect(openOldDotLink).toHaveBeenCalledWith(CONST.OLDDOT_URLS.INBOX, true);
+    });
+
+    it("keeps New Expensify's service worker on its own host", async () => {
+        // Given New Expensify on new.expensify.com, where its offline support must not change
+        await arrangeAccount([CONST.BETAS.HYBRID_WEB]);
+        jest.mocked(isSharedProductHost).mockReturnValue(false);
+        const {getRegistrations, cacheStorage} = arrangeServiceWorker();
+        const {result} = await renderOpenClassic();
+
+        // When the user opens Classic
+        act(() => result.current());
+
+        // Then Classic opens right away and the worker and its caches stay
+        expect(openOldDotLink).toHaveBeenCalledWith(CONST.OLDDOT_URLS.INBOX, true);
+        expect(getRegistrations).not.toHaveBeenCalled();
+        expect(cacheStorage.open).not.toHaveBeenCalled();
+        expect(cacheStorage.delete).not.toHaveBeenCalled();
     });
 });

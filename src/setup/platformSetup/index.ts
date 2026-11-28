@@ -2,9 +2,12 @@ import {APP_UPDATE_QUERY_PARAM} from '@libs/AppUpdateURL';
 import CacheAPI from '@libs/CacheAPI';
 import checkForUpdates from '@libs/checkForUpdates';
 import DateUtils from '@libs/DateUtils';
+import {isSharedProductHost, readExperienceCookie} from '@libs/ExperienceCookie';
+import {blockAndClearUserMedia, unblockUserMedia} from '@libs/UserMediaCache';
 import Visibility from '@libs/Visibility';
 
 import Config from '@src/CONFIG';
+import CONST from '@src/CONST';
 
 import type {AppRegistry as WebAppRegistry} from 'react-native-web';
 
@@ -61,6 +64,40 @@ const webUpdater = (): PlatformSpecificUpdater => ({
     update: () => webUpdate(),
 });
 
+/** On the host that serves both products, only New Expensify users get the worker, so Expensify Classic users never have one */
+function canUseServiceWorker(): boolean {
+    return !isSharedProductHost() || readExperienceCookie() === CONST.EXPERIENCE_COOKIE.VALUES.NEW;
+}
+
+/**
+ * Only the host that serves both products blocks saved media, when the user signs out of Classic or switches to it,
+ * so New Expensify's own hosts register the worker without touching Cache Storage.
+ */
+async function registerServiceWorker(): Promise<void> {
+    if (isSharedProductHost()) {
+        // Another tab can switch to Classic before this page loads, so the cookie is read again before each step
+        if (!canUseServiceWorker()) {
+            return;
+        }
+
+        // The block holds until the app starts again for a New Expensify user
+        try {
+            await unblockUserMedia();
+        } catch (error) {
+            // Soft-fail: a block that stays only stops media from being saved, so we only log the error to the console
+            // eslint-disable-next-line no-console
+            console.warn('[SW] failed to unblock saved media', error);
+        }
+
+        // A switch to Classic while the block was being removed needs the block back and no worker
+        if (!canUseServiceWorker()) {
+            await blockAndClearUserMedia();
+            return;
+        }
+    }
+    await navigator.serviceWorker.register('/service-worker.js', {updateViaCache: 'none'});
+}
+
 export default function () {
     // The worker has already handled this navigation. Later navigations should open the saved app instead of waiting for the network.
     const url = new URL(window.location.href);
@@ -88,7 +125,7 @@ export default function () {
     // Service worker is only emitted in production builds (InjectManifest is skipped in dev).
     if (Config.IS_IN_PRODUCTION && 'serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/service-worker.js', {updateViaCache: 'none'}).catch((error) => {
+            registerServiceWorker().catch((error: unknown) => {
                 // Soft-fail: app must continue working even if SW registration fails (Safari Private mode, etc.).
                 // eslint-disable-next-line no-console
                 console.warn('[SW] registration failed', error);
