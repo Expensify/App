@@ -2,6 +2,7 @@ import AccountUtils from '@libs/AccountUtils';
 import {setOnboardingErrorMessage} from '@libs/actions/Welcome';
 import Log from '@libs/Log';
 import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
+import {keepNativeShareForOnboardingExit} from '@libs/Navigation/helpers/pendingNativeShare';
 import {getDeepestFocusedScreen, isTwoFactorSetupScreen} from '@libs/Navigation/Navigation';
 
 import {getOnboardingInitialPath} from '@userActions/Welcome/OnboardingFlow';
@@ -333,6 +334,12 @@ const OnboardingGuard: NavigationGuard = {
                 return {type: 'BLOCK', reason: 'Cannot navigate away from onboarding before it is completed'};
             }
             return {type: 'ALLOW'};
+        }
+
+        // The redirect drops the share flow (it is a dismissible modal), so keep the share for the onboarding exit.
+        const isShareFlowAffected = getActionTargetName(action) === NAVIGATORS.SHARE_MODAL_NAVIGATOR || state.routes.some((route) => route.name === NAVIGATORS.SHARE_MODAL_NAVIGATOR);
+        if (isShareFlowAffected) {
+            keepNativeShareForOnboardingExit();
         }
 
         // User needs onboarding - calculate the correct step and redirect

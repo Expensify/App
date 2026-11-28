@@ -9,8 +9,10 @@ import Log from '@libs/Log';
 import {setDeepLinkToOpenAfterOnboarding} from '@libs/navigateAfterOnboarding';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import {hasJoinWorkspaceTaskParam} from '@libs/Navigation/helpers/isJoinWorkspaceTaskPath';
+import isNativeShareLink from '@libs/Navigation/helpers/isNativeShareLink';
 import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
 import normalizePath from '@libs/Navigation/helpers/normalizePath';
+import {setPendingNativeShare, shouldParkNativeShare} from '@libs/Navigation/helpers/pendingNativeShare';
 import shouldOpenOnAdminRoom from '@libs/Navigation/helpers/shouldOpenOnAdminRoom';
 import swapBackgroundTabForRHPTarget from '@libs/Navigation/helpers/swapBackgroundTabForRHPTarget';
 import willRouteNavigateToRHP from '@libs/Navigation/helpers/willRouteNavigateToRHP';
@@ -515,6 +517,14 @@ function openReportFromDeepLink(
     // The native OAuth callback is consumed by the auth session that opened it. linkingConfig.filter already drops
     // it for signed-in users, but this post-sign-in navigate runs outside react-navigation's linking.
     if (isNativeOAuthCallbackURL(url)) {
+        return;
+    }
+
+    // A native share that arrives before it is known whether onboarding comes first is parked, not replayed below.
+    // useOnboardingFlowRouter or the onboarding exit opens it. See #101425.
+    // An anonymous session is not parked: the replay below sends it to sign-in, since it cannot access the share flow.
+    if (isNativeShareLink(route) && shouldParkNativeShare(isAuthenticated) && !isAnonymousUser(currentSession)) {
+        setPendingNativeShare();
         return;
     }
 
