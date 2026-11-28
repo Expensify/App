@@ -39,7 +39,7 @@ function precacheReceiptImage(sourceUri: string) {
  * If it wasn't, this hook generates a thumbnail as a fallback, but in that case
  * a source swap (flash) may occur.
  */
-function useLocalReceiptThumbnail(sourceUri: string | undefined, isLocalFile: boolean): {thumbnailUri: string | undefined; isGenerating: boolean} {
+function useLocalReceiptThumbnail(sourceUri: string | undefined, isLocalFile: boolean, {generateIfMissing = true} = {}): {thumbnailUri: string | undefined; isGenerating: boolean} {
     const [asyncResult, setAsyncResult] = useState<{source: string; uri?: string; done: boolean} | undefined>();
     const [, startTransition] = useTransition();
     const retainedUriRef = useRef<string | undefined>(undefined);
@@ -52,7 +52,7 @@ function useLocalReceiptThumbnail(sourceUri: string | undefined, isLocalFile: bo
     const resolvedUri = cachedUri ?? resultForCurrentSource?.uri;
     const thumbnailUri = resolvedUri && upgradeCount > 0 ? `${resolvedUri.split('#').at(0) ?? resolvedUri}#upgraded${upgradeCount}` : resolvedUri;
 
-    const shouldGenerate = !!sourceUri && isLocalFile && !cachedUri;
+    const shouldGenerate = generateIfMissing && !!sourceUri && isLocalFile && !cachedUri;
     const isGenerating = shouldGenerate && !resultForCurrentSource?.done;
 
     // Retain / release the cache entry so it lives as long as at least one
@@ -74,7 +74,7 @@ function useLocalReceiptThumbnail(sourceUri: string | undefined, isLocalFile: bo
 
     // Fallback: generate if not already in cache (e.g. gallery pick path)
     useEffect(() => {
-        if (!sourceUri || !isLocalFile || thumbnailCache.has(sourceUri)) {
+        if (!generateIfMissing || !sourceUri || !isLocalFile || thumbnailCache.has(sourceUri)) {
             return;
         }
 
@@ -103,7 +103,7 @@ function useLocalReceiptThumbnail(sourceUri: string | undefined, isLocalFile: bo
         return () => {
             cancelled = true;
         };
-    }, [sourceUri, isLocalFile, startTransition]);
+    }, [sourceUri, isLocalFile, generateIfMissing, startTransition]);
 
     return {thumbnailUri, isGenerating};
 }
