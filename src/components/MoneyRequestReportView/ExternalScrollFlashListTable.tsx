@@ -171,7 +171,7 @@ type ExternalScrollFlashListTableProps<T> = {
     /** Where the table region starts within the parent page's scrollable content (px from the top). */
     offsetTop: number;
 
-    /** End of the rows in the parent's scroll coordinates, excluding the summary. */
+    /** End of the rows relative to the table header's natural top, excluding the summary. */
     onTableEndOffsetChange?: (offset: number) => void;
 
     /** Imperative handle exposing row positions in page space (see ExternalScrollFlashListTableHandle). */
@@ -214,7 +214,8 @@ function ExternalScrollFlashListTable<T>({
         if (!layout) {
             return;
         }
-        onTableEndOffsetChange?.(offsetTop + (listRef.current?.getFirstItemOffset() ?? 0) + layout.y + layout.height);
+        // Keep the bound independent of content above the table, which can move without a nested layout commit.
+        onTableEndOffsetChange?.((listRef.current?.getFirstItemOffset() ?? 0) + layout.y + layout.height);
     };
 
     useImperativeHandle(

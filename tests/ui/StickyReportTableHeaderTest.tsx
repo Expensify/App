@@ -14,7 +14,7 @@ describe('StickyReportTableHeader', () => {
         // Given a header below report fields, controls and nonzero content padding.
         const scrollOffsetStore = createScrollOffsetStore();
         const tableEndOffsetStore = createScrollOffsetStore();
-        tableEndOffsetStore.setOffset(1000);
+        tableEndOffsetStore.setOffset(780);
         render(
             <StickyReportTableHeader
                 scrollOffsetStore={scrollOffsetStore}
@@ -50,7 +50,7 @@ describe('StickyReportTableHeader', () => {
         const scrollOffsetStore = createScrollOffsetStore();
         const tableEndOffsetStore = createScrollOffsetStore();
         scrollOffsetStore.setOffset(700);
-        tableEndOffsetStore.setOffset(1000);
+        tableEndOffsetStore.setOffset(800);
         const {rerender} = render(
             <StickyReportTableHeader
                 scrollOffsetStore={scrollOffsetStore}
@@ -65,7 +65,7 @@ describe('StickyReportTableHeader', () => {
         expect(header).toHaveStyle({transform: [{translateY: 500}]});
 
         // When expenses are removed and the header grows.
-        act(() => tableEndOffsetStore.setOffset(720));
+        act(() => tableEndOffsetStore.setOffset(520));
         fireEvent(header, 'layout', {nativeEvent: {layout: {height: 60}}});
 
         // Then it leaves before the new table end without waiting for another scroll.
@@ -81,7 +81,36 @@ describe('StickyReportTableHeader', () => {
                 <Text>Column labels</Text>
             </StickyReportTableHeader>,
         );
-        expect(header).toHaveStyle({transform: [{translateY: 360}]});
+        expect(header).toHaveStyle({transform: [{translateY: 400}]});
+    });
+
+    it('preserves the last-row bound when content above the table changes without a layout commit', () => {
+        // Given a header pushed off at the last row with table-local geometry published once.
+        const scrollOffsetStore = createScrollOffsetStore();
+        const tableEndOffsetStore = createScrollOffsetStore();
+        scrollOffsetStore.setOffset(1200);
+        tableEndOffsetStore.setOffset(800);
+        const renderHeader = (offsetTop: number) => (
+            <StickyReportTableHeader
+                scrollOffsetStore={scrollOffsetStore}
+                tableEndOffsetStore={tableEndOffsetStore}
+                offsetTop={offsetTop}
+            >
+                <Text>Column labels</Text>
+            </StickyReportTableHeader>
+        );
+        const {rerender} = render(renderHeader(200));
+        const header = screen.getByTestId('sticky-report-table-header');
+        fireEvent(header, 'layout', {nativeEvent: {layout: {height: 40}}});
+        expect(header).toHaveStyle({transform: [{translateY: 760}]});
+
+        // When report fields grow and shrink without another measurement or scroll notification.
+        for (const offsetTop of [300, 100]) {
+            rerender(renderHeader(offsetTop));
+
+            // Then push-off still ends exactly at the last row, rather than drifting by the height change.
+            expect(header).toHaveStyle({transform: [{translateY: 760}]});
+        }
     });
 
     it('preserves the interactive instance without rerendering the report parent', () => {

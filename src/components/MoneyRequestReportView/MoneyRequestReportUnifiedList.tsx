@@ -247,8 +247,8 @@ function MoneyRequestReportUnifiedList({
         if (!footerLayout) {
             return;
         }
-        // Item layouts exclude the list header and padding; the first-item offset includes both.
-        tableEndOffsetStore.setOffset((flashListRef.current?.getFirstItemOffset() ?? 0) + footerLayout.y);
+        // Convert to the header's coordinates so both table modes stay independent of content above the header.
+        tableEndOffsetStore.setOffset((flashListRef.current?.getFirstItemOffset() ?? 0) + footerLayout.y - columnHeaderOffsetTop);
     };
 
     const commitListLayout = () => {
