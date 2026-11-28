@@ -1,4 +1,4 @@
-import {renderHook} from '@testing-library/react-native';
+import {act, renderHook} from '@testing-library/react-native';
 
 import useUpdateTransactionTaxRate from '@hooks/useUpdateTransactionTaxRate';
 
@@ -6,6 +6,7 @@ import {setMoneyRequestTaxRateValues} from '@libs/actions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {updateMoneyRequestTaxRate} from '@libs/actions/IOU/UpdateMoneyRequest';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 
@@ -84,12 +85,14 @@ describe('useUpdateTransactionTaxRate', () => {
         await waitForBatchedUpdates();
     });
 
-    it('writes the rate and its tax amount to an expense still being created', () => {
+    it('writes the rate and its tax amount to an expense still being created', async () => {
         // Given an expense being created at the workspace's standard rate
         const {result} = renderUpdater();
 
         // When the reduced rate is picked
-        result.current.updateTaxRate(reducedRateOption);
+        await act(async () => {
+            await result.current.updateTaxRate(reducedRateOption);
+        });
 
         // Then the draft gets the new rate, its value and the tax amount worked out from the expense's amount, and nothing else is written
         expect(setMoneyRequestTaxRateValues).toHaveBeenCalledTimes(1);
@@ -98,12 +101,14 @@ describe('useUpdateTransactionTaxRate', () => {
         expect(setDraftSplitTransaction).not.toHaveBeenCalled();
     });
 
-    it('writes a saved expense through the money request update', () => {
+    it('writes a saved expense through the money request update', async () => {
         // Given an existing expense being edited
         const {result} = renderUpdater({isEditing: true});
 
         // When the reduced rate is picked
-        result.current.updateTaxRate(reducedRateOption);
+        await act(async () => {
+            await result.current.updateTaxRate(reducedRateOption);
+        });
 
         // Then it saves to the expense itself, with the report its violations are recomputed against
         expect(updateMoneyRequestTaxRate).toHaveBeenCalledTimes(1);
@@ -121,12 +126,14 @@ describe('useUpdateTransactionTaxRate', () => {
         expect(setDraftSplitTransaction).not.toHaveBeenCalled();
     });
 
-    it('writes a split being edited to its own draft', () => {
+    it('writes a split being edited to its own draft', async () => {
         // Given a split expense being edited, whose source of truth is the split draft
         const {result} = renderUpdater({isEditing: true, isEditingSplit: true});
 
         // When the reduced rate is picked
-        result.current.updateTaxRate(reducedRateOption);
+        await act(async () => {
+            await result.current.updateTaxRate(reducedRateOption);
+        });
 
         // Then only the split draft is written
         expect(setDraftSplitTransaction).toHaveBeenCalledTimes(1);
@@ -142,12 +149,14 @@ describe('useUpdateTransactionTaxRate', () => {
         expect(setMoneyRequestTaxRateValues).not.toHaveBeenCalled();
     });
 
-    it('clears the tax from a saved expense whose rate the workspace no longer has', () => {
+    it('clears the tax from a saved expense whose rate the workspace no longer has', async () => {
         // Given an existing expense being edited, whose rate was deleted from the workspace
         const {result} = renderUpdater({isEditing: true});
 
         // When the list asks to clear the tax instead of picking a rate
-        result.current.updateTaxRate({code: undefined, keyForList: STANDARD_TAX_CODE}, true);
+        await act(async () => {
+            await result.current.updateTaxRate({code: undefined, keyForList: STANDARD_TAX_CODE}, true);
+        });
 
         // Then the expense is saved with no rate, value or tax amount
         expect(updateMoneyRequestTaxRate).toHaveBeenCalledTimes(1);
@@ -155,12 +164,14 @@ describe('useUpdateTransactionTaxRate', () => {
         expect(setDraftSplitTransaction).not.toHaveBeenCalled();
     });
 
-    it('clears the tax from a split being edited in its own draft', () => {
+    it('clears the tax from a split being edited in its own draft', async () => {
         // Given a split expense being edited, whose rate was deleted from the workspace
         const {result} = renderUpdater({isEditing: true, isEditingSplit: true});
 
         // When the list asks to clear the tax
-        result.current.updateTaxRate({code: undefined, keyForList: STANDARD_TAX_CODE}, true);
+        await act(async () => {
+            await result.current.updateTaxRate({code: undefined, keyForList: STANDARD_TAX_CODE}, true);
+        });
 
         // Then the split draft is cleared, not the saved expense, so the stale tax is not kept on save
         expect(setDraftSplitTransaction).toHaveBeenCalledTimes(1);
@@ -175,12 +186,14 @@ describe('useUpdateTransactionTaxRate', () => {
         expect(updateMoneyRequestTaxRate).not.toHaveBeenCalled();
     });
 
-    it('leaves the draft alone for a rate without a value', () => {
+    it('leaves the draft alone for a rate without a value', async () => {
         // Given a workspace rate with no value, so there is no tax amount to work out
         const {result} = renderUpdater();
 
         // When it is picked on an expense being created
-        result.current.updateTaxRate({code: VALUELESS_TAX_CODE, keyForList: 'Unset ()-2', text: 'Unset ()'});
+        await act(async () => {
+            await result.current.updateTaxRate({code: VALUELESS_TAX_CODE, keyForList: 'Unset ()-2', text: 'Unset ()'});
+        });
 
         // Then nothing is written, as the full-page selector has always done for such a rate
         expect(setMoneyRequestTaxRateValues).not.toHaveBeenCalled();
@@ -188,12 +201,14 @@ describe('useUpdateTransactionTaxRate', () => {
         expect(setDraftSplitTransaction).not.toHaveBeenCalled();
     });
 
-    it('leaves the draft alone when the workspace has no tax rates', () => {
+    it('leaves the draft alone when the workspace has no tax rates', async () => {
         // Given a workspace without tax rates, which can happen when the policy is still loading
         const {result} = renderUpdater({policy: createMock<OnyxTypes.Policy>({id: 'policy1'})});
 
         // When a rate is picked on an expense being created
-        result.current.updateTaxRate(reducedRateOption);
+        await act(async () => {
+            await result.current.updateTaxRate(reducedRateOption);
+        });
 
         // Then nothing is written
         expect(setMoneyRequestTaxRateValues).not.toHaveBeenCalled();
@@ -201,16 +216,62 @@ describe('useUpdateTransactionTaxRate', () => {
         expect(setDraftSplitTransaction).not.toHaveBeenCalled();
     });
 
-    it('writes nothing for a pick without a rate code', () => {
+    it('writes nothing for a pick without a rate code', async () => {
         // Given an expense being created
         const {result} = renderUpdater();
 
         // When the list hands back an option without a code, such as a deleted rate's placeholder row
-        result.current.updateTaxRate({code: undefined, keyForList: 'deleted'});
+        await act(async () => {
+            await result.current.updateTaxRate({code: undefined, keyForList: 'deleted'});
+        });
 
         // Then the draft is left alone
         expect(setMoneyRequestTaxRateValues).not.toHaveBeenCalled();
         expect(updateMoneyRequestTaxRate).not.toHaveBeenCalled();
         expect(setDraftSplitTransaction).not.toHaveBeenCalled();
+    });
+
+    it('passes the stored categories, tags, rules and track intent to a saved expense update', async () => {
+        // Given the workspace's categories, tags and a rule, and a user who picked a track intent during onboarding
+        const policyCategories = createMock<OnyxTypes.PolicyCategories>({Travel: {name: 'Travel', enabled: true}});
+        const policyTags = createMock<OnyxTypes.PolicyTagLists>({Department: {name: 'Department', orderWeight: 0, required: false, tags: {}}});
+        const rule = createMock<OnyxTypes.Rule>({scope: CONST.RULES.SCOPE.POLICY, scopeID: policy.id});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.RULE}rule1`, rule);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`, policyCategories);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy.id}`, policyTags);
+        await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, {choice: CONST.ONBOARDING_CHOICES.TRACK_PERSONAL});
+        const {result} = renderUpdater({isEditing: true});
+
+        // When the reduced rate is picked on an existing expense
+        await act(async () => {
+            await result.current.updateTaxRate(reducedRateOption);
+        });
+
+        // Then the stored values still reach the update, so violations are recomputed against them
+        expect(updateMoneyRequestTaxRate).toHaveBeenCalledWith(
+            expect.objectContaining({policyCategories, policyTagList: policyTags, isTrackIntentUser: true, rules: {[`${ONYXKEYS.COLLECTION.RULE}rule1`]: rule}}),
+        );
+    });
+
+    it('works out the tax of a split being edited from its existing draft', async () => {
+        // Given a split draft whose amount already differs from the saved expense
+        const splitDraft = {transactionID: TRANSACTION_ID, amount: EXPENSE_AMOUNT * 2, currency: 'USD'};
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${TRANSACTION_ID}`, splitDraft);
+        const {result} = renderUpdater({isEditing: true, isEditingSplit: true});
+
+        // When the reduced rate is picked
+        await act(async () => {
+            await result.current.updateTaxRate(reducedRateOption);
+        });
+
+        // Then the tax comes from the draft's amount and the draft is the base of the write
+        expect(setDraftSplitTransaction).toHaveBeenCalledWith(
+            mockTranslate,
+            TRANSACTION_ID,
+            expect.objectContaining(splitDraft),
+            {taxAmount: REDUCED_TAX_AMOUNT * 2, taxCode: REDUCED_TAX_CODE, taxValue: '10%'},
+            expect.any(Function),
+            expect.any(Function),
+        );
     });
 });

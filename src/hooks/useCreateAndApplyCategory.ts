@@ -33,7 +33,7 @@ type UseCreateAndApplyCategoryParams = {
     policyData?: PolicyData;
 
     /** Writes the category onto the expense. The second argument is the workspace's categories including the new one. */
-    updateCategory: (category: string, updatedPolicyCategories?: OnyxTypes.PolicyCategories) => void;
+    updateCategory: (category: string, updatedPolicyCategories?: OnyxTypes.PolicyCategories) => void | Promise<void>;
 };
 
 function useCreateAndApplyCategory({policyID, policyData, updateCategory}: UseCreateAndApplyCategoryParams) {

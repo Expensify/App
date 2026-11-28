@@ -14,6 +14,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {loginSelector} from '@selectors/PersonalDetails';
+import Onyx from 'react-native-onyx';
 
 import useAllTransactionViolations from './useAllTransactionViolations';
 import {useCurrencyListActions} from './useCurrencyList';
@@ -53,7 +54,7 @@ type UseUpdateTransactionCategoryResult = {
      * Writes `category` to whichever of the three stores backs the expense being edited. Pass `updatedPolicyCategories`
      * when the category was just created or re-enabled, so violations are computed against it rather than the stale list.
      */
-    updateCategory: (category: string, updatedPolicyCategories?: OnyxTypes.PolicyCategories) => void;
+    updateCategory: (category: string, updatedPolicyCategories?: OnyxTypes.PolicyCategories) => void | Promise<void>;
 
     /** Whether the write landed on the money request draft rather than a saved expense, for callers that navigate differently for each. */
     isDraftUpdate: boolean;
@@ -83,14 +84,8 @@ function useUpdateTransactionCategory({
 
     const policyID = policy?.id;
 
-    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
-    const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
-    const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
     const [iouReportOwnerLogin] = usePersonalDetail(parentReport?.ownerAccountID, loginSelector);
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     // A split's category tax is resolved when the category is written, so the rules have to be on their way before
     // the user picks one. Nothing recomputes it afterwards, because a split draft gets no server response.
     useRulesPrefetch(arePolicyRulesEnabled(policy, policyCategories));
@@ -98,8 +93,23 @@ function useUpdateTransactionCategory({
 
     const isSplitUpdate = isEditingSplit && !!transaction;
     const isExistingExpenseUpdate = !isSplitUpdate && isEditing && !!transaction && !!report;
+    const isDraftUpdate = !isSplitUpdate && !isExistingExpenseUpdate;
 
-    const updateCategory = (category: string, updatedPolicyCategories?: OnyxTypes.PolicyCategories) => {
+    const updateCategory = async (category: string, updatedPolicyCategories?: OnyxTypes.PolicyCategories) => {
+        // A draft needs nothing from Onyx, so it is written before the read and is already queued when the caller navigates.
+        if (isDraftUpdate) {
+            setMoneyRequestCategory(transactionID, category, policy);
+            return;
+        }
+
+        const [splitDraftTransaction, policyTags, policyRecentlyUsedCategories, reportPolicyTags, introSelected, rules] = await Onyx.multiGet([
+            `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`,
+            `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+            `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`,
+            `${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`,
+            ONYXKEYS.NVP_INTRO_SELECTED,
+            ONYXKEYS.COLLECTION.RULE,
+        ]);
         if (isSplitUpdate) {
             setDraftSplitTransaction(
                 translate,
@@ -136,19 +146,16 @@ function useUpdateTransactionCategory({
                 hash: currentSearchHash,
                 delegateAccountID,
                 reportPolicyTags,
-                isTrackIntentUser,
+                isTrackIntentUser: isTrackIntentUserSelector(introSelected),
                 violations: allTransactionViolations,
                 getCurrencyDecimals,
                 getCurrencySymbol,
                 rules,
             });
-            return;
         }
-
-        setMoneyRequestCategory(transactionID, category, policy);
     };
 
-    return {updateCategory, isDraftUpdate: !isSplitUpdate && !isExistingExpenseUpdate};
+    return {updateCategory, isDraftUpdate};
 }
 
 export default useUpdateTransactionCategory;

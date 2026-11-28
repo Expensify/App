@@ -17,6 +17,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {loginSelector} from '@selectors/PersonalDetails';
+import Onyx from 'react-native-onyx';
 
 import useAllTransactionViolations from './useAllTransactionViolations';
 import {useCurrencyListActions} from './useCurrencyList';
@@ -56,7 +57,7 @@ type UseUpdateTransactionTagParams = {
 
 type UseUpdateTransactionTagResult = {
     /** Writes the picked tag into its list's slot of the expense's tag, clearing it when the current tag is picked again */
-    updateTag: (selectedTagName: string) => void;
+    updateTag: (selectedTagName: string) => void | Promise<void>;
 };
 
 /**
@@ -83,23 +84,26 @@ function useUpdateTransactionTag({
 
     const policyID = policy?.id;
 
-    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`);
-    const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${getNonEmptyStringOnyxID(policyID)}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
-    const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
     const [iouReportOwnerLogin] = usePersonalDetail(parentReport?.ownerAccountID, loginSelector);
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const allTransactionViolations = useAllTransactionViolations(transactionID);
-    // Only a completed read guarantees every tag list is known, which the dependent-tag write needs to count them. The
-    // picker beside this owns that read, so this only watches it rather than starting another.
-    const [policyTagsLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_TAGS_LOADING_STATE}${getNonEmptyStringOnyxID(policyID)}`);
-    const hasLoadedPolicyTags = !!policyTagsLoadingState?.hasOnceLoaded;
 
-    const currentTransaction = isEditingSplit && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction;
+    const updateTag = async (selectedTagName: string) => {
+        const [splitDraftTransaction, policyCategories, policyRecentlyUsedTags, reportPolicyTags, introSelected, rules, policyTagsLoadingState] = await Onyx.multiGet([
+            `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`,
+            `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`,
+            `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${getNonEmptyStringOnyxID(policyID)}`,
+            `${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`,
+            ONYXKEYS.NVP_INTRO_SELECTED,
+            ONYXKEYS.COLLECTION.RULE,
+            `${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_TAGS_LOADING_STATE}${getNonEmptyStringOnyxID(policyID)}`,
+        ]);
+        // Only a completed read guarantees every tag list is known, which the dependent-tag write needs to count them.
+        // The picker beside this owns that read, so this only checks its state rather than starting another.
+        const hasLoadedPolicyTags = !!policyTagsLoadingState?.hasOnceLoaded;
 
-    const updateTag = (selectedTagName: string) => {
+        const currentTransaction = isEditingSplit && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction;
+
         const updatedTag = getUpdatedTransactionTag({
             transactionTag: getTag(currentTransaction),
             selectedTagName,
@@ -138,7 +142,7 @@ function useUpdateTransactionTag({
                 isOffline,
                 delegateAccountID,
                 reportPolicyTags,
-                isTrackIntentUser,
+                isTrackIntentUser: isTrackIntentUserSelector(introSelected),
                 violations: allTransactionViolations,
                 getCurrencyDecimals,
                 getCurrencySymbol,
