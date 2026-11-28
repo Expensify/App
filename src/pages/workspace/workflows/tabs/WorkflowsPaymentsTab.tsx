@@ -20,7 +20,6 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import usePolicy from '@hooks/usePolicy';
@@ -60,10 +59,12 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {TupleToUnion} from 'type-fest';
 
+import {primaryLoginSelector} from '@selectors/Account';
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 import WorkflowsSectionCard from './WorkflowsSectionCard';
 
@@ -82,24 +83,15 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
     const {showConfirmModal} = useConfirmModal();
     const {isOffline} = useNetwork();
     const canConfigureCurrencyConversionFees = useCanConfigureCurrencyConversionFees(policy);
-    const {isBetaEnabled} = usePermissions();
-    const isCollectDepositAccountsBetaEnabled = isBetaEnabled(CONST.BETAS.COLLECT_DEPOSIT_ACCOUNTS);
 
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [primaryLogin] = useOnyx(ONYXKEYS.ACCOUNT, {selector: primaryLoginSelector});
     const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
-        selector: guidedSetupAndTourStatusSelector,
-    });
-    const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
-    const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
 
     const delegateAccountID = useDelegateAccountID();
     const {accountID: currentUserAccountID, login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
-    const isUserReimburser = account?.primaryLogin !== undefined && (policy?.achAccount?.reimburser ?? policy?.owner) === account?.primaryLogin;
+    const isUserReimburser = primaryLogin !== undefined && (policy?.achAccount?.reimburser ?? policy?.owner) === primaryLogin;
     const {
         canWrite: canWritePayments,
         showReadOnlyModal,
@@ -151,13 +143,9 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
     const bankTitle = addressName.includes(CONST.MASKED_PAN_PREFIX) ? bankName : addressName;
     const bankAccountID = isBankAccountFullySetup ? policy?.achAccount?.bankAccountID : bankAccountConnectedToWorkspace?.methodID;
     const state = isBankAccountFullySetup ? (policy?.achAccount?.state ?? '') : (bankAccountConnectedToWorkspace?.accountData?.state ?? '');
-    // eslint-disable-next-line rulesdir/no-default-id-values
-    const [unlockRequestedAt] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_LOCKED_VBA_UNLOCK_REQUESTED}${bankAccountID ?? CONST.DEFAULT_NUMBER_ID}`);
-    const [initiatingBankAccountUnlock] = useOnyx(ONYXKEYS.INITIATING_BANK_ACCOUNT_UNLOCK);
     const isAccountInSetupState = isBankAccountPartiallySetup(state);
     const isBusinessBankAccountLocked = state === CONST.BANK_ACCOUNT.STATE.LOCKED;
     const canChangePayer = canWritePayments && !isAccountInSetupState;
-    const hasOtherEligibleExistingAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency, true, bankAccountID).length > 0;
 
     const shouldShowBankAccount = (!!isBankAccountFullySetup || !!bankAccountConnectedToWorkspace) && getReimbursementChoice(policy) !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
     const shouldShowPayer = shouldShowBankAccount || getReimbursementChoice(policy) !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
@@ -234,18 +222,26 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
         });
     };
 
-    const handleBankAccountPress = () => {
+    const pressBankAccount = async () => {
         if (isAccountLocked) {
             showLockedAccountModal();
             return;
         }
         // User who is reimburser can initiate unlocking process
         if (state === CONST.BANK_ACCOUNT.STATE.LOCKED && bankAccountID && isUserReimburser) {
+            const [unlockRequestedAt, conciergeReportID, initiatingBankAccountUnlock, introSelected, onboarding] = await Onyx.multiGet([
+                `${ONYXKEYS.COLLECTION.NVP_LOCKED_VBA_UNLOCK_REQUESTED}${bankAccountID}`,
+                ONYXKEYS.CONCIERGE_REPORT_ID,
+                ONYXKEYS.INITIATING_BANK_ACCOUNT_UNLOCK,
+                ONYXKEYS.NVP_INTRO_SELECTED,
+                ONYXKEYS.NVP_ONBOARDING,
+            ]);
             if (unlockRequestedAt) {
                 showUnlockAlreadyRequestedModal(showConfirmModal, translate);
                 return;
             }
             pressLockedBankAccount(bankAccountID, translate, conciergeReportID ?? undefined, delegateAccountID, initiatingBankAccountUnlock);
+            const {isSelfTourViewed, hasCompletedGuidedSetupFlow} = guidedSetupAndTourStatusSelector(onboarding);
             navigateToConciergeChat({
                 conciergeReportID: conciergeReportID ?? undefined,
                 introSelected,
@@ -257,6 +253,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
             return;
         }
 
+        const hasOtherEligibleExistingAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency, true, bankAccountID).length > 0;
         // A non-reimburser can't edit or unlock the workspace's connected account, so if they have another
         // eligible existing account and no setup in progress, let them link it (change the workspace's account).
         if (!isUserReimburser && hasOtherEligibleExistingAccounts && !shouldShowContinueModal) {
@@ -273,7 +270,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
     const bankAccountMenuItemProps: React.ComponentProps<typeof MenuItem> = {
         title: bankTitle,
         description: getPaymentMethodDescription(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT, accountData, translate),
-        onPress: canInteractWithBankAccountRow ? handleBankAccountPress : undefined,
+        onPress: canInteractWithBankAccountRow ? pressBankAccount : undefined,
         displayInDefaultIconColor: true,
         icon: bankIcon.icon,
         iconHeight: bankIcon.iconHeight ?? bankIcon.iconSize,
@@ -381,7 +378,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                                                 <ConnectionStatusMessage
                                                     message={bankConnectionMessage}
                                                     actionText={bankConnectionActionText}
-                                                    onActionPress={canWritePayments && canPerformBankAccountAction ? handleBankAccountPress : undefined}
+                                                    onActionPress={canWritePayments && canPerformBankAccountAction ? pressBankAccount : undefined}
                                                     actionSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.BANK_ACCOUNT_CONNECTION_ACTION}
                                                     isActionDisabled={!canInteractWithBankAccountRow}
                                                     statusTone="danger"
@@ -470,77 +467,73 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                         </OfflineWithFeedback>
                     )}
                     <WorkspaceWiseGlobalReimbursementsBanner policyID={policyID} />
-                    {isCollectDepositAccountsBetaEnabled && (
-                        <ToggleSettingOptionRow
-                            title={translate('workflowsPage.collectEmployeeBankDetails')}
-                            subtitle={translate('workflowsPage.collectEmployeeBankDetailsDescription')}
-                            switchAccessibilityLabel={translate('workflowsPage.collectEmployeeBankDetails')}
-                            switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.COLLECT_EMPLOYEE_BANK_DETAILS_SWITCH}
-                            wrapperStyle={[styles.mt6, styles.pt6, styles.borderTop]}
-                            shouldPlaceSubtitleBelowSwitch
-                            titleStyle={styles.pv2}
-                            isActive={!!policy?.isCollectDepositAccountsEnabled}
-                            onToggle={(isEnabled: boolean) => toggleCollectDepositAccounts(policyID, isEnabled, policy?.isCollectDepositAccountsEnabled)}
-                            pendingAction={policy?.pendingFields?.isCollectDepositAccountsEnabled}
-                            // The section card already dims this row via reimbursementChoice, so skip its own dim to avoid stacking opacity
-                            shouldDisableOpacity={!!policy?.pendingFields?.reimbursementChoice}
-                            errors={getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.IS_COLLECT_DEPOSIT_ACCOUNTS_ENABLED)}
-                            onCloseError={() => clearPolicyErrorField(policyID, CONST.POLICY.COLLECTION_KEYS.IS_COLLECT_DEPOSIT_ACCOUNTS_ENABLED)}
-                            disabled={!canWritePayments}
-                            disabledAction={withPaymentsReadOnlyFallback()}
-                            showLockIcon={!canWritePayments}
-                            subMenuItems={
-                                <OfflineWithFeedback
-                                    errors={reimbursementCountriesErrors}
-                                    onClose={() => clearPolicyErrorField(policyID, CONST.POLICY.COLLECTION_KEYS.REIMBURSEMENT_COUNTRIES)}
+                    <ToggleSettingOptionRow
+                        title={translate('workflowsPage.collectEmployeeBankDetails')}
+                        subtitle={translate('workflowsPage.collectEmployeeBankDetailsDescription')}
+                        switchAccessibilityLabel={translate('workflowsPage.collectEmployeeBankDetails')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.COLLECT_EMPLOYEE_BANK_DETAILS_SWITCH}
+                        wrapperStyle={[styles.mt6, styles.pt6, styles.borderTop]}
+                        shouldPlaceSubtitleBelowSwitch
+                        titleStyle={styles.pv2}
+                        isActive={!!policy?.isCollectDepositAccountsEnabled}
+                        onToggle={(isEnabled: boolean) => toggleCollectDepositAccounts(policyID, isEnabled, policy?.isCollectDepositAccountsEnabled)}
+                        pendingAction={policy?.pendingFields?.isCollectDepositAccountsEnabled}
+                        // The section card already dims this row via reimbursementChoice, so skip its own dim to avoid stacking opacity
+                        shouldDisableOpacity={!!policy?.pendingFields?.reimbursementChoice}
+                        errors={getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.IS_COLLECT_DEPOSIT_ACCOUNTS_ENABLED)}
+                        onCloseError={() => clearPolicyErrorField(policyID, CONST.POLICY.COLLECTION_KEYS.IS_COLLECT_DEPOSIT_ACCOUNTS_ENABLED)}
+                        disabled={!canWritePayments}
+                        disabledAction={withPaymentsReadOnlyFallback()}
+                        showLockIcon={!canWritePayments}
+                        subMenuItems={
+                            <OfflineWithFeedback
+                                errors={reimbursementCountriesErrors}
+                                onClose={() => clearPolicyErrorField(policyID, CONST.POLICY.COLLECTION_KEYS.REIMBURSEMENT_COUNTRIES)}
+                            >
+                                <MenuItemSectionRoot
+                                    onPress={
+                                        canWritePayments
+                                            ? callIfAuthenticated(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_REIMBURSEMENT_COUNTRIES.getRoute(policyID)), session)
+                                            : undefined
+                                    }
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.BUSINESS_BANK_ACCOUNT_COUNTRIES}
+                                    style={styles.mt3}
                                 >
-                                    <MenuItemSectionRoot
-                                        onPress={
-                                            canWritePayments
-                                                ? callIfAuthenticated(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_REIMBURSEMENT_COUNTRIES.getRoute(policyID)), session)
-                                                : undefined
-                                        }
-                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.BUSINESS_BANK_ACCOUNT_COUNTRIES}
-                                        style={styles.mt3}
-                                    >
-                                        <MenuItem.Row>
-                                            <MenuItemField.Content name={translate('workflowsPage.businessBankAccountCountries')}>
-                                                {!!reimbursementCountryNames && (
-                                                    <MenuItem.FieldValue
-                                                        numberOfLines={0}
-                                                        accessibilityLabel={reimbursementCountryNames}
-                                                    >
-                                                        <Text>
-                                                            {reimbursementCountries.map((country, index) => (
-                                                                <Text key={country.countryISO}>
-                                                                    {index > 0 ? ', ' : ''}
-                                                                    <Text
-                                                                        style={[
-                                                                            isOffline && !!country.pendingAction && styles.colorMuted,
-                                                                            isOffline &&
-                                                                                country.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
-                                                                                styles.offlineFeedbackDeleted,
-                                                                        ]}
-                                                                    >
-                                                                        {country.name}
-                                                                    </Text>
+                                    <MenuItem.Row>
+                                        <MenuItemField.Content name={translate('workflowsPage.businessBankAccountCountries')}>
+                                            {!!reimbursementCountryNames && (
+                                                <MenuItem.FieldValue
+                                                    numberOfLines={0}
+                                                    accessibilityLabel={reimbursementCountryNames}
+                                                >
+                                                    <Text>
+                                                        {reimbursementCountries.map((country, index) => (
+                                                            <Text key={country.countryISO}>
+                                                                {index > 0 ? ', ' : ''}
+                                                                <Text
+                                                                    style={[
+                                                                        isOffline && !!country.pendingAction && styles.colorMuted,
+                                                                        isOffline && country.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && styles.offlineFeedbackDeleted,
+                                                                    ]}
+                                                                >
+                                                                    {country.name}
                                                                 </Text>
-                                                            ))}
-                                                        </Text>
-                                                    </MenuItem.FieldValue>
-                                                )}
-                                            </MenuItemField.Content>
-                                            <MenuItem.Trailing>
-                                                {!isEmptyObject(reimbursementCountriesErrors) && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
-                                                {canWritePayments && <MenuItem.Chevron />}
-                                            </MenuItem.Trailing>
-                                        </MenuItem.Row>
-                                        <MenuItem.HelpText message={translate('workflowsPage.businessBankAccountCountriesDescription')} />
-                                    </MenuItemSectionRoot>
-                                </OfflineWithFeedback>
-                            }
-                        />
-                    )}
+                                                            </Text>
+                                                        ))}
+                                                    </Text>
+                                                </MenuItem.FieldValue>
+                                            )}
+                                        </MenuItemField.Content>
+                                        <MenuItem.Trailing>
+                                            {!isEmptyObject(reimbursementCountriesErrors) && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                                            {canWritePayments && <MenuItem.Chevron />}
+                                        </MenuItem.Trailing>
+                                    </MenuItem.Row>
+                                    <MenuItem.HelpText message={translate('workflowsPage.businessBankAccountCountriesDescription')} />
+                                </MenuItemSectionRoot>
+                            </OfflineWithFeedback>
+                        }
+                    />
                 </>
             }
             isActive={getReimbursementChoice(policy) !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO}

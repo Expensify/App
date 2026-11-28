@@ -1,5 +1,5 @@
 import type {AmountEditingRef} from '@components/AmountEditingController';
-import AmountForm from '@components/AmountForm';
+import AmountFormInline from '@components/AmountFormAdapters/AmountFormInline';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -276,11 +276,10 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
                 )}
                 <View style={styles.mb4}>
                     <InputWrapper
-                        InputComponent={AmountForm}
+                        InputComponent={AmountFormInline}
                         inputID={INPUT_IDS.DURATION_AMOUNT}
                         valueType="string"
                         label={translate('chronos.durationAmount')}
-                        displayAsTextInput
                         hideCurrencySymbol
                         shouldShowCurrencyButton
                         currencyButtonLabel={durationUnitButtonLabel}
@@ -290,7 +289,6 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
                         value={durationAmount}
                         onValueChange={applyDurationAmount}
                         onCurrencyButtonPress={() => setIsDurationUnitModalVisible(true)}
-                        isCurrencyPressable
                         numberFormRef={durationAmountRef}
                     />
                     <ValueSelectorModal

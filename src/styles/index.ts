@@ -181,6 +181,10 @@ const flatNavigationBarSubnavIndent = variables.flatNavigationBarRowPadding + va
 // The subnav rule runs under the centre of the icons above it: the row's inset, padding and half the icon.
 const flatNavigationBarSubnavRuleLeft = variables.flatNavigationBarRowInset + variables.flatNavigationBarRowPadding + variables.iconSizeNormal / 2;
 
+// Space the landscape tab bar leaves on its right for the column of floating buttons beside it: the buttons' offset
+// from the screen edge, their width and the same gap the bar keeps from the left edge.
+const floatingTabBarLandscapeRightMargin = variables.floatingActionButtonRightOffset + variables.componentSizeLarge + variables.floatingTabBarHorizontalInset;
+
 const picker = (theme: ThemeColors) =>
     ({
         backgroundColor: theme.transparent,
@@ -792,6 +796,8 @@ const staticStyles = (theme: ThemeColors) =>
 
         navigationTabBarContainerLandscape: {
             height: variables.floatingTabBarLandscapeHeight,
+            alignSelf: 'flex-start',
+            marginRight: floatingTabBarLandscapeRightMargin,
         },
 
         // A grid item is otherwise never narrower than its label, so the label could not truncate.
@@ -945,17 +951,40 @@ const staticStyles = (theme: ThemeColors) =>
             height: variables.flatNavigationBarAccountItemHeight,
         },
 
-        // The label lines up with the label of the destination row above the subnav.
+        // The row has no padding of its own: the link carries it, so the link can be pressed across the whole row.
         flatNavigationBarSubnavItem: {
             flexDirection: 'row',
             alignItems: 'center',
             gap: variables.spacing2,
             height: variables.flatNavigationBarSubnavItemHeight,
-            paddingLeft: flatNavigationBarSubnavIndent,
-            paddingRight: variables.flatNavigationBarRowPadding,
             marginHorizontal: variables.flatNavigationBarRowInset,
             borderRadius: variables.componentBorderRadiusNormal,
             overflow: 'hidden',
+        },
+
+        // The label lines up with the label of the destination row above the subnav.
+        // The link fills the rounded row, so it is rounded too, or the row would clip the corners of its focus ring.
+        flatNavigationBarSubnavItemLink: {
+            paddingLeft: flatNavigationBarSubnavIndent,
+            borderRadius: variables.componentBorderRadiusNormal,
+        },
+
+        // Whatever sits at the row's end, as a three-dot menu, keeps the row's padding after it.
+        flatNavigationBarSubnavItemRowEnd: {
+            paddingRight: variables.flatNavigationBarRowPadding,
+        },
+
+        // Absolute, so the label keeps its full width whether or not the accessory is shown, rather than reflowing when the row is hovered.
+        flatNavigationBarSubnavItemAccessory: {
+            position: 'absolute',
+            // Clear of the 1px focus ring web/index.html draws inside the link, so the backdrop never paints over it.
+            top: 1,
+            bottom: 1,
+            right: variables.flatNavigationBarRowPadding,
+            // Wider than the icon, so the fade behind it has room to ramp up before the icon itself.
+            width: variables.flatNavigationBarSubnavItemAccessoryWidth,
+            alignItems: 'flex-end',
+            justifyContent: 'center',
         },
 
         // Sits at the bottom of its row, which leaves the gap above the group.
@@ -2169,7 +2198,7 @@ const staticStyles = (theme: ThemeColors) =>
             // floatingActionButton top property value (componentSizeLarge + 16) +
             // + floatingCameraButton height (componentSizeLarge) + gap (12) = 2 * componentSizeLarge + 28
             top: 2 * -variables.componentSizeLarge - 28,
-            right: 16,
+            right: variables.floatingActionButtonRightOffset,
             zIndex: 10,
         },
 
@@ -2178,6 +2207,24 @@ const staticStyles = (theme: ThemeColors) =>
             top: -variables.componentSizeLarge - 16,
             right: variables.floatingActionButtonRightOffset,
             zIndex: 10,
+        },
+
+        // Lines the button's bottom up with the bottom of the landscape tab bar it sits beside.
+        floatingActionButtonPositionLandscape: {
+            top: variables.floatingTabBarLandscapeHeight - variables.componentSizeLarge,
+        },
+
+        // Keeps the same 12px gap above the floating action button as in portrait.
+        floatingCameraButtonLandscape: {
+            top: variables.floatingTabBarLandscapeHeight - 2 * variables.componentSizeLarge - 12,
+        },
+
+        // Takes the debug row out of the flow, so the floating buttons beside the landscape bar stay anchored to the
+        // bar's top, and keeps it from reaching under them.
+        debugTabViewMobileWebLandscape: {
+            position: 'absolute',
+            bottom: '100%',
+            marginRight: floatingTabBarLandscapeRightMargin,
         },
 
         // Keeps the footer's content clear of the floating (+) button, which sits over its right end on narrow layouts.

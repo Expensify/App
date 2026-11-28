@@ -1,4 +1,4 @@
-import AmountForm from '@components/AmountForm';
+import AmountFormInline from '@components/AmountFormAdapters/AmountFormInline';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
@@ -210,12 +210,10 @@ function RulesRequireReceiptsPage({
                     {receiptEnabled && (
                         <View style={styles.pv2}>
                             <InputWrapper
-                                InputComponent={AmountForm}
+                                InputComponent={AmountFormInline}
                                 inputID={INPUT_IDS.MAX_EXPENSE_AMOUNT_NO_RECEIPT}
                                 currency={policyCurrency}
                                 defaultValue={initialReceiptAmount}
-                                isCurrencyPressable={false}
-                                displayAsTextInput
                                 label={translate('workspace.rules.requireReceipts.requireAboveAmount')}
                                 onValueChange={clearAmountConflictError}
                             />
@@ -245,12 +243,10 @@ function RulesRequireReceiptsPage({
                     {itemizedEnabled && (
                         <View style={styles.pv2}>
                             <InputWrapper
-                                InputComponent={AmountForm}
+                                InputComponent={AmountFormInline}
                                 inputID={INPUT_IDS.MAX_EXPENSE_AMOUNT_NO_ITEMIZED_RECEIPT}
                                 currency={policyCurrency}
                                 defaultValue={initialItemizedAmount}
-                                isCurrencyPressable={false}
-                                displayAsTextInput
                                 label={translate('workspace.rules.requireReceipts.requireAboveAmount')}
                                 onValueChange={clearAmountConflictError}
                             />

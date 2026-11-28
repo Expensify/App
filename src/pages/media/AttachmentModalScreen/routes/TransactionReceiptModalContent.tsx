@@ -1,5 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
+import ImageLoadEventContext from '@components/ImageLoadEventContext';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ReceiptCropView from '@components/ReceiptCropView';
 import type {CropRect} from '@components/ReceiptCropView';
@@ -39,7 +40,8 @@ import ReceiptStorage from '@libs/ReceiptStorage';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {resolveTransactionThreadReport, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest, isMoneyRequestReport, isTrackExpenseReport} from '@libs/ReportUtils';
-import {logReceiptAdoptFailed} from '@libs/telemetry/ReceiptObservability';
+import {createReceiptImageLoadReporter} from '@libs/telemetry/ReceiptImageLoadLog';
+import {logReceiptAdoptFailed, logReceiptImageEditFailed} from '@libs/telemetry/ReceiptObservability';
 import {
     getRequestType,
     hasEReceipt,
@@ -437,12 +439,14 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             .then((rotatedImage) => {
                 if (!rotatedImage) {
                     setIsRotating(false);
+                    logReceiptImageEditFailed({step: 'rotate'});
                     return Promise.resolve();
                 }
 
                 const imageUriResult = 'uri' in rotatedImage && rotatedImage.uri ? rotatedImage.uri : undefined;
                 if (!imageUriResult) {
                     setIsRotating(false);
+                    logReceiptImageEditFailed({step: 'rotate'});
                     return Promise.resolve();
                 }
 
@@ -453,8 +457,9 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                     setIsRotating(false);
                 });
             })
-            .catch(() => {
+            .catch((error: unknown) => {
                 setIsRotating(false);
+                logReceiptImageEditFailed({step: 'rotate', error});
             });
     };
 
@@ -508,12 +513,14 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             .then((croppedImage) => {
                 if (!croppedImage) {
                     setIsCropSaving(false);
+                    logReceiptImageEditFailed({step: 'crop'});
                     return Promise.resolve();
                 }
 
                 const imageUriResult = 'uri' in croppedImage && croppedImage.uri ? croppedImage.uri : undefined;
                 if (!imageUriResult) {
                     setIsCropSaving(false);
+                    logReceiptImageEditFailed({step: 'crop'});
                     return Promise.resolve();
                 }
 
@@ -525,8 +532,9 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                     exitCropMode();
                 });
             })
-            .catch(() => {
+            .catch((error: unknown) => {
                 setIsCropSaving(false);
+                logReceiptImageEditFailed({step: 'crop', error});
             });
     };
 
@@ -760,10 +768,12 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     };
 
     return (
-        <AttachmentModalContainer
-            navigation={navigation}
-            contentProps={contentProps}
-        />
+        <ImageLoadEventContext.Provider value={isOdometerImage ? undefined : createReceiptImageLoadReporter(transaction, 'modal')}>
+            <AttachmentModalContainer
+                navigation={navigation}
+                contentProps={contentProps}
+            />
+        </ImageLoadEventContext.Provider>
     );
 }
 

@@ -1851,6 +1851,9 @@ type RilletExport = {
 
     /** Accounting method used during export. */
     accountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
+
+    /** Whether missing submitter vendors are automatically created in Rillet during export. */
+    autoCreateVendor: boolean;
 };
 
 /** Offline feedback key for card program account */
@@ -4369,9 +4372,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Indicates the Policy's SetWorkspaceReimbursement call loading state */
         isLoadingWorkspaceReimbursement?: boolean;
-
-        /** Indicates if the receipt partners page is loading */
-        isLoadingReceiptPartners?: boolean;
 
         /** Indicates if the Policy ownership change is successful */
         isChangeOwnerSuccessful?: boolean;

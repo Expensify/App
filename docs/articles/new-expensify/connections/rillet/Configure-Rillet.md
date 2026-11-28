@@ -69,6 +69,7 @@ On the Rillet integration, choose **Advanced** to configure:
 - **Export method** – Choose when reports are exported automatically. This option is only available when auto-sync is enabled. 
   - **Accrual** exports reimbursable expenses after final approval.
   - **Cash** exports reimbursable expenses after they are paid.
+- **Auto-create vendors** – Automatically create a vendor in Rillet using the report submitter's name and email when no matching vendor exists during a reimbursable export. Defaults to off.
 - **Rillet currency conversion fee account** – Select the expense account where currency conversion fees are recorded. This setting appears when **Sync reimbursed reports** is enabled, you reimburse through Expensify, and a business bank account is connected. When **Workspaces > [workspace name] > Workflows > Payments > Currency conversion fees** is set to **Company pays**, a cross-border reimbursement exports an additional journal entry for the conversion cost to this account, alongside the bill payment. This account must be selected for the journal entry to export.
 - **Sync reimbursed reports** – Automatically create a payment in Rillet when a report is reimbursed in Expensify. The payment is recorded on the report's vendor bill or reimbursement.
   - **ACH payment account** – Select the Rillet account the payment is made from. Only active asset accounts appear.
@@ -113,7 +114,7 @@ Only active expense, current asset, and fixed asset accounts from your Rillet ch
 
 ## Why did my report fail to export to Rillet?
 
-Vendor bills and reimbursements both use the Rillet vendor that matches the report submitter's email. If no Rillet vendor matches that email, the export fails. Make sure each report submitter exists as a vendor in Rillet.
+Vendor bills and reimbursements both use the Rillet vendor that matches the report submitter's email. If no Rillet vendor matches that email and **Auto-create vendors** is off, the export fails. Create a vendor with the submitter's email in Rillet, or enable **Auto-create vendors** under **Advanced** settings.
 
 If reimbursable expenses export as **Itemized reimbursements**, the export also fails when no **Reimbursement account** is selected.
 

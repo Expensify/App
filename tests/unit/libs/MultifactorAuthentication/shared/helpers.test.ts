@@ -1,4 +1,4 @@
-import {parseHttpResponse} from '@libs/MultifactorAuthentication/shared/helpers';
+import {isSignedChallengeFailure, parseHttpResponse} from '@libs/MultifactorAuthentication/shared/helpers';
 import VALUES from '@libs/MultifactorAuthentication/VALUES';
 
 describe('MultifactorAuthentication shared helpers', () => {
@@ -104,6 +104,29 @@ describe('MultifactorAuthentication shared helpers', () => {
             // Falling back to UNRECOGNIZED here is treated as a fatal error and dead-ends the flow on the failure screen.
             expect(result.httpStatusCode).toBe(401);
             expect(result.reason).toBe(VALUES.REASON.CLIENT_ERRORS.INVALID_VALIDATE_CODE);
+        });
+    });
+
+    describe('isSignedChallengeFailure', () => {
+        it('matches the challenge rejections every MFA command returns, with the status prefix', () => {
+            // Given the 4xx responses the backend sends when it rejects a signed challenge
+            // When they are checked
+            // Then each one counts as a challenge failure
+            expect(isSignedChallengeFailure(401, '401 Authentication required')).toBe(true);
+            expect(isSignedChallengeFailure(401, '401 Unauthorized')).toBe(true);
+            expect(isSignedChallengeFailure(401, '401 Registration required')).toBe(true);
+            expect(isSignedChallengeFailure(401, '401 Invalid signed challenge')).toBe(true);
+            expect(isSignedChallengeFailure(400, '400 Invalid authentication method')).toBe(true);
+        });
+
+        it('does not match failures that come after the challenge passed', () => {
+            // Given card or provider errors, a 5xx and a missing message
+            // When they are checked
+            // Then none of them counts as a challenge failure
+            expect(isSignedChallengeFailure(404, '404 Could not find an active card for user trying to create a digital wallet')).toBe(false);
+            expect(isSignedChallengeFailure(401, '401 Not authorized - This card requires SCA')).toBe(false);
+            expect(isSignedChallengeFailure(500, '500 Unauthorized')).toBe(false);
+            expect(isSignedChallengeFailure(401, undefined)).toBe(false);
         });
     });
 });

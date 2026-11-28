@@ -1,12 +1,22 @@
 import type {GetConfirmationFieldErrorsParams} from '@components/MoneyRequestConfirmationList/getConfirmationFieldErrors';
-import getConfirmationFieldErrors, {getSiblingFieldErrors, hasFieldErrors, NO_FIELD_ERRORS} from '@components/MoneyRequestConfirmationList/getConfirmationFieldErrors';
+import getConfirmationFieldErrors, {
+    getSiblingFieldErrors,
+    hasFieldErrors,
+    isMissingRequiredAttendees,
+    NO_FIELD_ERRORS,
+} from '@components/MoneyRequestConfirmationList/getConfirmationFieldErrors';
 
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {Participant} from '@src/types/onyx/IOU';
+import type {Attendee, Participant} from '@src/types/onyx/IOU';
+
+import createMock from '../../../utils/createMock';
 
 const WORKSPACE_PARTICIPANT = {accountID: 0, isPolicyExpenseChat: true, policyID: 'policy1'} as Participant;
 const P2P_PARTICIPANT = {accountID: 2, isPolicyExpenseChat: false} as Participant;
+const OWNER_LOGIN = 'owner@example.com';
+const REPORT_OWNER: Attendee = {email: OWNER_LOGIN, displayName: 'Owner', avatarUrl: ''};
+const GUEST: Attendee = {email: 'guest@example.com', displayName: 'Guest', avatarUrl: ''};
 
 const baseParams: GetConfirmationFieldErrorsParams = {
     iouAmount: 1000,
@@ -21,6 +31,20 @@ const baseParams: GetConfirmationFieldErrorsParams = {
     isDistanceRequest: false,
     isTimeRequest: false,
     currentUserAccountID: 1,
+    policy: undefined,
+    policyCategories: undefined,
+    shouldShowTax: false,
+    isTaxAmountEmpty: false,
+    shouldShowAttendees: true,
+    reportOwnerAsAttendee: REPORT_OWNER,
+    currentUserLogin: OWNER_LOGIN,
+    getCurrencyDecimals: () => 2,
+};
+
+// A Control workspace whose "Meals" category needs attendees besides the person submitting
+const attendeeRuleParams: Partial<GetConfirmationFieldErrorsParams> = {
+    policy: createMock<OnyxTypes.Policy>({type: CONST.POLICY.TYPE.CORPORATE, isAttendeeTrackingEnabled: true}),
+    policyCategories: {Meals: {name: 'Meals', enabled: true, areAttendeesRequired: true}},
 };
 
 // A merchant that still holds the "Expense" placeholder the draft was seeded with
@@ -213,6 +237,92 @@ describe('getConfirmationFieldErrors', () => {
         // Then the amount field isn't flagged, since its errors belong to the footer for this type
         expect(fieldErrors).toBe(NO_FIELD_ERRORS);
     });
+
+    it.each([
+        ['an amount the user never entered', {}],
+        ['an amount the user cleared', {modifiedAmount: 0}],
+    ] as const)('asks for the amount of an edited split whose receipt could not be read when it holds %s', (_case, transactionOverrides) => {
+        // Given a group split whose SmartScan failed, being edited while its amount is $0
+        const transaction = createScanDraft({...transactionOverrides, participants: [P2P_PARTICIPANT]});
+
+        // When its field errors are computed
+        const fieldErrors = getConfirmationFieldErrors(transaction, {
+            ...baseParams,
+            iouType: CONST.IOU.TYPE.SPLIT,
+            iouAmount: 0,
+            isEditingSplitBill: true,
+            isPolicyExpenseChat: false,
+            isMerchantRequired: false,
+        });
+
+        // Then the amount field is flagged, so a blocked save scrolls to it instead of only naming it in the footer
+        expect(fieldErrors).toEqual({amount: 'common.error.enterAmount'});
+    });
+
+    it.each([
+        ['an emptied tax amount as required', {isTaxAmountEmpty: true}, {}, 'common.error.fieldRequired'],
+        ['a tax amount above what the rate allows as invalid', {}, {taxAmount: 500}, 'iou.error.invalidTaxAmount'],
+    ] as const)('reports %s', (_case, paramsOverrides, transactionOverrides, expectedError) => {
+        // Given an expense on a workspace with tax, whose tax amount was emptied, or set to $5 while the workspace has no tax rate to allow it
+        const transaction = createManualTransaction(transactionOverrides);
+
+        // When its field errors are computed
+        const fieldErrors = getConfirmationFieldErrors(transaction, {...baseParams, shouldShowTax: true, ...paramsOverrides});
+
+        // Then the tax amount field shows the error itself, so a blocked confirm can scroll to it
+        expect(fieldErrors).toEqual({taxAmount: expectedError});
+    });
+
+    it.each([
+        ['the tax fields are hidden', {shouldShowTax: false}, {}],
+        ['the tax amount of a distance expense follows its rate', {isDistanceRequest: true}, {iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP}],
+    ] as const)('leaves the tax amount alone when %s', (_case, paramsOverrides, transactionOverrides) => {
+        // Given an emptied tax amount the user can't fix in this form
+        const transaction = createManualTransaction(transactionOverrides);
+
+        // When its field errors are computed
+        const fieldErrors = getConfirmationFieldErrors(transaction, {...baseParams, shouldShowTax: true, isTaxAmountEmpty: true, ...paramsOverrides});
+
+        // Then nothing is flagged, since there is no tax amount field to fix
+        expect(fieldErrors).toBe(NO_FIELD_ERRORS);
+    });
+
+    it.each([
+        ['nobody but the report owner', undefined, {attendees: 'violations.missingAttendees'}],
+        ['a guest', [GUEST], NO_FIELD_ERRORS],
+    ] as const)('checks the attendees a category needs when the expense has %s', (_case, attendees, expectedFieldErrors) => {
+        // Given an expense in a category whose attendees are required, with these attendees
+        const transaction = createManualTransaction({category: 'Meals', comment: {attendees: attendees ? [...attendees] : undefined}});
+
+        // When its field errors are computed
+        const fieldErrors = getConfirmationFieldErrors(transaction, {...baseParams, ...attendeeRuleParams});
+
+        // Then the attendees field is flagged only while nobody besides the owner attends
+        expect(fieldErrors).toEqual(expectedFieldErrors);
+    });
+
+    it('does not check the attendees of an invoice', () => {
+        // Given an invoice in a category whose attendees are required, with no attendees
+        const transaction = createManualTransaction({category: 'Meals'});
+
+        // When its field errors are computed
+        const fieldErrors = getConfirmationFieldErrors(transaction, {...baseParams, ...attendeeRuleParams, iouType: CONST.IOU.TYPE.INVOICE});
+
+        // Then nothing is flagged, since an invoice isn't an expense report with attendees to track
+        expect(fieldErrors).toBe(NO_FIELD_ERRORS);
+    });
+
+    it('does not flag the attendees of a form without the attendees field', () => {
+        // Given a split, whose form has no attendees field, in a category whose attendees are required, with no attendees
+        const transaction = createManualTransaction({category: 'Meals'});
+
+        // When its field errors are computed
+        const fieldErrors = getConfirmationFieldErrors(transaction, {...baseParams, ...attendeeRuleParams, iouType: CONST.IOU.TYPE.SPLIT, shouldShowAttendees: false});
+
+        // Then no field is flagged, since a blocked confirm would scroll to a field that isn't there, and the attendees still count as missing for the footer
+        expect(fieldErrors).toBe(NO_FIELD_ERRORS);
+        expect(isMissingRequiredAttendees(transaction, {...baseParams, ...attendeeRuleParams, iouType: CONST.IOU.TYPE.SPLIT})).toBe(true);
+    });
 });
 
 describe('getSiblingFieldErrors', () => {
@@ -268,6 +378,27 @@ describe('getSiblingFieldErrors', () => {
         // When the other receipts are checked
         // Then the first one with an error is the one to bring on screen
         expect(getSiblingFieldErrors([valid, firstInvalid, secondInvalid], siblingParams)?.transactionID).toBe('txn3');
+    });
+
+    it('reports another receipt whose category needs attendees it does not have', () => {
+        // Given a multi-scan whose other receipt is complete but in a category that needs attendees, with none picked
+        const sibling = createScanDraft({...completeFields, transactionID: 'txn2', category: 'Meals'});
+
+        // When the other receipts are checked
+        // Then that receipt is reported, since Create would otherwise submit it without the attendees its category needs
+        expect(getSiblingFieldErrors([sibling], {...siblingParams, ...attendeeRuleParams})).toEqual({transactionID: 'txn2', fieldErrors: {attendees: 'violations.missingAttendees'}});
+    });
+
+    it('checks the tax amount of another receipt only against a rate the workspace has', () => {
+        // Given a workspace with a 10% rate, and another receipt of $25 whose $5 tax amount was entered at 10% or under a workspace picked before
+        const taxParams = {...siblingParams, shouldShowTax: true, policy: createMock<OnyxTypes.Policy>({taxRates: {taxes: {TAX_10: {name: 'Tax 10%', value: '10%'}}}})};
+        const overTheLimit = createScanDraft({...completeFields, transactionID: 'txn2', taxCode: 'TAX_10', taxAmount: 500});
+        const fromPreviousWorkspace = createScanDraft({...completeFields, transactionID: 'txn2', taxCode: 'PREVIOUS_WORKSPACE_TAX', taxAmount: 500});
+
+        // When the other receipts are checked
+        // Then only the receipt at 10% is held for its tax amount, because the limit of a rate the workspace doesn't have can't be known
+        expect(getSiblingFieldErrors([overTheLimit], taxParams)).toEqual({transactionID: 'txn2', fieldErrors: {taxAmount: 'iou.error.invalidTaxAmount'}});
+        expect(getSiblingFieldErrors([fromPreviousWorkspace], taxParams)).toBeUndefined();
     });
 });
 

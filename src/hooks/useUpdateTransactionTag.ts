@@ -112,7 +112,7 @@ function useUpdateTransactionTag({
         });
 
         if (isEditingSplit) {
-            setDraftSplitTransaction(transactionID, currentTransaction, {tag: updatedTag}, getCurrencyDecimals, getCurrencySymbol);
+            setDraftSplitTransaction(translate, transactionID, currentTransaction, {tag: updatedTag}, getCurrencyDecimals, getCurrencySymbol);
             return;
         }
 

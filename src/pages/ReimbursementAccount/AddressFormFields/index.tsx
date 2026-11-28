@@ -102,6 +102,7 @@ function AddressFormFields({
                     translationKey={streetTranslationKey}
                     shouldKeepStateCode={shouldKeepStateCode}
                     limitSearchesToCountry={shouldAllowCountryChange ? undefined : defaultValues?.country}
+                    maxInputLength={CONST.FORM_CHARACTER_LIMIT}
                 />
                 <AddressFields.City containerStyles={cityContainerStyles} />
                 {shouldDisplayStateSelector && (

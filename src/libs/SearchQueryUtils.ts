@@ -97,6 +97,7 @@ import {temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {getCleanedTagName, getValidConnectedIntegration} from './PolicyUtils';
 import {getReportName} from './ReportNameUtils';
 import {parseAmountFilterValue, supportsAmountFilterCurrency} from './SearchAmountFilterUtils';
+import {getCustomColumns, getSortByForColumn} from './SearchColumnsUtils';
 import {TODO_SEARCH_KEYS} from './SearchKeyUtils';
 import {parse as parseSearchQuery} from './SearchParser/searchParser';
 import {getPinnedColumns, getPinsOnSavedColumns} from './SearchPinnedColumnsUtils';
@@ -186,7 +187,7 @@ function buildMerchantFilterQuery(
     if (!isNegated) {
         operator = selectedMerchantOperator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO ? EXPLICIT_EQUAL_TO_OPERATOR : operatorToCharMap[CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS];
     }
-    return `${prefix}${CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT}${operator}${sanitizeSearchValue(value)}`;
+    return `${prefix}${CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT}${operator}${sanitizeFilterValue(value)}`;
 }
 
 // Pre-computed validation Sets for buildFilterFormValuesFromQuery (avoids recreating per filter iteration)
@@ -318,6 +319,15 @@ function sanitizeSearchValue(str: string) {
         return `"${escaped}"`;
     }
     return escaped;
+}
+
+/**
+ * Escapes a filter's value like `sanitizeSearchValue`, and also quotes a value that starts or ends with a quote of its own,
+ * which the parser would otherwise read as the value's delimiters and drop.
+ */
+function sanitizeFilterValue(str: string) {
+    const sanitized = sanitizeSearchValue(str);
+    return !sanitized.startsWith('"') && /^["“”]|["“”]$/.test(str) ? `"${sanitized}"` : sanitized;
 }
 
 function getKeywordQueryForSearchInput(keywords: string[]) {
@@ -737,11 +747,11 @@ function buildFilterValuesString(filterName: string, queryFilters: QueryFilter[]
         if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD) {
             filterValueString += `${delimiter}${escapeKeyword(sanitizeSearchValue(queryFilter.value.toString()))}`;
         } else if (index !== 0 && (previousValueHasSameOp || nextValueHasSameOp)) {
-            filterValueString += `${delimiter}${sanitizeSearchValue(queryFilter.value.toString())}`;
+            filterValueString += `${delimiter}${sanitizeFilterValue(queryFilter.value.toString())}`;
         } else if (queryFilter.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO) {
-            filterValueString += ` ${CONST.SEARCH.NOT_PREFIX}${filterName}:${sanitizeSearchValue(queryFilter.value.toString())}`;
+            filterValueString += ` ${CONST.SEARCH.NOT_PREFIX}${filterName}:${sanitizeFilterValue(queryFilter.value.toString())}`;
         } else if (queryFilter.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_CONTAINS) {
-            filterValueString += ` ${CONST.SEARCH.NOT_PREFIX}${filterName}${operatorToCharMap[CONST.SEARCH.SYNTAX_OPERATORS.NOT_CONTAINS]}${sanitizeSearchValue(queryFilter.value.toString())}`;
+            filterValueString += ` ${CONST.SEARCH.NOT_PREFIX}${filterName}${operatorToCharMap[CONST.SEARCH.SYNTAX_OPERATORS.NOT_CONTAINS]}${sanitizeFilterValue(queryFilter.value.toString())}`;
         } else if (queryFilter.operator === CONST.SEARCH.SYNTAX_OPERATORS.RANGE) {
             const rangeBoundaries = parseRangeQueryValue(queryFilter.value.toString());
             if (rangeBoundaries.from) {
@@ -758,7 +768,7 @@ function buildFilterValuesString(filterName: string, queryFilters: QueryFilter[]
             if (!operatorChar) {
                 continue;
             }
-            filterValueString += ` ${filterName}${operatorChar}${sanitizeSearchValue(queryFilter.value.toString())}`;
+            filterValueString += ` ${filterName}${operatorChar}${sanitizeFilterValue(queryFilter.value.toString())}`;
         }
     }
 
@@ -1030,7 +1040,11 @@ function getUpdatedFilterValue(filterName: SyntaxFilterKey, filterValue: string 
         return filterValue.map((value) => resolvePolicyIDFromName(value, policies));
     }
 
-    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID) {
+    if (
+        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID ||
+        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_ID ||
+        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID
+    ) {
         const cleanIDs = (value: string) =>
             value
                 .split(',')
@@ -1818,7 +1832,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     return `${prefix}${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}${operatorToCharMap[CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO]}${sanitizeSearchValue(value)}`;
                 }
             }
-            if ((filterKey === FILTER_KEYS.REPORT_ID || filterKey === FILTER_KEYS.WITHDRAWAL_ID) && filterValue) {
+            if ((filterKey === FILTER_KEYS.REPORT_ID || filterKey === FILTER_KEYS.TRANSACTION_ID || filterKey === FILTER_KEYS.WITHDRAWAL_ID) && filterValue) {
                 const reportIDs = (filterValue as string)
                     .split(',')
                     .map((id) => sanitizeSearchValue(id.trim()))
@@ -2245,7 +2259,11 @@ function buildFilterFormValuesFromQuery(
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS) {
             filtersForm[addNegation(filterKey, isNegated)] = filterValues;
         }
-        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID) {
+        if (
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_ID
+        ) {
             filtersForm[addNegation(filterKey, isNegated)] = filterValues.join(',');
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE) {
@@ -2730,6 +2748,7 @@ function getFilterDisplayValue({
     if (
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT ||
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL ||
+        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CONVERTED_AMOUNT ||
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT ||
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_DEBITED ||
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_REIMBURSED
@@ -3414,9 +3433,7 @@ function shouldHighlight(referenceText: string, searchText: string) {
 const TIME_BASED_GROUP_BYS = new Set<string>([CONST.SEARCH.GROUP_BY.DAY, CONST.SEARCH.GROUP_BY.MONTH, CONST.SEARCH.GROUP_BY.WEEK, CONST.SEARCH.GROUP_BY.YEAR, CONST.SEARCH.GROUP_BY.QUARTER]);
 
 /**
- * Determines whether sortBy and sortOrder should be fully reset (re-derived by
- * the parser) when filters change.  Returns true only when the groupBy value
- * changes, because each groupBy has its own default sort column and order.
+ * Grouping changes require new sort defaults because each grouping has its own columns and order.
  */
 function shouldResetSort({newGroupBy, oldGroupBy}: {newGroupBy: string | undefined; oldGroupBy: string | undefined}): boolean {
     return newGroupBy !== oldGroupBy;
@@ -3449,8 +3466,8 @@ function shouldResetSortForViewChange({newView, oldView, groupBy}: {newView: str
 }
 
 /**
- * Builds a query string from filter form values, resetting sortBy and sortOrder
- * when the groupBy has changed so the parser can re-derive the correct defaults.
+ * Builds a query string from filter form values, preserving compatible columns and
+ * non-default directions when grouping changes so user choices are not lost.
  * When only the view changes between table and chart with a time-based groupBy,
  * both sortBy and sortOrder are reset to allow the parser to apply the appropriate
  * defaults (e.g., groupMonth asc for charts, groupMonth desc for tables).
@@ -3459,7 +3476,7 @@ function shouldResetSortForViewChange({newView, oldView, groupBy}: {newView: str
  */
 function buildFilterQueryWithSortDefaults(
     filterValues: Partial<SearchAdvancedFiltersForm>,
-    previousState: {view?: string; groupBy?: string},
+    previousState: Pick<Partial<SearchAdvancedFiltersForm>, 'view' | 'groupBy'>,
     currentQueryOptions: BuildQueryStringOptions,
     policies?: OnyxCollection<OnyxTypes.Policy>,
 ): string | undefined {
@@ -3476,9 +3493,30 @@ function buildFilterQueryWithSortDefaults(
             groupBy: filterValues.groupBy,
         });
 
+    let {sortBy, sortOrder} = currentQueryOptions;
+    if (resetSort) {
+        // The parser already remaps date and group default columns. Only custom columns need a compatibility check.
+        const queryWithSortBy = buildSearchQueryJSON(buildQueryStringFromFilterFormValues(filterValues, {sortBy}));
+        const isSortByRemapped = queryWithSortBy && queryWithSortBy.sortBy !== sortBy;
+        const isCustomSortBySupported = getCustomColumns(filterValues.groupBy ?? filterValues.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE).some(
+            (column) => getSortByForColumn(column) === sortBy,
+        );
+
+        // A surviving custom column keeps its chosen direction even when it matches the old grouping's default.
+        // Otherwise, parse without sorting to distinguish the old defaults from a user's chosen direction, including chart defaults.
+        const previousDefaults = buildSearchQueryJSON(buildQueryStringFromFilterFormValues({type: filterValues.type, ...previousState}));
+        if ((isSortByRemapped || !isCustomSortBySupported) && sortOrder === previousDefaults?.sortOrder) {
+            sortOrder = undefined;
+        }
+
+        if (!isSortByRemapped && !isCustomSortBySupported) {
+            sortBy = undefined;
+        }
+    }
+
     const queryString = buildQueryStringFromFilterFormValues(filterValues, {
-        sortBy: resetSort || resetSortForViewChange ? undefined : currentQueryOptions.sortBy,
-        sortOrder: resetSort || resetSortForViewChange ? undefined : currentQueryOptions.sortOrder,
+        sortBy: resetSortForViewChange ? undefined : sortBy,
+        sortOrder: resetSortForViewChange ? undefined : sortOrder,
         flatFilters: currentQueryOptions.flatFilters,
     });
 
@@ -3806,6 +3844,7 @@ export {
     buildCannedSearchQuery,
     resolvePolicyIDFromName,
     sanitizeSearchValue,
+    sanitizeFilterValue,
     getKeywordQueryForSearchInput,
     getQueryWithUpdatedValues,
     getQueryWithPreservedSort,

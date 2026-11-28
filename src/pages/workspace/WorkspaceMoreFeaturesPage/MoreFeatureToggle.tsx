@@ -30,7 +30,7 @@ type MoreFeatureToggleProps = {
     pendingAction?: PendingAction;
 
     /** Called when the user flips the switch. Receives the next enabled state. */
-    onToggle: (isEnabled: boolean) => void;
+    onToggle: (isEnabled: boolean) => void | Promise<void>;
 
     /**
      * Called when the row body (not the switch) is pressed. When provided the row renders as a clickable

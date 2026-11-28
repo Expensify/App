@@ -32,6 +32,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 
 import React from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 import DowngradeConfirmation from './DowngradeConfirmation';
 import DowngradeIntro from './DowngradeIntro';
@@ -44,7 +45,6 @@ function DynamicWorkspaceDowngradePage({route}: DynamicWorkspaceDowngradePagePro
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_DOWNGRADE.path);
     const {accountID} = useCurrentUserPersonalDetails();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const ownerPoliciesSelectorWithAccountID = (policies: OnyxCollection<Policy>) => ownerPoliciesSelector(policies, accountID);
     const [ownerPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         selector: ownerPoliciesSelectorWithAccountID,
@@ -98,6 +98,7 @@ function DynamicWorkspaceDowngradePage({route}: DynamicWorkspaceDowngradePagePro
             Navigation.dismissModal();
             return;
         }
+        const policyCategories = await Onyx.get(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
         downgradeToTeam(policy.id, policy.type, policy.isAttendeeTrackingEnabled, arePolicyRulesEnabled(policy, policyCategories));
     };
 

@@ -13,8 +13,8 @@ coverage:
 
 codecov:
   notify:
-    # We shard our tests into 8 chunks, so we want CodeCov to wait for 8 builds before commenting
-    after_n_builds: 8
+    # We shard our tests into 16 chunks, so we want CodeCov to wait for 16 builds before commenting
+    after_n_builds: 16
 
 comment:
   require_changes: 'coverage_drop OR uncovered_patch'

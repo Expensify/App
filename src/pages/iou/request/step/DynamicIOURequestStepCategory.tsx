@@ -256,6 +256,7 @@ function DynamicIOURequestStepCategory({
                     onSubmit={updateCategory}
                     onCreateCategory={canCreateSearchedCategory ? createSearchedCategory : undefined}
                     ownerAccountID={isOwnExpense ? currentUserAccountID : undefined}
+                    submitterAccountID={isOwnExpense ? undefined : transactionReport?.ownerAccountID}
                 />
             )}
         </StepScreenWrapper>

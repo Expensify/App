@@ -1,3 +1,4 @@
+import {useSession} from '@components/OnyxListItemProvider';
 import {useSearchSelectionContext} from '@components/Search/SearchContext';
 
 import type {TransactionInlineEditParams} from '@libs/actions/TransactionInlineEdit';
@@ -30,6 +31,7 @@ import type {OnyxEntry} from 'react-native-onyx';
  * than being duplicated across every surface that renders a transaction.
  */
 import {guidedSetupAndTourStatusSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {personalDetailsListSelector} from '@selectors/PersonalDetails';
 import {fullPolicySnapshotLastModifiedSelector} from '@selectors/Policy';
 import {useEffect, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports -- Need original useOnyx to avoid reading partial Search snapshot policy data.
@@ -166,7 +168,8 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
 
     const originalTransactionID = transaction?.comment?.originalTransactionID;
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(originalTransactionID)}`);
-    const [personalDetailsList] = useAllPersonalDetails();
+    const sessionAccountID = useSession()?.accountID;
+    const [personalDetailsList] = useAllPersonalDetails(personalDetailsListSelector([sessionAccountID, parentReportAction?.actorAccountID, parentReportForAction?.ownerAccountID]));
     const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
 

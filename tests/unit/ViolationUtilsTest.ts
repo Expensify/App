@@ -178,6 +178,31 @@ describe('getViolationsOnyxData', () => {
         policyCategories = {};
     });
 
+    it('flags a stale selected value at a level with missing tags as out of policy', () => {
+        // Given independent levels with a valid selection followed by an empty list.
+        policyTags = createMock<PolicyTagLists>({
+            Department: {name: 'Department', orderWeight: 0, required: false, tags: {Sales: {name: 'Sales', enabled: true}}},
+            Broken: {name: 'Broken', orderWeight: 99},
+        });
+        transaction.tag = 'Sales:Previous selection';
+
+        // When an expense edit recalculates violations.
+        const result = ViolationsUtils.getViolationsOnyxData({
+            isVendorMatchingBetaEnabled: false,
+            ownerLogin: undefined,
+            updatedTransaction: transaction,
+            transactionViolations,
+            policy,
+            policyTagList: policyTags,
+            policyCategories,
+            hasDependentTags: false,
+            isInvoiceTransaction: false,
+        });
+
+        // Then the empty map invalidates its stale selection without crashing or shifting levels.
+        expect(getTransactionViolationsFromResult(result)).toContainEqual({...tagOutOfPolicyViolation, data: {tagName: 'Broken'}});
+    });
+
     it('should return an object with correct shape and with empty transactionViolations array', () => {
         const result = ViolationsUtils.getViolationsOnyxData({
             isVendorMatchingBetaEnabled: false,
@@ -5291,9 +5316,7 @@ describe('getIsViolationFixed', () => {
         policyCategories: undefined,
         policyTagLists: undefined,
         policyTaxRates: undefined,
-        iouAttendees: undefined,
-        ownerLogin: 'user@example.com',
-        isAttendeeTrackingEnabled: false,
+        isMissingAttendees: false,
     };
 
     const createPolicyTagList = (tagName: string, enabled: boolean) => ({
@@ -5303,12 +5326,6 @@ describe('getIsViolationFixed', () => {
             orderWeight: 1,
             tags: {[tagName]: {name: tagName, enabled}},
         },
-    });
-
-    const createAttendee = (email: string) => ({
-        email,
-        displayName: email.split('@')?.at(0) ?? '',
-        avatarUrl: '',
     });
 
     describe('violations.categoryOutOfPolicy', () => {
@@ -5482,73 +5499,25 @@ describe('getIsViolationFixed', () => {
     });
 
     describe('violations.missingAttendees', () => {
-        it('should return true when attendee tracking is disabled', () => {
-            const result = getIsViolationFixed('violations.missingAttendees', {
-                ...defaultParams,
-                isAttendeeTrackingEnabled: false,
-                category: 'Meals',
-                policyCategories: {Meals: {name: 'Meals', enabled: true, areAttendeesRequired: true}},
-            });
-            expect(result).toBe(true);
-        });
+        it('should return false while the expense still needs attendees', () => {
+            // Given an expense whose category still needs attendees it doesn't have
+            const params = {...defaultParams, isMissingAttendees: true};
 
-        it('should return true when category does not require attendees', () => {
-            const result = getIsViolationFixed('violations.missingAttendees', {
-                ...defaultParams,
-                isAttendeeTrackingEnabled: true,
-                category: 'Meals',
-                policyCategories: {Meals: {name: 'Meals', enabled: true, areAttendeesRequired: false}},
-            });
-            expect(result).toBe(true);
-        });
+            // When checking whether the missing-attendees violation is fixed
+            const result = getIsViolationFixed('violations.missingAttendees', params);
 
-        it('should return false when no attendees are present and category requires them', () => {
-            const result = getIsViolationFixed('violations.missingAttendees', {
-                ...defaultParams,
-                isAttendeeTrackingEnabled: true,
-                isControlPolicy: true,
-                category: 'Meals',
-                policyCategories: {Meals: {name: 'Meals', enabled: true, areAttendeesRequired: true}},
-                iouAttendees: [],
-            });
+            // Then it stays, so the confirmation keeps saying why it is blocked
             expect(result).toBe(false);
         });
 
-        it('should return false when only the creator is an attendee', () => {
-            const result = getIsViolationFixed('violations.missingAttendees', {
-                ...defaultParams,
-                isAttendeeTrackingEnabled: true,
-                isControlPolicy: true,
-                category: 'Meals',
-                policyCategories: {Meals: {name: 'Meals', enabled: true, areAttendeesRequired: true}},
-                iouAttendees: [createAttendee('user@example.com')],
-            });
-            expect(result).toBe(false);
-        });
+        it('should return true once the expense no longer needs attendees', () => {
+            // Given an expense whose attendees were added or whose category no longer needs them
+            const params = {...defaultParams, isMissingAttendees: false};
 
-        it('should return true when there is a non-creator attendee', () => {
-            const result = getIsViolationFixed('violations.missingAttendees', {
-                ...defaultParams,
-                isAttendeeTrackingEnabled: true,
-                isControlPolicy: true,
-                category: 'Meals',
-                policyCategories: {Meals: {name: 'Meals', enabled: true, areAttendeesRequired: true}},
-                iouAttendees: [createAttendee('user@example.com'), createAttendee('other@example.com')],
-            });
-            expect(result).toBe(true);
-        });
+            // When checking whether the missing-attendees violation is fixed
+            const result = getIsViolationFixed('violations.missingAttendees', params);
 
-        it('should return true (violation fixed) when policy is not Control type, even if category requires attendees', () => {
-            // This covers the downgrade scenario: after downgrading from Control to Collect,
-            // the category may still have areAttendeesRequired: true but we should not enforce it
-            const result = getIsViolationFixed('violations.missingAttendees', {
-                ...defaultParams,
-                isAttendeeTrackingEnabled: true,
-                isControlPolicy: false,
-                category: 'Meals',
-                policyCategories: {Meals: {name: 'Meals', enabled: true, areAttendeesRequired: true}},
-                iouAttendees: [],
-            });
+            // Then it is fixed, so the confirmation clears the error
             expect(result).toBe(true);
         });
     });

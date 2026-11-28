@@ -23,6 +23,8 @@ import {canViewAllPolicyData, hasMultipleMembers} from './insightsAccess';
 
 type PolicyEligibilityCheck = (policy: Policy, login: string | undefined) => boolean;
 
+type InsightsDetailsSection = ValueOf<typeof CONST.INSIGHTS.DETAILS_SECTION>;
+
 /** One workflow stage a chart shows */
 type InsightsChartStage = {
     workflowStage: ValueOf<typeof CONST.SEARCH.WORKFLOW_STAGES>;
@@ -111,7 +113,17 @@ type InsightsChartSpec = {
      * A time-grouped chart stacks them in each bucket's column, and a chart grouped by workflow stage draws them as its groups.
      */
     stages?: InsightsChartStage[];
+
+    /** Sections GetInsightsDetails returns for a point of the chart, left out by charts it doesn't support */
+    detailsSections?: InsightsDetailsSection[];
 };
+
+/** Sections of a ranking chart's points, which unlike a time chart's also get the item's recent history */
+const RANKING_DETAILS_SECTIONS: InsightsDetailsSection[] = [
+    CONST.INSIGHTS.DETAILS_SECTION.SUMMARY,
+    CONST.INSIGHTS.DETAILS_SECTION.RECENT_HISTORY,
+    CONST.INSIGHTS.DETAILS_SECTION.TOP_EXPENSES,
+];
 
 /** Violations kept at submission or approval */
 const VIOLATION_HAS_VALUES: HasFilterValues = [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION, CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION];
@@ -141,6 +153,9 @@ type InsightsDashboardSpec = {
     /** Whether the charts link to the Spend page, from their menus and from a pressed point that has no Details panel to open. Defaults to true. */
     supportsDrillIn?: boolean;
 
+    /** Whether a pressed point opens the Details panel */
+    hasDetailsPanel: boolean;
+
     /** The dashboard's charts are replaced by the Control upsell when no workspace in scope is on Control */
     requiresControlPlan?: boolean;
 
@@ -156,10 +171,12 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
         searchKey: CONST.INSIGHTS.SEARCH_KEY.SPEND,
         labelKey: 'common.spend',
         queryType: CONST.SEARCH.DATA_TYPES.EXPENSE,
+        hasDetailsPanel: true,
         headlineChart: {
             graphKey: CONST.INSIGHTS.GRAPH.SPEND_OVER_TIME,
             titleKey: 'search.spendOverTime',
             view: CONST.SEARCH.VIEW.LINE,
+            detailsSections: [CONST.INSIGHTS.DETAILS_SECTION.SUMMARY, CONST.INSIGHTS.DETAILS_SECTION.TOP_EXPENSES],
         },
         supportingCharts: [
             {
@@ -171,6 +188,7 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
                 limit: CONST.SEARCH.TOP_SEARCH_LIMIT,
                 isPolicyEligible: isPolicyEligibleForTopSpenders,
+                detailsSections: RANKING_DETAILS_SECTIONS,
             },
             {
                 graphKey: CONST.INSIGHTS.GRAPH.TOP_MERCHANTS,
@@ -180,6 +198,7 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
                 sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
                 limit: CONST.SEARCH.TOP_SEARCH_LIMIT,
+                detailsSections: RANKING_DETAILS_SECTIONS,
             },
             {
                 graphKey: CONST.INSIGHTS.GRAPH.TOP_CATEGORIES,
@@ -190,6 +209,7 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
                 limit: CONST.SEARCH.TOP_SEARCH_LIMIT,
                 isPolicyEligible: isPolicyEligibleForTopCategories,
+                detailsSections: RANKING_DETAILS_SECTIONS,
             },
             {
                 graphKey: CONST.INSIGHTS.GRAPH.TOP_TAGS,
@@ -210,6 +230,7 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
         queryType: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
         countDimension: CONST.SEARCH.CHART_COUNT_DIMENSION.REPORT,
         supportsDrillIn: false,
+        hasDetailsPanel: false,
         headlineChart: {
             graphKey: CONST.INSIGHTS.GRAPH.WORKFLOW_EFFICIENCY,
             titleKey: 'insightsPage.workflowEfficiency',
@@ -271,6 +292,7 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
         isPolicyEligible: canViewAllPolicyData,
         queryType: CONST.SEARCH.DATA_TYPES.EXPENSE,
         requiresControlPlan: true,
+        hasDetailsPanel: true,
         headlineChart: {
             graphKey: CONST.INSIGHTS.GRAPH.VIOLATIONS_OVER_TIME,
             titleKey: 'insightsPage.violationsOverTime',
@@ -417,6 +439,16 @@ function applyViolationStage(chart: InsightsChartSpec, stage: InsightsViolationS
     return {...chart, ...VIOLATION_STAGE_FILTERS[stage]};
 }
 
+/** Returns the dashboard's chart with the given graph key, pointed at the given violation stage. */
+function getChartSpec(dashboardID: InsightsDashboardID, graphKey: string, stage: InsightsViolationStage | undefined): InsightsChartSpec | undefined {
+    const {headlineChart, supportingCharts} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
+    const chart = [headlineChart, ...supportingCharts].find((spec) => spec.graphKey === graphKey);
+    if (!chart) {
+        return undefined;
+    }
+    return applyViolationStage(chart, stage);
+}
+
 /** Returns the stage a chart with a violation stage control counts, the submitters' until the user picks one. Other charts have none. */
 function getViolationStage(chart: InsightsChartSpec, violationStages: InsightsViolationStages): InsightsViolationStage | undefined {
     if (!chart.hasViolationStageControl) {
@@ -428,6 +460,7 @@ function getViolationStage(chart: InsightsChartSpec, violationStages: InsightsVi
 export {
     applyViolationStage,
     getAccessibleDashboards,
+    getChartSpec,
     getEnabledStages,
     getPoliciesInScope,
     getUpgradeablePolicyIDsInScope,
@@ -438,5 +471,5 @@ export {
     shouldUpsellControlPlan,
     VIOLATION_HAS_VALUES,
 };
-export type {InsightsChartSpec, InsightsChartStage, InsightsDateFilterKey, InsightsViolationStage, InsightsViolationStages};
+export type {InsightsChartSpec, InsightsChartStage, InsightsDateFilterKey, InsightsDetailsSection, InsightsViolationStage, InsightsViolationStages};
 export default INSIGHTS_DASHBOARD_SPECS;

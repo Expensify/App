@@ -16,7 +16,7 @@ import Text from '@components/Text';
 
 import useConfirmApproveReportViolations from '@hooks/useConfirmApproveReportViolations';
 import useConfirmModal from '@hooks/useConfirmModal';
-import useConfirmSubmitReportViolations from '@hooks/useConfirmSubmitReportViolations';
+import useConfirmSubmitViolations from '@hooks/useConfirmSubmitViolations';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
@@ -231,8 +231,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         liveViolations: liveViolationsForSnapshotTransactions,
         filteredLiveViolations: reportViolations,
     } = useReportApprovalWarningData(reportItem.reportID, snapshotTransactions, currentSearchViolations);
-    const confirmSubmitReportViolations = useConfirmSubmitReportViolations({
-        reportID: reportItem.reportID,
+    const confirmSubmitReportViolations = useConfirmSubmitViolations({
         report: reportForViolations,
         policy: policyForViolations,
         shouldShowMarkAsDoneCopy,

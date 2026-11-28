@@ -74,7 +74,7 @@ jest.mock(
         ({children}: React.PropsWithChildren) =>
             children,
 );
-jest.mock('@components/AmountForm', () => () => null);
+jest.mock('@components/AmountFormAdapters/AmountFormInline', () => () => null);
 jest.mock('@components/RenderHTML', () => () => null);
 jest.mock('@components/UserPill', () => {
     const {Text} = jest.requireActual<{Text: NativeText}>('react-native');

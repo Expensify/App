@@ -2,9 +2,9 @@
 import type {ChartPeriod} from '@components/Search/comparisonBuckets';
 import type {SearchGroupBy} from '@components/Search/types';
 
-import DateUtils from '@libs/DateUtils';
 import {hashText} from '@libs/UserUtils';
 
+import type {InsightsDetailsSection} from '@pages/Insights/dashboardSpecs';
 import getInsightsDateRange from '@pages/Insights/getInsightsDateRange';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
 import type {InsightsTimeGroupBy} from '@pages/Insights/insightsGroupByUtils';
@@ -13,19 +13,8 @@ import {buildDetailsFiltersQueryJSON} from '@pages/Insights/insightsQueries';
 import CONST from '@src/CONST';
 import type {InsightsGraphKey} from '@src/types/onyx';
 
-import {format, getMonth, getQuarter, getYear, parseISO, startOfWeek} from 'date-fns';
-
+import getCalendarPeriod from './getCalendarPeriod';
 import getInsightsDetailsPeriod from './getInsightsDetailsPeriod';
-
-const INSIGHTS_DETAILS_SECTIONS = ['summary', 'topExpenses'];
-
-/** Graphs supported by GetInsightsDetails, the backend rejects requests for the other ones */
-const SUPPORTED_GRAPH_KEYS = new Set<InsightsGraphKey>([
-    CONST.INSIGHTS.GRAPH.SPEND_OVER_TIME,
-    CONST.INSIGHTS.GRAPH.TOP_MERCHANTS,
-    CONST.INSIGHTS.GRAPH.TOP_CATEGORIES,
-    CONST.INSIGHTS.GRAPH.TOP_SPENDERS,
-]);
 
 type InsightsDetailsQuery = {
     /** Request payload for GetInsightsDetails */
@@ -49,6 +38,10 @@ type InsightsDetailsQuery = {
 
 type BuildInsightsDetailsQueryParams = {
     graphKey: InsightsGraphKey;
+
+    /** Sections to request, none for graphs GetInsightsDetails doesn't support */
+    sections: InsightsDetailsSection[] | undefined;
+
     filters: InsightsFilters;
 
     /** What the ranking graph groups by, undefined for Spend over time */
@@ -66,24 +59,6 @@ type BuildInsightsDetailsQueryParams = {
     /** Last day the dashboard counts expenses through, as yyyy-MM-dd */
     lastDay: string;
 };
-
-/** Returns the calendar day, week, month, quarter or year that contains the date, or undefined when the date doesn't fall in a real month, quarter or year. */
-function getCalendarPeriod(groupBy: InsightsTimeGroupBy, date: string): ChartPeriod | undefined {
-    const day = parseISO(date);
-    switch (groupBy) {
-        case CONST.SEARCH.GROUP_BY.DAY:
-            return {start: date, end: date};
-        case CONST.SEARCH.GROUP_BY.WEEK:
-            // Weeks start on Sunday, matching the week buckets of group-by:week
-            return DateUtils.getWeekDateRange(format(startOfWeek(day, {weekStartsOn: 0}), CONST.DATE.FNS_FORMAT_STRING));
-        case CONST.SEARCH.GROUP_BY.MONTH:
-            return DateUtils.getMonthDateRange(getYear(day), getMonth(day) + 1);
-        case CONST.SEARCH.GROUP_BY.QUARTER:
-            return DateUtils.getQuarterDateRange(getYear(day), getQuarter(day));
-        default:
-            return DateUtils.getYearDateRange(getYear(day));
-    }
-}
 
 /** Returns the period the panel summarizes: the clicked one on Spend over time, the last one in the Date range on ranking graphs. */
 function getSummarizedPeriod({
@@ -114,6 +89,7 @@ function getSummarizedPeriod({
 /** Builds the request for a Details panel's sections, or nothing when the backend doesn't support the graph or the period can't be resolved. */
 function buildInsightsDetailsQuery({
     graphKey,
+    sections,
     filters,
     itemGroupBy,
     itemKey,
@@ -121,7 +97,7 @@ function buildInsightsDetailsQuery({
     topExpensesSnapshotHash,
     lastDay,
 }: BuildInsightsDetailsQueryParams): InsightsDetailsQuery | undefined {
-    if (!SUPPORTED_GRAPH_KEYS.has(graphKey)) {
+    if (!sections?.length) {
         return undefined;
     }
     const periodGroupBy = getInsightsDetailsPeriod(filters, graphKey);
@@ -139,7 +115,12 @@ function buildInsightsDetailsQuery({
     const hash = hashText(JSON.stringify(hashedFields), 2 ** 32);
 
     return {
-        jsonQuery: JSON.stringify({...hashedFields, sections: INSIGHTS_DETAILS_SECTIONS, topExpensesSnapshotHash, hash}),
+        jsonQuery: JSON.stringify({
+            ...hashedFields,
+            sections,
+            topExpensesSnapshotHash,
+            hash,
+        }),
         hash,
         topExpensesSnapshotHash,
         period,

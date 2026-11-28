@@ -1,4 +1,4 @@
-import AmountForm from '@components/AmountForm';
+import AmountFormInline from '@components/AmountFormAdapters/AmountFormInline';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
@@ -39,6 +39,7 @@ import {
     getExpectedUnitForCountry,
     getGovernmentRateAmountForUnit,
     getNoGovernmentRateNote,
+    hasGovernmentRateForCurrency,
     isEuroDistanceRateCountry,
     isGovernmentRateCountry,
     isSharedGovernmentRateCurrency,
@@ -68,7 +69,8 @@ import type {Rate} from '@src/types/onyx/Policy';
 import type {ValueOf} from 'type-fest';
 
 import React, {useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
+import {Keyboard, View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 import EuroCountryDropdown from './EuroCountryDropdown';
 
@@ -97,14 +99,13 @@ function CreateDistanceRatePage({
     const isDistanceRateUpgrade = transactionID && reportID;
     const {isBetaEnabled} = usePermissions();
     const shouldShowCountryAndKind = !isDistanceRateUpgrade && isBetaEnabled(CONST.BETAS.MILEAGE_UI);
-    const [transactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(transactionID)}`);
     const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST);
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
     const [governmentMileageRates] = useOnyx(ONYXKEYS.GOVERNMENT_MILEAGE_RATES);
     const formRef = useRef<FormRef>(null);
 
-    // The auto-update toggle is on exactly when the workspace has its government rate, and a workspace has at most one
-    const hasGovernmentRate = !!policy?.shouldAutoUpdateGovernmentDistanceRates;
+    // A workspace has at most one government rate. The server turns auto-update off on some currency changes but keeps the copied rates.
+    const hasGovernmentRate = !!policy?.shouldAutoUpdateGovernmentDistanceRates || hasGovernmentRateForCurrency(policy);
     const isEuroWorkspace = isSharedGovernmentRateCurrency(currency);
 
     const [pickedKind, setPickedKind] = useState<DistanceRateKind>();
@@ -137,8 +138,9 @@ function CreateDistanceRatePage({
 
     useEffect(() => {
         fetchDistanceRates();
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- the rates only need loading once when the page opens
-    }, []);
+        // The reference rates are loaded for the workspace currency, and the currency can change while this page stays open
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currency]);
 
     // The custom form is cleared and the kind goes back to the new country's default
     const selectEuroCountry = (selectedCountry: string) => {
@@ -152,6 +154,10 @@ function CreateDistanceRatePage({
 
     // Errors from submitting one kind's form don't apply to the other kind
     const selectKind = (selectedKind: DistanceRateKind) => {
+        // Android keeps the keyboard open when the focused Name input unmounts
+        if (selectedKind === CONST.CUSTOM_UNITS.DISTANCE_RATE_KIND.GOVERNMENT) {
+            Keyboard.dismiss();
+        }
         setPickedKind(selectedKind);
         formRef.current?.resetErrors();
     };
@@ -191,7 +197,7 @@ function CreateDistanceRatePage({
         Navigation.goBack();
     };
 
-    const saveCustomRate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM>) => {
+    const saveCustomRate = async (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM>) => {
         // A blocking view is shown when customUnitID is undefined, so this function should never be called
         if (!customUnitID) {
             return;
@@ -210,6 +216,7 @@ function CreateDistanceRatePage({
         createPolicyDistanceRate(policyID, customUnitID, newRate);
         if (isDistanceRateUpgrade) {
             const isEdit = action === CONST.IOU.ACTION.EDIT;
+            const transactionDraft = await Onyx.get(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(transactionID)}`);
             setMoneyRequestDistanceRate(transactionDraft, customUnitRateID, policy, true);
             if (!isEdit) {
                 setDraftHasUserEdits(transactionID);
@@ -233,7 +240,7 @@ function CreateDistanceRatePage({
             saveGovernmentRate();
             return;
         }
-        saveCustomRate(values);
+        return saveCustomRate(values);
     };
 
     const kindTabs: Array<TabSelectorBaseItem<DistanceRateKind>> = [
@@ -278,7 +285,7 @@ function CreateDistanceRatePage({
                 shouldKeyboardOffsetBottomSafeAreaPadding={shouldShowCountryAndKind ? false : undefined}
             >
                 <HeaderWithBackButton title={isDistanceRateUpgrade ? translate('common.rate') : translate('workspace.distanceRates.addRate')} />
-                <FullPageBlockingView style={styles.flexGrow1}>
+                <FullPageBlockingView style={styles.flex1}>
                     <FormProvider
                         ref={formRef}
                         formID={ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM}
@@ -367,6 +374,8 @@ function CreateDistanceRatePage({
                                         <InputWrapper
                                             ref={inputCallbackRef}
                                             InputComponent={TextInput}
+                                            // Name mounts when the user switches to Custom, after the screen's autofocus has run
+                                            autoFocus={pickedKind === CONST.CUSTOM_UNITS.DISTANCE_RATE_KIND.CUSTOM}
                                             inputID={INPUT_IDS.NAME}
                                             label={translate('common.name')}
                                             accessibilityLabel={translate('common.name')}
@@ -400,12 +409,10 @@ function CreateDistanceRatePage({
                                             {translate('workspace.distanceRates.rate')}
                                         </Text>
                                         <InputWrapper
-                                            InputComponent={AmountForm}
+                                            InputComponent={AmountFormInline}
                                             inputID={INPUT_IDS.RATE}
                                             decimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES}
                                             currency={currency}
-                                            isCurrencyPressable={false}
-                                            displayAsTextInput
                                             label={customAmountLabel}
                                         />
                                     </>
@@ -450,12 +457,10 @@ function CreateDistanceRatePage({
                                 />
                                 <View style={styles.mt4}>
                                     <InputWrapper
-                                        InputComponent={AmountForm}
+                                        InputComponent={AmountFormInline}
                                         inputID={INPUT_IDS.RATE}
                                         decimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES}
                                         currency={currency}
-                                        isCurrencyPressable={false}
-                                        displayAsTextInput
                                         label={customAmountLabel}
                                     />
                                 </View>

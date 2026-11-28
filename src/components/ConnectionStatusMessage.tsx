@@ -21,7 +21,7 @@ import RenderHTML from './RenderHTML';
 type ConnectionStatusMessageProps = WithSentryLabelWhenPressable<'onActionPress', 'actionSentryLabel'> & {
     message?: string;
     actionText?: string;
-    onActionPress?: () => void;
+    onActionPress?: () => void | Promise<void>;
     isActionDisabled?: boolean;
     /** `pending` marks something still in progress, with an hourglass and a regular action button */
     statusTone?: 'default' | 'success' | 'danger' | 'pending';

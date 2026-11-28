@@ -293,6 +293,7 @@ key "key"
       / merchant
       / description
       / reportID
+      / transactionID
       / keyword
       / in
       / currency
@@ -343,6 +344,7 @@ key "key"
       / has
       / is
       / purchaseCurrency
+      / convertedAmount
       / purchaseAmount
       / policyID
       / status
