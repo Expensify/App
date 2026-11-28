@@ -1,18 +1,22 @@
 import {getReportPreviewReportAction} from '@libs/actions/IOU/MoneyRequestBuilder';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getCombinedReportActions, getFilteredReportActionsForReportView, isCreatedAction} from '@libs/ReportActionsUtils';
+import {getOriginalMessage} from '@libs/ReportActionMessageUtils';
+import {getCombinedReportActions, getFilteredReportActionsForReportView, isCreatedAction, isTransactionThread} from '@libs/ReportActionsUtils';
 import {isConciergeChatReport, isInvoiceReport, isMoneyRequestReport, isReportTransactionThread as isReportTransactionThreadUtil, shouldReportAlignToTop} from '@libs/ReportUtils';
 
-import getReportActionsToDisplay from '@pages/inbox/report/getReportActionsToDisplay';
+import getReportActionsToDisplay, {buildPlaceholderCreatedAction, buildPlaceholderExpenseAction} from '@pages/inbox/report/getReportActionsToDisplay';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useState} from 'react';
 
 import {useCurrencyListActions} from './useCurrencyList';
+import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDelegateAccountID from './useDelegateAccountID';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
@@ -40,8 +44,6 @@ type UseReportActionsPaginationResult = {
 function useReportActionsPagination(reportID: string | undefined, reportActionIDFromRoute: string | undefined): UseReportActionsPaginationResult {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const {isOffline} = useNetwork();
-    const {getCurrencyDecimals} = useCurrencyListActions();
-    const delegateAccountID = useDelegateAccountID();
     const parentReportAction = useParentReportAction(report);
 
     const [treatAsNoPaginationAnchor, setTreatAsNoPaginationAnchor] = useState(false);
@@ -63,36 +65,31 @@ function useReportActionsPagination(reportID: string | undefined, reportActionID
         // (https://github.com/Expensify/App/issues/93196) without changing regular inbox chat pagination.
         shouldSnapshotInitialLastReadTime: isConciergeChatReport(report, conciergeReportID),
     });
-    const thread = useTransactionThread({reportID, report, allReportActions: getFilteredReportActionsForReportView(unfilteredReportActions), isOffline});
-
-    const [chatReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
-
-    // React Compiler does not memoize a value created before a hook call and used after it, so these are computed again below the last hook.
-    const allReportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
-    const isConciergeChat = isConciergeChatReport(report, conciergeReportID);
-
-    const isReportTransactionThread = isReportTransactionThreadUtil(report);
-
-    const lastAction = allReportActions?.at(-1);
-    const shouldAddCreatedAction = !isCreatedAction(lastAction) && (isMoneyRequestReport(report) || isInvoiceReport(report) || isReportTransactionThread || isConciergeChat);
-
-    const reportPreviewAction = getReportPreviewReportAction(report?.chatReportID, report?.reportID, chatReportActions);
+    const {allReportActions, reportPreviewAction, hasPendingExpense, hasMissingExpenses} = useReportExpenseActions(report, unfilteredReportActions);
+    const thread = useTransactionThread({reportID, report, allReportActions, isOffline});
+    const oldestActionForPlaceholder = allReportActions.at(-1);
+    const {placeholderCreatedAction, placeholderExpenseAction} = usePlaceholderReportActions({
+        reportID,
+        ownerAccountID: report?.ownerAccountID,
+        oldestActionCreated: oldestActionForPlaceholder?.created,
+        shouldAddCreatedAction:
+            !isCreatedAction(oldestActionForPlaceholder) &&
+            (isMoneyRequestReport(report) || isInvoiceReport(report) || isReportTransactionThreadUtil(report) || isConciergeChatReport(report, conciergeReportID)),
+        shouldAddExpenseAction: hasMissingExpenses && isEmptyObject(thread.transactionThreadReport),
+    });
 
     // When we are offline before opening an IOU/Expense report,
     // the total of the report and sometimes the expense aren't displayed because these actions aren't returned until `OpenReport` API is complete.
     // We generate a fake created action here if it doesn't exist to display the total whenever possible because the total just depends on report data
     // and we also generate an expense action if the number of expenses in allReportActions is less than the total number of expenses
     // to display at least one expense action to match the total data.
-    const reportActionsToDisplay = getReportActionsToDisplay(
-        allReportActions,
-        lastAction,
-        report,
-        reportPreviewAction,
-        thread.transactionThreadReport,
-        shouldAddCreatedAction,
-        getCurrencyDecimals,
-        delegateAccountID,
-    );
+    const reportActionsToDisplay = getReportActionsToDisplay({
+        reportViewActions: allReportActions,
+        isMoneyRequestReport: isMoneyRequestReport(report),
+        hasPendingExpense,
+        placeholderCreatedAction,
+        placeholderExpenseAction,
+    });
 
     const reportActions = reportActionsToDisplay
         ? getCombinedReportActions(reportActionsToDisplay, thread.transactionThreadReportID ?? null, thread.transactionThreadReportActions ?? [])
@@ -119,6 +116,53 @@ function useReportActionsPagination(reportID: string | undefined, reportActionID
         setTreatAsNoPaginationAnchor,
         reportPreviewAction,
     };
+}
+
+function useReportExpenseActions(report: OnyxEntry<Report>, unfilteredReportActions: ReportAction[]) {
+    const [chatReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
+    const reportPreviewAction = getReportPreviewReportAction(report?.chatReportID, report?.reportID, chatReportActions);
+    const isMoneyRequest = isMoneyRequestReport(report);
+    const allReportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
+    const moneyRequestActions = isMoneyRequest ? allReportActions.filter(isTransactionThread) : undefined;
+    const hasPendingExpense = moneyRequestActions?.some((action) => !!action.pendingAction) ?? false;
+    // Keep the total visible while offline cached actions contain fewer expenses than the report preview.
+    const hasMissingExpenses = !!moneyRequestActions && allReportActions.length > 0 && !!report?.total && moneyRequestActions.length < (reportPreviewAction?.childMoneyRequestCount ?? 0);
+    return {allReportActions, reportPreviewAction, hasPendingExpense, hasMissingExpenses};
+}
+
+type PlaceholderReportActionsParams = {
+    reportID: string | undefined;
+    ownerAccountID: number | undefined;
+    oldestActionCreated: string | undefined;
+    shouldAddCreatedAction: boolean;
+    shouldAddExpenseAction: boolean;
+};
+
+/** Isolates placeholder inputs so unrelated Onyx writes cannot invalidate their compiler cache. */
+function usePlaceholderReportActions({reportID, ownerAccountID, oldestActionCreated, shouldAddCreatedAction, shouldAddExpenseAction}: PlaceholderReportActionsParams) {
+    const delegateAccountID = useDelegateAccountID();
+    const {accountID, avatar, displayName, email} = useCurrentUserPersonalDetails();
+    const createdAction = shouldAddCreatedAction ? buildPlaceholderCreatedAction(reportID, ownerAccountID, oldestActionCreated) : undefined;
+    const expenseAction = usePlaceholderExpenseAction(reportID, createdAction?.created ?? oldestActionCreated, shouldAddExpenseAction);
+    // The account can load after the placeholder. Update authorship without replacing its action ID.
+    const author = {
+        actorAccountID: accountID || undefined,
+        avatar,
+        person: [{style: 'strong', text: displayName ?? email, type: CONST.REPORT.MESSAGE.TYPE.TEXT}],
+    } satisfies Pick<ReportAction, 'actorAccountID' | 'avatar' | 'person'>;
+    const placeholderCreatedAction = createdAction && {...createdAction, ...author};
+    const placeholderExpenseAction = expenseAction && {
+        ...expenseAction,
+        ...author,
+        delegateAccountID,
+        originalMessage: {...getOriginalMessage(expenseAction), participantAccountIDs: accountID ? [accountID] : []},
+    };
+    return {placeholderCreatedAction, placeholderExpenseAction};
+}
+
+function usePlaceholderExpenseAction(reportID: string | undefined, created: string | undefined, shouldAddExpenseAction: boolean) {
+    const {getCurrencyDecimals} = useCurrencyListActions();
+    return shouldAddExpenseAction ? buildPlaceholderExpenseAction(reportID, created, getCurrencyDecimals) : undefined;
 }
 
 export default useReportActionsPagination;
