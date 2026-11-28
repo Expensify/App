@@ -3,7 +3,7 @@ import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import DynamicFormFlow from '@components/DynamicForm';
 import type {DynamicFormValues} from '@components/DynamicForm/types';
-import getRefreshAnswers from '@components/DynamicForm/utils/getRefreshAnswers';
+import getRefreshAnswers, {getClearedAnswerKeys} from '@components/DynamicForm/utils/getRefreshAnswers';
 import type {FormValue} from '@components/Form/types';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Header from '@components/Header';
@@ -38,11 +38,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {PersonalBankAccount} from '@src/types/onyx';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {isUserValidatedSelector} from '@selectors/Account';
-import React, {useContext, useEffect, useEffectEvent, useState} from 'react';
+import React, {useContext, useEffect, useEffectEvent, useRef, useState} from 'react';
 
 import getCurrentSchemaAnswers from './getCurrentSchemaAnswers';
 import navigateToUSBankAccountFlow from './navigateToUSBankAccountFlow';
@@ -101,6 +102,8 @@ function WiseDepositAccountContent({backTo, subPage, isEditing}: WiseDepositAcco
     const [formStartCount, setFormStartCount] = useState(0);
     // Read once when the screen opens: a success that arrives later belongs to this visit and shows the success screen
     const [hasSuccessFromEarlierVisit, setHasSuccessFromEarlierVisit] = useState(() => !!formState?.isSuccess);
+    // The error a retry already answered. The error clears only once Onyx catches up, so a second tap in the meantime would send the request twice.
+    const retriedErrorsRef = useRef<Errors | undefined>(undefined);
     const errorMessage = getLatestErrorMessage(wiseBankAccountFields);
     const payoutType = wiseBankAccountFields?.payoutType;
     const formCurrency = wiseBankAccountFields?.currency;
@@ -235,7 +238,25 @@ function WiseDepositAccountContent({backTo, subPage, isEditing}: WiseDepositAcco
             startOverWithCurrency(value);
             return;
         }
+        // The answers a change clears, such as the zip of the old country, are cleared in the draft too, so Try again, which reads the draft, does not send them back
+        const clearedKeys = getClearedAnswerKeys(otherAnswers);
+        if (clearedKeys.length > 0) {
+            setDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM, Object.fromEntries(clearedKeys.map((key) => [key, ''])));
+        }
         const answers = getRefreshAnswers(getCurrentSchemaAnswers(schema, draftValues), inputID, value, otherAnswers);
+        getWiseBankAccountFields(selectedCountry, getAnswerCurrency(answers), answers);
+    };
+
+    // The draft holds every pick, so the retry works from any page or screen, including one opened after the failure, and sends what the user has answered since.
+    // A new currency left only the currency in the draft, so its retry asks for that currency's form again.
+    const retryRefresh = () => {
+        const failedErrors = wiseBankAccountFields?.errors;
+        if (!failedErrors || retriedErrorsRef.current === failedErrors) {
+            return;
+        }
+        retriedErrorsRef.current = failedErrors;
+        // An empty answer is one the user has not given or one a change cleared, and the refresh leaves a cleared one out, so none is sent
+        const answers = Object.fromEntries(Object.entries(getCurrentSchemaAnswers(schema, draftValues)).filter(([, answer]) => answer !== ''));
         getWiseBankAccountFields(selectedCountry, getAnswerCurrency(answers), answers);
     };
 
@@ -286,6 +307,7 @@ function WiseDepositAccountContent({backTo, subPage, isEditing}: WiseDepositAcco
                 submitError={getLatestErrorMessage(formState)}
                 isRefreshingRequirements={!!wiseBankAccountFields.isLoading}
                 refreshError={errorMessage}
+                onRetryRefresh={retryRefresh}
                 onBack={returnToCountryList}
             >
                 <CheckboxWithLabel

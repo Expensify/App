@@ -66,6 +66,7 @@ function DynamicFormFlow({
     isSavingPages,
     isRefreshingRequirements,
     refreshError,
+    onRetryRefresh,
     unsavedPageKeys,
     isLoading,
     validatePage,
@@ -419,6 +420,7 @@ function DynamicFormFlow({
                     isSavingPages={isSavingPages}
                     isRefreshingRequirements={isRefreshingRequirements}
                     refreshError={refreshError}
+                    onRetryRefresh={onRetryRefresh}
                     shouldShowFieldErrors={shouldShowFieldErrors}
                     shouldDisableNextWhenOffline={shouldDisableNextWhenOffline}
                     onSaveForLater={onSaveForLater ? saveForLater : undefined}

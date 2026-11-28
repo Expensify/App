@@ -77,6 +77,12 @@ type DynamicFormFlowProps = Pick<DynamicFormFieldsProps, 'currency' | 'maxFileSi
     /** Error from asking for new requirements, shown on every fields page, since the answer that asked for them can be on any page */
     refreshError?: string;
 
+    /**
+     * Asks for the form again with the current answers, shown as Try again next to `refreshError`. A dropdown ignores a pick of the value it already holds,
+     * so without it the user would have to pick another value and then the right one again.
+     */
+    onRetryRefresh?: () => void;
+
     /** Pages whose `onPageSubmit` save has not gone through, so a new visit starts on the first one shown instead of where the draft leaves off */
     unsavedPageKeys?: string[];
 
@@ -124,6 +130,7 @@ type DynamicFormSubPageProps = SubPageProps &
         | 'isSavingPages'
         | 'isRefreshingRequirements'
         | 'refreshError'
+        | 'onRetryRefresh'
         | 'shouldDisableNextWhenOffline'
         | 'validatePage'
     > & {
