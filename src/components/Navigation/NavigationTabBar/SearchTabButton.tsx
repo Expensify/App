@@ -21,9 +21,12 @@ import useStoredSearchTabRoute from './useStoredSearchTabRoute';
 type SearchTabButtonProps = {
     selectedTab: ValueOf<typeof NAVIGATION_TABS>;
     isWideLayout: boolean;
+
+    /** Whether the wide-layout button uses the shorter row, for windows too short to fit the full-height rows */
+    isCompact?: boolean;
 };
 
-function SearchTabButton({selectedTab, isWideLayout}: SearchTabButtonProps) {
+function SearchTabButton({selectedTab, isWideLayout, isCompact = false}: SearchTabButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ReceiptMultiple']);
@@ -43,7 +46,7 @@ function SearchTabButton({selectedTab, isWideLayout}: SearchTabButtonProps) {
                 role={CONST.ROLE.TAB}
                 accessibilityLabel={translate('common.spend')}
                 accessibilityState={searchAccessibilityState}
-                style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
+                style={({hovered}) => [styles.leftNavigationTabBarItem, isCompact && styles.leftNavigationTabBarItemCompact, hovered && styles.navigationTabBarItemHovered]}
                 sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.REPORTS}
                 onHoverIn={() => setIsSearchTabHovered(true)}
                 onHoverOut={() => setIsSearchTabHovered(false)}

@@ -2,6 +2,7 @@ import {APP_UPDATE_QUERY_PARAM} from '@libs/AppUpdateURL';
 import CacheAPI from '@libs/CacheAPI';
 import checkForUpdates from '@libs/checkForUpdates';
 import DateUtils from '@libs/DateUtils';
+import startDispatchingMissedResizeEvents from '@libs/startDispatchingMissedResizeEvents';
 import Visibility from '@libs/Visibility';
 
 import Config from '@src/CONFIG';
@@ -71,6 +72,8 @@ export default function () {
 
     // Initialize Cache API
     CacheAPI.init();
+
+    startDispatchingMissedResizeEvents();
 
     // react-native-web renders into a DOM node, which React Native's types describe as a native root tag.
     (AppRegistry.runApplication as WebAppRegistry['runApplication'])(Config.APP_NAME, {

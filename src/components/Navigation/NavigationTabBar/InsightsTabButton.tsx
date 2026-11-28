@@ -19,9 +19,12 @@ import useSignedInLinkRoute from './useSignedInLinkRoute';
 type InsightsTabButtonProps = {
     selectedTab: ValueOf<typeof NAVIGATION_TABS>;
     isWideLayout: boolean;
+
+    /** Whether the wide-layout button uses the shorter row, for windows too short to fit the full-height rows */
+    isCompact?: boolean;
 };
 
-function InsightsTabButton({selectedTab, isWideLayout}: InsightsTabButtonProps) {
+function InsightsTabButton({selectedTab, isWideLayout, isCompact = false}: InsightsTabButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['PieChart']);
@@ -38,7 +41,7 @@ function InsightsTabButton({selectedTab, isWideLayout}: InsightsTabButtonProps) 
                 role={CONST.ROLE.TAB}
                 accessibilityLabel={translate('common.insights')}
                 accessibilityState={{selected: isSelected}}
-                style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
+                style={({hovered}) => [styles.leftNavigationTabBarItem, isCompact && styles.leftNavigationTabBarItemCompact, hovered && styles.navigationTabBarItemHovered]}
                 sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INSIGHTS}
             >
                 {({hovered}) => (

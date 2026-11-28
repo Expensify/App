@@ -875,6 +875,10 @@ const staticStyles = (theme: ThemeColors) =>
             paddingHorizontal: 4,
         },
 
+        leftNavigationTabBarItemCompact: {
+            height: variables.navigationTabBarCompactItemHeight,
+        },
+
         leftNavigationTabBarFAB: {
             display: 'flex',
             justifyContent: 'center',
