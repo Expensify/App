@@ -1,4 +1,4 @@
-import {render} from '@testing-library/react-native';
+import {render, screen} from '@testing-library/react-native';
 
 import MoreMenuPopover from '@components/Navigation/MoreMenu/MoreMenuPopover';
 import PopoverMenu from '@components/PopoverMenu';
@@ -98,8 +98,33 @@ describe('MoreMenuPopover', () => {
         ).toEqual([MORE_MENU.ITEM.ACCOUNTING]);
         expect(getMenuItem(MORE_MENU.ITEM.ACCOUNTING).badgeText).toBe('3');
         expect(getMenuItem(MORE_MENU.ITEM.ACCOUNTING).isBadgeSuccess).toBe(true);
-        // And Workspaces shows the dot the More item shows in the bar
-        expect(getMenuItem(MORE_MENU.ITEM.WORKSPACES).shouldShowRightComponent).toBe(true);
+        // And only Accounting has a bold title, so the highlighted row reads as the selected one as in the bar
+        expect(
+            getMenuItems()
+                .filter((item) => !item.shouldShowBasicTitle)
+                .map((item) => item.key),
+        ).toEqual([MORE_MENU.ITEM.ACCOUNTING]);
+    });
+
+    it('shows the Workspaces dot on the Workspaces icon and announces it', () => {
+        // Given workspaces that need the user's attention
+        renderMenu(true, SCREENS.HOME);
+
+        // When the icons of the rows are drawn
+        render(
+            <>
+                {getMenuItems().map((item) => (
+                    <React.Fragment key={item.key}>{item.leftComponent}</React.Fragment>
+                ))}
+            </>,
+        );
+
+        // Then the dot sits on the Workspaces icon only, as on the Workspaces tab of the wide bar
+        expect(screen.getAllByTestId(/^MoreMenuItemStatusIndicator-/)).toHaveLength(1);
+        expect(screen.getByTestId(`MoreMenuItemStatusIndicator-${MORE_MENU.ITEM.WORKSPACES}`)).toBeOnTheScreen();
+        // And a screen reader hears why the dot is there, since it carries no text of its own
+        expect(getMenuItem(MORE_MENU.ITEM.WORKSPACES).accessibilityLabel).toBe('common.workspacesTabTitle. common.yourReviewIsRequired');
+        expect(getMenuItem(MORE_MENU.ITEM.INSIGHTS).accessibilityLabel).toBe(getMenuItem(MORE_MENU.ITEM.INSIGHTS).text);
     });
 
     it.each([true, false])('reads the sections only while it is open: open %s', (isVisible) => {
