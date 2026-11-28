@@ -112,4 +112,90 @@ describe('NavigationRoot initial state', () => {
         }
         expect(getPathFromState(mockCapturedInitialState)).toBe(getPathFromState(getAdaptedStateFromPath(ROUTES.HOME)));
     });
+
+    it('does not restore an onboarding page on a cold start', async () => {
+        // Given a user whose cached onboarding NVP says incomplete, which may predate a completion made on another device
+        await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+        await waitForBatchedUpdates();
+
+        // When the native app cold starts without a deep link after being closed on an onboarding page
+        render(
+            <NavigationRoot
+                authenticated
+                lastVisitedPath={ROUTES.ONBOARDING_WORK_EMAIL.getRoute()}
+                initialUrl={null}
+                onReady={() => {}}
+            />,
+        );
+
+        // Then React Navigation picks the initial state, leaving useOnboardingFlowRouter to reopen onboarding once fresh app data confirms it
+        expect(mockCapturedInitialState).toBeUndefined();
+    });
+
+    it('opens Home instead of an onboarding URL when a signed-in user reloads', async () => {
+        // Given a user whose cached onboarding NVP says incomplete, which may predate a completion made on another device
+        await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+        await waitForBatchedUpdates();
+
+        // When the web app reloads on an onboarding URL
+        render(
+            <NavigationRoot
+                authenticated
+                lastVisitedPath={ROUTES.HOME}
+                initialUrl={`${CONST.NEW_EXPENSIFY_URL}${ROUTES.ONBOARDING_WORK_EMAIL.route}`}
+                onReady={() => {}}
+            />,
+        );
+
+        // Then Home opens, leaving useOnboardingFlowRouter to reopen onboarding once fresh app data confirms it
+        if (!mockCapturedInitialState) {
+            throw new Error('NavigationRoot did not set an initial state');
+        }
+        expect(getPathFromState(mockCapturedInitialState)).toBe(getPathFromState(getAdaptedStateFromPath(ROUTES.HOME)));
+    });
+
+    it('restores the Test Drive demo on a cold start', async () => {
+        // Given a user who closed the app on the Test Drive demo, which the onboarding router never reopens
+        await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+        await waitForBatchedUpdates();
+
+        // When the native app cold starts without a deep link
+        render(
+            <NavigationRoot
+                authenticated
+                lastVisitedPath={ROUTES.TEST_DRIVE_DEMO_ROOT}
+                initialUrl={null}
+                onReady={() => {}}
+            />,
+        );
+
+        // Then the demo is restored instead of being dropped with the guided setup screens
+        if (!mockCapturedInitialState) {
+            throw new Error('NavigationRoot did not restore an initial state');
+        }
+        expect(getPathFromState(mockCapturedInitialState)).toBe(getPathFromState(getAdaptedStateFromPath(ROUTES.TEST_DRIVE_DEMO_ROOT)));
+    });
+
+    it('restores a join-workspace task page on a cold start', async () => {
+        // Given a completed user who was on the join-workspace task screen, which the onboarding router never reopens
+        await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+        await waitForBatchedUpdates();
+        const joinWorkspaceTaskPath = ROUTES.ONBOARDING_WORKSPACES.getRoute(undefined, true);
+
+        // When the native app cold starts without a deep link
+        render(
+            <NavigationRoot
+                authenticated
+                lastVisitedPath={joinWorkspaceTaskPath}
+                initialUrl={null}
+                onReady={() => {}}
+            />,
+        );
+
+        // Then the task page is restored, because nothing else would bring the user back to it
+        if (!mockCapturedInitialState) {
+            throw new Error('NavigationRoot did not restore an initial state');
+        }
+        expect(getPathFromState(mockCapturedInitialState)).toBe(getPathFromState(getAdaptedStateFromPath(joinWorkspaceTaskPath)));
+    });
 });

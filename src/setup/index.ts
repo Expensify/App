@@ -60,6 +60,7 @@ export default function () {
             [ONYXKEYS.SESSION]: {loading: false},
             [ONYXKEYS.ACCOUNT]: CONST.DEFAULT_ACCOUNT_DATA,
             [ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED]: false,
+            [ONYXKEYS.RAM_ONLY_HAS_RECEIVED_APP_DATA]: false,
             [ONYXKEYS.MODAL]: {
                 isVisible: false,
                 willAlertModalBecomeVisible: false,
@@ -79,6 +80,7 @@ export default function () {
             ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING,
             ONYXKEYS.RAM_ONLY_MOBILE_SELECTION_MODE,
             ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED,
+            ONYXKEYS.RAM_ONLY_HAS_RECEIVED_APP_DATA,
             ONYXKEYS.RAM_ONLY_PENDING_TRANSACTION_DELETE_URL,
             ONYXKEYS.RAM_ONLY_IS_PRODUCT_MARKETING_WINDOW_COVERED,
             ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS,

@@ -91,6 +91,8 @@ describe('OnboardingGuard', () => {
     beforeEach(async () => {
         mockSkipOnboarding = false;
         await Onyx.clear();
+        // Most cases model a session whose OpenApp or ReconnectApp has already landed, so the cached onboarding NVP is fresh
+        await Onyx.merge(ONYXKEYS.RAM_ONLY_HAS_RECEIVED_APP_DATA, true);
         await waitForBatchedUpdates();
     });
 
@@ -489,14 +491,14 @@ describe('OnboardingGuard', () => {
             expect(result.type).toBe('REDIRECT');
         });
 
-        it('should NOT redirect completed user for REPLACE actions targeting onboarding', async () => {
-            // Given a user who has completed the guided setup flow
+        it('should redirect completed user for REPLACE actions targeting onboarding', async () => {
+            // Given a user whose completion landed while an onboarding step was still open
             await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
                 hasCompletedGuidedSetupFlow: true,
             });
             await waitForBatchedUpdates();
 
-            // When a REPLACE action targets the OnboardingModalNavigator
+            // When that step advances with forceReplace, which dispatches a REPLACE targeting the OnboardingModalNavigator
             const replaceAction: NavigationAction = {
                 type: CONST.NAVIGATION.ACTION_TYPE.REPLACE,
                 payload: {name: NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR},
@@ -504,7 +506,57 @@ describe('OnboardingGuard', () => {
 
             const result = OnboardingGuard.evaluate(mockState, replaceAction, authenticatedContext);
 
-            // Then navigation should be allowed because isNavigatingToOnboardingFlow only handles NAVIGATE and PUSH action types, not REPLACE
+            // Then the user goes Home because a completed flow must not keep moving forward
+            expect(result.type).toBe('REDIRECT');
+            if (result.type === 'REDIRECT') {
+                expect(result.route).toBe(ROUTES.HOME);
+            }
+        });
+
+        it('should allow a completed join-workspace user to REPLACE into a task screen', async () => {
+            // Given a completed user working through the Concierge join-workspace task
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: true,
+            });
+            await Onyx.merge(ONYXKEYS.NVP_INTRO_SELECTED, {
+                choice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE,
+            });
+            await waitForBatchedUpdates();
+
+            // When the task moves between its screens with forceReplace
+            const replaceToWorkspacesTaskAction: NavigationAction = {
+                type: CONST.NAVIGATION.ACTION_TYPE.REPLACE,
+                payload: {
+                    name: NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR,
+                    params: {screen: SCREENS.ONBOARDING.WORKSPACES, params: {isJoinWorkspaceTask: 'true'}},
+                },
+            };
+
+            const result = OnboardingGuard.evaluate(mockState, replaceToWorkspacesTaskAction, authenticatedContext);
+
+            // Then the task keeps working because its screens are exempt from the completed-user redirect
+            expect(result.type).toBe('ALLOW');
+        });
+
+        it('should allow a completed user to REPLACE into the private domain step of the add work email task', async () => {
+            // Given a completed user who added a work email from the Concierge task
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: true,
+            });
+            await waitForBatchedUpdates();
+
+            // When the work email step moves on to verify the address with forceReplace
+            const replaceToPrivateDomainAction: NavigationAction = {
+                type: CONST.NAVIGATION.ACTION_TYPE.REPLACE,
+                payload: {
+                    name: NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR,
+                    params: {screen: SCREENS.ONBOARDING.PRIVATE_DOMAIN, params: {isJoinWorkspaceTask: 'true'}},
+                },
+            };
+
+            const result = OnboardingGuard.evaluate(mockState, replaceToPrivateDomainAction, authenticatedContext);
+
+            // Then the user reaches the verification step instead of being sent Home
             expect(result.type).toBe('ALLOW');
         });
     });
@@ -609,6 +661,24 @@ describe('OnboardingGuard', () => {
     });
 
     describe('redirect to onboarding', () => {
+        it('should not redirect into onboarding before this page load has received app data', async () => {
+            // Given a returning session whose cached onboarding NVP still says incomplete, and whose ReconnectApp has not landed yet
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+            });
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {
+                isFromPublicDomain: true,
+            });
+            await Onyx.merge(ONYXKEYS.RAM_ONLY_HAS_RECEIVED_APP_DATA, false);
+            await waitForBatchedUpdates();
+
+            // When a navigation happens at startup, with IS_LOADING_APP already false from the previous session
+            const result = OnboardingGuard.evaluate(mockState, mockAction, authenticatedContext);
+
+            // Then it is allowed because the cached value may predate a completion made on another device
+            expect(result.type).toBe('ALLOW');
+        });
+
         it('should redirect when authenticated user needs onboarding and is not on onboarding', async () => {
             // Given a new user from a public email domain who has not completed the guided setup flow
             await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {

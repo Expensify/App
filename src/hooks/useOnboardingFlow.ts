@@ -2,15 +2,19 @@ import {useInitialURLState} from '@components/InitialURLContextProvider';
 
 import AccountUtils from '@libs/AccountUtils';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
+import isJoinWorkspaceTaskPath from '@libs/Navigation/helpers/isJoinWorkspaceTaskPath';
+import dismissOnboardingModalBeforeExit from '@libs/Navigation/helpers/OnboardingNavigationUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isLoggingInAsNewUser} from '@libs/SessionUtils';
 import {hasSecureLinkKey} from '@libs/Url';
 
+import {setDisableDismissOnEscape} from '@userActions/Modal';
 import {completeHybridAppOnboarding} from '@userActions/Welcome';
-import {buildOnboardingFlowParams, startOnboardingFlow} from '@userActions/Welcome/OnboardingFlow';
+import {buildOnboardingFlowParams, startOnboardingFlow, wasOnboardingCompletedByThisClient} from '@userActions/Welcome/OnboardingFlow';
 
 import CONFIG from '@src/CONFIG';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -32,6 +36,8 @@ import useShouldSuppressPromotionalUI from './useShouldSuppressPromotionalUI';
 function useOnboardingFlowRouter() {
     const currentUrl = getCurrentUrl();
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [hasReceivedAppData = false] = useOnyx(ONYXKEYS.RAM_ONLY_HAS_RECEIVED_APP_DATA);
+    const isOnboardingNavigatorFocused = useRootNavigationState((state) => state?.routes.at(state.index)?.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR);
     const isValidateLoginFlow = useRootNavigationState(Navigation.isValidateLoginFlow);
     const shouldSuppressPromotionalUI = useShouldSuppressPromotionalUI();
     const [onboardingValues, isOnboardingCompletedMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
@@ -85,9 +91,22 @@ function useOnboardingFlowRouter() {
                     return;
                 }
 
+                // IS_LOADING_APP persists as false from the previous session, so on reload the cached nvp_onboarding can predate a
+                // completion made on another device. Wait for this page load's own OpenApp or ReconnectApp before trusting it.
+                if (!hasReceivedAppData) {
+                    return;
+                }
+
                 // Keep the onboarding navigator registered throughout sign-in, but do not open it over Validate Login.
                 // This navigation-state subscription reruns the effect after Validate Login is dismissed.
                 if (isValidateLoginFlow) {
+                    return;
+                }
+
+                // NavigationRoot only redirects completed users while building the initial state, so close a flow that is still open
+                // when completion arrives from another device or tab. A completion sent by this client navigates on its own.
+                if (isOnboardingCompleted && isOnboardingNavigatorFocused && !wasOnboardingCompletedByThisClient() && !isJoinWorkspaceTaskPath(Navigation.getActiveRoute())) {
+                    dismissOnboardingModalBeforeExit(() => setDisableDismissOnEscape(false));
                     return;
                 }
 
@@ -152,6 +171,8 @@ function useOnboardingFlowRouter() {
         };
     }, [
         isLoadingApp,
+        hasReceivedAppData,
+        isOnboardingNavigatorFocused,
         isValidateLoginFlow,
         isHybridAppOnboardingCompleted,
         isOnboardingCompletedMetadata,

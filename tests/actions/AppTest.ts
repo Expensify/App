@@ -315,6 +315,55 @@ describe('actions/App', () => {
         await expect(onServerDataReady()).resolves.toBeUndefined();
     });
 
+    test('marks app data as received once OpenApp succeeds', async () => {
+        // Given this page load has not received app data yet
+        expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_HAS_RECEIVED_APP_DATA)).toBeFalsy();
+
+        // When OpenApp succeeds
+        App.openApp();
+        await waitForBatchedUpdates();
+
+        // Then the onboarding router and guard can trust the server-owned data
+        expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_HAS_RECEIVED_APP_DATA)).toBe(true);
+    });
+
+    test('marks app data as received when another tab processes the refresh', async () => {
+        // Given this tab has not received app data yet
+        expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_HAS_RECEIVED_APP_DATA)).toBeFalsy();
+
+        // When the leader tab's OpenApp or ReconnectApp succeeds and the synced refresh ID changes here
+        await Onyx.merge(ONYXKEYS.APP_DATA_REFRESH_ID, 'refreshedByLeaderTab');
+        await waitForBatchedUpdates();
+
+        // Then this tab knows fresh app data has arrived, even though it never received the response itself
+        expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_HAS_RECEIVED_APP_DATA)).toBe(true);
+    });
+
+    test('does not mark app data as received after GetMissingOnyxMessages', async () => {
+        // Given this page load is still waiting for its OpenApp or ReconnectApp
+        expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_HAS_RECEIVED_APP_DATA)).toBeFalsy();
+
+        // When a partial sync for missed updates finishes first
+        await App.getMissingOnyxUpdates(1, 2);
+        await waitForBatchedUpdates();
+
+        // Then the flag stays false, because a partial sync does not refresh the cached onboarding status
+        expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_HAS_RECEIVED_APP_DATA)).toBeFalsy();
+    });
+
+    test('does not mark app data as received when Onyx is cleared on sign-out', async () => {
+        // Given a refresh ID from an earlier load
+        await Onyx.merge(ONYXKEYS.APP_DATA_REFRESH_ID, 'earlierLoad');
+        await waitForBatchedUpdates();
+
+        // When the user signs out and Onyx is cleared
+        await Onyx.clear();
+        await waitForBatchedUpdates();
+
+        // Then the next account does not start with the flag already set
+        expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_HAS_RECEIVED_APP_DATA)).toBeFalsy();
+    });
+
     describe('getNonOptimisticPolicyIDs', () => {
         it('should return empty array when policies is empty object', () => {
             const result = App.getNonOptimisticPolicyIDs({});

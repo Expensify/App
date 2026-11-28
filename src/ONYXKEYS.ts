@@ -44,6 +44,9 @@ const ONYXKEYS = {
     /** Boolean flag set whenever the sidebar has loaded */
     RAM_ONLY_IS_SIDEBAR_LOADED: 'isSidebarLoaded',
 
+    /** Whether OpenApp or ReconnectApp has finished during this page load, so cached server data has been refreshed */
+    RAM_ONLY_HAS_RECEIVED_APP_DATA: 'hasReceivedAppData',
+
     /** Whether a semantic modal is covering the product marketing window in this app instance */
     RAM_ONLY_IS_PRODUCT_MARKETING_WINDOW_COVERED: 'isProductMarketingWindowCovered',
 
@@ -569,6 +572,9 @@ const ONYXKEYS = {
     RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CATEGORY_DATA: 'isLoadingSearchFiltersCategoryData',
 
     HAS_LOADED_APP: 'hasLoadedApp',
+
+    /** Changes each time OpenApp or ReconnectApp succeeds. Persisted so tabs that did not process the response see it too */
+    APP_DATA_REFRESH_ID: 'appDataRefreshID',
 
     IS_TEST_TOOLS_MODAL_OPEN: 'isTestToolsModalOpen',
 
@@ -1870,6 +1876,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.ACTIVE_CLIENTS]: string[];
     [ONYXKEYS.DEVICE_ID]: string;
     [ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED]: boolean;
+    [ONYXKEYS.RAM_ONLY_HAS_RECEIVED_APP_DATA]: boolean;
     [ONYXKEYS.RAM_ONLY_IS_PRODUCT_MARKETING_WINDOW_COVERED]: boolean;
     [ONYXKEYS.PERSISTED_REQUESTS]: OnyxTypes.AnyRequest[];
     [ONYXKEYS.PERSISTED_ONGOING_REQUESTS]: OnyxTypes.AnyRequest;
@@ -2016,6 +2023,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.POLICY_ROOMS_METADATA]: Record<string, OnyxTypes.PolicyRoomsMetadata>;
     [ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING]: Record<string, number>;
     [ONYXKEYS.HAS_LOADED_APP]: boolean;
+    [ONYXKEYS.APP_DATA_REFRESH_ID]: string;
     [ONYXKEYS.NVP_HAS_SEEN_FOR_YOU_TODO]: boolean;
     [ONYXKEYS.NVP_HOME_SELECTED_INSIGHT]:
         | typeof CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME

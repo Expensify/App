@@ -3,6 +3,7 @@ import {buildOnboardingMessages} from '@libs/buildOnboardingMessages';
 import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
 import {config as linkingConfig} from '@libs/Navigation/linkingConfig/config';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import {registerSessionCleanupCallback} from '@libs/SessionCleanup';
 
 import {openApp} from '@userActions/App';
 
@@ -32,6 +33,9 @@ type GetOnboardingInitialPathParamsType = {
     resumePath?: string;
 };
 
+/** In memory so it resets on reload. Once this client sends CompleteGuidedSetup itself, its caller decides where to go next, so the router must not also dismiss onboarding. */
+let hasCompletedOnboardingOnThisClient = false;
+
 let onboardingData: OnyxEntry<Onboarding>;
 
 Onyx.connectWithoutView({
@@ -41,8 +45,25 @@ Onyx.connectWithoutView({
             return;
         }
         onboardingData = value;
+
+        // A failed CompleteGuidedSetup rolls this back to false, so a later completion from another device must close onboarding again
+        if (value.hasCompletedGuidedSetupFlow === false) {
+            hasCompletedOnboardingOnThisClient = false;
+        }
     },
 });
+
+registerSessionCleanupCallback(() => {
+    hasCompletedOnboardingOnThisClient = false;
+});
+
+function markOnboardingCompletedByThisClient() {
+    hasCompletedOnboardingOnThisClient = true;
+}
+
+function wasOnboardingCompletedByThisClient() {
+    return hasCompletedOnboardingOnThisClient;
+}
 
 /**
  * Start a new onboarding flow or continue from the last visited onboarding page.
@@ -226,4 +247,6 @@ export {
     resumeOnboardingAfterRequired2FASetup,
     startOnboardingFlow,
     getOnboardingMessages,
+    markOnboardingCompletedByThisClient,
+    wasOnboardingCompletedByThisClient,
 };
