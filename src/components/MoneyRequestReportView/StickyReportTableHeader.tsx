@@ -19,10 +19,12 @@ type StickyReportTableHeaderProps = {
 
 function StickyReportTableHeader({scrollOffsetStore, tableEndOffsetStore, offsetTop, children}: StickyReportTableHeaderProps) {
     const styles = useThemeStyles();
-    const scrollOffset = useSyncExternalStore(scrollOffsetStore.subscribe, scrollOffsetStore.getOffset);
     const tableEndOffset = useSyncExternalStore(tableEndOffsetStore.subscribe, tableEndOffsetStore.getOffset);
     const [height, setHeight] = useState(0);
-    const translateY = Math.min(Math.max(0, scrollOffset - offsetTop), Math.max(0, tableEndOffset - height));
+    const maxTranslateY = Math.max(0, tableEndOffset - height);
+
+    // A clamped snapshot skips scroll renders before pinning and after push-off, when the header does not move.
+    const translateY = useSyncExternalStore(scrollOffsetStore.subscribe, () => Math.min(Math.max(0, scrollOffsetStore.getOffset() - offsetTop), maxTranslateY));
 
     // Preserve layout space and focus by moving the existing header. In overflowing tables it stays inside
     // the rows' horizontal scroller, so alignment and horizontal gestures need no synchronization.

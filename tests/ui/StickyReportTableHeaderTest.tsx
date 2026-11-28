@@ -4,12 +4,66 @@ import {createScrollOffsetStore} from '@components/MoneyRequestReportView/Extern
 import StickyReportTableHeader from '@components/MoneyRequestReportView/StickyReportTableHeader';
 import Text from '@components/Text';
 
-import React from 'react';
+import React, {Profiler} from 'react';
 
 jest.mock('@components/Text', () => 'Text');
 jest.mock('@hooks/useThemeStyles', () => () => ({zIndex1: {zIndex: 1}, appBG: {backgroundColor: 'white'}}));
 
 describe('StickyReportTableHeader', () => {
+    it('skips scroll renders while the header stays at either clamped position', () => {
+        // Given a measured header below the report fields with room to pin through the rows.
+        const scrollOffsetStore = createScrollOffsetStore();
+        const tableEndOffsetStore = createScrollOffsetStore();
+        tableEndOffsetStore.setOffset(780);
+        const onRender = jest.fn();
+        render(
+            <Profiler
+                id="sticky-header"
+                onRender={onRender}
+            >
+                <StickyReportTableHeader
+                    scrollOffsetStore={scrollOffsetStore}
+                    tableEndOffsetStore={tableEndOffsetStore}
+                    offsetTop={220}
+                >
+                    <Text>Column labels</Text>
+                </StickyReportTableHeader>
+            </Profiler>,
+        );
+        const header = screen.getByTestId('sticky-report-table-header');
+        fireEvent(header, 'layout', {nativeEvent: {layout: {height: 40}}});
+        onRender.mockClear();
+
+        // When scroll notifications arrive before the header reaches the viewport top.
+        for (const offset of [50, 150, 220]) {
+            act(() => scrollOffsetStore.setOffset(offset));
+        }
+
+        // Then unchanged translations do not commit another render.
+        expect(onRender).not.toHaveBeenCalled();
+        expect(header).toHaveStyle({transform: [{translateY: 0}]});
+
+        // When scrolling within the table, then the header still follows the viewport.
+        act(() => scrollOffsetStore.setOffset(500));
+        expect(onRender).toHaveBeenCalled();
+        expect(header).toHaveStyle({transform: [{translateY: 280}]});
+        act(() => scrollOffsetStore.setOffset(960));
+        expect(header).toHaveStyle({transform: [{translateY: 740}]});
+        onRender.mockClear();
+
+        // When continuing beyond the rows, then push-off stays fixed without more renders.
+        for (const offset of [980, 1200]) {
+            act(() => scrollOffsetStore.setOffset(offset));
+        }
+        expect(onRender).not.toHaveBeenCalled();
+        expect(header).toHaveStyle({transform: [{translateY: 740}]});
+
+        // When scrolling back into the rows, then positioning resumes immediately.
+        act(() => scrollOffsetStore.setOffset(500));
+        expect(onRender).toHaveBeenCalled();
+        expect(header).toHaveStyle({transform: [{translateY: 280}]});
+    });
+
     it('pins only through the expense rows and restores its position on reverse scrolling', () => {
         // Given a header below report fields, controls and nonzero content padding.
         const scrollOffsetStore = createScrollOffsetStore();
