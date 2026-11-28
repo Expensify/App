@@ -660,3 +660,109 @@ describe('getUpdateMoneyRequestParams — next step of a submitted report', () =
         expect(hasOptimisticNextStep(approvedReport, policy, {reimbursable: false})).toBe(false);
     });
 });
+
+describe('getUpdateMoneyRequestParams — formula report title', () => {
+    const TRIP_TITLE_FORMULA = 'Trip from {report:autoreporting:start:MMM dd} to {report:autoreporting:end:MMM dd, yyyy}';
+    const ORIGINAL_REPORT_NAME = 'Original report name';
+
+    const titleField = {
+        fieldID: CONST.REPORT_FIELD_TITLE_FIELD_ID,
+        name: 'Title',
+        type: CONST.REPORT_FIELD_TYPES.FORMULA,
+        defaultValue: TRIP_TITLE_FORMULA,
+        deletable: false,
+        target: CONST.POLICY.DEFAULT_FIELD_LIST_TARGET,
+        values: [],
+        keys: [],
+        externalIDs: [],
+        disabledOptions: [],
+        orderWeight: 1,
+        isTax: false,
+    };
+
+    const policy: Policy = {
+        ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+        id: POLICY_ID,
+        autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP,
+        fieldList: {[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: titleField},
+    };
+
+    const expenseReport: Report = {
+        reportID: IOU_REPORT_ID,
+        reportName: ORIGINAL_REPORT_NAME,
+        type: CONST.REPORT.TYPE.EXPENSE,
+        policyID: POLICY_ID,
+        total: -1000,
+        currency: CONST.CURRENCY.USD,
+        ownerAccountID: RORY_ACCOUNT_ID,
+    };
+
+    const transaction: Transaction = {
+        transactionID: TRANSACTION_ID,
+        reportID: IOU_REPORT_ID,
+        amount: -1000,
+        currency: CONST.CURRENCY.USD,
+        created: '2025-01-10',
+        merchant: 'Merchant',
+    };
+
+    function getOptimisticReportName(iouReportNameValuePairs: Parameters<typeof getUpdateMoneyRequestParams>[0]['iouReportNameValuePairs']): unknown {
+        const {onyxData} = getUpdateMoneyRequestParams({
+            isVendorMatchingBetaEnabled: false,
+            rules: undefined,
+            iouReportOwnerLogin: undefined,
+            transactionID: TRANSACTION_ID,
+            transaction,
+            transactionThreadReport,
+            iouReport: expenseReport,
+            delegateAccountID: undefined,
+            transactionChanges: {created: '2025-01-15'},
+            policy,
+            policyTagList: undefined,
+            reportPolicyTags: undefined,
+            policyCategories: undefined,
+            currentUserAccountIDParam: RORY_ACCOUNT_ID,
+            currentUserEmailParam: RORY_EMAIL,
+            isASAPSubmitBetaEnabled: false,
+            isTrackIntentUser: false,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
+            iouReportNameValuePairs,
+        });
+
+        const reportUpdate = onyxData.optimisticData?.find((entry) => entry.key === `${ONYXKEYS.COLLECTION.REPORT}${IOU_REPORT_ID}` && isRecord(entry.value) && 'reportName' in entry.value);
+        const reportUpdateValue: unknown = reportUpdate?.value;
+        return isRecord(reportUpdateValue) ? reportUpdateValue.reportName : undefined;
+    }
+
+    beforeEach(async () => {
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${IOU_REPORT_ID}`, expenseReport);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
+        await waitForBatchedUpdates();
+    });
+
+    it('should recalculate the title from the passed RNVP entry when Onyx has no RNVP for the report', () => {
+        // Given the report's RNVP, which marks its title as a formula, is passed in by the caller and isn't in Onyx,
+        // so the title can only be recalculated if the passed entry is used
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        const iouReportNameValuePairs = {expensify_text_title: titleField};
+
+        // When the expense date changes
+        // Then the title is recalculated with the new date
+        expect(getOptimisticReportName(iouReportNameValuePairs)).toBe('Trip from Jan 15 to Jan 15, 2025');
+    });
+
+    it('should keep the title when the passed RNVP entry has no formula title, even if Onyx has one', async () => {
+        // Given Onyx still holds a formula title for the report, but the caller passes an RNVP entry without one,
+        // as happens after the user renames the report manually
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${IOU_REPORT_ID}`, {expensify_text_title: titleField});
+        await waitForBatchedUpdates();
+        const iouReportNameValuePairs = {};
+
+        // When the expense date changes
+        // Then the passed entry wins over the module-level cache and the title isn't recalculated
+        expect(getOptimisticReportName(iouReportNameValuePairs)).toBe(ORIGINAL_REPORT_NAME);
+    });
+});
