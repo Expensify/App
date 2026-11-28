@@ -107,6 +107,7 @@ import {Str} from 'expensify-common';
 import mapValues from 'lodash/mapValues';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 import HoveredDistanceEReceipt from './HoveredDistanceEReceipt';
 import {isElementHovered, resetButtonHoverState} from './receiptHoverUtils';
@@ -445,7 +446,6 @@ function MoneyRequestReceiptView({
               policyParams: {policy, policyCategories, policyTagList},
               isVendorMatchingBetaEnabled,
               rules,
-              conciergeReportID,
               isSelfTourViewed: !!isSelfTourViewed,
               isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
               isTrackIntentUser: isTrackOnboardingChoice(introSelected?.choice),
@@ -467,14 +467,20 @@ function MoneyRequestReceiptView({
             return;
         }
 
-        retryReceiptUpload({...receiptRetryContext, personalDetailsByLogins: getPersonalDetailsByLogin()}, () =>
-            clearReceiptUploadError({
-                transactionID: transaction?.transactionID,
-                reportID: parentReportAction?.reportID ?? report?.reportID,
-                reportActionID: parentReportAction?.reportActionID,
-                reportIDWithCreationError: report?.reportID,
-            }),
-        ).catch((error: unknown) => Log.alert('[ReceiptRetry] Retry failed unexpectedly', {error}));
+        const personalDetailsByLogins = getPersonalDetailsByLogin();
+        const conciergeChatPromise = conciergeReportID ? Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`) : Promise.resolve(undefined);
+        conciergeChatPromise
+            .then((conciergeChat) =>
+                retryReceiptUpload({...receiptRetryContext, personalDetailsByLogins, conciergeChat}, () =>
+                    clearReceiptUploadError({
+                        transactionID: transaction?.transactionID,
+                        reportID: parentReportAction?.reportID ?? report?.reportID,
+                        reportActionID: parentReportAction?.reportActionID,
+                        reportIDWithCreationError: report?.reportID,
+                    }),
+                ),
+            )
+            .catch((error: unknown) => Log.alert('[ReceiptRetry] Retry failed unexpectedly', {error}));
     };
 
     const transactionAndReportActionErrors = {
