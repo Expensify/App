@@ -4878,6 +4878,10 @@ const staticStyles = (theme: ThemeColors) =>
             flexShrink: 1,
         },
 
+        interactiveTooltipPortal: {
+            zIndex: variables.tooltipZIndex,
+        },
+
         merchantRuleCalloutContainer: {
             backgroundColor: theme.tooltipHighlightBG,
             borderRadius: variables.componentBorderRadiusNormal,

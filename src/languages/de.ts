@@ -7789,6 +7789,9 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             disableVendor: 'Lieferanten deaktivieren',
             disableVendors: 'Lieferanten deaktivieren',
             updateFailureMessage: 'Beim Aktualisieren des Lieferanten ist ein Fehler aufgetreten, bitte versuchen Sie es erneut.',
+            externalID: 'Externe ID',
+            defaultVendorTooltipPrefix: 'Um diesen Lieferanten zu deaktivieren, ändern Sie Ihre',
+            accountingExportSettings: 'Buchhaltungsexport-Einstellungen',
         },
         tags: {
             tagName: 'Tag-Name',

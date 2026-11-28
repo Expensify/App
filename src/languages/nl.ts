@@ -7729,6 +7729,9 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             disableVendor: 'Leverancier uitschakelen',
             disableVendors: 'Leveranciers uitschakelen',
             updateFailureMessage: 'Er is een fout opgetreden bij het bijwerken van de leverancier, probeer het alsjeblieft opnieuw',
+            externalID: 'Externe ID',
+            defaultVendorTooltipPrefix: 'Om deze leverancier uit te schakelen, wijzig je je',
+            accountingExportSettings: 'boekhoudkundige exportinstellingen',
         },
         tags: {
             tagName: 'Tagnaam',

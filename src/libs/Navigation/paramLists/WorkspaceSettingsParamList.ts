@@ -1444,6 +1444,10 @@ type WorkspaceSettingsParamList = {
         policyID: string;
         taxID: string;
     };
+    [SCREENS.WORKSPACE.VENDOR_DETAILS]: {
+        policyID: string;
+        vendorID: string;
+    };
     [SCREENS.WORKSPACE.INVOICES_COMPANY_NAME]: {
         policyID: string;
     };

@@ -928,6 +928,7 @@ const SCREENS = {
         INVITE_MESSAGE_APPROVER: 'Workspace_Invite_Message_Approver',
         CATEGORIES: 'Workspace_Categories',
         VENDORS: 'Workspace_Vendors',
+        VENDOR_DETAILS: 'Workspace_Vendor_Details',
         TAGS: 'Workspace_Tags',
         DYNAMIC_TAGS_EDIT: 'Dynamic_Tags_Edit',
         DYNAMIC_TAGS_IMPORT: 'Dynamic_Tags_Import',

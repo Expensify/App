@@ -7632,6 +7632,9 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             disableVendor: '取引先を無効にする',
             disableVendors: '取引先を無効化',
             updateFailureMessage: '仕入先の更新中にエラーが発生しました。もう一度お試しください。',
+            externalID: '外部ID',
+            defaultVendorTooltipPrefix: 'この取引先を無効にするには、次の設定を変更してください：',
+            accountingExportSettings: '会計エクスポート設定',
         },
         tags: {
             tagName: 'タグ名',

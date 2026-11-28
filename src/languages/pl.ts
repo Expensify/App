@@ -7771,6 +7771,9 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             disableVendor: 'Wyłącz dostawcę',
             disableVendors: 'Wyłącz dostawców',
             updateFailureMessage: 'Wystąpił błąd podczas aktualizowania dostawcy, spróbuj ponownie',
+            externalID: 'Zewnętrzny identyfikator',
+            defaultVendorTooltipPrefix: 'Aby wyłączyć tego dostawcę, zmień',
+            accountingExportSettings: 'ustawienia eksportu księgowego',
         },
         tags: {
             tagName: 'Nazwa tagu',

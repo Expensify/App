@@ -36,6 +36,7 @@ type TooltipStyles = {
     textStyle: TextStyle;
     pointerWrapperStyle: ViewStyle;
     pointerStyle: ViewStyle;
+    overlayStyle: ViewStyle;
 };
 
 type TooltipParams = {
@@ -56,6 +57,7 @@ type TooltipParams = {
     anchorAlignment?: TooltipAnchorAlignment;
     shouldAddHorizontalPadding?: boolean;
     isEducationTooltip?: boolean;
+    isInteractive?: boolean;
     computeHorizontalShiftForNative?: boolean;
 };
 
@@ -114,6 +116,7 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
         },
         wrapperStyle = {},
         isEducationTooltip = false,
+        isInteractive = false,
         computeHorizontalShiftForNative = false,
     }) => {
         const pointerWidth = isEducationTooltip ? EDUCATION_POINTER_WIDTH : POINTER_WIDTH;
@@ -257,9 +260,9 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
                 // We are adding this to prevent the tooltip text from being selected and copied on CTRL + A.
                 ...styles.userSelectNone,
                 // Hovering over a link tooltip in a chat message causes the "report action" hover state to reset to false.
-                // To prevent this, we disable pointer events for the tooltip.
-                // However, an exception is needed for educational tooltips since they are interactive.
-                ...(!isEducationTooltip ? styles.pointerEventsNone : {}),
+                // To prevent this, we disable pointer events for non-interactive tooltips.
+                // Educational and interactive tooltips stay clickable and hoverable.
+                ...(!isEducationTooltip && !isInteractive ? styles.pointerEventsNone : {}),
             },
             textStyle: {
                 color: theme.textReversed,
@@ -287,6 +290,10 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
                 borderRightColor: theme.transparent,
                 borderTopColor: customWrapperStyle?.backgroundColor ?? theme.heading,
                 ...pointerAdditionalStyle,
+            },
+            overlayStyle: {
+                ...tooltipPlatformStyle,
+                zIndex: variables.tooltipZIndex,
             },
         };
     },

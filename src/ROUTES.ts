@@ -3927,6 +3927,10 @@ const ROUTES = {
             return `workspaces/${policyID}/vendors` as const;
         },
     },
+    WORKSPACE_VENDOR_DETAILS: {
+        route: 'workspaces/:policyID/vendors/:vendorID',
+        getRoute: (policyID: string, vendorID: string) => `workspaces/${policyID}/vendors/${encodeURIComponent(vendorID)}` as const,
+    },
     WORKSPACE_UPGRADE: {
         route: 'workspaces/:policyID?/upgrade/:featureName?',
         getRoute: (policyID?: string, featureName?: string, backTo?: string, reportID?: string, upgradePlanType?: string, governmentRateCountry?: string) => {

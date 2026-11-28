@@ -7443,6 +7443,9 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             disableVendor: '停用供应商',
             disableVendors: '停用供应商',
             updateFailureMessage: '更新供应商时出错，请重试',
+            externalID: '外部 ID',
+            defaultVendorTooltipPrefix: '要停用此供应商，请更改您的',
+            accountingExportSettings: '会计导出设置',
         },
         tags: {
             tagName: '标签名称',
