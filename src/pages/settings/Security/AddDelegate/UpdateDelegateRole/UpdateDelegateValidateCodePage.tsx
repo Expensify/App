@@ -21,9 +21,11 @@ import type {ValueOf} from 'type-fest';
 import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useEffect} from 'react';
 
+import DelegateRoleAccountValidation from './DelegateRoleAccountValidation';
+
 type UpdateDelegateValidateCodePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.DELEGATE.UPDATE_DELEGATE_ROLE_CONFIRM_VALIDATE_CODE>;
 
-function UpdateDelegateValidateCodePage({route}: UpdateDelegateValidateCodePageProps) {
+function UpdateDelegateValidateCodePageContent({route}: UpdateDelegateValidateCodePageProps) {
     const {translate} = useLocalize();
     const login = route.params.login;
     const newRole = route.params.newRole as ValueOf<typeof CONST.DELEGATE_ROLE>;
@@ -60,6 +62,14 @@ function UpdateDelegateValidateCodePage({route}: UpdateDelegateValidateCodePageP
             handleSubmitForm={(validateCode) => updateDelegateRole({email: login, role: newRole, validateCode, delegatedAccess: account?.delegatedAccess})}
             descriptionPrimary={translate('delegate.enterSecurityCode', account?.primaryLogin ?? session?.email ?? '')}
         />
+    );
+}
+
+function UpdateDelegateValidateCodePage(props: UpdateDelegateValidateCodePageProps) {
+    return (
+        <DelegateRoleAccountValidation navigateForwardTo={ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE_CONFIRM_VALIDATE_CODE.getRoute(props.route.params.login, props.route.params.newRole)}>
+            <UpdateDelegateValidateCodePageContent {...props} />
+        </DelegateRoleAccountValidation>
     );
 }
 
