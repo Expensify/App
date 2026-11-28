@@ -45,6 +45,7 @@ jest.mock('@react-navigation/native', () => {
 jest.mock('@libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),
     getActiveRouteWithoutParams: jest.fn(() => ''),
+    getActiveRoute: jest.fn(() => ''),
     isNavigationReady: jest.fn(() => Promise.resolve()),
     dismissModal: jest.fn(),
 }));
@@ -80,7 +81,11 @@ async function renderCreatePageWithMembers(memberEmails: string[]) {
             members: memberEmails.map((email) => ({email, displayName: email})),
         });
     });
-    render(
+    return renderCreatePage();
+}
+
+async function renderCreatePage() {
+    const result = render(
         <NavigationContainer>
             <Stack.Navigator>
                 <Stack.Screen name={SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_NEW}>
@@ -97,6 +102,7 @@ async function renderCreatePageWithMembers(memberEmails: string[]) {
         </NavigationContainer>,
     );
     await waitForBatchedUpdatesWithAct();
+    return result;
 }
 
 async function getApprovalWorkflows() {
@@ -130,6 +136,69 @@ describe('WorkspaceWorkflowsApprovalsCreatePage', () => {
             await Onyx.clear();
             await waitForBatchedUpdatesWithAct();
         });
+    });
+
+    it.each([CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, CONST.POLICY.APPROVAL_MODE.ADVANCED])('initializes a missing draft on direct entry with %s approvals', async (approvalMode) => {
+        // Given a workspace that allows approval creation, with no saved draft
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {approvalMode, dynamicExternalWorkflowHidePeople: false});
+        });
+
+        // When the create route is opened without going through the wizard
+        const page = await renderCreatePage();
+
+        // Then the form is ready with a complete draft that supports editing its members and approvers
+        expect(await screen.findByText(translateLocal('workflowsCreateApprovalsPage.submitButton'))).toBeTruthy();
+        const draft = await getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW);
+        expect(draft).toEqual({
+            ...INITIAL_APPROVAL_WORKFLOW,
+            isInitialFlow: false,
+            availableMembers: expect.arrayContaining(EVERYONE.map((email) => expect.objectContaining({email}))),
+            usedApproverEmails: [ALICE_EMAIL],
+        });
+
+        // When the page is reloaded without a persisted draft
+        page.unmount();
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.APPROVAL_WORKFLOW, null);
+        });
+        await renderCreatePage();
+
+        // Then the form recovers rather than remaining on the loading indicator
+        expect(await screen.findByText(translateLocal('workflowsCreateApprovalsPage.submitButton'))).toBeTruthy();
+        expect(await getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW)).toEqual(draft);
+    });
+
+    it('preserves an existing draft and its selections across reloads', async () => {
+        // Given a wizard draft with selected members and an approver
+        const page = await renderCreatePageWithMembers([CAROL_EMAIL]);
+        const draft = await getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW);
+
+        // When the confirmation page is reloaded with that persisted draft
+        page.unmount();
+        await renderCreatePage();
+
+        // Then initialization does not replace the in-progress selections
+        expect(screen.getByText(translateLocal('workflowsCreateApprovalsPage.submitButton'))).toBeTruthy();
+        expect(await getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW)).toEqual(draft);
+    });
+
+    it('does not initialize a draft when DEW hides people', async () => {
+        // Given a DEW workspace whose people must not be shown
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {
+                approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
+                dynamicExternalWorkflowHidePeople: true,
+            });
+        });
+
+        // When the create route is opened directly
+        await renderCreatePage();
+
+        // Then access remains blocked without creating a draft
+        expect(screen.getByText(translateLocal('workspace.common.notAuthorized'))).toBeTruthy();
+        expect(screen.queryByText(translateLocal('workflowsCreateApprovalsPage.submitButton'))).toBeNull();
+        expect(await getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW)).toBeUndefined();
     });
 
     it('names a lone approver without a position', async () => {

@@ -5,6 +5,7 @@ import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 
+import useApprovalWorkflows from '@hooks/useApprovalWorkflows';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -16,13 +17,13 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {canMemberWrite, goBackFromInvalidPolicy, isPendingDeletePolicy, shouldHideDynamicExternalWorkflowPeople} from '@libs/PolicyUtils';
-import {getWorkflowMemberEmails, includesEveryWorkspaceMember, isApprovalWorkflowLockedByIntegration} from '@libs/WorkflowUtils';
+import {getWorkflowMemberEmails, includesEveryWorkspaceMember, INITIAL_APPROVAL_WORKFLOW, isApprovalWorkflowLockedByIntegration} from '@libs/WorkflowUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 
-import {createApprovalWorkflow as createApprovalWorkflowAction, createApprovalWorkflowRules, validateApprovalWorkflow} from '@userActions/Workflow';
+import {createApprovalWorkflow as createApprovalWorkflowAction, createApprovalWorkflowRules, setApprovalWorkflow, validateApprovalWorkflow} from '@userActions/Workflow';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -33,7 +34,7 @@ import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView} from 'react-native';
 
-import React, {useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import Onyx from 'react-native-onyx';
 
@@ -47,6 +48,7 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
     const {translate} = useLocalize();
     const shouldUseApprovalWorkflowRules = useShouldUseApprovalWorkflowRules(policy);
     const [approvalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
+    const {availableMembers, usedApproverEmails} = useApprovalWorkflows(policy);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const addExpenseApprovalsTaskReportID = introSelected?.addExpenseApprovals;
     const [addExpenseApprovalsTaskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${addExpenseApprovalsTaskReportID}`);
@@ -61,6 +63,20 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
         isPendingDeletePolicy(policy) ||
         isApprovalWorkflowLockedByIntegration(policy) ||
         shouldHideDynamicExternalWorkflowPeople(policy);
+
+    useEffect(() => {
+        if (approvalWorkflow || isEmptyObject(policy) || shouldShowNotFoundView) {
+            return;
+        }
+
+        // Direct links bypass the wizard that normally prepares the creation draft.
+        setApprovalWorkflow({
+            ...INITIAL_APPROVAL_WORKFLOW,
+            isInitialFlow: false,
+            availableMembers,
+            usedApproverEmails,
+        });
+    }, [approvalWorkflow, policy, shouldShowNotFoundView, availableMembers, usedApproverEmails]);
 
     const createApprovalWorkflow = () => {
         if (!approvalWorkflow) {
