@@ -2185,6 +2185,10 @@ const translations: TranslationDeepObject<typeof en> = {
         payViaABA: 'Betalen via ABA',
         missingABADepositAccount: ({name}: {name: string}) => `${name} heeft geen AUD-bankrekening. Vraag hen om er een toe te voegen en probeer het opnieuw.`,
         submittersMissingABADepositAccount: 'Een of meer indieners hebben geen AUD-bankrekening. Vraag hen om er een toe te voegen en probeer het opnieuw.',
+        waitForABAFile: 'Even geduld terwijl we het ABA-bestand genereren.',
+        successABAFile: 'Je ABA-bestand is gegenereerd! Als het niet automatisch is gedownload, gebruik dan de knop hieronder.',
+        reportsWithNothingToPayViaABA: 'Een of meer rapporten hebben niets om uit te betalen en zijn daarom niet opgenomen in het ABA-bestand.',
+        reportsLeftOutOfABAFile: 'Een of meer rapporten zijn niet opgenomen in het ABA-bestand. Probeer het later opnieuw.',
     },
     transactionMerge: {
         listPage: {

@@ -16,6 +16,7 @@ import CONST from '@src/CONST';
 
 import type {ValueOf} from 'type-fest';
 
+import noop from 'lodash/noop';
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
@@ -42,6 +43,9 @@ type FileDownloadModalProps = {
     /** Whether the download button uses the success (green) style once the file is ready */
     shouldUseSuccessButton?: boolean;
 
+    /** Whether the modal should prevent dismissal whilst the file is generating */
+    shouldPreventDismissWhileGenerating?: boolean;
+
     isVisible: boolean;
 
     /** Whether this modal should count as covering the product marketing window */
@@ -66,6 +70,7 @@ function FileDownloadModal({
     onDownload,
     shouldCloseOnDownload = false,
     shouldUseSuccessButton = false,
+    shouldPreventDismissWhileGenerating = false,
     isVisible,
     shouldTreatModalAsCovering = false,
     onClose,
@@ -83,6 +88,7 @@ function FileDownloadModal({
 
     const isReady = status === CONST.FILE_DOWNLOAD_STATUS.READY;
     const hasFailed = status === CONST.FILE_DOWNLOAD_STATUS.FAILED;
+    const isDismissible = !shouldPreventDismissWhileGenerating || status !== CONST.FILE_DOWNLOAD_STATUS.GENERATING;
 
     useEffect(() => {
         shouldAutoDownload.current = isVisible;
@@ -104,7 +110,7 @@ function FileDownloadModal({
 
     return (
         <Modal
-            onClose={onClose}
+            onClose={isDismissible ? onClose : noop}
             onModalHide={onModalHide}
             isVisible={isVisible}
             shouldTreatModalAsCovering={shouldTreatModalAsCovering}
@@ -134,37 +140,41 @@ function FileDownloadModal({
                             </View>
                         )}
                     </View>
-                    <Button
-                        sentryLabel={isReady ? CONST.SENTRY_LABEL.FILE_DOWNLOAD_MODAL.DOWNLOAD : CONST.SENTRY_LABEL.FILE_DOWNLOAD_MODAL.CLOSE}
-                        style={[styles.mt3, styles.noSelect]}
-                        variant={shouldUseSuccessButton && isReady ? CONST.BUTTON_VARIANT.SUCCESS : undefined}
-                        onPress={() => {
-                            if (!isReady) {
-                                onClose();
-                                return;
-                            }
+                    {isDismissible && (
+                        <Button
+                            sentryLabel={isReady ? CONST.SENTRY_LABEL.FILE_DOWNLOAD_MODAL.DOWNLOAD : CONST.SENTRY_LABEL.FILE_DOWNLOAD_MODAL.CLOSE}
+                            style={[styles.mt3, styles.noSelect]}
+                            variant={shouldUseSuccessButton && isReady ? CONST.BUTTON_VARIANT.SUCCESS : undefined}
+                            onPress={() => {
+                                if (!isReady) {
+                                    onClose();
+                                    return;
+                                }
 
-                            onDownload();
-                            if (shouldCloseOnDownload) {
-                                onClose();
-                            }
-                        }}
-                    >
-                        <Button.Text>{isReady ? translate('common.download') : translate(hasFailed ? 'common.close' : 'common.cancel')}</Button.Text>
-                    </Button>
+                                onDownload();
+                                if (shouldCloseOnDownload) {
+                                    onClose();
+                                }
+                            }}
+                        >
+                            <Button.Text>{isReady ? translate('common.download') : translate(hasFailed ? 'common.close' : 'common.cancel')}</Button.Text>
+                        </Button>
+                    )}
                 </View>
-                <PressableWithFeedback
-                    onPress={onClose}
-                    role={CONST.ROLE.BUTTON}
-                    accessibilityLabel={translate('common.close')}
-                    wrapperStyle={[styles.pAbsolute, styles.r0]}
-                    sentryLabel={CONST.SENTRY_LABEL.MORE_MENU.CLOSE_PDF_MODAL}
-                >
-                    <Icon
-                        src={expensifyIcons.Close}
-                        fill={theme.icon}
-                    />
-                </PressableWithFeedback>
+                {isDismissible && (
+                    <PressableWithFeedback
+                        onPress={onClose}
+                        role={CONST.ROLE.BUTTON}
+                        accessibilityLabel={translate('common.close')}
+                        wrapperStyle={[styles.pAbsolute, styles.r0]}
+                        sentryLabel={CONST.SENTRY_LABEL.MORE_MENU.CLOSE_PDF_MODAL}
+                    >
+                        <Icon
+                            src={expensifyIcons.Close}
+                            fill={theme.icon}
+                        />
+                    </PressableWithFeedback>
+                )}
             </View>
         </Modal>
     );

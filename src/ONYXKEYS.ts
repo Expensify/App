@@ -1173,6 +1173,10 @@ const ONYXKEYS = {
         /** One entry per Insights dashboard and set of filters, keyed by dashboard ID and query hash, holding everything the backend returns for it */
         INSIGHTS: 'insights_',
 
+        /** The latest successful GetInsights request for each Insights dashboard and set of filters, with the tag levels its response listed, keyed like the Insights collection.
+         *  Only the latest request writes it, unlike the tag levels GetInsights stores on the dashboard entry, which a slower, older response can replace. */
+        INSIGHTS_TAG_LEVELS: 'insightsTagLevels_',
+
         /** Data of the Insights Details panels, keyed by a hash of the graph, filters, period and item */
         INSIGHTS_DETAILS: 'insightsDetails_',
 
@@ -1809,6 +1813,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.DOMAIN_ACCOUNT_MERGE_REQUEST]: OnyxTypes.DomainAccountMergeRequest;
     [ONYXKEYS.COLLECTION.SNAPSHOT]: OnyxTypes.SearchResults;
     [ONYXKEYS.COLLECTION.INSIGHTS]: OnyxTypes.InsightsDashboard;
+    [ONYXKEYS.COLLECTION.INSIGHTS_TAG_LEVELS]: OnyxTypes.InsightsResponseTagLevels;
     [ONYXKEYS.COLLECTION.INSIGHTS_DETAILS]: OnyxTypes.InsightsDetails;
     [ONYXKEYS.COLLECTION.INSIGHTS_EXPLANATION]: OnyxTypes.InsightsExplanation;
     [ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT]: OnyxTypes.Agent;

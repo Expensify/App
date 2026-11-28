@@ -6,6 +6,7 @@ import EReceipt from '@components/EReceipt';
 import Icon from '@components/Icon';
 import {useSession} from '@components/OnyxListItemProvider';
 import PerDiemEReceipt from '@components/PerDiemEReceipt';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ScaledDistanceEReceipt from '@components/ScaledDistanceEReceipt';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -326,8 +327,8 @@ function AttachmentView({
     // ImageView renders URLs and static image assets; other image sources cannot be shown there.
     if (isImage && (typeof source === 'string' || typeof source === 'number')) {
         if (imageError && (typeof fallbackSource === 'number' || typeof fallbackSource === 'function')) {
-            return (
-                <View style={[styles.flexColumn, styles.alignItemsCenter, styles.justifyContentCenter]}>
+            const notFoundContent = (
+                <>
                     <Icon
                         src={fallbackSource}
                         width={variables.iconSizeSuperLarge}
@@ -349,7 +350,25 @@ function AttachmentView({
                         <Button.Icon src={icons.ArrowCircleClockwise} />
                         <Button.Text>{translate('attachmentView.retry')}</Button.Text>
                     </Button>
-                </View>
+                </>
+            );
+
+            // Tapping a loaded image brings back the carousel arrows, but this view replaces the image, so it has to
+            // toggle them itself. Otherwise the arrows can't be brought back once they auto-hide on touch screens.
+            const toggleCarouselArrows = onPress ?? (canUseTouchScreen() ? onTap : undefined);
+            if (!toggleCarouselArrows) {
+                return <View style={[styles.flexColumn, styles.alignItemsCenter, styles.justifyContentCenter]}>{notFoundContent}</View>;
+            }
+
+            return (
+                <PressableWithoutFeedback
+                    accessible={false}
+                    onPress={() => toggleCarouselArrows()}
+                    style={[styles.flex1, styles.alignSelfStretch, styles.alignItemsCenter, styles.justifyContentCenter]}
+                    sentryLabel={CONST.SENTRY_LABEL.ATTACHMENT_CAROUSEL.ITEM}
+                >
+                    {notFoundContent}
+                </PressableWithoutFeedback>
             );
         }
 

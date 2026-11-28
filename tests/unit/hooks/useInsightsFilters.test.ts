@@ -348,59 +348,6 @@ describe('useInsightsFilters', () => {
             writeSpy.mockRestore();
         });
 
-        it('waits for complete tag metadata before resetting and saving a removed level', async () => {
-            // Given a saved level two and only partial metadata for a tags-enabled workspace
-            await setUpActivePolicy('USD');
-            writeSpy.mockImplementation((_command, _params, onyxData: {optimisticData: Parameters<typeof Onyx.update>[0]}) => Onyx.update(onyxData.optimisticData));
-            const policy: Policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), id: POLICY_ID, role: CONST.POLICY.ROLE.ADMIN, areTagsEnabled: true};
-            const policies = {[`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`]: policy};
-            await storeFilters({date: {preset: CONST.SEARCH.DATE_PRESETS.LAST_MONTH}, policyIDs: [POLICY_ID], groupBy: CONST.SEARCH.GROUP_BY.MONTH, groupCurrency: 'USD', tagLevel: 2});
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${POLICY_ID}`, {Department: {name: 'Department', orderWeight: 0, required: false, tags: {}}});
-            const {result} = renderHook(() => useInsightsFilters(CONST.INSIGHTS.DASHBOARD.SPEND, undefined, policies));
-            await waitFor(() => expect(result.current.isResolved).toBe(true));
-            expect(result.current.filters.tagLevel).toBe(2);
-            expect(writeSpy).not.toHaveBeenCalled();
-
-            // When the full tag-list read confirms that only level one exists
-            await act(async () => {
-                await Onyx.set(`${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_TAGS_LOADING_STATE}${POLICY_ID}`, {hasOnceLoaded: true, isLoading: false});
-                await waitForBatchedUpdates();
-            });
-
-            // Then the dashboard fits level one and persists it across devices instead of reviving level two later
-            await waitFor(() => expect(result.current.filters.tagLevel).toBe(1));
-            expect(result.current.tagLevelOptions).toEqual([{value: 1, label: 'Department'}]);
-            expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.SAVE_SEARCH_FILTERS, expect.anything(), expect.anything());
-            expect(await getStoredQuery()).toContain('tagLevel:1');
-        });
-
-        it('keeps a saved level when any selected workspace still has it', async () => {
-            // Given one shallow workspace and another with two configured levels
-            await setUpActivePolicy('USD');
-            const policy: Policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), id: POLICY_ID, role: CONST.POLICY.ROLE.ADMIN, areTagsEnabled: true};
-            const otherPolicy = {...policy, id: '2'};
-            await storeFilters({date: {preset: CONST.SEARCH.DATE_PRESETS.LAST_MONTH}, policyIDs: [], groupBy: CONST.SEARCH.GROUP_BY.MONTH, groupCurrency: 'USD', tagLevel: 2});
-            const first = {name: 'Department', orderWeight: 0, required: false, tags: {}};
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${POLICY_ID}`, {Department: first});
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}2`, {Department: first, Location: {...first, name: 'Location', orderWeight: 1}});
-            await Onyx.set(`${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_TAGS_LOADING_STATE}${POLICY_ID}`, {hasOnceLoaded: true, isLoading: false});
-            await Onyx.set(`${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_TAGS_LOADING_STATE}2`, {hasOnceLoaded: true, isLoading: false});
-
-            // When the dashboard opens with both workspaces selected
-            const {result} = renderHook(() =>
-                useInsightsFilters(CONST.INSIGHTS.DASHBOARD.SPEND, undefined, {[`${ONYXKEYS.COLLECTION.POLICY}1`]: policy, [`${ONYXKEYS.COLLECTION.POLICY}2`]: otherPolicy}),
-            );
-            await waitFor(() => expect(result.current.isResolved).toBe(true));
-
-            // Then the second position stays available without a reset write
-            expect(result.current.filters.tagLevel).toBe(2);
-            expect(result.current.tagLevelOptions).toEqual([
-                {value: 1, label: 'Department'},
-                {value: 2, label: 'Location'},
-            ]);
-            expect(writeSpy).not.toHaveBeenCalled();
-        });
-
         it('saves a Compare mode change to the server, since it does not fetch the dashboard again', async () => {
             // Given a dashboard with no Compare mode picked
             await setUpActivePolicy('PLN');

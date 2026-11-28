@@ -5135,6 +5135,12 @@ const CONST = {
         OTHER: 'other',
     },
 
+    // Why PayViaABA left a report out of the ABA file
+    ABA_SKIPPED_REPORT_REASON: {
+        MISSING_DEPOSIT_ACCOUNT: 'missingDepositAccount',
+        NOTHING_TO_PAY: 'nothingToPay',
+    },
+
     PAYMENT_METHODS: {
         DEBIT_CARD: 'debitCard',
         PERSONAL_BANK_ACCOUNT: 'bankAccount',

@@ -24,6 +24,8 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getInsights} from '@libs/actions/Insights';
+import {rand64} from '@libs/NumberUtils';
+import {isPolicyEligibleForTopTags} from '@libs/SearchUIUtils';
 
 import variables from '@styles/variables';
 
@@ -31,6 +33,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {AIInsight, InsightsDashboard as InsightsDashboardRecord, InsightsDashboardID, InsightsFutureExpenses, InsightsGraphKey, InsightsScope} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import viewRef from '@src/types/utils/viewRef';
 
 import type {OnyxCollection} from 'react-native-onyx';
@@ -65,13 +68,14 @@ import INSIGHTS_DASHBOARD_SPECS, {
 import {getQueryGroupBy} from './insightsGroupByUtils';
 import buildInsightsJsonQuery from './insightsQueries';
 import InsightsTabSelector from './InsightsTabSelector';
-import InsightsTagPolicyLoader from './InsightsTagPolicyLoader';
+import {isTagLevelFallbackPending} from './insightsTagLevels';
 import {getDashboardState, hasDashboardResponse, INSIGHTS_DASHBOARD_STATE} from './resolveDashboardState';
 import InsightsEmptyState from './states/InsightsEmptyState';
 import InsightsNoExpensesState from './states/InsightsNoExpensesState';
 import InsightsUpsellState from './states/InsightsUpsellState';
 import useInsightsExport from './useInsightsExport';
 import useInsightsFilters from './useInsightsFilters';
+import useInsightsTagLevelOptions from './useInsightsTagLevelOptions';
 import useReusableAverageGraph from './useReusableAverageGraph';
 
 type InsightsDashboardContentProps = {
@@ -283,6 +287,7 @@ function InsightsDashboardContent({
             isAverageLoaded,
             eligiblePolicyIDs,
             stages,
+            isAwaitingData,
         }: InsightsDashboardChart,
         isHeadline = false,
     ) => (
@@ -300,6 +305,7 @@ function InsightsDashboardContent({
             isAverageLoaded={isAverageLoaded}
             eligiblePolicyIDs={eligiblePolicyIDs}
             stages={stages}
+            isAwaitingData={isAwaitingData}
             filters={filters}
             insightsScope={insightsScope}
             countDimension={countDimension}
@@ -400,10 +406,9 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const arePoliciesLoaded = policies !== undefined;
     // Checked against the next filters, because a workspace change can turn the upsell on or off
-    const {filters, defaultFilters, isResolved, setFilters, tagPolicyIDs, tagLevelOptions} = useInsightsFilters(
+    const {filters, defaultFilters, isResolved, setFilters} = useInsightsFilters(
         dashboardID,
         (next) => arePoliciesLoaded && shouldUpsellControlPlan(dashboardID, getPoliciesInScope(policies, next.policyIDs), next.policyIDs, login),
-        policies,
     );
     const {headerRef, controlsRef, contentRef, isExporting, isLoading: isChartLoading, exportDashboard, captureContext} = useInsightsExport(dashboardID, filters);
     const updateFilters = (update: Partial<InsightsFilters>) => {
@@ -432,11 +437,15 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
     // The bucket actually queried, which Running total resolves to a real day/month bucket. Toggling Running total alone leaves this unchanged, so it stays a client-side transform with no refetch.
     const queryGroupBy = isResolved ? getQueryGroupBy(filters) : undefined;
 
+    const [lastRequest, setLastRequest] = useState<{hash: number; requestID: string}>();
+
     const requestDashboard = () => {
         if (!query || hash === undefined || isOffline) {
             return;
         }
-        getInsights(dashboardID, hash, query.jsonQuery, query.snapshotHashes, queryType);
+        const requestID = rand64();
+        setLastRequest({hash, requestID});
+        getInsights(dashboardID, hash, query.jsonQuery, query.snapshotHashes, queryType, requestID, query.inputQuery);
     };
 
     const onRequestConditionsChanged = useEffectEvent(() => {
@@ -455,6 +464,9 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
     }, [dashboardID, hash, queryGroupBy, snapshotHashes, isDashboardVisible, isFocused, isOffline]);
 
     const [dashboard] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS}${dashboardID}_${hash}`);
+    const [responseTagLevels] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS_TAG_LEVELS}${dashboardID}_${hash}`);
+    // A stored response can predate a workspace's new tag levels, so the selected level is only checked against the levels the response to the latest request for these filters listed.
+    const hasLatestResponse = !!lastRequest && lastRequest.hash === hash && responseTagLevels?.requestID === lastRequest.requestID;
     const [hasLoadedBefore = false] = useOnyx(ONYXKEYS.COLLECTION.INSIGHTS, {
         selector: hasStoredDashboardResponse,
     });
@@ -469,6 +481,21 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
         visibleChartQueries.flatMap(({queryJSON, previousPeriodQueryJSON, averageQueryJSON}) =>
             [queryJSON, previousPeriodQueryJSON, averageQueryJSON].flatMap((chartQueryJSON) => (chartQueryJSON ? [String(chartQueryJSON.hash)] : [])),
         ),
+    );
+    const {options: tagLevelOptions, knownTagLevels} = useInsightsTagLevelOptions({
+        respondedTagLevels: hasLatestResponse ? responseTagLevels.tagLevels : undefined,
+        policyIDs: filters.policyIDs,
+        tagPolicyIDs: dashboardID === CONST.INSIGHTS.DASHBOARD.SPEND ? policiesInScope.filter(isPolicyEligibleForTopTags).map(({id}) => id) : [],
+        selectedTagLevel: filters.tagLevel,
+        canChangeFilters: !isExporting,
+        setFilters,
+    });
+    // The response for a level no workspace in scope has holds no tagged expenses, so Top tags shows its loading state instead of an empty chart until the level falls back and its data arrives. A stored response can be older than the chart's cached data, so data the chart already has stays on screen.
+    // Until the response to the latest request arrives, the levels known for these workspaces decide it, since Top tags can show data cached under other filters, such as another headline grouping.
+    const isTopTagsWaitingForLevel = isTagLevelFallbackPending(
+        hasLatestResponse ? responseTagLevels.tagLevels : (knownTagLevels ?? dashboard?.tagLevels),
+        filters.tagLevel,
+        !isOffline && isEmptyObject(dashboard?.errors) && !dashboard?.responseJsonCode,
     );
     const charts = visibleChartQueries.map((chartQuery): InsightsDashboardChart => {
         const graph = isCurrentDashboardLoaded ? dashboard?.graphs?.[chartQuery.chart.graphKey] : getReusableAverageGraph(chartQuery.chart);
@@ -485,6 +512,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
             isAverageLoaded: isCurrentDashboardLoaded || !!graph,
             eligiblePolicyIDs: graph?.eligiblePolicyIDs,
             stages: getEnabledStages(chartQuery.chart, policiesInScope, login, isDashboardPolicyEligible),
+            isAwaitingData: isTopTagsWaitingForLevel && chartQuery.chart.graphKey === CONST.INSIGHTS.GRAPH.TOP_TAGS,
         };
     });
     const [headlineChart, ...supportingCharts] = charts;
@@ -545,7 +573,6 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
                 {...tabRootScreenWrapperProps}
                 testID="InsightsPage"
             >
-                <InsightsTagPolicyLoader policyIDs={tagPolicyIDs} />
                 <View
                     ref={viewRef(headerRef)}
                     collapsable={false}

@@ -72,6 +72,7 @@ function renderWidget({
     queryJSON = QUERY,
     asOfDate,
     tagLevelName,
+    isAwaitingData,
     controls,
     children,
 }: React.PropsWithChildren<{
@@ -81,6 +82,7 @@ function renderWidget({
     queryJSON?: typeof QUERY;
     asOfDate?: string;
     tagLevelName?: string;
+    isAwaitingData?: boolean;
     controls?: React.ReactNode;
 }> = {}) {
     return render(
@@ -94,6 +96,7 @@ function renderWidget({
                 previousPeriodSnapshot={undefined}
                 average={undefined}
                 isAverageLoaded={undefined}
+                isAwaitingData={isAwaitingData}
                 filters={FILTERS}
                 insightsScope={{searchKey: INSIGHTS_DASHBOARD_SPECS[CONST.INSIGHTS.DASHBOARD.SPEND].searchKey, policyIDs: [], date: FILTERS.date, groupCurrency: FILTERS.groupCurrency}}
                 supportsDrillIn={supportsDrillIn}
@@ -195,6 +198,16 @@ describe('Insights chart view and press', () => {
         expect(content.queryByText('Tag selector')).toBeNull();
         expect(header.queryByText('Future expenses')).toBeNull();
         expect(content.queryByText('Future expenses') !== null).toBe(state !== INSIGHTS_CHART_STATE.LOADING);
+    });
+
+    it('tells the chart data whether new data is on its way, so an empty chart can wait instead', async () => {
+        // Given a Top tags chart whose level is about to fall back
+        // When the widget renders while new data is on its way
+        renderWidget({isAwaitingData: true});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the chart data reads the flag, which turns its empty state into the loading state
+        expect(useInsightsChartData).toHaveBeenLastCalledWith(expect.objectContaining({isAwaitingData: true}), FILTERS);
     });
 
     it('names the selected tag level when Top tags has no data', async () => {
