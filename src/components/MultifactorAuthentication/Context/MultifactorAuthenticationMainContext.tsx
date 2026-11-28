@@ -512,6 +512,12 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             return;
         }
 
+        // process() waits for the network, so starting offline would open the modal with no screen and block every tap.
+        if (isOffline) {
+            addMFABreadcrumb('Flow start blocked - offline', {scenario}, 'warning');
+            return;
+        }
+
         startStateRef.current = await captureCredentialsState();
 
         const breadcrumbData = {

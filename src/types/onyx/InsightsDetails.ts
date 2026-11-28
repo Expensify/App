@@ -20,14 +20,29 @@ type InsightsDetailsSummary = {
     averagePeriodCount: number;
 };
 
+/** One period of an item's recent spend, identified by fields that depend on the panel's period */
+type InsightsDetailsHistoryPeriod = {
+    /** Spend in the period, in the group currency's smallest unit */
+    total: number;
+
+    count: number;
+} & ({year: number; month: number} | {year: number; quarter: number} | {year: number} | {week: string} | {day: string});
+
 /** Data of one Insights Details panel */
 type InsightsDetails = {
     summary?: InsightsDetailsSummary;
+
+    /** The item's spend in the summarized period and the ones before it, newest first */
+    recentHistory?: InsightsDetailsHistoryPeriod[];
+
     errors?: Errors;
+
+    /** Workspaces in the Top spenders panel that View all must keep in scope */
+    eligiblePolicyIDs?: string[];
 
     /** JSON code of the failed GetInsightsDetails request stored with errors */
     responseJsonCode?: number;
 };
 
-export type {InsightsDetailsSummary};
+export type {InsightsDetailsHistoryPeriod, InsightsDetailsSummary};
 export default InsightsDetails;

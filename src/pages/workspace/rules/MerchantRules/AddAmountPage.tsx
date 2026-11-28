@@ -1,4 +1,4 @@
-import AmountForm from '@components/AmountForm';
+import AmountFormInline from '@components/AmountFormAdapters/AmountFormInline';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -73,14 +73,12 @@ function AddAmountPage({route}: AddAmountPageProps) {
             >
                 <View style={styles.mb5}>
                     <InputWrapper
-                        InputComponent={AmountForm}
+                        InputComponent={AmountFormInline}
                         inputID={MERCHANT_RULE_INPUT_IDS.AMOUNT}
                         label={translate('iou.amount')}
                         currency={currency}
                         defaultValue={defaultValue}
-                        isCurrencyPressable={false}
                         ref={inputCallbackRef}
-                        displayAsTextInput
                     />
                 </View>
             </FormProvider>

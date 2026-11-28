@@ -1,6 +1,6 @@
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CardFeeds, Domain, DomainErrors, DomainPendingActions, DomainSecurityGroup, DomainSettings} from '@src/types/onyx';
+import type {CardFeeds, Domain, DomainAccountMergeRequest, DomainErrors, DomainPendingActions, DomainSecurityGroup, DomainSettings} from '@src/types/onyx';
 import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -10,12 +10,12 @@ import {
     adminAccountIDsSelector,
     adminPendingActionSelector,
     adminshipRequesterPendingActionSelector,
-    getPendingDomainAdminRequests,
     defaultSecurityGroupIDSelector,
     domainEmailSelector,
     domainSecurityGroupSettingErrorsSelector,
     domainSecurityGroupSettingPendingActionSelector,
     domainSettingsPrimaryContactSelector,
+    getPendingDomainAdminRequests,
     groupsSelector,
     hasPendingAdminshipRequestSelector,
     isAdminSelector,
@@ -23,6 +23,7 @@ import {
     isSecurityGroupPendingDeleteSelector,
     memberAccountIDsSelector,
     pendingAdminRequesterAccountIDsSelector,
+    pendingMergeRequestByRequesterSelector,
     selectRestrictedPrimaryPolicyID,
     selectSecurityGroupForAccount,
     technicalContactSettingsSelector,
@@ -30,6 +31,57 @@ import {
 } from '@selectors/Domain';
 
 const domainDefaultSecurityGroupIDKey = 'domain_defaultSecurityGroupID' as const;
+
+describe('pendingMergeRequestByRequesterSelector', () => {
+    const requesterAccountID = 1;
+    const request: DomainAccountMergeRequest = {
+        requestID: '123',
+        requesterAccountID,
+        sourceAccountID: 2,
+        targetAccountID: 3,
+        sourceDomainAccountID: 4,
+        targetDomainAccountID: 5,
+        createdAt: '2026-11-20T00:00:00Z',
+    };
+
+    it.each([undefined, {}])('returns undefined for an absent or empty collection: %s', (collection) => {
+        // Given no stored requests to select
+        const selector = pendingMergeRequestByRequesterSelector(requesterAccountID);
+
+        // When the collection has not loaded or has been cleared
+        const result = selector(collection);
+
+        // Then the user has no pending request
+        expect(result).toBeUndefined();
+    });
+
+    it('matches the requester rather than the source or target account and skips deleted entries', () => {
+        // Given unrelated requests involving this account and a deleted collection member
+        const collection: OnyxCollection<DomainAccountMergeRequest> = {
+            [`${ONYXKEYS.COLLECTION.DOMAIN_ACCOUNT_MERGE_REQUEST}deleted`]: undefined,
+            [`${ONYXKEYS.COLLECTION.DOMAIN_ACCOUNT_MERGE_REQUEST}source`]: {...request, requesterAccountID: 2, sourceAccountID: requesterAccountID},
+            [`${ONYXKEYS.COLLECTION.DOMAIN_ACCOUNT_MERGE_REQUEST}target`]: {...request, requesterAccountID: 3, targetAccountID: requesterAccountID},
+            [`${ONYXKEYS.COLLECTION.DOMAIN_ACCOUNT_MERGE_REQUEST}${request.requestID}`]: request,
+        };
+
+        // When selecting the user's own request
+        const result = pendingMergeRequestByRequesterSelector(requesterAccountID)(collection);
+
+        // Then the original matching entry is returned, not another participant's request
+        expect(result).toBe(request);
+    });
+
+    it('returns undefined when only another user has a pending request', () => {
+        // Given a collection containing another requester's entry
+        const collection = {[`${ONYXKEYS.COLLECTION.DOMAIN_ACCOUNT_MERGE_REQUEST}${request.requestID}`]: request};
+
+        // When selecting for a different requester
+        const result = pendingMergeRequestByRequesterSelector(2)(collection);
+
+        // Then another user's request cannot trigger the pending screen
+        expect(result).toBeUndefined();
+    });
+});
 
 const domainFixture: Domain = {
     validated: true,

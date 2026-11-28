@@ -56,18 +56,16 @@ function useManualWorkspaceConfirmation(
         transaction,
         transactionReport: undefined,
         iouCategory: '',
-        iouAttendees: [],
         policy: undefined,
         policyTags: undefined,
         policyCategories: undefined,
-        currentUserPersonalDetails: CURRENT_USER,
         isEditingSplitBill: false,
         hasSmartScanFailed: false,
         didConfirmSplit: false,
         routeError: undefined,
         isTypeSplit: false,
         shouldShowReadOnlySplits: true,
-        isDistanceRequest: false,
+        isMissingAttendees: false,
     });
     const {validate, fieldErrors, siblingFieldErrors} = useConfirmationValidation({
         transaction,
@@ -78,13 +76,14 @@ function useManualWorkspaceConfirmation(
         iouMerchant,
         iouCategory: '',
         iouCurrencyCode: 'USD',
-        iouAttendees: [],
+        reportOwnerAsAttendee: undefined,
         policy: undefined,
         policyTags: undefined,
         policyTagLists: [],
         policyCategories: undefined,
         selectedParticipants: [WORKSPACE_PARTICIPANT],
         currentUserPersonalDetails: CURRENT_USER,
+        currentUserLogin: undefined,
         isEditingSplitBill: false,
         isMerchantRequired,
         shouldShowTax: true,
@@ -99,6 +98,7 @@ function useManualWorkspaceConfirmation(
         isReadOnly: false,
         shouldShowDate: true,
         isTaxAmountEmpty,
+        shouldShowAttendees: true,
         siblingTransactions,
     });
     const {visibleFieldErrors, revealFieldErrors} = useConfirmationFieldErrors({
@@ -149,7 +149,7 @@ describe('required fields on a manual workspace expense', () => {
         expect(result.current.visibleFieldErrors).toEqual({amount: 'common.error.fieldRequired', merchant: 'common.error.fieldRequired'});
     });
 
-    it('does not let the tax error of a removed expense block the one left on screen', () => {
+    it('flags an emptied tax amount on its own field, and drops it with the expense that was removed', () => {
         // Given a confirmation of several expenses where Create was blocked by the empty tax amount of the one on screen
         const expenseWithEmptyTax = {...blankDraft, amount: 2500, isAmountSet: true, merchant: 'Hilton', isMerchantSet: true};
         const {result, rerender} = renderHook(
@@ -159,7 +159,8 @@ describe('required fields on a manual workspace expense', () => {
             },
         );
         act(() => result.current.confirm());
-        expect(result.current.footerErrorMessage).toBe('iou.error.invalidAmount');
+        expect(result.current.visibleFieldErrors).toEqual({taxAmount: 'common.error.fieldRequired'});
+        expect(result.current.footerErrorMessage).toBeUndefined();
 
         // When the user removes that expense, and Create on the one left is blocked by its blank merchant
         const remainingExpense = {...expenseWithEmptyTax, transactionID: 'txn2', merchant: CONST.TRANSACTION.DEFAULT_MERCHANT, isMerchantSet: false};

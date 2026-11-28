@@ -12,7 +12,6 @@ import Text from '@components/Text';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -33,9 +32,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {MergeApprovalMode} from '@src/types/onyx/Policy';
+import type Rule from '@src/types/onyx/Rule';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 import React from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 import {useMergeATSApprovalDraftActions, useMergeATSApprovalDraftState} from './MergeATSApprovalDraftContext';
 import MergeATSFinalApproverMenuItem from './MergeATSFinalApproverMenuItem';
@@ -61,7 +64,6 @@ function MergeATSApprovalModePage({
     const currentApprovalMode = getMergeATSApprovalMode(policy);
     const {approvalMode: selectedApprovalMode, approverField, finalApprover} = useMergeATSApprovalDraftState(policyID);
     const {setDraftApprovalMode} = useMergeATSApprovalDraftActions();
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     // Advanced mode always has an approver field, since that one falls back to the recruiter field, and its final approver is optional.
     const isApproverMissing = selectedApprovalMode === CONST.MERGE.APPROVAL_MODE.BASIC && !finalApprover;
@@ -90,7 +92,7 @@ function MergeATSApprovalModePage({
         },
     ];
 
-    const saveApprovalMode = () => {
+    const saveApprovalMode = (rules: OnyxCollection<Rule>) => {
         if (!selectedApprovalMode) {
             return;
         }
@@ -110,7 +112,8 @@ function MergeATSApprovalModePage({
         Navigation.goBack();
     };
 
-    const confirmSaveApprovalMode = () => {
+    const confirmSaveApprovalMode = async () => {
+        const rules = await Onyx.get(ONYXKEYS.COLLECTION.RULE);
         // Leaving custom replaces the approval routing the admin set up by hand. In every mode but custom the recruiting
         // provider's syncs set the approvers, so the backend also deletes the workspace's approval workflow rules. Those
         // are the only changes worth warning about.
@@ -118,7 +121,7 @@ function MergeATSApprovalModePage({
             hasApprovalWorkflowRules(rules, policyID) && selectedApprovalMode !== currentApprovalMode && selectedApprovalMode !== CONST.MERGE.APPROVAL_MODE.CUSTOM;
         const shouldConfirm = shouldDeleteApprovalWorkflowRules || (currentApprovalMode === CONST.MERGE.APPROVAL_MODE.CUSTOM && selectedApprovalMode !== CONST.MERGE.APPROVAL_MODE.CUSTOM);
         if (!shouldConfirm) {
-            saveApprovalMode();
+            saveApprovalMode(rules);
             return;
         }
 
@@ -142,7 +145,7 @@ function MergeATSApprovalModePage({
             if (result?.action !== ModalActions.CONFIRM) {
                 return;
             }
-            saveApprovalMode();
+            saveApprovalMode(rules);
         });
     };
 

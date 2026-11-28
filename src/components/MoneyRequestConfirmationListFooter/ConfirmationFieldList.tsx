@@ -115,7 +115,7 @@ function ConfirmationFieldList({
         tagVisibility,
         policyTagLists,
         shouldShowTax: visibilityFlags.shouldShowTax,
-        shouldShowAttendees: flags.shouldShowAttendees,
+        shouldShowAttendees: visibilityFlags.shouldShowAttendees,
         shouldShowReimbursable: flags.shouldShowReimbursable,
         shouldShowBillable: flags.shouldShowBillable,
         isPolicyExpenseChat,

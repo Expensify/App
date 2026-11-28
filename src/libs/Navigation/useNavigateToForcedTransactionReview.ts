@@ -12,7 +12,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {LocallyProcessed3DSChallengeReviews, TransactionPending3DSReview, TransactionsPending3DSReview} from '@src/types/onyx';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {SeverityLevel} from '@sentry/react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -122,7 +121,7 @@ function getPending3DSReviewToShow(
 /** Listens to the pending transaction review queues (as well as the currently focused route)
  * and navigates the user to the review screen of the next pending transaction if necessary */
 function useNavigateToForcedTransactionReview() {
-    const [locallyProcessed3DSTransactionReviews, locallyProcessedReviewsResult] = useOnyx(ONYXKEYS.LOCALLY_PROCESSED_3DS_TRANSACTION_REVIEWS);
+    const [locallyProcessed3DSTransactionReviews] = useOnyx(ONYXKEYS.LOCALLY_PROCESSED_3DS_TRANSACTION_REVIEWS);
     const [transactionsPending3DSReview] = useOnyx(ONYXKEYS.TRANSACTIONS_PENDING_3DS_REVIEW);
 
     // It's important not to whisk the user away from a review they're still working on. We add the transaction
@@ -142,9 +141,7 @@ function useNavigateToForcedTransactionReview() {
 
     const {deviceVerificationType, doesDeviceSupportAuthenticationMethod} = useBiometrics();
 
-    const threeDSTransactionIDToShow = isLoadingOnyxValue(locallyProcessedReviewsResult)
-        ? undefined
-        : getPending3DSReviewToShow(transactionsPending3DSReview, locallyProcessed3DSTransactionReviews)?.transactionID;
+    const threeDSTransactionIDToShow = getPending3DSReviewToShow(transactionsPending3DSReview, locallyProcessed3DSTransactionReviews)?.transactionID;
 
     // Review kinds are listed in priority order, the first one with a pending transaction is shown
     const reviewToShow = [{kind: FORCED_REVIEW_KIND.THREE_DS, transactionID: threeDSTransactionIDToShow}].find((review) => !!review.transactionID);

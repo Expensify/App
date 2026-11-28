@@ -1,4 +1,4 @@
-import AmountForm from '@components/AmountForm';
+import AmountFormInline from '@components/AmountFormAdapters/AmountFormInline';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -107,13 +107,11 @@ function RulesAutoPayReportsUnderPage({route}: RulesAutoPayReportsUnderPageProps
                     <View style={styles.mb4}>
                         <InputWrapper
                             label={translate('iou.amount')}
-                            InputComponent={AmountForm}
+                            InputComponent={AmountFormInline}
                             inputID={INPUT_IDS.MAX_EXPENSE_AUTO_PAY_AMOUNT}
                             currency={currency}
                             defaultValue={defaultValue}
-                            isCurrencyPressable={false}
                             ref={inputCallbackRef}
-                            displayAsTextInput
                         />
                         <Text style={[styles.mutedNormalTextLabel, styles.mt2]}>{translate('workspace.rules.expenseReportRules.autoPayReportsUnderDescription')}</Text>
                     </View>

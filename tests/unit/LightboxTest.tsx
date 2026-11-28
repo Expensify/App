@@ -2,6 +2,7 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import {AttachmentCarouselPagerActionsContext, AttachmentCarouselPagerStateContext} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import type {AttachmentCarouselPagerActionsContextType, AttachmentCarouselPagerStateContextType} from '@components/Attachments/AttachmentCarousel/Pager/types';
+import ImageLoadEventContext from '@components/ImageLoadEventContext';
 import Lightbox from '@components/Lightbox';
 
 import CONST from '@src/CONST';
@@ -361,5 +362,40 @@ describe('Lightbox', () => {
             expect(screen.queryByTestId('retry-button')).toBeNull();
             expect(onError).not.toHaveBeenCalled();
         });
+    });
+});
+
+describe('Lightbox load events', () => {
+    beforeEach(() => {
+        jest.useFakeTimers();
+        mockIsOffline = false;
+    });
+
+    afterEach(() => {
+        jest.useRealTimers();
+    });
+
+    it('reports a stall and a load error that follows it', () => {
+        // Given a receipt screen that listens for load events, and a lightbox image that never sends a byte
+        const reportImageLoadEvent = jest.fn();
+        const uri = 'https://example.com/receipt.jpg';
+        render(
+            <ImageLoadEventContext.Provider value={reportImageLoadEvent}>
+                <Lightbox uri={uri} />
+            </ImageLoadEventContext.Provider>,
+        );
+        fireEvent(screen.getByTestId('lightbox-wrapper'), 'onLayout', {
+            nativeEvent: {layout: {width: 400, height: 800}},
+        });
+        act(() => {
+            jest.advanceTimersByTime(CONST.TIMING.IMAGE_LOAD_CEILING_TIMEOUT);
+        });
+
+        // When the transport later gives up
+        fireEvent(screen.getByTestId('image'), 'error');
+
+        // Then both are reported, and the error is flagged as coming after the timeout
+        expect(reportImageLoadEvent).toHaveBeenNthCalledWith(1, {type: 'stall', reason: 'ceiling', component: 'Lightbox', source: uri});
+        expect(reportImageLoadEvent).toHaveBeenNthCalledWith(2, {type: 'error', afterTimeout: true, component: 'Lightbox', source: uri});
     });
 });

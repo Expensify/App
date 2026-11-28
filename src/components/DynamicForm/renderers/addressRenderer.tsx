@@ -1,6 +1,6 @@
 import DynamicFormAddressCountryDropdown from '@components/DynamicForm/components/DynamicFormAddressCountryDropdown';
 import DynamicFormAddressStateDropdown from '@components/DynamicForm/components/DynamicFormAddressStateDropdown';
-import getAddressInputKeys, {getAddressCountry, getStateOptions} from '@components/DynamicForm/utils/getAddressInputKeys';
+import getAddressInputKeys, {getAddressCountry, getAllowedCountries, getStateOptions, isStateAsked, isZipCodeShown} from '@components/DynamicForm/utils/getAddressInputKeys';
 import isSensitiveField from '@components/DynamicForm/utils/isSensitiveField';
 
 import AddressFields from '@pages/ReimbursementAccount/AddressFormFields/AddressFields';
@@ -13,10 +13,11 @@ import type {DynamicFieldRenderer} from './types';
  * An address drawn as one input per part, each under its own draft key. Every part has its own label, so no heading is drawn above them.
  * The state and country open as dropdown rows, like the form's other choice fields.
  */
-const renderAddress: DynamicFieldRenderer<'address'> = (field, {values, styles}, {shouldSaveDraft, forwardedFSClass, onValueChange, defaultValue, disabled}) => {
+const renderAddress: DynamicFieldRenderer<'address'> = (field, {values, styles, translate}, {shouldSaveDraft, forwardedFSClass, onValueChange, defaultValue, disabled}) => {
     const addressKeys = getAddressInputKeys(field.key);
     const country = getAddressCountry(field.key, values);
-    const stateOptions = getStateOptions(country);
+    const allowedCountries = getAllowedCountries(field);
+    const stateOptions = isStateAsked(field, country) ? getStateOptions(field, country, translate) : undefined;
     // The street arrives as the field's answer. The other parts of a sensitive address are not drafted either, so they start from memory too.
     const getSensitivePart = (key: string) => {
         const part = values[key];
@@ -37,12 +38,21 @@ const renderAddress: DynamicFieldRenderer<'address'> = (field, {values, styles},
                 }}
                 shouldSaveDraft={shouldSaveDraft}
                 forwardedFSClass={forwardedFSClass}
-                onCountryChange={(pickedCountry) => {
+                onCountryChange={(pickedCountry, pickedAddress) => {
                     // AddressSearch reports the country on every pick and the state reset arrives as '', so only a new country refreshes
                     if (typeof pickedCountry !== 'string' || pickedCountry === '' || pickedCountry === country) {
                         return;
                     }
-                    onValueChange?.(pickedCountry, addressKeys.country);
+                    // The draft still holds the address from before the change. An address search pick replaces its parts, and a pick from the country list clears the state and zip, which belong to the old country.
+                    const changedAnswers = pickedAddress
+                        ? {
+                              [addressKeys.street]: pickedAddress.street,
+                              [addressKeys.city]: pickedAddress.city,
+                              [addressKeys.state]: pickedAddress.state,
+                              [addressKeys.zipCode]: pickedAddress.zipCode,
+                          }
+                        : {[addressKeys.state]: '', [addressKeys.zipCode]: ''};
+                    onValueChange?.(pickedCountry, addressKeys.country, changedAnswers);
                 }}
             >
                 <AddressFields.Street
@@ -51,14 +61,27 @@ const renderAddress: DynamicFieldRenderer<'address'> = (field, {values, styles},
                     shouldKeepStateCode
                     // While the country is locked, the search only suggests places in it, so a pick cannot change it
                     limitSearchesToCountry={disabled ? country : undefined}
+                    allowedCountries={allowedCountries}
+                    maxInputLength={field.maxLength}
                 />
                 {/* The city sits as far below the street as the field rows space any two inputs */}
-                <AddressFields.City containerStyles={styles.mt4} />
+                <AddressFields.City
+                    containerStyles={styles.mt4}
+                    maxLength={field.cityFormat?.maxLength}
+                />
                 {/* The state is asked only where there is a list of the country's states */}
-                {!!stateOptions && <DynamicFormAddressStateDropdown stateOptions={stateOptions} />}
-                <AddressFields.ZipCode />
+                {!!stateOptions && (
+                    <DynamicFormAddressStateDropdown
+                        stateOptions={stateOptions}
+                        label={field.stateLabel}
+                    />
+                )}
+                {isZipCodeShown(field) && <AddressFields.ZipCode />}
                 {/* Only the country asks for a new form, so the rest of the address stays editable offline */}
-                <DynamicFormAddressCountryDropdown disabled={disabled} />
+                <DynamicFormAddressCountryDropdown
+                    disabled={disabled}
+                    countries={allowedCountries}
+                />
             </AddressFields.Provider>
         ),
     };

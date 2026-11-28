@@ -22,7 +22,6 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {InsightsDetailsSummary, InsightsGraphKey} from '@src/types/onyx';
 
-import {format, parseISO} from 'date-fns';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -31,7 +30,9 @@ import type {InsightsAverageComparison} from './getInsightsAverageComparison';
 import type {InsightsDetailsSectionState} from './insightsDetailsSectionState';
 
 import getInsightsAverageComparison, {INSIGHTS_AVERAGE_COMPARISON, MIN_AVERAGE_PERIOD_COUNT} from './getInsightsAverageComparison';
+import getInsightsDetailsPeriodName from './getInsightsDetailsPeriodName';
 import {getPeriodTitle} from './insightsDetailsItem';
+import InsightsDetailsSectionHeader from './InsightsDetailsSectionHeader';
 import {INSIGHTS_DETAILS_SECTION_STATE} from './insightsDetailsSectionState';
 import InsightsSummarySkeleton from './InsightsSummarySkeleton';
 
@@ -159,7 +160,6 @@ function SummaryAverageComparison({comparison, graphKey, periodGroupBy, currency
     }
 
     const isIncrease = comparison.difference > 0;
-    const changeColor = StyleUtils.getSpendChangeColor(isIncrease);
     const percentage = formatPercentOfTotal(comparison.percentage, comparison.difference, preferredLocale);
     const amount = convertToDisplayString(Math.abs(comparison.difference), currency);
 
@@ -169,13 +169,13 @@ function SummaryAverageComparison({comparison, graphKey, periodGroupBy, currency
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.gapHalf]}>
                 <Icon
                     src={isIncrease ? icons.ArrowUpLong : icons.ArrowDownLong}
-                    fill={changeColor}
+                    fill={StyleUtils.getSpendChangeIconColor(isIncrease)}
                     width={variables.iconSizeExtraSmall}
                     height={variables.iconSizeExtraSmall}
                 />
                 <Text
                     variant="label"
-                    style={StyleUtils.getColorStyle(changeColor)}
+                    style={StyleUtils.getColorStyle(StyleUtils.getSpendChangeTextColor(isIncrease))}
                 >
                     {getVersusAverageLabel(amount)}
                 </Text>
@@ -205,32 +205,9 @@ function InsightsSummary({query, graphKey, currency, summary, state}: InsightsSu
         return isPeriodInProgress ? translate('search.periodSoFar', {period: periodTitle}) : periodTitle;
     };
 
-    const getShortPeriodName = () => {
-        const start = parseISO(period.start);
-        switch (periodGroupBy) {
-            case CONST.SEARCH.GROUP_BY.DAY:
-                return format(start, 'MMM d', {locale: dateFnsLocale});
-            case CONST.SEARCH.GROUP_BY.WEEK:
-                return translate('search.weekOf', {date: format(start, 'MMM d', {locale: dateFnsLocale})});
-            case CONST.SEARCH.GROUP_BY.MONTH:
-                return format(start, 'LLLL', {locale: dateFnsLocale});
-            case CONST.SEARCH.GROUP_BY.QUARTER:
-                return format(start, 'QQQ', {locale: dateFnsLocale});
-            default:
-                return format(start, 'yyyy', {locale: dateFnsLocale});
-        }
-    };
-
     return (
         <View style={[styles.highlightBG, styles.borderRadiusComponentLarge, styles.overflowHidden]}>
-            <View style={[styles.p4, styles.borderBottom]}>
-                <Text
-                    variant="label"
-                    style={styles.textSupporting}
-                >
-                    {getSectionTitle()}
-                </Text>
-            </View>
+            <InsightsDetailsSectionHeader title={getSectionTitle()} />
             {state === INSIGHTS_DETAILS_SECTION_STATE.OFFLINE && <ChartOfflineState />}
             {state === INSIGHTS_DETAILS_SECTION_STATE.LOADING && <InsightsSummarySkeleton />}
             {state === INSIGHTS_DETAILS_SECTION_STATE.READY && !!summary && !!comparison && (
@@ -253,7 +230,11 @@ function InsightsSummary({query, graphKey, currency, summary, state}: InsightsSu
                     )}
                     <View style={[styles.flexRow, styles.gap5, styles.p4, styles.borderBottom]}>
                         <SummaryTile
-                            label={isSpendOverTime ? translate('common.spend') : translate('insightsPage.summary.periodSpend', getShortPeriodName())}
+                            label={
+                                isSpendOverTime
+                                    ? translate('common.spend')
+                                    : translate('insightsPage.summary.periodSpend', getInsightsDetailsPeriodName(periodGroupBy, period.start, false, dateFnsLocale, translate))
+                            }
                             value={convertToDisplayString(summary.total, currency)}
                         />
                         {averagePeriodGroupBy ? (

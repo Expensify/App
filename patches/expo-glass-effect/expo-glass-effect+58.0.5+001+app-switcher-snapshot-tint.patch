@@ -1,0 +1,52 @@
+diff --git a/node_modules/expo-glass-effect/ios/GlassView.swift b/node_modules/expo-glass-effect/ios/GlassView.swift
+index 862c16a..f57372c 100644
+--- a/node_modules/expo-glass-effect/ios/GlassView.swift
++++ b/node_modules/expo-glass-effect/ios/GlassView.swift
+@@ -11,6 +11,8 @@ public final class GlassView: ExpoView {
+   // https://github.com/expo/expo/issues/41024#issuecomment-3867466289
+   private var isMounted = false
+   private var visibilityLink: CADisplayLink?
++  // UIKit drops the glass tint from the app switcher snapshot, so a solid view in the tint color covers the glass while the app is in the background.
++  private let snapshotCoverView = UIView()
+ 
+   private var glassStyle: GlassStyle?
+   private var glassTintColor: UIColor?
+@@ -34,6 +36,30 @@ public final class GlassView: ExpoView {
+     glassEffectView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+ 
+     addSubview(glassEffectView)
++
++    snapshotCoverView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
++    snapshotCoverView.isUserInteractionEnabled = false
++    snapshotCoverView.isHidden = true
++    addSubview(snapshotCoverView)
++
++    // The snapshot is taken after didEnterBackground returns, and willEnterForeground runs before the app is visible again.
++    NotificationCenter.default.addObserver(self, selector: #selector(showSnapshotCover), name: UIApplication.didEnterBackgroundNotification, object: nil)
++    NotificationCenter.default.addObserver(self, selector: #selector(hideSnapshotCover), name: UIApplication.willEnterForegroundNotification, object: nil)
++  }
++
++  @objc private func showSnapshotCover() {
++    guard isMounted, let tintColor = glassTintColor else {
++      return
++    }
++    snapshotCoverView.frame = bounds
++    snapshotCoverView.backgroundColor = tintColor.withAlphaComponent(1)
++    snapshotCoverView.layer.cornerRadius = min(radius ?? 0, min(bounds.width, bounds.height) / 2)
++    snapshotCoverView.layer.cornerCurve = layer.cornerCurve
++    snapshotCoverView.isHidden = false
++  }
++
++  @objc private func hideSnapshotCover() {
++    snapshotCoverView.isHidden = true
+   }
+ 
+   // UIGlassEffect initialiser is crashing for iOS 26 beta versions for some reason, so we need to check if it's available at runtime
+@@ -117,6 +143,7 @@ public final class GlassView: ExpoView {
+ 
+   deinit {
+     visibilityLink?.invalidate()
++    NotificationCenter.default.removeObserver(self)
+   }
+ 
+   func updateBorderRadius() {

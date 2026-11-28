@@ -90,6 +90,7 @@ import type {
     DynamicFormContentItem,
     DynamicFormCountryField,
     DynamicFormField,
+    DynamicFormFieldFormat,
     DynamicFormFieldOption,
     DynamicFormFileUpload,
     DynamicFormFieldType,
@@ -98,6 +99,7 @@ import type {
     DynamicFormListField,
     DynamicFormListItem,
     DynamicFormMultiChoiceField,
+    DynamicFormNotice,
     DynamicFormNumberField,
     DynamicFormPage,
     DynamicFormSchema,
@@ -127,9 +129,10 @@ import type ImportedSpreadsheet from './ImportedSpreadsheet';
 import type ImportedSpreadsheetMemberData from './ImportedSpreadsheetMemberData';
 import type InitiatingBankAccountUnlock from './InitiatingBankAccountUnlock';
 import type InsightsDashboard from './InsightsDashboard';
-import type {AIInsight, AIInsightChip, InsightsDashboardID, InsightsFutureExpenses, InsightsGraphKey, InsightsSearchKey} from './InsightsDashboard';
+import type {AIInsight, AIInsightChip, InsightsDashboardID, InsightsFutureExpenses, InsightsGraphKey, InsightsResponseTagLevels, InsightsSearchKey} from './InsightsDashboard';
 import type InsightsDetails from './InsightsDetails';
-import type {InsightsDetailsSummary} from './InsightsDetails';
+import type {InsightsDetailsHistoryPeriod, InsightsDetailsSummary} from './InsightsDetails';
+import type InsightsExplanation from './InsightsExplanation';
 import type IntroSelected from './IntroSelected';
 import type InvitedEmailsToAccountIDs from './InvitedEmailsToAccountIDs';
 import type JoinablePolicies from './JoinablePolicies';
@@ -271,7 +274,9 @@ import type WalletTerms from './WalletTerms';
 import type WalletTransfer from './WalletTransfer';
 import type WiseBankAccountFields from './WiseBankAccountFields';
 import type {WiseKYCReviewEmbeddedLink} from './WiseKYCReview';
+import type WiseOnboardingUnsavedPages from './WiseOnboardingUnsavedPages';
 import type WiseQuote from './WiseQuote';
+import type WorkspaceCategoriesSelectedForBulkEdit from './WorkspaceCategoriesSelectedForBulkEdit';
 import type WorkspaceMembersSelectedForBulkEdit from './WorkspaceMembersSelectedForBulkEdit';
 import type WorkspaceMembersSelectedForRoleChange from './WorkspaceMembersSelectedForRoleChange';
 
@@ -311,6 +316,7 @@ export type {
     UnshareBankAccount,
     DismissedReferralBanners,
     Domain,
+    DomainAccountMergeRequest,
     Download,
     ExportDownload,
     BulkAction,
@@ -337,9 +343,12 @@ export type {
     InsightsDashboard,
     InsightsDashboardID,
     InsightsDetails,
+    InsightsDetailsHistoryPeriod,
     InsightsDetailsSummary,
+    InsightsExplanation,
     InsightsFutureExpenses,
     InsightsGraphKey,
+    InsightsResponseTagLevels,
     InsightsSearchKey,
     IntroSelected,
     IssueNewCard,
@@ -444,6 +453,7 @@ export type {
     TravelSettings,
     WorkspaceTravelSettings,
     WorkspaceMembersSelectedForBulkEdit,
+    WorkspaceCategoriesSelectedForBulkEdit,
     UserLocation,
     UserMetadata,
     UserWallet,
@@ -508,6 +518,7 @@ export type {
     CorpayFields,
     WiseBankAccountFields,
     WiseKYCReviewEmbeddedLink,
+    WiseOnboardingUnsavedPages,
     WiseQuote,
     CorpayFormField,
     DynamicFormAddressField,
@@ -515,6 +526,7 @@ export type {
     DynamicFormContentItem,
     DynamicFormCountryField,
     DynamicFormField,
+    DynamicFormFieldFormat,
     DynamicFormFieldOption,
     DynamicFormFileUpload,
     DynamicFormFieldType,
@@ -523,6 +535,7 @@ export type {
     DynamicFormListField,
     DynamicFormListItem,
     DynamicFormMultiChoiceField,
+    DynamicFormNotice,
     DynamicFormNumberField,
     DynamicFormPage,
     DynamicFormSchema,
@@ -561,7 +574,6 @@ export type {
     AppReview,
     AppReviewLastPrompt,
     SamlMetadata,
-    DomainAccountMergeRequest,
     DomainErrors,
     DomainHighlightItems,
     DomainPendingActions,

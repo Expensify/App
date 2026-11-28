@@ -1,14 +1,25 @@
-import {renderHook, waitFor} from '@testing-library/react-native';
+import {act, renderHook, waitFor} from '@testing-library/react-native';
+
+import {SearchQueryContext} from '@components/Search/SearchContextDefinitions';
+import {SearchScopeProvider} from '@components/Search/SearchScopeProvider';
 
 import useLoadPolicyCategories from '@hooks/useLoadPolicyCategories';
 import useLoadPolicyTags from '@hooks/useLoadPolicyTags';
 
 import type * as PolicyCategory from '@libs/actions/Policy/Category';
 import type * as PolicyTag from '@libs/actions/Policy/Tag';
+import {setForceOffline} from '@libs/NetworkState';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import type {ReactNode} from 'react';
+import type {ValueOf} from 'type-fest';
+
+import React, {useContext} from 'react';
 import Onyx from 'react-native-onyx';
+
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 /**
  * Both hooks own the picker's loading flag. Without a policyID no read is ever dispatched, so the loading state key
@@ -16,6 +27,30 @@ import Onyx from 'react-native-onyx';
  */
 
 const POLICY_ID = 'A1B2C3';
+const CURRENT_USER_EMAIL = 'picker@test.com';
+
+/** Signs the current user in and stores the workspace with the given role for them */
+async function setCurrentUserRole(role: ValueOf<typeof CONST.POLICY.ROLE>) {
+    await Onyx.merge(ONYXKEYS.SESSION, {
+        email: CURRENT_USER_EMAIL,
+        accountID: 1,
+    });
+    await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {
+        id: POLICY_ID,
+        type: CONST.POLICY.TYPE.CORPORATE,
+        role,
+        employeeList: {[CURRENT_USER_EMAIL]: {email: CURRENT_USER_EMAIL, role}},
+    });
+}
+
+const SEARCH_HASH = 123;
+const POLICY_KEY = `${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}` as const;
+
+/** Puts the hook on a Search page whose snapshot is SEARCH_HASH, so snapshot-aware Onyx reads resolve from the snapshot */
+function SearchSnapshotWrapper({children}: {children: ReactNode}) {
+    const searchQueryContext = useContext(SearchQueryContext);
+    return React.createElement(SearchScopeProvider, null, React.createElement(SearchQueryContext.Provider, {value: {...searchQueryContext, currentSearchHash: SEARCH_HASH}}, children));
+}
 
 const mockGetPolicyCategories = jest.fn<void, [string]>();
 const mockOpenPolicyTagsPage = jest.fn<void, [string]>();
@@ -40,18 +75,20 @@ const hooks = [
     {
         name: 'useLoadPolicyCategories',
         renderPicker: (policyID: string | undefined) => renderHook(() => useLoadPolicyCategories(policyID)),
+        renderPickerOnSearch: (policyID: string) => renderHook(() => useLoadPolicyCategories(policyID), {wrapper: SearchSnapshotWrapper}),
         getIsLoading: (result: {isLoadingPolicyCategories?: boolean; isLoadingPolicyTags?: boolean}) => result.isLoadingPolicyCategories,
         mockRead: mockGetPolicyCategories,
     },
     {
         name: 'useLoadPolicyTags',
         renderPicker: (policyID: string | undefined) => renderHook(() => useLoadPolicyTags(policyID)),
+        renderPickerOnSearch: (policyID: string) => renderHook(() => useLoadPolicyTags(policyID), {wrapper: SearchSnapshotWrapper}),
         getIsLoading: (result: {isLoadingPolicyCategories?: boolean; isLoadingPolicyTags?: boolean}) => result.isLoadingPolicyTags,
         mockRead: mockOpenPolicyTagsPage,
     },
 ] as const;
 
-describe.each(hooks)('$name', ({renderPicker, getIsLoading, mockRead}) => {
+describe.each(hooks)('$name', ({renderPicker, renderPickerOnSearch, getIsLoading, mockRead}) => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
     });
@@ -73,13 +110,55 @@ describe.each(hooks)('$name', ({renderPicker, getIsLoading, mockRead}) => {
         expect(mockRead).not.toHaveBeenCalled();
     });
 
-    it('reports loading and dispatches a read when a policyID is given and nothing is cached', async () => {
+    it.each([CONST.POLICY.ROLE.ADMIN, CONST.POLICY.ROLE.AUDITOR])('reports loading and dispatches a read for a %s when nothing is cached', async (role) => {
+        // Given a role that Auth lets read the workspace's categories and tags
+        await setCurrentUserRole(role);
+
+        // When a picker for the workspace mounts
         const {result} = renderPicker(POLICY_ID);
 
+        // Then the read is sent and the picker shows a skeleton until it lands
         await waitFor(() => {
             expect(mockRead).toHaveBeenCalledWith(POLICY_ID);
         });
         expect(getIsLoading(result.current)).toBe(true);
+    });
+
+    it('settles on not-loading and dispatches no read for a regular member', async () => {
+        // Given a regular member, whom Auth rejects for this read, so sending it would only fail on every picker open
+        await setCurrentUserRole(CONST.POLICY.ROLE.USER);
+
+        // When a picker for the workspace mounts
+        const {result} = renderPicker(POLICY_ID);
+
+        // Then no read is sent and the picker shows the categories or tags already in Onyx instead of a skeleton
+        await waitFor(() => {
+            expect(getIsLoading(result.current)).toBe(false);
+        });
+        expect(mockRead).not.toHaveBeenCalled();
+    });
+
+    it('dispatches a read on Search when the live policy grants access but the snapshot still holds a member role', async () => {
+        // Given a user who was promoted to admin after the Search snapshot was taken, so the snapshot still says member
+        await setCurrentUserRole(CONST.POLICY.ROLE.ADMIN);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${SEARCH_HASH}`, {
+            data: {
+                [POLICY_KEY]: {
+                    id: POLICY_ID,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    role: CONST.POLICY.ROLE.USER,
+                    employeeList: {[CURRENT_USER_EMAIL]: {email: CURRENT_USER_EMAIL, role: CONST.POLICY.ROLE.USER}},
+                },
+            },
+        });
+
+        // When an inline picker for the workspace mounts on that Search page
+        renderPickerOnSearch(POLICY_ID);
+
+        // Then the read is sent, because the permission comes from the live policy rather than the outdated snapshot
+        await waitFor(() => {
+            expect(mockRead).toHaveBeenCalledWith(POLICY_ID);
+        });
     });
 });
 
@@ -94,7 +173,8 @@ describe('useLoadPolicyTags hasLoadedPolicyTags', () => {
     });
 
     it('stays false until the tags read completes, then becomes true', async () => {
-        // Given a policy whose tags were never read in this session, so any cached collection may be partial
+        // Given an admin of a policy whose tags were never read in this session, so any cached collection may be partial
+        await setCurrentUserRole(CONST.POLICY.ROLE.ADMIN);
         const {result} = renderHook(() => useLoadPolicyTags(POLICY_ID));
 
         // When the read is dispatched but has not completed
@@ -111,6 +191,147 @@ describe('useLoadPolicyTags hasLoadedPolicyTags', () => {
         // Then the hook reports the tags as loaded, since a completed read holds every tag list
         await waitFor(() => {
             expect(result.current.hasLoadedPolicyTags).toBe(true);
+        });
+    });
+});
+
+describe('useLoadPolicyTags with several pickers', () => {
+    const LOADING_STATE_KEY = `${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_TAGS_LOADING_STATE}${POLICY_ID}` as const;
+
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    beforeEach(async () => {
+        mockOpenPolicyTagsPage.mockClear();
+        await Onyx.clear();
+
+        // Only roles that can read the workspace's tags send the read, so every picker here belongs to an admin
+        await setCurrentUserRole(CONST.POLICY.ROLE.ADMIN);
+    });
+
+    it('sends one read when two pickers for the same policy mount together', async () => {
+        // Given a policy whose tags were never read in this session
+
+        // When the tag page and its picker mount in the same render, before the read's loading state can reach Onyx
+        renderHook(() => {
+            useLoadPolicyTags(POLICY_ID);
+            useLoadPolicyTags(POLICY_ID);
+        });
+
+        // Then only the first picker sends the read
+        await waitFor(() => {
+            expect(mockOpenPolicyTagsPage).toHaveBeenCalledWith(POLICY_ID);
+        });
+        expect(mockOpenPolicyTagsPage).toHaveBeenCalledTimes(1);
+    });
+
+    it('lets a later picker send the read when the picker that sent it unmounted before its loading state landed', async () => {
+        // Given a picker that sent a read and then closed before the read's loading state reached Onyx
+        const firstPicker = renderHook(() => useLoadPolicyTags(POLICY_ID));
+        await waitFor(() => {
+            expect(mockOpenPolicyTagsPage).toHaveBeenCalledTimes(1);
+        });
+        firstPicker.unmount();
+
+        // When another picker for the same policy mounts
+        renderHook(() => useLoadPolicyTags(POLICY_ID));
+
+        // Then it sends the read itself, so a closed picker cannot leave the policy without tags
+        await waitFor(() => {
+            expect(mockOpenPolicyTagsPage).toHaveBeenCalledTimes(2);
+        });
+    });
+
+    it('lets a later picker retry after the read fails', async () => {
+        // Given a tags read that started and then failed, which leaves hasOnceLoaded unset
+        const firstPicker = renderHook(() => useLoadPolicyTags(POLICY_ID));
+        await waitFor(() => {
+            expect(mockOpenPolicyTagsPage).toHaveBeenCalledTimes(1);
+        });
+        await Onyx.merge(LOADING_STATE_KEY, {isLoading: true});
+        await waitForBatchedUpdates();
+        await Onyx.merge(LOADING_STATE_KEY, {isLoading: false});
+
+        // When another picker for the same policy mounts while the first one is still open
+        renderHook(() => useLoadPolicyTags(POLICY_ID));
+
+        // Then the new picker retries the read, because the failed one no longer blocks it
+        await waitFor(() => {
+            expect(mockOpenPolicyTagsPage).toHaveBeenCalledTimes(2);
+        });
+        firstPicker.unmount();
+    });
+    it('releases the previous policy when a picker switches to another one before the read lands', async () => {
+        // Given a picker that sent a read for one policy, and a second policy the user can also read tags for
+        const OTHER_POLICY_ID = 'D4E5F6';
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${OTHER_POLICY_ID}`, {
+            id: OTHER_POLICY_ID,
+            type: CONST.POLICY.TYPE.CORPORATE,
+            role: CONST.POLICY.ROLE.ADMIN,
+            employeeList: {[CURRENT_USER_EMAIL]: {email: CURRENT_USER_EMAIL, role: CONST.POLICY.ROLE.ADMIN}},
+        });
+        const switchingPicker = renderHook(({policyID}: {policyID: string}) => useLoadPolicyTags(policyID), {initialProps: {policyID: POLICY_ID}});
+        await waitFor(() => {
+            expect(mockOpenPolicyTagsPage).toHaveBeenCalledWith(POLICY_ID);
+        });
+
+        // When that picker moves to the other policy before the first read's loading state reached Onyx
+        switchingPicker.rerender({policyID: OTHER_POLICY_ID});
+        await waitFor(() => {
+            expect(mockOpenPolicyTagsPage).toHaveBeenCalledWith(OTHER_POLICY_ID);
+        });
+
+        // Then a new picker for the first policy can send its read, since the switching picker no longer holds it
+        renderHook(() => useLoadPolicyTags(POLICY_ID));
+        await waitFor(() => {
+            expect(mockOpenPolicyTagsPage).toHaveBeenCalledTimes(3);
+        });
+    });
+
+    it('lets a later picker retry when the picker that sent the read switched to an already-loaded policy and the read failed', async () => {
+        // Given a picker that sent a read for one policy, and a second policy whose tags this session already loaded
+        const LOADED_POLICY_ID = 'G7H8I9';
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${LOADED_POLICY_ID}`, {
+            id: LOADED_POLICY_ID,
+            type: CONST.POLICY.TYPE.CORPORATE,
+            role: CONST.POLICY.ROLE.ADMIN,
+            employeeList: {[CURRENT_USER_EMAIL]: {email: CURRENT_USER_EMAIL, role: CONST.POLICY.ROLE.ADMIN}},
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_TAGS_LOADING_STATE}${LOADED_POLICY_ID}`, {isLoading: false, hasOnceLoaded: true});
+        const switchingPicker = renderHook(({policyID}: {policyID: string}) => useLoadPolicyTags(policyID), {initialProps: {policyID: POLICY_ID}});
+        await waitFor(() => {
+            expect(mockOpenPolicyTagsPage).toHaveBeenCalledWith(POLICY_ID);
+        });
+
+        // When that picker moves to the loaded policy before the first read's loading state reached Onyx, and the first read then fails
+        switchingPicker.rerender({policyID: LOADED_POLICY_ID});
+        await waitForBatchedUpdates();
+        await Onyx.merge(LOADING_STATE_KEY, {isLoading: false});
+        await waitForBatchedUpdates();
+
+        // Then a new picker for the first policy retries the read, since the switching picker no longer holds it
+        renderHook(() => useLoadPolicyTags(POLICY_ID));
+        await waitFor(() => {
+            expect(mockOpenPolicyTagsPage).toHaveBeenCalledTimes(2);
+        });
+        expect(mockOpenPolicyTagsPage).not.toHaveBeenCalledWith(LOADED_POLICY_ID);
+    });
+
+    it('sends the read again after a reconnect cut off the one in flight', async () => {
+        // Given a picker whose read was sent but never answered before the connection dropped
+        renderHook(() => useLoadPolicyTags(POLICY_ID));
+        await waitFor(() => {
+            expect(mockOpenPolicyTagsPage).toHaveBeenCalledTimes(1);
+        });
+        act(() => setForceOffline(true));
+
+        // When the connection comes back
+        act(() => setForceOffline(false));
+
+        // Then the picker sends the read again, since the cut-off read no longer blocks it
+        await waitFor(() => {
+            expect(mockOpenPolicyTagsPage).toHaveBeenCalledTimes(2);
         });
     });
 });

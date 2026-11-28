@@ -72,6 +72,7 @@ function renderWidget({
     queryJSON = QUERY,
     asOfDate,
     tagLevelName,
+    isAwaitingData,
     controls,
     children,
 }: React.PropsWithChildren<{
@@ -81,6 +82,7 @@ function renderWidget({
     queryJSON?: typeof QUERY;
     asOfDate?: string;
     tagLevelName?: string;
+    isAwaitingData?: boolean;
     controls?: React.ReactNode;
 }> = {}) {
     return render(
@@ -93,7 +95,8 @@ function renderWidget({
                 previousPeriodQueryJSON={undefined}
                 previousPeriodSnapshot={undefined}
                 average={undefined}
-                isDashboardLoaded={undefined}
+                isAverageLoaded={undefined}
+                isAwaitingData={isAwaitingData}
                 filters={FILTERS}
                 insightsScope={{searchKey: INSIGHTS_DASHBOARD_SPECS[CONST.INSIGHTS.DASHBOARD.SPEND].searchKey, policyIDs: [], date: FILTERS.date, groupCurrency: FILTERS.groupCurrency}}
                 supportsDrillIn={supportsDrillIn}
@@ -197,6 +200,16 @@ describe('Insights chart view and press', () => {
         expect(content.queryByText('Future expenses') !== null).toBe(state !== INSIGHTS_CHART_STATE.LOADING);
     });
 
+    it('tells the chart data whether new data is on its way, so an empty chart can wait instead', async () => {
+        // Given a Top tags chart whose level is about to fall back
+        // When the widget renders while new data is on its way
+        renderWidget({isAwaitingData: true});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the chart data reads the flag, which turns its empty state into the loading state
+        expect(useInsightsChartData).toHaveBeenLastCalledWith(expect.objectContaining({isAwaitingData: true}), FILTERS);
+    });
+
     it('names the selected tag level when Top tags has no data', async () => {
         // Given an empty ranking for the Location tag level
         const chart = INSIGHTS_DASHBOARD_SPECS[CONST.INSIGHTS.DASHBOARD.SPEND].supportingCharts.find(({graphKey}) => graphKey === CONST.INSIGHTS.GRAPH.TOP_TAGS);
@@ -286,10 +299,10 @@ describe('Insights chart view and press', () => {
     });
 
     it('keeps the default press on dashboards without a Details panel', async () => {
-        // Given a chart on the Compliance dashboard, which has no Details panel
+        // Given a chart on the Efficiency dashboard, which has no Details panel
 
-        // When the widget chooses a point-press action for Compliance
-        renderWidget({dashboardID: CONST.INSIGHTS.DASHBOARD.COMPLIANCE});
+        // When the widget chooses a point-press action for Efficiency
+        renderWidget({dashboardID: CONST.INSIGHTS.DASHBOARD.EFFICIENCY});
         await waitForBatchedUpdatesWithAct();
 
         // Then the chart gets no press override, so a press still opens Search filtered to the point

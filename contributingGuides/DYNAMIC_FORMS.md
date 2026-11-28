@@ -62,6 +62,8 @@ Pass `inputValues` from the render prop, so `showWhen` and `dependsOn` react to 
 
 A page is a heading with its own `content`: `key`, `title` or `titleKey`, `description` or `descriptionKey`, and an optional `showWhen`. Its `content` holds headings and fields in screen order. An item without a `type` is a heading; a heading shows only while its `showWhen` matches and a visible field follows it before the next heading.
 
+An item without a `type` whose `presentation` is `notice` is a notice: a banner with `text` or `textKey` and an optional `showWhen`, for advice about the whole page. It asks nothing and shows wherever the schema puts it, so two can follow each other. Advice about one field goes in that field's `description`. An App version that does not know notices leaves them out.
+
 When the schema is a flat `{fields}` list, the App builds the pages:
 
 - Addresses, files, multi-selects, lists, dependent selects and selects with more than 10 options get a page of their own.
@@ -88,7 +90,7 @@ A page is shown while its own `showWhen` matches and it has a visible field; a p
 | `currency`           | `CurrencyPicker`                                                                                                                          |                                                                                                       |
 | `address`            | The standard address form. The street is the field's value; the other parts are stored under `<key>.city`, `<key>.zipCode` and so on.     | `rule: 'zipCode'`                                                                                     |
 | `file`               | `UploadFile` for PDF, JPG and PNG files, taking one file unless `maxFiles` allows more                                                    | `maxFiles`, `maxFileSize`                                                                             |
-| `amount`             | `AmountForm`. With `currencyKey`, a `CurrencyPicker` above it saves the currency under that key.                                          | `currencyKey`                                                                                         |
+| `amount`             | `AmountFormInline`. With `currencyKey`, a `CurrencyPicker` above it saves the currency under that key.                                          | `currencyKey`                                                                                         |
 | `percent`            | `PercentageForm`, from 1 to 100                                                                                                           |                                                                                                       |
 | `list`               | Rows with Add, Edit and Remove. Each entry is edited on its own page in the flow, or in a modal outside it.                               | `itemFields`, `itemLabel`, `addItemDescription`, `minItems`, `maxItems`                               |
 

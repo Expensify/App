@@ -1,4 +1,4 @@
-import AmountForm from '@components/AmountForm';
+import AmountFormInline from '@components/AmountFormAdapters/AmountFormInline';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -70,13 +70,11 @@ function WorkspaceTimeTrackingDefaultRatePage({
                 >
                     <InputWrapper
                         label={translate('workspace.moreFeatures.timeTracking.defaultHourlyRate')}
-                        InputComponent={AmountForm}
+                        InputComponent={AmountFormInline}
                         inputID={INPUT_IDS.RATE}
                         currency={currency}
                         defaultValue={convertToFrontendAmountAsString(getDefaultTimeTrackingRate(policy), getCurrencyDecimals(currency))}
-                        isCurrencyPressable={false}
                         ref={inputCallbackRef}
-                        displayAsTextInput
                     />
                 </FormProvider>
             </ScreenWrapper>

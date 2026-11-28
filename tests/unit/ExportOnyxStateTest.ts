@@ -15,6 +15,29 @@ describe('maskOnyxState', () => {
         creationDate: '2024-01-01',
     };
 
+    it('masks the tag level names stored with an Insights dashboard', () => {
+        // Given a Spend dashboard whose tag levels are named after a client
+        const input = {[`${ONYXKEYS.COLLECTION.INSIGHTS}${CONST.INSIGHTS.DASHBOARD.SPEND}_1`]: {tagLevels: [{level: 1, names: ['Private client', 'Region']}]}};
+
+        // When the state is exported with masking on
+        const result = maskOnyxState(input, true);
+
+        // Then the names are masked like tag-list names, while the level positions stay readable
+        expect(result).toEqual({[`${ONYXKEYS.COLLECTION.INSIGHTS}${CONST.INSIGHTS.DASHBOARD.SPEND}_1`]: {tagLevels: [{level: 1, names: ['***', '***']}]}});
+    });
+
+    it('masks the tag level names stored for an Insights request', () => {
+        // Given the levels stored for a Spend request, named after a client
+        const key = `${ONYXKEYS.COLLECTION.INSIGHTS_TAG_LEVELS}${CONST.INSIGHTS.DASHBOARD.SPEND}_1`;
+        const input = {[key]: {requestID: '1', requestedAt: 1, inputQuery: 'policyID:A', tagLevels: [{level: 1, names: ['Private client']}]}};
+
+        // When the state is exported with masking on
+        const result = maskOnyxState(input, true);
+
+        // Then the names are masked while the level positions stay readable
+        expect(result).toEqual({[key]: expect.objectContaining({tagLevels: [{level: 1, names: ['***']}]})});
+    });
+
     it('preserves recursive categories and redacts private values in mutable and readonly arrays', () => {
         // Given exported state with unknown nested values, both array categories and masked-key arrays
         const readonlyItems: readonly unknown[] = [null, undefined, 7, {merchant: 'Private merchant', nested: ['user@example.com', {authToken: 'Private token'}]}];
@@ -462,6 +485,29 @@ describe('maskOnyxState', () => {
 
         expect(vendors[externalID]).toMatchObject({externalID, enabled: true, origin: 'quickbooksOnline'});
         expect(vendors[externalID].name).not.toBe('Acme Supplies');
+    });
+
+    it.each([true, false])('masks cached Insights queries and answers with fragile masking %s', (isMaskingFragileDataEnabled) => {
+        // Given a cached explanation containing private spending details in both the query and answer
+        const explanationKey = `${ONYXKEYS.COLLECTION.INSIGHTS_EXPLANATION}123`;
+        const explanation = {
+            jsonQuery: JSON.stringify({explainPrompt: 'Explain spending at Private Merchant', accountID: 42}),
+            response: 'Private Merchant spending increased by $500.',
+            createdAt: '2024-01-01 00:00:00',
+        };
+
+        // When exporting with either setting, since private cache data must always be masked
+        const result = maskOnyxState({[explanationKey]: explanation}, isMaskingFragileDataEnabled);
+        const maskedExplanation = result[explanationKey];
+        if (!isRecord(maskedExplanation)) {
+            throw new Error('Expected a masked Insights explanation');
+        }
+
+        // Then private content is masked while the timestamp remains available for debugging
+        expect(maskedExplanation.jsonQuery).toMatch(/^[a-z]+$/);
+        expect(maskedExplanation.response).toMatch(/^[a-z]+$/);
+        expect(maskedExplanation.createdAt).toBe(explanation.createdAt);
+        expect(JSON.stringify(result)).not.toContain('Private Merchant');
     });
 
     it.each([true, false])('should keep a parked attachment edit out of the export verbatim, with fragile masking %s', (isMaskingFragileDataEnabled) => {
@@ -924,6 +970,26 @@ describe('Onyx key export coverage', () => {
         const maskedOff = maskOnyxState(input, false) as Record<string, unknown>;
         // Then the collection key is still removed
         expect(maskedOff[key]).toBeUndefined();
+    });
+});
+
+describe('integration credentials in the persisted request queue', () => {
+    it.each([
+        ['apiKey', 'RILLET_SECRET_KEY'],
+        ['apiSecret', 'EXAMPLE_API_SECRET'],
+        ['clientSecret', 'BC_CLIENT_SECRET'],
+        ['privateKey', 'EXAMPLE_PRIVATE_KEY'],
+    ])('masks %s on a queued request', (fieldName, secret) => {
+        // Given a connect request that is still waiting in the offline queue
+        const input = {
+            [ONYXKEYS.PERSISTED_REQUESTS]: [{command: 'ConnectPolicyToIntegration', data: {policyID: '1234', [fieldName]: secret}}],
+        };
+
+        // When the state is exported with masking on
+        const exported = JSON.stringify(maskOnyxState(input, true));
+
+        // Then the credential does not appear in the export
+        expect(exported).not.toContain(secret);
     });
 });
 

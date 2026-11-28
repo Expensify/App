@@ -1,7 +1,7 @@
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderCentralPane from '@components/Header/composed/HeaderCentralPane';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {PersonalExpenseRuleRowData} from '@components/Tables/PersonalExpenseRulesTable';
@@ -186,21 +186,19 @@ function ExpenseRulesPage() {
             onPress={() => null}
             options={headerDropdownOptions}
             shouldAlwaysShowDropdownMenu
-            style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
+            style={shouldDisplayButtonsInSeparateLine && [styles.flexGrow1, styles.mb3]}
             testID="ExpenseRulesPage-header-dropdown-menu-button"
         />
     ) : (
-        <View style={[styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && styles.mb3]}>
-            <Button
-                variant={CONST.BUTTON_VARIANT.SUCCESS}
-                onPress={navigateToNewRulePage}
-                style={[shouldDisplayButtonsInSeparateLine && styles.flex1]}
-                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_RULES.NEW_RULE}
-            >
-                <Button.Icon src={icons.Plus} />
-                <Button.Text>{translate('expenseRulesPage.newRule')}</Button.Text>
-            </Button>
-        </View>
+        <Button
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
+            onPress={navigateToNewRulePage}
+            style={shouldDisplayButtonsInSeparateLine && styles.mb3}
+            sentryLabel={CONST.SENTRY_LABEL.SETTINGS_RULES.NEW_RULE}
+        >
+            <Button.Icon src={icons.Plus} />
+            <Button.Text>{translate('expenseRulesPage.newRule')}</Button.Text>
+        </Button>
     );
 
     const expenseRulesSubtitle = (
@@ -217,7 +215,7 @@ function ExpenseRulesPage() {
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
         >
-            <HeaderWithBackButton
+            <HeaderCentralPane
                 onBackButtonPress={() => {
                     if (isMobileSelectionModeEnabled) {
                         setSelectedRules([]);
@@ -227,13 +225,11 @@ function ExpenseRulesPage() {
 
                     Navigation.goBack();
                 }}
-                shouldShowBackButton={shouldUseNarrowLayout}
-                shouldUseHeadlineHeader={!selectionModeHeader}
-                shouldDisplayHelpButton
+                isHeadline={!selectionModeHeader}
                 title={selectionModeHeader ? translate('common.selectMultiple') : translate('expenseRulesPage.title')}
             >
                 {!shouldDisplayButtonsInSeparateLine && hasRules && headerButton}
-            </HeaderWithBackButton>
+            </HeaderCentralPane>
             {shouldDisplayButtonsInSeparateLine && hasRules && <View style={pageGutter}>{headerButton}</View>}
 
             {!hasRules && expenseRulesSubtitle}

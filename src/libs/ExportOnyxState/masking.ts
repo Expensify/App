@@ -167,6 +167,11 @@ const ONYX_KEY_EXPORT_RULES: Record<string, ExportRule> = {
         allowList: [],
         maskList: ['bankName', 'bankAccountLastFour'],
     },
+    // Cached prompts and answers can contain private spending details.
+    [ONYXKEYS.COLLECTION.INSIGHTS_EXPLANATION]: {
+        allowList: ['createdAt'],
+        maskList: ['jsonQuery', 'response'],
+    },
     [ONYXKEYS.USER_WALLET]: {
         allowList: ['currentBalance', 'availableBalance', 'tierName'],
         maskList: [],
@@ -228,6 +233,7 @@ const safeOnyxKeys = new Set<string>([
     ONYXKEYS.COLLECTION.RAM_ONLY_EXPENSIFY_CARD_LOADING_STATE,
     ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT,
     ONYXKEYS.COLLECTION.RAM_ONLY_IS_LOADING_DUPLICATE_TRANSACTION_DETAILS,
+    ONYXKEYS.COLLECTION.RAM_ONLY_IS_LOADING_RECEIPT_PARTNERS,
     ONYXKEYS.COLLECTION.RAM_ONLY_PERSONAL_DETAILS_LOADING_STATE,
     ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_CATEGORIES_LOADING_STATE,
     ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_TAGS_LOADING_STATE,
@@ -425,6 +431,7 @@ const safeOnyxKeys = new Set<string>([
     ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES,
     ONYXKEYS.VERIFY_3DS_SUBSCRIPTION_SOURCE,
     ONYXKEYS.VIEWING_PUBLIC_ROOM_REPORT_ID,
+    ONYXKEYS.WISE_ONBOARDING_UNSAVED_PAGES,
 ]);
 
 // ============================================================
@@ -451,6 +458,7 @@ const onyxKeysToMaskFragileData = new Set<string>([
     ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD,
     ONYXKEYS.COLLECTION.INSIGHTS,
     ONYXKEYS.COLLECTION.INSIGHTS_DETAILS,
+    ONYXKEYS.COLLECTION.INSIGHTS_TAG_LEVELS,
     ONYXKEYS.COLLECTION.MERGE_TRANSACTION,
     ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST,
     ONYXKEYS.COLLECTION.NVP_LOCKED_VBA_UNLOCK_REQUESTED,
@@ -490,6 +498,7 @@ const onyxKeysToMaskFragileData = new Set<string>([
     ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
     ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST,
     ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT,
+    ONYXKEYS.COLLECTION.WORKSPACE_INVITE_CATEGORY_VISIBILITY_DRAFT,
     ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT,
     ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT,
     ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT,
@@ -571,6 +580,7 @@ const onyxKeysToMaskFragileData = new Set<string>([
     // Holds a raw route, and a search route can carry an unencoded email in its "name" param
     ONYXKEYS.RAM_ONLY_PENDING_TRANSACTION_DELETE_URL,
     ONYXKEYS.RAM_ONLY_WALLET_ONFIDO,
+    ONYXKEYS.RAM_ONLY_WORKSPACE_CATEGORIES_SELECTED_FOR_BULK_EDIT,
     ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_BULK_EDIT,
     ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_ROLE_CHANGE,
     ONYXKEYS.RECENTLY_USED_CURRENCIES,
@@ -626,6 +636,8 @@ const keysToMask = new Set([
     'addressName',
     'addressStreet',
     'addressZipCode',
+    'apiKey',
+    'apiSecret',
     'assetReportToken',
     'asset_report_token',
     'authToken',
@@ -637,6 +649,7 @@ const keysToMask = new Set([
     'cardNumber',
     'childReportName',
     'city',
+    'clientSecret',
     'client_secret',
     'comment',
     'companyTaxID',
@@ -655,6 +668,7 @@ const keysToMask = new Set([
     'merchant',
     'modifiedMerchant',
     'name',
+    'names',
     'netSuiteTokenID',
     'netSuiteTokenSecret',
     'oldAccessToken',
@@ -670,6 +684,7 @@ const keysToMask = new Set([
     'policyAvatar',
     'policyName',
     'primaryLogin',
+    'privateKey',
     'publicToken',
     'public_token',
     'refreshToken',

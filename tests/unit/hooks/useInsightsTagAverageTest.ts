@@ -51,7 +51,7 @@ describe('Top tags average comparison', () => {
 
         // When Average is selected
         const {result} = renderHook(() =>
-            useInsightsChartData({chart, queryJSON, snapshot, averageQueryJSON, averageSnapshot, average: {[CONST.SEARCH.CHART_METRIC.AMOUNT]: 99999}, isDashboardLoaded: true}, filters),
+            useInsightsChartData({chart, queryJSON, snapshot, averageQueryJSON, averageSnapshot, average: {[CONST.SEARCH.CHART_METRIC.AMOUNT]: 99999}, isAverageLoaded: true}, filters),
         );
 
         // Then the comparison retains parent-specific rows instead of drawing a shared average line

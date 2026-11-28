@@ -27,9 +27,9 @@ import React from 'react';
 import {StyleSheet, View} from 'react-native';
 
 import buildRankingTableRows from './buildRankingTableRows';
+import InsightsAverageMarker from './InsightsAverageMarker';
 import InsightsDataTableSkeleton from './InsightsDataTableSkeleton';
 import InsightsRankingTableAverageLine from './InsightsRankingTableAverageLine';
-import InsightsRankingTableAverageMarker from './InsightsRankingTableAverageMarker';
 import InsightsRankingTableRow, {RANKING_TABLE_COLUMN} from './InsightsRankingTableRow';
 
 const AVERAGE_FRACTION_DIGITS = 1;
@@ -59,6 +59,9 @@ type InsightsRankingTableProps = {
     queryJSON: Readonly<SearchQueryJSON> | undefined;
 
     isLoading?: boolean;
+
+    /** Called with the pressed row's group. Without it, a pressed row opens on Spend */
+    onRowPress?: (item: GroupedItem) => void;
 };
 
 /** Table of the groups with the highest count, with each group's share drawn as a bar, its count, its amount and, when comparing, how it changed. */
@@ -72,6 +75,7 @@ function InsightsRankingTable({
     isComparingPreviousPeriod,
     queryJSON,
     isLoading,
+    onRowPress,
 }: InsightsRankingTableProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -125,13 +129,14 @@ function InsightsRankingTable({
                         groupBy={groupBy}
                         countDimension={countDimension}
                         queryJSON={queryJSON}
+                        onPress={onRowPress}
                         averageWidthPercent={averageWidthPercent}
                         rowIndex={index}
                     />
                 ))}
                 {!!formattedAverage && (
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.borderTop, cardPadding]}>
-                        <InsightsRankingTableAverageMarker style={styles.insightsRankingTableAverageLegendMark} />
+                        <InsightsAverageMarker style={styles.insightsRankingTableAverageLegendMark} />
                         <Text
                             variant="label"
                             style={styles.textSupporting}
@@ -226,6 +231,7 @@ function InsightsRankingTable({
                             groupBy={groupBy}
                             countDimension={countDimension}
                             queryJSON={queryJSON}
+                            onPress={onRowPress}
                             averageWidthPercent={averageWidthPercent}
                             rowIndex={index}
                         />

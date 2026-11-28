@@ -1,18 +1,27 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import buildConfirmAction from '@components/MoneyRequestConfirmationList/confirmAction';
+import {isMissingRequiredAttendees} from '@components/MoneyRequestConfirmationList/getConfirmationFieldErrors';
 import type {MoneyRequestConfirmationListProps} from '@components/MoneyRequestConfirmationList/types';
 import type {MeasurableInput, SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 
-import useAttendees from '@hooks/useAttendees';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import usePrevious from '@hooks/usePrevious';
+import useReportOwnerAsAttendee from '@hooks/useReportOwnerAsAttendee';
 
 import {getCategoryDescriptionHint, isCategoryDescriptionRequired} from '@libs/CategoryUtils';
 import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseUtil} from '@libs/IOUUtils';
 import {getConfirmationAmount, isConfirmationMerchantRequired, shouldShowConfirmationDate} from '@libs/MoneyRequestUtils';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {arePolicyRulesEnabled, isTaxTrackingEnabled} from '@libs/PolicyUtils';
-import {getCategory, getCurrency, getMerchant, getRateID, isScanRequest as isScanRequestUtil} from '@libs/TransactionUtils';
+import {
+    getAttendees,
+    getCategory,
+    getCurrency,
+    getMerchant,
+    getRateID,
+    isScanRequest as isScanRequestUtil,
+    shouldShowAttendees as shouldShowAttendeesTransactionUtils,
+} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 
@@ -71,6 +80,8 @@ function useConfirmationListDataWithPolicy({
     isDistanceRequest = false,
     isScanRequest: isScanRequestProp = false,
     distanceState,
+    onUnsavedAmountInputChange,
+    onSubmitWillStart,
 }: UseConfirmationListDataParams): ConfirmationListData {
     // Every distance branch below goes inert for the variants that pass no distance state.
     const {
@@ -103,7 +114,8 @@ function useConfirmationListDataWithPolicy({
     const iouCurrencyCode = getCurrency(transaction);
     const iouMerchant = getMerchant(transaction);
     const iouCategory = getCategory(transaction);
-    const iouAttendees = useAttendees(transaction);
+    const reportOwnerAsAttendee = useReportOwnerAsAttendee(transaction);
+    const iouAttendees = getAttendees(transaction, reportOwnerAsAttendee);
 
     const isTypeSend = iouType === CONST.IOU.TYPE.PAY;
     const isTypeInvoice = iouType === CONST.IOU.TYPE.INVOICE;
@@ -121,6 +133,8 @@ function useConfirmationListDataWithPolicy({
     const shouldShowMerchant = (shouldShowSmartScanFields || isTypeSend) && !isDistanceRequest && !isPerDiemRequest && (!isTimeRequest || action !== CONST.IOU.ACTION.CREATE);
 
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat || isTrackExpense, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest);
+
+    const shouldShowAttendees = shouldShowAttendeesTransactionUtils(iouType, policy);
 
     // In the share flow, the caller knows it is a scan before the draft is initialized.
     const isScanRequest = isScanRequestProp || isScanRequestUtil(transaction);
@@ -145,12 +159,12 @@ function useConfirmationListDataWithPolicy({
 
     const [didConfirm, setDidConfirm] = useState(isConfirmed);
     const [didConfirmSplit, setDidConfirmSplit] = useState(false);
-    const [isTaxAmountEmpty, setIsTaxAmountEmpty] = useState(false);
-
-    useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- reset the tax-empty flag whenever the transaction changes
-        setIsTaxAmountEmpty(false);
-    }, [transactionID]);
+    // A multi-scan swaps the receipt on the same list, so the flag holds the receipt whose tax amount was emptied. It is dropped once another receipt is on screen, because coming back shows that receipt's stored 0, which is a valid tax amount.
+    const [emptyTaxAmountTransactionID, setEmptyTaxAmountTransactionID] = useState<string | undefined>();
+    if (emptyTaxAmountTransactionID && emptyTaxAmountTransactionID !== transactionID) {
+        setEmptyTaxAmountTransactionID(undefined);
+    }
+    const isTaxAmountEmpty = !!transactionID && emptyTaxAmountTransactionID === transactionID;
 
     const routeError = Object.values(transaction?.errorFields?.route ?? {}).at(0);
     const isTypeSplit = iouType === CONST.IOU.TYPE.SPLIT;
@@ -159,22 +173,25 @@ function useConfirmationListDataWithPolicy({
     // The date field is rendered under the same condition, so a hidden date is never reported missing.
     const shouldShowDate = shouldShowConfirmationDate(shouldShowSmartScanFields, isDistanceRequest);
 
+    const currentUserLogin = currentUserPersonalDetails.email ?? currentUserPersonalDetails.login;
+
+    // `validate` raises the footer's missing-attendees error with this same rule, so the error clears as soon as the rule passes.
+    const isMissingAttendees = isMissingRequiredAttendees(transaction, {iouType, policy, policyCategories, reportOwnerAsAttendee, currentUserLogin});
+
     const {formError, setFormError, clearFormErrors, setConfirmError, clearConfirmError, shouldDisplayFieldError, errorMessage} = useFormErrorManagement({
         transaction,
         transactionReport,
         iouCategory,
-        iouAttendees,
         policy,
         policyTags,
         policyCategories,
-        currentUserPersonalDetails,
         isEditingSplitBill,
         hasSmartScanFailed,
         didConfirmSplit,
         routeError,
         isTypeSplit,
         shouldShowReadOnlySplits,
-        isDistanceRequest,
+        isMissingAttendees,
     });
 
     const isCategoryRequired = !!policy?.requiresCategory && !isTypeInvoice;
@@ -224,13 +241,14 @@ function useConfirmationListDataWithPolicy({
         iouMerchant,
         iouCategory,
         iouCurrencyCode,
-        iouAttendees,
+        reportOwnerAsAttendee,
         policy,
         policyTags,
         policyTagLists,
         policyCategories,
         selectedParticipants,
         currentUserPersonalDetails,
+        currentUserLogin,
         isEditingSplitBill,
         isMerchantRequired,
         shouldShowTax,
@@ -246,6 +264,7 @@ function useConfirmationListDataWithPolicy({
         isReadOnly,
         shouldShowDate,
         isTaxAmountEmpty,
+        shouldShowAttendees,
     });
 
     const {visibleFieldErrors, revealFieldErrors} = useConfirmationFieldErrors({
@@ -269,8 +288,18 @@ function useConfirmationListDataWithPolicy({
         revealFieldErrors,
         setDidConfirmSplit,
         showDelegateNoAccessModal,
-        onConfirm,
-        onSendMoney,
+        onConfirm:
+            onConfirm &&
+            (() => {
+                onSubmitWillStart?.();
+                return onConfirm();
+            }),
+        onSendMoney:
+            onSendMoney &&
+            ((paymentMethod) => {
+                onSubmitWillStart?.();
+                return onSendMoney(paymentMethod);
+            }),
     });
 
     const amountDisplay = {amount: amountToBeUsed, formattedAmount, formattedAmountPerAttendee};
@@ -281,9 +310,10 @@ function useConfirmationListDataWithPolicy({
         shouldShowMerchant,
         shouldShowCategories,
         shouldShowTax,
+        shouldShowAttendees,
         hasParticipantSection: sections.length > 0,
     };
-    const errorState = {shouldDisplayFieldError, formError, fieldErrors: visibleFieldErrors, clearFormErrors, setFormError};
+    const errorState = {shouldDisplayFieldError, formError, fieldErrors: visibleFieldErrors};
 
     return {
         /** Handed straight to `ConfirmationListLayout`. The variant adds its `listFooterContent`, its `fieldFlags`, and its controllers as children. */
@@ -333,7 +363,8 @@ function useConfirmationListDataWithPolicy({
                 scrollFocusedInputIntoView,
                 fieldViewRefs,
                 onSubmitForm: confirm,
-                onTaxAmountEmptyChange: setIsTaxAmountEmpty,
+                setEmptyTaxAmountTransactionID,
+                onUnsavedAmountInputChange,
             },
         },
 

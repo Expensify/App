@@ -32,7 +32,7 @@ type GovernmentRateCountrySelectorProps = {
     onBackButtonPress: () => void;
 
     /** Called with the picked country when the user saves */
-    onSave: (selectedCountry: string) => void;
+    onSave: (selectedCountry: string) => void | Promise<void>;
 
     /** Optional intro paragraph shown above the list */
     introText?: string;
@@ -54,7 +54,7 @@ function GovernmentRateCountrySelector({headerTitle, initialSelectedCountry, isB
         if (!selectedCountry) {
             return;
         }
-        onSave(selectedCountry);
+        return onSave(selectedCountry);
     };
 
     const FullPageBlockingView = isBlocked ? FullPageOfflineBlockingView : View;

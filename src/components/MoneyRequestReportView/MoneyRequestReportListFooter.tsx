@@ -19,6 +19,7 @@ import {canAddTransaction, getBillableAndTaxTotal, getMoneyRequestSpendBreakdown
 import {hasNonReimbursableTransactions} from '@libs/TransactionUtils';
 
 import {resolveLayoutSpacing} from '@styles/layoutSpacing';
+import variables from '@styles/variables';
 
 import {getAddExpenseDropdownOptions} from '@userActions/IOU/StartExpenseFlows';
 
@@ -124,6 +125,8 @@ function MoneyRequestReportListFooter({report, policy, transactions, hasPendingA
                         isLoadMore
                         containerStyle={styles.mhn5}
                         shouldUseNarrowLayout={false}
+                        // Not rendered beside the Spend column, so keep the skeleton's original width.
+                        sidebarWidth={variables.sideBarWithLHBWidth}
                     />
                 </View>
             )}

@@ -1,5 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import getWisePaymentSummaryRows, {getAmountsWithoutQuote, getWisePaymentSummaryRowCount} from '@components/WisePaymentSummary/utils/getWisePaymentSummaryRows';
+import getWisePaymentSummaryRows, {getAmountsWithoutQuote, WISE_PAYMENT_SUMMARY_ROW_COUNT} from '@components/WisePaymentSummary/utils/getWisePaymentSummaryRows';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
@@ -38,7 +38,8 @@ function WiseQuotePaymentSummary({reportID, searchReport, isPayingUnheldOnly, is
     const {translate} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const [onyxReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
-    const report = searchReport ? {...searchReport, ...onyxReport} : onyxReport;
+    // The quote is read from Onyx only, since a refetch clears it there and the copy from Search would show the old quote under the loader
+    const report = searchReport ? {...searchReport, ...onyxReport, wiseQuote: onyxReport?.wiseQuote, errorFields: onyxReport?.errorFields} : onyxReport;
 
     if (!report) {
         return null;
@@ -68,7 +69,7 @@ function WiseQuotePaymentSummary({reportID, searchReport, isPayingUnheldOnly, is
                     reportID={reportID}
                     report={report}
                     rows={[]}
-                    placeholderRowCount={getWisePaymentSummaryRowCount({report, isPayingUnheldOnly})}
+                    placeholderRowCount={WISE_PAYMENT_SUMMARY_ROW_COUNT}
                 />
             </View>
             {shouldShowLoadingIndicator && (
