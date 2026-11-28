@@ -16,6 +16,7 @@ import type {SearchQueryJSON} from '@components/Search/types';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
+import useActiveSavedSearch from '@hooks/useActiveSavedSearch';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
@@ -23,7 +24,7 @@ import useOnyx from '@hooks/useOnyx';
 import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {saveSearch} from '@libs/actions/Search';
+import {saveSearch, saveSearchFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
@@ -196,7 +197,8 @@ function SearchSavePage() {
     const {convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
 
-    const {currentDefaultSearchQueryFilterKeys, currentSearchQueryJSON} = useSearchQueryContext();
+    const {currentDefaultSearchQueryFilterKeys, currentSearchQueryJSON, currentSearchKey} = useSearchQueryContext();
+    const activeSavedSearch = useActiveSavedSearch();
     const {currentSearchResults} = useSearchResultsContext();
     const queryError = currentSearchQueryJSON ? getSearchQueryError(currentSearchQueryJSON, currentSearchResults?.search) : undefined;
     const canSave = !!currentSearchQueryJSON && !queryError;
@@ -214,6 +216,11 @@ function SearchSavePage() {
 
         const id = rand64();
         saveSearch({id, queryJSON: currentSearchQueryJSON, newName: values[INPUT_IDS.NAME].trim()});
+        // When the new search branches off an edited saved search, the edits now belong to the new one, so the
+        // original goes back to its own query. Otherwise reopening it would restore the edits as its last query.
+        if (currentSearchKey && activeSavedSearch?.query) {
+            saveSearchFilters(currentSearchKey, activeSavedSearch.query);
+        }
         // The query doesn't change, only the search key it now belongs to, so the param is set on the search
         // screen once this RHP is gone and it's the focused route again.
         Navigation.dismissModal({afterTransition: () => Navigation.setParams({searchKey: savedSearchIDToSearchKey(id)})});

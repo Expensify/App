@@ -5,9 +5,13 @@ import useFilterFeedValue from '@components/Search/hooks/useFilterFeedValue';
 import useFilterTaxRateValue from '@components/Search/hooks/useFilterTaxRateValue';
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 
+import useActiveSavedSearch from '@hooks/useActiveSavedSearch';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
+import {saveSearch, saveSearchFilters} from '@libs/actions/Search';
+import Navigation from '@libs/Navigation/Navigation';
+import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import * as SearchUIUtils from '@libs/SearchUIUtils';
 
@@ -17,6 +21,7 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
+import INPUT_IDS from '@src/types/form/SearchSaveForm';
 import type {Card, CardList} from '@src/types/onyx';
 
 import React from 'react';
@@ -36,6 +41,9 @@ jest.mock('@components/Search/SearchContext', () => ({
 }));
 jest.mock('@expensify/react-native-hybrid-app', () => ({__esModule: true, default: {isHybridApp: jest.fn(() => false)}}));
 jest.mock('@hooks/useAutoFocusInput', () => jest.fn(() => ({inputCallbackRef: jest.fn()})));
+jest.mock('@hooks/useActiveSavedSearch');
+jest.mock('@libs/actions/Search', () => ({saveSearch: jest.fn(), saveSearchFilters: jest.fn()}));
+jest.mock('@libs/Navigation/Navigation', () => ({dismissModal: jest.fn(), setParams: jest.fn()}));
 jest.mock('@hooks/useCurrencyList', () => ({useCurrencyListActions: jest.fn(() => ({convertToDisplayStringWithoutCurrency: jest.fn()}))}));
 jest.mock('@hooks/useLocalize');
 jest.mock('@hooks/useOnyx');
@@ -139,4 +147,34 @@ it('shows the reason when the current search is rejected while Save view is open
     // Then saving is disabled and the form explains how to correct the query
     expect(jest.mocked(FormProvider).mock.lastCall?.[0].isSubmitDisabled).toBe(true);
     expect(screen.getByRole('alert')).toHaveTextContent(translateLocal('search.searchResults.invalidReportID'));
+});
+
+it.each([true, false])('preserves the source query when creating a search (saved source: %s)', (hasSavedSource) => {
+    // Given an edited search, optionally branching from a saved search with its own original query
+    form = {};
+    const originalQuery = 'type:expense merchant:Alpha';
+    const currentSearchQueryJSON = buildSearchQueryJSON('type:expense merchant:Beta');
+    const currentSearchKey = savedSearchIDToSearchKey('123');
+    jest.mocked(useSearchQueryContext).mockReturnValueOnce(
+        createMock<ReturnType<typeof useSearchQueryContext>>({currentSearchQueryJSON, currentSearchKey, currentDefaultSearchQueryFilterKeys: new Set()}),
+    );
+    jest.mocked(useActiveSavedSearch).mockReturnValueOnce(hasSavedSource ? {name: 'QA Original', query: originalQuery} : undefined);
+
+    // When the user saves the edited query as a new search
+    render(<SearchSavePage />);
+    const submit = jest.mocked(FormProvider).mock.lastCall?.[0].onSubmit;
+    submit?.({[INPUT_IDS.NAME]: ' QA Copy '});
+
+    // Then the copy keeps the edits and only an existing saved source has its remembered query restored
+    expect(saveSearch).toHaveBeenCalledTimes(1);
+    const savedSearch = jest.mocked(saveSearch).mock.calls.at(0)?.[0];
+    expect(typeof savedSearch?.id).toBe('string');
+    expect(savedSearch?.queryJSON).toBe(currentSearchQueryJSON);
+    expect(savedSearch?.newName).toBe('QA Copy');
+    if (hasSavedSource) {
+        expect(saveSearchFilters).toHaveBeenCalledWith(currentSearchKey, originalQuery);
+    } else {
+        expect(saveSearchFilters).not.toHaveBeenCalled();
+    }
+    expect(Navigation.dismissModal).toHaveBeenCalled();
 });
