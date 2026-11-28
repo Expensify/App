@@ -65,6 +65,8 @@ function navigateToCreatedExpense({threadReportID, transactionID, iouReportID, i
     // Don't reopen an expense the user is already looking at. getState() can miss a just-opened RHP's nested state,
     // so read the full tree.
     const focusedReportID = Navigation.getFocusedReportId(navigationRef.getRootState());
+    // On Spend, a partially cached report can appear to contain only the created expense. Only suppress navigation
+    // for the focused parent when its transaction count confirms that it shows this expense inline.
     if (focusedReportID === threadReportID || (!hasMultipleReportTransactions && (!isOnSpend || isOneTransactionIOUReport) && !!iouReportID && focusedReportID === iouReportID)) {
         return;
     }
