@@ -1310,7 +1310,7 @@ function inviteMemberToWorkspace(policyID: string, inviterEmail?: string) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: memberJoinKey,
-            value: {...failureMembersState, errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericEditFailureMessage')},
+            value: {...failureMembersState, errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.common.cannotRequestToJoin')},
         },
     ];
 
@@ -1414,11 +1414,18 @@ function askToJoinPolicy(policyID: string) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: memberJoinKey,
-            value: {policyID, errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.people.error.genericAdd')},
+            value: {policyID, errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.common.cannotRequestToJoin')},
         },
     ];
 
     API.write(WRITE_COMMANDS.ASK_TO_JOIN_POLICY, {policyID}, {optimisticData, failureData});
+}
+
+/**
+ * Removes the error from a failed request to join a workspace
+ */
+function clearJoinRequestErrors(policyID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER}${policyID}`, {errors: null});
 }
 
 /**
@@ -1788,6 +1795,7 @@ export {
     inviteMemberToWorkspace,
     joinAccessiblePolicy,
     askToJoinPolicy,
+    clearJoinRequestErrors,
     acceptJoinRequest,
     declineJoinRequest,
     importPolicyMembers,
